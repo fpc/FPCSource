@@ -546,8 +546,7 @@ implementation
            { create call to fpc_initialize/finalize_array }
            npara:=ccallparanode.create(ctypeconvnode.create
                      (ppn.left,s32inttype),
-                  ccallparanode.create(caddrnode.create_internal
-                     (crttinode.create(tstoreddef(destppn.left.resultdef),initrtti,rdt_normal)),
+                  ccallparanode.create(load_typeinfo_pointer_node(destppn.left.resultdef,initrtti,rdt_normal),
                   ccallparanode.create(caddrnode.create_internal
                      (destppn.left),nil)));
            if isinit then

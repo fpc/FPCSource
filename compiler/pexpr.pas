@@ -1681,8 +1681,7 @@ implementation
                     (ctemprefnode.create(temp2)),
                  ccallparanode.create(cordconstnode.create
                     (1,s32inttype,true),
-                 ccallparanode.create(caddrnode.create_internal
-                    (crttinode.create(tstoreddef(arrdef),initrtti,rdt_normal)),
+                 ccallparanode.create(load_typeinfo_pointer_node(arrdef,initrtti,rdt_normal),
                  ccallparanode.create(
                    ctypeconvnode.create_internal(
                      ctemprefnode.create(arrnode),voidpointertype),

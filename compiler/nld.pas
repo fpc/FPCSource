@@ -33,8 +33,6 @@ interface
        symconst,symbase,symtype,symsym,symdef;
 
     type
-       Trttidatatype = (rdt_normal,rdt_ord2str,rdt_str2ord);
-
        tloadnodeflags = (
          loadnf_is_self,
          loadnf_load_self_pointer,
@@ -146,7 +144,8 @@ interface
           rttidef : tstoreddef;
           rttidefderef : tderef;
           rttidatatype : Trttidatatype;
-          constructor create(def:tstoreddef;rt:trttitype;dt:Trttidatatype);virtual;
+          rttiindirect : boolean;
+          constructor create(def:tstoreddef;rt:trttitype;dt:Trttidatatype;indirect:boolean);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -819,8 +818,7 @@ implementation
             not is_dynamic_array(left.resultdef) and
             not(target_info.system in systems_garbage_collected_managed_types) then
          begin
-           hp:=ccallparanode.create(caddrnode.create_internal(
-                  crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal)),
+           hp:=ccallparanode.create(load_typeinfo_pointer_node(left.resultdef,initrtti,rdt_normal),
                ccallparanode.create(ctypeconvnode.create_internal(
                  caddrnode.create_internal(left),voidpointertype),
                ccallparanode.create(ctypeconvnode.create_internal(
@@ -896,8 +894,7 @@ implementation
             nil));
         if needrtti then
           hp:=ccallparanode.create(
-            caddrnode.create_internal(
-              crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal)),
+            load_typeinfo_pointer_node(left.resultdef,initrtti,rdt_normal),
             hp);
         result:=ccallnode.createintern(hs,hp);
         firstpass(result);
@@ -1267,12 +1264,13 @@ implementation
 *****************************************************************************}
 
 
-    constructor trttinode.create(def:tstoreddef;rt:trttitype;dt:Trttidatatype);
+    constructor trttinode.create(def:tstoreddef;rt:trttitype;dt:Trttidatatype;indirect:boolean);
       begin
          inherited create(rttin);
          rttidef:=def;
          rttitype:=rt;
          rttidatatype:=dt;
+         rttiindirect:=indirect;
       end;
 
 
@@ -1282,6 +1280,7 @@ implementation
         ppufile.getderef(rttidefderef);
         rttitype:=trttitype(ppufile.getbyte);
         rttidatatype:=trttidatatype(ppufile.getbyte);
+        rttiindirect:=boolean(ppufile.getbyte);
       end;
 
 
@@ -1291,6 +1290,7 @@ implementation
         ppufile.putderef(rttidefderef);
         ppufile.putbyte(byte(rttitype));
         ppufile.putbyte(byte(rttidatatype));
+        ppufile.putbyte(ord(rttiindirect));
       end;
 
 
@@ -1316,6 +1316,7 @@ implementation
          n.rttidef:=rttidef;
          n.rttitype:=rttitype;
          n.rttidatatype:=rttidatatype;
+         n.rttiindirect:=rttiindirect;
          result:=n;
       end;
 
@@ -1324,7 +1325,10 @@ implementation
       begin
         { rtti information will be returned as a void pointer }
         result:=nil;
-        resultdef:=voidpointertype;
+        if rttiindirect then
+          resultdef:=getpointerdef(voidpointertype)
+        else
+          resultdef:=voidpointertype;
       end;
 
 
@@ -1344,7 +1348,8 @@ implementation
           inherited docompare(p) and
           (rttidef = trttinode(p).rttidef) and
           (rttitype = trttinode(p).rttitype) and
-          (rttidatatype = trttinode(p).rttidatatype);
+          (rttidatatype = trttinode(p).rttidatatype) and
+          (rttiindirect=trttinode(p).rttiindirect);
       end;
 
 end.

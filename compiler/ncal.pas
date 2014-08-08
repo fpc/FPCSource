@@ -2774,9 +2774,7 @@ implementation
                   begin
                     if not assigned(pt) or (i=0) then
                       internalerror(200304082);
-                    hiddentree:=caddrnode.create_internal(
-                      crttinode.create(Tstoreddef(pt.resultdef),fullrtti,rdt_normal)
-                    );
+                    hiddentree:=load_typeinfo_pointer_node(pt.resultdef,fullrtti,rdt_normal);
                   end
               else
                 hiddentree:=cnothingnode.create;

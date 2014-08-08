@@ -1355,11 +1355,11 @@ implementation
         location_reset_ref(location,LOC_CREFERENCE,OS_NO,sizeof(pint));
         case rttidatatype of
           rdt_normal:
-            location.reference.symbol:=RTTIWriter.get_rtti_label(rttidef,rttitype,false);
+            location.reference.symbol:=RTTIWriter.get_rtti_label(rttidef,rttitype,rttiindirect);
           rdt_ord2str:
-            location.reference.symbol:=RTTIWriter.get_rtti_label_ord2str(rttidef,rttitype,false);
+            location.reference.symbol:=RTTIWriter.get_rtti_label_ord2str(rttidef,rttitype,rttiindirect);
           rdt_str2ord:
-            location.reference.symbol:=RTTIWriter.get_rtti_label_str2ord(rttidef,rttitype,false);
+            location.reference.symbol:=RTTIWriter.get_rtti_label_str2ord(rttidef,rttitype,rttiindirect);
         end;
       end;
 

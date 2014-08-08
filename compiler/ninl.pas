@@ -316,15 +316,11 @@ implementation
           begin
             {Insert a reference to the ord2string index.}
             newparas.right:=Ccallparanode.create(
-              Caddrnode.create_internal(
-                Crttinode.create(Tenumdef(source.left.resultdef),fullrtti,rdt_normal)
-              ),
+              load_typeinfo_pointer_node(source.left.resultdef,fullrtti,rdt_normal),
               newparas.right);
             {Insert a reference to the typinfo.}
             newparas.right:=Ccallparanode.create(
-              Caddrnode.create_internal(
-                Crttinode.create(Tenumdef(source.left.resultdef),fullrtti,rdt_ord2str)
-              ),
+              load_typeinfo_pointer_node(source.left.resultdef,fullrtti,rdt_ord2str),
               newparas.right);
             {Insert a type conversion from the enumeration to longint.}
             source.left:=Ctypeconvnode.create_internal(source.left,s32inttype);
@@ -899,15 +895,11 @@ implementation
                       {To write(ln) an enum we need a some extra parameters.}
                       {Insert a reference to the ord2string index.}
                       indexpara:=Ccallparanode.create(
-                        Caddrnode.create_internal(
-                          Crttinode.create(Tenumdef(para.left.resultdef),fullrtti,rdt_normal)
-                        ),
+                        load_typeinfo_pointer_node(para.left.resultdef,fullrtti,rdt_normal),
                         nil);
                       {Insert a reference to the typinfo.}
                       indexpara:=Ccallparanode.create(
-                        Caddrnode.create_internal(
-                         Crttinode.create(Tenumdef(para.left.resultdef),fullrtti,rdt_ord2str)
-                        ),
+                        load_typeinfo_pointer_node(para.left.resultdef,fullrtti,rdt_ord2str),
                         indexpara);
                       {Insert a type conversion to to convert the enum to longint.}
                       para.left:=Ctypeconvnode.create_internal(para.left,s32inttype);
@@ -920,9 +912,9 @@ implementation
                   if para.left.resultdef.typ=enumdef then
                     begin
                       {Insert a reference to the string2ord index.}
-                      indexpara:=Ccallparanode.create(Caddrnode.create_internal(
-                        Crttinode.create(Tenumdef(para.left.resultdef),fullrtti,rdt_str2ord)
-                      ),nil);
+                      indexpara:=Ccallparanode.create(
+                        load_typeinfo_pointer_node(para.left.resultdef,fullrtti,rdt_str2ord),
+                        nil);
                       {Insert a type conversion to to convert the enum to longint.}
                       para.left:=Ctypeconvnode.create_internal(para.left,s32inttype);
                       typecheckpass(para.left);
@@ -1567,9 +1559,9 @@ implementation
           enumdef:
             begin
               suffix:='enum_';
-              sizepara:=Ccallparanode.create(Caddrnode.create_internal(
-                Crttinode.create(Tenumdef(destpara.resultdef),fullrtti,rdt_str2ord)
-              ),nil);
+              sizepara:=Ccallparanode.create(
+                load_typeinfo_pointer_node(destpara.resultdef,fullrtti,rdt_str2ord),
+                nil);
             end;
         end;
 
@@ -3343,9 +3335,7 @@ implementation
 
           in_typeinfo_x:
             begin
-              result:=caddrnode.create_internal(
-                crttinode.create(tstoreddef(left.resultdef),fullrtti,rdt_normal)
-              );
+              result:=load_typeinfo_pointer_node(left.resultdef,fullrtti,rdt_normal);
             end;
 
           in_assigned_x:
@@ -3923,8 +3913,7 @@ implementation
                      (ctemprefnode.create(temp)),
                   ccallparanode.create(cordconstnode.create
                      (dims,sinttype,true),
-                  ccallparanode.create(caddrnode.create_internal
-                     (crttinode.create(tstoreddef(destppn.resultdef),initrtti,rdt_normal)),
+                  ccallparanode.create(load_typeinfo_pointer_node(destppn.resultdef,initrtti,rdt_normal),
                   ccallparanode.create(ctypeconvnode.create_internal(destppn,voidpointertype),nil))));
            addstatement(newstatement,ccallnode.createintern('fpc_dynarray_setlength',npara));
            addstatement(newstatement,ctempdeletenode.create(temp));
@@ -4014,8 +4003,7 @@ implementation
             { create call to fpc_dynarray_copy }
             npara:=ccallparanode.create(highppn,
                    ccallparanode.create(lowppn,
-                   ccallparanode.create(caddrnode.create_internal
-                      (crttinode.create(tstoreddef(paradef),initrtti,rdt_normal)),
+                   ccallparanode.create(load_typeinfo_pointer_node(paradef,initrtti,rdt_normal),
                    ccallparanode.create
                       (ctypeconvnode.create_internal(ppn.left,voidpointertype),nil))));
             result:=ccallnode.createinternres('fpc_dynarray_copy',npara,paradef);
@@ -4054,8 +4042,8 @@ implementation
          { create call to fpc_initialize }
          if is_managed_type(tpointerdef(left.resultdef).pointeddef) then
           begin
-            para := ccallparanode.create(caddrnode.create_internal(crttinode.create
-                       (tstoreddef(tpointerdef(left.resultdef).pointeddef),initrtti,rdt_normal)),
+            para := ccallparanode.create(
+                       load_typeinfo_pointer_node(tpointerdef(left.resultdef).pointeddef,initrtti,rdt_normal),
                     ccallparanode.create(ctemprefnode.create
                        (temp),nil));
             addstatement(newstatement,ccallnode.createintern('fpc_initialize',para));

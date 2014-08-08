@@ -199,9 +199,7 @@ implementation
         begin
           result:=ccallnode.createintern('fpc_initialize',
                 ccallparanode.create(
-                    caddrnode.create_internal(
-                        crttinode.create(
-                            tstoreddef(p.resultdef),initrtti,rdt_normal)),
+                    load_typeinfo_pointer_node(p.resultdef,initrtti,rdt_normal),
                 ccallparanode.create(
                     caddrnode.create_internal(p),
                 nil)));
@@ -242,9 +240,7 @@ implementation
       else
         result:=ccallnode.createintern('fpc_finalize',
               ccallparanode.create(
-                  caddrnode.create_internal(
-                      crttinode.create(
-                          tstoreddef(p.resultdef),initrtti,rdt_normal)),
+                  load_typeinfo_pointer_node(p.resultdef,initrtti,rdt_normal),
               ccallparanode.create(
                   caddrnode.create_internal(p),
               nil)));

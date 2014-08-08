@@ -27,7 +27,7 @@ interface
 
   uses
     globtype,constexp,
-    symtype,symsym,symbase,symtable,
+    symtype,symsym,symbase,symtable,symconst,
     node;
 
   const
@@ -75,6 +75,7 @@ interface
     function load_self_pointer_node:tnode;
     function load_vmt_pointer_node:tnode;
     function is_self_node(p:tnode):boolean;
+    function load_typeinfo_pointer_node(def:tdef;rt:trttitype;dt:trttidatatype):tnode;
 
     function node_complexity(p: tnode): cardinal;
     function node_resources_fpu(p: tnode): cardinal;
@@ -144,8 +145,8 @@ interface
 implementation
 
     uses
-      cutils,verbose,globals,
-      symconst,symdef,
+      cutils,verbose,globals,systems,
+      symdef,
       defutil,defcmp,
       nbas,ncon,ncnv,nld,nflw,nset,ncal,nadd,nmem,ninl,
       cpubase,cgbase,procinfo,
@@ -549,6 +550,25 @@ implementation
                       (vo_is_self in tparavarsym(tloadnode(p).symtableentry).varoptions);
       end;
 
+
+    function load_typeinfo_pointer_node(def:tdef;rt:trttitype;dt:trttidatatype):tnode;
+      begin
+        { further potential for optimizations:
+          - if the node resides in the same unit as the def (and thus the RTTI symbol) we can use
+            the direct approach (pay attention to inlining though!)
+          - if this unit is compiled as part of a library or program (in contrast to a package)
+            then we could use the indirect approach as well (the code won't "migrate" back into any
+            used package so this would be a "safe" optimization) }
+        result:=caddrnode.create_internal(
+                    crttinode.create(tstoreddef(def),rt,dt,tf_supports_packages in target_info.flags)
+                  );
+        include(result.flags,nf_typedaddr);
+        if tf_supports_packages in target_info.flags then
+          begin
+            result:=cderefnode.create(result);
+            include(result.flags,nf_no_checkpointer);
+          end;
+      end;
 
     { this function must return a very high value ("infinity") for   }
     { trees containing a call, the rest can be balanced more or less }

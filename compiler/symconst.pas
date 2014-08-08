@@ -619,6 +619,12 @@ type
     objcclassrtti,objcclassrortti
   );
 
+  trttidatatype = (
+    rdt_normal,
+    rdt_ord2str,
+    rdt_str2ord
+  );
+
   { The order is from low priority to high priority,
     Note: the operators > and < are used on this list }
   tequaltype = (
