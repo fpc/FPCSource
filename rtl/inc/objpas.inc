@@ -272,6 +272,24 @@
                                TOBJECT
 ****************************************************************************}
 
+
+      function TVmt.GetvParent: PVmt;
+        begin
+          {$ifdef ver2_6}
+          Result:=vParentRef;
+          {$else}
+          if Assigned(vParentRef) then
+            Result:=vParentRef^
+          else
+            Result:=Nil;
+          {$endif}
+        end;
+
+
+{****************************************************************************
+                               TOBJECT
+****************************************************************************}
+
       constructor TObject.Create;
         begin
         end;

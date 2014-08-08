@@ -741,7 +741,11 @@ type
   pobjectvmt=^tobjectvmt;
   tobjectvmt=record
     size,msize:sizeuint;
+    {$ifdef ver2_6}
     parent:pointer;
+    {$else}
+    parent:ppointer;
+    {$endif}
   end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_HELP_CONSTRUCTOR}
@@ -846,7 +850,14 @@ begin
      if vmt=expvmt then
        exit
      else
+       {$ifdef ver2_6}
        vmt:=pobjectvmt(vmt)^.parent;
+       {$else}
+       if assigned(pobjectvmt(vmt)^.parent) then
+         vmt:=pobjectvmt(vmt)^.parent^
+       else
+         vmt:=nil;
+       {$endif}
    RunError(219);
 end;
 {$endif not FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}

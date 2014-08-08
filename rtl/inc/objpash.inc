@@ -97,10 +97,18 @@
        pinterfacetable = ^tinterfacetable;
 
        PVmt = ^TVmt;
+       PPVmt = ^PVmt;
        TVmt = record
+       private
+         function GetvParent: PVmt; inline;
+       public
          vInstanceSize: SizeInt;
          vInstanceSize2: SizeInt;
-         vParent: PVmt;
+         {$ifdef ver2_6}
+         vParentRef: PVmt;
+         {$else}
+         vParentRef: PPVmt;
+         {$endif}
          vClassName: PShortString;
          vDynamicTable: Pointer;
          vMethodTable: Pointer;
@@ -123,6 +131,7 @@
          vEquals: CodePointer;
          vGetHashCode: CodePointer;
          vToString: CodePointer;
+         property vParent: PVmt read GetvParent;
        end;
 
        PGuid = ^TGuid;
