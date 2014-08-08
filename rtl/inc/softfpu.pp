@@ -2868,8 +2868,6 @@ point value corresponding to the abstract input.  This routine is just like
 `roundAndPackFloat64' except that `zSig' does not have to be normalized.
 Bit 63 of `zSig' must be zero, and `zExp' must be 1 less than the ``true''
 floating-point exponent.
---
-additionally the Pascal version should support Bit 63 set in 'zSig'
 ----------------------------------------------------------------------------
 *}
 
@@ -2878,10 +2876,7 @@ function normalizeRoundAndPackFloat64(zSign: flag; zExp: int16; zSig: bits64): f
     shiftCount: int8;
   begin
     shiftCount := countLeadingZeros64( zSig ) - 1;
-    if ( shiftCount <= 0) then
-      result := roundAndPackFloat64( zSign, zExp - shiftCount, zSig shr (-shiftCount))
-    else
-      result := roundAndPackFloat64( zSign, zExp - shiftCount, zSig shl shiftCount);
+    result := roundAndPackFloat64( zSign, zExp - shiftCount, zSig shl shiftCount);
   end;
 
 {*
@@ -5832,11 +5827,26 @@ End;
 *----------------------------------------------------------------------------*}
 function qword_to_float64( a: qword ): float64;
 {$ifdef fpc}[public,Alias:'QWORD_TO_FLOAT64'];compilerproc;{$endif}
+var
+  shiftCount: int8;
 Begin
   if ( a = 0 ) then
     result := packFloat64( 0, 0, 0 )
   else
-    result := normalizeRoundAndPackFloat64( 0, $43c, a );
+    begin
+      shiftCount := countLeadingZeros64(a) - 1;
+      { numbers with <= 53 significant bits are converted exactly }
+      if (shiftCount > 9) then
+        result := packFloat64(0, $43c - shiftCount, a shl (shiftCount-10))
+      else if (shiftCount>=0) then
+        result := roundAndPackFloat64( 0, $43c - shiftCount, a shl shiftCount)
+      else
+        begin
+          { the only possible negative value is -1, in case bit 63 of 'a' is set }
+          shift64RightJamming(a, 1, a);
+          result := roundAndPackFloat64(0, $43d, a);
+        end;
+    end;
 End;
 
 
