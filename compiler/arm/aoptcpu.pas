@@ -49,7 +49,7 @@ Type
       change in program flow.
       If there is none, it returns false and
       sets p1 to nil                                                     }
-    Function GetNextInstructionUsingReg(Current: tai; Var Next: tai;reg : TRegister): Boolean;
+    Function GetNextInstructionUsingReg(Current: tai; Out Next: tai; reg: TRegister): Boolean;
 
     { outputs a debug message into the assembler file }
     procedure DebugMsg(const s: string; p: tai);
@@ -317,15 +317,18 @@ Implementation
          RegLoadedWithNewValue(reg,p);
     end;
 
-
   function TCpuAsmOptimizer.GetNextInstructionUsingReg(Current: tai;
-    var Next: tai; reg: TRegister): Boolean;
+    Out Next: tai; reg: TRegister): Boolean;
     begin
       Next:=Current;
       repeat
         Result:=GetNextInstruction(Next,Next);
-      until not(cs_opt_level3 in current_settings.optimizerswitches) or not(Result) or (Next.typ<>ait_instruction) or (RegInInstruction(reg,Next)) or
-        (is_calljmp(taicpu(Next).opcode)) or (RegInInstruction(NR_PC,Next));
+      until not (Result) or
+            not(cs_opt_level3 in current_settings.optimizerswitches) or
+            (Next.typ<>ait_instruction) or
+            RegInInstruction(reg,Next) or
+            is_calljmp(taicpu(Next).opcode) or
+            RegModifiedByInstruction(NR_PC,Next);
     end;
 
 {$ifdef DEBUG_AOPTCPU}
