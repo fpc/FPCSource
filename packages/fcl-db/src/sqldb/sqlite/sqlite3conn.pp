@@ -97,7 +97,7 @@ type
     function GetInsertID: int64;
     // See http://www.sqlite.org/c3ref/create_collation.html for detailed information
     // If eTextRep=0 a default UTF-8 compare function is used (UTF8CompareCallback)
-    // Warning: UTF8CompareCallback needs a wide string manager on linux such as cwstring
+    // Warning: UTF8CompareCallback needs a wide string manager on Linux such as cwstring
     // Warning: CollationName has to be a UTF-8 string
     procedure CreateCollation(const CollationName: string; eTextRep: integer; Arg: Pointer=nil; Compare: xCompare=nil);
     procedure LoadExtension(LibraryFile: string);
@@ -540,7 +540,10 @@ begin
 end;
 
 // Parses string-formatted time into TDateTime value
-// Expected format '23:59:59.999' (without ')
+// Expected formats
+// 23:59
+// 23:59:59
+// 23:59:59.999
 Function ParseSQLiteTime(S : ShortString; Interval: boolean) : TDateTime;
 
 Var
@@ -550,14 +553,25 @@ begin
   Result:=0;
   If TryStrToInt(NextWord(S,':'),Hour) then
     if TryStrToInt(NextWord(S,':'),Min) then
+    begin
       if TryStrToInt(NextWord(S,'.'),Sec) then
-        begin
-        MSec:=StrToIntDef(S,0);
-        if Interval then
-          Result:=EncodeTimeInterval(Hour,Min,Sec,MSec)
-        else
-          Result:=EncodeTime(Hour,Min,Sec,MSec);
-        end;
+      begin // 23:59:59 or 23:59:59.999
+      MSec:=StrToIntDef(S,0);
+      if Interval then
+        Result:=EncodeTimeInterval(Hour,Min,Sec,MSec)
+      else
+        Result:=EncodeTime(Hour,Min,Sec,MSec);
+      end;
+    end
+    else //23:59
+    begin
+      Sec:=0;
+      MSec:=0;
+      if Interval then
+        Result:=EncodeTimeInterval(Hour,Min,Sec,MSec)
+      else
+        Result:=EncodeTime(Hour,Min,Sec,MSec);
+    end;
 end;
 
 // Parses string-formatted date/time into TDateTime value
@@ -570,7 +584,9 @@ var
 begin
   DS:='';
   TS:='';
-  P:=Pos(' ',S);
+  P:=Pos('T',S); //allow e.g. YYYY-MM-DDTHH:MM
+  if P=0 then
+    P:=Pos(' ',S); //allow e.g. YYYY-MM-DD HH:MM
   If (P<>0) then
     begin
     DS:=Copy(S,1,P-1);
