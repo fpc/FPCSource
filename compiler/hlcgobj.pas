@@ -2424,8 +2424,9 @@ implementation
 
   procedure thlcgobj.a_loadfpu_ref_cgpara(list: TAsmList; fromsize: tdef; const ref: treference; const cgpara: TCGPara);
     var
+       hreg : tregister;
        href : treference;
-//       hsize: tcgsize;
+       intptrdef: tdef;
     begin
        case cgpara.location^.loc of
         LOC_FPUREGISTER,LOC_CFPUREGISTER:
@@ -2441,22 +2442,19 @@ implementation
             { concatcopy should choose the best way to copy the data }
             g_concatcopy(list,fromsize,ref,href);
           end;
-        (* not yet supported
         LOC_REGISTER,LOC_CREGISTER:
           begin
-            { force integer size }
-            hsize:=int_cgsize(tcgsize2size[size]);
-{$ifndef cpu64bitalu}
-            if (hsize in [OS_S64,OS_64]) then
-              cg64.a_load64_ref_cgpara(list,ref,cgpara)
-            else
-{$endif not cpu64bitalu}
-              begin
-                cgpara.check_simple_location;
-                a_load_ref_cgpara(list,hsize,ref,cgpara)
-              end;
+            cgpara.check_simple_location;
+            if fromsize.size<>cgpara.location^.def.size then
+              internalerror(2014080603);
+            { convert the reference from a floating point location to an
+              integer location, and load that }
+            intptrdef:=getpointerdef(cgpara.location^.def);
+            hreg:=getaddressregister(list,intptrdef);
+            a_loadaddr_ref_reg(list,fromsize,intptrdef,ref,hreg);
+            reference_reset_base(href,intptrdef,hreg,0,ref.alignment);
+            a_load_ref_cgpara(list,cgpara.location^.def,ref,cgpara);
           end
-        *)
         else
           internalerror(2010120423);
       end;
