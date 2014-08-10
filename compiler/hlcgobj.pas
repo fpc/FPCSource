@@ -310,6 +310,7 @@ unit hlcgobj;
           procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const ref: treference); virtual; abstract;
           procedure a_loadfpu_ref_ref(list: TAsmList; fromsize, tosize: tdef; const ref1,ref2: treference);virtual;
           procedure a_loadfpu_loc_reg(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; const reg: tregister);virtual;
+          procedure a_loadfpu_loc_ref(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; const ref: treference);virtual;
           procedure a_loadfpu_reg_loc(list: TAsmList; fromsize, tosize: tdef; const reg: tregister; const loc: tlocation);virtual;
           procedure a_loadfpu_reg_cgpara(list : TAsmList;fromsize: tdef;const r : tregister;const cgpara : TCGPara);virtual;
           procedure a_loadfpu_ref_cgpara(list : TAsmList;fromsize : tdef;const ref : treference;const cgpara : TCGPara);virtual;
@@ -322,6 +323,7 @@ unit hlcgobj;
           { required for subsetreg/ref; still tcgsize rather than tdef because of reason mentioned above }
           procedure a_loadmm_loc_reg(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; const reg: tregister; shuffle : pmmshuffle);virtual;
           procedure a_loadmm_reg_loc(list: TAsmList; fromsize, tosize: tdef; const reg: tregister; const loc: tlocation;shuffle : pmmshuffle);virtual;
+          procedure a_loadmm_loc_ref(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; const ref: treference; shuffle : pmmshuffle);virtual;
           procedure a_loadmm_reg_cgpara(list: TAsmList; fromsize: tdef; reg: tregister;const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
           procedure a_loadmm_ref_cgpara(list: TAsmList; fromsize: tdef; const ref: treference;const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
           procedure a_loadmm_loc_cgpara(list: TAsmList; fromsize: tdef; const loc: tlocation; const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
@@ -2380,6 +2382,26 @@ implementation
       end;
     end;
 
+  procedure thlcgobj.a_loadfpu_loc_ref(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; const ref: treference);
+    var
+      reg: tregister;
+    begin
+      case loc.loc of
+        LOC_REFERENCE, LOC_CREFERENCE:
+          begin
+            reg:=getfpuregister(list,tosize);
+            a_loadfpu_ref_reg(list,fromsize,tosize,loc.reference,reg);
+            a_loadfpu_reg_ref(list,tosize,tosize,reg,ref);
+          end;
+        LOC_FPUREGISTER, LOC_CFPUREGISTER:
+          begin
+            a_loadfpu_reg_ref(list,fromsize,tosize,loc.register,ref);
+          end;
+        else
+          internalerror(2014080802);
+      end;
+    end;
+
   procedure thlcgobj.a_loadfpu_reg_loc(list: TAsmList; fromsize, tosize: tdef; const reg: tregister; const loc: tlocation);
     begin
       case loc.loc of
@@ -2501,6 +2523,39 @@ implementation
           a_loadmm_reg_ref(list,fromsize,tosize,reg,loc.reference,shuffle);
         else
           internalerror(2010120415);
+      end;
+    end;
+
+  procedure thlcgobj.a_loadmm_loc_ref(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; const ref: treference; shuffle: pmmshuffle);
+    var
+      intreg, reg: tregister;
+    begin
+      case loc.loc of
+        LOC_MMREGISTER,LOC_CMMREGISTER:
+          a_loadmm_reg_ref(list,fromsize,tosize,loc.register,ref,shuffle);
+        LOC_REFERENCE,LOC_CREFERENCE:
+          begin
+            reg:=getmmregister(list,tosize);
+            a_loadmm_ref_reg(list,fromsize,tosize,loc.reference,reg,shuffle);
+            a_loadmm_reg_ref(list,tosize,tosize,reg,ref,shuffle);
+          end;
+        LOC_REGISTER,LOC_CREGISTER:
+          begin
+            reg:=getmmregister(list,tosize);
+            a_loadmm_intreg_reg(list,fromsize,tosize,loc.register,reg,shuffle);
+            a_loadmm_reg_ref(list,tosize,tosize,reg,ref,shuffle);
+          end;
+        LOC_SUBSETREG,LOC_CSUBSETREG,
+        LOC_SUBSETREF,LOC_CSUBSETREF:
+          begin
+            intreg:=getintregister(list,fromsize);
+            reg:=getmmregister(list,tosize);
+            a_load_loc_reg(list,fromsize,fromsize,loc,intreg);
+            a_loadmm_intreg_reg(list,fromsize,tosize,intreg,reg,shuffle);
+            a_loadmm_reg_ref(list,tosize,tosize,reg,ref,shuffle);
+          end
+        else
+          internalerror(2014080803);
       end;
     end;
 
