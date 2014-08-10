@@ -519,6 +519,16 @@ implementation
         signext: tllvmvalueextension;
         usedef: tdef;
       begin
+        if (proccalloption in cdecl_pocalls) and
+           is_array_of_const(hp.vardef) then
+          begin
+            if not first then
+               encodedstr:=encodedstr+', '
+            else
+              first:=false;
+            encodedstr:=encodedstr+'...';
+            exit
+          end;
         paraloc:=hp.paraloc[calleeside].location;
         repeat
           usedef:=paraloc^.def;
@@ -599,6 +609,12 @@ implementation
           begin
             hp:=tparavarsym(def.paras[paranr]);
             llvmaddencodedparaloctype(hp,def.proccalloption,pddecltype in [lpd_decl],first,encodedstr);
+          end;
+        if po_varargs in def.procoptions then
+          begin
+            if not first then
+              encodedstr:=encodedstr+', ';
+            encodedstr:=encodedstr+'...';
           end;
         encodedstr:=encodedstr+')'
       end;
