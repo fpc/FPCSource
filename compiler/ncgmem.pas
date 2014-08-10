@@ -108,10 +108,28 @@ implementation
              location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
              if not is_objcclass(left.resultdef) then
                begin
-                 reference_reset_symbol(href,
-                   current_asmdata.RefAsmSymbol(tobjectdef(tclassrefdef(resultdef).pointeddef).vmt_mangledname,AT_DATA),0,
-                   voidpointertype.size);
-                 hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,href,location.register);
+                 if tf_supports_packages in target_info.flags then
+                   begin
+                     { Potential for optimization:
+                       - if the VMT we are loading resides in the same unit as
+                         this node then we can load the VMT directly (pay
+                         attention though when the function of the node is
+                         inlined!)
+                       - if the unit the VMT belongs to is compiled directly in
+                         the program or library (and not part of a package) then
+                         we can load the VMT directly }
+                     reference_reset_symbol(href,
+                       current_asmdata.RefAsmSymbol(tobjectdef(tclassrefdef(resultdef).pointeddef).vmt_mangledname(true),AT_DATA),0,
+                       voidpointertype.size);
+                     hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,href,location.register);
+                   end
+                 else
+                   begin
+                     reference_reset_symbol(href,
+                       current_asmdata.RefAsmSymbol(tobjectdef(tclassrefdef(resultdef).pointeddef).vmt_mangledname(false),AT_DATA),0,
+                       voidpointertype.size);
+                     hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,href,location.register);
+                   end;
                end
              else
                begin
