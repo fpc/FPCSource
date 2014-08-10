@@ -27,7 +27,7 @@ interface
 
 uses
   symtype,
-  node, nmat, ncgmat, cgbase;
+  node, nmat, ncgmat, ncghlmat, cgbase;
 
 type
   tllvmmoddivnode = class(tcgmoddivnode)
@@ -36,6 +36,9 @@ type
 
   Tllvmunaryminusnode = class(tcgunaryminusnode)
     procedure emit_float_sign_change(r: tregister; _size : tdef);override;
+  end;
+
+  tllvmnotnode = class(tcghlnotnode)
   end;
 
 implementation
@@ -114,7 +117,7 @@ begin
   cmoddivnode := tllvmmoddivnode;
 (*
   cshlshrnode := tllvmshlshrnode;
-  cnotnode    := tllvmnotnode;
 *)
+  cnotnode    := tllvmnotnode;
   cunaryminusnode := Tllvmunaryminusnode;
 end.

@@ -26,7 +26,7 @@ unit njvmmat;
 interface
 
     uses
-      node,nmat,ncgmat;
+      node,nmat,ncgmat,ncghlmat;
 
     type
       tjvmmoddivnode = class(tmoddivnode)
@@ -40,9 +40,7 @@ interface
          procedure pass_generate_code;override;
       end;
 
-      tjvmnotnode = class(tcgnotnode)
-         function pass_1: tnode; override;
-         procedure second_boolean;override;
+      tjvmnotnode = class(tcghlnotnode)
       end;
 
       tjvmunaryminusnode = class(tcgunaryminusnode)
@@ -184,35 +182,6 @@ implementation
           op:=OP_SHR;
         thlcgjvm(hlcg).a_op_loc_stack(current_asmdata.CurrAsmList,op,resultdef,right.location);
         thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,resultdef,location.register);
-      end;
-
-
-{*****************************************************************************
-                               tjvmnotnode
-*****************************************************************************}
-
-    function tjvmnotnode.pass_1: tnode;
-      begin
-        result:=inherited;
-        if not assigned(result) and
-           is_boolean(resultdef) then
-          expectloc:=LOC_JUMP;
-      end;
-
-
-    procedure tjvmnotnode.second_boolean;
-      var
-        hl : tasmlabel;
-      begin
-        hl:=current_procinfo.CurrTrueLabel;
-        current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
-        current_procinfo.CurrFalseLabel:=hl;
-        secondpass(left);
-        hlcg.maketojumpbool(current_asmdata.CurrAsmList,left);
-        hl:=current_procinfo.CurrTrueLabel;
-        current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
-        current_procinfo.CurrFalseLabel:=hl;
-        location.loc:=LOC_JUMP;
       end;
 
 

@@ -460,6 +460,7 @@ compiler/ncgcal.pas svneol=native#text/plain
 compiler/ncgcnv.pas svneol=native#text/plain
 compiler/ncgcon.pas svneol=native#text/plain
 compiler/ncgflw.pas svneol=native#text/plain
+compiler/ncghlmat.pas svneol=native#text/plain
 compiler/ncginl.pas svneol=native#text/plain
 compiler/ncgld.pas svneol=native#text/plain
 compiler/ncgmat.pas svneol=native#text/plain
