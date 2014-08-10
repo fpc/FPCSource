@@ -973,7 +973,9 @@ implementation
       retpara.check_simple_location;
       retdef:=retpara.location^.def;
       if is_void(retdef) or
-         paramanager.ret_in_param(retdef,current_procinfo.procdef) then
+         { don't check retdef here, it is e.g. a pshortstring in case it's
+           shortstring that's returned in a parameter }
+         paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef) then
         list.concat(taillvm.op_size(la_ret,voidtype))
       else
         begin
