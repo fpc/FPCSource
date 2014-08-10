@@ -89,7 +89,10 @@ unit llvmpara;
         paralocs }
       while assigned(paraloc) do
         begin
-          if paramanager.push_addr_param(parasym.varspez,parasym.vardef,tabstractprocdef(parasym.owner.defowner).proccalloption) or
+          { varargs parameters do not have a parasym.owner, but they're always
+            by value }
+          if (assigned(parasym.owner) and
+              paramanager.push_addr_param(parasym.varspez,parasym.vardef,tabstractprocdef(parasym.owner.defowner).proccalloption)) or
              not llvmbyvalparaloc(paraloc) then
             begin
               case paraloc^.loc of

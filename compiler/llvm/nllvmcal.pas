@@ -57,14 +57,20 @@ implementation
         paraindex: longint;
       begin
         { we just pass the temp paralocs here }
-        setlength(paralocs,procdefinition.paras.count);
+        if not assigned(varargsparas) then
+          setlength(paralocs,procdefinition.paras.count)
+        else
+          setlength(paralocs,procdefinition.paras.count+varargsparas.count);
         n:=tcgcallparanode(left);
         while assigned(n) do
           begin
             { TODO: check whether this is correct for left-to-right calling
               conventions, may also depend on whether or not llvm knows about
               the calling convention }
-            paraindex:=procdefinition.paras.indexof(n.parasym);
+            if not(cpf_varargs_para in n.callparaflags) then
+              paraindex:=procdefinition.paras.indexof(n.parasym)
+            else
+              paraindex:=procdefinition.paras.count+varargsparas.indexof(n.parasym);
             if paraindex=-1 then
              internalerror(2014010602);
             paralocs[paraindex]:=@n.tempcgpara;
