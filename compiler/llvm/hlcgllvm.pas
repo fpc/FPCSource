@@ -769,7 +769,7 @@ implementation
     var
       tmpreg : tregister;
       invert: boolean;
-      falselab, tmplab: tasmlabel;
+      fallthroughlab, falselab, tmplab: tasmlabel;
     begin
       { since all comparisons return their results in a register, we'll often
         get comparisons against true/false -> optimise }
@@ -783,6 +783,7 @@ implementation
               invert:=a=1;
             end;
           current_asmdata.getjumplabel(falselab);
+          fallthroughlab:=falselab;
           if invert then
             begin
               tmplab:=l;
@@ -790,7 +791,7 @@ implementation
               falselab:=tmplab;
             end;
           list.concat(taillvm.op_size_reg_lab_lab(la_br,pasbool8type,reg,l,falselab));
-          a_label(list,falselab);
+          a_label(list,fallthroughlab);
           exit;
         end;
       tmpreg:=getregisterfordef(list,size);
