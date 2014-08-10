@@ -3053,7 +3053,10 @@ implementation
          if (nf_explicit in flags) and
             (left.resultdef.size=resultdef.size) and
             (left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
-           exit;
+           begin
+             expectloc:=left.expectloc;
+             exit;
+           end;
          expectloc:=LOC_REGISTER;
       end;
 
@@ -3067,7 +3070,10 @@ implementation
          if (nf_explicit in flags) and
             (left.resultdef.size=resultdef.size) and
             (left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
-           exit;
+           begin
+             expectloc:=left.expectloc;
+             exit;
+           end;
          { when converting 64bit int to C-ctyle boolean, first convert to an int32 and then }
          { convert to a boolean (only necessary for 32bit processors) }
          if (left.resultdef.size > sizeof(aint)) and (left.resultdef.size<>resultdef.size)
