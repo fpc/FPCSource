@@ -43,6 +43,10 @@ uses
      protected
        procedure a_load_ref_cgpara_init_src(list: TAsmList; const para: tcgpara; const initialref: treference; var refsize: tdef; out newref: treference);
      public
+      procedure getcpuregister(list: TAsmList; r: Tregister); override;
+      procedure ungetcpuregister(list: TAsmList; r: Tregister); override;
+      procedure alloccpuregisters(list: TAsmList; rt: Tregistertype; const r: Tcpuregisterset); override;
+      procedure deallocallcpuregisters(list: TAsmList); override;
 
       function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;override;
       function a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister; const paras: array of pcgpara): tcgpara; override;
@@ -261,6 +265,30 @@ implementation
         end
       else
         newref:=initialref;
+    end;
+
+
+  procedure thlcgllvm.getcpuregister(list: TAsmList; r: Tregister);
+    begin
+      { don't do anything }
+    end;
+
+
+  procedure thlcgllvm.ungetcpuregister(list: TAsmList; r: Tregister);
+    begin
+      { don't do anything }
+    end;
+
+
+  procedure thlcgllvm.alloccpuregisters(list: TAsmList; rt: Tregistertype; const r: Tcpuregisterset);
+    begin
+      { don't do anything }
+    end;
+
+
+  procedure thlcgllvm.deallocallcpuregisters(list: TAsmList);
+    begin
+      { don't do anything }
     end;
 
 
