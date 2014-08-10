@@ -12563,7 +12563,6 @@ tests/utils/libtar.pas svneol=native#text/plain
 tests/utils/macos/LinkRunDir -text
 tests/utils/macos/LinkRunTests -text
 tests/utils/macos/readme.txt svneol=native#text/plain
-tests/utils/newfile.pp svneol=native#text/plain
 tests/utils/prepup.pp svneol=native#text/plain
 tests/utils/redir.pp svneol=native#text/plain
 tests/utils/testfail.pp svneol=native#text/plain
