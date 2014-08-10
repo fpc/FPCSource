@@ -392,6 +392,15 @@ unit hlcgobj;
           procedure g_flags2ref(list: TAsmList; size: tdef; const f: tresflags; const ref:TReference); virtual; abstract;
 {$endif cpuflags}
 
+          {#
+              This routine is used in exception management nodes. It should
+              save the exception reason currently in the reg. The
+              save should be done either to a temp (pointed to by href).
+              or on the stack (pushing the value on the stack).
+           }
+          procedure g_exception_reason_save(list : TAsmList; fromsize, tosize: tdef; reg: tregister; const href : treference);virtual;
+
+
           procedure g_maybe_testself(list : TAsmList; selftype: tdef; reg:tregister);
 //          procedure g_maybe_testvmt(list : TAsmList;reg:tregister;objdef:tobjectdef);
           {# This should emit the opcode to copy len bytes from the source
@@ -3021,6 +3030,13 @@ implementation
           internalerror(2010120432);
       end;
     end;
+
+
+  procedure thlcgobj.g_exception_reason_save(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const href: treference);
+    begin
+      a_load_reg_ref(list,fromsize,tosize,reg,href);
+    end;
+
 
   procedure thlcgobj.g_maybe_testself(list: TAsmList; selftype: tdef; reg: tregister);
     var

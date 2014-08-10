@@ -402,71 +402,65 @@ implementation
 
 
     procedure new_exception(list:TAsmList;const t:texceptiontemps;exceptlabel:tasmlabel);
-      const
-{$ifdef cpu16bitaddr}
-        pushexceptaddr_frametype_cgsize = OS_S16;
-        setjmp_result_cgsize = OS_S16;
-{$else cpu16bitaddr}
-        pushexceptaddr_frametype_cgsize = OS_S32;
-        setjmp_result_cgsize = OS_S32;
-{$endif cpu16bitaddr}
       var
-        paraloc1,paraloc2,paraloc3 : tcgpara;
+        paraloc1, paraloc2, paraloc3, pushexceptres, setjmpres: tcgpara;
         pd: tprocdef;
-{$ifdef i8086}
-        tmpreg: TRegister;
-{$endif i8086}
+        tmpresloc: tlocation;
       begin
-        pd:=search_system_proc('fpc_pushexceptaddr');
         paraloc1.init;
         paraloc2.init;
         paraloc3.init;
+
+        { fpc_pushexceptaddr(exceptionframetype, setjmp_buffer, exception_address_chain_entry) }
+        pd:=search_system_proc('fpc_pushexceptaddr');
         paramanager.getintparaloc(pd,1,paraloc1);
         paramanager.getintparaloc(pd,2,paraloc2);
         paramanager.getintparaloc(pd,3,paraloc3);
         if pd.is_pushleftright then
           begin
-            { push type of exceptionframe }
-            cg.a_load_const_cgpara(list,pushexceptaddr_frametype_cgsize,1,paraloc1);
-            cg.a_loadaddr_ref_cgpara(list,t.jmpbuf,paraloc2);
-            cg.a_loadaddr_ref_cgpara(list,t.envbuf,paraloc3);
+            { type of exceptionframe }
+            hlcg.a_load_const_cgpara(list,paraloc1.def,1,paraloc1);
+            { setjmp buffer }
+            hlcg.a_loadaddr_ref_cgpara(list,rec_jmp_buf,t.jmpbuf,paraloc2);
+            { exception address chain entry }
+            hlcg.a_loadaddr_ref_cgpara(list,rec_exceptaddr,t.envbuf,paraloc3);
           end
         else
           begin
-            cg.a_loadaddr_ref_cgpara(list,t.envbuf,paraloc3);
-            cg.a_loadaddr_ref_cgpara(list,t.jmpbuf,paraloc2);
-            { push type of exceptionframe }
-            cg.a_load_const_cgpara(list,pushexceptaddr_frametype_cgsize,1,paraloc1);
+            hlcg.a_loadaddr_ref_cgpara(list,rec_exceptaddr,t.envbuf,paraloc3);
+            hlcg.a_loadaddr_ref_cgpara(list,rec_jmp_buf,t.jmpbuf,paraloc2);
+            hlcg.a_load_const_cgpara(list,paraloc1.def,1,paraloc1);
           end;
         paramanager.freecgpara(list,paraloc3);
         paramanager.freecgpara(list,paraloc2);
         paramanager.freecgpara(list,paraloc1);
-        cg.allocallcpuregisters(list);
-        cg.a_call_name(list,'FPC_PUSHEXCEPTADDR',false);
-        cg.deallocallcpuregisters(list);
+        { perform the fpc_pushexceptaddr call }
+        pushexceptres:=hlcg.g_call_system_proc(list,pd,[@paraloc1,@paraloc2,@paraloc3],nil);
 
+        { get the result }
+        location_reset(tmpresloc,LOC_REGISTER,def_cgsize(pushexceptres.def));
+        tmpresloc.register:=hlcg.getaddressregister(list,pushexceptres.def);
+        hlcg.gen_load_cgpara_loc(list,pushexceptres.def,pushexceptres,tmpresloc,true);
+        pushexceptres.resetiftemp;
+
+        { fpc_setjmp(result_of_pushexceptaddr_call) }
         pd:=search_system_proc('fpc_setjmp');
         paramanager.getintparaloc(pd,1,paraloc1);
-{$ifdef i8086}
-        if current_settings.x86memorymodel in x86_far_data_models then
-          begin
-            tmpreg:=cg.getintregister(list,OS_32);
-            cg.a_load_reg_reg(list,OS_16,OS_16,NR_FUNCTION_RESULT32_LOW_REG,tmpreg);
-            cg.a_load_reg_reg(list,OS_16,OS_16,NR_FUNCTION_RESULT32_HIGH_REG,GetNextReg(tmpreg));
-            cg.a_load_reg_cgpara(list,OS_32,tmpreg,paraloc1);
-          end
-        else
-{$endif i8086}
-          cg.a_load_reg_cgpara(list,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
-        paramanager.freecgpara(list,paraloc1);
-        cg.allocallcpuregisters(list);
-        cg.a_call_name(list,'FPC_SETJMP',false);
-        cg.deallocallcpuregisters(list);
-        cg.alloccpuregisters(list,R_INTREGISTER,[RS_FUNCTION_RESULT_REG]);
 
-        cg.g_exception_reason_save(list, t.reasonbuf);
-        cg.a_cmp_const_reg_label(list,setjmp_result_cgsize,OC_NE,0,cg.makeregsize(list,NR_FUNCTION_RESULT_REG,setjmp_result_cgsize),exceptlabel);
-        cg.dealloccpuregisters(list,R_INTREGISTER,[RS_FUNCTION_RESULT_REG]);
+        hlcg.a_load_reg_cgpara(list,pushexceptres.def,tmpresloc.register,paraloc1);
+        paramanager.freecgpara(list,paraloc1);
+        { perform the fpc_setjmp call }
+        setjmpres:=hlcg.g_call_system_proc(list,pd,[@paraloc1],nil);
+        setjmpres.check_simple_location;
+        if setjmpres.location^.loc<>LOC_REGISTER then
+          internalerror(2014080701);
+        hlcg.getcpuregister(list,setjmpres.location^.register);
+        hlcg.g_exception_reason_save(list,setjmpres.def,ossinttype,setjmpres.location^.register,t.reasonbuf);
+        { if we get 0 here in the function result register, it means that we
+          longjmp'd back here }
+        hlcg.a_cmp_const_reg_label(list,setjmpres.def,OC_NE,0,setjmpres.location^.register,exceptlabel);
+        hlcg.ungetcpuregister(list,setjmpres.location^.register);
+        setjmpres.resetiftemp;
         paraloc1.done;
         paraloc2.done;
         paraloc3.done;
