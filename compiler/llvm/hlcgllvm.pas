@@ -293,7 +293,8 @@ implementation
     var
       callparas: tfplist;
       llvmretdef,
-      hlretdef: tdef;
+      hlretdef,
+      calldef: tdef;
       paraloc: pcgparalocation;
       callpara: pllvmcallpara;
       href: treference;
@@ -369,7 +370,16 @@ implementation
       else
         res:=NR_NO;
 
-      list.concat(taillvm.call_size_name_paras(res,llvmretdef,current_asmdata.RefAsmSymbol(pd.mangledname),callparas));
+      { if the function returns a function pointer type or is varargs, we
+        must specify the full function signature, otherwise we can only
+        specify the return type }
+      if (po_varargs in pd.procoptions) or
+         ((pd.proccalloption in cdecl_pocalls) and
+          is_array_of_const(tparavarsym(pd.paras[pd.paras.count-1]).vardef)) then
+        calldef:=pd
+      else
+        calldef:=llvmretdef;
+      list.concat(taillvm.call_size_name_paras(res,calldef,current_asmdata.RefAsmSymbol(pd.mangledname),callparas));
       result:=get_call_result_cgpara(pd,forceresdef);
       set_call_function_result(list,pd,llvmretdef,hlretdef,res,result);
     end;
