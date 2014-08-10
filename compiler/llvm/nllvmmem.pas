@@ -68,7 +68,7 @@ implementation
         llvmfielddef: tdef;
         newbase: tregister;
       begin
-        if location.loc<>LOC_REFERENCE then
+        if not(location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
           internalerror(2014011905);
         if is_packed_record_or_object(left.resultdef) then
           begin
