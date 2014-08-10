@@ -1,0 +1,4 @@
+program newfile;
+
+begin
+end.
