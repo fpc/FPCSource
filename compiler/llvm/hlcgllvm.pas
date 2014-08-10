@@ -1429,24 +1429,33 @@ implementation
             return location }
           if not retpara.temporary then
             internalerror(2014020101);
-          { to ease the handling of aggregate types here, we just store
-            everything to memory rather than potentially dealing with aggregates
-            in "registers" }
-          tg.gethltemp(list, hlretdef, hlretdef.size, tt_normal, rettemp);
-          a_load_reg_ref(list, llvmretdef, hlretdef, resval, rettemp);
-          { the return parameter now contains a value whose type matches the one
-            that the high level code generator expects instead of the llvm shim
-          }
-          retpara.def:=hlretdef;
-          retpara.location^.def:=hlretdef;
-          { for llvm-specific code:  }
-          retpara.location^.llvmvalueloc:=false;
-          retpara.location^.llvmloc.loc:=LOC_REGISTER;
-          retpara.location^.llvmloc.reg:=rettemp.base;
-          { for the rest (normally not used, but cleaner to set it correclty) }
-          retpara.location^.loc:=LOC_REFERENCE;
-          retpara.location^.reference.index:=rettemp.base;
-          retpara.location^.reference.offset:=0;
+          if llvmaggregatetype(hlretdef) then
+            begin
+              { to ease the handling of aggregate types here, we just store
+                everything to memory rather than potentially dealing with aggregates
+                in "registers" }
+              tg.gethltemp(list, hlretdef, hlretdef.size, tt_normal, rettemp);
+              a_load_reg_ref(list, llvmretdef, hlretdef, resval, rettemp);
+              { the return parameter now contains a value whose type matches the one
+                that the high level code generator expects instead of the llvm shim
+              }
+              retpara.def:=hlretdef;
+              retpara.location^.def:=hlretdef;
+              { for llvm-specific code:  }
+              retpara.location^.llvmvalueloc:=false;
+              retpara.location^.llvmloc.loc:=LOC_REGISTER;
+              retpara.location^.llvmloc.reg:=rettemp.base;
+              { for the rest (normally not used, but cleaner to set it correclty) }
+              retpara.location^.loc:=LOC_REFERENCE;
+              retpara.location^.reference.index:=rettemp.base;
+              retpara.location^.reference.offset:=0;
+            end
+          else
+            begin
+              retpara.Location^.llvmloc.loc:=retpara.location^.loc;
+              retpara.location^.llvmloc.reg:=resval;
+              retpara.Location^.llvmvalueloc:=true;
+            end;
         end
       else
         retpara.location^.llvmloc.loc:=LOC_VOID;
