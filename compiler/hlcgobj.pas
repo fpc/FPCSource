@@ -4305,7 +4305,7 @@ implementation
 
   procedure thlcgobj.paravarsym_set_initialloc_to_paraloc(vs: tparavarsym);
     begin
-      reference_reset_base(vs.initialloc.reference,vs.vardef,tparavarsym(vs).paraloc[calleeside].location^.reference.index,
+      reference_reset_base(vs.initialloc.reference,voidstackpointertype,tparavarsym(vs).paraloc[calleeside].location^.reference.index,
           tparavarsym(vs).paraloc[calleeside].location^.reference.offset,tparavarsym(vs).paraloc[calleeside].alignment);
     end;
 
