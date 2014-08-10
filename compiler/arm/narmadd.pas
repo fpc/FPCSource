@@ -416,7 +416,7 @@ interface
         if (right.nodetype=ordconstn) and
            (tordconstnode(right).value=0) and
            ((nodetype in [equaln,unequaln]) or
-            (is_signed(left.resultdef) and (nodetype = lt_zero_swapped[nf_swapped in Flags]))
+            (not(GenerateThumbCode) and is_signed(left.resultdef) and (nodetype = lt_zero_swapped[nf_swapped in Flags]))
            ) then
           begin
             location_reset(location,LOC_FLAGS,OS_NO);
