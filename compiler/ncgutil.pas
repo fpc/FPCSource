@@ -393,9 +393,8 @@ implementation
           the TExceptAddr record from the system unit (like we do for jmp_buf_size),
           without moving TExceptAddr to the interface part? }
         except_buf_size:=voidpointertype.size*2+sizeof(pint);
-        get_jumpbuf_size;
         tg.GetTemp(list,except_buf_size,sizeof(pint),tt_persistent,t.envbuf);
-        tg.GetTemp(list,jmp_buf_size,jmp_buf_align,tt_persistent,t.jmpbuf);
+        tg.gethltemp(list,rec_jmp_buf,rec_jmp_buf.size,tt_persistent,t.jmpbuf);
         tg.GetTemp(list,sizeof(pint),sizeof(pint),tt_persistent,t.reasonbuf);
       end;
 

@@ -2068,7 +2068,7 @@ implementation
 
         include(current_procinfo.flags,pi_do_call);
         include(current_procinfo.flags,pi_uses_exceptions);
-        inc(current_procinfo.estimatedtempsize,get_jumpbuf_size*2);
+        inc(current_procinfo.estimatedtempsize,rec_jmp_buf.size*2);
       end;
 
 
@@ -2141,7 +2141,7 @@ implementation
         if not(implicitframe) then
           include(current_procinfo.flags,pi_uses_exceptions);
 
-        inc(current_procinfo.estimatedtempsize,get_jumpbuf_size);
+        inc(current_procinfo.estimatedtempsize,rec_jmp_buf.size);
       end;
 
 
