@@ -6,7 +6,7 @@ unit dbtests;
 Interface
 
 Uses
-  mysql55dyn, testu;
+  sqldb, testu;
 
 { ---------------------------------------------------------------------
   High-level access
@@ -34,20 +34,18 @@ function AddTestHistoryEntry(TestRunID,TestPreviousID : Integer) : boolean;
     Low-level DB access.
   ---------------------------------------------------------------------}
 
-
-Type
-  TQueryResult = PMYSQL_RES;
-
 Function  ConnectToDatabase(DatabaseName,Host,User,Password,Port : String) : Boolean;
 Procedure DisconnectDatabase;
 Function  InsertQuery(const Query : string) : Integer;
-Function  RunQuery (Qry : String; Var res : TQueryResult) : Boolean ;
-Procedure FreeQueryResult (Res : TQueryResult);
-Function  GetResultField (Res : TQueryResult; Id : Integer) : String;
+Function  ExecuteQuery (Qry : String; Silent : Boolean) : Boolean ;
+Function  OpenQuery (Qry : String; Out Res : TSQLQuery; Silent : Boolean) : Boolean ;
+Procedure FreeQueryResult (Var Res : TSQLQuery);
+Function  GetResultField (Res : TSQLQuery; Id : Integer) : String;
 Function  IDQuery(Qry : String) : Integer;
 Function  StringQuery(Qry : String) : String;
 Function  EscapeSQL( S : String) : String;
 Function  SQLDate(D : TDateTime) : String;
+
 
 var
   RelSrcDir,
@@ -56,132 +54,145 @@ var
 Implementation
 
 Uses
-  SysUtils;
+  SysUtils, pqconnection;
+
+Var
+  Connection : TPQConnection;
 
 { ---------------------------------------------------------------------
     Low-level DB access.
   ---------------------------------------------------------------------}
 
-
-Var
-  Connection : PMYSQL;
-
-
 Function ConnectToDatabase(DatabaseName,Host,User,Password,Port : String) : Boolean;
 
-Var
-  S : String;
-  PortNb : longint;
-  Error : word;
 begin
+  Result:=False;
   Verbose(V_DEBUG,'Connection params : '+DatabaseName+' '+Host+' '+User+' '+Password+' '+Port);
-  if Port<>'' then
-    begin
-      Val(Port,PortNb,Error);
-      if Error<>0 then
-        PortNb:=0;
-    end
-  else
-    PortNB:=0;
-  Connection:=mysql_init(Nil);
-  Result:=mysql_real_connect(Connection,PChar(Host),PChar(User),PChar(Password),Nil,PortNb,Nil,CLIENT_MULTI_RESULTS)<>Nil;
-  If Not Result then
-    begin
-    S:=Strpas(mysql_error(connection));
-    Verbose(V_ERROR,'Failed to connect to database : '+S);
-    end
-  else
-    begin
-    Result:=Mysql_select_db(Connection,Pchar(DatabaseName))>=0;
-    If Not result then
+  Connection:=TPQConnection.Create(Nil);
+  try
+    Connection.Hostname:=Host;
+    Connection.DatabaseName:=DatabaseName;
+    Connection.Username:=User;
+    Connection.Password:=Password;
+    Connection.Connected:=true;
+    if (Port<>'') then
+      Connection.Params.Values['Port']:=Port;
+  except
+    On E : Exception do
       begin
-      S:=StrPas(mysql_error(connection));
-      DisconnectDatabase;
-      Verbose(V_Error,'Failed to select database : '+S);
+      Verbose(V_ERROR,'Failed to connect to database : '+E.Message);
+      FreeAndNil(Connection);
       end;
-    end;
+  end;
 end;
 
 Procedure DisconnectDatabase;
 
 begin
-  mysql_close(Connection);
+  FreeAndNil(Connection);
 end;
 
-Function RunQuery (Qry : String; Var res : TQueryResult) : Boolean ;
+Function CreateQuery(Const ASQL : String) : TSQLQuery;
 
 begin
+  Result:=TSQLQuery.Create(Connection);
+  Result.Database:=Connection;
+  Result.Transaction:=Connection.Transaction;
+  Result.SQL.Text:=ASQL;
+end;
+
+
+
+Function ExecuteQuery (Qry : String; Silent : Boolean) : Boolean ;
+
+begin
+  Verbose(V_DEBUG,'Executing query:'+Qry);
+  Result:=False;
+  try
+    With CreateQuery(Qry) do
+      try
+        ExecSQL;
+        Result:=True;
+        (Transaction as TSQLTransaction).Commit;
+      finally
+        Free;
+      end;
+  except
+    On E : exception do
+      begin
+      Connection.Transaction.RollBack;
+      if not Silent then
+        Verbose(V_WARNING,'Query : '+Qry+'Failed : '+E.Message);
+      end;
+  end;
+end;
+
+Function OpenQuery (Qry : String; Out res : TSQLQuery; Silent : Boolean) : Boolean ;
+
+begin
+  Result:=False;
   Verbose(V_DEBUG,'Running query:'+Qry);
-  Result:=mysql_query(Connection,PChar(qry))=0;
-  If Not Result then
-    Verbose(V_WARNING,'Query : '+Qry+'Failed : '+Strpas(mysql_error(connection)))
-  else
-    Res:=Mysql_store_result(connection);
+  Res:=CreateQuery(Qry);
+  try
+    Res.Open;
+    Result:=True;
+  except
+    On E : exception do
+      begin
+      FreeAndNil(Res);
+      Connection.Transaction.RollBack;
+      if not Silent then
+        Verbose(V_WARNING,'Query : '+Qry+'Failed : '+E.Message);
+      end;
+  end;
 end;
 
-{ No warning if it fails }
-Function RunSilentQuery (Qry : String; Var res : TQueryResult) : Boolean ;
+Function GetResultField (Res : TSQLQuery; Id : Integer) : String;
+
 
 begin
-  Verbose(V_DEBUG,'Running silent query:'+Qry);
-  Result:=mysql_query(Connection,PChar(qry))=0;
-  If Not Result then
-    Verbose(V_DEBUG,'Silent query : '+Qry+'Failed : '+Strpas(mysql_error(connection)))
-  else
-    Res:=Mysql_store_result(connection);
-end;
-
-
-Function GetResultField (Res : TQueryResult; Id : Integer) : String;
-
-Var
-  Row : PPchar;
-
-begin
-  if Res=Nil then
+  If (Res=Nil) or (ID>=Res.Fields.Count) then
     Result:=''
   else
-    begin
-    Row:=mysql_fetch_row(Res);
-    If (Row=Nil) or (Row[ID]=Nil) then
-      Result:=''
-    else
-      Result:=strpas(Row[ID]);
-    end;
+    Result:=Res.Fields[ID].AsString;
   Verbose(V_DEBUG,'Field value '+Result);
 end;
 
-Procedure FreeQueryResult (Res : TQueryResult);
+Procedure FreeQueryResult(var Res : TSQLQuery);
 
 begin
-  mysql_free_result(Res);
+  if Assigned(Res) and Assigned(Res.Transaction) then
+    (Res.Transaction as TSQLTransaction).Commit;
+  FreeAndNil(Res);
 end;
 
 Function IDQuery(Qry : String) : Integer;
 
 Var
-  Res : TQueryResult;
+  Res : TSQLQuery;
 
 begin
   Result:=-1;
-  If RunQuery(Qry,Res) then
-    begin
-    Result:=StrToIntDef(GetResultField(Res,0),-1);
-    FreeQueryResult(Res);
+  If OpenQuery(Qry,Res,False) then
+    try
+      Result:=StrToIntDef(GetResultField(Res,0),-1);
+    finally
+      FreeQueryResult(Res);
     end;
 end;
 
 Function StringQuery(Qry : String) : String;
 
 Var
-  Res : TQueryResult;
+  Res : TSQLQuery;
 
 begin
   Result:='';
-  If RunQuery(Qry,Res) then
-    begin
-    Result:=GetResultField(Res,0);
-    FreeQueryResult(Res);
+  If OpenQuery(Qry,Res,False) then
+    try
+      Result:=GetResultField(Res,0);
+    finally
+      FreeQueryResult(Res);
     end;
 end;
 
@@ -265,17 +276,9 @@ begin
 end;
 
 Function InsertQuery(const Query : string) : Integer;
-Var
-  Res : TQueryResult;
 
 begin
-  If RunQuery(Query,Res) then
-    begin
-      Result:=mysql_insert_id(connection);
-      FreeQueryResult(Res);
-    end
-  else
-    Result:=-1;
+  Result:=IDQuery(Query);
 end;
 
 Function AddRun(OSID, CPUID, VERSIONID, CATEGORYID : Integer; Date : TDateTime) : Integer;
@@ -284,12 +287,12 @@ Const
   SInsertRun = 'INSERT INTO TESTRUN '+
                '(TU_OS_FK,TU_CPU_FK,TU_VERSION_FK,TU_CATEGORY_FK,TU_DATE)'+
                ' VALUES '+
-               '(%d,%d,%d,%d,"%s")';
+               '(%d,%d,%d,%d,"%s") RETURNING TU_ID';
 var
   Qry : string;
 begin
   qry:=Format(SInsertRun,[OSID,CPUID,VERSIONID,CATEGORYID,SQLDate(Date)]);
-  Result:=InsertQuery(Qry);
+  Result:=IDQuery(Qry);
 end;
 
 function posr(c : Char; const s : AnsiString) : integer;
@@ -380,7 +383,6 @@ Const
 
 Var
   Info : TConfig;
-  Res  : TQueryResult;
 
 begin
   Result:=-1;
@@ -388,9 +390,8 @@ begin
      GetConfig(TestSrcDir+RelSrcDir+Name,Info)) or
      GetUnitTestConfig(Name,Info) then
     begin
-    If RunQuery(Format(SInsertTest,[Name]),Res) then
+    If ExecuteQuery(Format(SInsertTest,[Name]),False) then
       begin
-      FreeQueryResult(Res);
       Result:=GetTestID(Name);
       If Result=-1 then
         Verbose(V_WARNING,'Could not find newly added test!')
@@ -424,7 +425,6 @@ Const
 
 Var
   Qry : String;
-  Res : TQueryResult;
 
 begin
   If Source<>'' then
@@ -441,8 +441,7 @@ begin
                              Source,
                              ID
      ]);
-  Result:=RunQuery(Qry,res);
-  FreeQueryResult(Res);
+  Result:=ExecuteQuery(Qry,False);
 end;
 
 Function AddTestResult(TestID,RunID,TestRes : Integer;
@@ -453,37 +452,33 @@ Const
   SInsertRes='Insert into TESTRESULTS '+
              '(TR_TEST_FK,TR_TESTRUN_FK,TR_OK,TR_SKIP,TR_RESULT) '+
              ' VALUES '+
-             '(%d,%d,"%s","%s",%d) ';
+             '(%d,%d,"%s","%s",%d) RETURNING TR_ID';
   SSelectId='SELECT TR_ID FROM TESTRESULTS WHERE (TR_TEST_FK=%d) '+
             ' AND (TR_TESTRUN_FK=%d)';
   SInsertLog='Update TESTRESULTS SET TR_LOG="%s"'+
              ',TR_OK="%s",TR_SKIP="%s",TR_RESULT=%d WHERE (TR_ID=%d)';
 Var
   Qry : String;
-  Res : TQueryResult;
   updateValues : boolean;
+
 begin
   updateValues:=false;
   Result:=-1;
   Qry:=Format(SInsertRes,
               [TestID,RunID,B[OK],B[Skipped],TestRes,EscapeSQL(Log)]);
-  If RunSilentQuery(Qry,Res) then
-    Result:=mysql_insert_id(connection)
-  else
+  Result:=IDQuery(Qry);
+  if (Result=-1) then
     begin
-      Qry:=format(SSelectId,[TestId,RunId]);
-      Result:=IDQuery(Qry);
-      if Result<>-1 then
-        updateValues:=true;
+    Qry:=format(SSelectId,[TestId,RunId]);
+    Result:=IDQuery(Qry);
+    if Result<>-1 then
+      UpdateValues:=true;
     end;
   if (Result<>-1) and ((Log<>'') or updateValues) then
     begin
-      Qry:=format(SInsertLog,[EscapeSQL(Log),B[OK],B[Skipped],TestRes,Result]);
-      if not RunQuery(Qry,Res) then
-        begin
-          Verbose(V_Warning,'Insert Log failed');
-        end;
-      FreeQueryResult(Res);
+    Qry:=Format(SInsertLog,[EscapeSQL(Log),B[OK],B[Skipped],TestRes,Result]);
+    if Not ExecuteQuery(Qry,False) then
+       Verbose(V_Warning,'Insert Log failed');
     end;
   { If test already existed, return false for is_new to avoid double counting }
   is_new:=not updateValues;
@@ -504,12 +499,8 @@ Function CleanTestRun(ID : Integer) : Boolean;
 Const
   SDeleteRun = 'DELETE FROM TESTRESULTS WHERE TR_TESTRUN_FK=%d';
 
-Var
- Res : TQueryResult;
-
 begin
-  Result:=RunQuery(Format(SDeleteRun,[ID]),Res);
-  FreeQueryResult(Res);
+  Result:=ExecuteQuery(Format(SDeleteRun,[ID]),False);
 end;
 
 function GetTestPreviousRunHistoryID(TestRunID : Integer) : Integer;
@@ -525,21 +516,14 @@ begin
 end;
 
 function AddTestHistoryEntry(TestRunID,TestPreviousID : Integer) : boolean;
+
 var
   qry : string;
-  res : TQueryResult;
-begin
-  qry:=format('INSERT INTO TESTRUNHISTORY (TH_ID_FK,TH_PREVIOUS_FK) '+
-              ' VALUES (%d,%d)',[TestRunID,TestPreviousID]);
-  If RunQuery(qry,res) then
-    begin
-      FreeQueryResult(res);
-      AddTestHistoryEntry:=true;
-    end
-  else
-    AddTestHistoryEntry:=false;
-end;
 
 begin
-  initialisemysql;
+  Qry:=format('INSERT INTO TESTRUNHISTORY (TH_ID_FK,TH_PREVIOUS_FK) '+
+              ' VALUES (%d,%d)',[TestRunID,TestPreviousID]);
+  Result:=ExecuteQuery(Qry,False);
+end;
+
 end.

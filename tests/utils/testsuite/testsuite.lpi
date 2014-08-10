@@ -1,137 +1,20 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="3"/>
+    <Version Value="9"/>
     <General>
-      <ProjectType Value="Program"/>
+      <Flags>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+        <LRSInOutputDirectory Value="False"/>
+      </Flags>
       <MainUnit Value="0"/>
-      <ActiveEditorIndexAtStart Value="1"/>
-      <IconPath Value="./"/>
-      <TargetFileExt Value=""/>
       <Title Value="testsuite"/>
+      <ActiveWindowIndexAtStart Value="0"/>
     </General>
-    <JumpHistory Count="12" HistoryIndex="11">
-      <Position1>
-        <Filename Value="dbwhtml.pp"/>
-        <Caret Line="85" Column="3" TopLine="82"/>
-      </Position1>
-      <Position2>
-        <Filename Value="dbwhtml.pp"/>
-        <Caret Line="204" Column="5" TopLine="164"/>
-      </Position2>
-      <Position3>
-        <Filename Value="dbwhtml.pp"/>
-        <Caret Line="205" Column="5" TopLine="165"/>
-      </Position3>
-      <Position4>
-        <Filename Value="dbwhtml.pp"/>
-        <Caret Line="203" Column="25" TopLine="168"/>
-      </Position4>
-      <Position5>
-        <Filename Value="dbwhtml.pp"/>
-        <Caret Line="212" Column="15" TopLine="195"/>
-      </Position5>
-      <Position6>
-        <Filename Value="dbwhtml.pp"/>
-        <Caret Line="70" Column="67" TopLine="52"/>
-      </Position6>
-      <Position7>
-        <Filename Value="utests.pp"/>
-        <Caret Line="594" Column="5" TopLine="554"/>
-      </Position7>
-      <Position8>
-        <Filename Value="utests.pp"/>
-        <Caret Line="66" Column="1" TopLine="34"/>
-      </Position8>
-      <Position9>
-        <Filename Value="dbwhtml.pp"/>
-        <Caret Line="396" Column="4" TopLine="361"/>
-      </Position9>
-      <Position10>
-        <Filename Value="utests.pp"/>
-        <Caret Line="66" Column="14" TopLine="35"/>
-      </Position10>
-      <Position11>
-        <Filename Value="utests.pp"/>
-        <Caret Line="600" Column="56" TopLine="568"/>
-      </Position11>
-      <Position12>
-        <Filename Value="utests.pp"/>
-        <Caret Line="31" Column="77" TopLine="14"/>
-      </Position12>
-    </JumpHistory>
-    <Units Count="8">
-      <Unit0>
-        <CursorPos X="19" Y="5"/>
-        <EditorIndex Value="0"/>
-        <Filename Value="testsuite.pp"/>
-        <IsPartOfProject Value="True"/>
-        <Loaded Value="True"/>
-        <TopLine Value="1"/>
-        <UnitName Value="testsuite"/>
-        <UsageCount Value="56"/>
-      </Unit0>
-      <Unit1>
-        <CursorPos X="23" Y="595"/>
-        <EditorIndex Value="1"/>
-        <Filename Value="utests.pp"/>
-        <IsPartOfProject Value="True"/>
-        <Loaded Value="True"/>
-        <TopLine Value="568"/>
-        <UnitName Value="utests"/>
-        <UsageCount Value="56"/>
-      </Unit1>
-      <Unit2>
-        <CursorPos X="6" Y="136"/>
-        <EditorIndex Value="4"/>
-        <Filename Value="/home/michael/fixbranch/rtl/linux/syslinux.pp"/>
-        <Loaded Value="True"/>
-        <TopLine Value="94"/>
-        <UnitName Value="SysLinux"/>
-        <UsageCount Value="28"/>
-      </Unit2>
-      <Unit3>
-        <CursorPos X="1" Y="1"/>
-        <Filename Value="/home/michael/test.sql"/>
-        <SyntaxHighlighter Value="None"/>
-        <TopLine Value="1"/>
-        <UsageCount Value="8"/>
-      </Unit3>
-      <Unit4>
-        <CursorPos X="27" Y="23"/>
-        <EditorIndex Value="3"/>
-        <Filename Value="/home/michael/fixbranch/rtl/unix/linux.pp"/>
-        <Loaded Value="True"/>
-        <TopLine Value="1"/>
-        <UnitName Value="Linux"/>
-        <UsageCount Value="25"/>
-      </Unit4>
-      <Unit5>
-        <CursorPos X="56" Y="251"/>
-        <Filename Value="/home/michael/projects/lazarus/components/editbutton/editbtn.pas"/>
-        <TopLine Value="248"/>
-        <UnitName Value="EditBtn"/>
-        <UsageCount Value="8"/>
-      </Unit5>
-      <Unit6>
-        <CursorPos X="31" Y="8"/>
-        <Filename Value="/home/michael/projects/lazarus/components/editbutton/demo/frmmain.pp"/>
-        <ComponentName Value="Form1"/>
-        <ResourceFilename Value="/home/michael/projects/lazarus/components/editbutton/demo/frmmain.lrs"/>
-        <TopLine Value="1"/>
-        <UnitName Value="frmmain"/>
-        <UsageCount Value="20"/>
-      </Unit6>
-      <Unit7>
-        <CursorPos X="27" Y="393"/>
-        <EditorIndex Value="2"/>
-        <Filename Value="dbwhtml.pp"/>
-        <Loaded Value="True"/>
-        <TopLine Value="384"/>
-        <UnitName Value="dbwhtml"/>
-        <UsageCount Value="25"/>
-      </Unit7>
-    </Units>
+    <BuildModes Count="1">
+      <Item1 Name="default" Default="True"/>
+    </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
       <IgnoreBinaries Value="False"/>
@@ -144,16 +27,253 @@
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="1">
-      <Item1>
-        <PackageName Value="editbutton"/>
-        <MinVersion Valid="True"/>
-      </Item1>
-    </RequiredPackages>
+    <Units Count="12">
+      <Unit0>
+        <Filename Value="testsuite.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="testsuite"/>
+        <EditorIndex Value="0"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="1"/>
+        <CursorPos X="29" Y="5"/>
+        <UsageCount Value="72"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="utests.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="utests"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="1"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="1003"/>
+        <CursorPos X="59" Y="919"/>
+        <UsageCount Value="72"/>
+        <Loaded Value="True"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="../../../../../fixbranch/rtl/linux/syslinux.pp"/>
+        <UnitName Value="SysLinux"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="94"/>
+        <CursorPos X="6" Y="136"/>
+        <UsageCount Value="26"/>
+        <LoadedDesigner Value="True"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="../../../../../test.sql"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="1"/>
+        <SyntaxHighlighter Value="None"/>
+        <UsageCount Value="6"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="../../../../../fixbranch/rtl/unix/linux.pp"/>
+        <UnitName Value="Linux"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="1"/>
+        <CursorPos X="27" Y="23"/>
+        <UsageCount Value="23"/>
+        <LoadedDesigner Value="True"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="../../../../../projects/lazarus/components/editbutton/editbtn.pas"/>
+        <UnitName Value="EditBtn"/>
+        <TopLine Value="248"/>
+        <CursorPos X="56" Y="251"/>
+        <UsageCount Value="6"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="../../../../../projects/lazarus/components/editbutton/demo/frmmain.pp"/>
+        <ComponentName Value="Form1"/>
+        <UnitName Value="frmmain"/>
+        <TopLine Value="1"/>
+        <CursorPos X="31" Y="8"/>
+        <UsageCount Value="18"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="dbwhtml.pp"/>
+        <UnitName Value="dbwhtml"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="384"/>
+        <CursorPos X="27" Y="393"/>
+        <UsageCount Value="23"/>
+        <LoadedDesigner Value="True"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="../tresults.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="tresults"/>
+        <UsageCount Value="36"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="../../../../build/tag_2_6_4/fpcsrc/packages/fcl-base/src/wformat.pp"/>
+        <UnitName Value="wformat"/>
+        <EditorIndex Value="4"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="17"/>
+        <CursorPos X="15" Y="35"/>
+        <UsageCount Value="18"/>
+        <Loaded Value="True"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="../../../../build/tag_2_6_4/fpcsrc/packages/fcl-web/src/base/webutil.pp"/>
+        <UnitName Value="webutil"/>
+        <EditorIndex Value="3"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="1"/>
+        <UsageCount Value="17"/>
+        <Loaded Value="True"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="../../../../build/tag_2_6_4/fpcsrc/packages/fcl-web/src/base/cgiapp.pp"/>
+        <UnitName Value="cgiapp"/>
+        <EditorIndex Value="2"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="34"/>
+        <CursorPos X="1" Y="40"/>
+        <UsageCount Value="17"/>
+        <Loaded Value="True"/>
+      </Unit11>
+    </Units>
+    <JumpHistory Count="30" HistoryIndex="29">
+      <Position1>
+        <Filename Value="utests.pp"/>
+        <Caret Line="574" Column="45" TopLine="549"/>
+      </Position1>
+      <Position2>
+        <Filename Value="utests.pp"/>
+        <Caret Line="946" Column="27" TopLine="930"/>
+      </Position2>
+      <Position3>
+        <Filename Value="utests.pp"/>
+        <Caret Line="1103" Column="40" TopLine="1077"/>
+      </Position3>
+      <Position4>
+        <Filename Value="utests.pp"/>
+        <Caret Line="1467" Column="37" TopLine="1442"/>
+      </Position4>
+      <Position5>
+        <Filename Value="utests.pp"/>
+        <Caret Line="1468" Column="71" TopLine="1443"/>
+      </Position5>
+      <Position6>
+        <Filename Value="utests.pp"/>
+        <Caret Line="1469" Column="48" TopLine="1444"/>
+      </Position6>
+      <Position7>
+        <Filename Value="utests.pp"/>
+        <Caret Line="2531" Column="53" TopLine="2531"/>
+      </Position7>
+      <Position8>
+        <Filename Value="utests.pp"/>
+        <Caret Line="2554" Column="17" TopLine="2525"/>
+      </Position8>
+      <Position9>
+        <Filename Value="utests.pp"/>
+        <Caret Line="2533" Column="17" TopLine="2519"/>
+      </Position9>
+      <Position10>
+        <Filename Value="utests.pp"/>
+        <Caret Line="2544" Column="18" TopLine="2540"/>
+      </Position10>
+      <Position11>
+        <Filename Value="utests.pp"/>
+        <Caret Line="121" Column="1" TopLine="121"/>
+      </Position11>
+      <Position12>
+        <Filename Value="utests.pp"/>
+        <Caret Line="326" Column="24" TopLine="301"/>
+      </Position12>
+      <Position13>
+        <Filename Value="utests.pp"/>
+        <Caret Line="67" Column="1" TopLine="61"/>
+      </Position13>
+      <Position14>
+        <Filename Value="utests.pp"/>
+        <Caret Line="846" Column="3" TopLine="842"/>
+      </Position14>
+      <Position15>
+        <Filename Value="utests.pp"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position15>
+      <Position16>
+        <Filename Value="utests.pp"/>
+        <Caret Line="2555" Column="11" TopLine="2530"/>
+      </Position16>
+      <Position17>
+        <Filename Value="utests.pp"/>
+        <Caret Line="2554" Column="10" TopLine="2530"/>
+      </Position17>
+      <Position18>
+        <Filename Value="utests.pp"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position18>
+      <Position19>
+        <Filename Value="utests.pp"/>
+        <Caret Line="420" Column="21" TopLine="412"/>
+      </Position19>
+      <Position20>
+        <Filename Value="utests.pp"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position20>
+      <Position21>
+        <Filename Value="utests.pp"/>
+        <Caret Line="2555" Column="41" TopLine="2532"/>
+      </Position21>
+      <Position22>
+        <Filename Value="utests.pp"/>
+        <Caret Line="2493" Column="3" TopLine="2478"/>
+      </Position22>
+      <Position23>
+        <Filename Value="utests.pp"/>
+        <Caret Line="2" Column="1" TopLine="1"/>
+      </Position23>
+      <Position24>
+        <Filename Value="utests.pp"/>
+        <Caret Line="2534" Column="11" TopLine="2527"/>
+      </Position24>
+      <Position25>
+        <Filename Value="utests.pp"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position25>
+      <Position26>
+        <Filename Value="utests.pp"/>
+        <Caret Line="304" Column="21" TopLine="300"/>
+      </Position26>
+      <Position27>
+        <Filename Value="utests.pp"/>
+        <Caret Line="676" Column="1" TopLine="661"/>
+      </Position27>
+      <Position28>
+        <Filename Value="utests.pp"/>
+        <Caret Line="912" Column="13" TopLine="904"/>
+      </Position28>
+      <Position29>
+        <Filename Value="utests.pp"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position29>
+      <Position30>
+        <Filename Value="utests.pp"/>
+        <Caret Line="919" Column="16" TopLine="889"/>
+      </Position30>
+    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
+    <Version Value="11"/>
+    <SearchPaths>
+      <OtherUnitFiles Value=".."/>
+    </SearchPaths>
+    <Parsing>
+      <SyntaxOptions>
+        <UseAnsiStrings Value="False"/>
+      </SyntaxOptions>
+    </Parsing>
     <Other>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
+  <EditorMacros Count="0"/>
 </CONFIG>
