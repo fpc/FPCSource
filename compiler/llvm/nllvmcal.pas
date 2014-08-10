@@ -21,7 +21,7 @@
 }
 unit nllvmcal;
 
-{$mode objfpc}
+{$i fpcdefs.inc}
 
 interface
 

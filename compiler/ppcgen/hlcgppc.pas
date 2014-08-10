@@ -23,7 +23,7 @@
 }
 unit hlcgppc;
 
-{$mode objfpc}
+{$i fpcdefs.inc}
 
 interface
 
