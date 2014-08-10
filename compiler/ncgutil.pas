@@ -386,16 +386,10 @@ implementation
 *****************************************************************************}
 
     procedure get_exception_temps(list:TAsmList;var t:texceptiontemps);
-     var
-       except_buf_size: longint;
      begin
-        { todo: is there a way to retrieve the except_buf_size from the size of
-          the TExceptAddr record from the system unit (like we do for jmp_buf_size),
-          without moving TExceptAddr to the interface part? }
-        except_buf_size:=voidpointertype.size*2+sizeof(pint);
-        tg.GetTemp(list,except_buf_size,sizeof(pint),tt_persistent,t.envbuf);
+        tg.gethltemp(list,rec_exceptaddr,rec_exceptaddr.size,tt_persistent,t.envbuf);
         tg.gethltemp(list,rec_jmp_buf,rec_jmp_buf.size,tt_persistent,t.jmpbuf);
-        tg.GetTemp(list,sizeof(pint),sizeof(pint),tt_persistent,t.reasonbuf);
+        tg.gethltemp(list,ossinttype,ossinttype.size,tt_persistent,t.reasonbuf);
       end;
 
 

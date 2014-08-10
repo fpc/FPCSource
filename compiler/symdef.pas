@@ -1017,8 +1017,11 @@ interface
          of all interfaces         }
        rec_tguid : trecorddef;
 
-       { pointer to jump buffer }
+       { jump buffer type, used by setjmp }
        rec_jmp_buf : trecorddef;
+
+       { system.texceptaddr type, used by fpc_pushexceptaddr }
+       rec_exceptaddr: trecorddef;
 
        { Objective-C base types }
        objc_metaclasstype,
@@ -4060,21 +4063,23 @@ implementation
          else
            tstoredsymtable(symtable).deref;
 
-         { assign TGUID? load only from system unit }
-         if not(assigned(rec_tguid)) and
-            (upper(typename)='TGUID') and
-            assigned(owner) and
+         { internal types, only load from the system unit }
+         if assigned(owner) and
             assigned(owner.name) and
             (owner.name^='SYSTEM') then
-           rec_tguid:=self;
-
-         { assign JMP_BUF? load only from system unit }
-         if not(assigned(rec_jmp_buf)) and
-            (upper(typename)='JMP_BUF') and
-            assigned(owner) and
-            assigned(owner.name) and
-            (owner.name^='SYSTEM') then
-           rec_jmp_buf:=self;
+           begin
+             { TGUID  }
+             if not assigned(rec_tguid) and
+                (upper(typename)='TGUID') then
+               rec_tguid:=self
+             { JMP_BUF }
+             else if not assigned(rec_jmp_buf) and
+                (upper(typename)='JMP_BUF') then
+               rec_jmp_buf:=self
+             else if not assigned(rec_exceptaddr) and
+                (upper(typename)='TEXCEPTADDR') then
+               rec_exceptaddr:=self;
+           end;
       end;
 
 
