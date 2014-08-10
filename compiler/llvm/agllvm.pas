@@ -893,6 +893,8 @@ implementation
                     else
                       internalerror(2014020104);
                   end;
+                  if taillvmdecl(hp).tls then
+                    asmwrite('thread_local ');
                   { todo: handle more different section types (mainly
                       Objective-C }
                   if taillvmdecl(hp).sec in [sec_rodata,sec_rodata_norel] then

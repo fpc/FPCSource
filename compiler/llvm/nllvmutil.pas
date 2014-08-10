@@ -37,8 +37,6 @@ interface
       class procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint); override;
      public
       class procedure InsertInitFinalTable; override;
-      class procedure InsertThreadvarTablesTable; override;
-      class procedure InsertThreadvars; override;
       class procedure InsertWideInitsTablesTable; override;
       class procedure InsertWideInits; override;
       class procedure InsertResourceTablesTable; override;
@@ -62,25 +60,16 @@ implementation
         asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_GLOBAL,AT_DATA)
       else
         asmsym:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_LOCAL,AT_DATA);
-      list.concat(taillvmdecl.Create(asmsym,sym.vardef,nil,sec_data));
+      if not(vo_is_thread_var in sym.varoptions) then
+        list.concat(taillvmdecl.create(asmsym,sym.vardef,nil,sec_data))
+      else
+        list.concat(taillvmdecl.createtls(asmsym,sym.vardef))
     end;
 
 
   class procedure tllvmnodeutils.InsertInitFinalTable;
     begin
       { todo }
-    end;
-
-
-  class procedure tllvmnodeutils.InsertThreadvarTablesTable;
-    begin
-      { not yet supported }
-    end;
-
-
-  class procedure tllvmnodeutils.InsertThreadvars;
-    begin
-      { not yet supported }
     end;
 
 

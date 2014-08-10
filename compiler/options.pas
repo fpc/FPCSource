@@ -3495,6 +3495,8 @@ if (target_info.abi = abi_eabihf) then
 {$ifdef llvm}
   { standard extension for llvm bitcode files }
   target_info.asmext:='.ll';
+  { always use section threadvars for now }
+  include(target_info.flags,tf_section_threadvars);
 {$endif llvm}
 {$ifdef mipsel}
   case target_info.system of

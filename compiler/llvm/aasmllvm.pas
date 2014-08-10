@@ -150,7 +150,9 @@ interface
       namesym: tasmsymbol;
       def: tdef;
       sec: TAsmSectiontype;
+      tls: boolean;
       constructor create(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype);
+      constructor createtls(_namesym: tasmsymbol; _def: tdef);
       destructor destroy; override;
     end;
 
@@ -186,6 +188,14 @@ uses
         sec:=_sec;
         _namesym.declared:=true;
       end;
+
+
+    constructor taillvmdecl.createtls(_namesym: tasmsymbol; _def: tdef);
+      begin
+        create(_namesym,_def,nil,sec_data);
+        tls:=true;
+      end;
+
 
     destructor taillvmdecl.destroy;
       begin
