@@ -1266,7 +1266,17 @@ implementation
           case destloc.loc of
             LOC_REFERENCE :
               begin
-                a_load_loc_ref(list,llvmparadef,para.def,hloc,destloc.reference);
+                case def2regtyp(llvmparadef) of
+                  R_INTREGISTER,
+                  R_ADDRESSREGISTER:
+                    a_load_loc_ref(list,llvmparadef,para.def,hloc,destloc.reference);
+                  R_FPUREGISTER:
+                    a_loadfpu_loc_ref(list,llvmparadef,para.def,hloc,destloc.reference);
+                  R_MMREGISTER:
+                    a_loadmm_loc_ref(list,llvmparadef,para.def,hloc,destloc.reference,nil);
+                  else
+                    internalerror(2014080801);
+                  end;
               end;
             LOC_REGISTER:
               begin
