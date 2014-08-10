@@ -1006,6 +1006,7 @@ implementation
               internalerror(2012111106);
           end;
         end;
+      retpara.resetiftemp;
     end;
 
 
