@@ -744,6 +744,7 @@ implementation
                     LOC_REGISTER,
                     LOC_CREGISTER :
                       begin
+{$ifndef cpuhighleveltarget}
 {$ifdef cpu64bitalu}
                         if left.location.size in [OS_128,OS_S128] then
                           cg128.a_load128_ref_reg(current_asmdata.CurrAsmList,right.location.reference,left.location.register128)
@@ -753,6 +754,7 @@ implementation
                           cg64.a_load64_ref_reg(current_asmdata.CurrAsmList,right.location.reference,left.location.register64)
                         else
 {$endif cpu64bitalu}
+{$endif not cpuhighleveltarget}
                           hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.reference,left.location.register);
                       end;
                     LOC_FPUREGISTER,
@@ -875,6 +877,7 @@ implementation
               LOC_REGISTER,
               LOC_CREGISTER :
                 begin
+{$ifndef cpuhighleveltarget}
 {$ifdef cpu64bitalu}
                   if left.location.size in [OS_128,OS_S128] then
                     cg128.a_load128_reg_loc(current_asmdata.CurrAsmList,
@@ -887,6 +890,7 @@ implementation
                       right.location.register64,left.location)
                   else
 {$endif cpu64bitalu}
+{$endif not cpuhighleveltarget}
 {$ifdef i8086}
                   { prefer a_load_loc_ref, because it supports i8086-specific types
                     that use registerhi (like 6-byte method pointers)
@@ -1325,6 +1329,7 @@ implementation
                      end;
                    else
                      begin
+{$ifndef cpuhighleveltarget}
 {$ifdef cpu64bitalu}
                        if hp.left.location.size in [OS_128,OS_S128] then
                          cg128.a_load128_loc_ref(current_asmdata.CurrAsmList,hp.left.location,href)
@@ -1334,6 +1339,7 @@ implementation
                          cg64.a_load64_loc_ref(current_asmdata.CurrAsmList,hp.left.location,href)
                        else
 {$endif cpu64bitalu}
+{$endif not cpuhighleveltarget}
                          hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,eledef,eledef,hp.left.location,href);
                      end;
                  end;
