@@ -3076,7 +3076,14 @@ implementation
            end;
          { when converting 64bit int to C-ctyle boolean, first convert to an int32 and then }
          { convert to a boolean (only necessary for 32bit processors) }
-         if (left.resultdef.size > sizeof(aint)) and (left.resultdef.size<>resultdef.size)
+         { note: not if left is already a bool (qwordbool that is true, even if
+             only because the highest bit is set, must remain true if it is
+             --implicitly, unlike integers-- converted to another type of bool),
+             Left can already be a bool because this routine can also be called
+             from first_bool_to_bool }
+         if not is_boolean(left.resultdef) and
+            (left.resultdef.size > sizeof(aint)) and
+            (left.resultdef.size<>resultdef.size)
             and is_cbool(resultdef) then
            begin
              left:=ctypeconvnode.create_internal(left,s32inttype);
@@ -3093,8 +3100,13 @@ implementation
          if (left.expectloc in [LOC_FLAGS,LOC_JUMP]) and
             not is_cbool(resultdef) then
            expectloc := left.expectloc
+         { the following cases use the code generation for bool_to_int/
+           int_to_bool -> also set their expectlocs }
+         else if (resultdef.size=left.resultdef.size) and
+            (is_cbool(resultdef)=is_cbool(left.resultdef)) then
+           result:=first_bool_to_int
          else
-           expectloc:=LOC_REGISTER;
+           result:=first_int_to_bool
       end;
 
 
