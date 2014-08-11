@@ -73,6 +73,10 @@ interface
           { full 64 bit multiplies.                                }
           function use_generic_mul64bit: boolean; virtual;
 
+          { shall be overriden if the target cpu supports
+            an fma instruction
+          }
+          function use_fma : boolean; virtual;
           { This routine calls internal runtime library helpers
             for all floating point arithmetic in the case
             where the emulation switches is on. Otherwise
@@ -80,18 +84,22 @@ interface
             the code generation phase.
           }
           function first_addfloat : tnode; virtual;
-         private
-           { checks whether a muln can be calculated as a 32bit }
-           { * 32bit -> 64 bit                                  }
-           function try_make_mul32to64: boolean;
-           { Match against the ranges, i.e.:
-             var a:1..10;
-             begin
-               if a>0 then
-                 ...
-             always evaluates to true. (DM)
-           }
-           function cmp_of_disjunct_ranges(var res : boolean) : boolean;
+       private
+          { checks whether a muln can be calculated as a 32bit }
+          { * 32bit -> 64 bit                                  }
+          function try_make_mul32to64: boolean;
+
+          { Match against the ranges, i.e.:
+            var a:1..10;
+            begin
+              if a>0 then
+                ...
+            always evaluates to true. (DM)
+          }
+          function cmp_of_disjunct_ranges(var res : boolean) : boolean;
+
+          { tries to replace the current node by a fma node }
+          function try_fma(ld,rd : tdef) : tnode;
        end;
        taddnodeclass = class of taddnode;
 
@@ -2612,6 +2620,127 @@ implementation
       end;
 
 
+    function taddnode.use_fma : boolean;
+      begin
+        result:=false;
+      end;
+
+
+    function taddnode.try_fma(ld,rd : tdef) : tnode;
+      var
+        inlinennr : Integer;
+      begin
+        result:=nil;
+        if (cs_opt_fastmath in current_settings.optimizerswitches) and
+          use_fma and
+          (nodetype in [addn,subn]) and
+          (rd.typ=floatdef) and (ld.typ=floatdef) and
+          (is_single(rd) or is_double(rd)) and
+          equal_defs(rd,ld) and
+          { transforming a*b+c into fma(a,b,c) makes only sense if c can be
+            calculated easily. Consider a*b+c*d which results in
+
+            fmul
+            fmul
+            fadd
+
+            and in
+
+            fmul
+            fma
+
+            when using the fma optimization. On a super scalar architecture, the first instruction
+            sequence requires clock_cycles(fmul)+clock_cycles(fadd) clock cycles because the fmuls can be executed in parallel.
+            The second sequence requires clock_cycles(fmul)+clock_cycles(fma) because the fma has to wait for the
+            result of the fmul. Since typically clock_cycles(fma)>clock_cycles(fadd) applies, the first sequence is better.
+          }
+          (((left.nodetype=muln) and (node_complexity(right)<3)) or
+           ((right.nodetype=muln) and (node_complexity(left)<3)) or
+           ((left.nodetype=inlinen) and
+            (tinlinenode(left).inlinenumber=in_sqr_real) and
+             (node_complexity(right)<3)) or
+           ((right.nodetype=inlinen) and
+            (tinlinenode(right).inlinenumber=in_sqr_real) and
+            (node_complexity(left)<3))
+          ) then
+          begin
+            case tfloatdef(ld).floattype of
+              s32real:
+               inlinennr:=in_fma_single;
+              s64real:
+               inlinennr:=in_fma_double;
+              s80real:
+               inlinennr:=in_fma_extended;
+              s128real:
+               inlinennr:=in_fma_float128;
+              else
+                internalerror(2014042601);
+            end;
+            if left.nodetype=muln then
+              begin
+                if nodetype=subn then
+                  result:=cinlinenode.create(inlinennr,false,ccallparanode.create(cunaryminusnode.create(right),
+                    ccallparanode.create(taddnode(left).right,
+                    ccallparanode.create(taddnode(left).left,nil
+                    ))))
+                else
+                  result:=cinlinenode.create(inlinennr,false,ccallparanode.create(right,
+                    ccallparanode.create(taddnode(left).right,
+                    ccallparanode.create(taddnode(left).left,nil
+                    ))));
+                right:=nil;
+                taddnode(left).right:=nil;
+                taddnode(left).left:=nil;
+              end
+            else if right.nodetype=muln then
+              begin
+                if nodetype=subn then
+                  result:=cinlinenode.create(inlinennr,false,ccallparanode.create(left,
+                    ccallparanode.create(cunaryminusnode.create(taddnode(right).right),
+                    ccallparanode.create(taddnode(right).left,nil
+                    ))))
+                else
+                  result:=cinlinenode.create(inlinennr,false,ccallparanode.create(left,
+                    ccallparanode.create(taddnode(right).right,
+                    ccallparanode.create(taddnode(right).left,nil
+                    ))));
+                left:=nil;
+                taddnode(right).right:=nil;
+                taddnode(right).left:=nil;
+              end
+            else if (left.nodetype=inlinen) and (tinlinenode(left).inlinenumber=in_sqr_real) then
+              begin
+                if nodetype=subn then
+                  result:=cinlinenode.create(inlinennr,false,ccallparanode.create(cunaryminusnode.create(right),
+                    ccallparanode.create(tinlinenode(left).left.getcopy,
+                    ccallparanode.create(tinlinenode(left).left.getcopy,nil
+                    ))))
+                else
+                  result:=cinlinenode.create(inlinennr,false,ccallparanode.create(right,
+                    ccallparanode.create(tinlinenode(left).left.getcopy,
+                    ccallparanode.create(tinlinenode(left).left.getcopy,nil
+                    ))));
+                right:=nil;
+              end
+            { we get here only if right is a sqr node }
+            else if (right.nodetype=inlinen) and (tinlinenode(right).inlinenumber=in_sqr_real) then
+              begin
+                if nodetype=subn then
+                  result:=cinlinenode.create(inlinennr,false,ccallparanode.create(left,
+                    ccallparanode.create(cunaryminusnode.create(tinlinenode(right).left.getcopy),
+                    ccallparanode.create(tinlinenode(right).left.getcopy,nil
+                    ))))
+                else
+                  result:=cinlinenode.create(inlinennr,false,ccallparanode.create(left,
+                    ccallparanode.create(tinlinenode(right).left.getcopy,
+                    ccallparanode.create(tinlinenode(right).left.getcopy,nil
+                    ))));
+                left:=nil;
+              end;
+          end;
+      end;
+
+
     function taddnode.first_add64bitint: tnode;
       var
         procname: string[31];
@@ -3109,6 +3238,10 @@ implementation
                 expectloc:=LOC_FPUREGISTER
               else
                 expectloc:=LOC_FLAGS;
+
+              result:=try_fma(ld,rd);
+              if assigned(result) then
+                exit;
             end
 
          { pointer comperation and subtraction }
