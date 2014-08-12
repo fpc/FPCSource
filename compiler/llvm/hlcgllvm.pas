@@ -403,6 +403,7 @@ implementation
         specify the return type }
       if (po_varargs in pd.procoptions) or
          ((pd.proccalloption in cdecl_pocalls) and
+          (pd.paras.count>0) and
           is_array_of_const(tparavarsym(pd.paras[pd.paras.count-1]).vardef)) then
         calldef:=pd
       else
