@@ -106,7 +106,7 @@ unit cgobj;
           procedure do_register_allocation(list:TAsmList;headertai:tai);virtual;
           procedure translate_register(var reg : tregister);
 
-          function makeregsize(list:TAsmList;reg:Tregister;size:Tcgsize):Tregister;
+          function makeregsize(list:TAsmList;reg:Tregister;size:Tcgsize):Tregister; virtual;
 
           {# Emit a label to the instruction stream. }
           procedure a_label(list : TAsmList;l : tasmlabel);virtual;

@@ -38,6 +38,7 @@ uses
   type
     thlbasecgcpu = class(tcg)
      public
+      function makeregsize(list: TAsmList; reg: Tregister; size: Tcgsize): Tregister; override;
       procedure g_save_registers(list:TAsmList);override;
       procedure g_restore_registers(list:TAsmList);override;
       procedure g_stackpointer_alloc(list: TAsmList; size: longint); override;
@@ -206,6 +207,17 @@ implementation
     procedure thlbasecgcpu.g_proc_exit(list: TAsmList; parasize: longint; nostackframe: boolean);
       begin
         internalerror(2012042822);
+      end;
+
+
+    function thlbasecgcpu.makeregsize(list: TAsmList; reg: Tregister; size: Tcgsize): Tregister;
+      begin
+        { you can't just change the size of a (virtual) register on high level
+          targets, you have to allocate a new register of the right size and
+          move the data there }
+        internalerror(2014081201);
+        { suppress warning }
+        result:=NR_NO;
       end;
 
     procedure thlbasecgcpu.g_save_registers(list: TAsmList);
