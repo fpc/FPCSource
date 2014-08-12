@@ -290,6 +290,10 @@ unit rgcpu;
         if abs(spilltemp.offset)>4095 then
           exit;
 
+        { ldr can't set the flags }
+        if instr.oppostfix=PF_S then
+          exit;
+
         if GenerateThumbCode and
           (abs(spilltemp.offset)>1020) then
           exit;
