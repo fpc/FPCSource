@@ -44,7 +44,7 @@ interface
        { tcginnode }
 
        tcginnode = class(tinnode)
-         procedure in_smallset(uopsize: tcgsize; opdef: tdef; setbase: aint); virtual;
+         procedure in_smallset(opdef: tdef; setbase: aint); virtual;
 
          function pass_1: tnode;override;
          procedure pass_generate_code;override;
@@ -182,12 +182,12 @@ implementation
     end;
 
 
-    procedure tcginnode.in_smallset(uopsize: tcgsize; opdef: tdef; setbase: aint);
+    procedure tcginnode.in_smallset(opdef: tdef; setbase: aint);
       begin
         { location is always LOC_REGISTER }
-        location_reset(location, LOC_REGISTER, uopsize{def_cgsize(resultdef)});
+        location_reset(location, LOC_REGISTER, def_cgsize(resultdef));
         { allocate a register for the result }
-        location.register := cg.getintregister(current_asmdata.CurrAsmList, uopsize);
+        location.register := hlcg.getintregister(current_asmdata.CurrAsmList, resultdef);
         {****************************  SMALL SET **********************}
         if left.location.loc=LOC_CONSTANT then
           begin
@@ -206,9 +206,6 @@ implementation
               right.resultdef, resultdef, left.location.register, right.location,
                location.register);
           end;
-        location.size := def_cgsize(resultdef);
-        location.register := cg.makeregsize(current_asmdata.CurrAsmList,
-        location.register, location.size);
       end;
 
 
@@ -406,7 +403,7 @@ implementation
                handle smallsets separate, because it allows faster checks }
              if use_small then
                begin
-                 in_smallset(uopsize, opdef, setbase);
+                 in_smallset(opdef, setbase);
                end
              else
                {************************** NOT SMALL SET ********************}
