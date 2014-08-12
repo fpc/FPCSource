@@ -423,7 +423,7 @@ implementation
 
   procedure thlcgllvm.a_load_const_reg(list: TAsmList; tosize: tdef; a: tcgint; register: tregister);
     begin
-      list.concat(taillvm.op_reg_size_const_size(la_bitcast,register,tosize,a,tosize))
+      list.concat(taillvm.op_reg_size_const_size(llvmconvop(ptrsinttype,tosize),register,ptrsinttype,a,tosize))
     end;
 
 
