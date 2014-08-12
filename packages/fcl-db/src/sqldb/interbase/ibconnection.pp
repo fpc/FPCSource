@@ -1614,29 +1614,41 @@ end;
 
 class function TIBConnectionDef.DefaultLibraryName: String;
 begin
+{$IFDEF LinkDynamically}
   If UseEmbeddedFirebird then
     Result:=fbembedlib
   else
-    Result:=fbclib
+    Result:=fbclib;
+{$ELSE}
+  Result:='';
+{$ENDIF}
 end;
 
 class function TIBConnectionDef.LoadFunction: TLibraryLoadFunction;
 begin
+{$IFDEF LinkDynamically}
   Result:=@InitialiseIBase60;
+{$ELSE}
+  Result:=nil;
+{$ENDIF}
 end;
 
 class function TIBConnectionDef.UnLoadFunction: TLibraryUnLoadFunction;
 begin
+{$IFDEF LinkDynamically}
   Result:=@ReleaseIBase60
+{$ELSE}
+  Result:=nil;
+{$ENDIF}
 end;
 
 class function TIBConnectionDef.LoadedLibraryName: string;
 begin
-  {$IfDef LinkDynamically}
+{$IFDEF LinkDynamically}
   Result:=IBaseLoadedLibrary;
-  {$else}
+{$ELSE}
   Result:='';
-  {$endif}
+{$ENDIF}
 end;
 
 initialization
