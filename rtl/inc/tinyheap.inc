@@ -43,8 +43,8 @@
     type
       PTinyHeapBlock = ^TTinyHeapBlock;
       TTinyHeapBlock = record
-        Size: TTinyHeapFreeBlockSize;
         Next: PTinyHeapBlock;
+        Size: TTinyHeapFreeBlockSize;
         EndAddr: pointer;
       end;
 
