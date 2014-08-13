@@ -534,6 +534,7 @@ implementation
    function ttai_lowleveltypedconstbuilder.emit_string_const_common(list: TAsmList; stringtype: tstringtype; len: asizeint; encoding: tstringencoding; out startlab: tasmlabel): tasmlabofs;
      var
        string_symofs: asizeint;
+       charptrdef: tdef;
        elesize: word;
      begin
        current_asmdata.getdatalabel(result.lab);
@@ -547,9 +548,15 @@ implementation
        { element size }
        case stringtype of
          st_ansistring:
-           elesize:=1;
+           begin
+             elesize:=1;
+             charptrdef:=charpointertype;
+           end;
          st_unicodestring:
-           elesize:=2;
+           begin
+             elesize:=2;
+             charptrdef:=widecharpointertype;
+           end
          else
            internalerror(2014080401);
        end;
@@ -567,7 +574,7 @@ implementation
        if string_symofs=0 then
          begin
            { results in slightly more efficient code }
-           list.concat(tai_label.create(result.lab));
+           emit_tai(tai_label.create(result.lab),charptrdef);
            result.ofs:=0;
            current_asmdata.getdatalabel(startlab);
          end;
