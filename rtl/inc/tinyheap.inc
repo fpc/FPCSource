@@ -37,16 +37,15 @@
 
       TTinyHeapPointerArithmeticType = ^Byte; {$ifdef FPC_HEAP_HUGE}huge;{$endif}
 
-    const
-      TinyHeapMinBlock = 4*sizeof(pointer);
-
-    type
       PTinyHeapBlock = ^TTinyHeapBlock;
       TTinyHeapBlock = record
         Next: PTinyHeapBlock;
         Size: TTinyHeapFreeBlockSize;
         EndAddr: pointer;
       end;
+
+    const
+      TinyHeapMinBlock = sizeof(TTinyHeapBlock);
 
     var
       TinyHeapBlocks: PTinyHeapBlock = nil;
