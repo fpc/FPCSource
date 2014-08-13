@@ -118,6 +118,8 @@ Type
     Property RequestVariableCount : Integer Read GetRequestVariableCount;
   end;
 
+  ECGI = Class(EFPWebError);
+
 Var
   CGIRequestClass : TCGIRequestClass = TCGIRequest;
   CGIResponseClass : TCGIResponseClass = TCGIResponse;

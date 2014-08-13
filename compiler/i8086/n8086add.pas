@@ -39,11 +39,13 @@ interface
          function first_addhugepointer: tnode;
          function first_cmppointer: tnode; override;
          function first_cmphugepointer: tnode;
+         function first_cmpfarpointer: tnode;
          procedure second_addordinal; override;
          procedure second_add64bit;override;
          procedure second_addfarpointer;
          procedure second_cmp64bit;override;
          procedure second_cmp32bit;
+         procedure second_cmpfarpointer;
          procedure second_cmpordinal;override;
          procedure second_mul(unsigned: boolean);
        end;
@@ -53,7 +55,7 @@ interface
     uses
       globtype,systems,
       cutils,verbose,globals,constexp,pass_1,
-      symconst,symdef,symtype,paramgr,defutil,
+      symconst,symdef,symtype,symcpu,paramgr,defutil,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,procinfo,
       ncal,ncon,nset,cgutils,tgobj,
@@ -314,7 +316,7 @@ interface
 
     function ti8086addnode.first_addpointer: tnode;
       begin
-        if is_hugepointer(left.resultdef) xor is_hugepointer(right.resultdef) then
+        if is_hugepointer(left.resultdef) or is_hugepointer(right.resultdef) then
           result:=first_addhugepointer
         else
           result:=inherited;
@@ -327,17 +329,22 @@ interface
       begin
         result:=nil;
 
-        case nodetype of
-          addn:
-            procname:='fpc_hugeptr_add_longint';
-          subn:
-            procname:='fpc_hugeptr_sub_longint';
-          else
-            internalerror(2014070301);
-        end;
+        if (nodetype=subn) and is_hugepointer(left.resultdef) and is_hugepointer(right.resultdef) then
+          procname:='fpc_hugeptr_sub_hugeptr'
+        else
+          begin
+            case nodetype of
+              addn:
+                procname:='fpc_hugeptr_add_longint';
+              subn:
+                procname:='fpc_hugeptr_sub_longint';
+              else
+                internalerror(2014070301);
+            end;
 
-        if cs_hugeptr_arithmetic_normalization in current_settings.localswitches then
-          procname:=procname+'_normalized';
+            if cs_hugeptr_arithmetic_normalization in current_settings.localswitches then
+              procname:=procname+'_normalized';
+          end;
 
         if is_hugepointer(left.resultdef) then
           result := ccallnode.createintern(procname,
@@ -357,6 +364,8 @@ interface
       begin
         if is_hugepointer(left.resultdef) or is_hugepointer(right.resultdef) then
           result:=first_cmphugepointer
+        else if is_farpointer(left.resultdef) or is_farpointer(right.resultdef) then
+          result:=first_cmpfarpointer
         else
           result:=inherited;
       end;
@@ -370,7 +379,7 @@ interface
 
         if not (cs_hugeptr_comparison_normalization in current_settings.localswitches) then
           begin
-            expectloc:=LOC_FLAGS;
+            expectloc:=LOC_JUMP;
             exit;
           end;
 
@@ -397,6 +406,22 @@ interface
         left := nil;
         right := nil;
         firstpass(result);
+      end;
+
+
+    function ti8086addnode.first_cmpfarpointer: tnode;
+      begin
+        { = and <> are handled as a 32-bit comparison }
+        if nodetype in [equaln,unequaln] then
+          begin
+            result:=nil;
+            expectloc:=LOC_JUMP;
+          end
+        else
+          begin
+            result:=nil;
+            expectloc:=LOC_FLAGS;
+          end;
       end;
 
 
@@ -786,7 +811,8 @@ interface
         unsigned:=((left.resultdef.typ=orddef) and
                    (torddef(left.resultdef).ordtype=u32bit)) or
                   ((right.resultdef.typ=orddef) and
-                   (torddef(right.resultdef).ordtype=u32bit));
+                   (torddef(right.resultdef).ordtype=u32bit)) or
+                  is_hugepointer(left.resultdef);
 
         { left and right no register?  }
         { then one must be demanded    }
@@ -859,9 +885,60 @@ interface
         location_reset(location,LOC_JUMP,OS_NO)
       end;
 
+
+    procedure ti8086addnode.second_cmpfarpointer;
+      begin
+        { handle = and <> as a 32-bit comparison }
+        if nodetype in [equaln,unequaln] then
+          begin
+            second_cmp32bit;
+            exit;
+          end;
+
+        pass_left_right;
+
+        { <, >, <= and >= compare the 16-bit offset only }
+        if (right.location.loc=LOC_CONSTANT) and
+           (left.location.loc in [LOC_REFERENCE, LOC_CREFERENCE])
+        then
+          begin
+            emit_const_ref(A_CMP, S_W, word(right.location.value), left.location.reference);
+            location_freetemp(current_asmdata.CurrAsmList,left.location);
+          end
+        else
+          begin
+            { left location is not a register? }
+            if left.location.loc<>LOC_REGISTER then
+             begin
+               { if right is register then we can swap the locations }
+               if right.location.loc=LOC_REGISTER then
+                begin
+                  location_swap(left.location,right.location);
+                  toggleflag(nf_swapped);
+                end
+               else
+                begin
+                  { maybe we can reuse a constant register when the
+                    operation is a comparison that doesn't change the
+                    value of the register }
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,u16inttype,true);
+                end;
+              end;
+
+            emit_generic_code(A_CMP,OS_16,true,false,false);
+            location_freetemp(current_asmdata.CurrAsmList,right.location);
+            location_freetemp(current_asmdata.CurrAsmList,left.location);
+          end;
+        location_reset(location,LOC_FLAGS,OS_NO);
+        location.resflags:=getresflags(true);
+      end;
+
+
     procedure ti8086addnode.second_cmpordinal;
       begin
-        if is_32bit(left.resultdef) or is_farpointer(left.resultdef) or is_hugepointer(left.resultdef) then
+        if is_farpointer(left.resultdef) then
+          second_cmpfarpointer
+        else if is_32bit(left.resultdef) or is_hugepointer(left.resultdef) then
           second_cmp32bit
         else
           inherited second_cmpordinal;

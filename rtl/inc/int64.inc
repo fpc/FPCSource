@@ -122,6 +122,12 @@
          shift,lzz,lzn : longint;
 
       begin
+         { Use the usually faster 32-bit division if possible }
+	 if (hi(z) = 0) and (hi(n) = 0) then
+	 begin
+	   fpc_div_qword := Dword(z) div Dword(n);
+	   exit;
+	 end;
          fpc_div_qword:=0;
          if n=0 then
            HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
@@ -134,6 +140,7 @@
          { then d is greater than the n           }
          if lzn>lzz then
            exit;
+
          shift:=lzz-lzn;
          n:=n shl shift;
          for shift:=shift downto 0 do
@@ -156,6 +163,12 @@
          shift,lzz,lzn : longint;
 
       begin
+         { Use the usually faster 32-bit mod if possible }
+	 if (hi(z) = 0) and (hi(n) = 0) then
+	 begin
+	   fpc_mod_qword := Dword(z) mod Dword(n);
+	   exit;
+	 end;
          fpc_mod_qword:=0;
          if n=0 then
            HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);

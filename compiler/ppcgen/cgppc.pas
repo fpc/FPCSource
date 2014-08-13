@@ -33,7 +33,6 @@ unit cgppc;
 
     type
       tcgppcgen = class(tcg)
-        procedure a_load_const_cgpara(list: TAsmList; size: tcgsize; a: tcgint; const paraloc : tcgpara); override;
         procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : tcgpara); override;
 
         procedure a_call_reg(list : TAsmList;reg: tregister); override;
@@ -62,10 +61,6 @@ unit cgppc;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
 
         procedure g_maybe_got_init(list: TAsmList); override;
-
-        { Transform unsupported methods into Internal errors }
-        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
-        procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
 
         procedure get_aix_toc_sym(list: TAsmList; const symname: string; const flags: tindsymflags; out ref: treference; force_direct_toc: boolean);
         procedure g_load_check_simple(list: TAsmList; const ref: treference; size: aint);
@@ -193,29 +188,6 @@ unit cgppc;
           (cs_profile in init_settings.moduleswitches)))  or
         ([cs_lineinfo,cs_debuginfo] * current_settings.moduleswitches <> []);
       end;
-
-
-    procedure tcgppcgen.a_load_const_cgpara(list: TAsmList; size: tcgsize; a: tcgint; const
-      paraloc: tcgpara);
-    var
-      ref: treference;
-    begin
-      paraloc.check_simple_location;
-      paramanager.allocparaloc(list,paraloc.location);
-      case paraloc.location^.loc of
-        LOC_REGISTER, LOC_CREGISTER:
-          a_load_const_reg(list, size, a, paraloc.location^.register);
-        LOC_REFERENCE:
-          begin
-            reference_reset(ref,paraloc.alignment);
-            ref.base := paraloc.location^.reference.index;
-            ref.offset := paraloc.location^.reference.offset;
-            a_load_const_ref(list, size, a, ref);
-          end;
-      else
-        internalerror(2002081101);
-      end;
-    end;
 
 
     procedure tcgppcgen.a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : tcgpara);
@@ -601,17 +573,6 @@ unit cgppc;
            end;
          a_load_store(list,op,reg,ref2);
        end;
-
-
-  procedure tcgppcgen.g_stackpointer_alloc(list : TAsmList;localsize : longint);
-    begin
-      Comment(V_Error,'tcgppcgen.g_stackpointer_alloc method not implemented');
-    end;
-
-  procedure tcgppcgen.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister);
-    begin
-      Comment(V_Error,'tcgppcgen.a_bit_scan_reg_reg method not implemented');
-    end;
 
 
   procedure tcgppcgen.g_overflowcheck(list: TAsmList; const l: tlocation; def: tdef);

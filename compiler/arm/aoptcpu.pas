@@ -30,7 +30,7 @@ Unit aoptcpu;
 
 Interface
 
-uses cgbase, cpubase, aasmtai, aasmcpu,aopt, aoptobj;
+uses cgbase, cgutils, cpubase, aasmtai, aasmcpu,aopt, aoptobj;
 
 Type
   TCpuAsmOptimizer = class(TAsmOptimizer)
@@ -49,7 +49,8 @@ Type
       change in program flow.
       If there is none, it returns false and
       sets p1 to nil                                                     }
-    Function GetNextInstructionUsingReg(Current: tai; Var Next: tai;reg : TRegister): Boolean;
+    Function GetNextInstructionUsingReg(Current: tai; Out Next: tai; reg: TRegister): Boolean;
+    Function GetNextInstructionUsingRef(Current: tai; Out Next: tai; const ref: TReference; StopOnStore: Boolean = true): Boolean;
 
     { outputs a debug message into the assembler file }
     procedure DebugMsg(const s: string; p: tai);
@@ -79,7 +80,7 @@ Implementation
     cutils,verbose,globtype,globals,
     systems,
     cpuinfo,
-    cgobj,cgutils,procinfo,
+    cgobj,procinfo,
     aasmbase,aasmdata;
 
   function CanBeCond(p : tai) : boolean;
@@ -317,15 +318,39 @@ Implementation
          RegLoadedWithNewValue(reg,p);
     end;
 
-
   function TCpuAsmOptimizer.GetNextInstructionUsingReg(Current: tai;
-    var Next: tai; reg: TRegister): Boolean;
+    Out Next: tai; reg: TRegister): Boolean;
     begin
       Next:=Current;
       repeat
         Result:=GetNextInstruction(Next,Next);
-      until not(cs_opt_level3 in current_settings.optimizerswitches) or not(Result) or (Next.typ<>ait_instruction) or (RegInInstruction(reg,Next)) or
-        (is_calljmp(taicpu(Next).opcode)) or (RegInInstruction(NR_PC,Next));
+      until not (Result) or
+            not(cs_opt_level3 in current_settings.optimizerswitches) or
+            (Next.typ<>ait_instruction) or
+            RegInInstruction(reg,Next) or
+            is_calljmp(taicpu(Next).opcode) or
+            RegModifiedByInstruction(NR_PC,Next);
+    end;
+
+  function TCpuAsmOptimizer.GetNextInstructionUsingRef(Current: tai;
+    Out Next: tai; const ref: TReference; StopOnStore: Boolean = true): Boolean;
+    begin
+      Next:=Current;
+      repeat
+        Result:=GetNextInstruction(Next,Next);
+        if Result and
+           (Next.typ=ait_instruction) and
+           (taicpu(Next).opcode in [A_LDR, A_STR]) and
+           RefsEqual(taicpu(Next).oper[1]^.ref^,ref) then
+            {We've found an instruction LDR or STR with the same reference}
+            exit;
+      until not(Result) or
+            (Next.typ<>ait_instruction) or
+            not(cs_opt_level3 in current_settings.optimizerswitches) or
+            is_calljmp(taicpu(Next).opcode) or
+            (StopOnStore and (taicpu(Next).opcode in [A_STR, A_STM])) or
+            RegModifiedByInstruction(NR_PC,Next);
+      Result:=false;
     end;
 
 {$ifdef DEBUG_AOPTCPU}
@@ -609,10 +634,13 @@ Implementation
                     }
                     if (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
                        (taicpu(p).oppostfix=PF_None) and
-                       GetNextInstruction(p,hp1) and
-                       MatchInstruction(hp1, A_LDR, [taicpu(p).condition, C_None], [PF_None]) and
-                       RefsEqual(taicpu(p).oper[1]^.ref^,taicpu(hp1).oper[1]^.ref^) and
-                       (taicpu(hp1).oper[1]^.ref^.addressmode=AM_OFFSET) then
+                       (taicpu(p).condition=C_None) and
+                       GetNextInstructionUsingRef(p,hp1,taicpu(p).oper[1]^.ref^) and
+                       MatchInstruction(hp1, A_LDR, [taicpu(p).condition], [PF_None]) and
+                       (taicpu(hp1).oper[1]^.ref^.addressmode=AM_OFFSET) and
+                       not(RegModifiedBetween(taicpu(p).oper[0]^.reg, p, hp1)) and
+                       ((taicpu(hp1).oper[1]^.ref^.index=NR_NO) or not (RegModifiedBetween(taicpu(hp1).oper[1]^.ref^.index, p, hp1))) and
+                       ((taicpu(hp1).oper[1]^.ref^.base=NR_NO) or not (RegModifiedBetween(taicpu(hp1).oper[1]^.ref^.base, p, hp1))) then
                       begin
                         if taicpu(hp1).oper[0]^.reg=taicpu(p).oper[0]^.reg then
                           begin
@@ -1583,13 +1611,14 @@ Implementation
                               and reg1,reg0,2^n-1
                               mov reg2,reg1, lsl imm1
                               =>
-                              mov reg2,reg1, lsl imm1
+                              mov reg2,reg0, lsl imm1
                               if imm1>i
                             }
-                            else if i>32-taicpu(hp1).oper[2]^.shifterop^.shiftimm then
+                            else if (i>32-taicpu(hp1).oper[2]^.shifterop^.shiftimm) and
+                                    not(RegModifiedBetween(taicpu(p).oper[1]^.reg, p, hp1)) then
                               begin
                                 DebugMsg('Peephole AndLsl2Lsl done', p);
-                                taicpu(hp1).oper[1]^.reg:=taicpu(p).oper[0]^.reg;
+                                taicpu(hp1).oper[1]^.reg:=taicpu(p).oper[1]^.reg;
                                 GetNextInstruction(p, hp1);
                                 asml.Remove(p);
                                 p.free;
@@ -2435,7 +2464,10 @@ Implementation
             { first instruction might not change the register used as index }
             ((taicpu(hp1).oper[1]^.ref^.index=NR_NO) or
              not(RegModifiedByInstruction(taicpu(hp1).oper[1]^.ref^.index,p))
-            ) then
+            ) and
+            { if we modify the basereg AND the first instruction used that reg, we can not schedule }
+            ((taicpu(hp1).oper[1]^.ref^.addressmode = AM_OFFSET) or
+             not(instructionLoadsFromReg(taicpu(hp1).oper[1]^.ref^.base,p))) then
             begin
               hp3:=tai(p.Previous);
               hp5:=tai(p.next);

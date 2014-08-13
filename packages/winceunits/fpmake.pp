@@ -95,6 +95,8 @@ begin
     T:=P.Targets.AddImplicitUnit('extapi.pp', [wince]);
     T:=P.Targets.AddImplicitUnit('imm.pp', [wince]);
     T:=P.Targets.AddImplicitUnit('activex.pp', [wince]);
+    T:=P.Targets.AddImplicitUnit('pnp.pas', [wince]);
+    T:=P.Targets.AddImplicitUnit('storemgr.pas', [wince]);
 
     T:=P.Targets.AddUnit('cesync.pp', [wince,win32]);
     T:=P.Targets.AddUnit('rapitypes.pp',[wince,win32]);

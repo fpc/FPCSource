@@ -116,7 +116,7 @@ Type
     function TypeToString(TI: ITypeInfo; TD: TYPEDESC): string; virtual;
     function ValidateID(id: string): boolean; virtual;
     function ValidateIDAgainstDeclared(id: string): boolean; virtual;
-    function MakeValidId(id:string;var valid:string): boolean; virtual;
+    function MakeValidId(id:string;out valid:string): boolean; virtual;
     function MakeValidIdAgainstDeclared(id:string;var valid:string): boolean;
     function RemoveTag(typename: string): string;
     // The actual routines that do the work.
@@ -289,7 +289,7 @@ begin
   result:=i<0;
 end;
 
-function TTypeLibImporter.MakeValidId(id:string;var valid:string): boolean;
+function TTypeLibImporter.MakeValidId(id:string;out valid:string): boolean;
 begin
   result:= ValidateID(id);
   if result then
@@ -399,7 +399,9 @@ begin
         else
           sRefSrc:=GUIDToString(LARef^.GUID);
         RegCloseKey(Handle);
-        end;
+        end
+      else
+        sRefSrc:='DLL not registered in the system';
       AddToHeader('// Dependency: %s v%d.%d (%s)',[BstrName,LARef^.wMajorVerNum,LARef^.wMinorVerNum,sRefSrc]);
       FUses.Add(sl);
       TLRef.ReleaseTLibAttr(LARef);
@@ -451,7 +453,7 @@ var
   RTIT: HREFTYPE;
   TIref: ITypeInfo;
   BstrName,BstrNameRef,BstrDocString : WideString;
-  s,sl,sPropIntfc,sPropDispIntfc,sType,sConv,sFunc,sPar,sVarName,sMethodName,
+  s,sl,sPropDispIntfc,sType,sConv,sFunc,sPar,sVarName,sMethodName,
   sPropParam,sPropParam2,sPropParam3:string;
   sEventSignatures,sEventFunctions,sEventProperties,sEventImplementations:string;
   i,j,k:integer;
@@ -497,13 +499,16 @@ var
 
   function GetName(i:integer):string;  //bug in Office10\MSacc.OLB _WizHook.Key
   begin
-    if i<cnt then
-      result:=BL[i]
-    else
+    result:='';
+    if i<integer(cnt) then
+      result:=BL[i];
+    if result='' then //No name ?
       result:='Param'+inttostr(i);
   end;
 
 begin
+  FillMemory(@TD,Sizeof(TD),0);
+  TD.vt:=VT_ILLEGAL;
   Propertycnt:=0;
   SetLength(aPropertyDefs,TA^.cFuncs+TA^.cVars);   // worst case, all functions getters or all setters
   sEventSignatures:='';
@@ -531,7 +536,6 @@ begin
       s:=format(#13#10'// %s : %s'#13#10#13#10' %sDisp = dispinterface'#13#10,[iname,iDoc,iname])
     else
       s:=format(#13#10'// %s : %s'#13#10#13#10' %s = dispinterface'#13#10,[iname,iDoc,iname]);
-  sPropIntfc:='';
   sPropDispIntfc:='';
   s:=s+format('   [''%s'']'#13#10,[GUIDToString(TA^.GUID)]);
   for j:=0 to TA^.cFuncs-1 do
@@ -1099,7 +1103,7 @@ Procedure TTypeLibImporter.CreateForwards(Const TL : ITypeLib; TICount : Integer
 Var
   i, j: integer;
   BstrName, BstrNameRef : WideString;
-  dwHelpContext: DWORD;
+//  dwHelpContext: DWORD;
   TI, TIref:ITypeInfo;
   TA:LPTYPEATTR;
   TIT: TYPEKIND;
@@ -1323,7 +1327,8 @@ Var
   BstrName, BstrDocString, BstrHelpFile, BstrNameRef : WideString;
   dwHelpContext : DWORD;
   TI,TIref,TIref2 : ITypeInfo;
-  TA,TAref,TAref2 : LPTYPEATTR;
+  TA,TAref: LPTYPEATTR;
+  //TAref2 : LPTYPEATTR;
   TIT : TYPEKIND;
   RTIT : HREFTYPE;
   sl: string;
@@ -1767,6 +1772,7 @@ var
 begin
   Header.Clear;
   InterfaceSection.Clear;
+  TL:=nil;
   OleCheck(LoadTypeLib(PWidechar(InputFileName), TL ));
   OleCheck(TL.GetLibAttr(LA));
   try

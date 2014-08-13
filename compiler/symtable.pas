@@ -3329,7 +3329,9 @@ implementation
               end;
           end;
         { now search in the extended type itself }
-        if classh.extendeddef.typ in [recorddef,objectdef] then
+        { Note: the extendeddef might be Nil if we are currently parsing the
+                extended type itself and the identifier was not found }
+        if assigned(classh.extendeddef) and (classh.extendeddef.typ in [recorddef,objectdef]) then
           begin
             srsymtable:=tabstractrecorddef(classh.extendeddef).symtable;
             srsym:=tsym(srsymtable.FindWithHash(hashedid));
@@ -3472,7 +3474,7 @@ implementation
         sym:=tsym(systemunit.Find(s));
         if not assigned(sym) or
            (sym.typ<>typesym) then
-          cgmessage1(cg_f_unknown_system_type,s);
+          message1(cg_f_unknown_system_type,s);
         result:=ttypesym(sym);
       end;
 
@@ -3487,7 +3489,7 @@ implementation
         else
           begin
             if sym.typ<>typesym then
-              cgmessage1(cg_f_unknown_system_type,s);
+              message1(cg_f_unknown_system_type,s);
             result:=ttypesym(sym);
           end;
       end;
@@ -3503,7 +3505,7 @@ implementation
           srsym:=tsym(systemunit.Find(upper(s)));
         if not assigned(srsym) or
            (srsym.typ<>procsym) then
-          cgmessage1(cg_f_unknown_compilerproc,s);
+          message1(cg_f_unknown_compilerproc,s);
         result:=tprocdef(tprocsym(srsym).procdeflist[0]);
     end;
 
@@ -3523,7 +3525,7 @@ implementation
         else
           begin
             if throwerror then
-              cgmessage2(cg_f_unknown_type_in_unit,typename,unitname);
+              message2(cg_f_unknown_type_in_unit,typename,unitname);
             result:=nil;
           end;
       end;

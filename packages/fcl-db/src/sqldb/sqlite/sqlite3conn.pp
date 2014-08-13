@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal Classes Library (FCL).
-    Copyright (c) 2006 by the Free Pascal development team
+    Copyright (c) 2006-2014 by the Free Pascal development team
 
     SQLite3 connection for SQLDB
 
@@ -97,7 +97,7 @@ type
     function GetInsertID: int64;
     // See http://www.sqlite.org/c3ref/create_collation.html for detailed information
     // If eTextRep=0 a default UTF-8 compare function is used (UTF8CompareCallback)
-    // Warning: UTF8CompareCallback needs a wide string manager on linux such as cwstring
+    // Warning: UTF8CompareCallback needs a wide string manager on Linux such as cwstring
     // Warning: CollationName has to be a UTF-8 string
     procedure CreateCollation(const CollationName: string; eTextRep: integer; Arg: Pointer=nil; Compare: xCompare=nil);
     procedure LoadExtension(LibraryFile: string);
@@ -524,18 +524,26 @@ begin
   Delete(S,1,P);
 end;
 
+// Parses string-formatted date into TDateTime value
+// Expected format: '2013-12-31 ' (without ')
 Function ParseSQLiteDate(S : ShortString) : TDateTime;
 
 Var
   Year, Month, Day : Integer;
+
 begin
- Result:=0;
- If TryStrToInt(NextWord(S,'-'),Year) then
-   if TryStrToInt(NextWord(S,'-'),Month) then
-     if TryStrToInt(NextWord(S,' '),Day) then
+  Result:=0;
+  If TryStrToInt(NextWord(S,'-'),Year) then
+    if TryStrToInt(NextWord(S,'-'),Month) then
+      if TryStrToInt(NextWord(S,' '),Day) then
         Result:=EncodeDate(Year,Month,Day);
 end;
 
+// Parses string-formatted time into TDateTime value
+// Expected formats
+// 23:59
+// 23:59:59
+// 23:59:59.999
 Function ParseSQLiteTime(S : ShortString; Interval: boolean) : TDateTime;
 
 Var
@@ -545,16 +553,28 @@ begin
   Result:=0;
   If TryStrToInt(NextWord(S,':'),Hour) then
     if TryStrToInt(NextWord(S,':'),Min) then
+    begin
       if TryStrToInt(NextWord(S,'.'),Sec) then
-        begin
-        MSec:=StrToIntDef(S,0);
-        if Interval then
-          Result:=EncodeTimeInterval(Hour,Min,Sec,MSec)
-        else
-          Result:=EncodeTime(Hour,Min,Sec,MSec);
-        end;
+      begin // 23:59:59 or 23:59:59.999
+      MSec:=StrToIntDef(S,0);
+      if Interval then
+        Result:=EncodeTimeInterval(Hour,Min,Sec,MSec)
+      else
+        Result:=EncodeTime(Hour,Min,Sec,MSec);
+      end;
+    end
+    else //23:59
+    begin
+      Sec:=0;
+      MSec:=0;
+      if Interval then
+        Result:=EncodeTimeInterval(Hour,Min,Sec,MSec)
+      else
+        Result:=EncodeTime(Hour,Min,Sec,MSec);
+    end;
 end;
 
+// Parses string-formatted date/time into TDateTime value
 Function ParseSQLiteDateTime(S : String) : TDateTime;
 
 var
@@ -564,7 +584,9 @@ var
 begin
   DS:='';
   TS:='';
-  P:=Pos(' ',S);
+  P:=Pos('T',S); //allow e.g. YYYY-MM-DDTHH:MM
+  if P=0 then
+    P:=Pos(' ',S); //allow e.g. YYYY-MM-DD HH:MM
   If (P<>0) then
     begin
     DS:=Copy(S,1,P-1);
@@ -612,17 +634,17 @@ begin
     ftDateTime,
     ftDate,
     ftTime:  if st1 = sttext then 
-               begin
+               begin { Stored as string }
                setlength(str1,sqlite3_column_bytes(st,fnum));
                move(sqlite3_column_text(st,fnum)^,str1[1],length(str1));
                case FieldDef.datatype of
                  ftDateTime: PDateTime(Buffer)^:=ParseSqliteDateTime(str1);
                  ftDate    : PDateTime(Buffer)^:=ParseSqliteDate(str1);
-                 ftTime    : PDateTime(Buffer)^:=ParseSQLiteTime(str1,true);
+                 ftTime    : PDateTime(Buffer)^:=ParseSqliteTime(str1,true);
                end; {case}
                end
              else
-               begin
+               begin { Assume stored as double }
                PDateTime(buffer)^ := sqlite3_column_double(st,fnum);
                if PDateTime(buffer)^ > 1721059.5 {Julian 01/01/0000} then
                   PDateTime(buffer)^ := PDateTime(buffer)^ + JulianEpoch; //backward compatibility hack

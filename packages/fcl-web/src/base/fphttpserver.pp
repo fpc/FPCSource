@@ -195,7 +195,7 @@ Type
     Property OnRequestError;
   end;
 
-  EHTTPServer = Class(Exception);
+  EHTTPServer = Class(EHTTP);
 
   Function GetStatusCode (ACode: Integer) : String;
 
@@ -475,7 +475,7 @@ begin
   Request.PathInfo:=Request.URL;
   S:=GetNextWord(AStartLine);
   If (Pos('HTTP/',S)<>1) then
-    Raise Exception.Create(SErrMissingProtocol);
+    Raise EHTTPServer.CreateHelp(SErrMissingProtocol,400);
   Delete(S,1,5);
   Request.ProtocolVersion:=trim(S);
 end;

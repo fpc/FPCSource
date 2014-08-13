@@ -533,6 +533,7 @@ begin
     begin
     readln(logfile,line);
     fullline:=line;
+    ts:=stFailedToCompile;
     If analyse(line,TS) then
       begin
       Verbose(V_NORMAL,'Analysing result for test '+Line);
@@ -599,7 +600,6 @@ procedure UpdateTestRun;
   var
      i : TTestStatus;
      qry : string;
-     res : TQueryResult;
 
   begin
     qry:='UPDATE TESTRUN SET ';
@@ -620,8 +620,7 @@ procedure UpdateTestRun;
 
     qry:=qry+format('TU_SUBMITTER="%s", TU_MACHINE="%s", TU_COMMENT="%s", TU_DATE="%s"',[Submitter,Machine,Comment,SqlDate(TestDate)]);
     qry:=qry+' WHERE TU_ID='+format('%d',[TestRunID]);
-    if RunQuery(Qry,res) then
-      FreeQueryResult(Res);
+    ExecuteQuery(Qry,False);
   end;
 
 function GetTestConfigId : Integer;
@@ -646,7 +645,6 @@ var
   qry : string;
   firstRunID, lastRunID,PrevRunID : Integer;
   RunCount : Integer;
-  res : TQueryResult;
   AddCount : boolean;
 
 begin
@@ -659,9 +657,7 @@ begin
       Verbose(V_Warning,format('FirstRunID changed from %d to %d',[FirstRunID,TestRunID]));
       qry:=format('UPDATE TESTCONFIG SET TCONF_FIRST_RUN_FK=%d WHERE TCONF_ID=%d',
                   [TestRunID,ConfigID]);
-      if RunQuery(qry,res) then
-        FreeQueryResult(res)
-      else
+      if Not ExecuteQuery(qry,False) then
         Verbose(V_Warning,'Update of LastRunID failed');
     end;
   qry:=format('SELECT TCONF_LAST_RUN_FK FROM TESTCONFIG WHERE TCONF_ID=%d',[ConfigID]);
@@ -670,9 +666,7 @@ begin
     begin
       qry:=format('UPDATE TESTCONFIG SET TCONF_LAST_RUN_FK=%d WHERE TCONF_ID=%d',
                   [TestRunID,ConfigID]);
-      if RunQuery(qry,res) then
-        FreeQueryResult(res)
-      else
+      if not ExecuteQuery(qry,False) then
         Verbose(V_Warning,'Update of LastRunID failed');
     end
    else
@@ -681,14 +675,12 @@ begin
   PrevRunID:=IDQuery(qry);
   if TestRunID<>PrevRunID then
     begin
-      qry:=format('UPDATE TESTCONFIG SET TCONF_NEW_RUN_FK=%d WHERE TCONF_ID=%d',
-                  [TestRunID,ConfigID]);
-      if RunQuery(qry,res) then
-        FreeQueryResult(res)
-      else
-        Verbose(V_Warning,'Update of LastRunID failed');
-      AddTestHistoryEntry(TestRunID,PrevRunID);
-      AddCount:=true;
+    qry:=format('UPDATE TESTCONFIG SET TCONF_NEW_RUN_FK=%d WHERE TCONF_ID=%d',
+                [TestRunID,ConfigID]);
+    if not ExecuteQuery(qry,False) then
+      Verbose(V_Warning,'Update of LastRunID failed');
+    AddTestHistoryEntry(TestRunID,PrevRunID);
+    AddCount:=true;
     end
   else
     Verbose(V_Warning,'TestRunID is equal to last!');
@@ -700,9 +692,7 @@ begin
       Inc(RunCount);
       qry:=format('UPDATE TESTCONFIG SET TCONF_COUNT_RUNS=%d WHERE TCONF_ID=%d',
                   [RunCount,ConfigID]);
-      if RunQuery(qry,res) then
-        FreeQueryResult(res)
-      else
+      if not ExecuteQuery(qry,False) then
         Verbose(V_Warning,'Update of TU_COUNT_RUNS failed');
     end;
   UpdateTestConfigID:=true;
@@ -717,31 +707,23 @@ begin
          'TCONF_CPU_FK,TCONF_OS_FK,TCONF_VERSION_FK,TCONF_CATEGORY_FK,'+
          'TCONF_SUBMITTER,TCONF_MACHINE,TCONF_COMMENT,'+
          'TCONF_NEW_DATE,TCONF_FIRST_DATE,TCONF_LAST_DATE) ';
-    qry:=qry+format(' VALUES(%d,%d,%d,%d,%d,%d,%d,"%s","%s","%s","%s","%s","%s") ',
-                    [TestRunID, TestRunID, TestRunID, TestCPUID, 
-                     TestOSID, TestVersionID, TestCategoryID,
-                     Submitter, Machine, Comment,
-                     SqlDate(TestDate), SqlDate(TestDate), SqlDate(TestDate)]);
+  qry:=qry+format(' VALUES(%d,%d,%d,%d,%d,%d,%d,"%s","%s","%s","%s","%s","%s") ',
+                  [TestRunID, TestRunID, TestRunID, TestCPUID,
+                   TestOSID, TestVersionID, TestCategoryID,
+                   Submitter, Machine, Comment,
+                   SqlDate(TestDate), SqlDate(TestDate), SqlDate(TestDate)]);
+  qry:=qry+' RETURNING TCONF_ID';
   Result:=InsertQuery(qry);
   AddTestHistoryEntry(TestRunID,0);
 end;
 
 procedure UpdateTestConfig;
 
-  var
-     qry : string;
-     res : TQueryResult;
   begin
-    qry:='SHOW TABLES LIKE ''TESTCONFIG''';
-    if not RunQuery(Qry,Res) then
-      exit;
-    { Row_Count is zero if table does not exist }
-    if Res^.Row_Count=0 then exit;
-    FreeQueryResult(Res);
     if GetTestPreviousRunHistoryID(TestRunID) <> -1 then
       begin
-        Verbose(V_DEBUG,format('TestRun %d already in TestHistory table',[TestRunID]));
-        exit;
+      Verbose(V_DEBUG,format('TestRun %d already in TestHistory table',[TestRunID]));
+      exit;
       end;
 
     if GetTestConfigID >= 0 then

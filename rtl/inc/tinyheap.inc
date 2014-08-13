@@ -13,25 +13,48 @@
 
  **********************************************************************}
 
-    const
-      TinyHeapMinBlock = 4*sizeof(pointer);
+{$ifdef cpui8086}
+  {$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+    {$define FPC_HEAP_HUGE}
+  {$endif}
+{$endif cpui8086}
+
+{$ifdef FPC_HEAP_HUGE}
+  {$HugePointerArithmeticNormalization On}
+  {$HugePointerComparisonNormalization On}
+{$endif FPC_HEAP_HUGE}
 
     type
+      { TTinyHeapMemBlockSize holds the size of an *allocated* memory block,
+        and is written at position:
+          memblockstart-sizeof(TTinyHeapMemBlockSize) }
+      PTinyHeapMemBlockSize = ^TTinyHeapMemBlockSize; {$ifdef FPC_HEAP_HUGE}huge;{$endif}
+      TTinyHeapMemBlockSize = PtrUInt;
+
+      { TTinyHeapFreeBlockSize holds the size of a *free* memory block, as a
+        part of the TTinyHeapBlock structure }
+      TTinyHeapFreeBlockSize = PtrUInt;
+
+      TTinyHeapPointerArithmeticType = ^Byte; {$ifdef FPC_HEAP_HUGE}huge;{$endif}
+
       PTinyHeapBlock = ^TTinyHeapBlock;
       TTinyHeapBlock = record
-        Size: ptruint;
         Next: PTinyHeapBlock;
+        Size: TTinyHeapFreeBlockSize;
         EndAddr: pointer;
       end;
+
+    const
+      TinyHeapMinBlock = sizeof(TTinyHeapBlock);
 
     var
       TinyHeapBlocks: PTinyHeapBlock = nil;
 
-    procedure InternalTinyFreeMem(Addr: Pointer; Size: ptruint); forward;
+    procedure InternalTinyFreeMem(Addr: Pointer; Size: TTinyHeapFreeBlockSize); forward;
 
-    function FindSize(p: pointer): ptruint;
+    function FindSize(p: pointer): TTinyHeapMemBlockSize;
       begin
-        FindSize := PPtrUInt(p)[-1];
+        FindSize := PTinyHeapMemBlockSize(p)[-1];
       end;
 
     function SysTinyGetMem(Size: ptruint): pointer;
@@ -42,7 +65,7 @@
 {$ifdef DEBUG_TINY_HEAP}
         Write('SysTinyGetMem(', Size, ')=');
 {$endif DEBUG_TINY_HEAP}
-        AllocSize := align(size+sizeof(ptruint), sizeof(pointer));
+        AllocSize := align(size+sizeof(TTinyHeapMemBlockSize), sizeof(pointer));
 
         p := TinyHeapBlocks;
         prev := nil;
@@ -54,7 +77,7 @@
 
         if assigned(p) then
           begin
-            result := @pptruint(p)[1];
+            result := @PTinyHeapMemBlockSize(p)[1];
 
             if p^.Size-AllocSize >= TinyHeapMinBlock then
               RestSize := p^.Size-AllocSize
@@ -69,10 +92,10 @@
             else
               prev^.next := p^.next;
 
-            pptruint(p)^ := size;
+            PTinyHeapMemBlockSize(p)^ := size;
 
             if RestSize > 0 then
-              InternalTinyFreeMem(pointer(ptruint(p)+AllocSize), RestSize);
+              InternalTinyFreeMem(pointer(TTinyHeapPointerArithmeticType(p)+AllocSize), RestSize);
           end
         else
           if ReturnNilIfGrowHeapFails then
@@ -95,12 +118,12 @@
           begin
             mem := GetMem(Size+Alignment-1);
             memp := align(ptruint(mem), Alignment);
-            InternalTinyFreeMem(mem, ptruint(memp)-ptruint(mem));
+            InternalTinyFreeMem(mem, TTinyHeapPointerArithmeticType(memp)-TTinyHeapPointerArithmeticType(mem));
             result := pointer(memp);
           end;
       end;
 
-    procedure InternalTinyFreeMem(Addr: Pointer; Size: ptruint);
+    procedure InternalTinyFreeMem(Addr: Pointer; Size: TTinyHeapFreeBlockSize);
       var 
         b, p, prev: PTinyHeapBlock;
         concatenated: boolean;
@@ -111,7 +134,7 @@
 
           b^.Next := TinyHeapBlocks;
           b^.Size := Size;
-          b^.EndAddr := pointer(ptruint(addr)+size);
+          b^.EndAddr := pointer(TTinyHeapPointerArithmeticType(addr)+size);
 
           if TinyHeapBlocks = nil then
             TinyHeapBlocks := b
@@ -183,9 +206,9 @@
             result:=0;
             exit;
           end;
-        sz := Align(FindSize(addr)+SizeOf(ptruint), sizeof(pointer));
+        sz := Align(FindSize(addr)+SizeOf(TTinyHeapMemBlockSize), sizeof(pointer));
 
-        InternalTinyFreeMem(@pptruint(addr)[-1], sz);
+        InternalTinyFreeMem(@PTinyHeapMemBlockSize(addr)[-1], sz);
         
         result := sz;
       end;
@@ -247,8 +270,8 @@
           end;
         if (ASize and 1) <> 0 then
           Dec(ASize);
-        pptruint(AAddress)^ := ASize - SizeOf(ptruint);
-        FreeMem(pptruint(AAddress) + 1, ASize - SizeOf(ptruint));
+        PTinyHeapMemBlockSize(AAddress)^ := ASize - SizeOf(TTinyHeapMemBlockSize);
+        FreeMem(Pointer(PTinyHeapMemBlockSize(AAddress) + 1), ASize - SizeOf(TTinyHeapMemBlockSize));
       end;
 
     const

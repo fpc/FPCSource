@@ -590,6 +590,8 @@ uses
               found:=searchsym_in_class(tobjectdef(genericdef.owner.defowner),tobjectdef(genericdef.owner.defowner),ugenname,srsym,st,[])
             else
               found:=searchsym_in_record(tabstractrecorddef(genericdef.owner.defowner),ugenname,srsym,st);
+            if not found then
+              found:=searchsym(ugenname,srsym,st);
           end
         else
           found:=searchsym(ugenname,srsym,st);

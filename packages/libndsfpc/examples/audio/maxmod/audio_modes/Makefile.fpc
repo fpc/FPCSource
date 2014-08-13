@@ -14,6 +14,10 @@ nortl=y
 [install]
 fpcpackage=y
 
+[compiler]
+options=-Xm 
+
+
 [default]
 cpu=arm
 target=nds

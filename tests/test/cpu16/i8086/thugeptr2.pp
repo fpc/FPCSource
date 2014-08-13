@@ -9,6 +9,10 @@
   different pairs of segment:offset that point to the same linear address are
   treated as different. }
 
+{ >, <, >= and <= should compare like 32-bit ints, with the high 16 bits being the segment
+  and the low 16 bits - the offset }
+{ note: >, <, >= and <= are tested only with equal pointers in this test }
+
 var
   ErrorCode: Integer;
 
@@ -34,6 +38,7 @@ var
   HugePtr2: HugePointer;
   HugePtrRec: THugePtrRec absolute HugePtr;
   eq, neq: Boolean;
+  lt, gt, lteq, gteq: Boolean;
 begin
   ErrorCode := 0;
 
@@ -42,7 +47,11 @@ begin
   HugePtr2 := HPtr($1234, $5678);
   eq := HugePtr = HugePtr2;
   neq := HugePtr <> HugePtr2;
-  if not eq or neq then
+  lt := HugePtr < HugePtr2;
+  lteq := HugePtr <= HugePtr2;
+  gt := HugePtr > HugePtr2;
+  gteq := HugePtr >= HugePtr2;
+  if not eq or neq or lt or not lteq or gt or not gteq then
     Error(1);
 
   HugePtr := HPtr($1234, $5678);
@@ -77,7 +86,11 @@ begin
   HugePtr := HPtr($1234, $5678);
   eq := HugePtr = HPtr($1234, $5678);
   neq := HugePtr <> HPtr($1234, $5678);
-  if not eq or neq then
+  lt := HugePtr < HPtr($1234, $5678);
+  lteq := HugePtr <= HPtr($1234, $5678);
+  gt := HugePtr > HPtr($1234, $5678);
+  gteq := HugePtr >= HPtr($1234, $5678);
+  if not eq or neq or lt or not lteq or gt or not gteq then
     Error(1);
 
   HugePtr := HPtr($1234, $5678);
@@ -107,7 +120,11 @@ begin
   Writeln('HPtr(const), HPtr(const)');
   eq := HPtr($1234, $5678) = HPtr($1234, $5678);
   neq := HPtr($1234, $5678) <> HPtr($1234, $5678);
-  if not eq or neq then
+  lt := HPtr($1234, $5678) < HPtr($1234, $5678);
+  lteq := HPtr($1234, $5678) <= HPtr($1234, $5678);
+  gt := HPtr($1234, $5678) > HPtr($1234, $5678);
+  gteq := HPtr($1234, $5678) >= HPtr($1234, $5678);
+  if not eq or neq or lt or not lteq or gt or not gteq then
     Error(1);
 
   eq := HPtr($1234, $5678) = HPtr($4321, $5678);
@@ -134,7 +151,11 @@ begin
   HugePtr := HPtr(0, 0);
   eq := HugePtr = nil;
   neq := HugePtr <> nil;
-  if not eq or neq then
+  lt := HugePtr < nil;
+  lteq := HugePtr <= nil;
+  gt := HugePtr > nil;
+  gteq := HugePtr >= nil;
+  if not eq or neq or lt or not lteq or gt or not gteq then
     Error(1);
 
   HugePtr := HPtr(0, 1);

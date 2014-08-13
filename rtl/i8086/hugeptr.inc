@@ -46,6 +46,11 @@ begin
   fpc_hugeptr_sub_longint_normalized:=HugePointer(Ptr(linear shr 4,linear and $F));
 end;
 
+function fpc_hugeptr_sub_hugeptr(p1, p2: HugePointer): LongInt; compilerproc;
+begin
+  fpc_hugeptr_sub_hugeptr:=((LongInt(Seg(p1^)) shl 4)+Ofs(p1^))-((LongInt(Seg(p2^)) shl 4)+Ofs(p2^));
+end;
+
 procedure fpc_hugeptr_inc_longint(var p: HugePointer; n: LongInt); compilerproc;
 var
   o: LongInt;

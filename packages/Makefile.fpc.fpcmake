@@ -65,6 +65,7 @@ dirs_go32v2=rtl-console fv graph unzip gdbint
 dirs_amiga=amunits
 dirs_morphos=rtl-console fv opengl sdl
 dirs_wii=libogcfpc
+dirs_arm_nds=libndsfpc
 
 [install]
 fpcpackage=y

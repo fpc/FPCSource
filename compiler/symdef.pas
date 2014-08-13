@@ -227,6 +227,16 @@ interface
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           function  GetTypeName:string;override;
+          {# returns the appropriate int type for pointer arithmetic with the given pointer type.
+             When adding or subtracting a number to/from a pointer, this function returns the
+             int type to which that number has to be converted, before the operation can be performed.
+             Normally, this is sinttype, except on i8086, where it takes into account the
+             special i8086 pointer types (near, far, huge). }
+          function pointer_arithmetic_int_type:tdef;virtual;
+          {# returns the int type produced when subtracting two pointers of the given type.
+             Normally, this is sinttype, except on i8086, where it takes into account the
+             special i8086 pointer types (near, far, huge). }
+          function pointer_subtraction_result_type:tdef;virtual;
        end;
        tpointerdefclass = class of tpointerdef;
 
@@ -249,6 +259,8 @@ interface
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           destructor destroy; override;
+          procedure buildderefimpl;override;
+          procedure derefimpl;override;
           procedure check_forwards; virtual;
           function find_procdef_bytype(pt:tproctypeoption): tprocdef;
           function GetSymtable(t:tGetSymtable):TSymtable;override;
@@ -294,7 +306,6 @@ interface
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           procedure buildderef;override;
-          procedure buildderefimpl;override;
           procedure deref;override;
           function  size:asizeint;override;
           function  alignment : shortint;override;
@@ -401,7 +412,6 @@ interface
           function GetTypeName:string;override;
           procedure buildderef;override;
           procedure deref;override;
-          procedure buildderefimpl;override;
           procedure derefimpl;override;
           procedure resetvmtentries;
           procedure copyvmtentries(objdef:tobjectdef);
@@ -470,7 +480,7 @@ interface
           function elesize : asizeint;
           function elepackedbitsize : asizeint;
           function elecount : asizeuint;
-          constructor create_from_pointer(def:tdef);virtual;
+          constructor create_from_pointer(def:tpointerdef);virtual;
           constructor create(l,h:asizeint;def:tdef);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy; override;
@@ -3170,6 +3180,18 @@ implementation
       end;
 
 
+    function tpointerdef.pointer_arithmetic_int_type:tdef;
+      begin
+        result:=ptrsinttype;
+      end;
+
+
+    function tpointerdef.pointer_subtraction_result_type:tdef;
+      begin
+        result:=ptrsinttype;
+      end;
+
+
 {****************************************************************************
                               TCLASSREFDEF
 ****************************************************************************}
@@ -3390,12 +3412,12 @@ implementation
         inherited;
       end;
 
-    constructor tarraydef.create_from_pointer(def:tdef);
+    constructor tarraydef.create_from_pointer(def:tpointerdef);
       begin
          { use -1 so that the elecount will not overflow }
          self.create(0,high(asizeint)-1,ptrsinttype);
          arrayoptions:=[ado_IsConvertedPointer];
-         setelementdef(def);
+         setelementdef(def.pointeddef);
       end;
 
 
@@ -3686,6 +3708,23 @@ implementation
         tcinitcode.free;
         inherited destroy;
       end;
+
+
+    procedure tabstractrecorddef.buildderefimpl;
+      begin
+         inherited buildderefimpl;
+         if not (df_copied_def in defoptions) then
+           tstoredsymtable(symtable).buildderefimpl;
+      end;
+
+
+    procedure tabstractrecorddef.derefimpl;
+      begin
+        inherited derefimpl;
+        if not (df_copied_def in defoptions) then
+          tstoredsymtable(symtable).derefimpl;
+      end;
+
 
     procedure tabstractrecorddef.check_forwards;
       begin
@@ -4040,14 +4079,6 @@ implementation
            cloneddefderef.build(symtable.defowner)
          else
            tstoredsymtable(symtable).buildderef;
-      end;
-
-
-    procedure trecorddef.buildderefimpl;
-      begin
-         inherited buildderefimpl;
-         if not (df_copied_def in defoptions) then
-           tstoredsymtable(symtable).buildderefimpl;
       end;
 
 
@@ -4494,7 +4525,7 @@ implementation
                   { in case of bare proc, don't copy self, vmt or framepointer
                     parameters }
                   if (copytyp=pc_bareproc) and
-                     (([vo_is_self,vo_is_vmt,vo_is_parentfp,vo_is_result]*pvs.varoptions)<>[]) then
+                     (([vo_is_self,vo_is_vmt,vo_is_parentfp,vo_is_result,vo_is_funcret]*pvs.varoptions)<>[]) then
                     continue;
                   npvs:=cparavarsym.create(pvs.realname,pvs.paranr,pvs.varspez,
                     pvs.vardef,pvs.varoptions);
@@ -5229,24 +5260,29 @@ implementation
           tprocdef(result).deprecatedmsg:=stringdup(deprecatedmsg^);
         { will have to be associated with appropriate procsym }
         tprocdef(result).procsym:=nil;
+        { don't create aliases for bare copies, nor copy the funcretsym as
+          the function result parameter will be inserted again if necessary
+          (e.g. if the calling convention is changed) }
         if copytyp<>pc_bareproc then
-          tprocdef(result).aliasnames.concatListcopy(aliasnames);
-        if assigned(funcretsym) then
           begin
-            if funcretsym.owner=parast then
+            tprocdef(result).aliasnames.concatListcopy(aliasnames);
+            if assigned(funcretsym) then
               begin
-                j:=parast.symlist.indexof(funcretsym);
-                if j<0 then
-                  internalerror(2011040606);
-                tprocdef(result).funcretsym:=tsym(tprocdef(result).parast.symlist[j]);
-              end
-            else if funcretsym.owner=localst then
-              begin
-                { nothing to do, will be inserted for the new procdef while
-                  parsing its body (by pdecsub.insert_funcret_local) }
-              end
-            else
-              internalerror(2011040605);
+                if funcretsym.owner=parast then
+                  begin
+                    j:=parast.symlist.indexof(funcretsym);
+                    if j<0 then
+                      internalerror(2011040606);
+                    tprocdef(result).funcretsym:=tsym(tprocdef(result).parast.symlist[j]);
+                  end
+                else if funcretsym.owner=localst then
+                  begin
+                    { nothing to do, will be inserted for the new procdef while
+                      parsing its body (by pdecsub.insert_funcret_local) }
+                  end
+                else
+                  internalerror(2011040605);
+              end;
           end;
         { will have to be associated with a new struct }
         tprocdef(result).struct:=nil;
@@ -6207,19 +6243,9 @@ implementation
       end;
 
 
-    procedure tobjectdef.buildderefimpl;
-      begin
-         inherited buildderefimpl;
-         if not (df_copied_def in defoptions) then
-           tstoredsymtable(symtable).buildderefimpl;
-      end;
-
-
     procedure tobjectdef.derefimpl;
       begin
          inherited derefimpl;
-         if not (df_copied_def in defoptions) then
-           tstoredsymtable(symtable).derefimpl;
          { the procdefs are not owned by the class helper procsyms, so they
            are not stored/restored either -> re-add them here }
          if (objecttype=odt_objcclass) or

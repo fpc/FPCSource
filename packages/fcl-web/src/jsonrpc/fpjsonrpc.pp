@@ -1,3 +1,17 @@
+{
+    This file is part of the Free Component Library
+
+    JSON-RPC functionality - http independant (backend) part
+    Copyright (c) 2007 by Michael Van Canneyt michael@freepascal.org
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 unit fpjsonrpc;
 
 {$mode objfpc}{$H+}
@@ -151,10 +165,11 @@ Type
     FOnStartBatch: TNotifyEvent;
     FOptions: TJSONRPCDispatchOptions;
   Protected
-
     // Find handler. If none found, nil is returned. Executes OnFindHandler if needed.
     // On return 'DoFree' must be set to indicate that the hand
     Function FindHandler(Const AClassName,AMethodName : TJSONStringType;AContext : TJSONRPCCallContext; Out FreeObject : TComponent) : TCustomJSONRPCHandler; virtual;
+    // Execute handler instance. This can be overridden to implement e.g. authentication globally before actually executing the handler.
+    Function ExecuteHandler(H: TCustomJSONRPCHandler; Params, ID: TJSONData; AContext: TJSONRPCCallContext): TJSONData; virtual;
     // Execute method. Finds handler, and returns response.
     Function ExecuteMethod(Const AClassName, AMethodName : TJSONStringType; Params,ID : TJSONData; AContext : TJSONRPCCallContext) : TJSONData; virtual;
     // Check and Execute a single request. Exceptions are caught and converted to request error object.
@@ -240,6 +255,7 @@ Type
     Property ArgumentCount : Integer Read FArgumentCount Write FArgumentCount;
     Property ParamDefs : TJSONParamDefs Read GetParamDefs Write SetParamDefs;
   end;
+  TJSONRPCHandlerDefClass = Class of TJSONRPCHandlerDef;
 
   { TJSONRPCHandlerDefs }
 
@@ -261,6 +277,7 @@ Type
     FRegistering: Boolean;
   Protected
     procedure Initialize; virtual;
+    procedure DoClear; virtual;
     // Handler support
     Procedure RemoveHandlerDef(Const Index : Integer); virtual; abstract;
     function AddHandlerDef(Const AClassName,AMethodName : TJSONStringType) : TJSONRPCHandlerDef; virtual; abstract;
@@ -279,6 +296,7 @@ Type
     Function GetHandler(Const AClassName,AMethodName : TJSONStringType; AOwner : TComponent; Out AContainer : TComponent): TCustomJSONRPCHandler;
     Procedure GetClassNames (List : TStrings); // Should be a stringlist of TJSONStringType
     Procedure GetMethodsOfClass(Const AClassName : TJSONStringType; List : TStrings); // Should be a stringlist of TJSONStringType
+    Procedure Clear;
     // properties
     Property Registering : Boolean Read FRegistering;
     Property HandlerCount : Integer Read GetHandlerDefCount;
@@ -292,6 +310,8 @@ Type
   Private
     FHandlerDefs : TJSONRPCHandlerDefs;
   Protected
+    procedure DoClear; override;
+    Function CreateDefs : TJSONRPCHandlerDefs; virtual;
     Procedure RemoveHandlerDef(Const Index : Integer); override;
     function AddHandlerDef(Const AClassName,AMethodName : TJSONStringType) : TJSONRPCHandlerDef; override;
     function IndexOfHandlerDef(Const AClassName,AMethodName : TJSONStringType) : Integer; override;
@@ -329,10 +349,11 @@ Function CreateErrorForRequest(Const Req,Error : TJSONData) : TJSONData;
 
 Function JSONRPCHandlerManager : TCustomJSONRPCHandlerManager;
 
-// Class that will be created. Must be set before first call to JSONRPCHandlerManager.
 Var
+  // Class that will be created. Must be set before first call to JSONRPCHandlerManager.
   JSONRPCHandlerManagerClass : TCustomJSONRPCHandlerManagerClass = TJSONRPCHandlerManager;
-
+  // Class of Defs that will be created by TJSONRPCHandlerManager. Must be set before first call to JSONRPCHandlerManager.
+  DefaultJSONRPCHandlerDefClass : TJSONRPCHandlerDefClass = TJSONRPCHandlerDef;
 
 Const
   // JSON RPC 2.0 error codes
@@ -714,6 +735,11 @@ begin
     end;
 end;
 
+Function TCustomJSONRPCDispatcher.ExecuteHandler(H : TCustomJSONRPCHandler; Params,ID: TJSONData;AContext : TJSONRPCCallContext): TJSONData;
+begin
+  Result:=H.Execute(Params,AContext);
+end;
+
 function TCustomJSONRPCDispatcher.ExecuteMethod(Const AClassName,AMethodName: TJSONStringType;
   Params,ID: TJSONData;AContext : TJSONRPCCallContext): TJSONData;
 
@@ -731,7 +757,7 @@ begin
   try
     If Assigned(FOndispatchRequest) then
       FOndispatchRequest(Self,AClassName,AMethodName,Params);
-    Result:=H.Execute(Params,AContext);
+    Result:=ExecuteHandler(H,Params,ID,AContext);
   finally
     If Assigned(FreeObject) then
       FreeAndNil(FreeObject);
@@ -1167,7 +1193,22 @@ begin
   // Do nothing
 end;
 
-procedure TCustomJSONRPCHandlerManager.UnregisterHandler(const AClassName,
+procedure TCustomJSONRPCHandlerManager.DoClear;
+Var
+  I : Integer;
+  D : TJSONRPCHandlerDef;
+  C,M : String;
+begin
+  For I:=HandlerCount-1 downto 0 do
+    begin
+    D:=HandlerDefs[i];
+    C:=D.HandlerClassName;
+    M:=D.HandlerMethodName;
+    UnregisterHandler(C,M);
+    end;
+end;
+
+Procedure TCustomJSONRPCHandlerManager.UnregisterHandler(Const AClassName,
   AMethodName: TJSONStringType);
 
 Var
@@ -1184,8 +1225,8 @@ begin
       JSONRPCError(SErrUnknownJSONRPCMethodHandler,[AMethodName]);
 end;
 
-procedure TCustomJSONRPCHandlerManager.RegisterDatamodule(
-  const AClass: TDatamoduleClass; const AHandlerClassName: TJSONStringType);
+Procedure TCustomJSONRPCHandlerManager.RegisterDatamodule(
+  Const AClass: TDatamoduleClass; Const AHandlerClassName: TJSONStringType);
 
 Var
   DM : TDatamodule;
@@ -1228,19 +1269,17 @@ begin
   end;
 end;
 
-function TCustomJSONRPCHandlerManager.RegisterHandler(
-  const AMethodName: TJSONStringType;
-  AClass: TCustomJSONRPCHandlerClass;
-  AArgumentCount : Integer = 0): TJSONRPCHandlerDef;
+Function TCustomJSONRPCHandlerManager.RegisterHandler(
+  Const AMethodName: TJSONStringType; AClass: TCustomJSONRPCHandlerClass;
+  AArgumentCount: Integer): TJSONRPCHandlerDef;
 
 begin
   Result:=RegisterHandler('',AMethodName,AClass,AArgumentCount);
 end;
 
-function TCustomJSONRPCHandlerManager.RegisterHandler(
-  const AClassName,AMethodName: String;
-  AClass: TCustomJSONRPCHandlerClass;
-  AArgumentCount : Integer = 0): TJSONRPCHandlerDef;
+Function TCustomJSONRPCHandlerManager.RegisterHandler(Const AClassName,
+  AMethodName: TJSONStringType; AClass: TCustomJSONRPCHandlerClass;
+  AArgumentCount: Integer): TJSONRPCHandlerDef;
 
 Var
   I : Integer;
@@ -1264,7 +1303,7 @@ begin
   end;
 end;
 
-function TCustomJSONRPCHandlerManager.FindHandlerDefByName(const AClassName,
+Function TCustomJSONRPCHandlerManager.FindHandlerDefByName(Const AClassName,
   AMethodName: TJSONStringType): TJSONRPCHandlerDef;
 
 Var
@@ -1278,7 +1317,7 @@ begin
     Result:=GetHandlerDef(I);
 end;
 
-function TCustomJSONRPCHandlerManager.GetHandlerDefByName(const AClassName,
+Function TCustomJSONRPCHandlerManager.GetHandlerDefByName(Const AClassName,
   AMethodName: TJSONStringType): TJSONRPCHandlerDef;
 begin
   Result:=FindHandlerDefByName(AClassName,AMethodName);
@@ -1289,8 +1328,8 @@ begin
       JSONRPCError(SErrUnknownJSONRPCMethodHandler,[AMethodName]);
 end;
 
-function TCustomJSONRPCHandlerManager.GetHandler(
-  const ADef: TJSONRPCHandlerDef; AOwner: TComponent; out AContainer: TComponent
+Function TCustomJSONRPCHandlerManager.GetHandler(
+  Const ADef: TJSONRPCHandlerDef; AOwner: TComponent; Out AContainer: TComponent
   ): TCustomJSONRPCHandler;
 
 Var
@@ -1304,8 +1343,8 @@ begin
   Result:=ADef.CreateInstance(O,AContainer);
 end;
 
-function TCustomJSONRPCHandlerManager.GetHandler(const AClassName,
-  AMethodName: TJSONStringType; AOwner: TComponent; out AContainer: TComponent
+Function TCustomJSONRPCHandlerManager.GetHandler(Const AClassName,
+  AMethodName: TJSONStringType; AOwner: TComponent; Out AContainer: TComponent
   ): TCustomJSONRPCHandler;
 
 Var
@@ -1316,31 +1355,65 @@ begin
   Result:=GetHandler(D,AOwner,AContainer);
 end;
 
-procedure TCustomJSONRPCHandlerManager.GetClassNames(List: TStrings);
-begin
+Procedure TCustomJSONRPCHandlerManager.GetClassNames(List: TStrings);
 
+Var
+  D : TJSONRPCHandlerDef;
+  I : Integer;
+
+begin
+  For I:=0 to HandlerCount-1 do
+    begin
+    D:=HandlerDefs[i];
+    If List.IndexOf(D.HandlerClassName)=-1 then
+      List.Add(D.HandlerClassName);
+    end;
 end;
 
-procedure TCustomJSONRPCHandlerManager.GetMethodsOfClass(
-  const AClassName: TJSONStringType; List: TStrings);
-begin
+Procedure TCustomJSONRPCHandlerManager.GetMethodsOfClass(
+  Const AClassName: TJSONStringType; List: TStrings);
+Var
+  D : TJSONRPCHandlerDef;
+  I : Integer;
 
+begin
+  For I:=0 to HandlerCount-1 do
+    begin
+    D:=HandlerDefs[i];
+    If AClassName=D.HandlerClassName then
+      List.Add(D.HandlerMethodName);
+    end;
+end;
+
+Procedure TCustomJSONRPCHandlerManager.Clear;
+begin
+  DoClear;
 end;
 
 { TJSONRPCHandlerManager }
 
-procedure TJSONRPCHandlerManager.RemoveHandlerDef(const Index: Integer);
+procedure TJSONRPCHandlerManager.DoClear;
+begin
+  FHandlerDefs.Clear;
+end;
+
+Function TJSONRPCHandlerManager.CreateDefs: TJSONRPCHandlerDefs;
+begin
+  Result:=TJSONRPCHandlerDefs.Create(DefaultJSONRPCHandlerDefClass);
+end;
+
+Procedure TJSONRPCHandlerManager.RemoveHandlerDef(Const Index: Integer);
 begin
   FHandlerDefs.Delete(Index);
 end;
 
-function TJSONRPCHandlerManager.AddHandlerDef(const AClassName,
+function TJSONRPCHandlerManager.AddHandlerDef(Const AClassName,
   AMethodName: TJSONStringType): TJSONRPCHandlerDef;
 begin
   Result:=FHandlerDefs.AddHandler(AClassName,AMethodName);
 end;
 
-function TJSONRPCHandlerManager.IndexOfHandlerDef(const AClassName,
+function TJSONRPCHandlerManager.IndexOfHandlerDef(Const AClassName,
   AMethodName: TJSONStringType): Integer;
 begin
   Result:=FHandlerDefs.IndexOfHandler(AClassName,AMethodName);
@@ -1357,13 +1430,13 @@ begin
   Result:=FHandlerDefs.Count;
 end;
 
-constructor TJSONRPCHandlerManager.Create(AOwner: TComponent);
+Constructor TJSONRPCHandlerManager.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FHandlerDefs:=TJSONRPCHandlerDefs.Create(TJSONRPCHandlerDef);
+  FHandlerDefs:=CreateDefs;
 end;
 
-destructor TJSONRPCHandlerManager.Destroy;
+Destructor TJSONRPCHandlerManager.Destroy;
 begin
   FreeAndNil(FHandlerDefs);
   inherited Destroy;

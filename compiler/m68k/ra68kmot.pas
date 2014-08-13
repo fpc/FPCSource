@@ -220,7 +220,7 @@ const
         if lower(s)='sp' then
           actasmregister:=NR_STACK_POINTER_REG;
         if lower(s)='fp' then
-          actasmregister:=NR_STACK_POINTER_REG;
+          actasmregister:=NR_FRAME_POINTER_REG;
         if actasmregister<>NR_NO then
           begin
             result:=true;
@@ -1343,7 +1343,6 @@ const
                    end;
    { // A constant expression, or a Variable ref. // }
      AS_ID:  begin
-              Oper.InitRef;
               if actasmpattern[1] = '@' then
               { // Label or Special symbol reference // }
               begin
@@ -1510,6 +1509,7 @@ const
                          case actasmtoken of
                           AS_REGISTER:
                             begin
+                              r:=actasmregister;
                               if getregtype(r)=R_ADDRESSREGISTER then
                                 include(addrregset,getsupreg(r))
                               else if getregtype(r)=R_INTREGISTER then

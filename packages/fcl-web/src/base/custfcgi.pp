@@ -293,7 +293,7 @@ begin
       FUR(Self,AFCGIRecord)
     else
       if poFailonUnknownRecord in FPO then
-        Raise EFPWebError.CreateFmt('Unknown FASTCGI record type: %s',[AFCGIRecord^.reqtype]);
+        TFCgiHandler.DoError('Unknown FASTCGI record type: %s',[AFCGIRecord^.reqtype]);
   end;
 end;
 
@@ -429,7 +429,7 @@ var ErrorCode,
     
 begin
   if Not (Request is TFCGIRequest) then
-    Raise Exception.Create(SErrNorequest);
+    TFCgiHandler.DoError(SErrNorequest);
   R:=TFCGIRequest(Request);
   BytesToWrite := BEtoN(ARecord^.contentLength) + ARecord^.paddingLength+sizeof(FCGI_Header);
   P:=PByte(Arecord);
@@ -439,7 +439,7 @@ begin
       begin
       // TODO : Better checking on ErrorCode
       R.FKeepConnectionAfterRequest:=False;
-      Raise HTTPError.CreateFmt(SErrWritingSocket,[ErrorCode]);
+      TFCgiHandler.DoError(SErrWritingSocket,[ErrorCode]);
       end;
     Inc(P,BytesWritten);
     Dec(BytesToWrite,BytesWritten);
@@ -697,7 +697,7 @@ function TFCgiHandler.Read_FCGIRecord : PFCGI_Header;
         Inc(Result,Count);
         end
       else if (Count<0) then
-        Raise HTTPError.CreateFmt(SErrReadingSocket,[Count]);
+        DoError(SErrReadingSocket,[Count]);
     until (ByteAmount=0) or (Count=0);
   end;
 
@@ -719,7 +719,7 @@ begin
     // TODO : if connection closed gracefully, the request should no longer be handled.
     // Need to discard request/response
   else If (BytesRead<>Sizeof(Header)) then
-    Raise HTTPError.CreateFmt(SErrReadingHeader,[BytesRead]);
+    DoError(SErrReadingHeader,[BytesRead]);
   ContentLength:=BetoN(Header.contentLength);
   PaddingLength:=Header.paddingLength;
   Getmem(ResRecord,BytesRead+ContentLength+PaddingLength);
@@ -758,7 +758,7 @@ begin
   AddressLength:=Sizeof(IAddress);
   Socket := fpsocket(AF_INET,SOCK_STREAM,0);
   if Socket=-1 then
-    raise EFPWebError.CreateFmt(SNoSocket,[socketerror]);
+    DoError(SNoSocket,[socketerror]);
   IAddress.sin_family:=AF_INET;
   IAddress.sin_port:=htons(Port);
   if FAddress<>'' then
@@ -775,7 +775,7 @@ begin
     CloseSocket(socket);
     Socket:=0;
     Terminate;
-    raise Exception.CreateFmt(SBindFailed,[port,socketerror]);
+    DoError(SBindFailed,[port,socketerror]);
     end;
   if (FLingerTimeout>0) then
     begin
@@ -798,7 +798,7 @@ begin
     CloseSocket(socket);
     Socket:=0;
     Terminate;
-    raise Exception.CreateFmt(SListenFailed,[port,socketerror]);
+    DoError(SListenFailed,[port,socketerror]);
     end;
 end;
 
@@ -994,7 +994,7 @@ begin
       if not terminated then
         begin
         Terminate;
-        raise Exception.CreateFmt(SNoInputHandle,[socketerror]);
+        DoError(SNoInputHandle,[socketerror]);
         end
       end;
     repeat

@@ -231,9 +231,17 @@ skip_mem_realloc:
         shr dx, cl
         add ax, dx
         mov word [__nearheap_start], 0
-        mov word [__nearheap_end], 0FFF0h
         mov word [__nearheap_start + 2], ax
-        mov word [__nearheap_end   + 2], ax
+
+       ; get our MCB size in paragraphs
+        mov cx, word [__fpc_PrefixSeg]
+        dec cx
+        mov es, cx
+        mov bx, word [es:3]
+        add bx, cx
+        ; __nearheap_end := end_of_dos_memory_block - 16 bytes
+        mov word [__nearheap_end], 0
+        mov word [__nearheap_end + 2], bx
 %endif
 
 %ifdef __FAR_CODE__

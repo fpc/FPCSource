@@ -207,5 +207,7 @@ begin
   cconstsym:=tcpuconstsym;
   cenumsym:=tcpuenumsym;
   csyssym:=tcpusyssym;
+
+  cPtrDefHashSet:=tx86PtrDefHashSet;
 end.
 

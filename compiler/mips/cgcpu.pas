@@ -88,9 +88,6 @@ type
     procedure g_intf_wrapper(list: tasmlist; procdef: tprocdef; const labelname: string; ioffset: longint); override;
     procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string);override;
     procedure g_profilecode(list: TAsmList);override;
-    { Transform unsupported methods into Internal errors }
-    procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
-    procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
   end;
 
   TCg64MPSel = class(tcg64f32)
@@ -1239,7 +1236,7 @@ begin
     begin
       if reg in (rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall)) then
         begin
-          fmask:=fmask or (1 shl ord(reg));
+          fmask:=fmask or (longword(1) shl ord(reg));
           href.offset:=nextoffset;
           lastfpuoffset:=nextoffset;
           helplist.concat(taicpu.op_reg_ref(A_SWC1,newreg(R_FPUREGISTER,reg,R_SUBFS),href));
@@ -1269,7 +1266,7 @@ begin
     begin
       if reg in saveregs then
         begin
-          mask:=mask or (1 shl ord(reg));
+          mask:=mask or (longword(1) shl ord(reg));
           href.offset:=nextoffset;
           lastintoffset:=nextoffset;
           if (reg=RS_FRAME_POINTER_REG) then
@@ -1285,8 +1282,8 @@ begin
   //list.concat(Taicpu.Op_reg_reg_const(A_ADDIU,NR_FRAME_POINTER_REG,NR_STACK_POINTER_REG,current_procinfo.para_stack_size));
   list.concat(Taicpu.op_none(A_P_SET_NOMIPS16));
   list.concat(Taicpu.op_reg_const_reg(A_P_FRAME,current_procinfo.framepointer,LocalSize,NR_R31));
-  list.concat(Taicpu.op_const_const(A_P_MASK,mask,-(LocalSize-lastintoffset)));
-  list.concat(Taicpu.op_const_const(A_P_FMASK,Fmask,-(LocalSize-lastfpuoffset)));
+  list.concat(Taicpu.op_const_const(A_P_MASK,aint(mask),-(LocalSize-lastintoffset)));
+  list.concat(Taicpu.op_const_const(A_P_FMASK,aint(Fmask),-(LocalSize-lastfpuoffset)));
   list.concat(Taicpu.op_none(A_P_SET_NOREORDER));
   if (cs_create_pic in current_settings.moduleswitches) and
      (pi_needs_got in current_procinfo.flags) then
@@ -1763,15 +1760,6 @@ procedure TCGMIPS.g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: t
     InternalError(2013020102);
   end;
 
-procedure TCGMIPS.g_stackpointer_alloc(list : TAsmList;localsize : longint);
-  begin
-    Comment(V_Error,'TCgMPSel.g_stackpointer_alloc method not implemented');
-  end;
-
-procedure TCGMIPS.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister);
-  begin
-    Comment(V_Error,'TCgMPSel.a_bit_scan_reg_reg method not implemented');
-  end;
 
 {****************************************************************************
                                TCG64_MIPSel

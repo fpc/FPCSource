@@ -178,7 +178,7 @@ unit aoptcpu;
         Result:=GetNextInstruction(Next,Next);
       until {not(cs_opt_level3 in current_settings.optimizerswitches) or} not(Result) or (Next.typ<>ait_instruction) or (RegInInstruction(reg,Next)) or
         (is_calljmp(taicpu(Next).opcode));
-      if Result and is_calljmp(taicpu(next).opcode) then
+      if Result and (next.typ=ait_instruction) and is_calljmp(taicpu(next).opcode) then
         begin
           result:=false;
           next:=nil;
@@ -385,6 +385,7 @@ unit aoptcpu;
                     TryRemoveMov(p,A_MOVE);
                 end;
 
+              A_LB,A_LBU,A_LH,A_LHU,A_LW,
               A_ADD,A_ADDU,
               A_ADDI,A_ADDIU,
               A_SUB,A_SUBU,
@@ -394,11 +395,13 @@ unit aoptcpu;
               A_AND,A_OR,A_XOR,A_ORI,A_XORI:
                 TryRemoveMov(p,A_MOVE);
 
+              A_LWC1,
               A_ADD_s, A_SUB_s, A_MUL_s, A_DIV_s,
               A_ABS_s, A_NEG_s, A_SQRT_s,
               A_CVT_s_w, A_CVT_s_l, A_CVT_s_d:
                 TryRemoveMov(p,A_MOV_s);
 
+              A_LDC1,
               A_ADD_d, A_SUB_d, A_MUL_d, A_DIV_d,
               A_ABS_d, A_NEG_d, A_SQRT_d,
               A_CVT_d_w, A_CVT_d_l, A_CVT_d_s:

@@ -1037,7 +1037,8 @@ implementation
       i: longint;
     begin
       { add generic flag if required }
-      if df_generic in newstruct.defoptions then
+      if assigned(newstruct) and
+         (df_generic in newstruct.defoptions) then
         include(pd.defoptions,df_generic);
       { associate the procdef with a procsym in the owner }
       if not(pd.proctypeoption in [potype_class_constructor,potype_class_destructor]) then

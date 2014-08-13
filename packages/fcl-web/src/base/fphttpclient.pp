@@ -268,7 +268,8 @@ Type
     Property OnHeaders;
     Property OnGetSocketHandler;
   end;
-  EHTTPClient = Class(Exception);
+
+  EHTTPClient = Class(EHTTP);
 
 Function EncodeURLElement(S : String) : String;
 Function DecodeURLElement(Const S : String) : String;
