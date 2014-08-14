@@ -16,7 +16,7 @@ type
 
     function Compare(const aFileName1, aFilename2: String; var aMsg: String): boolean;
   public
-    procedure CompareFiles(aNoSourcefileExt, aNoDestfileExt, aSilent: boolean; const aSourceMask, aDestPath, aDestFileExtention: String);
+    procedure CompareFiles(aNoSourcefileExt, aNoDestfileExt, aSilent: boolean; const aSourceMask, aDestPath, aDestFileExtension: String);
   end;
 
 
@@ -80,7 +80,7 @@ begin
   end;
 end;
 
-procedure TFileComparer.CompareFiles(aNoSourcefileExt, aNoDestfileExt, aSilent: boolean; const aSourceMask, aDestPath, aDestFileExtention: String);
+procedure TFileComparer.CompareFiles(aNoSourcefileExt, aNoDestfileExt, aSilent: boolean; const aSourceMask, aDestPath, aDestFileExtension: String);
 var
   i: integer;
   sl: TStringList;
@@ -89,16 +89,16 @@ var
   FileName: String;
   SourceFileName: String;
   DestFileName: String;
-  DestFileExtention: String;
+  DestFileExtension: String;
   Msg: String;
 begin
   Path := IncludeTrailingBackslash(ExtractFilePath(aSourceMask));
-  DestFileExtention := aDestFileExtention;
+  DestFileExtension := aDestFileExtension;
 
-  if (DestFileExtention <> '') and
-     (copy(DestFileExtention, 1, 1) <> '.') then
+  if (DestFileExtension <> '') and
+     (copy(DestFileExtension, 1, 1) <> '.') then
   begin
-    DestFileExtention := '.' + DestFileExtention;
+    DestFileExtension := '.' + DestFileExtension;
   end;
 
   sl := TStringList.Create;
@@ -113,7 +113,7 @@ begin
     begin
       sl.Sort;
 
-      if aDestFileExtention <> '' then
+      if aDestFileExtension <> '' then
       begin
         FileName := copy(sl[i], 1, length(sl[i]) - length(ExtractFileExt(sl[i])));
 
@@ -133,7 +133,7 @@ begin
       end;
 
       SourceFileName := Path + sl[i];
-      DestFileName := IncludeTrailingBackslash(aDestpath) + FileName + DestFileExtention;
+      DestFileName := IncludeTrailingBackslash(aDestpath) + FileName + DestFileExtension;
 
       if FileExists(SourceFileName) then
       begin
