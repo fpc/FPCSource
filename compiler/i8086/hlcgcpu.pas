@@ -29,7 +29,7 @@ unit hlcgcpu;
 interface
 
   uses
-    globals,
+    globals,globtype,
     aasmdata,
     symtype,symdef,parabase,
     cgbase,cgutils,
@@ -37,10 +37,43 @@ interface
 
 
   type
+
+    { thlcgcpu }
+
     thlcgcpu = class(thlcgx86)
+     private
+      { checks whether the type needs special methodptr-like handling, when stored
+        in a LOC_REGISTER location. This applies to the following types:
+          - i8086 method pointers (incl. 6-byte mixed near + far),
+          - 6-byte records (only in the medium and compact memory model are these
+              loaded in a register)
+          - nested proc ptrs
+        When stored in a LOC_REGISTER tlocation, these types use both register
+        and registerhi with the following sizes:
+
+        register   - cgsize = int_cgsize(voidcodepointertype.size)
+        registerhi - cgsize = int_cgsize(voidpointertype.size) or int_cgsize(parentfpvoidpointertype.size)
+                              (check d.size to determine which one of the two)
+        }
+      function is_methodptr_like_type(d:tdef): boolean;
+
+      { 4-byte records in registers need special handling as well. A record may
+        be located in registerhi:register if it was converted from a procvar or
+        in GetNextReg(register):register if it was converted from a longint.
+        We can tell between the two by checking whether registerhi has been set. }
+      function is_fourbyterecord(d:tdef): boolean;
      protected
       procedure gen_loadfpu_loc_cgpara(list: TAsmList; size: tdef; const l: tlocation; const cgpara: tcgpara; locintsize: longint); override;
      public
+      function getaddressregister(list:TAsmList;size:tdef):Tregister;override;
+
+      procedure reference_reset_base(var ref: treference; regsize: tdef; reg: tregister; offset, alignment: longint); override;
+
+      function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef; weak: boolean): tcgpara;override;
+
+      procedure a_load_loc_ref(list : TAsmList;fromsize, tosize: tdef; const loc: tlocation; const ref : treference);override;
+      procedure a_loadaddr_ref_reg(list : TAsmList;fromsize, tosize : tdef;const ref : treference;r : tregister);override;
+
       procedure g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister); override;
       procedure g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation); override;
 
@@ -52,12 +85,36 @@ interface
 implementation
 
   uses
-    globtype,verbose,
+    verbose,
     paramgr,
     cpubase,cpuinfo,tgobj,cgobj,cgcpu,
-    symconst;
+    defutil,
+    symconst,symcpu,
+    procinfo,fmodule,
+    aasmcpu;
 
   { thlcgcpu }
+
+  function thlcgcpu.is_methodptr_like_type(d: tdef): boolean;
+    var
+      is_sixbyterecord,is_methodptr,is_nestedprocptr: Boolean;
+    begin
+      is_sixbyterecord:=(d.typ=recorddef) and (d.size=6);
+      is_methodptr:=(d.typ=procvardef)
+        and (po_methodpointer in tprocvardef(d).procoptions)
+        and not(po_addressonly in tprocvardef(d).procoptions);
+      is_nestedprocptr:=(d.typ=procvardef)
+        and is_nested_pd(tprocvardef(d))
+        and not(po_addressonly in tprocvardef(d).procoptions);
+      result:=is_sixbyterecord or is_methodptr or is_nestedprocptr;
+    end;
+
+
+  function thlcgcpu.is_fourbyterecord(d: tdef): boolean;
+    begin
+      result:=(d.typ=recorddef) and (d.size=4);
+    end;
+
 
   procedure thlcgcpu.gen_loadfpu_loc_cgpara(list: TAsmList; size: tdef; const l: tlocation; const cgpara: tcgpara; locintsize: longint);
     var
@@ -82,10 +139,10 @@ implementation
                      (cgpara.location^.reference.index=NR_STACK_POINTER_REG) then
                     begin
                       cg.g_stackpointer_alloc(list,stacksize);
-                      reference_reset_base(href,NR_STACK_POINTER_REG,0,sizeof(pint));
+                      reference_reset_base(href,voidstackpointertype,NR_STACK_POINTER_REG,0,voidstackpointertype.size);
                     end
                   else
-                    reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
+                    reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
                   cg.a_loadfpu_reg_ref(list,locsize,locsize,l.register,href);
                 end;
               LOC_FPUREGISTER:
@@ -127,10 +184,10 @@ implementation
                      (cgpara.location^.reference.index=NR_STACK_POINTER_REG) then
                     begin
                       cg.g_stackpointer_alloc(list,stacksize);
-                      reference_reset_base(href,NR_STACK_POINTER_REG,0,sizeof(pint));
+                      reference_reset_base(href,voidstackpointertype,NR_STACK_POINTER_REG,0,voidstackpointertype.size);
                     end
                   else
-                    reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
+                    reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
                   cg.a_loadmm_reg_ref(list,locsize,locsize,l.register,href,mms_movescalar);
                 end;
               LOC_FPUREGISTER:
@@ -156,7 +213,7 @@ implementation
                     cg.a_load_ref_cgpara(list,locsize,l.reference,cgpara)
                   else
                     begin
-                      reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
+                      reference_reset_base(href,voidstackpointertype,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
                       cg.g_concatcopy(list,l.reference,href,stacksize);
                     end;
                 end;
@@ -171,6 +228,146 @@ implementation
         else
           internalerror(2002042430);
       end;
+    end;
+
+
+  function thlcgcpu.getaddressregister(list: TAsmList; size: tdef): Tregister;
+    begin
+      { implicit pointer types on i8086 follow the default data pointer size for
+        the current memory model }
+      if is_implicit_pointer_object_type(size) or is_implicit_array_pointer(size) then
+        size:=voidpointertype;
+
+      if is_farpointer(size) or is_hugepointer(size) then
+        Result:=cg.getintregister(list,OS_32)
+      else
+        Result:=cg.getintregister(list,OS_16);
+    end;
+
+
+  procedure thlcgcpu.reference_reset_base(var ref: treference; regsize: tdef;
+    reg: tregister; offset, alignment: longint);
+    begin
+      inherited reference_reset_base(ref, regsize, reg, offset, alignment);
+
+      { implicit pointer types on i8086 follow the default data pointer size for
+        the current memory model }
+      if is_implicit_pointer_object_type(regsize) or is_implicit_array_pointer(regsize) then
+        regsize:=voidpointertype;
+
+      if regsize.typ=pointerdef then
+        case tcpupointerdef(regsize).x86pointertyp of
+          x86pt_near:
+            ;
+          x86pt_near_cs:
+            ref.segment:=NR_CS;
+          x86pt_near_ds:
+            ref.segment:=NR_DS;
+          x86pt_near_ss:
+            ref.segment:=NR_SS;
+          x86pt_near_es:
+            ref.segment:=NR_ES;
+          x86pt_near_fs:
+            ref.segment:=NR_FS;
+          x86pt_near_gs:
+            ref.segment:=NR_GS;
+          x86pt_far,
+          x86pt_huge:
+            if reg<>NR_NO then
+              ref.segment:=GetNextReg(reg);
+        end;
+    end;
+
+
+  function thlcgcpu.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef; weak: boolean): tcgpara;
+    begin
+      if is_proc_far(pd) then
+        begin
+          { far calls to the same module (in $HUGECODE off mode) can be optimized
+            to push cs + call near, because they are in the same segment }
+          if not (cs_huge_code in current_settings.moduleswitches) and
+             pd.owner.iscurrentunit and not (po_external in pd.procoptions) then
+            begin
+              list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_CS));
+              tcg8086(cg).a_call_name_near(list,s,weak);
+            end
+          else
+            tcg8086(cg).a_call_name_far(list,s,weak);
+        end
+      else
+        tcg8086(cg).a_call_name_near(list,s,weak);
+      result:=get_call_result_cgpara(pd,forceresdef);
+    end;
+
+
+  procedure thlcgcpu.a_load_loc_ref(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; const ref: treference);
+    var
+      tmpref: treference;
+    begin
+      if is_methodptr_like_type(tosize) and (loc.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+        begin
+          tmpref:=ref;
+          a_load_reg_ref(list,voidcodepointertype,voidcodepointertype,loc.register,tmpref);
+          inc(tmpref.offset,voidcodepointertype.size);
+          { the second part could be either self or parentfp }
+          if tosize.size=(voidcodepointertype.size+voidpointertype.size) then
+            a_load_reg_ref(list,voidpointertype,voidpointertype,loc.registerhi,tmpref)
+          else if tosize.size=(voidcodepointertype.size+parentfpvoidpointertype.size) then
+            a_load_reg_ref(list,parentfpvoidpointertype,parentfpvoidpointertype,loc.registerhi,tmpref)
+          else
+            internalerror(2014052201);
+        end
+      else if is_fourbyterecord(tosize) and (loc.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+        begin
+          tmpref:=ref;
+          cg.a_load_reg_ref(list,OS_16,OS_16,loc.register,tmpref);
+          inc(tmpref.offset,2);
+          if loc.registerhi<>tregister(0) then
+            cg.a_load_reg_ref(list,OS_16,OS_16,loc.registerhi,tmpref)
+          else
+            cg.a_load_reg_ref(list,OS_16,OS_16,GetNextReg(loc.register),tmpref);
+        end
+      else
+        inherited a_load_loc_ref(list, fromsize, tosize, loc, ref);
+    end;
+
+
+  procedure thlcgcpu.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; r: tregister);
+    var
+      tmpref,segref: treference;
+    begin
+      { step 1: call the x86 low level code generator to handle the offset;
+        we set the segment to NR_NO to disable the i8086 segment handling code
+        in the low level cg (which can be removed, once all calls to
+        a_loadaddr_ref_reg go through the high level code generator) }
+      tmpref:=ref;
+      tmpref.segment:=NR_NO;
+      cg.a_loadaddr_ref_reg(list, tmpref, r);
+
+      { step 2: if destination is a far pointer, we have to pass a segment as well }
+      if is_farpointer(tosize) or is_hugepointer(tosize) then
+        begin
+          { if a segment register is specified in ref, we use that }
+          if ref.segment<>NR_NO then
+            begin
+              if is_segment_reg(ref.segment) then
+                list.concat(Taicpu.op_reg_reg(A_MOV,S_W,ref.segment,GetNextReg(r)))
+              else
+                cg.a_load_reg_reg(list,OS_16,OS_16,ref.segment,GetNextReg(r));
+            end
+          { references relative to a symbol use the segment of the symbol,
+            which can be obtained by the SEG directive }
+          else if assigned(ref.symbol) then
+            begin
+              reference_reset_symbol(segref,ref.symbol,0,0);
+              segref.refaddr:=addr_seg;
+              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,segref,GetNextReg(r));
+            end
+          else if ref.base=NR_BP then
+            list.concat(Taicpu.op_reg_reg(A_MOV,S_W,NR_SS,GetNextReg(r)))
+          else
+            internalerror(2014032801);
+        end;
     end;
 
 
@@ -200,26 +397,35 @@ implementation
     var
       r,tmpref: treference;
     begin
-      { handle i8086 6-byte (mixed near + far) method pointers }
-      if (size.typ in [procvardef,recorddef]) and (size.size=6) and (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+      if is_methodptr_like_type(size) and (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
         begin
           tg.gethltemp(list,size,size.size,tt_normal,r);
           tmpref:=r;
 
-          if current_settings.x86memorymodel in x86_far_code_models then
-            begin
-              cg.a_load_reg_ref(list,OS_32,OS_32,l.register,tmpref);
-              inc(tmpref.offset,4);
-            end
+          a_load_reg_ref(list,voidcodepointertype,voidcodepointertype,l.register,tmpref);
+          inc(tmpref.offset,voidcodepointertype.size);
+          { the second part could be either self or parentfp }
+          if size.size=(voidcodepointertype.size+voidpointertype.size) then
+            a_load_reg_ref(list,voidpointertype,voidpointertype,l.registerhi,tmpref)
+          else if size.size=(voidcodepointertype.size+parentfpvoidpointertype.size) then
+            a_load_reg_ref(list,parentfpvoidpointertype,parentfpvoidpointertype,l.registerhi,tmpref)
           else
-            begin
-              cg.a_load_reg_ref(list,OS_16,OS_16,l.register,tmpref);
-              inc(tmpref.offset,2);
-            end;
-          if current_settings.x86memorymodel in x86_far_data_models then
-            cg.a_load_reg_ref(list,OS_32,OS_32,l.registerhi,tmpref)
+            internalerror(2014052202);
+
+          location_reset_ref(l,LOC_REFERENCE,l.size,0);
+          l.reference:=r;
+        end
+      else if is_fourbyterecord(size) and (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+        begin
+          tg.gethltemp(list,size,size.size,tt_normal,r);
+          tmpref:=r;
+
+          cg.a_load_reg_ref(list,OS_16,OS_16,l.register,tmpref);
+          inc(tmpref.offset,2);
+          if l.registerhi<>tregister(0) then
+            cg.a_load_reg_ref(list,OS_16,OS_16,l.registerhi,tmpref)
           else
-            cg.a_load_reg_ref(list,OS_16,OS_16,l.registerhi,tmpref);
+            cg.a_load_reg_ref(list,OS_16,OS_16,GetNextReg(l.register),tmpref);
 
           location_reset_ref(l,LOC_REFERENCE,l.size,0);
           l.reference:=r;
