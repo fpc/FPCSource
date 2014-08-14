@@ -57,12 +57,12 @@ unit cgcpu;
     uses
        globtype,globals,verbose,systems,cutils,cclasses,
        symsym,symtable,defutil,paramgr,fmodule,cpupi,
-       rgobj,tgobj,rgcpu;
+       rgobj,tgobj,rgcpu,ncgutil;
 
 
     procedure Tcgx86_64.init_register_allocators;
       const
-        win64_saved_std_regs : array[0..6] of tsuperregister = (RS_RBX,RS_RDI,RS_RSI,RS_R12,RS_R13,RS_R14,RS_R15);
+        win64_saved_std_regs : array[0..7] of tsuperregister = (RS_RBX,RS_RDI,RS_RSI,RS_R12,RS_R13,RS_R14,RS_R15,RS_RBP);
         others_saved_std_regs : array[0..4] of tsuperregister = (RS_RBX,RS_R12,RS_R13,RS_R14,RS_R15);
         saved_regs_length : array[boolean] of longint = (5,7);
 
@@ -96,8 +96,16 @@ unit cgcpu;
               end;
           end;
         if target_info.system=system_x86_64_win64 then
-          rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_RAX,RS_RDX,RS_RCX,RS_R8,RS_R9,RS_R10,
-            RS_R11,RS_RBX,RS_RSI,RS_RDI,RS_R12,RS_R13,RS_R14,RS_R15],first_int_imreg,[])
+          begin
+            if (cs_userbp in current_settings.optimizerswitches) and assigned(current_procinfo) and (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
+              begin
+                rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_RAX,RS_RDX,RS_RCX,RS_R8,RS_R9,RS_R10,
+                  RS_R11,RS_RBX,RS_RSI,RS_RDI,RS_R12,RS_R13,RS_R14,RS_R15,RS_RBP],first_int_imreg,[]);
+              end
+            else
+              rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_RAX,RS_RDX,RS_RCX,RS_R8,RS_R9,RS_R10,
+                RS_R11,RS_RBX,RS_RSI,RS_RDI,RS_R12,RS_R13,RS_R14,RS_R15],first_int_imreg,[])
+          end
         else
           rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_RAX,RS_RDX,RS_RCX,RS_RSI,RS_RDI,RS_R8,
             RS_R9,RS_R10,RS_R11,RS_RBX,RS_R12,RS_R13,RS_R14,RS_R15],first_int_imreg,[]);
@@ -140,7 +148,6 @@ unit cgcpu;
         frame_offset: longint;
         suppress_endprologue: boolean;
         stackmisalignment: longint;
-        para: tparavarsym;
         xmmsize: longint;
 
       procedure push_one_reg(reg: tregister);
@@ -196,15 +203,7 @@ unit cgcpu;
                 else
                   begin
                     push_regs;
-                    { load framepointer from hidden $parentfp parameter }
-                    para:=tparavarsym(current_procinfo.procdef.paras[0]);
-                    if not (vo_is_parentfp in para.varoptions) then
-                      InternalError(201201142);
-                    if (para.paraloc[calleeside].location^.loc<>LOC_REGISTER) or
-                       (para.paraloc[calleeside].location^.next<>nil) then
-                      InternalError(201201143);
-                    list.concat(Taicpu.op_reg_reg(A_MOV,tcgsize2opsize[OS_ADDR],
-                      para.paraloc[calleeside].location^.register,NR_FRAME_POINTER_REG));
+                    gen_load_frame_for_exceptfilter(list);
                     { Need only as much stack space as necessary to do the calls.
                       Exception filters don't have own local vars, and temps are 'mapped'
                       to the parent procedure.
@@ -488,7 +487,7 @@ unit cgcpu;
         a_loadaddr_ref_cgpara(list,href,para2);
         paramanager.freecgpara(list,para2);
         paramanager.freecgpara(list,para1);
-        g_call(current_asmdata.CurrAsmList,'_FPC_local_unwind');
+        g_call(list,'_FPC_local_unwind');
         para2.done;
         para1.done;
       end;
