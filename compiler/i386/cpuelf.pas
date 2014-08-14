@@ -110,6 +110,8 @@ implementation
           result:=R_386_GOTPC;
         RELOC_PLT32 :
           result:=R_386_PLT32;
+        RELOC_GOTOFF:
+          result:=R_386_GOTOFF;
       else
         result:=0;
         InternalError(2012082301);

@@ -40,12 +40,6 @@ unit cpupara;
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;override;
-          { Returns the location for the nr-st 32 Bit int parameter
-            if every parameter before is an 32 Bit int parameter as well
-            and if the calling conventions for the helper routines of the
-            rtl are used.
-          }
-          procedure getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
           procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);override;
@@ -274,51 +268,6 @@ unit cpupara;
       end;
 
 
-    procedure ti386paramanager.getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
-      var
-        paraloc : pcgparalocation;
-        psym: tparavarsym;
-        pdef: tdef;
-      begin
-        psym:=tparavarsym(pd.paras[nr-1]);
-        pdef:=psym.vardef;
-        if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
-          pdef:=getpointerdef(pdef);
-        cgpara.reset;
-        cgpara.size:=def_cgsize(pdef);
-        cgpara.intsize:=tcgsize2size[cgpara.size];
-        cgpara.alignment:=get_para_align(pd.proccalloption);
-        cgpara.def:=pdef;
-        paraloc:=cgpara.add_location;
-        with paraloc^ do
-         begin
-           size:=def_cgsize(pdef);
-           def:=pdef;
-           if pd.proccalloption=pocall_register then
-             begin
-               if (nr<=length(parasupregs)) then
-                 begin
-                   if nr=0 then
-                     internalerror(200309271);
-                   loc:=LOC_REGISTER;
-                   register:=newreg(R_INTREGISTER,parasupregs[nr-1],R_SUBWHOLE);
-                 end
-               else
-                 begin
-                   loc:=LOC_REFERENCE;
-                   reference.index:=NR_STACK_POINTER_REG;
-                   { the previous parameters didn't take up room in memory }
-                   reference.offset:=sizeof(aint)*(nr-length(parasupregs)-1)
-                 end;
-             end
-           else
-             begin
-               loc:=LOC_REFERENCE;
-               reference.index:=NR_STACK_POINTER_REG;
-               reference.offset:=sizeof(aint)*nr;
-             end;
-          end;
-      end;
 
 
     function  ti386paramanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): TCGPara;

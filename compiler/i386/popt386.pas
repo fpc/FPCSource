@@ -23,6 +23,8 @@ unit popt386;
 
 {$i fpcdefs.inc}
 
+{ $define DEBUG_AOPTCPU}
+
 interface
 
 uses Aasmbase,aasmtai,aasmdata,aasmcpu,verbose;
@@ -35,7 +37,7 @@ procedure PostPeepHoleOpts(asml: TAsmList; BlockStart, BlockEnd: tai);
 implementation
 
 uses
-  globtype,systems,
+  cutils,globtype,systems,
   globals,cgbase,procinfo,
   symsym,
 {$ifdef finaldestdebug}
@@ -318,7 +320,7 @@ begin
                          12: begin
                             {imul 12, reg1, reg2 to
                                lea (,reg1,4), reg2
-                               lea (,reg1,8) reg2
+                               lea (reg2,reg1,8), reg2
                              imul 12, reg1 to
                                lea (reg1,reg1,2), reg1
                                lea (,reg1,4), reg1}
@@ -440,9 +442,101 @@ begin
 end;
 
 
+function MatchInstruction(const instr: tai; const op: TAsmOp; const opsize: topsizes): boolean;
+  begin
+    result :=
+      (instr.typ = ait_instruction) and
+      (taicpu(instr).opcode = op) and
+      ((opsize = []) or (taicpu(instr).opsize in opsize));
+  end;
 
+
+function MatchInstruction(const instr: tai; const op1,op2: TAsmOp; const opsize: topsizes): boolean;
+  begin
+    result :=
+      (instr.typ = ait_instruction) and
+      ((taicpu(instr).opcode = op1) or
+       (taicpu(instr).opcode = op2)
+      ) and
+      ((opsize = []) or (taicpu(instr).opsize in opsize));
+  end;
+
+
+function MatchInstruction(const instr: tai; const op1,op2,op3: TAsmOp; const opsize: topsizes): boolean;
+  begin
+    result :=
+      (instr.typ = ait_instruction) and
+      ((taicpu(instr).opcode = op1) or
+       (taicpu(instr).opcode = op2) or
+       (taicpu(instr).opcode = op3)
+      ) and
+      ((opsize = []) or (taicpu(instr).opsize in opsize));
+  end;
+
+
+function MatchOperand(const oper: TOper; const reg: TRegister): boolean; inline;
+  begin
+    result := (oper.typ = top_reg) and (oper.reg = reg);
+  end;
+
+
+function MatchOperand(const oper: TOper; const a: tcgint): boolean; inline;
+  begin
+    result := (oper.typ = top_const) and (oper.val = a);
+  end;
+
+
+function MatchOperand(const oper1: TOper; const oper2: TOper): boolean; inline;
+  begin
+    result := oper1.typ = oper2.typ;
+
+    if result then
+      case oper1.typ of
+        top_const:
+          Result:=oper1.val = oper2.val;
+        top_reg:
+          Result:=oper1.reg = oper2.reg;
+        top_ref:
+          Result:=RefsEqual(oper1.ref^, oper2.ref^);
+        else
+          internalerror(2013102801);
+      end
+  end;
+
+
+function MatchReference(const ref : treference;base,index : TRegister) : Boolean;
+  begin
+   Result:=(ref.offset=0) and
+     (ref.scalefactor in [0,1]) and
+     (ref.segment=NR_NO) and
+     (ref.symbol=nil) and
+     (ref.relsymbol=nil) and
+     ((base=NR_INVALID) or
+      (ref.base=base)) and
+     ((index=NR_INVALID) or
+      (ref.index=index));
+  end;
+
+
+{ First pass of peephole optimizations }
 procedure PeepHoleOptPass1(Asml: TAsmList; BlockStart, BlockEnd: tai);
-{First pass of peepholeoptimizations}
+
+{$ifdef DEBUG_AOPTCPU}
+  procedure DebugMsg(const s: string;p : tai);
+    begin
+      asml.insertbefore(tai_comment.Create(strpnew(s)), p);
+    end;
+{$else DEBUG_AOPTCPU}
+  procedure DebugMsg(const s: string;p : tai);inline;
+    begin
+    end;
+{$endif DEBUG_AOPTCPU}
+
+function WriteOk : Boolean;
+  begin
+    writeln('Ok');
+    Result:=True;
+  end;
 
 var
   l : longint;
@@ -626,6 +720,7 @@ begin
       case p.Typ Of
         ait_instruction:
           begin
+            current_filepos:=taicpu(p).fileinfo;
             if InsContainsSegRef(taicpu(p)) then
               begin
                 p := tai(p.next);
@@ -758,6 +853,8 @@ begin
                         S_B: v:=$80;
                         S_W: v:=$8000;
                         S_L: v:=aint($80000000);
+                        else
+                          internalerror(2013112905);
                       end;
                       if (taicpu(p).oper[0]^.typ=Top_const) and
                          (taicpu(p).oper[0]^.val=v) and
@@ -938,47 +1035,89 @@ begin
                          (getsupreg(taicpu(p).oper[0]^.ref^.base) in [RS_EAX..RS_ESP]) and
                          (taicpu(p).oper[0]^.ref^.index = NR_NO) and
                          (not(Assigned(taicpu(p).oper[0]^.ref^.Symbol))) then
-                        if (taicpu(p).oper[0]^.ref^.base <> taicpu(p).oper[1]^.reg) and
-                           (taicpu(p).oper[0]^.ref^.offset = 0) then
-                          begin
-                            hp1 := taicpu.op_reg_reg(A_MOV, S_L,taicpu(p).oper[0]^.ref^.base,
-                              taicpu(p).oper[1]^.reg);
-                            InsertLLItem(asml,p.previous,p.next, hp1);
-                            p.free;
-                            p := hp1;
-                            continue;
-                          end
-                        else if (taicpu(p).oper[0]^.ref^.offset = 0) then
-                          begin
-                            hp1 := tai(p.Next);
-                            asml.remove(p);
-                            p.free;
-                            p := hp1;
-                            continue;
-                          end
-                        else
-                          with taicpu(p).oper[0]^.ref^ do
-                            if (base = taicpu(p).oper[1]^.reg) then
-                              begin
-                                l := offset;
-                                if (l=1) and UseIncDec then
-                                  begin
-                                    taicpu(p).opcode := A_INC;
-                                    taicpu(p).loadreg(0,taicpu(p).oper[1]^.reg);
-                                    taicpu(p).ops := 1
-                                  end
-                                else if (l=-1) and UseIncDec then
-                                  begin
-                                    taicpu(p).opcode := A_DEC;
-                                    taicpu(p).loadreg(0,taicpu(p).oper[1]^.reg);
-                                    taicpu(p).ops := 1;
-                                  end
-                                else
-                                  begin
-                                    taicpu(p).opcode := A_ADD;
-                                    taicpu(p).loadConst(0,l);
-                                  end;
-                              end;
+                        begin
+                          if (taicpu(p).oper[0]^.ref^.base <> taicpu(p).oper[1]^.reg) and
+                             (taicpu(p).oper[0]^.ref^.offset = 0) then
+                            begin
+                              hp1 := taicpu.op_reg_reg(A_MOV, S_L,taicpu(p).oper[0]^.ref^.base,
+                                taicpu(p).oper[1]^.reg);
+                              InsertLLItem(asml,p.previous,p.next, hp1);
+                              p.free;
+                              p := hp1;
+                              continue;
+                            end
+                          else if (taicpu(p).oper[0]^.ref^.offset = 0) then
+                            begin
+                              hp1 := tai(p.Next);
+                              asml.remove(p);
+                              p.free;
+                              p := hp1;
+                              continue;
+                            end
+                          { continue to use lea to adjust the stack pointer,
+                            it is the recommended way, but only if not optimizing for size }
+                          else if (taicpu(p).oper[1]^.reg<>NR_STACK_POINTER_REG) or
+                            (cs_opt_size in current_settings.optimizerswitches) then
+                            with taicpu(p).oper[0]^.ref^ do
+                              if (base = taicpu(p).oper[1]^.reg) then
+                                begin
+                                  l := offset;
+                                  if (l=1) and UseIncDec then
+                                    begin
+                                      taicpu(p).opcode := A_INC;
+                                      taicpu(p).loadreg(0,taicpu(p).oper[1]^.reg);
+                                      taicpu(p).ops := 1
+                                    end
+                                  else if (l=-1) and UseIncDec then
+                                    begin
+                                      taicpu(p).opcode := A_DEC;
+                                      taicpu(p).loadreg(0,taicpu(p).oper[1]^.reg);
+                                      taicpu(p).ops := 1;
+                                    end
+                                  else
+                                    begin
+                                      if (l<0) and (l<>-2147483648) then
+                                        begin
+                                          taicpu(p).opcode := A_SUB;
+                                          taicpu(p).loadConst(0,-l);
+                                        end
+                                      else
+                                        begin
+                                          taicpu(p).opcode := A_ADD;
+                                          taicpu(p).loadConst(0,l);
+                                        end;
+                                    end;
+                                end;
+                        end
+(*
+                      This is unsafe, lea doesn't modify the flags but "add"
+                      does. This breaks webtbs/tw15694.pp. The above
+                      transformations are also unsafe, but they don't seem to
+                      be triggered by code that FPC generators (or that at
+                      least does not occur in the tests...). This needs to be
+                      fixed by checking for the liveness of the flags register.
+
+                      else if MatchReference(taicpu(p).oper[0]^.ref^,taicpu(p).oper[1]^.reg,NR_INVALID) then
+                        begin
+                          hp1:=taicpu.op_reg_reg(A_ADD,S_L,taicpu(p).oper[0]^.ref^.index,
+                            taicpu(p).oper[0]^.ref^.base);
+                          InsertLLItem(asml,p.previous,p.next, hp1);
+                          DebugMsg('Peephole Lea2AddBase done',hp1);
+                          p.free;
+                          p:=hp1;
+                          continue;
+                        end
+                      else if MatchReference(taicpu(p).oper[0]^.ref^,NR_INVALID,taicpu(p).oper[1]^.reg) then
+                        begin
+                          hp1:=taicpu.op_reg_reg(A_ADD,S_L,taicpu(p).oper[0]^.ref^.base,
+                            taicpu(p).oper[0]^.ref^.index);
+                          InsertLLItem(asml,p.previous,p.next,hp1);
+                          DebugMsg('Peephole Lea2AddIndex done',hp1);
+                          p.free;
+                          p:=hp1;
+                          continue;
+                        end
+*)
                     end;
                   A_MOV:
                     begin
@@ -1103,9 +1242,7 @@ begin
                                 end;
                     { Next instruction is also a MOV ? }
                       if GetNextInstruction(p, hp1) and
-                         (tai(hp1).typ = ait_instruction) and
-                         (taicpu(hp1).opcode = A_MOV) and
-                         (taicpu(hp1).opsize = taicpu(p).opsize) then
+                        MatchInstruction(hp1,A_MOV,[taicpu(p).opsize]) then
                         begin
                           if (taicpu(hp1).oper[0]^.typ = taicpu(p).oper[1]^.typ) and
                              (taicpu(hp1).oper[1]^.typ = taicpu(p).oper[0]^.typ) then
@@ -1264,23 +1401,17 @@ begin
                                   taicpu(hp1).loadReg(0,taicpu(hp1).oper[1]^.reg);
                                   taicpu(hp1).loadRef(1,taicpu(p).oper[1]^.ref^);
                                   taicpu(p).loadReg(1,taicpu(hp1).oper[0]^.reg);
+                                  taicpu(hp1).fileinfo := taicpu(p).fileinfo;
                                 end
                         end;
                       if GetNextInstruction(p, hp1) and
-                         (Tai(hp1).typ = ait_instruction) and
-                         ((Taicpu(hp1).opcode = A_BTS) or (Taicpu(hp1).opcode = A_BTR)) and
-                         (Taicpu(hp1).opsize = Taicpu(p).opsize) and
+                         MatchInstruction(hp1,A_BTS,A_BTR,[Taicpu(p).opsize]) and
                          GetNextInstruction(hp1, hp2) and
-                         (Tai(hp2).typ = ait_instruction) and
-                         (Taicpu(hp2).opcode = A_OR) and
-                         (Taicpu(hp1).opsize = Taicpu(p).opsize) and
-                         (Taicpu(hp2).opsize = Taicpu(p).opsize) and
-                         (Taicpu(p).oper[0]^.typ = top_const) and (Taicpu(p).oper[0]^.val=0) and
+                         MatchInstruction(hp2,A_OR,[Taicpu(p).opsize]) and
+                         MatchOperand(Taicpu(p).oper[0]^,0) and
                          (Taicpu(p).oper[1]^.typ = top_reg) and
-                         (Taicpu(hp1).oper[1]^.typ = top_reg) and
-                         (Taicpu(p).oper[1]^.reg=Taicpu(hp1).oper[1]^.reg) and
-                         (Taicpu(hp2).oper[1]^.typ = top_reg) and
-                         (Taicpu(p).oper[1]^.reg=Taicpu(hp2).oper[1]^.reg) then
+                         MatchOperand(Taicpu(p).oper[1]^,Taicpu(hp1).oper[1]^) and
+                         MatchOperand(Taicpu(p).oper[1]^,Taicpu(hp2).oper[1]^) then
                          {mov reg1,0
                           bts reg1,operand1             -->      mov reg1,operand2
                           or  reg1,operand2                      bts reg1,operand1}
@@ -1290,6 +1421,33 @@ begin
                           insertllitem(asml,hp2,hp2.next,hp1);
                           asml.remove(p);
                           p.free;
+                          p:=hp1;
+                        end;
+                      if GetNextInstruction(p, hp1) and
+                         MatchInstruction(hp1,A_LEA,[S_L]) and
+                         (Taicpu(p).oper[0]^.typ = top_ref) and
+                         (Taicpu(p).oper[1]^.typ = top_reg) and
+                         ((MatchReference(Taicpu(hp1).oper[0]^.ref^,Taicpu(hp1).oper[1]^.reg,Taicpu(p).oper[1]^.reg) and
+                           (Taicpu(hp1).oper[0]^.ref^.base<>Taicpu(p).oper[1]^.reg)
+                          ) or
+                          (MatchReference(Taicpu(hp1).oper[0]^.ref^,Taicpu(p).oper[1]^.reg,Taicpu(hp1).oper[1]^.reg) and
+                           (Taicpu(hp1).oper[0]^.ref^.index<>Taicpu(p).oper[1]^.reg)
+                          )
+                         ) then
+                         {mov reg1,ref
+                          lea reg2,[reg1,reg2]          -->      add reg2,ref}
+                        begin
+                          TmpUsedRegs := UsedRegs;
+                          { reg1 may not be used afterwards }
+                          if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg, hp1, TmpUsedRegs)) then
+                            begin
+                              Taicpu(hp1).opcode:=A_ADD;
+                              Taicpu(hp1).oper[0]^.ref^:=Taicpu(p).oper[0]^.ref^;
+                              DebugMsg('Peephole MovLea2Add done',hp1);
+                              asml.remove(p);
+                              p.free;
+                              p:=hp1;
+                            end;
                         end;
                     end;
 
@@ -1302,8 +1460,7 @@ begin
                          IsFoldableArithOp(taicpu(hp1),taicpu(p).oper[1]^.reg) and
                          (getsupreg(taicpu(hp1).oper[0]^.reg) in [RS_EAX, RS_EBX, RS_ECX, RS_EDX]) and
                          GetNextInstruction(hp1,hp2) and
-                         (hp2.typ = ait_instruction) and
-                         (taicpu(hp2).opcode = A_MOV) and
+                         MatchInstruction(hp2,A_MOV,[]) and
                          (taicpu(hp2).oper[0]^.typ = top_reg) and
                          OpsEqual(taicpu(hp2).oper[1]^,taicpu(p).oper[0]^) and
                          (((taicpu(hp1).ops=2) and
@@ -1791,6 +1948,17 @@ end;
 
 procedure PeepHoleOptPass2(asml: TAsmList; BlockStart, BlockEnd: tai);
 
+{$ifdef DEBUG_AOPTCPU}
+  procedure DebugMsg(const s: string;p : tai);
+    begin
+      asml.insertbefore(tai_comment.Create(strpnew(s)), p);
+    end;
+{$else DEBUG_AOPTCPU}
+  procedure DebugMsg(const s: string;p : tai);inline;
+    begin
+    end;
+{$endif DEBUG_AOPTCPU}
+
   function CanBeCMOV(p : tai) : boolean;
     begin
        CanBeCMOV:=assigned(p) and (p.typ=ait_instruction) and
@@ -1808,10 +1976,9 @@ procedure PeepHoleOptPass2(asml: TAsmList; BlockStart, BlockEnd: tai);
     end;
 
 var
-  p,hp1,hp2: tai;
+  p,hp1,hp2,hp3: tai;
   l : longint;
   condition : tasmcond;
-  hp3: tai;
   UsedRegs, TmpUsedRegs: TRegSet;
   carryadd_opcode: Tasmop;
 
@@ -2064,12 +2231,19 @@ begin
                   else if (taicpu(p).oper[0]^.typ = top_ref) and
                      GetNextInstruction(p,hp1) and
                      (hp1.typ = ait_instruction) and
-                     IsFoldableArithOp(taicpu(hp1),taicpu(p).oper[1]^.reg) and
+                     (IsFoldableArithOp(taicpu(hp1),taicpu(p).oper[1]^.reg) or
+                      ((taicpu(hp1).opcode=A_LEA) and
+                       (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) and
+                       ((MatchReference(taicpu(hp1).oper[0]^.ref^,taicpu(p).oper[1]^.reg,NR_INVALID) and
+                        (taicpu(hp1).oper[0]^.ref^.index<>taicpu(p).oper[1]^.reg)) or
+                        (MatchReference(taicpu(hp1).oper[0]^.ref^,NR_INVALID,taicpu(p).oper[1]^.reg) and
+                        (taicpu(hp1).oper[0]^.ref^.base<>taicpu(p).oper[1]^.reg))
+                       )
+                      )
+                     ) and
                      GetNextInstruction(hp1,hp2) and
-                     (hp2.typ = ait_instruction) and
-                     (taicpu(hp2).opcode = A_MOV) and
-                     (taicpu(hp2).oper[0]^.typ = top_reg) and
-                     (taicpu(hp2).oper[0]^.reg = taicpu(p).oper[1]^.reg) and
+                     MatchInstruction(hp2,A_MOV,[]) and
+                     MatchOperand(taicpu(p).oper[1]^,taicpu(hp2).oper[0]^) and
                      (taicpu(hp2).oper[1]^.typ = top_ref) then
                     begin
                       TmpUsedRegs := UsedRegs;
@@ -2085,7 +2259,17 @@ begin
                         begin
                           case taicpu(hp1).opcode of
                             A_INC,A_DEC:
-                              taicpu(hp1).loadRef(0,taicpu(p).oper[0]^.ref^)
+                              taicpu(hp1).loadRef(0,taicpu(p).oper[0]^.ref^);
+                            A_LEA:
+                              begin
+                                taicpu(hp1).opcode:=A_ADD;
+                                if taicpu(hp1).oper[0]^.ref^.index<>taicpu(p).oper[1]^.reg then
+                                  taicpu(hp1).loadreg(0,taicpu(hp1).oper[0]^.ref^.index)
+                                else
+                                  taicpu(hp1).loadreg(0,taicpu(hp1).oper[0]^.ref^.base);
+                                taicpu(hp1).loadRef(1,taicpu(p).oper[0]^.ref^);
+                                DebugMsg('Peephole FoldLea done',hp1);
+                              end
                             else
                               taicpu(hp1).loadRef(1,taicpu(p).oper[0]^.ref^);
                           end;
@@ -2108,6 +2292,7 @@ end;
 procedure PostPeepHoleOpts(asml: TAsmList; BlockStart, BlockEnd: tai);
 var
   p,hp1,hp2: tai;
+  IsTestConstX: boolean;
 begin
   p := BlockStart;
   while (p <> BlockEnd) Do
@@ -2213,22 +2398,22 @@ See test/tgadint64 in the test suite.
               A_TEST, A_OR:
                 {removes the line marked with (x) from the sequence
                  and/or/xor/add/sub/... $x, %y
-                 test/or %y, %y   (x)
+                 test/or %y, %y  | test $-1, %y    (x)
                  j(n)z _Label
-                    as the first instruction already adjusts the ZF}
+                    as the first instruction already adjusts the ZF
+                    %y operand may also be a reference }
                  begin
-                   if OpsEqual(taicpu(p).oper[0]^,taicpu(p).oper[1]^) then
-                    if GetLastInstruction(p, hp1) and
+                   IsTestConstX:=(taicpu(p).opcode=A_TEST) and
+                     MatchOperand(taicpu(p).oper[0]^,-1);
+                   if (OpsEqual(taicpu(p).oper[0]^,taicpu(p).oper[1]^) or IsTestConstX) and
+                      GetLastInstruction(p, hp1) and
                       (tai(hp1).typ = ait_instruction) and
                       GetNextInstruction(p,hp2) and
-                      (hp2.typ = ait_instruction) and
-                      ((taicpu(hp2).opcode = A_SETcc) or
-                       (taicpu(hp2).opcode = A_Jcc) or
-                       (taicpu(hp2).opcode = A_CMOVcc)) then
+                      MatchInstruction(hp2,A_SETcc,A_Jcc,A_CMOVcc,[]) then
                      case taicpu(hp1).opcode Of
-                       A_ADD, A_SUB, A_OR, A_XOR, A_AND{, A_SHL, A_SHR}:
+                       A_ADD, A_SUB, A_OR, A_XOR, A_AND:
                          begin
-                           if OpsEqual(taicpu(hp1).oper[1]^,taicpu(p).oper[0]^) and
+                           if OpsEqual(taicpu(hp1).oper[1]^,taicpu(p).oper[1]^) and
                              { does not work in case of overflow for G(E)/L(E)/C_O/C_NO }
                              { and in case of carry for A(E)/B(E)/C/NC                  }
                               ((taicpu(hp2).condition in [C_Z,C_NZ,C_E,C_NE]) or
@@ -2242,9 +2427,28 @@ See test/tgadint64 in the test suite.
                                continue
                              end;
                          end;
+                       A_SHL, A_SAL, A_SHR, A_SAR:
+                         begin
+                           if OpsEqual(taicpu(hp1).oper[1]^,taicpu(p).oper[1]^) and
+                             { SHL/SAL/SHR/SAR with a value of 0 do not change the flags }
+                             { therefore, it's only safe to do this optimization for     }
+                             { shifts by a (nonzero) constant                            }
+                              (taicpu(hp1).oper[0]^.typ = top_const) and
+                              (taicpu(hp1).oper[0]^.val <> 0) and
+                             { does not work in case of overflow for G(E)/L(E)/C_O/C_NO }
+                             { and in case of carry for A(E)/B(E)/C/NC                  }
+                              (taicpu(hp2).condition in [C_Z,C_NZ,C_E,C_NE]) then
+                             begin
+                               hp1 := tai(p.next);
+                               asml.remove(p);
+                               p.free;
+                               p := tai(hp1);
+                               continue
+                             end;
+                         end;
                        A_DEC, A_INC, A_NEG:
                          begin
-                           if OpsEqual(taicpu(hp1).oper[0]^,taicpu(p).oper[0]^) and
+                           if OpsEqual(taicpu(hp1).oper[0]^,taicpu(p).oper[1]^) and
                              { does not work in case of overflow for G(E)/L(E)/C_O/C_NO }
                              { and in case of carry for A(E)/B(E)/C/NC                  }
                              (taicpu(hp2).condition in [C_Z,C_NZ,C_E,C_NE]) then
@@ -2269,7 +2473,15 @@ See test/tgadint64 in the test suite.
                                continue
                              end;
                          end
-                     end
+                     else
+                       { change "test  $-1,%reg" into "test %reg,%reg" }
+                       if IsTestConstX and (taicpu(p).oper[1]^.typ=top_reg) then
+                         taicpu(p).loadoper(0,taicpu(p).oper[1]^);
+                     end { case }
+                   else
+                     { change "test  $-1,%reg" into "test %reg,%reg" }
+                     if IsTestConstX and (taicpu(p).oper[1]^.typ=top_reg) then
+                       taicpu(p).loadoper(0,taicpu(p).oper[1]^);
                  end;
             end;
           end;
