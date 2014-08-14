@@ -68,6 +68,7 @@ uses
 
    const
       { Integer Super registers }
+      RS_NO         = $ffffffff;
       RS_RAX        = $00;      {EAX}
       RS_RCX        = $01;      {ECX}
       RS_RDX        = $02;      {EDX}
@@ -246,8 +247,16 @@ uses
     type
       TResFlags = (F_E,F_NE,F_G,F_L,F_GE,F_LE,F_C,F_NC,
                    F_A,F_AE,F_B,F_BE,
-                   F_S,F_NS,F_O,F_NO);
+                   F_S,F_NS,F_O,F_NO,
+                   { For IEEE-compliant floating-point compares,
+                     same as normal counterparts but additionally check PF }
+                   F_FE,F_FNE,F_FA,F_FAE,F_FB,F_FBE);
 
+    const
+      FPUFlags = [F_FE,F_FNE,F_FA,F_FAE,F_FB,F_FBE];
+      FPUFlags2Flags: array[F_FE..F_FBE] of TResFlags = (
+        F_E,F_NE,F_A,F_AE,F_B,F_BE
+      );
 
 {*****************************************************************************
                                  Constants
@@ -292,6 +301,12 @@ uses
 {$ifdef i8086}
     { returns the next virtual register }
     function GetNextReg(const r : TRegister) : TRegister;
+
+    { return whether we need to add an extra FWAIT instruction before the given
+      instruction, when we're targeting the i8087. This includes almost all x87
+      instructions, but certain ones, which always have or have not a built in
+      FWAIT prefix are excluded (e.g. FINIT,FNINIT,etc.). }
+    function requires_fwait_on_8087(op: TAsmOp): boolean;
 {$endif i8086}
 
 implementation
@@ -471,7 +486,8 @@ implementation
         inv_flags: array[TResFlags] of TResFlags =
           (F_NE,F_E,F_LE,F_GE,F_L,F_G,F_NC,F_C,
            F_BE,F_B,F_AE,F_A,
-           F_NS,F_S,F_NO,F_O);
+           F_NS,F_S,F_NO,F_O,
+           F_FNE,F_FE,F_FBE,F_FB,F_FAE,F_FA);
       begin
         f:=inv_flags[f];
       end;
@@ -480,9 +496,12 @@ implementation
     function flags_to_cond(const f: TResFlags) : TAsmCond;
       const
         flags_2_cond : array[TResFlags] of TAsmCond =
-          (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_C,C_NC,C_A,C_AE,C_B,C_BE,C_S,C_NS,C_O,C_NO);
+          (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_C,C_NC,C_A,C_AE,C_B,C_BE,C_S,C_NS,C_O,C_NO,
+           C_None,C_None,C_None,C_None,C_None,C_None);
       begin
         result := flags_2_cond[f];
+        if (result=C_None) then
+          InternalError(2014041301);
       end;
 
 
@@ -583,7 +602,9 @@ implementation
               { the remaining are distinct from each other }
               exit(false);
             end;
-          mm_compact,mm_large,mm_huge: internalerror(2013062303);
+          mm_compact,mm_large,mm_huge:
+            { all segment registers are different in these models }
+            exit(false);
           else
             internalerror(2013062302);
         end;
@@ -604,6 +625,24 @@ implementation
         if getsupreg(r)<first_int_imreg then
           internalerror(2013051401);
         result:=TRegister(longint(r)+1);
+      end;
+
+    function requires_fwait_on_8087(op: TAsmOp): boolean;
+      begin
+        case op of
+            A_F2XM1,A_FABS,A_FADD,A_FADDP,A_FBLD,A_FBSTP,A_FCHS,A_FCOM,A_FCOMP,
+            A_FCOMPP,A_FDECSTP,A_FDIV,A_FDIVP,A_FDIVR,A_FDIVRP,
+            A_FFREE,A_FIADD,A_FICOM,A_FICOMP,A_FIDIV,A_FIDIVR,A_FILD,
+            A_FIMUL,A_FINCSTP,A_FIST,A_FISTP,A_FISUB,A_FISUBR,A_FLD,A_FLD1,
+            A_FLDCW,A_FLDENV,A_FLDL2E,A_FLDL2T,A_FLDLG2,A_FLDLN2,A_FLDPI,A_FLDZ,
+            A_FMUL,A_FMULP,A_FNOP,A_FPATAN,A_FPREM,A_FPTAN,A_FRNDINT,
+            A_FRSTOR,A_FSCALE,A_FSQRT,A_FST,
+            A_FSTP,A_FSUB,A_FSUBP,A_FSUBR,A_FSUBRP,A_FTST,
+            A_FXAM,A_FXCH,A_FXTRACT,A_FYL2X,A_FYL2XP1:
+              result:=true;
+          else
+            result:=false;
+        end;
       end;
 {$endif i8086}
 

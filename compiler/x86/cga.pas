@@ -44,6 +44,7 @@ interface
 
     procedure emit_const_reg_reg(i : tasmop;s : topsize;c : longint;reg1,reg2 : tregister);
     procedure emit_reg_reg_reg(i : tasmop;s : topsize;reg1,reg2,reg3 : tregister);
+    procedure emit_ref_reg_reg(i : tasmop;s : topsize;ref : treference;reg1,reg2 : tregister);
 
 
     procedure emit_sym(i : tasmop;s : topsize;op : tasmsymbol);
@@ -122,6 +123,12 @@ implementation
     procedure emit_reg_reg_reg(i : tasmop;s : topsize;reg1,reg2,reg3 : tregister);
       begin
          current_asmdata.CurrAsmList.concat(Taicpu.Op_reg_reg_reg(i,s,reg1,reg2,reg3));
+      end;
+
+    procedure emit_ref_reg_reg(i : tasmop;s : topsize;ref : treference;reg1,reg2 : tregister);
+      begin
+        tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,ref);
+        current_asmdata.CurrAsmList.concat(Taicpu.Op_ref_reg_reg(i,s,ref,reg1,reg2));
       end;
 
     procedure emit_sym(i : tasmop;s : topsize;op : tasmsymbol);

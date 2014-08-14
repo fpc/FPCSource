@@ -389,8 +389,9 @@ implementation
                 begin
                    { unsigned 64 bit ints are harder to handle:
                      we load bits 0..62 and then check bit 63:
-                     if it is 1 then we add $80000000 000000000
-                     as double                                  }
+                     if it is 1 then we add 2**64 as float.
+                     Since 2**64 can be represented exactly, use a single-precision
+                     constant to save space. }
                    current_asmdata.getdatalabel(l1);
                    current_asmdata.getjumplabel(l2);
     
@@ -430,13 +431,10 @@ implementation
                    new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,const_align(sizeof(pint)));
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                    { I got this constant from a test program (FK) }
-                   current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(0));
-                   current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(longint ($80000000)));
-                   current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($0000403f));
+                   current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($5f800000));
                    reference_reset_symbol(href,l1,0,4);
                    tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
-                   current_asmdata.CurrAsmList.concat(Taicpu.Op_ref(A_FLD,S_FX,href));
-                   current_asmdata.CurrAsmList.concat(Taicpu.Op_reg_reg(A_FADDP,S_NO,NR_ST,NR_ST1));
+                   current_asmdata.CurrAsmList.concat(Taicpu.Op_ref(A_FADD,S_FS,href));
                    cg.a_label(current_asmdata.CurrAsmList,l2);
                 end
               else

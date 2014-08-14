@@ -106,6 +106,8 @@ implementation
         '',
         '',
         '',
+        '',
+        '',
         ''
       );
 
@@ -119,6 +121,8 @@ implementation
         '',
         '',
         '','','','',
+        '',
+        '',
         '',
         '',
         '',
@@ -309,8 +313,11 @@ implementation
               if o.ref^.refaddr in [addr_no,addr_pic,addr_pic_no_got] then
                 begin
                   if ((opcode <> A_LGS) and (opcode <> A_LSS) and
-                      (opcode <> A_LFS) and (opcode <> A_LDS) and
-                      (opcode <> A_LES)) then
+                      (opcode <> A_LFS)
+{$ifndef x86_64}
+                      and (opcode <> A_LDS) and (opcode <> A_LES)
+{$endif x86_64}
+                      ) then
                    Begin
                      case s of
                       S_B : AsmWrite('byte ptr ');
@@ -576,6 +583,9 @@ implementation
                        hp:=tai(hp.next);
                        AsmWrite(',');
                      until false;
+                     { Substract section start for secrel32 type }
+                     if consttype=aitconst_secrel32_symbol then
+                       AsmWrite(' - $$');
                      AsmLn;
                    end;
                  else
@@ -962,7 +972,7 @@ implementation
             id           : as_i386_tasm;
             idtxt  : 'TASM';
             asmbin : 'tasm';
-            asmcmd : '/m2 /ml $ASM $OBJ';
+            asmcmd : '/m2 /ml $EXTRAOPT $ASM $OBJ';
             supported_targets : [system_i386_GO32V2,system_i386_Win32,system_i386_wdosx,system_i386_watcom,system_i386_wince];
             flags : [af_needar,af_labelprefix_only_inside_procedure];
             labelprefix : '@@';
@@ -975,7 +985,7 @@ implementation
             id           : as_i386_masm;
             idtxt  : 'MASM';
             asmbin : 'masm';
-            asmcmd : '/c /Cp $ASM /Fo$OBJ';
+            asmcmd : '/c /Cp $EXTRAOPT $ASM /Fo$OBJ';
             supported_targets : [system_i386_GO32V2,system_i386_Win32,system_i386_wdosx,system_i386_watcom,system_i386_wince];
             flags : [af_needar];
             labelprefix : '@@';
@@ -988,7 +998,7 @@ implementation
             id     : as_i386_wasm;
             idtxt  : 'WASM';
             asmbin : 'wasm';
-            asmcmd : '$ASM -6s -fp6 -ms -zq -Fo=$OBJ';
+            asmcmd : '$ASM $EXTRAOPT -6s -fp6 -ms -zq -Fo=$OBJ';
             supported_targets : [system_i386_watcom];
             flags : [af_needar];
             labelprefix : '@@';
@@ -1002,7 +1012,7 @@ implementation
             id     : as_x86_64_masm;
             idtxt  : 'MASM';
             asmbin : 'ml64';
-            asmcmd : '/c /Cp $ASM /Fo$OBJ';
+            asmcmd : '/c /Cp $EXTRAOPT $ASM /Fo$OBJ';
             supported_targets : [system_x86_64_win64];
             flags : [af_needar];
             labelprefix : '@@';

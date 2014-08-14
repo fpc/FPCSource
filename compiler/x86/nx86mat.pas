@@ -44,11 +44,15 @@ interface
 {$endif SUPPORT_MMX}
       end;
 
+      tx86moddivnode = class(tcgmoddivnode)
+         procedure pass_generate_code;override;
+      end;
+
   implementation
 
     uses
       globtype,
-      systems,
+      systems,constexp,
       cutils,verbose,globals,
       symconst,symdef,
       aasmbase,aasmtai,aasmdata,defutil,
@@ -176,13 +180,13 @@ interface
             end;
 
             reference_reset_symbol(href,l1,0,resultdef.alignment);
-            reg:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
-            cg.a_loadmm_ref_reg(current_asmdata.CurrAsmList,def_cgsize(resultdef),def_cgsize(resultdef),href,reg,mms_movescalar);
 
             if UseAVX then
-              cg.a_opmm_reg_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,reg,left.location.register,location.register,nil)
+              cg.a_opmm_ref_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,href,left.location.register,location.register,nil)
             else
               begin
+                reg:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
+                cg.a_loadmm_ref_reg(current_asmdata.CurrAsmList,def_cgsize(resultdef),def_cgsize(resultdef),href,reg,mms_movescalar);
                 cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,def_cgsize(resultdef),def_cgsize(resultdef),left.location.register,location.register,mms_movescalar);
                 cg.a_opmm_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,reg,location.register,nil);
               end;
@@ -221,28 +225,12 @@ interface
 
     procedure tx86notnode.second_boolean;
       var
-         hl : tasmlabel;
          opsize : tcgsize;
+         hreg: tregister;
       begin
         opsize:=def_cgsize(resultdef);
 
-        if left.expectloc=LOC_JUMP then
-         begin
-           location_reset(location,LOC_JUMP,OS_NO);
-           hl:=current_procinfo.CurrTrueLabel;
-           current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
-           current_procinfo.CurrFalseLabel:=hl;
-           secondpass(left);
-
-            if left.location.loc<>LOC_JUMP then
-              internalerror(2012081307);
-
-           maketojumpbool(current_asmdata.CurrAsmList,left,lr_load_regvars);
-           hl:=current_procinfo.CurrTrueLabel;
-           current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
-           current_procinfo.CurrFalseLabel:=hl;
-         end
-        else
+        if not handle_locjump then
          begin
            { the second pass could change the location of left }
            { if it is a register variable, so we've to do      }
@@ -255,18 +243,80 @@ interface
                  location.resflags:=left.location.resflags;
                  inverse_flags(location.resflags);
                end;
+             LOC_CREFERENCE,
+             LOC_REFERENCE:
+               begin
+{$if defined(cpu32bitalu)}
+                 if is_64bit(resultdef) then
+                   begin
+                     hreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
+                     tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
+                     cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.reference,hreg);
+                     inc(left.location.reference.offset,4);
+                     cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.reference,hreg);
+                   end
+                 else
+{$elseif defined(cpu16bitalu)}
+                 if is_64bit(resultdef) then
+                   begin
+                     hreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_16);
+                     tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
+                     cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,left.location.reference,hreg);
+                     inc(left.location.reference.offset,2);
+                     cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.reference,hreg);
+                     inc(left.location.reference.offset,2);
+                     cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.reference,hreg);
+                     inc(left.location.reference.offset,2);
+                     cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.reference,hreg);
+                   end
+                 else if is_32bit(resultdef) then
+                   begin
+                     hreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_16);
+                     tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,left.location.reference);
+                     cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,left.location.reference,hreg);
+                     inc(left.location.reference.offset,2);
+                     cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_16,left.location.reference,hreg);
+                   end
+                 else
+{$endif}
+                   emit_const_ref(A_CMP, TCGSize2Opsize[opsize], 0, left.location.reference);
+                 location_reset(location,LOC_FLAGS,OS_NO);
+                 location.resflags:=F_E;
+               end;
              LOC_CONSTANT,
              LOC_REGISTER,
              LOC_CREGISTER,
-             LOC_REFERENCE,
-             LOC_CREFERENCE,
              LOC_SUBSETREG,
              LOC_CSUBSETREG,
              LOC_SUBSETREF,
              LOC_CSUBSETREF :
                begin
-                 hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
-                 emit_reg_reg(A_TEST,TCGSize2Opsize[opsize],left.location.register,left.location.register);
+{$if defined(cpu32bitalu)}
+                 if is_64bit(resultdef) then
+                   begin
+                     hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+                     emit_reg_reg(A_OR,S_L,left.location.register64.reghi,left.location.register64.reglo);
+                   end
+                 else
+{$elseif defined(cpu16bitalu)}
+                 if is_64bit(resultdef) then
+                   begin
+                     hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+                     emit_reg_reg(A_OR,S_W,GetNextReg(left.location.register64.reghi),left.location.register64.reghi);
+                     emit_reg_reg(A_OR,S_W,GetNextReg(left.location.register64.reglo),left.location.register64.reglo);
+                     emit_reg_reg(A_OR,S_W,left.location.register64.reghi,left.location.register64.reglo);
+                   end
+                 else if is_32bit(resultdef) then
+                   begin
+                     hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+                     emit_reg_reg(A_OR,S_L,GetNextReg(left.location.register),left.location.register);
+                   end
+                 else
+{$endif}
+                   begin
+                     hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
+                     emit_reg_reg(A_TEST,TCGSize2Opsize[opsize],left.location.register,left.location.register);
+                   end;
                  location_reset(location,LOC_FLAGS,OS_NO);
                  location.resflags:=F_E;
                end;
@@ -314,4 +364,191 @@ interface
       emit_reg_reg(A_PXOR,S_NO,hreg,location.register);
     end;
 {$endif SUPPORT_MMX}
+
+
+{*****************************************************************************
+                             TX86MODDIVNODE
+*****************************************************************************}
+
+    procedure tx86moddivnode.pass_generate_code;
+      var
+        hreg1,hreg2,rega,regd:Tregister;
+        power:longint;
+        op:Tasmop;
+        cgsize:TCgSize;
+        opsize:topsize;
+        e, sm: aint;
+        d,m: aword;
+        m_add: boolean;
+        s: byte;
+      begin
+        secondpass(left);
+        if codegenerror then
+          exit;
+        secondpass(right);
+        if codegenerror then
+          exit;
+
+        { put numerator in register }
+        cgsize:=def_cgsize(resultdef);
+        opsize:=TCGSize2OpSize[cgsize];
+        if not (cgsize in [OS_32,OS_S32,OS_64,OS_S64]) then
+          InternalError(2013102702);
+        rega:=newreg(R_INTREGISTER,RS_EAX,cgsize2subreg(R_INTREGISTER,cgsize));
+        regd:=newreg(R_INTREGISTER,RS_EDX,cgsize2subreg(R_INTREGISTER,cgsize));
+
+        location_reset(location,LOC_REGISTER,cgsize);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+        hreg1:=left.location.register;
+
+        if (nodetype=divn) and (right.nodetype=ordconstn) then
+          begin
+            if ispowerof2(int64(tordconstnode(right).value),power) then
+              begin
+                { for signed numbers, the numerator must be adjusted before the
+                  shift instruction, but not wih unsigned numbers! Otherwise,
+                  "Cardinal($ffffffff) div 16" overflows! (JM) }
+                if is_signed(left.resultdef) Then
+                  begin
+                    { use a sequence without jumps, saw this in
+                      comp.compilers (JM) }
+                    { no jumps, but more operations }
+                    hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                    emit_reg_reg(A_MOV,opsize,hreg1,hreg2);
+                    {If the left value is signed, hreg2=$ffffffff, otherwise 0.}
+                    emit_const_reg(A_SAR,opsize,resultdef.size*8-1,hreg2);
+                    {If signed, hreg2=right value-1, otherwise 0.}
+                    { (don't use emit_const_reg, because if value>high(longint)
+                       then it must first be loaded into a register) }
+                    cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,cgsize,tordconstnode(right).value-1,hreg2);
+                    { add to the left value }
+                    emit_reg_reg(A_ADD,opsize,hreg2,hreg1);
+                    { do the shift }
+                    emit_const_reg(A_SAR,opsize,power,hreg1);
+                  end
+                else
+                  emit_const_reg(A_SHR,opsize,power,hreg1);
+                location.register:=hreg1;
+              end
+            else
+              begin
+                if is_signed(left.resultdef) then
+                  begin
+                    e:=tordconstnode(right).value.svalue;
+                    calc_divconst_magic_signed(resultdef.size*8,e,sm,s);
+                    cg.getcpuregister(current_asmdata.CurrAsmList,rega);
+                    emit_const_reg(A_MOV,opsize,sm,rega);
+                    cg.getcpuregister(current_asmdata.CurrAsmList,regd);
+                    emit_reg(A_IMUL,opsize,hreg1);
+                    { only the high half of result is used }
+                    cg.ungetcpuregister(current_asmdata.CurrAsmList,rega);
+                    { add or subtract dividend }
+                    if (e>0) and (sm<0) then
+                      emit_reg_reg(A_ADD,opsize,hreg1,regd)
+                    else if (e<0) and (sm>0) then
+                      emit_reg_reg(A_SUB,opsize,hreg1,regd);
+                    { shift if necessary }
+                    if (s<>0) then
+                      emit_const_reg(A_SAR,opsize,s,regd);
+                    { extract and add the sign bit }
+                    if (e<0) then
+                      emit_reg_reg(A_MOV,opsize,regd,hreg1);
+                    { if e>=0, hreg1 still contains dividend }
+                    emit_const_reg(A_SHR,opsize,left.resultdef.size*8-1,hreg1);
+                    emit_reg_reg(A_ADD,opsize,hreg1,regd);
+                    cg.ungetcpuregister(current_asmdata.CurrAsmList,regd);
+                    location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,cgsize,regd,location.register)
+                  end
+                else
+                  begin
+                    d:=tordconstnode(right).value.svalue;
+                    if d>=aword(1) shl (left.resultdef.size*8-1) then
+                      begin
+                        if (cgsize in [OS_64,OS_S64]) then
+                          begin
+                            hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                            emit_const_reg(A_MOV,opsize,aint(d),hreg2);
+                            emit_reg_reg(A_CMP,opsize,hreg2,hreg1);
+                          end
+                        else
+                          emit_const_reg(A_CMP,opsize,aint(d),hreg1);
+                        location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                        emit_const_reg(A_MOV,opsize,0,location.register);
+                        emit_const_reg(A_SBB,opsize,-1,location.register);
+                      end
+                    else
+                      begin
+                        calc_divconst_magic_unsigned(resultdef.size*8,d,m,m_add,s);
+                        cg.getcpuregister(current_asmdata.CurrAsmList,rega);
+                        emit_const_reg(A_MOV,opsize,aint(m),rega);
+                        cg.getcpuregister(current_asmdata.CurrAsmList,regd);
+                        emit_reg(A_MUL,opsize,hreg1);
+                        cg.ungetcpuregister(current_asmdata.CurrAsmList,rega);
+                        if m_add then
+                          begin
+                            { addition can overflow, shift first bit considering carry,
+                              then shift remaining bits in regular way. }
+                            emit_reg_reg(A_ADD,opsize,hreg1,regd);
+                            emit_const_reg(A_RCR,opsize,1,regd);
+                            dec(s);
+                          end;
+                        if s<>0 then
+                          emit_const_reg(A_SHR,opsize,aint(s),regd);
+                        cg.ungetcpuregister(current_asmdata.CurrAsmList,regd);
+                        location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+                        cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,cgsize,regd,location.register)
+                      end;
+                  end;
+              end;
+          end
+        else
+          begin
+            {Bring denominator to a register.}
+            cg.getcpuregister(current_asmdata.CurrAsmList,rega);
+            emit_reg_reg(A_MOV,opsize,hreg1,rega);
+            cg.getcpuregister(current_asmdata.CurrAsmList,regd);
+            {Sign extension depends on the left type.}
+            if is_signed(left.resultdef) then
+              case left.resultdef.size of
+{$ifdef x86_64}
+                8:
+                  emit_none(A_CQO,S_NO);
+{$endif x86_64}
+                4:
+                  emit_none(A_CDQ,S_NO);
+                else
+                  internalerror(2013102701);
+              end
+            else
+              emit_reg_reg(A_XOR,opsize,regd,regd);
+
+            {Division depends on the right type.}
+            if is_signed(right.resultdef) then
+              op:=A_IDIV
+            else
+              op:=A_DIV;
+
+            if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+              emit_ref(op,opsize,right.location.reference)
+            else if right.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+              emit_reg(op,opsize,right.location.register)
+            else
+              begin
+                hreg1:=cg.getintregister(current_asmdata.CurrAsmList,right.location.size);
+                hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,right.resultdef,right.location,hreg1);
+                emit_reg(op,opsize,hreg1);
+              end;
+
+            { Copy the result into a new register. Release R/EAX & R/EDX.}
+            cg.ungetcpuregister(current_asmdata.CurrAsmList,regd);
+            cg.ungetcpuregister(current_asmdata.CurrAsmList,rega);
+            location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
+            if nodetype=divn then
+              cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,cgsize,rega,location.register)
+            else
+              cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,cgsize,regd,location.register);
+          end;
+      end;
+
 end.
