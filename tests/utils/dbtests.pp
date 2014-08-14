@@ -408,7 +408,7 @@ begin
 end;
 
 Const
-  B : Array[Boolean] of String = ('-','+');
+  B : Array[Boolean] of String = ('f','t');
 
 Function UpdateTest(ID : Integer; Info : TConfig; Source : String) : Boolean;
 
