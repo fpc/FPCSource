@@ -8,7 +8,7 @@ uses Classes;
 
 type
 
-  TTestFileTyp = (tfNasm, tfFPC);
+  TTestFileTyp = (tfNasm, tfFPC, tfFasm);
 
   TAVXTestGenerator = class(TObject)
   private
@@ -663,6 +663,146 @@ begin
   FOpCodeList.Add('VPSRLVD,1,1,XMMREG,XMMREG,XMMRM,');
   FOpCodeList.Add('VPSRLVQ,1,1,YMMREG,YMMREG,YMMRM,');
   FOpCodeList.Add('VPSRLVQ,1,1,XMMREG,XMMREG,XMMRM,');
+
+
+  FOpCodeList.Add('VFMADD132PD,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMADD132PD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMADD213PD,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMADD213PD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMADD132PD,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMADD132PD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMADD132PS,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMADD132PS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMADD213PS,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMADD213PS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMADD132PS,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMADD132PS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMADD132PD,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMADD132PD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMADD213PD,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMADD213PD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMADD231PD,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMADD231PD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMADD132PS,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMADD132PS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMADD213PS,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMADD213PS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMADD231PS,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMADD231PS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMADD132SD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMADD213SD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMADD231SD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMADD132SS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMADD213SS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMADD231SS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMADDSUB132PD,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMADDSUB132PD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMADDSUB213PD,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMADDSUB213PD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMADDSUB231PD,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMADDSUB231PD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMADDSUB132PS,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMADDSUB132PS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMADDSUB213PS,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMADDSUB213PS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMADDSUB231PS,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMADDSUB231PS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMSUBADD132PD,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMSUBADD132PD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMSUBADD213PD,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMSUBADD213PD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMSUBADD231PD,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMSUBADD231PD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMSUBADD132PS,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMSUBADD132PS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMSUBADD213PS,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMSUBADD213PS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMSUBADD231PS,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMSUBADD231PS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMSUB132PD,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMSUB132PD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMSUB213PD,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMSUB213PD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMSUB231PD,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMSUB231PD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMSUB132PS,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMSUB132PS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMSUB213PS,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMSUB213PS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMSUB231PS,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFMSUB231PS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMSUB132SD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMSUB213SD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMSUB231SD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMSUB132SS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMSUB213SS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFMSUB231SS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFNMADD132PD,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFNMADD132PD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFNMADD213PD,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFNMADD213PD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFNMADD231PD,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFNMADD231PD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFNMADD132PS,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFNMADD132PS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFNMADD213PS,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFNMADD213PS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFNMADD231PS,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFNMADD231PS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFNMADD132SD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFNMADD213SD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFNMADD231SD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFNMADD132SS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFNMADD213SS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFNMADD231SS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFNMSUB132PD,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFNMSUB132PD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFNMSUB213PD,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFNMSUB213PD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFNMSUB231PD,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFNMSUB231PD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFNMSUB132PS,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFNMSUB132PS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFNMSUB213PS,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFNMSUB213PS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFNMSUB231PS,1,1,YMMREG,YMMREG,YMMRM,');
+  FOpCodeList.Add('VFNMSUB231PS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFNMSUB132SD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFNMSUB213SD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFNMSUB231SD,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFNMSUB132SS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFNMSUB213SS,1,1,XMMREG,XMMREG,XMMRM,');
+  FOpCodeList.Add('VFNMSUB231SS,1,1,XMMREG,XMMREG,XMMRM,');
+
+
+  FOpCodeList.Add('VGATHERDPD,1,1,XMMREG,XMEM32,XMMREG,');
+  FOpCodeList.Add('VGATHERDPD,1,1,YMMREG,XMEM32,YMMREG,');
+
+  FOpCodeList.Add('VGATHERQPD,1,1,XMMREG,XMEM64,XMMREG,');
+  FOpCodeList.Add('VGATHERQPD,1,1,YMMREG,YMEM64,YMMREG,');
+
+
+  FOpCodeList.Add('VGATHERDPS,1,1,XMMREG,XMEM32,XMMREG,');
+  FOpCodeList.Add('VGATHERDPS,1,1,YMMREG,YMEM32,YMMREG,');
+
+  FOpCodeList.Add('VGATHERQPS,1,1,XMMREG,XMEM64,XMMREG,');
+  FOpCodeList.Add('VGATHERQPS,1,1,XMMREG,YMEM64,XMMREG,');
+
+
+
+  FOpCodeList.Add('VPGATHERDD,1,1,XMMREG,XMEM32,XMMREG,');
+  FOpCodeList.Add('VPGATHERDD,1,1,YMMREG,YMEM32,YMMREG,');
+
+  FOpCodeList.Add('VPGATHERQD,1,1,XMMREG,XMEM64,XMMREG,');
+  FOpCodeList.Add('VPGATHERQD,1,1,XMMREG,YMEM64,XMMREG,');
+
+
+  FOpCodeList.Add('VPGATHERDQ,1,1,XMMREG,XMEM32,XMMREG,');
+  FOpCodeList.Add('VPGATHERDQ,1,1,YMMREG,XMEM32,YMMREG,');
+
+  FOpCodeList.Add('VPGATHERQQ,1,1,XMMREG,XMEM64,XMMREG,');
+  FOpCodeList.Add('VPGATHERQQ,1,1,YMMREG,YMEM64,YMMREG,');
+
 end;
 
 function TAVXTestGenerator.InternalMakeTestFiles(aX64: boolean; aDestPath, aFileExt: String;
@@ -759,7 +899,7 @@ var
   FileExt: String;
   i: integer;
 const
-  cPlatform: array[boolean] of String = (('i386'), ('x86_64'));  
+  cPlatform: array[boolean] of String = (('i386'), ('x86_64'));
 begin
   result := false;
 
@@ -789,13 +929,31 @@ begin
                   slFooter.Add('end.');
                 end;
         tfNasm: begin
-                  writeln(format('outputformat: fpc  platform: %s  path: %s',
+                  writeln(format('outputformat: Nasm  platform: %s  path: %s',
                                  [cPlatform[aX64], aDestPath]));
 
                   FileExt := '.asm';
 
                   if aX64 then slHeader.Add('[BITS 64]')
                    else slHeader.Add('[BITS 32]');
+
+                  for i := 1 to 10 do
+                   slHeader.Add('NOP');
+
+                  for i := 1 to 10 do
+                   slFooter.Add('NOP');
+                end;
+        tfFasm: begin
+                  writeln(format('outputformat: Fasm  platform: %s  path: %s',
+                                 [cPlatform[aX64], aDestPath]));
+
+                  FileExt := '.asm';
+
+                  if aX64 then slHeader.Add('format MS64 COFF')
+                   else slHeader.Add('format MS COFF');
+
+                  slHeader.Add('section ''.text'' code readable executable');
+                  slHeader.Add('myproc:');
 
                   for i := 1 to 10 do
                    slHeader.Add('NOP');

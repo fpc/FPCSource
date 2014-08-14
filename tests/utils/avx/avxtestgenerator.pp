@@ -42,7 +42,7 @@ begin
         writeln('make avx assembler-testfiles');
         writeln('');
         writeln('-h  help');
-        writeln('-f  [fpc,nasm] outputformat');
+        writeln('-f  [fpc,nasm,fasm] outputformat');
         writeln('-p  [x8664] codegenerator for x86_64 platform');
         writeln('-o  destination path');
         writeln('');
@@ -51,6 +51,7 @@ begin
       begin
         case OutputFormat of
           'f': MakeTestFiles(tfFPC, x64, Path);
+          'F': MakeTestFiles(tfFasm, x64, Path);
           'n': MakeTestFiles(tfNasm, x64, Path);
         end;
       end;
