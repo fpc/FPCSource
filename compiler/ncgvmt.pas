@@ -26,23 +26,8 @@ unit ncgvmt;
 interface
 
     uses
-      symbase;
-
-    { generate persistent type information like VMT, RTTI and inittables }
-    procedure write_persistent_type_info(st:tsymtable;is_global:boolean);
-
-implementation
-
-    uses
-      cutils,cclasses,
-      globtype,globals,verbose,constexp,
-      systems,
-      symconst,symtype,symdef,symsym,symtable,defutil,
-      aasmbase,aasmtai,aasmdata,
-      wpobase,
-      nobj,
-      cgbase,parabase,paramgr,cgobj,cgcpu,hlcgobj,hlcgcpu,
-      ncgrtti;
+      aasmdata,aasmbase,
+      symbase,symdef;
 
     type
       pprocdeftree = ^tprocdeftree;
@@ -93,11 +78,33 @@ implementation
         function  gendmt : tasmlabel;
 {$endif WITHDMT}
       public
-        constructor create(c:tobjectdef);
+        constructor create(c:tobjectdef); virtual;
         { write the VMT to al_globals }
         procedure writevmt;
         procedure writeinterfaceids(list: TAsmList);
+        { should the VMT writer be used at all (e.g., not for the JVM target) }
+        class function use_vmt_writer: boolean; virtual;
       end;
+      TVMTWriterClass = class of TVMTWriter;
+
+    { generate persistent type information like VMT, RTTI and inittables }
+    procedure write_persistent_type_info(st:tsymtable;is_global:boolean);
+
+  var
+    CVMTWriter: TVMTWriterClass = TVMTWriter;
+
+implementation
+
+    uses
+      cutils,cclasses,
+      globtype,globals,verbose,constexp,
+      systems,
+      symconst,symtype,symsym,symtable,defutil,
+      aasmtai,
+      wpobase,
+      nobj,
+      cgbase,parabase,paramgr,cgobj,cgcpu,hlcgobj,hlcgcpu,
+      ncgrtti;
 
 
 {*****************************************************************************
@@ -686,6 +693,12 @@ implementation
     end;
 
 
+  class function TVMTWriter.use_vmt_writer: boolean;
+    begin
+      result:=true;
+    end;
+
+
     function TVMTWriter.RedirectToEmpty(procdef : tprocdef) : boolean;
       var
         i : longint;
@@ -750,7 +763,7 @@ implementation
          vmtpd : tprocdef;
          vmtentry : pvmtentry;
          i  : longint;
-         procname : string;
+         procname : TSymStr;
 {$ifdef vtentry}
          hs : string;
 {$endif vtentry}
@@ -800,6 +813,12 @@ implementation
          dmtlabel:=gendmt;
 {$endif WITHDMT}
          templist:=TAsmList.Create;
+         strmessagetable:=nil;
+         interfacetable:=nil;
+         fieldtablelabel:=nil;
+         methodnametable:=nil;
+         intmessagetable:=nil;
+         classnamelabel:=nil;
 
          { write tables for classes, this must be done before the actual
            class is written, because we need the labels defined }
@@ -930,7 +949,6 @@ implementation
             if (ImplIntf=ImplIntf.VtblImplIntf) and
                assigned(ImplIntf.ProcDefs) then
               begin
-                maybe_new_object_file(list);
                 for j:=0 to ImplIntf.ProcDefs.Count-1 do
                   begin
                     pd:=TProcdef(ImplIntf.ProcDefs[j]);
@@ -943,29 +961,12 @@ implementation
                     tmps:=make_mangledname('WRPR',_class.owner,_class.objname^+'_$_'+
                       ImplIntf.IntfDef.objname^+'_$_'+tostr(j)+'_$_'+pd.mangledname);
                     { create wrapper code }
-                    new_section(list,sec_code,tmps,0);
+                    new_section(list,sec_code,tmps,target_info.alignment.procalign);
                     hlcg.init_register_allocators;
                     cg.g_intf_wrapper(list,pd,tmps,ImplIntf.ioffset);
                     hlcg.done_register_allocators;
                   end;
               end;
-          end;
-      end;
-
-
-    procedure gen_intf_wrappers(list:TAsmList;st:TSymtable);
-      var
-        i   : longint;
-        def : tdef;
-      begin
-        for i:=0 to st.DefList.Count-1 do
-          begin
-            def:=tdef(st.DefList[i]);
-            { if def can contain nested types then handle it symtable }
-            if def.typ in [objectdef,recorddef] then
-              gen_intf_wrappers(list,tabstractrecorddef(def).symtable);
-            if is_class(def) then
-              gen_intf_wrapper(list,tobjectdef(def));
           end;
       end;
 
@@ -976,10 +977,8 @@ implementation
         def : tdef;
         vmtwriter  : TVMTWriter;
       begin
-{$ifdef jvm}
-        { no Delphi-style RTTI }
-        exit;
-{$endif jvm}
+        if not CVMTWriter.use_vmt_writer then
+          exit;
         for i:=0 to st.DefList.Count-1 do
           begin
             def:=tdef(st.DefList[i]);
@@ -996,7 +995,7 @@ implementation
                   { Write also VMT if not done yet }
                   if not(ds_vmt_written in def.defstates) then
                     begin
-                      vmtwriter:=TVMTWriter.create(tobjectdef(def));
+                      vmtwriter:=CVMTWriter.create(tobjectdef(def));
                       if is_interface(tobjectdef(def)) then
                         vmtwriter.writeinterfaceids(current_asmdata.AsmLists[al_globals]);
                       if (oo_has_vmt in tobjectdef(def).objectoptions) then
@@ -1004,6 +1003,8 @@ implementation
                       vmtwriter.free;
                       include(def.defstates,ds_vmt_written);
                     end;
+                  if is_class(def) then
+                    gen_intf_wrapper(current_asmdata.asmlists[al_globals],tobjectdef(def));
                 end;
               procdef :
                 begin
@@ -1039,7 +1040,6 @@ implementation
     procedure write_persistent_type_info(st:tsymtable;is_global:boolean);
       begin
         create_hlcodegen;
-        gen_intf_wrappers(current_asmdata.asmlists[al_procedures],st);
         do_write_persistent_type_info(st,is_global);
         destroy_hlcodegen;
       end;

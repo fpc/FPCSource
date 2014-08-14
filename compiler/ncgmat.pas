@@ -109,6 +109,7 @@ interface
 
       tcgnotnode = class(tnotnode)
       protected
+         function handle_locjump: boolean;
          procedure second_boolean;virtual;abstract;
 {$ifdef SUPPORT_MMX}
          procedure second_mmx;virtual;abstract;
@@ -131,7 +132,7 @@ implementation
       parabase,
       pass_2,
       ncon,
-      tgobj,ncgutil,cgobj,cgutils,paramgr,hlcgobj
+      tgobj,ncgutil,cgobj,cgutils,paramgr,hlcgobj,procinfo
 {$ifndef cpu64bitalu}
       ,cg64f32
 {$endif not cpu64bitalu}
@@ -165,7 +166,13 @@ implementation
             internalerror(200406021);
         end;
         { flip sign-bit (bit 31/63) of single/double }
-        cg.a_op_const_ref(current_asmdata.CurrAsmList,OP_XOR,OS_32,aint($80000000),href2);
+        cg.a_op_const_ref(current_asmdata.CurrAsmList,OP_XOR,OS_32,
+{$ifdef cpu64bitalu}
+          aint($80000000),
+{$else cpu64bitalu}
+          longint($80000000),
+{$endif cpu64bitalu}
+          href2);
         cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,_size,_size,href,r);
         tg.ungetiftemp(current_asmdata.CurrAsmList,href);
       end;
@@ -188,7 +195,7 @@ implementation
           begin
             tr:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
             cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,
-              aint($80000000),location.register64.reghi,tr);
+              longint($80000000),location.register64.reghi,tr);
             cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,
               location.register64.reglo,tr);
             current_asmdata.getjumplabel(hl);
@@ -381,19 +388,23 @@ implementation
                   { purposes                }
                   hdenom := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                   hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,hdenom);
-                  { verify if the divisor is zero, if so return an error
-                    immediately
+                  { verify if the divisor is zero, if so return an error immediately,
+                    except if we have a const node, where we don't need this, because
+                    then zero check was done earlier.
                   }
-                  current_asmdata.getjumplabel(hl);
-                  cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,0,hdenom,hl);
-                  paraloc1.init;
-                  pd:=search_system_proc('fpc_handleerror');
-                  paramanager.getintparaloc(pd,1,paraloc1);
-                  cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_S32,aint(200),paraloc1);
-                  paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
-                  cg.a_call_name(current_asmdata.CurrAsmList,'FPC_HANDLEERROR',false);
-                  paraloc1.done;
-                  cg.a_label(current_asmdata.CurrAsmList,hl);
+                  if (right.nodetype <> ordconstn) then
+                    begin
+                      current_asmdata.getjumplabel(hl);
+                      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,0,hdenom,hl);
+                      paraloc1.init;
+                      pd:=search_system_proc('fpc_handleerror');
+                      paramanager.getintparaloc(pd,1,paraloc1);
+                      cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_S32,aint(200),paraloc1);
+                      paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
+                      cg.a_call_name(current_asmdata.CurrAsmList,'FPC_HANDLEERROR',false);
+                      paraloc1.done;
+                      cg.a_label(current_asmdata.CurrAsmList,hl);
+                    end;
                   if nodetype = modn then
                     emit_mod_reg_reg(is_signed(left.resultdef),hdenom,hreg1)
                   else
@@ -423,22 +434,29 @@ implementation
     procedure tcgshlshrnode.second_integer;
       var
          op : topcg;
-         opdef : tdef;
+         opdef,right_opdef : tdef;
          hcountreg : tregister;
-         opsize : tcgsize;
+         opsize,right_opsize : tcgsize;
+         shiftval : longint;
       begin
          { determine operator }
          case nodetype of
            shln: op:=OP_SHL;
            shrn: op:=OP_SHR;
+           else
+             internalerror(2013120102);
          end;
 {$ifdef cpunodefaultint}
         opsize:=left.location.size;
         opdef:=left.resultdef;
+        right_opsize:=opsize;
+        right_opdef:=opdef;
 {$else cpunodefaultint}
          { load left operators in a register }
          if is_signed(left.resultdef) then
            begin
+             right_opsize:=OS_SINT;
+             right_opdef:=ossinttype;
              {$ifdef cpu16bitalu}
                if left.resultdef.size > 2 then
                  begin
@@ -454,6 +472,8 @@ implementation
            end
          else
            begin
+             right_opsize:=OS_INT;
+             right_opdef:=osuinttype;
              {$ifdef cpu16bitalu}
                if left.resultdef.size > 2 then
                  begin
@@ -469,23 +489,25 @@ implementation
              end;
 {$endif cpunodefaultint}
 
-         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
+         if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
+           { location_force_reg can be also used to change the size of a register }
+           (left.location.size<>opsize) then
+           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
          location_reset(location,LOC_REGISTER,opsize);
-         location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+         location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
 
          { shifting by a constant directly coded: }
          if (right.nodetype=ordconstn) then
            begin
-              { l shl 32 should 0 imho, but neither TP nor Delphi do it in this way (FK)
-              if right.value<=31 then
-              }
-              cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,location.size,
-                tordconstnode(right).value.uvalue and 31,left.location.register,location.register);
-              {
+              { shl/shr must "wrap around", so use ... and 31 }
+              { In TP, "byte/word shl 16 = 0", so no "and 15" in case of
+                a 16 bit ALU }
+              if tcgsize2size[opsize]<=4 then
+                shiftval:=tordconstnode(right).value.uvalue and 31
               else
-                emit_reg_reg(A_XOR,S_L,hregister1,
-                  hregister1);
-              }
+                shiftval:=tordconstnode(right).value.uvalue and 63;
+              hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,opdef,
+                shiftval,left.location.register,location.register);
            end
          else
            begin
@@ -495,12 +517,20 @@ implementation
               }
               if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
                 begin
-                  hcountreg:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                  hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,opdef,right.location,hcountreg);
+                  hcountreg:=hlcg.getintregister(current_asmdata.CurrAsmList,right_opdef);
+                  hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,right_opdef,right.location,hcountreg);
                 end
               else
                 hcountreg:=right.location.register;
-              cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,opsize,hcountreg,left.location.register,location.register);
+              hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,opdef,hcountreg,left.location.register,location.register);
+           end;
+         { shl/shr nodes return the same type as left, which can be different
+           from opdef }
+         if opdef<>resultdef then
+           begin
+             hcountreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+             hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,opdef,resultdef,location.register,hcountreg);
+             location.register:=hcountreg;
            end;
       end;
 
@@ -546,6 +576,33 @@ implementation
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
         { perform the NOT operation }
         hlcg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,left.resultdef,left.location.register,location.register);
+      end;
+
+
+    function tcgnotnode.handle_locjump: boolean;
+      var
+        hl: tasmlabel;
+      begin
+        result:=(left.expectloc=LOC_JUMP);
+        if result then
+          begin
+            hl:=current_procinfo.CurrTrueLabel;
+            current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
+            current_procinfo.CurrFalseLabel:=hl;
+            secondpass(left);
+
+            if is_constboolnode(left) then
+              internalerror(2014010101);
+            if left.location.loc<>LOC_JUMP then
+              internalerror(2012081306);
+
+            { This does nothing for LOC_JUMP }
+            //maketojumpbool(current_asmdata.CurrAsmList,left,lr_load_regvars);
+            hl:=current_procinfo.CurrTrueLabel;
+            current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
+            current_procinfo.CurrFalseLabel:=hl;
+            location_reset(location,LOC_JUMP,OS_NO);
+          end;
       end;
 
 

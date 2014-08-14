@@ -227,7 +227,7 @@ implementation
         );
 
       { Generic unaligned pseudo-instructions, seems ELF specific }
-      use_ua_elf_systems = [system_mipsel_linux,system_mipseb_linux];
+      use_ua_elf_systems = [system_mipsel_linux,system_mipseb_linux,system_mipsel_android,system_mipsel_embedded,system_mipseb_embedded];
       ait_ua_elf_const2str : array[aitconst_16bit_unaligned..aitconst_64bit_unaligned]
         of string[20]=(
           #9'.2byte'#9,#9'.4byte'#9,#9'.8byte'#9
@@ -347,7 +347,9 @@ implementation
           '.objc_nlclasslist',
           '.objc_catlist',
           '.obcj_nlcatlist',
-          '.objc_protolist'
+          '.objc_protolist',
+          '.stack',
+          '.heap'
         );
         secnames_pic : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
           '.text',
@@ -404,7 +406,9 @@ implementation
           '.objc_nlclasslist',
           '.objc_catlist',
           '.obcj_nlcatlist',
-          '.objc_protolist'
+          '.objc_protolist',
+          '.stack',
+          '.heap'
         );
       var
         sep     : string[3];
@@ -652,28 +656,18 @@ implementation
               if not(target_info.system in (systems_darwin+systems_aix)) then
                 begin
 {$ifdef m68k}
-                  if assigned(lasthp) and
-                      (
-                        (lasthp.typ=ait_instruction) and
-                        (taicpu(lasthp).opcode<>A_JMP)
-                      ) or
-                      (
-                        (lasthp.typ=ait_label)
-                      ) then
+                  if not use_op and (lastsectype=sec_code) then
                     begin
-                      if ispowerof2(alignment,i) then
-                        begin
-                          { the Coldfire manual suggests the TBF instruction for
-                            alignments, but somehow QEMU does not interpret that
-                            correctly... }
-                          {if current_settings.cputype in cpu_coldfire then
-                            instr:='0x51fc'
-                          else}
-                            instr:='0x4e71';
-                          AsmWrite(#9'.balignw '+tostr(alignment)+','+instr);
-                        end
-                      else
-                        internalerror(2012102101);
+                      if not ispowerof2(alignment,i) then
+                        internalerror(2014022201);
+                      { the Coldfire manual suggests the TBF instruction for
+                        alignments, but somehow QEMU does not interpret that
+                        correctly... }
+                      {if current_settings.cputype in cpu_coldfire then
+                        instr:='0x51fc'
+                      else}
+                        instr:='0x4e71';
+                      AsmWrite(#9'.balignw '+tostr(alignment)+','+instr);
                     end
                   else
                     begin
@@ -849,7 +843,8 @@ implementation
                        asmwrite(ReplaceForbiddenAsmSymbolChars(tai_datablock(hp).sym.name));
                        asmwrite(',');
                        asmwrite(tostr(tai_datablock(hp).size)+',');
-                       asmwrite('_data.bss_');
+                       asmwrite('_data.bss_,');
+                       asmwriteln(tostr(last_align));
                      end;
                  end
                else
@@ -961,6 +956,32 @@ implementation
                      AsmWrite(#9'.word'#9+tai_const(hp).sym.name+'(GOT)');
                      Asmln;
                    end;
+
+                 aitconst_gotoff_symbol:
+                   begin
+                     if (tai_const(hp).sym=nil) then
+                       InternalError(2014022601);
+                     case target_info.cpu of
+
+                       cpu_mipseb,cpu_mipsel:
+                         begin
+                           AsmWrite(#9'.gpword'#9);
+                           AsmWrite(tai_const(hp).sym.name);
+                         end;
+
+                       cpu_i386:
+                         begin
+                           AsmWrite(ait_const2str[aitconst_32bit]);
+                           AsmWrite(tai_const(hp).sym.name);
+                         end;
+                     else
+                       InternalError(2014022602);
+                     end;
+                     if (tai_const(hp).value<>0) then
+                       AsmWrite(tostr_with_plus(tai_const(hp).value));
+                     Asmln;
+                   end;
+
                  aitconst_uleb128bit,
                  aitconst_sleb128bit,
 {$ifdef cpu64bitaddr}
@@ -1013,14 +1034,13 @@ implementation
                          else if (constdef in ait_unaligned_consts) and
                                  (target_info.system in use_ua_elf_systems) then
                            AsmWrite(ait_ua_elf_const2str[constdef])
-                          else if not(target_info.system in systems_aix) or
-                            (constdef<>aitconst_64bit) then
-                           AsmWrite(ait_const2str[constdef])
+                         { we can also have unaligned pointers in packed record
+                           constants, which don't get translated into
+                           unaligned tai -> always use vbyte }
+                         else if target_info.system in systems_aix then
+                            AsmWrite(#9'.vbyte'#9+tostr(tai_const(hp).size)+',')
                          else
-                           { can't use .llong, because that forces 8 byte
-                             alignnment and we sometimes store addresses on
-                             4-byte aligned addresses (e.g. in the RTTI) }
-                           AsmWrite('.vbyte'#9'8,');
+                           AsmWrite(ait_const2str[constdef]);
                          l:=0;
                          t := '';
                          repeat
@@ -1336,11 +1356,17 @@ implementation
 {$endif arm}
            ait_set:
              begin
-               AsmWriteLn(#9'.set '+tai_set(hp).sym^+', '+tai_set(hp).value^);
+               if replaceforbidden then
+                 AsmWriteLn(#9'.set '+ReplaceForbiddenAsmSymbolChars(tai_set(hp).sym^)+', '+ReplaceForbiddenAsmSymbolChars(tai_set(hp).value^))
+               else
+                 AsmWriteLn(#9'.set '+tai_set(hp).sym^+', '+tai_set(hp).value^);
              end;
            ait_weak:
              begin
-               AsmWriteLn(#9'.weak '+tai_weak(hp).sym^);
+               if replaceforbidden then
+                 AsmWriteLn(#9'.weak '+ReplaceForbiddenAsmSymbolChars(tai_weak(hp).sym^))
+               else
+                 AsmWriteLn(#9'.weak '+tai_weak(hp).sym^);
              end;
            ait_symbol_end :
              begin
@@ -1518,6 +1544,7 @@ implementation
 
       begin
         pos:=0;
+        instring:=false;
         for i:=1 to hp.len do
           begin
             if pos=0 then
@@ -1667,9 +1694,12 @@ implementation
 
       for hal:=low(TasmlistType) to high(TasmlistType) do
         begin
-          AsmWriteLn(target_asm.comment+'Begin asmlist '+AsmlistTypeStr[hal]);
-          writetree(current_asmdata.asmlists[hal]);
-          AsmWriteLn(target_asm.comment+'End asmlist '+AsmlistTypeStr[hal]);
+          if not (current_asmdata.asmlists[hal].empty) then
+            begin
+              AsmWriteLn(target_asm.comment+'Begin asmlist '+AsmlistTypeStr[hal]);
+              writetree(current_asmdata.asmlists[hal]);
+              AsmWriteLn(target_asm.comment+'End asmlist '+AsmlistTypeStr[hal]);
+            end;
         end;
 
       { add weak symbol markers }
@@ -1681,14 +1711,16 @@ implementation
          (target_info.system in systems_darwin) then
         AsmWriteLn(#9'.subsections_via_symbols');
 
-      { "no executable stack" marker for Linux }
-      if (target_info.system in (systems_linux + systems_android)) and
+      { "no executable stack" marker }
+      { TODO: used by OpenBSD/NetBSD as well? }
+      if (target_info.system in (systems_linux + systems_android + systems_freebsd)) and
          not(cs_executable_stack in current_settings.moduleswitches) then
         begin
           AsmWriteLn('.section .note.GNU-stack,"",%progbits');
         end;
 
       AsmLn;
+      WriteExtraFooter;
 {$ifdef EXTDEBUG}
       if current_module.mainsource<>'' then
        Comment(V_Debug,'Done writing gas-styled assembler output for '+current_module.mainsource);
@@ -1791,7 +1823,10 @@ implementation
               end;
             sec_objc_image_info:
               begin
-                result:='.section __OBJC, __image_info, regular, no_dead_strip';
+                if (target_info.system in systems_objc_nfabi) then
+                  result:='.section __DATA,__objc_imageinfo,regular,no_dead_strip'
+                else
+                  result:='.section __OBJC, __image_info, regular, no_dead_strip';
                 exit;
               end;
             sec_objc_cstring_object:
@@ -1820,12 +1855,27 @@ implementation
                     exit;
                   end;
               end;
-            sec_objc_meth_var_names,
+            sec_objc_meth_var_types:
+              begin
+                if (target_info.system in systems_objc_nfabi) then
+                  begin
+                    result:='.section __TEXT,__objc_methtype,cstring_literals';
+                    exit
+                  end;
+              end;
+            sec_objc_meth_var_names:
+              begin
+                if (target_info.system in systems_objc_nfabi) then
+                  begin
+                    result:='.section __TEXT,__objc_methname,cstring_literals';
+                    exit
+                  end;
+              end;
             sec_objc_class_names:
               begin
                 if (target_info.system in systems_objc_nfabi) then
                   begin
-                    result:='.cstring';
+                    result:='.section __TEXT,__objc_classname,cstring_literals';
                     exit
                   end;
               end;
@@ -1969,7 +2019,9 @@ implementation
          sec_none (* sec_objc_nlclasslist *),
          sec_none (* sec_objc_catlist *),
          sec_none (* sec_objc_nlcatlist *),
-         sec_none (* sec_objc_protlist *)
+         sec_none (* sec_objc_protlist *),
+         sec_none (* sec_stack *),
+         sec_none (* sec_heap *)
         );
       begin
         Result := inherited SectionName (SecXTable [AType], AName, AOrder);

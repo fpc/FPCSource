@@ -38,7 +38,7 @@ unit cpunode;
          n68kcal,
 //       nppccon,
 //       nppcflw,
-//       nppcmem,
+         n68kmem,
 //       nppcset,
 //       nppcinl,
 //       nppcopt,
@@ -46,7 +46,9 @@ unit cpunode;
 //       nppcobj,
 //       nppcmat,
          n68kmat,
-         n68kcnv
-       ;
+         n68kcnv,
+         { symtable }
+         symcpu
+         ;
 
 end.

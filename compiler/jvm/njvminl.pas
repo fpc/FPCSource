@@ -73,7 +73,7 @@ implementation
     uses
       cutils,globals,verbose,globtype,constexp,fmodule,
       aasmbase,aasmtai,aasmdata,aasmcpu,
-      symtype,symconst,symdef,symsym,symtable,jvmdef,
+      symtype,symconst,symdef,symsym,symcpu,symtable,jvmdef,
       defutil,
       nadd,nbas,ncon,ncnv,nmat,nmem,ncal,nld,nflw,nutils,
       cgbase,pass_1,pass_2,
@@ -362,7 +362,7 @@ implementation
         if seteledef.typ=enumdef then
           begin
             inserttypeconv_explicit(setpara,java_juenumset);
-            inserttypeconv_explicit(valuepara.left,tenumdef(seteledef).getbasedef.classdef);
+            inserttypeconv_explicit(valuepara.left,tcpuenumdef(tenumdef(seteledef).getbasedef).classdef);
           end
         else
           begin

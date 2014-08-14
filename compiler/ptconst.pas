@@ -86,6 +86,8 @@ implementation
             else
               current_module.tcinitcode:=restree;
             tcbuilder.free;
+            reslist:=nil;
+            cursectype:=sec_none;
           end;
 
         { Parse hints }

@@ -60,7 +60,6 @@ interface
     procedure maketojumpbool(list:TAsmList; p : tnode; loadregvars: tloadregvars);
 //    procedure remove_non_regvars_from_loc(const t: tlocation; var regs:Tsuperregisterset);
 
-    procedure location_force_fpureg(list:TAsmList;var l: tlocation;maybeconst:boolean);
     procedure location_force_mmreg(list:TAsmList;var l: tlocation;maybeconst:boolean);
     procedure location_allocate_register(list:TAsmList;out l: tlocation;def: tdef;constant: boolean);
 
@@ -94,14 +93,9 @@ interface
       uses rv.myregvars as scratch (so that two uses of the same regvar
       in a single tree to make it appear in commonregvars). Useful to
       find out which regvars are used in two different node trees
-      (e.g. in the "else" and "then" path, or in various case blocks }
+      e.g. in the "else" and "then" path, or in various case blocks }
 //    procedure get_used_regvars_common(n: tnode; var rv: tusedregvarscommon);
     procedure gen_sync_regvars(list:TAsmList; var rv: tusedregvars);
-
-    { if the result of n is a LOC_C(..)REGISTER, try to find the corresponding
-      loadn and change its location to a new register (= SSA). In case reload
-      is true, transfer the old to the new register                            }
-    procedure maybechangeloadnodereg(list: TAsmList; var n: tnode; reload: boolean);
 
    {  Allocate the buffers for exception management and setjmp environment.
       Return a pointer to these buffers, send them to the utility routine
@@ -116,8 +110,6 @@ interface
       routine has been called, therefore on machines where the stack cannot
       be modified, all temps should be allocated on the heap instead of the
       stack. }
-    const
-      EXCEPT_BUF_SIZE = 3*sizeof(pint);
     type
       texceptiontemps=record
         jmpbuf,
@@ -138,6 +130,7 @@ interface
     function getprocalign : shortint;
 
     procedure gen_fpc_dummy(list : TAsmList);
+    procedure gen_load_frame_for_exceptfilter(list : TAsmList);
 
 implementation
 
@@ -389,9 +382,15 @@ implementation
 *****************************************************************************}
 
     procedure get_exception_temps(list:TAsmList;var t:texceptiontemps);
+     var
+       except_buf_size: longint;
      begin
+        { todo: is there a way to retrieve the except_buf_size from the size of
+          the TExceptAddr record from the system unit (like we do for jmp_buf_size),
+          without moving TExceptAddr to the interface part? }
+        except_buf_size:=voidpointertype.size*2+sizeof(pint);
         get_jumpbuf_size;
-        tg.GetTemp(list,EXCEPT_BUF_SIZE,sizeof(pint),tt_persistent,t.envbuf);
+        tg.GetTemp(list,except_buf_size,sizeof(pint),tt_persistent,t.envbuf);
         tg.GetTemp(list,jmp_buf_size,jmp_buf_align,tt_persistent,t.jmpbuf);
         tg.GetTemp(list,sizeof(pint),sizeof(pint),tt_persistent,t.reasonbuf);
       end;
@@ -417,6 +416,9 @@ implementation
       var
         paraloc1,paraloc2,paraloc3 : tcgpara;
         pd: tprocdef;
+{$ifdef i8086}
+        tmpreg: TRegister;
+{$endif i8086}
       begin
         pd:=search_system_proc('fpc_pushexceptaddr');
         paraloc1.init;
@@ -448,7 +450,17 @@ implementation
 
         pd:=search_system_proc('fpc_setjmp');
         paramanager.getintparaloc(pd,1,paraloc1);
-        cg.a_load_reg_cgpara(list,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
+{$ifdef i8086}
+        if current_settings.x86memorymodel in x86_far_data_models then
+          begin
+            tmpreg:=cg.getintregister(list,OS_32);
+            cg.a_load_reg_reg(list,OS_16,OS_16,NR_FUNCTION_RESULT32_LOW_REG,tmpreg);
+            cg.a_load_reg_reg(list,OS_16,OS_16,NR_FUNCTION_RESULT32_HIGH_REG,GetNextReg(tmpreg));
+            cg.a_load_reg_cgpara(list,OS_32,tmpreg,paraloc1);
+          end
+        else
+{$endif i8086}
+          cg.a_load_reg_cgpara(list,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
         paramanager.freecgpara(list,paraloc1);
         cg.allocallcpuregisters(list);
         cg.a_call_name(list,'FPC_SETJMP',false);
@@ -483,31 +495,6 @@ implementation
 {*****************************************************************************
                                      TLocation
 *****************************************************************************}
-
-
-    procedure location_force_fpureg(list:TAsmList;var l: tlocation;maybeconst:boolean);
-      var
-        reg : tregister;
-        href : treference;
-      begin
-        if (l.loc<>LOC_FPUREGISTER)  and
-           ((l.loc<>LOC_CFPUREGISTER) or (not maybeconst)) then
-          begin
-            { if it's in an mm register, store to memory first }
-            if (l.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
-              begin
-                tg.GetTemp(list,tcgsize2size[l.size],tcgsize2size[l.size],tt_normal,href);
-                cg.a_loadmm_reg_ref(list,l.size,l.size,l.register,href,mms_movescalar);
-                location_reset_ref(l,LOC_REFERENCE,l.size,0);
-                l.reference:=href;
-              end;
-            reg:=cg.getfpuregister(list,l.size);
-            cg.a_loadfpu_loc_reg(list,l.size,l,reg);
-            location_freetemp(list,l);
-            location_reset(l,LOC_FPUREGISTER,l.size);
-            l.register:=reg;
-          end;
-      end;
 
 
     procedure register_maybe_adjust_setbase(list: TAsmList; var l: tlocation; setbase: aint);
@@ -596,12 +583,12 @@ implementation
               end
             else
 {$endif cpu64bitalu}
-            { Note: for withs of records (and maybe objects, classes, etc.) an
+            { Note: for widths of records (and maybe objects, classes, etc.) an
                     address register could be set here, but that is later
                     changed to an intregister neverthless when in the
-                    tcgassignmentnode maybechangeloadnodereg is called for the
-                    temporary node; so the workaround for now is to fix the
-                    symptoms... }
+                    tcgassignmentnode thlcgobj.maybe_change_load_node_reg is
+                    called for the temporary node; so the workaround for now is
+                    to fix the symptoms... }
               l.register:=cg.getintregister(list,l.size);
           end;
       end;
@@ -638,13 +625,13 @@ implementation
                     hsym:=tparavarsym(get_high_value_sym(tparavarsym(p)));
                     if not assigned(hsym) then
                       internalerror(200306061);
-                    hreg:=cg.getaddressregister(list);
+                    sizedef:=getpointerdef(tparavarsym(p).vardef);
+                    hreg:=hlcg.getaddressregister(list,sizedef);
                     if not is_packed_array(tparavarsym(p).vardef) then
                       hlcg.g_copyvaluepara_openarray(list,href,hsym.initialloc,tarraydef(tparavarsym(p).vardef),hreg)
                     else
                       internalerror(2006080401);
 //                      cg.g_copyvaluepara_packedopenarray(list,href,hsym.intialloc,tarraydef(tparavarsym(p).vardef).elepackedbitsize,hreg);
-                    sizedef:=getpointerdef(tparavarsym(p).vardef);
                     hlcg.a_load_reg_loc(list,sizedef,sizedef,hreg,tparavarsym(p).initialloc);
                   end;
               end
@@ -790,21 +777,63 @@ implementation
           begin
             { Allocate register already, to prevent first allocation to be
               inside a loop }
-{$ifdef cpu64bitalu}
+{$if defined(cpu64bitalu)}
             if sym.initialloc.size in [OS_128,OS_S128] then
               begin
                 cg.a_reg_sync(list,sym.initialloc.register128.reglo);
                 cg.a_reg_sync(list,sym.initialloc.register128.reghi);
               end
             else
-{$else cpu64bitalu}
+{$elseif defined(cpu32bitalu)}
             if sym.initialloc.size in [OS_64,OS_S64] then
               begin
                 cg.a_reg_sync(list,sym.initialloc.register64.reglo);
                 cg.a_reg_sync(list,sym.initialloc.register64.reghi);
               end
             else
-{$endif cpu64bitalu}
+{$elseif defined(cpu16bitalu)}
+            if sym.initialloc.size in [OS_64,OS_S64] then
+              begin
+                cg.a_reg_sync(list,sym.initialloc.register64.reglo);
+                cg.a_reg_sync(list,GetNextReg(sym.initialloc.register64.reglo));
+                cg.a_reg_sync(list,sym.initialloc.register64.reghi);
+                cg.a_reg_sync(list,GetNextReg(sym.initialloc.register64.reghi));
+              end
+            else
+            if sym.initialloc.size in [OS_32,OS_S32] then
+              begin
+                cg.a_reg_sync(list,sym.initialloc.register);
+                cg.a_reg_sync(list,GetNextReg(sym.initialloc.register));
+              end
+            else
+{$elseif defined(cpu8bitalu)}
+            if sym.initialloc.size in [OS_64,OS_S64] then
+              begin
+                cg.a_reg_sync(list,sym.initialloc.register64.reglo);
+                cg.a_reg_sync(list,GetNextReg(sym.initialloc.register64.reglo));
+                cg.a_reg_sync(list,GetNextReg(GetNextReg(sym.initialloc.register64.reglo)));
+                cg.a_reg_sync(list,GetNextReg(GetNextReg(GetNextReg(sym.initialloc.register64.reglo))));
+                cg.a_reg_sync(list,sym.initialloc.register64.reghi);
+                cg.a_reg_sync(list,GetNextReg(sym.initialloc.register64.reghi));
+                cg.a_reg_sync(list,GetNextReg(GetNextReg(sym.initialloc.register64.reghi)));
+                cg.a_reg_sync(list,GetNextReg(GetNextReg(GetNextReg(sym.initialloc.register64.reghi))));
+              end
+            else
+            if sym.initialloc.size in [OS_32,OS_S32] then
+              begin
+                cg.a_reg_sync(list,sym.initialloc.register);
+                cg.a_reg_sync(list,GetNextReg(sym.initialloc.register));
+                cg.a_reg_sync(list,GetNextReg(GetNextReg(sym.initialloc.register)));
+                cg.a_reg_sync(list,GetNextReg(GetNextReg(GetNextReg(sym.initialloc.register))));
+              end
+            else
+            if sym.initialloc.size in [OS_16,OS_S16] then
+              begin
+                cg.a_reg_sync(list,sym.initialloc.register);
+                cg.a_reg_sync(list,GetNextReg(sym.initialloc.register));
+              end
+            else
+{$endif}
              cg.a_reg_sync(list,sym.initialloc.register);
           end;
         sym.localloc:=sym.initialloc;
@@ -951,7 +980,7 @@ implementation
                     LOC_REGISTER:
                       begin
                         case para.locations_count of
-{$ifdef cpu16bitalu}
+{$if defined(cpu16bitalu) or defined(cpu8bitalu)}
                           { 4 paralocs? }
                           4:
                             if (target_info.endian=ENDIAN_BIG) then
@@ -983,7 +1012,7 @@ implementation
                                 unget_para(paraloc^.next^.next^.next^);
                                 cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^.next^.next^.next^,GetNextReg(destloc.register64.reghi),2);
                               end;
-{$endif cpu16bitalu}
+{$endif defined(cpu16bitalu) or defined(cpu8bitalu)}
                           2:
                             if (target_info.endian=ENDIAN_BIG) then
                               begin
@@ -1034,13 +1063,27 @@ implementation
                           gen_alloc_regloc(list,destloc);
                           cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^,destloc.register,sizeof(aint));
                           unget_para(paraloc^.Next^);
-                          gen_alloc_regloc(list,destloc);
                           {$if defined(cpu16bitalu) or defined(cpu8bitalu)}
                             cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^.Next^,GetNextReg(destloc.register),sizeof(aint));
                           {$else}
                             cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^.Next^,destloc.registerhi,sizeof(aint));
                           {$endif}
                         end
+{$if defined(cpu8bitalu)}
+                      else if (destloc.size in [OS_32,OS_S32]) and
+                        (para.Size in [OS_32,OS_S32]) then
+                        begin
+                          unget_para(paraloc^);
+                          gen_alloc_regloc(list,destloc);
+                          cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^,destloc.register,sizeof(aint));
+                          unget_para(paraloc^.Next^);
+                          cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^.Next^,GetNextReg(destloc.register),sizeof(aint));
+                          unget_para(paraloc^.Next^.Next^);
+                          cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^.Next^.Next^,GetNextReg(GetNextReg(destloc.register)),sizeof(aint));
+                          unget_para(paraloc^.Next^.Next^.Next^);
+                          cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^.Next^.Next^.Next^,GetNextReg(GetNextReg(GetNextReg(destloc.register))),sizeof(aint));
+                        end
+{$endif defined(cpu8bitalu)}
                       else
                         internalerror(200410105);
                     end
@@ -1320,7 +1363,8 @@ implementation
         current_asmdata.asmcfi.start_frame(list);
 
         { All temps are know, write offsets used for information }
-        if (cs_asm_source in current_settings.globalswitches) then
+        if (cs_asm_source in current_settings.globalswitches) and
+           (current_procinfo.tempstart<>tg.lasttemp) then
           begin
             if tg.direction>0 then
               begin
@@ -1446,7 +1490,6 @@ implementation
         { add the procedure to the al_procedures }
         maybe_new_object_file(list);
         new_section(list,sec_code,lower(pd.mangledname),current_settings.alignment.procalign);
-        list.concat(Tai_align.create(current_settings.alignment.procalign));
         if (po_global in pd.procoptions) then
           list.concat(Tai_symbol.createname_global(pd.mangledname,AT_FUNCTION,0))
         else
@@ -1471,7 +1514,8 @@ implementation
                   begin
                     if not assigned(vs.initialloc.reference.symbol) then
                       list.concat(Tai_comment.Create(strpnew('Var '+vs.realname+' located at '+
-                         std_regname(vs.initialloc.reference.base)+tostr_with_plus(vs.initialloc.reference.offset))));
+                         std_regname(vs.initialloc.reference.base)+tostr_with_plus(vs.initialloc.reference.offset)+
+                         ', size='+tcgsize2str(vs.initialloc.size))));
                   end;
               end;
             end;
@@ -1481,6 +1525,7 @@ implementation
 
       var
         i       : longint;
+        highsym,
         sym     : tsym;
         vs      : tabstractnormalvarsym;
         isaddr  : boolean;
@@ -1510,10 +1555,10 @@ implementation
                   vs:=tabstractnormalvarsym(sym);
                   { Parameters passed to assembler procedures need to be kept
                     in the original location }
-                  if (po_assembler in current_procinfo.procdef.procoptions) then
+                  if (po_assembler in pd.procoptions) then
                     tparavarsym(vs).paraloc[calleeside].get_location(vs.initialloc)
                   { exception filters receive their frame pointer as a parameter }
-                  else if (current_procinfo.procdef.proctypeoption=potype_exceptfilter) and
+                  else if (pd.proctypeoption=potype_exceptfilter) and
                     (vo_is_parentfp in vs.varoptions) then
                     begin
                       location_reset(vs.initialloc,LOC_REGISTER,OS_ADDR);
@@ -1521,9 +1566,19 @@ implementation
                     end
                   else
                     begin
-                      isaddr:=paramanager.push_addr_param(vs.varspez,vs.vardef,current_procinfo.procdef.proccalloption);
+                      { if an open array is used, also its high parameter is used,
+                        since the hidden high parameters are inserted after the corresponding symbols,
+                        we can increase the ref. count here }
+                      if is_open_array(vs.vardef) or is_array_of_const(vs.vardef) then
+                        begin
+                          highsym:=get_high_value_sym(tparavarsym(vs));
+                          if assigned(highsym) then
+                            inc(highsym.refs);
+                        end;
+
+                      isaddr:=paramanager.push_addr_param(vs.varspez,vs.vardef,pd.proccalloption);
                       if isaddr then
-                        vs.initialloc.size:=OS_ADDR
+                        vs.initialloc.size:=def_cgsize(voidpointertype)
                       else
                         vs.initialloc.size:=def_cgsize(vs.vardef);
 
@@ -1541,7 +1596,7 @@ implementation
                           else
                             begin
                               if isaddr then
-                                tg.GetLocal(list,sizeof(pint),voidpointertype,vs.initialloc.reference)
+                                tg.GetLocal(list,voidpointertype.size,voidpointertype,vs.initialloc.reference)
                               else
                                 tg.GetLocal(list,vs.getsize,tparavarsym(sym).paraloc[calleeside].alignment,vs.vardef,vs.initialloc.reference);
                             end;
@@ -1553,7 +1608,7 @@ implementation
                 begin
                   vs:=tabstractnormalvarsym(sym);
                   vs.initialloc.size:=def_cgsize(vs.vardef);
-                  if ([po_assembler,po_nostackframe] * current_procinfo.procdef.procoptions = [po_assembler,po_nostackframe]) and
+                  if ([po_assembler,po_nostackframe] * pd.procoptions = [po_assembler,po_nostackframe]) and
                      (vo_is_funcret in vs.varoptions) then
                     begin
                       paramanager.create_funcretloc_info(pd,calleeside);
@@ -1567,7 +1622,7 @@ implementation
                         pd.funcretloc[calleeside].get_location(vs.initialloc);
                     end
                   else if (m_delphi in current_settings.modeswitches) and
-                     (po_assembler in current_procinfo.procdef.procoptions) and
+                     (po_assembler in pd.procoptions) and
                      (vo_is_funcret in vs.varoptions) and
                      (vs.refs=0) then
                     begin
@@ -1598,21 +1653,63 @@ implementation
       begin
         case location.loc of
           LOC_CREGISTER:
-{$ifdef cpu64bitalu}
+{$if defined(cpu64bitalu)}
             if location.size in [OS_128,OS_S128] then
               begin
                 rv.intregvars.addnodup(getsupreg(location.register128.reglo));
                 rv.intregvars.addnodup(getsupreg(location.register128.reghi));
               end
             else
-{$else cpu64bitalu}
+{$elseif defined(cpu32bitalu)}
             if location.size in [OS_64,OS_S64] then
               begin
                 rv.intregvars.addnodup(getsupreg(location.register64.reglo));
                 rv.intregvars.addnodup(getsupreg(location.register64.reghi));
               end
             else
-{$endif cpu64bitalu}
+{$elseif defined(cpu16bitalu)}
+            if location.size in [OS_64,OS_S64] then
+              begin
+                rv.intregvars.addnodup(getsupreg(location.register64.reglo));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(location.register64.reglo)));
+                rv.intregvars.addnodup(getsupreg(location.register64.reghi));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(location.register64.reghi)));
+              end
+            else
+            if location.size in [OS_32,OS_S32] then
+              begin
+                rv.intregvars.addnodup(getsupreg(location.register));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(location.register)));
+              end
+            else
+{$elseif defined(cpu8bitalu)}
+            if location.size in [OS_64,OS_S64] then
+              begin
+                rv.intregvars.addnodup(getsupreg(location.register64.reglo));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(location.register64.reglo)));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(GetNextReg(location.register64.reglo))));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(GetNextReg(GetNextReg(location.register64.reglo)))));
+                rv.intregvars.addnodup(getsupreg(location.register64.reghi));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(location.register64.reghi)));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(GetNextReg(location.register64.reghi))));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(GetNextReg(GetNextReg(location.register64.reghi)))));
+              end
+            else
+            if location.size in [OS_32,OS_S32] then
+              begin
+                rv.intregvars.addnodup(getsupreg(location.register));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(location.register)));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(GetNextReg(location.register))));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(GetNextReg(GetNextReg(location.register)))));
+              end
+            else
+            if location.size in [OS_16,OS_S16] then
+              begin
+                rv.intregvars.addnodup(getsupreg(location.register));
+                rv.intregvars.addnodup(getsupreg(GetNextReg(location.register)));
+              end
+            else
+{$endif}
               rv.intregvars.addnodup(getsupreg(location.register));
           LOC_CFPUREGISTER:
             rv.fpuregvars.addnodup(getsupreg(location.register));
@@ -1715,241 +1812,6 @@ implementation
       end;
 
 
-{*****************************************************************************
-                              SSA support
-*****************************************************************************}
-
-    type
-      preplaceregrec = ^treplaceregrec;
-      treplaceregrec = record
-        old, new: tregister;
-        oldhi, newhi: tregister;
-        ressym: tsym;
-        { moved sym }
-        sym : tabstractnormalvarsym;
-      end;
-
-
-    function doreplace(var n: tnode; para: pointer): foreachnoderesult;
-      var
-        rr: preplaceregrec absolute para;
-      begin
-        result := fen_false;
-        if (nf_is_funcret in n.flags) and (fc_exit in flowcontrol) then
-          exit;
-        case n.nodetype of
-          loadn:
-            begin
-              if (tloadnode(n).symtableentry.typ in [localvarsym,paravarsym,staticvarsym]) and
-                 (tabstractvarsym(tloadnode(n).symtableentry).varoptions * [vo_is_dll_var, vo_is_thread_var] = []) and
-                 not assigned(tloadnode(n).left) and
-                 ((tloadnode(n).symtableentry <> rr^.ressym) or
-                  not(fc_exit in flowcontrol)
-                 ) and
-                 (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMXREGISTER,LOC_CMMREGISTER]) and
-                 (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.register = rr^.old) then
-                begin
-{$ifdef cpu64bitalu}
-                  { it's possible a 128 bit location was shifted and/xor typecasted }
-                  { in a 64 bit value, so only 1 register was left in the location }
-                  if (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.size in [OS_128,OS_S128]) then
-                    if (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.register128.reghi = rr^.oldhi) then
-                      tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.register128.reghi := rr^.newhi
-                    else
-                      exit;
-{$else cpu64bitalu}
-                  { it's possible a 64 bit location was shifted and/xor typecasted }
-                  { in a 32 bit value, so only 1 register was left in the location }
-                  if (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.size in [OS_64,OS_S64]) then
-                    if (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.register64.reghi = rr^.oldhi) then
-                      tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.register64.reghi := rr^.newhi
-                    else
-                      exit;
-{$endif cpu64bitalu}
-                  tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.register := rr^.new;
-                  rr^.sym := tabstractnormalvarsym(tloadnode(n).symtableentry);
-                  result := fen_norecurse_true;
-                end;
-            end;
-          temprefn:
-            begin
-              if (ti_valid in ttemprefnode(n).tempinfo^.flags) and
-                 (ttemprefnode(n).tempinfo^.location.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMXREGISTER,LOC_CMMREGISTER]) and
-                 (ttemprefnode(n).tempinfo^.location.register = rr^.old) then
-                begin
-{$ifdef cpu64bitalu}
-                  { it's possible a 128 bit location was shifted and/xor typecasted }
-                  { in a 64 bit value, so only 1 register was left in the location }
-                  if (ttemprefnode(n).tempinfo^.location.size in [OS_128,OS_S128]) then
-                    if (ttemprefnode(n).tempinfo^.location.register128.reghi = rr^.oldhi) then
-                      ttemprefnode(n).tempinfo^.location.register128.reghi := rr^.newhi
-                    else
-                      exit;
-{$else cpu64bitalu}
-                  { it's possible a 64 bit location was shifted and/xor typecasted }
-                  { in a 32 bit value, so only 1 register was left in the location }
-                  if (ttemprefnode(n).tempinfo^.location.size in [OS_64,OS_S64]) then
-                    if (ttemprefnode(n).tempinfo^.location.register64.reghi = rr^.oldhi) then
-                      ttemprefnode(n).tempinfo^.location.register64.reghi := rr^.newhi
-                    else
-                      exit;
-{$endif cpu64bitalu}
-                  ttemprefnode(n).tempinfo^.location.register := rr^.new;
-                  result := fen_norecurse_true;
-                end;
-            end;
-          { optimize the searching a bit }
-          derefn,addrn,
-          calln,inlinen,casen,
-          addn,subn,muln,
-          andn,orn,xorn,
-          ltn,lten,gtn,gten,equaln,unequaln,
-          slashn,divn,shrn,shln,notn,
-          inn,
-          asn,isn:
-            result := fen_norecurse_false;
-        end;
-      end;
-
-
-    procedure maybechangeloadnodereg(list: TAsmList; var n: tnode; reload: boolean);
-      var
-        rr: treplaceregrec;
-        varloc : tai_varloc;
-      begin
-{$ifdef jvm}
-        exit;
-{$endif}
-        if not (n.location.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMXREGISTER,LOC_CMMREGISTER]) or
-          ([fc_inflowcontrol,fc_gotolabel,fc_lefthandled] * flowcontrol <> []) then
-          exit;
-        rr.old := n.location.register;
-        rr.ressym := nil;
-        rr.sym := nil;
-        rr.oldhi := NR_NO;
-        case n.location.loc of
-          LOC_CREGISTER:
-            begin
-      {$ifdef cpu64bitalu}
-              if (n.location.size in [OS_128,OS_S128]) then
-                begin
-                  rr.oldhi := n.location.register128.reghi;
-                  rr.new := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                  rr.newhi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                end
-              else
-      {$else cpu64bitalu}
-              if (n.location.size in [OS_64,OS_S64]) then
-                begin
-                  rr.oldhi := n.location.register64.reghi;
-                  rr.new := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                  rr.newhi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                end
-              else
-      {$endif cpu64bitalu}
-                rr.new := cg.getintregister(current_asmdata.CurrAsmList,n.location.size);
-            end;
-          LOC_CFPUREGISTER:
-            rr.new := cg.getfpuregister(current_asmdata.CurrAsmList,n.location.size);
-      {$ifdef SUPPORT_MMX}
-          LOC_CMMXREGISTER:
-            rr.new := tcgx86(cg).getmmxregister(current_asmdata.CurrAsmList);
-      {$endif SUPPORT_MMX}
-          LOC_CMMREGISTER:
-            rr.new := cg.getmmregister(current_asmdata.CurrAsmList,n.location.size);
-          else
-            exit;
-        end;
-
-        if not is_void(current_procinfo.procdef.returndef) and
-           assigned(current_procinfo.procdef.funcretsym) and
-           (tabstractvarsym(current_procinfo.procdef.funcretsym).refs <> 0) then
-          if (current_procinfo.procdef.proctypeoption=potype_constructor) then
-            rr.ressym:=tsym(current_procinfo.procdef.parast.Find('self'))
-         else
-            rr.ressym:=current_procinfo.procdef.funcretsym;
-
-        if not foreachnodestatic(n,@doreplace,@rr) then
-          exit;
-
-        if reload then
-          case n.location.loc of
-            LOC_CREGISTER:
-              begin
-      {$ifdef cpu64bitalu}
-                if (n.location.size in [OS_128,OS_S128]) then
-                  cg128.a_load128_reg_reg(list,n.location.register128,joinreg128(rr.new,rr.newhi))
-                else
-      {$else cpu64bitalu}
-                if (n.location.size in [OS_64,OS_S64]) then
-                  cg64.a_load64_reg_reg(list,n.location.register64,joinreg64(rr.new,rr.newhi))
-                else
-      {$endif cpu64bitalu}
-                  cg.a_load_reg_reg(list,n.location.size,n.location.size,n.location.register,rr.new);
-              end;
-            LOC_CFPUREGISTER:
-              cg.a_loadfpu_reg_reg(list,n.location.size,n.location.size,n.location.register,rr.new);
-      {$ifdef SUPPORT_MMX}
-            LOC_CMMXREGISTER:
-              cg.a_loadmm_reg_reg(list,OS_M64,OS_M64,n.location.register,rr.new,nil);
-      {$endif SUPPORT_MMX}
-            LOC_CMMREGISTER:
-              cg.a_loadmm_reg_reg(list,n.location.size,n.location.size,n.location.register,rr.new,nil);
-            else
-              internalerror(2006090920);
-          end;
-
-        { now that we've change the loadn/temp, also change the node result location }
-      {$ifdef cpu64bitalu}
-        if (n.location.size in [OS_128,OS_S128]) then
-          begin
-            n.location.register128.reglo := rr.new;
-            n.location.register128.reghi := rr.newhi;
-            if assigned(rr.sym) and
-               ((rr.sym.currentregloc.register<>rr.new) or
-                (rr.sym.currentregloc.registerhi<>rr.newhi)) then
-              begin
-                varloc:=tai_varloc.create128(rr.sym,rr.new,rr.newhi);
-                varloc.oldlocation:=rr.sym.currentregloc.register;
-                varloc.oldlocationhi:=rr.sym.currentregloc.registerhi;
-                rr.sym.currentregloc.register:=rr.new;
-                rr.sym.currentregloc.registerHI:=rr.newhi;
-                list.concat(varloc);
-              end;
-          end
-        else
-      {$else cpu64bitalu}
-        if (n.location.size in [OS_64,OS_S64]) then
-          begin
-            n.location.register64.reglo := rr.new;
-            n.location.register64.reghi := rr.newhi;
-            if assigned(rr.sym) and
-               ((rr.sym.currentregloc.register<>rr.new) or
-                (rr.sym.currentregloc.registerhi<>rr.newhi)) then
-              begin
-                varloc:=tai_varloc.create64(rr.sym,rr.new,rr.newhi);
-                varloc.oldlocation:=rr.sym.currentregloc.register;
-                varloc.oldlocationhi:=rr.sym.currentregloc.registerhi;
-                rr.sym.currentregloc.register:=rr.new;
-                rr.sym.currentregloc.registerHI:=rr.newhi;
-                list.concat(varloc);
-              end;
-          end
-        else
-      {$endif cpu64bitalu}
-          begin
-            n.location.register := rr.new;
-            if assigned(rr.sym) and (rr.sym.currentregloc.register<>rr.new) then
-              begin
-                varloc:=tai_varloc.create(rr.sym,rr.new);
-                varloc.oldlocation:=rr.sym.currentregloc.register;
-                rr.sym.currentregloc.register:=rr.new;
-                list.concat(varloc);
-              end;
-          end;
-      end;
-
-
     procedure gen_free_symtable(list:TAsmList;st:TSymtable);
       var
         i   : longint;
@@ -1968,21 +1830,63 @@ implementation
                     case localloc.loc of
                       LOC_CREGISTER :
                         if (pi_has_label in current_procinfo.flags) then
-{$ifdef cpu64bitalu}
+{$if defined(cpu64bitalu)}
                           if def_cgsize(vardef) in [OS_128,OS_S128] then
                             begin
                               cg.a_reg_sync(list,localloc.register128.reglo);
                               cg.a_reg_sync(list,localloc.register128.reghi);
                             end
                           else
-{$else cpu64bitalu}
+{$elseif defined(cpu32bitalu)}
                           if def_cgsize(vardef) in [OS_64,OS_S64] then
                             begin
                               cg.a_reg_sync(list,localloc.register64.reglo);
                               cg.a_reg_sync(list,localloc.register64.reghi);
                             end
                           else
-{$endif cpu64bitalu}
+{$elseif defined(cpu16bitalu)}
+                          if def_cgsize(vardef) in [OS_64,OS_S64] then
+                            begin
+                              cg.a_reg_sync(list,localloc.register64.reglo);
+                              cg.a_reg_sync(list,GetNextReg(localloc.register64.reglo));
+                              cg.a_reg_sync(list,localloc.register64.reghi);
+                              cg.a_reg_sync(list,GetNextReg(localloc.register64.reghi));
+                            end
+                          else
+                          if def_cgsize(vardef) in [OS_32,OS_S32] then
+                            begin
+                              cg.a_reg_sync(list,localloc.register);
+                              cg.a_reg_sync(list,GetNextReg(localloc.register));
+                            end
+                          else
+{$elseif defined(cpu8bitalu)}
+                          if def_cgsize(vardef) in [OS_64,OS_S64] then
+                            begin
+                              cg.a_reg_sync(list,localloc.register64.reglo);
+                              cg.a_reg_sync(list,GetNextReg(localloc.register64.reglo));
+                              cg.a_reg_sync(list,GetNextReg(GetNextReg(localloc.register64.reglo)));
+                              cg.a_reg_sync(list,GetNextReg(GetNextReg(GetNextReg(localloc.register64.reglo))));
+                              cg.a_reg_sync(list,localloc.register64.reghi);
+                              cg.a_reg_sync(list,GetNextReg(localloc.register64.reghi));
+                              cg.a_reg_sync(list,GetNextReg(GetNextReg(localloc.register64.reghi)));
+                              cg.a_reg_sync(list,GetNextReg(GetNextReg(GetNextReg(localloc.register64.reghi))));
+                            end
+                          else
+                          if def_cgsize(vardef) in [OS_32,OS_S32] then
+                            begin
+                              cg.a_reg_sync(list,localloc.register);
+                              cg.a_reg_sync(list,GetNextReg(localloc.register));
+                              cg.a_reg_sync(list,GetNextReg(GetNextReg(localloc.register)));
+                              cg.a_reg_sync(list,GetNextReg(GetNextReg(GetNextReg(localloc.register))));
+                            end
+                          else
+                          if def_cgsize(vardef) in [OS_16,OS_S16] then
+                            begin
+                              cg.a_reg_sync(list,localloc.register);
+                              cg.a_reg_sync(list,GetNextReg(localloc.register));
+                            end
+                          else
+{$endif}
                             cg.a_reg_sync(list,localloc.register);
                       LOC_CFPUREGISTER,
                       LOC_CMMREGISTER:
@@ -2011,8 +1915,8 @@ implementation
               LOC_CREFERENCE,
               LOC_REFERENCE:
                 begin
-                  reference_reset_base(href,cg.getaddressregister(list),objdef.vmt_offset,sizeof(pint));
-                  cg.a_loadaddr_ref_reg(list,selfloc.reference,href.base);
+                  hlcg.reference_reset_base(href,voidpointertype,hlcg.getaddressregister(list,voidpointertype),objdef.vmt_offset,voidpointertype.size);
+                  hlcg.a_loadaddr_ref_reg(list,voidpointertype,voidpointertype,selfloc.reference,href.base);
                   selfdef:=getpointerdef(objdef);
                 end;
               else
@@ -2036,7 +1940,7 @@ implementation
                     end
                   else
 {$endif cpu_uses_separate_address_registers}
-                    reference_reset_base(href,selfloc.register,objdef.vmt_offset,sizeof(pint));
+                    hlcg.reference_reset_base(href,voidpointertype,selfloc.register,objdef.vmt_offset,voidpointertype.size);
                 end;
               LOC_CONSTANT,
               LOC_CREGISTER,
@@ -2047,7 +1951,7 @@ implementation
               LOC_CSUBSETREF,
               LOC_SUBSETREF:
                 begin
-                  reference_reset_base(href,cg.getaddressregister(list),objdef.vmt_offset,sizeof(pint));
+                  hlcg.reference_reset_base(href,voidpointertype,hlcg.getaddressregister(list,voidpointertype),objdef.vmt_offset,voidpointertype.size);
                   { todo: pass actual vmt pointer type to hlcg }
                   hlcg.a_load_loc_reg(list,voidpointertype,voidpointertype,selfloc,href.base);
                 end;
@@ -2055,9 +1959,9 @@ implementation
                 internalerror(200305057);
             end;
           end;
-        vmtreg:=cg.getaddressregister(list);
+        vmtreg:=hlcg.getaddressregister(list,voidpointertype);
         hlcg.g_maybe_testself(list,selfdef,href.base);
-        cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,vmtreg);
+        hlcg.a_load_ref_reg(list,voidpointertype,voidpointertype,href,vmtreg);
 
         { test validity of VMT }
         if not(is_interface(objdef)) and
@@ -2086,5 +1990,19 @@ implementation
 {$endif i386}
       end;
 
+
+    procedure gen_load_frame_for_exceptfilter(list : TAsmList);
+      var
+        para: tparavarsym;
+      begin
+        para:=tparavarsym(current_procinfo.procdef.paras[0]);
+        if not (vo_is_parentfp in para.varoptions) then
+          InternalError(201201142);
+        if (para.paraloc[calleeside].location^.loc<>LOC_REGISTER) or
+          (para.paraloc[calleeside].location^.next<>nil) then
+          InternalError(201201143);
+        cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,para.paraloc[calleeside].location^.register,
+          NR_FRAME_POINTER_REG);
+      end;
 
 end.

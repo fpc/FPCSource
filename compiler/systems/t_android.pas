@@ -114,21 +114,13 @@ end;
 
 
 procedure TLinkerAndroid.SetDefaultInfo;
-{
-  This will also detect which libc version will be used
-}
-
-const
-{$ifdef arm}       platform_select='';{$endif} {unknown :( }
-{$ifdef i386}      platform_select='';{$endif} {unknown :( }
-
 var
   s: string;
 begin
   with Info do
    begin
      { Specify correct max-page-size and common-page-size to prevent big gaps between sections in resulting executable }
-     s:='ld '+platform_select+'-z max-page-size=0x1000 -z common-page-size=0x1000 -z noexecstack -z now $OPT -L. -T $RES -o $EXE';
+     s:='ld -z max-page-size=0x1000 -z common-page-size=0x1000 -z noexecstack -z now $OPT -L. -T $RES -o $EXE';
      ExeCmd[1]:=s + ' --entry=_fpc_start';
      DllCmd[1]:=s + ' -shared -soname $SONAME';
      DllCmd[2]:='strip --strip-unneeded $EXE';
@@ -197,7 +189,7 @@ begin
       { several RTL symbols of FPC-compiled shared libraries   }
       { will be bound to those of a single shared library or   }
       { to the main program                                    }
-      if (isdll) then
+      if isdll or (cs_create_pic in current_settings.moduleswitches) then
         begin
           add('VERSION');
           add('{');
@@ -435,5 +427,10 @@ initialization
   RegisterExport(system_i386_android,texportlibandroid);
   RegisterTarget(system_i386_android_info);
 {$endif I386}
+{$ifdef MIPSEL}
+  RegisterImport(system_mipsel_android,timportlibandroid);
+  RegisterExport(system_mipsel_android,texportlibandroid);
+  RegisterTarget(system_mipsel_android_info);
+{$endif MIPSEL}
   RegisterRes(res_elf_info,TWinLikeResourceFile);
 end.

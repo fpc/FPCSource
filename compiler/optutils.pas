@@ -38,7 +38,7 @@ unit optutils;
         function Remove(node : tnode) : boolean;
       end;
 
-    procedure SetNodeSucessors(p : tnode);
+    procedure SetNodeSucessors(p,last : tnode);
     procedure PrintDFAInfo(var f : text;p : tnode);
     procedure PrintIndexedNodeSet(var f : text;s : TIndexedNodeSet);
     { determines the optinfo.defsum field for the given node
@@ -55,7 +55,7 @@ unit optutils;
     uses
       verbose,
       optbase,
-      ncal,nbas,nflw,nutils,nset;
+      ncal,nbas,nflw,nutils,nset,ncon;
 
     function TIndexedNodeSet.Add(node : tnode) : boolean;
       var
@@ -129,6 +129,10 @@ unit optutils;
             PrintDFASet(text(arg^),n.optinfo^.def);
             write(text(arg^),' Use: ');
             PrintDFASet(text(arg^),n.optinfo^.use);
+            if assigned(n.successor) then
+              write(text(arg^),' Successor: ',nodetype2str[n.successor.nodetype],'(',n.successor.fileinfo.line,',',n.successor.fileinfo.column,')')
+            else
+              write(text(arg^),' Successor: nil');
             writeln(text(arg^));
           end;
         result:=fen_false;
@@ -141,7 +145,7 @@ unit optutils;
       end;
 
 
-    procedure SetNodeSucessors(p : tnode);
+    procedure SetNodeSucessors(p,last : tnode);
       var
         Continuestack : TFPList;
         Breakstack : TFPList;
@@ -186,19 +190,24 @@ unit optutils;
               begin
                 result:=p;
                 DoSet(tblocknode(p).statements,succ);
-                p.successor:=succ;
+                if assigned(tblocknode(p).statements) then
+                  p.successor:=tblocknode(p).statements
+                else
+                  p.successor:=succ;
               end;
             forn:
               begin
                 Breakstack.Add(succ);
                 Continuestack.Add(p);
                 result:=p;
-                { the successor of the last node of the for body is the for node itself }
-                DoSet(tfornode(p).t2,p);
+                { the successor of the last node of the for body is the dummy loop iteration node
+                  it allows the dfa to inject needed life information into the loop }
+                tfornode(p).loopiteration:=cnothingnode.create;
+
+                DoSet(tfornode(p).t2,tfornode(p).loopiteration);
                 p.successor:=succ;
                 Breakstack.Delete(Breakstack.Count-1);
                 Continuestack.Delete(Continuestack.Count-1);
-                p.successor:=succ;
               end;
             breakn:
               begin
@@ -217,7 +226,18 @@ unit optutils;
                 result:=p;
                 { the successor of the last node of the while/repeat body is the while node itself }
                 DoSet(twhilerepeatnode(p).right,p);
+
                 p.successor:=succ;
+
+                { special case: we do not do a dyn. dfa, but we should handle endless loops }
+                if is_constboolnode(twhilerepeatnode(p).left) then
+                  begin
+                    if ((lnf_testatbegin in twhilerepeatnode(p).loopflags) and
+                      getbooleanvalue(twhilerepeatnode(p).left)) or (not(lnf_testatbegin in twhilerepeatnode(p).loopflags) and
+                      not(getbooleanvalue(twhilerepeatnode(p).left))) then
+                      p.successor:=nil;
+                  end;
+
                 Breakstack.Delete(Breakstack.Count-1);
                 Continuestack.Delete(Continuestack.Count-1);
               end;
@@ -277,6 +297,7 @@ unit optutils;
                 result:=p;
                 p.successor:=succ;
               end;
+            loadn,
             tempcreaten,
             tempdeleten,
             nothingn:
@@ -301,7 +322,7 @@ unit optutils;
       begin
         Breakstack:=TFPList.Create;
         Continuestack:=TFPList.Create;
-        DoSet(p,nil);
+        DoSet(p,last);
         Continuestack.Free;
         Breakstack.Free;
       end;

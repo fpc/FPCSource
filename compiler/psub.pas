@@ -37,6 +37,8 @@ interface
       tcgprocinfo = class(tprocinfo)
       private
         procedure CreateInlineInfo;
+        { returns the node which is the start of the user code, this is needed by the dfa }
+        function GetUserCode: tnode;
         procedure maybe_add_constructor_wrapper(var tocode: tnode; withexceptblock: boolean);
         procedure add_entry_exit_code;
         procedure setup_tempgen;
@@ -109,14 +111,14 @@ implementation
        scanner,gendef,
        pbase,pstatmnt,pdecl,pdecsub,pexports,pgenutil,pparautl,
        { codegen }
-       tgobj,cgbase,cgobj,hlcgobj,hlcgcpu,dbgbase,
+       tgobj,cgbase,cgobj,cgutils,hlcgobj,hlcgcpu,dbgbase,
        ncgutil,regvars,
        optbase,
        opttail,
-       optcse,optloop
-{$if defined(arm) or defined(avr) or defined(fpc_compiler_has_fixup_jmps)}
-       ,aasmcpu
-{$endif arm}
+       optcse,
+       optloop,
+       optconstprop,
+       optdeadstore
 {$if defined(arm)}
        ,cpuinfo
 {$endif arm}
@@ -212,7 +214,7 @@ implementation
          exit;
         with tabstractnormalvarsym(p) do
          begin
-           if vo_is_default_var in varoptions then
+           if (vo_is_default_var in varoptions) and (vardef.size>0) then
              begin
                b:=tblocknode(arg);
                b.left:=cstatementnode.create(
@@ -447,9 +449,9 @@ implementation
                     if assigned(srsym) and
                        (srsym.typ=procsym) then
                       begin
-                        { if vmt>1 then newinstance }
+                        { if vmt=1 then newinstance }
                         addstatement(newstatement,cifnode.create(
-                            caddnode.create_internal(gtn,
+                            caddnode.create_internal(equaln,
                                 ctypeconvnode.create_internal(
                                     load_vmt_pointer_node,
                                     voidpointertype),
@@ -458,7 +460,9 @@ implementation
                                 ctypeconvnode.create_internal(
                                     load_self_pointer_node,
                                     voidpointertype),
-                                ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_vmt_pointer_node,[])),
+                                ccallnode.create(nil,tprocsym(srsym),srsym.owner,
+                                  ctypeconvnode.create_internal(load_self_pointer_node,cclassrefdef.create(current_structdef)),
+                                  [])),
                             nil));
                       end
                     else
@@ -646,28 +650,6 @@ implementation
       end;
 
 
-    function generate_except_block:tnode;
-      var
-        newstatement : tstatementnode;
-      begin
-        generate_except_block:=internalstatements(newstatement);
-
-        { a constructor needs call destructor (if available) when it
-          is not inherited }
-        if not assigned(current_structdef) or
-           (current_procinfo.procdef.proctypeoption<>potype_constructor) then
-          begin
-            { no constructor }
-            { must be the return value finalized before reraising the exception? }
-            if (not is_void(current_procinfo.procdef.returndef)) and
-               is_managed_type(current_procinfo.procdef.returndef) and
-               (not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef)) and
-               (not is_class(current_procinfo.procdef.returndef)) then
-              addstatement(newstatement,cnodeutils.finalize_data_node(load_result_node));
-          end;
-      end;
-
-
 {****************************************************************************
                                   TCGProcInfo
 ****************************************************************************}
@@ -775,19 +757,37 @@ implementation
                 pd:=tobjectdef(procdef.struct).find_destructor;
                 { this will always be the case for classes, since tobject has
                   a destructor }
-                if assigned(pd) then
+                if assigned(pd) or is_object(procdef.struct) then
                   begin
                     current_filepos:=exitpos;
                     exceptblock:=internalstatements(newstatement);
                     { first free the instance if non-nil }
-                    { if vmt<>0 then call destructor }
-                    addstatement(newstatement,cifnode.create(
-                      caddnode.create(unequaln,
-                        load_vmt_pointer_node,
-                        cnilnode.create),
-                      { cnf_create_failed -> don't call BeforeDestruction }
-                      ccallnode.create(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node,[cnf_create_failed]),
-                      nil));
+                    if assigned(pd) then
+                      { if vmt<>0 then call destructor }
+                      addstatement(newstatement,
+                        cifnode.create(
+                          caddnode.create(unequaln,
+                            load_vmt_pointer_node,
+                            cnilnode.create),
+                          { cnf_create_failed -> don't call BeforeDestruction }
+                          ccallnode.create(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node,[cnf_create_failed]),
+                          nil))
+                    else
+                      { object without destructor, call 'fail' helper }
+                      addstatement(newstatement,
+                        ccallnode.createintern('fpc_help_fail',
+                          ccallparanode.create(
+                            cordconstnode.create(tobjectdef(procdef.struct).vmt_offset,s32inttype,false),
+                          ccallparanode.create(
+                            ctypeconvnode.create_internal(
+                              load_vmt_pointer_node,
+                              voidpointertype),
+                          ccallparanode.create(
+                            ctypeconvnode.create_internal(
+                              load_self_pointer_node,
+                              voidpointertype),
+                          nil))))
+                      );
                     { then re-raise the exception }
                     addstatement(newstatement,craisenode.create(nil,nil,nil));
                     current_filepos:=entrypos;
@@ -815,7 +815,6 @@ implementation
         finalcode,
         bodyentrycode,
         bodyexitcode,
-        exceptcode,
         wrappedbody,
         newblock     : tnode;
         codestatement,
@@ -859,10 +858,15 @@ implementation
            not(po_assembler in procdef.procoptions) and
            not(target_info.system in systems_garbage_collected_managed_types) then
           begin
+            { Any result of managed type must be returned in parameter }
+            if is_managed_type(procdef.returndef) and
+               (not paramanager.ret_in_param(procdef.returndef,procdef)) and
+               (not is_class(procdef.returndef)) then
+               InternalError(2013121301);
+
             { Generate special exception block only needed when
               implicit finaly is used }
             current_filepos:=exitpos;
-            exceptcode:=generate_except_block;
             { Generate code that will be in the try...finally }
             finalcode:=internalstatements(codestatement);
             addstatement(codestatement,final_asmnode);
@@ -872,7 +876,7 @@ implementation
             wrappedbody:=ctryfinallynode.create_implicit(
                code,
                finalcode,
-               exceptcode);
+               cnothingnode.create);
             { afterconstruction must be called after final_asmnode, because it
                has to execute after the temps have been finalised in case of a
                refcounted class (afterconstruction decreases the refcount
@@ -926,18 +930,12 @@ implementation
                begin
                  cg.translate_register(tabstractnormalvarsym(p).localloc.register);
                  if (tabstractnormalvarsym(p).localloc.registerhi<>NR_NO) then
-                 cg.translate_register(tabstractnormalvarsym(p).localloc.registerhi);
+                   cg.translate_register(tabstractnormalvarsym(p).localloc.registerhi);
                end;
              if cs_asm_source in current_settings.globalswitches then
                begin
-                 if tabstractnormalvarsym(p).localloc.registerhi<>NR_NO then
-                   begin
-                     TAsmList(list).concat(Tai_comment.Create(strpnew('Var '+tabstractnormalvarsym(p).realname+' located in register '+
-                       std_regname(tabstractnormalvarsym(p).localloc.registerhi)+':'+std_regname(tabstractnormalvarsym(p).localloc.register))));
-                   end
-                 else
-                   TAsmList(list).concat(Tai_comment.Create(strpnew('Var '+tabstractnormalvarsym(p).realname+' located in register '+
-                     std_regname(tabstractnormalvarsym(p).localloc.register))));
+                 TAsmList(list).concat(Tai_comment.Create(strpnew('Var '+tabstractnormalvarsym(p).realname+' located in register '+
+                   location_reg2string(tabstractnormalvarsym(p).localloc))));
                end;
            end;
       end;
@@ -998,7 +996,7 @@ implementation
                 not(cs_profile in current_settings.moduleswitches) and
                 not(po_assembler in procdef.procoptions) and
                 not ((pi_has_stackparameter in flags)
-{$ifndef arm}  { Outgoing parameter(s) on stack do not need stackframe on x86 targets
+{$ifndef arm}   { Outgoing parameter(s) on stack do not need stackframe on x86 targets
                  with fixed stack. On ARM it fails, see bug #25050 }
                   and (not paramanager.use_fixed_stack)
 {$endif arm}
@@ -1020,13 +1018,35 @@ implementation
                   (necessary to init para_stack_size)
                 }
                 generate_parameter_info;
+
                 if not(procdef.stack_tainting_parameter(calleeside)) and
                    not(has_assembler_child) and (para_stack_size=0) then
                   begin
                     { Only need to set the framepointer }
                     framepointer:=NR_STACK_POINTER_REG;
                     tg.direction:=1;
+                  end
+{$if defined(arm)}
+                { On arm, the stack frame size can be estimated to avoid using an extra frame pointer,
+                  in case parameters are passed on the stack.
+
+                  However, the draw back is, if the estimation fails, compilation will break later on
+                  with an internal error, so this switch is not enabled by default yet. To overcome this,
+                  multipass compilation of subroutines must be supported
+                }
+                else if (cs_opt_forcenostackframe in current_settings.optimizerswitches) and
+                   not(has_assembler_child) then
+                  begin
+                    { Only need to set the framepointer }
+                    framepointer:=NR_STACK_POINTER_REG;
+                    tg.direction:=1;
+                    include(flags,pi_estimatestacksize);
+                    set_first_temp_offset;
+                    procdef.has_paraloc_info:=callnoside;
+                    generate_parameter_info;
+                    exit;
                   end;
+{$endif defined(arm)}
               end;
           end;
 {$endif defined(x86) or defined(arm)}
@@ -1127,13 +1147,37 @@ implementation
      procedure TCGProcinfo.CreateInlineInfo;
        begin
         new(procdef.inlininginfo);
-        include(procdef.procoptions,po_has_inlininginfo);
         procdef.inlininginfo^.code:=code.getcopy;
         procdef.inlininginfo^.flags:=flags;
         { The blocknode needs to set an exit label }
         if procdef.inlininginfo^.code.nodetype=blockn then
           include(procdef.inlininginfo^.code.flags,nf_block_with_exit);
+        procdef.has_inlininginfo:=true;
        end;
+
+
+    function searchusercode(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        if nf_usercode_entry in n.flags then
+          begin
+            pnode(arg)^:=n;
+            result:=fen_norecurse_true
+          end
+        else
+          result:=fen_false;
+      end;
+
+
+    function TCGProcinfo.GetUserCode : tnode;
+      var
+        n : tnode;
+      begin
+        n:=nil;
+        foreachnodestatic(code,@searchusercode,@n);
+        if not(assigned(n)) then
+          internalerror(2013111004);
+        result:=n;
+      end;
 
 
     procedure tcgprocinfo.generate_code;
@@ -1176,11 +1220,15 @@ implementation
         current_filepos:=entrypos;
         current_structdef:=procdef.struct;
 
+        { store start of user code, it must be a block node, it will be used later one to
+          check variable lifeness }
+        include(code.flags,nf_usercode_entry);
+
         { add wrapping code if necessary (initialization of typed constants on
           some platforms, initing of local variables and out parameters with
-          trashing values, ... }
+          trashing values, ...) }
         { init/final code must be wrapped later (after code for main proc body
-          has been generated }
+          has been generated) }
         if not(current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
           code:=cnodeutils.wrap_proc_body(procdef,code);
 
@@ -1189,7 +1237,7 @@ implementation
            { inlining not turned off? }
            (cs_do_inline in current_settings.localswitches) and
            { no inlining yet? }
-           not(po_has_inlininginfo in procdef.procoptions) and not(has_nestedprocs) and
+           not(procdef.has_inlininginfo) and not(has_nestedprocs) and
             not(procdef.proctypeoption in [potype_proginit,potype_unitinit,potype_unitfinalize,potype_constructor,
                                            potype_destructor,potype_class_constructor,potype_class_destructor]) and
             ((procdef.procoptions*[po_exports,po_external,po_interrupt,po_virtualmethod,po_iocheck])=[]) and
@@ -1235,8 +1283,7 @@ implementation
         do_firstpass(code);
 
 {$if defined(i386) or defined(i8086)}
-        procdef.fpu_used:=node_resources_fpu(code);
-        if procdef.fpu_used>0 then
+        if node_resources_fpu(code)>0 then
           include(flags,pi_uses_fpu);
 {$endif i386 or i8086}
 
@@ -1251,42 +1298,32 @@ implementation
           (pi_is_recursive in flags) then
           do_opttail(code,procdef);
 
+        if cs_opt_constant_propagate in current_settings.optimizerswitches then
+          do_optconstpropagate(code);
+
         if (cs_opt_nodedfa in current_settings.optimizerswitches) and
           { creating dfa is not always possible }
-          ((flags*[pi_has_assembler_block,pi_uses_exceptions,pi_is_assembler,
-                  pi_needs_implicit_finally,pi_has_implicit_finally])=[]) then
+          ((flags*[pi_has_assembler_block,pi_uses_exceptions,pi_is_assembler])=[]) then
           begin
             dfabuilder:=TDFABuilder.Create;
             dfabuilder.createdfainfo(code);
-            { when life info is available, we can give more sophisticated warning about unintialized
-              variables }
-
-            { iterate through life info of the first node }
-            for i:=0 to dfabuilder.nodemap.count-1 do
-              begin
-                if DFASetIn(code.optinfo^.life,i) then
-                  case tnode(dfabuilder.nodemap[i]).nodetype of
-                    loadn:
-                      begin
-                        varsym:=tabstractnormalvarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry);
-
-                        { Give warning/note for living locals }
-                        if assigned(varsym.owner) and
-                          not(vo_is_external in varsym.varoptions) then
-                          begin
-                            if (vo_is_funcret in varsym.varoptions) then
-                              CGMessage(sym_w_function_result_uninitialized)
-                            else
-                              begin
-                                if (varsym.owner=procdef.localst) and not (vo_is_typed_const in varsym.varoptions) then
-                                  CGMessage1(sym_w_uninitialized_local_variable,varsym.realname);
-                              end;
-                          end;
-                      end;
-                  end;
-              end;
             include(flags,pi_dfaavailable);
+
+            { when life info is available, we can give more sophisticated warning about uninitialized
+              variables ...
+              ... but not for the finalization section of a unit, we would need global dfa to handle
+              it properly }
+            if potype_unitfinalize<>procdef.proctypeoption then
+              { iterate through life info of the first node }
+              for i:=0 to dfabuilder.nodemap.count-1 do
+                begin
+                  if DFASetIn(GetUserCode.optinfo^.life,i) then
+                    CheckAndWarn(GetUserCode,tnode(dfabuilder.nodemap[i]));
+                end;
           end;
+
+        if (pi_dfaavailable in flags) and (cs_opt_dead_store_eliminate in current_settings.optimizerswitches) then
+          do_optdeadstoreelim(code);
 
         if (cs_opt_loopstrength in current_settings.optimizerswitches)
           { our induction variable strength reduction doesn't like
@@ -1296,9 +1333,6 @@ implementation
             {RedoDFA:=}OptimizeInductionVariables(code);
           end;
 
-        if cs_opt_nodecse in current_settings.optimizerswitches then
-          do_optcse(code);
-
         if (cs_opt_remove_emtpy_proc in current_settings.optimizerswitches) and
           (procdef.proctypeoption in [potype_operator,potype_procedure,potype_function]) and
           (code.nodetype=blockn) and (tblocknode(code).statements=nil) then
@@ -1306,6 +1340,9 @@ implementation
 
         { add implicit entry and exit code }
         add_entry_exit_code;
+
+        if cs_opt_nodecse in current_settings.optimizerswitches then
+          do_optcse(code);
 
         { only do secondpass if there are no errors }
         if (ErrorCount=0) then
@@ -1562,17 +1599,8 @@ implementation
               end;
 {$endif NoOpt}
 
-
-{$ifdef ARM}
-            { because of the limited constant size of the arm, all data access is done pc relative }
-            finalizearmcode(aktproccode,aktlocaldata);
-{$endif ARM}
-
-{$ifdef AVR}
-            { because of the limited branch distance of cond. branches, they must be replaced
-              sometimes by normal jmps and an inverse branch }
-            finalizeavrcode(aktproccode);
-{$endif AVR}
+            { Perform target-specific processing if necessary }
+            postprocess_code;
 
             { Add end symbol and debug info }
             { this must be done after the pcrelativedata is appended else the distance calculation of
@@ -1582,9 +1610,7 @@ implementation
             current_filepos:=exitpos;
             hlcg.gen_proc_symbol_end(templist);
             aktproccode.concatlist(templist);
-{$ifdef fpc_compiler_has_fixup_jmps}
-            fixup_jmps(aktproccode);
-{$endif}
+
             { insert line debuginfo }
             if (cs_debuginfo in current_settings.moduleswitches) or
                (cs_use_lineinfo in current_settings.globalswitches) then
@@ -1843,6 +1869,7 @@ implementation
         isnestedproc     : boolean;
       begin
         Message1(parser_d_procedure_start,pd.fullprocname(false));
+        oldfailtokenmode:=[];
 
         { create a new procedure }
         current_procinfo:=cprocinfo.create(old_current_procinfo);
@@ -2039,25 +2066,6 @@ implementation
              { Handle imports }
              if (po_external in pd.procoptions) then
                begin
-                 { External declared in implementation, and there was already a
-                   forward (or interface) declaration then we need to generate
-                   a stub that calls the external routine }
-                 if (not pd.forwarddef) and
-                    (pd.hasforward)
-                    { it is unclear to me what's the use of the following condition,
-                      so commented out, see also issue #18371 (FK)
-                    and
-                    not(
-                        assigned(pd.import_dll) and
-                        (target_info.system in [system_i386_wdosx,
-                                                system_arm_wince,system_i386_wince])
-                       ) } then
-                   begin
-                     s:=proc_get_importname(pd);
-                     if s<>'' then
-                       gen_external_stub(current_asmdata.asmlists[al_procedures],pd,s);
-                   end;
-
                  { Import DLL specified? }
                  if assigned(pd.import_dll) then
                    begin
@@ -2075,6 +2083,34 @@ implementation
                      { add import name to external list for DLL scanning }
                      if tf_has_dllscanner in target_info.flags then
                        current_module.dllscannerinputlist.Add(proc_get_importname(pd),pd);
+                   end;
+
+                 { External declared in implementation, and there was already a
+                   forward (or interface) declaration then we need to generate
+                   a stub that calls the external routine }
+                 if (not pd.forwarddef) and
+                    (pd.hasforward)
+                    { it is unclear to me what's the use of the following condition,
+                      so commented out, see also issue #18371 (FK)
+                    and
+                    not(
+                        assigned(pd.import_dll) and
+                        (target_info.system in [system_i386_wdosx,
+                                                system_arm_wince,system_i386_wince])
+                       ) } then
+                   begin
+                     s:=proc_get_importname(pd);
+                     if s<>'' then
+                       gen_external_stub(current_asmdata.asmlists[al_procedures],pd,s);
+                     { remove the external stuff, so that the interface crc
+                       doesn't change. This makes the function calls less
+                       efficient, but it means that the interface doesn't
+                       change if the function is ever redirected to another
+                       function or implemented in the unit. }
+                     pd.procoptions:=pd.procoptions-[po_external,po_has_importname,po_has_importdll];
+                     stringdispose(pd.import_name);
+                     stringdispose(pd.import_dll);
+                     pd.import_nr:=0;
                    end;
                end;
            end;
@@ -2174,7 +2210,14 @@ implementation
                         Message(parser_w_unsupported_feature);
                         consume(_BEGIN);
                      end;
-                end
+                end;
+              _PROPERTY:
+                begin
+                  if (m_fpc in current_settings.modeswitches) then
+                    property_dec
+                  else
+                    break;
+                end;
               else
                 begin
                   case idtoken of
@@ -2194,13 +2237,6 @@ implementation
                             read_proc(is_classdef,nil);
                             is_classdef:=false;
                           end
-                        else
-                          break;
-                      end;
-                    _PROPERTY:
-                      begin
-                        if (m_fpc in current_settings.modeswitches) then
-                          property_dec
                         else
                           break;
                       end;

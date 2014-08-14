@@ -230,6 +230,9 @@ begin
     begin
       if not(cs_profile in current_settings.moduleswitches) then
         begin
+          { 10.8 and later: no crt1.* }
+          if CompareVersionStrings(MacOSXVersionMin,'10.8')>=0 then
+            exit('');
           { x86: crt1.10.6.o -> crt1.10.5.o -> crt1.o }
           { others: crt1.10.5 -> crt1.o }
 {$if defined(i386) or defined(x86_64)}
@@ -238,17 +241,28 @@ begin
 {$endif}
           if CompareVersionStrings(MacOSXVersionMin,'10.5')>=0 then
             exit('crt1.10.5.o');
-          { iOS/simulator: crt1.3.1.o -> crt1.o }
-{$if defined(i386) or defined(arm)}
-          if {$ifdef i386}(target_info.system=system_i386_iphonesim) and{$endif}
-             (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
-             exit('crt1.3.1.o');
+{$if defined(arm)}
+          { iOS:
+              iOS 6 and later: nothing
+              iOS 3.1 - 5.x: crt1.3.1.o
+              pre-iOS 3.1: crt1.o
+          }
+          if (CompareVersionStrings(iPhoneOSVersionMin,'6.0')>=0) then
+            exit('');
+          if (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
+            exit('crt1.3.1.o');
 {$endif}
           { nothing special -> default }
           result:='crt1.o';
         end
       else
-        result:='gcrt1.o';
+        begin
+          result:='gcrt1.o';
+          { 10.8 and later: tell the linker to use 'start' instead of "_main"
+            as entry point }
+          if CompareVersionStrings(MacOSXVersionMin,'10.8')>=0 then
+            Info.ExeCmd[1]:=Info.ExeCmd[1]+' -no_new_main';
+        end;
     end
   else
     begin
@@ -258,11 +272,10 @@ begin
             >= 10.6: nothing }
           if CompareVersionStrings(MacOSXVersionMin,'10.6')>=0 then
             exit('');
-          { iOS/simulator: < 3.1: bundle1.o
-                           >= 3.1: nothing }
-{$if defined(i386) or defined(arm)}
-          if {$ifdef i386}(target_info.system=system_i386_iphonesim) and{$endif}
-             (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
+          { iOS: < 3.1: bundle1.o
+                 >= 3.1: nothing }
+{$if defined(arm)}
+          if (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
             exit('');
 {$endif}
           result:='bundle1.o';
@@ -277,11 +290,10 @@ begin
             exit('');
           if CompareVersionStrings(MacOSXVersionMin,'10.5')>=0 then
             exit('dylib1.10.5.o');
-          { iOS/simulator: < 3.1: dylib1.o
-                           >= 3.1: nothing }
-{$if defined(i386) or defined(arm)}
-          if {$ifdef i386}(target_info.system=system_i386_iphonesim) and{$endif}
-             (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
+          { iOS: < 3.1: dylib1.o
+                 >= 3.1: nothing }
+{$if defined(arm)}
+          if (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
             exit('');
 {$endif}
           result:='dylib1.o';
@@ -324,11 +336,12 @@ Var
 begin
   WriteResponseFile:=False;
   ReOrder:=False;
+  linkdynamic:=False;
   IsDarwin:=target_info.system in systems_darwin;
 { set special options for some targets }
   if not IsDarwin Then
     begin
-      if isdll and 
+      if isdll and
          (target_info.system in systems_bsd) then
         begin
           prtobj:='dllprt0';
@@ -489,10 +502,19 @@ begin
   if linklibc and
      not IsDarwin Then
    begin
-     if librarysearchpath.FindFile('crtbegin.o',false,s) then
-      LinkRes.AddFileName(s);
      if librarysearchpath.FindFile('crti.o',false,s) then
       LinkRes.AddFileName(s);
+     if cs_create_pic in current_settings.moduleswitches then
+       begin
+         if librarysearchpath.FindFile('crtbeginS.o',false,s) then
+           LinkRes.AddFileName(s);
+       end
+       else
+         if (cs_link_staticflag in current_settings.globalswitches) and
+           librarysearchpath.FindFile('crtbeginT.o',false,s) then
+             LinkRes.AddFileName(s)
+         else if librarysearchpath.FindFile('crtbegin.o',false,s) then
+             LinkRes.AddFileName(s);
    end;
   { main objectfiles }
   while not ObjectFiles.Empty do
@@ -577,7 +599,10 @@ begin
   if linklibc and
      not IsDarwin Then
    begin
-     Fl1:=librarysearchpath.FindFile('crtend.o',false,s1);
+     if cs_create_pic in current_settings.moduleswitches then
+       Fl1:=librarysearchpath.FindFile('crtendS.o',false,s1)
+     else
+       Fl1:=librarysearchpath.FindFile('crtend.o',false,s1);
      Fl2:=librarysearchpath.FindFile('crtn.o',false,s2);
      if Fl1 or Fl2 then
       begin
@@ -621,6 +646,7 @@ begin
   StripStr:='';
   DynLinkStr:='';
   GCSectionsStr:='';
+  linkscript:=nil;
   { i386_freebsd needs -b elf32-i386-freebsd and -m elf_i386_fbsd
     to avoid creation of a i386:x86_64 arch binary }
 
@@ -754,6 +780,7 @@ var
 begin
   MakeSharedLibrary:=false;
   GCSectionsStr:='';
+  linkscript:=nil;
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.sharedlibfilename);
 

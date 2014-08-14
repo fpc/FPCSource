@@ -793,7 +793,9 @@ implementation
           '.objc_nlclasslist',
           '.objc_catlist',
           '.obcj_nlcatlist',
-          '.objc_protolist'
+          '.objc_protolist',
+          '.stack',
+          '.heap'
         );
       var
         sep : string[3];
@@ -884,7 +886,7 @@ implementation
               dec(data,len);
             if ElfTarget.relocs_use_addend then
               begin
-                objreloc.orgsize:=data;
+                objreloc.orgsize:=aword(data);
                 data:=0;
               end;
           end;
@@ -1076,7 +1078,9 @@ implementation
 
             rel.address:=objreloc.dataoffset;
             rel.info:=ELF_R_INFO(relsym,ElfTarget.encodereloc(objreloc));
+{$push}{$r-}
             rel.addend:=objreloc.orgsize;
+{$pop}
 
             { write reloc }
             { ElfXX_Rel is essentially ElfXX_Rela without the addend field. }
@@ -1210,8 +1214,9 @@ implementation
            { default sections }
            symtabsect:=TElfSymtab.create(data,esk_obj);
            shstrtabsect:=TElfObjSection.create_ext(data,'.shstrtab',SHT_STRTAB,0,1,0);
-           { "no executable stack" marker for Linux }
-           if (target_info.system in (systems_linux + systems_android)) and
+           { "no executable stack" marker }
+           { TODO: used by OpenBSD/NetBSD as well? }
+           if (target_info.system in (systems_linux + systems_android + systems_freebsd)) and
               not(cs_executable_stack in current_settings.moduleswitches) then
              TElfObjSection.create_ext(data,'.note.GNU-stack',SHT_PROGBITS,0,1,0);
            { symbol for filename }
@@ -1253,7 +1258,9 @@ implementation
 
            header.e_ident[EI_VERSION]:=1;
            if target_info.system in systems_openbsd then
-             header.e_ident[EI_OSABI]:=ELFOSABI_OPENBSD;
+             header.e_ident[EI_OSABI]:=ELFOSABI_OPENBSD
+           else if target_info.system in systems_freebsd then
+             header.e_ident[EI_OSABI]:=ELFOSABI_FREEBSD;
            header.e_type:=ET_REL;
            header.e_machine:=ElfTarget.machine_code;
            header.e_version:=1;
@@ -1703,6 +1710,7 @@ implementation
         FReader:=AReader;
         InputFileName:=AReader.FileName;
         result:=false;
+        strndx:=0;
 
         if not LoadHeader(objData) then
           exit;
@@ -2012,6 +2020,10 @@ implementation
           header.e_ident[EI_DATA]:=ELFDATA2LSB;
 
         header.e_ident[EI_VERSION]:=1;
+        if target_info.system in systems_openbsd then
+          header.e_ident[EI_OSABI]:=ELFOSABI_OPENBSD
+        else if target_info.system in systems_freebsd then
+          header.e_ident[EI_OSABI]:=ELFOSABI_FREEBSD;
         if IsSharedLibrary then
           header.e_type:=ET_DYN
         else
@@ -2511,7 +2523,7 @@ implementation
               continue;
 
             if ((exesym.ObjSymbol.refs and symref_plt)<>0) or
-              ((exesym.ObjSymbol.typ=AT_FUNCTION) and (not IsSharedLibrary)) then
+              ((exesym.ObjSymbol.typ in [AT_FUNCTION,AT_GNU_IFUNC]) and (not IsSharedLibrary)) then
               begin
                 make_dynamic_if_undefweak(exesym);
 
@@ -3114,7 +3126,9 @@ implementation
       begin
         rel.address:=dataofs;
         rel.info:=ELF_R_INFO(symidx,typ);
+{$push}{$r-}
         rel.addend:=addend;
+{$pop}
         MaybeSwapElfReloc(rel);
         dynrelocsec.write(rel,dynrelocsec.shentsize);
       end;

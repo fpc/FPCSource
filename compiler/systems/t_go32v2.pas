@@ -208,9 +208,11 @@ begin
 
   { Add all options to link.res instead of passing them via command line:
     DOS command line is limited to 126 characters! }
-  LinkRes.Add('--script='+maybequoted(outputexedir+Info.ScriptName));
+  { Newer or cross GNU ld do not like \ in path names,
+    so we use bstoslash }
+  LinkRes.Add('--script='+maybequoted(bstoslash(outputexedir+Info.ScriptName)));
   if (cs_link_map in current_settings.globalswitches) then
-    LinkRes.Add('-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map')));
+    LinkRes.Add('-Map '+maybequoted(bstoslash(ChangeFileExt(current_module.exefilename,'.map'))));
   if create_smartlink_sections then
     LinkRes.Add('--gc-sections');
   if info.ExtraOptions<>'' then
@@ -218,7 +220,7 @@ begin
 (* Potential issues with older ld version??? *)
   if (cs_link_strip in current_settings.globalswitches) then
     LinkRes.Add('-s');
-  LinkRes.Add('-o '+maybequoted(current_module.exefilename));
+  LinkRes.Add('-o '+maybequoted(bstoslash(current_module.exefilename)));
 
   { Write staticlibraries }
   if not StaticLibFiles.Empty then
@@ -227,7 +229,7 @@ begin
      While not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.GetFirst;
-        LinkRes.AddFileName(GetShortName(s))
+        LinkRes.AddFileName(bstoslash(GetShortName(s)))
       end;
      LinkRes.Add('-)');
    end;

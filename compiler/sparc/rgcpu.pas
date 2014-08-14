@@ -37,6 +37,7 @@ unit rgcpu;
         function get_spill_subreg(r : tregister) : tsubregister;override;
         procedure do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
         procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
+        function do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;override;
       end;
 
 
@@ -160,5 +161,54 @@ implementation
         else
           inherited do_spill_written(list,pos,spilltemp,tempreg);
     end;
+
+
+    function trgcpu.do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;
+      var
+        opidx: longint;
+      begin
+        result:=false;
+        { Replace 'mov  src,orgreg' with 'st  src,spilltemp'
+              and 'mov  orgreg,dst' with 'ld  spilltemp,dst' }
+        if (abs(spilltemp.offset)>4095) then
+          exit;
+        if ((regtype=R_INTREGISTER) and (instr.opcode<>A_MOV)) or
+           ((regtype=R_FPUREGISTER) and (instr.opcode<>A_FMOVs) and (instr.opcode<>A_FMOVd)) then
+          exit;
+        { Ignore mis-encoded stuff like 'mov %something,%y' }
+        if (instr.ops<>2) or
+           (instr.oper[0]^.typ<>top_reg) or
+           (instr.oper[1]^.typ<>top_reg) or
+           (getregtype(instr.oper[0]^.reg)<>regtype) or
+           (getregtype(instr.oper[1]^.reg)<>regtype) then
+          exit;
+        opidx:=-1;
+        if get_alias(getsupreg(instr.oper[0]^.reg))=orgreg then
+          begin
+            if (regtype=R_INTREGISTER) then
+              instr.opcode:=A_LD
+            else if (getsubreg(instr.oper[0]^.reg)=R_SUBFS) then
+              instr.opcode:=A_LDF
+            else
+              instr.opcode:=A_LDDF;
+            opidx:=0;
+          end
+        else if get_alias(getsupreg(instr.oper[1]^.reg))=orgreg then
+          begin
+            if (regtype=R_INTREGISTER) then
+              instr.opcode:=A_ST
+            else if (getsubreg(instr.oper[1]^.reg)=R_SUBFS) then
+              instr.opcode:=A_STF
+            else
+              instr.opcode:=A_STDF;
+            opidx:=1;
+          end
+        else
+          InternalError(2013061002);
+        instr.oper[opidx]^.typ:=top_ref;
+        new(instr.oper[opidx]^.ref);
+        instr.oper[opidx]^.ref^:=spilltemp;
+        result:=true;
+      end;
 
 end.

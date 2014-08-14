@@ -74,6 +74,7 @@
   {$define cpurox}
   {$define SUPPORT_SAFECALL}
   {$define SUPPORT_GET_FRAME}
+  {$define cpucapabilities}
 {$endif i386}
 
 {$ifdef x86_64}
@@ -89,6 +90,7 @@
   {$define cpurefshaveindexreg}
   {$define SUPPORT_SAFECALL}
   {$define SUPPORT_GET_FRAME}
+  {$define cpucapabilities}
 {$endif x86_64}
 
 {$ifdef ia64}
@@ -124,7 +126,6 @@
   {$define cpumm}
   {$define cpurox}
   {$define cpurefshaveindexreg}
-  {$define fpc_compiler_has_fixup_jmps}
 {$endif powerpc}
 
 {$ifdef powerpc64}
@@ -135,7 +136,7 @@
   {$define cpumm}
   {$define cpurox}
   {$define cpurefshaveindexreg}
-  {$define fpc_compiler_has_fixup_jmps}
+  {$define cpuno32bitops}
 {$endif powerpc64}
 
 {$ifdef arm}
@@ -177,6 +178,7 @@
   {$define cpufpemu}
   {$define cpurefshaveindexreg}
   {$define cpucapabilities}
+  {$define cpuneedsdiv32helper}
 {$endif m68k}
 
 {$ifdef avr}
@@ -219,8 +221,8 @@
   {$define cpurequiresproperalignment}
   { define cpumm}
   {$define cpurefshaveindexreg}
-  {$define fpc_compiler_has_fixup_jmps}
   {$define SUPPORT_GET_FRAME}
+  {$define SUPPORT_SAFECALL}
 {$endif mips}
 
 {$ifdef jvm}

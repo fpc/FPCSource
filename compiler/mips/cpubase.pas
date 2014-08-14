@@ -249,6 +249,7 @@ unit cpubase;
         (RS_NO);
 
       { this is only for the generic code which is not used for this architecture }
+      saved_address_registers : array[0..0] of tsuperregister = (RS_INVALID);
       saved_mm_registers : array[0..0] of tsuperregister = (RS_INVALID);
 
       { Required parameter alignment when calling a routine declared as
@@ -376,10 +377,20 @@ unit cpubase;
     function std_regname(r:Tregister):string;
       var
         p : tregisterindex;
+        hr : tregister;
       begin
-        p:=findreg_by_number_table(r,regnumber_index);
+        hr:=r;
+        case getsubreg(hr) of
+          R_SUBFD:
+            setsubreg(hr, R_SUBFS);
+          R_SUBL, R_SUBW, R_SUBD, R_SUBQ:
+            setsubreg(hr, R_SUBD);
+        end;
+        p:=findreg_by_number_table(hr,regnumber_index);
         if p<>0 then
           result:=std_regname_table[p]
+        else if getregtype(r)=R_SPECIALREGISTER then
+          result:=tostr(getsupreg(r))
         else
           result:=generic_regname(r);
       end;

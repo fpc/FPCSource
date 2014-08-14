@@ -76,6 +76,7 @@ interface
         global_stab_number : word;
         vardatadef: trecorddef;
         tagtypeprefix: ansistring;
+        function use_tag_prefix(def : tdef) : boolean;
         { tsym writing }
         function  sym_var_value(const s:string;arg:pointer):string;
         function  sym_stabstr_evaluate(sym:tsym;const s:string;const vars:array of string):ansistring;
@@ -187,6 +188,8 @@ implementation
         result := Sym.Name
       else
         result := Sym.RealName;
+      if (Sym.typ=typesym) and (ttypesym(Sym).Fprettyname<>'') then
+        result:=ttypesym(Sym).FPrettyName;
       if target_asm.dollarsign<>'$' then
         result:=ReplaceForbiddenAsmSymbolChars(result);
     end;
@@ -241,6 +244,7 @@ implementation
       len:=0;
       varcounter:=0;
       varptr:=@varvaluedata[0];
+      varvalues[0]:=nil;
       while i<=length(s) do
         begin
           if (s[i]='$') and (i<length(s)) then
@@ -548,6 +552,16 @@ implementation
           appenddef(TAsmList(arg),tfieldvarsym(p).vardef);
       end;
 
+    function TDebugInfoStabs.use_tag_prefix(def : tdef) : boolean;
+      begin
+        { stringdefs are not all considered as 'taggable',
+          because ansi, unicode and wide strings are
+          just associated to pointer types }
+        use_tag_prefix:=(def.typ in tagtypes) and
+                      ((def.typ<>stringdef) or
+                       (tstringdef(tdef).stringtype in [st_shortstring,st_longstring]));
+      end;
+
 
     procedure TDebugInfoStabs.write_def_stabstr(list:TAsmList;def:tdef;const ss:ansistring);
       var
@@ -556,7 +570,7 @@ implementation
         st    : ansistring;
       begin
         { type prefix }
-        if def.typ in tagtypes then
+        if use_tag_prefix(def) then
           stabchar := tagtypeprefix
         else
           stabchar := 't';
@@ -1582,7 +1596,7 @@ implementation
                 if target_dbg.id=dbg_stabs then
                   st:='s'''+backspace_quote(octal_quote(strpas(pchar(sym.value.valueptr)),[#0..#9,#11,#12,#14..#31,'''']),['"','\',#10,#13])+''''
                 else
-                  st:='s'''+stabx_quote_const(octal_quote(strpas(pchar(sym.value.valueptr)),[#0..#9,#11,#12,#14..#31,'''']))
+                  st:='s'''+stabx_quote_const(octal_quote(strpas(pchar(sym.value.valueptr)),[#0..#9,#11,#12,#14..#31,'''']))+''''
               else
                 st:='<constant string too long>';
             end;

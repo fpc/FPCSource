@@ -27,7 +27,7 @@ interface
 
 uses
   cfileutl,
-  globtype,globals,verbose,systems,cpuinfo, comprsrc;
+  globtype,globals,verbose,systems,cpuinfo,comprsrc;
 
 Type
   TOption=class
@@ -38,8 +38,7 @@ Type
     LogoWritten,
     FPUSetExplicitly,
     CPUSetExplicitly,
-    OptCPUSetExplicitly,
-    CLDSetExplicitly: boolean;
+    OptCPUSetExplicitly: boolean;
     FileLevel : longint;
     QuickInfo : string;
     FPCBinaryPath: string;
@@ -79,7 +78,6 @@ Type
 var
   coption : TOptionClass;
 
-function UpdateTargetSwitchStr(s: string; var a: ttargetswitches; global: boolean): boolean;
 procedure read_arguments(cmd:TCmdStr);
 
 implementation
@@ -93,6 +91,7 @@ uses
   comphook,
   symtable,scanner,rabase,
   symconst,
+  dirparse,
   i_bsd;
 
 const
@@ -112,17 +111,6 @@ var
 ****************************************************************************}
 
 const
-  { pointer checking (requires special code in FPC_CHECKPOINTER,
-    and can never work for libc-based targets or any other program
-    linking to an external library)
-  }
-  supported_targets_gc = [system_i386_linux,system_powerpc_linux]
-                        + [system_i386_win32]
-                        + [system_i386_GO32V2]
-                        + [system_i386_os2]
-                        + [system_i386_beos,system_i386_haiku]
-                        + [system_powerpc_morphos];
-
   { gprof (requires implementation of g_profilecode in the code generator) }
   supported_targets_pg = [system_i386_linux,system_x86_64_linux,system_mipseb_linux,system_mipsel_linux]
                         + [system_i386_win32]
@@ -151,94 +139,6 @@ begin
 end;
 
 
-function UpdateTargetSwitchStr(s: string; var a: ttargetswitches; global: boolean): boolean;
-var
-  tok,
-  value : string;
-  setstr: string[2];
-  equalspos: longint;
-  doset,
-  gotvalue,
-  found : boolean;
-  opt   : ttargetswitch;
-begin
-  result:=true;
-  repeat
-    tok:=GetToken(s,',');
-    if tok='' then
-     break;
-    setstr:=upper(copy(tok,length(tok),1));
-    if setstr='-' then
-      begin
-        setlength(tok,length(tok)-1);
-        doset:=false;
-      end
-    else
-      doset:=true;
-    { value specified? }
-    gotvalue:=false;
-    equalspos:=pos('=',tok);
-    if equalspos<>0 then
-      begin
-        value:=copy(tok,equalspos+1,length(tok));
-        delete(tok,equalspos,length(tok));
-        gotvalue:=true;
-      end;
-    found:=false;
-    uppervar(tok);
-    for opt:=low(ttargetswitch) to high(ttargetswitch) do
-      begin
-        if TargetSwitchStr[opt].name=tok then
-          begin
-            found:=true;
-            break;
-          end;
-      end;
-    if found then
-      begin
-        if not global and
-           TargetSwitchStr[opt].isglobal then
-          result:=false
-        else if not TargetSwitchStr[opt].hasvalue then
-          begin
-            if gotvalue then
-              result:=false;
-            if (TargetSwitchStr[opt].define<>'') and (doset xor (opt in a)) then
-              if doset then
-                def_system_macro(TargetSwitchStr[opt].define)
-              else
-                undef_system_macro(TargetSwitchStr[opt].define);
-            if doset then
-              include(a,opt)
-            else
-              exclude(a,opt)
-          end
-        else
-          begin
-            if not gotvalue or
-               not doset then
-              result:=false
-            else
-              begin
-                case opt of
-                  ts_auto_getter_prefix:
-                    prop_auto_getter_prefix:=value;
-                  ts_auto_setter_predix:
-                    prop_auto_setter_prefix:=value;
-                  else
-                    begin
-                      writeln('Internalerror 2012053001');
-                      halt(1);
-                    end;
-                end;
-              end;
-          end;
-      end
-    else
-      result:=false;
-  until false;
-end;
-
 {****************************************************************************
                                  Toption
 ****************************************************************************}
@@ -251,6 +151,20 @@ begin
      Option:=nil;
    end;
   raise ECompilerAbortSilent.Create;
+end;
+
+
+function is_identifier(const s: TCmdStr): boolean;
+var
+  i: longint;
+begin
+  result:=false;
+  if (s='') or not (s[1] in ['A'..'Z','a'..'z','_']) then
+    exit;
+  for i:=2 to length(s) do
+    if not (s[I] in ['A'..'Z','a'..'z','0'..'9','_']) then
+      exit;
+  result:=true;
 end;
 
 
@@ -279,9 +193,9 @@ var
   wpopt: twpoptimizerswitch;
   abi : tabi;
   asmmode : tasmmode;
-{$if defined(arm) or defined(avr)}
+{$if defined(arm) or defined(avr) or defined(mipsel)}
   controllertype : tcontrollertype;
-{$endif defined(arm) or defined(avr)}
+{$endif defined(arm) or defined(avr) or defined(mipsel)}
 begin
   p:=MessagePchar(option_info);
   while assigned(p) do
@@ -418,7 +332,7 @@ begin
       end
      else if pos('$CONTROLLERTYPES',s)>0 then
       begin
-        {$if defined(arm) or defined(avr)}
+        {$if defined(arm) or defined(avr) or defined(mipsel)}
         hs1:='';
         for controllertype:=low(tcontrollertype) to high(tcontrollertype) do
           begin
@@ -442,8 +356,8 @@ begin
             Comment(V_Normal,hs);
             hs1:=''
           end;
-        {$else defined(arm) or defined(avr)}
-        {$endif defined(arm) or defined(avr)}
+        {$else defined(arm) or defined(avr) or defined(mipsel)}
+        {$endif defined(arm) or defined(avr) or defined(mipsel)}
       end
      else
       Comment(V_Normal,s);
@@ -456,8 +370,11 @@ procedure Toption.WriteHelpPages;
 
   function PadEnd(s:string;i:longint):string;
   begin
-    while (length(s)<i) do
-     s:=s+' ';
+    if length(s) >= i then
+     S := S + ' '
+    else
+     while (length(s)<i) do
+      s:=s+' ';
     PadEnd:=s;
   end;
 
@@ -566,13 +483,15 @@ begin
                  ident:=9;
                  outline:=11;
                end;
+         else
+           internalerror(2013112906);
         end;
         j:=pos('_',s);
         opt:=Copy(s,4,j-4);
         if opt='*' then
          opt:=''
         else
-        if opt=' ' then
+        if (opt=' ') or (opt[1]='@') then
          opt:=PadEnd(opt,outline)
         else
          opt:=PadEnd('-'+opt,outline);
@@ -814,6 +733,7 @@ var
   error : integer;
   j,l   : longint;
   d,s   : TCmdStr;
+  hs    : TCmdStr;
   unicodemapping : punicodemap;
 begin
   if opt='' then
@@ -825,7 +745,8 @@ begin
          (opt[1]='-') and
          (
           ((length(opt)>1) and (opt[2] in ['i','d','v','T','u','n','X','l'])) or
-          ((length(opt)>3) and (opt[2]='F') and (opt[3]='e'))
+          ((length(opt)>3) and (opt[2]='F') and (opt[3]='e')) or
+          ((length(opt)>3) and (opt[2]='W') and (opt[3]='m'))
          )
         ) then
     exit;
@@ -866,6 +787,13 @@ begin
                       include(init_settings.globalswitches,cs_asm_tempalloc);
                     'n' :
                       include(init_settings.globalswitches,cs_asm_nodes);
+                    { -ao option must be the last, everything behind it is passed directly to
+                      external assembler, it is ignored if internal assembler is used. }
+                    'o' :
+                      begin
+                        asmextraopt:=copy(more,j+1,length(more)-j);
+                        break;
+                      end;
                     'p' :
                       begin
                         exclude(init_settings.globalswitches,cs_asm_leave);
@@ -1080,7 +1008,13 @@ begin
                     's' :
                       begin
                          val(copy(more,j+1,length(more)-j),stacksize,code);
-                         if (code<>0) or (stacksize>=67107840) or (stacksize<1024) then
+                         if (code<>0)
+{$ifdef cpu16bitaddr}
+                            or (stacksize>=65521)
+{$else cpu16bitaddr}
+                            or (stacksize>=67107840)
+{$endif cpu16bitaddr}
+                            or (stacksize<1024) then
                           IllegalPara(opt);
                          break;
                       end;
@@ -1101,8 +1035,6 @@ begin
                          include(init_settings.moduleswitches,cs_create_smart);
                     'T' :
                       begin
-                        if Pos('CLD',Upper(copy(more,j+1,length(more))))>0 then  // Ugly. Is there a better way?
-                          CLDSetExplicitly:=true;
                         if not UpdateTargetSwitchStr(copy(more,j+1,length(more)),init_settings.targetswitches,true) then
                           IllegalPara(opt);
                         break;
@@ -1123,14 +1055,25 @@ begin
              end;
 
            'd' :
-             if more <> '' then
-               begin
-                 l:=Pos(':=',more);
-                 if l>0 then
-                   set_system_compvar(Copy(more,1,l-1),Copy(more,l+2,255))
-                 else
-                   def_system_macro(more);
-               end;
+             begin
+               l:=Pos(':=',more);
+               if l>0 then
+                 hs:=copy(more,1,l-1)
+               else
+                 hs:=more;
+               if (not is_identifier(hs)) then
+                 begin
+                   if hs='' then
+                     Message1(option_missing_arg,'-d')
+                   else
+                     Message1(option_malformed_para,opt);
+                   StopOptions(1);
+                 end;
+               if l>0 then
+                 set_system_compvar(hs,Copy(more,l+2,255))
+               else
+                 def_system_macro(hs);
+             end;
            'D' :
              begin
                include(init_settings.globalswitches,cs_link_deffile);
@@ -1162,6 +1105,7 @@ begin
                         if l=0 then
                           l:=256;
                         dllmajor:=1;
+                        major:=0;
                         if error=0 then
                           val(copy(dllversion,1,l-1),major,error);
                         if (error=0) and (major>=0) and (major<=$ffff) then
@@ -1232,7 +1176,7 @@ begin
                      include(init_settings.moduleswitches,cs_explicit_codepage);
                    end;
                  'C' :
-                   RCCompiler := More;
+                   RCCompiler:=More;
                  'd' :
                    if UnsetBool(more, 0, opt, true) then
                      init_settings.disabledircache:=false
@@ -1273,6 +1217,8 @@ begin
                      else
                        IllegalPara(opt);
                    end;
+                 'M' :
+                   unicodepath:=FixPath(More,true);
                  'g' :
                    Message2(option_obsolete_switch_use_new,'-Fg','-Fl');
                  'l' :
@@ -1299,7 +1245,7 @@ begin
                  'r' :
                    Msgfilename:=More;
                  'R' :
-                   ResCompiler := More;
+                   ResCompiler:=More;
                  'u' :
                    begin
                      if ispara then
@@ -1358,7 +1304,7 @@ begin
                        begin
                          if UnsetBool(More, j, opt, false) then
                            exclude(init_settings.localswitches,cs_checkpointer)
-                         else if (target_info.system in supported_targets_gc) then
+                         else if (target_info.system in systems_support_checkpointer) then
                            include(init_settings.localswitches,cs_checkpointer)
                          else
                            UnsupportedPara('-gc');
@@ -1738,9 +1684,9 @@ begin
                            include(init_settings.globalswitches,cs_support_vectors);
                        'x' :
                          If UnsetBool(More, j, opt, false) then
-                           exclude(init_settings.globalswitches,cs_support_exceptions)
+                           SetCompileModeSwitch('EXCEPTIONS-',true)
                          else
-                           include(init_settings.globalswitches,cs_support_exceptions);
+                           SetCompileModeSwitch('EXCEPTIONS',true);
                        'y' :
                          If UnsetBool(More, j, opt, false) then
                            exclude(init_settings.localswitches,cs_typed_addresses)
@@ -1787,8 +1733,16 @@ begin
              end;
 
            'u' :
-             if more <> '' then
-               undef_system_macro(more);
+             if is_identifier(more) then
+               undef_system_macro(more)
+             else
+               begin
+                 if (more='') then
+                   Message1(option_missing_arg,'-u')
+                 else
+                   Message1(option_malformed_para,opt);
+                 StopOptions(1);
+               end;
            'U' :
              begin
                j:=1;
@@ -1975,8 +1929,8 @@ begin
                               'TINY':    init_settings.x86memorymodel:=mm_tiny;
                               'SMALL':   init_settings.x86memorymodel:=mm_small;
                               'MEDIUM':  init_settings.x86memorymodel:=mm_medium;
-                              'COMPACT',
-                              'LARGE',
+                              'COMPACT': init_settings.x86memorymodel:=mm_compact;
+                              'LARGE':   init_settings.x86memorymodel:=mm_large;
                               'HUGE': IllegalPara(opt); { these are not implemented yet }
                               else
                                 IllegalPara(opt);
@@ -2009,7 +1963,7 @@ begin
                       end;
                     'p':
                       begin
-{$if defined(arm) or defined(avr)}
+{$if defined(arm) or defined(avr) or defined(mipsel)}
                         if (target_info.system in systems_embedded) then
                           begin
                             s:=upper(copy(more,j+1,length(more)-j));
@@ -2018,7 +1972,7 @@ begin
                             break;
                           end
                         else
-{$endif defined(arm) or defined(avr)}
+{$endif defined(arm) or defined(avr) or defined(mipsel)}
                           IllegalPara(opt);
                       end;
                     'P':
@@ -2768,8 +2722,16 @@ end;
 
 procedure TOption.checkoptionscompatibility;
 begin
+{$ifdef i8086}
+  if (apptype=app_com) and (init_settings.x86memorymodel<>mm_tiny) then
+    begin
+      Message(option_com_files_require_tiny_model);
+      StopOptions(1);
+    end;
+{$endif i8086}
+
   if (paratargetdbg in [dbg_dwarf2,dbg_dwarf3]) and
-     not(target_info.system in systems_darwin) then
+     not(target_info.system in (systems_darwin+[system_i8086_msdos])) then
     begin
       { smartlink creation does not yet work with DWARF
         debug info on most targets, but it works in internal assembler }
@@ -2796,6 +2758,20 @@ begin
       Message(option_debug_external_unsupported);
       exclude(init_settings.globalswitches,cs_link_separate_dbg_file);
     end;
+  { Also create a smartlinked version, on an assembler that
+    does not support smartlink sections like nasm?
+    This is not compatible with using internal linker. }
+  if ((cs_link_smart in init_settings.globalswitches) or
+      (cs_create_smart in init_settings.moduleswitches)) and
+     (af_needar in target_asm.flags) and
+     not (af_smartlink_sections in target_asm.flags) and
+     not (cs_link_extern in init_settings.globalswitches) and
+     (target_info.link<>ld_none) and
+      not (cs_link_nolink in init_settings.globalswitches) then
+    begin
+      Message(option_smart_link_requires_external_linker);
+      include(init_settings.globalswitches,cs_link_extern);
+    end;
 end;
 
 
@@ -2807,7 +2783,6 @@ begin
   FPUSetExplicitly:=false;
   CPUSetExplicitly:=false;
   OptCPUSetExplicitly:=false;
-  CLDSetExplicitly:=false;
   FileLevel:=0;
   Quickinfo:='';
   ParaIncludeCfgPath:=TSearchPathList.Create;
@@ -2972,9 +2947,13 @@ begin
   def_system_macro('FPC_STATICRIPFIXED');
   def_system_macro('FPC_VARIANTCOPY_FIXED');
   def_system_macro('FPC_DYNARRAYCOPY_FIXED');
-{$if defined(x86) or defined(powerpc) or defined(powerpc64) or defined(cpuarm)}
+
+{ abs(long) is handled internally on all CPUs }
   def_system_macro('FPC_HAS_INTERNAL_ABS_LONG');
-{$endif}
+{$if defined(x86_64) or defined(powerpc64)}
+  def_system_macro('FPC_HAS_INTERNAL_ABS_INT64');
+{$endif x86_64 or powerpc64}
+
   def_system_macro('FPC_HAS_UNICODESTRING');
   def_system_macro('FPC_RTTI_PACKSET1');
   def_system_macro('FPC_HAS_CPSTRING');
@@ -3148,7 +3127,19 @@ begin
   def_system_macro('FPC_HAS_TYPE_EXTENDED');
   def_system_macro('FPC_HAS_TYPE_DOUBLE');
   def_system_macro('FPC_HAS_TYPE_SINGLE');
+  case init_settings.x86memorymodel of
+    mm_tiny:    def_system_macro('FPC_MM_TINY');
+    mm_small:   def_system_macro('FPC_MM_SMALL');
+    mm_medium:  def_system_macro('FPC_MM_MEDIUM');
+    mm_compact: def_system_macro('FPC_MM_COMPACT');
+    mm_large:   def_system_macro('FPC_MM_LARGE');
+    mm_huge:    def_system_macro('FPC_MM_HUGE');
+  end;
 {$endif i8086}
+
+  if tf_cld in target_info.flags then
+    if not UpdateTargetSwitchStr('CLD', init_settings.targetswitches, true) then
+      InternalError(2013092801);
 
   { Set up a default prefix for binutils when cross-compiling }
   if source_info.system<>target_info.system then
@@ -3158,6 +3149,8 @@ begin
         utilsprefix:='arm-linux-androideabi-';
       system_i386_android:
         utilsprefix:='i686-linux-android-';
+      system_mipsel_android:
+        utilsprefix:='mipsel-linux-android-';
     end;
 
   { Set up default value for the heap }
@@ -3167,6 +3160,8 @@ begin
         system_avr_embedded:
           heapsize:=128;
         system_arm_embedded:
+          heapsize:=256;
+        system_mipsel_embedded:
           heapsize:=256;
         else
           heapsize:=256;
@@ -3309,12 +3304,14 @@ begin
   if not disable_configfile then
     begin
       if PathExists(FpcDir+'rtl',true) then
-        if tf_use_8_3 in Source_Info.Flags then
+        if (tf_use_8_3 in Source_Info.Flags) or
+           (tf_use_8_3 in Target_Info.Flags) then
           UnitSearchPath.AddPath(FpcDir+'rtl/'+target_os_string,false)
         else
           UnitSearchPath.AddPath(FpcDir+'rtl/'+target_full_string,false)
       else
-        if tf_use_8_3 in Source_Info.Flags then
+        if (tf_use_8_3 in Source_Info.Flags) or
+           (tf_use_8_3 in Target_Info.Flags) then
           UnitSearchPath.AddPath(FpcDir+'units/'+target_os_string+'/rtl',false)
         else
           UnitSearchPath.AddPath(FpcDir+'units/'+target_full_string+'/rtl',false);
@@ -3384,8 +3381,9 @@ begin
   { force fpu emulation on arm/wince, arm/gba, arm/embedded and arm/nds
     if fpu type not explicitly set }
   if not(option.FPUSetExplicitly) and
-     ((target_info.system in [system_arm_wince,system_arm_gba,system_m68k_amiga,
-         system_m68k_linux,system_arm_nds,system_arm_embedded])
+     ((target_info.system in [system_arm_wince,system_arm_gba,
+         system_m68k_amiga,system_m68k_atari,system_m68k_linux,
+         system_arm_nds,system_arm_embedded])
 {$ifdef arm}
       or (target_info.abi=abi_eabi)
 {$endif arm}
@@ -3483,6 +3481,21 @@ if (target_info.abi = abi_eabihf) then
     end;
 {$endif jvm}
 
+{$ifdef mipsel}
+  case target_info.system of
+    system_mipsel_android:
+      begin
+        { set default cpu type to MIPS32 rev. 1 and hard float for MIPS-Android unless specified otherwise }
+        if not option.CPUSetExplicitly then
+          init_settings.cputype:=cpu_mips32;
+        if not option.OptCPUSetExplicitly then
+          init_settings.optimizecputype:=cpu_mips32;
+        if not option.FPUSetExplicitly then
+          init_settings.fputype:=fpu_mips2;
+      end;
+  end;
+{$endif mipsel}
+
   { now we can define cpu and fpu type }
   def_system_macro('CPU'+Cputypestr[init_settings.cputype]);
 
@@ -3533,6 +3546,11 @@ if (target_info.abi = abi_eabihf) then
       def_system_macro('FPC_USE_WIN64_SEH');
 {$endif DISABLE_WIN64_SEH}
 
+{$ifdef TEST_WIN32_SEH}
+    if target_info.system=system_i386_win32 then
+      def_system_macro('FPC_USE_WIN32_SEH');
+{$endif TEST_WIN32_SEH}
+
 {$ifdef ARM}
   { define FPC_DOUBLE_HILO_SWAPPED if needed to properly handle doubles in RTL }
   if (init_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) and
@@ -3541,10 +3559,20 @@ if (target_info.abi = abi_eabihf) then
 {$endif ARM}
 
 { inline bsf/bsr implementation }
-{$if defined(x86) or defined(x86_64)}
+{$if defined(i386) or defined(x86_64)}
   def_system_macro('FPC_HAS_INTERNAL_BSF');
   def_system_macro('FPC_HAS_INTERNAL_BSR');
 {$endif}
+
+{ hardware FMA support }
+{$if defined(i386) or defined(x86_64)}
+  if (cpu_capabilities[current_settings.cputype]*[CPUX86_HAS_FMA,CPUX86_HAS_FMA4])<>[] then
+    begin
+      def_system_macro('FPC_HAS_FAST_FMA_SINGLE');
+      def_system_macro('FPC_HAS_FAST_FMA_DOUBLE');
+    end;
+{$endif defined(i386) or defined(x86_64)}
+
 {$if defined(arm)}
   { it is determined during system unit compilation if clz is used for bsf or not,
     this is not perfect but the current implementation bsf/bsr does not allow another
@@ -3558,19 +3586,6 @@ if (target_info.abi = abi_eabihf) then
         def_system_macro('FPC_HAS_INTERNAL_BSF');
     end;
 {$endif}
-{$if defined(i8086)}
-  case init_settings.x86memorymodel of
-    mm_tiny:    def_system_macro('FPC_MM_TINY');
-    mm_small:   def_system_macro('FPC_MM_SMALL');
-    mm_medium:  def_system_macro('FPC_MM_MEDIUM');
-    mm_compact: def_system_macro('FPC_MM_COMPACT');
-    mm_large:   def_system_macro('FPC_MM_LARGE');
-    mm_huge:    def_system_macro('FPC_MM_HUGE');
-  end;
-{$endif}
-  if not option.CLDSetExplicitly and (tf_cld in target_info.flags) then
-    if not UpdateTargetSwitchStr('CLD', init_settings.targetswitches, true) then
-      InternalError(2013092801);
 
 
   { Section smartlinking conflicts with import sections on Windows }

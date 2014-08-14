@@ -60,9 +60,9 @@ unit cgcpu;
 
         procedure a_jmp_name(list : TAsmList;const s : string); override;
         procedure a_jmp_always(list : TAsmList;l: tasmlabel); override;
-        procedure a_jmp_flags(list : TAsmList;const f : TResFlags;l: tasmlabel); override;
 
-        procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags; reg: TRegister); override;
+        { 32x32 to 64 bit multiplication }
+        procedure a_mul_reg_reg_pair(list: TAsmList;size: tcgsize; src1,src2,dstlo,dsthi: tregister); override;
 
         procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);override;
         procedure g_proc_exit(list : TAsmList;parasize : longint;nostackframe:boolean); override;
@@ -595,7 +595,7 @@ const
 	       if (not (size in [OS_32, OS_S32])) then begin
 	         internalerror(2008091306);
 	       end;
-	       tmpreg := getintregister(current_asmdata.CurrAsmList, OS_INT);
+	       tmpreg := getintregister(list, OS_INT);
 	       list.concat(taicpu.op_reg_reg(A_NEG, tmpreg, src1));
 	       list.concat(taicpu.op_reg_reg_reg_const_const(A_RLWNM, dst, src2, tmpreg, 0, 31));
 	     end;	
@@ -680,55 +680,23 @@ const
          a_jmp(list,A_B,C_None,0,l);
        end;
 
-     procedure tcgppc.a_jmp_flags(list : TAsmList;const f : TResFlags;l: tasmlabel);
 
-       var
-         c: tasmcond;
-       begin
-         c := flags_to_cond(f);
-         a_jmp(list,A_BC,c.cond,c.cr-RS_CR0,l);
-       end;
-
-     procedure tcgppc.g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags; reg: TRegister);
-
-       var
-         testbit: byte;
-         bitvalue: boolean;
-
-       begin
-         { get the bit to extract from the conditional register + its }
-         { requested value (0 or 1)                                   }
-         testbit := ((f.cr-RS_CR0) * 4);
-         case f.flag of
-           F_EQ,F_NE:
-             begin
-               inc(testbit,2);
-               bitvalue := f.flag = F_EQ;
-             end;
-           F_LT,F_GE:
-             begin
-               bitvalue := f.flag = F_LT;
-             end;
-           F_GT,F_LE:
-             begin
-               inc(testbit);
-               bitvalue := f.flag = F_GT;
-             end;
-           else
-             internalerror(200112261);
-         end;
-         { load the conditional register in the destination reg }
-         list.concat(taicpu.op_reg(A_MFCR,reg));
-         { we will move the bit that has to be tested to bit 0 by rotating }
-         { left                                                            }
-         testbit := (testbit + 1) and 31;
-         { extract bit }
-         list.concat(taicpu.op_reg_reg_const_const_const(
-           A_RLWINM,reg,reg,testbit,31,31));
-         { if we need the inverse, xor with 1 }
-         if not bitvalue then
-           list.concat(taicpu.op_reg_reg_const(A_XORI,reg,reg,1));
-       end;
+    procedure tcgppc.a_mul_reg_reg_pair(list: TAsmList;size: tcgsize; src1,src2,dstlo,dsthi: tregister);
+      var
+        op: tasmop;
+      begin
+        case size of
+          OS_INT:  op:=A_MULHWU;
+          OS_SINT: op:=A_MULHW;
+        else
+          InternalError(2014061501);
+        end;
+        if (dsthi<>NR_NO) then
+          list.concat(taicpu.op_reg_reg_reg(op,dsthi,src1,src2));
+        { low word is always unsigned }
+        if (dstlo<>NR_NO) then
+          list.concat(taicpu.op_reg_reg_reg(A_MULLW,dstlo,src1,src2));
+      end;
 
 (*
      procedure tcgppc.g_cond2reg(list: TAsmList; const f: TAsmCond; reg: TRegister);
@@ -819,6 +787,9 @@ const
 
         usesgpr := false;
         usesfpr := false;
+        firstregint := RS_NO;
+        firstregfpu := RS_NO;
+
         if not(po_assembler in current_procinfo.procdef.procoptions) then
           begin
             { save link register? }
@@ -961,6 +932,8 @@ const
          localsize: tcgint;
       begin
         { AltiVec context restore, not yet implemented !!! }
+        firstregint:=RS_NO;
+        firstregfpu:=RS_NO;
 
         usesfpr:=false;
         usesgpr:=false;
@@ -1085,6 +1058,8 @@ const
          regcounter2, firstfpureg: Tsuperregister;
     begin
       usesfpr:=false;
+      firstreggpr:=RS_NO;
+      firstregfpu:=RS_NO;
       if not (po_assembler in current_procinfo.procdef.procoptions) then
         begin
             { FIXME: has to be R_F14 instad of R_F8 for SYSV-64bit }
@@ -1165,6 +1140,9 @@ const
 
     begin
       usesfpr:=false;
+      firstreggpr:=RS_NO;
+      firstregfpu:=RS_NO;
+
       if not (po_assembler in current_procinfo.procdef.procoptions) then
         begin
           { FIXME: has to be R_F14 instad of R_F8 for SYSV-64bit }

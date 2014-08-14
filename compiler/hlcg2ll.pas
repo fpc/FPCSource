@@ -78,9 +78,6 @@ unit hlcg2ll;
           procedure do_register_allocation(list:TAsmList;headertai:tai); inline;
           procedure translate_register(var reg : tregister); inline;
 
-          {# Emit a label to the instruction stream. }
-          procedure a_label(list : TAsmList;l : tasmlabel); inline;
-
           {# Allocates register r by inserting a pai_realloc record }
           procedure a_reg_alloc(list : TAsmList;r : tregister); inline;
           {# Deallocates register r by inserting a pa_regdealloc record}
@@ -154,7 +151,6 @@ unit hlcg2ll;
 
           function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef; weak: boolean): tcgpara;override;
           procedure a_call_reg(list : TAsmList;pd : tabstractprocdef;reg : tregister);override;
-          procedure a_call_ref(list : TAsmList;pd : tabstractprocdef;const ref : treference);override;
           { same as a_call_name, might be overridden on certain architectures to emit
             static calls without usage of a got trampoline }
           function a_call_name_static(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef): tcgpara;override;
@@ -314,7 +310,6 @@ unit hlcg2ll;
           procedure g_local_unwind(list: TAsmList; l: TAsmLabel);override;
 
           procedure location_force_reg(list:TAsmList;var l:tlocation;src_size,dst_size:tdef;maybeconst:boolean);override;
-          procedure location_force_fpureg(list:TAsmList;var l: tlocation;size: tdef;maybeconst:boolean);override;
           procedure location_force_mem(list:TAsmList;var l:tlocation;size:tdef);override;
           procedure location_force_mmregscalar(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);override;
 //          procedure location_force_mmreg(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);override;
@@ -414,11 +409,6 @@ implementation
       cg.translate_register(reg);
     end;
 
-  procedure thlcg2ll.a_label(list: TAsmList; l: tasmlabel); inline;
-    begin
-      cg.a_label(list,l);
-    end;
-
   procedure thlcg2ll.a_reg_alloc(list: TAsmList; r: tregister);
     begin
       cg.a_reg_alloc(list,r);
@@ -468,11 +458,6 @@ implementation
   procedure thlcg2ll.a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister);
     begin
       cg.a_call_reg(list,reg);
-    end;
-
-  procedure thlcg2ll.a_call_ref(list: TAsmList; pd: tabstractprocdef; const ref: treference);
-    begin
-      cg.a_call_ref(list,ref);
     end;
 
   function thlcg2ll.a_call_name_static(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef): tcgpara;
@@ -1029,7 +1014,7 @@ implementation
       hl: tasmlabel;
       oldloc : tlocation;
       const_location: boolean;
-      dst_cgsize: tcgsize;
+      dst_cgsize,tmpsize: tcgsize;
     begin
       oldloc:=l;
       dst_cgsize:=def_cgsize(dst_size);
@@ -1059,7 +1044,7 @@ implementation
 {$ifdef cpuflags}
               LOC_FLAGS :
                 begin
-                  cg.g_flags2reg(list,OS_INT,l.resflags,hregister);
+                  cg.g_flags2reg(list,OS_32,l.resflags,hregister);
                   cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
                 end;
 {$endif cpuflags}
@@ -1072,6 +1057,9 @@ implementation
                   cg.a_label(list,current_procinfo.CurrFalseLabel);
                   cg.a_load_const_reg(list,OS_INT,0,hregister);
                   cg.a_label(list,hl);
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+                  cg.a_load_reg_reg(list,OS_INT,OS_32,hregister,hregister);
+{$endif}
                 end;
               else
                 a_load_loc_reg(list,src_size,u32inttype,l,hregister);
@@ -1083,7 +1071,7 @@ implementation
                if l.loc=LOC_CONSTANT then
                 begin
                   if (longint(l.value)<0) then
-                   cg.a_load_const_reg(list,OS_32,aint($ffffffff),hregisterhi)
+                   cg.a_load_const_reg(list,OS_32,longint($ffffffff),hregisterhi)
                   else
                    cg.a_load_const_reg(list,OS_32,0,hregisterhi);
                 end
@@ -1157,13 +1145,21 @@ implementation
 {$endif cpuflags}
             LOC_JUMP :
               begin
+                tmpsize:=dst_cgsize;
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+                if TCGSize2Size[dst_cgsize]>TCGSize2Size[OS_INT] then
+                  tmpsize:=OS_INT;
+{$endif}
                 cg.a_label(list,current_procinfo.CurrTrueLabel);
-                cg.a_load_const_reg(list,dst_cgsize,1,hregister);
+                cg.a_load_const_reg(list,tmpsize,1,hregister);
                 current_asmdata.getjumplabel(hl);
                 cg.a_jmp_always(list,hl);
                 cg.a_label(list,current_procinfo.CurrFalseLabel);
-                cg.a_load_const_reg(list,dst_cgsize,0,hregister);
+                cg.a_load_const_reg(list,tmpsize,0,hregister);
                 cg.a_label(list,hl);
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+                cg.a_load_reg_reg(list,tmpsize,dst_cgsize,hregister,hregister);
+{$endif}
               end;
             else
               begin
@@ -1215,11 +1211,6 @@ implementation
       { Release temp when it was a reference }
       if oldloc.loc=LOC_REFERENCE then
           location_freetemp(list,oldloc);
-    end;
-
-  procedure thlcg2ll.location_force_fpureg(list: TAsmList; var l: tlocation; size: tdef; maybeconst: boolean);
-    begin
-      ncgutil.location_force_fpureg(list,l,maybeconst);
     end;
 
   procedure thlcg2ll.location_force_mem(list: TAsmList; var l: tlocation; size: tdef);
@@ -1419,10 +1410,16 @@ implementation
                by typecasting an int64 constant to a record of 8 bytes }
              if locsize = OS_F64 then
                begin
-                 tmploc:=l;
-                 location_force_mem(list,tmploc,size);
-                 cg.a_load_loc_cgpara(list,tmploc,cgpara);
-                 location_freetemp(list,tmploc);
+                 if (cgpara.Location^.Next=nil) and (l.size in [OS_64,OS_S64]) and
+                   (cgpara.size in [OS_64,OS_S64]) then
+                   cg64.a_load64_reg_cgpara(list,l.register64,cgpara)
+                 else
+                   begin
+                     tmploc:=l;
+                     location_force_mem(list,tmploc,size);
+                     cg.a_load_loc_cgpara(list,tmploc,cgpara);
+                     location_freetemp(list,tmploc);
+                   end;
                end
              else
 {$endif not cpu64bitalu}
@@ -1437,6 +1434,10 @@ implementation
     var
       tmploc: tlocation;
     begin
+      { skip e.g. empty records }
+      if (cgpara.location^.loc = LOC_VOID) then
+        exit;
+
       { Handle Floating point types differently
 
         This doesn't depend on emulator settings, emulator settings should

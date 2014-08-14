@@ -61,7 +61,7 @@ implementation
     uses
       verbose,cutils,globtype,globals,constexp,fmodule,
       aasmdata,aasmtai,cpubase,aasmcpu,
-      symbase,symtable,defutil,jvmdef,
+      symbase,symcpu,symtable,defutil,jvmdef,
       ncnv,ncon,ninl,ncal,nld,nmem,
       ppu,
       pass_1;
@@ -197,7 +197,7 @@ implementation
         java.lang.ThreadLocal class which will wrap the actual variable value }
       if vo_is_thread_var in sym.varoptions then
         begin
-          vs:=tstaticvarsym.create(sym.realname+'$threadvar',sym.varspez,
+          vs:=cstaticvarsym.create(sym.realname+'$threadvar',sym.varspez,
             jvmgetthreadvardef(sym.vardef),
             sym.varoptions - [vo_is_thread_var]);
           sym.owner.insert(vs);
@@ -223,7 +223,7 @@ implementation
           { in case of enum type, initialize with enum(0) if it exists }
           if sym.vardef.typ=enumdef then
             begin
-              enuminitsym:=tstaticvarsym(tenumdef(sym.vardef).getbasedef.classdef.symtable.Find('__FPC_ZERO_INITIALIZER'));
+              enuminitsym:=tstaticvarsym(tcpuenumdef(tenumdef(sym.vardef).getbasedef).classdef.symtable.Find('__FPC_ZERO_INITIALIZER'));
               if assigned(enuminitsym) then
                 initnode:=cloadnode.create(enuminitsym,enuminitsym.owner);
             end
@@ -413,7 +413,7 @@ implementation
       mainpd:=tprocsym(mainpsym).find_procdef_bytype(potype_proginit);
       if not assigned(mainpd) then
         internalerror(2011041902);
-      mainpd.exprasmlist.insertList(unitinits);
+      tcpuprocdef(mainpd).exprasmlist.insertList(unitinits);
       unitinits.free;
     end;
 
@@ -467,7 +467,7 @@ implementation
       if (tprocdef(pd).proctypeoption=potype_proginit) then
         begin
           { add the args parameter }
-          pvs:=tparavarsym.create('$args',1,vs_const,search_system_type('TJSTRINGARRAY').typedef,[]);
+          pvs:=cparavarsym.create('$args',1,vs_const,search_system_type('TJSTRINGARRAY').typedef,[]);
           tprocdef(pd).parast.insert(pvs);
           tprocdef(pd).calcparas;
         end;

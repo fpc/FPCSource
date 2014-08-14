@@ -32,7 +32,7 @@ unit cpunode;
 
     uses
        { generic nodes }
-       ncgbas,ncgld,ncgflw,ncgcnv,ncgmem,ncgcon,ncgcal,ncgset,ncginl
+       ncgbas,ncgld,ncgflw,ncgcnv,ncgmem,ncgcon,ncgcal,ncgset,ncginl,
        { to be able to only parts of the generic code,
          the processor specific nodes must be included
          after the generic one (FK)
@@ -48,7 +48,9 @@ unit cpunode;
        { this not really a node }
 //       naxpobj,
 //       naxpmat,
-//       naxpcnv
+//       naxpcnv,
+         { symtable }
+         symcpu
        ;
 
 end.

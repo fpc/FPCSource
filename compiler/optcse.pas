@@ -60,13 +60,17 @@ unit optcse;
         derefn,equaln,unequaln,ltn,gtn,lten,gten,typeconvn,subscriptn,
         inn,symdifn,shrn,shln,ordconstn,realconstn,unaryminusn,pointerconstn,stringconstn,setconstn,niln,
         setelementn,{arrayconstructorn,arrayconstructorrangen,}
-        isn,asn,starstarn,nothingn,temprefn,loadparentfpn {,callparan},assignn];
+        isn,asn,starstarn,nothingn,temprefn,loadparentfpn {,callparan},assignn,addrn];
 
     function searchsubdomain(var n:tnode; arg: pointer) : foreachnoderesult;
       begin
         if (n.nodetype in cseinvariant) or
           ((n.nodetype=inlinen) and
-           (tinlinenode(n).inlinenumber in [in_assigned_x])
+           (tinlinenode(n).inlinenumber in [in_assigned_x,in_sqr_real,in_sqrt_real,in_sin_real,in_cos_real,in_abs_long,
+             in_abs_real,in_exp_real,in_ln_real,in_pi_real,in_popcnt_x,in_arctan_real,in_round_real,in_trunc_real,
+             { cse on fma will still not work because it would require proper handling of call nodes
+               with more than one parameter }
+             in_fma_single,in_fma_double,in_fma_extended,in_fma_float128])
           ) or
           ((n.nodetype=callparan) and not(assigned(tcallparanode(n).right))) or
           ((n.nodetype=loadn) and
@@ -151,10 +155,10 @@ unit optcse;
           assigned(n.resultdef) and
           (
             { regable expressions }
-            (actualtargetnode(@n)^.flags*[nf_write,nf_modify]=[]) and
-            ((tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable) and
+            (actualtargetnode(@n)^.flags*[nf_write,nf_modify,nf_address_taken]=[]) and
+            ((((tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable or tstoreddef(n.resultdef).is_const_intregable) and
             { is_int/fpuregable allows arrays and records to be in registers, cse cannot handle this }
-            (not(n.resultdef.typ in [arraydef,recorddef])) and
+            (not(n.resultdef.typ in [arraydef,recorddef]))) or is_dynamic_array(n.resultdef)) and
             { same for voiddef }
             not(is_void(n.resultdef)) and
             { adding tempref and callpara nodes itself is worthless but
@@ -180,8 +184,10 @@ unit optcse;
             }
             (not(actualtargetnode(@n)^.nodetype=loadn) or
              not(tloadnode(actualtargetnode(@n)^).symtableentry.typ in [paravarsym,localvarsym,staticvarsym]) or
-             { apply cse on non-regable static variables }
-             ((tloadnode(actualtargetnode(@n)^).symtableentry.typ=staticvarsym) and (tstaticvarsym(tloadnode(actualtargetnode(@n)^).symtableentry).varregable=vr_none)) or
+             { apply cse on non-regable variables }
+             ((tloadnode(actualtargetnode(@n)^).symtableentry.typ in [paravarsym,localvarsym,staticvarsym]) and
+               not(tabstractvarsym(tloadnode(actualtargetnode(@n)^).symtableentry).is_regvar(false)) and
+               not(vo_volatile in tabstractvarsym(tloadnode(actualtargetnode(@n)^).symtableentry).varoptions)) or
              (node_complexity(n)>1)
             ) and
 
@@ -191,19 +197,19 @@ unit optcse;
               more than one instruction to load this particular value
             }
             (not(is_constnode(n)) or (node_complexity(n)>1)))
-{$ifndef x86}
+{$if not(defined(i386)) and not(defined(i8086))}
             or
             { store reference of expression? }
 
             { loading the address of a global symbol takes typically more than
-              one instruction on every platform except x86
+              one instruction on every platform except i8086/i386
               so consider in this case loading the address of the data
             }
-            (((n.resultdef.typ in [arraydef,recorddef]) or is_object(n.resultdef)) and
+            (((n.resultdef.typ in [arraydef,recorddef]) or is_object(n.resultdef)) and not(is_dynamic_array(n.resultdef)) and
              (n.nodetype=loadn) and
              (tloadnode(n).symtableentry.typ=staticvarsym)
             )
-{$endif x86}
+{$endif not(defined(i386)) and not(defined(i8086))}
           ) then
           begin
             plists(arg)^.nodelist.Add(n);
@@ -223,6 +229,10 @@ unit optcse;
                     else
                       plists(arg)^.equalto[plists(arg)^.nodelist.count-1]:=pointer(ptrint(i));
                     plists(arg)^.refs[i]:=pointer(plists(arg)^.refs[i])+1;
+                    { tree has been found, no need to search further,
+                      sub-trees have been added by the first occurence of
+                      the tree already }
+                    result:=fen_norecurse_false;
                     break;
                   end;
               end;
@@ -269,6 +279,7 @@ unit optcse;
         hp2 : tnode;
       begin
         result:=fen_false;
+        nodes:=nil;
         if n.nodetype in cseinvariant then
           begin
             csedomain:=true;
@@ -367,14 +378,21 @@ unit optcse;
                         def:=tstoreddef(tnode(lists.nodelist[i]).resultdef);
                         { we cannot handle register stored records or array in CSE yet
                           but we can store their reference }
-                        addrstored:=(def.typ in [arraydef,recorddef]) or is_object(def);
+                        addrstored:=((def.typ in [arraydef,recorddef]) or is_object(def)) and not(is_dynamic_array(def));
 
                         if addrstored then
                           templist[i]:=ctempcreatenode.create_value(getpointerdef(def),voidpointertype.size,tt_persistent,
-                            true,caddrnode.create(tnode(lists.nodelist[i])))
+                            true,caddrnode.create_internal(tnode(lists.nodelist[i])))
                         else
                           templist[i]:=ctempcreatenode.create_value(def,def.size,tt_persistent,
-                            def.is_intregable or def.is_fpuregable,tnode(lists.nodelist[i]));
+                            def.is_intregable or def.is_fpuregable or def.is_const_intregable,tnode(lists.nodelist[i]));
+
+                        { the value described by the temp. is immutable and the temp. can be always in register
+
+                          ttempcreatenode.create normally takes care of the register location but it does not
+                          know about immutability so it cannot take care of managed types }
+                        include(ttempcreatenode(templist[i]).tempinfo^.flags,ti_const);
+                        include(ttempcreatenode(templist[i]).tempinfo^.flags,ti_may_be_in_reg);
 
                         { make debugging easier and set temp. location to the original location }
                         tnode(templist[i]).fileinfo:=tnode(lists.nodelist[i]).fileinfo;
@@ -405,7 +423,7 @@ unit optcse;
                         def:=tstoreddef(tnode(lists.nodelist[i]).resultdef);
                         { we cannot handle register stored records or array in CSE yet
                           but we can store their reference }
-                        addrstored:=(def.typ in [arraydef,recorddef]) or is_object(def);
+                        addrstored:=((def.typ in [arraydef,recorddef]) or is_object(def)) and not(is_dynamic_array(def));
 
 {$if defined(csedebug) or defined(csestats)}
                         writeln;

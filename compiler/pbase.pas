@@ -65,6 +65,7 @@ interface
        parse_generic : boolean;
 
     procedure identifier_not_found(const s:string);
+    procedure identifier_not_found(const s:string;const filepos:tfileposinfo);
 
 {    function tokenstring(i : ttoken):string;}
 
@@ -115,6 +116,18 @@ implementation
             (Upper(s)=pattern) and
             (m_class in tokeninfo^[idtoken].keyword) then
            Message(parser_f_need_objfpc_or_delphi_mode);
+       end;
+
+
+     procedure identifier_not_found(const s:string;const filepos:tfileposinfo);
+       begin
+         MessagePos1(filepos,sym_e_id_not_found,s);
+         { show a fatal that you need -S2 or -Sd, but only
+           if we just parsed the a token that has m_class }
+         if not(m_class in current_settings.modeswitches) and
+            (Upper(s)=pattern) and
+            (m_class in tokeninfo^[idtoken].keyword) then
+           MessagePos(filepos,parser_f_need_objfpc_or_delphi_mode);
        end;
 
 
@@ -343,34 +356,49 @@ implementation
       begin
         try_consume_hintdirective:=false;
         if not(m_hintdirective in current_settings.modeswitches) then
-         exit;
+          exit;
         repeat
           last_is_deprecated:=false;
           case idtoken of
-            _LIBRARY :
+            _LIBRARY:
               begin
-                include(symopt,sp_hint_library);
+                if sp_hint_library in symopt then
+                  Message1(parser_e_dir_not_allowed,arraytokeninfo[idtoken].str)
+                else
+                  include(symopt,sp_hint_library);
                 try_consume_hintdirective:=true;
               end;
-            _DEPRECATED :
+            _DEPRECATED:
               begin
-                include(symopt,sp_hint_deprecated);
+                if sp_hint_deprecated in symopt then
+                  Message1(parser_e_dir_not_allowed,arraytokeninfo[idtoken].str)
+                else
+                  include(symopt,sp_hint_deprecated);
                 try_consume_hintdirective:=true;
                 last_is_deprecated:=true;
               end;
-            _EXPERIMENTAL :
+            _EXPERIMENTAL:
               begin
-                include(symopt,sp_hint_experimental);
+                if sp_hint_experimental in symopt then
+                  Message1(parser_e_dir_not_allowed,arraytokeninfo[idtoken].str)
+                else
+                  include(symopt,sp_hint_experimental);
                 try_consume_hintdirective:=true;
               end;
-            _PLATFORM :
+            _PLATFORM:
               begin
-                include(symopt,sp_hint_platform);
+                if sp_hint_platform in symopt then
+                  Message1(parser_e_dir_not_allowed,arraytokeninfo[idtoken].str)
+                else
+                  include(symopt,sp_hint_platform);
                 try_consume_hintdirective:=true;
               end;
-            _UNIMPLEMENTED :
+            _UNIMPLEMENTED:
               begin
-                include(symopt,sp_hint_unimplemented);
+                if sp_hint_unimplemented in symopt then
+                  Message1(parser_e_dir_not_allowed,arraytokeninfo[idtoken].str)
+                else
+                  include(symopt,sp_hint_unimplemented);
                 try_consume_hintdirective:=true;
               end;
             else
@@ -380,12 +408,13 @@ implementation
           { handle deprecated message }
           if ((token=_CSTRING) or (token=_CCHAR)) and last_is_deprecated then
             begin
-              if deprecatedmsg<>nil then
-                internalerror(200910181);
-              if token=_CSTRING then
-                deprecatedmsg:=stringdup(cstringpattern)
-              else
-                deprecatedmsg:=stringdup(pattern);
+              if not assigned(deprecatedmsg) then
+                begin
+                  if token=_CSTRING then
+                    deprecatedmsg:=stringdup(cstringpattern)
+                  else
+                    deprecatedmsg:=stringdup(pattern);
+                end;
               consume(token);
               include(symopt,sp_has_deprecated_msg);
             end;

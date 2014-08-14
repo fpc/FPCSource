@@ -23,6 +23,13 @@ unit i_msdos;
 
 {$i fpcdefs.inc}
 
+{$ifdef go32v2}
+  { As wlib uses a different Dos-Extender, long-command line
+    encoding for DJGPP does not work here.
+    Put all inside a script file instead }
+  {$define USE_SCRIPTED_WLIB}
+{$endif}
+
   interface
 
     uses
@@ -50,7 +57,7 @@ unit i_msdos;
             resext       : '.res';
             resobjext    : '.or';
             sharedlibext : '.dll';
-            staticlibext : '.lib';
+            staticlibext : '.a';
             staticlibprefix : '';
             sharedlibprefix : '';
             sharedClibext : '.dll';
@@ -62,11 +69,15 @@ unit i_msdos;
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '\';
-            assem        : as_i386_nasmobj;
-            assemextern  : as_i386_nasmobj;
+            assem        : as_i8086_nasmobj;
+            assemextern  : as_i8086_nasmobj;
             link         : ld_none;
             linkextern   : ld_msdos;
+{$ifdef USE_SCRIPTED_WLIB}
+            ar           : ar_watcom_wlib_omf_scripted;
+{$else}
             ar           : ar_watcom_wlib_omf;
+{$endif}
             res          : res_none;
             dbg          : dbg_stabs;
             script       : script_dos;
@@ -87,7 +98,7 @@ unit i_msdos;
                 maxCrecordalign : 2
               );
             first_parm_offset : 4;
-            stacksize    : 4096;
+            stacksize    : 0;
             stackalign   : 2;
             abi          : abi_default;
           );

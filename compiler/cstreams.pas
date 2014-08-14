@@ -450,6 +450,11 @@ begin
           l:=0;
          System.Seek(FHandle,l);
        end;
+     else
+       begin
+         CStreamError:=103;
+         l:=Offset;
+       end;
    end;
   {$pop}
   CStreamError:=IOResult;
@@ -549,7 +554,10 @@ begin
     Result:=FMemory
   else
     If NewCapacity=0 then
-      FreeMem (FMemory,Fcapacity)
+      begin
+        FreeMem (FMemory,Fcapacity);
+        Result:=nil;
+      end
     else
       begin
       GetMem (Result,NewCapacity);

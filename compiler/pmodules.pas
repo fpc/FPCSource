@@ -184,7 +184,7 @@ implementation
            assigned(hp.globalmacrosymtable) then
           macrosymtablestack.push(hp.globalmacrosymtable);
         { insert unitsym }
-        unitsym:=tunitsym.create(s,hp);
+        unitsym:=cunitsym.create(s,hp);
         inc(unitsym.refs);
         tabstractunitsymtable(current_module.localsymtable).insertunit(unitsym);
         { add to used units }
@@ -374,11 +374,11 @@ implementation
           end;
 
         { CPU targets with microcontroller support can add a controller specific unit }
-{$if defined(ARM) or defined(AVR)}
+{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
         if (target_info.system in systems_embedded) and (current_settings.controllertype<>ct_none) and
           (embedded_controllers[current_settings.controllertype].controllerunitstr<>'') then
           AddUnit(embedded_controllers[current_settings.controllertype].controllerunitstr);
-{$endif ARM}
+{$endif ARM AVR MIPSEL}
       end;
 
 
@@ -457,7 +457,7 @@ implementation
                 can not use the modulename because that can be different
                 when -Un is used }
               current_tokenpos:=filepos;
-              unitsym:=tunitsym.create(sorg,nil);
+              unitsym:=cunitsym.create(sorg,nil);
               tabstractunitsymtable(current_module.localsymtable).insertunit(unitsym);
               { the current module uses the unit hp2 }
               current_module.addusedunit(hp2,true,unitsym);
@@ -503,7 +503,7 @@ implementation
                   assigned(pu.u.globalmacrosymtable) then
                  macrosymtablestack.push(pu.u.globalmacrosymtable);
                { check hints }
-               pu.u.check_hints;
+               pu.check_hints;
              end;
             pu:=tused_unit(pu.next);
           end;
@@ -561,7 +561,7 @@ implementation
         if assigned(current_procinfo) then
          internalerror(200304275);
         {Generate a procsym for main}
-        ps:=tprocsym.create('$'+name);
+        ps:=cprocsym.create('$'+name);
         { main are allways used }
         inc(ps.refs);
         st.insert(ps);
@@ -604,7 +604,7 @@ implementation
             (tf_pic_uses_got in target_info.flags) then
            begin
              { insert symbol for got access in assembler code}
-             gotvarsym:=tstaticvarsym.create('_GLOBAL_OFFSET_TABLE_',
+             gotvarsym:=cstaticvarsym.create('_GLOBAL_OFFSET_TABLE_',
                           vs_value,voidpointertype,[vo_is_external]);
              gotvarsym.set_mangledname('_GLOBAL_OFFSET_TABLE_');
              current_module.localsymtable.insert(gotvarsym);
@@ -712,11 +712,11 @@ implementation
           { java_jlobject may not have been parsed yet (system unit); in any
             case, we only use this to refer to the class type, so inheritance
             does not matter }
-          def:=tobjectdef.create(odt_javaclass,'__FPC_JVM_Module_Class_Alias$',nil);
+          def:=cobjectdef.create(odt_javaclass,'__FPC_JVM_Module_Class_Alias$',nil);
           include(def.objectoptions,oo_is_external);
           include(def.objectoptions,oo_is_sealed);
           def.objextname:=stringdup(current_module.realmodulename^);
-          typesym:=ttypesym.create('__FPC_JVM_Module_Class_Alias$',def);
+          typesym:=ctypesym.create('__FPC_JVM_Module_Class_Alias$',def);
           symtablestack.top.insert(typesym);
         end;
 {$endif jvm}
@@ -803,12 +803,15 @@ type
          try_consume_hintdirective(current_module.moduleoptions, current_module.deprecatedmsg);
 
          consume(_SEMICOLON);
-         consume(_INTERFACE);
-         { global switches are read, so further changes aren't allowed }
-         current_module.in_global:=false;
 
-         { handle the global switches }
+         { handle the global switches, do this before interface, because after interface has been
+           read, all following directives are parsed as well }
          setupglobalswitches;
+
+         consume(_INTERFACE);
+
+         { global switches are read, so further changes aren't allowed  }
+         current_module.in_global:=false;
 
          message1(unit_u_loading_interface_units,current_module.modulename^);
 
@@ -831,7 +834,7 @@ type
 
          { insert unitsym of this unit to prevent other units having
            the same name }
-         tabstractunitsymtable(current_module.localsymtable).insertunit(tunitsym.create(current_module.realmodulename^,current_module));
+         tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module));
 
          { load default units, like the system unit }
          loaddefaultunits;
@@ -1028,6 +1031,7 @@ type
         globalstate : tglobalstate;
         waitingmodule : tmodule;
       begin
+         fillchar(globalstate,sizeof(tglobalstate),0);
          if not immediate then
            begin
 {$ifdef DEBUG_UNITWAITING}
@@ -1648,13 +1652,15 @@ type
          if tf_library_needs_pic in target_info.flags then
            include(current_settings.moduleswitches,cs_create_pic);
 
+         { setup things using the switches, do this before the semicolon, because after the semicolon has been
+           read, all following directives are parsed as well }
+
+         setupglobalswitches;
+
          consume(_SEMICOLON);
 
          { global switches are read, so further changes aren't allowed }
          current_module.in_global:=false;
-
-         { setup things using the switches }
-         setupglobalswitches;
 
          { set implementation flag }
          current_module.in_interface:=false;
@@ -1702,7 +1708,7 @@ type
 
          {Insert the name of the main program into the symbol table.}
          if current_module.realmodulename^<>'' then
-           tabstractunitsymtable(current_module.localsymtable).insertunit(tunitsym.create(current_module.realmodulename^,current_module));
+           tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module));
 
          Message1(parser_u_parsing_implementation,current_module.mainsource);
 
@@ -1887,6 +1893,11 @@ type
 
 
     procedure proc_program(islibrary : boolean);
+      type
+        TProgramParam = record
+          name : ansistring;
+          nr : dword;
+        end;
       var
          main_file : tinputfile;
          hp,hp2    : tmodule;
@@ -1897,6 +1908,11 @@ type
          resources_used : boolean;
          program_name : ansistring;
          consume_semicolon_after_uses : boolean;
+         ps : tstaticvarsym;
+         paramnum : longint;
+         textsym : ttypesym;
+         sc : array of TProgramParam;
+         i : Longint;
       begin
          DLLsource:=islibrary;
          Status.IsLibrary:=IsLibrary;
@@ -1907,6 +1923,8 @@ type
          init_procinfo:=nil;
          finalize_procinfo:=nil;
          resources_used:=false;
+         { make the compiler happy and avoid an uninitialized variable warning on Setlength(sc,length(sc)+1); }
+         sc:=nil;
 
          { DLL defaults to create reloc info }
          if islibrary then
@@ -1959,6 +1977,10 @@ type
               if tf_library_needs_pic in target_info.flags then
                 include(current_settings.moduleswitches,cs_create_pic);
 
+              { setup things using the switches, do this before the semicolon, because after the semicolon has been
+                read, all following directives are parsed as well }
+              setupglobalswitches;
+
               consume(_SEMICOLON);
            end
          else
@@ -1980,28 +2002,51 @@ type
               if token=_LKLAMMER then
                 begin
                    consume(_LKLAMMER);
+                   paramnum:=1;
                    repeat
+                     if m_iso in current_settings.modeswitches then
+                       begin
+                         if (pattern<>'INPUT') and (pattern<>'OUTPUT') then
+                           begin
+                             { the symtablestack is not setup here, so text must be created later on }
+                             Setlength(sc,length(sc)+1);
+                             with sc[high(sc)] do
+                               begin
+                                 name:=pattern;
+                                 nr:=paramnum;
+                               end;
+                             inc(paramnum);
+                           end;
+                       end;
                      consume(_ID);
                    until not try_to_consume(_COMMA);
                    consume(_RKLAMMER);
                 end;
+
+              { setup things using the switches, do this before the semicolon, because after the semicolon has been
+                read, all following directives are parsed as well }
+              setupglobalswitches;
+
               consume(_SEMICOLON);
             end
-         else if (target_info.system in systems_unit_program_exports) then
-           exportlib.preparelib(current_module.realmodulename^);
+         else
+           begin
+             if (target_info.system in systems_unit_program_exports) then
+               exportlib.preparelib(current_module.realmodulename^);
+
+             { setup things using the switches }
+             setupglobalswitches;
+           end;
 
          { global switches are read, so further changes aren't allowed }
          current_module.in_global:=false;
-
-         { setup things using the switches }
-         setupglobalswitches;
 
          { set implementation flag }
          current_module.in_interface:=false;
          current_module.interface_compiled:=true;
 
-         { insert after the unit symbol tables the static symbol table }
-         { of the program                                             }
+         { insert after the unit symbol tables the static symbol table
+           of the program                                              }
          current_module.localsymtable:=tstaticsymtable.create(current_module.modulename^,current_module.moduleid);
 
          { load standard units (system,objpas,profile unit) }
@@ -2010,7 +2055,22 @@ type
          { Load units provided on the command line }
          loadautounits;
 
-         {Load the units used by the program we compile.}
+         { insert iso program parameters }
+         if length(sc)>0 then
+           begin
+             textsym:=search_system_type('TEXT');
+             if not(assigned(textsym)) then
+               internalerror(2013011201);
+             for i:=0 to high(sc) do
+               begin
+                 ps:=cstaticvarsym.create(sc[i].name,vs_value,textsym.typedef,[]);
+                 ps.isoindex:=sc[i].nr;
+                 current_module.localsymtable.insert(ps,true);
+                 cnodeutils.insertbssdata(tstaticvarsym(ps));
+               end;
+           end;
+
+         { Load the units used by the program we compile. }
          if token=_USES then
            begin
              loadunits(nil);
@@ -2029,7 +2089,7 @@ type
 
          {Insert the name of the main program into the symbol table.}
          if current_module.realmodulename^<>'' then
-           tabstractunitsymtable(current_module.localsymtable).insertunit(tunitsym.create(current_module.realmodulename^,current_module));
+           tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module));
 
          Message1(parser_u_parsing_implementation,current_module.mainsource);
 

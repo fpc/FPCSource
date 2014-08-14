@@ -163,9 +163,9 @@ interface
 {$endif defined(ARM)}
 
         { CPU targets with microcontroller support can add a controller specific unit }
-{$if defined(ARM) or defined(AVR)}
+{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
          controllertype   : tcontrollertype;
-{$endif defined(ARM) or defined(AVR)}
+{$endif defined(ARM) or defined(AVR) or defined(MIPSEL)}
          { WARNING: this pointer cannot be written as such in record token }
          pmessage : pmessagestaterecord;
        end;
@@ -228,6 +228,9 @@ interface
        wpofeedbackinput,
        wpofeedbackoutput : TPathStr;
 
+       { external assembler extra option }
+       asmextraopt       : string;
+
        { things specified with parameters }
        paratarget        : tsystem;
        paratargetdbg     : tdbg;
@@ -253,8 +256,11 @@ interface
        do_build,
        do_release,
        do_make       : boolean;
+       { Path to ppc }
+       exepath       : TPathStr;
+       { Path to unicode charmap/collation binaries }
+       unicodepath   : TPathStr;
        { path for searching units, different paths can be seperated by ; }
-       exepath            : TPathStr;  { Path to ppc }
        librarysearchpath,
        unitsearchpath,
        objectsearchpath,
@@ -316,6 +322,7 @@ interface
        pendingstate       : tpendingstate;
      { Memory sizes }
        heapsize,
+       maxheapsize,
        stacksize,
        jmp_buf_size,
        jmp_buf_align : longint;
@@ -324,7 +331,7 @@ interface
      { parameter switches }
        debugstop : boolean;
 {$EndIf EXTDEBUG}
-       { Application type (platform specific) 
+       { Application type (platform specific)
          see globtype.pas for description }
        apptype : tapptype;
 
@@ -387,7 +394,7 @@ interface
         globalswitches : [cs_check_unit_name,cs_link_static];
         targetswitches : [];
         moduleswitches : [cs_extsyntax,cs_implicit_exceptions];
-        localswitches : [cs_check_io,cs_typed_const_writable,cs_pointermath];
+        localswitches : [cs_check_io,cs_typed_const_writable,cs_pointermath{$ifdef i8086},cs_force_far_calls{$endif}];
         modeswitches : fpcmodeswitches;
         optimizerswitches : [];
         genwpoptimizerswitches : [];
@@ -397,7 +404,11 @@ interface
         setalloc : 0;
         packenum : 4;
 
+{$ifdef i8086}
+        packrecords     : 1;
+{$else i8086}
         packrecords     : 0;
+{$endif i8086}
         maxfpuregisters : 0;
 
 { Note: GENERIC_CPU is sued together with generic subdirectory to
@@ -491,9 +502,9 @@ interface
 {$if defined(ARM)}
         instructionset : is_arm;
 {$endif defined(ARM)}
-{$if defined(ARM) or defined(AVR)}
+{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
         controllertype : ct_none;
-{$endif defined(ARM) or defined(AVR)}
+{$endif defined(ARM) or defined(AVR) or defined(MIPSEL)}
         pmessage : nil;
       );
 
@@ -525,13 +536,9 @@ interface
     function Setoptimizecputype(const s:string;var a:tcputype):boolean;
     function Setcputype(const s:string;var a:tsettings):boolean;
     function SetFpuType(const s:string;var a:tfputype):boolean;
-{$if defined(arm) or defined(avr)}
+{$if defined(arm) or defined(avr) or defined(mipsel)}
     function SetControllerType(const s:string;var a:tcontrollertype):boolean;
-{$endif defined(arm) or defined(avr)}
-    function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;
-    function UpdateOptimizerStr(s:string;var a:toptimizerswitches):boolean;
-    function UpdateWpoStr(s: string; var a: twpoptimizerswitches): boolean;
-    function UpdateDebugStr(s:string;var a:tdebugswitches):boolean;
+{$endif defined(arm) or defined(avr) or defined(mipsel)}
     function IncludeFeature(const s : string) : boolean;
     function SetMinFPConstPrec(const s: string; var a: tfloattype) : boolean;
 
@@ -560,11 +567,7 @@ implementation
       macutils,
 {$endif}
 {$ifdef mswindows}
-{$ifdef VER2_4}
-      cwindirs,
-{$else VER2_4}
       windirs,
-{$endif VER2_4}
 {$endif}
       comphook;
 
@@ -916,7 +919,7 @@ implementation
         {$undef GETENVOK}
       {$else}
         GetEnvPchar:=StrPNew(GetEnvironmentVariable(envname));
-        if (length(GetEnvPChar)=0) then 
+        if (length(GetEnvPChar)=0) then
           begin
             FreeEnvPChar(GetEnvPChar);
             GetEnvPChar:=nil;
@@ -1107,7 +1110,9 @@ implementation
              (abiinfo[t].name=hs) then
             begin
               a:=t;
-              result:=true;
+              { abi_old_win32_gnu is a win32 i386 specific "feature" }
+              if (t<>abi_old_win32_gnu) or (target_info.system=system_i386_win32) then
+                result:=true;
               break;
             end;
       end;
@@ -1148,7 +1153,7 @@ implementation
         { set default instruction set for arm }
         if result then
           begin
-            if a.cputype in [cpu_armv6m,cpu_armv6t2,cpu_armv7m] then
+            if a.cputype in [cpu_armv6m,cpu_armv6t2,cpu_armv7m,cpu_armv7em] then
               a.instructionset:=is_thumb
             else
               a.instructionset:=is_arm;
@@ -1172,7 +1177,7 @@ implementation
       end;
 
 
-{$if defined(arm) or defined(avr)}
+{$if defined(arm) or defined(avr) or defined(mipsel)}
     function SetControllerType(const s:string;var a:tcontrollertype):boolean;
       var
         t  : tcontrollertype;
@@ -1188,206 +1193,7 @@ implementation
               break;
             end;
       end;
-{$endif defined(arm) or defined(avr)}
-
-
-    function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;
-      var
-        tok  : string;
-        vstr : string;
-        l    : longint;
-        code : integer;
-        b    : talignmentinfo;
-      begin
-        UpdateAlignmentStr:=true;
-        uppervar(s);
-        fillchar(b,sizeof(b),0);
-        repeat
-          tok:=GetToken(s,'=');
-          if tok='' then
-           break;
-          vstr:=GetToken(s,',');
-          val(vstr,l,code);
-          if tok='PROC' then
-           b.procalign:=l
-          else if tok='JUMP' then
-           b.jumpalign:=l
-          else if tok='LOOP' then
-           b.loopalign:=l
-          else if tok='CONSTMIN' then
-           begin
-             b.constalignmin:=l;
-             if l>b.constalignmax then
-               b.constalignmax:=l;
-           end
-          else if tok='CONSTMAX' then
-           b.constalignmax:=l
-          else if tok='VARMIN' then
-           begin
-             b.varalignmin:=l;
-             if l>b.varalignmax then
-               b.varalignmax:=l;
-           end
-          else if tok='VARMAX' then
-           b.varalignmax:=l
-          else if tok='LOCALMIN' then
-           begin
-             b.localalignmin:=l;
-             if l>b.localalignmax then
-               b.localalignmax:=l;
-           end
-          else if tok='LOCALMAX' then
-           b.localalignmax:=l
-          else if tok='RECORDMIN' then
-           begin
-             b.recordalignmin:=l;
-             if l>b.recordalignmax then
-               b.recordalignmax:=l;
-           end
-          else if tok='RECORDMAX' then
-           b.recordalignmax:=l
-          else { Error }
-           UpdateAlignmentStr:=false;
-        until false;
-        Result:=Result and UpdateAlignment(a,b);
-      end;
-
-
-    function UpdateOptimizerStr(s:string;var a:toptimizerswitches):boolean;
-      var
-        tok   : string;
-        doset,
-        found : boolean;
-        opt   : toptimizerswitch;
-      begin
-        result:=true;
-        uppervar(s);
-        repeat
-          tok:=GetToken(s,',');
-          if tok='' then
-           break;
-          if Copy(tok,1,2)='NO' then
-            begin
-              delete(tok,1,2);
-              doset:=false;
-            end
-          else
-            doset:=true;
-          found:=false;
-          for opt:=low(toptimizerswitch) to high(toptimizerswitch) do
-            begin
-              if OptimizerSwitchStr[opt]=tok then
-                begin
-                  found:=true;
-                  break;
-                end;
-            end;
-          if found then
-            begin
-              if doset then
-                include(a,opt)
-              else
-                exclude(a,opt);
-            end
-          else
-            result:=false;
-        until false;
-      end;
-
-
-    function UpdateWpoStr(s: string; var a: twpoptimizerswitches): boolean;
-      var
-        tok   : string;
-        doset,
-        found : boolean;
-        opt   : twpoptimizerswitch;
-      begin
-        result:=true;
-        uppervar(s);
-        repeat
-          tok:=GetToken(s,',');
-          if tok='' then
-           break;
-          if Copy(tok,1,2)='NO' then
-            begin
-              delete(tok,1,2);
-              doset:=false;
-            end
-          else
-            doset:=true;
-          found:=false;
-          if (tok = 'ALL') then
-            begin
-              for opt:=low(twpoptimizerswitch) to high(twpoptimizerswitch) do
-                if doset then
-                  include(a,opt)
-                else
-                  exclude(a,opt);
-            end
-          else
-            begin
-              for opt:=low(twpoptimizerswitch) to high(twpoptimizerswitch) do
-                begin
-                  if WPOptimizerSwitchStr[opt]=tok then
-                    begin
-                      found:=true;
-                      break;
-                    end;
-                end;
-              if found then
-                begin
-                  if doset then
-                    include(a,opt)
-                  else
-                    exclude(a,opt);
-                end
-              else
-                result:=false;
-            end;
-        until false;
-      end;
-
-
-    function UpdateDebugStr(s:string;var a:tdebugswitches):boolean;
-      var
-        tok   : string;
-        doset,
-        found : boolean;
-        opt   : tdebugswitch;
-      begin
-        result:=true;
-        uppervar(s);
-        repeat
-          tok:=GetToken(s,',');
-          if tok='' then
-           break;
-          if Copy(tok,1,2)='NO' then
-            begin
-              delete(tok,1,2);
-              doset:=false;
-            end
-          else
-            doset:=true;
-          found:=false;
-          for opt:=low(tdebugswitch) to high(tdebugswitch) do
-            begin
-              if DebugSwitchStr[opt]=tok then
-                begin
-                  found:=true;
-                  break;
-                end;
-            end;
-          if found then
-            begin
-              if doset then
-                include(a,opt)
-              else
-                exclude(a,opt);
-            end
-          else
-            result:=false;
-        until false;
-      end;
+{$endif defined(arm) or defined(avr) or defined(mipsel)}
 
 
     function IncludeFeature(const s : string) : boolean;
@@ -1498,6 +1304,7 @@ implementation
 {$endif need_path_search}
      begin
        localexepath:=GetEnvironmentVariable('PPC_EXEC_PATH');
+       exeName := '';
        if localexepath='' then
          begin
            exeName := FixFileName(system.paramstr(0));
@@ -1563,6 +1370,7 @@ implementation
         sysrootpath:='';
 
         { Search Paths }
+        unicodepath:='';
         librarysearchpath:=TSearchPathList.Create;
         unitsearchpath:=TSearchPathList.Create;
         includesearchpath:=TSearchPathList.Create;

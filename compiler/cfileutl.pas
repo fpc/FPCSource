@@ -764,6 +764,7 @@ end;
   begin
     oldpos := 1;
     slashPos := Pos('/', path);
+    TranslatePathToMac:='';
     if (slashPos <> 0) then   {its a unix path}
       begin
         if slashPos = 1 then
@@ -1479,6 +1480,7 @@ end;
         inquotes:=false;
         result:='';
         i:=1;
+        temp:='';
         while i<=length(QuotedStr) do
           begin
             case QuotedStr[i] of
@@ -1521,6 +1523,10 @@ end;
       var
         quote_script: tscripttype;
       begin
+
+        if do_checkverbosity(V_Executable) then
+          do_comment(V_Executable,'Executing "'+Path+'" with command line "'+
+            ComLine+'"');
         if (cs_link_on_target in current_settings.globalswitches) then
           quote_script:=target_info.script
         else
@@ -1533,7 +1539,21 @@ end;
 
 
     function RequotedExecuteProcess(const Path: AnsiString; const ComLine: array of AnsiString; Flags: TExecuteFlags): Longint;
+      var
+        i : longint;
+        st : string;
       begin
+        if do_checkverbosity(V_Executable) then
+          begin
+            if high(ComLine)=0 then
+              st:=''
+            else
+              st:=ComLine[1];
+            for i:=2 to high(ComLine) do
+              st:=st+' '+ComLine[i];
+            do_comment(V_Executable,'Executing "'+Path+'" with command line "'+
+              st+'"');
+          end;
         result:=sysutils.ExecuteProcess(Path,ComLine,Flags);
       end;
 
@@ -1543,21 +1563,28 @@ end;
         expansion under linux }
 {$ifdef hasunix}
       begin
+        if do_checkverbosity(V_Used) then
+          do_comment(V_Executable,'Executing "'+Command+'" with fpSystem call');
         result := Unix.fpsystem(command);
       end;
 {$else hasunix}
-  {$ifdef amigashell}
+  {$ifdef hasamiga}
       begin
+        if do_checkverbosity(V_Used) then
+          do_comment(V_Executable,'Executing "'+Command+'" using RequotedExecuteProcess');
         result := RequotedExecuteProcess('',command);
       end;
-  {$else amigashell}
+  {$else hasamiga}
       var
         comspec : string;
       begin
         comspec:=GetEnvironmentVariable('COMSPEC');
+        if do_checkverbosity(V_Used) then
+          do_comment(V_Executable,'Executing "'+Command+'" using comspec "'
+            +ComSpec+'"');
         result := RequotedExecuteProcess(comspec,' /C '+command);
       end;
-   {$endif amigashell}
+   {$endif hasamiga}
 {$endif hasunix}
 
 

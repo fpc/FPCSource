@@ -224,23 +224,16 @@ const
     'LT', 'LE', 'EQ', 'GE', 'GT', 'NL', 'NE', 'NG', 'SO', 'NS', 'UN', 'NU',
     'T', 'F', 'DNZ', 'DNZT', 'DNZF', 'DZ', 'DZT', 'DZF');
 
-const
-  CondAsmOps = 3;
-  CondAsmOp: array[0..CondAsmOps - 1] of TasmOp = (
-    A_BC, A_TW, A_TWI
-    );
-  CondAsmOpStr:array[0..CondAsmOps-1] of string[7]=(
-    'B','TW','TWI'
-    );
-
-
   {*****************************************************************************
                                      Flags
   *****************************************************************************}
 
 type
-  TResFlagsEnum = (F_EQ, F_NE, F_LT, F_LE, F_GT, F_GE, F_SO, F_FX, F_FEX, F_VX,
-    F_OX);
+  TResFlagsEnum = (F_EQ, F_NE, F_LT, F_LE, F_GT, F_GE, F_SO, F_FX, F_FEX, F_VX,F_OX,
+                   { For IEEE-compliant floating-point compares, only <= and >=
+                     are actually needed but the other two are for inverse. }
+                   F_FA,F_FAE,F_FB,F_FBE);
+
   TResFlags = record
     cr: RS_CR0..RS_CR7;
     flag: TResFlagsEnum;
@@ -353,6 +346,7 @@ const
     );
 
   { this is only for the generic code which is not used for this architecture }
+  saved_address_registers : array[0..0] of tsuperregister = (RS_INVALID);
   saved_mm_registers : array[0..0] of tsuperregister = (RS_INVALID);
   
   {# Required parameter alignment when calling a routine declared as
@@ -454,8 +448,15 @@ procedure inverse_flags(var r: TResFlags);
 const
   inv_flags: array[F_EQ..F_GE] of TResFlagsEnum =
   (F_NE, F_EQ, F_GE, F_GE, F_LE, F_LT);
+  inv_fpuflags: array[F_FA..F_FBE] of TResFlagsEnum =
+  (F_FBE,F_FB,F_FAE,F_FA);
 begin
-  r.flag := inv_flags[r.flag];
+  if r.flag in [F_EQ..F_GE] then
+    r.flag := inv_flags[r.flag]
+  else if r.flag in [F_FA..F_FBE] then
+    r.flag := inv_fpuflags[r.flag]
+  else
+    internalerror(2014041901);
 end;
 
 function inverse_cond(const c: TAsmCond): Tasmcond;

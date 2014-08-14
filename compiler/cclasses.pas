@@ -76,7 +76,7 @@ type
   TListSortCompare = function (Item1, Item2: Pointer): Integer;
   TListCallback = procedure(data,arg:pointer) of object;
   TListStaticCallback = procedure(data,arg:pointer);
-
+  TDynStringArray = Array Of String;
   TFPList = class(TObject)
   private
     FList: PPointerList;
@@ -87,13 +87,13 @@ type
     procedure Put(Index: Integer; Item: Pointer);
     procedure SetCapacity(NewCapacity: Integer);
     procedure SetCount(NewCount: Integer);
-    Procedure RaiseIndexError(Index : Integer);
+    Procedure RaiseIndexError(Index : Integer);{$ifndef VER2_6}noreturn;{$endif VER2_6}
   public
     destructor Destroy; override;
     function Add(Item: Pointer): Integer;
     procedure Clear;
     procedure Delete(Index: Integer);
-    class procedure Error(const Msg: string; Data: PtrInt);
+    class procedure Error(const Msg: string; Data: PtrInt);{$ifndef VER2_6}noreturn;{$endif VER2_6}
     procedure Exchange(Index1, Index2: Integer);
     function Expand: TFPList;
     function Extract(item: Pointer): Pointer;
@@ -224,7 +224,7 @@ type
     function HashOfIndex(Index: Integer): LongWord;
     function GetNextCollision(Index: Integer): Integer;
     procedure Delete(Index: Integer);
-    class procedure Error(const Msg: string; Data: PtrInt);
+    class procedure Error(const Msg: string; Data: PtrInt);{$ifndef VER2_6}noreturn;{$endif VER2_6}
     function Expand: TFPHashList;
     function Extract(item: Pointer): Pointer;
     function IndexOf(Item: Pointer): Integer;
@@ -589,12 +589,74 @@ type
     function FPHash(const s:shortstring):LongWord; inline;
     function FPHash(const a:ansistring):LongWord; inline;
 
+    function ExtractStrings(Separators, WhiteSpace: TSysCharSet; Content: PChar; var Strings: TDynStringArray; AddEmptyStrings : Boolean = False): Integer;
 
 implementation
 
 {*****************************************************************************
                                     Memory debug
 *****************************************************************************}
+    function ExtractStrings(Separators, WhiteSpace: TSysCharSet; Content: PChar; var Strings: TDynStringArray; AddEmptyStrings : Boolean = False): Integer;
+    var
+      b, c : pchar;
+
+      procedure SkipWhitespace;
+        begin
+          while (c^ in Whitespace) do
+            inc (c);
+        end;
+
+      procedure AddString;
+        var
+          l : integer;
+          s : string;
+        begin
+          l := c-b;
+          if (l > 0) or AddEmptyStrings then
+            begin
+              setlength(s, l);
+              if l>0 then
+                move (b^, s[1],l*SizeOf(char));
+              l:=length(Strings);
+              setlength(Strings,l+1);
+              Strings[l]:=S;  
+              inc (result);
+            end;
+        end;
+
+    var
+      quoted : char;
+    begin
+      result := 0;
+      c := Content;
+      Quoted := #0;
+      Separators := Separators + [#13, #10] - ['''','"'];
+      SkipWhitespace;
+      b := c;
+      while (c^ <> #0) do
+        begin
+          if (c^ = Quoted) then
+            begin
+              if ((c+1)^ = Quoted) then
+                inc (c)
+              else
+                Quoted := #0
+            end
+          else if (Quoted = #0) and (c^ in ['''','"']) then
+            Quoted := c^;
+          if (Quoted = #0) and (c^ in Separators) then
+            begin
+              AddString;
+              inc (c);
+              SkipWhitespace;
+              b := c;
+            end
+          else
+            inc (c);
+        end;
+      if (c <> b) then
+        AddString;
+    end;
 
     constructor tmemdebug.create(const s:string);
       begin
@@ -649,7 +711,7 @@ implementation
                TFPObjectList (Copied from rtl/objpas/classes/lists.inc)
 *****************************************************************************}
 
-procedure TFPList.RaiseIndexError(Index : Integer);
+procedure TFPList.RaiseIndexError(Index : Integer);{$ifndef VER2_6}noreturn;{$endif VER2_6}
 begin
   Error(SListIndexError, Index);
 end;
@@ -745,7 +807,7 @@ begin
   end;
 end;
 
-class procedure TFPList.Error(const Msg: string; Data: PtrInt);
+class procedure TFPList.Error(const Msg: string; Data: PtrInt);{$ifndef VER2_6}noreturn;{$endif VER2_6}
 begin
   Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;
@@ -1443,7 +1505,7 @@ begin
     Self.Delete(Result);
 end;
 
-class procedure TFPHashList.Error(const Msg: string; Data: PtrInt);
+class procedure TFPHashList.Error(const Msg: string; Data: PtrInt);{$ifndef VER2_6}noreturn;{$endif VER2_6}
 begin
   Raise EListError.CreateFmt(Msg,[Data])  at get_caller_addr(get_frame), get_caller_frame(get_frame);
 end;

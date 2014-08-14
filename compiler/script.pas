@@ -483,6 +483,8 @@ function GenerateScript(const st: TCmdStr): TAsmScript;
         Result:=TAsmScriptAmiga.Create(st);
       script_mpw :
         Result:=TAsmScriptMPW.Create(st);
+      else
+        internalerror(2013112805);
     end;
   end;
 

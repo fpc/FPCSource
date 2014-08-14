@@ -161,7 +161,10 @@ const
   { 76 }  'Android-JVM',
   { 77 }  'Android-arm',
   { 78 }  'Android-i386',
-  { 79 }  'MSDOS-i8086'
+  { 79 }  'MSDOS-i8086',
+  { 80 }  'Android-MIPSel',
+  { 81 }  'Embedded-mipseb',
+  { 82 }  'Embedded-mipsel'
   );
 
 const
@@ -472,7 +475,7 @@ type
     str  : string[30];
   end;
 const
-  flagopts=27;
+  flagopts=28;
   flagopt : array[1..flagopts] of tflagopt=(
     (mask: $1    ;str:'init'),
     (mask: $2    ;str:'final'),
@@ -502,7 +505,8 @@ const
     (mask: $1000000 ;str:'has_resstrinits'),
     (mask: $2000000 ;str:'i8086_far_code'),
     (mask: $4000000 ;str:'i8086_far_data'),
-    (mask: $8000000 ;str:'i8086_huge_data')
+    (mask: $8000000 ;str:'i8086_huge_data'),
+    (mask: $10000000;str:'i8086_cs_equals_ds')
   );
 var
   i,ntflags : longint;
@@ -936,6 +940,11 @@ begin
     exit;
   first:=true;
   idx:=ppufile.getlongint;
+  if idx = -1 then
+    begin
+      writeln('Nil');
+      exit;
+    end;
   if (idx>derefdatalen) then
     begin
       WriteError('!! Error: Deref idx '+IntToStr(idx)+' > '+IntToStr(derefdatalen));
@@ -1091,9 +1100,9 @@ end;
          disabledircache : boolean;
 
         { CPU targets with microcontroller support can add a controller specific unit }
-{$if defined(ARM) or defined(AVR)}
+{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
         controllertype   : tcontrollertype;
-{$endif defined(ARM) or defined(AVR)}
+{$endif defined(ARM) or defined(AVR) or defined(MIPSEL)}
          { WARNING: this pointer cannot be written as such in record token }
          pmessage : pmessagestaterecord;
        end;
@@ -1188,8 +1197,9 @@ const
          (mask:pi_has_nested_exit;
          str:' subroutine contains a nested subroutine which calls the exit of the current one '),
          (mask:pi_has_stack_allocs;
-         str:' allocates memory on stack, so stack may be unbalanced on exit ')
-         
+         str:' allocates memory on stack, so stack may be unbalanced on exit '),
+         (mask:pi_estimatestacksize;
+         str:' stack size is estimated before subroutine is compiled ')
   );
 var
   procinfooptions : tprocinfoflags;
@@ -1709,7 +1719,6 @@ const
      (mask:po_has_public_name; str:'HasPublicName'),
      (mask:po_forward;         str:'Forward'),
      (mask:po_global;          str:'Global'),
-     (mask:po_has_inlininginfo;str:'HasInliningInfo'),
      (mask:po_syscall_legacy;  str:'SyscallLegacy'),
      (mask:po_syscall_sysv;    str:'SyscallSysV'),
      (mask:po_syscall_basesysv;str:'SyscallBaseSysV'),
@@ -1730,7 +1739,8 @@ const
      (mask:po_ignore_for_overload_resolution;str: 'Ignored for overload resolution'),
      (mask:po_rtlproc;         str: 'RTL procedure'),
      (mask:po_auto_raised_visibility; str: 'Visibility raised by compiler'),
-     (mask:po_far;             str: 'Far')
+     (mask:po_far;             str: 'Far'),
+     (mask:po_noreturn;             str: 'No return')
   );
 var
   proctypeoption  : tproctypeoption;
@@ -1740,7 +1750,6 @@ var
 begin
   write([space,'      Return type : ']);
   readderef('', ProcDef.ReturnType);
-  writeln([space,'         Fpu used : ',ppufile.getbyte]);
   proctypeoption:=tproctypeoption(ppufile.getbyte);
   case proctypeoption of
     potype_function: Include(ProcDef.Options, poFunction);
@@ -1874,8 +1883,6 @@ begin
          else
            write(', ');
          write(varopt[i].str);
-         if varopt[i].mask = vo_has_section then
-           writeln(['Section name:',ppufile.getansistring]);
        end;
      writeln;
    end;
@@ -1942,6 +1949,41 @@ begin
   writeln;
 end;
 
+
+procedure readprocimploptions(const space: string; out implprocoptions: timplprocoptions);
+type
+  tpiopt=record
+    mask : timplprocoption;
+    str  : string[30];
+  end;
+const
+  piopt : array[low(timplprocoption)..high(timplprocoption)] of tpiopt=(
+    (mask:pio_empty; str:'IsEmpty'),
+    (mask:pio_has_inlininginfo; str:'HasInliningInfo')
+  );
+var
+  i: timplprocoption;
+  first: boolean;
+begin
+  ppufile.getsmallset(implprocoptions);
+  if implprocoptions<>[] then
+    begin
+      first:=true;
+      write([space,'          Options : ']);
+      for i:=low(piopt) to high(piopt) do
+        begin
+          if i in implprocoptions then
+            begin
+              if first then
+                first:=false
+              else
+                write(', ');
+              write(piopt[i].str);
+            end;
+        end;
+      writeln;
+    end;
+end;
 
 procedure readarraydefoptions(ArrayDef: TPpuArrayDef);
 { type tarraydefoption is in unit symconst }
@@ -2401,9 +2443,15 @@ begin
                  Writeln(['Assembler name : ',getstring]);
                toaddr :
                  begin
-                   Write(['Address : ',getlongint]);
+                   Write(['Address : ',getaword]);
                    if tsystemcpu(ppufile.header.cpu)=cpu_i386 then
-                     WriteLn([' (Far: ',getbyte<>0,')']);
+                     Write([' (Far: ',getbyte<>0,')']);
+                   if tsystemcpu(ppufile.header.cpu)=cpu_i8086 then
+                     if getbyte<>0 then
+                       Write([' (Far: TRUE, Segment=',getaword,')'])
+                     else
+                       Write([' (Far: FALSE)']);
+                   Writeln;
                  end;
                else
                  Writeln (['!! Invalid unit format : Invalid absolute type encountered: ',b]);
@@ -2429,6 +2477,10 @@ begin
 {$else symansistr}
                writeln([space,' Mangledname : ',getstring]);
 {$endif symansistr}
+             if vo_has_section in varoptions then
+               writeln(['Section name:',ppufile.getansistring]);
+             write  ([space,' FieldVarSymDeref: ']);
+             readderef('');
            end;
 
          iblocalvarsym :
@@ -2502,6 +2554,8 @@ begin
                  write  ([space,' OverrideProp : ']);
                  readderef('');
                end;
+             if ppo_defaultproperty in propoptions then
+               Include(TPpuPropDef(def).Options, poDefault);
              write  ([space,'    Prop Type : ']);
              readderef('',TPpuPropDef(def).PropType);
              writeln([space,'        Index : ',getlongint]);
@@ -2568,6 +2622,7 @@ var
   l,j : longint;
   calloption : tproccalloption;
   procoptions : tprocoptions;
+  implprocoptions: timplprocoptions;
   defoptions: tdefoptions;
   iexpr: Tconstexprint;
   def: TPpuDef;
@@ -2597,6 +2652,7 @@ begin
              readcommondef('Pointer definition',defoptions,def);
              write  ([space,'     Pointed Type : ']);
              readderef('',TPpuPointerDef(def).Ptr);
+             writeln([space,' Has Pointer Math : ',(getbyte<>0)]);
              if tsystemcpu(ppufile.header.cpu) in [cpu_i8086,cpu_i386,cpu_x86_64] then
                begin
                  write([space,' X86 Pointer Type : ']);
@@ -2615,7 +2671,6 @@ begin
                      WriteWarning('Invalid x86 pointer type: ' + IntToStr(b));
                  end;
                end;
-             writeln([space,' Has Pointer Math : ',(getbyte<>0)]);
            end;
 
          iborddef :
@@ -2810,7 +2865,9 @@ begin
              writeln([space,'            Range : ',arrdef.RangeLow,' to ',arrdef.RangeHigh]);
              write  ([space,'          Options : ']);
              readarraydefoptions(arrdef);
-             readsymtable('symbols');
+             if tsystemcpu(ppufile.header.cpu)=cpu_i8086 then
+               writeln([space,'             Huge : ',(getbyte<>0)]);
+             readsymtable('symbols', arrdef);
            end;
 
          ibprocdef :
@@ -2836,7 +2893,7 @@ begin
              readvisibility(def);
              write  ([space,'       SymOptions : ']);
              readsymoptions(space+'       ');
-             write  ([space,'   Synthetic kind : ',Synthetic2Str(ppufile.getbyte)]);
+             writeln  ([space,'   Synthetic kind : ',Synthetic2Str(ppufile.getbyte)]);
              if tsystemcpu(ppufile.header.cpu)=cpu_powerpc then
                begin
                  { library symbol for AmigaOS/MorphOS }
@@ -2854,7 +2911,8 @@ begin
                writeln([space,'           MsgStr : ',getstring]);
              if (po_dispid in procoptions) then
                writeln([space,'      DispID: ',ppufile.getlongint]);
-             if (po_has_inlininginfo in procoptions) then
+             readprocimploptions(space,implprocoptions);
+             if (pio_has_inlininginfo in implprocoptions) then
               begin
                 write  ([space,'       FuncretSym : ']);
                 readderef('');
@@ -2863,7 +2921,7 @@ begin
              b:=ppufile.getbyte;
              if b<>0 then
                begin
-                 write  ([space,'       Alias names : ']);
+                 write  ([space,'      Alias names : ']);
                  for j:=1 to b do
                    begin
                      write(ppufile.getstring);
@@ -2872,16 +2930,15 @@ begin
                    end;
                  writeln;
                end;
-             writeln([space,'            Empty : ',getbyte<>0]);
              if not EndOfEntry then
                HasMoreInfos;
              space:='    '+space;
              { parast }
              readsymtable('parast', TPpuProcDef(def));
              { localst }
-             if (po_has_inlininginfo in procoptions) then
+             if (pio_has_inlininginfo in implprocoptions) then
                 readsymtable('localst');
-             if (po_has_inlininginfo in procoptions) then
+             if (pio_has_inlininginfo in implprocoptions) then
                readnodetree;
              delete(space,1,4);
            end;
@@ -2925,6 +2982,7 @@ begin
              readcommondef('UnicodeString definition',defoptions,strdef);
              strdef.Len:=getaint;
              writeln([space,'           Length : ',strdef.Len]);
+             writeln([space,'         Encoding : ',getword]);
            end;
 
          ibansistringdef :
@@ -2934,6 +2992,7 @@ begin
              readcommondef('AnsiString definition',defoptions,strdef);
              strdef.Len:=getaint;
              writeln([space,'           Length : ',strdef.Len]);
+             writeln([space,'         Encoding : ',getword]);
            end;
 
          iblongstringdef :

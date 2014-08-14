@@ -221,7 +221,6 @@ interface
         procedure flagdependent(callermodule:tmodule);
         function  addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
         procedure updatemaps;
-        procedure check_hints;
         function  derefidx_unit(id:longint):longint;
         function  resolve_unit(id:longint):tmodule;
         procedure allunitsused;
@@ -240,6 +239,7 @@ interface
           u               : tmodule;
           unitsym         : tunitsym;
           constructor create(_u : tmodule;intface,inuses:boolean;usym:tunitsym);
+          procedure check_hints;
        end;
 
        tdependent_unit = class(tlinkedlistitem)
@@ -472,6 +472,27 @@ implementation
            interface_checksum:=0;
            indirect_checksum:=0;
          end;
+      end;
+
+
+    procedure tused_unit.check_hints;
+      var
+        uname: pshortstring;
+      begin
+        uname:=u.realmodulename;
+        if mo_hint_deprecated in u.moduleoptions then
+          if (mo_has_deprecated_msg in u.moduleoptions) and (u.deprecatedmsg <> nil) then
+            MessagePos2(unitsym.fileinfo,sym_w_deprecated_unit_with_msg,uname^,u.deprecatedmsg^)
+          else
+            MessagePos1(unitsym.fileinfo,sym_w_deprecated_unit,uname^);
+        if mo_hint_experimental in u.moduleoptions then
+          MessagePos1(unitsym.fileinfo,sym_w_experimental_unit,uname^);
+        if mo_hint_platform in u.moduleoptions then
+          MessagePos1(unitsym.fileinfo,sym_w_non_portable_unit,uname^);
+        if mo_hint_library in u.moduleoptions then
+          MessagePos1(unitsym.fileinfo,sym_w_library_unit,uname^);
+        if mo_hint_unimplemented in u.moduleoptions then
+          MessagePos1(unitsym.fileinfo,sym_w_non_implemented_unit,uname^);
       end;
 
 
@@ -899,22 +920,6 @@ implementation
           end;
       end;
 
-    procedure tmodule.check_hints;
-      begin
-        if mo_hint_deprecated in moduleoptions then
-          if (mo_has_deprecated_msg in moduleoptions) and (deprecatedmsg <> nil) then
-            Message2(sym_w_deprecated_unit_with_msg,realmodulename^,deprecatedmsg^)
-          else
-            Message1(sym_w_deprecated_unit,realmodulename^);
-        if mo_hint_experimental in moduleoptions then
-          Message1(sym_w_experimental_unit,realmodulename^);
-        if mo_hint_platform in moduleoptions then
-          Message1(sym_w_non_portable_unit,realmodulename^);
-        if mo_hint_library in moduleoptions then
-          Message1(sym_w_library_unit,realmodulename^);
-        if mo_hint_unimplemented in moduleoptions then
-          Message1(sym_w_non_implemented_unit,realmodulename^);
-      end;
 
 
     function tmodule.derefidx_unit(id:longint):longint;

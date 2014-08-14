@@ -36,7 +36,7 @@ implementation
        cutils,cfileutl,cclasses,
        globtype,globals,systems,verbose,script,
        fmodule,i_msdos,
-       link,aasmbase;
+       link,aasmbase,cpuinfo;
 
     type
       { Borland TLINK support }
@@ -63,6 +63,7 @@ implementation
       TExternalLinkerMsDosWLink=class(texternallinker)
       private
          Function  WriteResponseFile(isdll:boolean) : Boolean;
+         Function  PostProcessExecutable(const fn:string) : Boolean;
       public
          constructor Create;override;
          procedure SetDefaultInfo;override;
@@ -247,6 +248,11 @@ begin
   { Add all options to link.res instead of passing them via command line:
     DOS command line is limited to 126 characters! }
 
+  LinkRes.Add('option quiet');
+
+  if paratargetdbg in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
+    LinkRes.Add('debug dwarf');
+
   { add objectfiles, start with prt0 always }
   case current_settings.x86memorymodel of
     mm_tiny:    LinkRes.Add('file ' + maybequoted(FindObjectFile('prt0t','',false)));
@@ -272,7 +278,12 @@ begin
     LinkRes.Add('format dos com')
   else
     LinkRes.Add('format dos');
-  LinkRes.Add('option dosseg');
+  if current_settings.x86memorymodel=mm_tiny then
+    LinkRes.Add('order clname CODE clname DATA clname BSS')
+  else
+    LinkRes.Add('order clname CODE clname BEGDATA segment _NULL segment _AFTERNULL clname DATA clname BSS clname STACK clname HEAP');
+  if (cs_link_map in current_settings.globalswitches) then
+    LinkRes.Add('option map='+maybequoted(ChangeFileExt(current_module.exefilename,'.map')));
   LinkRes.Add('name ' + maybequoted(current_module.exefilename));
 
   { Write and Close response }
@@ -316,6 +327,10 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
+  { Post process }
+  if success then
+    success:=PostProcessExecutable(current_module.exefilename);
+
   { Remove ReponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     DeleteFile(outputexedir+Info.ResName);
@@ -323,6 +338,47 @@ begin
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
 
+{ In far data memory models, this function sets the MaxAlloc value in the DOS MZ
+  header according to the difference between HeapMin and HeapMax. We have to do
+  this manually, because WLink sets MaxAlloc to $FFFF and there seems to be no
+  way to specify a different value with a linker option. }
+function TExternalLinkerMsDosWLink.PostProcessExecutable(const fn: string): Boolean;
+var
+  f: file;
+  minalloc,maxalloc: Word;
+  heapmin_paragraphs, heapmax_paragraphs: Integer;
+begin
+  { nothing to do in the near data memory models }
+  if current_settings.x86memorymodel in x86_near_data_models then
+    exit(true);
+  { .COM files are not supported in the far data memory models }
+  if apptype=app_com then
+    internalerror(2014062501);
+  { open file }
+  assign(f,fn);
+  {$push}{$I-}
+   reset(f,1);
+  if ioresult<>0 then
+    Message1(execinfo_f_cant_open_executable,fn);
+  { read minalloc }
+  seek(f,$A);
+  BlockRead(f,minalloc,2);
+  if source_info.endian<>target_info.endian then
+    minalloc:=SwapEndian(minalloc);
+  { calculate the additional number of paragraphs needed }
+  heapmin_paragraphs:=(heapsize + 15) div 16;
+  heapmax_paragraphs:=(maxheapsize + 15) div 16;
+  maxalloc:=min(minalloc-heapmin_paragraphs+heapmax_paragraphs,$FFFF);
+  { write maxalloc }
+  seek(f,$C);
+  if source_info.endian<>target_info.endian then
+    maxalloc:=SwapEndian(maxalloc);
+  BlockWrite(f,maxalloc,2);
+  close(f);
+  {$pop}
+  if ioresult<>0 then;
+    Result:=true;
+end;
 
 {*****************************************************************************
                                      Initialize

@@ -2,7 +2,7 @@
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1999-2009 by the Free Pascal Development team
 #
-#   Russian (utf-8) Language File for Free Pascal
+#   Russian (cp866) Language File for Free Pascal
 #
 #   This file corresponds to SVN revision 13665 of errore.msg
 #   Translated by Sergei Gorelkin <sergei_gorelkin at mail.ru>
@@ -2503,7 +2503,7 @@ wpo_cant_create_feedback_file=12019_E_евозможно создать файл обратной связи "$1"
 #
 option_logo=11023_[
 Компилятор Free Pascal версии $FPCFULLVERSION [$FPCDATE] для $FPCCPU
-Copyright (c) 1993-2013 by Florian Klaempfl
+Copyright (c) 1993-2014 by Florian Klaempfl
 ]
 
 #

@@ -152,12 +152,24 @@ interface
     { parentdef's resultdef                                                          }
     function compatible_childmethod_resultdef(parentretdef, childretdef: tdef): boolean;
 
+    { Checks whether the class impldef or one of its parent classes implements }
+    { the interface intfdef and returns the corresponding "implementation link }
+    function find_implemented_interface(impldef,intfdef:tobjectdef):timplementedinterface;
+
+    { Checks whether to defs are related to each other. Thereby the following  }
+    { cases of curdef are implemented:                                         }
+    { - stringdef: on JVM JLObject, JLString and AnsiString are compatible     }
+    { - recorddef: on JVM records are compatible to java_fpcbaserecordtype     }
+    {              and JLObject                                                }
+    { - objectdef: if it inherits from otherdef or they are equal              }
+    function def_is_related(curdef,otherdef:tdef):boolean;
+
 
 implementation
 
     uses
       verbose,systems,constexp,
-      symtable,symsym,
+      symtable,symsym,symcpu,
       defutil,symutil;
 
 
@@ -201,6 +213,7 @@ implementation
       var
          subeq,eq : tequaltype;
          hd1,hd2 : tdef;
+         def_generic : tstoreddef;
          hct : tconverttype;
          hobjdef : tobjectdef;
          hpd : tprocdef;
@@ -303,6 +316,42 @@ implementation
                      if diff then
                        break;
                    end;
+               end;
+             if not diff then
+               begin
+                 doconv:=tc_equal;
+                 { the definitions are not exactly the same, but only equal }
+                 compare_defs_ext:=te_equal;
+                 exit;
+               end;
+           end;
+         { handling of partial specializations }
+         if (
+               (df_generic in def_to.defoptions) and
+               (df_specialization in def_from.defoptions) and
+               (tstoreddef(def_from).genericdef=def_to)
+             ) or (
+               (df_generic in def_from.defoptions) and
+               (df_specialization in def_to.defoptions) and
+               (tstoreddef(def_to).genericdef=def_from)
+             ) then
+           begin
+             if tstoreddef(def_from).genericdef=def_to then
+               def_generic:=tstoreddef(def_to)
+             else
+               def_generic:=tstoreddef(def_from);
+             if not assigned(def_generic.genericparas) then
+               internalerror(2014052306);
+             diff:=false;
+             for i:=0 to def_generic.genericparas.count-1 do
+               begin
+                 symfrom:=tsym(def_generic.genericparas[i]);
+                 if symfrom.typ<>typesym then
+                   internalerror(2014052307);
+                 if ttypesym(symfrom).typedef.typ<>undefineddef then
+                   diff:=true;
+                 if diff then
+                   break;
                end;
              if not diff then
                begin
@@ -1290,7 +1339,7 @@ implementation
                    begin
 {$ifdef x86}
                      { check for far pointers }
-                     if (tpointerdef(def_from).x86pointertyp<>tpointerdef(def_to).x86pointertyp) then
+                     if (tcpupointerdef(def_from).x86pointertyp<>tcpupointerdef(def_to).x86pointertyp) then
                        begin
                          if fromtreetype=niln then
                            eq:=te_equal
@@ -1319,7 +1368,7 @@ implementation
                       if (
                           (tpointerdef(def_from).pointeddef.typ=objectdef) and
                           (tpointerdef(def_to).pointeddef.typ=objectdef) and
-                          tobjectdef(tpointerdef(def_from).pointeddef).is_related(
+                          def_is_related(tobjectdef(tpointerdef(def_from).pointeddef),
                             tobjectdef(tpointerdef(def_to).pointeddef))
                          ) then
                        begin
@@ -1516,7 +1565,7 @@ implementation
              begin
                { object pascal objects }
                if (def_from.typ=objectdef) and
-                  (tobjectdef(def_from).is_related(tobjectdef(def_to))) then
+                  (def_is_related(tobjectdef(def_from),tobjectdef(def_to))) then
                 begin
                   doconv:=tc_equal;
                   { also update in htypechk.pas/var_para_allowed if changed
@@ -1588,7 +1637,7 @@ implementation
                         hobjdef:=tobjectdef(def_from);
                         while assigned(hobjdef) do
                           begin
-                             if hobjdef.find_implemented_interface(tobjectdef(def_to))<>nil then
+                             if find_implemented_interface(hobjdef,tobjectdef(def_to))<>nil then
                                begin
                                   if is_interface(def_to) then
                                     doconv:=tc_class_2_intf
@@ -1663,7 +1712,7 @@ implementation
                     begin
                       doconv:=tc_equal;
                       if (cdo_explicit in cdoptions) or
-                         tobjectdef(tclassrefdef(def_from).pointeddef).is_related(
+                         def_is_related(tobjectdef(tclassrefdef(def_from).pointeddef),
                            tobjectdef(tclassrefdef(def_to).pointeddef)) then
                         eq:=te_convert_l1;
                     end;
@@ -2189,8 +2238,166 @@ implementation
            (childretdef.typ=objectdef) and
            is_class_or_interface_or_objc_or_java(parentretdef) and
            is_class_or_interface_or_objc_or_java(childretdef) and
-           (tobjectdef(childretdef).is_related(tobjectdef(parentretdef))))
+           (def_is_related(tobjectdef(childretdef),tobjectdef(parentretdef))))
       end;
 
+
+    function find_implemented_interface(impldef,intfdef:tobjectdef):timplementedinterface;
+      var
+        implintf : timplementedinterface;
+        i : longint;
+      begin
+        if not assigned(impldef) then
+          internalerror(2013102301);
+        if not assigned(intfdef) then
+          internalerror(2013102302);
+        result:=nil;
+        if not assigned(impldef.implementedinterfaces) then
+          exit;
+        for i:=0 to impldef.implementedinterfaces.count-1 do
+          begin
+            implintf:=timplementedinterface(impldef.implementedinterfaces[i]);
+            if equal_defs(implintf.intfdef,intfdef) then
+              begin
+                result:=implintf;
+                exit;
+              end;
+          end;
+      end;
+
+
+    function stringdef_is_related(curdef:tstringdef;otherdef:tdef):boolean;
+      begin
+        result:=
+          (target_info.system in systems_jvm) and
+          (((curdef.stringtype in [st_unicodestring,st_widestring]) and
+            ((otherdef=java_jlobject) or
+             (otherdef=java_jlstring))) or
+           ((curdef.stringtype=st_ansistring) and
+            ((otherdef=java_jlobject) or
+             (otherdef=java_ansistring))));
+      end;
+
+
+    function recorddef_is_related(curdef:trecorddef;otherdef:tdef):boolean;
+      begin
+        { records are implemented via classes in the JVM target, and are
+          all descendents of the java_fpcbaserecordtype class }
+        result:=false;
+        if (target_info.system in systems_jvm) then
+          begin
+            if otherdef.typ=objectdef then
+              begin
+                otherdef:=find_real_class_definition(tobjectdef(otherdef),false);
+                if (otherdef=java_jlobject) or
+                   (otherdef=java_fpcbaserecordtype) then
+                  result:=true
+              end;
+          end;
+      end;
+
+
+    { true if prot implements d (or if they are equal) }
+    function is_related_interface_multiple(prot:tobjectdef;d:tdef):boolean;
+      var
+        i : longint;
+      begin
+        { objcprotocols have multiple inheritance, all protocols from which
+          the current protocol inherits are stored in implementedinterfaces }
+        result:=prot=d;
+        if result then
+          exit;
+
+        for i:=0 to prot.implementedinterfaces.count-1 do
+          begin
+            result:=is_related_interface_multiple(timplementedinterface(prot.implementedinterfaces[i]).intfdef,d);
+            if result then
+              exit;
+          end;
+      end;
+
+
+    function objectdef_is_related(curdef:tobjectdef;otherdef:tdef):boolean;
+      var
+         realself,
+         hp : tobjectdef;
+      begin
+        if (otherdef.typ=objectdef) then
+          otherdef:=find_real_class_definition(tobjectdef(otherdef),false);
+        realself:=find_real_class_definition(curdef,false);
+        if realself=otherdef then
+          begin
+            result:=true;
+            exit;
+          end;
+
+        if (otherdef.typ<>objectdef) then
+          begin
+            result:=false;
+            exit;
+          end;
+
+        { Objective-C protocols and Java interfaces can use multiple
+           inheritance }
+        if (realself.objecttype in [odt_objcprotocol,odt_interfacejava]) then
+          begin
+            result:=is_related_interface_multiple(realself,otherdef);
+            exit;
+          end;
+
+        { formally declared Objective-C and Java classes match Objective-C/Java
+          classes with the same name. In case of Java, the package must also
+          match (still required even though we looked up the real definitions
+          above, because these may be two different formal declarations that
+          cannot be resolved yet) }
+        if (realself.objecttype in [odt_objcclass,odt_javaclass]) and
+           (tobjectdef(otherdef).objecttype=curdef.objecttype) and
+           ((oo_is_formal in curdef.objectoptions) or
+            (oo_is_formal in tobjectdef(otherdef).objectoptions)) and
+           (curdef.objrealname^=tobjectdef(otherdef).objrealname^) then
+          begin
+            { check package name for Java }
+            if curdef.objecttype=odt_objcclass then
+              result:=true
+            else
+              begin
+                result:=
+                  assigned(curdef.import_lib)=assigned(tobjectdef(otherdef).import_lib);
+                if result and
+                   assigned(curdef.import_lib) then
+                  result:=curdef.import_lib^=tobjectdef(otherdef).import_lib^;
+              end;
+            exit;
+          end;
+
+        hp:=realself.childof;
+        while assigned(hp) do
+          begin
+             if equal_defs(hp,otherdef) then
+               begin
+                  result:=true;
+                  exit;
+               end;
+             hp:=hp.childof;
+          end;
+        result:=false;
+      end;
+
+
+    function def_is_related(curdef,otherdef:tdef):boolean;
+      begin
+        if not assigned(curdef) then
+          internalerror(2013102303);
+        case curdef.typ of
+          stringdef:
+            result:=stringdef_is_related(tstringdef(curdef),otherdef);
+          recorddef:
+            result:=recorddef_is_related(trecorddef(curdef),otherdef);
+          objectdef:
+            result:=objectdef_is_related(tobjectdef(curdef),otherdef);
+          else
+            result:=false;
+        end;
+      end;
 
 end.

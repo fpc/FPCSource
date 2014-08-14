@@ -31,12 +31,11 @@ unit i_atari;
     const
        system_m68k_atari_info : tsysteminfo =
           (
-            system       : target_m68k_Atari;
+            system       : system_m68k_Atari;
             name         : 'Atari ST/STE';
             shortname    : 'atari';
             flags        : [tf_use_8_3];
             cpu          : cpu_m68k;
-            short_name   : 'ATARI';
             unit_env     : '';
             extradefines : '';
             exeext       : '.tpp';
@@ -59,25 +58,37 @@ unit i_atari;
             sharedClibprefix : '';
             importlibprefix : 'libimp';
             importlibext : '.a';
-            p_ext_support : false;
             Cprefix      : '_';
             newline      : #10;
             dirsep       : '/';
-            files_case_relevent : true;
             assem        : as_gas;
             assemextern  : as_gas;
-            link         : ld_m68k_atari;
-            linkextern   : ld_m68k_atari;
-            ar           : ar_m68k_ar;
+            link         : ld_atari;
+            linkextern   : ld_atari;
+            ar           : ar_gnu_ar;
             res          : res_none;
             dbg          : dbg_stabs;
             script       : script_unix;
             endian       : endian_big;
-            maxCrecordalignment : 4;
-            stacksize    : 8192;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 0;
+                localalignmax   : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 2;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
+            stacksize    : 262144;
             stackalign   : 2;
-            DllScanSupported:false;
-            use_function_relative_addresses : false
+            abi : abi_default;
           );
 
   implementation

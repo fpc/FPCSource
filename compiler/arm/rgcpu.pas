@@ -43,6 +43,8 @@ unit rgcpu;
        public
          procedure do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
          procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
+         function do_spill_replace(list : TAsmList;instr : taicpu;
+           orgreg : tsuperregister;const spilltemp : treference) : boolean;override;
          procedure add_constraints(reg:tregister);override;
          function  get_spill_subreg(r:tregister) : tsubregister;override;
        end;
@@ -126,9 +128,10 @@ unit rgcpu;
                     end;
                 end;
               A_MLA,
+              A_MLS,
               A_MUL:
                 begin
-                  if current_settings.cputype<cpu_armv6 then
+                  if (current_settings.cputype<cpu_armv6) and (taicpu(p).opcode<>A_MLS) then
                     add_edge(getsupreg(taicpu(p).oper[0]^.reg),getsupreg(taicpu(p).oper[1]^.reg));
                    add_edge(getsupreg(taicpu(p).oper[0]^.reg),RS_R13);
                    add_edge(getsupreg(taicpu(p).oper[0]^.reg),RS_R15);
@@ -136,7 +139,7 @@ unit rgcpu;
                    add_edge(getsupreg(taicpu(p).oper[1]^.reg),RS_R15);
                    add_edge(getsupreg(taicpu(p).oper[2]^.reg),RS_R13);
                    add_edge(getsupreg(taicpu(p).oper[2]^.reg),RS_R15);
-                   if taicpu(p).opcode=A_MLA then
+                   if taicpu(p).opcode<>A_MUL then
                      begin
                        add_edge(getsupreg(taicpu(p).oper[3]^.reg),RS_R13);
                        add_edge(getsupreg(taicpu(p).oper[3]^.reg),RS_R15);
@@ -276,6 +279,47 @@ unit rgcpu;
           spilling_create_load_store(list, pos, spilltemp, tempreg, true)
         else
           inherited do_spill_written(list,pos,spilltemp,tempreg);
+      end;
+
+
+    function trgcpu.do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;
+      var
+        b : byte;
+      begin
+        result:=false;
+        if abs(spilltemp.offset)>4095 then
+          exit;
+
+        if GenerateThumbCode and
+          (abs(spilltemp.offset)>1020) then
+          exit;
+
+        { Replace 'mov  dst,orgreg' with 'ldr  dst,spilltemp'
+          and     'mov  orgreg,src' with 'str  dst,spilltemp' }
+        with instr do
+          begin
+            if (opcode=A_MOV) and (ops=2) and (oper[1]^.typ=top_reg) and (oper[0]^.typ=top_reg) then
+              begin
+                if (getregtype(oper[0]^.reg)=regtype) and
+                   (get_alias(getsupreg(oper[0]^.reg))=orgreg) and
+                   (get_alias(getsupreg(oper[1]^.reg))<>orgreg) then
+                  begin
+                    { str expects the register in oper[0] }
+                    instr.loadreg(0,oper[1]^.reg);
+                    instr.loadref(1,spilltemp);
+                    opcode:=A_STR;
+                    result:=true;
+                  end
+                else if (getregtype(oper[1]^.reg)=regtype) and
+                   (get_alias(getsupreg(oper[1]^.reg))=orgreg) and
+                   (get_alias(getsupreg(oper[0]^.reg))<>orgreg) then
+                  begin
+                    instr.loadref(1,spilltemp);
+                    opcode:=A_LDR;
+                    result:=true;
+                  end;
+              end;
+          end;
       end;
 
 

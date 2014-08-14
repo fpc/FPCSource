@@ -67,6 +67,7 @@ unit aoptbase;
         { false and sets last to nil                                     }
         Function GetLastInstruction(Current: tai; Var Last: tai): Boolean;
 
+        function SkipEntryExitMarker(current: tai; var next: tai): boolean;
 
         { processor dependent methods }
 
@@ -116,17 +117,16 @@ unit aoptbase;
 
 
   Function TAOptBase.RegInInstruction(Reg: TRegister; p1: tai): Boolean;
-    Var Count: AWord;
-        TmpResult: Boolean;
+    Var
+      Count: longint;
     Begin
-      TmpResult := False;
-      Count := 0;
-      If (p1.typ = ait_instruction) and assigned(TInstr(p1).oper[0]) Then
-        Repeat
-          TmpResult := RegInOp(Reg, TInstr(p1).oper[Count]^);
-          Inc(Count)
-        Until (TInstr(p1).oper[Count]=nil) or (Count = MaxOps) or TmpResult;
-      RegInInstruction := TmpResult
+      result:=false;
+      if p1.typ<>ait_instruction then
+        exit;
+      for Count:=0 to TInstr(p1).ops-1 do
+        if RegInOp(Reg, TInstr(p1).oper[Count]^) then
+          exit(true);
+      result:=false;
     End;
 
 
@@ -244,6 +244,21 @@ unit aoptbase;
           GetLastInstruction := True;
         End;
   End;
+
+
+  function TAOptBase.SkipEntryExitMarker(current: tai; var next: tai): boolean;
+    begin
+      result:=true;
+      if current.typ<>ait_marker then
+        exit;
+      next:=current;
+      while GetNextInstruction(next,next) do
+        begin
+          if (next.typ<>ait_marker) or not(tai_marker(next).Kind in [mark_Position,mark_BlockStart]) then
+            exit;
+        end;
+      result:=false;
+    end;
 
 
   Function TAOptBase.RegUsedBetween(reg : TRegister;p1,p2 : tai) : Boolean;

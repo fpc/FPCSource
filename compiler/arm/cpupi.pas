@@ -48,6 +48,7 @@ unit cpupi;
           procedure init_framepointer; override;
           procedure generate_parameter_info;override;
           procedure allocate_got_register(list : TAsmList);override;
+          procedure postprocess_code;override;
        end;
 
 
@@ -57,10 +58,11 @@ unit cpupi;
        globals,systems,
        cpubase,
        tgobj,
-       symconst,symtype,symsym,paramgr,
+       symconst,symtype,symsym,symcpu,paramgr,
        cgutils,
        cgobj,
-       defutil;
+       defutil,
+       aasmcpu;
 
     procedure tarmprocinfo.set_first_temp_offset;
       var
@@ -99,7 +101,7 @@ unit cpupi;
           tg.setfirsttemp(maxpushedparasize);
 
         { estimate stack frame size }
-        if GenerateThumbCode then
+        if GenerateThumbCode or (pi_estimatestacksize in flags) then
           begin
             stackframesize:=maxpushedparasize+32;
             localsize:=0;
@@ -111,10 +113,14 @@ unit cpupi;
             localsize:=0;
             for i:=0 to procdef.parast.SymList.Count-1 do
               if tsym(procdef.parast.SymList[i]).typ=paravarsym then
-                if is_open_string(tabstractnormalvarsym(procdef.parast.SymList[i]).vardef) then
-                  inc(localsize,256)
-                else
-                  inc(localsize,tabstractnormalvarsym(procdef.parast.SymList[i]).getsize);
+                begin
+                  if tabstractnormalvarsym(procdef.parast.SymList[i]).varspez in [vs_var,vs_out,vs_constref] then
+                    inc(localsize,4)
+                  else if is_open_string(tabstractnormalvarsym(procdef.parast.SymList[i]).vardef) then
+                    inc(localsize,256)
+                  else
+                    inc(localsize,tabstractnormalvarsym(procdef.parast.SymList[i]).getsize);
+                end;
 
             inc(stackframesize,localsize);
 
@@ -141,7 +147,7 @@ unit cpupi;
          floatsavesize : aword;
          regs: tcpuregisterset;
       begin
-        if GenerateThumbCode then
+        if GenerateThumbCode or (pi_estimatestacksize in flags) then
           result:=stackframesize
         else
           begin
@@ -154,6 +160,7 @@ unit cpupi;
                 begin
                   { save floating point registers? }
                   firstfloatreg:=RS_NO;
+                  lastfloatreg:=RS_NO;
                   regs:=cg.rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall);
                   for r:=RS_F0 to RS_F7 do
                     if r in regs then
@@ -186,9 +193,48 @@ unit cpupi;
             end;
             floatsavesize:=align(floatsavesize,max(current_settings.alignment.localalignmin,4));
             result:=Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,4))+maxpushedparasize+aint(floatsavesize);
-            floatregstart:=tg.direction*result+maxpushedparasize;
+            { Note: in cgcpu "-floatregstart" is subtracted -> reason based on
+                "adding floatregstart" to avoid double negation
+
+              tg.direction=1 -> no framepointer ->
+                1) save used int registers
+                2) allocate stacksize (= subtracting result, which is positive,
+                   from the stackpointer)
+                3) add floatregstart to the stackpointer to get the offset where
+                   to store the floating point registers (-> floatregstart
+                   should be positive)
+                4) store the floating point registers from this offset with IA
+                   (i.e., this offset and higher addresses -> offset should
+                    point to lower end of area)
+               -> newsp+(result) points to lower end of saved int registers area
+               -> newsp+(result-floatsavesize) points to lower end of float reg
+                  saving area
+
+              tg.direction=-1 -> with framepointer ->
+                1) save stack pointer in framepointer
+                2) save used int registers using stackpointer
+                3) allocate stacksize (= subtracting result, which is positive,
+                   from the stack pointer)
+                4) add floatregstart" to the framepointer to get the offset
+                   where to store the floating point registers (-> floatregstart
+                   should be negative)
+                5) store the floating point registers from this offset with IA
+                   (i.e., this offset and higher addresses -> offset should
+                    point to lower end of area)
+                o in this case, firsttemp starts right after the saved int
+                  registers area (or a bit further, because it's calculated for
+                  the worst-case scenario, when all non-volative integer
+                  registers have to be saved) -> we store the floating point
+                  registers between the last temp and the parameter pushing area
+               -> fp+(-result) points to the top of the stack (= end of
+                  parameter pushing area)
+               -> fp+(-result+maxpushedparasize) points to the start of the
+                  parameter pushing area = lower end of float reg saving area
+            }
             if tg.direction=1 then
-              dec(floatregstart,floatsavesize);
+              floatregstart:=result-aint(floatsavesize)
+            else
+              floatregstart:=-result+maxpushedparasize;
           end;
       end;
 
@@ -210,7 +256,7 @@ unit cpupi;
 
     procedure tarmprocinfo.generate_parameter_info;
       begin
-       procdef.total_stackframe_size:=stackframesize;
+       tcpuprocdef(procdef).total_stackframe_size:=stackframesize;
        inherited generate_parameter_info;
       end;
 
@@ -222,6 +268,12 @@ unit cpupi;
           got := cg.getaddressregister(list);
       end;
 
+
+    procedure tarmprocinfo.postprocess_code;
+      begin
+        { because of the limited constant size of the arm, all data access is done pc relative }
+        finalizearmcode(aktproccode,aktlocaldata);
+      end;
 
 begin
    cprocinfo:=tarmprocinfo;

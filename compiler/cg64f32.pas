@@ -92,8 +92,6 @@ unit cg64f32;
         procedure g_rangecheck64(list: TAsmList; const l:tlocation;fromdef,todef: tdef); override;
       end;
 
-    {# Creates a tregister64 record from 2 32 Bit registers. }
-    function joinreg64(reglo,reghi : tregister) : tregister64;
 
   implementation
 
@@ -106,13 +104,6 @@ unit cg64f32;
 {****************************************************************************
                                      Helpers
 ****************************************************************************}
-
-    function joinreg64(reglo,reghi : tregister) : tregister64;
-      begin
-         result.reglo:=reglo;
-         result.reghi:=reghi;
-      end;
-
 
     procedure swap64(var q : int64);
       begin
@@ -522,7 +513,7 @@ unit cg64f32;
           LOC_MMREGISTER, LOC_CMMREGISTER:
             a_loadmm_intreg64_reg(list,l.size,reg,l.register);
           else
-            internalerror(200112293);
+            internalerror(200112294);
         end;
       end;
 
@@ -861,14 +852,18 @@ unit cg64f32;
                begin
                  current_asmdata.getjumplabel(neglabel);
                  cg.a_cmp_const_reg_label(list,OS_32,OC_EQ,-1,hreg,neglabel);
-               end;
+               end
+             else
+               { we do not have dynamic dfa, so avoid a warning below about the unused
+                 neglabel }
+               neglabel:=nil;
              { For all other values we have a range check error }
              cg.a_call_name(list,'fpc_rangeerror',false);
 
              { if the high dword = 0, the low dword can be considered a }
              { simple cardinal                                          }
              cg.a_label(list,poslabel);
-             hdef:=torddef.create(u32bit,0,$ffffffff);
+             hdef:=corddef.create(u32bit,0,$ffffffff);
 
              location_copy(temploc,l);
              temploc.size:=OS_32;
@@ -908,7 +903,7 @@ unit cg64f32;
                  { if we get here, the 64bit value lies between }
                  { longint($80000000) and -1 (JM)               }
                  cg.a_label(list,neglabel);
-                 hdef:=torddef.create(s32bit,int64(longint($80000000)),int64(-1));
+                 hdef:=corddef.create(s32bit,int64(longint($80000000)),int64(-1));
                  location_copy(temploc,l);
                  temploc.size:=OS_32;
                  hlcg.g_rangecheck(list,temploc,hdef,todef);

@@ -63,34 +63,25 @@ uses
   procinfo,
   symconst,symdef,
   ncon, nset, nadd,
-  ncgutil, cgobj;
+  ncgutil, hlcgobj, cgobj;
 
 {*****************************************************************************
                                tmipsaddnode
 *****************************************************************************}
-const
-  swapped_nodetype: array[ltn..unequaln] of tnodetype =
-    //lt  lte  gt  gte
-    (gtn, gten,ltn,lten, equaln, unequaln);
-
-  nodetype2opcmp: array[boolean,ltn..unequaln] of TOpCmp = (
-    (OC_LT, OC_LTE, OC_GT, OC_GTE, OC_EQ, OC_NE),
-    (OC_B,  OC_BE,  OC_A,  OC_AE,  OC_EQ, OC_NE)
-  );
 
 procedure tmipsaddnode.second_generic_cmp32(unsigned: boolean);
 var
-  ntype: tnodetype;
+  cond: TOpCmp;
 begin
   pass_left_right;
   force_reg_left_right(True, True);
   location_reset(location,LOC_FLAGS,OS_NO);
 
-  ntype:=nodetype;
+  cond:=cmpnode2topcmp(unsigned);
   if nf_swapped in flags then
-    ntype:=swapped_nodetype[nodetype];
+    cond:=swap_opcmp(cond);
 
-  location.resflags.cond:=nodetype2opcmp[unsigned,ntype];
+  location.resflags.cond:=cond;
   location.resflags.reg1:=left.location.register;
   location.resflags.use_const:=(right.location.loc=LOC_CONSTANT);
   if location.resflags.use_const then
@@ -219,14 +210,11 @@ begin
 
         { force fpureg as location, left right doesn't matter
           as both will be in a fpureg }
-  location_force_fpureg(current_asmdata.CurrAsmList, left.location, True);
-  location_force_fpureg(current_asmdata.CurrAsmList, right.location, (left.location.loc <> LOC_CFPUREGISTER));
+  hlcg.location_force_fpureg(current_asmdata.CurrAsmList, left.location, left.resultdef, True);
+  hlcg.location_force_fpureg(current_asmdata.CurrAsmList, right.location, right.resultdef, True);
 
   location_reset(location, LOC_FPUREGISTER, def_cgsize(resultdef));
-  if left.location.loc <> LOC_CFPUREGISTER then
-    location.Register := left.location.Register
-  else
-    location.Register := right.location.Register;
+  location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
 
   case nodetype of
     addn:
@@ -283,8 +271,8 @@ begin
   if nf_swapped in flags then
     swapleftright;
 
-  location_force_fpureg(current_asmdata.CurrAsmList, left.location, True);
-  location_force_fpureg(current_asmdata.CurrAsmList, right.location, True);
+  hlcg.location_force_fpureg(current_asmdata.CurrAsmList, left.location, left.resultdef, True);
+  hlcg.location_force_fpureg(current_asmdata.CurrAsmList, right.location, right.resultdef, True);
   location_reset(location, LOC_JUMP, OS_NO);
 
   op:=ops_cmpfloat[left.location.size=OS_F64,nodetype];

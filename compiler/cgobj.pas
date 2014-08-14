@@ -227,7 +227,6 @@ unit cgobj;
           }
           procedure a_call_name(list : TAsmList;const s : string; weak: boolean);virtual; abstract;
           procedure a_call_reg(list : TAsmList;reg : tregister);virtual; abstract;
-          procedure a_call_ref(list : TAsmList;ref : treference);virtual;
           { same as a_call_name, might be overridden on certain architectures to emit
             static calls without usage of a got trampoline }
           procedure a_call_name_static(list : TAsmList;const s : string);virtual;
@@ -248,7 +247,11 @@ unit cgobj;
           procedure a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);virtual; abstract;
 
           { bit scan instructions }
-          procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tcgsize; src, dst: TRegister); virtual; abstract;
+          procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tcgsize; src, dst: TRegister); virtual;
+
+          { Multiplication with doubling result size.
+            dstlo or dsthi may be NR_NO, in which case corresponding half of result is discarded. }
+          procedure a_mul_reg_reg_pair(list: TAsmList; size: tcgsize; src1,src2,dstlo,dsthi: TRegister);virtual;
 
           { fpu move instructions }
           procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize:tcgsize; reg1, reg2: tregister); virtual; abstract;
@@ -336,11 +339,12 @@ unit cgobj;
              to emit, and the constant value to emit. This function can opcode OP_NONE to
              remove the opcode and OP_MOVE to replace it with a simple load
 
+             @param(size Size of the operand in constant)
              @param(op The opcode to emit, returns the opcode which must be emitted)
              @param(a  The constant which should be emitted, returns the constant which must
                     be emitted)
           }
-          procedure optimize_op_const(var op: topcg; var a : tcgint);virtual;
+          procedure optimize_op_const(size: TCGSize; var op: topcg; var a : tcgint);virtual;
 
          {#
              This routine is used in exception management nodes. It should
@@ -408,7 +412,7 @@ unit cgobj;
 
              @param(size Number of bytes to allocate)
           }
-          procedure g_stackpointer_alloc(list : TAsmList;size : longint);virtual; abstract;
+          procedure g_stackpointer_alloc(list : TAsmList;size : longint);virtual;
           {# Emits instruction for allocating the locals in entry
              code of a routine. This is one of the first
              routine called in @var(genentrycode).
@@ -458,6 +462,9 @@ unit cgobj;
           { Generate code to exit an unwind-protected region. The default implementation
             produces a simple jump to destination label. }
           procedure g_local_unwind(list: TAsmList; l: TAsmLabel);virtual;
+          { Generate code for integer division by constant,
+            generic version is suitable for 3-address CPUs }
+          procedure g_div_const_reg_reg(list:tasmlist; size: TCgSize; a: tcgint; src,dst: tregister); virtual;
 
          protected
           function g_indirect_sym_load(list:TAsmList;const symname: string; const flags: tindsymflags): tregister;virtual;
@@ -558,6 +565,9 @@ unit cgobj;
         { override to catch 64bit rangechecks }
         procedure g_rangecheck64(list: TAsmList; const l:tlocation; fromdef,todef: tdef);virtual;abstract;
     end;
+
+    { Creates a tregister64 record from 2 32 Bit registers. }
+    function joinreg64(reglo,reghi : tregister) : tregister64;
 {$endif cpu64bitalu}
 
     var
@@ -702,6 +712,8 @@ implementation
     procedure tcg.allocallcpuregisters(list:TAsmList);
       begin
         alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        if uses_registers(R_ADDRESSREGISTER) then
+          alloccpuregisters(list,R_ADDRESSREGISTER,paramanager.get_volatile_registers_address(pocall_default));
 {$if not(defined(i386)) and not(defined(i8086)) and not(defined(avr))}
         if uses_registers(R_FPUREGISTER) then
           alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
@@ -725,6 +737,8 @@ implementation
     procedure tcg.deallocallcpuregisters(list:TAsmList);
       begin
         dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        if uses_registers(R_ADDRESSREGISTER) then
+          dealloccpuregisters(list,R_ADDRESSREGISTER,paramanager.get_volatile_registers_address(pocall_default));
 {$if not(defined(i386)) and not(defined(i8086)) and not(defined(avr))}
         if uses_registers(R_FPUREGISTER) then
           dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
@@ -754,7 +768,7 @@ implementation
           No IE can be generated, because the VMT is written
           without a valid rg[] }
         if assigned(rg[rt]) then
-          rg[rt].add_reg_instruction(instr,r,cg.executionweight);
+          rg[rt].add_reg_instruction(instr,r,executionweight);
       end;
 
 
@@ -940,7 +954,7 @@ implementation
                    { we're at the end of the data, and it can be loaded into
                      the current location's register with a single regular
                      load }
-                   else if (sizeleft in [1,2{$ifndef cpu16bitalu},4{$endif}{$ifdef cpu64bitalu},8{$endif}]) then
+                   else if sizeleft in [1,2,4,8] then
                      begin
                        a_load_ref_reg(list,int_cgsize(sizeleft),location^.size,tmpref,location^.register);
                        if location^.shiftval<0 then
@@ -1126,7 +1140,7 @@ implementation
                end;
              end;
            LOC_FPUREGISTER :
-             cg.a_loadfpu_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref);
+             a_loadfpu_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref);
            LOC_REFERENCE :
              begin
                reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset,align);
@@ -1282,6 +1296,7 @@ implementation
         tmpreg,
         tmpreg2 : tregister;
         i : longint;
+        hisize : tcgsize;
       begin
         if ref.alignment in [1,2] then
           begin
@@ -1294,14 +1309,18 @@ implementation
                   a_load_ref_reg(list,fromsize,tosize,tmpref,register)
                 else
                   begin
+                    if FromSize=OS_16 then
+                      hisize:=OS_8
+                    else
+                      hisize:=OS_S8;
                     { first load in tmpreg, because the target register }
                     { may be used in ref as well                        }
                     if target_info.endian=endian_little then
                       inc(tmpref.offset);
                     tmpreg:=getintregister(list,OS_8);
-                    a_load_ref_reg(list,OS_8,OS_8,tmpref,tmpreg);
-                    tmpreg:=makeregsize(list,tmpreg,OS_16);
-                    a_op_const_reg(list,OP_SHL,OS_16,8,tmpreg);
+                    a_load_ref_reg(list,hisize,hisize,tmpref,tmpreg);
+                    tmpreg:=makeregsize(list,tmpreg,FromSize);
+                    a_op_const_reg(list,OP_SHL,FromSize,8,tmpreg);
                     if target_info.endian=endian_little then
                       dec(tmpref.offset)
                     else
@@ -1433,10 +1452,39 @@ implementation
       end;
 
 
-    procedure tcg.optimize_op_const(var op: topcg; var a : tcgint);
+    procedure tcg.optimize_op_const(size: TCGSize; var op: topcg; var a : tcgint);
       var
         powerval : longint;
+        signext_a, zeroext_a: tcgint;
       begin
+        case size of
+          OS_64,OS_S64:
+            begin
+              signext_a:=int64(a);
+              zeroext_a:=int64(a);
+            end;
+          OS_32,OS_S32:
+            begin
+              signext_a:=longint(a);
+              zeroext_a:=dword(a);
+            end;
+          OS_16,OS_S16:
+            begin
+              signext_a:=smallint(a);
+              zeroext_a:=word(a);
+            end;
+          OS_8,OS_S8:
+            begin
+              signext_a:=shortint(a);
+              zeroext_a:=byte(a);
+            end
+          else
+            begin
+              { Should we internalerror() here instead? }
+              signext_a:=a;
+              zeroext_a:=a;
+            end;
+        end;
         case op of
           OP_OR :
             begin
@@ -1445,13 +1493,13 @@ implementation
                 op:=OP_NONE
               else
               { or with max returns max }
-                if a = -1 then
+                if signext_a = -1 then
                   op:=OP_MOVE;
             end;
           OP_AND :
             begin
               { and with max returns same result }
-              if (a = -1) then
+              if (signext_a = -1) then
                 op:=OP_NONE
               else
               { and with 0 returns 0 }
@@ -1463,7 +1511,7 @@ implementation
               { division by 1 returns result }
               if a = 1 then
                 op:=OP_NONE
-              else if ispowerof2(int64(a), powerval) and not(cs_check_overflow in current_settings.localswitches) then
+              else if ispowerof2(int64(zeroext_a), powerval) and not(cs_check_overflow in current_settings.localswitches) then
                 begin
                   a := powerval;
                   op:= OP_SHR;
@@ -1481,7 +1529,7 @@ implementation
                else
                  if a=0 then
                    op:=OP_MOVE
-               else if ispowerof2(int64(a), powerval) and not(cs_check_overflow in current_settings.localswitches)  then
+               else if ispowerof2(int64(zeroext_a), powerval) and not(cs_check_overflow in current_settings.localswitches)  then
                  begin
                    a := powerval;
                    op:= OP_SHL;
@@ -2047,7 +2095,7 @@ implementation
            (tcgsize2size[tosize]<>4) then
           internalerror(2009112504);
         tg.gettemp(list,8,8,tt_normal,tmpref);
-        cg.a_loadmm_reg_ref(list,fromsize,fromsize,mmreg,tmpref,shuffle);
+        a_loadmm_reg_ref(list,fromsize,fromsize,mmreg,tmpref,shuffle);
         a_load_ref_reg(list,tosize,tosize,tmpref,intreg);
         tg.ungettemp(list,tmpref);
       end;
@@ -2131,7 +2179,7 @@ implementation
            pd:=search_system_proc('fpc_check_object_ext');
            paramanager.getintparaloc(pd,1,cgpara1);
            paramanager.getintparaloc(pd,2,cgpara2);
-           reference_reset_symbol(hrefvmt,current_asmdata.RefAsmSymbol(objdef.vmt_mangledname),0,sizeof(pint));
+           reference_reset_symbol(hrefvmt,current_asmdata.RefAsmSymbol(objdef.vmt_mangledname,AT_DATA),0,sizeof(pint));
            if pd.is_pushleftright then
              begin
                a_load_reg_cgpara(list,OS_ADDR,reg,cgpara1);
@@ -2180,6 +2228,10 @@ implementation
         for r:=low(saved_standard_registers) to high(saved_standard_registers) do
           if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
             inc(size,sizeof(aint));
+        if uses_registers(R_ADDRESSREGISTER) then
+          for r:=low(saved_address_registers) to high(saved_address_registers) do
+            if saved_address_registers[r] in rg[R_ADDRESSREGISTER].used_in_proc then
+              inc(size,sizeof(aint));
 
         { mm registers }
         if uses_registers(R_MMREGISTER) then
@@ -2210,6 +2262,17 @@ implementation
                   end;
                 include(rg[R_INTREGISTER].preserved_by_proc,saved_standard_registers[r]);
               end;
+
+            if uses_registers(R_ADDRESSREGISTER) then
+              for r:=low(saved_address_registers) to high(saved_address_registers) do
+                begin
+                  if saved_address_registers[r] in rg[R_ADDRESSREGISTER].used_in_proc then
+                    begin
+                      a_load_reg_ref(list,OS_ADDR,OS_ADDR,newreg(R_ADDRESSREGISTER,saved_address_registers[r],R_SUBWHOLE),href);
+                      inc(href.offset,sizeof(aint));
+                    end;
+                  include(rg[R_ADDRESSREGISTER].preserved_by_proc,saved_address_registers[r]);
+                end;
 
             if uses_registers(R_MMREGISTER) then
               begin
@@ -2257,6 +2320,17 @@ implementation
               inc(href.offset,sizeof(aint));
             end;
 
+        if uses_registers(R_ADDRESSREGISTER) then
+          for r:=low(saved_address_registers) to high(saved_address_registers) do
+            if saved_address_registers[r] in rg[R_ADDRESSREGISTER].used_in_proc then
+              begin
+                hreg:=newreg(R_ADDRESSREGISTER,saved_address_registers[r],R_SUBWHOLE);
+                { Allocate register so the optimizer does not remove the load }
+                a_reg_alloc(list,hreg);
+                a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,hreg);
+                inc(href.offset,sizeof(aint));
+              end;
+
         if uses_registers(R_MMREGISTER) then
           begin
             if (href.offset mod tcgsize2size[OS_VECTOR])<>0 then
@@ -2297,7 +2371,7 @@ implementation
 
     procedure tcg.g_exception_reason_load(list : TAsmList; const href : treference);
       begin
-        cg.a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
+        a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
         a_load_ref_reg(list, OS_INT, OS_INT, href, NR_FUNCTION_RESULT_REG);
       end;
 
@@ -2345,16 +2419,6 @@ implementation
     procedure tcg.a_call_name_static(list : TAsmList;const s : string);
       begin
         a_call_name(list,s,false);
-      end;
-
-
-    procedure tcg.a_call_ref(list : TAsmList;ref: treference);
-      var
-        tempreg : TRegister;
-      begin
-        tempreg := getintregister(list, OS_ADDR);
-        a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,tempreg);
-        a_call_reg(list,tempreg);
       end;
 
 
@@ -2444,11 +2508,93 @@ implementation
         internalerror(200807238);
       end;
 
+
+    procedure tcg.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tcgsize; src, dst: TRegister);
+      begin
+        internalerror(2014070601);
+      end;
+
+
+    procedure tcg.g_stackpointer_alloc(list: TAsmList; size: longint);
+      begin
+        internalerror(2014070602);
+      end;
+
+
+    procedure tcg.a_mul_reg_reg_pair(list: TAsmList; size: TCgSize; src1,src2,dstlo,dsthi: TRegister);
+      begin
+        internalerror(2014060801);
+      end;
+
+
+    procedure tcg.g_div_const_reg_reg(list:tasmlist; size: TCgSize; a: tcgint; src,dst: tregister);
+      var
+        divreg: tregister;
+        magic: aInt;
+        u_magic: aWord;
+        u_shift: byte;
+        u_add: boolean;
+      begin
+        divreg:=getintregister(list,OS_INT);
+        if (size in [OS_S32,OS_S64]) then
+          begin
+            calc_divconst_magic_signed(tcgsize2size[size]*8,a,magic,u_shift);
+            { load magic value }
+            a_load_const_reg(list,OS_INT,magic,divreg);
+            { multiply, discarding low bits }
+            a_mul_reg_reg_pair(list,size,src,divreg,NR_NO,dst);
+            { add/subtract numerator }
+            if (a>0) and (magic<0) then
+              a_op_reg_reg_reg(list,OP_ADD,OS_INT,src,dst,dst)
+            else if (a<0) and (magic>0) then
+              a_op_reg_reg_reg(list,OP_SUB,OS_INT,src,dst,dst);
+            { shift shift places to the right (arithmetic) }
+            a_op_const_reg_reg(list,OP_SAR,OS_INT,u_shift,dst,dst);
+            { extract and add sign bit }
+            if (a>=0) then
+              a_op_const_reg_reg(list,OP_SHR,OS_INT,tcgsize2size[size]*8-1,src,divreg)
+            else
+              a_op_const_reg_reg(list,OP_SHR,OS_INT,tcgsize2size[size]*8-1,dst,divreg);
+            a_op_reg_reg_reg(list,OP_ADD,OS_INT,dst,divreg,dst);
+          end
+        else if (size in [OS_32,OS_64]) then
+          begin
+            calc_divconst_magic_unsigned(tcgsize2size[size]*8,a,u_magic,u_add,u_shift);
+            { load magic in divreg }
+            a_load_const_reg(list,OS_INT,tcgint(u_magic),divreg);
+            { multiply, discarding low bits }
+            a_mul_reg_reg_pair(list,size,src,divreg,NR_NO,dst);
+            if (u_add) then
+              begin
+                { Calculate "(numerator+result) shr u_shift", avoiding possible overflow }
+                a_op_reg_reg_reg(list,OP_SUB,OS_INT,dst,src,divreg);
+                { divreg=(numerator-result) }
+                a_op_const_reg_reg(list,OP_SHR,OS_INT,1,divreg,divreg);
+                { divreg=(numerator-result)/2 }
+                a_op_reg_reg_reg(list,OP_ADD,OS_INT,divreg,dst,divreg);
+                { divreg=(numerator+result)/2, already shifted by 1, so decrease u_shift. }
+                a_op_const_reg_reg(list,OP_SHR,OS_INT,u_shift-1,divreg,dst);
+              end
+            else
+              a_op_const_reg_reg(list,OP_SHR,OS_INT,u_shift,dst,dst);
+          end
+        else
+          InternalError(2014060601);
+      end;
+
+
 {*****************************************************************************
                                     TCG64
 *****************************************************************************}
 
 {$ifndef cpu64bitalu}
+    function joinreg64(reglo,reghi : tregister) : tregister64;
+      begin
+         result.reglo:=reglo;
+         result.reghi:=reghi;
+      end;
+
+
     procedure tcg64.a_op64_const_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;value : int64; regsrc,regdst : tregister64);
       begin
         a_load64_reg_reg(list,regsrc,regdst);

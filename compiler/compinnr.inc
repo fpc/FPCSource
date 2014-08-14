@@ -115,6 +115,10 @@ const
    in_arctan_real      = 130;
    in_ln_real          = 131;
    in_sin_real         = 132;
+   in_fma_single       = 133;
+   in_fma_double       = 134;
+   in_fma_extended     = 135;
+   in_fma_float128     = 136;
 
 { MMX functions }
   { these contants are used by the mmx unit }

@@ -82,6 +82,7 @@ unit opttail;
           result:=false;
           if n=nil then
             exit;
+          usedcallnode:=nil;
           case n.nodetype of
             statementn:
               begin
@@ -97,10 +98,12 @@ unit opttail;
                 { avoid short bool eval here }
                 result:=find_and_replace_tailcalls(tifnode(n).t1) or result;
               end;
+            calln,
             assignn:
               begin
-                if is_resultassignment(tbinarynode(n).left) and
-                   is_recursivecall(tbinarynode(n).right) then
+                if ((n.nodetype=calln) and is_recursivecall(n)) or
+                   ((n.nodetype=assignn) and is_resultassignment(tbinarynode(n).left) and
+                   is_recursivecall(tbinarynode(n).right)) then
                   begin
                     { found one! }
                     {
@@ -195,7 +198,7 @@ unit opttail;
                is_managed_type(vardef)) then
                exit;
 
-        labelsym:=tlabelsym.create('$opttail');
+        labelsym:=clabelsym.create('$opttail');
         labelnode:=clabelnode.create(cnothingnode.create,labelsym);
         if find_and_replace_tailcalls(n) then
           begin

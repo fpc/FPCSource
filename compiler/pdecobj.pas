@@ -30,7 +30,7 @@ interface
       globtype,symconst,symtype,symdef;
 
     { parses a object declaration }
-    function object_dec(objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
+    function object_dec(objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
 
     { parses a (class) method declaration }
     function method_dec(astruct: tabstractrecorddef; is_classdef: boolean): tprocdef;
@@ -321,7 +321,7 @@ implementation
              Message1(parser_e_forward_intf_declaration_must_be_resolved,intfdef.objrealname^);
              exit;
           end;
-        if current_objectdef.find_implemented_interface(intfdef)<>nil then
+        if find_implemented_interface(current_objectdef,intfdef)<>nil then
           Message1(sym_e_duplicate_id,intfdef.objname^)
         else
           begin
@@ -361,7 +361,7 @@ implementation
              Message1(parser_e_forward_intf_declaration_must_be_resolved,intfdef.objrealname^);
              exit;
           end;
-        if current_objectdef.find_implemented_interface(intfdef)<>nil then
+        if find_implemented_interface(current_objectdef,intfdef)<>nil then
           Message1(sym_e_duplicate_id,intfdef.objname^)
         else
           begin
@@ -757,7 +757,7 @@ implementation
                       begin
                         if not is_class(current_objectdef.childof.extendeddef) then
                           Internalerror(2011021101);
-                        if not hdef.is_related(current_objectdef.childof.extendeddef) then
+                        if not def_is_related(hdef,current_objectdef.childof.extendeddef) then
                           Message1(type_e_class_helper_must_extend_subclass,current_objectdef.childof.extendeddef.typename);
                       end;
                   end;
@@ -767,7 +767,7 @@ implementation
                       { primitive types are allowed for record helpers in mode
                         delphi }
                       (hdef.typ<>recorddef) and
-                      not (m_delphi in current_settings.modeswitches)
+                      not (m_type_helpers in current_settings.modeswitches)
                     ) then
                   Message1(type_e_record_type_expected,hdef.typename)
                 else
@@ -1240,6 +1240,7 @@ implementation
                           types_dec(true)
                         else if object_member_blocktype=bt_const then
                           begin
+                            typedconstswritable:=false;
                             if final_fields then
                               begin
                                 { the value of final fields cannot be changed
@@ -1292,7 +1293,7 @@ implementation
       end;
 
 
-    function object_dec(objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
+    function object_dec(objecttype:tobjecttyp;const n:tidstring;objsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;fd : tobjectdef;helpertype:thelpertype) : tobjectdef;
       var
         old_current_structdef: tabstractrecorddef;
         old_current_genericdef,
@@ -1326,7 +1327,7 @@ implementation
               begin
                 Message(parser_e_forward_mismatch);
                 { recover }
-                current_structdef:=tobjectdef.create(current_objectdef.objecttype,n,nil);
+                current_structdef:=cobjectdef.create(current_objectdef.objecttype,n,nil);
                 include(current_structdef.objectoptions,oo_is_forward);
               end
             else
@@ -1339,7 +1340,7 @@ implementation
               Message(parser_f_no_anonym_objects);
 
             { create new class }
-            current_structdef:=tobjectdef.create(objecttype,n,nil);
+            current_structdef:=cobjectdef.create(objecttype,n,nil);
 
             { include always the forward flag, it'll be removed after the parent class have been
               added. This is to prevent circular childof loops }
@@ -1362,21 +1363,7 @@ implementation
                       if (current_structdef.objname^='TOBJECT') then
                         class_tobject:=current_objectdef
                       else if (current_objectdef.objname^='JLOBJECT') then
-                        begin
-                          java_jlobject:=current_objectdef;
-                          { the methodpointer type is normally created in
-                            psystem, but java_jlobject is not yet available
-                            there... }
-                          hrecst:=trecordsymtable.create('',1);
-                          fsym:=tfieldvarsym.create('$proc',vs_value,java_jlobject,[]);
-                          hrecst.insert(fsym);
-                          hrecst.addfield(fsym,vis_hidden);
-                          fsym:=tfieldvarsym.create('$data',vs_value,java_jlobject,[]);
-                          hrecst.insert(fsym);
-                          hrecst.addfield(fsym,vis_hidden);
-                          methodpointertype:=trecorddef.create('',hrecst);
-                          systemunit.insert(ttypesym.create('$methodpointer',methodpointertype));
-                        end
+                        java_jlobject:=current_objectdef
                       else if (current_objectdef.objname^='JLTHROWABLE') then
                         java_jlthrowable:=current_objectdef
                       else if (current_objectdef.objname^='FPCBASERECORDTYPE') then
@@ -1410,9 +1397,9 @@ implementation
 
         { usage of specialized type inside its generic template }
         if assigned(genericdef) then
-          current_specializedef:=current_structdef
+          current_specializedef:=current_structdef;
         { reject declaration of generic class inside generic class }
-        else if assigned(genericlist) then
+        if assigned(genericlist) then
           current_genericdef:=current_structdef;
 
         { nested types of specializations are specializations as well }
@@ -1495,10 +1482,12 @@ implementation
             parse_guid;
 
             { classes can handle links to themself not only inside type blocks
-              but in const blocks too. to make this possible we need to set
-              their symbols to real defs instead of errordef }
+              but in const blocks too. Additionally this is needed to parse parameters that are
+              specializations of the currently parsed type in basically everything except C++ and
+              ObjC classes. To make this possible we need to set their symbols to real defs instead
+              of errordef }
 
-            if assigned(objsym) and (objecttype in [odt_class,odt_javaclass,odt_interfacejava]) then
+            if assigned(objsym) and not (objecttype in [odt_cppclass,odt_objccategory,odt_objcclass,odt_objcprotocol]) then
               begin
                 olddef:=ttypesym(objsym).typedef;
                 ttypesym(objsym).typedef:=current_structdef;
@@ -1565,9 +1554,9 @@ implementation
         else if is_objcclass(current_structdef) then
           setobjcclassmethodoptions;
 
-        { if this helper is defined in the implementation section of the unit
-          or inside the main project file, the extendeddefs list of the current
-          module must be updated (it will be removed when poping the symtable) }
+        { we need to add this helper to the extendeddefs of the current module,
+          as the global and static symtable are not pushed onto the symtable
+          stack again (it will be removed when poping the symtable) }
         if is_objectpascal_helper(current_structdef) and
             (current_objectdef.extendeddef.typ<>errordef) then
           begin
@@ -1575,7 +1564,7 @@ implementation
             st:=current_structdef.owner;
             while st.symtabletype in [objectsymtable,recordsymtable] do
               st:=st.defowner.owner;
-            if st.symtabletype=staticsymtable then
+            if st.symtabletype in [staticsymtable,globalsymtable] then
               begin
                 if current_objectdef.extendeddef.typ in [recorddef,objectdef] then
                   s:=make_mangledname('',tabstractrecorddef(current_objectdef.extendeddef).symtable,'')

@@ -61,7 +61,7 @@ implementation
       systems,globals,procinfo,
       cutils,verbose,constexp,
       aasmbase,
-      symconst,symtype,symtable,symsym,symdef,defutil,jvmdef,
+      symconst,symtype,symtable,symsym,symdef,symcpu,defutil,jvmdef,
       htypechk,paramgr,
       nadd,ncal,ncnv,ncon,nld,nutils,
       pass_1,njvmcon,
@@ -199,7 +199,7 @@ implementation
                     { an internal address node will observe "normal" address
                       operator semantics (= take the actual address!) }
                     result:=caddrnode.create_internal(taddrnode(left).left);
-                    result:=ctypeconvnode.create_explicit(result,tprocvardef(taddrnode(left).left.resultdef).classdef);
+                    result:=ctypeconvnode.create_explicit(result,tcpuprocvardef(taddrnode(left).left.resultdef).classdef);
                     taddrnode(left).left:=nil;
                  end;
               end
@@ -209,9 +209,9 @@ implementation
                   begin
                     { the "code" field from the procvar }
                     result:=caddrnode.create_internal(left);
-                    result:=ctypeconvnode.create_explicit(result,tprocvardef(left.resultdef).classdef);
+                    result:=ctypeconvnode.create_explicit(result,tcpuprocvardef(left.resultdef).classdef);
                     { procvarclass.method }
-                    fsym:=search_struct_member(tprocvardef(left.resultdef).classdef,'METHOD');
+                    fsym:=search_struct_member(tcpuprocvardef(left.resultdef).classdef,'METHOD');
                     if not assigned(fsym) or
                        (fsym.typ<>fieldvarsym) then
                       internalerror(2011072501);
@@ -410,7 +410,7 @@ implementation
           begin
            if (right.location.loc<>LOC_CONSTANT) then
              begin
-               psym:=search_struct_member(tenumdef(right.resultdef).getbasedef.classdef,'FPCORDINAL');
+               psym:=search_struct_member(tcpuenumdef(tenumdef(right.resultdef).getbasedef).classdef,'FPCORDINAL');
                if not assigned(psym) or
                   (psym.typ<>procsym) or
                   (tprocsym(psym).ProcdefList.count<>1) then
@@ -427,6 +427,14 @@ implementation
              object instances (since that's what they are in Java) }
            right.resultdef:=s32inttype;
            right.location.size:=OS_S32;
+          end
+        else if (right.location.loc<>LOC_CONSTANT) and
+                ((right.resultdef.typ<>orddef) or
+                 (torddef(right.resultdef).ordtype<>s32bit)) then
+          begin
+            { Java array indices are always 32 bit signed integers }
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,s32inttype,true);
+            right.resultdef:=s32inttype;
           end;
 
         { adjust index if necessary }
@@ -436,11 +444,8 @@ implementation
           begin
             thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
             thlcgjvm(hlcg).a_op_const_stack(current_asmdata.CurrAsmList,OP_SUB,right.resultdef,tarraydef(left.resultdef).lowrange);
-            if right.location.loc<>LOC_REGISTER then
-              begin
-                location_reset(right.location,LOC_REGISTER,def_cgsize(right.resultdef));
-                right.location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,right.resultdef);
-              end;
+            location_reset(right.location,LOC_REGISTER,def_cgsize(right.resultdef));
+            right.location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,right.resultdef);
             thlcgjvm(hlcg).a_load_stack_reg(current_asmdata.CurrAsmList,right.resultdef,right.location.register);
           end;
 

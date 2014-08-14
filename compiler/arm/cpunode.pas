@@ -41,7 +41,9 @@ unit cpunode;
        narmcnv,
        narmcon,
        narmset,
-       narmmem
+       narmmem,
+       { symtable }
+       symcpu
        ;
 
 

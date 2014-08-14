@@ -134,28 +134,54 @@ implementation
     function tgenppcaddnode.getresflags : tresflags;
       begin
         if (left.resultdef.typ <> floatdef) then
-          result.cr := RS_CR0
-        else
-          result.cr := RS_CR1;
-        case nodetype of
-          equaln : result.flag:=F_EQ;
-          unequaln : result.flag:=F_NE;
-        else
-          if nf_swapped in flags then
+          begin
+            result.cr := RS_CR0;
             case nodetype of
-              ltn : result.flag:=F_GT;
-              lten : result.flag:=F_GE;
-              gtn : result.flag:=F_LT;
-              gten : result.flag:=F_LE;
+              equaln : result.flag:=F_EQ;
+              unequaln : result.flag:=F_NE;
+            else
+              if nf_swapped in flags then
+                case nodetype of
+                  ltn : result.flag:=F_GT;
+                  lten : result.flag:=F_GE;
+                  gtn : result.flag:=F_LT;
+                  gten : result.flag:=F_LE;
+                end
+              else
+                case nodetype of
+                  ltn : result.flag:=F_LT;
+                  lten : result.flag:=F_LE;
+                  gtn : result.flag:=F_GT;
+                  gten : result.flag:=F_GE;
+                end;
             end
-          else
-            case nodetype of
-              ltn : result.flag:=F_LT;
-              lten : result.flag:=F_LE;
-              gtn : result.flag:=F_GT;
-              gten : result.flag:=F_GE;
-            end;
-        end
+          end
+        else
+          begin
+            result.cr := RS_CR1;
+            if (nodetype=equaln) then
+              result.flag:=F_EQ
+            else if (nodetype=unequaln) then
+              result.flag:=F_NE
+            else if (nf_swapped in flags) then
+              case nodetype of
+                ltn : result.flag:=F_FA;
+                lten : result.flag:=F_FAE;
+                gtn : result.flag:=F_FB;
+                gten : result.flag:=F_FBE;
+              else
+                internalerror(2014031902);
+              end
+            else
+              case nodetype of
+                ltn : result.flag:=F_FB;
+                lten : result.flag:=F_FBE;
+                gtn : result.flag:=F_FA;
+                gten : result.flag:=F_FAE;
+              else
+                internalerror(2014031903);
+              end;
+          end;
       end;
 
 
@@ -173,6 +199,8 @@ implementation
       begin
         { calculate the operator which is more difficult }
         firstcomplex(self);
+        otl:=nil;
+        ofl:=nil;
 
         cmpop:=false;
         if (torddef(left.resultdef).ordtype in [pasbool8,bool8bit]) or
@@ -339,8 +367,8 @@ implementation
           swapleftright;
 
         // put both operands in a register
-        location_force_fpureg(current_asmdata.CurrAsmList,right.location,true);
-        location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
 
         // initialize de result
         if not cmpop then
@@ -381,6 +409,8 @@ implementation
         opdone,
         cmpop  : boolean;
       begin
+        cgop:=OP_None;
+
         pass_left_and_right;
 
         { when a setdef is passed, it has to be a smallset }
@@ -412,11 +442,18 @@ implementation
           setbase:=tsetdef(left.resultdef).setbase
         else
           setbase:=tsetdef(right.resultdef).setbase;
+        if (nf_swapped in flags) and
+           ((nodetype=subn) or
+            (left.nodetype=setelementn)) then
+          swapleftright;
+        { we don't support two constant locations (should ideally be handled
+          in simplify }
+        if (left.location.loc=LOC_CONSTANT) and
+           (right.location.loc=LOC_CONSTANT) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
         case nodetype of
           addn :
             begin
-              if (nf_swapped in flags) and (left.nodetype=setelementn) then
-                swapleftright;
               { are we adding set elements ? }
               if right.nodetype=setelementn then
                 begin
@@ -453,18 +490,10 @@ implementation
           subn :
             begin
               cgop:=OP_AND;
-              if (not(nf_swapped in flags)) then
-                if (right.location.loc=LOC_CONSTANT) then
-                  right.location.value := not(right.location.value)
-                else
-                  opdone := true
-              else if (left.location.loc=LOC_CONSTANT) then
-                left.location.value := not(left.location.value)
+              if (right.location.loc=LOC_CONSTANT) then
+                right.location.value := not(right.location.value)
               else
-                 begin
-                   swapleftright;
-                   opdone := true;
-                 end;
+                opdone := true;
               if opdone then
                 begin
                   if left.location.loc = LOC_CONSTANT then

@@ -42,7 +42,7 @@ unit cpugas;
       end;
 
     const
-      use_std_regnames : boolean = 
+      use_std_regnames : boolean =
       {$ifndef USE_MIPS_GAS_REGS}
       true;
       {$else}
@@ -55,30 +55,12 @@ unit cpugas;
       cutils, systems, cpuinfo,
       globals, verbose, itcpugas, cgbase, cgutils;
 
-    function gas_std_regname(r:Tregister):string;
-      var
-        hr: tregister;
-      begin
-        { Double uses the same table as single }
-        hr := r;
-        case getsubreg(hr) of
-          R_SUBFD:
-            setsubreg(hr, R_SUBFS);
-          R_SUBL, R_SUBW, R_SUBD, R_SUBQ:
-           setsubreg(hr, R_SUBD);
-        end;
-        if getregtype(r)=R_SPECIALREGISTER then
-          result:=tostr(getsupreg(r))
-        else
-          result:=std_regname(hr);
-      end;
-
 
       function asm_regname(reg : TRegister) : string;
 
         begin
           if use_std_regnames then
-            asm_regname:='$'+gas_std_regname(reg)
+            asm_regname:='$'+std_regname(reg)
           else
             asm_regname:=gas_regname(reg);
         end;
@@ -103,6 +85,7 @@ unit cpugas;
          Replace(result,'$ABI','-mabi='+abitypestr[mips_abi]);
          { ARCH selection }
          Replace(result,'$ARCH','-march='+lower(cputypestr[current_settings.cputype]));
+//          Replace(result,'$ARCH','-march=pic32mx -mtune=pic32mx');      
       end;
 
 {****************************************************************************}
@@ -379,8 +362,8 @@ unit cpugas;
         id: as_gas;
         idtxt: 'AS';
         asmbin: 'as';
-        asmcmd: '$ABI $ARCH $NOWARN -EL $PIC -o $OBJ $ASM';
-        supported_targets: [system_mipsel_linux];
+        asmcmd: '$ABI $ARCH $NOWARN -EL $PIC -o $OBJ $EXTRAOPT $ASM';
+        supported_targets: [system_mipsel_linux,system_mipsel_android,system_mipsel_embedded];
         flags: [ af_needar, af_smartlink_sections];
         labelprefix: '.L';
         comment: '# ';
@@ -391,7 +374,7 @@ unit cpugas;
         id: as_gas;
         idtxt: 'AS';
         asmbin: 'as';
-        asmcmd: '$ABI $ARCH $NOWARN -EB $PIC -o $OBJ $ASM';
+        asmcmd: '$ABI $ARCH $NOWARN -EB $PIC -o $OBJ $EXTRAOPT $ASM';
         supported_targets: [system_mipseb_linux];
         flags: [ af_needar, af_smartlink_sections];
         labelprefix: '.L';

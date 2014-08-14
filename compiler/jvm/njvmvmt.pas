@@ -1,5 +1,7 @@
 {
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 2014 by Jonas Maebe
+
+    Generate JVM bytecode for in set/case nodes
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,10 +19,34 @@
 
  ****************************************************************************
 }
-unit cpuasm;
+unit njvmvmt;
 
-  interface
+{$i fpcdefs.inc}
 
-  implementation
+interface
 
+    uses
+      ncgvmt;
+
+    type
+      tjvmvmtwriter = class(TVMTWriter)
+        class function use_vmt_writer: boolean; override;
+      end;
+
+
+implementation
+
+
+{*****************************************************************************
+                             TJVMVMTWRITER
+*****************************************************************************}
+
+
+  class function tjvmvmtwriter.use_vmt_writer: boolean;
+    begin
+      result:=false;
+    end;
+
+begin
+  CVMTWriter:=tjvmvmtwriter;
 end.

@@ -55,7 +55,7 @@ unit tgcpu;
     uses
        verbose,
        cgbase,
-       symconst,symdef,symsym,defutil,
+       symconst,symdef,symsym,symcpu,defutil,
        cpubase,aasmcpu,
        hlcgobj,hlcgcpu;
 
@@ -135,7 +135,7 @@ unit tgcpu;
               if tsetdef(def).elementdef.typ=enumdef then
                 begin
                   { load enum class type }
-                  list.concat(taicpu.op_sym(a_ldc,current_asmdata.RefAsmSymbol(tenumdef(tsetdef(def).elementdef).getbasedef.classdef.jvm_full_typename(true))));
+                  list.concat(taicpu.op_sym(a_ldc,current_asmdata.RefAsmSymbol(tcpuenumdef(tenumdef(tsetdef(def).elementdef).getbasedef).classdef.jvm_full_typename(true))));
                   thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,1);
                   { call tenumset.noneOf() class method }
                   sym:=tsym(tobjectdef(java_juenumset).symtable.find('NONEOF'));
@@ -182,7 +182,7 @@ unit tgcpu;
             begin
               if not tprocvardef(def).is_addressonly then
                 begin
-                  getimplicitobjtemp(list,tprocvardef(def).classdef,temptype,ref);
+                  getimplicitobjtemp(list,tcpuprocvardef(def).classdef,temptype,ref);
                   result:=true;
                 end;
             end;

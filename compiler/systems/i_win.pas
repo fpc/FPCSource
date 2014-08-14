@@ -138,7 +138,7 @@ unit i_win;
             link         : ld_int_windows;
             linkextern   : ld_windows;
             ar           : ar_gnu_ar;
-            res          : res_win64_gorc;
+            res          : res_gnu_windres;
             dbg          : dbg_dwarf2;
             script       : script_dos;
             endian       : endian_little;

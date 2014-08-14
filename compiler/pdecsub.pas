@@ -99,7 +99,7 @@ implementation
        systems,
        cpuinfo,
        { symtable }
-       symbase,symtable,defutil,defcmp,
+       symbase,symcpu,symtable,defutil,defcmp,
        { parameter handling }
        paramgr,cpupara,
        { pass 1 }
@@ -255,6 +255,8 @@ implementation
                vs:=tparavarsym(sc[0]);
                if sc.count>1 then
                  Message(parser_e_default_value_only_one_para);
+               if not(vs.varspez in [vs_value,vs_const]) then
+                 Message(parser_e_default_value_val_const);
                bt:=block_type;
                block_type:=bt_const;
                { prefix 'def' to the parameter name }
@@ -339,7 +341,7 @@ implementation
           sc.clear;
           repeat
             inc(paranr);
-            vs:=tparavarsym.create(orgpattern,paranr*10,varspez,generrordef,[]);
+            vs:=cparavarsym.create(orgpattern,paranr*10,varspez,generrordef,[]);
             currparast.insert(vs);
             if assigned(vs.owner) then
              sc.add(vs)
@@ -352,7 +354,7 @@ implementation
           if parseprocvar<>pv_none then
            begin
              { inline procvar definitions are always nested procvars }
-             pv:=tprocvardef.create(normal_function_level+1);
+             pv:=cprocvardef.create(normal_function_level+1);
              if token=_LKLAMMER then
                parse_parameter_dec(pv);
              if parseprocvar=pv_func then
@@ -366,7 +368,7 @@ implementation
              { possible proc directives }
              if check_proc_directive(true) then
                begin
-                  dummytype:=ttypesym.create('unnamed',hdef);
+                  dummytype:=ctypesym.create('unnamed',hdef);
                   parse_var_proc_directives(tsym(dummytype));
                   dummytype.typedef:=nil;
                   hdef.typesym:=nil;
@@ -399,7 +401,7 @@ implementation
                 consume(_ARRAY);
                 consume(_OF);
                 { define range and type of range }
-                hdef:=tarraydef.create(0,-1,s32inttype);
+                hdef:=carraydef.create(0,-1,ptrsinttype);
                 { array of const ? }
                 if (token=_CONST) and (m_objpas in current_settings.modeswitches) then
                  begin
@@ -547,6 +549,9 @@ implementation
         srsym : tsym;
         checkstack : psymtablestackitem;
         procstartfilepos : tfileposinfo;
+        i,
+        index : longint;
+        found,
         searchagain : boolean;
         st,
         genericst: TSymtable;
@@ -729,8 +734,7 @@ implementation
               begin
                 str(genparalist.count,gencount);
                 genname:=sp+'$'+gencount;
-                if not parse_generic then
-                  genname:=generate_generic_name(genname,specializename);
+                genname:=generate_generic_name(genname,specializename);
                 ugenname:=upper(genname);
 
                 srsym:=search_object_name(ugenname,false);
@@ -748,6 +752,9 @@ implementation
           end;
 
       begin
+        sp:='';
+        orgsp:='';
+
         { Save the position where this procedure really starts }
         procstartfilepos:=current_tokenpos;
         old_parse_generic:=parse_generic;
@@ -755,6 +762,7 @@ implementation
         result:=false;
         pd:=nil;
         aprocsym:=nil;
+        srsym:=nil;
 
         consume_proc_name;
 
@@ -783,7 +791,7 @@ implementation
            ImplIntf:=nil;
            if (srsym.typ=typesym) and
               (ttypesym(srsym).typedef.typ=objectdef) then
-             ImplIntf:=tobjectdef(astruct).find_implemented_interface(tobjectdef(ttypesym(srsym).typedef));
+             ImplIntf:=find_implemented_interface(tobjectdef(astruct),tobjectdef(ttypesym(srsym).typedef));
            if ImplIntf=nil then
              Message(parser_e_interface_id_expected)
            else
@@ -942,13 +950,13 @@ implementation
               begin
                 aprocsym:=Tprocsym(symtablestack.top.Find(sp));
                 if aprocsym=nil then
-                  aprocsym:=tprocsym.create('$'+sp);
+                  aprocsym:=cprocsym.create('$'+sp);
               end
             else
             if (potype in [potype_class_constructor,potype_class_destructor]) then
-              aprocsym:=tprocsym.create('$'+lower(sp))
+              aprocsym:=cprocsym.create('$'+lower(sp))
             else
-              aprocsym:=tprocsym.create(orgsp);
+              aprocsym:=cprocsym.create(orgsp);
             symtablestack.top.insert(aprocsym);
           end;
 
@@ -962,7 +970,7 @@ implementation
               break;
             checkstack:=checkstack^.next;
           end;
-        pd:=tprocdef.create(st.symtablelevel+1);
+        pd:=cprocdef.create(st.symtablelevel+1);
         pd.struct:=astruct;
         pd.procsym:=aprocsym;
         pd.proctypeoption:=potype;
@@ -986,9 +994,34 @@ implementation
                 genericst:=pd.struct.genericdef.GetSymtable(gs_record);
                 if not assigned(genericst) then
                   internalerror(200512114);
-                { We are parsing the same objectdef, the def index numbers
-                  are the same }
-                pd.genericdef:=tstoreddef(genericst.DefList[pd.owner.DefList.IndexOf(pd)]);
+
+                { when searching for the correct procdef to use as genericdef we need to ignore
+                  everything except procdefs so that we can find the correct indices }
+                index:=0;
+                found:=false;
+                for i:=0 to pd.owner.deflist.count-1 do
+                  begin
+                    if tdef(pd.owner.deflist[i]).typ<>procdef then
+                      continue;
+                    if pd.owner.deflist[i]=pd then
+                      begin
+                        found:=true;
+                        break;
+                      end;
+                    inc(index);
+                  end;
+                if not found then
+                  internalerror(2014052301);
+
+                for i:=0 to genericst.deflist.count-1 do
+                  begin
+                    if tdef(genericst.deflist[i]).typ<>procdef then
+                      continue;
+                    if index=0 then
+                      pd.genericdef:=tstoreddef(genericst.deflist[i]);
+                    dec(index);
+                  end;
+
                 if not assigned(pd.genericdef) or
                    (pd.genericdef.typ<>procdef) then
                   internalerror(200512115);
@@ -1012,6 +1045,9 @@ implementation
         { parse parameters }
         if token=_LKLAMMER then
           begin
+            old_current_structdef:=nil;
+            old_current_genericdef:=nil;
+            old_current_specializedef:=nil;
             { Add ObjectSymtable to be able to find nested type definitions }
             popclass:=0;
             if assigned(pd.struct) and
@@ -1069,6 +1105,9 @@ implementation
             old_parse_generic:=parse_generic;
             { Add ObjectSymtable to be able to find generic type definitions }
             popclass:=0;
+            old_current_structdef:=nil;
+            old_current_genericdef:=nil;
+            old_current_specializedef:=nil;
             if assigned(pd.struct) and
                (pd.parast.symtablelevel>=normal_function_level) and
                not (symtablestack.top.symtabletype in [ObjectSymtable,recordsymtable]) then
@@ -1398,12 +1437,12 @@ implementation
 
 procedure pd_far(pd:tabstractprocdef);
 begin
-  Message1(parser_w_proc_directive_ignored,'FAR');
+  pd.declared_far;
 end;
 
 procedure pd_near(pd:tabstractprocdef);
 begin
-  Message1(parser_w_proc_directive_ignored,'NEAR');
+  pd.declared_near;
 end;
 
 procedure pd_export(pd:tabstractprocdef);
@@ -1639,7 +1678,7 @@ begin
         not is_object(tprocdef(pd).struct)
       )
       then
-    Message1(parser_e_proc_dir_not_allowed,arraytokeninfo[_STATIC].str);
+    Message1(parser_e_dir_not_allowed,arraytokeninfo[_STATIC].str);
   include(pd.procoptions,po_staticmethod);
 end;
 
@@ -1777,10 +1816,10 @@ begin
               is_32bitint(tabstractvarsym(sym).vardef)
              ) then
             begin
-              tprocdef(pd).libsym:=sym;
+              tcpuprocdef(pd).libsym:=sym;
               if po_syscall_legacy in tprocdef(pd).procoptions then
                 begin
-                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_legacy,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
+                  vs:=cparavarsym.create('$syscalllib',paranr_syscall_legacy,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
                   paramanager.parseparaloc(vs,'A6');
                   pd.parast.insert(vs);
                 end
@@ -1811,8 +1850,8 @@ begin
               is_32bitint(tabstractvarsym(sym).vardef)
              ) then
             begin
-              tprocdef(pd).libsym:=sym;
-              vs:=tparavarsym.create('$syscalllib',paranr_syscall_basesysv,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para]);
+              tcpuprocdef(pd).libsym:=sym;
+              vs:=cparavarsym.create('$syscalllib',paranr_syscall_basesysv,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para]);
               pd.parast.insert(vs);
             end
           else
@@ -1878,10 +1917,10 @@ begin
               is_32bitint(tabstractvarsym(sym).vardef)
              ) then
             begin
-              tprocdef(pd).libsym:=sym;
+              tcpuprocdef(pd).libsym:=sym;
               if po_syscall_legacy in tprocdef(pd).procoptions then
                 begin
-                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_legacy,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
+                  vs:=cparavarsym.create('$syscalllib',paranr_syscall_legacy,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
                   paramanager.parseparaloc(vs,'A6');
                   pd.parast.insert(vs);
                 end
@@ -1891,17 +1930,17 @@ begin
                 end
               else if po_syscall_basesysv in tprocdef(pd).procoptions then
                 begin
-                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_basesysv,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para]);
+                  vs:=cparavarsym.create('$syscalllib',paranr_syscall_basesysv,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para]);
                   pd.parast.insert(vs);
                 end
               else if po_syscall_sysvbase in tprocdef(pd).procoptions then
                 begin
-                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_sysvbase,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para]);
+                  vs:=cparavarsym.create('$syscalllib',paranr_syscall_sysvbase,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para]);
                   pd.parast.insert(vs);
                 end
               else if po_syscall_r12base in tprocdef(pd).procoptions then
                 begin
-                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_r12base,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
+                  vs:=cparavarsym.create('$syscalllib',paranr_syscall_r12base,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
                   paramanager.parseparaloc(vs,'R12');
                   pd.parast.insert(vs);
                 end
@@ -2037,7 +2076,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=43;
+  num_proc_directives=44;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -2258,6 +2297,15 @@ const
       mutexclpocall : [pocall_internproc];
       mutexclpotype : [];
       mutexclpo     : []
+    ),(
+      idtok:_NORETURN;
+      pd_flags : [pd_implemen,pd_interface,pd_body,pd_notobjintf];
+      handler  : nil;
+      pocall   : pocall_none;
+      pooption : [po_noreturn];
+      mutexclpocall : [];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_operator,potype_class_constructor,potype_class_destructor];
+      mutexclpo     : [po_interrupt,po_virtualmethod,po_iocheck]
     ),(
       idtok:_NOSTACKFRAME;
       pd_flags : [pd_implemen,pd_body,pd_procvar,pd_notobjintf];
@@ -2483,7 +2531,16 @@ const
              _UNIMPLEMENTED,
              _EXPERIMENTAL,
              _DEPRECATED :
-               exit;
+               if (m_delphi in current_settings.modeswitches) and (pd.typ=procdef) then
+                 begin
+                   maybe_parse_hint_directives(tprocdef(pd));
+                   { could the new token still be a directive? }
+                   if token<>_ID then
+                     exit;
+                   name:=tokeninfo^[idtoken].str;
+                 end
+               else
+                 exit;
            end;
          end;
 

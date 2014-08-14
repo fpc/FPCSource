@@ -51,7 +51,7 @@ interface
 implementation
 
     uses
-      globals,constexp,defutil,
+      verbose,globals,constexp,defutil,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cpubase,cpuinfo,
       cgutils,cgobj,ncgutil,

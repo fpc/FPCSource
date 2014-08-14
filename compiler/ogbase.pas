@@ -84,6 +84,8 @@ interface
          RELOC_NONE,
          { Darwin relocation, using PAIR }
          RELOC_PIC_PAIR,
+         { Relative to GOT/gp }
+         RELOC_GOTOFF,
          { Untranslated target-specific value }
          RELOC_RAW
       );
@@ -1077,7 +1079,9 @@ implementation
           {sec_objc_nlclasslist} [oso_data,oso_load],
           {sec_objc_catlist} [oso_data,oso_load],
           {sec_objc_nlcatlist} [oso_data,oso_load],
-          {sec_objc_protolist'} [oso_data,oso_load]
+          {sec_objc_protolist'} [oso_data,oso_load],
+          {stack} [oso_load,oso_write],
+          {heap} [oso_load,oso_write]
         );
       begin
         result:=secoptions[atype];
@@ -2007,6 +2011,11 @@ implementation
       begin
         indexpos:=0;
         allvals:=avalue;
+        { avoid warnings }
+        bytevalues[0]:=0;
+        twobytevalues[0]:=0;
+        fourbytevalues[0]:=0;
+        eightbytevalues[0]:=0;
         repeat
           commapos:=pos(',',allvals);
           if commapos>0 then

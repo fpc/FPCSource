@@ -515,7 +515,11 @@ implementation
            { Default to intel assembler for delphi/tp7 on i386/i8086 }
            if (m_delphi in current_settings.modeswitches) or
               (m_tp7 in current_settings.modeswitches) then
+{$ifdef i8086}
+             current_settings.asmmode:=asmmode_i8086_intel;
+{$else i8086}
              current_settings.asmmode:=asmmode_i386_intel;
+{$endif i8086}
            if changeinit then
              init_settings.asmmode:=current_settings.asmmode;
 {$endif i386 or i8086}
@@ -849,6 +853,10 @@ type
 
   class constructor texprvalue.createdefs;
     begin
+      { do not use corddef etc here: this code is executed before those
+        variables are initialised. Since these types are only used for
+        compile-time evaluation of conditional expressions, it doesn't matter
+        that we use the base types instead of the cpu-specific ones. }
       sintdef:=torddef.create(s64bit,low(int64),high(int64));
       uintdef:=torddef.create(u64bit,low(qword),high(qword));
       booldef:=torddef.create(pasbool8,0,1);
@@ -1143,6 +1151,12 @@ type
                     result:=texprvalue.create_ord(lv shl rv);
                   _OP_SHR:
                     result:=texprvalue.create_ord(lv shr rv);
+                  else
+                    begin
+                      { actually we should never get here but this avoids a warning }
+                      Message(parser_e_illegal_expression);
+                      result:=texprvalue.create_error;
+                    end;
                 end;
               end
             else
@@ -1214,6 +1228,8 @@ type
           end
         else
           result:=texprvalue.create_error;
+        else
+          result:=texprvalue.create_error;
       end;
     end;
 
@@ -1267,6 +1283,11 @@ type
               if b in pconstset(value.valueptr)^ then
                 result:=result+tostr(b)+',';
           end;
+        { error values }
+        constnone:
+          result:='';
+        else
+          internalerror(2013112801);
       end;
     end;
 
@@ -1284,6 +1305,12 @@ type
           dispose(pnormalset(value.valueptr));
         constguid :
           dispose(pguid(value.valueptr));
+        constord,
+        { error values }
+        constnone:
+          ;
+        else
+          internalerror(2013112802);
       end;
       inherited destroy;
     end;
@@ -1542,6 +1569,7 @@ type
            ns:tnormalset;
         begin
           result:=nil;
+          hasKlammer:=false;
            if current_scanner.preproc_token=_ID then
              begin
                 if current_scanner.preproc_pattern='DEFINED' then
@@ -1906,7 +1934,7 @@ type
            else if current_scanner.preproc_token =_LKLAMMER then
              begin
                 preproc_consume(_LKLAMMER);
-                result:=preproc_sub_expr(opcompare,true);
+                result:=preproc_sub_expr(opcompare,eval);
                 preproc_consume(_RKLAMMER);
              end
            else if current_scanner.preproc_token = _LECKKLAMMER then
@@ -1966,7 +1994,7 @@ type
              begin
                hs1:=result;
                preproc_consume(op);
-               if (op=_OP_OR)and hs1.isBoolean and hs1.asBool then
+               if (op=_OP_OR) and hs1.isBoolean and hs1.asBool then
                  begin
                    { stop evaluation the rest of expression }
                    result:=texprvalue.create_bool(true);
@@ -1975,7 +2003,7 @@ type
                    else
                      hs2:=preproc_sub_expr(succ(pred_level),false);
                  end
-               else if (op=_OP_AND)and hs1.isBoolean and not hs1.asBool then
+               else if (op=_OP_AND) and hs1.isBoolean and not hs1.asBool then
                  begin
                    { stop evaluation the rest of expression }
                    result:=texprvalue.create_bool(false);
@@ -2598,6 +2626,7 @@ type
 
     function tscannerfile.tempopeninputfile:boolean;
       begin
+        tempopeninputfile:=false;
         if inputfile.is_macro then
           exit;
         tempopeninputfile:=inputfile.tempopen;
@@ -2715,9 +2744,6 @@ type
 
     procedure tscannerfile.tokenwriteshortint(val : shortint);
       begin
-{$ifdef FPC_BIG_ENDIAN}
-        val:=swapendian(val);
-{$endif}
         recordtokenbuf.write(val,sizeof(shortint));
       end;
 
@@ -2815,7 +2841,9 @@ type
      else if size=2 then
        result:=tokenreadword
      else if size=4 then
-       result:=tokenreadlongword;
+       result:=tokenreadlongword
+     else
+       internalerror(2013112901);
    end;
 
    procedure tscannerfile.tokenreadset(var b;size : longint);
@@ -2844,6 +2872,9 @@ type
 {$endif}
    begin
 {$ifdef FPC_BIG_ENDIAN}
+     { satisfy DFA because it assumes that size may be 0 and doesn't know that
+       recordtokenbuf.write wouldn't use tmpset in that case }
+     tmpset[0]:=0;
      for i:=0 to size-1 do
        tmpset[i]:=reverse_byte(Pbyte(@b)[i]);
      recordtokenbuf.write(tmpset,size);
@@ -2912,9 +2943,9 @@ type
             minfpconstprec:=tfloattype(tokenreadenum(sizeof(tfloattype)));
 
             disabledircache:=boolean(tokenreadbyte);
-{$if defined(ARM) or defined(AVR)}
+{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
             controllertype:=tcontrollertype(tokenreadenum(sizeof(tcontrollertype)));
-{$endif defined(ARM) or defined(AVR)}
+{$endif defined(ARM) or defined(AVR) or DEFINED(MIPSEL)}
            endpos:=replaytokenbuf.pos;
            if endpos-startpos<>expected_size then
              Comment(V_Error,'Wrong size of Settings read-in');
@@ -2981,9 +3012,9 @@ type
             tokenwriteenum(minfpconstprec,sizeof(tfloattype));
 
             recordtokenbuf.write(byte(disabledircache),1);
-{$if defined(ARM) or defined(AVR)}
+{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
             tokenwriteenum(controllertype,sizeof(tcontrollertype));
-{$endif defined(ARM) or defined(AVR)}
+{$endif defined(ARM) or defined(AVR) or defined(MIPSEL)}
            endpos:=recordtokenbuf.pos;
            size:=endpos-startpos;
            recordtokenbuf.seek(sizepos);
@@ -3258,14 +3289,12 @@ type
                         mesgnb:=tokenreadsizeint;
                         if mesgnb>0 then
                           Comment(V_Error,'Message recordind not yet supported');
+                        prevmsg:=nil;
                         for i:=1 to mesgnb do
                           begin
                             new(pmsg);
                             if i=1 then
-                              begin
-                                current_settings.pmessage:=pmsg;
-                                prevmsg:=nil;
-                              end
+                              current_settings.pmessage:=pmsg
                             else
                               prevmsg^.next:=pmsg;
                             pmsg^.value:=tokenreadlongint;
@@ -4549,6 +4578,9 @@ type
                     readnumber;
                     if length(pattern)=1 then
                       begin
+                        { does really an identifier follow? }
+                        if not (c in ['_','A'..'Z','a'..'z']) then
+                          message2(scan_f_syn_expected,tokeninfo^[_ID].str,c);
                         readstring;
                         token:=_ID;
                         idtoken:=_ID;
@@ -5337,7 +5369,10 @@ exit_label:
                checkpreprocstack;
              end;
            else
-             Illegal_Char(c);
+             begin
+               Illegal_Char(c);
+               readpreproc:=NOTOKEN;
+             end;
          end;
       end;
 

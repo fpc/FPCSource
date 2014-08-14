@@ -360,7 +360,7 @@ implementation
       { global }
       verbose,globals,
       { symtable }
-      symutil,defutil,
+      symutil,defutil,defcmp,
       { module }
       fmodule,
       { codegen }
@@ -427,6 +427,7 @@ implementation
         def : tdef;
         b   : byte;
       begin
+         def:=nil;
          { load start of definition section, which holds the amount of defs }
          if ppufile.readentry<>ibstartdefs then
            Message(unit_f_ppu_read_error);
@@ -434,26 +435,26 @@ implementation
          repeat
            b:=ppufile.readentry;
            case b of
-             ibpointerdef : def:=tpointerdef.ppuload(ppufile);
-             ibarraydef : def:=tarraydef.ppuload(ppufile);
-             iborddef : def:=torddef.ppuload(ppufile);
-             ibfloatdef : def:=tfloatdef.ppuload(ppufile);
-             ibprocdef : def:=tprocdef.ppuload(ppufile);
-             ibshortstringdef : def:=tstringdef.loadshort(ppufile);
-             iblongstringdef : def:=tstringdef.loadlong(ppufile);
-             ibansistringdef : def:=tstringdef.loadansi(ppufile);
-             ibwidestringdef : def:=tstringdef.loadwide(ppufile);
-             ibunicodestringdef : def:=tstringdef.loadunicode(ppufile);
-             ibrecorddef : def:=trecorddef.ppuload(ppufile);
-             ibobjectdef : def:=tobjectdef.ppuload(ppufile);
-             ibenumdef : def:=tenumdef.ppuload(ppufile);
-             ibsetdef : def:=tsetdef.ppuload(ppufile);
-             ibprocvardef : def:=tprocvardef.ppuload(ppufile);
-             ibfiledef : def:=tfiledef.ppuload(ppufile);
-             ibclassrefdef : def:=tclassrefdef.ppuload(ppufile);
-             ibformaldef : def:=tformaldef.ppuload(ppufile);
-             ibvariantdef : def:=tvariantdef.ppuload(ppufile);
-             ibundefineddef : def:=tundefineddef.ppuload(ppufile);
+             ibpointerdef : def:=cpointerdef.ppuload(ppufile);
+             ibarraydef : def:=carraydef.ppuload(ppufile);
+             iborddef : def:=corddef.ppuload(ppufile);
+             ibfloatdef : def:=cfloatdef.ppuload(ppufile);
+             ibprocdef : def:=cprocdef.ppuload(ppufile);
+             ibshortstringdef : def:=cstringdef.loadshort(ppufile);
+             iblongstringdef : def:=cstringdef.loadlong(ppufile);
+             ibansistringdef : def:=cstringdef.loadansi(ppufile);
+             ibwidestringdef : def:=cstringdef.loadwide(ppufile);
+             ibunicodestringdef : def:=cstringdef.loadunicode(ppufile);
+             ibrecorddef : def:=crecorddef.ppuload(ppufile);
+             ibobjectdef : def:=cobjectdef.ppuload(ppufile);
+             ibenumdef : def:=cenumdef.ppuload(ppufile);
+             ibsetdef : def:=csetdef.ppuload(ppufile);
+             ibprocvardef : def:=cprocvardef.ppuload(ppufile);
+             ibfiledef : def:=cfiledef.ppuload(ppufile);
+             ibclassrefdef : def:=cclassrefdef.ppuload(ppufile);
+             ibformaldef : def:=cformaldef.ppuload(ppufile);
+             ibvariantdef : def:=cvariantdef.ppuload(ppufile);
+             ibundefineddef : def:=cundefineddef.ppuload(ppufile);
              ibenddefs : break;
              ibend : Message(unit_f_ppu_read_error);
            else
@@ -469,28 +470,29 @@ implementation
         b   : byte;
         sym : tsym;
       begin
-      { load start of definition section, which holds the amount of defs }
+         sym:=nil;
+         { load start of definition section, which holds the amount of defs }
          if ppufile.readentry<>ibstartsyms then
           Message(unit_f_ppu_read_error);
          { now read the symbols }
          repeat
            b:=ppufile.readentry;
            case b of
-                ibtypesym : sym:=ttypesym.ppuload(ppufile);
-                ibprocsym : sym:=tprocsym.ppuload(ppufile);
-               ibconstsym : sym:=tconstsym.ppuload(ppufile);
-           ibstaticvarsym : sym:=tstaticvarsym.ppuload(ppufile);
-            iblocalvarsym : sym:=tlocalvarsym.ppuload(ppufile);
-             ibparavarsym : sym:=tparavarsym.ppuload(ppufile);
-            ibfieldvarsym : sym:=tfieldvarsym.ppuload(ppufile);
-         ibabsolutevarsym : sym:=tabsolutevarsym.ppuload(ppufile);
-                ibenumsym : sym:=tenumsym.ppuload(ppufile);
-            ibpropertysym : sym:=tpropertysym.ppuload(ppufile);
-                ibunitsym : sym:=tunitsym.ppuload(ppufile);
-               iblabelsym : sym:=tlabelsym.ppuload(ppufile);
-                 ibsyssym : sym:=tsyssym.ppuload(ppufile);
+                ibtypesym : sym:=ctypesym.ppuload(ppufile);
+                ibprocsym : sym:=cprocsym.ppuload(ppufile);
+               ibconstsym : sym:=cconstsym.ppuload(ppufile);
+           ibstaticvarsym : sym:=cstaticvarsym.ppuload(ppufile);
+            iblocalvarsym : sym:=clocalvarsym.ppuload(ppufile);
+             ibparavarsym : sym:=cparavarsym.ppuload(ppufile);
+            ibfieldvarsym : sym:=cfieldvarsym.ppuload(ppufile);
+         ibabsolutevarsym : sym:=cabsolutevarsym.ppuload(ppufile);
+                ibenumsym : sym:=cenumsym.ppuload(ppufile);
+            ibpropertysym : sym:=cpropertysym.ppuload(ppufile);
+                ibunitsym : sym:=cunitsym.ppuload(ppufile);
+               iblabelsym : sym:=clabelsym.ppuload(ppufile);
+                 ibsyssym : sym:=csyssym.ppuload(ppufile);
                ibmacrosym : sym:=tmacro.ppuload(ppufile);
-           ibnamespacesym : sym:=tnamespacesym.ppuload(ppufile);
+           ibnamespacesym : sym:=cnamespacesym.ppuload(ppufile);
                 ibendsyms : break;
                     ibend : Message(unit_f_ppu_read_error);
            else
@@ -1087,6 +1089,7 @@ implementation
                   while space>0 do
                     begin
                       bestfieldindex:=-1;
+                      bestinsertfieldoffset:=-1;
                       for j:=i+1 to list.count-1 do
                         begin
                           insertfieldvs:=tfieldvarsym(list[j]);
@@ -1735,7 +1738,7 @@ implementation
             system.delete(n,1,p);
             oldsym:=findnamespace(upper(ns));
             if not assigned(oldsym) then
-              insert(tnamespacesym.create(ns));
+              insert(cnamespacesym.create(ns));
             p:=pos('.',n);
           end;
       end;
@@ -2249,19 +2252,19 @@ implementation
                          { access from child class }
                          assigned(contextobjdef) and
                          assigned(current_structdef) and
-                         contextobjdef.is_related(symownerdef) and
-                         current_structdef.is_related(contextobjdef)
+                         def_is_related(contextobjdef,symownerdef) and
+                         def_is_related(current_structdef,contextobjdef)
                        ) or
                        (
                          { helpers can access strict protected symbols }
                          is_objectpascal_helper(contextobjdef) and
-                         tobjectdef(contextobjdef).extendeddef.is_related(symownerdef)
+                         def_is_related(tobjectdef(contextobjdef).extendeddef,symownerdef)
                        ) or
                        (
                          { same as above, but from context of call node inside
                            helper method }
                          is_objectpascal_helper(current_structdef) and
-                         tobjectdef(current_structdef).extendeddef.is_related(symownerdef)
+                         def_is_related(tobjectdef(current_structdef).extendeddef,symownerdef)
                        );
             end;
           vis_protected :
@@ -2278,7 +2281,7 @@ implementation
                         assigned(contextobjdef) and
                         (contextobjdef.owner.symtabletype in [globalsymtable,staticsymtable,ObjectSymtable]) and
                         (contextobjdef.owner.iscurrentunit) and
-                        contextobjdef.is_related(symownerdef)
+                        def_is_related(contextobjdef,symownerdef)
                        ) or
                        ( // the case of specialize inside the generic declaration and nested types
                         (symownerdef.owner.symtabletype in [objectsymtable,recordsymtable]) and
@@ -2296,7 +2299,7 @@ implementation
                         (
                           { helpers can access protected symbols }
                           is_objectpascal_helper(contextobjdef) and
-                          tobjectdef(contextobjdef).extendeddef.is_related(symownerdef)
+                          def_is_related(tobjectdef(contextobjdef).extendeddef,symownerdef)
                         )
                        )
                       );
@@ -2681,11 +2684,11 @@ implementation
             { The contextclassh is used for visibility. The classh must be equal to
               or be a parent of contextclassh. E.g. for inherited searches the classh is the
               parent or a class helper. }
-            if not (contextclassh.is_related(classh) or
+            if not (def_is_related(contextclassh,classh) or
                 (is_classhelper(contextclassh) and
                  assigned(tobjectdef(contextclassh).extendeddef) and
                 (tobjectdef(contextclassh).extendeddef.typ=objectdef) and
-                tobjectdef(contextclassh).extendeddef.is_related(classh))) then
+                def_is_related(tobjectdef(contextclassh).extendeddef,classh))) then
               internalerror(200811161);
           end;
         result:=false;
@@ -2923,7 +2926,9 @@ implementation
               end;
           end;
         { now search in the extended type itself }
-        if classh.extendeddef.typ in [recorddef,objectdef] then
+        { Note: the extendeddef might be Nil if we are currently parsing the
+                extended type itself and the identifier was not found }
+        if assigned(classh.extendeddef) and (classh.extendeddef.typ in [recorddef,objectdef]) then
           begin
             srsymtable:=tabstractrecorddef(classh.extendeddef).symtable;
             srsym:=tsym(srsymtable.FindWithHash(hashedid));
@@ -3066,7 +3071,7 @@ implementation
         sym:=tsym(systemunit.Find(s));
         if not assigned(sym) or
            (sym.typ<>typesym) then
-          cgmessage1(cg_f_unknown_system_type,s);
+          message1(cg_f_unknown_system_type,s);
         result:=ttypesym(sym);
       end;
 
@@ -3081,7 +3086,7 @@ implementation
         else
           begin
             if sym.typ<>typesym then
-              cgmessage1(cg_f_unknown_system_type,s);
+              message1(cg_f_unknown_system_type,s);
             result:=ttypesym(sym);
           end;
       end;
@@ -3097,7 +3102,7 @@ implementation
           srsym:=tsym(systemunit.Find(upper(s)));
         if not assigned(srsym) or
            (srsym.typ<>procsym) then
-          cgmessage1(cg_f_unknown_compilerproc,s);
+          message1(cg_f_unknown_compilerproc,s);
         result:=tprocdef(tprocsym(srsym).procdeflist[0]);
     end;
 
@@ -3107,6 +3112,7 @@ implementation
         srsymtable: tsymtable;
         sym: tsym;
       begin
+        sym:=nil;
         if searchsym_in_named_module(unitname,typename,sym,srsymtable) and
            (sym.typ=typesym) then
           begin
@@ -3116,7 +3122,7 @@ implementation
         else
           begin
             if throwerror then
-              cgmessage2(cg_f_unknown_type_in_unit,typename,unitname);
+              message2(cg_f_unknown_type_in_unit,typename,unitname);
             result:=nil;
           end;
       end;
@@ -3135,11 +3141,13 @@ implementation
         if current_module.extendeddefs.count=0 then
           exit;
         { no helpers for anonymous types }
-        if (pd.typ in [recorddef,objectdef]) and
+        if ((pd.typ in [recorddef,objectdef]) and
             (
               not assigned(tabstractrecorddef(pd).objrealname) or
               (tabstractrecorddef(pd).objrealname^='')
-            ) then
+            )
+           ) or
+           not assigned(pd.typesym) then
           exit;
         { if pd is defined inside a procedure we must not use make_mangledname
           (as a helper may not be defined in a procedure this is no problem...)}
@@ -3189,29 +3197,42 @@ implementation
 
           if srsym<>nil then
             begin
-              if srsym.typ=propertysym then
-                begin
-                  result:=true;
-                  exit;
-                end;
-              for i:=0 to tprocsym(srsym).procdeflist.count-1 do
-                begin
-                  pdef:=tprocdef(tprocsym(srsym).procdeflist[i]);
-                  if not is_visible_for_object(pdef.owner,pdef.visibility,contextclassh) then
-                    continue;
-                  { we need to know if a procedure references symbols
-                    in the static symtable, because then it can't be
-                    inlined from outside this unit }
-                  if assigned(current_procinfo) and
-                     (srsym.owner.symtabletype=staticsymtable) then
-                    include(current_procinfo.flags,pi_uses_static_symtable);
-                  { the first found method wins }
-                  srsym:=tprocdef(tprocsym(srsym).procdeflist[i]).procsym;
-                  srsymtable:=srsym.owner;
-                  addsymref(srsym);
-                  result:=true;
-                  exit;
-                end;
+              case srsym.typ of
+                procsym:
+                  begin
+                    for i:=0 to tprocsym(srsym).procdeflist.count-1 do
+                      begin
+                        pdef:=tprocdef(tprocsym(srsym).procdeflist[i]);
+                        if not is_visible_for_object(pdef.owner,pdef.visibility,contextclassh) then
+                          continue;
+                        { we need to know if a procedure references symbols
+                          in the static symtable, because then it can't be
+                          inlined from outside this unit }
+                        if assigned(current_procinfo) and
+                           (srsym.owner.symtabletype=staticsymtable) then
+                          include(current_procinfo.flags,pi_uses_static_symtable);
+                        { the first found method wins }
+                        srsym:=tprocdef(tprocsym(srsym).procdeflist[i]).procsym;
+                        srsymtable:=srsym.owner;
+                        addsymref(srsym);
+                        result:=true;
+                        exit;
+                      end;
+                  end;
+                typesym,
+                fieldvarsym,
+                constsym,
+                enumsym,
+                undefinedsym,
+                propertysym:
+                  begin
+                    addsymref(srsym);
+                    result:=true;
+                    exit;
+                  end;
+                else
+                  internalerror(2014041101);
+              end;
             end;
 
           { try the helper parent if available }
@@ -3252,7 +3273,7 @@ implementation
                     }
                     defowner:=tobjectdef(tprocdef(tprocsym(srsym).procdeflist[i]).owner.defowner);
                     if (oo_is_classhelper in defowner.objectoptions) and
-                       pd.is_related(defowner.childof) then
+                       def_is_related(pd,defowner.childof) then
                       begin
                         { we need to know if a procedure references symbols
                           in the static symtable, because then it can't be
@@ -3641,7 +3662,7 @@ implementation
        systemunit:=nil;
        { create error syms and def }
        generrorsym:=terrorsym.create;
-       generrordef:=terrordef.create;
+       generrordef:=cerrordef.create;
        { macros }
        initialmacrosymtable:=tmacrosymtable.create(false);
        macrosymtablestack:=TSymtablestack.create;

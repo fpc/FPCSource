@@ -23,6 +23,8 @@ unit optloop;
 
 {$i fpcdefs.inc}
 
+{ $define DEBUG_OPTSTRENGTH}
+
   interface
 
     uses
@@ -36,6 +38,7 @@ unit optloop;
     uses
       cutils,cclasses,
       globtype,globals,constexp,
+      verbose,
       symdef,symsym,
       defutil,
       cpuinfo,
@@ -83,7 +86,7 @@ unit optloop;
           ((n.nodetype=temprefn) and (preplaceinfo(arg)^.node.nodetype=temprefn) and
           (ttemprefnode(n).tempinfo=ttemprefnode(preplaceinfo(arg)^.node).tempinfo)) then
           begin
-            if n.flags*[nf_modify,nf_write]<>[] then
+            if n.flags*[nf_modify,nf_write,nf_address_taken]<>[] then
               internalerror(2012090402);
             n.free;
             n:=cordconstnode.create(preplaceinfo(arg)^.value,preplaceinfo(arg)^.node.resultdef,false);
@@ -152,7 +155,7 @@ unit optloop;
                     if (counts mod unrolls<>0) and
                       ((counts mod unrolls)=unrolls-i) then
                       begin
-                        tfornode(node).entrylabel:=clabelnode.create(cnothingnode.create,tlabelsym.create('$optunrol'));
+                        tfornode(node).entrylabel:=clabelnode.create(cnothingnode.create,clabelsym.create('$optunrol'));
                         addstatement(unrollstatement,tfornode(node).entrylabel);
                       end;
 
@@ -387,7 +390,7 @@ unit optloop;
                 { direct array access? }
                 ((tvecnode(n).left.nodetype=loadn) or
                 { ... or loop invariant expression? }
-                is_loop_invariant(tfornode(arg),tvecnode(n).left)) and
+                is_loop_invariant(tfornode(arg),tvecnode(n).right)) and
                 { removing the multiplication is only worth the
                   effort if it's not a simple shift }
                 not(ispowerof2(tcgvecnode(n).get_mul_size,dummy)) then
@@ -396,6 +399,12 @@ unit optloop;
                   { did we use the same expression before already? }
                   if not(findpreviousstrengthreduction) then
                     begin
+{$ifdef DEBUG_OPTSTRENGTH}
+                      writeln('**********************************************************************************');
+                      writeln('Found expression for strength reduction: ');
+                      printnode(n);
+                      writeln('**********************************************************************************');
+{$endif DEBUG_OPTSTRENGTH}
                       tempnode:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
 
                       templist.Add(tempnode);
@@ -475,10 +484,10 @@ unit optloop;
             node:=fornode;
 
             loopcode:=internalstatements(loopcodestatements);
-            addstatement(loopcodestatements,calccode);
             addstatement(loopcodestatements,tfornode(node).t2);
             tfornode(node).t2:=loopcode;
             do_firstpass(node);
+            addstatement(loopcodestatements,calccode);
 
             result:=internalstatements(newcodestatements);
             addstatement(newcodestatements,initcode);
@@ -500,7 +509,7 @@ unit optloop;
             { do we have DFA available? }
             if pi_dfaavailable in current_procinfo.flags then
               begin
-                CalcDefSum(n);
+                CalcDefSum(tfornode(n).t2);
               end;
 
             containsnestedforloop:=false;
@@ -525,3 +534,4 @@ unit optloop;
       end;
 
 end.
+

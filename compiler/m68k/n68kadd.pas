@@ -32,24 +32,13 @@ interface
     type
        t68kaddnode = class(tcgaddnode)
        private
-          function cmp64_lt(left_reg,right_reg:tregister64):tregister;
-          function cmp64_le(left_reg,right_reg:tregister64):tregister;
-          function cmp64_eq(left_reg,right_reg:tregister64):tregister;
-          function cmp64_ne(left_reg,right_reg:tregister64):tregister;
-          function cmp64_ltu(left_reg,right_reg:tregister64):tregister;
-          function cmp64_leu(left_reg,right_reg:tregister64):tregister;
-
           function getresflags(unsigned: boolean) : tresflags;
-          function getres64_register(unsigned:boolean;left_reg,right_reg:tregister64):tregister;
        protected
           procedure second_addfloat;override;
           procedure second_cmpfloat;override;
           procedure second_cmpordinal;override;
           procedure second_cmpsmallset;override;
           procedure second_cmp64bit;override;
-          procedure second_cmpboolean;override;
-       public
-          function pass_1:tnode;override;
        end;
 
 
@@ -63,207 +52,11 @@ implementation
       cpuinfo,pass_1,pass_2,regvars,
       cpupara,cgutils,procinfo,
       ncon,nset,
-      ncgutil,tgobj,rgobj,rgcpu,cgobj,hlcgobj,cg64f32;
+      ncgutil,tgobj,rgobj,rgcpu,cgobj,cgcpu,hlcgobj,cg64f32;
 
 {*****************************************************************************
                                   Helpers
 *****************************************************************************}
-
-    function t68kaddnode.cmp64_lt(left_reg,right_reg:tregister64):tregister;
-      var
-        labelcmp64_1,labelcmp64_2 : tasmlabel;
-        tmpreg : tregister;
-      begin
-        tmpreg:=cg.getintregister(current_asmdata.currasmlist,OS_INT);
-
-        { load the value for "false" }
-        current_asmdata.currasmlist.concat(taicpu.op_const_reg(A_MOVE,S_L,0,tmpreg));
-
-        current_asmdata.getjumplabel(labelcmp64_1);
-        current_asmdata.getjumplabel(labelcmp64_2);
-
-        { check whether left_reg.reghi is less than right_reg.reghi }
-        current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,right_reg.reghi,left_reg.reghi));
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_LT,S_L,labelcmp64_2));
-
-        { are left_reg.reghi and right_reg.reghi equal? }
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_L,labelcmp64_1));
-
-        { is left_reg.reglo less than right_reg.reglo? }
-        current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,right_reg.reglo,left_reg.reglo));
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_CS,S_L,labelcmp64_2));
-
-        if CPUM68K_HAS_BRAL in cpu_capabilities[current_settings.cputype] then
-          current_asmdata.currasmlist.concat(Taicpu.op_sym(A_BRA,S_L,labelcmp64_1))
-        else
-          { better use JMP? }
-          current_asmdata.currasmlist.concat(Taicpu.op_sym(A_BRA,S_W,labelcmp64_1));
-
-        cg.a_label(current_asmdata.currasmlist,labelcmp64_2);
-
-        { load the value for "true" }
-        current_asmdata.currasmlist.concat(taicpu.op_const_reg(A_MOVE,S_L,1,tmpreg));
-
-        cg.a_label(current_asmdata.currasmlist,labelcmp64_1);
-        result:=tmpreg;
-      end;
-
-    function t68kaddnode.cmp64_le(left_reg,right_reg:tregister64):tregister;
-      var
-        labelcmp64_1,labelcmp64_2 : tasmlabel;
-        tmpreg : tregister;
-      begin
-        tmpreg:=cg.getintregister(current_asmdata.currasmlist,OS_INT);
-
-        { load the value for "false" }
-        current_asmdata.currasmlist.concat(taicpu.op_const_reg(A_MOVE,S_L,0,tmpreg));
-
-        current_asmdata.getjumplabel(labelcmp64_1);
-        current_asmdata.getjumplabel(labelcmp64_2);
-
-        { check whether right_reg.reghi is less than left_reg.reghi }
-        current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,left_reg.reghi,right_reg.reghi));
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_LT,S_L,labelcmp64_1));
-
-        { are left_reg.reghi and right_reg.reghi equal? }
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_L,labelcmp64_2));
-
-        { is right_reg.reglo less than left_reg.reglo? }
-        current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,left_reg.reglo,right_reg.reglo));
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_CS,S_L,labelcmp64_1));
-
-        cg.a_label(current_asmdata.currasmlist,labelcmp64_2);
-
-        { load the value for "true" }
-        current_asmdata.currasmlist.concat(taicpu.op_const_reg(A_MOVE,S_L,1,tmpreg));
-
-        cg.a_label(current_asmdata.currasmlist,labelcmp64_1);
-        result:=tmpreg;
-      end;
-
-    function t68kaddnode.cmp64_eq(left_reg,right_reg:tregister64):tregister;
-      var
-        labelcmp64 : tasmlabel;
-        tmpreg : tregister;
-      begin
-        tmpreg:=cg.getintregister(current_asmdata.currasmlist,OS_INT);
-        current_asmdata.getjumplabel(labelcmp64);
-
-        { load the value for "false" }
-        current_asmdata.currasmlist.concat(taicpu.op_const_reg(A_MOVE,S_L,0,tmpreg));
-
-        { is the high order longword equal? }
-        current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,left_reg.reghi,right_reg.reghi));
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_L,labelcmp64));
-
-        { is the low order longword equal? }
-        current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,left_reg.reglo,right_reg.reglo));
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_L,labelcmp64));
-
-        { load the value for "true" }
-        current_asmdata.currasmlist.concat(taicpu.op_const_reg(A_MOVE,S_L,1,tmpreg));
-
-        cg.a_label(current_asmdata.currasmlist,labelcmp64);
-        result:=tmpreg;
-      end;
-
-    function t68kaddnode.cmp64_ne(left_reg,right_reg:tregister64):tregister;
-      var
-        labelcmp64 : tasmlabel;
-        tmpreg : tregister;
-      begin
-        tmpreg:=cg.getintregister(current_asmdata.currasmlist,OS_INT);
-        current_asmdata.getjumplabel(labelcmp64);
-
-        { load the value for "true" }
-        current_asmdata.currasmlist.concat(taicpu.op_const_reg(A_MOVE,S_L,1,tmpreg));
-
-        { is the high order longword equal? }
-        current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,left_reg.reghi,right_reg.reghi));
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_L,labelcmp64));
-
-        { is the low order longword equal? }
-        current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,left_reg.reglo,right_reg.reglo));
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_L,labelcmp64));
-
-        { load the value for "false" }
-        current_asmdata.currasmlist.concat(taicpu.op_const_reg(A_MOVE,S_L,0,tmpreg));
-
-        cg.a_label(current_asmdata.currasmlist,labelcmp64);
-        result:=tmpreg;
-      end;
-
-    function t68kaddnode.cmp64_ltu(left_reg,right_reg:tregister64):tregister;
-      var
-        labelcmp64_1,labelcmp64_2 : tasmlabel;
-        tmpreg : tregister;
-      begin
-        tmpreg:=cg.getintregister(current_asmdata.currasmlist,OS_INT);
-
-        { load the value for "false" }
-        current_asmdata.currasmlist.concat(taicpu.op_const_reg(A_MOVE,S_L,0,tmpreg));
-
-        current_asmdata.getjumplabel(labelcmp64_1);
-        current_asmdata.getjumplabel(labelcmp64_2);
-
-        { check whether left_reg.reghi is less than right_reg.reghi }
-        current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,right_reg.reghi,left_reg.reghi));
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_CS,S_L,labelcmp64_2));
-
-        { are left_reg.reghi and right_reg.reghi equal? }
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_L,labelcmp64_1));
-
-        { is left_reg.reglo less than right_reg.reglo? }
-        current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,right_reg.reglo,left_reg.reglo));
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_CS,S_L,labelcmp64_2));
-
-        if CPUM68K_HAS_BRAL in cpu_capabilities[current_settings.cputype] then
-          current_asmdata.currasmlist.concat(Taicpu.op_sym(A_BRA,S_L,labelcmp64_1))
-        else
-          { ToDo : use JMP? }
-          current_asmdata.currasmlist.concat(Taicpu.op_sym(A_BRA,S_W,labelcmp64_1));
-
-        cg.a_label(current_asmdata.currasmlist,labelcmp64_2);
-
-        { load the value for "true" }
-        current_asmdata.currasmlist.concat(taicpu.op_const_reg(A_MOVE,S_L,1,tmpreg));
-
-        cg.a_label(current_asmdata.currasmlist,labelcmp64_1);
-        result:=tmpreg;
-      end;
-
-    function t68kaddnode.cmp64_leu(left_reg,right_reg:tregister64):tregister;
-      var
-        labelcmp64_1,labelcmp64_2 : tasmlabel;
-        tmpreg : tregister;
-      begin
-        tmpreg:=cg.getintregister(current_asmdata.currasmlist,OS_INT);
-
-        { load the value for "false" }
-        current_asmdata.currasmlist.concat(taicpu.op_const_reg(A_MOVE,S_L,0,tmpreg));
-
-        current_asmdata.getjumplabel(labelcmp64_1);
-        current_asmdata.getjumplabel(labelcmp64_2);
-
-        { check whether right_reg.reghi is less than left_reg.reghi }
-        current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,left_reg.reghi,right_reg.reghi));
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_CS,S_L,labelcmp64_1));
-
-        { are left_reg.reghi and right_reg.reghi equal? }
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_NE,S_L,labelcmp64_2));
-
-        { is right_reg.reglo less than left_reg.reglo? }
-        current_asmdata.currasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,left_reg.reglo,right_reg.reglo));
-        current_asmdata.currasmlist.concat(taicpu.op_cond_sym(A_BXX,C_CS,S_L,labelcmp64_1));
-
-        cg.a_label(current_asmdata.currasmlist,labelcmp64_2);
-
-        { load the value for "true" }
-        current_asmdata.currasmlist.concat(taicpu.op_const_reg(A_MOVE,S_L,1,tmpreg));
-
-        cg.a_label(current_asmdata.currasmlist,labelcmp64_1);
-        result:=tmpreg;
-      end;
 
     function t68kaddnode.getresflags(unsigned : boolean) : tresflags;
       begin
@@ -308,66 +101,6 @@ implementation
          end;
       end;
 
-    function t68kaddnode.getres64_register(unsigned:boolean;left_reg,right_reg:tregister64):tregister;
-      begin
-        case nodetype of
-          equaln:
-            result:=cmp64_eq(left_reg,right_reg);
-          unequaln:
-            result:=cmp64_ne(left_reg,right_reg);
-          else
-            if not unsigned then
-            begin
-              if nf_swapped in flags then
-                case nodetype of
-                  ltn:
-                    result:=cmp64_lt(right_reg,left_reg);
-                  lten:
-                    result:=cmp64_le(right_reg,left_reg);
-                  gtn:
-                    result:=cmp64_lt(left_reg,right_reg);
-                  gten:
-                    result:=cmp64_le(left_reg,right_reg);
-                end
-              else
-                case nodetype of
-                  ltn:
-                    result:=cmp64_lt(left_reg,right_reg);
-                  lten:
-                    result:=cmp64_le(left_reg,right_reg);
-                  gtn:
-                    result:=cmp64_lt(right_reg,left_reg);
-                  gten:
-                    result:=cmp64_le(right_reg,left_reg);
-                end;
-            end
-            else
-            begin
-              if nf_swapped in Flags then
-                case nodetype of
-                  ltn:
-                    result:=cmp64_ltu(right_reg,left_reg);
-                  lten:
-                    result:=cmp64_leu(right_reg,left_reg);
-                  gtn:
-                    result:=cmp64_ltu(left_reg,right_reg);
-                  gten:
-                    result:=cmp64_leu(left_reg,right_reg);
-                end
-              else
-                case nodetype of
-                  ltn:
-                    result:=cmp64_ltu(left_reg,right_reg);
-                  lten:
-                    result:=cmp64_leu(left_reg,right_reg);
-                  gtn:
-                    result:=cmp64_ltu(right_reg,left_reg);
-                  gten:
-                    result:=cmp64_leu(right_reg,left_reg);
-                end;
-            end;
-        end;
-      end;
 
 {*****************************************************************************
                                 AddFloat
@@ -376,11 +109,9 @@ implementation
     procedure t68kaddnode.second_addfloat;
       var
         op    : TAsmOp;
-        cmpop : boolean;
       begin
         pass_left_right;
 
-        cmpop:=false;
         case nodetype of
           addn :
             op:=A_FADD;
@@ -390,12 +121,6 @@ implementation
             op:=A_FSUB;
           slashn :
             op:=A_FDIV;
-          ltn,lten,gtn,gten,
-          equaln,unequaln :
-            begin
-//              op:=A_FCMPO;
-              cmpop:=true;
-            end;
           else
             internalerror(200403182);
         end;
@@ -406,41 +131,24 @@ implementation
           swapleftright;
 
         // put both operands in a register
-        location_force_fpureg(current_asmdata.CurrAsmList,right.location,true);
-        location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
 
         // initialize de result
-        if not cmpop then
-          begin
-            location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-            if left.location.loc = LOC_FPUREGISTER then
-              location.register := left.location.register
-            else if right.location.loc = LOC_FPUREGISTER then
-              location.register := right.location.register
-            else
-              location.register := cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-          end
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
+        if left.location.loc = LOC_FPUREGISTER then
+          location.register := left.location.register
+        else if right.location.loc = LOC_FPUREGISTER then
+          location.register := right.location.register
         else
-         begin
-           location_reset(location,LOC_FLAGS,OS_NO);
-           // FIX ME!
-//           location.resflags := getresflags;
-         end;
+          location.register := cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
 
         // emit the actual operation
-        if not cmpop then
-          begin
-          {
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,
-              location.register,left.location.register,
-              right.location.register))
-             }
-          end
-        else
-          begin
-{            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,
-              newreg(R_SPECIALREGISTER,location.resflags.cr,R_SUBNONE),left.location.register,right.location.register))}
-          end;
+        {
+          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,
+            location.register,left.location.register,
+            right.location.register))
+        }
       end;
 
 
@@ -454,8 +162,8 @@ implementation
 }
         { force fpureg as location, left right doesn't matter
           as both will be in a fpureg }
-        location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
-        location_force_fpureg(current_asmdata.CurrAsmList,right.location,true);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(true);
@@ -516,19 +224,11 @@ implementation
          lten,
          gten:
            begin
-             tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+             tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,left.location.size);
              if right.location.loc=LOC_CONSTANT then
-               begin
-                 current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_MOVE,S_L,right.location.value,tmpreg));
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_AND,S_L,tmpreg,left.location.register));
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,S_L,tmpreg,left.location.register));
-               end
-             else
-               begin
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MOVE,S_L,right.location.register,tmpreg));
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_AND,S_L,tmpreg,left.location.register));
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,S_L,tmpreg,left.location.register));
-               end;
+               hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,false);
+             cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,OS_32,left.location.register,right.location.register,tmpreg);
+             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,S_L,tmpreg,right.location.register));
              location.resflags:=F_E;
            end;
          else
@@ -546,179 +246,77 @@ implementation
       unsigned : boolean;
       useconst : boolean;
       tmpreg : tregister;
-      op : tasmop;
+      opsize : topsize;
+      cmpsize : tcgsize;
+      href: treference;
      begin
-       pass_left_right;
-       { set result location }
-       location_reset(location,LOC_JUMP,OS_NO);
-
-       { load values into registers (except constants) }
-       force_reg_left_right(true, false);
-
        { determine if the comparison will be unsigned }
        unsigned:=not(is_signed(left.resultdef)) or
                    not(is_signed(right.resultdef));
+       { this puts constant operand (if any) to the right }
+       pass_left_right;
+       { tentatively assume left size (correct for possible TST/CMPI, will fix later) }
+       cmpsize:=def_cgsize(left.resultdef);
+       opsize:=tcgsize2opsize[cmpsize];
 
-        // get the constant on the right if there is one
-        if (left.location.loc = LOC_CONSTANT) then
-          swapleftright;
-        // can we use an immediate, or do we have to load the
-        // constant in a register first?
-        if (right.location.loc = LOC_CONSTANT) then
-          begin
-{$ifdef extdebug}
-            if (right.location.size in [OS_64,OS_S64]) and (hi(right.location.value64)<>0) and ((hi(right.location.value64)<>-1) or unsigned) then
-              internalerror(2002080301);
-{$endif extdebug}
-            if (nodetype in [equaln,unequaln]) then
-              if (unsigned and
-                  (right.location.value > high(word))) or
-                 (not unsigned and
-                  (longint(right.location.value) < low(smallint)) or
-                   (longint(right.location.value) > high(smallint))) then
-                { we can then maybe use a constant in the 'othersigned' case
-                 (the sign doesn't matter for // equal/unequal)}
-                unsigned := not unsigned;
+       { set result location }
+       location_reset(location,LOC_FLAGS,OS_NO);
+       location.resflags := getresflags(unsigned);
 
-            if (unsigned and
-                ((right.location.value) <= high(word))) or
-               (not(unsigned) and
-                (longint(right.location.value) >= low(smallint)) and
-                (longint(right.location.value) <= high(smallint))) then
-               useconst := true
-            else
-              begin
-                useconst := false;
-                tmpreg := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,
-                  aword(right.location.value),tmpreg);
-               end
-          end
+       { see if we can optimize into TST }
+       if (right.location.loc=LOC_CONSTANT) and (right.location.value=0) and
+         ((nodetype in [equaln,unequaln]) or (not unsigned)) then
+         begin
+           case left.location.loc of
+             LOC_REFERENCE,
+             LOC_CREFERENCE:
+               begin
+                 href:=left.location.reference;
+                 tcg68k(cg).fixref(current_asmdata.CurrAsmList,href);
+                 current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,opsize,href));
+                 location_freetemp(current_asmdata.CurrAsmList,left.location);
+               end;
+           else
+             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+             current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,opsize,left.location.register));
+           end;
+           exit;
+         end;
+
+       { ToDo : set "allowconstants" to True, but this seems to upset Coldfire
+                a bit for the CMP instruction => check manual and implement
+                exception accordingly below }
+       { load values into registers (except constants) }
+       force_reg_left_right(true, false);
+
+       useconst := false;
+
+        if tcgsize2size[right.location.size]=tcgsize2size[left.location.size] then
+          cmpsize:=left.location.size
         else
-          useconst := false;
-        location.loc := LOC_FLAGS;
-        location.resflags := getresflags(unsigned);
-        op := A_CMP;
+          { ToDo : zero/sign extend??? }
+          if tcgsize2size[right.location.size]<tcgsize2size[left.location.size] then
+            cmpsize:=left.location.size
+          else
+            cmpsize:=right.location.size;
+        opsize:=tcgsize2opsize[cmpsize];
+        if opsize=S_NO then
+          internalerror(2013090301);
         { Attention: The RIGHT(!) operand is substracted from and must be a
                      register! }
-        if (right.location.loc = LOC_CONSTANT) then
+        {if (right.location.loc = LOC_CONSTANT) then
           if useconst then
-            current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(op,S_L,
+            current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,opsize,
               longint(right.location.value),left.location.register))
           else
             begin
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,S_L,
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,opsize,
                 tmpreg,left.location.register));
             end
-        else
-          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,S_L,
+        else}
+          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,opsize,
             right.location.register,left.location.register));
      end;
-
-{*****************************************************************************
-                                Boolean
-*****************************************************************************}
-
-    procedure t68kaddnode.second_cmpboolean;
-      var
-        cgop      : TOpCg;
-        cgsize  : TCgSize;
-        isjump  : boolean;
-        otl,ofl : tasmlabel;
-      begin
-//        writeln('second_cmpboolean');
-        { ToDo : add support for pasbool64 and bool64bit }
-        if (torddef(left.resultdef).ordtype in [pasbool8,bool8bit]) or
-           (torddef(right.resultdef).ordtype in [pasbool8,bool8bit]) then
-         cgsize:=OS_8
-        else
-          if (torddef(left.resultdef).ordtype in [pasbool16,bool16bit]) or
-             (torddef(right.resultdef).ordtype in [pasbool16,bool16bit]) then
-           cgsize:=OS_16
-        else
-           cgsize:=OS_32;
-
-        if (cs_full_boolean_eval in current_settings.localswitches) or
-           (nodetype in [unequaln,ltn,lten,gtn,gten,equaln,xorn]) then
-          begin
-            if left.nodetype in [ordconstn,realconstn] then
-             swapleftright;
-
-            isjump:=(left.expectloc=LOC_JUMP);
-            if isjump then
-              begin
-                 otl:=current_procinfo.CurrTrueLabel;
-                 current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-                 ofl:=current_procinfo.CurrFalseLabel;
-                 current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
-              end;
-            secondpass(left);
-            if left.location.loc in [LOC_FLAGS,LOC_JUMP] then begin
-//             writeln('ajjaj');
-             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(cgsize),false);
-//             writeln('reccs?');
-            end;
-            if isjump then
-             begin
-               current_procinfo.CurrTrueLabel:=otl;
-               current_procinfo.CurrFalseLabel:=ofl;
-             end;
-
-            isjump:=(right.expectloc=LOC_JUMP);
-            if isjump then
-              begin
-                 otl:=current_procinfo.CurrTrueLabel;
-                 current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-                 ofl:=current_procinfo.CurrFalseLabel;
-                 current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
-              end;
-            secondpass(right);
-            if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
-             hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(cgsize),false);
-            if isjump then
-             begin
-               current_procinfo.CurrTrueLabel:=otl;
-               current_procinfo.CurrFalseLabel:=ofl;
-             end;
-
-         location_reset(location,LOC_FLAGS,OS_NO);
-
-         force_reg_left_right(true,false);
-
-            if (left.location.loc = LOC_CONSTANT) then
-              swapleftright;
-
-         if (right.location.loc <> LOC_CONSTANT) then
-           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,S_L,
-             left.location.register,right.location.register))
-         else
-           current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_L,
-             longint(right.location.value),left.location.register));
-         location.resflags := getresflags(true);
-        end;
-
-        //release_reg_left_right;
-      end;
-
-    function t68kaddnode.pass_1:tnode;
-      var
-        ld,rd : tdef;
-      begin
-        result:=inherited pass_1;
-
-        { for 64 bit operations we return the resulting value in a register }
-        if not assigned(result) then
-          begin
-            rd:=right.resultdef;
-            ld:=left.resultdef;
-            if (nodetype in [ltn,lten,gtn,gten,equaln,unequaln]) and
-                (
-                  ((ld.typ=orddef) and (torddef(ld).ordtype in [u64bit,s64bit,scurrency])) or
-                  ((rd.typ=orddef) and (torddef(rd).ordtype in [u64bit,s64bit,scurrency]))
-                ) then
-              expectloc:=LOC_REGISTER;
-          end;
-      end;
 
 
 {*****************************************************************************
@@ -728,7 +326,64 @@ implementation
     procedure t68kaddnode.second_cmp64bit;
       var
         unsigned : boolean;
-        tmp_left_reg : tregister;
+
+      procedure firstjmp64bitcmp;
+        var
+          oldnodetype : tnodetype;
+        begin
+          case nodetype of
+            ltn,gtn:
+              begin
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrTrueLabel);
+                { cheat a little bit for the negative test }
+                toggleflag(nf_swapped);
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
+                toggleflag(nf_swapped);
+              end;
+            lten,gten:
+              begin
+                oldnodetype:=nodetype;
+                if nodetype=lten then
+                  nodetype:=ltn
+                else
+                  nodetype:=gtn;
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrTrueLabel);
+                { cheat for the negative test }
+                if nodetype=ltn then
+                  nodetype:=gtn
+                else
+                  nodetype:=ltn;
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
+                nodetype:=oldnodetype;
+              end;
+            equaln:
+              cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrFalseLabel);
+            unequaln:
+              cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrTrueLabel);
+          end;
+        end;
+
+      procedure secondjmp64bitcmp;
+        begin
+          case nodetype of
+            ltn,gtn,lten,gten:
+              begin
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),current_procinfo.CurrTrueLabel);
+                cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+              end;
+            equaln:
+              begin
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrFalseLabel);
+                cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+              end;
+            unequaln:
+              begin
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrTrueLabel);
+                cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+              end;
+          end;
+        end;
+
       begin
         pass_left_right;
         force_reg_left_right(false,false);
@@ -736,113 +391,11 @@ implementation
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
 
-        location_reset(location,LOC_REGISTER,OS_INT);
-        location.register:=getres64_register(unsigned,left.location.register64,right.location.register64);
-
-        { keep the below code for now, as we could optimize the =/<> code later
-          on based on it }
-
-      // writeln('second_cmp64bit');
-//      pass_left_right;
-
-
-//     load_left_right(true,false);
-(*
-        case nodetype of
-          ltn,lten,
-          gtn,gten:
-           begin
-             emit_cmp64_hi;
-             firstjmp64bitcmp;
-             emit_cmp64_lo;
-             secondjmp64bitcmp;
-           end;
-          equaln,unequaln:
-           begin
-             // instead of doing a complicated compare, do
-             // (left.hi xor right.hi) or (left.lo xor right.lo)
-             // (somewhate optimized so that no superfluous 'mr's are
-             //  generated)
-                  if (left.location.loc = LOC_CONSTANT) then
-                    swapleftright;
-                  if (right.location.loc = LOC_CONSTANT) then
-                    begin
-                      if left.location.loc = LOC_REGISTER then
-                        begin
-                          tempreg64.reglo := left.location.register64.reglo;
-                          tempreg64.reghi := left.location.register64.reghi;
-                        end
-                      else
-                        begin
-                          if (aword(right.location.valueqword) <> 0) then
-                            tempreg64.reglo := cg.getintregister(current_asmdata.CurrAsmList)
-                          else
-                            tempreg64.reglo := left.location.register64.reglo;
-                          if ((right.location.valueqword shr 32) <> 0) then
-                            tempreg64.reghi := cg.getintregister(current_asmdata.CurrAsmList)
-                          else
-                            tempreg64.reghi := left.location.register64.reghi;
-                        end;
-
-                      if (aword(right.location.valueqword) <> 0) then
-                        { negative values can be handled using SUB, }
-                        { positive values < 65535 using XOR.        }
-                        if (longint(right.location.valueqword) >= -32767) and
-                           (longint(right.location.valueqword) < 0) then
-                          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,
-                            aword(right.location.valueqword),
-                            left.location.register64.reglo,tempreg64.reglo)
-                        else
-                          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_INT,
-                            aword(right.location.valueqword),
-                            left.location.register64.reglo,tempreg64.reglo);
-
-                      if ((right.location.valueqword shr 32) <> 0) then
-                        if (longint(right.location.valueqword shr 32) >= -32767) and
-                           (longint(right.location.valueqword shr 32) < 0) then
-                          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,
-                            aword(right.location.valueqword shr 32),
-                            left.location.register64.reghi,tempreg64.reghi)
-                        else
-                          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_INT,
-                            aword(right.location.valueqword shr 32),
-                            left.location.register64.reghi,tempreg64.reghi);
-                    end
-                  else
-                    begin
-                       tempreg64.reglo := cg.getintregister(current_asmdata.CurrAsmList);
-                       tempreg64.reghi := cg.getintregister(current_asmdata.CurrAsmList);
-                       cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,OP_XOR,
-                         left.location.register64,right.location.register64,
-                         tempreg64);
-                    end;
-
-                  cg.a_reg_alloc(current_asmdata.CurrAsmList,R_0);
-                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR_,R_0,
-                    tempreg64.reglo,tempreg64.reghi));
-                  cg.a_reg_dealloc(current_asmdata.CurrAsmList,R_0);
-                  if (tempreg64.reglo <> left.location.register64.reglo) then
-                    cg.ungetregister(current_asmdata.CurrAsmList,tempreg64.reglo);
-                  if (tempreg64.reghi <> left.location.register64.reghi) then
-                    cg.ungetregister(current_asmdata.CurrAsmList,tempreg64.reghi);
-
-                  location_reset(location,LOC_FLAGS,OS_NO);
-                  location.resflags := getresflags;
-                end;
-              else
-                internalerror(2002072803);
-            end;
-
-
-        { set result location }
-        { (emit_compare sets it to LOC_FLAGS for compares, so set the }
-        {  real location only now) (JM)                               }
-        if cmpop and
-           not(nodetype in [equaln,unequaln]) then
-          location_reset(location,LOC_JUMP,OS_NO);
-*)
-  //     location_reset(location,LOC_JUMP,OS_NO);
-       // writeln('second_cmp64_exit');
+        location_reset(location,LOC_JUMP,OS_NO);
+        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,S_L,right.location.register64.reghi,left.location.register64.reghi));
+        firstjmp64bitcmp;
+        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,S_L,right.location.register64.reglo,left.location.register64.reglo));
+        secondjmp64bitcmp;
      end;
 
 

@@ -234,6 +234,7 @@ implementation
 
       begin
          location_reset(location,LOC_VOID,OS_NO);
+         hl:=nil;
 
          oldflowcontrol := flowcontrol;
          include(flowcontrol,fc_inflowcontrol);
@@ -404,8 +405,8 @@ implementation
                  get_used_regvars(left,usedregvars);
                  { loop body }
                  get_used_regvars(t2,usedregvars);
-                 { end value (t1) is not necessary (it cannot be a regvar, }
-                 { see webtbs/tw8883)                                      }
+                 { end value can't be a regvar, but may be a temp in register }
+                 get_used_regvars(t1,usedregvars);
 
                  gen_sync_regvars(current_asmdata.CurrAsmList,usedregvars);
                end
@@ -435,6 +436,9 @@ implementation
          isjump: boolean;
       begin
          location_reset(location,LOC_VOID,OS_NO);
+         ofl:=nil;
+         otl:=nil;
+
          oldclabel:=current_procinfo.CurrContinueLabel;
          oldblabel:=current_procinfo.CurrBreakLabel;
          current_asmdata.getjumplabel(current_procinfo.CurrContinueLabel);
@@ -475,7 +479,6 @@ implementation
          if t1.nodetype<>ordconstn then
            begin
               do_loopvar_at_end:=false;
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,t1.location,t1.resultdef,t1.resultdef,false);
               temptovalue:=true;
            end
          else
@@ -505,7 +508,7 @@ implementation
              current_procinfo.CurrFalseLabel:=ofl;
            end;
 
-         maybechangeloadnodereg(current_asmdata.CurrAsmList,left,false);
+         hlcg.maybe_change_load_node_reg(current_asmdata.CurrAsmList,left,false);
          oldflowcontrol:=flowcontrol;
          include(flowcontrol,fc_inflowcontrol);
          { produce start assignment }
@@ -541,8 +544,16 @@ implementation
 
          if temptovalue then
            begin
-             hlcg.a_cmp_reg_loc_label(current_asmdata.CurrAsmList,left.resultdef,hcond,
-               t1.location.register,left.location,current_procinfo.CurrBreakLabel);
+             case t1.location.loc of
+               LOC_REGISTER,LOC_CREGISTER:
+                 hlcg.a_cmp_reg_loc_label(current_asmdata.CurrAsmList,left.resultdef,hcond,
+                   t1.location.register,left.location,current_procinfo.CurrBreakLabel);
+               LOC_REFERENCE,LOC_CREFERENCE:
+                 hlcg.a_cmp_ref_loc_label(current_asmdata.CurrAsmList,left.resultdef,hcond,
+                   t1.location.reference,left.location,current_procinfo.CurrBreakLabel);
+             else
+               InternalError(2013051601);
+             end;
            end
          else
            begin
@@ -642,8 +653,16 @@ implementation
          { jump                                     }
          if temptovalue then
            begin
-             hlcg.a_cmp_reg_loc_label(current_asmdata.CurrAsmList,left.resultdef,hcond,t1.location.register,
-               left.location,l3);
+             case t1.location.loc of
+               LOC_REGISTER,LOC_CREGISTER:
+                 hlcg.a_cmp_reg_loc_label(current_asmdata.CurrAsmList,left.resultdef,hcond,t1.location.register,
+                   left.location,l3);
+               LOC_REFERENCE,LOC_CREFERENCE:
+                 hlcg.a_cmp_ref_loc_label(current_asmdata.CurrAsmList,left.resultdef,hcond,t1.location.reference,
+                   left.location,l3);
+             else
+               InternalError(2013051602);
+             end;
            end
          else
            begin
@@ -818,8 +837,6 @@ implementation
          hlcg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrBreakLabel);
 
          sync_regvars(false);
-         if temptovalue then
-           hlcg.a_reg_sync(current_asmdata.CurrAsmList,t1.location.register);
 
          current_procinfo.CurrContinueLabel:=oldclabel;
          current_procinfo.CurrBreakLabel:=oldblabel;
@@ -1007,6 +1024,11 @@ implementation
          errorexit;
       begin
          location_reset(location,LOC_VOID,OS_NO);
+         exceptflowcontrol:=[];
+         continuetrylabel:=nil;
+         breaktrylabel:=nil;
+         continueexceptlabel:=nil;
+         breakexceptlabel:=nil;
 
          oldflowcontrol:=flowcontrol;
          flowcontrol:=[fc_inflowcontrol];
@@ -1241,9 +1263,15 @@ implementation
          paraloc1 : tcgpara;
          exceptvarsym : tlocalvarsym;
          pd : tprocdef;
+         fpc_catches_res: TCGPara;
+         fpc_catches_resloc: tlocation;
       begin
          paraloc1.init;
          location_reset(location,LOC_VOID,OS_NO);
+         oldCurrExitLabel:=nil;
+         continueonlabel:=nil;
+         breakonlabel:=nil;
+         exitonlabel:=nil;
 
          oldflowcontrol:=flowcontrol;
          flowcontrol:=[fc_inflowcontrol];
@@ -1251,15 +1279,17 @@ implementation
 
          { send the vmt parameter }
          pd:=search_system_proc('fpc_catches');
-         reference_reset_symbol(href2,current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname),0,sizeof(pint));
+         reference_reset_symbol(href2,current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname,AT_DATA),0,sizeof(pint));
          paramanager.getintparaloc(pd,1,paraloc1);
          cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,href2,paraloc1);
          paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
-         cg.g_call(current_asmdata.CurrAsmList,'FPC_CATCHES');
+         fpc_catches_res:=hlcg.g_call_system_proc(current_asmdata.CurrAsmList,pd,nil);
+         location_reset(fpc_catches_resloc,LOC_REGISTER,def_cgsize(fpc_catches_res.def));
+         fpc_catches_resloc.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,fpc_catches_res.def);
+         hlcg.gen_load_cgpara_loc(current_asmdata.CurrAsmList,fpc_catches_res.def,fpc_catches_res,fpc_catches_resloc,true);
 
-         cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
          { is it this catch? No. go to next onlabel }
-         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_EQ,0,NR_FUNCTION_RESULT_REG,nextonlabel);
+         hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,fpc_catches_res.def,OC_EQ,0,fpc_catches_resloc.register,nextonlabel);
 
          { Retrieve exception variable }
          if assigned(excepTSymtable) then
@@ -1269,11 +1299,10 @@ implementation
 
          if assigned(exceptvarsym) then
            begin
-             location_reset_ref(exceptvarsym.localloc,LOC_REFERENCE,OS_ADDR,sizeof(pint));
-             tg.GetLocal(current_asmdata.CurrAsmList,sizeof(pint),voidpointertype,exceptvarsym.localloc.reference);
-             cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,exceptvarsym.localloc.reference);
+             location_reset_ref(exceptvarsym.localloc,LOC_REFERENCE,def_cgsize(voidpointertype),voidpointertype.alignment);
+             tg.GetLocal(current_asmdata.CurrAsmList,voidpointertype.size,voidpointertype,exceptvarsym.localloc.reference);
+             hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,fpc_catches_res.def,voidpointertype,fpc_catches_resloc.register,exceptvarsym.localloc.reference);
            end;
-         cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
 
          { in the case that another exception is risen
            we've to destroy the old one                }
@@ -1388,7 +1417,6 @@ implementation
 
     procedure tcgtryfinallynode.pass_generate_code;
       var
-         reraiselabel,
          finallylabel,
          endfinallylabel,
          exitfinallylabel,
@@ -1398,17 +1426,20 @@ implementation
          oldContinueLabel,
          oldBreakLabel : tasmlabel;
          oldflowcontrol,tryflowcontrol : tflowcontrol;
-         decconst : longint;
          excepttemps : texceptiontemps;
       begin
          location_reset(location,LOC_VOID,OS_NO);
+         tryflowcontrol:=[];
+         oldBreakLabel:=nil;
+         oldContinueLabel:=nil;
+         continuefinallylabel:=nil;
+         breakfinallylabel:=nil;
 
          { check if child nodes do a break/continue/exit }
          oldflowcontrol:=flowcontrol;
          flowcontrol:=[fc_inflowcontrol];
          current_asmdata.getjumplabel(finallylabel);
          current_asmdata.getjumplabel(endfinallylabel);
-         current_asmdata.getjumplabel(reraiselabel);
 
          { the finally block must catch break, continue and exit }
          { statements                                            }
@@ -1495,34 +1526,13 @@ implementation
          else
            begin
              cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,endfinallylabel);
-             if (tryflowcontrol*[fc_exit,fc_break,fc_continue]<>[]) then
-               begin
-                 cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,1,NR_FUNCTION_RESULT_REG);
-                 cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,reraiselabel);
-                 if fc_exit in tryflowcontrol then
-                   begin
-                     cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,1,NR_FUNCTION_RESULT_REG);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,oldCurrExitLabel);
-                     decconst:=1;
-                   end
-                 else
-                   decconst:=2;
-                 if fc_break in tryflowcontrol then
-                   begin
-                     cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,decconst,NR_FUNCTION_RESULT_REG);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,oldBreakLabel);
-                     decconst:=1;
-                   end
-                 else
-                   inc(decconst);
-                 if fc_continue in tryflowcontrol then
-                   begin
-                     cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,decconst,NR_FUNCTION_RESULT_REG);
-                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,oldContinueLabel);
-                   end;
-               end;
+             if fc_exit in tryflowcontrol then
+               cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,2,NR_FUNCTION_RESULT_REG,oldCurrExitLabel);
+             if fc_break in tryflowcontrol then
+               cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,3,NR_FUNCTION_RESULT_REG,oldBreakLabel);
+             if fc_continue in tryflowcontrol then
+               cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,4,NR_FUNCTION_RESULT_REG,oldContinueLabel);
              cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-             cg.a_label(current_asmdata.CurrAsmList,reraiselabel);
              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RERAISE',false);
              { do some magic for exit,break,continue in the try block }
              if fc_exit in tryflowcontrol then

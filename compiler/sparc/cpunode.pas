@@ -33,6 +33,8 @@ implementation
     ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,ncgset,
     ncpuadd,ncpucall,ncpumat,ncpuinln,ncpucnv,ncpuset,
     { this not really a node }
-    rgcpu;
+    rgcpu,
+    { symtable }
+    symcpu;
 
 end.

@@ -42,6 +42,11 @@ interface
     type
        { this class is the base for all symbol objects }
        tstoredsym = class(tsym)
+       private
+          procedure writeentry(ppufile: tcompilerppufile; ibnr: byte);
+       protected
+          procedure ppuwrite_platform(ppufile: tcompilerppufile);virtual;
+          procedure ppuload_platform(ppufile: tcompilerppufile);virtual;
        public
           constructor create(st:tsymtyp;const n : string);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
@@ -64,29 +69,38 @@ interface
           { when the label is defined in an asm block, this points to the
             generated asmlabel }
           asmblocklabel : tasmlabel;
-          constructor create(const n : string);
+          constructor create(const n : string);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           function mangledname:TSymStr;override;
        end;
+       tlabelsymclass = class of tlabelsym;
 
        tunitsym = class(Tstoredsym)
           module : tobject; { tmodule }
-          constructor create(const n : string;amodule : tobject);
+          constructor create(const n : string;amodule : tobject);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
        end;
+       tunitsymclass = class of tunitsym;
 
        tnamespacesym = class(Tstoredsym)
           unitsym:tsym;
           unitsymderef:tderef;
-          constructor create(const n : string);
+          constructor create(const n : string);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           procedure buildderef;override;
           procedure deref;override;
        end;
+       tnamespacesymclass = class of tnamespacesym;
 
        terrorsym = class(Tsym)
           constructor create;
@@ -99,15 +113,17 @@ interface
           FProcdefList   : TFPObjectList;
           FProcdefDerefList : TFPList;
        public
-          constructor create(const n : string);
+          constructor create(const n : string);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           { writes all declarations except the specified one }
           procedure write_parameter_lists(skipdef:tprocdef);
           { tests, if all procedures definitions are defined and not }
           { only forward                                             }
-          procedure check_forward;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure check_forward; virtual;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           procedure buildderef;override;
           procedure deref;override;
           function find_procdef_bytype(pt:Tproctypeoption):Tprocdef;
@@ -120,20 +136,24 @@ interface
           function find_procdef_enumerator_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
           property ProcdefList:TFPObjectList read FProcdefList;
        end;
+       tprocsymclass = class of tprocsym;
 
        ttypesym = class(Tstoredsym)
        public
           typedef      : tdef;
           typedefderef : tderef;
           fprettyname : ansistring;
-          constructor create(const n : string;def:tdef);
+          constructor create(const n : string;def:tdef);virtual;
           destructor destroy;override;
           constructor ppuload(ppufile:tcompilerppufile);
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           procedure buildderef;override;
           procedure deref;override;
           function prettyname : string;override;
        end;
+       ttypesymclass = class of ttypesym;
 
        tabstractvarsym = class(tstoredsym)
           varoptions    : tvaroptions;
@@ -178,21 +198,28 @@ interface
 {$else symansistr}
           cachedmangledname: pshortstring; { mangled name for ObjC or Java }
 {$endif symansistr}
-          constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
+          constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure set_externalname(const s:string);
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
+          procedure set_externalname(const s:string);virtual;
           function mangledname:TSymStr;override;
           destructor destroy;override;
       end;
+      tfieldvarsymclass = class of tfieldvarsym;
 
       tabstractnormalvarsym = class(tabstractvarsym)
           defaultconstsym : tsym;
           defaultconstsymderef : tderef;
-          localloc      : TLocation; { register/reference for local var }
-          initialloc    : TLocation; { initial location so it can still be initialized later after the location was changed by SSA }
-          currentregloc  : TLocation; { current registers for register variables with moving register numbers }
-          inparentfpstruct : boolean;   { migrated to a parentfpstruct because of nested access (not written to ppu, because not important and would change interface crc) }
+          { register/reference for local var }
+          localloc      : TLocation;
+          { initial location so it can still be initialized later after the location was changed by SSA }
+          initialloc    : TLocation;
+          { current registers for register variables with moving register numbers }
+          currentregloc  : TLocation;
+          { migrated to a parentfpstruct because of nested access (not written to ppu, because not important and would change interface crc) }
+          inparentfpstruct : boolean;
           constructor create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           function globalasmsym: boolean;
@@ -202,10 +229,13 @@ interface
       end;
 
       tlocalvarsym = class(tabstractnormalvarsym)
-          constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
+          constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
       end;
+      tlocalvarsymclass = class of tlocalvarsym;
 
       tparavarsym = class(tabstractnormalvarsym)
           paraloc       : array[tcallercallee] of TCGPara;
@@ -217,15 +247,18 @@ interface
 {$ifdef EXTDEBUG}
           eqval         : tequaltype;
 {$endif EXTDEBUG}
-          constructor create(const n : string;nr:word;vsp:tvarspez;def:tdef;vopts:tvaroptions);
+          constructor create(const n : string;nr:word;vsp:tvarspez;def:tdef;vopts:tvaroptions);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           function needs_finalization: boolean;
       end;
+      tparavarsymclass = class of tparavarsym;
 
       tstaticvarsym = class(tabstractnormalvarsym)
-      private
+      protected
 {$ifdef symansistr}
           _mangledbasename,
           _mangledname : TSymStr;
@@ -235,41 +268,58 @@ interface
 {$endif symansistr}
       public
           section : ansistring;
-          constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
-          constructor create_dll(const n : string;vsp:tvarspez;def:tdef);
-          constructor create_C(const n: string; const mangled : TSymStr;vsp:tvarspez;def:tdef);
+          { if a text buffer has been defined as being initialized from command line
+            parameters as it is done by iso pascal with the program symbols,
+            isoindex contains the parameter number }
+          isoindex : dword;
+          { if this static variable was created based on a class field variable then this is set
+            to the symbol of the corresponding class field }
+          fieldvarsym : tfieldvarsym;
+          fieldvarsymderef : tderef;
+          constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);virtual;
+          constructor create_dll(const n : string;vsp:tvarspez;def:tdef);virtual;
+          constructor create_C(const n: string; const mangled : TSymStr;vsp:tvarspez;def:tdef);virtual;
+          constructor create_from_fieldvar(const n:string;fieldvar:tfieldvarsym);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
+          procedure buildderef;override;
+          procedure deref;override;
           function mangledname:TSymStr;override;
           procedure set_mangledbasename(const s: TSymStr);
           function mangledbasename: TSymStr;
-          procedure set_mangledname(const s:TSymStr);
+          procedure set_mangledname(const s:TSymStr);virtual;
           procedure set_raw_mangledname(const s:TSymStr);
       end;
+      tstaticvarsymclass = class of tstaticvarsym;
 
       tabsolutevarsym = class(tabstractvarsym)
       public
          abstyp  : absolutetyp;
-{$if defined(i386) or defined(i8086)}
-         absseg  : boolean;
-{$endif defined(i386) or defined(i8086)}
          asmname : pshortstring;
          addroffset : aword;
          ref     : tpropaccesslist;
-         constructor create(const n : string;def:tdef);
-         constructor create_ref(const n : string;def:tdef;_ref:tpropaccesslist);
+         constructor create(const n : string;def:tdef);virtual;
+         constructor create_ref(const n : string;def:tdef;_ref:tpropaccesslist);virtual;
          destructor  destroy;override;
          constructor ppuload(ppufile:tcompilerppufile);
          procedure buildderef;override;
          procedure deref;override;
          function  mangledname : TSymStr;override;
-         procedure ppuwrite(ppufile:tcompilerppufile);override;
+         { do not override this routine in platform-specific subclasses,
+           override ppuwrite_platform instead }
+         procedure ppuwrite(ppufile:tcompilerppufile);override;final;
       end;
+      tabsolutevarsymclass = class of tabsolutevarsym;
 
        tpropaccesslisttypes=(palt_none,palt_read,palt_write,palt_stored);
 
        tpropertysym = class(Tstoredsym)
+         protected
+           procedure finalize_getter_or_setter_for_sym(getset: tpropaccesslisttypes; sym: tsym; fielddef: tdef; accessordef: tprocdef); virtual;
+         public
           propoptions   : tpropertyoptions;
           overriddenpropsym : tpropertysym;
           overriddenpropsymderef : tderef;
@@ -282,11 +332,13 @@ interface
           dispid        : longint;
           propaccesslist: array[tpropaccesslisttypes] of tpropaccesslist;
           parast : tsymtable;
-          constructor create(const n : string);
+          constructor create(const n : string);virtual;
           destructor  destroy;override;
           constructor ppuload(ppufile:tcompilerppufile);
           function  getsize : asizeint;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           procedure buildderef;override;
           procedure deref;override;
           function getpropaccesslist(pap:tpropaccesslisttypes;out plist:tpropaccesslist):boolean;
@@ -295,7 +347,13 @@ interface
           procedure makeduplicate(p: tpropertysym; readprocdef, writeprocdef: tprocdef; out paranr: word);
           procedure add_accessor_parameters(readprocdef, writeprocdef: tprocdef);
           procedure add_index_parameter(var paranr: word; readprocdef, writeprocdef: tprocdef);
+          { set up the accessors for this property }
+          procedure add_getter_or_setter_for_sym(getset: tpropaccesslisttypes; sym: tsym; fielddef: tdef; accessordef: tprocdef);
+          procedure register_override(overriddenprop: tpropertysym);
+          { inherit the read/write property }
+          procedure inherit_accessor(getset: tpropaccesslisttypes); virtual;
        end;
+       tpropertysymclass = class of tpropertysym;
 
        tconstvalue = record
          case integer of
@@ -309,36 +367,45 @@ interface
           constdefderef : tderef;
           consttyp    : tconsttyp;
           value       : tconstvalue;
-          constructor create_ord(const n : string;t : tconsttyp;v : tconstexprint;def:tdef);
-          constructor create_ordptr(const n : string;t : tconsttyp;v : tconstptruint;def:tdef);
-          constructor create_ptr(const n : string;t : tconsttyp;v : pointer;def:tdef);
-          constructor create_string(const n : string;t : tconsttyp;str:pchar;l:longint;def:tdef);
-          constructor create_wstring(const n : string;t : tconsttyp;pw:pcompilerwidestring);
+          constructor create_ord(const n : string;t : tconsttyp;v : tconstexprint;def:tdef);virtual;
+          constructor create_ordptr(const n : string;t : tconsttyp;v : tconstptruint;def:tdef);virtual;
+          constructor create_ptr(const n : string;t : tconsttyp;v : pointer;def:tdef);virtual;
+          constructor create_string(const n : string;t : tconsttyp;str:pchar;l:longint;def:tdef);virtual;
+          constructor create_wstring(const n : string;t : tconsttyp;pw:pcompilerwidestring);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
           procedure buildderef;override;
           procedure deref;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
        end;
+       tconstsymclass = class of tconstsym;
 
        tenumsym = class(Tstoredsym)
           value      : longint;
           definition : tenumdef;
           definitionderef : tderef;
-          constructor create(const n : string;def : tenumdef;v : longint);
+          constructor create(const n : string;def : tenumdef;v : longint);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           procedure buildderef;override;
           procedure deref;override;
        end;
+       tenumsymclass = class of tenumsym;
 
        tsyssym = class(Tstoredsym)
           number : longint;
-          constructor create(const n : string;l : longint);
+          constructor create(const n : string;l : longint);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
        end;
+       tsyssymclass = class of tsyssym;
 
     const
        maxmacrolen=16*1024;
@@ -361,13 +428,30 @@ interface
           buflen  : longint;
           constructor create(const n : string);
           constructor ppuload(ppufile:tcompilerppufile);
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           destructor  destroy;override;
           function GetCopy:tmacro;
        end;
 
     var
        generrorsym : tsym;
+
+       clabelsym: tlabelsymclass;
+       cunitsym: tunitsymclass;
+       cnamespacesym: tnamespacesymclass;
+       cprocsym: tprocsymclass;
+       ctypesym: ttypesymclass;
+       cfieldvarsym: tfieldvarsymclass;
+       clocalvarsym: tlocalvarsymclass;
+       cparavarsym: tparavarsymclass;
+       cstaticvarsym: tstaticvarsymclass;
+       cabsolutevarsym: tabsolutevarsymclass;
+       cpropertysym: tpropertysymclass;
+       cconstsym: tconstsymclass;
+       cenumsym: tenumsymclass;
+       csyssym: tsyssymclass;
 
     { generate internal static field name based on regular field name }
     function internal_static_field_name(const fieldname: TSymStr): TSymStr;
@@ -384,9 +468,6 @@ implementation
        systems,
        { symtable }
        defutil,symtable,
-{$ifdef jvm}
-       jvmdef,
-{$endif}
        fmodule,
        { tree }
        node,
@@ -412,6 +493,7 @@ implementation
         result := tsym(vs.owner.Find('high'+vs.name));
       end;
 
+
     procedure check_hints(const srsym: tsym; const symoptions: tsymoptions; const deprecatedmsg : pshortstring);
       begin
         if not assigned(srsym) then
@@ -430,7 +512,6 @@ implementation
         if sp_hint_unimplemented in symoptions then
           Message1(sym_w_non_implemented_symbol,srsym.realname);
       end;
-
 
 
 {****************************************************************************
@@ -489,6 +570,24 @@ implementation
       end;
 
 
+    procedure tstoredsym.writeentry(ppufile: tcompilerppufile; ibnr: byte);
+      begin
+        ppuwrite_platform(ppufile);
+        ppufile.writeentry(ibnr);
+      end;
+
+
+    procedure tstoredsym.ppuwrite_platform(ppufile: tcompilerppufile);
+      begin
+        { by default: do nothing }
+      end;
+
+    procedure tstoredsym.ppuload_platform(ppufile: tcompilerppufile);
+      begin
+        { by default: do nothing }
+      end;
+
+
     destructor tstoredsym.destroy;
       begin
         inherited destroy;
@@ -516,6 +615,7 @@ implementation
          used:=false;
          nonlocal:=false;
          defined:=true;
+         ppuload_platform(ppufile);
       end;
 
 
@@ -526,16 +626,15 @@ implementation
          else
            begin
               inherited ppuwrite(ppufile);
-              ppufile.writeentry(iblabelsym);
+              writeentry(ppufile,iblabelsym);
            end;
       end;
 
 
    function tlabelsym.mangledname:TSymStr;
      begin
-       if not(defined) then
+       if (asmblocklabel=nil) then
          begin
-           defined:=true;
            if nonlocal then
              current_asmdata.getglobaljumplabel(asmblocklabel)
            else
@@ -559,6 +658,7 @@ implementation
       begin
          inherited ppuload(unitsym,ppufile);
          module:=nil;
+         ppuload_platform(ppufile);
       end;
 
     destructor tunitsym.destroy;
@@ -569,7 +669,7 @@ implementation
     procedure tunitsym.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
-         ppufile.writeentry(ibunitsym);
+         writeentry(ppufile,ibunitsym);
       end;
 
 {****************************************************************************
@@ -586,13 +686,14 @@ implementation
       begin
          inherited ppuload(namespacesym,ppufile);
          ppufile.getderef(unitsymderef);
+         ppuload_platform(ppufile);
       end;
 
     procedure tnamespacesym.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
          ppufile.putderef(unitsymderef);
-         ppufile.writeentry(ibnamespacesym);
+         writeentry(ppufile,ibnamespacesym);
       end;
 
     procedure tnamespacesym.buildderef;
@@ -613,12 +714,32 @@ implementation
 ****************************************************************************}
 
     constructor tprocsym.create(const n : string);
+      var
+        i: longint;
       begin
          if not(ts_lowercase_proc_start in current_settings.targetswitches) or
             (n='') then
            inherited create(procsym,n)
          else
-           inherited create(procsym,lowercase(n[1])+copy(n,2,length(n)-1));
+           begin
+             { YToX -> yToX
+               RC64Encode -> rc64Encode
+               Test -> test
+             }
+             i:=2;
+             while i<=length(n) do
+               begin
+                 if not(n[i] in ['A'..'Z']) then
+                   begin
+                     if (i>2) and
+                        (n[i] in ['a'..'z']) then
+                       dec(i);
+                     break;
+                   end;
+                 inc(i);
+               end;
+             inherited create(procsym,lower(copy(n,1,i-1))+copy(n,i,length(n)));
+           end;
          FProcdefList:=TFPObjectList.Create(false);
          FProcdefderefList:=nil;
          { the tprocdef have their own symoptions, make the procsym
@@ -642,6 +763,7 @@ implementation
             ppufile.getderef(pdderef);
             FProcdefDerefList.Add(Pointer(PtrInt(pdderef.dataidx)));
           end;
+         ppuload_platform(ppufile);
       end;
 
 
@@ -660,13 +782,15 @@ implementation
          d : tderef;
       begin
          inherited ppuwrite(ppufile);
+         if fprocdefdereflist=nil then
+           internalerror(2013121801);
          ppufile.putword(FProcdefDerefList.Count);
          for i:=0 to FProcdefDerefList.Count-1 do
            begin
              d.dataidx:=PtrInt(FProcdefDerefList[i]);
              ppufile.putderef(d);
            end;
-         ppufile.writeentry(ibprocsym);
+         writeentry(ppufile,ibprocsym);
       end;
 
 
@@ -679,7 +803,7 @@ implementation
           begin
             pd:=tprocdef(ProcdefList[i]);
             if pd<>skipdef then
-              MessagePos1(pd.fileinfo,sym_h_param_list,pd.fullprocname(false));
+              MessagePos1(pd.fileinfo,sym_e_param_list,pd.fullprocname(false));
            end;
       end;
 
@@ -1112,6 +1236,12 @@ implementation
                                 TPROPERTYSYM
 ****************************************************************************}
 
+    procedure tpropertysym.finalize_getter_or_setter_for_sym(getset: tpropaccesslisttypes; sym: tsym; fielddef: tdef; accessordef: tprocdef);
+      begin
+        { do nothing by default }
+      end;
+
+
     constructor tpropertysym.create(const n : string);
       var
         pap : tpropaccesslisttypes;
@@ -1142,6 +1272,7 @@ implementation
          ppufile.getderef(indexdefderef);
          for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
            propaccesslist[pap]:=ppufile.getpropaccesslist;
+         ppuload_platform(ppufile);
          if [ppo_hasparameters,ppo_overrides]*propoptions=[ppo_hasparameters] then
            begin
              parast:=tparasymtable.create(nil,0);
@@ -1229,12 +1360,12 @@ implementation
             orig:=tparavarsym(parast.SymList[i]);
             if assigned(readprocdef) then
               begin
-                hparavs:=tparavarsym.create(orig.RealName,orig.paranr,orig.varspez,orig.vardef,[]);
+                hparavs:=cparavarsym.create(orig.RealName,orig.paranr,orig.varspez,orig.vardef,[]);
                 readprocdef.parast.insert(hparavs);
               end;
             if assigned(writeprocdef) then
               begin
-                hparavs:=tparavarsym.create(orig.RealName,orig.paranr,orig.varspez,orig.vardef,[]);
+                hparavs:=cparavarsym.create(orig.RealName,orig.paranr,orig.varspez,orig.vardef,[]);
                 writeprocdef.parast.insert(hparavs);
               end;
           end;
@@ -1248,16 +1379,78 @@ implementation
         inc(paranr);
         if assigned(readprocdef) then
           begin
-            hparavs:=tparavarsym.create('$index',10*paranr,vs_value,indexdef,[]);
+            hparavs:=cparavarsym.create('$index',10*paranr,vs_value,indexdef,[]);
             readprocdef.parast.insert(hparavs);
           end;
         if assigned(writeprocdef) then
           begin
-            hparavs:=tparavarsym.create('$index',10*paranr,vs_value,indexdef,[]);
+            hparavs:=cparavarsym.create('$index',10*paranr,vs_value,indexdef,[]);
             writeprocdef.parast.insert(hparavs);
           end;
       end;
 
+
+    procedure tpropertysym.add_getter_or_setter_for_sym(getset: tpropaccesslisttypes; sym: tsym; fielddef: tdef; accessordef: tprocdef);
+      var
+        cpo: tcompare_paras_options;
+      begin
+        case sym.typ of
+          procsym :
+            begin
+              { search procdefs matching accessordef }
+              { we ignore hidden stuff here because the property access symbol might have
+                non default calling conventions which might change the hidden stuff;
+                see tw3216.pp (FK) }
+              cpo:=[cpo_allowdefaults,cpo_ignorehidden];
+              { allow var-parameters for setters in case of VARPROPSETTER+ }
+              if (getset=palt_write) and
+                 (cs_varpropsetter in current_settings.localswitches) then
+                include(cpo,cpo_ignorevarspez);
+              propaccesslist[getset].procdef:=tprocsym(sym).find_procdef_bypara(accessordef.paras,accessordef.returndef,cpo);
+              if not assigned(propaccesslist[getset].procdef) or
+                 { because of cpo_ignorehidden we need to compare if it is a static class method and we have a class property }
+                 ((sp_static in symoptions)<>tprocdef(propaccesslist[getset].procdef).no_self_node) then
+                Message(parser_e_ill_property_access_sym)
+              else
+                finalize_getter_or_setter_for_sym(getset,sym,fielddef,accessordef);
+            end;
+          fieldvarsym :
+            begin
+              if not assigned(fielddef) then
+                internalerror(200310071);
+              if compare_defs(fielddef,propdef,nothingn)>=te_equal then
+               begin
+                 { property parameters are allowed if this is
+                   an indexed property, because the index is then
+                   the parameter.
+                   Note: In the help of Kylix it is written
+                   that it isn't allowed, but the compiler accepts it (PFV) }
+                 if (ppo_hasparameters in propoptions) or
+                    ((sp_static in symoptions) <> (sp_static in sym.symoptions)) then
+                   Message(parser_e_ill_property_access_sym)
+                 else
+                   finalize_getter_or_setter_for_sym(getset,sym,fielddef,accessordef);
+               end
+              else
+               IncompatibleTypes(fielddef,propdef);
+            end;
+          else
+            Message(parser_e_ill_property_access_sym);
+        end;
+      end;
+
+
+    procedure tpropertysym.register_override(overriddenprop: tpropertysym);
+      begin
+        overriddenpropsym:=tpropertysym(overriddenprop);
+        include(propoptions,ppo_overrides);
+      end;
+
+
+    procedure tpropertysym.inherit_accessor(getset: tpropaccesslisttypes);
+      begin
+        { nothing to do by default }
+      end;
 
 
     procedure tpropertysym.makeduplicate(p: tpropertysym; readprocdef, writeprocdef: tprocdef; out paranr: word);
@@ -1300,7 +1493,7 @@ implementation
         ppufile.putderef(indexdefderef);
         for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
           ppufile.putpropaccesslist(propaccesslist[pap]);
-        ppufile.writeentry(ibpropertysym);
+        writeentry(ppufile,ibpropertysym);
         if [ppo_hasparameters,ppo_overrides]*propoptions=[ppo_hasparameters] then
           tparasymtable(parast).ppuwrite(ppufile);
       end;
@@ -1541,6 +1734,7 @@ implementation
            externalname:=stringdup(ppufile.getstring)
          else
            externalname:=nil;
+         ppuload_platform(ppufile);
       end;
 
 
@@ -1550,27 +1744,13 @@ implementation
          ppufile.putaint(fieldoffset);
          if (vo_has_mangledname in varoptions) then
            ppufile.putstring(externalname^);
-         ppufile.writeentry(ibfieldvarsym);
+         writeentry(ppufile,ibfieldvarsym);
       end;
 
 
     procedure tfieldvarsym.set_externalname(const s: string);
       begin
-        { make sure it is recalculated }
-{$ifdef symansistr}
-        cachedmangledname:='';
-{$else symansistr}
-        stringdispose(cachedmangledname);
-{$endif symansistr}
-{$ifdef jvm}
-        if is_java_class_or_interface(tdef(owner.defowner)) then
-          begin
-            externalname:=stringdup(s);
-            include(varoptions,vo_has_mangledname);
-          end
-        else
-{$endif jvm}
-          internalerror(2011031201);
+        internalerror(2014033001);
       end;
 
 
@@ -1579,21 +1759,6 @@ implementation
         srsym : tsym;
         srsymtable : tsymtable;
       begin
-{$ifdef jvm}
-        if is_java_class_or_interface(tdef(owner.defowner)) or
-           (tdef(owner.defowner).typ=recorddef) then
-          begin
-            if cachedmangledname<>'' then
-              result:=cachedmangledname
-            else
-              begin
-                result:=jvmmangledbasename(self,false);
-                jvmaddtypeownerprefix(owner,result);
-                cachedmangledname:=result;
-              end;
-          end
-        else
-{$endif jvm}
         if sp_static in symoptions then
           begin
             if searchsym(lower(owner.name^)+'_'+name,srsym,srsymtable) then
@@ -1730,6 +1895,13 @@ implementation
       end;
 
 
+    constructor tstaticvarsym.create_from_fieldvar(const n: string;fieldvar:tfieldvarsym);
+      begin
+        create(internal_static_field_name(n),vs_value,fieldvar.vardef,[]);
+        fieldvarsym:=fieldvar;
+      end;
+
+
     constructor tstaticvarsym.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuload(staticvarsym,ppufile);
@@ -1743,9 +1915,11 @@ implementation
            _mangledname:=stringdup(ppufile.getstring)
          else
            _mangledname:=nil;
+{$endif symansistr}
          if vo_has_section in varoptions then
            section:=ppufile.getansistring;
-{$endif symansistr}
+         ppufile.getderef(fieldvarsymderef);
+         ppuload_platform(ppufile);
       end;
 
 
@@ -1782,16 +1956,28 @@ implementation
 {$endif symansistr}
          if vo_has_section in varoptions then
            ppufile.putansistring(section);
-         ppufile.writeentry(ibstaticvarsym);
+         ppufile.putderef(fieldvarsymderef);
+         writeentry(ppufile,ibstaticvarsym);
       end;
 
 
+    procedure tstaticvarsym.buildderef;
+      begin
+        inherited buildderef;
+        fieldvarsymderef.build(fieldvarsym);
+      end;
+
+
+    procedure tstaticvarsym.deref;
+      begin
+        inherited deref;
+        fieldvarsym:=tfieldvarsym(fieldvarsymderef.resolve);
+      end;
+
     function tstaticvarsym.mangledname:TSymStr;
-{$ifndef jvm}
       var
         usename,
         prefix : TSymStr;
-{$endif jvm}
       begin
 {$ifdef symansistr}
         if _mangledname='' then
@@ -1799,39 +1985,23 @@ implementation
         if not assigned(_mangledname) then
 {$endif symansistr}
           begin
-{$ifdef jvm}
-            if _mangledbasename='' then
-              _mangledname:=jvmmangledbasename(self,false)
-            else
-              _mangledname:=jvmmangledbasename(self,_mangledbasename,false);
-            jvmaddtypeownerprefix(owner,_mangledname);
-{$else jvm}
             if (vo_is_typed_const in varoptions) then
               prefix:='TC'
             else
               prefix:='U';
-  {$ifdef symansistr}
+{$ifdef symansistr}
             if _mangledbasename='' then
               usename:=name
             else
               usename:=_mangledbasename;
-  {$else symansistr}
+            _mangledname:=make_mangledname(prefix,owner,usename);
+{$else symansistr}
             if not assigned(_mangledbasename) then
               usename:=name
             else
               usename:=_mangledbasename^;
-  {$endif symansistr}
-{$ifdef compress}
-            {$error add ansistring support for symansistr}
-            _mangledname:=stringdup(minilzw_encode(make_mangledname(prefix,owner,usename)));
-{$else compress}
-  {$ifdef symansistr}
-           _mangledname:=make_mangledname(prefix,owner,usename);
-  {$else symansistr}
-           _mangledname:=stringdup(make_mangledname(prefix,owner,usename));
-  {$endif symansistr}
-{$endif compress}
-{$endif jvm}
+            _mangledname:=stringdup(make_mangledname(prefix,owner,usename));
+{$endif symansistr}
           end;
 {$ifdef symansistr}
         result:=_mangledname;
@@ -1870,21 +2040,12 @@ implementation
 
     procedure tstaticvarsym.set_mangledname(const s:TSymStr);
       begin
-{$ifndef symansistr}
-        stringdispose(_mangledname);
-{$endif}
-{$if defined(jvm)}
-        _mangledname:=jvmmangledbasename(self,s,false);
-        jvmaddtypeownerprefix(owner,_mangledname);
-{$elseif defined(compress)}
-        _mangledname:=stringdup(minilzw_encode(s));
-{$else}
-  {$ifdef symansistr}
+{$ifdef symansistr}
         _mangledname:=s;
-  {$else symansistr}
+{$else symansistr}
+        stringdispose(_mangledname);
         _mangledname:=stringdup(s);
-  {$endif symansistr}
-{$endif}
+{$endif symansistr}
         include(varoptions,vo_has_mangledname);
       end;
 
@@ -1914,13 +2075,14 @@ implementation
     constructor tlocalvarsym.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuload(localvarsym,ppufile);
+         ppuload_platform(ppufile);
       end;
 
 
     procedure tlocalvarsym.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
-         ppufile.writeentry(iblocalvarsym);
+         writeentry(ppufile,iblocalvarsym);
       end;
 
 
@@ -1977,6 +2139,7 @@ implementation
              paraloc[callerside].size:=paraloc[callerside].location^.size;
              paraloc[callerside].intsize:=tcgsize2size[paraloc[callerside].size];
            end;
+         ppuload_platform(ppufile);
       end;
 
 
@@ -2007,7 +2170,7 @@ implementation
              ppufile.putbyte(sizeof(paraloc[callerside].location^));
              ppufile.putdata(paraloc[callerside].location^,sizeof(paraloc[callerside].location^));
            end;
-         ppufile.writeentry(ibparavarsym);
+         writeentry(ppufile,ibparavarsym);
       end;
 
     function tparavarsym.needs_finalization:boolean;
@@ -2054,22 +2217,15 @@ implementation
          ref:=nil;
          asmname:=nil;
          abstyp:=absolutetyp(ppufile.getbyte);
-{$ifdef i386}
-         absseg:=false;
-{$endif i386}
          case abstyp of
            tovar :
              ref:=ppufile.getpropaccesslist;
            toasm :
              asmname:=stringdup(ppufile.getstring);
            toaddr :
-             begin
-               addroffset:=ppufile.getaword;
-{$ifdef i386}
-               absseg:=boolean(ppufile.getbyte);
-{$endif i386}
-             end;
+             addroffset:=ppufile.getaword;
          end;
+         ppuload_platform(ppufile);
       end;
 
 
@@ -2083,14 +2239,9 @@ implementation
            toasm :
              ppufile.putstring(asmname^);
            toaddr :
-             begin
-               ppufile.putaword(addroffset);
-{$ifdef i386}
-               ppufile.putbyte(byte(absseg));
-{$endif i386}
-             end;
+             ppufile.putaword(addroffset);
          end;
-         ppufile.writeentry(ibabsolutevarsym);
+         writeentry(ppufile,ibabsolutevarsym);
       end;
 
 
@@ -2256,6 +2407,7 @@ implementation
            else
              Message1(unit_f_ppu_invalid_entry,tostr(ord(consttyp)));
          end;
+         ppuload_platform(ppufile);
       end;
 
 
@@ -2334,7 +2486,7 @@ implementation
          else
            internalerror(13);
          end;
-        ppufile.writeentry(ibconstsym);
+        writeentry(ppufile,ibconstsym);
       end;
 
 
@@ -2355,6 +2507,7 @@ implementation
          inherited ppuload(enumsym,ppufile);
          ppufile.getderef(definitionderef);
          value:=ppufile.getlongint;
+         ppuload_platform(ppufile);
       end;
 
 
@@ -2374,7 +2527,7 @@ implementation
          inherited ppuwrite(ppufile);
          ppufile.putderef(definitionderef);
          ppufile.putlongint(value);
-         ppufile.writeentry(ibenumsym);
+         writeentry(ppufile,ibenumsym);
       end;
 
 
@@ -2406,6 +2559,7 @@ implementation
          inherited ppuload(typesym,ppufile);
          ppufile.getderef(typedefderef);
          fprettyname:=ppufile.getansistring;
+         ppuload_platform(ppufile);
       end;
 
 
@@ -2426,7 +2580,7 @@ implementation
          inherited ppuwrite(ppufile);
          ppufile.putderef(typedefderef);
          ppufile.putansistring(fprettyname);
-         ppufile.writeentry(ibtypesym);
+         writeentry(ppufile,ibtypesym);
       end;
 
 
@@ -2453,6 +2607,7 @@ implementation
       begin
          inherited ppuload(syssym,ppufile);
          number:=ppufile.getlongint;
+         ppuload_platform(ppufile);
       end;
 
     destructor tsyssym.destroy;
@@ -2464,7 +2619,7 @@ implementation
       begin
          inherited ppuwrite(ppufile);
          ppufile.putlongint(number);
-         ppufile.writeentry(ibsyssym);
+         writeentry(ppufile,ibsyssym);
       end;
 
 
@@ -2514,7 +2669,7 @@ implementation
          ppufile.putlongint(buflen);
          if buflen > 0 then
            ppufile.putdata(buftext^,buflen);
-         ppufile.writeentry(ibmacrosym);
+         writeentry(ppufile,ibmacrosym);
       end;
 
 

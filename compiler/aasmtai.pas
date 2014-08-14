@@ -137,7 +137,10 @@ interface
           aitconst_64bit_unaligned,
           { i8086 far pointer; emits: 'DW symbol, SEG symbol' }
           aitconst_farptr,
-          aitconst_got
+          { offset of symbol's GOT slot in GOT }
+          aitconst_got,
+          { offset of symbol itself from GOT }
+          aitconst_gotoff_symbol
         );
 
     const
@@ -273,7 +276,7 @@ interface
           top_shifterop : (shifterop : pshifterop);
       {$endif defined(arm) or defined(aarch64)}
       {$ifdef m68k}
-          top_regset : (regset:^tcpuregisterset);
+          top_regset : (dataregset,addrregset:^tcpuregisterset);
       {$endif m68k}
       {$ifdef jvm}
           top_single : (sval:single);
@@ -1838,6 +1841,8 @@ implementation
             result:=LengthSleb128(value);
           aitconst_half16bit:
             result:=2;
+          aitconst_gotoff_symbol:
+            result:=4;
           else
             internalerror(200603253);
         end;
@@ -2062,7 +2067,7 @@ implementation
                                TAI_LABEL
  ****************************************************************************}
 
-        constructor tai_label.Create(_labsym : tasmlabel);
+    constructor tai_label.Create(_labsym : tasmlabel);
       begin
         inherited Create;
         typ:=ait_label;
@@ -2626,6 +2631,13 @@ implementation
               top_regset:
                 dispose(regset);
 {$endif ARM}
+{$ifdef m68k}
+              top_regset:
+                begin
+                  dispose(dataregset);
+                  dispose(addrregset);
+                end;
+{$endif m68k}
 {$ifdef jvm}
               top_string:
                 freemem(pcval);

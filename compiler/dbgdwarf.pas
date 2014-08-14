@@ -239,6 +239,16 @@ interface
         DW_FORM_ref_sig8 := $20      { reference }
         );
 
+      { values of DW_AT_address_class }
+      Tdwarf_addr = (
+        DW_ADDR_none := 0,
+        DW_ADDR_near16 := 1,
+        DW_ADDR_far16 := 2,
+        DW_ADDR_huge16 := 3,
+        DW_ADDR_near32 := 4,
+        DW_ADDR_far32 := 5
+      );
+
       TDwarfFile = record
         Index: integer;
         Name: PChar;
@@ -1796,7 +1806,7 @@ implementation
           append_labelentry_ref(DW_AT_type,def_dwarf_lab(cansichartype));
           finish_entry;
           append_entry(DW_TAG_subrange_type,false,[
-            DW_AT_lower_bound,DW_FORM_udata,0,
+            DW_AT_lower_bound,DW_FORM_udata,1,
             DW_AT_upper_bound,DW_FORM_udata,qword(slen)
             ]);
           append_labelentry_ref(DW_AT_type,def_dwarf_lab(lendef));
@@ -2320,6 +2330,8 @@ implementation
         has_high_reg : boolean;
         dreg,dreghigh : byte;
       begin
+        blocksize:=0;
+        dreghigh:=0;
         { external symbols can't be resolved at link time, so we
           can't generate stabs for them
 
@@ -2876,6 +2888,8 @@ implementation
               templist.free;
               exit;
             end;
+          else
+            internalerror(2013120111);
         end;
 
         append_entry(DW_TAG_variable,false,[

@@ -32,10 +32,14 @@ interface
        tarmaddnode = class(tcgaddnode)
        private
           function  GetResFlags(unsigned:Boolean):TResFlags;
+          function  GetFpuResFlags:TResFlags;
        public
           function pass_1 : tnode;override;
+          function use_generic_mul32to64: boolean; override;
+          function use_generic_mul64bit: boolean; override;
        protected
           function first_addfloat: tnode; override;
+          procedure second_addordinal;override;
           procedure second_addfloat;override;
           procedure second_cmpfloat;override;
           procedure second_cmpordinal;override;
@@ -123,6 +127,27 @@ interface
       end;
 
 
+    function tarmaddnode.GetFpuResFlags:TResFlags;
+      begin
+        if nf_swapped in Flags then
+          internalerror(2014042001);
+        case NodeType of
+          equaln:
+            result:=F_EQ;
+          unequaln:
+            result:=F_NE;
+          ltn:
+            result:=F_MI;
+          lten:
+            result:=F_LS;
+          gtn:
+            result:=F_GT;
+          gten:
+            result:=F_GE;
+        end;
+      end;
+
+
     procedure tarmaddnode.second_addfloat;
       var
         op : TAsmOp;
@@ -139,8 +164,8 @@ interface
             begin
               { force fpureg as location, left right doesn't matter
                 as both will be in a fpureg }
-              location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
-              location_force_fpureg(current_asmdata.CurrAsmList,right.location,true);
+              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
               location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
               location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
@@ -246,7 +271,7 @@ interface
           swapleftright;
 
         location_reset(location,LOC_FLAGS,OS_NO);
-        location.resflags:=getresflags(true);
+        location.resflags:=getresflags(false);
 
         case current_settings.fputype of
           fpu_fpa,
@@ -255,8 +280,8 @@ interface
             begin
               { force fpureg as location, left right doesn't matter
                 as both will be in a fpureg }
-              location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
-              location_force_fpureg(current_asmdata.CurrAsmList,right.location,true);
+              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
               cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               if nodetype in [equaln,unequaln] then
@@ -288,6 +313,7 @@ interface
                 left.location.register,right.location.register));
               cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               current_asmdata.CurrAsmList.concat(taicpu.op_none(A_FMSTAT));
+              location.resflags:=GetFpuResFlags;
             end;
           fpu_fpv4_s16:
             begin
@@ -308,9 +334,6 @@ interface
             { this case should be handled already by pass1 }
             internalerror(2009112404);
         end;
-
-        location_reset(location,LOC_FLAGS,OS_NO);
-        location.resflags:=getresflags(false);
       end;
 
 
@@ -481,11 +504,7 @@ interface
           begin
             asmList := current_asmdata.CurrAsmList;
             pass_left_right;
-
-            if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-              hlcg.location_force_reg(asmList,left.location,left.resultdef,left.resultdef,true);
-            if not(right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-              hlcg.location_force_reg(asmList,right.location,right.resultdef,right.resultdef,true);
+            force_reg_left_right(true, (left.location.loc<>LOC_CONSTANT) and (right.location.loc<>LOC_CONSTANT));
             set_result_location_reg;
 
             { shortcuts to register64s }
@@ -507,19 +526,7 @@ interface
       var
         unsigned : boolean;
       begin
-        { prepare for MUL64 inlining }
-        if (not(cs_check_overflow in current_settings.localswitches)) and
-           (nodetype in [muln]) and
-           (is_64bitint(left.resultdef)) and
-           (not (GenerateThumbCode)) then
-          begin
-            result := nil;
-            firstpass(left);
-            firstpass(right);
-            expectloc := LOC_REGISTER;
-          end
-        else
-          result:=inherited pass_1;
+        result:=inherited pass_1;
 
         if not(assigned(result)) then
           begin
@@ -572,13 +579,13 @@ interface
                       procname:=procname+'_le';
                     gtn:
                       begin
-                        procname:=procname+'_le';
-                        notnode:=true;
+                        procname:=procname+'_lt';
+                        swapleftright;
                       end;
                     gten:
                       begin
-                        procname:=procname+'_lt';
-                        notnode:=true;
+                        procname:=procname+'_le';
+                        swapleftright;
                       end;
                     equaln:
                       procname:=procname+'_eq';
@@ -642,6 +649,43 @@ interface
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(unsigned);
+      end;
+
+    const
+      multops: array[boolean] of TAsmOp = (A_SMULL, A_UMULL);
+
+    procedure tarmaddnode.second_addordinal;
+      var
+        unsigned: boolean;
+      begin
+        if (nodetype=muln) and
+           is_64bit(resultdef) and
+           not(GenerateThumbCode) and
+           (CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype]) then
+          begin
+            pass_left_right;
+            force_reg_left_right(true, false);
+            set_result_location_reg;
+            unsigned:=not(is_signed(left.resultdef)) or
+                      not(is_signed(right.resultdef));
+            current_asmdata.CurrAsmList.Concat(
+              taicpu.op_reg_reg_reg_reg(multops[unsigned], location.register64.reglo, location.register64.reghi,
+                                        left.location.register,right.location.register));
+          end
+        else
+          inherited second_addordinal;
+      end;
+
+    function tarmaddnode.use_generic_mul32to64: boolean;
+      begin
+        result:=GenerateThumbCode or not(CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype]);
+      end;
+
+    function tarmaddnode.use_generic_mul64bit: boolean;
+      begin
+        result:=GenerateThumbCode or
+          not(CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype]) or
+          (cs_check_overflow in current_settings.localswitches);
       end;
 
 begin

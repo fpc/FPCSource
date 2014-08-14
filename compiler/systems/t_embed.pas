@@ -61,10 +61,20 @@ end;
 
 
 procedure TlinkerEmbedded.SetDefaultInfo;
+const
+{$ifdef mips}
+  {$ifdef mipsel}
+    platform_select='-EL';
+  {$else}
+    platform_select='-EB';
+  {$endif}
+{$else}
+  platform_select='';
+{$endif}
 begin
   with Info do
    begin
-     ExeCmd[1]:='ld -g $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE -T $RES';
+     ExeCmd[1]:='ld -g '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE -T $RES';
    end;
 end;
 
@@ -80,13 +90,13 @@ Var
   linklibc : boolean;
   found1,
   found2   : boolean;
-{$ifdef ARM}
+{$if defined(ARM) or defined(MIPSEL)}
   LinkStr  : string;
 {$endif}
 begin
   WriteResponseFile:=False;
   linklibc:=(SharedLibFiles.Find('c')<>nil);
-{$if defined(ARM) or defined(i386) or defined(AVR)}
+{$if defined(ARM) or defined(i386) or defined(AVR) or defined(MIPSEL)}
   prtobj:='';
 {$else}
   prtobj:='prt0';
@@ -125,6 +135,7 @@ begin
       s:=FindObjectFile(prtobj,'',false);
       LinkRes.AddFileName(s);
     end;
+
   { try to add crti and crtbegin if linking to C }
   if linklibc then
    begin
@@ -325,6 +336,29 @@ begin
       ct_at91sam7x256,
       ct_at91sam7xc256,
 
+      ct_stm32f030c6,
+      ct_stm32f030c8,
+      ct_stm32f030f4,
+      ct_stm32f030k6,
+      ct_stm32f030r8,
+      ct_stm32f050c4,
+      ct_stm32f050c6,
+      ct_stm32f050f4,
+      ct_stm32f050f6,
+      ct_stm32f050g4,
+      ct_stm32f050g6,
+      ct_stm32f050k4,
+      ct_stm32f050k6,
+      ct_stm32f051c4,
+      ct_stm32f051c6,
+      ct_stm32f051c8,
+      ct_stm32f051k4,
+      ct_stm32f051k6,
+      ct_stm32f051k8,
+      ct_stm32f051r4,
+      ct_stm32f051r6,
+      ct_stm32f051r8,
+
       ct_stm32f100x4,
       ct_stm32f100x6,
       ct_stm32f100x8,
@@ -357,6 +391,16 @@ begin
       ct_stm32f107x8,
       ct_stm32f107xB,
       ct_stm32f107xC,
+      ct_stm32f105r8,
+      ct_stm32f105rb,
+      ct_stm32f105rc,
+      ct_stm32f105v8,
+      ct_stm32f105vb,
+      ct_stm32f105vc,
+      ct_stm32f107rb,
+      ct_stm32f107rc,
+      ct_stm32f107vb,
+      ct_stm32f107vc,
 
       { TI - 64 K Flash, 16 K SRAM Devices }
       ct_lm3s1110,
@@ -464,6 +508,13 @@ begin
 
               Add('}');
               Add('_stack_top = 0x' + IntToHex(sramsize+srambase,8) + ';');
+    
+              // Add Checksum Calculation for LPC Controllers so that the bootloader starts the uploaded binary 
+              writeln(controllerunitstr);
+              if (controllerunitstr = 'LPC8xx') or (controllerunitstr = 'LPC11XX') or (controllerunitstr = 'LPC122X') then
+                Add('Startup_Checksum = 0 - (_stack_top + _START + 1 + NonMaskableInt_interrupt + 1 + Hardfault_interrupt + 1);');
+              if (controllerunitstr = 'LPC13XX') then
+                Add('Startup_Checksum = 0 - (_stack_top + _START + 1 + NonMaskableInt_interrupt + 1 + MemoryManagement_interrupt + 1 + BusFault_interrupt + 1 + UsageFault_interrupt + 1);');
             end;
         end
     else
@@ -492,7 +543,7 @@ begin
         begin
           Add('    } >ram');
         end;
-      Add('    .note.gnu.build-id : { *(.note.gnu.build-id) }');
+      Add('    .note.gnu.build-id : { *(.note.gnu.build-id) } >flash ');
 
       Add('    .data :');
       Add('    {');
@@ -635,8 +686,7 @@ begin
       Add('  /* Internal text space or external memory.  */');
       Add('  .text   :');
       Add('  {');
-      Add('    *(.vectors)');
-      Add('    KEEP(*(.vectors))');
+      Add('    KEEP(*(.init, .init.*))');
       Add('    /* For data that needs to reside in the lower 64k of progmem.  */');
       Add('    *(.progmem.gcc*)');
       Add('    *(.progmem*)');
@@ -794,6 +844,197 @@ begin
     end;
 {$endif AVR}
 
+{$ifdef MIPSEL}
+  case current_settings.controllertype of
+      ct_none:
+           begin
+           end;
+      ct_pic32mx110f016b,
+      ct_pic32mx110f016c,
+      ct_pic32mx110f016d,
+      ct_pic32mx120f032b,
+      ct_pic32mx120f032c,
+      ct_pic32mx120f032d,
+      ct_pic32mx130f064b,
+      ct_pic32mx130f064c,
+      ct_pic32mx130f064d,
+      ct_pic32mx150f128b,
+      ct_pic32mx150f128c,
+      ct_pic32mx150f128d,
+      ct_pic32mx210f016b,
+      ct_pic32mx210f016c,
+      ct_pic32mx210f016d,
+      ct_pic32mx220f032b,
+      ct_pic32mx220f032c,
+      ct_pic32mx220f032d,
+      ct_pic32mx230f064b,
+      ct_pic32mx230f064c,
+      ct_pic32mx230f064d,
+      ct_pic32mx250f128b,
+      ct_pic32mx250f128c,
+      ct_pic32mx250f128d,
+      ct_pic32mx775f256h,
+      ct_pic32mx775f256l,
+      ct_pic32mx775f512h,
+      ct_pic32mx775f512l,
+      ct_pic32mx795f512h,
+      ct_pic32mx795f512l:
+        begin
+         with embedded_controllers[current_settings.controllertype] do
+          with linkres do
+            begin
+              Add('OUTPUT_FORMAT("elf32-tradlittlemips")');
+              Add('OUTPUT_ARCH(pic32mx)');
+              Add('ENTRY(_reset)');
+              Add('PROVIDE(_vector_spacing = 0x00000001);');
+              Add('_ebase_address = 0x'+IntToHex(flashbase,8)+';');
+              Add('_RESET_ADDR              = 0xBFC00000;');
+              Add('_BEV_EXCPT_ADDR          = 0xBFC00380;');
+              Add('_DBG_EXCPT_ADDR          = 0xBFC00480;');
+              Add('_GEN_EXCPT_ADDR          = _ebase_address + 0x180;');
+              Add('MEMORY');
+              Add('{');
+              if flashsize<>0 then
+                begin
+                  Add('  kseg0_program_mem          : ORIGIN = 0x'+IntToHex(flashbase,8)+', LENGTH = 0x'+IntToHex(flashsize,8));
+                  //TODO This should better be placed into the controllertype records
+                  Add('  kseg1_boot_mem             : ORIGIN = 0xBFC00000, LENGTH = 0xbef');
+                  Add('  config3                    : ORIGIN = 0xBFC00BF0, LENGTH = 0x4');
+                  Add('  config2                    : ORIGIN = 0xBFC00BF4, LENGTH = 0x4');
+                  Add('  config1                    : ORIGIN = 0xBFC00BF8, LENGTH = 0x4');
+                  Add('  config0                    : ORIGIN = 0xBFC00BFC, LENGTH = 0x4');
+                end;
+
+              Add('  ram                        : ORIGIN = 0x' + IntToHex(srambase,8)
+              	+ ', LENGTH = 0x' + IntToHex(sramsize,8));
+
+              Add('}');
+              Add('_stack_top = 0x' + IntToHex(sramsize+srambase,8) + ';');
+            end;
+        end
+    else
+      if not (cs_link_nolink in current_settings.globalswitches) then
+      	 internalerror(200902011);
+  end;
+
+  with linkres do
+    begin
+      Add('SECTIONS');
+      Add('{');
+      Add('    .reset _RESET_ADDR :');
+      Add('    {');
+      Add('      KEEP(*(.reset .reset.*))');
+      Add('      KEEP(*(.startup .startup.*))');
+      Add('    } > kseg1_boot_mem');
+      Add('    .bev_excpt _BEV_EXCPT_ADDR :');
+      Add('    {');
+      Add('      KEEP(*(.bev_handler))');
+      Add('    } > kseg1_boot_mem');
+
+      Add('    .text :');
+      Add('    {');
+      Add('    _text_start = .;');
+      Add('    . = _text_start + 0x180;');
+      Add('    KEEP(*(.gen_handler))');
+      Add('    . = _text_start + 0x200;');
+      Add('    KEEP(*(.init .init.*))');
+      Add('    *(.text .text.*)');
+      Add('    *(.strings)');
+      Add('    *(.rodata .rodata.*)');
+      Add('    *(.comment)');
+      Add('    _etext = .;');
+      if embedded_controllers[current_settings.controllertype].flashsize<>0 then
+        begin
+          Add('    } >kseg0_program_mem');
+        end
+      else
+        begin
+          Add('    } >ram');
+        end;
+      Add('    .note.gnu.build-id : { *(.note.gnu.build-id) }');
+
+      Add('    .data :');
+      Add('    {');
+      Add('    _data = .;');
+      Add('    *(.data .data.*)');
+      Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
+      Add('    . = .;');
+      Add('    _gp = ALIGN(16) + 0x7ff0;');
+      Add('    _edata = .;');
+      if embedded_controllers[current_settings.controllertype].flashsize<>0 then
+        begin
+          Add('    } >ram AT >kseg0_program_mem');
+        end
+      else
+        begin
+          Add('    } >ram');
+        end;
+      Add('  .config_BFC00BF0 : {');
+      Add('    KEEP(*(.config_BFC00BF0))');
+      Add('  } > config3');
+      Add('  .config_BFC00BF4 : {');
+      Add('    KEEP(*(.config_BFC00BF4))');
+      Add('  } > config2');
+      Add('  .config_BFC00BF8 : {');
+      Add('    KEEP(*(.config_BFC00BF8))');
+      Add('  } > config1');
+      Add('  .config_BFC00BFC : {');
+      Add('    KEEP(*(.config_BFC00BFC))');
+      Add('  } > config0');
+      Add('    .bss :');
+      Add('    {');
+      Add('    _bss_start = .;');
+      Add('    *(.bss, .bss.*)');
+      Add('    *(COMMON)');
+      Add('    } >ram');
+      Add('. = ALIGN(4);');
+      Add('_bss_end = . ;');
+      Add('  .comment       0 : { *(.comment) }');
+      Add('  /* DWARF debug sections.');
+      Add('     Symbols in the DWARF debugging sections are relative to the beginning');
+      Add('     of the section so we begin them at 0.  */');
+      Add('  /* DWARF 1 */');
+      Add('  .debug          0 : { *(.debug) }');
+      Add('  .line           0 : { *(.line) }');
+      Add('  /* GNU DWARF 1 extensions */');
+      Add('  .debug_srcinfo  0 : { *(.debug_srcinfo) }');
+      Add('  .debug_sfnames  0 : { *(.debug_sfnames) }');
+      Add('  /* DWARF 1.1 and DWARF 2 */');
+      Add('  .debug_aranges  0 : { *(.debug_aranges) }');
+      Add('  .debug_pubnames 0 : { *(.debug_pubnames) }');
+      Add('  /* DWARF 2 */');
+      Add('  .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }');
+      Add('  .debug_abbrev   0 : { *(.debug_abbrev) }');
+      Add('  /DISCARD/         : { *(.debug_line) }');
+      Add('  .debug_frame    0 : { *(.debug_frame) }');
+      Add('  .debug_str      0 : { *(.debug_str) }');
+      Add('  /DISCARD/         : { *(.debug_loc) }');
+      Add('  .debug_macinfo  0 : { *(.debug_macinfo) }');
+      Add('  /* SGI/MIPS DWARF 2 extensions */');
+      Add('  .debug_weaknames 0 : { *(.debug_weaknames) }');
+      Add('  .debug_funcnames 0 : { *(.debug_funcnames) }');
+      Add('  .debug_typenames 0 : { *(.debug_typenames) }');
+      Add('  .debug_varnames  0 : { *(.debug_varnames) }');
+      Add('  /* DWARF 3 */');
+      Add('  .debug_pubtypes 0 : { *(.debug_pubtypes) }');
+      Add('  .debug_ranges   0 : { *(.debug_ranges) }');
+      Add('  .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }');
+      Add('  .gptab.sdata : { *(.gptab.data) *(.gptab.sdata) }');
+      Add('  .gptab.sbss : { *(.gptab.bss) *(.gptab.sbss) }');
+      Add('  .mdebug.abi32 : { KEEP(*(.mdebug.abi32)) }');
+      Add('  .mdebug.abiN32 : { KEEP(*(.mdebug.abiN32)) }');
+      Add('  .mdebug.abi64 : { KEEP(*(.mdebug.abi64)) }');
+      Add('  .mdebug.abiO64 : { KEEP(*(.mdebug.abiO64)) }');
+      Add('  .mdebug.eabi32 : { KEEP(*(.mdebug.eabi32)) }');
+      Add('  .mdebug.eabi64 : { KEEP(*(.mdebug.eabi64)) }');
+      Add('  /DISCARD/ : { *(.rel.dyn) }');
+      Add('  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }');
+      Add('}');
+      Add('_end = .;');
+    end;
+{$endif MIPSEL}
+
+
   { Write and Close response }
   linkres.writetodisk;
   linkres.free;
@@ -854,14 +1095,18 @@ begin
    DeleteFile(outputexedir+Info.ResName);
 
 { Post process }
-  if success then
+  if success and not(cs_link_nolink in current_settings.globalswitches) then
     success:=PostProcessExecutable(current_module.exefilename+'.elf',false);
 
-  if success and (target_info.system in [system_arm_embedded,system_avr_embedded]) then
+  if success and (target_info.system in [system_arm_embedded,system_avr_embedded,system_mipsel_embedded]) then
     begin
       success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O ihex '+
         ChangeFileExt(current_module.exefilename,'.elf')+' '+
         ChangeFileExt(current_module.exefilename,'.hex'),true,false);
+      if success then
+        success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+
+          ChangeFileExt(current_module.exefilename,'.elf')+' '+
+          ChangeFileExt(current_module.exefilename,'.bin'),true,false);
     end;
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
@@ -1044,4 +1289,10 @@ initialization
   RegisterLinker(ld_embedded,TLinkerEmbedded);
   RegisterTarget(system_i386_embedded_info);
 {$endif i386}
+
+{$ifdef mipsel}
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
+  RegisterTarget(system_mipsel_embedded_info);
+{$endif mipsel}
+
 end.

@@ -87,7 +87,6 @@ interface
          function  is_publishable:boolean;virtual;abstract;
          function  needs_inittable:boolean;virtual;abstract;
          function  needs_separate_initrtti:boolean;virtual;abstract;
-         function  is_related(def:tdef):boolean;virtual;
          procedure ChangeOwner(st:TSymtable);
          procedure register_created_object_type;virtual;
       end;
@@ -163,6 +162,7 @@ interface
         constructor create;
         destructor  destroy;override;
         function  empty:boolean;
+        function getcopy: tpropaccesslist;
         procedure addsym(slt:tsltype;p:tsym);
         procedure addconst(slt:tsltype;v:TConstExprInt;d:tdef);
         procedure addtype(slt:tsltype;d:tdef);
@@ -331,12 +331,6 @@ implementation
       end;
 
 
-    function tdef.is_related(def:tdef):boolean;
-      begin
-        result:=false;
-      end;
-
-
     function tdef.packedbitsize:asizeint;
       begin
         result:=size * 8;
@@ -467,6 +461,27 @@ implementation
     function tpropaccesslist.empty:boolean;
       begin
         empty:=(firstsym=nil);
+      end;
+
+    function tpropaccesslist.getcopy: tpropaccesslist;
+      var
+        hp, dest : ppropaccesslistitem;
+      begin
+        result:=tpropaccesslist.create;
+        result.procdef:=procdef;
+        hp:=firstsym;
+        while assigned(hp) do
+          begin
+            new(dest);
+            dest^:=hp^;
+            dest^.next:=nil;
+            if not assigned(result.firstsym) then
+              result.firstsym:=dest;
+            if assigned(result.lastsym) then
+              result.lastsym^.next:=dest;
+            result.lastsym:=dest;
+            hp:=hp^.next;
+          end;
       end;
 
 
