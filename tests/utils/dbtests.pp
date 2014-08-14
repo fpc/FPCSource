@@ -75,6 +75,7 @@ begin
     Connection.Username:=User;
     Connection.Password:=Password;
     Connection.Connected:=true;
+    Connection.Transaction:=TSQLTransaction.Create(Connection);
     if (Port<>'') then
       Connection.Params.Values['Port']:=Port;
   except
