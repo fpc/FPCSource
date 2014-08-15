@@ -41,7 +41,6 @@
       TTinyHeapBlock = record
         Next: PTinyHeapBlock;
         Size: TTinyHeapFreeBlockSize;
-        EndAddr: pointer;
       end;
 
     const
@@ -126,6 +125,7 @@
     procedure InternalTinyFreeMem(Addr: Pointer; Size: TTinyHeapFreeBlockSize);
       var 
         b, p, prev: PTinyHeapBlock;
+        EndAddr: Pointer;
         concatenated: boolean;
       begin
         repeat
@@ -134,7 +134,7 @@
 
           b^.Next := TinyHeapBlocks;
           b^.Size := Size;
-          b^.EndAddr := pointer(TTinyHeapPointerArithmeticType(addr)+size);
+          EndAddr := pointer(TTinyHeapPointerArithmeticType(addr)+size);
 
           if TinyHeapBlocks = nil then
             TinyHeapBlocks := b
@@ -145,7 +145,7 @@
 
               while assigned(p) do
                 begin
-                  if p^.EndAddr = addr then
+                  if (TTinyHeapPointerArithmeticType(p)+p^.Size) = TTinyHeapPointerArithmeticType(Addr) then
                     begin
                       addr:=p;
                       size:=p^.size+size;
@@ -156,7 +156,7 @@
                       concatenated:=true;
                       break;
                     end
-                  else if p = b^.EndAddr then
+                  else if p = EndAddr then
                     begin
                       size:=p^.size+size;
                       if prev = nil then
