@@ -261,17 +261,16 @@
       end;
 
     procedure RegisterTinyHeapBlock(AAddress: pointer; ASize: ptruint);
+      var
+        alignment_inc: smallint;
       begin
 {$ifdef DEBUG_TINY_HEAP}
         Writeln('RegisterTinyHeapBlock(', ptruint(AAddress), ',', ASize, ')');
 {$endif DEBUG_TINY_HEAP}
-        if (ptruint(AAddress) and 1) <> 0 then
-          begin
-            Inc(AAddress);
-            Dec(ASize);
-          end;
-        if (ASize and 1) <> 0 then
-          Dec(ASize);
+        alignment_inc := TTinyHeapPointerArithmeticType(align(AAddress,TinyHeapAllocGranularity))-TTinyHeapPointerArithmeticType(AAddress);
+        Inc(AAddress,alignment_inc);
+        Dec(ASize,alignment_inc);
+        Dec(ASize,ASize mod TinyHeapAllocGranularity);
         PTinyHeapMemBlockSize(AAddress)^ := ASize - SizeOf(TTinyHeapMemBlockSize);
         FreeMem(Pointer(PTinyHeapMemBlockSize(AAddress) + 1), ASize - SizeOf(TTinyHeapMemBlockSize));
       end;
