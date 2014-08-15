@@ -46,7 +46,7 @@
     const
       TinyHeapMinBlock = sizeof(TTinyHeapBlock);
 
-      TinyHeapAllocGranularity = sizeof(Pointer);
+      TinyHeapAllocGranularity = sizeof(TTinyHeapBlock);
 
     var
       TinyHeapBlocks: PTinyHeapBlock = nil;
