@@ -46,6 +46,8 @@
     const
       TinyHeapMinBlock = sizeof(TTinyHeapBlock);
 
+      TinyHeapAllocGranularity = sizeof(Pointer);
+
     var
       TinyHeapBlocks: PTinyHeapBlock = nil;
 
@@ -64,7 +66,7 @@
 {$ifdef DEBUG_TINY_HEAP}
         Write('SysTinyGetMem(', Size, ')=');
 {$endif DEBUG_TINY_HEAP}
-        AllocSize := align(size+sizeof(TTinyHeapMemBlockSize), sizeof(pointer));
+        AllocSize := align(size+sizeof(TTinyHeapMemBlockSize), TinyHeapAllocGranularity);
 
         p := TinyHeapBlocks;
         prev := nil;
@@ -206,7 +208,7 @@
             result:=0;
             exit;
           end;
-        sz := Align(FindSize(addr)+SizeOf(TTinyHeapMemBlockSize), sizeof(pointer));
+        sz := Align(FindSize(addr)+SizeOf(TTinyHeapMemBlockSize), TinyHeapAllocGranularity);
 
         InternalTinyFreeMem(@PTinyHeapMemBlockSize(addr)[-1], sz);
         
