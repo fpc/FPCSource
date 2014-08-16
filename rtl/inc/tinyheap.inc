@@ -271,8 +271,7 @@
         Inc(AAddress,alignment_inc);
         Dec(ASize,alignment_inc);
         Dec(ASize,ASize mod TinyHeapAllocGranularity);
-        PTinyHeapMemBlockSize(AAddress)^ := ASize - SizeOf(TTinyHeapMemBlockSize);
-        FreeMem(Pointer(PTinyHeapMemBlockSize(AAddress) + 1), ASize - SizeOf(TTinyHeapMemBlockSize));
+        InternalTinyFreeMem(AAddress, ASize);
       end;
 
     const
