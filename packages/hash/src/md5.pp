@@ -17,7 +17,10 @@
 
 // Define to use original MD5 code on i386 processors.
 // Undefine to use original implementation.
-{not $DEFINE MD5SLOW}
+{ the assembler implementation does not work on Darwin }
+{$ifdef darwin}
+{$DEFINE MD5PASCAL}
+{$endif darwin}
 
 unit md5;
 
@@ -302,10 +305,10 @@ begin
 end;
 
 
-{$IF (NOT(DEFINED(MD5SLOW))) and (DEFINED(CPUI386)) }
+{$IF (NOT(DEFINED(MD5PASCAL))) and (DEFINED(CPUI386)) }
 {$i md5i386.inc}
 {$ENDIF}
-{$IF (NOT(DEFINED(MD5SLOW))) and (DEFINED(CPUX86_64)) }
+{$IF (NOT(DEFINED(MD5PASCAL))) and (DEFINED(CPUX86_64)) }
 {$OPTIMIZATION USERBP} //PEEPHOLE
 procedure MD5Transform(var Context: TMDContext; Buffer: Pointer);
 type
@@ -404,7 +407,7 @@ begin
 end;
 {$OPTIMIZATION DEFAULT}
 {$ENDIF}
-{$IF DEFINED(MD5SLOW) or (NOT ((DEFINED(CPUX86_64)) or (DEFINED(CPUI386))))}
+{$IF DEFINED(MD5PASCAL) or (NOT ((DEFINED(CPUX86_64)) or (DEFINED(CPUI386))))}
 // Original version
 procedure MD5Transform(var Context: TMDContext; Buffer: Pointer);
 

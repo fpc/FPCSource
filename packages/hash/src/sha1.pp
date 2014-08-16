@@ -15,7 +15,10 @@
 
 // Normally, if an optimized version is available for OS/CPU, that will be used
 // Define to use existing unoptimized implementation
-{not $DEFINE SHA1SLOW}
+{ the assembler implementation does not work on darwin }
+{$ifdef darwin}
+{$DEFINE SHA1PASCAL}
+{$endif darwin}
 
 unit sha1;
 {$mode objfpc}{$h+}
@@ -81,9 +84,9 @@ const
   K60 = $8F1BBCDC;
   K80 = $CA62C1D6;
 
-{$IF (NOT(DEFINED(SHA1SLOW))) and (DEFINED(CPU386)) }
+{$IF (NOT(DEFINED(SHA1PASCAL))) and (DEFINED(CPU386)) }
 // Use assembler version if we have a suitable CPU as well
-// Define SHA1SLOW to force use of original reference code
+// Define SHA1PASCAL to force use of original reference code
 {$i sha1i386.inc}
 {$ELSE}
 // Use original version if asked for, or when we have no optimized assembler version
