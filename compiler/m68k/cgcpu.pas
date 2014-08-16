@@ -794,7 +794,7 @@ unit cgcpu;
         a:=longint(a);
         href:=ref;
         fixref(list,href);
-        if (a=0) then
+        if (a=0) and not (current_settings.cputype = cpu_mc68000) then
           list.concat(taicpu.op_ref(A_CLR,tcgsize2opsize[tosize],href))
         else if (tcgsize2opsize[tosize]=S_L) and
            (current_settings.cputype in [cpu_isa_b,cpu_isa_c]) and
