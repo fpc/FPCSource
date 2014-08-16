@@ -27,8 +27,28 @@
     {$smartlink on}
 {$endif use_amiga_smartlink}
 
-unit PasToC;
+{
+  This unit must be deprecated because at least:
+  - It is leaking memory. It allocates a new buffer for each string which won't
+    be freed until the program exits.
+  - The unit doesn't provide any way to free allocated string buffers manually.
+    (Because ReleasePas2C is not a public function.)
+  - It does allocations outside the Pascal heap, which the compiler has no control
+    over, and makes it very hard to track these allocations, because the heaptrc 
+    unit doesn't work.
+  - The intuition.library documentation states that AllocRemember() is a quite 
+    ineffective function, because it does two memory allocations and because it
+    doesn't use memory pools it has a terrible effect on memory fragmentation.
+  - It uses a for loop byte to copy the string contents, which is very slow.
+  - It uses a global handle without any protection, therefore it's not thread safe.
+  - The strings unit provide equivalent functionality, without the leaking problem.
+  - Because of the above reasons, this unit will be removed as soon as nothing
+    else in the AmUnits package and among the examples depend on it.
+    (KB)
+}
 
+unit PasToC
+  deprecated 'Pas2C function is leaking memory, don''t use it. StrPCopy in strings unit provides equivalent functionality.';
 
 interface
 
