@@ -827,6 +827,7 @@ compiler/x86_64/r8664con.inc svneol=native#text/plain
 compiler/x86_64/r8664dwrf.inc svneol=native#text/plain
 compiler/x86_64/r8664int.inc svneol=native#text/plain
 compiler/x86_64/r8664iri.inc svneol=native#text/plain
+compiler/x86_64/r8664nasm.inc svneol=native#text/plain
 compiler/x86_64/r8664nor.inc svneol=native#text/plain
 compiler/x86_64/r8664num.inc svneol=native#text/plain
 compiler/x86_64/r8664ot.inc svneol=native#text/plain
