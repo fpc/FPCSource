@@ -1063,7 +1063,7 @@ begin
 
       aRList.Add(format(aPrefix + '[%s + %s]', [aSLIndexReg[il_Index], aSLBaseReg[il_Base]]));
 
-      aRList.Add(format(aPrefix + '[%s + %s * 16]', [aSLIndexReg[il_Index], aSLBaseReg[il_Base]]));
+      aRList.Add(format(aPrefix + '[%s + %s + 16]', [aSLIndexReg[il_Index], aSLBaseReg[il_Base]]));
     end;
   end;
 end;
