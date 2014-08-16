@@ -90,6 +90,8 @@ begin
           AddInclude('fills.inc');
           AddInclude('gtext.inc');
           AddInclude('graph16.inc',[freebsd,linux]);
+          AddInclude('vesa.inc',[go32v2,msdos]);
+          AddInclude('vesah.inc',[go32v2,msdos]);
         end;
 
     T:=P.Targets.AddUnit('src/sdlgraph/sdlgraph.pp',[i386,powerpc],[win32,linux,freebsd,darwin]);
@@ -115,7 +117,23 @@ begin
           AddUnit('graph');
         end;
     T:=P.Targets.AddUnit('ptcgraph.pp',[win32,win64,linux]);
+      with T.Dependencies do
+        begin
+          AddInclude('graphh.inc');
+          AddInclude('graph.inc');
+          AddInclude('fontdata.inc');
+          AddInclude('clip.inc');
+          AddInclude('palette.inc');
+          AddInclude('modes.inc');
+          AddInclude('fills.inc');
+          AddInclude('gtext.inc');
+        end;
     T:=P.Targets.AddUnit('ptccrt.pp',[win32,win64,linux]);
+      with T.Dependencies do
+        begin
+          AddUnit('ptcgraph');
+        end;
+    T:=P.Targets.AddUnit('ptcmouse.pp',[win32,win64,linux]);
       with T.Dependencies do
         begin
           AddUnit('ptcgraph');

@@ -25,6 +25,7 @@
   add_fcl_registry(ADirectory+IncludeTrailingPathDelimiter('fcl-registry'));
   add_fcl_res(ADirectory+IncludeTrailingPathDelimiter('fcl-res'));
   add_fcl_sdo(ADirectory+IncludeTrailingPathDelimiter('fcl-sdo'));
+  add_fcl_sound(ADirectory+IncludeTrailingPathDelimiter('fcl-sound'));
   add_fcl_stl(ADirectory+IncludeTrailingPathDelimiter('fcl-stl'));
   add_fcl_web(ADirectory+IncludeTrailingPathDelimiter('fcl-web'));
   add_fcl_xml(ADirectory+IncludeTrailingPathDelimiter('fcl-xml'));
@@ -52,6 +53,7 @@
   add_iconvenc(ADirectory+IncludeTrailingPathDelimiter('iconvenc'));
   add_imagemagick(ADirectory+IncludeTrailingPathDelimiter('imagemagick'));
   add_imlib(ADirectory+IncludeTrailingPathDelimiter('imlib'));
+  add_iosxlocale(ADirectory+IncludeTrailingPathDelimiter('iosxlocale'));
   add_jni(ADirectory+IncludeTrailingPathDelimiter('jni'));
   add_ldap(ADirectory+IncludeTrailingPathDelimiter('ldap'));
   add_libc(ADirectory+IncludeTrailingPathDelimiter('libc'));
@@ -79,8 +81,8 @@
   add_oggvorbis(ADirectory+IncludeTrailingPathDelimiter('oggvorbis'));
   add_openal(ADirectory+IncludeTrailingPathDelimiter('openal'));
   add_opencl(ADirectory+IncludeTrailingPathDelimiter('opencl'));
-  add_opengl(ADirectory+IncludeTrailingPathDelimiter('opengl'));
   add_opengles(ADirectory+IncludeTrailingPathDelimiter('opengles'));
+  add_opengl(ADirectory+IncludeTrailingPathDelimiter('opengl'));
   add_openssl(ADirectory+IncludeTrailingPathDelimiter('openssl'));
   add_oracle(ADirectory+IncludeTrailingPathDelimiter('oracle'));
   add_os2units(ADirectory+IncludeTrailingPathDelimiter('os2units'));
@@ -95,6 +97,10 @@
   add_pxlib(ADirectory+IncludeTrailingPathDelimiter('pxlib'));
   add_regexpr(ADirectory+IncludeTrailingPathDelimiter('regexpr'));
   add_rexx(ADirectory+IncludeTrailingPathDelimiter('rexx'));
+  add_rtl_console(ADirectory+IncludeTrailingPathDelimiter('rtl-console'));
+  add_rtl_extra(ADirectory+IncludeTrailingPathDelimiter('rtl-extra'));
+  add_rtl_objpas(ADirectory+IncludeTrailingPathDelimiter('rtl-objpas'));
+  add_rtl_unicode(ADirectory+IncludeTrailingPathDelimiter('rtl-unicode'));
   add_sdl(ADirectory+IncludeTrailingPathDelimiter('sdl'));
   add_sqlite(ADirectory+IncludeTrailingPathDelimiter('sqlite'));
   add_svgalib(ADirectory+IncludeTrailingPathDelimiter('svgalib'));

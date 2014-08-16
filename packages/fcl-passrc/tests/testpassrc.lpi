@@ -1,8 +1,13 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
     <General>
+      <Flags>
+        <SaveOnlyProjectUnits Value="True"/>
+        <SaveJumpHistory Value="False"/>
+        <SaveFoldState Value="False"/>
+      </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
       <UseAppBundle Value="False"/>
@@ -25,8 +30,8 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="--suite=TTestTypeParser"/>
-        <LaunchingApplication Use="True" PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+        <CommandLineParams Value="--suite=TTestClassType.TestConstProtected"/>
+        <LaunchingApplication Use="True"/>
       </local>
     </RunParams>
     <RequiredPackages Count="2">
@@ -105,11 +110,6 @@
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
     </SearchPaths>
-    <Linking>
-      <Debugging>
-        <UseHeaptrc Value="True"/>
-      </Debugging>
-    </Linking>
     <Other>
       <CompilerMessages>
         <UseMsgFile Value="True"/>

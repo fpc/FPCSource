@@ -48,10 +48,7 @@ FPC_SHARED_LIB_START:
     blr
 
     .globl  _haltproc
-    .globl  FPC_SHARED_LIB_EXIT
-     .type  FPC_SHARED_LIB_EXIT,@function
      .type   _haltproc,@function
-FPC_SHARED_LIB_EXIT:
 _haltproc:
     lis     11,operatingsystem_result@ha
     lwz      3,operatingsystem_result@l(3)

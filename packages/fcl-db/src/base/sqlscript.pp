@@ -47,8 +47,10 @@ type
     FCommentsInSQL: Boolean;
     FTerminator: AnsiString;
     FSQL: TStrings;
+    FCurrentStripped,
     FCurrentStatement: TStrings;
     FDirectives: TStrings;
+    FComment,
     FEmitLine: Boolean;
     procedure SetDefines(const Value: TStrings);
     function FindNextSeparator(sep: array of string): AnsiString;
@@ -57,18 +59,21 @@ type
     procedure SetSQL(value: TStrings);
     procedure SQLChange(Sender: TObject);
     function GetLine: Integer;
-    Function ProcessConditional(Directive : String; Param : String) : Boolean; virtual;
-    function NextStatement: AnsiString;
-    procedure ProcessStatement;
-    function Available: Boolean;
-    procedure InternalStatement (Statement: TStrings; var StopExecution: Boolean);
-    procedure InternalDirective (Directive, Argument: String; var StopExecution: Boolean);
-    procedure InternalCommit;
   protected
+    procedure ClearStatement; virtual;
+    procedure InternalStatement (Statement: TStrings; var StopExecution: Boolean); virtual;
+    procedure InternalDirective (Directive, Argument: String; var StopExecution: Boolean); virtual;
+    // Runs commit. If ComitRetaining, use CommitRetraining if possible, else stop/starttransaction
+    procedure InternalCommit(CommitRetaining: boolean=true); virtual;
+    Function ProcessConditional(Directive : String; Param : String) : Boolean; virtual;
+    function NextStatement: AnsiString; virtual;
+    procedure ProcessStatement; virtual;
+    function Available: Boolean; virtual;
     procedure DefaultDirectives; virtual;
     procedure ExecuteStatement (Statement: TStrings; var StopExecution: Boolean); virtual; abstract;
     procedure ExecuteDirective (Directive, Argument: String; var StopExecution: Boolean); virtual; abstract;
-    procedure ExecuteCommit; virtual; abstract;
+    // Executes commit. If possible and CommitRetaining, use CommitRetaining, else
+    procedure ExecuteCommit(CommitRetaining: boolean=true); virtual; abstract;
   public
     constructor Create (AnOwner: TComponent); override;
     destructor Destroy; override;
@@ -100,7 +105,7 @@ type
   protected
     procedure ExecuteStatement (SQLStatement: TStrings; var StopExecution: Boolean); override;
     procedure ExecuteDirective (Directive, Argument: String; var StopExecution: Boolean); override;
-    procedure ExecuteCommit; override;
+    procedure ExecuteCommit(CommitRetaining: boolean=true); override;
   public
     procedure Execute; override;
     property Aborted;
@@ -177,21 +182,6 @@ begin
   Result:=Trim(Result);
 end;
 
-function DeleteComments(SQL_Text: AnsiString; ATerminator: AnsiString = ';'): AnsiString;
-
-begin
-  With TCustomSQLScript.Create (Nil) do
-    try
-      Terminator:=ATerminator;
-      Script.Add(SQL_Text);
-      Script.Add(Terminator);
-      CommentsInSQL:=False;
-      Result:=ConvertWhiteSpace(NextStatement);
-    finally
-      Free;
-    end;
-end;
-
 { ---------------------------------------------------------------------
     TSQLScript
   ---------------------------------------------------------------------}
@@ -236,12 +226,20 @@ end;
 
 procedure TCustomSQLScript.AddToStatement(value: AnsiString; ForceNewLine : Boolean);
 
+  Procedure DA(L : TStrings);
+
+  begin
+    With L do
+      if ForceNewLine or (Count=0) then
+        Add(value)
+      else
+        Strings[Count-1]:=Strings[Count-1] + value;
+  end;
+
 begin
-  With FCurrentStatement do
-    if ForceNewLine or (Count=0) then
-      Add(value)
-    else
-      Strings[Count-1]:=Strings[Count-1] + value;
+  DA(FCurrentStatement);
+  if Not FComment then
+    DA(FCurrentStripped);
 end;
 
 function TCustomSQLScript.FindNextSeparator(Sep: array of string): AnsiString;
@@ -278,19 +276,9 @@ end;
 
 function TCustomSQLScript.Available: Boolean;
 
-var 
-  SCol, 
-  SLine: Integer;
-  
 begin
-  SCol:=FCol;
-  SLine:=FLine;
-  try
-    Result:=Length(Trim(NextStatement()))>0;
-  Finally  
-    FCol:=SCol;
-    FLine:=SLine;
-  end;  
+  With FSQL do
+    Result:=(FLine<Count) or (FCol<Length(Strings[Count-1]))
 end;
 
 procedure TCustomSQLScript.InternalStatement(Statement: TStrings;  var StopExecution: Boolean);
@@ -344,7 +332,7 @@ begin
   end;
 end;
 
-procedure TCustomSQLScript.InternalCommit;
+procedure TCustomSQLScript.InternalCommit(CommitRetaining: boolean=true);
 
 var 
   cont : boolean;
@@ -352,7 +340,7 @@ var
   
 begin
   try
-    ExecuteCommit;
+    ExecuteCommit(CommitRetaining);
   except
     on E : Exception do
       begin
@@ -373,6 +361,13 @@ begin
   end;
 end;
 
+procedure TCustomSQLScript.ClearStatement;
+
+begin
+  FCurrentStatement.Clear;
+  FCurrentStripped.Clear;
+end;
+
 procedure TCustomSQLScript.ProcessStatement;
 
 Var
@@ -383,7 +378,7 @@ Var
 begin
   if (FCurrentStatement.Count=0) then
     Exit;
-  S:=DeleteComments(FCurrentStatement.Text, Terminator);
+  S:=Trim(FCurrentStripped.Text);
   I:=0;
   Directive:='';
   While (i<FDirectives.Count) and (Directive='') do
@@ -404,9 +399,16 @@ begin
     else If Not FIsSkipping then
       begin
       // If AutoCommit, skip any explicit commits.
-      if FUseCommit and (Directive = 'COMMIT') and not FAutoCommit then
-        InternalCommit
-      else if FUseSetTerm and (Directive = 'SET TERM') then
+      if FUseCommit
+        and ((Directive = 'COMMIT') or (Directive = 'COMMIT WORK' {SQL standard}))
+        and not FAutoCommit then
+        InternalCommit(false) //explicit commit, no commit retaining
+      else if FUseCommit
+        and (Directive = 'COMMIT RETAIN') {at least Firebird syntax}
+        and not FAutoCommit then
+        InternalCommit(true)
+      else if FUseSetTerm
+        and (Directive = 'SET TERM' {Firebird/Interbase only}) then
         FTerminator:=S
       else
         InternalDirective (Directive,S,FAborted)
@@ -429,11 +431,11 @@ begin
   FSkipStackIndex:=0;
   Faborted:=False;
   DefaultDirectives;
-  while not FAborted and Available() do
-    begin
+  Repeat
     NextStatement();
-    ProcessStatement;
-    end;
+    if Length(Trim(FCurrentStripped.Text))>0 then
+      ProcessStatement;
+  Until FAborted or Not Available;
 end;
 
 function TCustomSQLScript.NextStatement: AnsiString;
@@ -444,10 +446,10 @@ var
 
 begin
   terminator_found:=False;
-  FCurrentStatement.Clear;
+  ClearStatement;
   while FLine <= FSQL.Count do
     begin
-    pnt:=FindNextSeparator([FTerminator, '/*', '"', '''']);
+    pnt:=FindNextSeparator([FTerminator, '/*', '"', '''', '--']);
     if (pnt=FTerminator) then
       begin
       FCol:=FCol + length(pnt);
@@ -456,6 +458,7 @@ begin
       end
     else if pnt = '/*' then
       begin
+      FComment:=True;
       if FCommentsInSQL then
         AddToStatement(pnt,false)
       else
@@ -467,6 +470,16 @@ begin
       else
         FEmitLine:=True;
       FCol:=FCol + length(pnt);
+      FComment:=False;
+      end
+    else if pnt = '--' then
+      begin
+      FComment:=True;
+      if FCommentsInSQL then
+        AddToStatement(Copy(FSQL[FLine-1],FCol,Length(FSQL[FLine-1])-FCol+1),True);
+      Inc(Fline);
+      FCol:=0;
+      FComment:=False;
       end
     else if pnt = '"' then
       begin
@@ -486,9 +499,11 @@ begin
       end;
     end;
   if not terminator_found then
-    FCurrentStatement.Clear();
+    ClearStatement;
   while (FCurrentStatement.Count > 0) and (trim(FCurrentStatement.Strings[0]) = '') do
     FCurrentStatement.Delete(0);
+  while (FCurrentStripped.Count > 0) and (trim(FCurrentStripped.Strings[0]) = '') do
+    FCurrentStripped.Delete(0);
   Result:=FCurrentStatement.Text;
 end;
 
@@ -512,6 +527,7 @@ begin
   L.OnChange:=@SQLChange;
   FSQL:=L;
   FDirectives:=TStringList.Create();
+  FCurrentStripped:=TStringList.Create();
   FCurrentStatement:=TStringList.Create();
   FLine:=1;
   FCol:=1;
@@ -523,7 +539,9 @@ begin
 end;
 
 destructor TCustomSQLScript.Destroy;
+
 begin
+  FreeAndNil(FCurrentStripped);
   FreeAndNil(FCurrentStatement);
   FreeAndNil(FSQL);
   FreeAndNil(FDirectives);
@@ -540,10 +558,15 @@ procedure TCustomSQLScript.DefaultDirectives;
 begin
   With FDirectives do
     begin
+    // Insertion order matters as testing for directives will be done with StartsWith
     if FUseSetTerm then
       Add('SET TERM');
     if FUseCommit then
-      Add('COMMIT');
+    begin
+      Add('COMMIT WORK'); {SQL Standard, equivalent to commit}
+      Add('COMMIT RETAIN'); {Firebird/Interbase; probably won't hurt on other dbs}
+      Add('COMMIT'); {Shorthand used in many dbs, e.g. Firebird}
+    end;
     if FUseDefines then
       begin
       Add('#IFDEF');
@@ -650,7 +673,7 @@ begin
     FOnDirective (Self, Directive, Argument, StopExecution);
 end;
 
-procedure TEventSQLScript.ExecuteCommit;
+procedure TEventSQLScript.ExecuteCommit(CommitRetaining: boolean=true);
 begin
   if assigned (FOnCommit) then
     FOnCommit (Self);

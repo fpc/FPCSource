@@ -19,7 +19,7 @@ programs_win64=prepup
 programs_go32v2=prepup
 
 [clean]
-programs=dbdigest
+programs=dbdigest dbconfig
 
 [rules]
 .NOTPARALLEL:
@@ -27,4 +27,4 @@ programs=dbdigest
 utils: all
 
 utilsdb:
-        $(MAKE) utils DBDIGEST=dbdigest
+        $(MAKE) utils DBDIGEST="dbdigest dbconfig"

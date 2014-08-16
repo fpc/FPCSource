@@ -115,8 +115,6 @@ begin
   else
     begin
     Method:=Uppercase(Method);
-    If (Method<>'POST') and (Method<>'GET') then
-      Raise Exception.CreateFmt(SerrUnsupportedMethod,['METHOD']);
     end;
 end;
 (*

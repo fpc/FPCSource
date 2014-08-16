@@ -8,6 +8,9 @@ program tchlp24;
 {$apptype console}
 
 type
+{$ifndef fpc}
+  CodePointer = Pointer;
+{$endif}
 {$M+}
   TTest = class
   end;
@@ -27,12 +30,12 @@ end;
 
 var
   f: TTest;
-  res: Pointer;
+  res: CodePointer;
 begin
   f := TTest.Create;
   res := f.MethodAddress('Test');
 {$ifdef fpc}
-  Writeln('Address of TTest.Test: ', PtrInt(res));
+  Writeln('Address of TTest.Test: ', CodePtrInt(res));
 {$else}
   Writeln('Address of TTest.Test: ', NativeInt(res));
 {$endif}

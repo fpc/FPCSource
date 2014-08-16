@@ -1379,14 +1379,14 @@ begin
       end;
     '*':
       begin
+        Result:=tkMul;
         Inc(TokenStr);
         if TokenStr[0] = '*' then
-        begin
+          begin
           Inc(TokenStr);
           Result := tkPower;
-        end else if not (po_cassignments in options) then
-          Result := tkMul
-        else
+          end 
+        else if (po_cassignments in options) then
           begin
           if TokenStr[0]='=' then
             begin
@@ -1397,10 +1397,9 @@ begin
       end;
     '+':
       begin
+        Result:=tkPlus;
         Inc(TokenStr);
-        if not (po_cassignments in options) then
-          Result := tkPlus
-        else
+        if (po_cassignments in options) then
           begin
           if TokenStr[0]='=' then
             begin
@@ -1416,10 +1415,9 @@ begin
       end;
     '-':
       begin
+        Result := tkMinus;
         Inc(TokenStr);
-        if not (po_cassignments in options) then
-          Result := tkMinus
-        else
+        if (po_cassignments in options) then
           begin
           if TokenStr[0]='=' then
             begin
@@ -1440,9 +1438,10 @@ begin
       end;
     '/':
       begin
+        Result := tkDivision;
         Inc(TokenStr);
-        if TokenStr[0] = '/' then       // Single-line comment
-        begin
+        if (TokenStr[0] = '/') then       // Single-line comment
+          begin
           Inc(TokenStr);
           TokenStart := TokenStr;
           FCurTokenString := '';
@@ -1453,10 +1452,8 @@ begin
           if SectionLength > 0 then
             Move(TokenStart^, FCurTokenString[1], SectionLength);
           Result := tkComment;
-          //WriteLn('Einzeiliger Kommentar: "', CurTokenString, '"');
-        end else if not (po_cassignments in options) then
-          Result := tkDivision
-        else
+          end
+        else if (po_cassignments in options) then
           begin
           if TokenStr[0]='=' then
             begin

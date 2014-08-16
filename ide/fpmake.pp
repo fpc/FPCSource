@@ -7,6 +7,9 @@ uses
   sysutils;
 {$endif ALLPACKAGES}
 
+const
+  NoGDBOption: boolean = false;
+
 procedure ide_check_gdb_availability(Sender: TObject);
 
   function DetectLibGDBDir: string;
@@ -72,8 +75,7 @@ begin
   P := sender as TPackage;
   with installer do
     begin
-    s := GetCustomFpmakeCommandlineOptionValue('NoGDB');
-    if not ((s='1') or (s='Y')) then
+    if not (NoGDBOption) then
       begin
         // Detection of GDB.
         GDBLibDir := DetectLibGDBDir;
@@ -100,10 +102,16 @@ begin
                         end;
               openbsd : begin
                           P.Options.Add('-Fl/usr/local/lib');
+                          P.Options.Add('-Fl/usr/lib');
                           P.Options.Add('-Xd');
                         end;
               netbsd  : P.Options.Add('-Xd');
               linux   : P.Options.Add('-Xd');
+              aix     : begin
+                          P.Options.Add('-Xd');
+                          P.Options.Add('-Fl/opt/freeware/lib');
+                          P.Options.Add('-k-bbigtoc');
+                        end;
             end; {case}
 
             P.NeedLibc := true;
@@ -135,6 +143,9 @@ begin
   AddCustomFpmakeCommandlineOption('NoGDB','If value=1 or ''Y'', no GDB support');
   With Installer do
     begin
+    s := GetCustomFpmakeCommandlineOptionValue('NoGDB');
+    if (s='1') or (s='Y') then
+     NoGDBOption := true;
     s :=GetCustomFpmakeCommandlineOptionValue('CompilerTarget');
     if s <> '' then
       CompilerTarget:=StringToCPU(s)
@@ -148,11 +159,13 @@ begin
 {$endif ALLPACKAGES}
 
     P.Dependencies.Add('rtl');
+    P.Dependencies.Add('rtl-extra');
     P.Dependencies.Add('fv');
     P.Dependencies.Add('chm');
     { This one is only needed if DEBUG is set }
     P.Dependencies.Add('regexpr');
-    P.Dependencies.Add('gdbint',AllOSes-[morphos]);
+    if not (NoGDBOption) then
+      P.Dependencies.Add('gdbint',AllOSes-[morphos]);
     P.Dependencies.Add('graph',[go32v2]);
 
     P.SupportBuildModes:=[bmOneByOne];
@@ -188,17 +201,17 @@ begin
     T.Directory:='compiler';
     T.Install:=false;
 
-    P.InstallFiles.Add('fp.ans','$(BASEINSTALLDIR)/ide');
-    P.InstallFiles.Add('gplprog.pt','$(BASEINSTALLDIR)/ide');
-    P.InstallFiles.Add('gplunit.pt','$(BASEINSTALLDIR)/ide');
-    P.InstallFiles.Add('program.pt','$(BASEINSTALLDIR)/ide');
-    P.InstallFiles.Add('unit.pt','$(BASEINSTALLDIR)/ide');
-    P.InstallFiles.Add('cvsco.tdf','$(BASEINSTALLDIR)/ide');
-    P.InstallFiles.Add('cvsdiff.tdf','$(BASEINSTALLDIR)/ide');
-    P.InstallFiles.Add('cvsup.tdf','$(BASEINSTALLDIR)/ide');
-    P.InstallFiles.Add('grep.tdf','$(BASEINSTALLDIR)/ide');
-    P.InstallFiles.Add('tpgrep.tdf','$(BASEINSTALLDIR)/ide');
-    P.InstallFiles.Add('fp32.ico', [win32, win64], '$(BASEINSTALLDIR)/ide');
+    P.InstallFiles.Add('fp.ans','$(BININSTALLDIR)');
+    P.InstallFiles.Add('gplprog.pt','$(BININSTALLDIR)');
+    P.InstallFiles.Add('gplunit.pt','$(BININSTALLDIR)');
+    P.InstallFiles.Add('program.pt','$(BININSTALLDIR)');
+    P.InstallFiles.Add('unit.pt','$(BININSTALLDIR)');
+    P.InstallFiles.Add('cvsco.tdf','$(BININSTALLDIR)');
+    P.InstallFiles.Add('cvsdiff.tdf','$(BININSTALLDIR)');
+    P.InstallFiles.Add('cvsup.tdf','$(BININSTALLDIR)');
+    P.InstallFiles.Add('grep.tdf','$(BININSTALLDIR)');
+    P.InstallFiles.Add('tpgrep.tdf','$(BININSTALLDIR)');
+    P.InstallFiles.Add('fp32.ico', [win32, win64], '$(BININSTALLDIR)');
 
     P.Sources.AddDoc('readme.ide');
 

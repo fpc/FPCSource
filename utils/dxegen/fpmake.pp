@@ -29,7 +29,7 @@ begin
     P.Directory:=ADirectory;
     P.Version:='2.7.1';
 
-    T:=P.Targets.AddProgram('dxegen.pas');
+    T:=P.Targets.AddProgram('dxegen.pp');
     T.Dependencies.AddUnit('coff');
 
     P.Targets.AddUnit('coff.pp').install:=false;

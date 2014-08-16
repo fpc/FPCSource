@@ -43,12 +43,15 @@
  * @
   }
 unit httpd24;
+
 {$ifdef fpc}
   {$mode delphi}{$H+}
 {$endif}
 {$ifdef Unix}
   {$PACKRECORDS C}
 {$endif}
+
+{$PACKENUM 4}
 
 {$IFDEF Apache1_3}
   {$WARNING Apache1_3 is defined somewhere, but the HTTPD unit included is for Apache2_4}
@@ -158,10 +161,100 @@ type
 //{$include http_connection.inc}
 //{$include http_vhost.inc}
 
-//{$include util_script.inc}
+{$include util_script.inc}
 //{$include util_time.inc}
 //{$include util_md5.inc}
 //{$include ap_mpm.inc}
+
+// APRUtil External Variables //
+
+var
+
+  {/* All of the bucket types implemented by the core */
+  /**
+   * The flush bucket type.  This signifies that all data should be flushed to
+   * the next filter.  The flush bucket should be sent with the other buckets.
+   */}
+  apr_bucket_type_flush: apr_bucket_type_t external LibAPRUtil;
+  {/**
+   * The EOS bucket type.  This signifies that there will be no more data, ever.
+   * All filters MUST send all data to the next filter when they receive a
+   * bucket of this type
+   */}
+  apr_bucket_type_eos: apr_bucket_type_t external LibAPRUtil;
+  {/**
+   * The FILE bucket type.  This bucket represents a file on disk
+   */}
+  apr_bucket_type_file: apr_bucket_type_t external LibAPRUtil;
+  {/**
+   * The HEAP bucket type.  This bucket represents a data allocated from the
+   * heap.
+   */}
+  apr_bucket_type_heap: apr_bucket_type_t external LibAPRUtil;
+  {$IFDEF APR_HAS_MMAP}
+    {/**
+     * The MMAP bucket type.  This bucket represents an MMAP'ed file
+     */}
+    apr_bucket_type_mmap: apr_bucket_type_t external LibAPRUtil;
+  {$ENDIF}
+  {/**
+   * The POOL bucket type.  This bucket represents a data that was allocated
+   * from a pool.  IF this bucket is still available when the pool is cleared,
+   * the data is copied on to the heap.
+   */}
+  apr_bucket_type_pool: apr_bucket_type_t external LibAPRUtil;
+  {/**
+   * The PIPE bucket type.  This bucket represents a pipe to another program.
+   */}
+  apr_bucket_type_pipe: apr_bucket_type_t external LibAPRUtil;
+  {/**
+   * The IMMORTAL bucket type.  This bucket represents a segment of data that
+   * the creator is willing to take responsibility for.  The core will do
+   * nothing with the data in an immortal bucket
+   */}
+  apr_bucket_type_immortal: apr_bucket_type_t external LibAPRUtil;
+  {/**
+   * The TRANSIENT bucket type.  This bucket represents a data allocated off
+   * the stack.  When the setaside function is called, this data is copied on
+   * to the heap
+   */}
+  apr_bucket_type_transient: apr_bucket_type_t external LibAPRUtil;
+  {/**
+   * The SOCKET bucket type.  This bucket represents a socket to another machine
+   */}
+  apr_bucket_type_socket: apr_bucket_type_t external LibAPRUtil;
+
+//********************************************************************
+  { from apr_buckets.inc }
+
+  function APR_BRIGADE_SENTINEL(b: Papr_bucket_brigade): Papr_bucket;
+  function APR_BRIGADE_FIRST(b: Papr_bucket_brigade): Papr_bucket;
+  function APR_BRIGADE_LAST(b: Papr_bucket_brigade): Papr_bucket;
+  function APR_BUCKET_NEXT(e: Papr_bucket): Papr_bucket;
+  function APR_BUCKET_PREV(e: Papr_bucket): Papr_bucket;
+  procedure APR_BUCKET_REMOVE(e: Papr_bucket);
+  function APR_BUCKET_IS_METADATA(e: Papr_bucket): boolean;
+  function APR_BUCKET_IS_FLUSH(e: Papr_bucket): boolean;
+  function APR_BUCKET_IS_EOS(e: Papr_bucket): boolean;
+  function APR_BUCKET_IS_FILE(e: Papr_bucket): boolean;
+  function APR_BUCKET_IS_PIPE(e: Papr_bucket): boolean;
+  function APR_BUCKET_IS_SOCKET(e: Papr_bucket): boolean;
+  function APR_BUCKET_IS_HEAP(e: Papr_bucket): boolean;
+  function APR_BUCKET_IS_TRANSIENT(e: Papr_bucket): boolean;
+  function APR_BUCKET_IS_IMMORTAL(e: Papr_bucket): boolean;
+  {$IFDEF APR_HAS_MMAP}
+    function APR_BUCKET_IS_MMAP(e: Papr_bucket): boolean;
+  {$ENDIF}
+  function APR_BUCKET_IS_POOL(e: Papr_bucket): boolean;
+  function apr_bucket_read(e: Papr_bucket; const str: PPChar; len: Papr_size_t;
+    block: apr_read_type_e): apr_status_t;
+
+  function AP_INIT_TAKE1(directive: Pchar; const take1func : ttake1func;
+    mconfig: Pointer; where: Integer; help: Pchar): command_rec;
+  function AP_INIT_TAKE2(directive: Pchar; const take2func: ttake2func;
+    mconfig: Pointer; where: Integer; help: Pchar): command_rec;
+  function AP_INIT_TAKE3(directive: Pchar; const take3func: ttake3func;
+    mconfig: Pointer; where: Integer; help: Pchar): command_rec;
 
 implementation
   { Internal representation for a HTTP protocol number, e.g., HTTP/1.1 }
@@ -242,6 +335,146 @@ implementation
   function ap_escape_html(p: Papr_pool_t; const s: PChar) : PChar;
   begin
     ap_escape_html:=ap_escape_html2(p,s,0);
+  end;
+
+//********************************************************************
+  { from apr_buckets.inc }
+
+  function APR_BRIGADE_FIRST(b: Papr_bucket_brigade): Papr_bucket; inline;
+  begin
+    APR_BRIGADE_FIRST := b^.list.next;
+  end;
+
+  function APR_BRIGADE_LAST(b: Papr_bucket_brigade): Papr_bucket; inline;
+  begin
+    APR_BRIGADE_LAST := b^.list.prev;
+  end;
+
+  function APR_BRIGADE_SENTINEL(b: Papr_bucket_brigade): Papr_bucket; inline;
+  var b_: apr_bucket; // This should technically be <type> and link shouldn't be hard-coded..
+  begin
+    APR_BRIGADE_SENTINEL := Papr_bucket(pointer(@b^.list.next) - (pointer(@b_.Link) - pointer(@b_) ) );
+  end;
+
+  function APR_BUCKET_IS_METADATA(e: Papr_bucket): boolean; inline;
+  begin
+    APR_BUCKET_IS_METADATA := e^.type_^.is_metadata = APR_BUCKET_METADATA;
+  end;
+
+  function APR_BUCKET_IS_FLUSH(e: Papr_bucket): boolean; inline;
+  begin
+    APR_BUCKET_IS_FLUSH := e^.type_ = @apr_bucket_type_flush;
+  end;
+
+  function APR_BUCKET_IS_EOS(e: Papr_bucket): boolean; inline;
+  begin
+    APR_BUCKET_IS_EOS := e^.type_ = @apr_bucket_type_eos;
+  end;
+
+  function APR_BUCKET_IS_FILE(e: Papr_bucket): boolean; inline;
+  begin
+    APR_BUCKET_IS_FILE := e^.type_ = @apr_bucket_type_file;
+  end;
+
+  function APR_BUCKET_IS_PIPE(e: Papr_bucket): boolean; inline;
+  begin
+    APR_BUCKET_IS_PIPE := e^.type_ = @apr_bucket_type_pipe;
+  end;
+
+  function APR_BUCKET_IS_SOCKET(e: Papr_bucket): boolean; inline;
+  begin
+    APR_BUCKET_IS_SOCKET := e^.type_ = @apr_bucket_type_socket;
+  end;
+
+  function APR_BUCKET_IS_HEAP(e: Papr_bucket): boolean; inline;
+  begin
+    APR_BUCKET_IS_HEAP := e^.type_ = @apr_bucket_type_heap;
+  end;
+
+  function APR_BUCKET_IS_TRANSIENT(e: Papr_bucket): boolean; inline;
+  begin
+    APR_BUCKET_IS_TRANSIENT := e^.type_ = @apr_bucket_type_transient;
+  end;
+
+  function APR_BUCKET_IS_IMMORTAL(e: Papr_bucket): boolean; inline;
+  begin
+    APR_BUCKET_IS_IMMORTAL := e^.type_ = @apr_bucket_type_immortal;
+  end;
+
+  {$IFDEF APR_HAS_MMAP}
+    function APR_BUCKET_IS_MMAP(e: Papr_bucket): boolean; inline;
+    begin
+      APR_BUCKET_IS_MMAP := e^.type_ = @apr_bucket_type_mmap;
+    end;
+  {$ENDIF}
+
+  function APR_BUCKET_IS_POOL(e: Papr_bucket): boolean; inline;
+  begin
+    APR_BUCKET_IS_POOL := e^.type_ = @apr_bucket_type_pool;
+  end;
+
+  function APR_BUCKET_NEXT(e: Papr_bucket): Papr_bucket; inline;
+  begin
+    APR_BUCKET_NEXT := e^.link.next;
+  end;
+
+  function APR_BUCKET_PREV(e: Papr_bucket): Papr_bucket; inline;
+  begin
+    APR_BUCKET_PREV := e^.link.prev;
+  end;
+
+  procedure APR_BUCKET_REMOVE(e: Papr_bucket); inline;
+  begin
+    APR_BUCKET_PREV(e)^.link.next := APR_BUCKET_NEXT(e);
+    APR_BUCKET_NEXT(e)^.link.prev := APR_BUCKET_PREV(e);
+  end;
+
+  function apr_bucket_read(e: Papr_bucket; const str: PPChar; len: Papr_size_t;
+    block: apr_read_type_e): apr_status_t; inline;
+  begin
+    apr_bucket_read := e^.type_^.read(e, str, len, block);
+  end;
+
+  function AP_INIT_TAKE1(directive: Pchar; const take1func: ttake1func;
+    mconfig: Pointer; where: Integer; help: Pchar): command_rec; inline;
+  begin
+    with result DO
+    begin
+      name         := directive;
+      func.take1   := take1func;
+      cmd_data     := mconfig;
+      req_override := where;
+      args_how     := TAKE1;
+      errmsg       := help;
+    end;
+  end;
+
+  function AP_INIT_TAKE2(directive: Pchar; const take2func: ttake2func;
+    mconfig: Pointer; where: Integer; help: Pchar): command_rec; inline;
+  begin
+    with result DO
+    begin
+      name         := directive;
+      func.take2   := take2func;
+      cmd_data     := mconfig;
+      req_override := where;
+      args_how     := TAKE2;
+      errmsg       := help;
+    end;
+  end;
+
+  function AP_INIT_TAKE3(directive: Pchar; const take3func: ttake3func;
+    mconfig: Pointer; where: Integer; help: Pchar): command_rec; inline;
+  begin
+    with result DO
+    begin
+      name         := directive;
+      func.take3   := take3func;
+      cmd_data     := mconfig;
+      req_override := where;
+      args_how     := TAKE3;
+      errmsg       := help;
+    end;
   end;
 
 //********************************************************************

@@ -63,7 +63,6 @@ type
     FRecInfoOffset: integer;
     FRecCount: integer;
     FRecSize: integer;
-    FRecBufferSize: integer;
     FCurrRecNo: integer;
     FIsOpen: boolean;
     FTableIsCreated: boolean;
@@ -77,11 +76,12 @@ type
     function  MDSGetRecordOffset(ARecNo: integer): longint;
     function  MDSGetFieldOffset(FieldNo: integer): integer;
     function  MDSGetBufferSize(FieldNo: integer): integer;
-    function  MDSGetActiveBuffer(var Buffer: TRecordBuffer): Boolean;
+    function  MDSGetActiveBuffer(out Buffer: TRecordBuffer): Boolean;
     procedure MDSReadRecord(Buffer:TRecordBuffer;ARecNo:Integer);
     procedure MDSWriteRecord(Buffer:TRecordBuffer;ARecNo:Integer);
     procedure MDSAppendRecord(Buffer:TRecordBuffer);
     function  MDSFilterRecord(Buffer:TRecordBuffer): Boolean;
+    function  MDSLocateRecord(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions; out ARecNo: integer): Boolean;
   protected
     // Mandatory
     function  AllocRecordBuffer: TRecordBuffer; override;
@@ -98,6 +98,7 @@ type
     procedure InternalGotoBookmark(ABookmark: Pointer); override;
     procedure InternalInitFieldDefs; override;
     procedure InternalInitRecord(Buffer: TRecordBuffer); override;
+    procedure ClearCalcFields(Buffer: TRecordBuffer); override;
     procedure InternalLast; override;
     procedure InternalOpen; override;
     procedure InternalPost; override;
@@ -113,11 +114,12 @@ type
     function GetRecNo: Integer; override;
 
     // Own.
+    procedure SetFilterText(AValue: string); //silently drops filter
     Procedure RaiseError(Fmt : String; Args : Array of const);
     Procedure CheckMarker(F : TStream; Marker : Integer);
     Procedure WriteMarker(F : TStream; Marker : Integer);
-    procedure ReadFieldDefsFromStream(F : TStream);
-    procedure SaveFieldDefsToStream(F : TStream);
+    Procedure ReadFieldDefsFromStream(F : TStream);
+    Procedure SaveFieldDefsToStream(F : TStream);
     // These should be overridden if you want to load more data.
     // E.g. index defs.
     Procedure LoadDataFromStream(F : TStream); virtual;
@@ -129,12 +131,14 @@ type
     constructor Create(AOwner:tComponent); override;
     destructor Destroy; override;
     function BookmarkValid(ABookmark: TBookmark): Boolean; override;
+    function Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions): boolean; override;
+    function Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant; override;
     procedure CreateTable;
 
     Function  DataSize : Integer;
 
-    procedure Clear(ClearDefs : Boolean);{$IFNDEF FPC} overload; {$ENDIF}
-    procedure Clear;{$IFNDEF FPC} overload; {$ENDIF}
+    Procedure Clear(ClearDefs : Boolean);{$IFNDEF FPC} overload; {$ENDIF}
+    Procedure Clear;{$IFNDEF FPC} overload; {$ENDIF}
     Procedure SaveToFile(AFileName : String);{$IFNDEF FPC} overload; {$ENDIF}
     Procedure SaveToFile(AFileName : String; SaveData : Boolean);{$IFNDEF FPC} overload; {$ENDIF}
     Procedure SaveToStream(F : TStream); {$IFNDEF FPC} overload; {$ENDIF}
@@ -145,6 +149,8 @@ type
     Procedure CopyFromDataset(DataSet : TDataSet; CopyData : Boolean); {$IFNDEF FPC} overload; {$ENDIF}
 
     Property FileModified : Boolean Read FFileModified;
+    // TMemDataset does not implement Filter. Please use OnFilter instead.
+    Property Filter; unimplemented;
 
   published
     Property FileName : String Read FFileName Write FFileName;
@@ -175,6 +181,9 @@ type
   end;
 
 implementation
+
+uses
+  Variants, FmtBCD;
 
 ResourceString
   SErrFieldTypeNotSupported = 'Fieldtype of Field "%s" not supported.';
@@ -262,14 +271,13 @@ begin
   FStream:=TMemoryStream.Create;
   FRecCount:=0;
   FRecSize:=0;
-  FRecBufferSize:=0;
   FRecInfoOffset:=0;
   FCurrRecNo:=-1;
   BookmarkSize := sizeof(Longint);
   FIsOpen:=False;
 end;
 
-Destructor TMemDataset.Destroy;
+destructor TMemDataset.Destroy;
 begin
   FStream.Free;
   FreeMem(FFieldOffsets);
@@ -297,7 +305,7 @@ begin
  result:= getIntegerpointer(ffieldoffsets, fieldno-1)^;
 end;
 
-Procedure TMemDataset.RaiseError(Fmt : String; Args : Array of const);
+procedure TMemDataset.RaiseError(Fmt: String; Args: array of const);
 
 begin
   Raise MDSError.CreateFmt(Fmt,Args);
@@ -305,35 +313,44 @@ end;
 
 function TMemDataset.MDSGetBufferSize(FieldNo: integer): integer;
 var
- dt1: tfieldtype;
+ FD: TFieldDef;
 begin
- dt1:= FieldDefs.Items[FieldNo-1].Datatype;
- case dt1 of
-  ftString:   result:=FieldDefs.Items[FieldNo-1].Size+1;
-  ftFixedChar:result:=FieldDefs.Items[FieldNo-1].Size+1;
+ FD := FieldDefs.Items[FieldNo-1];
+ case FD.DataType of
+  ftString,
+    ftGuid:   result:=FD.Size+1;
+  ftFixedChar:result:=FD.Size+1;
   ftBoolean:  result:=SizeOf(Wordbool);
   ftCurrency,
   ftFloat:    result:=SizeOf(Double);
   ftBCD:      result:=SizeOf(currency);
   ftLargeInt: result:=SizeOf(int64);
   ftSmallInt: result:=SizeOf(SmallInt);
+  ftWord,
+  ftAutoInc,
   ftInteger:  result:=SizeOf(longint);
   ftDateTime,
     ftTime,
     ftDate:   result:=SizeOf(TDateTime);
+  ftFmtBCD:   result:=SizeOf(TBCD);
+  ftWideString,
+  ftFixedWideChar: result:=(FD.Size+1)*SizeOf(WideChar);
+  ftBytes:    result := FD.Size;
+  ftVarBytes: result := FD.Size + SizeOf(Word);
  else
-  RaiseError(SErrFieldTypeNotSupported,[FieldDefs.Items[FieldNo-1].Name]);
+  RaiseError(SErrFieldTypeNotSupported,[FD.Name]);
  end;
 {$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
  Result:=Align(Result,4);
 {$ENDIF}
 end;
 
-function TMemDataset.MDSGetActiveBuffer(var Buffer: TRecordBuffer): Boolean;
+function TMemDataset.MDSGetActiveBuffer(out Buffer: TRecordBuffer): Boolean;
 
 begin
  case State of
-   dsBrowse:
+   dsBrowse,
+   dsBlockRead:
      if IsEmpty then
        Buffer:=nil
      else
@@ -343,6 +360,8 @@ begin
      Buffer:=ActiveBuffer;
   dsFilter:
      Buffer:=FFilterBuffer;
+  dsCalcFields:
+     Buffer:=CalcBuffer;
  else
    Buffer:=nil;
  end;
@@ -372,7 +391,7 @@ end;
 //Abstract Overrides
 function TMemDataset.AllocRecordBuffer: TRecordBuffer;
 begin
-  GetMem(Result,FRecBufferSize);
+  GetMem(Result, FRecSize+CalcFieldsSize);
 end;
 
 procedure TMemDataset.FreeRecordBuffer (var Buffer: TRecordBuffer);
@@ -381,19 +400,19 @@ begin
 end;
 
 procedure TMemDataset.InternalInitRecord(Buffer: TRecordBuffer);
-
-var
-  I : integer;
-
 begin
- fillchar(buffer^,frecsize,0);
+  FillChar(Buffer^,FRecSize,0);
+end;
+
+procedure TMemDataset.ClearCalcFields(Buffer: TRecordBuffer);
+begin
+  FillChar(Buffer[RecordSize], CalcFieldsSize, 0);
 end;
 
 procedure TMemDataset.InternalDelete;
 
 Var
   TS : TMemoryStream;
-  OldPos,NewPos,CopySize1,CopySize2 : Cardinal;
 
 begin
   if (FCurrRecNo<0) or (FCurrRecNo>=FRecCount) then
@@ -419,7 +438,7 @@ begin
       FStream.Position:=MDSGetRecordOffset(FCurrRecNo+1);
       TS.CopyFrom(FStream,(MDSGetRecordOffset(FRecCount))-MDSGetRecordOffset(FCurrRecNo+1));
       end;
-    FStream.loadFromStream(TS);
+    FStream.LoadFromStream(TS);
     Dec(FRecCount);
     if FRecCount=0 then
       FCurrRecNo:=-1
@@ -438,7 +457,7 @@ begin
     ReadFieldDefsFromStream(FOpenStream);
 end;
 
-Procedure TMemDataset.CheckMarker(F : TStream; Marker : Integer);
+procedure TMemDataset.CheckMarker(F: TStream; Marker: Integer);
 
 Var
   I,P : Integer;
@@ -473,7 +492,7 @@ begin
     B:=ReadInteger(F)<>0;
     TFieldDef.Create(FieldDefs,FN,ft,FS,B,I);
     end;
-  CreateTable;
+  FTableIsCreated:=False;
 end;
 
 procedure TMemDataset.InternalFirst;
@@ -488,16 +507,16 @@ end;
 
 procedure TMemDataset.InternalOpen;
 
-
 begin
-  if not FTableIsCreated then CreateTable;
   If (FFileName<>'') then
     FOpenStream:=TFileStream.Create(FFileName,fmOpenRead);
   Try
     InternalInitFieldDefs;
     if DefaultFields then
       CreateFields;
-    BindFields(True);
+    BindFields(True); // BindFields computes CalcFieldsSize
+    if not FTableIsCreated then
+      CreateTable;
     FCurrRecNo:=-1;
     If (FOpenStream<>Nil) then
       begin
@@ -510,7 +529,7 @@ begin
   FIsOpen:=True;
 end;
 
-Procedure TMemDataSet.LoadDataFromStream(F : TStream);
+procedure TMemDataset.LoadDataFromStream(F: TStream);
 
 Var
   Size : Integer;
@@ -524,17 +543,18 @@ begin
   FCurrRecNo:=-1;
 end;
 
-Procedure TMemDataSet.LoadFromStream(F : TStream);
+procedure TMemDataset.LoadFromStream(F: TStream);
 
 begin
   Close;
   ReadFieldDefsFromStream(F);
+  CreateTable;
   LoadDataFromStream(F);
   CheckMarker(F,smEOF);
   FFileModified:=False;
 end;
 
-Procedure TMemDataSet.LoadFromFile(AFileName : String);
+procedure TMemDataset.LoadFromFile(AFileName: String);
 
 Var
   F : TFileStream;
@@ -549,13 +569,13 @@ begin
 end;
 
 
-Procedure TMemDataset.SaveToFile(AFileName : String);
+procedure TMemDataset.SaveToFile(AFileName: String);
 
 begin
   SaveToFile(AFileName,True);
 end;
 
-Procedure TMemDataset.SaveToFile(AFileName : String; SaveData : Boolean);
+procedure TMemDataset.SaveToFile(AFileName: String; SaveData: Boolean);
 
 Var
   F : TFileStream;
@@ -571,19 +591,19 @@ begin
   end;
 end;
 
-Procedure TMemDataset.WriteMarker(F : TStream; Marker : Integer);
+procedure TMemDataset.WriteMarker(F: TStream; Marker: Integer);
 
 begin
   Writeinteger(F,Marker);
 end;
 
-Procedure TMemDataset.SaveToStream(F : TStream);
+procedure TMemDataset.SaveToStream(F: TStream);
 
 begin
   SaveToStream(F,True);
 end;
 
-Procedure TMemDataset.SaveToStream(F : TStream; SaveData : Boolean);
+procedure TMemDataset.SaveToStream(F: TStream; SaveData: Boolean);
 
 begin
   SaveFieldDefsToStream(F);
@@ -592,14 +612,10 @@ begin
   WriteMarker(F,smEOF);
 end;
 
-Procedure TMemDataset.SaveFieldDefsToStream(F : TStream);
+procedure TMemDataset.SaveFieldDefsToStream(F: TStream);
 
 Var
-  I,ACount : Integer;
-  FN : String;
-  FS : Integer;
-  B : Boolean;
-  FT : TFieldType;
+  I : Integer;
   FD : TFieldDef;
 
 begin
@@ -615,7 +631,7 @@ begin
     end;
 end;
 
-Procedure TMemDataset.SaveDataToStream(F : TStream; SaveData : Boolean);
+procedure TMemDataset.SaveDataToStream(F: TStream; SaveData: Boolean);
 
 begin
   if SaveData then
@@ -650,8 +666,9 @@ end;
 procedure TMemDataset.InternalPost;
 begin
   CheckActive;
-  if ((State<>dsEdit) and (State<>dsInsert)) then
+  if not (State in [dsEdit, dsInsert]) then
     Exit;
+  inherited InternalPost;
   if (State=dsEdit) then
     MDSWriteRecord(ActiveBuffer, FCurrRecNo)
   else
@@ -698,6 +715,7 @@ begin
       MDSReadRecord(Buffer, FCurrRecNo);
       PRecInfo(Buffer+FRecInfoOffset)^.Bookmark:=FCurrRecNo;
       PRecInfo(Buffer+FRecInfoOffset)^.BookmarkFlag:=bfCurrent;
+      GetCalcFields(Buffer);
       if (Filtered) then
         Accepted:=MDSFilterRecord(Buffer) //Filtering
       else
@@ -714,11 +732,21 @@ var
  I: integer;
 begin
  I:= Field.FieldNo - 1;
- result:= (I >= 0) and MDSGetActiveBuffer(SrcBuffer) and 
-          not getfieldisnull(pointer(srcbuffer),I);
- if result and (buffer <> nil) then 
+ result := MDSGetActiveBuffer(SrcBuffer);
+ if not result then Exit;
+
+ if I >= 0 then
    begin
-   Move(GetRecordBufferPointer((SrcBuffer),getintegerpointer(ffieldoffsets,I)^)^, Buffer^,GetIntegerPointer(FFieldSizes, I)^);
+   result := not getfieldisnull(pointer(srcbuffer),I);
+   if result and assigned(Buffer) then
+     Move(GetRecordBufferPointer(SrcBuffer, GetIntegerPointer(ffieldoffsets,I)^)^, Buffer^, GetIntegerPointer(FFieldSizes, I)^);
+   end
+ else // Calculated, Lookup
+   begin
+   Inc(SrcBuffer, RecordSize + Field.Offset);
+   result := Boolean(SrcBuffer[0]);
+   if result and assigned(Buffer) then
+     Move(SrcBuffer[1], Buffer^, Field.DataSize);
    end;
 end;
 
@@ -729,22 +757,33 @@ var
 
 begin
  I:= Field.FieldNo - 1;
- if (I >= 0) and  MDSGetActiveBuffer(DestBuffer) then 
+ if not MDSGetActiveBuffer(DestBuffer) then Exit;
+
+ if I >= 0 then
    begin
    if State in [dsEdit, dsInsert, dsNewValue] then
-      Field.Validate(Buffer);
-   if buffer = nil then 
-     setfieldisnull(pointer(destbuffer),I)
-   else 
-     begin 
-     unsetfieldisnull(pointer(destbuffer),I);
+     Field.Validate(Buffer);
+   if Buffer = nil then
+     setfieldisnull(pointer(DestBuffer),I)
+   else
+     begin
+     unsetfieldisnull(pointer(DestBuffer),I);
      J:=GetIntegerPointer(FFieldSizes, I)^;
      if Field.DataType=ftString then
        Dec(J); // Do not move terminating 0, which is in the size.
-     Move(Buffer^,GetRecordBufferPointer((DestBuffer), getIntegerPointer(FFieldOffsets, I)^)^,J);
-     dataevent(defieldchange,ptrint(field));
+     Move(Buffer^, GetRecordBufferPointer(DestBuffer, getIntegerPointer(FFieldOffsets, I)^)^, J);
      end;
+   end
+ else // Calculated, Lookup
+   begin
+   Inc(DestBuffer, RecordSize + Field.Offset);
+   Boolean(DestBuffer[0]) := Buffer <> nil;
+   if assigned(Buffer) then
+     Move(Buffer^, DestBuffer[1], Field.DataSize);
    end;
+
+ if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
+   DataEvent(deFieldChange, PtrInt(Field));
 end;
 
 function TMemDataset.GetRecordSize: Word;
@@ -822,7 +861,7 @@ begin
   end;  
 end;
 
-Function TMemDataset.DataSize : Integer;
+function TMemDataset.DataSize: Integer;
 
 begin
   Result:=FStream.Size;
@@ -846,17 +885,18 @@ begin
     begin
     Close;
     FieldDefs.Clear;
+    FTableIsCreated:=False;
     end;
 end;
 
-procedure tmemdataset.calcrecordlayout;
+procedure TMemDataset.calcrecordlayout;
 var
-  i,count : integer;
+  i,Count : integer;
 begin
- Count := fielddefs.count;
+ Count := FieldDefs.Count;
  // Avoid mem-leak if CreateTable is called twice
- FreeMem(ffieldoffsets);
- Freemem(ffieldsizes);
+ FreeMem(FFieldOffsets);
+ Freemem(FFieldSizes);
  {$IFDEF FPC}
  FFieldOffsets:=getmem(Count*sizeof(integer));
  FFieldSizes:=getmem(Count*sizeof(integer));
@@ -870,10 +910,12 @@ begin
 {$ENDIF}
  for i:= 0 to Count-1 do
    begin
-   GetIntegerPointer(ffieldoffsets, i)^ := frecsize;
-   GetIntegerPointer(ffieldsizes,   i)^ := MDSGetbufferSize(i+1);
-   FRecSize:= FRecSize+GetIntegerPointeR(FFieldSizes, i)^;
+   GetIntegerPointer(FFieldOffsets, i)^ := FRecSize;
+   GetIntegerPointer(FFieldSizes,   i)^ := MDSGetbufferSize(i+1);
+   FRecSize:= FRecSize+GetIntegerPointer(FFieldSizes, i)^;
    end;
+ FRecInfoOffset:=FRecSize;
+ FRecSize:=FRecSize+SizeRecInfo;
 end;
 
 procedure TMemDataset.CreateTable;
@@ -885,9 +927,6 @@ begin
   FCurrRecNo:=-1;
   FIsOpen:=False;
   calcrecordlayout;
-  FRecInfoOffset:=FRecSize;
-  FRecSize:=FRecSize+SizeRecInfo;
-  FRecBufferSize:=FRecSize;
   FTableIsCreated:=True;
 end;
 
@@ -909,40 +948,41 @@ begin
     end;
 end;
 
-Function TMemDataset.GetRecNo: Longint;
+function TMemDataset.GetRecNo: Integer;
 
 begin
   UpdateCursorPos;
-  if (FCurrRecNo<0) then
-    Result:=1
+  if (FCurrRecNo<0) or (FRecCount=0) or (State=dsInsert) then
+    Result:=0
   else
     Result:=FCurrRecNo+1;
 end;
 
-Function TMemDataset.GetRecordCount: Longint;
+function TMemDataset.GetRecordCount: Integer;
 
 begin
   CheckActive;
   Result:=FRecCount;
 end;
 
-Procedure TMemDataset.CopyFromDataset(DataSet : TDataSet);
+procedure TMemDataset.CopyFromDataset(DataSet: TDataSet);
 
 begin
   CopyFromDataset(Dataset,True);
 end;
 
-Procedure TMemDataset.CopyFromDataset(DataSet : TDataSet; CopyData : Boolean);
+procedure TMemDataset.CopyFromDataset(DataSet: TDataSet; CopyData: Boolean);
 
 Var
   I  : Integer;
   F,F1,F2 : TField;
   L1,L2  : TList;
   N : String;
+  OriginalPosition: TBookMark;
 
 begin
   Clear(True);
-  // NOT from fielddefs. The data may not be available in buffers !!
+  // NOT from FieldDefs. The data may not be available in buffers !!
   For I:=0 to Dataset.FieldCount-1 do
     begin
     F:=Dataset.Fields[I];
@@ -950,7 +990,7 @@ begin
     end;
   CreateTable;
   If CopyData then
-    begin
+  begin
     Open;
     L1:=TList.Create;
     Try
@@ -964,9 +1004,12 @@ begin
           L1.Add(F1);
           L2.Add(F2);
           end;
+        DisableControls;
         Dataset.DisableControls;
+        OriginalPosition:=Dataset.GetBookmark;
         Try
           Dataset.Open;
+          Dataset.First; //make sure we copy from the beginning
           While not Dataset.EOF do
             begin
             Append;
@@ -997,7 +1040,9 @@ begin
             Dataset.Next;
             end;
         Finally
+          DataSet.GotoBookmark(OriginalPosition); //Return to original record
           Dataset.EnableControls;
+          EnableControls;
         end;
       finally
         L2.Free;
@@ -1005,7 +1050,7 @@ begin
     finally
       l1.Free;
     end;
-    end;
+  end;
 end;
 
 function TMemDataset.GetRecordBufferPointer(p:TRecordBuffer; Pos:Integer):TRecordBuffer;
@@ -1018,6 +1063,122 @@ function TMemDataset.GetIntegerPointer(p:PInteger; Pos:Integer):PInteger;
 begin
   Result:=p;
   inc(Result, Pos);
+end;
+
+function TMemDataset.MDSLocateRecord(const KeyFields: string; const KeyValues: Variant;
+  Options: TLocateOptions; out ARecNo: integer): Boolean;
+var
+  SaveState: TDataSetState;
+  lstKeyFields: TList;
+  Matched: boolean;
+  AKeyValues: variant;
+  i: integer;
+  AField: TField;
+  s1,s2: string;
+begin
+  Result := false;
+  SaveState := SetTempState(dsFilter);
+  FFilterBuffer := TempBuffer;
+  lstKeyFields := TList.Create;
+  try
+    GetFieldList(lstKeyFields, KeyFields);
+    if VarArrayDimCount(KeyValues) = 0 then
+      begin
+      Matched := lstKeyFields.Count = 1;
+      AKeyValues := VarArrayOf([KeyValues]);
+      end
+    else if VarArrayDimCount(KeyValues) = 1 then
+      begin
+      Matched := VarArrayHighBound(KeyValues,1) + 1 = lstKeyFields.Count;
+      AKeyValues := KeyValues;
+      end
+    else
+      Matched := false;
+
+    if Matched then
+    begin
+      ARecNo:=0;
+      while ARecNo<FRecCount do
+      begin
+        MDSReadRecord(FFilterBuffer, ARecNo);
+        if Filtered then
+          Result:=MDSFilterRecord(FFilterBuffer)
+        else
+          Result:=true;
+        // compare field by field
+        i:=0;
+        while Result and (i<lstKeyFields.Count) do
+        begin
+          AField := TField(lstKeyFields[i]);
+          // string fields
+          if AField.DataType in [ftString, ftFixedChar] then
+          begin
+            s1 := AField.AsString;
+            s2 := VarToStr(AKeyValues[i]);
+            if loPartialKey in Options then
+              s1 := copy(s1, 1, length(s2));
+            if loCaseInsensitive in Options then
+              Result := AnsiCompareText(s1, s2)=0
+            else
+              Result := s1=s2;
+          end
+          // all other fields
+          else
+            Result := AField.Value=AKeyValues[i];
+          inc(i);
+        end;
+        if Result then
+          break;
+        inc(ARecNo);
+      end;
+    end;
+  finally
+    lstKeyFields.Free;
+    RestoreState(SaveState);
+  end;
+end;
+
+procedure TMemDataset.SetFilterText(AValue: string);
+begin
+  // Just do nothing; filter is not implemented
+end;
+
+function TMemDataset.Locate(const KeyFields: string; const KeyValues: Variant;
+  Options: TLocateOptions): boolean;
+var
+  ARecNo: integer;
+begin
+  // Call inherited to make sure the dataset is bi-directional
+  Result := inherited;
+  CheckActive;
+
+  Result:=MDSLocateRecord(KeyFields, KeyValues, Options, ARecNo);
+  if Result then begin
+    // TODO: generate scroll events if matched record is found
+    FCurrRecNo:=ARecNo;
+    Resync([]);
+  end;
+end;
+
+function TMemDataset.Lookup(const KeyFields: string; const KeyValues: Variant;
+  const ResultFields: string): Variant;
+var
+  ARecNo: integer;
+  SaveState: TDataSetState;
+begin
+  if MDSLocateRecord(KeyFields, KeyValues, [], ARecNo) then
+  begin
+    SaveState := SetTempState(dsCalcFields);
+    try
+      // FFilterBuffer contains found record
+      CalculateFields(FFilterBuffer); // CalcBuffer is set to FFilterBuffer
+      Result:=FieldValues[ResultFields];
+    finally
+      RestoreState(SaveState);
+    end;
+  end
+  else
+    Result:=Null;
 end;
 
 end.

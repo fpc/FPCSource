@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2004-2006 by Karoly Balogh
+    Copyright (c) 2004-2013 by Karoly Balogh
 
     Sysutils unit for MorphOS
 
@@ -64,7 +64,7 @@ uses dos,sysconst;
 
 { * Followings are implemented in the system unit! * }
 function PathConv(path: shortstring): shortstring; external name 'PATHCONV';
-function PathConv(path: RawByteString): shortstring; external name 'PATHCONVRBS';
+function PathConv(path: RawByteString): RawByteString; external name 'PATHCONVRBS';
 procedure AddToList(var l: Pointer; h: LongInt); external name 'ADDTOLIST';
 function RemoveFromList(var l: Pointer; h: LongInt): boolean; external name 'REMOVEFROMLIST';
 function CheckInList(var l: Pointer; h: LongInt): pointer; external name 'CHECKINLIST';
@@ -72,16 +72,6 @@ function CheckInList(var l: Pointer; h: LongInt): pointer; external name 'CHECKI
 var
   MOS_fileList: Pointer; external name 'MOS_FILELIST';
 
-
-function dosLock(const name: String;
-                 accessmode: Longint) : LongInt;
-var
-  buffer: array[0..255] of Char;
-begin
-  move(name[1],buffer,length(name));
-  buffer[length(name)]:=#0;
-  dosLock:=Lock(buffer,accessmode);
-end;
 
 function AmigaFileDateToDateTime(aDate: TDateStamp; out success: boolean): TDateTime;
 var
@@ -335,17 +325,16 @@ end;
 
 function FileAge (const FileName : RawByteString): Longint;
 var
-  tmpName: RawByteString;
   tmpLock: Longint;
   tmpFIB : PFileInfoBlock;
   tmpDateTime: TDateTime;
   validFile: boolean;
-
+  SystemFileName: RawByteString;
 begin
   validFile:=false;
-  tmpName := PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
-  tmpLock := dosLock(tmpName, SHARED_LOCK);
-
+  SystemFileName := PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
+  tmpLock := Lock(PChar(SystemFileName), SHARED_LOCK);
+  
   if (tmpLock <> 0) then begin
     new(tmpFIB);
     if Examine(tmpLock,tmpFIB) then begin
@@ -369,8 +358,8 @@ var
   SystemFileName: RawByteString;
 begin
   result:=false;
-  SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
-  tmpLock := dosLock(PChar(SystemFileName), SHARED_LOCK);
+  SystemFileName := PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
+  tmpLock := Lock(PChar(SystemFileName), SHARED_LOCK);
 
   if (tmpLock <> 0) then begin
     new(tmpFIB);
@@ -390,6 +379,7 @@ var
   validDate: boolean;
 begin
   result:=-1; { We emulate Linux/Unix behaviour, and return -1 on errors. }
+
   tmpStr:=PathConv(ToSingleByteFileSystemEncodedFileName(Path));
 
   { $1e = faHidden or faSysFile or faVolumeID or faDirectory }
@@ -545,13 +535,13 @@ function DirectoryExists(const Directory: RawByteString): Boolean;
 var
   tmpLock: LongInt;
   FIB    : PFileInfoBlock;
-  SystemFileName: RawByteString;
+  SystemDirName: RawByteString;
 begin
   result:=false;
   if (Directory='') or (InOutRes<>0) then exit;
-  SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(Directory));
 
-  tmpLock:=dosLock(PChar(SystemFileName),SHARED_LOCK);
+  SystemDirName:=PathConv(ToSingleByteFileSystemEncodedFileName(Directory));
+  tmpLock:=Lock(PChar(SystemDirName),SHARED_LOCK);
   if tmpLock=0 then exit;
 
   FIB:=nil; new(FIB);
@@ -622,11 +612,54 @@ end;
                               OS utility functions
 ****************************************************************************}
 
-Function GetEnvironmentVariable(Const EnvVar : String) : String;
+var
+  StrOfPaths: String;
 
+function GetPathString: String;
+var
+   f : text;
+   s : string;
+   tmpBat: string;
+   tmpList: string;
 begin
-  Result:=Dos.Getenv(shortstring(EnvVar));
+   s := '';
+   result := '';
+
+   tmpBat:='T:'+HexStr(FindTask(nil));
+   tmpList:=tmpBat+'_path.tmp';
+   tmpBat:=tmpBat+'_path.sh';
+
+   assign(f,tmpBat);
+   rewrite(f);
+   writeln(f,'path >'+tmpList);
+   close(f);
+   exec('C:Execute',tmpBat);
+   erase(f);
+
+   assign(f,tmpList);
+   reset(f);
+   { skip the first line, garbage }
+   if not eof(f) then readln(f,s);
+   while not eof(f) do begin
+      readln(f,s);
+      if result = '' then
+        result := s
+      else 
+        result := result + ';' + s;
+   end;
+   close(f);
+   erase(f);
 end;
+
+Function GetEnvironmentVariable(Const EnvVar : String) : String;
+begin
+  if UpCase(envvar) = 'PATH' then begin
+    if StrOfpaths = '' then StrOfPaths := GetPathString;
+    Result:=StrOfPaths;
+  end else
+    Result:=Dos.Getenv(shortstring(EnvVar));
+end;
+
 Function GetEnvironmentVariableCount : Integer;
 
 begin
@@ -719,6 +752,8 @@ Initialization
   InitInternational;    { Initialize internationalization settings }
   OnBeep:=Nil;          { No SysBeep() on MorphOS, for now. Figure out if we want 
                           to use intuition.library/DisplayBeep() for this (KB) }
+  StrOfPaths:='';
+
 Finalization
   DoneExceptions;
 end.

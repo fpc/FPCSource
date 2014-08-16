@@ -6,7 +6,7 @@
 type
   tprocedure = procedure;
 
-procedure test(p: pointer);
+procedure test(p: codepointer);
 
   procedure nested;
     begin

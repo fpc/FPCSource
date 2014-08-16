@@ -319,6 +319,7 @@ procedure OutTextXYWin32GUI(x,y : smallint;const TextString : string);
      curX2, curY2, xpos2, ypos2, x2, y2: graph_float;
      oldvalues     : linesettingstype;
      fontbitmap    : TBitmapChar;
+     fontbitmapbyte: byte;
      chr           : char;
      curx2i,cury2i,
      xpos2i,ypos2i : longint;
@@ -397,11 +398,17 @@ procedure OutTextXYWin32GUI(x,y : smallint;const TextString : string);
                       Fontbitmap:=TBitmapChar(DefaultFontData[textstring[i+1]]);
 
                       for j:=0 to 7 do
-                         for k:=0 to 7 do
-                           if Fontbitmap[j,k]<>0 then
-                             SetPixelV(chardc,k,j,$ffffff)
-                           else
-                             SetPixelV(chardc,k,j,0);
+                        begin
+                          fontbitmapbyte:=Fontbitmap[j];
+                          for k:=0 to 7 do
+                            begin
+                              if (fontbitmapbyte and $80)<>0 then
+                                SetPixelV(chardc,k,j,$ffffff)
+                              else
+                                SetPixelV(chardc,k,j,0);
+                              fontbitmapbyte:=fontbitmapbyte shl 1;
+                            end;
+                        end;
                       bitmapfonthorizoncache[byte(textstring[i+1])]:=charbitmap;
                       SelectObject(chardc,oldcharbitmap);
                    end;
@@ -548,11 +555,17 @@ procedure OutTextXYWin32GUI(x,y : smallint;const TextString : string);
                       Fontbitmap:=TBitmapChar(DefaultFontData[textstring[i+1]]);
 
                       for j:=0 to 7 do
-                         for k:=0 to 7 do
-                           if Fontbitmap[j,k]<>0 then
-                             SetPixelV(chardc,j,7-k,$ffffff)
-                           else
-                             SetPixelV(chardc,j,7-k,0);
+                        begin
+                          fontbitmapbyte:=Fontbitmap[j];
+                          for k:=0 to 7 do
+                            begin
+                              if (fontbitmapbyte and $80)<>0 then
+                                SetPixelV(chardc,j,7-k,$ffffff)
+                              else
+                                SetPixelV(chardc,j,7-k,0);
+                              fontbitmapbyte:=fontbitmapbyte shl 1;
+                            end;
+                        end;
                       bitmapfontverticalcache[byte(textstring[i+1])]:=charbitmap;
                       SelectObject(chardc,oldcharbitmap);
                    end;

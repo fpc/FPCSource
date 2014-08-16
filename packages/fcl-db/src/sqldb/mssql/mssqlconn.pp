@@ -66,6 +66,7 @@ type
     function CheckError(const Ret: RETCODE): RETCODE;
     procedure Execute(const cmd: string); overload;
     procedure ExecuteDirectSQL(const Query: string);
+    procedure GetParameters(cursor: TSQLCursor; AParams: TParams);
     function TranslateFldType(SQLDataType: integer): TFieldType;
     function ClientCharset: TClientCharset;
     function AutoCommit: boolean;
@@ -137,9 +138,9 @@ type
 
   { EMSSQLDatabaseError }
 
-  EMSSQLDatabaseError = class(EDatabaseError)
+  EMSSQLDatabaseError = class(ESQLDatabaseError)
     public
-      DBErrorCode : integer;
+      property DBErrorCode: integer read ErrorCode; deprecated 'Please use ErrorCode instead of DBErrorCode'; // Feb 2014
   end;
 
   { TMSSQLConnectionDef }
@@ -168,7 +169,7 @@ var
 
 implementation
 
-uses DBConst, StrUtils, FmtBCD;
+uses StrUtils, FmtBCD;
 
 type
 
@@ -195,7 +196,7 @@ const
   SBeginTransaction = 'BEGIN TRANSACTION';
   SAutoCommit = 'AUTOCOMMIT';
   STextSize   = 'TEXTSIZE';
-  SAppName   = 'APPLICATIONNAME';
+  SAppName    = 'APPLICATIONNAME';
 
 
 var
@@ -293,7 +294,6 @@ end;
 
 function TMSSQLConnection.CheckError(const Ret: RETCODE): RETCODE;
 var E: EMSSQLDatabaseError;
-    CompName: string;
 begin
   if Ret=FAIL then
   begin
@@ -301,9 +301,7 @@ begin
       case DBErrorNo of
         SYBEFCON: DBErrorStr:='SQL Server connection failed!';
       end;
-    if Self.Name = '' then CompName := Self.ClassName else CompName := Self.Name;
-    E:=EMSSQLDatabaseError.CreateFmt('%s : Error %d : %s'+LineEnding+'%s', [CompName, DBErrorNo, DBErrorStr, DBMsgStr]);
-    E.DBErrorCode:=DBErrorNo;
+    E:=EMSSQLDatabaseError.CreateFmt('Error %d : %s'+LineEnding+'%s', [DBErrorNo, DBErrorStr, DBMsgStr], Self, DBErrorNo, '');
     DBErrorStr:='';
     DBMsgStr:='';
     raise E;
@@ -470,7 +468,7 @@ begin
     try
       Prepare(format('SELECT cast(%s as varchar), @@version, user_name()', [VERSION_NUMBER[IsSybase]]), nil);
       Execute(nil);
-      if Fetch then
+      while Fetch do
       begin
         Put(1, FServerInfo.ServerVersion);
         Put(2, FServerInfo.ServerVersionString);
@@ -623,6 +621,9 @@ begin
     begin
       repeat until dbnextrow(FDBProc) = NO_MORE_ROWS;
       res := CheckError( dbresults(FDBProc) );
+      // stored procedure information (return status and output parameters)
+      // are available only after normal results are processed
+      //if res = NO_MORE_RESULTS then GetParameters(cursor, AParams);
     end;
   until c.FSelectable or (res = NO_MORE_RESULTS) or (res = FAIL);
 
@@ -630,6 +631,21 @@ begin
     Fstatus := NO_MORE_ROWS
   else
     Fstatus := MORE_ROWS;
+end;
+
+procedure TMSSQLConnection.GetParameters(cursor: TSQLCursor; AParams: TParams);
+var Param: TParam;
+begin
+  // Microsoft SQL Server no more returns OUTPUT parameters as a special result row
+  // so we can not use dbret*() functions, but instead we must use dbrpc*() functions
+  // only procedure return status number is returned
+  if dbhasretstat(FDBProc) = 1 then
+    begin
+    Param := AParams.FindParam('RETURN_STATUS');
+    if not assigned(Param) then
+      Param := AParams.CreateParam(ftInteger, 'RETURN_STATUS', ptOutput);
+    Param.AsInteger := dbretstatus(FDBProc);
+    end;
 end;
 
 function TMSSQLConnection.RowsAffected(cursor: TSQLCursor): TRowsCount;
@@ -653,10 +669,15 @@ begin
     SQLFLTN:             Result:=ftFloat;
     SQLMONEY4, SQLMONEY,
     SQLMONEYN:           Result:=ftCurrency;
+    SYBMSDATE:           Result:=ftDate;
+    SYBMSTIME:           Result:=ftTime;
     SQLDATETIM4, SQLDATETIME,
-    SQLDATETIMN:         Result:=ftDateTime;
-    SQLIMAGE:            Result:=ftBlob;
+    SQLDATETIMN,
+    SYBMSDATETIME2,
+    SYBMSDATETIMEOFFSET: Result:=ftDateTime;
+    SYBMSXML,
     SQLTEXT:             Result:=ftMemo;
+    SQLIMAGE:            Result:=ftBlob;
     SQLDECIMAL, SQLNUMERIC: Result:=ftBCD;
     SQLBIT:              Result:=ftBoolean;
     SQLBINARY:           Result:=ftBytes;
@@ -704,7 +725,7 @@ begin
         FieldType := ftAutoInc;
     end;
 
-    with TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(FieldName), FieldType, FieldSize, (col.Null=0) and (not col.Identity), i) do
+    with FieldDefs.Add(FieldDefs.MakeNameUnique(FieldName), FieldType, FieldSize, (col.Null=0) and (not col.Identity), i) do
     begin
       // identity, timestamp and calculated column are not updatable
       if col.Updatable = 0 then Attributes := Attributes + [faReadonly];
@@ -737,8 +758,8 @@ var i: integer;
     srctype, desttype: INT;
     dbdt: DBDATETIME;
     dbdr: DBDATEREC;
+    dbdta: DBDATETIMEALL;
     bcdstr: array[0..MaxFmtBCDFractionSize+2] of char;
-    f: double;
 begin
   CreateBlob:=false;
   i:=FieldDef.FieldNo;
@@ -785,17 +806,26 @@ begin
       desttype:=SQLFLT8;
       destlen:=sizeof(DBFLT8); //double
       end;
+    ftDate, ftTime,
     ftDateTime:
-      begin
-      dest:=@dbdt;
-      desttype:=SQLDATETIME;
-      destlen:=sizeof(dbdt);
-      end;
+      if srctype in [SYBMSDATE, SYBMSTIME, SYBMSDATETIME2, SYBMSDATETIMEOFFSET] then // dbwillconvert(srctype, SYBMSDATETIME2)
+        begin
+        dest:=@dbdta;
+        desttype:=SYBMSDATETIME2;
+        destlen:=sizeof(dbdta);
+        end
+      else
+        begin
+        dest:=@dbdt;
+        desttype:=SQLDATETIME;
+        destlen:=sizeof(dbdt);
+        end;
     ftBCD:
       begin
-      dest:=@f;
+      // FreeTDS 0.91 does not support converting from numeric to money
+      //desttype:=SQLMONEY;
       desttype:=SQLFLT8;
-      destlen:=sizeof(DBFLT8); //double
+      destlen:=sizeof(currency);
       end;
     ftFmtBCD:
       begin
@@ -841,7 +871,10 @@ begin
             (ClientCharset = ccISO88591) {hack: FreeTDS} then
           StrPLCopy(PChar(dest), UTF8Encode(PChar(dest)), destlen);
       end;
-    ftDateTime:
+    ftDate, ftTime, ftDateTime:
+      if desttype = SYBMSDATETIME2 then
+        PDateTime(buffer)^ := dbdatetimeallcrack(@dbdta)
+      else
       begin
         //detect DBDATEREC version by pre-setting dbdr
         dbdr.millisecond := -1;
@@ -858,7 +891,7 @@ begin
         end;
       end;
     ftBCD:
-      PCurrency(buffer)^:=FloatToCurr(f);
+      PCurrency(buffer)^ := FloatToCurr(PDouble(buffer)^); //PCurrency(buffer)^ := dbmoneytocurr(buffer);
     ftFmtBCD:
       PBCD(buffer)^:=StrToBCD(bcdstr, FSQLFormatSettings); //PBCD(buffer)^:=dbnumerictobcd(dbnum);
   end;
@@ -944,12 +977,22 @@ const SCHEMA_QUERY='select id as RECNO, db_name() as CATALOG_NAME, user_name(uid
                    'where type in (%s) '+
                    'order by name';
 begin
+  // for simplicity are used only system tables and columns, common to both MS SQL Server and Sybase
   case SchemaType of
     stTables     : Result := format(SCHEMA_QUERY, ['TABLE_NAME, 1 as TABLE_TYPE', '''U''']);
     stSysTables  : Result := format(SCHEMA_QUERY, ['TABLE_NAME, 4 as TABLE_TYPE', '''S''']);
-    stProcedures : Result := format(SCHEMA_QUERY, ['PROC_NAME , case type when ''P'' then 1 else 2 end as PROC_TYPE', '''P'',''FN'',''IF'',''TF''']);
-    stColumns    : Result := 'select colid as RECNO, db_name() as CATALOG_NAME, user_name(uid) as SCHEMA_NAME, o.name as TABLE_NAME, c.name as COLUMN_NAME,'+
-                                    'colid as COLUMN_POSITION, prec as COLUMN_PRECISION, scale as COLUMN_SCALE, length as COLUMN_LENGTH, case when c.status&8=8 then 1 else 0 end as COLUMN_NULLABLE '+
+    stProcedures : Result := format(SCHEMA_QUERY, ['PROCEDURE_NAME , case type when ''P'' then 1 else 2 end as PROCEDURE_TYPE', '''P'',''FN'',''IF'',''TF''']);
+    stColumns    : Result := 'select colid as RECNO, db_name() as CATALOG_NAME, user_name(uid) as SCHEMA_NAME, o.name as TABLE_NAME,'+
+                                    'c.name   as COLUMN_NAME,'+
+                                    'colid    as COLUMN_POSITION,'+
+                                    '0        as COLUMN_TYPE,'+
+                                    'c.type   as COLUMN_DATATYPE,'+
+                                    '''''     as COLUMN_TYPENAME,'+
+                                    'usertype as COLUMN_SUBTYPE,'+
+                                    'prec     as COLUMN_PRECISION,'+
+                                    'scale    as COLUMN_SCALE,'+
+                                    'length   as COLUMN_LENGTH,'+
+                                    'case when c.status&8=8 then 1 else 0 end as COLUMN_NULLABLE '+
                              'from syscolumns c join sysobjects o on c.id=o.id '+
                              'where c.id=object_id(''' + SchemaObjectName + ''') '+
                              'order by colid';

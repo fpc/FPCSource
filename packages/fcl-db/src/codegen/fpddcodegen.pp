@@ -224,8 +224,6 @@ Type
     procedure SetAncestorClass(const AValue: String);
     procedure SetClassName(const AValue: String);
     procedure SetUnitname(const AValue: String);
-    procedure WritePropertyGetterImpl(Strings: TStrings; F: TFieldPropDef);
-    procedure WritePropertySetterImpl(Strings: TStrings; F: TFieldPropDef);
   Protected
     // Overrides from base class
     Function GetFieldDefs: TFieldPropDefs; override;
@@ -240,6 +238,10 @@ Type
     //
     // Interface routines
     //
+    // Write property getter implementation
+    procedure WritePropertyGetterImpl(Strings: TStrings; F: TFieldPropDef); virtual;
+    // Write property setter implementation
+    procedure WritePropertySetterImpl(Strings: TStrings; F: TFieldPropDef); virtual;
     // Create class declaration.
     procedure CreateDeclaration(Strings: TStrings); virtual;
     // Create class head. Override to add after class start.
@@ -720,6 +722,8 @@ constructor TDDClassCodeGenerator.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FFieldDefs:=CreateFieldPropDefs;
+  StringsClass:='TStringList';
+  StreamClass:='TMemoryStream';
 end;
 
 destructor TDDClassCodeGenerator.Destroy;
@@ -867,7 +871,7 @@ begin
   AddLn(Strings,'begin');
   IncIndent;
   Try
-    AddLn(Strings,Format('Result:=F%s',[F.PropertyName]));
+    AddLn(Strings,Format('Result:=F%s;',[F.PropertyName]));
   Finally
     DecIndent;
   end;
@@ -901,6 +905,7 @@ begin
     if (L>0) then
       begin
       S:=StringReplace(S,'%PROPNAME%',F.PropertyName,[rfReplaceAll,rfIgnoreCase]);
+      L:=Length(S);
       if (S[L]<>';') then
         S:=S+';';
       AddLn(Strings,S);  
@@ -950,6 +955,7 @@ begin
   S:=ConstructorDeclaration(True);
   BeginMethod(Strings,S);
   AddLn(Strings,'begin');
+  AddLn(Strings,'  inherited;');
   IncIndent;
   Try
     For I:=0 to Fields.Count-1 do
@@ -1153,7 +1159,9 @@ begin
   Result:='Destructor ';
   If Impl then
     Result:=Result+ClassOptions.ObjectClassName+'.';
-  Result:=Result+'Destroy; Override;';
+  Result:=Result+'Destroy;';
+  if not Impl then
+    Result:=Result+' Override;';
 end;
 
 procedure TDDClassCodeGenerator.GenerateClass(Stream: TStream);

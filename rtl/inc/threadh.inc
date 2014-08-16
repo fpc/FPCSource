@@ -116,7 +116,9 @@ Function SetThreadManager(Const NewTM : TThreadManager) : Boolean;
 {$ifndef DISABLE_NO_THREAD_MANAGER}
 {$endif DISABLE_NO_THREAD_MANAGER}
 // Needs to be exported, so the manager can call it.
+{$ifndef FPC_SECTION_THREADVARS}
 procedure InitThreadVars(RelocProc : TRelocateThreadVarHandler);
+{$endif FPC_SECTION_THREADVARS}
 procedure InitThread(stklen:SizeUInt);
 procedure DoneThread;
 
@@ -172,4 +174,9 @@ procedure RTLeventSetEvent(state:pRTLEvent);
 procedure RTLeventResetEvent(state:pRTLEvent);
 procedure RTLeventWaitFor(state:pRTLEvent);
 procedure RTLeventWaitFor(state:pRTLEvent;timeout : longint);
+
+function SemaphoreInit: Pointer;
+procedure SemaphoreDestroy(const sem: Pointer);
+procedure SemaphoreWait(const sem: Pointer);
+procedure SemaphorePost(const sem: Pointer);
 

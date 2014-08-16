@@ -181,7 +181,6 @@ Var
   HI,HO,HE : THandle;
 
 begin
-  FInheritHandles:=True;
   PName:=Nil;
   PCommandLine:=Nil;
   PDir:=Nil;

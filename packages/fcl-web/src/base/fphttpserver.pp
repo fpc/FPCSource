@@ -43,7 +43,6 @@ Type
     function GetFieldValue(Index: Integer): String; override;
     procedure SetFieldValue(Index: Integer; Value: String);override;
     Procedure InitRequestVars; override;
-    procedure SetContent(AValue : String);
   published
     Property Connection : TFPHTTPConnection Read FConnection;
   end;
@@ -196,7 +195,7 @@ Type
     Property OnRequestError;
   end;
 
-  EHTTPServer = Class(Exception);
+  EHTTPServer = Class(EHTTP);
 
   Function GetStatusCode (ACode: Integer) : String;
 
@@ -290,13 +289,6 @@ begin
   finally
     FreeAndNil(Resolver);
   end;
-end;
-
-procedure TFPHTTPConnectionRequest.SetContent(AValue : String);
-
-begin
-  FContent:=Avalue;
-  FContentRead:=true;
 end;
 
 
@@ -483,7 +475,7 @@ begin
   Request.PathInfo:=Request.URL;
   S:=GetNextWord(AStartLine);
   If (Pos('HTTP/',S)<>1) then
-    Raise Exception.Create(SErrMissingProtocol);
+    Raise EHTTPServer.CreateHelp(SErrMissingProtocol,400);
   Delete(S,1,5);
   Request.ProtocolVersion:=trim(S);
 end;
@@ -519,8 +511,7 @@ begin
         end;
       end;  
     end;
-  ARequest.SetContent(S);
-
+  ARequest.InitContent(S);
 end;
 
 function TFPHTTPConnection.ReadRequestHeaders: TFPHTTPConnectionRequest;

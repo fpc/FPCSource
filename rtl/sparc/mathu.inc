@@ -16,42 +16,18 @@
 function get_fsr : dword;external name 'FPC_GETFSR';
 procedure set_fsr(fsr : dword);external name 'FPC_SETFSR';
 
-function FPUExceptionMaskToSoftFloatMask(const Mask: TFPUExceptionMask): byte;
-begin
-    result:=0;
-    if exInvalidOp in Mask then
-      result:=result or (1 shl ord(exInvalidOp));
-    if exDenormalized in Mask then
-      result:=result or (1 shl ord(exDenormalized));
-    if exZeroDivide in Mask then
-      result:=result or (1 shl ord(exZeroDivide));
-    if exOverflow in Mask then
-      result:=result or (1 shl ord(exOverflow));
-    if exUnderflow in Mask then
-      result:=result or (1 shl ord(exUnderflow));
-    if exPrecision in Mask then
-      result:=result or (1 shl ord(exPrecision));
-end;
-
 function GetRoundMode: TFPURoundingMode;
   begin
     result:=TFPURoundingMode(get_fsr shr 30);
   end;
 
 function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
+  var
+    cw: dword;
   begin
-    case (RoundMode) of
-      rmNearest :
-        softfloat_rounding_mode := float_round_nearest_even;
-      rmTruncate :
-        softfloat_rounding_mode := float_round_to_zero;
-      rmUp :
-        softfloat_rounding_mode := float_round_up;
-      rmDown :
-        softfloat_rounding_mode := float_round_down;
-    end;
-    set_fsr((get_fsr and $3fffffff) or (dword(RoundMode) shl 30));
-    result:=TFPURoundingMode(get_fsr shr 30);
+    cw:=get_fsr;
+    result:=TFPURoundingMode(cw shr 30);
+    set_fsr((cw and $3fffffff) or (dword(RoundMode) shl 30));
   end;
 
 
@@ -67,11 +43,8 @@ function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode
   end;
 
 
-function GetExceptionMask: TFPUExceptionMask;
-  var
-    fsr : dword;
+function FSR2ExceptionMask(fsr: dword): TFPUExceptionMask;
   begin
-    fsr:=get_fsr;
     result:=[];
     { invalid operation: bit 27 }
     if (fsr and (1 shl 27))=0 then
@@ -95,12 +68,18 @@ function GetExceptionMask: TFPUExceptionMask;
   end;
 
 
+function GetExceptionMask: TFPUExceptionMask;
+  begin
+    result:=FSR2ExceptionMask(get_fsr);
+  end;
+
 
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
   var
     fsr : dword;
   begin
     fsr:=get_fsr;
+    result:=FSR2ExceptionMask(fsr);
 
     { invalid operation: bit 27 }
     if (exInvalidOp in mask) then
@@ -134,8 +113,6 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
 
     { update control register contents }
     set_fsr(fsr);
-
-    softfloat_exception_mask:=FPUExceptionMaskToSoftFloatMask(mask);
   end;
 
 

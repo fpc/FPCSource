@@ -80,13 +80,11 @@ function _controlfp(new: DWORD; mask: DWORD): DWORD; cdecl; external 'coredll';
 {$define FPC_SYSTEM_HAS_SYSRESETFPU}
 Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
-  softfloat_exception_flags:=0;
 end;
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
 Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
-  softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
   { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }
   { FPU precision 64 bit, rounding to nearest, affine infinity }
   _controlfp($000C0003, $030F031F);
@@ -343,11 +341,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-function fpc_shortstr_to_shortstr(len:longint;const sstr:shortstring):shortstring;assembler;nostackframe;[public,alias: 'FPC_SHORTSTR_TO_SHORTSTR'];compilerproc;
-{$else}
 procedure fpc_shortstr_to_shortstr(out res:shortstring;const sstr:shortstring);assembler;nostackframe;[public,alias: 'FPC_SHORTSTR_TO_SHORTSTR'];compilerproc;
-{$endif}
 {r0: __RESULT
  r1: len
  r2: sstr}
@@ -507,8 +501,6 @@ end;
 
 {$ifndef darwin}
 {$define FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
-function fpc_freemem_x(p:pointer):ptrint; [external name 'FPC_FREEMEM_X'];
-
 Procedure fpc_ansistr_decr_ref (Var S : Pointer); [Public,Alias:'FPC_ANSISTR_DECR_REF'];assembler;nostackframe; compilerproc;
 asm
   ldr     r1, [r0]
@@ -547,7 +539,7 @@ asm
   // but we need to stay backward compatible with 2.6
   sub     r0, r0, #12
   // Jump without a link, so freemem directly returns to our caller
-  b       FPC_FREEMEM_X
+  b       FPC_FREEMEM
 end;
 {$endif not darwin}
 
@@ -584,8 +576,16 @@ asm
   sub r3, r3, #0x3F
 
   sub r1, r0, #1 // Decrement value
+{$ifdef CPUARM_HAS_BLX}
   blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
-
+{$else}
+  mov lr, pc
+{$ifdef CPUARM_HAS_BX}
+  bx  r3
+{$else}
+  mov pc, r3
+{$endif}
+{$endif}
   // MOVS sets the Z flag when the result reaches zero, this can be used later on
   // The C-Flag will not be modified by this because we're not doing any shifting
   movcss r0, r1	 // We expect that to work most of the time so keep it pipeline friendly
@@ -675,8 +675,16 @@ asm
   sub r3, r3, #0x3F
 
   add r1, r0, #1 // Increment value
+{$ifdef CPUARM_HAS_BLX}
   blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
-
+{$else}
+  mov lr, pc
+{$ifdef CPUARM_HAS_BX}
+  bx  r3
+{$else}
+  mov pc, r3
+{$endif}
+{$endif}
   movcs r0, r1	 // We expect that to work most of the time so keep it pipeline friendly
   ldmcsfd r13!, {pc}
   b .Latomic_inc_loop // kuser_cmpxchg sets C flag on error
@@ -738,8 +746,16 @@ asm
   mvn r3, #0x0000f000
   sub r3, r3, #0x3F
   mov r4, r0     // save the current value because kuser_cmpxchg clobbers r0
-
+{$ifdef CPUARM_HAS_BLX}
   blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
+{$else}
+  mov lr, pc
+{$ifdef CPUARM_HAS_BX}
+  bx  r3
+{$else}
+  mov pc, r3
+{$endif}
+{$endif}
   // restore the original value if needed
   movcs   r0, r4
   ldmcsfd r13!, {r4, pc}
@@ -803,7 +819,16 @@ asm
   sub r3, r3, #0x3F
 
   add r1, r0, r4 // Add to value
+{$ifdef CPUARM_HAS_BLX}
   blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
+{$else}
+  mov lr, pc
+{$ifdef CPUARM_HAS_BX}
+  bx  r3
+{$else}
+  mov pc, r3
+{$endif}
+{$endif}
   // r1 does not get clobbered, so just get back the original value
   // Otherwise we would have to allocate one more register and store the
   // temporary value
@@ -866,8 +891,16 @@ asm
   // r1 and r2 will not be clobbered by kuser_cmpxchg
   // If we have to loop, r0 will be set to the original Comperand
   .Linterlocked_compare_exchange_loop:
-
-  blx   r3       // Call kuser_cmpxchg sets C-Flag on success
+{$ifdef CPUARM_HAS_BLX}
+  blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
+{$else}
+  mov lr, pc
+{$ifdef CPUARM_HAS_BX}
+  bx  r3
+{$else}
+  mov pc, r3
+{$endif}
+{$endif}
   movcs r0, r4   // Return the previous value on success
   ldmcsfd r13!, {r4, pc}
   // The error case is a bit tricky, kuser_cmpxchg does not return the current value
@@ -1082,5 +1115,4 @@ end;
 {$endif}
 
 {include hand-optimized assembler division code}
-{ $i divide.inc}
-
+{$i divide.inc}

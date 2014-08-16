@@ -551,11 +551,12 @@ begin
     DisposeStr(St);
   if assigned(Expr) then
     begin
+      { avoid infinite recursion here }
+      GDBI:=Debugger^.RunCount;
       p:=Debugger^.GetValue(Expr^);
       St:=NewStr(GetPChar(p));
       if assigned(p) then
         StrDispose(p);
-      GDBI:=Debugger^.RunCount;
     end;
 {$endif ndef NODEBUG}
 {$endif BROWSERCOL}

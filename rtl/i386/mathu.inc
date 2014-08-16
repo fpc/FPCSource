@@ -74,6 +74,16 @@ function cotan(x : float) : float;assembler;
   end;
 
 
+{$define FPC_MATH_HAS_LOG2}
+function log2(x : float) : float;assembler;
+  asm
+    fld1
+    fldt x
+    fyl2x
+    fwait
+  end;
+
+
 {$define FPC_MATH_HAS_DIVMOD}
 procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: Word);assembler;
 asm
@@ -140,7 +150,7 @@ begin
   CtlWord := Get8087CW;
   Set8087CW((CtlWord and $F3FF) or (Ord(RoundMode) shl 10));
   if has_sse_support then
-    SetSSECSR((GetSSECSR and $ffff9fff) or (dword(RoundMode) shl 13));
+    SetMXCSR((GetMXCSR and $ffff9fff) or (dword(RoundMode) shl 13));
   Result := TFPURoundingMode((CtlWord shr 10) and 3);
 end;
 
@@ -170,8 +180,7 @@ begin
   CtlWord := Get8087CW;
   Set8087CW( (CtlWord and $FFC0) or Byte(Longint(Mask)) );
   if has_sse_support then
-    SetSSECSR((GetSSECSR and $ffffe07f) or (dword(Mask) shl 7));
-  softfloat_exception_mask:=dword(Mask);
+    SetMXCSR((GetMXCSR and $ffffe07f) or (dword(Mask) shl 7));
   Result := TFPUExceptionMask(Longint(CtlWord and $3F));
 end;
 

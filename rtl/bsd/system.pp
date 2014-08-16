@@ -330,10 +330,6 @@ Begin
   { Set up signals handlers (may be needed by init code to test cpu features) }
   InstallSignals;
 
-  SysResetFPU;
-  if not(IsLibrary) then
-    SysInitFPU;
-
 {$if defined(cpui386) or defined(cpuarm)}
   fpc_cpucodeinit;
 {$endif cpui386}

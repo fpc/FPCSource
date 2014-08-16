@@ -434,7 +434,7 @@ Type
           nMaxPage : WORD;
           nCopies : WORD;
           hInstance : HINST;
-          lCustData : DWORD;
+          lCustData : LPARAM;
           lpfnPrintHook : LPPRINTHOOKPROC;
           lpfnSetupHook : LPSETUPHOOKPROC;
           lpPrintTemplateName : LPCTSTR;
@@ -462,7 +462,7 @@ Type
           nMaxPage : WORD;
           nCopies : WORD;
           hInstance : HINST;
-          lCustData : DWORD;
+          lCustData : LPARAM;
           lpfnPrintHook : LPPRINTHOOKPROC;
           lpfnSetupHook : LPSETUPHOOKPROC;
           lpPrintTemplateName : LPWSTR;

@@ -26,14 +26,17 @@ type
 
   { TTestParser }
 
-  TTestParser= class(TTestJSON)
+  TTestParser = class(TTestJSON)
   private
+    procedure CallNoHandlerStream;
     procedure DoTestError(S: String);
     procedure DoTestFloat(F: TJSONFloat); overload;
     procedure DoTestFloat(F: TJSONFloat; S: String); overload;
     procedure DoTestObject(S: String; const ElNames: array of String; DoJSONTest : Boolean = True);
     procedure DoTestString(S : String);
     procedure DoTestArray(S: String; ACount: Integer);
+    Procedure DoTestClass(S : String; AClass : TJSONDataClass);
+    procedure CallNoHandler;
   published
     procedure TestEmpty;
     procedure TestNull;
@@ -47,6 +50,11 @@ type
     procedure TestObject;
     procedure TestMixed;
     procedure TestErrors;
+    Procedure TestClasses;
+    Procedure TestHandler;
+    Procedure TestNoHandlerError;
+    Procedure TestHandlerResult;
+    Procedure TestHandlerResultStream;
   end;
 
 implementation
@@ -210,8 +218,11 @@ begin
   DoTestArray('[1234567890123456, 2234567890123456]',2);
   DoTestArray('[1234567890123456, 2234567890123456, 3234567890123456]',3);
   Str(Double(1.2),S1);
+  Delete(S1,1,1);
   Str(Double(2.3),S2);
+  Delete(S2,1,1);
   Str(Double(3.4),S3);
+  Delete(S3,1,1);
   DoTestArray('['+S1+']',1);
   DoTestArray('['+S1+', '+S2+']',2);
   DoTestArray('['+S1+', '+S2+', '+S3+']',3);
@@ -262,7 +273,8 @@ begin
 end;
 
 
-procedure TTestParser.DoTestObject(S : String; Const ElNames : Array of String; DoJSONTest : Boolean = True);
+procedure TTestParser.DoTestObject(S: String; const ElNames: array of String;
+  DoJSONTest: Boolean);
 
 Var
   P : TJSONParser;
@@ -312,20 +324,131 @@ begin
   end;
 end;
 
+procedure TTestParser.DoTestClass(S: String; AClass: TJSONDataClass);
+
+Var
+  P : TJSONParser;
+  D : TJSONData;
+
+begin
+  P:=TJSONParser.Create(S);
+  try
+    D:=P.Parse;
+    try
+      AssertEquals('Correct class for '+S+' : ',AClass,D.ClassType);
+    finally
+      D.Free
+    end;
+  finally
+    P.Free;
+  end;
+end;
+
 procedure TTestParser.TestErrors;
 
 begin
+{
   DoTestError('a');
   DoTestError('"b');
   DoTestError('1Tru');
+}
   DoTestError('b"');
   DoTestError('{"a" : }');
   DoTestError('{"a" : ""');
   DoTestError('{"a : ""');
+{
   DoTestError('[1,]');
   DoTestError('[,]');
   DoTestError('[,,]');
   DoTestError('[1,,]');
+}
+end;
+
+procedure TTestParser.TestClasses;
+begin
+  SetMyInstanceTypes;
+  DoTestClass('null',TMyNull);
+  DoTestClass('true',TMyBoolean);
+  DoTestClass('1',TMyInteger);
+  DoTestClass('1.2',TMyFloat);
+  DoTestClass('123456789012345',TMyInt64);
+  DoTestClass('"tata"',TMyString);
+  DoTestClass('{}',TMyObject);
+  DoTestClass('[]',TMyArray);
+end;
+
+procedure TTestParser.CallNoHandler;
+
+begin
+  GetJSON('1',True).Free;
+end;
+
+procedure TTestParser.CallNoHandlerStream;
+
+Var
+  S : TStringStream;
+
+begin
+  S:=TstringStream.Create('1');
+  try
+    GetJSON(S,True).Free;
+  finally
+    S.Free;
+  end;
+end;
+
+procedure TTestParser.TestHandler;
+begin
+  AssertNotNull('Handler installed',GetJSONParserHandler);
+end;
+
+procedure TTestParser.TestNoHandlerError;
+
+Var
+  H : TJSONParserHandler;
+
+begin
+  H:=GetJSONParserHandler;
+  try
+    AssertSame('SetJSONParserHandler returns previous handler',H,SetJSONParserHandler(Nil));
+    AssertException('No handler raises exception',EJSON,@CallNoHandler);
+    AssertException('No handler raises exception',EJSON,@CallNoHandlerStream);
+  finally
+    SetJSONParserHandler(H);
+  end;
+end;
+
+procedure TTestParser.TestHandlerResult;
+
+Var
+  D : TJSONData;
+
+begin
+  D:=GetJSON('"123"');
+  try
+    AssertEquals('Have correct string','123',D.AsString);
+  finally
+    D.Free;
+  end;
+end;
+
+procedure TTestParser.TestHandlerResultStream;
+Var
+  D : TJSONData;
+  S : TStream;
+
+begin
+  S:=TStringStream.Create('"123"');
+  try
+    D:=GetJSON(S);
+    try
+      AssertEquals('Have correct string','123',D.AsString);
+    finally
+      D.Free;
+    end;
+  finally
+    S.Free;
+  end;
 end;
 
 procedure TTestParser.DoTestError(S : String);

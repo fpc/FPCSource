@@ -1,0 +1,29 @@
+<sdo:datagraph xmlns:sdo="commonj.sdo" xmlns:ns1="company.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<xsd>
+		<schema targetNamespace="company.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="company.xsd" xmlns:sdo="commonj.sdo">
+			<xsd:complexType name="a">
+				<xsd:sequence>
+					<xsd:element name="p_ab1" type="tns:b" minOccurs="0"/>
+					<xsd:element name="p_ab2" type="tns:b" minOccurs="0"/>
+					<xsd:element name="changeSummary" type="sdo:ChangeSummary"/>
+				</xsd:sequence>
+				<xsd:attribute name="p_a_str" type="xsd:string"/>
+			</xsd:complexType>
+			<xsd:complexType name="b">
+				<xsd:attribute name="p_b_str" type="xsd:string"/>
+			</xsd:complexType>
+		</schema>
+	</xsd>
+	<changeSummary delete="#/changeSummary/b[0] #/changeSummary/b[1]">
+		<b p_b_str="p_ab1\p_b_str value"/>
+		<a sdo:ref="#/a">
+			<p_ab1 sdo:ref="#/changeSummary/b[0]"/>
+			<p_ab2 sdo:ref="#/changeSummary/b[1]"/>
+		</a>
+		<b p_b_str="p_ab2\p_b_str value"/>
+	</changeSummary>
+	<ns1:a p_a_str="sample A' property.">
+		<p_ab1 xsi:nil="true"/>
+		<p_ab2 xsi:nil="true"/>
+	</ns1:a>
+</sdo:datagraph>

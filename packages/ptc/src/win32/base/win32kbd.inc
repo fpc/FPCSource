@@ -30,11 +30,6 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{$WARNING this should be in the windows unit}
-const
-  VK_OEM_COMMA = $BC;
-  VK_OEM_PERIOD = $BE;
-
 constructor TWin32Keyboard.Create(AWindow: HWND; AThread: DWord; AMultithreaded: Boolean; AEventQueue: TEventQueue);
 begin
   FMonitor := nil;

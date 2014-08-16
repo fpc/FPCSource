@@ -5699,7 +5699,7 @@ PROCESSOR_ARM_V4TFP_INSTRUCTION        PROCESSOR_ARM_V4TFP_INSTRUCTION
      PF_ARM_L2CACHE_COPROC           = $80000017;
 
 
-// Specific OEM extentions
+// Specific OEM extensions
      PF_ARM_INTEL_XSCALE             = $80010001;
      PF_ARM_INTEL_PMU                = $80010002;
      PF_ARM_INTEL_WMMX               = $80010003;

@@ -68,16 +68,19 @@ type
     FFieldRow: PChar;
     FField: TField;
     FFieldOffset: Integer;
-    FRowSize: Integer;
-    FPosition: LongInt;
+    FRowSize: Int64;
+    FPosition: Int64;
     FWriteMode: Boolean;
+  protected
+    function GetPosition: Int64; override;
+    function GetSize: Int64; override;
   public
     constructor Create(Dataset: TCustomSqliteDataset; Field: TField;
       FieldOffset: Integer; EditItem: PDataRecord; WriteMode: Boolean);
     destructor Destroy; override;
     function Write(const Buffer; Count: LongInt): LongInt; override;
     function Read(var Buffer; Count: LongInt): LongInt; override;
-    function Seek(Offset: LongInt; Origin: Word): LongInt; override;
+    function Seek(const Offset: int64; Origin: TSeekOrigin): int64; override;
   end;
 
   //callback types
@@ -345,6 +348,16 @@ end;
 
 // TDSStream
 
+function TDSStream.GetPosition: Int64;
+begin
+  Result:=FPosition;
+end;
+
+function TDSStream.GetSize: Int64;
+begin
+  Result:=FRowSize;
+end;
+
 constructor TDSStream.Create(Dataset: TCustomSqliteDataset; Field: TField;
   FieldOffset: Integer; EditItem: PDataRecord; WriteMode: Boolean);
 begin
@@ -369,12 +382,12 @@ begin
   inherited Destroy;
 end;
 
-function TDSStream.Seek(Offset: LongInt; Origin: Word): LongInt;
+function TDSStream.Seek(const Offset: int64; Origin: TSeekOrigin): int64;
 begin
   Case Origin of
-    soFromBeginning : FPosition := Offset;
-    soFromEnd       : FPosition := FRowSize + Offset;
-    soFromCurrent   : FPosition := FPosition + Offset;
+    soBeginning : FPosition := Offset;
+    soEnd       : FPosition := FRowSize + Offset;
+    soCurrent   : FPosition := FPosition + Offset;
   end;
   Result := FPosition;
 end;

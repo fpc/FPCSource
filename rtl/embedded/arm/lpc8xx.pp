@@ -38,7 +38,7 @@ const
 
 type
   { ------------- System Control (SYSCON) ------------- }
-  TSYSCONRegisters = record
+  TSYSCON_Registers = record
     SYSMEMREMAP  : longword;
     PRESETCTRL   : longword;
     SYSPLLCTRL   : longword;
@@ -90,7 +90,7 @@ type
   end;
 
   { ------------- Pin Connect Block (IOCON) ------------- }
-  TIOCONRegisters = record
+  TIOCON_Registers = record
     PIO0_17  : longword;
     PIO0_13  : longword;
     PIO0_12  : longword;
@@ -113,7 +113,7 @@ type
   end;
 
   { ------------- Flash Controller (FLASHCTRL) ------------- }
-  TFLASHCTRLRegisters = record
+  TFLASHCTRL_Registers = record
     RESERVED0: array [0 .. 3] of longword;
     FLASHCFG : longword;
     RESERVED1: array [0 .. 2] of longword;
@@ -124,7 +124,7 @@ type
   end;
 
   { ------------- Power Management Unit (PMU) ------------- }
-  TPMURegisters = record
+  TPMU_Registers = record
     PCON   : longword;
     GPREG0 : longword;
     GPREG1 : longword;
@@ -134,14 +134,14 @@ type
   end;
 
   { ------------- Switch Matrix Register (SWM) ------------- }
-  TSWMRegisters = record
+  TSWM_Registers = record
     PINASSIGN : array [0 .. 8] of longword;
     RESERVED0 : array [0 .. 102] of longword;
     PINENABLE0: longword;
   end;
 
   { ------------- General Purpose Input/Output (GPIO) ------------- }
-  TGPIOPORTRegisters = record
+  TGPIOPORT_Registers = record
     B0       : array [0 .. 17] of byte;
     RESERVED0: array [0 .. 2038] of word;
     W0       : array [0 .. 17] of longword;
@@ -162,7 +162,7 @@ type
   end;
 
   { -------------  Pin interrupts/pattern match engine (PIN_INT) ------------- }
-  TPININTRegisters = record
+  TPININT_Registers = record
     ISEL  : longword;
     IENR  : longword;
     SIENR : longword;
@@ -179,20 +179,20 @@ type
   end;
 
   { -------------  CRC Engine (CRC) -------------  }
-  TCRCRegisters = record
+  TCRC_Registers = record
     MODE: longword;
     SEED: longword;
     SUM : longword;
   end;
 
   { -------------  Comparator (CMP) -------------  }
-  TCMPRegisters = record
+  TCMP_Registers = record
     CTRL: longword;
     LAD : longword;
   end;
 
   { -------------  Wakeup Timer (WKT) -------------  }
-  TWKTRegisters = record
+  TWKT_Registers = record
     CTRL     : longword;
     RESERVED0: array [0 .. 1] of longword;
     COUNT    : longword;
@@ -206,7 +206,7 @@ type
     STAT  : longword;
   end;
 
-  TMRTRegisters = record
+  TMRT_Registers = record
     CHANNEL  : array [0 .. 3] of TMRTChannel;
     RESERVED0: array [0 .. 0] of longword;
     IDLE_CH  : longword;
@@ -214,7 +214,7 @@ type
   end;
 
   { ------------- Universal Asynchronous Receiver Transmitter (USART) -------------  }
-  TUSARTRegisters = record
+  TUSART_Registers = record
     CFG        : longword;
     CTRL       : longword;
     STAT       : longword;
@@ -228,7 +228,7 @@ type
   end;
 
   { ------------- Synchronous Serial Interface Controller (SPI) -------------  }
-  TSPIRegisters = record
+  TSPI_Registers = record
     CFG     : longword;
     DLY     : longword;
     STAT    : longword;
@@ -243,7 +243,7 @@ type
   end;
 
   { ------------- Inter-Integrated Circuit (I2C) ------------- }
-  TI2CRegisters = record
+  TI2C_Registers = record
     CFG      : longword;
     STAT     : longword;
     INTENSET : longword;
@@ -286,7 +286,7 @@ type
   end;
 
 type
-  TSCTRegisters = record
+  TSCT_Registers = record
     CONFIG          : longword;
     CTRL            : longword;
     LIMIT           : longword;
@@ -316,7 +316,7 @@ type
   end;
 
   { ------------- Watchdog Timer (WDT) ------------- }
-  TWDTRegisters = record
+  TWDT_Registers = record
     _MOD     : longword;
     TC       : longword;
     FEED     : longword;
@@ -365,30 +365,31 @@ const
 {$ALIGN 2}
 
 var
-  WDT      : TWDTRegisters       absolute LPC_WDT_BASE;
-  MRT      : TMRTRegisters       absolute LPC_MRT_BASE;
-  WKT      : TWKTRegisters       absolute LPC_WKT_BASE;
-  SWM      : TSWMRegisters       absolute LPC_SWM_BASE;
-  PMU      : TPMURegisters       absolute LPC_PMU_BASE;
-  CMP      : TCMPRegisters       absolute LPC_CMP_BASE;
-  FLASHCTRL: TFLASHCTRLRegisters absolute LPC_FLASHCTRL_BASE;
-  IOCON    : TIOCONRegisters     absolute LPC_IOCON_BASE;
-  SYSCON   : TSysConRegisters    absolute LPC_SYSCON_BASE;
-  I2C      : TI2CRegisters       absolute LPC_I2C_BASE;
-  SPI0     : TSPIRegisters       absolute LPC_SPI0_BASE;
-  SPI1     : TSPIRegisters       absolute LPC_SPI1_BASE;
-  USART0   : TUSARTRegisters     absolute LPC_USART0_BASE;
-  USART1   : TUSARTRegisters     absolute LPC_USART0_BASE;
-  USART2   : TUSARTRegisters     absolute LPC_USART0_BASE;
-  CRC      : TCRCRegisters       absolute LPC_CRC_BASE;
-  SCT      : TSCTRegisters       absolute LPC_SCT_BASE;
-  GPIO_PORT: TGPIOPortRegisters  absolute LPC_GPIO_PORT_BASE;
-  PIN_INT  : TPININTRegisters    absolute LPC_PIN_INT_BASE;
+  WDT      : TWDT_Registers       absolute LPC_WDT_BASE;
+  MRT      : TMRT_Registers       absolute LPC_MRT_BASE;
+  WKT      : TWKT_Registers       absolute LPC_WKT_BASE;
+  SWM      : TSWM_Registers       absolute LPC_SWM_BASE;
+  PMU      : TPMU_Registers       absolute LPC_PMU_BASE;
+  CMP      : TCMP_Registers       absolute LPC_CMP_BASE;
+  FLASHCTRL: TFLASHCTRL_Registers absolute LPC_FLASHCTRL_BASE;
+  IOCON    : TIOCON_Registers     absolute LPC_IOCON_BASE;
+  SYSCON   : TSysCon_Registers    absolute LPC_SYSCON_BASE;
+  I2C      : TI2C_Registers       absolute LPC_I2C_BASE;
+  SPI0     : TSPI_Registers       absolute LPC_SPI0_BASE;
+  SPI1     : TSPI_Registers       absolute LPC_SPI1_BASE;
+  USART0   : TUSART_Registers     absolute LPC_USART0_BASE;
+  USART1   : TUSART_Registers     absolute LPC_USART0_BASE;
+  USART2   : TUSART_Registers     absolute LPC_USART0_BASE;
+  CRC      : TCRC_Registers       absolute LPC_CRC_BASE;
+  SCT      : TSCT_Registers       absolute LPC_SCT_BASE;
+  GPIO_PORT: TGPIOPort_Registers  absolute LPC_GPIO_PORT_BASE;
+  PIN_INT  : TPININT_Registers    absolute LPC_PIN_INT_BASE;
 
 implementation
 
 procedure NonMaskableInt_interrupt; external name 'NonMaskableInt_interrupt';
 procedure Hardfault_interrupt;      external name 'Hardfault_interrupt';
+procedure Startup_Checksum;         external name 'Startup_Checksum';
 procedure SVCall_interrupt;         external name 'SVCall_interrupt';
 procedure PendSV_interrupt;         external name 'PendSV_interrupt';
 procedure SysTick_interrupt;        external name 'SysTick_interrupt';
@@ -429,7 +430,7 @@ asm
   .long 0
   .long 0
   .long 0
-  .long 0
+  .long Startup_Checksum
   .long 0
   .long 0
   .long 0
@@ -474,6 +475,7 @@ asm
 
   .weak NonMaskableInt_interrupt
   .weak Hardfault_interrupt
+  .weak Startup_Checksum
   .weak SVCall_interrupt
   .weak PendSV_interrupt
   .weak SysTick_interrupt

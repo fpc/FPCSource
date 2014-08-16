@@ -299,7 +299,7 @@ unit typinfo;
       TProcInfoProc = Procedure(PropInfo : PPropInfo) of object;
 
       PPropList = ^TPropList;
-      TPropList = array[0..{$ifdef cpu16}32765 div sizeof(PPropInfo){$else}65535{$endif}] of PPropInfo;
+      TPropList = array[0..{$ifdef cpu16}(32768 div sizeof(PPropInfo))-2{$else}65535{$endif}] of PPropInfo;
 
    const
       tkString = tkSString;
@@ -569,7 +569,7 @@ end;
 Function SetToString(TypeInfo: PTypeInfo; Value: Integer; Brackets: Boolean) : String;
 
 type
-  tsetarr = bitpacked array[0..31] of 0..1;
+  tsetarr = bitpacked array[0..SizeOf(Integer)*8-1] of 0..1;
 Var
   I : Integer;
   PTI : PTypeInfo;
@@ -579,8 +579,8 @@ begin
   { On big endian systems, set element 0 is in the most significant bit,
     and the same goes for the elements of bitpacked arrays there.  }
   case GetTypeData(TypeInfo)^.OrdType of
-    otSByte,otUByte: Value:=Value shl 24;
-    otSWord,otUWord: Value:=Value shl 16;
+    otSByte,otUByte: Value:=Value shl (SizeOf(Integer)*8-8);
+    otSWord,otUWord: Value:=Value shl (SizeOf(Integer)*8-16);
   end;
 {$endif}
 

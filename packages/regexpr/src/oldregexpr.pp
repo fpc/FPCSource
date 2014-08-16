@@ -43,7 +43,7 @@ function GenerateRegExprEngine(regexpr : pchar;flags : tregexprflags;var RegExpr
 function GenerateRegExprEngine(regexpr : pchar;flags : tregexprflags): TREGExprEngine;
 procedure DestroyRegExprEngine(var regexpr : TRegExprEngine);
 
-function RegExprPos(RegExprEngine : TRegExprEngine;p : pchar;var index,len : longint) : boolean;
+function RegExprPos(RegExprEngine : TRegExprEngine;p : pchar;var index,len : integer) : boolean;
 function RegExprReplaceAll(RegExprEngine : TRegExprEngine;const src,newstr : ansistring;var dest : ansistring) : sizeint;
 
 function RegExprEscapeStr (const S : string) : string;
@@ -80,7 +80,7 @@ begin
 end;
 
 function RegExprPos(RegExprEngine: TRegExprEngine; p: pchar; var index,
-  len: longint): boolean;
+  len: integer): boolean;
 begin
   Len := 1;
   Result := RegExprEngine.MatchString(p,index,len);

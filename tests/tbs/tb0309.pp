@@ -29,7 +29,7 @@ type
 var
    p : pa;
    data : array[0..4] of longint;
-   saveexit : pointer;
+   saveexit : codepointer;
 
   procedure testerror;
     begin

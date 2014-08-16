@@ -1,0 +1,23 @@
+<sdo:datagraph xmlns:sdo="commonj.sdo" xmlns:ns1="company.xsd">
+  <xsd>
+    <schema targetNamespace="company.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="company.xsd">
+      <xsd:complexType name="Datarow">
+        <xsd:sequence>
+          <xsd:any processContents="lax" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:anyAttribute processContents="lax"/>
+      </xsd:complexType>
+      <xsd:complexType name="Dataset">
+        <xsd:sequence>
+          <xsd:element name="rows" type="tns:Datarow" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:any processContents="lax" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:anyAttribute processContents="lax"/>
+      </xsd:complexType>
+    </schema>
+  </xsd>
+  <ns1:Dataset>
+    <rows Name="SDO-Pascal" Description="Object Pascal implementation of SDO" Order="1"/>
+    <rows Name="WST" Description="Object Pascal Web Services Toolkit" Order="2"/>
+  </ns1:Dataset>
+</sdo:datagraph>

@@ -1,0 +1,38 @@
+<sdo:datagraph xmlns:sdo="commonj.sdo" xmlns:ns1="company.xsd">
+	<xsd>
+		<schema targetNamespace="company.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="company.xsd">
+			<xsd:complexType name="EmployeeType">
+				<xsd:attribute name="name" type="xsd:string" use="required"/>
+				<xsd:attribute name="SN" type="xsd:string" use="required"/>
+				<xsd:attribute name="manager" type="xsd:boolean" use="required"/>
+			</xsd:complexType>
+			<xsd:complexType name="DepartmentType">
+				<xsd:sequence>
+					<xsd:element name="employees" type="tns:EmployeeType" maxOccurs="unbounded"/>
+				</xsd:sequence>
+				<xsd:attribute name="name" type="xsd:string" use="required"/>
+				<xsd:attribute name="location" type="xsd:string" use="required"/>
+				<xsd:attribute name="number" type="xsd:int" use="required"/>
+			</xsd:complexType>
+			<xsd:complexType name="CompanyType">
+				<xsd:sequence>
+					<xsd:element name="departments" type="tns:DepartmentType" maxOccurs="unbounded"/>
+				</xsd:sequence>
+				<xsd:attribute name="name" type="xsd:string" use="required"/>
+				<xsd:attribute name="employeeOfTheMonth" type="xsd:string" use="required"/>
+			</xsd:complexType>
+		</schema>
+	</xsd>
+	<ns1:CompanyType name="A Sample company" employeeOfTheMonth="Inoussa">
+			<departments name="RAD Departement" location="Moon" number="2">
+					<employees name="inoussa OUEDRAOGO" SN="1122334455667" manager="1"/>
+					<employees name="SDO man" SN="867787667" manager="0"/>
+					<employees name="FPC" SN="_e-('" manager="0"/>
+			</departments>
+			<departments name="Sales Departement" location="Mars" number="2">
+					<employees name="wst man" SN="e&quot;'fsdfdf" manager="1"/>
+					<employees name="azerty" SN="jkjk_e5679" manager="0"/>
+					<employees name="qwerty" SN="_s-('" manager="0"/>
+			</departments>
+	</ns1:CompanyType>
+</sdo:datagraph>

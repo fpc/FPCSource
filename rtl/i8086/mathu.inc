@@ -12,14 +12,18 @@
 
 **********************************************************************}
 
-{$ASMMODE intel}
+
+{NOTE: the fpatan instruction on the 8087 and 80287 has the following restrictions:
+            0 <= ST(1) < ST(0) < +inf
+       so the following code requires a 387+ and is therefore disabled, so that we use the
+       generic implementation, until an asm optimized version, compatible with 8087/80287 is written }
 {//$define FPC_MATH_HAS_ARCTAN2}
 {function arctan2(y,x : float) : float;assembler;
   asm
-     fldt y
-     fldt x
-     fpatan
-     fwait
+    fld tbyte [y]
+    fld tbyte [x]
+    fpatan
+    fwait
   end;}
 
 
@@ -72,6 +76,16 @@ procedure sincos(theta : single;out sinus,cosinus : single);assembler;
     fdivp %st,%st(1)
     fwait
   end;}
+
+
+{$define FPC_MATH_HAS_LOG2}
+function log2(x : float) : float;assembler;
+  asm
+    fld1
+    fld tbyte [x]
+    fyl2x
+    fwait
+  end;
 
 
 {//$define FPC_MATH_HAS_DIVMOD}
@@ -160,7 +174,7 @@ end;
 
 function GetExceptionMask: TFPUExceptionMask;
 begin
-  Result := TFPUExceptionMask(Longint(Get8087CW and $3F));
+  Result := TFPUExceptionMask(Byte(Get8087CW and $3F));
 end;
 
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
@@ -168,11 +182,10 @@ var
   CtlWord: Word;
 begin
   CtlWord := Get8087CW;
-  Set8087CW( (CtlWord and $FFC0) or Byte(Longint(Mask)) );
+  Set8087CW( (CtlWord and $FFC0) or Byte(Mask) );
 {  if has_sse_support then
     SetSSECSR((GetSSECSR and $ffffe07f) or (dword(Mask) shl 7));}
-  softfloat_exception_mask:=dword(Mask);
-  Result := TFPUExceptionMask(Longint(CtlWord and $3F));
+  Result := TFPUExceptionMask(Byte(CtlWord and $3F));
 end;
 
 procedure ClearExceptions(RaisePending: Boolean);assembler;

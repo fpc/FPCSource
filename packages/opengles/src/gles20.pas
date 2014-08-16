@@ -1,4 +1,4 @@
-{** OpenGL ES 2.0 headers 
+{** OpenGL ES 2.0 headers
  **
  ** Ported/Translated for FreePascal by Benjamin 'BeRo' Rosseaux
  ** benjamin@rosseaux.com - http://www.rosseaux.com
@@ -35,6 +35,8 @@ unit gles20;
 {$mode objfpc}
 {$ifdef linux}
   {$define EGL}
+  { undefine X for other Linux windowmanagers }
+  {$define X}
 {$endif}
 {$ifdef windows}
   {$define EGL}
@@ -42,7 +44,7 @@ unit gles20;
 
 interface
 
-uses SysUtils,dynlibs{$ifdef linux},x,xlib{$endif}{$ifdef windows},Windows{$endif};
+uses SysUtils,dynlibs{$ifdef X},x,xlib{$endif}{$ifdef windows},Windows{$endif};
 
 {$IFDEF FPC}
 {$PACKRECORDS C}
@@ -50,7 +52,7 @@ uses SysUtils,dynlibs{$ifdef linux},x,xlib{$endif}{$ifdef windows},Windows{$endi
 
 Type
   Pchar  = ^char;
-  
+
 {$ifdef EGL}
 type
   PEGLConfig  = ^EGLConfig;
@@ -64,13 +66,13 @@ type
 
   type
 
-{$ifdef linux}
+{$ifdef X}
      EGLNativeDisplayType = PDisplay;
 
      EGLNativeWindowType = TWindow;
 
      EGLNativePixmapType = TPixmap;
-{$else linux}
+{$else X}
 {$ifdef windows}
      EGLNativeDisplayType = HDC;
 
@@ -78,13 +80,19 @@ type
 
      EGLNativePixmapType = HBITMAP;
 {$else windows}
-     EGLNativeDisplayType = ptrint;
+     TNativeDisplayType = record
+     { Opaque }
+     end;
+
+     PNativeDisplayType = ^TNativeDisplayType;
+
+     EGLNativeDisplayType = PNativeDisplayType;
 
      EGLNativeWindowType = pointer;
 
      EGLNativePixmapType = pointer;
 {$endif windows}
-{$endif linux}
+{$endif X}
 
      EGLBoolean = dword;
 
@@ -101,59 +109,59 @@ type
   { EGL Versioning  }
 
   const
-     EGL_VERSION_1_0 = 1;     
-     EGL_VERSION_1_1 = 1;     
-     EGL_VERSION_1_2 = 1;     
-     EGL_VERSION_1_3 = 1;     
-     EGL_VERSION_1_4 = 1;     
+     EGL_VERSION_1_0 = 1;
+     EGL_VERSION_1_1 = 1;
+     EGL_VERSION_1_2 = 1;
+     EGL_VERSION_1_3 = 1;
+     EGL_VERSION_1_4 = 1;
   { EGL Enumerants. Bitmasks and other exceptional cases aside, most
    * enums are assigned unique values starting at 0x3000.
     }
   { EGL aliases  }
-     EGL_FALSE = 0;     
-     EGL_TRUE = 1;     
+     EGL_FALSE = 0;
+     EGL_TRUE = 1;
   { Out-of-band handle values  }
   { was #define dname def_expr }
-  function EGL_DEFAULT_DISPLAY : EGLNativeDisplayType;    
+  function EGL_DEFAULT_DISPLAY : EGLNativeDisplayType;
 
   { was #define dname def_expr }
-  function EGL_NO_CONTEXT : EGLContext;    
+  function EGL_NO_CONTEXT : EGLContext;
 
   { was #define dname def_expr }
-  function EGL_NO_DISPLAY : EGLDisplay;    
+  function EGL_NO_DISPLAY : EGLDisplay;
 
   { was #define dname def_expr }
-  function EGL_NO_SURFACE : EGLSurface;    
+  function EGL_NO_SURFACE : EGLSurface;
 
   { Out-of-band attribute value  }
   { was #define dname def_expr }
-  function EGL_DONT_CARE : EGLint;    
+  function EGL_DONT_CARE : EGLint;
 
   { Errors / GetError return values  }
 
   const
-     EGL_SUCCESS = $3000;     
-     EGL_NOT_INITIALIZED = $3001;     
-     EGL_BAD_ACCESS = $3002;     
-     EGL_BAD_ALLOC = $3003;     
-     EGL_BAD_ATTRIBUTE = $3004;     
-     EGL_BAD_CONFIG = $3005;     
-     EGL_BAD_CONTEXT = $3006;     
-     EGL_BAD_CURRENT_SURFACE = $3007;     
-     EGL_BAD_DISPLAY = $3008;     
-     EGL_BAD_MATCH = $3009;     
-     EGL_BAD_NATIVE_PIXMAP = $300A;     
-     EGL_BAD_NATIVE_WINDOW = $300B;     
-     EGL_BAD_PARAMETER = $300C;     
-     EGL_BAD_SURFACE = $300D;     
+     EGL_SUCCESS = $3000;
+     EGL_NOT_INITIALIZED = $3001;
+     EGL_BAD_ACCESS = $3002;
+     EGL_BAD_ALLOC = $3003;
+     EGL_BAD_ATTRIBUTE = $3004;
+     EGL_BAD_CONFIG = $3005;
+     EGL_BAD_CONTEXT = $3006;
+     EGL_BAD_CURRENT_SURFACE = $3007;
+     EGL_BAD_DISPLAY = $3008;
+     EGL_BAD_MATCH = $3009;
+     EGL_BAD_NATIVE_PIXMAP = $300A;
+     EGL_BAD_NATIVE_WINDOW = $300B;
+     EGL_BAD_PARAMETER = $300C;
+     EGL_BAD_SURFACE = $300D;
   { EGL 1.1 - IMG_power_management  }
-     EGL_CONTEXT_LOST = $300E;     
+     EGL_CONTEXT_LOST = $300E;
   { Reserved 0x300F-0x301F for additional errors  }
   { Config attributes  }
-     EGL_BUFFER_SIZE = $3020;     
-     EGL_ALPHA_SIZE = $3021;     
-     EGL_BLUE_SIZE = $3022;     
-     EGL_GREEN_SIZE = $3023;     
+     EGL_BUFFER_SIZE = $3020;
+     EGL_ALPHA_SIZE = $3021;
+     EGL_BLUE_SIZE = $3022;
+     EGL_GREEN_SIZE = $3023;
      EGL_RED_SIZE = $3024;     
      EGL_DEPTH_SIZE = $3025;     
      EGL_STENCIL_SIZE = $3026;     

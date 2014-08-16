@@ -1491,8 +1491,8 @@ begin
   Inc(R.A.Y,3); Inc(R.B.Y,3);
   if AOptions and fdHelpButton <> 0 then
   begin
-    Insert(New(PButton, Init(R,slHelp,cmHelp, bfNormal)));
-    Inc(R.A.Y,3); Inc(R.B.Y,3);
+    //Insert(New(PButton, Init(R,slHelp,cmHelp, bfNormal)));
+    //Inc(R.A.Y,3); Inc(R.B.Y,3);
   end;
 
   R.Assign(1,16,48,18);
@@ -2005,8 +2005,8 @@ begin
   Insert(New(PButton, Init(R,slRevert, cmRevert, bfNormal)));
   if AOptions and cdHelpButton <> 0 then
   begin
-    Inc(R.A.Y,3); Inc(R.B.Y,3);
-    Insert(New(PButton, Init(R,slHelp, cmHelp, bfNormal)));
+    //Inc(R.A.Y,3); Inc(R.B.Y,3);
+    //Insert(New(PButton, Init(R,slHelp, cmHelp, bfNormal)));
   end;
 
   if AOptions and cdNoLoadDir = 0 then SetUpDialog;

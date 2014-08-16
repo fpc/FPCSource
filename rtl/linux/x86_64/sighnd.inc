@@ -22,9 +22,11 @@ const
 function GetFPUState(const SigContext : TSigContext) : word;
   begin
     if assigned(SigContext.fpstate) then
-      GetfpuState:=SigContext.fpstate^.swd;
+      GetfpuState:=SigContext.fpstate^.swd
+    else
+      GetFPUState:=0;
   {$ifdef SYSTEM_DEBUG}
-    writeln('xx:',sigcontext.en_tw,' ',sigcontext.en_cw);
+    writeln('xx:',sigcontext.twd,' ',sigcontext.cwd);
   {$endif SYSTEM_DEBUG}
   {$ifdef SYSTEM_DEBUG}
     Writeln(stderr,'FpuState = ',result);
@@ -55,10 +57,8 @@ procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigCon
                 res:=206
               else if (FpuState and FPU_Denormal)<>0 then
                 res:=216
-              else if (FpuState and (FPU_StackOverflow or FPU_StackUnderflow))<>0 Then
+              else if (FpuState and (FPU_StackOverflow or FPU_StackUnderflow or FPU_Invalid))<>0 Then
                 res:=207
-              else if (FpuState and FPU_Invalid)<>0 then
-                res:=216
               else
                 res:=207;  {'Coprocessor Error'}
             end;

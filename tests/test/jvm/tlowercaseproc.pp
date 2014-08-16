@@ -13,6 +13,9 @@ type
   tc = class
    procedure MethodName;
    class procedure ClassMethodName; static;
+   procedure XToY; // should become xToY
+   procedure PREFIXThingToTest; // should become prefixThingToTest
+   procedure RC64Encode; // should become rc64Encode;
   end;
 
 implementation
@@ -35,6 +38,18 @@ end;
 class procedure tc.ClassMethodName; static;
 begin
   doit;
+end;
+
+procedure tc.xtoy;
+begin
+end;
+
+procedure tc.PREFIXThingToTest;
+begin
+end;
+
+procedure tc.RC64Encode;
+begin
 end;
 
 end.

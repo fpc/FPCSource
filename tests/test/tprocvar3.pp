@@ -8,6 +8,9 @@
 {$endif}
 
 Type
+{$ifndef fpc}
+  CodePointer = Pointer;
+{$endif}
   TMyRecord = Record
     MyProc1,MyProc2 : Procedure(l : longint);
     MyVar : longint;
@@ -25,11 +28,11 @@ var
 
 type
    tpoo_rec = record
-      procpointer : pointer;
+      procpointer : codepointer;
       s : pointer;
    end;
 
-procedure callmethodparam(s : pointer;addr : pointer;param : longint);
+procedure callmethodparam(s : pointer;addr : codepointer;param : longint);
 
   var
      p : procedure(param : longint) of object;
@@ -59,7 +62,7 @@ type
 
  procedure to1.test1;
    var
-      p:pointer;
+      p:codepointer;
    begin
       // useless only a semantic test
       p:=@to1.test1;
@@ -90,7 +93,7 @@ type
    end;
 
 const
-   constmethodaddr : pointer = @to1.test2;
+   constmethodaddr : codepointer = @to1.test2;
    MyRecord : TMyRecord = (
      MyProc1 : TestProc;
      MyProc2 : TestProc;

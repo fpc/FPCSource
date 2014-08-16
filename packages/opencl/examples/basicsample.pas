@@ -92,18 +92,38 @@ var
   gpu   : cl_device_type;
 
   tmpd  : single;
+  platformids : Pcl_platform_id;
+  num_platforms : cl_uint;
+  
 begin
   // Fill our data set with random float values
   count := DATA_SIZE;
   for i:=0 to count - 1 do
     data[i]:= random;
 
+  err:=clGetPlatformIDs(0,nil,@num_platforms);
+  Writeln('clGetPlatformIDs ', num_platforms);
+  if (err <> CL_SUCCESS) then
+  begin
+      writeln('Error: Cannot get number of platforms!');
+      Halt(1);
+  end;
+
+  getmem(platformids,num_platforms*sizeof(cl_platform_id));
+
+  err := clGetPlatformIDs(num_platforms, platformids, nil);
+
+  if (err <> CL_SUCCESS) then begin
+      Writeln('Error: Failed to platforms!');
+      Halt($FF);
+  end;
+
   // Connect to a compute device
   // change CL_DEVICE_TYPE_CPU to CL_DEVICE_TYPE_GPU is you have powerful video (GeForce 8800/8600M or higher)
   gpu := CL_DEVICE_TYPE_GPU;
 
   device_id:=nil;
-  err := clGetDeviceIDs(nil, gpu, 1, @device_id, nil);
+  err := clGetDeviceIDs(platformids[0], gpu, 1, @device_id, nil);
   writeln('clGetDeviceIDs ', err);
   if (err <> CL_SUCCESS) then begin
     Writeln('Error: Failed to create a device group!');

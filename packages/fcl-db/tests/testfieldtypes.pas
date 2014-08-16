@@ -84,10 +84,12 @@ type
     procedure TestDateTimeParamQuery;
     procedure TestFmtBCDParamQuery;
     procedure TestFloatParamQuery;
+    procedure TestCurrencyParamQuery;
     procedure TestBCDParamQuery;
     procedure TestBytesParamQuery;
     procedure TestVarBytesParamQuery;
     procedure TestBooleanParamQuery;
+    procedure TestBlobParamQuery;
 
     procedure TestSetBlobAsMemoParam;
     procedure TestSetBlobAsBlobParam;
@@ -169,7 +171,7 @@ const
 
   testBlobValuesCount = 6;
   testBlobValues : Array[0..testBlobValuesCount-1] of ansistring = (
-    'Test deze Blob',    // common value
+    'Test this Blob',    // common value
     '',                  // empty value
     'a'#0'b'#13#10#1'c', // binary data
     '''":a',             // single quotes
@@ -256,6 +258,11 @@ begin
       datatype  := 'TINYINT UNSIGNED';
       fieldtype := ftWord;
       end;
+    ssOracle:
+      begin
+      datatype  := 'NUMBER(3)';
+      fieldtype := ftSmallint;
+      end;
     ssSQLite:
       begin
       datatype  := 'TINYINT';
@@ -299,7 +306,7 @@ const
   testValues4 : Array[0..testValuesCount-1] of currency = (-99.99,-12.34,-10.2,-10,-0.5,-0.01,0,0.01,0.5,10,10.2,12.34,99.99);
   testValues9 : Array[0..testValuesCount-1] of currency = (-123456.789,-10000,-1875.25,-10,-0.5,-0.001,0,0.001,0.5,10,1875.25,10000,123456.789);
   FieldTypes: array [0..7] of TFieldType = (ftBCD, ftBCD, ftBCD, ftFmtBCD, ftLargeInt, ftFmtBCD, ftFmtBCD, ftFmtBCD);
-  FieldSizes: array [0..7] of integer = (4,2,3,5,0,3,5,0); //scale
+  FieldSizes: array [0..7] of integer = (4,2,3,5,0,3,5,0); //scale for FieldTypes
 
 var
   i,d        : integer;
@@ -477,7 +484,7 @@ var
   i             : byte;
 
 begin
-  if SQLConnType<>postgresql then Ignore('This test does only apply to Postgres, since others don''t support varchars without length given');
+  if SQLServerType<>ssPostgreSQL then Ignore('This test only applies to Postgres, since others don''t support varchars without length given');
 
   CreateTableWithFieldType(ftString,'VARCHAR');
   TestFieldDeclaration(ftString,dsMaxStringSize+1);
@@ -597,57 +604,64 @@ begin
   CreateTableWithFieldType(ftBlob,FieldtypeDefinitions[ftBlob]);
   TestFieldDeclaration(ftBlob,0);
 
-  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''Test deze blob'')');
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''Test this blob'')');
 
   with TSQLDBConnector(DBConnector).Query do
     begin
     Open;
-    AssertEquals('Test deze blob',fields[0].AsString);
+    AssertEquals('Test this blob',fields[0].AsString);
     close;
     end;
 end;
 
 procedure TTestFieldTypes.TestChangeBlob;
-
 var s : string;
-
 begin
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID int,FT '+FieldtypeDefinitions[ftblob]+')');
   TSQLDBConnector(DBConnector).CommitDDL;
 
-  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (ID,FT) values (1,''Test deze blob'')');
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (ID,FT) values (1,''Test this blob'')');
 
   with TSQLDBConnector(DBConnector).Query do
     begin
     sql.clear;
     sql.add('select * from FPDEV2');
     Open;
-    fields[1].ProviderFlags := [pfInUpdate]; // blob niet in de where
+    AssertEquals('Test this blob', Fields[1].AsString);
+    Fields[1].ProviderFlags := [pfInUpdate]; // Blob is not in the where
     UpdateMode := upWhereAll;
 
-    AssertEquals('Test deze blob',fields[1].AsString);
-    edit;
-// Dat werkt niet lekker, omdat de stream vernield wordt...
-//    fields[0].asstring := 'Deze blob is gewijzigd!';
+    Edit;
+    s := 'This blob has changed!';
+    Fields[1].AsString := s;
+    AssertEquals(s, Fields[1].AsString); // test before Post
+    Cancel;
+    AssertEquals('After Cancel', 'Test this blob', Fields[1].AsString); // original value
 
-    With Createblobstream(fields[1],bmwrite) do
+    Append; // Blob is null
+    Fields[1].AsString := s; // Null flag must be unset
+    AssertEquals(s, Fields[1].AsString);
+    Fields[1].Clear;
+    AssertTrue('Clear', Fields[1].IsNull);
+    Cancel;
+
+    Edit;
+    With CreateBlobStream(Fields[1], bmWrite) do
       begin
-      s := 'Deze blob is gewijzigd!';
+      s := 'This blob has changed!';
       WriteBuffer(Pointer(s)^,Length(s));
-      post;
-      free;
+      Post;
+      Free;
       end;
-    AssertEquals('Deze blob is gewijzigd!',fields[1].AsString);
+    AssertEquals('After Post', s, Fields[1].AsString);
 
     ApplyUpdates(0);
-
     TSQLDBConnector(DBConnector).Transaction.CommitRetaining; // For debug-purposes
+    Close;
 
-    close;
-
-    open;
-    AssertEquals('Deze blob is gewijzigd!',fields[1].AsString);
-    close;
+    Open;
+    AssertEquals(s, Fields[1].AsString);
+    Close;
     end;
 end;
 
@@ -656,7 +670,7 @@ begin
   CreateTableWithFieldType(ftBlob,FieldtypeDefinitions[ftBlob]);
   TestFieldDeclaration(ftBlob,0);
 
-  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''Test deze blob'')');
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''Test this blob'')');
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (Null)');
 
   with TSQLDBConnector(DBConnector).Query do
@@ -664,7 +678,7 @@ begin
     Open;
     AssertFalse(fields[0].IsNull);
     AssertEquals('(BLOB)',fields[0].DisplayText);
-    AssertEquals('Test deze blob',fields[0].AsString);
+    AssertEquals('Test this blob',fields[0].AsString);
     Next;
     AssertTrue(fields[0].IsNull);
     AssertEquals('(blob)',fields[0].Text);
@@ -674,20 +688,21 @@ begin
 end;
 
 procedure TTestFieldTypes.TestBlobSize;
+const
+  TestValue: string = 'Test this blob';
 begin
   CreateTableWithFieldType(ftBlob,FieldtypeDefinitions[ftBlob]);
 
-  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''Test deze blob'')');
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values ('''+TestValue+''')');
 
   with TSQLDBConnector(DBConnector).Query do
     begin
     sql.text := 'select * from FPDEV2';
     Open;
-    AssertEquals(14,TBlobField(fields[0]).BlobSize);
+    AssertEquals(length(TestValue),TBlobField(fields[0]).BlobSize);
     close;
     end;
 end;
-
 
 procedure TTestFieldTypes.TestSQLFieldType(ADatatype : TFieldType; ASQLTypeDecl : string; ADataSize: integer; AGetSQLTextProc: TGetSQLTextProc; ACheckFieldValueProc: TCheckFieldValueProc);
 var
@@ -788,7 +803,7 @@ begin
     if SQLServerType = ssSQLite then
       testIntervalValuesCount := 6
     else if SQLServerType = ssMySQL then
-      // MySQL ODBC driver does not correctly handles time values >= '100:00:00'
+      // MySQL ODBC driver prior 5.2.6 doesn't correctly handles time values >= '100:00:00'
       testIntervalValuesCount := 5
     else
       testIntervalValuesCount := 3;
@@ -898,6 +913,8 @@ begin
     ssFirebird, ssInterbase,
     ssMySQL:
       datatype:='FLOAT';
+    ssOracle:
+      datatype:='BINARY_FLOAT';
     else
       datatype:='REAL';
   end;
@@ -923,46 +940,58 @@ begin
   with TSQLDBConnector(DBConnector).Query do
     begin
     Open;
-    AssertEquals(s,fields[0].AsString);
-    close;
+    AssertEquals(s,Fields[0].AsString);
+    Close;
     end;
 end;
 
 procedure TTestFieldTypes.TestInsertLargeStrFields;
 // See also: TestStringLargerThen8192
-const
-  FieldValue1='test1';
 var
-  FieldValue2: string;
+  FieldValues: array [1..4] of string;
+  i,l1,l2: integer;
 begin
-  FieldValue2:=StringOfChar('t', 16000);
+  FieldValues[1] := 'test1';                  // string length < 8192 (dsMaxStringSize)
+  FieldValues[2] := StringOfChar('a', 8192);  // string length = 8192 (dsMaxStringSize)
+  FieldValues[3] := StringOfChar('b', 16000); // string length > 8192 (dsMaxStringSize)
+  FieldValues[4] := StringOfChar('c', 17000); // string length > Field.Size
+
   with TSQLDBConnector(DBConnector) do
     begin
-    Connection.ExecuteDirect('create table FPDEV2 (  ' +
-                              '  ID INT NOT NULL ,   ' +
-                              '  NAME VARCHAR(16000),' +
-                              '  PRIMARY KEY (ID)    ' +
-                              ')                     ');
+    Connection.ExecuteDirect( 'create table FPDEV2 (' +
+                              '  ID INT NOT NULL , ' +
+                              '  F1 VARCHAR(8192), ' +
+                              '  F2 VARCHAR(16000),' +
+                              'primary key (ID) )');
     // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
     TSQLDBConnector(DBConnector).CommitDDL;
 
     query.sql.Text:='select * from FPDEV2';
     Query.Open;
-    Query.InsertRecord([1,FieldValue1]); // string length <= 8192 (dsMaxStringSize)
-    Query.InsertRecord([2,FieldValue2]); // string length >  8192 (dsMaxStringSize)
+    for i:=1 to high(FieldValues) do
+      Query.InsertRecord([i, FieldValues[i], FieldValues[i]]);
     Query.ApplyUpdates;
     Query.Close;
     Query.Open;
-    AssertEquals(FieldValue1, Query.FieldByName('NAME').AsString);
-    Query.Next;
-    AssertEquals(length(FieldValue2), length(Query.FieldByName('NAME').AsString));
-    AssertEquals(FieldValue2, Query.FieldByName('NAME').AsString);
+    for i:=1 to high(FieldValues) do
+      begin
+      l1:=length(FieldValues[i]);
+      if l1 > 8192  then l1 := 8192;
+      l2:=length(FieldValues[i]);
+      if l2 > 16000 then l2 := 16000;
+
+      AssertEquals(l1, length(Query.FieldByName('F1').AsString));
+      AssertEquals(l2, length(Query.FieldByName('F2').AsString));
+      AssertEquals(copy(FieldValues[i],1,l1), Query.FieldByName('F1').AsString);
+      AssertEquals(copy(FieldValues[i],1,l2), Query.FieldByName('F2').AsString);
+      Query.Next;
+      end;
     Query.Close;
     end;
 end;
 
 procedure TTestFieldTypes.TestLargeRecordSize;
-
+// probably tests situation, where total record size > 64K (TDataSet.RecordSize returns word value)
 begin
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (plant varchar(8192),sampling_type varchar(8192),area varchar(8192), area_description varchar(8192), batch varchar(8192), sampling_datetime timestamp, status varchar(8192), batch_commentary varchar(8192))');
 
@@ -1189,8 +1218,8 @@ begin
     with query do
       begin
       SQL.Text:='select NAME from FPDEV where ID<5';
-      sql.Add('union');
-      sql.Add('select NAME from FPDEV where ID>5');
+      SQL.Add('union');
+      SQL.Add('select NAME from FPDEV where ID>5');
       Open;
       close;
       end;
@@ -1201,7 +1230,7 @@ procedure TTestFieldTypes.TestClearUpdateableStatus;
 // Test if CanModify is correctly disabled in case of a select query without
 // a from-statement.
 begin
-  if not (SQLServerType in [ssMySQL]) then Ignore('This test does only apply to MySQL because the used SQL-statement is MySQL only.');
+  if not (SQLServerType in [ssMySQL]) then Ignore('This test only applies to MySQL because the used SQL-statement is MySQL only.');
   with TSQLDBConnector(DBConnector) do
     begin
     with (GetNDataset(false,5) as TSQLQuery) do
@@ -1221,7 +1250,6 @@ procedure TTestFieldTypes.TestReadOnlyParseSQL;
 begin
   with TSQLDBConnector(DBConnector) do
     begin
-
     GetFieldDataset(True);
     with query do
       begin
@@ -1253,7 +1281,7 @@ begin
       edit;
       FieldByName('ID').AsInteger:=321;
       post;
-      Applyupdates;
+      ApplyUpdates;
       close;
 
       // If ParseSQL is true, but the supplied query isn't updateable, then
@@ -1282,7 +1310,7 @@ begin
       AssertTrue(CanModify);
       edit;
       post;
-      Applyupdates;
+      ApplyUpdates;
       close;
 
       // Also if ParseSQL is False, the query should be updateable if a update-
@@ -1296,9 +1324,9 @@ begin
       AssertFalse(ReadOnly);
       AssertTrue(CanModify);
       edit;
-      FieldByName('ID').AsInteger:=1;
+      FieldByName('ID').AsInteger:=1; // field "ID" from UNION can be marked as ReadOnly
       post;
-      Applyupdates;
+      ApplyUpdates;
       close;
 
       // But if ReadOnly is true, then CanModify should always be false
@@ -1320,9 +1348,9 @@ begin
   with TSQLDBConnector(DBConnector).Query do
     begin
     SQL.Clear;
-    SQL.Add('select * from FPDEV where name=''test '''' and :ThisIsNotAParameter  ''');
-    open;
-    close;
+    SQL.Add('select * from FPDEV where NAME=''test '''' and :ThisIsNotAParameter ''');
+    Open;
+    Close;
     end;
 end;
 
@@ -1334,12 +1362,12 @@ begin
   with ds do
     begin
     AFld1 := TIntegerField.Create(ds);
-    AFld1.FieldName := 'ID';
+    AFld1.FieldName := IdentifierCase('ID');
     AFld1.DataSet := ds;
     AFld1.ProviderFlags := AFld1.ProviderFlags + [pfInKey];
 
     AFld2 := TStringField.Create(ds);
-    AFld2.FieldName := 'NAME';
+    AFld2.FieldName := IdentifierCase('NAME');
     AFld2.DataSet := ds;
 
     AFld3 := TIntegerField.Create(ds);
@@ -1379,33 +1407,33 @@ begin
   with TSQLDBConnector(DBConnector).Query do
     begin
     sql.clear;
-    sql.append('insert into FPDEV2 (field1) values (:field1)');
+    sql.append('insert into FPDEV2 (FIELD1) values (:field1)');
     Params.ParamByName('field1').AsInteger := 1;
     ExecSQL;
 
     sql.clear;
-    sql.append('insert into FPDEV2 (field1,field2,decoy) values (:field1,:field2,'''+DecoyFieldData1+''')');
+    sql.append('insert into FPDEV2 (FIELD1,FIELD2,DECOY) values (:field1,:field2,'''+DecoyFieldData1+''')');
     Params.ParamByName('field1').AsInteger := 2;
     Params.ParamByName('field2').DataType := ftInteger;
     Params.ParamByName('field2').Value := Null;
     ExecSQL;
 
     sql.clear;
-    sql.append('insert into FPDEV2 (field1,field2,field3) values (:field1,:field2,:field3)');
+    sql.append('insert into FPDEV2 (FIELD1,FIELD2,FIELD3) values (:field1,:field2,:field3)');
     Params.ParamByName('field1').AsInteger := 3;
     Params.ParamByName('field2').AsInteger := 2;
     Params.ParamByName('field3').AsInteger := 3;
     ExecSQL;
 
     sql.clear;
-    sql.append('insert into FPDEV2 (field1,field2,field3,decoy) values (:field1,:field2,:field3,'''+DecoyFieldData2+''')');
+    sql.append('insert into FPDEV2 (FIELD1,FIELD2,FIELD3,DECOY) values (:field1,:field2,:field3,'''+DecoyFieldData2+''')');
     Params.ParamByName('field1').AsInteger := 4;
     Params.ParamByName('field2').AsInteger := 2;
     Params.ParamByName('field3').AsInteger := 3;
     ExecSQL;
 
     sql.clear;
-    sql.append('insert into FPDEV2 (field1,field2,field3) values (:field1,:field2,:field1)');
+    sql.append('insert into FPDEV2 (FIELD1,FIELD2,FIELD3) values (:field1,:field2,:field1)');
     Params.ParamByName('field1').AsInteger := 5;
     Params.ParamByName('field2').AsInteger := 2;
     ExecSQL;
@@ -1489,6 +1517,11 @@ begin
   TestXXParamQuery(ftFloat,FieldtypeDefinitions[ftFloat],testFloatValuesCount);
 end;
 
+procedure TTestFieldTypes.TestCurrencyParamQuery;
+begin
+  TestXXParamQuery(ftCurrency,FieldtypeDefinitions[ftCurrency],testValuesCount);
+end;
+
 procedure TTestFieldTypes.TestBCDParamQuery;
 begin
   TestXXParamQuery(ftBCD,'NUMERIC(10,4)',testBCDValuesCount);
@@ -1507,6 +1540,11 @@ end;
 procedure TTestFieldTypes.TestBooleanParamQuery;
 begin
   TestXXParamQuery(ftBoolean, FieldtypeDefinitions[ftBoolean], testValuesCount);
+end;
+
+procedure TTestFieldTypes.TestBlobParamQuery;
+begin
+  TestXXParamQuery(ftBlob, FieldtypeDefinitions[ftBlob], testBlobValuesCount);
 end;
 
 procedure TTestFieldTypes.TestStringParamQuery;
@@ -1540,7 +1578,7 @@ begin
     sql.append('insert into FPDEV2 (ID,FIELD1) values (:id,:field1)');
 
     // There is no Param.AsFixedChar, so the datatype has to be set manually
-    if ADatatype=ftFixedChar then
+    if ADataType=ftFixedChar then
       Params.ParamByName('field1').DataType := ftFixedChar;
 
     for i := 0 to testValuesCount -1 do
@@ -1548,28 +1586,30 @@ begin
       Params.ParamByName('id').AsInteger := i;
       case ADataType of
         ftSmallInt: Params.ParamByName('field1').AsSmallInt := testSmallIntValues[i];
-        ftInteger: Params.ParamByName('field1').AsInteger := testIntValues[i];
+        ftInteger : Params.ParamByName('field1').AsInteger := testIntValues[i];
         ftLargeInt: Params.ParamByName('field1').AsLargeInt := testLargeIntValues[i];
-        ftBoolean: Params.ParamByName('field1').AsBoolean := testBooleanValues[i];
-        ftFloat  : Params.ParamByName('field1').AsFloat   := testFloatValues[i];
-        ftBCD    : Params.ParamByName('field1').AsCurrency:= testBCDValues[i];
+        ftBoolean : Params.ParamByName('field1').AsBoolean := testBooleanValues[i];
+        ftFloat   : Params.ParamByName('field1').AsFloat   := testFloatValues[i];
+        ftCurrency: Params.ParamByName('field1').AsCurrency:= testCurrencyValues[i];
+        ftBCD     : Params.ParamByName('field1').AsBCD     := testBCDValues[i];
         ftFixedChar,
-        ftString : Params.ParamByName('field1').AsString  := testValues[ADataType,i];
-        ftTime   : Params.ParamByName('field1').AsTime    := TimeStringToDateTime(testTimeValues[i]);
-        ftDate   : if cross then
-                     Params.ParamByName('field1').AsString:= testDateValues[i]
+        ftString  : Params.ParamByName('field1').AsString  := testValues[ADataType,i];
+        ftTime    : Params.ParamByName('field1').AsTime    := TimeStringToDateTime(testTimeValues[i]);
+        ftDate    : if cross then
+                      Params.ParamByName('field1').AsString:= testDateValues[i]
                    else
-                     Params.ParamByName('field1').AsDate := StrToDate(testDateValues[i],'yyyy/mm/dd','-');
-        ftDateTime:Params.ParamByName('field1').AsDateTime := StrToDateTime(testValues[ADataType,i], DBConnector.FormatSettings);
-        ftFMTBcd : Params.ParamByName('field1').AsFMTBCD := StrToBCD(testFmtBCDValues[i],DBConnector.FormatSettings);
-        ftBytes  : if cross then
-                     Params.ParamByName('field1').Value := StringToByteArray(testBytesValues[i])
-                   else
-                     Params.ParamByName('field1').AsBlob := testBytesValues[i];
-        ftVarBytes:if cross then
-                     Params.ParamByName('field1').AsString := testBytesValues[i]
-                   else
-                     Params.ParamByName('field1').AsBlob := testBytesValues[i];
+                      Params.ParamByName('field1').AsDate := StrToDate(testDateValues[i],'yyyy/mm/dd','-');
+        ftDateTime: Params.ParamByName('field1').AsDateTime := StrToDateTime(testValues[ADataType,i], DBConnector.FormatSettings);
+        ftFMTBcd  : Params.ParamByName('field1').AsFMTBCD := StrToBCD(testFmtBCDValues[i], DBConnector.FormatSettings);
+        ftBlob    : Params.ParamByName('field1').AsBlob := testBlobValues[i];
+        ftBytes   : if cross then
+                      Params.ParamByName('field1').Value := StringToByteArray(testBytesValues[i])
+                    else
+                      Params.ParamByName('field1').AsBytes := StringToBytes(testBytesValues[i]);
+        ftVarBytes: if cross then
+                      Params.ParamByName('field1').AsString := testBytesValues[i]
+                    else
+                      Params.ParamByName('field1').AsBytes := StringToBytes(testBytesValues[i]);
       else
         AssertTrue('no test for paramtype available',False);
       end;
@@ -1595,6 +1635,7 @@ begin
         ftLargeInt : AssertEquals(testLargeIntValues[i],FieldByName('FIELD1').AsLargeInt);
         ftBoolean  : AssertEquals(testBooleanValues[i],FieldByName('FIELD1').AsBoolean);
         ftFloat    : AssertEquals(testFloatValues[i],FieldByName('FIELD1').AsFloat);
+        ftCurrency : AssertEquals(testCurrencyValues[i],FieldByName('FIELD1').AsFloat,0); // TCurrencyField uses double data type (not currency) to store values!
         ftBCD      : AssertEquals(testBCDValues[i],FieldByName('FIELD1').AsCurrency);
         ftFixedChar : AssertEquals(PadRight(testStringValues[i],10),FieldByName('FIELD1').AsString);
         ftString   : AssertEquals(testStringValues[i],FieldByName('FIELD1').AsString);
@@ -1602,6 +1643,7 @@ begin
         ftDate     : AssertEquals(testDateValues[i],DateTimeToStr(FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
         ftDateTime : AssertEquals(testValues[ADataType,i], DateTimeToStr(FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
         ftFMTBcd   : AssertEquals(testFmtBCDValues[i], BCDToStr(FieldByName('FIELD1').AsBCD, DBConnector.FormatSettings));
+        ftBlob     : AssertEquals(testBlobValues[i], FieldByName('FIELD1').AsString);
         ftVarBytes,
         ftBytes    : AssertEquals(testBytesValues[i], shortstring(FieldByName('FIELD1').AsString));
       else
@@ -1652,7 +1694,7 @@ end;
 
 procedure TTestFieldTypes.TestSetBlobAsMemoParam;
 begin
-  // Firebird/Interbase ODBC driver : if parameter of ValueType=SQL_C_CHAR is bind to BLOB column
+  // Firebird/Interbase ODBC driver : if parameter of ValueType=SQL_C_CHAR is bound to BLOB column
   // driver interprets character data as hexadecimal string and performs conversion ('FF10'=#255#16)
   TestSetBlobAsParam(0);
 end;
@@ -1721,20 +1763,20 @@ begin
   // for the parameter was used.
 
   // To make sure that any changes are cancelled in the case the test fails
-  TSQLDBConnector(DBConnector).GetNDataset(true,5);
+  TSQLDBConnector(DBConnector).GetNDataset(True,1);
 
   ASQLQuery := TSQLDBConnector(DBConnector).Query;
-  ASQLQuery.SQL.text := 'update fpdev set ID=:ID1 where id = :ID2';
+  ASQLQuery.SQL.Text := 'update fpdev set ID=:ID1 where id = :ID2';
   ASQLQuery.Params[0].Clear;
   ASQLQuery.Params[1].AsInteger := 1;
   AssertTrue(ASQLQuery.Params[0].IsNull);
-  Passed:=False;
+  Passed := False;
   try
-    @ASQLQuery.ExecSQL;
+    ASQLQuery.ExecSQL;
   except
     on E: Exception do
       if E.ClassType.InheritsFrom(EDatabaseError) then
-        Passed := true;
+        Passed := True;
   end;
   AssertTrue(Passed);
 end;
@@ -1744,7 +1786,7 @@ procedure TTestFieldTypes.TestParametersAndDates;
 var ADateStr : String;
 begin
   if not(SQLServerType in [ssPostgreSQL, ssOracle]) then
-    Ignore('This test does not apply to this sqldb-connection type, since it doesn''t use semicolons for casts');
+    Ignore('This test does not apply to this sqldb connection type, since it doesn''t use semicolons for casts');
 
   with TSQLDBConnector(DBConnector).Query do
     begin
@@ -1806,7 +1848,7 @@ begin
         end;
       else
         begin
-        Ignore('This test does not apply to this sqldb-connection type, since it does not support selectable stored procedures.');
+        Ignore('This test does not apply to this sqldb connection type, since it does not support selectable stored procedures.');
         Exit;
         end;
     end;
@@ -1980,8 +2022,8 @@ begin
     Close;
 
     // tests parsing SELECT with quoted identifiers (MySQL requires sql-mode=ANSI_QUOTES)
-    SQL.Text:='SELECT"ID"FROM"FPDEV"ORDER BY"ID"';
-    if SQLServerType in [ssPostgreSQL] then SQL.Text:=lowercase(SQL.Text); // The folding of unquoted names to lower case in PostgreSQL is incompatible with the SQL standard
+    // The folding of unquoted names to lower case in PostgreSQL is incompatible with the SQL standard
+    SQL.Text:=IdentifierCase('SELECT"ID"FROM"FPDEV"ORDER BY"ID"');
     Open;
     CheckTrue(CanModify, SQL.Text);
     Close;
@@ -2093,8 +2135,8 @@ begin
   AFldName:=Adataset.Fields[1];
   for i := 1 to 5 do
     begin
-    AssertEquals(i,AFldID.asinteger);
-    AssertEquals('TestName'+inttostr(i),AFldName.asstring);
+    AssertEquals(i, AFldID.AsInteger);
+    AssertEquals('TestName'+inttostr(i), AFldName.AsString);
     ADataset.Next;
     end;
 
@@ -2107,11 +2149,11 @@ begin
   ADataset.First;
   for i := 1 to 5 do
     begin
-    AssertEquals(i,AFldID.AsInteger);
+    AssertEquals('ID', i, AFldID.AsInteger);
     if i = 2 then
-      AssertEquals('test',AFldName.AsString)
+      AssertEquals('NAME', 'test', AFldName.AsString)
     else
-      AssertEquals('TestName'+inttostr(i),AFldName.AsString);
+      AssertEquals('NAME', 'TestName'+inttostr(i), AFldName.AsString);
     ADataset.Next;
     end;
   ADataset.Next;
@@ -2253,18 +2295,18 @@ end;
 
 procedure TTestFieldTypes.TestEmptyUpdateQuery;
 begin
-  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('update FPDEV set name=''nothing'' where (1=0)');
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('update FPDEV set NAME=''nothing'' where (1=0)');
 end;
 
 procedure TTestFieldTypes.TestTemporaryTable;
 begin
   // Tests rev.6481: "Do not use a new connection for every statement that is executed";
-  if SQLServerType in [ssMSSQL, ssSybase] then Ignore('This test does not apply to this sqldb-connection type, since it doesn''t support temporary tables');
+  if SQLServerType in [ssMSSQL, ssSybase] then Ignore('This test does not apply to this sqldb connection type, since it doesn''t support temporary tables');
 
   with TSQLDBConnector(DBConnector).Query do
     begin
     SQL.Clear;
-    if SQLServerType in [ssFirebird, ssInterbase] then
+    if SQLServerType in [ssFirebird, ssInterbase, ssOracle] then
       // Global temporary table: introduced in Firebird 2.1
       // has persistent metadata; data is per transaction (default) or per connection
       SQL.Add('CREATE GLOBAL TEMPORARY TABLE FPDEV_TEMP (id int)')
@@ -2283,7 +2325,7 @@ begin
       Close;
     finally
       // For Firebird/Interbase, we need to explicitly delete the table as well (it's active within the transaction)
-      if SQLServerType in [ssFirebird, ssInterbase] then
+      if SQLServerType in [ssFirebird, ssInterbase, ssOracle] then
         begin
         SQL.Text := 'DROP TABLE FPDEV_TEMP';
         ExecSQL;
@@ -2339,12 +2381,12 @@ end;
 procedure TTestFieldTypes.SetUp;
 begin
   InitialiseDBConnector;
-  DBConnector.StartTest;
+  DBConnector.StartTest(TestName);
 end;
 
 procedure TTestFieldTypes.TearDown;
 begin
-  DBConnector.StopTest;
+  DBConnector.StopTest(TestName);
   if assigned(DBConnector) then
     TSQLDBConnector(DBConnector).Transaction.Rollback;
   FreeDBConnector;
@@ -2358,5 +2400,7 @@ end;
 
 
 initialization
-  if uppercase(dbconnectorname)='SQL' then RegisterTest(TTestFieldTypes);
+  // Only test if using sqldb
+  if uppercase(dbconnectorname)='SQL' then
+    RegisterTest(TTestFieldTypes);
 end.

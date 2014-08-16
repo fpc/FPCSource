@@ -57,12 +57,13 @@ procedure main_stub; assembler; nostackframe;
     // stack alignment
     pushq	%rax
 
-    movq    %rax,fpc_ret
-    movq    %rbp,fpc_ret_rbp
+    movq    %rax,fpc_ret(%rip)
+    movq    %rbp,fpc_ret_rbp(%rip)
     pushq   %rax
 
     { Save initial stackpointer }
-    movq    %rsp,__stkptr
+    movq    initialstkptr@GOTPCREL(%rip),%rax
+    movq    %rsp,(%rax)
 
     { start the program }
     xorq    %rbp,%rbp
@@ -71,9 +72,8 @@ procedure main_stub; assembler; nostackframe;
   end;
 
 
-procedure ini_dummy; assembler; nostackframe
-  asm
-    ret
+procedure ini_dummy;
+  begin
   end;
 
 {******************************************************************************
@@ -105,14 +105,17 @@ procedure _FPC_libc_start; assembler; nostackframe; public name '_start';
     popq %rsi               { Pop the argument count.  }
     movq %rsp, %rdx         { argv starts just at the current stack top.  }
 
-    movq %rsi,operatingsystem_parameter_argc
-    movq %rsp,operatingsystem_parameter_argv   { argv starts just at the current stack top.  }
+    movq operatingsystem_parameter_argc@GOTPCREL(%rip),%rax
+    movq %rsi,(%rax)
+    movq operatingsystem_parameter_argv@GOTPCREL(%rip),%rax
+    movq %rsp,(%rax)
     leaq 8(,%rsi,8),%rax
     addq %rsp,%rax
-    movq %rax,operatingsystem_parameter_envp
+    movq operatingsystem_parameter_envp@GOTPCREL(%rip),%rcx
+    movq %rax,(%rcx)
 
     { Align the stack to a 16 byte boundary to follow the ABI.  }
-    andq  $~15, %rsp
+    andq  $0xfffffffffffffff0, %rsp
 
     pushq %rax              { Push garbage because we push 8 more bytes.  }
 
@@ -135,6 +138,7 @@ procedure _FPC_libc_start; assembler; nostackframe; public name '_start';
     { We need this stuff to make gdb behave itself, otherwise
       gdb will chokes with SIGILL when trying to debug apps.
     }
+(*
     .section ".note.ABI-tag", "a"
     .align 4
     .long 1f - 0f
@@ -145,17 +149,16 @@ procedure _FPC_libc_start; assembler; nostackframe; public name '_start';
 2:  .long 0
     .long 2,4,0
 3:  .align 4
-
-    .section	.note.GNU-stack,"",@progbits
+ *)
   end;
 
 
 procedure _FPC_libc_haltproc; assembler; nostackframe; public name '_haltproc';
   asm
-    movzwq    operatingsystem_result,%rax { load and save exitcode }
+    movq      ExitCode@GOTPCREL(%rip),%rax
+    movzwq    (%rax),%rax { load and save exitcode }
 
-    movq ___fpc_ret,%rdx         { return to libc }
-    movq ___fpc_ret_rbp,%rbp
+    movq fpc_ret(%rip),%rdx         { return to libc }
+    movq fpc_ret_rbp(%rip),%rbp
     pushq %rdx
-    ret
   end;

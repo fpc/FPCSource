@@ -26,7 +26,7 @@ end;
 
 function JclAddExceptNotifier(const NotifyMethod: TJclExceptNotifyMethod): Boolean; overload;
 var
-  p : pointer;
+  p : codepointer;
 begin
   p:=@NotifyMethod;
 end;

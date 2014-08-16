@@ -553,9 +553,6 @@ begin
   i := ABounds[0];
   j := ABounds[1];
   k := j - i + 1;
-  if ( k < 0 ) then begin
-    Error('Invalid array bounds.');
-  end;
   typData := AItemTypeInfo;
   if not Assigned(typData) then begin
     Error('Typeinfo not provided.');

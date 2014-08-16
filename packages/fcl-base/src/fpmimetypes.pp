@@ -28,13 +28,12 @@ Type
   TMimeType = Class(TObject)
   private
     FExtensions: String;
-    FExtentions: String;
     FMimeType: String;
   Public
     Constructor Create(Const AMimeType,AExtensions : String);
     Procedure MergeExtensions(AExtensions : String);
     Property MimeType : String Read FMimeType Write FMimeType;
-    Property Extensions : String Read FExtensions Write FExtentions;
+    Property Extensions : String Read FExtensions Write FExtensions;
   end;
 
   { TFPMimeTypes }
@@ -266,7 +265,9 @@ Var
 begin
   T:=FindMimeByType(AMimeType);
   if Assigned(T) then
-    Result:=T.Extensions;
+    Result:=T.Extensions
+  else
+    Result:='';
 end;
 
 function TFPMimeTypes.GetMimeType(const AExtension: String): String;
@@ -276,7 +277,9 @@ Var
 begin
   T:=FindMimeByExt(AExtension);
   if Assigned(T) then
-    Result:=T.MimeType;
+    Result:=T.MimeType
+  else
+    Result:='';
 end;
 
 function TFPMimeTypes.GetKnownMimeTypes(AList: TStrings): Integer;

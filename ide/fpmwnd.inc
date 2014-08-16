@@ -78,7 +78,7 @@ begin
     hcCalcWindow   : S:=PCalculator(P)^.GetTitle(MaxLen);
     hcBrowserWindow: S:=PBrowserWindow(P)^.GetTitle(MaxLen);
     hcCompilerMessagesWindow,
-    hcMessagesWindow:S:=PMessagesWindow(P)^.GetTitle(MaxLen);
+    hcMessagesWindow:S:=PFPWindow(P)^.GetTitle(MaxLen);
     hcGDBWindow,
     hcDisassemblyWindow,
     hcWatchesWindow,

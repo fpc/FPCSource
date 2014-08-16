@@ -19,7 +19,7 @@ begin
        writeln(s);
        halt(1);
      end;
-   str(d,s);
+   str(d:22,s);
    if sizeof(extended) > 8 then
      s1 := ' 5.16856850000000E+006'
    else

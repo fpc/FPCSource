@@ -20,6 +20,7 @@ begin
     P.OSes := [freebsd,linux,win32];
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
+    P.Dependencies.Add('rtl-objpas');
 
   T:=P.Targets.AddUnit('xml2.pas');
   with T.Dependencies do

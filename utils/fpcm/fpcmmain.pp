@@ -138,14 +138,14 @@ interface
         { wince    }( true,  false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false),
         { gba    }  ( false, false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false),
         { nds    }  ( false, false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false),
-        { embedded }( true,  true,  true,  true,  true,  true,  true,  true,  true , false, false, false, false, false,   false, false),
+        { embedded }( true,  true,  true,  true,  true,  true,  true,  true,  true , false, false, true , false, false,   false, false),
         { symbian } ( true,  false, false, false, false, true,  false, false, false, false, false, false, false, false,   false, false),
         { nativent }( true,  false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false),
         { iphonesim }( true, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, false),
         { wii }     ( false, false, true,  false, false, false, false, false, false, false, false, false, false, false,   false, false),
         { aix }     ( false, false, true,  false, false, false, true,  false, false, false, false, false, false, false,   false, false),
         { java }    ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   true,  false),
-        { android } ( true,  false, false, false, false, true,  false, false, false, false, false, false, false, false,   true,  false),
+        { android } ( true,  false, false, false, false, true,  false, false, false, false, false, true,  false, false,   true,  false),
         { msdos }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, false,   false, true)
       );
 

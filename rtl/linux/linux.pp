@@ -18,6 +18,9 @@
 unit Linux;
 
 {$packrecords c}
+{$ifdef FPC_USE_LIBC} 
+ {$linklib rt} // for clock* functions
+{$endif}
 
 interface
 
@@ -416,17 +419,19 @@ Type
                     or IN_OPEN or IN_MOVE or IN_CREATE or IN_DELETE
                     or IN_DELETE_SELF or IN_MOVE_SELF;
 
+
+// these have _THROW in the header.
 { Create and initialize inotify instance.   }
-function inotify_init: cint;
+function inotify_init: cint;  {$ifdef FPC_USE_LIBC} cdecl; external name 'inotify_init'; {$ENDIF}
 { Create and initialize inotify instance.   }
-function inotify_init1(flags:cint):cint;
+function inotify_init1(flags:cint):cint;  {$ifdef FPC_USE_LIBC} cdecl; external name 'inotify_init1'; {$ENDIF}
 
 { Add watch of object NAME to inotify instance FD.
   Notify about events specified by MASK.   }
-function inotify_add_watch(fd:cint; name:Pchar; mask:cuint32):cint;
+function inotify_add_watch(fd:cint; name:Pchar; mask:cuint32):cint;  {$ifdef FPC_USE_LIBC} cdecl; external name 'inotify_add_watch'; {$ENDIF}
 
 { Remove the watch specified by WD from the inotify instance FD.   }
-function inotify_rm_watch(fd:cint; wd: cint):cint;
+function inotify_rm_watch(fd:cint; wd: cint):cint;  {$ifdef FPC_USE_LIBC} cdecl; external name 'inotify_rm_watch'; {$ENDIF}
 
 { clock_gettime, clock_settime, clock_getres }
 
@@ -449,9 +454,10 @@ Const
 Type
   clockid_t = cint;
 
-function clock_getres(clk_id : clockid_t; res : ptimespec) : cint;
-function clock_gettime(clk_id : clockid_t; tp: ptimespec) : cint;
-function clock_settime(clk_id : clockid_t; tp : ptimespec) : cint;
+// FPC_USE_LIBC unchecked, just to get it compiling again.
+function clock_getres(clk_id : clockid_t; res : ptimespec) : cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clock_getres'; {$ENDIF}
+function clock_gettime(clk_id : clockid_t; tp: ptimespec) : cint;  {$ifdef FPC_USE_LIBC} cdecl; external name 'clock_gettime'; {$ENDIF}
+function clock_settime(clk_id : clockid_t; tp : ptimespec) : cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clock_settime'; {$ENDIF}
 
 implementation
 
@@ -677,7 +683,7 @@ begin
   FUTEX_OP := ((op and $F) shl 28) or ((cmp and $F) shl 24) or ((oparg and $FFF) shl 12) or (cmparg and $FFF);
 end;
 
-
+{$ifndef FPC_USE_LIBC}
 function inotify_init:cint;
 
 begin
@@ -719,5 +725,5 @@ function clock_settime(clk_id : clockid_t; tp : ptimespec) : cint;
 begin
   clock_settime:=do_SysCall(syscall_nr_clock_settime,tsysparam(clk_id),tsysparam(tp));
 end;
-
+{$endif}
 end.

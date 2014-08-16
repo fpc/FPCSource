@@ -78,7 +78,13 @@
 {$define FPC_HAS_FEATURE_STACKCHECK}
 {$define FPC_HAS_FEATURE_DYNLIBS}
 {$define FPC_HAS_FEATURE_OBJECTIVEC1}
+{$define FPC_HAS_FEATURE_UNICODESTRINGS}
 {$endif FPC_HAS_FEATURE_SUPPORT}
+
+{ bootstrapping, the starting compiler cannot be a downstripped compiler without unicodestring support }
+{$ifdef VER2_6}
+{$define FPC_HAS_FEATURE_UNICODESTRINGS}
+{$endif VER2_6}
 
 {****************************************************************************
                          Global Types and Constants
@@ -109,6 +115,9 @@ Type
 {$ifndef FPUNONE}
   Real = type Double;
 {$endif}
+
+{ Can be individually defined/undefined on a per-platform basis }
+{ define FLOAT_ASCII_FALLBACK}
 
 {$ifdef CPUI386}
   {$define CPU32}
@@ -200,8 +209,10 @@ Type
   {$ifdef FPUSOFT}
     {$define FPC_INCLUDE_SOFTWARE_MOD_DIV}
     {$define FPC_INCLUDE_SOFTWARE_MUL}
-    {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
   {$endif}
+
+  { m68k int64 shl/shr uses soft helper for non constaznt values }
+  {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
 
   {$define SUPPORT_SINGLE}
   {$define SUPPORT_DOUBLE}
@@ -327,8 +338,6 @@ Type
   PtrUInt = QWord;
   ValSInt = int64;
   ValUInt = qword;
-  NativeInt  = PtrInt;
-  NativeUint = PtrUint;
   CodePointer = Pointer;
   CodePtrInt = PtrInt;
   CodePtrUInt = PtrUInt;
@@ -341,8 +350,6 @@ Type
   PtrUInt = DWord;
   ValSInt = Longint;
   ValUInt = Cardinal;
-  NativeInt  = PtrInt;
-  NativeUint = PtrUint;
   CodePointer = Pointer;
   CodePtrInt = PtrInt;
   CodePtrUInt = PtrUInt;
@@ -373,9 +380,17 @@ Type
   {$endif}
   ValSInt = Integer;
   ValUInt = Word;
-  NativeInt  = Integer;
-  NativeUint = Word;
 {$endif CPU16}
+
+  { NativeInt and NativeUInt are Delphi compatibility types. Even though Delphi
+    has IntPtr and UIntPtr, the Delphi documentation for NativeInt states that
+    'The size of NativeInt is equivalent to the size of the pointer on the
+    current platform'. Because of the misleading names, these types shouldn't be
+    used in the FPC RTL. Note that on i8086 their size changes between 16-bit
+    and 32-bit according to the memory model, so they're not really a 'native
+    int' type there at all. }
+  NativeInt  = PtrInt;
+  NativeUInt = PtrUInt;
 
   Int8    = ShortInt;
   Int16   = SmallInt;
@@ -469,8 +484,8 @@ Type
   PWordBool           = ^WordBool;
   PLongBool           = ^LongBool;
 
-  PNativeInt 	      = PPtrInt;
-  PNativeUInt	      = PPtrUint;
+  PNativeInt 	      = ^NativeInt;
+  PNativeUInt	      = ^NativeUint;
   pInt8   	      = PShortInt;
   pInt16  	      = PSmallint;
   pInt32  	      = PLongint;
@@ -602,8 +617,9 @@ const
   { will be detected at startup }
   { 0=8086/8088/80186/80188/NEC V20/NEC V30, 1=80286, 2=80386 or newer }
   Test8086 : byte = 0; public name '__Test8086';
-  { Always 387 or newer. Emulated if needed. }
-  Test8087 : byte = 3;
+  { will be detected at startup }
+  { 0=NO FPU, 1=8087, 2=80287, 3=80387 or newer }
+  Test8087 : byte = 0;
   { will be detected at startup }
   has_sse_support : boolean = false;
   has_mmx_support : boolean = false;
@@ -657,7 +673,9 @@ const
 var
 {$endif FPC_HAS_FEATURE_DYNLIBS}
   IsConsole : boolean = false; public name 'operatingsystem_isconsole';
-
+  NoErrMsg: Boolean platform = False; // For Delphi compatibility, not used in FPC.
+  FirstDotAtFileNameStartIsExtension : Boolean = False;
+  
   DefaultSystemCodePage,
   DefaultUnicodeCodePage,
   { the code page to use when sending paths/file names to OS file system API
@@ -689,10 +707,10 @@ Var
   StdErr      : Text;
   InOutRes    : Word;
   { Stack checking }
-  StackTop,
   StackBottom : Pointer;
   StackLength : SizeUInt;
 
+function StackTop: Pointer;
 
 { Numbers for routines that have compiler magic }
 {$I innr.inc}
@@ -779,7 +797,12 @@ Function abs(l:longint):longint;[internproc:fpc_in_abs_long];
 {$else FPC_HAS_INTERNAL_ABS_LONG}
 Function abs(l:Longint):Longint;[internconst:fpc_in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_ABS_LONG}
+{$ifdef FPC_HAS_INTERNAL_ABS_INT64}
+{$define FPC_SYSTEM_HAS_ABS_INT64}
+Function abs(l:Int64):Int64;[internproc:fpc_in_abs_long];
+{$else FPC_HAS_INTERNAL_ABS_INT64}
 Function abs(l:Int64):Int64;[internconst:fpc_in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HAS_INTERNAL_ABS_INT64}
 Function sqr(l:Longint):Longint;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
 Function sqr(l:Int64):Int64;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
 Function sqr(l:QWord):QWord;[internconst:fpc_in_const_sqr];{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -901,10 +924,10 @@ function RolQWord(Const AValue : QWord;const Dist : Byte): QWord;{$ifdef SYSTEMI
 
 {$ifdef FPC_HAS_INTERNAL_SAR}
 
-{$if defined(cpux86_64) or defined(cpui386) or defined(mips) or defined(mipsel)}
+{$if defined(cpux86_64) or defined(cpui386) or defined(mips) or defined(mipsel) or defined(sparc)}
 {$define FPC_HAS_INTERNAL_SAR_BYTE}
 {$define FPC_HAS_INTERNAL_SAR_WORD}
-{$endif defined(cpux86_64) or defined(cpui386) or defined(mips) or defined(mipsel)}
+{$endif defined(cpux86_64) or defined(cpui386) or defined(mips) or defined(mipsel) or defined(sparc)}
 
 { currently, all supported CPUs have an internal 32 bit sar implementation }
 { $if defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64) or defined(mips) or defined(mipsel)}
@@ -938,12 +961,10 @@ function SarLongint(Const AValue : Longint;Shift : Byte): Longint;[internproc:fp
 function SarLongint(Const AValue : Longint;const Shift : Byte = 1): Longint;
 {$endif FPC_HAS_INTERNAL_SAR_DWORD}
 
-{$ifdef FPC_HAS_INTERNAL_SAR_QWORD}
 function SarInt64(Const AValue : Int64): Int64;[internproc:fpc_in_sar_x];
 function SarInt64(Const AValue : Int64;Shift : Byte): Int64;[internproc:fpc_in_sar_x_y];
-{$else FPC_HAS_INTERNAL_SAR_QWORD}
+{$ifndef FPC_HAS_INTERNAL_SAR_QWORD}
 function fpc_SarInt64(Const AValue : Int64;const Shift : Byte): Int64;compilerproc;
-function SarInt64(Const AValue : Int64;const Shift : Byte = 1): Int64; [external name 'FPC_SARINT64'];
 {$endif FPC_HAS_INTERNAL_SAR_QWORD}
 
 {$ifdef FPC_HAS_INTERNAL_BSF}
@@ -983,34 +1004,34 @@ function BsrByte(Const AValue: Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$ifdef FPC_HAS_INTERNAL_BSF_WORD}
 function BsfWord(Const AValue: Word): cardinal;[internproc:fpc_in_bsf_x];
 {$else}
-function BsfWord(Const AValue: Word): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
+function BsfWord(Const AValue: Word): {$ifdef CPU16}byte{$else}cardinal{$endif};{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_BSF_WORD}
 {$ifdef FPC_HAS_INTERNAL_BSR_WORD}
 function BsrWord(Const AValue: Word): cardinal;[internproc:fpc_in_bsr_x];
 {$else}
-function BsrWord(Const AValue: Word): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
+function BsrWord(Const AValue: Word): {$ifdef CPU16}byte{$else}cardinal{$endif};{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_BSR_WORD}
 
 {$ifdef FPC_HAS_INTERNAL_BSF_DWORD}
 function BsfDWord(Const AValue : DWord): cardinal;[internproc:fpc_in_bsf_x];
 {$else}
-function BsfDWord(Const AValue : DWord): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
+function BsfDWord(Const AValue : DWord): {$ifdef CPU16}byte{$else}cardinal{$endif};{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_BSF_DWORD}
 {$ifdef FPC_HAS_INTERNAL_BSR_DWORD}
 function BsrDWord(Const AValue : DWord): cardinal;[internproc:fpc_in_bsr_x];
 {$else}
-function BsrDWord(Const AValue : DWord): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
+function BsrDWord(Const AValue : DWord): {$ifdef CPU16}byte{$else}cardinal{$endif};{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_BSR_DWORD}
 
 {$ifdef FPC_HAS_INTERNAL_BSF_QWORD}
 function BsfQWord(Const AValue : QWord): cardinal;[internproc:fpc_in_bsf_x];
 {$else}
-function BsfQWord(Const AValue : QWord): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
+function BsfQWord(Const AValue : QWord): {$ifdef CPU16}byte{$else}cardinal{$endif};{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_BSF_QWORD}
 {$ifdef FPC_HAS_INTERNAL_BSR_QWORD}
 function BsrQWord(Const AValue : QWord): cardinal;[internproc:fpc_in_bsr_x];
 {$else}
-function BsrQWord(Const AValue : QWord): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
+function BsrQWord(Const AValue : QWord): {$ifdef CPU16}byte{$else}cardinal{$endif};{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_BSR_QWORD}
 
 function PopCnt(Const AValue: Byte): Byte;[internproc:fpc_in_popcnt_x];
@@ -1029,7 +1050,7 @@ function PopCnt(Const AValue : QWord): QWord;[internproc:fpc_in_popcnt_x];
                          Addr/Pointer Handling
 ****************************************************************************}
 
-Function  ptr(sel,off:Longint):farpointer;[internconst:fpc_in_const_ptr];{$ifdef SYSTEMINLINE}inline;{$endif}
+Function  ptr(sel,off:{$ifdef CPU16}Word{$else}Longint{$endif}):farpointer;[internconst:fpc_in_const_ptr];{$ifdef SYSTEMINLINE}inline;{$endif}
 Function  Cseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function  Dseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function  Sseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -1066,7 +1087,13 @@ Function  binStr(Val:int64;cnt:byte):shortstring;
 Function  hexStr(Val:qword;cnt:byte):shortstring;
 Function  OctStr(Val:qword;cnt:byte):shortstring;
 Function  binStr(Val:qword;cnt:byte):shortstring;
+{$ifdef CPUI8086}
+Function  hexStr(Val:NearPointer):shortstring;
+Function  hexStr(Val:FarPointer):shortstring;
+Function  hexStr(Val:HugePointer):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$else CPUI8086}
 Function  hexStr(Val:Pointer):shortstring;
+{$endif CPUI8086}
 
 { Char functions }
 Function chr(b : byte) : Char;      [INTERNPROC: fpc_in_chr_byte];
@@ -1259,6 +1286,10 @@ function get_frame:pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$ENDIF}
 
 Function Get_pc_addr : CodePointer;
+
+{ Writes at most 'count' caller stack frames to pre-allocated buffer pointed to
+  by 'frames', skipping 'skipframes' initial frames. Returns number of frames written. }
+function CaptureBacktrace(skipframes,count:sizeint;frames:PCodePointer):sizeint;
 
 function get_caller_addr(framebp:pointer;addr:codepointer=nil):codepointer;
 function get_caller_frame(framebp:pointer;addr:codepointer=nil):pointer;

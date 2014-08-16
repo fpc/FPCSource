@@ -54,7 +54,7 @@ begin
   inherited Create(AOwner);
   DBEditButton:=TButton.Create(Self);
   DBEditButton.Top:=7;
-  DBEditButton.Left:=210;
+  DBEditButton.Left:=340; //to the left of the close button
   DBEditButton.Height:=32;
   DBEditButton.Width:=100;
   DBEditButton.Caption:='Edit database.ini...';

@@ -29,6 +29,20 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
+{$ifdef VER2_6}
+{ constants moved to the windows unit in fpc trunk }
+const
+  DISP_CHANGE_BADPARAM = -5;
+  DISP_CHANGE_BADDUALVIEW = -6;
+  DM_POSITION = $00000020;
+  DM_NUP = $00000040;
+  DM_PANNINGWIDTH = $08000000;
+  DM_PANNINGHEIGHT = $10000000;
+  DMDFO_DEFAULT = 0;
+  DMDFO_STRETCH = 1;
+  DMDFO_CENTER  = 2;
+{$endif VER2_6}
+
 constructor TWin32ModeSetter.Create;
 begin
   SetupModeList;

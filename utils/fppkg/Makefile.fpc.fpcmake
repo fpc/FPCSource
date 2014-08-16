@@ -36,7 +36,7 @@ fpcpackage=y
 fpcdir=../..
 
 [require]
-packages=fcl-base fcl-xml fcl-process fcl-net paszlib libcurl fppkg
+packages=fpmkunit fcl-base fcl-xml fcl-process fcl-net paszlib libcurl fppkg
 tools=data2inc
 packages_darwin=univint
 packages_iphonesim=univint

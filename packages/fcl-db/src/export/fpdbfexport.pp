@@ -28,6 +28,7 @@ Type
     FTableFormat: TTableFormat;
   public
     Procedure Assign(Source : TPersistent); override;
+    Procedure InitSettings; override;
   Published
     Property TableFormat : TTableFormat Read FTableFormat Write FTableFormat;
     Property AutoRenameFields : Boolean Read FAutoRename Write FAutoRename;
@@ -175,7 +176,7 @@ end;
 
 function TFPCustomDBFExport.CreateFormatSettings: TCustomExportFormatSettings;
 begin
-  Result:=TDBFExportFormatSettings.Create(False);
+  Result:=TDBFExportFormatSettings.Create(True);
 end;
 
 function TFPCustomDBFExport.CreateExportFields: TExportFields;
@@ -282,6 +283,13 @@ begin
     TableFormat:=FS.TableFormat;
     end;
   inherited Assign(Source);
+end;
+
+procedure TDBFExportFormatSettings.InitSettings;
+begin
+  inherited InitSettings;
+  FAutoRename:=true; // sensible to avoid duplicate table names
+  FTableFormat:=tfDBaseIV; //often used
 end;
 
 end.

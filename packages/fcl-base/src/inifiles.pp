@@ -56,6 +56,24 @@ interface
 uses classes, sysutils, contnrs;
 
 type
+
+  { TStringHash }
+
+  TStringHash  = class
+  private
+    FAddReplacesExisting: Boolean;
+    FHashList : TFPDataHashTable;
+  public
+    constructor Create(ACapacity : Cardinal = 256);
+    destructor Destroy;override;
+    procedure Add(const Key: string; Value: Integer);
+    procedure Clear;
+    function Modify(const Key: string; Value: Integer): Boolean;
+    procedure Remove(const Key: string);
+    function ValueOf(const Key: string): Integer;
+    Property AddReplacesExisting : Boolean Read FAddReplacesExisting Write FAddReplacesExisting;
+  end;
+
   { THashedStringList }
 
   THashedStringList = class(TStringList)
@@ -167,6 +185,7 @@ type
     FStream: TStream;
     FCacheUpdates: Boolean;
     FDirty : Boolean;
+    FBOM : String;
     procedure FillSectionList(AStrings: TStrings);
     Procedure DeleteSection(ASection : TIniFileSection);
     Procedure MaybeDeleteSection(ASection : TIniFileSection);
@@ -229,6 +248,59 @@ begin
   Result := False;
   if AString > '' then
     Result := (Copy(AString, 1, 1) = Comment);
+end;
+
+{ TStringHash }
+
+constructor TStringHash.Create(ACapacity : Cardinal = 256);
+begin
+  FHashList := TFPDataHashTable.Create;
+end;
+
+destructor TStringHash.Destroy;
+begin
+  FreeAndNil(FHashList);
+  inherited;
+end;
+
+procedure TStringHash.Add(const Key: string; Value: Integer);
+begin
+  if Not (AddReplacesExisting and Modify(Key,Value)) then
+    FHashList.Add(Key, Pointer(Value));
+end;
+
+procedure TStringHash.Clear;
+begin
+  FHashList.Clear;
+end;
+
+function TStringHash.Modify(const Key: string; Value: Integer): Boolean;
+Var
+  AIndex : Integer;
+  Node : THTDataNode;
+
+begin
+  Node := THTDataNode(FHashList.Find(Key));
+  Result:=Assigned(Node);
+  if Result Then
+    Node.Data:=Pointer(Value);
+end;
+
+procedure TStringHash.Remove(const Key: string);
+
+begin
+  FHashList.Delete(Key);
+end;
+
+function TStringHash.ValueOf(const Key: string): Integer;
+Var
+  N : THTDataNode;
+begin
+  N:=THTDataNode(FHashList.Find(Key));
+  If Assigned(N) then
+    Result:=PTrInt(N.Data)
+  else
+    Result:=-1;
 end;
 
 { THashedStringList }
@@ -627,6 +699,7 @@ constructor TIniFile.Create(const AFileName: string; AEscapeLineFeeds : Boolean 
 var
   slLines: TStringList;
 begin
+  FBOM := '';
   If Not (self is TMemIniFile) then
     StripQuotes:=True;
   inherited Create(AFileName,AEscapeLineFeeds);
@@ -648,6 +721,7 @@ constructor TIniFile.Create(AStream: TStream; AEscapeLineFeeds : Boolean = False
 var
   slLines: TStringList;
 begin
+  FBOM := '';
   inherited Create('',AEscapeLineFeeds);
   FStream := AStream;
   slLines := TStringList.Create;
@@ -672,6 +746,9 @@ begin
 end;
 
 procedure TIniFile.FillSectionList(AStrings: TStrings);
+const
+  Utf8Bom    = #$EF#$BB#$BF;        { Die einzelnen BOM Typen }
+
 var
   i,j: integer;
   sLine, sIdent, sValue: string;
@@ -706,6 +783,11 @@ begin
   FSectionList.Clear;
   if FEscapeLineFeeds then
     RemoveBackslashes;
+  if (AStrings.Count > 0) and (copy(AStrings.Strings[0],1,Length(Utf8Bom)) = Utf8Bom) then
+  begin
+    FBOM := Utf8Bom;
+    AStrings.Strings[0] := copy(AStrings.Strings[0],Length(Utf8Bom)+1,Length(AStrings.Strings[0]));
+  end;
   for i := 0 to AStrings.Count-1 do begin
     sLine := Trim(AStrings[i]);
     if sLine > '' then
@@ -963,6 +1045,8 @@ begin
         if (i < FSectionList.Count-1) and not IsComment(Name) then
           slLines.Add('');
       end;
+    if slLines.Count > 0 then
+      slLines.Strings[0] := FBOM + slLines.Strings[0];
     if FFileName > '' then
       begin
       D:=ExtractFilePath(FFileName);

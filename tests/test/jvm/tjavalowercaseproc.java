@@ -9,6 +9,9 @@ public static void main(String[] args)
   c = new org.freepascal.test.lcproc.tc();
   c.methodName();
   org.freepascal.test.lcproc.tc.classMethodName();
+  c.xToY();
+  c.prefixThingToTest();
+  c.rc64Encode();
 }
 
 }

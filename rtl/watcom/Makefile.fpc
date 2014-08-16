@@ -8,19 +8,19 @@ main=rtl
 [target]
 loaders=prt0
 #exceptn fpu
-units=system uuchar objpas macpas iso7185 strings watcom dos crt objects \
+units=system uuchar objpas macpas iso7185 strings watcom dos \
       cpu charset cpall types getopts heaptrc lnfodwrf lineinfo ctypes fgl \
-      math typinfo mmx ucomplex \
-      varutils variants sysutils
+      math typinfo mmx \
+      sysutils
 implicitunits=exeinfo \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp850 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5
+      cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
 
 # dpmiexcp initc ports profile dxeload emu387 \
 # printer graph classes \
 # msmouse video mouse keyboard vesamode
 
-rsts=math varutils typinfo classes variants sysconst
+rsts=math typinfo classes sysconst
 
 [require]
 nortl=y
@@ -137,10 +137,6 @@ ports$(PPUEXT) : ports.pp objpas$(PPUEXT) system$(PPUEXT)
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
                watcom$(PPUEXT) strings$(PPUEXT) system$(PPUEXT)
 
-crt$(PPUEXT) : crt.pp $(INC)/textrec.inc watcom$(PPUEXT) system$(PPUEXT)
-
-objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
-
 printer$(PPUEXT) : printer.pp system$(PPUEXT)
 
 #
@@ -175,10 +171,6 @@ typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/math.pp
 
-varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
-                    $(OBJPASDIR)/varutilh.inc varutils.pp
-        $(COMPILER) -I$(OBJPASDIR) varutils.pp
-
 types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 
@@ -186,12 +178,6 @@ rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
         $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/rtlconst.pp
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
-dateutil$(PPUEXT) : $(OBJPASDIR)/dateutil.pp
-        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/dateutil.pp
-convutil$(PPUEXT) : $(OBJPASDIR)/convutil.pp
-        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/convutil.pp
-strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp
-        $(COMPILER) $(OBJPASDIR)/strutils.pp
 
 #
 # Mac Pascal Model

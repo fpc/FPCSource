@@ -47,6 +47,7 @@ type
     FManaged: Boolean;
     FMultithreaded: Boolean;
     FCursorConfineInEffect: Boolean;
+    FInterceptClose: Boolean;
 
 {    class function WndProcSingleThreaded(hWnd: HWND; message: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; StdCall;
     class function WndProcMultiThreaded(hWnd: HWND; message: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; StdCall;}
@@ -61,7 +62,7 @@ type
   public
     constructor Create(window: HWND);
     constructor Create(const AWndClass, ATitle: string; AExtra, AStyle, AClassStyle: DWord;
-                       AShow, AX, AY, AWidth, AHeight: Integer; ACenter, AMultithreaded, ACursor: Boolean);
+                       AShow, AX, AY, AWidth, AHeight: Integer; ACenter, AMultithreaded, ACursor, AInterceptClose: Boolean);
     destructor Destroy; override;
     procedure Cursor(AFlag: Boolean);
     procedure ConfineCursor(AFlag: Boolean);
@@ -71,4 +72,5 @@ type
     property Thread: DWord read GetThread;
     property Managed: Boolean read FManaged;
     property Multithreaded: Boolean read FMultithreaded;
+    property InterceptClose: Boolean read FInterceptClose write FInterceptClose;
   end;

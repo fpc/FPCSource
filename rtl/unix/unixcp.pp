@@ -26,7 +26,7 @@ uses baseunix;
 type
   TUnixCpData = record
    cp: word;
-   name: rawbytestring; { for null-termination }
+   name: ansistring; { for null-termination }
   end;
 (*
 * Code Page Identifiers
@@ -679,7 +679,17 @@ var
 begin
   { clear encoding to prevent nonsense code page conversion of the input
     ansistring (encoding names are always ascii) }
-  SetCodePage(cpname,$ffff,false);
+  SetCodePage(cpname,CP_ACP,false);
+
+  { Linux uses cpXXXX instead of CPXXXX }
+  if (length(cpname)>2) and
+     (cpname[1]='c') and
+     (cpname[2]='p') and
+     (cpname[3] in ['0'..'9']) then
+    begin
+      cpname[1]:='C';
+      cpname[2]:='P';
+    end;
 
   { simple linear scan, not a common operation and hence not worth
     building a separate array for -- start from index 1 rather than
@@ -718,9 +728,11 @@ begin
     begin
       // clean up, for example en_US.UTF-8 => UTF-8
       p:=Pos('.',lang);
-      if p>0 then Delete(lang,1,p);
+      if p>0 then
+        Delete(lang,1,p);
       p:=Pos('@',lang);
-      if p>0 then Delete(lang,p,length(lang)-p+1);
+      if p>0 then
+        Delete(lang,p,length(lang)-p+1);
       cp:=GetCodepageByName(lang);
       if cp <> CP_NONE then
         Result:=cp;

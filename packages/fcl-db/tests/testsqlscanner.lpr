@@ -20,6 +20,8 @@ var
   Application: TMyTestRunner;
 
 
+{$R *.res}
+
 begin
   Application := TMyTestRunner.Create(nil);
   Application.Initialize;

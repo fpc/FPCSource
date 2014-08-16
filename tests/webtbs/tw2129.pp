@@ -25,6 +25,9 @@ it introduces a subtle incompatibility with Delphi.
 *)
 
 program fpc19;
+uses
+  sysutils;
+
 var
   comp1 : comp;
   dbl1 : double;
@@ -35,14 +38,14 @@ begin
 {$ifdef FPC_DOUBLE_HILO_SWAPPED}
   comp1:=swap(comp1);
 {$endif FPC_DOUBLE_HILO_SWAPPED}
-  str(comp1,s);
+  str(comp1:23,s);
 {$ifdef FPC_HAS_TYPE_EXTENDED}
   if s<>'-6.53142228756617E+0018' then
 {$else FPC_HAS_TYPE_EXTENDED}
   { this constant has been verified and is correct (FK) }
   { doubles have slightly different precision on processors <> x86, because }
   { intermediate calculations are not performed in 80 bit there (JM)        }
-  if Copy(s,1,Length(s)-1)<>'-653142228756617021' then
+  if trim(s)<>'-6531422287566170211' then
 {$endif FPC_HAS_TYPE_EXTENDED}
     begin
       writeln(s);

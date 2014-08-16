@@ -23,7 +23,8 @@ type
     MinVersion,
     MaxVersion,
     KnownRunNote,
-    KnownCompileNote : string;
+    KnownCompileNote,
+    RecompileOpt: string;
     ResultCode    : longint;
     KnownRunError : longint;
     KnownCompileError : longint;
@@ -211,7 +212,10 @@ begin
                 r.ShouldFail:=true
               else
                if GetEntry('RECOMPILE') then
-                r.NeedRecompile:=true
+	        begin
+                  r.NeedRecompile:=true;
+		  r.RecompileOpt:=res;
+		end
               else
                if GetEntry('NORUN') then
                 r.NoRun:=true

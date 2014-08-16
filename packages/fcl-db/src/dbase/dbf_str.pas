@@ -11,6 +11,7 @@ initialization
 
   STRING_FILE_NOT_FOUND               := 'Open: file not found: "%s".';
   STRING_VERSION                      := 'TDbf V%d.%d';
+  STRING_FEATURE_NOT_SUPPORTED_THIS_TABLELEVEL:= 'This feature is not supported in tablelevel %d';
 
   STRING_RECORD_LOCKED                := 'Record locked.';
   STRING_WRITE_ERROR                  := 'Error while writing occurred. (Disk full?)';

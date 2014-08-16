@@ -122,7 +122,7 @@ ___start:
 	movq	%rax, (%rdx)
 .L2:
 	movl	$0, %eax
-	call	__init@PLT
+	call	_init@PLT
 	movq	environ@GOTPCREL(%rip), %rax
 	movq	(%rax), %rdx
 	movq	-32(%rbp), %rsi
@@ -151,11 +151,10 @@ _haltproc:
          xor %rbx,%rbx
          ret
 .LErrorcode:
-	movl	%eax, %edi
+         movq  %rax,%rbx
+         movq  $-1,%rax
+	 ret
 
-
-
-	call	exit@PLT
 .LFE9:
 	.size	___start, .-___start
 	.type	_strrchr, @function

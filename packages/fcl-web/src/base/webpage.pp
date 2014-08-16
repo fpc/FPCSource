@@ -375,7 +375,7 @@ end;
 function TWebPage.GetWebController: TWebController;
 begin
   if not assigned(FWebController) then
-    raise exception.create('No webcontroller available');
+    raise EHTTP.create('No webcontroller available');
   result := FWebController;
 end;
 

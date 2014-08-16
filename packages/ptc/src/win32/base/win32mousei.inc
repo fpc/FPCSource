@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2007, 2009, 2010  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2007, 2009, 2010, 2013  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -53,6 +53,12 @@ begin
   FWindowY1 := AWindowY1;
   FWindowX2 := AWindowX2;
   FWindowY2 := AWindowY2;
+end;
+
+procedure TWin32Mouse.SetConsoleSize(AConsoleWidth, AConsoleHeight: Integer);
+begin
+  FConsoleWidth := AConsoleWidth;
+  FConsoleHeight := AConsoleHeight;
 end;
 
 procedure TWin32Mouse.Enable;

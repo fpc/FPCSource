@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -118,14 +118,14 @@
     </Units>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="9"/>
+    <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
       <Filename Value="sdo_test_suite_gui"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="..\..\.."/>
-      <OtherUnitFiles Value="..;..\..;..\..\..;..\..\..\xsd;..\..\..\rtti_filter"/>
+      <IncludeFiles Value="..\..\..\src\base"/>
+      <OtherUnitFiles Value="..;..\..;..\..\..;..\..\..\src\base"/>
       <UnitOutputDirectory Value="obj"/>
     </SearchPaths>
     <Parsing>
@@ -136,8 +136,13 @@
     </Parsing>
     <Linking>
       <Debugging>
-        <GenerateDebugInfo Value="True"/>
+        <DebugInfoType Value="dsStabs"/>
       </Debugging>
+      <Options>
+        <Win32>
+          <GraphicApplication Value="True"/>
+        </Win32>
+      </Options>
     </Linking>
     <Other>
       <CompilerMessages>

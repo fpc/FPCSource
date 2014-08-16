@@ -1,3 +1,4 @@
+{ %NORUN }
 program thintdir1;
 
 // test the possibility to use the hint modifiers as regular identifiers

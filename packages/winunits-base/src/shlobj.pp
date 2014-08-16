@@ -26,7 +26,7 @@ uses
       windows,activex,shellapi,commctrl;
 
 Const 
-   IID_IShellExtInit    ='{000214E8-0000-0000-C000-000000000046}';
+   IID_IShellExtInit   : TGUID ='{000214E8-0000-0000-C000-000000000046}';
    IID_IShellFolder    : TGUID ='{000214E6-0000-0000-C000-000000000046}';
    IID_IEnumList       : TGUID ='{000214F2-0000-0000-C000-000000000046}';
    IID_IAutoComplete   : TGUID ='{00bb2762-6a77-11d0-a535-00c04fd7d062}';
@@ -42,6 +42,17 @@ Const
    IID_IEXtractIconW   : TGUID ='{000214fa-0000-0000-c000-000000000046}';
    IID_IEXtractIconA   : TGUID ='{000214eb-0000-0000-c000-000000000046}';
    IID_IShellLinkA     : TGUID ='{000214EE-0000-0000-C000-000000000046}';
+   IID_IShellLinkW     : TGUID ='{000214F9-0000-0000-C000-000000000046}';
+   IID_IShellBrowser   : TGUID ='{000214E2-0000-0000-C000-000000000046}';
+   IID_IShellDetails   : TGUID ='{000214EC-0000-0000-C000-000000000046}';
+   IID_IShellIcon      : TGUID ='{000214E5-0000-0000-C000-000000000046}';
+   IID_IShellView      : TGUID ='{000214E3-0000-0000-C000-000000000046}';
+   IID_IShellView2     : TGUID ='{88E39E80-3578-11CF-AE69-08002B2E1262}';
+   IID_IEnumIDList     : TGUID ='{000214F2-0000-0000-C000-000000000046}';
+
+   CGID_Explorer       : TGUID ='{000214D0-0000-0000-C000-000000000046}';
+   CGID_ShellDocView   : TGUID ='{000214D1-0000-0000-C000-000000000046}';
+
    CLSID_StdMarshal                    : TGUID = '{00000017-0000-0000-c000-000000000046}';
    CLSID_IdentityUnmarshal             : TGUID = '{0000001b-0000-0000-c000-000000000046}';
    CLSID_InProcFreeMarshaler           : TGUID = '{0000001c-0000-0000-c000-000000000046}';
@@ -883,6 +894,60 @@ Const
   SHGFP_TYPE_CURRENT      =  0;   // shgetfolderpath, current value for user, verify it exists
   SHGFP_TYPE_DEFAULT  	  =  1;   // shgetfolderpath, default value, may not exist
    
+  SHGDN_NORMAL         = $0000;
+  SHGDN_INFOLDER       = $0001;
+  SHGDN_FOREDITING     = $1000;
+  SHGDN_FORADDRESSBAR  = $4000;
+  SHGDN_FORPARSING     = $8000;
+
+  SHCONTF_CHECKING_FOR_CHILDREN  = $00010;
+  SHCONTF_FOLDERS                = $00020;
+  SHCONTF_NONFOLDERS             = $00040;
+  SHCONTF_INCLUDEHIDDEN          = $00080;
+  SHCONTF_INIT_ON_FIRST_NEXT     = $00100;
+  SHCONTF_NETPRINTERSRCH         = $00200;
+  SHCONTF_SHAREABLE              = $00400;
+  SHCONTF_STORAGE                = $00800;
+  SHCONTF_NAVIGATION_ENUM        = $01000;
+  SHCONTF_FASTITEMS              = $02000;
+  SHCONTF_FLATLIST               = $04000;
+  SHCONTF_ENABLE_ASYNC           = $08000;
+  SHCONTF_INCLUDESUPERHIDDEN     = $10000;
+
+  SFGAO_CANCOPY           = $00000001;
+  SFGAO_CANMOVE           = $00000002;
+  SFGAO_CANLINK           = $00000004;
+  SFGAO_STORAGE           = $00000008;
+  SFGAO_CANRENAME         = $00000010;
+  SFGAO_CANDELETE         = $00000020;
+  SFGAO_HASPROPSHEET      = $00000040;
+  SFGAO_DROPTARGET        = $00000100;
+  SFGAO_CAPABILITYMASK    = $00000177;
+  SFGAO_SYSTEM            = $00001000;
+  SFGAO_ENCRYPTED         = $00002000;
+  SFGAO_ISSLOW            = $00004000;
+  SFGAO_GHOSTED           = $00008000;
+  SFGAO_LINK              = $00010000;
+  SFGAO_SHARE             = $00020000;
+  SFGAO_READONLY          = $00040000;
+  SFGAO_HIDDEN            = $00080000;
+  SFGAO_DISPLAYATTRMASK   = $000FC000;
+  SFGAO_NONENUMERATED     = $00100000;
+  SFGAO_NEWCONTENT        = $00200000;
+  SFGAO_STREAM            = $00400000;
+  SFGAO_STORAGEANCESTOR   = $00800000;
+  SFGAO_VALIDATE          = $01000000;
+  SFGAO_REMOVABLE         = $02000000;
+  SFGAO_COMPRESSED        = $04000000;
+  SFGAO_BROWSABLE         = $08000000;
+  SFGAO_FILESYSANCESTOR   = $10000000;
+  SFGAO_FOLDER            = $20000000;
+  SFGAO_FILESYSTEM        = $40000000;
+  SFGAO_STORAGECAPMASK    = $70C50008;
+  SFGAO_HASSUBFOLDER      = $80000000;
+  SFGAO_CONTENTSMASK      = $80000000;
+  SFGAO_PKEYSFGAOMASK     = $81044000;
+
 Type
       SFGAOF  = ULONG;
       TSFGAOF = SFGAOF;
@@ -2437,8 +2502,13 @@ type
     end;
 
     IShellExtInit = Interface(IUnknown)
-          [IID_IShellExtInit]
+         ['{000214E8-0000-0000-C000-000000000046}']
          function Initialize(pidlfolder: LPCITEMIDLIST; pdtobj : IDataObject;hkeyProgID : HKEY):HResult; stdcall;
+         end;
+
+    IShellIcon = interface(IUnknown)
+         ['{000214E5-0000-0000-C000-000000000046}']
+         function GetIconOf(pidl: LPCITEMIDLIST; flags: UINT; out lpIconIndex: longint):HResult; stdcall;
          end;
 
 function SHGetMalloc(out ppmalloc: IMalloc):HResult;StdCall; external 'shell32' name 'SHGetMalloc';
@@ -2526,10 +2596,15 @@ Const External_Library = 'shell32';
 
   function SHBrowseForFolderA(lpbi:LPBROWSEINFOA):LPITEMIDLIST;StdCall;external External_library name 'SHBrowseForFolderA';
   function SHBrowseForFolderW(lpbi:LPBROWSEINFOW):LPITEMIDLIST;StdCall;external External_library name 'SHBrowseForFolderW';
+  function SHBrowseForFolderA(var lpbi:BROWSEINFOA):LPITEMIDLIST;StdCall;external External_library name 'SHBrowseForFolderA';
+  function SHBrowseForFolderW(var lpbi:BROWSEINFOW):LPITEMIDLIST;StdCall;external External_library name 'SHBrowseForFolderW';
+
   {$ifdef unicode}
   function SHBrowseForFolder (lpbi:LPBROWSEINFOW):LPITEMIDLIST;StdCall;external External_library name 'SHBrowseForFolderW';
+  function SHBrowseForFolder (var lpbi:BROWSEINFOW):LPITEMIDLIST;StdCall;external External_library name 'SHBrowseForFolderW';
   {$else}
   function SHBrowseForFolder (lpbi:LPBROWSEINFOA):LPITEMIDLIST;StdCall;external External_library name 'SHBrowseForFolderA';
+  function SHBrowseForFolder (var lpbi:BROWSEINFOA):LPITEMIDLIST;StdCall;external External_library name 'SHBrowseForFolderA';
   {$endif}
 
   function SHLoadInProc(const rclsid:Tguid):HRESULT;StdCall;external External_library name 'SHLoadInProc';

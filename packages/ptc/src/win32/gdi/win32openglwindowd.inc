@@ -45,5 +45,5 @@ type
   public
     constructor Create(const AWndClass, ATitle: string; AExtra, AStyle, AClassStyle: DWord;
                        AShow, AX, AY, AWidth, AHeight: Integer; ACenter, AMultithreaded,
-                       ACursor: Boolean; const AOpenGLAttributes: IPTCOpenGLAttributes);
+                       ACursor, AInterceptClose: Boolean; const AOpenGLAttributes: IPTCOpenGLAttributes);
   end;

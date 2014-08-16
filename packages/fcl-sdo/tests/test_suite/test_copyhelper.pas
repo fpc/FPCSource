@@ -10,7 +10,7 @@ uses
 {$IFNDEF FPC}
   ,TestFrameWork
 {$ENDIF}
-  , sdo, sdo_types, sdo_copyhelper, sdo_equalityhelper, test_suite_utils ;
+  , sdo, sdo_types, test_suite_utils ;
 
 type
 

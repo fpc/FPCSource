@@ -1,5 +1,5 @@
 {$mode iso}
-program tisoread(f);
+program tisoread;
 {
   Test Read in ISO mode when reading real and integer numbers.
 }

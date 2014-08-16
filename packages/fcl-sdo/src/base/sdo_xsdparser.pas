@@ -602,6 +602,7 @@ var
     locTmpCrs : IObjectCursor;
     locTmpNode : TDOMNode;
   begin
+    Result := nil;
     locTmpCrs := CreateCursorOn(
                    frstCrsr.Clone() as IObjectCursor,
                    ParseFilter(CreateQualifiedNameFilterStr(s_all,Context.GetXsShortNames()),TDOMNodeRttiExposer)
@@ -863,7 +864,7 @@ var
   var
     strBuffer : string;
   begin
-    Result := sdo_findCustomAttributeXsd(Context.GetXsShortNames(),AElement,s_SDO_collection,strBuffer) and AnsiSameText('true',Trim(strBuffer));
+    Result := sdo_findCustomAttributeXsd(Context.GetXsShortNames(),AElement,s_SDO_collection,strBuffer) and SameText('true',Trim(strBuffer));
   end;
 
   procedure ParseElement(AElement : TDOMNode);
@@ -945,7 +946,7 @@ var
     if locType.getBoolean(s_Unresolved) then
       AddUnresolvedLink(classDef,locType,LINK_KIND_PROP_TYPE,locProp.getString(s_Name));
 
-    if AnsiSameText(s_attribute,ExtractNameFromQName(AElement.NodeName)) then begin
+    if SameText(s_attribute,ExtractNameFromQName(AElement.NodeName)) then begin
       locProp.setBoolean(s_IsAttribute,True);
       locPartCursor := CreateCursorOn(locAttCursor.Clone() as IObjectCursor,ParseFilter(Format('%s = %s',[s_NODE_NAME,QuotedStr(s_use)]),TDOMNodeRttiExposer));
       locPartCursor.Reset();
@@ -982,7 +983,7 @@ var
     locPartCursor.Reset();
     if locPartCursor.MoveNext() then begin
       locStrBuffer := (locPartCursor.GetCurrent() as TDOMNodeRttiExposer).NodeValue;
-      if AnsiSameText(locStrBuffer,s_unbounded) then begin
+      if SameText(locStrBuffer,s_unbounded) then begin
         locMaxOccurUnbounded := True;
       end else begin
         if not TryStrToInt(locStrBuffer,locMaxOccur) then
@@ -1000,7 +1001,7 @@ var
     if not isArrayDef then begin
       SetTagValue(
         locProp,s_attribute,
-        TSDOConvertHelper.BoolToString(AnsiSameText(s_attribute,ExtractNameFromQName(AElement.NodeName)))
+        TSDOConvertHelper.BoolToString(SameText(s_attribute,ExtractNameFromQName(AElement.NodeName)))
       );
     end;
     locPartCursor := CreateCursorOn(locAttCursor.Clone() as IObjectCursor,ParseFilter(Format('%s = %s',[s_NODE_NAME,QuotedStr(s_default)]),TDOMNodeRttiExposer));
@@ -1014,7 +1015,7 @@ var
   var
     strBuffer : string;
   begin
-    Result := sdo_findCustomAttributeXsd(Context.GetXsShortNames(),FTypeNode,s_SDO_record,strBuffer) and AnsiSameText('true',Trim(strBuffer));
+    Result := sdo_findCustomAttributeXsd(Context.GetXsShortNames(),FTypeNode,s_SDO_record,strBuffer) and SameText('true',Trim(strBuffer));
   end;
 
   procedure ParseElementsAndAttributes(AEltCrs, AEltAttCrs : IObjectCursor);
@@ -1264,7 +1265,7 @@ var
   locSym : ISDODataObject;
   locContinue : Boolean;
 begin
-  if not AnsiSameText(ExtractNameFromQName(FTypeNode.NodeName),s_complexType) then
+  if not SameText(ExtractNameFromQName(FTypeNode.NodeName),s_complexType) then
     raise EXsdParserAssertException.CreateFmt(SERR_ExpectedButFound,[s_complexType,ExtractNameFromQName(FTypeNode.NodeName)]);
   Result := nil;
   CreateNodeCursors();
@@ -1286,7 +1287,7 @@ begin
     if IsStrEmpty(FContentType) then begin
       Result := ParseEmptyContent(FTypeName);
     end else begin
-      if AnsiSameText(FContentType,s_complexContent) then
+      if SameText(FContentType,s_complexContent) then
         Result := ParseComplexContent(FTypeName)
       else
         Result := ParseSimpleContent(FTypeName);
@@ -1455,7 +1456,7 @@ var
   locSym : ISDODataObject;
   locContinue : Boolean;
 begin
-  if not AnsiSameText(ExtractNameFromQName(FTypeNode.NodeName),s_simpleType) then
+  if not SameText(ExtractNameFromQName(FTypeNode.NodeName),s_simpleType) then
     raise EXsdParserAssertException.CreateFmt(SERR_ExpectedButFound,[s_simpleType,ExtractNameFromQName(FTypeNode.NodeName)]);
   Result := nil;
   CreateNodeCursors();
@@ -1631,7 +1632,7 @@ begin
       if Assigned(attCrs) then begin
         crs := CreateCursorOn(attCrs,fltr);
         crs.Reset();
-        if crs.MoveNext() and AnsiSameText(AName,TDOMNodeRttiExposer(crs.GetCurrent()).NodeValue) then begin
+        if crs.MoveNext() and SameText(AName,TDOMNodeRttiExposer(crs.GetCurrent()).NodeValue) then begin
           Dec(locOrder);
           if ( locOrder <= 0 ) then begin
             Result := curObj.InnerObject;
@@ -1784,7 +1785,7 @@ var
       typNd := FindNamedNode(crsSchemaChild,localTypeName);
     if not Assigned(typNd) then
       raise EXsdTypeNotFoundException.CreateFmt(SERR_TypeDefinitionNotFound,['1',AName]);
-    if AnsiSameText(ExtractNameFromQName(typNd.NodeName),s_element) then begin
+    if SameText(ExtractNameFromQName(typNd.NodeName),s_element) then begin
       crs := CreateCursorOn(CreateAttributesCursor(typNd,cetRttiNode),ParseFilter(Format('%s = %s',[s_NODE_NAME,QuotedStr(s_type)]),TDOMNodeRttiExposer));
       crs.Reset();
       if crs.MoveNext() then begin
@@ -1888,6 +1889,7 @@ begin
   try
     embededType := False;
     aliasType := nil;
+    typNd := nil;
     ExplodeQName(AName,localTypeName,shortNameSpace);
     if IsStrEmpty(shortNameSpace) then begin
       typeModule := FModule;
@@ -1916,9 +1918,9 @@ begin
       Result := nil;
       Init();
       if locTypeNodeFound {FindTypeNode(aliasType)} then begin
-        if AnsiSameText(ExtractNameFromQName(typNd.NodeName),s_complexType) then begin
+        if (ExtractNameFromQName(typNd.NodeName)=s_complexType) then begin
           Result := ParseComplexType();
-        end else if AnsiSameText(ExtractNameFromQName(typNd.NodeName),s_simpleType) then begin
+        end else if (ExtractNameFromQName(typNd.NodeName)=s_simpleType) then begin
           Result := ParseSimpleType();
         end;
         if not Assigned(Result) then

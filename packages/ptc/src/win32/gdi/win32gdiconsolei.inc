@@ -1,6 +1,6 @@
 {
     This file is part of the PTCPas framebuffer library
-    Copyright (C) 2007, 2009-2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2007, 2009-2013  Nikolay Nikolov (nickysn@users.sourceforge.net)
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -50,6 +50,7 @@ begin
   FWin32Cursor := TWin32Cursor.Create;
 
   FFullscreen := True;
+  FResizable := False;
 
   FModeSetter := TWin32ModeSetter.Create;
 
@@ -122,28 +123,6 @@ begin
     FModeSetter.Open(AWidth, AHeight, AFormat);
   end;
 
-(*  FWindow := TWin32Window.Create('PTC_GDI_FULLSCREEN',
-                                 ATitle,
-                                 WS_EX_TOPMOST,
-                                 DWord(WS_POPUP or WS_SYSMENU or WS_VISIBLE), // fpc windows RTL bug - WS_POPUP should be a DWord!!!
-                                 CS_HREDRAW or CS_VREDRAW,
-                                 SW_NORMAL,
-                                 0, 0,
-                                 GetSystemMetrics(SM_CXSCREEN),
-                                 GetSystemMetrics(SM_CYSCREEN),
-                                 False, False);*)
-
-(*  FWindow := TWin32Window.Create('PTC_GDI_WINDOWED_RESIZABLE',
-                                 ATitle,
-                                 0,
-                                 WS_OVERLAPPEDWINDOW or WS_VISIBLE,
-                                 CS_HREDRAW or CS_VREDRAW,
-                                 SW_NORMAL,
-                                 CW_USEDEFAULT, CW_USEDEFAULT,
-                                 AWidth, AHeight,
-                                 {m_center_window}False,
-                                 False);*)
-
   if FFullscreen then
   begin
     if FUseOpenGL then
@@ -158,6 +137,7 @@ begin
                                            {m_center_window}False,
                                            False,
                                            FCursor,
+                                           InterceptClose,
                                            FOpenGLAttributes)
     else
       FWindow := TWin32Window.Create('PTC_GDI_FULLSCREEN',
@@ -170,41 +150,74 @@ begin
                                      AWidth, AHeight,
                                      {m_center_window}False,
                                      False,
-                                     FCursor);
+                                     FCursor,
+                                     InterceptClose);
   end
   else
   begin
     if FUseOpenGL then
-      FWindow := TWin32OpenGLWindow.Create('PTC_OPENGL_WINDOWED_FIXED',
-                                           ATitle,
-                                           0,
-                                           WS_VISIBLE or WS_SYSMENU or WS_CAPTION or WS_MINIMIZEBOX or WS_CLIPSIBLINGS or WS_CLIPCHILDREN,
-                                           CS_HREDRAW or CS_VREDRAW or CS_OWNDC,
-                                           SW_NORMAL,
-                                           CW_USEDEFAULT, CW_USEDEFAULT,
-                                           AWidth, AHeight,
-                                           {m_center_window}False,
-                                           False,
-                                           FCursor,
-                                           FOpenGLAttributes)
+      if FResizable then
+        FWindow := TWin32OpenGLWindow.Create('PTC_OPENGL_WINDOWED_RESIZABLE',
+                                             ATitle,
+                                             0,
+                                             WS_OVERLAPPEDWINDOW or WS_VISIBLE or WS_CLIPSIBLINGS or WS_CLIPCHILDREN,
+                                             CS_HREDRAW or CS_VREDRAW or CS_OWNDC,
+                                             SW_NORMAL,
+                                             CW_USEDEFAULT, CW_USEDEFAULT,
+                                             AWidth, AHeight,
+                                             {m_center_window}False,
+                                             False,
+                                             FCursor,
+                                             InterceptClose,
+                                             FOpenGLAttributes)
+      else
+        FWindow := TWin32OpenGLWindow.Create('PTC_OPENGL_WINDOWED_FIXED',
+                                             ATitle,
+                                             0,
+                                             WS_VISIBLE or WS_SYSMENU or WS_CAPTION or WS_MINIMIZEBOX or WS_CLIPSIBLINGS or WS_CLIPCHILDREN,
+                                             CS_HREDRAW or CS_VREDRAW or CS_OWNDC,
+                                             SW_NORMAL,
+                                             CW_USEDEFAULT, CW_USEDEFAULT,
+                                             AWidth, AHeight,
+                                             {m_center_window}False,
+                                             False,
+                                             FCursor,
+                                             InterceptClose,
+                                             FOpenGLAttributes)
     else
-      FWindow := TWin32Window.Create('PTC_GDI_WINDOWED_FIXED',
-                                     ATitle,
-                                     0,
-                                     WS_VISIBLE or WS_SYSMENU or WS_CAPTION or WS_MINIMIZEBOX,
-                                     CS_HREDRAW or CS_VREDRAW,
-                                     SW_NORMAL,
-                                     CW_USEDEFAULT, CW_USEDEFAULT,
-                                     AWidth, AHeight,
-                                     {m_center_window}False,
-                                     False,
-                                     FCursor);
+      if FResizable then
+        FWindow := TWin32Window.Create('PTC_GDI_WINDOWED_RESIZABLE',
+                                       ATitle,
+                                       0,
+                                       WS_OVERLAPPEDWINDOW or WS_VISIBLE,
+                                       CS_HREDRAW or CS_VREDRAW,
+                                       SW_NORMAL,
+                                       CW_USEDEFAULT, CW_USEDEFAULT,
+                                       AWidth, AHeight,
+                                       {m_center_window}False,
+                                       False,
+                                       FCursor,
+                                       InterceptClose)
+      else
+        FWindow := TWin32Window.Create('PTC_GDI_WINDOWED_FIXED',
+                                       ATitle,
+                                       0,
+                                       WS_VISIBLE or WS_SYSMENU or WS_CAPTION or WS_MINIMIZEBOX,
+                                       CS_HREDRAW or CS_VREDRAW,
+                                       SW_NORMAL,
+                                       CW_USEDEFAULT, CW_USEDEFAULT,
+                                       AWidth, AHeight,
+                                       {m_center_window}False,
+                                       False,
+                                       FCursor,
+                                       InterceptClose);
   end;
 
   FWin32DIB := TWin32DIB.Create(AWidth, AHeight);
 
   FreeAndNil(FKeyboard);
   FreeAndNil(FMouse);
+  FreeAndNil(FResize);
   FreeAndNil(FHook);
   FreeAndNil(FEventQueue);
   FEventQueue := TEventQueue.Create;
@@ -213,6 +226,8 @@ begin
   FMouse := TWin32Mouse.Create(FWindow.Handle, FWindow.Thread, False, FEventQueue, FFullScreen, AWidth, AHeight);
   if FFullscreen then
     FMouse.SetWindowArea(0, 0, AWidth, AHeight);
+  if not FFullscreen and FResizable then
+    FResize := TWin32Resize.Create(FWindow.Handle, FWindow.Thread, FEventQueue);
 
   tmpArea := TPTCArea.Create(0, 0, AWidth, AHeight);
   FArea := tmpArea;
@@ -248,6 +263,7 @@ begin
 
   FreeAndNil(FKeyboard);
   FreeAndNil(FMouse);
+  FreeAndNil(FResize);
   FreeAndNil(FHook);
 
   FreeAndNil(FWin32DIB);
@@ -258,6 +274,24 @@ begin
   FTitle := '';
 
   FOpen := False;
+end;
+
+procedure TGDIConsole.InternalResize(AWidth, AHeight: Integer);
+begin
+  CheckOpen(    'TGDIConsole.InternalResize');
+  CheckUnlocked('TGDIConsole.InternalResize');
+
+  if FFullscreen then
+    raise TPTCError.Create('TGDIConsole.InternalResize only works in windowed mode');
+  if not FResizable then
+    raise TPTCError.Create('TGDIConsole.InternalResize only works in resizable window mode');
+
+  FreeAndNil(FWin32DIB);
+  FWin32DIB := TWin32DIB.Create(AWidth, AHeight);
+  FArea := TPTCAreaFactory.CreateNew(0, 0, AWidth, AHeight);
+  FClip := FArea;
+
+  FMouse.SetConsoleSize(AWidth, AHeight);
 end;
 
 procedure TGDIConsole.Copy(ASurface: IPTCSurface);
@@ -443,6 +477,16 @@ begin
     FFullscreen := True;
     exit;
   end;
+  if AOption = 'resizable window' then
+  begin
+    FResizable := True;
+    exit;
+  end;
+  if AOption = 'fixed window' then
+  begin
+    FResizable := False;
+    exit;
+  end;
   if AOption = 'default cursor' then
   begin
     FCursorMode := CURSOR_DEFAULT;
@@ -473,6 +517,12 @@ begin
     if FOpen and (not FFullscreen) then
       FWindow.ConfineCursor(False);
     FGrabMouse := False;
+    exit;
+  end;
+  if AOption = 'intercept window close' then
+  begin
+    InterceptClose := True;
+    Result := True;
     exit;
   end;
 
@@ -702,6 +752,13 @@ begin
     LOG('no supported extensions found for setting the swap interval, assuming the swap interval is 0');
     Result := 0;
   end;
+end;
+
+procedure TGDIConsole.SetInterceptClose(AInterceptClose: Boolean);
+begin
+  FInterceptClose := AInterceptClose;
+  if Assigned(FWindow) then
+    FWindow.InterceptClose := AInterceptClose;
 end;
 
 procedure TGDIConsole.CheckOpen(const AMessage: String);

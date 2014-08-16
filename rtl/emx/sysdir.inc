@@ -106,6 +106,8 @@ begin
        if Len > 2 then
         begin
          DoDirSeparators (S);
+         if (S [Len] = DirectorySeparator) and (Len <> 3) then
+          S [Len] := #0;
          RC := DosSetCurrentDir (pchar(S));
          if RC <> 0 then
           begin
@@ -117,6 +119,8 @@ begin
     else
      begin
       DoDirSeparators (S);
+      if (Len > 1) and (S [Len] = DirectorySeparator) then
+       S [Len] := #0;
       RC := DosSetCurrentDir (pchar(S));
       if RC <> 0 then
        begin
@@ -144,14 +148,22 @@ begin
 @LCHDIR:
      end ['eax','edx','esi'];
      if (Len > 2) and (InOutRes <> 0) then
+      begin
+       if (S [Len] in AllowDirectorySeparators) and (Len <> 3) then
+        S [Len] := #0;
       { Under EMX 0.9d DOS this routine may sometime }
       { fail or crash the system.                    }
-      DosDir ($3B, S);
+       DosDir ($3B, S);
+      end;
     end
    else
+    begin
+     if (Len > 1) and (S [Len] in AllowDirectorySeparators) then
+      S [Len] := #0;
     { Under EMX 0.9d DOS this routine may sometime }
     { fail or crash the system.                    }
-    DosDir ($3B, S);
+     DosDir ($3B, S);
+    end;
 end;
 
 

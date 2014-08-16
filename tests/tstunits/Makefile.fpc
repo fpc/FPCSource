@@ -23,9 +23,6 @@ fpcdir=../..
 .PHONY: cleanfpcunit distcleanfpcunit
 .PHONY: cleanpackages distcleanpackages
 
-ifeq ($(OS_TARGET),msdos)
-override OPT=-CX
-endif
 
 TESTOPT:=-n -FE$(COMPILER_TARGETDIR) -T$(OS_TARGET) $(OPT)
 ifeq ($(CPU_TARGET),armeb)
@@ -33,6 +30,9 @@ override TESTOPT+=-Cb
 endif
 ifneq ($(BINUTILSPREFIX),)
 override TESTOPT+=-XP$(BINUTILSPREFIX) -Xc
+endif
+ifeq ($(OS_TARGET),msdos)
+override TESTOPT+=-CX
 endif
 TESTCOMPILER:=$(FPC) $(TESTOPT)
 

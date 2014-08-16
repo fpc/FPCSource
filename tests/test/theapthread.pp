@@ -130,6 +130,10 @@ begin
   begin
     if ((pair.writeindex+1) mod fifolength) <> pair.readindex then
     begin
+      { counterpart for the writebarrier in the consumer: ensure that we see
+        the write to pair.fifo[pair.readindex] now that we've seen the write
+        to pair.readindex }
+      readbarrier;
       freemem(pair.fifo[pair.writeindex]);
       pair.fifo[pair.writeindex] := getmem(((pair.writeindex*17) mod 520)+8);
       writebarrier;
@@ -167,6 +171,10 @@ begin
   begin
     if pair.readindex <> pair.writeindex then
     begin
+      { counterpart for the writebarrier in the producer: ensure that we see
+        the write to pair.fifo[pair.writeindex] now that we've seen the write
+        to pair.writeindex }
+      readbarrier;
       freemem(pair.fifo[pair.readindex]);
       pair.fifo[pair.readindex] := getmem(((pair.writeindex*17) mod 520)+8);
       writebarrier;

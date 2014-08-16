@@ -142,7 +142,7 @@ begin
 end;
 
 
-function TInterfacedPersistent._AddRef: Integer;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+function TInterfacedPersistent._AddRef: Longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 begin
   if assigned(FOwnerInterface) then
     Result:=FOwnerInterface._AddRef
@@ -151,7 +151,7 @@ begin
 end;
 
 
-function TInterfacedPersistent._Release: Integer;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+function TInterfacedPersistent._Release: Longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 begin
   if assigned(FOwnerInterface) then
     Result:=FOwnerInterface._Release

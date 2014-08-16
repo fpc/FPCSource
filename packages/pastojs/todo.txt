@@ -1,0 +1,81 @@
+Things that need to be done:
+
+Var Arguments:
+
+Procedure A(var B : integer);
+
+begin
+  B:=123;
+end;
+  
+Var
+  C : Integer;
+
+begin
+  C:=456;
+  A(C);
+end.
+
+Callee, assume reference (needs examining arguments): 
+
+function a(b) {
+  b.r:=123;
+}
+
+Caller side: generate a temp object var
+var c = 0;
+c=456;
+var c$123 = {r : c};
+try {
+  a(c$123);
+} finally {
+ c=c$123.r;
+}
+Advantage: no transformations needed.
+Disadvantage: try/finally needed in case callee (a) throws an exception.
+
+Caller side: allocate variable as object from the very start.
+var
+  c = {r: 0};
+c.r=123;
+a(c);
+
+Overloads:
+----------
+Function A(S : String) : String;
+Function A(I : Integer) : String;
+
+Add suffix:
+function a$1(s) {
+}
+function a$2(i) {
+}
+when calling overloaded version, we need to determine which one needs to be
+called.
+
+Object model:
+-------------
+
+2 Possibilities:
+- Use Javascript Objects, java class model using prototype
+  Disadvantages: 
+  "this" is rather 'confused' in javascript, 
+  use of constructor ? 
+  delegation (procedure of object), event handlers ? (and this!)
+
+- Roll our own in a flat model, explicitly passing self.
+  TMyClass = Class
+    Function MyFunction(S : string);
+  end;
+  Defines a class. Class is an object
+  Var TMyClass = {
+    $_ClassName : "TMyClass",
+    $_ParentClass : "TObject",
+    myfunction : function (Self,s) {
+    }
+  }
+  A:=TMyClass.Create()
+  needs some helper magic:
+  A:=TMyClass.Create($NewClassInstance(TMyClass))
+
+  Disadvantage: not using javascript classes, how to import external javascript objects ?

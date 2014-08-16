@@ -43,9 +43,11 @@ begin
   try
     v := y135;
     test135(v);
+    Writeln('Did not get exception');
+    Halt(1);
   except
     on E : TObject do
-      halt(1);
+      Writeln('Caught exception, as expected ',E.ClassName);
   end;
 end;
 

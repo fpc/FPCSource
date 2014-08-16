@@ -85,6 +85,7 @@ function  pthread_attr_setinheritsched(p : ppthread_attr_t;i:cint):cint; cdecl; 
 function  pthread_attr_setscope      (p : ppthread_attr_t;i:cint):cint;cdecl;external;
 function  pthread_attr_setdetachstate (p : ppthread_attr_t;i:cint):cint;cdecl;external;
 function  pthread_attr_setstacksize(p: ppthread_attr_t; stacksize: size_t):cint;cdecl;external;
+function  pthread_attr_destroy(p:ppthread_attr_t):cint;cdecl;external;
 function  pthread_create ( p: ppthread_t;attr : ppthread_attr_t;f:__startroutine_t;arg:pointer):cint;cdecl;external;
 procedure pthread_exit  ( p: pointer); cdecl;external;
 function  pthread_self:pthread_t; cdecl;external;

@@ -67,9 +67,9 @@ begin
   new(b,init(r,'~E~valuate',cmEvaluate,bfDefault));
   insert(b);
 
-  r.assign(size.x-14,6,size.x-3,8);
-  new(b,init(r,'Help',cmHelp,bfNormal));
-  insert(b);
+  //r.assign(size.x-14,6,size.x-3,8);
+  //new(b,init(r,'Help',cmHelp,bfNormal));
+  //insert(b);
 
   expr_input^.select;
 end;

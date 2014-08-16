@@ -5,6 +5,7 @@
 program tthlp10;
 
 {$mode objfpc}
+{$modeswitch typehelpers}
 
 type
   TProcedure = procedure;

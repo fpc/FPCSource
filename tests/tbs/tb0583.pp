@@ -1,4 +1,4 @@
-{ %opt=-O-3 }
+{ %opt=-O-3 -Oonoconstprop }
 { %result=201 }
 
 {$inline on}

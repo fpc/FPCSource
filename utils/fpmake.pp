@@ -82,7 +82,9 @@ begin
     P.Targets.AddProgram('postw32.pp');
     P.Targets.AddProgram('rmcvsdir.pp');
     P.Targets.AddProgram('grab_vcsa.pp',[linux]);
-
+    T:=P.Targets.AddProgram('fpcsubst.pp');
+    T.Dependencies.AddUnit('usubst');
+    P.Targets.AddUnit('usubst.pp').install:=false;
     P.Targets.AddUnit('ptopu.pp').install:=false;
     end;
 end;

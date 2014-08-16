@@ -62,9 +62,6 @@ FPC_SHARED_LIB_START:
 /* this routine is only called when the halt() routine of the RTL embedded in
   the shared library is called */
 _haltproc:
-	.globl FPC_SHARED_LIB_EXIT
-	.type FPC_SHARED_LIB_EXIT,@function
-FPC_SHARED_LIB_EXIT:
         call    FPC_LIB_EXIT@PLT
 	movl    $1,%eax                 /* exit syscall */
         movq    operatingsystem_result(%rip),%rbx

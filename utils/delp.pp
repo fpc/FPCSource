@@ -201,7 +201,7 @@ begin
   AddMask('*.ppu *.o *.a *.s *.or *.compiled');
   AddMask('*.pp1 *.o1 *.a1 *.s1');
   AddMask('*.ppo *.oo *.ao *.so');
-  AddMask('*.rst');
+  AddMask('*.rst *.rsj');
   { OS/2 target }
   AddMask('*.oo2 *.so2 *.ppo');
   { Amiga target }

@@ -36,24 +36,6 @@ const
   fpu_rounding_plus_inf = 2;
   fpu_rounding_minus_inf = 3;
 
-
-function FPUExceptionMaskToSoftFloatMask(const Mask: TFPUExceptionMask): byte;
-begin
-    result:=0;
-    if exInvalidOp in Mask then
-      result:=result or (1 shl ord(exInvalidOp));
-    if exDenormalized in Mask then
-      result:=result or (1 shl ord(exDenormalized));
-    if exZeroDivide in Mask then
-      result:=result or (1 shl ord(exZeroDivide));
-    if exOverflow in Mask then
-      result:=result or (1 shl ord(exOverflow));
-    if exUnderflow in Mask then
-      result:=result or (1 shl ord(exUnderflow));
-    if exPrecision in Mask then
-      result:=result or (1 shl ord(exPrecision));
-end;
-
 const
   roundmode2fsr : array [TFPURoundingMode] of byte=(
     fpu_rounding_nearest,
@@ -78,7 +60,6 @@ function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
   var
     fsr: longword;
   begin
-    softfloat_rounding_mode:=byte(RoundMode);
     fsr:=get_fsr;
     result:=fsr2roundmode[fsr and fpu_rounding_mask];
     set_fsr((fsr and not fpu_rounding_mask) or roundmode2fsr[RoundMode]);
@@ -160,8 +141,6 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
 
     { update control register contents }
     set_fsr(fsr);
-
-    softfloat_exception_mask:=FPUExceptionMaskToSoftFloatMask(mask);
   end;
 
 

@@ -1627,10 +1627,6 @@ Implementation
 
 Uses Strings;
 
-{ Get the definitions of textrec and filerec }
-{$i textrec.inc}
-{$i filerec.inc}
-
 {No debugging for syslinux include !}
 {$IFDEF SYS_LINUX}
   {$UNDEF SYSCALL_DEBUG}

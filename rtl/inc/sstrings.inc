@@ -205,7 +205,7 @@ const
 function upcase(c : char) : char;
 {$IFDEF IBM_CHAR_SET}
 var
-  i : longint;
+  i : ObjpasInt;
 {$ENDIF}
 begin
   if (c in ['a'..'z']) then
@@ -230,7 +230,7 @@ end;
 {$define FPC_UPCASE_SHORTSTR}
 function upcase(const s : shortstring) : shortstring;
 var
-  i : longint;
+  i : ObjpasInt;
 begin
   upcase[0]:=s[0];
   for i := 1 to length (s) do
@@ -244,7 +244,7 @@ end;
 function lowercase(c : char) : char;overload;
 {$IFDEF IBM_CHAR_SET}
 var
-  i : longint;
+  i : ObjpasInt;
 {$ENDIF}
 begin
   if (c in ['A'..'Z']) then
@@ -269,7 +269,7 @@ end;
 {$define FPC_LOWERCASE_SHORTSTR}
 function lowercase(const s : shortstring) : shortstring; overload;
 var
-  i : longint;
+  i : ObjpasInt;
 begin
   lowercase [0]:=s[0];
   for i:=1 to length(s) do
@@ -282,7 +282,7 @@ const
 
 function hexstr(val : longint;cnt : byte) : shortstring;
 var
-  i : longint;
+  i : ObjpasInt;
 begin
   hexstr[0]:=char(cnt);
   for i:=cnt downto 1 do
@@ -294,7 +294,7 @@ end;
 
 function octstr(val : longint;cnt : byte) : shortstring;
 var
-  i : longint;
+  i : ObjpasInt;
 begin
   octstr[0]:=char(cnt);
   for i:=cnt downto 1 do
@@ -307,7 +307,7 @@ end;
 
 function binstr(val : longint;cnt : byte) : shortstring;
 var
-  i : longint;
+  i : ObjpasInt;
 begin
   binstr[0]:=char(cnt);
   for i:=cnt downto 1 do
@@ -320,7 +320,7 @@ end;
 
 function hexstr(val : int64;cnt : byte) : shortstring;
 var
-  i : longint;
+  i : ObjpasInt;
 begin
   hexstr[0]:=char(cnt);
   for i:=cnt downto 1 do
@@ -333,7 +333,7 @@ end;
 
 function octstr(val : int64;cnt : byte) : shortstring;
 var
-  i : longint;
+  i : ObjpasInt;
 begin
   octstr[0]:=char(cnt);
   for i:=cnt downto 1 do
@@ -346,7 +346,7 @@ end;
 
 function binstr(val : int64;cnt : byte) : shortstring;
 var
-  i : longint;
+  i : ObjpasInt;
 begin
   binstr[0]:=char(cnt);
   for i:=cnt downto 1 do
@@ -387,7 +387,7 @@ end;
 {$define FPC_HAS_HEXSTR_POINTER_SHORTSTR}
 function hexstr(val : pointer) : shortstring;
 var
-  i : longint;
+  i : ObjpasInt;
   v : ptruint;
 begin
   v:=ptruint(val);
@@ -463,6 +463,22 @@ begin
   if length(s)<len then
     s:=space(len-length(s))+s;
 end;
+
+
+procedure fpc_shortstr_word(v : word;len : SizeInt;out s : shortstring);[public,alias:'FPC_SHORTSTR_WORD']; compilerproc;
+begin
+  int_str_unsigned(v,s);
+  if length(s)<len then
+    s:=space(len-length(s))+s;
+end;
+
+
+procedure fpc_shortstr_smallint(v : smallint;len : SizeInt;out s : shortstring);[public,alias:'FPC_SHORTSTR_SMALLINT'];  compilerproc;
+begin
+  int_str(v,s);
+  if length(s)<len then
+    s:=space(len-length(s))+s;
+end;
 {$endif CPU16 or CPU8}
 
 
@@ -471,7 +487,11 @@ end;
 { compilerproc name will fail (JM)                                       }
 
 {$ifndef FPUNONE}
+{$ifdef FLOAT_ASCII_FALLBACK}
 {$I real2str.inc}
+{$else not FLOAT_ASCII_FALLBACK}
+{$I flt_conv.inc}
+{$endif FLOAT_ASCII_FALLBACK}
 {$endif}
 
 {$ifndef FPUNONE}
@@ -919,6 +939,38 @@ begin
   fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
 end;
 
+
+procedure fpc_chararray_word(v : word;len : SizeInt;out a : array of char);compilerproc;
+var
+  ss : shortstring;
+  maxlen : SizeInt;
+begin
+  int_str_unsigned(v,ss);
+  if length(ss)<len then
+    ss:=space(len-length(ss))+ss;
+  if length(ss)<high(a)+1 then
+    maxlen:=length(ss)
+  else
+    maxlen:=high(a)+1;
+  fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
+end;
+
+
+procedure fpc_chararray_smallint(v : smallint;len : SizeInt;out a : array of char);compilerproc;
+var
+  ss : shortstring;
+  maxlen : SizeInt;
+begin
+  int_str(v,ss);
+  if length(ss)<len then
+    ss:=space(len-length(ss))+ss;
+  if length(ss)<high(a)+1 then
+    maxlen:=length(ss)
+  else
+    maxlen:=high(a)+1;
+  fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
+end;
+
 {$endif CPU16 or CPU8}
 
 
@@ -1349,9 +1401,108 @@ end;
      end;
     code := 0;
   end;
+
+
+  Function fpc_val_smallint_shortstr(Const S: ShortString; out Code: ValSInt): SmallInt; [public, alias:'FPC_VAL_SMALLINT_SHORTSTR']; compilerproc;
+
+  var  u, temp, prev, maxprevvalue, maxnewvalue : word;
+       base : byte;
+       negative : boolean;
+
+  const maxlongint=longword($7fffffff);
+        maxlongword=longword($ffffffff);
+
+  begin
+    fpc_val_smallint_shortstr := 0;
+    Temp:=0;
+    Code:=InitVal(s,negative,base);
+    if Code>length(s) then
+     exit;
+    if (s[Code]=#0) then
+      begin
+        if (Code>1) and (s[Code-1]='0') then
+          Code:=0;
+        exit;
+      end;
+    maxprevvalue := maxlongword div base;
+    if (base = 10) then
+      maxnewvalue := maxlongint + ord(negative)
+    else
+      maxnewvalue := maxlongword;
+
+    while Code<=Length(s) do
+     begin
+       case s[Code] of
+         '0'..'9' : u:=Ord(S[Code])-Ord('0');
+         'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
+         'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+         #0 : break;
+       else
+        u:=16;
+       end;
+       Prev:=Temp;
+       Temp:=Temp*longword(base);
+     If (u >= base) or
+        (longword(maxnewvalue-u) < temp) or
+        (prev > maxprevvalue) Then
+       Begin
+         fpc_val_smallint_shortstr := 0;
+         Exit
+       End;
+       Temp:=Temp+u;
+       inc(code);
+     end;
+    code:=0;
+    fpc_val_smallint_shortstr:=longint(Temp);
+    If Negative Then
+      fpc_val_smallint_shortstr:=-fpc_val_smallint_shortstr;
+  end;
+
+
+  Function fpc_val_word_shortstr(Const S: ShortString; out Code: ValSInt): Word; [public, alias:'FPC_VAL_WORD_SHORTSTR']; compilerproc;
+
+  var  u, prev: word;
+       base : byte;
+       negative : boolean;
+
+  const maxlongword=longword($ffffffff);
+
+  begin
+    fpc_val_word_shortstr:=0;
+    Code:=InitVal(s,negative,base);
+    If Negative or (Code>length(s)) Then
+      Exit;
+    if (s[Code]=#0) then
+      begin
+        if (Code>1) and (s[Code-1]='0') then
+          Code:=0;
+        exit;
+      end;
+    while Code<=Length(s) do
+     begin
+       case s[Code] of
+         '0'..'9' : u:=Ord(S[Code])-Ord('0');
+         'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
+         'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+         #0 : break;
+       else
+        u:=16;
+       end;
+       prev := fpc_val_word_shortstr;
+       If (u>=base) or
+         ((LongWord(maxlongword-u) div LongWord(base))<prev) then
+         Begin
+           fpc_val_word_shortstr := 0;
+           Exit
+         End;
+       fpc_val_word_shortstr:=fpc_val_word_shortstr*LongWord(base) + u;
+       inc(code);
+     end;
+    code := 0;
+  end;
 {$endif CPU16 or CPU8}
 
-
+{$ifdef FLOAT_ASCII_FALLBACK}
 {$ifndef FPUNONE}
 const
 {$ifdef FPC_HAS_TYPE_EXTENDED}
@@ -1691,6 +1842,17 @@ begin
   code:=0;
 end;
 {$endif}
+
+{$else not FLOAT_ASCII_FALLBACK}
+
+{$ifndef FPUNONE}
+Function fpc_Val_Real_ShortStr(const s : shortstring; out Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_SHORTSTR']; compilerproc;
+begin
+    fpc_Val_Real_ShortStr := val_real( s, code );
+end;
+{$endif FPUNONE}
+
+{$endif FLOAT_ASCII_FALLBACK}
 
 {$ifndef FPC_STR_ENUM_INTERN}
 function fpc_val_enum_shortstr(str2ordindex:pointer;const s:shortstring;out code:valsint):longint; [public, alias:'FPC_VAL_ENUM_SHORTSTR']; compilerproc;

@@ -45,7 +45,7 @@ type
 
 implementation
 
-const
+Resourcestring
   SInvalidOperation = 'Cannot perform this operation on a NullStream.';
 
 Function TNullStream.GetSize : int64;

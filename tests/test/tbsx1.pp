@@ -19,7 +19,7 @@ begin
     r:=BsrByte(x8);
     if r<>i then
     begin
-      writeln('BsrByte(',x8,') returned ',f,', should be ',i);
+      writeln('BsrByte(',x8,') returned ',r,', should be ',i);
       exit(false);
     end;
   end;
@@ -33,7 +33,7 @@ begin
   r:=BsrByte(x8);
   if r<>$ff then
   begin
-    writeln('BsrByte(',x8,') returned ',f,', should be ',$ff);
+    writeln('BsrByte(',x8,') returned ',r,', should be ',$ff);
     exit(false);
   end;
   result:=true;
@@ -56,12 +56,12 @@ begin
     r:=BsrWord(x16);
     if r<>i then
     begin
-      writeln('BsrWord(',x16,') returned ',f,', should be ',i);
+      writeln('BsrWord(',x16,') returned ',r,', should be ',i);
       exit(false);
     end;
   end;
   x16:=0;
-  f:=BsfDWord(x16);
+  f:=BsfWord(x16);
   if (f<>$ff) then
   begin
     writeln('BsfWord(',x16,') returned ',f,', should be ',$ff);
@@ -70,7 +70,7 @@ begin
   r:=BsrWord(x16);
   if r<>$ff then
   begin
-    writeln('BsrWord(',x16,') returned ',f,', should be ',$ff);
+    writeln('BsrWord(',x16,') returned ',r,', should be ',$ff);
     exit(false);
   end;
   result:=true;
@@ -83,7 +83,7 @@ var
 begin
   for i:=0 to 31 do
   begin
-    x32:=1 shl i;
+    x32:=cardinal(1) shl i;
     f:=BsfDWord(x32);
     if (f<>i) then
     begin
@@ -93,7 +93,7 @@ begin
     r:=BsrDWord(x32);
     if r<>i then
     begin
-      writeln('BsrDWord(',x32,') returned ',f,', should be ',i);
+      writeln('BsrDWord(',x32,') returned ',r,', should be ',i);
       exit(false);
     end;
   end;
@@ -107,7 +107,7 @@ begin
   r:=BsrDWord(x32);
   if r<>$ff then
   begin
-    writeln('BsrDWord(',x32,') returned ',f,', should be ',$ff);
+    writeln('BsrDWord(',x32,') returned ',r,', should be ',$ff);
     exit(false);
   end;
   result:=true;
@@ -142,7 +142,7 @@ begin
   r:=BsrQWord(x64);
   if r<>$ff then
   begin
-    writeln('BsrQWord(',x64,') returned ',f,', should be ',$ff);
+    writeln('BsrQWord(',x64,') returned ',r,', should be ',$ff);
     exit(false);
   end;
   result:=true;

@@ -23,8 +23,8 @@ endif
 ifdef CPU_TARGET
 FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
 endif
-FPMAKE_BIN_CLEAN=$(wildcard .$(PATHSEP)fpmake$(SRCEXEEXT))
-LOCALFPMAKE=.$(PATHSEP)fpmake$(SRCEXEEXT)
+FPMAKE_BIN_CLEAN=$(wildcard ./fpmake$(SRCEXEEXT))
+LOCALFPMAKE=./fpmake$(SRCEXEEXT)
 # do not add -d$(CPU_TARGET)
 override NOCPUDEF=1
 

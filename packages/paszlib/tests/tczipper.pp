@@ -1,7 +1,7 @@
 program tczipper;
 {
     This file is part of the Free Pascal packages.
-    Copyright (c) 2012-2013 by the Free Pascal Development Team
+    Copyright (c) 2012-2014 by the Free Pascal Development Team
     Created by Reinier Olislagers
 
     Tests zip/unzip functionality provided by the FPC zipper.pp unit.
@@ -17,7 +17,9 @@ program tczipper;
 //Define this if you want to inspect the generated zips etc
 {$define KEEPTESTFILES}
 
-uses SysUtils, classes, zipper, unzip, zdeflate, zinflate, zip, md5, zstream, nullstream;
+uses
+  SysUtils, classes,
+  zipper, unzip, zdeflate, zinflate, zip, md5, zstream, nullstream;
 
 type
 
@@ -45,7 +47,7 @@ type
 
 procedure TCallBackHandler.EndOfFile(Sender: TObject; const Ratio: double);
 begin
-  writeln('End of file handler hit; ratio: '+floattostr(ratio));
+  writeln('End of file handler hit; compression ratio: '+floattostr(ratio));
   if (FPerformChecks) and (Ratio<0) then
   begin
     writeln('Found compression ratio '+floattostr(Ratio)+', which should never be lower than 0.');
@@ -120,9 +122,6 @@ var
   UnZipper: TUnZipper;
 begin
   result:=true;
-  UncompressedFile1:=SysUtils.GetTempFileName('', 'UNC');
-  UncompressedFile2:=SysUtils.GetTempFileName('', 'UNC');
-  CompressedFile:=SysUtils.GetTempFileName('', 'CC');
 
   FileContents:=TStringList.Create;
   OurZipper:=TZipper.Create;
@@ -132,16 +131,22 @@ begin
     // Set up uncompressed files
     FileContents.Add('This is an uncompressed file.');
     FileContents.Add('And another line.');
+    UncompressedFile1:=SysUtils.GetTempFileName('', 'UN1');
     FileContents.SaveToFile(UncompressedFile1);
     FileContents.Clear;
     FileContents.Add('Have you looked into using fpcup today?');
     FileContents.Add('It works nicely with fpc and goes well with a fruity red wine, too.');
+    // Second GetTempFileName call needs to be done after saving first file because
+    // GetTempFileName checks for existing file names and may give the *same* file name
+    // if called before
+    UncompressedFile2:=SysUtils.GetTempFileName('', 'UN2');
     FileContents.SaveToFile(UncompressedFile2);
     // Remember their content, so we can compare later.
     UncompressedFile1Hash:=MD5Print(MD5File(UncompressedFile1, MDDefBufSize));
     UncompressedFile2Hash:=MD5Print(MD5File(UncompressedFile2, MDDefBufSize));
 
     // Test zip functionality.
+    CompressedFile:=SysUtils.GetTempFileName('', 'CC');
     OurZipper.FileName:=CompressedFile;
     // Add the files only with their filenames, we don't want to create
     // subdirectories:
@@ -153,7 +158,7 @@ begin
     if not FileExists(CompressedFile) then
     begin
       writeln('Zip file was not created.');
-      halt(5);
+      exit(false);
     end;
 
     // Delete original files
@@ -505,6 +510,50 @@ begin
   {$ENDIF}
 end;
 
+function SaveToFileTest: boolean;
+var
+  NewFileName: string;
+  OldFileName: string;
+  z: TZipper;
+  zfe: TZipFileEntry;
+  s: string = 'abcd';
+  DefaultStream: TStringStream;
+begin
+  result:=true;
+  OldFileName:=SysUtils.GetTempFileName('', 'OLD');
+  NewFileName:=SysUtils.GetTempFileName('', 'NEW');
+  z:=TZipper.Create;
+  z.FileName:=OldFileName;
+  try
+    DefaultStream:=TStringStream.Create(s);
+    zfe:=z.Entries.AddFileEntry(DefaultStream, 'Compressed');
+    z.ZipAllFiles; //saves to OldFileName
+    DeleteFile(NewFileName); //delete if present
+    z.SaveToFile(NewFileName); //should save to newfilename
+    if not(FileExists(NewFileName)) then
+    begin
+      writeln('Failure: file '+NewFileName+' does not exist.');
+      result:=false;
+    end
+    else
+    begin
+      result:=true;
+    end;
+  finally
+    DefaultStream.Free;
+    z.Free;
+  end;
+
+  {$IFNDEF KEEPTESTFILES}
+  try
+    DeleteFile(DestFile);
+  except
+    // ignore mess
+  end;
+  {$ENDIF}
+end;
+
+
 
 function TestLargeFileName: boolean;
 // Zips/unzips 259-character filename
@@ -557,17 +606,77 @@ begin
   {$ENDIF}
 end;
 
+function TestWindowsPath: boolean;
+// Zips filename in a subdirectory with a \ used as separator
+// Zip standard requires using /
+// On Linux, \ should be seen as a regular part of the filename
+var
+  FileWithBackslash: string;
+  DestFile: string;
+  s: string = 'a';
+  DefaultStream: TStringStream;
+  UnZipper: TUnZipper;
+  Zipper: TZipper;
+begin
+  result:=true;
+  FileWithBackslash:='test\afile.txt'; //on Windows, zip should handle this and internally replace \ with /
+  // On *nix, this should just be a long file
+  DestFile:=SysUtils.GetTempFileName('', 'TW');
+  Zipper:=TZipper.Create;
+  Zipper.FileName:=DestFile;
+  try
+    DefaultStream:=TStringStream.Create(s);
+    Zipper.Entries.AddFileEntry(DefaultStream, FileWithBackslash);
+    Zipper.ZipAllFiles;
+  finally
+    DefaultStream.Free;
+    Zipper.Free;
+  end;
+
+  UnZipper:=TUnZipper.Create;
+  try
+    UnZipper.FileName:=DestFile;
+    Unzipper.Examine;
+    {$ifdef mswindows}
+    if (pos('\',Unzipper.Entries[0].ArchiveFileName)>0) then
+    begin
+      result:=false;
+      writeln('Failed: found \ in archive filename; expected /:');
+      writeln('*'+Unzipper.Entries[0].ArchiveFileName+'*');
+      exit;
+    end;
+    {$else}
+    if (pos('\',Unzipper.Entries[0].ArchiveFileName)<=0) then
+    begin
+      result:=false;
+      writeln('Failed: did not find / in archive filename:');
+      writeln('*'+Unzipper.Entries[0].ArchiveFileName+'*');
+      exit;
+    end;
+    {$endif}
+  finally
+    Unzipper.Free;
+  end;
+
+  {$IFNDEF KEEPTESTFILES}
+  try
+    DeleteFile(DestFile);
+  except
+    // ignore mess
+  end;
+  {$ENDIF}
+end;
+
+
 function TestLargeZip64: boolean;
 // Tests single zip file with large uncompressed content
 // which forces it to zip64 format
 var
   ArchiveFile: string;
-  Buffer: PChar;
   DestFile: string;
   ContentStream: TNullStream; //empty contents
   UnZipper: TUnZipper;
   Zipper: TZipper;
-  i: int64;
 begin
   result:=true;
   DestFile:=SysUtils.GetTempFileName('', 'LZ');
@@ -638,27 +747,98 @@ begin
     end;
 
     writeln('CompareCompressDecompress started');
-    if not(CompareCompressDecompress) then code:=code+2; //1 already taken by callback handler
+    try
+      if not(CompareCompressDecompress) then code:=code+2; //1 already taken by callback handler
+    except
+      On E: Exception do
+      begin
+        writeln('Exception: '+E.Message);
+        code:=code+2;
+      end;
+    end;
     writeln('CompareCompressDecompress finished');
     writeln('');
+
     writeln('CompressSmallStreams started');
-    if not(CompressSmallStreams) then code:=code+4;
+    try
+      if not(CompressSmallStreams) then code:=code+4;
+    except
+      On E: Exception do
+      begin
+        writeln('Exception: '+E.Message);
+        code:=code+4;
+      end;
+    end;
     writeln('CompressSmallStreams finished');
     writeln('');
+
     writeln('TestZipEntries(2) started');
-    if not(TestZipEntries(2)) then code:=code+8;
+    try
+      if not(TestZipEntries(2)) then code:=code+8;
+    except
+      On E: Exception do
+      begin
+        writeln('Exception: '+E.Message);
+        code:=code+8;
+      end;
+    end;
     writeln('TestZipEntries(2) finished');
     writeln('');
+
     writeln('TestLargeFileName started');
-    if not(TestLargeFileName) then code:=code+16;
+    try
+      if not(TestLargeFileName) then code:=code+16;
+    except
+      On E: Exception do
+      begin
+        writeln('Exception: '+E.Message);
+        code:=code+16;
+      end;
+    end;
     writeln('TestLargeFileName finished');
     writeln('');
+
+    writeln('TestWindowsPath started');
+    try
+      if not(TestWindowsPath) then code:=code+32;
+    except
+      On E: Exception do
+      begin
+        writeln('Exception: '+E.Message);
+        code:=code+32;
+      end;
+    end;
+    writeln('TestWindowsPath finished');
+    writeln('');
+
     writeln('TestEmptyZipEntries(10) started');
     // Run testemptyzipentries with a small number to test the test itself... as
     // well as zip structure generated with empty files.
-    if not(TestEmptyZipEntries(10)) then code:=code+32;
+    try
+      if not(TestEmptyZipEntries(10)) then code:=code+64;
+    except
+      On E: Exception do
+      begin
+        writeln('Exception: '+E.Message);
+        code:=code+64;
+      end;
+    end;
     writeln('TestEmptyZipEntries(10) finished');
     writeln('');
+
+    writeln('SaveToFileTest started');
+    try
+      if not(SaveToFileTest) then code:=code+128;
+    except
+      On E: Exception do
+      begin
+        writeln('Exception: '+E.Message);
+        code:=code+128;
+      end;
+    end;
+    writeln('SaveToFileTest finished');
+    writeln('');
+
     writeln('TestEmptyZipEntries(65537) started');
     writeln('(note: this will take a long time)');
     {Note: tested tools with this file:
@@ -666,9 +846,18 @@ begin
     - Ionic's DotNetZip library unzip.exe utility verison 1.9.1.8 works
     - 7zip's 7za 9.22 beta works.
     }
-    if not(TestEmptyZipEntries(65537)) then code:=code+32;
+    try
+      if not(TestEmptyZipEntries(65537)) then code:=code+256;
+    except
+      On E: Exception do
+      begin
+        writeln('Exception: '+E.Message);
+        code:=code+256;
+      end;
+    end;
     writeln('TestEmptyZipEntries(65537) finished');
     writeln('');
+
     { This test will take a very long time as it tries to zip a 4Gb memory block.
     It is therefore commented out by default }
     {
@@ -684,6 +873,7 @@ begin
       writeln('Exception: ');
       writeln(E.Message);
       writeln('');
+      if code=0 then code:=maxint; //more or less random error code
     end;
   end;
 

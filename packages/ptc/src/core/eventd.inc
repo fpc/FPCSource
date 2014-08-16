@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003, 2006, 2007, 2009-2011  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2007, 2009-2013  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -31,7 +31,8 @@
 }
 
 type
-  TPTCEventType = (PTCKeyEvent, PTCMouseEvent{, PTCExposeEvent});
+  TPTCEventType =
+    (PTCKeyEvent, PTCMouseEvent, PTCCloseEvent, PTCResizeEvent);
   TPTCEventMask = set of TPTCEventType;
   IPTCEvent = interface
     ['{1D5A6831-6648-47B6-83D5-10E65FDB72AD}']
@@ -40,4 +41,5 @@ type
   end;
 
 const
-  PTCAnyEvent: TPTCEventMask = [PTCKeyEvent, PTCMouseEvent{, PTCExposeEvent}];
+  PTCAnyEvent: TPTCEventMask =
+    [PTCKeyEvent, PTCMouseEvent, PTCCloseEvent, PTCResizeEvent];

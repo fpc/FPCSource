@@ -9,7 +9,7 @@ uses SysUtils
 {$IFNDEF FPC}
   ,TestFrameWork
 {$ENDIF}
-  , test_suite_utils, sdo, sdo_type, sdo_types, sdo_dataobjectlist, sdo_linked_list ;
+  , test_suite_utils, sdo, sdo_type, sdo_types, sdo_linked_list ;
 
 type
 
@@ -160,7 +160,7 @@ implementation
 
 uses
   Math, sdo_datafactory, sdo_dataobject,
-  sdo_equalityhelper, DateUtils, sdo_date_utils;
+  DateUtils, sdo_date_utils;
 
 const s_URI_1  = 'uri:1';
       s_TYPE_1 = 'type1';

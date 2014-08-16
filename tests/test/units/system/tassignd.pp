@@ -6,6 +6,9 @@
 {$endif}
 
 type
+{$ifndef fpc}
+  CodePointer = Pointer;
+{$endif}
 
   tmyobject = object
     procedure myroutine(x: byte);
@@ -23,7 +26,7 @@ type
 
   type
     objpointer = packed record
-      _method : pointer;
+      _method : codepointer;
       _vmt : pointer;
     end;
 

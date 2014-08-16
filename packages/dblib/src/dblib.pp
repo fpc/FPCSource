@@ -69,26 +69,26 @@ const
   DBTDS_72     = 10; // Microsoft SQL Server 2005
   DBTDS_73     = 11; // Microsoft SQL Server 2008
 
-  //from sqlfront.h ,   sybdb.h for freetds
+  //from sqlfront.h , sybdb.h for FreeTDS
   DBSETHOST=1;
   DBSETUSER=2;
-  DBSETPWD=3;
-  DBSETAPP={$IFDEF freetds}5{$ELSE}4{$ENDIF};
+  DBSETPWD =3;
+  DBSETAPP ={$IFDEF freetds}5{$ELSE}4{$ENDIF};
   {$IFDEF freetds}
-  DBSETHID=     4;
-  DBSETBCP=	6;
-  DBSETNATLANG=	7;
-  DBSETNOSHORT=	8;
-  DBSETHIER=	9;
-  DBSETCHARSET=	10;
-  DBSETPACKET=	11;
-  DBSETENCRYPT=	12;
-  DBSETLABELED=	13;
-  DBSETDBNAME=	14;
-   {$ELSE}
-  DBSETID=5;
-  DBSETLANG=6;
-  DBSETSECURE=7;
+  DBSETHID    = 4;
+  DBSETBCP    = 6;
+  DBSETNATLANG= 7;
+  DBSETNOSHORT= 8;
+  DBSETHIER   = 9;
+  DBSETCHARSET= 10;
+  DBSETPACKET = 11;
+  DBSETENCRYPT= 12;
+  DBSETLABELED= 13;
+  DBSETDBNAME = 14;
+  {$ELSE}
+  DBSETID     = 5;
+  DBSETLANG   = 6;
+  DBSETSECURE = 7;
   DBSET_LOGINTIME=10;
   DBSETFALLBACK=12;
   {$ENDIF}
@@ -143,15 +143,18 @@ const
   SQLDATETIM4=$3a;
   SQLDECIMAL=$6a;
   SQLNUMERIC=$6c;
-  //from tds.h:
+  // from proto.h:
   SYBNTEXT=$63;
-  SYBINT8=$7F;
-  SYBUNIQUE=$24;
+  // MS only types:
+  SYBINT8   =$7F;
+  SYBUNIQUE =$24;
   SYBVARIANT=$62;
-  //XSYBVARCHAR=$A7;
-  //XSYBNVARCHAR=$E7;
-  //XSYBNCHAR = $EF;
-  //XSYBBINARY= $AD;
+  SYBMSUDT  =$F0;
+  SYBMSXML  =$F1;
+  SYBMSDATE =$28;
+  SYBMSTIME =$29;
+  SYBMSDATETIME2=$2A;
+  SYBMSDATETIMEOFFSET=$2B; 
 
   MAXTABLENAME ={$IFDEF freetds}512+1{$ELSE}30{$ENDIF};
   MAXCOLNAMELEN={$IFDEF freetds}512+1{$ELSE}30{$ENDIF};
@@ -184,6 +187,7 @@ type
   ULONG=longword;
 
   // DB-Library datatypes
+  DBBOOL=byte;           // unsigned char
   DBCHAR=shortint;
   DBBIT=byte;
   DBTINYINT=byte;
@@ -199,6 +203,18 @@ type
     dttime: ULONG;
   end;
   PDBDATETIME=^DBDATETIME;
+
+  DBDATETIMEALL=record
+    time: qword;         // time, 7 digit precision (64-bit unsigned)
+    date: longint;       // date, 0 = 1900-01-01 (32-bit int)
+    offset: smallint;    // time offset (16-bit int)
+    info: word;          // unsigned short time_prec:3;
+                         // unsigned short _res:10;
+                         // unsigned short has_time:1;
+                         // unsigned short has_date:1;
+                         // unsigned short has_offset:1;
+  end;
+  PDBDATETIMEALL=^DBDATETIMEALL;
 
   // DBDATEREC structure used by dbdatecrack
   DBDATEREC=packed record
@@ -236,6 +252,11 @@ type
     );
   end;
   PDBDATEREC=^DBDATEREC;
+
+  DBMONEY=record
+    mnyhigh: DBINT;
+    mnylow: ULONG;
+  end;
 
   DBNUMERIC=packed record
    	precision: BYTE;
@@ -307,12 +328,15 @@ var
   function dbprtype(token:INT):PChar; cdecl; external DBLIBDLL;
   function dbdatlen(dbproc:PDBPROCESS; column:INT):DBINT; cdecl; external DBLIBDLL;
   function dbdata(dbproc:PDBPROCESS; column:INT):PByte; cdecl; external DBLIBDLL;
+  function dbwillconvert(srctype, desttype: INT):{$IFDEF freetds}DBBOOL{$ELSE}BOOL{$ENDIF}; cdecl; external DBLIBDLL;
   function dbconvert(dbproc:PDBPROCESS; srctype:INT; src:PByte; srclen:DBINT; desttype:INT; dest:PByte; destlen:DBINT):INT; cdecl; external DBLIBDLL;
   function dbdatecrack(dbproc:PDBPROCESS; dateinfo:PDBDATEREC; datetime: PDBDATETIME):RETCODE; cdecl; external DBLIBDLL;
   function dbcount(dbproc:PDBPROCESS):DBINT; cdecl; external DBLIBDLL;
   function dbiscount(dbproc:PDBPROCESS):BOOL; cdecl; external DBLIBDLL;
   function dbcancel(dbproc:PDBPROCESS):RETCODE; cdecl; external DBLIBDLL;
   function dbcanquery(dbproc:PDBPROCESS):RETCODE; cdecl; external DBLIBDLL;
+  function dbhasretstat(dbproc:PDBPROCESS):DBBOOL; cdecl; external DBLIBDLL;
+  function dbretstatus(dbproc:PDBPROCESS):DBINT; cdecl; external DBLIBDLL;
   procedure dbfreelogin(login:PLOGINREC); cdecl; external DBLIBDLL {$IFDEF freetds}name 'dbloginfree'{$ENDIF};
   procedure dbexit(); cdecl; external DBLIBDLL;
   {$IFDEF ntwdblib}
@@ -353,12 +377,15 @@ var
   dbprtype: function(token:INT):PChar; cdecl;
   dbdatlen: function(dbproc:PDBPROCESS; column:INT):DBINT; cdecl;
   dbdata: function(dbproc:PDBPROCESS; column:INT):PByte; cdecl;
+  dbwillconvert: function(srctype, desttype: INT):{$IFDEF freetds}DBBOOL{$ELSE}BOOL{$ENDIF}; cdecl;
   dbconvert: function(dbproc:PDBPROCESS; srctype:INT; src:PByte; srclen:DBINT; desttype:INT; dest:PByte; destlen:DBINT):INT; cdecl;
   dbdatecrack: function(dbproc:PDBPROCESS; dateinfo:PDBDATEREC; datetime: PDBDATETIME):RETCODE; cdecl;
   dbcount: function(dbproc:PDBPROCESS):DBINT; cdecl;
   dbiscount: function(dbproc:PDBPROCESS):BOOL; cdecl;
   dbcancel: function(dbproc:PDBPROCESS):RETCODE; cdecl;
   dbcanquery: function(dbproc:PDBPROCESS):RETCODE; cdecl;
+  dbhasretstat: function(dbproc:PDBPROCESS):DBBOOL; cdecl;
+  dbretstatus: function(dbproc:PDBPROCESS):DBINT; cdecl;
   dbexit: procedure(); cdecl;
   dbfreelogin: procedure(login:PLOGINREC); cdecl;
   {$IFDEF ntwdblib}
@@ -392,6 +419,8 @@ procedure dbwinexit;
 {$ENDIF}
 function dbsetlcharset(login:PLOGINREC; charset:PChar):RETCODE;
 function dbsetlsecure(login:PLOGINREC):RETCODE;
+function dbdatetimeallcrack(dta: PDBDATETIMEALL): TDateTime;
+function dbmoneytocurr(pdbmoney: PQWord): Currency;
 
 function InitialiseDBLib(const LibraryName : ansistring): integer;
 procedure ReleaseDBLib;
@@ -447,12 +476,15 @@ begin
    pointer(dbprtype) := GetProcedureAddress(DBLibLibraryHandle,'dbprtype');
    pointer(dbdatlen) := GetProcedureAddress(DBLibLibraryHandle,'dbdatlen');
    pointer(dbdata) := GetProcedureAddress(DBLibLibraryHandle,'dbdata');
+   pointer(dbwillconvert) := GetProcedureAddress(DBLibLibraryHandle,'dbwillconvert');
    pointer(dbconvert) := GetProcedureAddress(DBLibLibraryHandle,'dbconvert');
    pointer(dbdatecrack) := GetProcedureAddress(DBLibLibraryHandle,'dbdatecrack');
    pointer(dbcount) := GetProcedureAddress(DBLibLibraryHandle,'dbcount');
    pointer(dbiscount) := GetProcedureAddress(DBLibLibraryHandle,'dbiscount');
    pointer(dbcancel) := GetProcedureAddress(DBLibLibraryHandle,'dbcancel');
    pointer(dbcanquery) := GetProcedureAddress(DBLibLibraryHandle,'dbcanquery');
+   pointer(dbhasretstat) := GetProcedureAddress(DBLibLibraryHandle,'dbhasretstat');
+   pointer(dbretstatus) := GetProcedureAddress(DBLibLibraryHandle,'dbretstatus');
    pointer(dbexit) := GetProcedureAddress(DBLibLibraryHandle,'dbexit');
    pointer(dbfreelogin) := GetProcedureAddress(DBLibLibraryHandle,{$IFDEF freetds}'dbloginfree'{$ELSE}'dbfreelogin'{$ENDIF});
    pointer(dbclose) := GetProcedureAddress(DBLibLibraryHandle,'dbclose');
@@ -566,6 +598,25 @@ begin
   Result:='DB Library version 8.00';
 end;
 {$ENDIF}
+
+
+function dbdatetimeallcrack(dta: PDBDATETIMEALL): TDateTime;
+begin
+  if dta^.info and $4000 = 0 then
+    Result := 0
+  else
+    Result := dta^.date + 2;
+  Result := ComposeDateTime(Result, dta^.time/MSecsPerDay/10000 + dta^.offset/MinsPerDay);
+end;
+
+function dbmoneytocurr(pdbmoney: PQWord): Currency;
+begin
+{$IFDEF ENDIAN_LITTLE}
+  PQWord(@Result)^ := pdbmoney^ shr 32 or pdbmoney^ shl 32;
+{$ELSE}
+  move(pdbmoney^, Result, sizeof(Currency));
+{$ENDIF}
+end;
 
 {
 //ntwdblib uses low significant values first

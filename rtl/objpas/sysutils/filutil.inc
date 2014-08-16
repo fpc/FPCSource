@@ -428,8 +428,10 @@ type
     Size : Int64;
     Attr : Longint;
     { this will be assigned by the generic code; it is actually either a
-      rawbytestring or unicodestring}
-    Name_do_not_touch : pointer;
+      rawbytestring or unicodestring; keep it a reference-counted type
+      so that -gt doesn't overwrite it, the field name should be
+      indication enough that you should not touch it }
+    Name_do_not_touch : RawByteString;
     ExcludeAttr : Longint;
   {$ifdef unix}
     FindHandle : Pointer;

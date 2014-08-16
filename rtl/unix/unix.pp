@@ -162,10 +162,6 @@ Uses
   {$i unxsysc.inc}
 {$endif}
 
-{ Get the definitions of textrec and filerec }
-{$i textrec.inc}
-{$i filerec.inc}
-
 {$i unxfunc.inc}   { Platform specific implementations }
 
 Function getenv(name:string):Pchar; external name 'FPC_SYSC_FPGETENV';

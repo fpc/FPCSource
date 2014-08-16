@@ -359,7 +359,6 @@ FUNCTION_PROLOG FPC_SHARED_LIB_START
 /* this routine is only called when the halt() routine of the RTL embedded in
    the shared library is called */
 FUNCTION_PROLOG _haltproc
-FUNCTION_PROLOG FPC_SHARED_LIB_EXIT
     /* exit_group call */
     LOAD_64BIT_VAL 3, operatingsystem_result
     lwz     3, 0(3)

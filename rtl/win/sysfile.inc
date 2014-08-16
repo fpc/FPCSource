@@ -35,18 +35,19 @@ end;
 procedure do_erase(p: pwidechar; pchangeable: boolean);
 var
   oldp: pwidechar;
+  err: longword;
 begin
    oldp:=p;
    DoDirSeparators(p,pchangeable);
    if DeleteFileW(p)=0 then
     Begin
-      errno:=GetLastError;
-      if errno=5 then
+      err:=GetLastError;
+      if err=5 then
        begin
          if ((GetFileAttributesW(p) and FILE_ATTRIBUTE_DIRECTORY)=FILE_ATTRIBUTE_DIRECTORY) then
-          errno:=2;
+          err:=2;
        end;
-      Errno2InoutRes;
+      Errno2InoutRes(err);
     end;
    if p<>oldp then
      freemem(p);
@@ -62,10 +63,9 @@ begin
   DoDirSeparators(p1,p1changeable);
   DoDirSeparators(p2,p2changeable);
   if MoveFileW(p1,p2)=0 then
-   Begin
-      errno:=GetLastError;
-      Errno2InoutRes;
-   end;
+    Begin
+      Errno2InoutRes(GetLastError);
+    end;
   if p1<>oldp1 then
     freemem(p1);
   if p2<>oldp2 then
@@ -84,8 +84,7 @@ var
 begin
    if writefile(h,addr,len,size,nil)=0 then
     Begin
-      errno:=GetLastError;
-      Errno2InoutRes;
+      Errno2InoutRes(GetLastError);
 {$ifndef WINCE}
     end
    else if (size<len) then
@@ -120,14 +119,13 @@ end;
 function do_read(h:thandle;addr:pointer;len : longint) : longint;
 var
   _result:longint;
+  err: longword;
 begin
   if readfile(h,addr,len,_result,nil)=0 then
     Begin
-      errno:=GetLastError;
-      if errno=ERROR_BROKEN_PIPE then
-        errno:=0
-      else
-        Errno2InoutRes;
+      err:=GetLastError;
+      if err<>ERROR_BROKEN_PIPE then
+        Errno2InoutRes(err);
     end;
   do_read:=_result;
 end;
@@ -146,8 +144,7 @@ begin
   rslt.low := SetFilePointer(handle, 0, @rslt.high, FILE_CURRENT);
   if (rslt.low = $FFFFFFFF) and (GetLastError <> 0) then
   begin
-    errno := GetLastError;
-    Errno2InoutRes;
+    Errno2InoutRes(GetLastError);
   end;
   do_filepos := int64(rslt);
 end;
@@ -162,8 +159,7 @@ begin
   { return value of -1 is valid unless GetLastError is non-zero }
     (GetLastError <> 0) then
   begin
-    errno := GetLastError;
-    Errno2InoutRes;
+    Errno2InoutRes(GetLastError);
   end;
 end;
 
@@ -176,8 +172,7 @@ begin
   rslt.low := SetFilePointer(handle, 0, @rslt.high, FILE_END);
   if (rslt.low = $FFFFFFFF) and (GetLastError <> 0) then
   begin
-    errno := GetLastError;
-    Errno2InoutRes;
+    Errno2InoutRes(GetLastError);
   end;
   do_seekend := int64(rslt);
 end;
@@ -198,8 +193,7 @@ begin
    do_seek(handle,pos);
    if not(SetEndOfFile(handle)) then
     begin
-      errno:=GetLastError;
-      Errno2InoutRes;
+      Errno2InoutRes(GetLastError);
     end;
 end;
 
@@ -317,8 +311,7 @@ begin
   { handle -1 is returned sometimes !! (PM) }
   if (filerec(f).handle=0) or (filerec(f).handle=UnusedHandle) then
     begin
-      errno:=GetLastError;
-      Errno2InoutRes;
+      Errno2InoutRes(GetLastError);
     end;
   if oldp<>p then
     freemem(p);

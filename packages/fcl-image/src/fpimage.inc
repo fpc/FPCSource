@@ -92,7 +92,7 @@ begin
     while (r >= 0) do
       begin
       d := GetData(r);
-      if (pos(s,d.Fextention+';') <> 0) then
+      if (pos(s,d.Fextension+';') <> 0) then
         try
           h := d.FWriter;
           if assigned (h) then
@@ -184,7 +184,7 @@ begin
       while (r >= 0) do
         begin
         d := GetData(r);
-        if (pos(s,d.Fextention+';') <> 0) then
+        if (pos(s,d.Fextension+';') <> 0) then
           try
             h := d.FReader;
             if assigned (h) then

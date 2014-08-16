@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <xsd:schema xmlns:n="urn:wst-test" 
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+  targetNamespace="urn:wst-test">
+  
+    <xsd:complexType name="TClassSampleType">
+	    <xsd:sequence>
+		    <xsd:element name="intField" type="xsd:int" />
+        <xsd:element name="strField" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+        <xsd:element name="floatField" type="xsd:float" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="byteField" type="xsd:byte" maxOccurs="1"/>
+        <xsd:element name="charField" type="xsd:char" minOccurs="1"/>
+        <xsd:element name="longField" type="xsd:long" minOccurs="0"/>
+	    </xsd:sequence>
+	    <xsd:attribute name="strAtt" type="xsd:string"/>
+	    <xsd:attribute name="intAtt" type="xsd:int"/>
+    </xsd:complexType>
+
+    <xsd:element name="TClassSample" type="n:TClassSampleType"/>
+
+    <xsd:complexType name="TClassSampleTypeAll">
+	    <xsd:all>
+		    <xsd:element name="intField" type="xsd:int" />
+        <xsd:element name="strField" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+        <xsd:element name="floatField" type="xsd:float" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="byteField" type="xsd:byte" maxOccurs="1"/>
+        <xsd:element name="charField" type="xsd:char" minOccurs="1"/>
+        <xsd:element name="longField" type="xsd:long" minOccurs="0"/>
+	    </xsd:all>
+	    <xsd:attribute name="strAtt" type="xsd:string"/>
+	    <xsd:attribute name="intAtt" type="xsd:int"/>
+    </xsd:complexType>
+    
+    <xsd:complexType name="TClassSampleDerivedType">
+		  <xsd:complexContent>
+			  <xsd:extension base="n:TClassSampleType">    
+    	    <xsd:sequence>
+    		    <xsd:element name="intFieldEx" type="xsd:int" />
+            <xsd:element name="strFieldEx" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    	    </xsd:sequence>
+    	    <xsd:attribute name="strAttEx" type="xsd:string"/>
+    	    <xsd:attribute name="intAttEx" type="xsd:int"/>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+        
+</xsd:schema>

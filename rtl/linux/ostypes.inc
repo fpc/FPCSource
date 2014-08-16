@@ -89,13 +89,25 @@ type
   PStat      = ^Stat;
 
   { directory services }
+  { the Dirent type for getdents64 is no longer declared as ending with
+    an array 0..255, but as ending with a variable-sized array. While the
+    maximum file name length hasn't changed, the getdents64 system call
+    code does always check whether the size of the struct is a multiple
+    of 8 bytes. On platforms where the maximum alignment is 4 bytes, the
+    size of the Dirent struct ending with an array of 256 chars is
+    however only 276 bytes. As a result, getdents64 fails for long file
+    names with that Dirent size.
 
+    Rather than slightly increasing the size to 280 bytes, immediately
+    make it much larger so that the kernel can cache more entries per
+    system call and as a result we have to perform less system calls.
+  }
   Dirent   = record
                 d_fileno      : ino64_t;                        // file number of entry
                 d_off         : off_t;
                 d_reclen      : cushort;                        // length of string in d_name
                 d_type        : cuchar;                         // file type, see below
-                d_name        : array[0..(255 + 1)-1] of char;  // name must be no longer than this
+                d_name        : array[0..4095-sizeof(ino64_t)-sizeof(off_t)-sizeof(cushort)-sizeof(cuchar)] of char;  // name buffer + padding for extra records; align total record size to a page size
                end;
   TDirent  = Dirent;
   pDirent  = ^Dirent;

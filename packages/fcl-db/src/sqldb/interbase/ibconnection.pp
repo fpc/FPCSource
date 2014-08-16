@@ -142,27 +142,13 @@ type
 implementation
 
 uses
-  strutils, FmtBCD;
+  StrUtils, FmtBCD;
 
 const
   SQL_BOOLEAN_INTERBASE = 590;
   SQL_BOOLEAN_FIREBIRD = 32764;
   INVALID_DATA = -1;
 
-type
-  TTm = packed record
-    tm_sec : longint;
-    tm_min : longint;
-    tm_hour : longint;
-    tm_mday : longint;
-    tm_mon : longint;
-    tm_year : longint;
-    tm_wday : longint;
-    tm_yday : longint;
-    tm_isdst : longint;
-    __tm_gmtoff : longint;
-    __tm_zone : Pchar;
-  end;
 
 procedure TIBConnection.CheckError(ProcName : string; Status : PISC_STATUS);
 var
@@ -713,9 +699,9 @@ begin
         else
           SQLData := AllocMem(in_SQLDA^.SQLVar[x].SQLLen);
         // Always force the creation of slqind for parameters. It could be
-        // that a database-trigger takes care of inserting null-values, so
-        // it should always be possible to pass null-parameters. If that fails,
-        // the database-server will generate the appropiate error.
+        // that a database trigger takes care of inserting null values, so
+        // it should always be possible to pass null parameters. If that fails,
+        // the database server will generate the appropriate error.
         sqltype := sqltype or 1;
         new(sqlind);
         end;
@@ -733,7 +719,7 @@ begin
     IBStatementType:=isc_vax_integer(@resbuf[3],blockSize);
     assert(resbuf[3+blockSize]=isc_info_end);
     // If the statementtype is isc_info_sql_stmt_exec_procedure then
-    // override the statement type derrived by parsing the query.
+    // override the statement type derived by parsing the query.
     // This to recognize statements like 'insert into .. returning' correctly
     case IBStatementType of
       isc_info_sql_stmt_select: FStatementType := stSelect;
@@ -866,7 +852,7 @@ begin
       TranslateFldType(SQLDA^.SQLVar[x].SQLType, SQLDA^.SQLVar[x].sqlsubtype, SQLDA^.SQLVar[x].SQLLen, SQLDA^.SQLVar[x].SQLScale,
         TransType, TransLen);
 
-      FD := TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(SQLDA^.SQLVar[x].AliasName), TransType,
+      FD := FieldDefs.Add(FieldDefs.MakeNameUnique(SQLDA^.SQLVar[x].AliasName), TransType,
          TransLen, (SQLDA^.SQLVar[x].sqltype and 1)=0, (x + 1));
       if TransType in [ftBCD, ftFmtBCD] then
         case (SQLDA^.SQLVar[x].sqltype and not 1) of
@@ -988,7 +974,6 @@ var
   VSQLVar: ^XSQLVAR;
   P: TParam;
   ft : TFieldType;
-  D : TDateTime;
 begin
   {$push}
   {$R-}
@@ -1210,9 +1195,26 @@ end;
 
 {$DEFINE SUPPORT_MSECS}
 {$IFDEF SUPPORT_MSECS}
-const
-  IBDateOffset = 15018; //an offset from 17 Nov 1858.
-  IBTimeFractionsPerDay  = SecsPerDay * ISC_TIME_SECONDS_PRECISION; //Number of Firebird time fractions per day
+  const
+    IBDateOffset = 15018; //an offset from 17 Nov 1858.
+    IBTimeFractionsPerDay  = SecsPerDay * ISC_TIME_SECONDS_PRECISION; //Number of Firebird time fractions per day
+{$ELSE}
+  {$PACKRECORDS C}
+  type
+    TTm = record
+      tm_sec  : longint;
+      tm_min  : longint;
+      tm_hour : longint;
+      tm_mday : longint;
+      tm_mon  : longint;
+      tm_year : longint;
+      tm_wday : longint;
+      tm_yday : longint;
+      tm_isdst: longint;
+      __tm_gmtoff : PtrInt;    // Seconds east of UTC
+      __tm_zone   : PAnsiChar; // Timezone abbreviation
+    end;
+  {$PACKRECORDS DEFAULT}
 {$ENDIF}
 
 procedure TIBConnection.GetDateTime(CurrBuff, Buffer : pointer; AType : integer);
@@ -1343,34 +1345,38 @@ begin
                            'rdb$procedure_id        as recno, '+
                           '''' + DatabaseName + ''' as catalog_name, '+
                           '''''                     as schema_name, '+
-                          'rdb$procedure_name       as proc_name, '+
-                          '0                        as proc_type, '+
+                          'rdb$procedure_name       as procedure_name, '+
+                          '0                        as procedure_type, '+
                           'rdb$procedure_inputs     as in_params, '+
                           'rdb$procedure_outputs    as out_params '+
                         'from '+
                           'rdb$procedures '+
                         'WHERE '+
                           '(rdb$system_flag = 0 or rdb$system_flag is null)';
-    stColumns    : s := 'select '+
-                           'rdb$field_id            as recno, '+
+
+    stColumns    : s := 'SELECT '+
+                          'rdb$field_id             as recno, '+
                           '''' + DatabaseName + ''' as catalog_name, '+
                           '''''                     as schema_name, '+
                           'rdb$relation_name        as table_name, '+
-                          'rdb$field_name           as column_name, '+
-                          'rdb$field_position       as column_position, '+
+                          'r.rdb$field_name         as column_name, '+
+                          'rdb$field_position+1     as column_position, '+
                           '0                        as column_type, '+
-                          '0                        as column_datatype, '+
-                          '''''                     as column_typename, '+
-                          '0                        as column_subtype, '+
-                          '0                        as column_precision, '+
-                          '0                        as column_scale, '+
-                          '0                        as column_length, '+
-                          '0                        as column_nullable '+
-                        'from '+
-                          'rdb$relation_fields '+
+                          'rdb$field_type           as column_datatype, '+
+                          'rdb$type_name            as column_typename, '+
+                          'rdb$field_sub_type       as column_subtype, '+
+                          'rdb$field_precision      as column_precision, '+
+                          '-rdb$field_scale         as column_scale, '+
+                          'rdb$field_length         as column_length, '+
+                          'case r.rdb$null_flag when 1 then 0 else 1 end as column_nullable '+
+                        'FROM '+
+                          'rdb$relation_fields r '+
+                            'JOIN rdb$fields f ON r.rdb$field_source=f.rdb$field_name '+
+                            'JOIN rdb$types t ON f.rdb$field_type=t.rdb$type AND t.rdb$field_name=''RDB$FIELD_TYPE'' '+
                         'WHERE '+
-                          '(rdb$system_flag = 0 or rdb$system_flag is null) and (rdb$relation_name = ''' + Uppercase(SchemaObjectName) + ''') ' +
-                        'order by rdb$field_name';
+                          '(r.rdb$system_flag = 0 or r.rdb$system_flag is null) and (rdb$relation_name = ''' + Uppercase(SchemaObjectName) + ''') ' +
+                        'ORDER BY '+
+                          'r.rdb$field_name';
   else
     DatabaseError(SMetadataUnavailable)
   end; {case}

@@ -1,0 +1,84 @@
+#
+#   Makefile.fpc for Free Vision for Free Pascal
+#
+
+[package]
+name=rtl-objpas
+version=2.7.1
+
+# all Unices support everything except QNX(nothing)
+[target]
+units_android=convutils dateutils fmtbcd stdconv variants varutils
+units_aix=convutils dateutils fmtbcd stdconv variants varutils
+units_linux=convutils dateutils fmtbcd stdconv variants varutils
+units_solaris=convutils dateutils fmtbcd stdconv variants varutils
+units_freebsd=convutils dateutils fmtbcd stdconv variants varutils
+units_netbsd=convutils dateutils fmtbcd stdconv variants varutils
+units_openbsd=convutils dateutils fmtbcd stdconv variants varutils
+units_darwin=convutils dateutils fmtbcd stdconv variants varutils
+units_iphonesim=convutils dateutils fmtbcd stdconv variants varutils
+units_beos=dateutils fmtbcd stdconv variants varutils
+units_haiku=convutils dateutils fmtbcd stdconv variants varutils
+
+units_amiga=convutils dateutils fmtbcd stdconv variants varutils
+units_emx=convutil dateutil fmtbcd stdconv variants
+units_gba= dateutils fmtbcd variants varutils
+units_go32v2=convutil dateutil fmtbcd stdconv variants varutils
+units_morphos=convutils dateutils fmtbcd stdconv variants varutils
+units_msdos=convutil dateutil fmtbcd stdconv variants
+units_nds=dateutils fmtbcd varutils
+units_nativent=convutils dateutils fmtbcd variants varutils
+units_netware=convutils dateutils fmtbcd variants varutils
+units_netwlibc=convutils dateutils fmtbcd variants varutils
+units_os2=convutil dateutil fmtbcd stdconv variants varutils
+units_watcom=variants varutils
+units_wii=dateuils variants varutils
+units_win32=convutils dateutils fmtbcd stdconv variants varutils
+units_win64=convutils dateutils fmtbcd stdconv variants varutils
+units_wince=convutils dateutils fmtbcd stdconv variants varutils
+
+[compiler]
+includedir=src/$(OS_TARGET) src/inc
+includedir_linux=src/unix
+includedir_android=src/unix
+includedir_freebsd=src/unix
+includedir_openbsd=src/unix
+includedir_netbsd=src/unix
+includedir_solaris=src/unix
+includedir_darwin=src/unix
+includedir_iphonesim=src/unix
+includedir_aix=src/unix
+includedir_beos=src/unix
+includedir_haiku=src/unix
+	
+includedir_win32=src/win
+includedir_win64=src/win
+includedir_os2=src/os2commn
+includedir_emx=src/os2commn
+
+sourcedir=src/$(OS_TARGET)  src/inc
+sourcedir_iphonesim=src/darwin
+sourcedir_win32=src/win
+sourcedir_win64=src/win
+sourcedir_os2=src/os2commn
+sourcedir_emx=src/os2commn
+sourcedir_linux=src/unix
+sourcedir_android=src/unix
+sourcedir_freebsd=src/unix
+sourcedir_openbsd=src/unix
+sourcedir_netbsd=src/unix
+sourcedir_solaris=src/unix
+sourcedir_darwin=src/unix
+sourcedir_iphonesim=src/unix
+sourcedir_aix=src/unix
+sourcedir_beos=src/unix
+sourcedir_haiku=src/unix
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:

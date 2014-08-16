@@ -25,55 +25,14 @@ These functions are the same over all three BSDs, except that some have a
 
 {$ifdef FPC_USE_SYSCALL}
 
-{$ifdef NetBSD}
- {$UNDEF ErrnoWord}
-{$endif}
-{$ifdef FreeBSD}
- {$DEFINE ErrnoWord}
-{$endif}
-
-{ This variable is needed in syscall.inc assembler code }
-var
-  fpc_threadvar_relocate_proc : TRelocateThreadVarHandler; public name 'FPC_THREADVAR_RELOCATE';
-{$define THREADVAR_RELOCATED_ALREADY_DEFINED}
-
-Procedure fpc_geteipasebx;[external name 'fpc_geteipasebx'];
-
 procedure actualsyscall; assembler; {inline requires a dummy push IIRC}
     asm
          int $0x80
          jb .LErrorcode
          ret
 .LErrorcode:
-{$ifdef FPC_PIC}
-  call  fpc_geteipasebx
-  addl  $_GLOBAL_OFFSET_TABLE_,%ebx
-  movl  fpc_threadvar_relocate_proc@GOT(%ebx),%ecx
-  movl  (%ecx),%ecx
-  movl  Errno@GOT(%ebx),%edi
-{$else FPC_PIC}
-  leal  Errno,%edi
-  movl  fpc_threadvar_relocate_proc,%ecx
-{$endif FPC_PIC}
-  testl %ecx,%ecx
-  jne   .LThread
- {$ifdef ErrnoWord}
-  movw   %ax,4(%edi)
- {$else}
-  movl  %eax,4(%edi)
- {$endif}
-  jmp   .LNoThread
-.LThread:
-  movl  %eax,%ebx
-  movl  (%edi),%eax
-  call  *%ecx
- {$ifdef ErrnoWord}
-  movw   %bx,4(%eax)
- {$else}
-  movl  %ebx,4(%eax)
- {$endif}
-.LNoThread:
-  movl  $-1,%eax
+         call SetErrno
+         movl  $-1,%eax
 end;
 
 function FpSysCall(sysnr:TSysParam):TSysResult; oldfpccall; assembler; [public,alias:'FPC_DOSYS0'];

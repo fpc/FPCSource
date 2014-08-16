@@ -14,7 +14,6 @@
  **********************************************************************}
 
 {$inline on}
-{$asmmode intel}
 
 unit dos;
 
@@ -238,8 +237,7 @@ begin
     GetShortName(p);
   { allocate FCB see dosexec code }
   arg_ofs:=1;
-  while (c[arg_ofs] in [' ',#9]) and
-   (arg_ofs<length(c)) do
+  while (arg_ofs<length(c)) and (c[arg_ofs] in [' ',#9]) do
     inc(arg_ofs);
   dosregs.ax:=$2901;
   dosregs.ds:=Seg(c[arg_ofs]);
@@ -432,18 +430,15 @@ var
       sectreq : TCDSectSizeReq;
       sizereq : TCDVolSizeReq;
       i : integer;
-      status,byteswritten : word;
       drnum : byte;
   begin
     DiskData_CDROM:=false;
-    exit;
-    { TODO: implement }
-(*    drnum:=drive-1; //for MSCDEX, 0 = a, 1 = b etc, unlike int21/36
+    drnum:=drive-1; //for MSCDEX, 0 = a, 1 = b etc, unlike int21/36
 
     { Is this a CDROM drive? }
     dosregs.ax:=$150b;
     dosregs.cx:=drnum;
-    realintr($2f,dosregs);
+    intr($2f,dosregs);
     if (dosregs.bx<>$ADAD) or (dosregs.ax=0) then
       exit; // no, it isn't
 
@@ -451,8 +446,8 @@ var
     FillByte(req,sizeof(req),0);
     req.length:=sizeof(req);
     req.command:=IOCTL_INPUT;
-    req.transf_ofs:=tb_offset+sizeof(req); //CDROM control block will follow
-    req.transf_seg:=tb_segment;            //the request header
+    req.transf_ofs:=Ofs(sectreq);
+    req.transf_seg:=Seg(sectreq);
     req.numbytes:=sizeof(sectreq);
 
     { We're asking the sector size }
@@ -463,23 +458,23 @@ var
     for i:=1 to 2 do
     begin
       { Send the request to the cdrom driver }
-      dosmemput(tb_segment,tb_offset,req,sizeof(req));
-      dosmemput(tb_segment,tb_offset+sizeof(req),sectreq,sizeof(sectreq));
       dosregs.ax:=$1510;
       dosregs.cx:=drnum;
-      dosregs.es:=tb_segment;
-      dosregs.bx:=tb_offset;
-      realintr($2f,dosregs);
-      dosmemget(tb_segment,tb_offset+3,status,2);
+      dosregs.es:=Seg(req);
+      dosregs.bx:=Ofs(req);
+      intr($2f,dosregs);
       { status = $800F means "disk changed". Try once more. }
-      if (status and $800F) <> $800F then break;
+      if (req.status and $800F) <> $800F then break;
     end;
-    dosmemget(tb_segment,tb_offset+$12,byteswritten,2);
-    if (status<>$0100) or (byteswritten<>sizeof(sectreq)) then
+    if (req.status<>$0100) or (req.numbytes<>sizeof(sectreq)) then
       exit; //An error occurred
-    dosmemget(tb_segment,tb_offset+sizeof(req),sectreq,sizeof(sectreq));
 
   { Update the request header for the next request }
+    FillByte(req,sizeof(req),0);
+    req.length:=sizeof(req);
+    req.command:=IOCTL_INPUT;
+    req.transf_ofs:=Ofs(sizereq);
+    req.transf_seg:=Seg(sizereq);
     req.numbytes:=sizeof(sizereq);
 
     { We're asking the volume size (in blocks) }
@@ -487,22 +482,18 @@ var
     sizereq.size:=0;
 
     { Send the request to the cdrom driver }
-    dosmemput(tb_segment,tb_offset,req,sizeof(req));
-    dosmemput(tb_segment,tb_offset+sizeof(req),sizereq,sizeof(sizereq));
     dosregs.ax:=$1510;
     dosregs.cx:=drnum;
-    dosregs.es:=tb_segment;
-    dosregs.bx:=tb_offset;
-    realintr($2f,dosregs);
-    dosmemget(tb_segment,tb_offset,req,sizeof(req));
+    dosregs.es:=Seg(req);
+    dosregs.bx:=Ofs(req);
+    intr($2f,dosregs);
     if (req.status<>$0100) or (req.numbytes<>sizeof(sizereq)) then
       exit; //An error occurred
-    dosmemget(tb_segment,tb_offset+sizeof(req)+1,sizereq.size,4);
 
     blocksize:=sectreq.secsize;
     freeblocks:=0; //always 0 for a cdrom
     totblocks:=sizereq.size;
-    DiskData_CDROM:=true;*)
+    DiskData_CDROM:=true;
   end;
 
 begin
@@ -560,7 +551,7 @@ type
 
 procedure LFNSearchRec2Dos(const w:LFNSearchRec;hdl:longint;var d:Searchrec;from_findfirst : boolean);
 var
-  Len : longint;
+  Len : integer;
 begin
   With w do
    begin
@@ -591,7 +582,6 @@ var
 
 procedure LFNFindFirst(path:pchar;attr:longint;var s:searchrec);
 var
-  i : longint;
   w : LFNSearchRec;
 begin
   { allow slash as backslash }
@@ -675,7 +665,7 @@ end;
 
 procedure dossearchrec2searchrec(var f : searchrec);
 var
-  len : longint;
+  len : integer;
 begin
   { Check is necessary!! OS/2's VDM doesn't clear the name with #0 if the }
   { file doesn't exist! (JM)                                              }
@@ -753,21 +743,18 @@ begin
 end;
 
 
-type swap_proc = procedure;
-
+procedure SwapIntVec(IntNo: Byte; var Vector: FarPointer);
 var
-  _swap_in  : swap_proc;external name '_swap_in';
-  _swap_out : swap_proc;external name '_swap_out';
-  _exception_exit : pointer;external name '_exception_exit';
-  _v2prt0_exceptions_on : longbool;external name '_v2prt0_exceptions_on';
-
-procedure swapvectors;
+  tmpvec: FarPointer;
 begin
-  if _exception_exit<>nil then
-    if _v2prt0_exceptions_on then
-      _swap_out()
-    else
-      _swap_in();
+  GetIntVec(IntNo, tmpvec);
+  SetIntVec(IntNo, Vector);
+  Vector := tmpvec;
+end;
+
+procedure SwapVectors;
+begin
+  SwapIntVec(0, SaveInt00);
 end;
 
 
@@ -778,7 +765,7 @@ end;
 
 Function FSearch(path: pathstr; dirlist: string): pathstr;
 var
-  i,p1   : longint;
+  p1     : integer;
   s      : searchrec;
   newdir : pathstr;
 begin
@@ -886,7 +873,7 @@ begin
   dosregs.ax:=$5700;
   msdos(dosregs);
   loaddoserror;
-  time:=(dosregs.dx shl 16)+dosregs.cx;
+  time:=(longint(dosregs.dx) shl 16)+dosregs.cx;
 end;
 
 
@@ -973,7 +960,7 @@ var
   ofs: Word;
   Ch, Ch2: Char;
 begin
-  dos_env_seg := PFarWord(Ptr(dos_psp, $2C))^;
+  dos_env_seg := PFarWord(Ptr(PrefixSeg, $2C))^;
   GetEnvStr := 1;
   OutEnvStr := '';
   ofs := 0;
@@ -1013,7 +1000,7 @@ end;
 Function  GetEnv(envvar: string): string;
 var
   hs    : string;
-  eqpos : longint;
+  eqpos : integer;
   I     : integer;
 begin
   envvar:=upcase(envvar);
@@ -1040,10 +1027,22 @@ asm
   mov ah, 35h
   int 21h
   xchg ax, bx
+{$if defined(FPC_MM_TINY) or defined(FPC_MM_SMALL) or defined(FPC_MM_MEDIUM)}
   mov bx, vector
   mov [bx], ax
   mov ax, es
   mov [bx + 2], ax
+{$else}
+ {$ifdef FPC_ENABLED_CLD}
+  cld
+ {$endif FPC_ENABLED_CLD}
+  push es
+  pop bx
+  les di, vector
+  stosw
+  xchg ax, bx
+  stosw
+{$endif}
 end;
 
 procedure SetIntVec(intno: Byte; vector: farpointer); assembler;
@@ -1062,11 +1061,11 @@ end;
 
 Procedure Keep(exitcode: word); assembler;
 asm
-  mov bx, dos_psp
+  mov bx, PrefixSeg
   dec bx
   mov es, bx
   mov dx, es:[3]
-  mov al, exitcode
+  mov ax, exitcode
   mov ah, 31h
   int 21h
 end;

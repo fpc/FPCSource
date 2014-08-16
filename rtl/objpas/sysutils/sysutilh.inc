@@ -113,15 +113,17 @@ type
       constructor CreateFmt(const msg : string; const args : array of const);
       constructor CreateRes(ResString: PString);
       constructor CreateResFmt(ResString: PString; const Args: array of const);
-      constructor CreateHelp(const Msg: string; AHelpContext: Integer);
+      constructor CreateHelp(const Msg: string; AHelpContext: Longint);
       constructor CreateFmtHelp(const Msg: string; const Args: array of const;
-        AHelpContext: Integer);
-      constructor CreateResHelp(ResString: PString; AHelpContext: Integer);
+        AHelpContext: Longint);
+      constructor CreateResHelp(ResString: PString; AHelpContext: Longint);
       constructor CreateResFmtHelp(ResString: PString; const Args: array of const;
-        AHelpContext: Integer);
+        AHelpContext: Longint);
+      Function ToString : String; override;  
       { !!!! }
       property HelpContext : longint read fhelpcontext write fhelpcontext;
       property Message : string read fmessage write fmessage;
+      
    end;
 
    ExceptClass = class of Exception;
@@ -154,7 +156,7 @@ type
    { Run-time and I/O Errors }
    EInOutError = class(Exception)
      public
-       ErrorCode : Longint;
+       ErrorCode : Integer;
    end;
 
    EHeapMemoryError = class(Exception)
@@ -252,10 +254,6 @@ type
 
 Var
    OnShowException : Procedure (Msg : ShortString);
-
-  { FileRec/TextRec }
-  {$i filerec.inc}
-  {$i textrec.inc}
 
 Const
    HexDisplayPrefix : string = '$';

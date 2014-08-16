@@ -19,6 +19,7 @@ begin
     P.Version:='2.7.1';
     P.Dependencies.Add('univint',[Darwin,iPhoneSim]);
     P.Dependencies.Add('fcl-res');
+    p.Dependencies.Add('rtl-objpas');
 
     P.Author := '<various>';
     P.License := 'LGPL with modification, ';
@@ -73,6 +74,7 @@ begin
           AddUnit('contnrs');
         end;
     T:=P.Targets.AddUnit('iostream.pp');
+    T:=P.Targets.AddUnit('nullstream.pp');
     T:=P.Targets.AddUnit('maskutils.pp');
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('pooledmm.pp');

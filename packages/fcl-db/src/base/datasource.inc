@@ -463,6 +463,8 @@ Var
   DS : TDataset;
   F  : TField;
   I : Integer;
+  P : TParam;
+
 
 begin
   FN:='';
@@ -472,13 +474,17 @@ begin
     F:=Nil;
     For I:=0 to FParams.Count-1 do
       begin
-      If Assigned(DS) then
-        F:=DS.FindField(FParams[i].Name);
-      If (Not Assigned(DS)) or (not DS.Active) or (F<>Nil) then
+      P:=FParams[i];
+      if not P.Bound then
         begin
-        If (FN<>'') then
-          FN:=FN+';';
-        FN:=FN+FParams[i].Name; 
+        If Assigned(DS) then
+          F:=DS.FindField(P.Name);
+        If (Not Assigned(DS)) or (not DS.Active) or (F<>Nil) then
+          begin
+          If (FN<>'') then
+            FN:=FN+';';
+          FN:=FN+P.Name;
+          end;
         end;
       end;
     end;

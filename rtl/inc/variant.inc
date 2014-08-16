@@ -105,10 +105,10 @@ procedure fpc_vararray_put(var d : variant;const s : variant;indices : plongint;
   end;
 
 
-function fpc_variant_to_dynarray(const v : variant;typeinfo : pointer) : pointer;compilerproc;
+function fpc_variant_to_dynarray(const v : variant;typeinfo : pointer) : fpc_stub_dynarray;compilerproc;
   begin
-    result:=nil;
-    variantmanager.vartodynarray(result,v,typeinfo);
+    fpc_dynarray_clear(pointer(result),typeinfo);
+    variantmanager.vartodynarray(pointer(result),v,typeinfo);
   end;
 
 
@@ -232,8 +232,11 @@ end;
 
 
 operator :=(const source : widechar) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+var
+   ws : WideString;
 begin
-  Variantmanager.varfromInt(Dest,word(Source),2);
+  ws:=source;
+  Variantmanager.varfromwstr(Dest,ws);
 end;
 
 { Strings }
@@ -426,8 +429,12 @@ end;
 
 
 operator :=(const source : variant) dest : widechar;{$ifdef SYSTEMINLINE}inline;{$endif}
+Var
+  S : WideString;
 begin
-  dest:=widechar(variantmanager.vartoint(source));
+  VariantManager.vartowstr(S,Source);
+  If Length(S)>0 then
+    Dest:=S[1];
 end;
 
 

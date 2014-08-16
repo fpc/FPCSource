@@ -18,13 +18,21 @@ function ChangeFileExt(const FileName, Extension: PathStr): PathStr;
 var
   i : longint;
   EndSep : Set of Char;
+  SOF : Boolean;
+  
 begin
   i := Length(FileName);
   EndSep:=AllowDirectorySeparators+AllowDriveSeparators+[ExtensionSeparator];
   while (I > 0) and not(FileName[I] in EndSep) do
     Dec(I);
   if (I = 0) or (FileName[I] <> ExtensionSeparator) then
-    I := Length(FileName)+1;
+    I := Length(FileName)+1
+  else
+    begin
+	SOF:=(I=1) or (FileName[i-1] in AllowDirectorySeparators);
+  	if (SOF) and not FirstDotAtFileNameStartIsExtension then
+	  I:=Length(FileName)+1;
+	end;  
   Result := Copy(FileName, 1, I - 1) + Extension;
 end;
 
@@ -105,29 +113,43 @@ function ExtractFileExt(const FileName: PathStr): PathStr;
 var
   i : longint;
   EndSep : Set of Char;
+  SOF : Boolean; // Dot at Start of filename ?
+  
 begin
+  Result:='';
   I := Length(FileName);
   EndSep:=AllowDirectorySeparators+AllowDriveSeparators+[ExtensionSeparator];
   while (I > 0) and not CharInSet(FileName[I],EndSep) do
     Dec(I);
   if (I > 0) and (FileName[I] = ExtensionSeparator) then
-    Result := Copy(FileName, I, MaxInt)
+    begin
+	SOF:=(I=1) or (FileName[i-1] in AllowDirectorySeparators);
+	if (Not SOF) or FirstDotAtFileNameStartIsExtension then
+	  Result := Copy(FileName, I, MaxInt);
+	end  
   else
     Result := '';
 end;
 
 function ExtractShortPathName(Const FileName : PathStr) : PathStr;
-
+{$if defined(MSWINDOWS) and not defined(SYSUTILSUNICODE)}
+var
+  TempFile, TempResult: UnicodeString;
+{$endif}
 begin
 {$ifdef MSWINDOWS}
+{$if not defined(SYSUTILSUNICODE)}
+  TempFile:=FileName;
+  SetLength(TempResult,Max_Path);
+  SetLength(TempResult,GetShortPathNameW(PWideChar(TempFile), PWideChar(TempResult),Length(TempResult)));
+  widestringmanager.Unicode2AnsiMoveProc(PWideChar(TempResult),Result,DefaultRTLFileSystemCodePage,Length(TempResult));
+{$else not SYSUTILSUNICODE}
   SetLength(Result,Max_Path);
-  if sizeof(FileName[1])=1 then
-    SetLength(Result,GetShortPathNameA(PChar(FileName), PChar(Result),Length(Result)))
-  else
-    SetLength(Result,GetShortPathNameW(PWideChar(FileName), PWideChar(Result),Length(Result)));
-{$else}
+  SetLength(Result,GetShortPathNameW(PWideChar(FileName), PWideChar(Result),Length(Result)));
+{$endif not SYSUTILSUNICODE}
+{$else MSWindows}
   Result:=FileName;
-{$endif}
+{$endif MSWindows}
 end;
 
 {$DEFINE FPC_FEXPAND_SYSUTILS}

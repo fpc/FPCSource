@@ -135,15 +135,15 @@ type
  * @
   }
   ap_out_filter_func = function (f: Pap_filter_t;
-                                 b: Papr_bucket_brigade):apr_status_t;
+                                 b: Papr_bucket_brigade):apr_status_t; cdecl;
 
   ap_in_filter_func = function (f: Pap_filter_t; 
                                 b: Papr_bucket_brigade;
                                 mode: ap_input_mode_t;
                                 block: apr_read_type_e;
-                                readbytes: apr_off_t): apr_status_t;
+                                readbytes: apr_off_t): apr_status_t; cdecl;
 
-  ap_init_filter_func = function (f: Pap_filter_t): Longint;
+  ap_init_filter_func = function (f: Pap_filter_t): Longint; cdecl;
 
   Pap_filter_func = ^ap_filter_func;
   ap_filter_func = record

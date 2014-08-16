@@ -24,10 +24,6 @@ unit charset;
        tunicodechar = word;
        tunicodestring = ^tunicodechar;
 
-       tcsconvert = class
-         // !!!!!!1constructor create;
-       end;
-
        tunicodecharmappingflag = (umf_noinfo,umf_leadbyte,umf_undefined,
          umf_unused);
 
@@ -55,9 +51,6 @@ unit charset;
           reversemaplength : longint;
           next : punicodemap;
           internalmap : boolean;
-       end;
-
-       tcp2unicode = class(tcsconvert)
        end;
 
        TSerializedMapHeader = packed record

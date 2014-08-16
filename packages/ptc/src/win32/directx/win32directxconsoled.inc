@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003, 2006, 2007, 2009-2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2007, 2009-2013  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -59,6 +59,7 @@ type
     FNearestMode: (NEAREST_DEFAULT, NEAREST_CENTERING, NEAREST_STRETCHING); {Nearest}
     FCursorMode: TWin32CursorMode; {Cursor}
     FFullscreen: Boolean;
+    FInterceptClose: Boolean;
 
     { objects }
     FCopy: TPTCCopy;
@@ -68,6 +69,7 @@ type
     FWindow: TWin32Window;
     FKeyboard: TWin32Keyboard;
     FMouse: TWin32Mouse;
+    FResize: TWin32Resize;
     FWin32Cursor: TWin32Cursor;
 
     { DirectX objects }
@@ -114,6 +116,9 @@ type
 
     { cursor state }
     procedure UpdateCursor;
+
+    procedure SetInterceptClose(AInterceptClose: Boolean);
+    property InterceptClose: Boolean read FInterceptClose write SetInterceptClose;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -128,6 +133,7 @@ type
     procedure Open(const ATitle: string; AMode: IPTCMode;
                    APages: Integer = 0); overload; override;
     procedure Close; override;
+    procedure InternalResize(AWidth, AHeight: Integer); override;
     procedure Flush; override;
     procedure Finish; override;
     procedure Update; override;

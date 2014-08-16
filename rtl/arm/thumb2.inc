@@ -33,18 +33,19 @@ Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }
   asm
-    {$IFDEF FPUFPV4_S16}
+{$if defined(FPUFPA) or defined(FPUFPA10) or defined(FPUFPA11)}
+
+    rfs r0
+    and r0,r0,#0xffe0ffff
+    orr r0,r0,#0x00070000
+    wfs r0
+{$else}
     movw r0, #(0xed88)
     movt r0, #(0xe000)
     ldr r1, [r0]
     orr r1, r1, #(0xF << 20)
     str r1, [r0]
-    {$ELSE FPUFPV4_S16}
-    rfs r0
-    and r0,r0,#0xffe0ffff
-    orr r0,r0,#0x00070000
-    wfs r0
-    {$endif FPUFPV4_S16}
+{$endif}
   end;
 end;
 {$endif}
@@ -60,13 +61,13 @@ function _controlfp(new: DWORD; mask: DWORD): DWORD; cdecl; external 'coredll';
 {$define FPC_SYSTEM_HAS_SYSRESETFPU}
 Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
-  softfloat_exception_flags:=0;
+  softfloat_exception_flags:=[];
 end;
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
 Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
-  softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
+  softfloat_exception_mask:=[float_flag_underflow,float_flag_inexact,float_flag_denormal];
   { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }
   { FPU precision 64 bit, rounding to nearest, affine infinity }
   _controlfp($000C0003, $030F031F);
@@ -337,11 +338,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-function fpc_shortstr_to_shortstr(len:longint;const sstr:shortstring):shortstring;assembler;nostackframe;[public,alias: 'FPC_SHORTSTR_TO_SHORTSTR'];compilerproc;
-{$else}
 procedure fpc_shortstr_to_shortstr(out res:shortstring;const sstr:shortstring);assembler;nostackframe;[public,alias: 'FPC_SHORTSTR_TO_SHORTSTR'];compilerproc;
-{$endif}
 {r0: __RESULT
  r1: len
  r2: sstr}

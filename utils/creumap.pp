@@ -44,7 +44,7 @@ const
     var
        nef, oef : File of Byte;
        h, th : TSerializedMapHeader;
-       k : Integer;
+       k : Longint;
        um : tunicodecharmapping;
        pum : punicodecharmapping;
        rm : treversecharmapping;

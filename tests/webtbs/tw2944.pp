@@ -4,9 +4,13 @@
 
 {$ifdef fpc}{$mode Delphi}{$endif}
 type
+{$ifndef fpc}
+  CodePointer = Pointer;
+  PCodePointer = PPointer;
+{$endif}
   WS2StubEntry = record
-    StubProc : Pointer;
-    ProcVar : PPointer;
+    StubProc : CodePointer;
+    ProcVar : PCodePointer;
     Name : PChar;
   end;
   LPFN_WSACLEANUP = function : Integer; stdcall;

@@ -77,9 +77,9 @@ function ExpandEnvironmentStringsA(lpSrc:LPCSTR; lpDst:LPSTR; nSize:DWORD):DWORD
 procedure OutputDebugStringA(lpOutputString:LPCSTR); external 'kernel32' name 'OutputDebugStringA';
 function FindResourceA(hModule:HINST; lpName:LPCSTR; lpType:LPCSTR):HRSRC; external 'kernel32' name 'FindResourceA';
 function FindResourceExA(hModule:HINST; lpType:LPCSTR; lpName:LPCSTR; wLanguage:WORD):HRSRC; external 'kernel32' name 'FindResourceExA';
-function EnumResourceTypesA(hModule:HINST; lpEnumFunc:ENUMRESTYPEPROC; lParam:LONG_PTR):WINBOOL; external 'kernel32' name 'EnumResourceTypesA';
-function EnumResourceNamesA(hModule:HINST; lpType:LPCSTR; lpEnumFunc:ENUMRESNAMEPROC; lParam:LONG_PTR):WINBOOL; external 'kernel32' name 'EnumResourceNamesA';
-function EnumResourceLanguagesA(hModule:HINST; lpType:LPCSTR; lpName:LPCSTR; lpEnumFunc:ENUMRESLANGPROC; lParam:LONG_PTR):WINBOOL; external 'kernel32' name 'EnumResourceLanguagesA';
+function EnumResourceTypesA(hModule:HMODULE; lpEnumFunc:ENUMRESTYPEPROC; lParam:LONG_PTR):WINBOOL; external 'kernel32' name 'EnumResourceTypesA';
+function EnumResourceNamesA(hModule:HMODULE; lpType:LPCSTR; lpEnumFunc:ENUMRESNAMEPROC; lParam:LONG_PTR):WINBOOL; external 'kernel32' name 'EnumResourceNamesA';
+function EnumResourceLanguagesA(hModule:HMODULE; lpType:LPCSTR; lpName:LPCSTR; lpEnumFunc:ENUMRESLANGPROC; lParam:LONG_PTR):WINBOOL; external 'kernel32' name 'EnumResourceLanguagesA';
 function BeginUpdateResourceA(pFileName:LPCSTR; bDeleteExistingResources:WINBOOL):HANDLE; external 'kernel32' name 'BeginUpdateResourceA';
 function UpdateResourceA(hUpdate:HANDLE; lpType:LPCSTR; lpName:LPCSTR; wLanguage:WORD; lpData:LPVOID;cbData:DWORD):WINBOOL; external 'kernel32' name 'UpdateResourceA';
 function EndUpdateResourceA(hUpdate:HANDLE; fDiscard:WINBOOL):WINBOOL; external 'kernel32' name 'EndUpdateResourceA';
@@ -186,7 +186,7 @@ function PeekMessageA(lpMsg:LPMSG; hWnd:HWND; wMsgFilterMin:UINT; wMsgFilterMax:
 function SendMessageA(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32' name 'SendMessageA';
 function SendMessageTimeoutA(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM; fuFlags:UINT;uTimeout:UINT; lpdwResult:PDWORD_PTR):LRESULT; external 'user32' name 'SendMessageTimeoutA';
 function SendNotifyMessageA(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL; external 'user32' name 'SendNotifyMessageA';
-function SendMessageCallbackA(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM; lpResultCallBack:SENDASYNCPROC;dwData:DWORD):WINBOOL; external 'user32' name 'SendMessageCallbackA';
+function SendMessageCallbackA(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM; lpResultCallBack:SENDASYNCPROC;dwData:ULONG_PTR):WINBOOL; external 'user32' name 'SendMessageCallbackA';
 function PostMessageA(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL; external 'user32' name 'PostMessageA';
 function PostThreadMessageA(idThread:DWORD; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL; external 'user32' name 'PostThreadMessageA';
 function DefWindowProcA(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32' name 'DefWindowProcA';
@@ -358,8 +358,8 @@ function PrintDlgA(_para1:LPPRINTDLG):WINBOOL; external 'comdlg32' name 'PrintDl
 function PageSetupDlgA(_para1:LPPAGESETUPDLG):WINBOOL; external 'comdlg32' name 'PageSetupDlgA';
 }
 function CreateProcessA(lpApplicationName:LPCSTR; lpCommandLine:LPSTR; lpProcessAttributes:LPSECURITY_ATTRIBUTES; lpThreadAttributes:LPSECURITY_ATTRIBUTES; bInheritHandles:WINBOOL;dwCreationFlags:DWORD; lpEnvironment:LPVOID;
-  lpCurrentDirectory:LPCSTR; lpStartupInfo:LPSTARTUPINFO; lpProcessInformation:LPPROCESS_INFORMATION):WINBOOL; external 'kernel32' name 'CreateProcessA';
-procedure GetStartupInfoA(lpStartupInfo:LPSTARTUPINFO); external 'kernel32' name 'GetStartupInfoA';
+  lpCurrentDirectory:LPCSTR; lpStartupInfo:LPSTARTUPINFOA; lpProcessInformation:LPPROCESS_INFORMATION):WINBOOL; external 'kernel32' name 'CreateProcessA';
+procedure GetStartupInfoA(lpStartupInfo:LPSTARTUPINFOA); external 'kernel32' name 'GetStartupInfoA';
 function FindFirstFileA(lpFileName:LPCSTR; lpFindFileData:LPWIN32_FIND_DATA):HANDLE; external 'kernel32' name 'FindFirstFileA';
 function FindNextFileA(hFindFile:HANDLE; lpFindFileData:LPWIN32_FIND_DATA):WINBOOL; external 'kernel32' name 'FindNextFileA';
 function GetVersionExA(VersionInformation:LPOSVERSIONINFO):WINBOOL; external 'kernel32' name 'GetVersionExA';
@@ -462,7 +462,7 @@ function QueryServiceConfigA(hService:SC_HANDLE; lpServiceConfig:LPQUERY_SERVICE
 function QueryServiceLockStatusA(hSCManager:SC_HANDLE; lpLockStatus:LPQUERY_SERVICE_LOCK_STATUS; cbBufSize:DWORD; pcbBytesNeeded:LPDWORD):WINBOOL; external 'advapi32' name 'QueryServiceLockStatusA';
 function RegisterServiceCtrlHandlerA(lpServiceName:LPCSTR; lpHandlerProc:LPHANDLER_FUNCTION):SERVICE_STATUS_HANDLE; external 'advapi32' name 'RegisterServiceCtrlHandlerA';
 function StartServiceCtrlDispatcherA(lpServiceStartTable:LPSERVICE_TABLE_ENTRY):WINBOOL; external 'advapi32' name 'StartServiceCtrlDispatcherA';
-function StartServiceA(hService:SC_HANDLE; dwNumServiceArgs:DWORD; lpServiceArgVectors:LPCSTR):WINBOOL; external 'advapi32' name 'StartServiceA';
+function StartServiceA(hService:SC_HANDLE; dwNumServiceArgs:DWORD; lpServiceArgVectors:LPPCSTR):WINBOOL; external 'advapi32' name 'StartServiceA';
 function DragQueryFileA(_para1:HDROP; _para2:cardinal; _para3:Pchar;_para4:cardinal):cardinal; external 'shell32' name 'DragQueryFileA';
 function ExtractAssociatedIconA(_para1:HINST; _para2:Pchar; _para3:LPWORD):HICON; external 'shell32' name 'ExtractAssociatedIconA';
 function ExtractIconA(_para1:HINST; _para2:Pchar; _para3:cardinal):HICON;external 'shell32' name 'ExtractIconA';
@@ -475,7 +475,7 @@ function DdeInitializeA(_para1:LPDWORD; _para2:PFNCALLBACK; _para3:DWORD; _para4
 function DdeQueryStringA(_para1:DWORD; _para2:HSZ; _para3:pchar;_para4:DWORD; _para5:longint):DWORD; external 'user32' name 'DdeQueryStringA';
 function LogonUserA(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR; _para4:DWORD; _para5:DWORD;_para6:PHANDLE):WINBOOL; external 'advapi32' name 'LogonUserA';
 function CreateProcessAsUserA(_para1:HANDLE; _para2:LPCTSTR; _para3:LPTSTR; _para4:LPSECURITY_ATTRIBUTES; _para5:LPSECURITY_ATTRIBUTES;_para6:WINBOOL; _para7:DWORD; _para8:LPVOID; _para9:LPCTSTR;
-  _para10:LPSTARTUPINFO; _para11:LPPROCESS_INFORMATION):WINBOOL; external 'advapi32' name 'CreateProcessAsUserA';
+  _para10:LPSTARTUPINFOA; _para11:LPPROCESS_INFORMATION):WINBOOL; external 'advapi32' name 'CreateProcessAsUserA';
 function CreateWaitableTimerA(lpTimerAttributes :LPSECURITY_ATTRIBUTES; bManualReset:BOOl;lpTimerName:LPCTSTR):THandle;external 'kernel32' name 'CreateWaitableTimerA'; 
 function OpenWaitableTimerA(dwDesiredAccess:DWORD;bInheritHandle:BOOL;lpTimerName:LPCTSTR):THandle;external 'kernel32' name 'OpenWaitableTimerA'; 
 function FindFirstFileExA(lpfilename : LPCStr;fInfoLevelId:FINDEX_INFO_LEVELS ;lpFindFileData:pointer;fSearchOp : FINDEX_SEARCH_OPS;lpSearchFilter:pointer;dwAdditionalFlags:dword):Handle; stdcall; external 'kernel32' name 'FindFirstFileExA';

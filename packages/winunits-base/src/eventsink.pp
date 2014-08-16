@@ -91,36 +91,6 @@ implementation
 uses
  ComObj;
 
-procedure InterfaceConnect(const Source: IUnknown; const IID: TIID;
- const Sink: IUnknown; var Connection: DWORD);
-var
- CPC: IConnectionPointContainer;
- CP: IConnectionPoint;
- i:hresult;
-begin
- Connection := 0;
- if Succeeded(Source.QueryInterface(IConnectionPointContainer, CPC)) then
-  if Succeeded(CPC.FindConnectionPoint(IID, CP)) then
-    i:=CP.Advise(Sink, Connection);
-end;
-
-procedure InterfaceDisconnect(const Source: IUnknown; const IID: TIID;
- var Connection: DWORD);
-var
- CPC: IConnectionPointContainer;
- CP: IConnectionPoint;
- i:hresult;
-begin
- if Connection <> 0 then
-  if Succeeded(Source.QueryInterface(IConnectionPointContainer, CPC)) then
-   if Succeeded(CPC.FindConnectionPoint(IID, CP)) then
-    begin
-     i:=CP.Unadvise(Connection);
-     if Succeeded(i) then Connection := 0;
-
-    end;
-end;
-
 { TAbstractEventSink }
 
 constructor TAbstractEventSink.Create(AOwner: TComponent);

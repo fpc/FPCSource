@@ -20,8 +20,11 @@
     Interface declarations
   ---------------------------------------------------------------------}
 
+{$DEFINE DYNLIBS_SUPPORTS_ORDINAL}
+
 type
  TLibHandle = longint;
+ TOrdinalEntry = cardinal;
 
 const
  NilHandle = 0;
@@ -60,6 +63,18 @@ var
 begin
  DynLibErrPath [0] := #0;
  DynLibErrNo := DosQueryProcAddr (Lib, 0, PChar (ProcName), P);
+ if DynLibErrNo = 0 then
+  Result := P
+ else
+  Result := nil;
+end;
+
+function GetProcedureAddress (Lib: TLibHandle; Ordinal: TOrdinalEntry): pointer;
+var
+ P: pointer;
+begin
+ DynLibErrPath [0] := #0;
+ DynLibErrNo := DosQueryProcAddr (Lib, Ordinal, nil, P);
  if DynLibErrNo = 0 then
   Result := P
  else

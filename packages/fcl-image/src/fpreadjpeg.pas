@@ -232,6 +232,20 @@ var
   var
     MinColor: word;
   begin
+    // accuracy not 100%
+    if C.red<C.green then MinColor:=C.red
+    else MinColor:= C.green;
+    if C.blue<MinColor then MinColor:= C.blue;
+    if MinColor+ C.alpha>$FF then MinColor:=$FF-C.alpha;
+    Result.red:=(C.red-MinColor) shl 8;
+    Result.green:=(C.green-MinColor) shl 8;
+    Result.blue:=(C.blue-MinColor) shl 8;
+    Result.alpha:=alphaOpaque;
+  end;
+  function CorrectYCCK(const C: TFPColor): TFPColor;
+  var
+    MinColor: word;
+  begin
     if C.red<C.green then MinColor:=C.red
     else MinColor:= C.green;
     if C.blue<MinColor then MinColor:= C.blue;
@@ -273,6 +287,15 @@ var
           Color.Blue:=SampRow^[x*4+2];
           Color.alpha:=SampRow^[x*4+3];
           Img.Colors[x,y]:=CorrectCMYK(Color);
+        end
+        else
+        if (FInfo.jpeg_color_space = JCS_YCCK) then
+        for x:=0 to FInfo.output_width-1 do begin
+          Color.Red:=SampRow^[x*4+0];
+          Color.Green:=SampRow^[x*4+1];
+          Color.Blue:=SampRow^[x*4+2];
+          Color.alpha:=SampRow^[x*4+3];
+          Img.Colors[x,y]:=CorrectYCCK(Color);
         end
         else
         if fgrayscale then begin

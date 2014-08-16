@@ -58,12 +58,12 @@ end;
 
 procedure TTestDatasources.SetUp;
 begin
-  DBConnector.StartTest;
+  DBConnector.StartTest(TestName);
 end;
 
 procedure TTestDatasources.TearDown;
 begin
-  DBConnector.StopTest;
+  DBConnector.StopTest(TestName);
 end;
 
 {procedure TTestDatasources.TestDataEventsResync;

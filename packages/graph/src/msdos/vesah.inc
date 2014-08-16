@@ -16,15 +16,16 @@
 
 
 TYPE
+  pFarChar = ^char;far;
 
-  pModeList = ^tModeList;
+  pModeList = ^tModeList;far;
   tModeList = Array [0..255] of word; {list of modes terminated by -1}
                                       {VESA modes are >=100h}
 
   TVESAinfo = packed record  { VESA Information request }
     signature : array [1..4] of char;     { This should be VESA   }
     version   : word;                     { VESA revision         }
-    str       : pChar;                    { pointer to OEM string }
+    str       : pFarChar;                 { pointer to OEM string }
     caps      : longint;                  { video capabilities    }
     modeList  : pModeList;                { pointer to SVGA modes }
 (*    pad       : array [18..260] of byte;  { extra padding more then   }
@@ -49,7 +50,7 @@ TYPE
     winSize        : word;  {in K}     { window size       (1.0)    }
     winASeg,                           { Window A Segment address (1.0) }
     winBSeg        : word;             { Window B Segment address (1.0) }
-    winFunct       : procedure;        { Function to swtich bank    }
+    winFunct       : farpointer;       { Function to swtich bank    }
     BytesPerScanLine: word;            {bytes per scan line (1.0)   }
     { extended information }
     xRes, yRes : word;    {pixels}

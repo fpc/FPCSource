@@ -246,7 +246,7 @@ end;
 
 {$ifndef FPC_HAS_PCHAR_ANSISTR_INTERN_CHARMOVE}
 {$define FPC_HAS_PCHAR_ANSISTR_INTERN_CHARMOVE}
-procedure fpc_pchar_ansistr_intern_charmove(const src: pchar; const srcindex: sizeint; var dst: ansistring; const dstindex, len: sizeint); {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif} {$ifdef SYSTEMINLINE}inline;{$endif}
+procedure fpc_pchar_ansistr_intern_charmove(const src: pchar; const srcindex: sizeint; var dst: rawbytestring; const dstindex, len: sizeint); {$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif} {$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   JLSystem.arraycopy(JLObject(src),srcindex,JLObject(AnsistringClass(dst).fdata),dstindex,len);
 end;
@@ -358,13 +358,18 @@ begin
 {$else FPC_HAS_CPSTRING}
   DestCP:=StringCodePage(DestS);
 {$endif FPC_HAS_CPSTRING}
-  DestCP:=TranslatePlaceholderCP(DestCP);
-  sameCP:=true;
   lowstart:=low(sarr);
   { skip empty strings }
   while (lowstart<=high(sarr)) and
         (sarr[lowstart]='') do
     inc(lowstart);
+  if lowstart>high(sarr) then
+    begin
+      DestS:=''; { All source strings empty }
+      exit;
+    end;
+  DestCP:=TranslatePlaceholderCP(DestCP);
+  sameCP:=true;
   tmpCP:=TranslatePlaceholderCP(StringCodePage(sarr[lowstart]));
   for i:=lowstart+1 to high(sarr) do
     begin
@@ -423,7 +428,7 @@ begin
   { Calculate size of the result so we can do
     a single call to SetLength() }
   NewLen:=0;
-  for i:=low(sarr) to high(sarr) do
+  for i:=nonemptystart to high(sarr) do
     inc(NewLen,length(sarr[i]));
   SetLength(DestS,NewLen);
   { Concat all strings, except the string we already
@@ -549,8 +554,8 @@ begin
       result:=Length(S1);
       exit;
     end;
-  cp1:=StringCodePage(S1);
-  cp2:=StringCodePage(S2);
+  cp1:=TranslatePlaceholderCP(StringCodePage(S1));
+  cp2:=TranslatePlaceholderCP(StringCodePage(S2));
   if cp1=cp2 then
     begin
       Maxi:=Length(S1);
@@ -568,16 +573,11 @@ begin
   else
     begin
       r1:=S1;
-      cp1:=TranslatePlaceholderCP(cp1);
-      if (cp1<>StringCodePage(r1)) then
-        SetCodePage(r1,DefaultSystemCodePage,false);
       r2:=S2;
-      if (cp2<>StringCodePage(r2)) then
-        SetCodePage(r2,DefaultSystemCodePage,false);
       //convert them to utf8 then compare
       SetCodePage(r1,65001);
       SetCodePage(r2,65001);
-      Result := fpc_AnsiStr_Compare(r1,r2);
+      Result:=fpc_AnsiStr_Compare(r1,r2);
     end;
 end;
 
@@ -601,36 +601,33 @@ begin
       exit;
     end;
   { don't compare strings if one of them is empty }
-  if (pointer(S1)=nil) then
+  if (length(S1)=0) then
     begin
-      result:=-Length(S2);
+      { in the JVM, one string may be nil and the other may be empty -> the jlobject()
+        equals check may have failed even if both strings are technically empty }
+      result:=ord(length(S2)<>0);
       exit;
     end;
-  if (pointer(S2)=nil) then
+  if (length(S2)=0) then
     begin
-      result:=Length(S1);
+      { length(S1)<>0, we checked that above }
+      result:=1;
       exit;
     end;
-  cp1:=StringCodePage(S1);
-  cp2:=StringCodePage(S2);
-  if cp1<>cp2 then
-    begin
-      r1:=S1;
-      cp1:=TranslatePlaceholderCP(cp1);
-      if (cp1<>StringCodePage(r1)) then
-        SetCodePage(r1,DefaultSystemCodePage,false);
-      r2:=S2;
-      cp2:=TranslatePlaceholderCP(cp2);
-      if (cp2<>StringCodePage(r2)) then
-        SetCodePage(r2,DefaultSystemCodePage,false);
-      //convert them to utf8 then compare
-      SetCodePage(r1,65001);
-      SetCodePage(r2,65001);
-    end
-  else
+  cp1:=TranslatePlaceholderCP(StringCodePage(S1));
+  cp2:=TranslatePlaceholderCP(StringCodePage(S2));
+  if cp1=cp2 then
     begin
       r1:=s1;
       r2:=s2;
+    end
+  else
+    begin
+      r1:=S1;
+      r2:=S2;
+      //convert them to utf8 then compare
+      SetCodePage(r1,65001);
+      SetCodePage(r2,65001);
     end;
   result:=ord(not JUArrays.equals(TJByteArray(AnsistringClass(r1).fdata),TJByteArray(AnsistringClass(r2).fdata)))
 end;
@@ -683,6 +680,7 @@ Function Fpc_Ansistr_Copy(Const S : RawByteString; Index,Size : SizeInt): RawByt
 var
   res: AnsistringClass;
 begin
+  result:='';
   dec(index);
   if Index < 0 then
     Index := 0;
@@ -700,7 +698,6 @@ begin
      JLSystem.ArrayCopy(JLObject(AnsistringClass(S).fdata),index,JLObject(res.fdata),0,size);
      result:=ansistring(res);
    end;
-  { default function result is empty string }
 end;
 
 
@@ -773,7 +770,7 @@ end;
 { pos(c: char; const s: shortstring) also exists, so otherwise   }
 { using pos(char,pchar) will always call the shortstring version }
 { (exact match for first argument), also with $h+ (JM)           }
-Function Pos (c : AnsiChar; Const s : RawByteString) : SizeInt;
+Function Pos(c : AnsiChar; Const s : RawByteString) : SizeInt;
 var
   i: SizeInt;
 begin
@@ -790,7 +787,7 @@ end;
 
 
 {$define FPC_HAS_ANSISTR_OF_CHAR}
-Function StringOfChar(c : char;l : SizeInt) : AnsiString;
+Function StringOfChar(c : Ansichar;l : SizeInt) : AnsiString;
 begin
   SetLength(StringOfChar,l);
   FillChar(AnsistringClass(result).fdata,l,c);

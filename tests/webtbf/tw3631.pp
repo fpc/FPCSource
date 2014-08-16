@@ -1,5 +1,5 @@
 { %fail }
-{ %opt=-Sew -vw }
+{ %opt=-Sew -vw -Oonodeadvalues}
 
 var
   a : array[0..32] of byte;

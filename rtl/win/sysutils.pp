@@ -33,6 +33,7 @@ uses
 {$DEFINE HAS_LOCALTIMEZONEOFFSET}
 {$DEFINE HAS_GETTICKCOUNT}
 {$DEFINE HAS_GETTICKCOUNT64}
+{$DEFINE OS_FILESETDATEBYNAME}
 
 { used OS file system APIs use unicodestring }
 {$define SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
@@ -451,7 +452,6 @@ begin
   Result:=-1;
 end;
 
-
 Function FileSetDate (Handle : THandle;Age : Longint) : Longint;
 Var
   FT: TFileTime;
@@ -463,6 +463,24 @@ begin
   Result := GetLastError;
 end;
 
+{$IFDEF OS_FILESETDATEBYNAME}
+Function FileSetDate (Const FileName : UnicodeString;Age : Longint) : Longint;
+Var
+  fd : THandle;
+begin
+  FD := CreateFileW (PWideChar (FileName), GENERIC_READ or GENERIC_WRITE,
+                     FILE_SHARE_WRITE, nil, OPEN_EXISTING,
+                     FILE_FLAG_BACKUP_SEMANTICS, 0);  
+  If (Fd<>feInvalidHandle) then
+    try
+      Result:=FileSetDate(fd,Age);
+    finally
+      FileClose(fd);
+    end
+  else
+    Result:=GetLastOSError;
+end;
+{$ENDIF}                                                                                
 
 Function FileGetAttr (Const FileName : UnicodeString) : Longint;
 begin
@@ -1393,11 +1411,10 @@ end;
 Initialization
   InitWin32Widestrings;
   InitExceptions;       { Initialize exceptions. OS independent }
-{$ifdef win64}          { Nothing win64-specific here, just keeping exe size down
-                          as these procedures aren't used in generic exception handling }
+{$ifdef mswindows}      { Keeps exe size down for systems that do not use SEH }
   ExceptObjProc:=@WinExceptionObject;
   ExceptClsProc:=@WinExceptionClass;
-{$endif win64}
+{$endif mswindows}
   InitInternational;    { Initialize internationalization settings }
   LoadVersionInfo;
   InitSysConfigDir;

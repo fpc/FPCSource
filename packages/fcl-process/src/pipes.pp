@@ -86,11 +86,7 @@ end;
 Function TInputPipeStream.Write (Const Buffer; Count : Longint) : longint;
 
 begin
-{$ifdef ver2_2_0}
-  raise EStreamError.Create( 'Cannot write to InputPipeStream');
-{$else}
   WriteNotImplemented;
-{$endif}
   Result := 0;
 end;
 
@@ -117,11 +113,7 @@ end;
 Function TOutputPipeStream.Read(Var Buffer; Count : Longint) : longint;
 
 begin
-{$ifdef ver2_2_0}
-  raise EStreamError.Create( 'Cannot read from OutputPipeStream');
-{$else}
   ReadNotImplemented;
-{$endif}
   Result := 0;
 end;
 
