@@ -271,6 +271,10 @@
         Inc(AAddress,alignment_inc);
         Dec(ASize,alignment_inc);
         Dec(ASize,ASize mod TinyHeapAllocGranularity);
+        if (HeapOrg=nil) or (TTinyHeapPointerArithmeticType(HeapOrg) > TTinyHeapPointerArithmeticType(AAddress)) then
+          HeapOrg:=AAddress;
+        if (HeapEnd=nil) or (TTinyHeapPointerArithmeticType(HeapEnd) < (TTinyHeapPointerArithmeticType(AAddress)+ASize)) then
+          HeapEnd:=Pointer(TTinyHeapPointerArithmeticType(AAddress)+ASize);
         InternalTinyFreeMem(AAddress, ASize);
       end;
 

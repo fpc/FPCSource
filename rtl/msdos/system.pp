@@ -14,6 +14,7 @@ interface
   $mode switch is not effective }
 
 {$I systemh.inc}
+{$I tnyheaph.inc}
 
 const
   LineEnding = #13#10;

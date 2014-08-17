@@ -8287,6 +8287,7 @@ rtl/inc/thread.inc svneol=native#text/plain
 rtl/inc/threadh.inc svneol=native#text/plain
 rtl/inc/threadvr.inc svneol=native#text/plain
 rtl/inc/tinyheap.inc svneol=native#text/plain
+rtl/inc/tnyheaph.inc svneol=native#text/plain
 rtl/inc/typefile.inc svneol=native#text/plain
 rtl/inc/ufloat128.pp svneol=native#text/plain
 rtl/inc/ustringh.inc svneol=native#text/plain
