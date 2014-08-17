@@ -17,7 +17,7 @@ const
   TestsuiteURLPrefix='http://www.freepascal.org/testsuite/';
   TestsuiteBin='testsuite.cgi';
   ViewURL='http://svn.freepascal.org/cgi-bin/viewvc.cgi/';
-  ViewRevURL='http://svn.freepascal.org/cgi-bin/viewvc.cgi?view=revision&revision=';
+  ViewRevURL='http://svn.freepascal.org/cgi-bin/viewvc.cgi?view=revision&amp;revision=';
   TestsSubDir='/tests/';
   DataBaseSubDir='/packages/fcl-db/tests/';
 
