@@ -200,6 +200,8 @@ type
     ver_2_6_1,
     ver_2_6_2,
     ver_2_6_3,
+    ver_2_6_4,
+    ver_2_6_5,
     ver_2_7_1);
 
 const
@@ -236,6 +238,8 @@ const
    '2.6.1',
    '2.6.2',
    '2.6.3',
+   '2.6.4',
+   '2.6.5',
    '2.7.1'
   );
 
@@ -268,6 +272,8 @@ const
    'tags/release_2_6_0',
    'tags/release_2_6_2',
    'tags/release_2_6_2',
+   'tags/release_2_6_4',
+   'tags/release_2_6_4',
    'branches/fixes_2_6',
    'trunk'
   );
@@ -939,7 +945,7 @@ begin
    if (FOS<>'') and (GetOSName(FOS)<>'All') then
      S:=S+' AND (TU_OS_FK='+FOS+')';
    If (Round(FDate)<>0) then
-     S:=S+' AND (TU_DATE LIKE '''+FormatDateTime('YYYY-MM-DD',FDate)+'%'')';
+     S:=S+' AND (to_char(TU_DATE, ''YYYY-MM-DD'') LIKE '''+FormatDateTime('YYYY-MM-DD',FDate)+'%'')';
    If FSubmitter<>'' then
      S:=S+' AND (TU_SUBMITTER='''+FSubmitter+''')';
    If FMachine<>'' then
@@ -1483,6 +1489,7 @@ Procedure TTestSuite.DumpTestInfo(Q : TSQLQuery);
 
 Var
   I : Integer;
+  field_displayed : boolean;
   FieldValue,FieldName : String;
 
 begin
@@ -1491,17 +1498,28 @@ begin
       begin
       FieldValue:=Q.Fields[i].AsString;
       FieldName:=Q.Fields[i].DisplayName;
-      if (Not Q.fields[i].IsNull) and (FieldName<>'T_NAME') and (FieldName<>'T_SOURCE') then
+      field_displayed:=false;
+      if (Not Q.fields[i].IsNull) and (FieldName<>'t_name') and (FieldName<>'t_source') then
         begin
         if (Q.Fields[i].Datatype=ftBoolean) then
-          DumpLn('Flag ');
-        DumpLn(FieldName);
-        DumpLn(' ');
-        if (Q.Fields[i].DataType=ftBoolean) and Q.Fields[i].AsBoolean then
-          DumpLn(' set')
-        else
-          DumpLn(FieldValue);
-        DumpLn('<BR>');
+          begin
+            if Q.Fields[i].AsBoolean then
+              begin
+                DumpLn('Flag ');
+                DumpLn(FieldName);
+                DumpLn(' set');
+                field_displayed:=true;
+              end;
+          end
+        else if FieldValue<>'' then
+          begin
+            DumpLn(FieldName);
+            DumpLn(' ');
+            DumpLn(FieldValue);
+            field_displayed:=true;
+          end;
+        if field_displayed then
+          DumpLn('<BR>');
         end;
       end;
 end;
@@ -1637,7 +1655,7 @@ begin
                 Free;
               end;
            ParaGraphStart;
-           DumpLn(Format('<p>Record count: %d </p>',[Q.RecordCount]));
+           DumpLn(Format('Record count: %d',[Q.RecordCount]));
            ParaGraphEnd;
           Finally
             Close;
