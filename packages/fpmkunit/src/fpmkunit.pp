@@ -96,7 +96,7 @@ Type
     amiga,atari, solaris, qnx, netware, openbsd,wdosx,
     palmos,macos,darwin,emx,watcom,morphos,netwlibc,
     win64,wince,gba,nds,embedded,symbian,haiku,iphonesim,
-    aix,java,android,nativent,msdos,wii
+    aix,java,android,nativent,msdos,wii,aros
   );
   TOSes = Set of TOS;
 
@@ -152,7 +152,7 @@ Const
   AllWindowsOSes  = [Win32,Win64,WinCE];
   AllLimit83fsOses= [go32v2,os2,emx,watcom,msdos];
 
-  AllSmartLinkLibraryOSes = [Linux,msdos,amiga,morphos]; // OSes that use .a library files for smart-linking
+  AllSmartLinkLibraryOSes = [Linux,msdos,amiga,morphos,aros]; // OSes that use .a library files for smart-linking
   AllImportLibraryOSes = AllWindowsOSes + [os2,emx,netwlibc,netware,watcom,go32v2,macos,nativent,msdos];
 
   { This table is kept OS,Cpu because it is easier to maintain (PFV) }
@@ -193,7 +193,8 @@ Const
     { android } ( false, true,  false, false, false, false, true,  false, false, false, false, true,  true , false),
     { nativent }( false, true,  false, false, false, false, false, false, false, false, false, false, false, false),
     { msdos }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true ),
-    { wii }     ( false, false, false, true , false, false, false, false, false, false, false, false, false, false )
+    { wii }     ( false, false, false, true , false, false, false, false, false, false, false, false, false, false ),
+    { aros }    ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false )
   );
 
   // Useful
@@ -1896,7 +1897,7 @@ end;
 
 function maybequoted(const s:string):string;
 const
-  {$IF DEFINED(MSWINDOWS) OR DEFINED(AMIGA) OR DEFINED(MORPHOS)}
+  {$IF DEFINED(MSWINDOWS) OR DEFINED(AMIGA) OR DEFINED(MORPHOS) OR DEFINED(AROS)}
     FORBIDDEN_CHARS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
                        '{', '}', '''', '`', '~'];
   {$ELSE}

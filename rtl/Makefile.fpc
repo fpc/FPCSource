@@ -42,6 +42,7 @@ dirs_arm_android=android
 dirs_mipsel_android=android
 dirs_jvm_android=android/jvm
 dirs_msdos=msdos
+dirs_aros=aros
 
 [install]
 fpcpackage=y
