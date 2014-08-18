@@ -22,7 +22,9 @@ unit gd;
 {$IFDEF MORPHOS}
   {$UNDEF FPC_TARGET_SUPPORTS_DYNLIBS}
 {$ENDIF MORPHOS}
-
+{$IFDEF AROS}
+  {$UNDEF FPC_TARGET_SUPPORTS_DYNLIBS}
+{$ENDIF AROS}
 
 interface
 
@@ -85,6 +87,12 @@ uses
   {$DEFINE gdlib := }
   {$DEFINE clib := }
 {$ENDIF MORPHOS}
+{$IFDEF AROS}
+  {$UNDEF LOAD_DYNAMICALLY}
+  {$DEFINE gdlib := }
+  {$DEFINE clib := }
+{$ENDIF MORPHOS}
+
 
 {$IFNDEF LOAD_DYNAMICALLY}
   {$IFDEF darwin}

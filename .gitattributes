@@ -6670,6 +6670,7 @@ packages/rtl-objpas/Makefile.fpc svneol=native#text/plain
 packages/rtl-objpas/Makefile.fpc.fpcmake svneol=native#text/plain
 packages/rtl-objpas/fpmake.pp svneol=native#text/plain
 packages/rtl-objpas/src/amiga/varutils.pp svneol=native#text/plain
+packages/rtl-objpas/src/aros/varutils.pp svneol=native#text/plain
 packages/rtl-objpas/src/gba/varutils.pp svneol=native#text/plain
 packages/rtl-objpas/src/go32v2/varutils.pp svneol=native#text/plain
 packages/rtl-objpas/src/inc/convutil.inc svneol=native#text/plain
