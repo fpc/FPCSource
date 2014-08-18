@@ -429,7 +429,7 @@ interface
               begin
                 {Just check for the MSB in reghi to be set or not, this is independed from nf_swapped}
                 location.resflags:=F_NE;
-                current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_TST,left.location.register64.reghi, $80000000));
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_TST,left.location.register64.reghi, aint($80000000)));
               end
             else
               begin
