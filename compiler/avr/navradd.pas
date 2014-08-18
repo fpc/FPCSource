@@ -220,7 +220,7 @@ interface
     function tavraddnode.pass_1 : tnode;
       begin
         result:=inherited pass_1;
-{
+{$ifdef dummy}
         if not(assigned(result)) then
           begin
             unsigned:=not(is_signed(left.resultdef)) or
@@ -240,7 +240,7 @@ interface
              is_dynamic_array(left.resultdef)
            ) then
           expectloc:=LOC_FLAGS;
-}
+{$endif dummy}
       end;
 
 
