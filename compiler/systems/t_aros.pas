@@ -89,15 +89,19 @@ end;
 procedure TLinkeraros.Setaros386Info;
 begin
   with Info do begin
+    { Note: collect-aros seems to be buggy, and doesn't forward options }
+    {       properly when calling the underlying GNU LD. (FIXME?)       }
+    { This means paths with spaces in them are not supported for now on AROS.   }
+    { So for example no Ram Disk: usage for anything which must be linked. (KB) }
     ExeCmd[1]:='collect-aros $OPT -d -n -o $EXE $RES';
-    //ExeCmd[1]:='i386-aros-ld $OPT -d -n -o $EXE $RES';
+    //ExeCmd[1]:='ld $OPT -d -n -o $EXE $RES';
   end;
 end;
 
 procedure TLinkeraros.Setarosx86_64Info;
 begin
   with Info do begin
-    ExeCmd[1]:='x86_64-aros-ld $OPT -defsym=__AROS__=1 -d -q -n -o $EXE $RES';
+    ExeCmd[1]:='ld $OPT -defsym=__AROS__=1 -d -q -n -o $EXE $RES';
   end;
 end;
 
