@@ -2431,7 +2431,7 @@ implementation
 {$IFNDEF cpu64bitaddr} {$push}{$warnings off} {$ENDIF} //comparison always false warning
         if (current_settings.packenum=8) or (min<low(longint)) or (int64(max)>high(cardinal)) then
          savesize:=8
-{$IFDEF not cpu64bitaddr} {$pop} {$ENDIF}
+{$IFNDEF cpu64bitaddr} {$pop} {$ENDIF}
         else
 {$IFDEF cpu16bitaddr} {$push}{$warnings off} {$ENDIF} //comparison always false warning
          if (current_settings.packenum=4) or (min<low(smallint)) or (max>high(word)) then
