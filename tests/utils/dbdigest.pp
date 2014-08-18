@@ -373,7 +373,13 @@ begin
       Verbose(V_ERROR,'Illegal command-line option : '+O)
     else
       begin
-      Found:=(I<ParamCount);
+      if c=coverbose then
+        begin
+          Found:=true;
+          o:='';
+        end
+      else
+        Found:=(I<ParamCount);
       If Not found then
         Verbose(V_ERROR,'Option requires argument : '+O)
       else
