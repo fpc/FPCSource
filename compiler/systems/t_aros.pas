@@ -89,8 +89,8 @@ end;
 procedure TLinkeraros.Setaros386Info;
 begin
   with Info do begin
-    //ExeCmd[1]:='collect-aros $OPT -d -n -o $EXE $RES';
-    ExeCmd[1]:='i386-aros-ld $OPT -d -n -o $EXE $RES';
+    ExeCmd[1]:='collect-aros $OPT -d -n -o $EXE $RES';
+    //ExeCmd[1]:='i386-aros-ld $OPT -d -n -o $EXE $RES';
   end;
 end;
 
@@ -227,6 +227,7 @@ begin
 
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
+  binstr:=FindUtil(utilsprefix+BinStr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename)));
   Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
@@ -249,6 +250,7 @@ begin
 
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
+  binstr:=FindUtil(utilsprefix+BinStr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename))));
   Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
