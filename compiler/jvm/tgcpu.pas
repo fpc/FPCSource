@@ -46,7 +46,7 @@ unit tgcpu;
         public
          procedure setfirsttemp(l : longint); override;
          procedure getlocal(list: TAsmList; size: longint; alignment: shortint; def: tdef; var ref: treference); override;
-         procedure gethltemp(list: TAsmList; def: tdef; forcesize: aint; temptype: ttemptype; out ref: treference); override;
+         procedure gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference); override;
          procedure gethltemptyped(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference); override;
        end;
 
@@ -245,7 +245,7 @@ unit tgcpu;
       end;
 
 
-    procedure ttgjvm.gethltemp(list: TAsmList; def: tdef; forcesize: aint; temptype: ttemptype; out ref: treference);
+    procedure ttgjvm.gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference);
       begin
         if not getifspecialtemp(list,def,forcesize,temptype,ref) then
           inherited;
