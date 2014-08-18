@@ -50,11 +50,9 @@ Type
     Attr : Longint;
     Name : UnicodeString;
     ExcludeAttr : Longint;
+    FindHandle : {$ifdef FINDHANDLE_IS_POINTER}Pointer{$else}THandle{$endif};
 {$ifdef unix}
-    FindHandle : Pointer;
     Mode : TMode;
-{$else unix}
-    FindHandle : THandle;
 {$endif unix}
 {$ifdef USEFINDDATA}
     FindData : TFindData;
