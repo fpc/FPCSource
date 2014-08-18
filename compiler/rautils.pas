@@ -495,7 +495,7 @@ Function EscapeToPascal(const s:string): string;
 { converts a C styled string - which contains escape }
 { characters to a pascal style string.               }
 var
-  i,len : aint;
+  i,len : asizeint;
   hs    : string;
   temp  : string;
   c     : char;
