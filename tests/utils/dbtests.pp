@@ -141,7 +141,10 @@ begin
     On E : exception do
       begin
       FreeAndNil(Res);
-      Connection.Transaction.RollBack;
+      Try
+        Connection.Transaction.RollBack;
+      except
+      end;
       if not Silent then
         Verbose(V_WARNING,'Query : '+Qry+'Failed : '+E.Message);
       end;
