@@ -1217,7 +1217,8 @@ begin
                 DumpLn('SVN Revisions:');
                 CellNext;
                 SC:=Q1.FieldByName('svnrev').AsString;
-                FormatSVNData(SC);
+                if (SC<>'') then
+                  FormatSVNData(SC);
                 LDumpLn(SC);
                 CellNext;
                 if Q2 <> nil then
@@ -2750,7 +2751,7 @@ begin
           pos_colon:=pos(':',SubStr);
           Rev:=copy(SubStr,pos_colon+1,length(SubStr));
           { Remove suffix like M for modified...}
-          while not (Rev[length(Rev)] in ['0'..'9']) do
+          while (length(Rev)>0) and (not (Rev[length(Rev)] in ['0'..'9'])) do
             Rev:=Copy(Rev,1,length(Rev)-1);
           S:=ViewRevURL+Rev;
           CellData:=CellData+Format('<A HREF="%s" target="_blank">%s</A>',[S,SubStr]);
