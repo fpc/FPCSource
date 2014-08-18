@@ -67,7 +67,7 @@ Function ConnectToDatabase(DatabaseName,Host,User,Password,Port : String) : Bool
 
 begin
   Result:=False;
-  Verbose(V_DEBUG,'Connection params : '+DatabaseName+' '+Host+' '+User+' '+Password+' '+Port);
+  Verbose(V_SQL,'Connection params : '+DatabaseName+' '+Host+' '+User+' '+Port);
   Connection:=TPQConnection.Create(Nil);
   try
     Connection.Hostname:=Host;
@@ -107,7 +107,7 @@ end;
 Function ExecuteQuery (Qry : String; Silent : Boolean) : Boolean ;
 
 begin
-  Verbose(V_DEBUG,'Executing query:'+Qry);
+  Verbose(V_SQL,'Executing query:'+Qry);
   Result:=False;
   try
     With CreateQuery(Qry) do
@@ -132,7 +132,7 @@ Function OpenQuery (Qry : String; Out res : TSQLQuery; Silent : Boolean) : Boole
 
 begin
   Result:=False;
-  Verbose(V_DEBUG,'Running query:'+Qry);
+  Verbose(V_SQL,'Running query:'+Qry);
   Res:=CreateQuery(Qry);
   try
     Res.Open;
@@ -156,7 +156,7 @@ begin
     Result:=''
   else
     Result:=Res.Fields[ID].AsString;
-  Verbose(V_DEBUG,'Field value '+Result);
+  Verbose(V_SQL,'Field value '+Result);
 end;
 
 Procedure FreeQueryResult(var Res : TSQLQuery);
@@ -202,7 +202,7 @@ Function EscapeSQL( S : String) : String;
 begin
 //  Result:=StringReplace(S,'\','\\',[rfReplaceAll]);
   Result:=StringReplace(Result,'''','''''',[rfReplaceAll]);
-  Verbose(V_DEBUG,'EscapeSQL : "'+S+'" -> "'+Result+'"');
+  Verbose(V_SQL,'EscapeSQL : "'+S+'" -> "'+Result+'"');
 end;
 
 
@@ -341,7 +341,7 @@ begin
     FileName := FileName + '.pp'
   else exit;
 
-  Verbose(V_Debug,'Reading '+FileName);
+  Verbose(V_Debug,'Reading: '+FileName);
   assign(t,FileName);
   {$I-}
    reset(t);

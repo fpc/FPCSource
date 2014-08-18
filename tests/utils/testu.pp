@@ -10,7 +10,7 @@ Interface
   ---------------------------------------------------------------------}
 
 type
-  TVerboseLevel=(V_Abort,V_Error,V_Warning,V_Normal,V_Debug);
+  TVerboseLevel=(V_Abort,V_Error,V_Warning,V_Normal,V_Debug,V_SQL);
 
   TConfig = record
     NeedOptions,
@@ -48,6 +48,7 @@ type
 
 Const
   DoVerbose : boolean = false;
+  DoSQL     : boolean = false;
 
 procedure TrimB(var s:string);
 procedure TrimE(var s:string);
@@ -66,6 +67,9 @@ begin
     V_Debug :
       if DoVerbose then
        writeln('Debug: ',s);
+    V_SQL :
+      if DoSQL then
+       writeln('SQL: ',s);
     V_Warning :
       writeln('Warning: ',s);
     V_Error :
