@@ -101,8 +101,10 @@ interface
         constructor getelementptr_reg_size_ref_size_const(dst:tregister;ptrsize:tdef;const ref:treference;indextype:tdef;index1:ptrint;indirect:boolean);
         constructor getelementptr_reg_tai_size_const(dst:tregister;const ai:tai;indextype:tdef;index1:ptrint;indirect:boolean);
 
-        { e.g. dst = call retsize (paras) }
+        { e.g. dst = call retsize name (paras) }
         constructor call_size_name_paras(dst: tregister;retsize: tdef;name:tasmsymbol;paras: tfplist);
+        { e.g. dst = call retsize reg (paras) }
+        constructor call_size_reg_paras(dst: tregister;retsize: tdef;reg:tregister;paras: tfplist);
 
         procedure loadtai(opidx: longint; _ai: tai);
         procedure loaddef(opidx: longint; _def: tdef);
@@ -850,6 +852,17 @@ uses
         loadreg(0,dst);
         loaddef(1,retsize);
         loadsymbol(2,name,0);
+        loadparas(3,paras);
+      end;
+
+
+    constructor taillvm.call_size_reg_paras(dst: tregister; retsize: tdef; reg: tregister; paras: tfplist);
+      begin
+        create_llvm(la_call);
+        ops:=4;
+        loadreg(0,dst);
+        loaddef(1,retsize);
+        loadreg(2,reg);
         loadparas(3,paras);
       end;
 

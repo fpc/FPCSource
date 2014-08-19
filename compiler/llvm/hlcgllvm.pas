@@ -429,10 +429,17 @@ implementation
 
 
   function thlcgllvm.a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister; const paras: array of pcgpara): tcgpara;
+    var
+      callparas: tfplist;
+      llvmretdef,
+      hlretdef,
+      calldef: tdef;
+      res: tregister;
     begin
-      internalerror(2012042824);
+      a_call_common(list,pd,paras,nil,res,calldef,hlretdef,llvmretdef,callparas);
+      list.concat(taillvm.call_size_reg_paras(res,calldef,reg,callparas));
       result:=get_call_result_cgpara(pd,nil);
-//      set_call_function_result(list,pd,pd.returndef,res,result);
+      set_call_function_result(list,pd,llvmretdef,hlretdef,res,result);
     end;
 
 
