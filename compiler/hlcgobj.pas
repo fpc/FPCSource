@@ -812,7 +812,7 @@ implementation
 
   procedure thlcgobj.temp_to_ref(p: ptemprecord; out ref: treference);
     begin
-      reference_reset_base(ref,voidstackpointertype,current_procinfo.framepointer,p^.pos,voidstackpointertype.size);
+      reference_reset_base(ref,voidstackpointertype,current_procinfo.framepointer,p^.pos,p^.alignment);
     end;
 
   procedure thlcgobj.a_label(list: TAsmList; l: tasmlabel); inline;

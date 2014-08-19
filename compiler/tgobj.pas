@@ -44,6 +44,7 @@ unit tgobj;
          temptype   : ttemptype;
          { finalize this temp if it's a managed type }
          fini       : boolean;
+         alignment  : shortint;
          pos        : asizeint;
          size       : asizeint;
          def        : tdef;
@@ -393,6 +394,7 @@ implementation
                { Create new block and resize the old block }
                tl^.fini:=fini;
                tl^.size:=size;
+               tl^.alignment:=alignment;
                tl^.nextfree:=nil;
                { Resize the old block }
                dec(bestslot^.size,size);
@@ -421,6 +423,7 @@ implementation
               end;
 
             tl^.fini:=fini;
+            tl^.alignment:=alignment;
             tl^.size:=size;
             tl^.next:=templist;
             tl^.nextfree:=nil;

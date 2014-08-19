@@ -93,6 +93,7 @@ implementation
         tl^.temptype:=temptype;
         tl^.def:=def;
         tl^.fini:=fini;
+        tl^.alignment:=alignment;
         tl^.pos:=getsupreg(ref.base);
         tl^.size:=size;
         tl^.next:=templist;
