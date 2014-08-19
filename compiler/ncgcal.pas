@@ -28,7 +28,7 @@ interface
     uses
       cpubase,
       globtype,
-      parabase,cgutils,
+      parabase,cgbase,cgutils,
       symdef,node,ncal;
 
     type
@@ -101,6 +101,12 @@ interface
             location, and create the paralocs array that will be passed to
             hlcg.a_call_* }
           procedure pushparas;virtual;
+
+          { loads the code pointer of a complex procvar (one with a self/
+            parentfp/... and a procedure address) into a register and returns it }
+          function load_complex_procvar_codeptr: tregister; virtual;
+          { loads the procvar code pointer into a register }
+          function load_procvar_codeptr: tregister;
        public
           procedure pass_generate_code;override;
           destructor destroy;override;
@@ -114,7 +120,7 @@ implementation
       cutils,verbose,globals,
       cpuinfo,
       symconst,symtable,symtype,symsym,defutil,paramgr,
-      cgbase,pass_2,
+      pass_2,
       aasmbase,aasmtai,aasmdata,
       nbas,nmem,nld,ncnv,nutils,
       ncgutil,
@@ -758,6 +764,48 @@ implementation
        end;
 
 
+     function tcgcallnode.load_complex_procvar_codeptr: tregister;
+       var
+         srcreg: tregister;
+         codeprocdef: tabstractprocdef;
+       begin
+         { this is safe even on i8086, because procvardef code pointers are
+           always far there (so the current state of far calls vs the state
+           of far calls where the procvardef was defined does not matter,
+           even though the procvardef constructor called by getcopyas looks at
+           it) }
+         codeprocdef:=tabstractprocdef(procdefinition.getcopyas(procvardef,pc_address_only));
+         result:=hlcg.getaddressregister(current_asmdata.CurrAsmList,codeprocdef);
+         { in case we have a method pointer on a big endian target in registers,
+           the method address is stored in registerhi (it's the first field
+           in the tmethod record) }
+         if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+           begin
+             if not(right.location.size in [OS_PAIR,OS_SPAIR]) then
+               internalerror(2014081401);
+             if (target_info.endian=endian_big) then
+               srcreg:=right.location.registerhi
+             else
+               srcreg:=right.location.register;
+             hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,codeprocdef,codeprocdef,srcreg,result)
+           end
+         else
+           hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,codeprocdef,codeprocdef,right.location,result);
+       end;
+
+
+     function tcgcallnode.load_procvar_codeptr: tregister;
+       begin
+         if not(procdefinition.is_addressonly) then
+           result:=load_complex_procvar_codeptr
+         else
+           begin
+             result:=hlcg.getaddressregister(current_asmdata.CurrAsmList,procdefinition);
+             hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,procdefinition,procdefinition,right.location,result);
+           end;
+       end;
+
+
      procedure tcgcallnode.freeparas;
        var
          ppn : tcgcallparanode;
@@ -1012,29 +1060,19 @@ implementation
            { now procedure variable case }
            begin
               secondpass(right);
-              callref:=false;
 
-              pvreg:=cg.getintregister(current_asmdata.CurrAsmList,proc_addr_size);
-              { Only load OS_ADDR from the reference (when converting to hlcg:
-                watch out with procedure of object) }
+              { can we directly call the procvar in a memory location? }
+              callref:=false;
               if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
                 begin
                   href:=right.location.reference;
                   callref:=can_call_ref(href);
-                  if not callref then
-                    cg.a_load_ref_reg(current_asmdata.CurrAsmList,proc_addr_size,proc_addr_size,right.location.reference,pvreg)
-                end
-              else if right.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-                begin
-                  { in case left is a method pointer and we are on a big endian target, then
-                    the method address is stored in registerhi }
-                  if (target_info.endian=endian_big) and (right.location.size in [OS_PAIR,OS_SPAIR]) then
-                    hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,proc_addr_voidptrdef,proc_addr_voidptrdef,right.location.registerhi,pvreg)
-                  else
-                    hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,proc_addr_voidptrdef,proc_addr_voidptrdef,right.location.register,pvreg);
-                end
+                end;
+
+              if not callref then
+                pvreg:=load_procvar_codeptr
               else
-                hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,proc_addr_voidptrdef,proc_addr_voidptrdef,right.location,pvreg);
+                pvreg:=NR_INVALID;
               location_freetemp(current_asmdata.CurrAsmList,right.location);
 
               { Load parameters that are in temporary registers in the
@@ -1067,7 +1105,7 @@ implementation
               if callref then
                 retloc:=do_call_ref(href)
               else
-                retloc:=hlcg.a_call_reg(current_asmdata.CurrAsmList,tabstractprocdef(procdefinition),pvreg,paralocs);
+                retloc:=hlcg.a_call_reg(current_asmdata.CurrAsmList,procdefinition,pvreg,paralocs);
               extra_post_call_code;
            end;
 
