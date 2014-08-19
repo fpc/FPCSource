@@ -753,7 +753,7 @@ implementation
             sym:=current_asmdata.DefineAsmSymbol(pd.mangledname,AB_LOCAL,AT_FUNCTION);
             list.concat(Tai_symbol.Create(sym,0));
           end;
-        cg.g_external_wrapper(list,pd,'FPC_ABSTRACTERROR');
+        hlcg.g_external_wrapper(list,pd,'FPC_ABSTRACTERROR');
         list.concat(Tai_symbol_end.Create(sym));
       end;
 
@@ -963,7 +963,7 @@ implementation
                     { create wrapper code }
                     new_section(list,sec_code,tmps,target_info.alignment.procalign);
                     hlcg.init_register_allocators;
-                    cg.g_intf_wrapper(list,pd,tmps,ImplIntf.ioffset);
+                    hlcg.g_intf_wrapper(list,pd,tmps,ImplIntf.ioffset);
                     hlcg.done_register_allocators;
                   end;
               end;

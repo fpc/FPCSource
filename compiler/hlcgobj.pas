@@ -517,7 +517,7 @@ unit hlcgobj;
           setting up any additional environment before doing so (if required).
 
           The default implementation issues a jump instruction to the external name. }
-//          procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string); virtual;
+          procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string); virtual;
 
          protected
           procedure g_allocload_reg_reg(list: TAsmList; regsize: tdef; const fromreg: tregister; out toreg: tregister; regtyp: tregistertype);
@@ -3718,6 +3718,11 @@ implementation
 
   procedure thlcgobj.g_profilecode(list: TAsmList);
     begin
+    end;
+
+  procedure thlcgobj.g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string);
+    begin
+      cg.a_jmp_name(list,externalname);
     end;
 
   procedure thlcgobj.g_allocload_reg_reg(list: TAsmList; regsize: tdef; const fromreg: tregister; out toreg: tregister; regtyp: tregistertype);

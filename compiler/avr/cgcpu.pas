@@ -98,7 +98,6 @@ unit cgcpu;
         function normalize_ref(list : TAsmList;ref : treference;
           tmpreg : tregister) : treference;
 
-        procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
         procedure emit_mov(list: TAsmList;reg2: tregister; reg1: tregister);
 
         procedure a_adjust_sp(list: TAsmList; value: longint);
@@ -1872,12 +1871,6 @@ unit cgcpu;
         list.concat(ai1);
         if assigned(hl) then
           a_label(list,hl);
-      end;
-
-
-    procedure tcgavr.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
-      begin
-        //internalerror(2011021324);
       end;
 
 

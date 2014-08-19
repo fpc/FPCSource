@@ -417,14 +417,7 @@ unit cgobj;
           }
           procedure g_restore_registers(list:TAsmList);virtual;
 
-          procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);virtual;abstract;
           procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint);virtual;
-
-          { generate a stub which only purpose is to pass control the given external method,
-          setting up any additional environment before doing so (if required).
-
-          The default implementation issues a jump instruction to the external name. }
-          procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string); virtual;
 
           { initialize the pic/got register }
           procedure g_maybe_got_init(list: TAsmList); virtual;
@@ -2365,12 +2358,6 @@ implementation
               end;
               paraloc:=next;
             end;
-      end;
-
-
-    procedure tcg.g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string);
-      begin
-        a_jmp_name(list,externalname);
       end;
 
 

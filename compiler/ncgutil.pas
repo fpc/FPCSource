@@ -1484,7 +1484,7 @@ implementation
         else
           list.concat(Tai_symbol.createname(pd.mangledname,AT_FUNCTION,0));
 
-        cg.g_external_wrapper(list,pd,externalname);
+        hlcg.g_external_wrapper(list,pd,externalname);
         destroy_hlcodegen;
       end;
 

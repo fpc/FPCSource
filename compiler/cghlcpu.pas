@@ -45,7 +45,6 @@ uses
       procedure g_proc_exit(list: TAsmList; parasize: longint; nostackframe: boolean); override;
       procedure g_proc_entry(list: TAsmList; localsize: longint; nostackframe: boolean); override;
       procedure g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef); override;
-      procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint); override;
 {$ifdef cpuflags}
       procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: tresflags; reg: TRegister); override;
       procedure a_jmp_flags(list: TAsmList; const f: TResFlags; l: tasmlabel); override;
@@ -185,12 +184,6 @@ implementation
         internalerror(2012042819);
       end;
 {$endif}
-
-    procedure thlbasecgcpu.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
-      begin
-        internalerror(2012042820);
-      end;
-
 
     procedure thlbasecgcpu.g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef);
       begin

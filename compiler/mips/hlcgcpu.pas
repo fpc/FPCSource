@@ -32,7 +32,7 @@ uses
   globtype,
   aasmbase, aasmdata,
   cgbase, cgutils,
-  symconst,symtype,symdef,
+  symtype,symdef,
   parabase, hlcgobj, hlcg2ll;
 
   type
@@ -41,6 +41,9 @@ uses
       procedure a_load_subsetreg_reg(list: TAsmList; subsetsize, tosize: tdef; const sreg: tsubsetregister; destreg: tregister);override;
     protected
       procedure a_load_regconst_subsetreg_intern(list: TAsmList; fromsize, subsetsize: tdef; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt); override;
+    public
+      procedure g_intf_wrapper(list: tasmlist; procdef: tprocdef; const labelname: string; ioffset: longint); override;
+      procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string);override;
   end;
 
   procedure create_hlcodegen;
@@ -48,12 +51,11 @@ uses
 implementation
 
   uses
-    verbose,
-    aasmtai,
-    aasmcpu,
+    verbose,globals,
+    fmodule,
+    aasmtai,aasmcpu,
     cutils,
-    globals,
-    defutil,
+    symconst,symsym,defutil,
     cgobj,
     cpubase,
     cpuinfo,
@@ -144,6 +146,133 @@ implementation
       else
         inherited a_load_regconst_subsetreg_intern(list,fromsize,subsetsize,fromreg,sreg,slopt);
     end;
+
+
+  procedure thlcgmips.g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string);
+    var
+      href: treference;
+    begin
+      reference_reset_symbol(href,current_asmdata.RefAsmSymbol(externalname),0,sizeof(aint));
+      { Always do indirect jump using $t9, it won't harm in non-PIC mode }
+      if (cs_create_pic in current_settings.moduleswitches) then
+        begin
+          list.concat(taicpu.op_none(A_P_SET_NOREORDER));
+          list.concat(taicpu.op_reg(A_P_CPLOAD,NR_PIC_FUNC));
+          href.base:=NR_GP;
+          href.refaddr:=addr_pic_call16;
+          list.concat(taicpu.op_reg_ref(A_LW,NR_PIC_FUNC,href));
+          list.concat(taicpu.op_reg(A_JR,NR_PIC_FUNC));
+          { Delay slot }
+          list.Concat(taicpu.op_none(A_NOP));
+          list.Concat(taicpu.op_none(A_P_SET_REORDER));
+        end
+      else
+        begin
+          href.refaddr:=addr_high;
+          list.concat(taicpu.op_reg_ref(A_LUI,NR_PIC_FUNC,href));
+          href.refaddr:=addr_low;
+          list.concat(taicpu.op_reg_ref(A_ADDIU,NR_PIC_FUNC,href));
+          list.concat(taicpu.op_reg(A_JR,NR_PIC_FUNC));
+          { Delay slot }
+          list.Concat(taicpu.op_none(A_NOP));
+        end;
+    end;
+
+
+  procedure thlcgmips.g_intf_wrapper(list: tasmlist; procdef: tprocdef; const labelname: string; ioffset: longint);
+  var
+    make_global: boolean;
+    hsym: tsym;
+    href: treference;
+    paraloc: Pcgparalocation;
+    IsVirtual: boolean;
+  begin
+    if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
+      Internalerror(200006137);
+    if not assigned(procdef.struct) or
+      (procdef.procoptions * [po_classmethod, po_staticmethod,
+      po_methodpointer, po_interrupt, po_iocheck] <> []) then
+      Internalerror(200006138);
+    if procdef.owner.symtabletype <> objectsymtable then
+      Internalerror(200109191);
+
+    make_global := False;
+    if (not current_module.is_unit) or create_smartlink or
+      (procdef.owner.defowner.owner.symtabletype = globalsymtable) then
+      make_global := True;
+
+    if make_global then
+      List.concat(Tai_symbol.Createname_global(labelname, AT_FUNCTION, 0))
+    else
+      List.concat(Tai_symbol.Createname(labelname, AT_FUNCTION, 0));
+
+    IsVirtual:=(po_virtualmethod in procdef.procoptions) and
+        not is_objectpascal_helper(procdef.struct);
+
+    if (cs_create_pic in current_settings.moduleswitches) and
+      (not IsVirtual) then
+      begin
+        list.concat(Taicpu.op_none(A_P_SET_NOREORDER));
+        list.concat(Taicpu.op_reg(A_P_CPLOAD,NR_PIC_FUNC));
+        list.concat(Taicpu.op_none(A_P_SET_REORDER));
+      end;
+
+    { set param1 interface to self  }
+    procdef.init_paraloc_info(callerside);
+    hsym:=tsym(procdef.parast.Find('self'));
+    if not(assigned(hsym) and
+      (hsym.typ=paravarsym)) then
+      internalerror(2010103101);
+    paraloc:=tparavarsym(hsym).paraloc[callerside].location;
+    if assigned(paraloc^.next) then
+      InternalError(2013020101);
+
+    case paraloc^.loc of
+      LOC_REGISTER:
+        begin
+          if ((ioffset>=simm16lo) and (ioffset<=simm16hi)) then
+            cg.a_op_const_reg(list,OP_SUB, paraloc^.size,ioffset,paraloc^.register)
+          else
+            begin
+              cg.a_load_const_reg(list, paraloc^.size, ioffset, NR_R1);
+              cg.a_op_reg_reg(list, OP_SUB, paraloc^.size, NR_R1, paraloc^.register);
+            end;
+        end;
+    else
+      internalerror(2010103102);
+    end;
+
+    if IsVirtual then
+    begin
+      { load VMT pointer }
+      reference_reset_base(href,voidpointertype,paraloc^.register,0,sizeof(aint));
+      list.concat(taicpu.op_reg_ref(A_LW,NR_VMT,href));
+
+      if (procdef.extnumber=$ffff) then
+        Internalerror(200006139);
+
+      { TODO: case of large VMT is not handled }
+      { We have no reason not to use $t9 even in non-PIC mode. }
+      reference_reset_base(href, voidpointertype, NR_VMT, tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber), sizeof(aint));
+      list.concat(taicpu.op_reg_ref(A_LW,NR_PIC_FUNC,href));
+      list.concat(taicpu.op_reg(A_JR, NR_PIC_FUNC));
+    end
+    else if not (cs_create_pic in current_settings.moduleswitches) then
+      list.concat(taicpu.op_sym(A_J,current_asmdata.RefAsmSymbol(procdef.mangledname)))
+    else
+      begin
+        { GAS does not expand "J symbol" into PIC sequence }
+        reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0,sizeof(pint));
+        href.base:=NR_GP;
+        href.refaddr:=addr_pic_call16;
+        list.concat(taicpu.op_reg_ref(A_LW,NR_PIC_FUNC,href));
+        list.concat(taicpu.op_reg(A_JR,NR_PIC_FUNC));
+      end;
+    { Delay slot }
+    list.Concat(TAiCpu.Op_none(A_NOP));
+
+    List.concat(Tai_symbol_end.Createname(labelname));
+  end;
 
 
   procedure create_hlcodegen;

@@ -296,14 +296,7 @@ unit hlcg2ll;
           }
           procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
 
-          procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
           procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: aint);override;
-
-          { generate a stub which only purpose is to pass control the given external method,
-          setting up any additional environment before doing so (if required).
-
-          The default implementation issues a jump instruction to the external name. }
-//          procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string); override;
 
           { Generate code to exit an unwind-protected region. The default implementation
             produces a simple jump to destination label. }
@@ -987,11 +980,6 @@ implementation
   procedure thlcg2ll.g_proc_exit(list: TAsmList; parasize: longint; nostackframe: boolean);
     begin
       cg.g_proc_exit(list,parasize,nostackframe);
-    end;
-
-  procedure thlcg2ll.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
-    begin
-      cg.g_intf_wrapper(list,procdef,labelname,ioffset);
     end;
 
   procedure thlcg2ll.g_adjust_self_value(list: TAsmList; procdef: tprocdef; ioffset: aint);
