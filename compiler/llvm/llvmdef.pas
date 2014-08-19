@@ -402,7 +402,8 @@ implementation
                  tprocvardef(def).is_addressonly then
                 begin
                   llvmaddencodedproctype(tabstractprocdef(def),'',lpd_procvar,encodedstr);
-                  encodedstr:=encodedstr+'*';
+                  if def.typ=procvardef then
+                    encodedstr:=encodedstr+'*';
                 end
               else
                 begin
