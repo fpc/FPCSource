@@ -1827,8 +1827,8 @@ begin
           else
             Message(parser_e_32bitint_or_pointer_variable_expected);
         end;
-      (paramanager as tm68kparamanager).create_funcretloc_info(pd,calleeside);
-      (paramanager as tm68kparamanager).create_funcretloc_info(pd,callerside);
+      paramanager.create_funcretloc_info(pd,calleeside);
+      paramanager.create_funcretloc_info(pd,callerside);
 
       v:=get_intconst;
       if (v<low(Tprocdef(pd).extnumber)) or (v>high(Tprocdef(pd).extnumber)) then
@@ -1858,8 +1858,8 @@ begin
             Message(parser_e_32bitint_or_pointer_variable_expected);
         end;
 
-      (paramanager as tppcparamanager).create_funcretloc_info(pd,calleeside);
-      (paramanager as tppcparamanager).create_funcretloc_info(pd,callerside);
+      paramanager.create_funcretloc_info(pd,calleeside);
+      paramanager.create_funcretloc_info(pd,callerside);
 
       v:=get_intconst;
       if (v<low(Tprocdef(pd).extnumber)) or (v>high(Tprocdef(pd).extnumber)) then
@@ -1950,8 +1950,8 @@ begin
           else
             Message(parser_e_32bitint_or_pointer_variable_expected);
         end;
-      (paramanager as tppcparamanager).create_funcretloc_info(pd,calleeside);
-      (paramanager as tppcparamanager).create_funcretloc_info(pd,callerside);
+      paramanager.create_funcretloc_info(pd,calleeside);
+      paramanager.create_funcretloc_info(pd,callerside);
 
       v:=get_intconst;
       if (v<low(Tprocdef(pd).extnumber)) or (v>high(Tprocdef(pd).extnumber)) then
@@ -1981,8 +1981,8 @@ begin
             Message(parser_e_32bitint_or_pointer_variable_expected);
         end;
 
-      (paramanager as ti386paramanager).create_funcretloc_info(pd,calleeside);
-      (paramanager as ti386paramanager).create_funcretloc_info(pd,callerside);
+      paramanager.create_funcretloc_info(pd,calleeside);
+      paramanager.create_funcretloc_info(pd,callerside);
 
       v:=get_intconst;
       if (v<low(Tprocdef(pd).extnumber)) or (v>high(Tprocdef(pd).extnumber)) then
