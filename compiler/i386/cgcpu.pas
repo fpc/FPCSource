@@ -48,9 +48,6 @@ unit cgcpu;
         procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:tcgint;destreg:tregister);
         procedure g_releasevaluepara_openarray(list : TAsmList;const l:tlocation);
 
-        procedure g_exception_reason_save(list : TAsmList; const href : treference);override;
-        procedure g_exception_reason_save_const(list : TAsmList; const href : treference; a: tcgint);override;
-        procedure g_exception_reason_load(list : TAsmList; const href : treference);override;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
         procedure g_maybe_got_init(list: TAsmList); override;
      end;
@@ -540,36 +537,6 @@ unit cgcpu;
     procedure tcg386.g_releasevaluepara_openarray(list : TAsmList;const l:tlocation);
       begin
         { Nothing to release }
-      end;
-
-
-    procedure tcg386.g_exception_reason_save(list : TAsmList; const href : treference);
-      begin
-        if not paramanager.use_fixed_stack then
-          list.concat(Taicpu.op_reg(A_PUSH,tcgsize2opsize[OS_INT],NR_FUNCTION_RESULT_REG))
-        else
-         inherited g_exception_reason_save(list,href);
-      end;
-
-
-    procedure tcg386.g_exception_reason_save_const(list : TAsmList;const href : treference; a: tcgint);
-      begin
-        if not paramanager.use_fixed_stack then
-          list.concat(Taicpu.op_const(A_PUSH,tcgsize2opsize[OS_INT],a))
-        else
-          inherited g_exception_reason_save_const(list,href,a);
-      end;
-
-
-    procedure tcg386.g_exception_reason_load(list : TAsmList; const href : treference);
-      begin
-        if not paramanager.use_fixed_stack then
-          begin
-            a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
-            list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_INT],NR_FUNCTION_RESULT_REG))
-          end
-        else
-          inherited g_exception_reason_load(list,href);
       end;
 
 

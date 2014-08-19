@@ -400,6 +400,33 @@ unit hlcgobj;
            }
           procedure g_exception_reason_save(list : TAsmList; fromsize, tosize: tdef; reg: tregister; const href : treference);virtual;
 
+          {#
+              This routine is used in exception management nodes. It should
+              save the exception reason constant. The
+              save should be done either to a temp (pointed to by href).
+              or on the stack (pushing the value on the stack).
+
+              The size of the value to save is OS_S32. The default version
+              saves the exception reason to a temp. memory area.
+           }
+          procedure g_exception_reason_save_const(list: TAsmList; size: tdef; a: tcgint; const href: treference);virtual;
+
+          {#
+              This routine is used in exception management nodes. It should
+              load the exception reason to reg. The saved value
+              should either be in the temp. area (pointed to by href , href should
+              *NOT* be freed) or on the stack (the value should be popped).
+
+              The size of the value to save is OS_S32. The default version
+              saves the exception reason to a temp. memory area.
+           }
+          procedure g_exception_reason_load(list : TAsmList; fromsize, tosize: tdef; const href : treference; reg: tregister);virtual;
+          {#
+              This routine is called when the current exception reason can be
+              discarded. On platforms that use push/pop, it causes the current
+              value to be popped. On other platforms it doesn't do anything
+          }
+          procedure g_exception_reason_discard(list : TAsmList; size: tdef; href: treference); virtual;
 
           procedure g_maybe_testself(list : TAsmList; selftype: tdef; reg:tregister);
 //          procedure g_maybe_testvmt(list : TAsmList;reg:tregister;objdef:tobjectdef);
@@ -3035,6 +3062,23 @@ implementation
   procedure thlcgobj.g_exception_reason_save(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const href: treference);
     begin
       a_load_reg_ref(list,fromsize,tosize,reg,href);
+    end;
+
+  procedure thlcgobj.g_exception_reason_save_const(list: TAsmList; size: tdef; a: tcgint; const href: treference);
+    begin
+      a_load_const_ref(list,size,a,href);
+    end;
+
+
+  procedure thlcgobj.g_exception_reason_load(list: TAsmList; fromsize, tosize: tdef; const href: treference; reg: tregister);
+    begin
+      a_load_ref_reg(list,fromsize,tosize,href,reg);
+    end;
+
+
+  procedure thlcgobj.g_exception_reason_discard(list: TAsmList; size: tdef; href: treference);
+    begin
+      { do nothing by default }
     end;
 
 

@@ -246,8 +246,6 @@ unit hlcg2ll;
           procedure g_flags2ref(list: TAsmList; size: tdef; const f: tresflags; const ref:TReference); override;
 {$endif cpuflags}
 
-          procedure g_exception_reason_save(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const href: treference); override;
-
 //          procedure g_maybe_testvmt(list : TAsmList;reg:tregister;objdef:tobjectdef);
           {# This should emit the opcode to copy len bytes from the source
              to destination.
@@ -947,11 +945,6 @@ implementation
   procedure thlcg2ll.g_flags2ref(list: TAsmList; size: tdef; const f: tresflags; const ref: TReference);
     begin
       cg.g_flags2ref(list,def_cgsize(size),f,ref);
-    end;
-
-  procedure thlcg2ll.g_exception_reason_save(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const href: treference);
-    begin
-      cg.g_exception_reason_save(list,href);
     end;
 
 {$endif cpuflags}

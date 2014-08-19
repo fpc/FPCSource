@@ -347,36 +347,6 @@ unit cgobj;
           }
           procedure optimize_op_const(size: TCGSize; var op: topcg; var a : tcgint);virtual;
 
-         {#
-             This routine is used in exception management nodes. It should
-             save the exception reason currently in the FUNCTION_RETURN_REG. The
-             save should be done either to a temp (pointed to by href).
-             or on the stack (pushing the value on the stack).
-
-             The size of the value to save is OS_S32. The default version
-             saves the exception reason to a temp. memory area.
-          }
-         procedure g_exception_reason_save(list : TAsmList; const href : treference);virtual;
-         {#
-             This routine is used in exception management nodes. It should
-             save the exception reason constant. The
-             save should be done either to a temp (pointed to by href).
-             or on the stack (pushing the value on the stack).
-
-             The size of the value to save is OS_S32. The default version
-             saves the exception reason to a temp. memory area.
-          }
-         procedure g_exception_reason_save_const(list : TAsmList; const href : treference; a: tcgint);virtual;
-         {#
-             This routine is used in exception management nodes. It should
-             load the exception reason to the FUNCTION_RETURN_REG. The saved value
-             should either be in the temp. area (pointed to by href , href should
-             *NOT* be freed) or on the stack (the value should be popped).
-
-             The size of the value to save is OS_S32. The default version
-             saves the exception reason to a temp. memory area.
-          }
-         procedure g_exception_reason_load(list : TAsmList; const href : treference);virtual;
 
           procedure g_maybe_testvmt(list : TAsmList;reg:tregister;objdef:tobjectdef);
           {# This should emit the opcode to copy len bytes from the source
@@ -2361,25 +2331,6 @@ implementation
 
     procedure tcg.g_profilecode(list : TAsmList);
       begin
-      end;
-
-
-    procedure tcg.g_exception_reason_save(list : TAsmList; const href : treference);
-      begin
-        a_load_reg_ref(list, OS_INT, OS_INT, NR_FUNCTION_RESULT_REG, href);
-      end;
-
-
-    procedure tcg.g_exception_reason_save_const(list : TAsmList; const href : treference; a: tcgint);
-      begin
-        a_load_const_ref(list, OS_INT, a, href);
-      end;
-
-
-    procedure tcg.g_exception_reason_load(list : TAsmList; const href : treference);
-      begin
-        a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
-        a_load_ref_reg(list, OS_INT, OS_INT, href, NR_FUNCTION_RESULT_REG);
       end;
 
 

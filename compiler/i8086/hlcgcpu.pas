@@ -77,6 +77,11 @@ interface
       procedure g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister); override;
       procedure g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation); override;
 
+      procedure g_exception_reason_save(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const href: treference); override;
+      procedure g_exception_reason_save_const(list: TAsmList; size: tdef; a: tcgint; const href: treference); override;
+      procedure g_exception_reason_load(list: TAsmList; fromsize, tosize: tdef; const href: treference; reg: tregister); override;
+      procedure g_exception_reason_discard(list: TAsmList; size: tdef; href: treference); override;
+
       procedure location_force_mem(list:TAsmList;var l:tlocation;size:tdef);override;
     end;
 
@@ -87,7 +92,7 @@ implementation
   uses
     verbose,
     paramgr,
-    cpubase,cpuinfo,tgobj,cgobj,cgcpu,
+    cpubase,cpuinfo,tgobj,cgobj,cgx86,cgcpu,
     defutil,
     symconst,symcpu,
     procinfo,fmodule,
@@ -390,6 +395,44 @@ implementation
           exit;
         end;
       tcg8086(cg).g_releasevaluepara_openarray(list,l);
+    end;
+
+
+  procedure thlcgcpu.g_exception_reason_save(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const href: treference);
+    begin
+      if not paramanager.use_fixed_stack then
+        list.concat(Taicpu.op_reg(A_PUSH,tcgsize2opsize[def_cgsize(tosize)],reg))
+      else
+        inherited
+    end;
+
+
+  procedure thlcgcpu.g_exception_reason_save_const(list: TAsmList; size: tdef; a: tcgint; const href: treference);
+    begin
+      if not paramanager.use_fixed_stack then
+        list.concat(Taicpu.op_const(A_PUSH,tcgsize2opsize[def_cgsize(size)],a))
+      else
+        inherited;
+    end;
+
+
+  procedure thlcgcpu.g_exception_reason_load(list: TAsmList; fromsize, tosize: tdef; const href: treference; reg: tregister);
+    begin
+      if not paramanager.use_fixed_stack then
+        list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[def_cgsize(tosize)],reg))
+      else
+        inherited;
+    end;
+
+
+  procedure thlcgcpu.g_exception_reason_discard(list: TAsmList; size: tdef; href: treference);
+    begin
+      if not paramanager.use_fixed_stack then
+        begin
+          getcpuregister(list,NR_FUNCTION_RESULT_REG);
+          list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[def_cgsize(size)],NR_FUNCTION_RESULT_REG));
+          ungetcpuregister(list,NR_FUNCTION_RESULT_REG);
+        end;
     end;
 
 

@@ -468,19 +468,17 @@ implementation
 
 
     procedure free_exception(list:TAsmList;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean);
-     begin
-         cg.allocallcpuregisters(list);
-         cg.a_call_name(list,'FPC_POPADDRSTACK',false);
-         cg.deallocallcpuregisters(list);
-
+      var
+        reasonreg: tregister;
+      begin
+         hlcg.g_call_system_proc(list,'fpc_popaddrstack',[],nil);
          if not onlyfree then
           begin
-            { g_exception_reason_load already allocates NR_FUNCTION_RESULT_REG }
-            cg.g_exception_reason_load(list, t.reasonbuf);
-            cg.a_cmp_const_reg_label(list,OS_INT,OC_EQ,a,NR_FUNCTION_RESULT_REG,endexceptlabel);
-            cg.a_reg_dealloc(list,NR_FUNCTION_RESULT_REG);
+            reasonreg:=hlcg.getintregister(list,osuinttype);
+            hlcg.g_exception_reason_load(list,osuinttype,osuinttype,t.reasonbuf,reasonreg);
+            hlcg.a_cmp_const_reg_label(list,osuinttype,OC_EQ,a,reasonreg,endexceptlabel);
           end;
-     end;
+      end;
 
 
 {*****************************************************************************
