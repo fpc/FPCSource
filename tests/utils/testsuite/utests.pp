@@ -594,7 +594,6 @@ begin
     DumpLn('View Test suite results');
     HeaderEnd(1);
     DumpLn('Please specify search criteria:');
-    ParagraphStart;
     FormStart(TestsuiteCGIURL,'');
     if FDebug then
       EmitHiddenVar('DEBUGCGI', '1');
@@ -711,7 +710,6 @@ begin
     DumpLn('View Test suite results');
     HeaderEnd(1);
     DumpLn('Please specify search criteria:');
-    ParagraphStart;
     FormStart(TestsuiteCGIURL,'');
     if FDebug then
       EmitHiddenVar('DEBUGCGI', '1');
