@@ -27,7 +27,7 @@ unit hlcgllvm;
 interface
 
 uses
-  globtype,
+  globtype,cclasses,
   aasmbase,aasmdata,
   symbase,symconst,symtype,symdef,symsym,
   cpubase, hlcgobj, cgbase, cgutils, parabase;
@@ -48,6 +48,9 @@ uses
       procedure alloccpuregisters(list: TAsmList; rt: Tregistertype; const r: Tcpuregisterset); override;
       procedure deallocallcpuregisters(list: TAsmList); override;
 
+     protected
+      procedure a_call_common(list: TAsmList; pd: tabstractprocdef; const paras: array of pcgpara; const forceresdef: tdef; out res: tregister; out calldef: tdef; out hlretdef: tdef; out llvmretdef: tdef; out callparas: tfplist);
+     public
       function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;override;
       function a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister; const paras: array of pcgpara): tcgpara; override;
 
@@ -131,7 +134,7 @@ uses
 implementation
 
   uses
-    verbose,cutils,cclasses,globals,fmodule,constexp,systems,
+    verbose,cutils,globals,fmodule,constexp,systems,
     defutil,llvmdef,llvmsym,
     aasmtai,aasmcpu,
     aasmllvm,llvmbase,tgllvm,
@@ -292,7 +295,7 @@ implementation
     end;
 
 
-  function thlcgllvm.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;
+  procedure thlcgllvm.a_call_common(list: TAsmList; pd: tabstractprocdef; const paras: array of pcgpara; const forceresdef: tdef; out res: tregister; out calldef: tdef; out hlretdef: tdef; out llvmretdef: tdef; out callparas: tfplist);
 
     procedure load_ref_anyreg(def: tdef; const ref: treference; reg: tregister; var callpara: pllvmcallpara);
       begin
@@ -318,96 +321,107 @@ implementation
         end;
       end;
 
+  var
+    i: longint;
+    href: treference;
+    callpara: pllvmcallpara;
+    paraloc: pcgparalocation;
+  begin
+    callparas:=tfplist.Create;
+    for i:=0 to high(paras) do
+      begin
+        paraloc:=paras[i]^.location;
+        while assigned(paraloc) and
+              (paraloc^.loc<>LOC_VOID) do
+          begin
+            new(callpara);
+            callpara^.def:=paraloc^.def;
+            llvmextractvalueextinfo(paras[i]^.def, callpara^.def, callpara^.valueext);
+            callpara^.loc:=paraloc^.loc;
+            case callpara^.loc of
+              LOC_REFERENCE:
+                begin
+                  if paraloc^.llvmvalueloc then
+                    internalerror(2014012307)
+                  else
+                    begin
+                      reference_reset_base(href, getpointerdef(callpara^.def), paraloc^.reference.index, paraloc^.reference.offset, paraloc^.def.alignment);
+                      res:=getregisterfordef(list, paraloc^.def);
+                      load_ref_anyreg(callpara^.def, href, res, callpara);
+                    end;
+                  callpara^.reg:=res
+                end;
+              LOC_REGISTER,
+              LOC_FPUREGISTER,
+              LOC_MMREGISTER:
+                begin
+                  { undo explicit value extension }
+                  if callpara^.valueext<>lve_none then
+                    begin
+                      res:=getregisterfordef(list, callpara^.def);
+                      a_load_reg_reg(list, paraloc^.def, callpara^.def, paraloc^.register, res);
+                      paraloc^.register:=res;
+                    end;
+                    callpara^.reg:=paraloc^.register
+                end;
+              else
+                internalerror(2014010605);
+            end;
+            callparas.add(callpara);
+            paraloc:=paraloc^.next;
+          end;
+      end;
+    { the Pascal level may expect a different returndef compared to the
+      declared one }
+    if not assigned(forceresdef) then
+      hlretdef:=pd.returndef
+    else
+      hlretdef:=forceresdef;
+    { llvm will always expect the original return def }
+    if not paramanager.ret_in_param(hlretdef, pd) then
+      llvmretdef:=llvmgetcgparadef(pd.funcretloc[callerside], true)
+    else
+      llvmretdef:=voidtype;
+    if not is_void(llvmretdef) then
+      res:=getregisterfordef(list, llvmretdef)
+    else
+      res:=NR_NO;
+
+    { if this is a complex procvar, get the non-tmethod-like equivalent }
+    if (pd.typ=procvardef) and
+       not pd.is_addressonly then
+      pd:=tprocvardef(pd.getcopyas(procvardef,pc_address_only));
+    { if the function returns a function pointer type or is varargs, we
+      must specify the full function signature, otherwise we can only
+      specify the return type }
+    if (po_varargs in pd.procoptions) or
+       ((pd.proccalloption in cdecl_pocalls) and
+        (pd.paras.count>0) and
+        is_array_of_const(tparavarsym(pd.paras[pd.paras.count-1]).vardef)) then
+      calldef:=pd
+    else
+      calldef:=llvmretdef;
+  end;
+
+
+  function thlcgllvm.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;
     var
       callparas: tfplist;
+      asmsym: tasmsymbol;
       llvmretdef,
       hlretdef,
       calldef: tdef;
-      paraloc: pcgparalocation;
-      callpara: pllvmcallpara;
-      href: treference;
       res: tregister;
-      i: longint;
-      asmsym: tasmsymbol;
     begin
       if not pd.owner.iscurrentunit or
          (s<>pd.mangledname) or
          (po_external in pd.procoptions) then
         begin
-          asmsym:=current_asmdata.RefAsmSymbol(pd.mangledname);
+          asmsym:=current_asmdata.RefAsmSymbol(tprocdef(pd).mangledname);
           if not asmsym.declared then
-            current_asmdata.AsmLists[al_imports].Concat(taillvmdecl.create(asmsym,pd,nil,sec_code));
+            current_asmdata.AsmLists[al_imports].Concat(taillvmdecl.create(asmsym, pd, nil, sec_code));
         end;
-      callparas:=tfplist.Create;
-      for i:=0 to high(paras) do
-        begin
-          paraloc:=paras[i]^.location;
-          while assigned(paraloc) and
-                (paraloc^.loc<>LOC_VOID) do
-            begin
-              new(callpara);
-              callpara^.def:=paraloc^.def;
-              llvmextractvalueextinfo(paras[i]^.def,callpara^.def,callpara^.valueext);
-              callpara^.loc:=paraloc^.loc;
-              case callpara^.loc of
-                LOC_REFERENCE:
-                  begin
-                    if paraloc^.llvmvalueloc then
-                      internalerror(2014012307)
-                    else
-                      begin
-                        reference_reset_base(href,getpointerdef(callpara^.def),paraloc^.reference.index,paraloc^.reference.offset,paraloc^.def.alignment);
-                        res:=getregisterfordef(list,paraloc^.def);
-                        load_ref_anyreg(callpara^.def,href,res,callpara);
-                      end;
-                    callpara^.reg:=res
-                  end;
-                LOC_REGISTER,
-                LOC_FPUREGISTER,
-                LOC_MMREGISTER:
-                  begin
-                    { undo explicit value extension }
-                    if callpara^.valueext<>lve_none then
-                      begin
-                        res:=getregisterfordef(list,callpara^.def);
-                        a_load_reg_reg(list,paraloc^.def,callpara^.def,paraloc^.register,res);
-                        paraloc^.register:=res;
-                      end;
-                      callpara^.reg:=paraloc^.register
-                  end;
-                else
-                  internalerror(2014010605);
-              end;
-              callparas.add(callpara);
-              paraloc:=paraloc^.next;
-            end;
-        end;
-      { the Pascal level may expect a different returndef compared to the
-        declared one }
-      if not assigned(forceresdef) then
-        hlretdef:=pd.returndef
-      else
-        hlretdef:=forceresdef;
-      { llvm will always expect the original return def }
-      if not paramanager.ret_in_param(hlretdef,pd) then
-        llvmretdef:=llvmgetcgparadef(pd.funcretloc[callerside],true)
-      else
-        llvmretdef:=voidtype;
-      if not is_void(llvmretdef) then
-        res:=getregisterfordef(list,llvmretdef)
-      else
-        res:=NR_NO;
-
-      { if the function returns a function pointer type or is varargs, we
-        must specify the full function signature, otherwise we can only
-        specify the return type }
-      if (po_varargs in pd.procoptions) or
-         ((pd.proccalloption in cdecl_pocalls) and
-          (pd.paras.count>0) and
-          is_array_of_const(tparavarsym(pd.paras[pd.paras.count-1]).vardef)) then
-        calldef:=pd
-      else
-        calldef:=llvmretdef;
+      a_call_common(list,pd,paras,forceresdef,res,calldef,hlretdef,llvmretdef,callparas);
       list.concat(taillvm.call_size_name_paras(res,calldef,current_asmdata.RefAsmSymbol(pd.mangledname),callparas));
       result:=get_call_result_cgpara(pd,forceresdef);
       set_call_function_result(list,pd,llvmretdef,hlretdef,res,result);
