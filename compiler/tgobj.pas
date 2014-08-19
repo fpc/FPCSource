@@ -146,7 +146,7 @@ implementation
 {$ifdef EXTDEBUG}
       TempTypeStr : array[ttemptype] of string[18] = (
           '<none>',
-          'free','normal','persistant',
+          'free','normal','persistent',
           'noreuse','freenoreuse',
           'regallocator','freeregallocator'
       );
