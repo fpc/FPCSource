@@ -1992,6 +1992,7 @@ implementation
     function ttypeconvnode.typecheck_proc_to_procvar : tnode;
       var
         pd : tabstractprocdef;
+        copytype : tproccopytyp;
       begin
         result:=nil;
         pd:=tabstractprocdef(left.resultdef);
@@ -2005,15 +2006,17 @@ implementation
           resultdef:=totypedef
         else
          begin
-           resultdef:=pd.getcopyas(procvardef,pc_normal);
            { only need the address of the method? this is needed
              for @tobject.create. In this case there will be a loadn without
              a methodpointer. }
            if (left.nodetype=loadn) and
               not assigned(tloadnode(left).left) and
               (not(m_nested_procvars in current_settings.modeswitches) or
-               not is_nested_pd(tprocvardef(resultdef))) then
-             include(tprocvardef(resultdef).procoptions,po_addressonly);
+               not is_nested_pd(tabstractprocdef(tloadnode(left).resultdef))) then
+             copytype:=pc_address_only
+           else
+             copytype:=pc_normal;
+           resultdef:=pd.getcopyas(procvardef,copytype);
          end;
       end;
 

@@ -546,7 +546,10 @@ interface
        tproccopytyp = (pc_normal,
                        { always creates a top-level function, removes all
                          special parameters (self, vmt, parentfp, ...) }
-                       pc_bareproc
+                       pc_bareproc,
+                       { creates a procvardef describing only the code pointer
+                         of a method/netsted function/... }
+                       pc_address_only
                        );
 
        tabstractprocdef = class(tstoreddef)
@@ -4554,6 +4557,9 @@ implementation
           tabstractprocdef(result).procoptions:=tabstractprocdef(result).procoptions*[po_explicitparaloc,po_hascallingconvention,po_varargs,po_iocheck,po_has_importname,po_has_importdll];
         if newtyp=procvardef then
           tabstractprocdef(result).procoptions:=tabstractprocdef(result).procoptions-[po_has_importname,po_has_importdll];
+        if copytyp=pc_address_only then
+          include(tabstractprocdef(result).procoptions,po_addressonly);
+
         tabstractprocdef(result).callerargareasize:=callerargareasize;
         tabstractprocdef(result).calleeargareasize:=calleeargareasize;
         tabstractprocdef(result).maxparacount:=maxparacount;
