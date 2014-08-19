@@ -26,7 +26,7 @@ unit symcpu;
 interface
 
 uses
-  symtype,symdef,symsym,symx86,symi86;
+  symconst,symtype,symdef,symsym,symx86,symi86;
 
 type
   { defs }
@@ -91,6 +91,15 @@ type
   tcpuprocvardefclass = class of tcpuprocvardef;
 
   tcpuprocdef = class(ti86procdef)
+    procedure ppuload_platform(ppufile: tcompilerppufile); override;
+    procedure ppuwrite_platform(ppufile: tcompilerppufile); override;
+   public
+    { library symbol for AROS }
+    libsym : tsym;
+    libsymderef : tderef;
+    function getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp): tstoreddef; override;
+    procedure buildderef; override;
+    procedure deref; override;
   end;
   tcpuprocdefclass = class of tcpuprocdef;
 
@@ -169,6 +178,46 @@ const
 
 
 implementation
+
+{****************************************************************************
+                             tcpuprocdef
+****************************************************************************}
+
+  procedure tcpuprocdef.ppuload_platform(ppufile: tcompilerppufile);
+    begin
+      inherited;
+      ppufile.getderef(libsymderef);
+    end;
+
+
+  procedure tcpuprocdef.ppuwrite_platform(ppufile: tcompilerppufile);
+    begin
+      inherited;
+      ppufile.putderef(libsymderef);
+    end;
+
+
+  function tcpuprocdef.getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp): tstoreddef;
+    begin
+      result:=inherited;
+      if newtyp=procdef then
+        tcpuprocdef(result).libsym:=libsym;
+    end;
+
+
+  procedure tcpuprocdef.buildderef;
+    begin
+      inherited;
+      libsymderef.build(libsym);
+    end;
+
+
+  procedure tcpuprocdef.deref;
+    begin
+      inherited;
+      libsym:=tsym(libsymderef.resolve);
+    end;
+
 
 begin
   { used tdef classes }
