@@ -65,7 +65,6 @@ unit tgllvm;
         function istemp(const ref: treference): boolean; override;
         procedure getlocal(list: TAsmList; size: longint; alignment: shortint; def: tdef; var ref: treference); override;
         procedure gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference); override;
-        procedure gethltemptyped(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference); override;
         procedure ungetiftemp(list: TAsmList; const ref: treference); override;
       end;
 
@@ -152,12 +151,6 @@ implementation
     procedure ttgllvm.gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference);
       begin
         alloctemp(list,def.size,def.alignment,temptype,def,ref);
-      end;
-
-
-    procedure ttgllvm.gethltemptyped(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference);
-      begin
-        inherited gethltemptyped(list, def, temptype, ref);
       end;
 
 

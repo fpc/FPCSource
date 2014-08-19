@@ -93,9 +93,9 @@ unit tgobj;
             the forcesize parameter is so that it can be used for defs that
             don't have an inherent size (e.g., array of const) }
           procedure gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference); virtual;
-          procedure gethltemptyped(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference); virtual;
+          procedure gethltempmanaged(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference); virtual;
           procedure gettemp(list: TAsmList; size, alignment : longint;temptype:ttemptype;out ref : treference);
-          procedure gettemptyped(list: TAsmList; def:tdef;temptype:ttemptype;out ref : treference);
+          procedure gettempmanaged(list: TAsmList; def:tdef;temptype:ttemptype;out ref : treference);
           procedure ungettemp(list: TAsmList; const ref : treference);
 
           function sizeoftemp(list: TAsmList; const ref: treference): longint;
@@ -527,7 +527,7 @@ implementation
       end;
 
 
-    procedure ttgobj.gethltemptyped(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference);
+    procedure ttgobj.gethltempmanaged(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference);
       begin
         gettemptyped(list,def,temptype,ref);
       end;
@@ -549,7 +549,7 @@ implementation
       end;
 
 
-    procedure ttgobj.gettemptyped(list: TAsmList; def:tdef;temptype:ttemptype;out ref : treference);
+    procedure ttgobj.gettempmanaged(list: TAsmList; def:tdef;temptype:ttemptype;out ref : treference);
       begin
         gettempinternal(list,def.size,def.alignment,temptype,def,ref);
       end;
