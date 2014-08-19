@@ -637,7 +637,7 @@ begin
   if assigned(targetinfos[t]) then
    writeln('Warning: Target is already registered!')
   else
-   Getmem(targetinfos[t],sizeof(tsysteminfo));
+   new(targetinfos[t]);
   targetinfos[t]^:=r;
 end;
 
@@ -648,7 +648,7 @@ var
 begin
   t:=r.id;
   if not assigned(resinfos[t]) then
-    Getmem(resinfos[t],sizeof(tresinfo));
+    new(resinfos[t]);
   resinfos[t]^:=r;
   resinfos[t]^.resourcefileclass:=rcf;
 end;
@@ -662,7 +662,7 @@ begin
   if assigned(arinfos[t]) then
     writeln('Warning: ar is already registered!')
   else
-    Getmem(arinfos[t],sizeof(tarinfo));
+    new(arinfos[t]);
   arinfos[t]^:=r;
 end;
 
