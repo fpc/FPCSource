@@ -42,6 +42,8 @@ unit tgobj;
       ptemprecord = ^ttemprecord;
       ttemprecord = record
          temptype   : ttemptype;
+         { finalize this temp if it's a managed type }
+         fini       : boolean;
          pos        : longint;
          size       : longint;
          def        : tdef;
@@ -59,9 +61,9 @@ unit tgobj;
        protected
           { contains all free temps using nextfree links }
           tempfreelist  : ptemprecord;
-          procedure alloctemp(list: TAsmList; size,alignment : longint; temptype : ttemptype; def:tdef; out ref: treference); virtual;
+          procedure alloctemp(list: TAsmList; size,alignment : longint; temptype : ttemptype; def:tdef; fini: boolean; out ref: treference); virtual;
           procedure freetemp(list: TAsmList; pos:longint;temptypes:ttemptypeset);virtual;
-          procedure gettempinternal(list: TAsmList; size, alignment : longint;temptype:ttemptype;def: tdef;out ref : treference);
+          procedure gettempinternal(list: TAsmList; size, alignment : longint;temptype:ttemptype;def: tdef; fini: boolean; out ref : treference);
        public
           { contains all temps }
           templist      : ptemprecord;
@@ -236,7 +238,7 @@ implementation
       end;
 
 
-    procedure ttgobj.alloctemp(list: TAsmList; size,alignment : longint; temptype : ttemptype;def : tdef; out ref: treference);
+    procedure ttgobj.alloctemp(list: TAsmList; size,alignment : longint; temptype : ttemptype;def : tdef; fini: boolean; out ref: treference);
       var
          tl,htl,
          bestslot,bestprev,
@@ -280,12 +282,14 @@ implementation
 {$endif}
                { Check only slots that are
                   - free
-                  - share the same type
+                  - share the same type if either has to be finalised
                   - contain enough space
                   - has a correct alignment }
                adjustedpos:=hp^.pos+alignmismatch;
                if (hp^.temptype=freetype) and
-                  (hp^.def=def) and
+                  (hp^.fini=fini) and
+                  ((hp^.def=def) or
+                   not fini) and
                   (hp^.size>=size) and
                   ((adjustedpos=align(adjustedpos,alignment)) or
                    (adjustedpos+hp^.size-size = align(adjustedpos+hp^.size-size,alignment))) then
@@ -387,6 +391,7 @@ implementation
                  inc(tl^.pos,tl^.size-size);
 
                { Create new block and resize the old block }
+               tl^.fini:=fini;
                tl^.size:=size;
                tl^.nextfree:=nil;
                { Resize the old block }
@@ -415,6 +420,7 @@ implementation
                 lasttemp:=tl^.pos+size;
               end;
 
+            tl^.fini:=fini;
             tl^.size:=size;
             tl^.next:=templist;
             tl^.nextfree:=nil;
@@ -529,29 +535,29 @@ implementation
 
     procedure ttgobj.gethltempmanaged(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference);
       begin
-        gettemptyped(list,def,temptype,ref);
+        gettempmanaged(list,def,temptype,ref);
       end;
 
 
 
     procedure ttgobj.gettemp(list: TAsmList; size, alignment : longint;temptype:ttemptype;out ref : treference);
       begin
-        gettempinternal(list,size,alignment,temptype,nil,ref);
+        gettempinternal(list,size,alignment,temptype,nil,false,ref);
       end;
 
 
-    procedure ttgobj.gettempinternal(list: TAsmList; size, alignment : longint;temptype:ttemptype;def: tdef;out ref : treference);
+    procedure ttgobj.gettempinternal(list: TAsmList; size, alignment : longint;temptype:ttemptype;def: tdef; fini: boolean; out ref : treference);
       var
         varalign : shortint;
       begin
         varalign:=used_align(alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax);
-        alloctemp(list,size,varalign,temptype,def,ref);
+        alloctemp(list,size,varalign,temptype,def,fini,ref);
       end;
 
 
     procedure ttgobj.gettempmanaged(list: TAsmList; def:tdef;temptype:ttemptype;out ref : treference);
       begin
-        gettempinternal(list,def.size,def.alignment,temptype,def,ref);
+        gettempinternal(list,def.size,def.alignment,temptype,def,true,ref);
       end;
 
 
@@ -681,7 +687,7 @@ implementation
     procedure ttgobj.getlocal(list: TAsmList; size : longint; alignment : shortint; def:tdef;var ref : treference);
       begin
         alignment:=used_align(alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax);
-        alloctemp(list,size,alignment,tt_persistent,nil,ref);
+        alloctemp(list,size,alignment,tt_persistent,def,false,ref);
       end;
 
 

@@ -55,7 +55,7 @@ unit tgllvm;
 
       ttgllvm = class(ttgobj)
        protected
-        procedure alloctemp(list: TAsmList; size,alignment : longint; temptype : ttemptype; def:tdef; out ref: treference); override;
+        procedure alloctemp(list: TAsmList; size, alignment: longint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference); override;
        public
         alloclist: tasmlist;
 
@@ -82,7 +82,7 @@ implementation
 
     { ttgllvm }
 
-    procedure ttgllvm.alloctemp(list: TAsmList; size, alignment: longint; temptype: ttemptype; def: tdef; out ref: treference);
+    procedure ttgllvm.alloctemp(list: TAsmList; size, alignment: longint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference);
       var
         tl: ptemprecord;
         oldfileinfo: tfileposinfo;
@@ -92,6 +92,7 @@ implementation
 
         tl^.temptype:=temptype;
         tl^.def:=def;
+        tl^.fini:=fini;
         tl^.pos:=getsupreg(ref.base);
         tl^.size:=size;
         tl^.next:=templist;
@@ -150,7 +151,7 @@ implementation
 
     procedure ttgllvm.gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference);
       begin
-        alloctemp(list,def.size,def.alignment,temptype,def,ref);
+        alloctemp(list,def.size,def.alignment,temptype,def,false,ref);
       end;
 
 

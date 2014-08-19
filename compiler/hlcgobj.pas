@@ -4475,7 +4475,8 @@ implementation
       hp:=tg.templist;
       while assigned(hp) do
        begin
-         if assigned(hp^.def) and
+         if hp^.fini and
+            assigned(hp^.def) and
             is_managed_type(hp^.def) then
           begin
             reference_reset_base(href,voidstackpointertype,current_procinfo.framepointer,hp^.pos,voidstackpointertype.size);
@@ -4522,7 +4523,8 @@ implementation
       hp:=tg.templist;
       while assigned(hp) do
        begin
-         if assigned(hp^.def) and
+         if hp^.fini and
+            assigned(hp^.def) and
             is_managed_type(hp^.def) then
           begin
             include(current_procinfo.flags,pi_needs_implicit_finally);
