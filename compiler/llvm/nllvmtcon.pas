@@ -51,7 +51,7 @@ interface
           newindex indicates which operand is empty and can be filled with the
           next queued tai }
       procedure update_queued_tai(resdef: tdef; outerai, innerai: tai; newindex: longint);
-      procedure emit_tai_intern(p: tai; def: tdef; procvar2procdef: boolean);
+      procedure emit_tai_intern(p: tai; def: tdef);
       function wrap_with_type(p: tai; def: tdef): tai;
       procedure begin_aggregate_intern(tck: ttypedconstkind; def: tdef);
      public
@@ -131,7 +131,7 @@ implementation
     end;
 
 
-  procedure tllvmtai_typedconstbuilder.emit_tai_intern(p: tai; def: tdef; procvar2procdef: boolean);
+  procedure tllvmtai_typedconstbuilder.emit_tai_intern(p: tai; def: tdef);
     var
       ai: tai;
       stc: tai_abstracttypedconst;
@@ -139,10 +139,7 @@ implementation
     begin
       if assigned(fqueued_tai) then
         begin
-          if not procvar2procdef then
-            kind:=tck_simple
-          else
-            kind:=tck_simple_procvar2proc;
+          kind:=tck_simple;
           { finalise the queued expression }
           ai:=tai_simpletypedconst.create(kind,def,p);
           { set the new index to -1, so we internalerror should we try to
@@ -158,11 +155,8 @@ implementation
         stc:=tai_simpletypedconst.create(tck_simple,def,p);
       { these elements can be aggregates themselves, e.g. a shortstring can
         be emitted as a series of bytes and string data arrays }
-      if not procvar2procdef then
-        kind:=aggregate_kind(def)
-      else
-        kind:=tck_simple_procvar2proc;
-      if not(kind in [tck_simple,tck_simple_procvar2proc]) and
+      kind:=aggregate_kind(def);
+      if (kind<>tck_simple) and
          (not assigned(faggregates) or
           (faggregates.count=0) or
           (tai_aggregatetypedconst(faggregates[faggregates.count-1]).adetyp<>kind)) then
@@ -216,13 +210,15 @@ implementation
 
   procedure tllvmtai_typedconstbuilder.emit_tai(p: tai; def: tdef);
     begin
-      emit_tai_intern(p,def,false);
+      emit_tai_intern(p,def);
     end;
 
 
   procedure tllvmtai_typedconstbuilder.emit_tai_procvar2procdef(p: tai; pvdef: tprocvardef);
     begin
-      emit_tai_intern(p,pvdef,true);
+      if not pvdef.is_addressonly then
+        pvdef:=tprocvardef(pvdef.getcopyas(procvardef,pc_address_only));
+      emit_tai_intern(p,pvdef);
     end;
 
 
@@ -381,6 +377,11 @@ implementation
       secondop: tllvmop;
     begin
       inherited;
+      { special case: procdef -> procvardef/pointerdef: must take address of
+        the procdef }
+      if (fromdef.typ=procdef) and
+         (todef.typ<>procdef) then
+        fromdef:=tprocdef(fromdef).getcopyas(procvardef,pc_address_only);
       op:=llvmconvop(fromdef,todef);
       case op of
         la_ptrtoint_to_x,

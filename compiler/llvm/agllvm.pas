@@ -669,13 +669,7 @@ implementation
           defstr: TSymStr;
           first, gotstring: boolean;
         begin
-          { special case: tck_simple_procvar2proc; this means that we want the
-            procdef of the procvardef, rather than both the procdef and the
-            method/nestedfp/... pointers }
-          if hp.adetyp<>tck_simple_procvar2proc then
-            defstr:=llvmencodetype(hp.def)
-          else
-            defstr:=llvmencodeproctype(tabstractprocdef(hp.def),'',lpd_procvar);
+          defstr:=llvmencodetype(hp.def);
           { write the struct, array or simple type }
           case hp.adetyp of
             tck_record:
@@ -727,8 +721,7 @@ implementation
                 if not gotstring then
                   AsmWrite(']');
               end;
-            tck_simple,
-            tck_simple_procvar2proc:
+            tck_simple:
               begin
                 pval:=tai_simpletypedconst(hp).val;
                 if pval.typ<>ait_string then

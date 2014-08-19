@@ -33,10 +33,8 @@ uses
 
 type
    { typed const: integer/floating point/string/pointer/... const along with
-     tdef info; tck_simple_procvar2proc is to indicate that we mean the
-     procdef corresponding to the procvar rather than the tmethod-like
-     struct in case of a complex procvar }
-   ttypedconstkind = (tck_simple, tck_simple_procvar2proc, tck_array, tck_record);
+     tdef info }
+   ttypedconstkind = (tck_simple, tck_array, tck_record);
 
    { the type of the element and its def }
    tai_abstracttypedconst = class abstract (tai)
@@ -770,7 +768,7 @@ implementation
 
    procedure ttai_lowleveltypedconstbuilder.queue_emit_proc(pd: tprocdef);
      begin
-       emit_tai(Tai_const.Createname(pd.mangledname,fqueue_offset),pd);
+       emit_tai(Tai_const.Createname(pd.mangledname,fqueue_offset),pd.getcopyas(procvardef,pc_address_only));
        fqueue_offset:=low(fqueue_offset);
      end;
 
