@@ -30,7 +30,7 @@ uses
   globtype,cclasses,
   aasmbase,aasmdata,
   symbase,symconst,symtype,symdef,symsym,
-  cpubase, hlcgobj, cgbase, cgutils, parabase;
+  cpubase, hlcgobj, cgbase, cgutils, parabase, tgobj;
 
   type
 
@@ -38,6 +38,8 @@ uses
 
     thlcgllvm = class(thlcgobj)
       constructor create;
+
+      procedure temp_to_ref(p: ptemprecord; out ref: treference); override;
 
       procedure a_load_ref_cgpara(list: TAsmList; size: tdef; const r: treference; const cgpara: TCGPara); override;
      protected
@@ -140,7 +142,7 @@ implementation
     aasmllvm,llvmbase,tgllvm,
     symtable,
     paramgr,llvmpara,
-    procinfo,cpuinfo,tgobj,cgobj,cgllvm,cghlcpu;
+    procinfo,cpuinfo,cgobj,cgllvm,cghlcpu;
 
   const
     topcg2llvmop: array[topcg] of tllvmop =
@@ -156,6 +158,15 @@ implementation
     begin
       inherited
     end;
+
+
+  procedure thlcgllvm.temp_to_ref(p: ptemprecord; out ref: treference);
+    begin
+      { on the LLVM target, every temp is independent and encoded via a
+        separate temp register whose superregister number is stored in p^.pos }
+      reference_reset_base(ref,voidstackpointertype,newreg(R_TEMPREGISTER,p^.pos,R_SUBWHOLE),0,p^.alignment);
+    end;
+
 
   procedure thlcgllvm.a_load_ref_cgpara(list: TAsmList; size: tdef; const r: treference; const cgpara: TCGPara);
     var
