@@ -409,7 +409,11 @@ implementation
        ((pd.proccalloption in cdecl_pocalls) and
         (pd.paras.count>0) and
         is_array_of_const(tparavarsym(pd.paras[pd.paras.count-1]).vardef)) then
-      calldef:=pd
+      if (pd.typ=procdef) or
+         not pd.is_addressonly then
+        calldef:=pd.getcopyas(procvardef,pc_address_only)
+      else
+        calldef:=pd
     else
       calldef:=llvmretdef;
   end;
