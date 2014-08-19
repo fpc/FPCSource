@@ -42,10 +42,10 @@ unit tgcpu;
         protected
          procedure getimplicitobjtemp(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference);
          function getifspecialtemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference): boolean;
-         procedure alloctemp(list: TAsmList; size, alignment: longint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference); override;
+         procedure alloctemp(list: TAsmList; size: asizeint; alignment: longint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference); override;
         public
-         procedure setfirsttemp(l : longint); override;
-         procedure getlocal(list: TAsmList; size: longint; alignment: shortint; def: tdef; var ref: treference); override;
+         procedure setfirsttemp(l : asizeint); override;
+         procedure getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref: treference); override;
          procedure gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference); override;
          procedure gethltempmanaged(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference); override;
        end;
@@ -215,7 +215,7 @@ unit tgcpu;
       end;
 
 
-    procedure ttgjvm.alloctemp(list: TAsmList; size, alignment: longint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference);
+    procedure ttgjvm.alloctemp(list: TAsmList; size: asizeint; alignment: longint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference);
       begin
         { the JVM only supports 1 slot (= 4 bytes in FPC) and 2 slot (= 8 bytes in
           FPC) temps on the stack. double and int64 are 2 slots, the rest is one slot.
@@ -231,14 +231,14 @@ unit tgcpu;
       end;
 
 
-    procedure ttgjvm.setfirsttemp(l: longint);
+    procedure ttgjvm.setfirsttemp(l: asizeint);
       begin
         firsttemp:=l;
         lasttemp:=l;
       end;
 
 
-    procedure ttgjvm.getlocal(list: TAsmList; size: longint; alignment: shortint; def: tdef; var ref: treference);
+    procedure ttgjvm.getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref: treference);
       begin
         if not getifspecialtemp(list,def,size,tt_persistent,ref) then
           inherited;

@@ -44,8 +44,8 @@ unit tgobj;
          temptype   : ttemptype;
          { finalize this temp if it's a managed type }
          fini       : boolean;
-         pos        : longint;
-         size       : longint;
+         pos        : asizeint;
+         size       : asizeint;
          def        : tdef;
          next       : ptemprecord;
          nextfree   : ptemprecord; { for faster freeblock checking }
@@ -61,9 +61,9 @@ unit tgobj;
        protected
           { contains all free temps using nextfree links }
           tempfreelist  : ptemprecord;
-          procedure alloctemp(list: TAsmList; size,alignment : longint; temptype : ttemptype; def:tdef; fini: boolean; out ref: treference); virtual;
-          procedure freetemp(list: TAsmList; pos:longint;temptypes:ttemptypeset);virtual;
-          procedure gettempinternal(list: TAsmList; size, alignment : longint;temptype:ttemptype;def: tdef; fini: boolean; out ref : treference);
+          procedure alloctemp(list: TAsmList; size: asizeint; alignment: longint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference); virtual;
+          procedure freetemp(list: TAsmList; pos: asizeint; temptypes: ttemptypeset);virtual;
+          procedure gettempinternal(list: TAsmList; size: asizeint; alignment: longint; temptype: ttemptype; def: tdef; fini: boolean; out ref : treference);
        public
           { contains all temps }
           templist      : ptemprecord;
@@ -85,7 +85,7 @@ unit tgobj;
 
              @param(l start offset where temps will start in stack)
           }
-          procedure setfirsttemp(l : longint); virtual;
+          procedure setfirsttemp(l: asizeint); virtual;
           procedure setalignmentmismatch(l : longint); virtual;
 
           { version of gettemp that is compatible with hlcg-based targets;
@@ -96,11 +96,11 @@ unit tgobj;
             don't have an inherent size (e.g., array of const) }
           procedure gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference); virtual;
           procedure gethltempmanaged(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference); virtual;
-          procedure gettemp(list: TAsmList; size, alignment : longint;temptype:ttemptype;out ref : treference);
+          procedure gettemp(list: TAsmList; size: asizeint; alignment: longint; temptype: ttemptype; out ref : treference);
           procedure gettempmanaged(list: TAsmList; def:tdef;temptype:ttemptype;out ref : treference);
           procedure ungettemp(list: TAsmList; const ref : treference);
 
-          function sizeoftemp(list: TAsmList; const ref: treference): longint;
+          function sizeoftemp(list: TAsmList; const ref: treference): asizeint;
           function changetemptype(list: TAsmList; const ref:treference;temptype:ttemptype):boolean;
           function gettypeoftemp(const ref:treference): ttemptype;
 
@@ -117,8 +117,8 @@ unit tgobj;
           procedure ungetiftemp(list: TAsmList; const ref : treference); virtual;
 
           { Allocate space for a local }
-          procedure getlocal(list: TAsmList; size : longint;def:tdef;var ref : treference);
-          procedure getlocal(list: TAsmList; size : longint; alignment : shortint; def:tdef;var ref : treference); virtual;
+          procedure getlocal(list: TAsmList; size: asizeint; def: tdef; var ref : treference);
+          procedure getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref : treference); virtual;
           procedure UnGetLocal(list: TAsmList; const ref : treference);
        end;
        ttgobjclass = class of ttgobj;
@@ -217,7 +217,7 @@ implementation
       end;
 
 
-    procedure ttgobj.setfirsttemp(l : longint);
+    procedure ttgobj.setfirsttemp(l: asizeint);
       begin
          { this is a negative value normally }
          if l*direction>=0 then
@@ -238,7 +238,7 @@ implementation
       end;
 
 
-    procedure ttgobj.alloctemp(list: TAsmList; size,alignment : longint; temptype : ttemptype;def : tdef; fini: boolean; out ref: treference);
+    procedure ttgobj.alloctemp(list: TAsmList; size: asizeint; alignment: longint; temptype: ttemptype; def :tdef; fini: boolean; out ref: treference);
       var
          tl,htl,
          bestslot,bestprev,
@@ -439,7 +439,7 @@ implementation
       end;
 
 
-    procedure ttgobj.FreeTemp(list: TAsmList; pos:longint;temptypes:ttemptypeset);
+    procedure ttgobj.FreeTemp(list: TAsmList; pos: asizeint; temptypes: ttemptypeset);
       var
          hp,hnext,hprev,hprevfree : ptemprecord;
       begin
@@ -540,13 +540,13 @@ implementation
 
 
 
-    procedure ttgobj.gettemp(list: TAsmList; size, alignment : longint;temptype:ttemptype;out ref : treference);
+    procedure ttgobj.gettemp(list: TAsmList; size: asizeint; alignment: longint; temptype: ttemptype; out ref : treference);
       begin
         gettempinternal(list,size,alignment,temptype,nil,false,ref);
       end;
 
 
-    procedure ttgobj.gettempinternal(list: TAsmList; size, alignment : longint;temptype:ttemptype;def: tdef; fini: boolean; out ref : treference);
+    procedure ttgobj.gettempinternal(list: TAsmList; size: asizeint; alignment: longint; temptype: ttemptype; def: tdef; fini: boolean; out ref : treference);
       var
         varalign : shortint;
       begin
@@ -581,7 +581,7 @@ implementation
       end;
 
 
-    function ttgobj.sizeoftemp(list: TAsmList; const ref: treference): longint;
+    function ttgobj.sizeoftemp(list: TAsmList; const ref: treference): asizeint;
       var
          hp : ptemprecord;
       begin
@@ -678,13 +678,13 @@ implementation
       end;
 
 
-    procedure ttgobj.getlocal(list: TAsmList; size : longint;def:tdef;var ref : treference);
+    procedure ttgobj.getlocal(list: TAsmList; size: asizeint; def: tdef; var ref : treference);
       begin
         getlocal(list, size, def.alignment, def, ref);
       end;
 
 
-    procedure ttgobj.getlocal(list: TAsmList; size : longint; alignment : shortint; def:tdef;var ref : treference);
+    procedure ttgobj.getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref : treference);
       begin
         alignment:=used_align(alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax);
         alloctemp(list,size,alignment,tt_persistent,def,false,ref);

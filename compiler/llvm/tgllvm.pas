@@ -55,15 +55,15 @@ unit tgllvm;
 
       ttgllvm = class(ttgobj)
        protected
-        procedure alloctemp(list: TAsmList; size, alignment: longint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference); override;
+        procedure alloctemp(list: TAsmList; size: asizeint; alignment: longint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference); override;
        public
         alloclist: tasmlist;
 
         constructor create; override;
         destructor destroy; override;
-        procedure setfirsttemp(l : longint); override;
+        procedure setfirsttemp(l: asizeint); override;
         function istemp(const ref: treference): boolean; override;
-        procedure getlocal(list: TAsmList; size: longint; alignment: shortint; def: tdef; var ref: treference); override;
+        procedure getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref: treference); override;
         procedure gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference); override;
         procedure ungetiftemp(list: TAsmList; const ref: treference); override;
       end;
@@ -82,7 +82,7 @@ implementation
 
     { ttgllvm }
 
-    procedure ttgllvm.alloctemp(list: TAsmList; size, alignment: longint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference);
+    procedure ttgllvm.alloctemp(list: TAsmList; size: asizeint; alignment: longint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference);
       var
         tl: ptemprecord;
         oldfileinfo: tfileposinfo;
@@ -136,14 +136,14 @@ implementation
       end;
 
 
-    procedure ttgllvm.setfirsttemp(l: longint);
+    procedure ttgllvm.setfirsttemp(l: asizeint);
       begin
         firsttemp:=l;
         lasttemp:=l;
       end;
 
 
-    procedure ttgllvm.getlocal(list: TAsmList; size: longint; alignment: shortint; def: tdef; var ref: treference);
+    procedure ttgllvm.getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref: treference);
       begin
         gethltemp(list,def,size,tt_persistent,ref);
       end;
