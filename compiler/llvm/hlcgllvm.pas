@@ -1385,6 +1385,7 @@ implementation
       hreg1,
       hreg2: tregister;
       tmpref: treference;
+      defsize: asizeint;
     begin
       { already simple? }
       if (not assigned(ref.symbol) or
@@ -1397,12 +1398,16 @@ implementation
         end;
 
       hreg2:=getaddressregister(list,getpointerdef(def));
+      defsize:=def.size;
+      { for voiddef/formaldef }
+      if defsize=0 then
+        defsize:=1;
       { symbol+offset or base+offset with offset a multiple of the size ->
         use getelementptr }
       if (ref.index=NR_NO) and
-         (ref.offset mod def.size=0) then
+         (ref.offset mod defsize=0) then
         begin
-          ptrindex:=ref.offset div def.size;
+          ptrindex:=ref.offset div defsize;
           if assigned(ref.symbol) then
             reference_reset_symbol(tmpref,ref.symbol,0,ref.alignment)
           else
