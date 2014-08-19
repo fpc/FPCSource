@@ -94,6 +94,7 @@ begin
     { This means paths with spaces in them are not supported for now on AROS.   }
     { So for example no Ram Disk: usage for anything which must be linked. (KB) }
     ExeCmd[1]:='collect-aros $OPT -d -n -o $EXE $RES';
+    ExeCmd[2]:='strip --strip-unneeded $EXE';
     //ExeCmd[1]:='ld $OPT -d -n -o $EXE $RES';
   end;
 end;
@@ -222,24 +223,35 @@ end;
 
 function TLinkeraros.Makearos386Exe: boolean;
 var
+  success: boolean;
   BinStr,
   CmdStr  : TCmdStr;
   StripStr: string[40];
 begin
   StripStr:='';
-  if (cs_link_strip in current_settings.globalswitches) then StripStr:='-s';
 
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
-  binstr:=FindUtil(utilsprefix+BinStr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename)));
   Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
- 
-  //Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename^))));
- // Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
-  Replace(cmdstr,'$STRIP',StripStr);
-  Makearos386Exe:=DoExec(FindUtil(BinStr),CmdStr,true,false);
+
+  { Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename^))));
+    Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
+    Replace(cmdstr,'$STRIP',StripStr); }
+
+  success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
+
+  { AROS seems to need a separate strip command, it may be possible to do it
+    in the linking command, but this works so fine for now. (KB) }
+  if success and (cs_link_strip in current_settings.globalswitches) then
+    begin
+      SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
+      Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
+      success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
+    end;
+
+  Makearos386Exe:=success;
 end;
 
 
