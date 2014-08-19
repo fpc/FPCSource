@@ -239,7 +239,8 @@ skip_mem_realloc:
         mov es, cx
         mov bx, word [es:3]
         add bx, cx
-        ; __nearheap_end := end_of_dos_memory_block - 16 bytes
+        inc bx
+        ; __nearheap_end := end_of_dos_memory_block
         mov word [__nearheap_end], 0
         mov word [__nearheap_end + 2], bx
 %endif

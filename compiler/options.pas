@@ -42,7 +42,7 @@ Type
     FileLevel : longint;
     QuickInfo : string;
     FPCBinaryPath: string;
-	ParaIncludeCfgPath,
+    ParaIncludeCfgPath,
     ParaIncludePath,
     ParaUnitPath,
     ParaObjectPath,

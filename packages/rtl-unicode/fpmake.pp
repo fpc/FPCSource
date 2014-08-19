@@ -13,7 +13,7 @@ Const
   UnixLikes = AllUnixOSes -[QNX];
 
   CollationOSes = [aix,darwin,freebsd,linux,netbsd,openbsd,solaris,win32,win64];
-  CPUnits       = [aix,amiga,android,beos,darwin,iphonesim,emx,gba,freebsd,go32v2,haiku,linux,morphos,netbsd,netware,netwlibc,openbsd,os2,solaris,watcom,wii,win32,win64,wince];
+  CPUnits       = [aix,amiga,aros,android,beos,darwin,iphonesim,emx,gba,freebsd,go32v2,haiku,linux,morphos,netbsd,netware,netwlibc,openbsd,os2,solaris,watcom,wii,win32,win64,wince];
   utf8bidiOSes  = [netware,netwlibc];
   freebidiOSes  = [netware,netwlibc];  
 

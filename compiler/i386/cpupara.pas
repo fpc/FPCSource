@@ -243,6 +243,7 @@ unit cpupara;
           pocall_safecall,
           pocall_stdcall,
           pocall_cdecl,
+          pocall_syscall,
           pocall_cppdecl,
           pocall_mwpascal :
             result:=[RS_EAX,RS_EDX,RS_ECX];

@@ -41,11 +41,12 @@
       TTinyHeapBlock = record
         Next: PTinyHeapBlock;
         Size: TTinyHeapFreeBlockSize;
-        EndAddr: pointer;
       end;
 
     const
       TinyHeapMinBlock = sizeof(TTinyHeapBlock);
+
+      TinyHeapAllocGranularity = sizeof(TTinyHeapBlock);
 
     var
       TinyHeapBlocks: PTinyHeapBlock = nil;
@@ -65,7 +66,7 @@
 {$ifdef DEBUG_TINY_HEAP}
         Write('SysTinyGetMem(', Size, ')=');
 {$endif DEBUG_TINY_HEAP}
-        AllocSize := align(size+sizeof(TTinyHeapMemBlockSize), sizeof(pointer));
+        AllocSize := align(size+sizeof(TTinyHeapMemBlockSize), TinyHeapAllocGranularity);
 
         p := TinyHeapBlocks;
         prev := nil;
@@ -126,6 +127,7 @@
     procedure InternalTinyFreeMem(Addr: Pointer; Size: TTinyHeapFreeBlockSize);
       var 
         b, p, prev: PTinyHeapBlock;
+        EndAddr: Pointer;
         concatenated: boolean;
       begin
         repeat
@@ -134,7 +136,7 @@
 
           b^.Next := TinyHeapBlocks;
           b^.Size := Size;
-          b^.EndAddr := pointer(TTinyHeapPointerArithmeticType(addr)+size);
+          EndAddr := pointer(TTinyHeapPointerArithmeticType(addr)+size);
 
           if TinyHeapBlocks = nil then
             TinyHeapBlocks := b
@@ -145,7 +147,7 @@
 
               while assigned(p) do
                 begin
-                  if p^.EndAddr = addr then
+                  if (TTinyHeapPointerArithmeticType(p)+p^.Size) = TTinyHeapPointerArithmeticType(Addr) then
                     begin
                       addr:=p;
                       size:=p^.size+size;
@@ -156,7 +158,7 @@
                       concatenated:=true;
                       break;
                     end
-                  else if p = b^.EndAddr then
+                  else if p = EndAddr then
                     begin
                       size:=p^.size+size;
                       if prev = nil then
@@ -206,7 +208,10 @@
             result:=0;
             exit;
           end;
-        sz := Align(FindSize(addr)+SizeOf(TTinyHeapMemBlockSize), sizeof(pointer));
+        if (TTinyHeapPointerArithmeticType(addr) < TTinyHeapPointerArithmeticType(HeapOrg)) or
+           (TTinyHeapPointerArithmeticType(addr) >= TTinyHeapPointerArithmeticType(HeapEnd)) then
+          HandleError(204);
+        sz := Align(FindSize(addr)+SizeOf(TTinyHeapMemBlockSize), TinyHeapAllocGranularity);
 
         InternalTinyFreeMem(@PTinyHeapMemBlockSize(addr)[-1], sz);
         
@@ -259,19 +264,21 @@
       end;
 
     procedure RegisterTinyHeapBlock(AAddress: pointer; ASize: ptruint);
+      var
+        alignment_inc: smallint;
       begin
 {$ifdef DEBUG_TINY_HEAP}
         Writeln('RegisterTinyHeapBlock(', ptruint(AAddress), ',', ASize, ')');
 {$endif DEBUG_TINY_HEAP}
-        if (ptruint(AAddress) and 1) <> 0 then
-          begin
-            Inc(AAddress);
-            Dec(ASize);
-          end;
-        if (ASize and 1) <> 0 then
-          Dec(ASize);
-        PTinyHeapMemBlockSize(AAddress)^ := ASize - SizeOf(TTinyHeapMemBlockSize);
-        FreeMem(Pointer(PTinyHeapMemBlockSize(AAddress) + 1), ASize - SizeOf(TTinyHeapMemBlockSize));
+        alignment_inc := TTinyHeapPointerArithmeticType(align(AAddress,TinyHeapAllocGranularity))-TTinyHeapPointerArithmeticType(AAddress);
+        Inc(AAddress,alignment_inc);
+        Dec(ASize,alignment_inc);
+        Dec(ASize,ASize mod TinyHeapAllocGranularity);
+        if (HeapOrg=nil) or (TTinyHeapPointerArithmeticType(HeapOrg) > TTinyHeapPointerArithmeticType(AAddress)) then
+          HeapOrg:=AAddress;
+        if (HeapEnd=nil) or (TTinyHeapPointerArithmeticType(HeapEnd) < (TTinyHeapPointerArithmeticType(AAddress)+ASize)) then
+          HeapEnd:=Pointer(TTinyHeapPointerArithmeticType(AAddress)+ASize);
+        InternalTinyFreeMem(AAddress, ASize);
       end;
 
     const

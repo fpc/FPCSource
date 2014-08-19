@@ -164,7 +164,9 @@ const
   { 79 }  'MSDOS-i8086',
   { 80 }  'Android-MIPSel',
   { 81 }  'Embedded-mipseb',
-  { 82 }  'Embedded-mipsel'
+  { 82 }  'Embedded-mipsel',
+  { 83 }  'AROS-i386',
+  { 84 }  'AROS-x86-64'
   );
 
 const

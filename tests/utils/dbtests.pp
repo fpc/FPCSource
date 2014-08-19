@@ -67,7 +67,7 @@ Function ConnectToDatabase(DatabaseName,Host,User,Password,Port : String) : Bool
 
 begin
   Result:=False;
-  Verbose(V_DEBUG,'Connection params : '+DatabaseName+' '+Host+' '+User+' '+Password+' '+Port);
+  Verbose(V_SQL,'Connection params : '+DatabaseName+' '+Host+' '+User+' '+Port);
   Connection:=TPQConnection.Create(Nil);
   try
     Connection.Hostname:=Host;
@@ -75,6 +75,7 @@ begin
     Connection.Username:=User;
     Connection.Password:=Password;
     Connection.Connected:=true;
+    Connection.Transaction:=TSQLTransaction.Create(Connection);
     if (Port<>'') then
       Connection.Params.Values['Port']:=Port;
   except
@@ -106,7 +107,7 @@ end;
 Function ExecuteQuery (Qry : String; Silent : Boolean) : Boolean ;
 
 begin
-  Verbose(V_DEBUG,'Executing query:'+Qry);
+  Verbose(V_SQL,'Executing query:'+Qry);
   Result:=False;
   try
     With CreateQuery(Qry) do
@@ -131,7 +132,7 @@ Function OpenQuery (Qry : String; Out res : TSQLQuery; Silent : Boolean) : Boole
 
 begin
   Result:=False;
-  Verbose(V_DEBUG,'Running query:'+Qry);
+  Verbose(V_SQL,'Running query:'+Qry);
   Res:=CreateQuery(Qry);
   try
     Res.Open;
@@ -140,7 +141,10 @@ begin
     On E : exception do
       begin
       FreeAndNil(Res);
-      Connection.Transaction.RollBack;
+      Try
+        Connection.Transaction.RollBack;
+      except
+      end;
       if not Silent then
         Verbose(V_WARNING,'Query : '+Qry+'Failed : '+E.Message);
       end;
@@ -155,7 +159,7 @@ begin
     Result:=''
   else
     Result:=Res.Fields[ID].AsString;
-  Verbose(V_DEBUG,'Field value '+Result);
+  Verbose(V_SQL,'Field value '+Result);
 end;
 
 Procedure FreeQueryResult(var Res : TSQLQuery);
@@ -199,9 +203,9 @@ end;
 Function EscapeSQL( S : String) : String;
 
 begin
-  Result:=StringReplace(S,'\','\\',[rfReplaceAll]);
-  Result:=StringReplace(Result,'"','\"',[rfReplaceAll]);
-  Verbose(V_DEBUG,'EscapeSQL : "'+S+'" -> "'+Result+'"');
+//  Result:=StringReplace(S,'\','\\',[rfReplaceAll]);
+  Result:=StringReplace(S,'''','''''',[rfReplaceAll]);
+  Verbose(V_SQL,'EscapeSQL : "'+S+'" -> "'+Result+'"');
 end;
 
 
@@ -219,7 +223,7 @@ end;
 Function GetTestID(Name : string) : Integer;
 
 Const
-  SFromName = 'SELECT T_ID FROM TESTS WHERE (T_NAME="%s")';
+  SFromName = 'SELECT T_ID FROM TESTS WHERE (T_NAME=''%s'')';
 
 begin
   Result:=IDQuery(Format(SFromName,[Name]));
@@ -228,7 +232,7 @@ end;
 Function GetOSID(Name : String) : Integer;
 
 Const
-  SFromName = 'SELECT TO_ID FROM TESTOS WHERE (TO_NAME="%s")';
+  SFromName = 'SELECT TO_ID FROM TESTOS WHERE (TO_NAME=''%s'')';
 
 begin
   Result:=IDQuery(Format(SFromName,[Name]));
@@ -237,7 +241,7 @@ end;
 Function GetVersionID(Name : String) : Integer;
 
 Const
-  SFromName = 'SELECT TV_ID FROM TESTVERSION WHERE (TV_VERSION="%s")';
+  SFromName = 'SELECT TV_ID FROM TESTVERSION WHERE (TV_VERSION=''%s'')';
 
 begin
   Result:=IDQuery(Format(SFromName,[Name]));
@@ -246,7 +250,7 @@ end;
 Function GetCPUID(Name : String) : Integer;
 
 Const
-  SFromName = 'SELECT TC_ID FROM TESTCPU WHERE (TC_NAME="%s")';
+  SFromName = 'SELECT TC_ID FROM TESTCPU WHERE (TC_NAME=''%s'')';
 
 begin
   Result:=IDQuery(Format(SFromName,[Name]));
@@ -255,7 +259,7 @@ end;
 Function GetCategoryID(Name : String) : Integer;
 
 Const
-  SFromName = 'SELECT TCAT_ID FROM TESTCATEGORY WHERE (TCAT_NAME="%s")';
+  SFromName = 'SELECT TCAT_ID FROM TESTCATEGORY WHERE (TCAT_NAME=''%s'')';
 
 begin
   Result:=IDQuery(Format(SFromName,[Name]));
@@ -269,7 +273,7 @@ Const
              ' (TU_OS_FK=%d) '+
              ' AND (TU_CPU_FK=%d) '+
              ' AND (TU_VERSION_FK=%d) '+
-             ' AND (TU_DATE="%s")';
+             ' AND (TU_DATE=''%s'')';
 
 begin
   Result:=IDQuery(Format(SFromIDS,[OSID,CPUID,VERSIONID,SQLDate(Date)]));
@@ -287,7 +291,7 @@ Const
   SInsertRun = 'INSERT INTO TESTRUN '+
                '(TU_OS_FK,TU_CPU_FK,TU_VERSION_FK,TU_CATEGORY_FK,TU_DATE)'+
                ' VALUES '+
-               '(%d,%d,%d,%d,"%s") RETURNING TU_ID';
+               '(%d,%d,%d,%d,''%s'') RETURNING TU_ID';
 var
   Qry : string;
 begin
@@ -340,7 +344,7 @@ begin
     FileName := FileName + '.pp'
   else exit;
 
-  Verbose(V_Debug,'Reading '+FileName);
+  Verbose(V_Debug,'Reading: '+FileName);
   assign(t,FileName);
   {$I-}
    reset(t);
@@ -379,7 +383,7 @@ Function AddTest(Name : String; AddSource : Boolean) : Integer;
 
 Const
   SInsertTest = 'INSERT INTO TESTS (T_NAME,T_ADDDATE)'+
-                ' VALUES ("%s",NOW())';
+                ' VALUES (''%s'',NOW())';
 
 Var
   Info : TConfig;
@@ -407,17 +411,17 @@ begin
 end;
 
 Const
-  B : Array[Boolean] of String = ('-','+');
+  B : Array[Boolean] of String = ('f','t');
 
 Function UpdateTest(ID : Integer; Info : TConfig; Source : String) : Boolean;
 
 Const
   SUpdateTest = 'Update TESTS SET '+
-                ' T_CPU="%s", T_OS="%s", T_VERSION="%s",'+
-                ' T_GRAPH="%s", T_INTERACTIVE="%s", T_RESULT=%d,'+
-                ' T_FAIL="%s", T_RECOMPILE="%s", T_NORUN="%s",'+
-                ' T_NEEDLIBRARY="%s", T_KNOWNRUNERROR=%d,'+
-                ' T_KNOWN="%s", T_NOTE="%s", T_OPTS = "%s"'+
+                ' T_CPU=''%s'', T_OS=''%s'', T_VERSION=''%s'','+
+                ' T_GRAPH=''%s'', T_INTERACTIVE=''%s'', T_RESULT=%d,'+
+                ' T_FAIL=''%s'', T_RECOMPILE=''%s'', T_NORUN=''%s'','+
+                ' T_NEEDLIBRARY=''%s'', T_KNOWNRUNERROR=%d,'+
+                ' T_KNOWN=''%s'', T_NOTE=''%s'', T_OPTS = ''%s'''+
                 ' %s '+
                 'WHERE'+
                 ' T_ID=%d';
@@ -430,7 +434,7 @@ begin
   If Source<>'' then
     begin
     Source:=EscapeSQL(Source);
-    Source:=', T_SOURCE="'+Source+'"';
+    Source:=', T_SOURCE='''+Source+'''';
     end;
   With Info do
     Qry:=Format(SUpdateTest,[EscapeSQL(NeedCPU),'',EscapeSQL(MinVersion),
@@ -452,11 +456,11 @@ Const
   SInsertRes='Insert into TESTRESULTS '+
              '(TR_TEST_FK,TR_TESTRUN_FK,TR_OK,TR_SKIP,TR_RESULT) '+
              ' VALUES '+
-             '(%d,%d,"%s","%s",%d) RETURNING TR_ID';
+             '(%d,%d,''%s'',''%s'',%d) RETURNING TR_ID';
   SSelectId='SELECT TR_ID FROM TESTRESULTS WHERE (TR_TEST_FK=%d) '+
             ' AND (TR_TESTRUN_FK=%d)';
-  SInsertLog='Update TESTRESULTS SET TR_LOG="%s"'+
-             ',TR_OK="%s",TR_SKIP="%s",TR_RESULT=%d WHERE (TR_ID=%d)';
+  SInsertLog='Update TESTRESULTS SET TR_LOG=''%s'''+
+             ',TR_OK=''%s'',TR_SKIP=''%s'',TR_RESULT=%d WHERE (TR_ID=%d)';
 Var
   Qry : String;
   updateValues : boolean;

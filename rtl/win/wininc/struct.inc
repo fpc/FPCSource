@@ -689,6 +689,7 @@ Const
      _LOGFONTA  = LOGFONTA;
      TLOGFONTA  = LOGFONTA;
      PLOGFONTA  = LPLOGFONTA;
+     tagLOGFONTA= LOGFONTA;
 
      LOGFONTW = record
        lfHeight: LONG;
@@ -711,6 +712,7 @@ Const
      _LOGFONTW  = LOGFONTW;
      TLogFontW  = LOGFONTW;
      PLogFontW  = ^TLOGFONTW;
+     tagLOGFONTW= LOGFONTW;
 
    {$IFNDEF UNICODE}
      LOGFONT    = LOGFONTA;
@@ -718,12 +720,14 @@ Const
      _LOGFONT   = LOGFONTA;
      TLOGFONT   = LOGFONTA;
      PLOGFONT   = ^LOGFONTA;
+     tagLOGFONT = LOGFONTA;
    {$ELSE}
      LOGFONT    = LOGFONTW;
      LPLOGFONT  = ^LOGFONTW;
      _LOGFONT   = LOGFONTW;
      TLOGFONT   = LOGFONTW;
      PLOGFONT   = ^LOGFONTW;
+     tagLOGFONT = LOGFONTW;
     {$ENDIF}
 
      {CHOOSEFONT = record conflicts with ChosseFont function }

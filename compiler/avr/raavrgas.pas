@@ -617,7 +617,7 @@ Unit raavrgas;
         actopcode:=A_NONE;
         for j:=maxlen downto 1 do
           begin
-            actopcode:=tasmop(PtrInt(iasmops.Find(copy(hs,1,j))));
+            actopcode:=tasmop(PtrUInt(iasmops.Find(copy(hs,1,j))));
             if actopcode<>A_NONE then
               begin
                 actasmtoken:=AS_OPCODE;

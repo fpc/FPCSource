@@ -60,7 +60,7 @@ unit rgcpu;
         helplist : tasmlist;
         hreg     : tregister;
       begin
-        if (abs(spilltemp.offset)>32767) and (current_settings.cputype in cpu_coldfire) then
+        if (abs(spilltemp.offset)>32767) and (current_settings.cputype in (cpu_coldfire + [cpu_mc68000])) then
           begin
             helplist:=tasmlist.create;
 
@@ -92,7 +92,7 @@ unit rgcpu;
         helplist : tasmlist;
         hreg     : tregister;
       begin
-        if (abs(spilltemp.offset)>32767) and (current_settings.cputype in cpu_coldfire) then
+        if (abs(spilltemp.offset)>32767) and (current_settings.cputype in (cpu_coldfire + [cpu_mc68000])) then
           begin
             helplist:=tasmlist.create;
 

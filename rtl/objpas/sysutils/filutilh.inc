@@ -16,6 +16,11 @@
 Type
 
 
+  // Some operating systems need FindHandle to be a Pointer
+{$if defined(unix) or defined(msdos)}
+    {$define FINDHANDLE_IS_POINTER}
+{$endif}
+
   // Some operating systems need extra find data.
 {$if defined(Win32) or defined(WinCE) or defined(Win64)}
     {$define USEFINDDATA}
@@ -45,11 +50,9 @@ Type
     Attr : Longint;
     Name : UnicodeString;
     ExcludeAttr : Longint;
+    FindHandle : {$ifdef FINDHANDLE_IS_POINTER}Pointer{$else}THandle{$endif};
 {$ifdef unix}
-    FindHandle : Pointer;
     Mode : TMode;
-{$else unix}
-    FindHandle : THandle;
 {$endif unix}
 {$ifdef USEFINDDATA}
     FindData : TFindData;
@@ -62,11 +65,9 @@ Type
     Attr : Longint;
     Name : RawByteString;
     ExcludeAttr : Longint;
+    FindHandle : {$ifdef FINDHANDLE_IS_POINTER}Pointer{$else}THandle{$endif};
 {$ifdef unix}
-    FindHandle : Pointer;
     Mode : TMode;
-{$else unix}
-    FindHandle : THandle;
 {$endif unix}
 {$IFDEF USEFINDDATA}
     FindData : TFindData;
