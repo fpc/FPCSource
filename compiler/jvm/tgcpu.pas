@@ -42,7 +42,7 @@ unit tgcpu;
         protected
          procedure getimplicitobjtemp(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference);
          function getifspecialtemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference): boolean;
-         procedure alloctemp(list: TAsmList; size: asizeint; alignment: longint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference); override;
+         procedure alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference); override;
         public
          procedure setfirsttemp(l : asizeint); override;
          procedure getlocal(list: TAsmList; size: asizeint; alignment: shortint; def: tdef; var ref: treference); override;
@@ -215,7 +215,7 @@ unit tgcpu;
       end;
 
 
-    procedure ttgjvm.alloctemp(list: TAsmList; size: asizeint; alignment: longint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference);
+    procedure ttgjvm.alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference);
       begin
         { the JVM only supports 1 slot (= 4 bytes in FPC) and 2 slot (= 8 bytes in
           FPC) temps on the stack. double and int64 are 2 slots, the rest is one slot.

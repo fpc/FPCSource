@@ -61,9 +61,9 @@ unit tgobj;
        protected
           { contains all free temps using nextfree links }
           tempfreelist  : ptemprecord;
-          procedure alloctemp(list: TAsmList; size: asizeint; alignment: longint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference); virtual;
+          procedure alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference); virtual;
           procedure freetemp(list: TAsmList; pos: asizeint; temptypes: ttemptypeset);virtual;
-          procedure gettempinternal(list: TAsmList; size: asizeint; alignment: longint; temptype: ttemptype; def: tdef; fini: boolean; out ref : treference);
+          procedure gettempinternal(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref : treference);
        public
           { contains all temps }
           templist      : ptemprecord;
@@ -86,7 +86,7 @@ unit tgobj;
              @param(l start offset where temps will start in stack)
           }
           procedure setfirsttemp(l: asizeint); virtual;
-          procedure setalignmentmismatch(l : longint); virtual;
+          procedure setalignmentmismatch(l: shortint); virtual;
 
           { version of gettemp that is compatible with hlcg-based targets;
             always use in common code, only use gettemp in cgobj and
@@ -96,7 +96,7 @@ unit tgobj;
             don't have an inherent size (e.g., array of const) }
           procedure gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference); virtual;
           procedure gethltempmanaged(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference); virtual;
-          procedure gettemp(list: TAsmList; size: asizeint; alignment: longint; temptype: ttemptype; out ref : treference);
+          procedure gettemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; out ref : treference);
           procedure gettempmanaged(list: TAsmList; def:tdef;temptype:ttemptype;out ref : treference);
           procedure ungettemp(list: TAsmList; const ref : treference);
 
@@ -232,13 +232,13 @@ implementation
       end;
 
 
-    procedure ttgobj.setalignmentmismatch(l: longint);
+    procedure ttgobj.setalignmentmismatch(l: shortint);
       begin
         alignmismatch:=l*direction;
       end;
 
 
-    procedure ttgobj.alloctemp(list: TAsmList; size: asizeint; alignment: longint; temptype: ttemptype; def :tdef; fini: boolean; out ref: treference);
+    procedure ttgobj.alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def :tdef; fini: boolean; out ref: treference);
       var
          tl,htl,
          bestslot,bestprev,
@@ -540,13 +540,13 @@ implementation
 
 
 
-    procedure ttgobj.gettemp(list: TAsmList; size: asizeint; alignment: longint; temptype: ttemptype; out ref : treference);
+    procedure ttgobj.gettemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; out ref : treference);
       begin
         gettempinternal(list,size,alignment,temptype,nil,false,ref);
       end;
 
 
-    procedure ttgobj.gettempinternal(list: TAsmList; size: asizeint; alignment: longint; temptype: ttemptype; def: tdef; fini: boolean; out ref : treference);
+    procedure ttgobj.gettempinternal(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref : treference);
       var
         varalign : shortint;
       begin
