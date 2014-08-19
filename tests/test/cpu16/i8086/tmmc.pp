@@ -25,6 +25,7 @@ program tmml;
 var
   CS, DS, SS, HS: Word;
   HeapP: Pointer;
+  HeapOrgSeg, HeapOrgOfs, HeapEndSeg, HeapEndOfs: Word;
   ErrorsFound: Boolean;
 
 procedure Error(const S: string);
@@ -48,10 +49,16 @@ begin
   DS := DSeg;
   SS := SSeg;
   HS := Seg(HeapP^);
+  HeapOrgSeg := Seg(HeapOrg^);
+  HeapOrgOfs := Ofs(HeapOrg^);
+  HeapEndSeg := Seg(HeapEnd^);
+  HeapEndOfs := Ofs(HeapEnd^);
   Writeln('PrefixSeg=', PrefixSeg);
   Writeln('CS=', CS);
   Writeln('DS=', DS);
   Writeln('SS=', SS);
+  Writeln('HeapOrg=', HeapOrgSeg, ':', HeapOrgOfs);
+  Writeln('HeapEnd=', HeapEndSeg, ':', HeapEndOfs);
   Writeln('Heap Seg=', HS);
   if not (PrefixSeg < CS) then
     Error('PrefixSeg >= CS');
@@ -63,6 +70,14 @@ begin
     Error('DS >= SS');
   if not (SS < HS) then
     Error('SS >= HeapSeg');
+  if HeapOrgOfs <> 0 then
+    Error('HeapOrg offset <> 0');
+  if HeapEndOfs <> 0 then
+    Error('HeapEnd offset <> 0');
+  if (HeapOrgSeg - SS) <> 1024 then
+    Error('HeapOrgSeg <> SS+1024 (16kb stack)');
+  if (PrefixSeg + MemW[PrefixSeg-1:3]) <> HeapEndSeg then
+    Error('HeapEnd segment <> end_of_current_program_MCB');
   FreeMem(HeapP, 5);
   if ErrorsFound then
   begin
