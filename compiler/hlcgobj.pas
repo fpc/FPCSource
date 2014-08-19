@@ -38,7 +38,8 @@ unit hlcgobj;
        cpubase,cgbase,cgutils,parabase,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        symconst,symbase,symtype,symsym,symdef,
-       node,nutils
+       node,nutils,
+       tgobj
        ;
 
     type
@@ -122,6 +123,9 @@ unit hlcgobj;
              @param(reg register containing the value of a pointer)
           }
           procedure reference_reset_base(var ref: treference; regsize: tdef; reg: tregister; offset, alignment: longint); virtual;
+
+          {# Returns a reference corresponding to a temp }
+          procedure temp_to_ref(p: ptemprecord; out ref: treference); virtual;
 
           {# Emit a label to the instruction stream. }
           procedure a_label(list : TAsmList;l : tasmlabel); inline;
@@ -638,7 +642,7 @@ implementation
        verbose,defutil,paramgr,
        symtable,
        nbas,ncon,nld,ncgrtti,pass_1,pass_2,
-       cpuinfo,cgobj,tgobj,cutils,procinfo,
+       cpuinfo,cgobj,cutils,procinfo,
 {$ifdef x86}
        cgx86,
 {$endif x86}
@@ -804,6 +808,11 @@ implementation
       reference_reset(ref,alignment);
       ref.base:=reg;
       ref.offset:=offset;
+    end;
+
+  procedure thlcgobj.temp_to_ref(p: ptemprecord; out ref: treference);
+    begin
+      reference_reset_base(ref,voidstackpointertype,current_procinfo.framepointer,p^.pos,voidstackpointertype.size);
     end;
 
   procedure thlcgobj.a_label(list: TAsmList; l: tasmlabel); inline;
@@ -4479,7 +4488,7 @@ implementation
             assigned(hp^.def) and
             is_managed_type(hp^.def) then
           begin
-            reference_reset_base(href,voidstackpointertype,current_procinfo.framepointer,hp^.pos,voidstackpointertype.size);
+            temp_to_ref(hp,href);
             g_initialize(list,hp^.def,href);
           end;
          hp:=hp^.next;
@@ -4528,7 +4537,7 @@ implementation
             is_managed_type(hp^.def) then
           begin
             include(current_procinfo.flags,pi_needs_implicit_finally);
-            reference_reset_base(href,voidstackpointertype,current_procinfo.framepointer,hp^.pos,voidstackpointertype.size);
+            temp_to_ref(hp,href);
             g_finalize(list,hp^.def,href);
           end;
          hp:=hp^.next;
