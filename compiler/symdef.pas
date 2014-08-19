@@ -5249,7 +5249,11 @@ implementation
       begin
         result:=inherited getcopyas(newtyp,copytyp);
         if newtyp=procvardef then
-          exit;
+          begin
+            { create new paralist }
+            tprocvardef(result).calcparas;
+            exit;
+          end;
         { don't copy mangled name, can be different }
         tprocdef(result).messageinf:=messageinf;
         tprocdef(result).dispid:=dispid;

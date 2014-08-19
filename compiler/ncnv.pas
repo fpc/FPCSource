@@ -2014,8 +2014,6 @@ implementation
               (not(m_nested_procvars in current_settings.modeswitches) or
                not is_nested_pd(tprocvardef(resultdef))) then
              include(tprocvardef(resultdef).procoptions,po_addressonly);
-           { calculate parameter list & order }
-           tprocvardef(resultdef).calcparas;
          end;
       end;
 
