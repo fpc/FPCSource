@@ -528,7 +528,7 @@ interface
                     begin
                       { the procedure symbol is encoded in reference.symbol -> take address }
                       location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidcodepointertype);
-                      hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,voidcodepointertype,left.location.reference,location.register);
+                      hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference,location.register);
                     end;
                   else
                     internalerror(2013031501)
