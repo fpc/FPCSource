@@ -960,6 +960,9 @@ interface
       asmops: array[boolean] of tasmop = (A_IMUL, A_MUL);
 
     begin
+      reg:=NR_NO;
+      reference_reset(ref,sizeof(pint));
+
       pass_left_right;
 
       { MUL is faster than IMUL on the 8086 & 8088 (and equal in speed on 286+),
