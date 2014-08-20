@@ -1492,10 +1492,8 @@ unit cgcpu;
          hp2 : treference;
          hl : tasmlabel;
          srcref,dstref : treference;
-         orglen : tcgint;
       begin
          hregister := getintregister(list,OS_INT);
-         orglen:=len;
 
          { from 12 bytes movs is being used }
          if ((len<=8) or (not(cs_opt_size in current_settings.optimizerswitches) and (len<=12))) then
@@ -1738,6 +1736,7 @@ unit cgcpu;
 
         { calculate temp. size }
         size:=0;
+        hreg:=NR_NO;
         for r:=low(saved_standard_registers) to high(saved_standard_registers) do
           if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
             begin
@@ -1797,6 +1796,7 @@ unit cgcpu;
           exit;
         { Copy registers from temp }
         size:=0;
+        hreg:=NR_NO;
         for r:=low(saved_standard_registers) to high(saved_standard_registers) do
           if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
             begin
