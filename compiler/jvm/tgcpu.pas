@@ -145,8 +145,8 @@ unit tgcpu;
                       if tprocsym(sym).procdeflist.Count<>1 then
                         internalerror(2011062801);
                       pd:=tprocdef(tprocsym(sym).procdeflist[0]);
+                      hlcg.a_call_name(list,pd,pd.mangledname,nil,false);
                     end;
-                  hlcg.a_call_name(list,pd,pd.mangledname,nil,false);
                   { static calls method replaces parameter with set instance
                     -> no change in stack height }
                 end
@@ -202,8 +202,8 @@ unit tgcpu;
                       if tprocsym(sym).procdeflist.Count<>1 then
                         internalerror(2011052404);
                       pd:=tprocdef(tprocsym(sym).procdeflist[0]);
+                      hlcg.a_call_name(list,pd,pd.mangledname,nil,false);
                     end;
-                  hlcg.a_call_name(list,pd,pd.mangledname,nil,false);
                   { static calls method replaces parameter with string instance
                     -> no change in stack height }
                   { store reference to instance }
