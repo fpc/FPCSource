@@ -85,6 +85,8 @@ interface
                       GetResFlags:=F_LT;
                     gten:
                       GetResFlags:=F_LE;
+                    else
+                      internalerror(201408203);
                   end
                 else
                   case NodeType of
@@ -96,6 +98,8 @@ interface
                       GetResFlags:=F_GT;
                     gten:
                       GetResFlags:=F_GE;
+                    else
+                      internalerror(201408204);
                   end;
               end
             else
@@ -110,6 +114,8 @@ interface
                       GetResFlags:=F_CC;
                     gten:
                       GetResFlags:=F_LS;
+                    else
+                      internalerror(201408205);
                   end
                 else
                   case NodeType of
@@ -121,6 +127,8 @@ interface
                       GetResFlags:=F_HI;
                     gten:
                       GetResFlags:=F_CS;
+                    else
+                      internalerror(201408206);
                   end;
               end;
         end;
@@ -144,6 +152,8 @@ interface
             result:=F_GT;
           gten:
             result:=F_GE;
+          else
+            internalerror(201408207);
         end;
       end;
 
