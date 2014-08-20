@@ -739,15 +739,15 @@ implementation
                     if (lowreloc.ftype=R_MIPS_LO16) then
                       begin;
                         found:=true;
+                        objsec.Data.Seek(objreloc.DataOffset);
+                        objsec.Data.Read(hipart,sizeof(hipart));
+                        objsec.Data.Seek(lowreloc.DataOffset);
+                        objsec.Data.Read(lopart,sizeof(lopart));
                         break;
                       end;
                   end;
                 if not found then
                   InternalError(2013030102);
-                objsec.Data.Seek(objreloc.DataOffset);
-                objsec.Data.Read(hipart,sizeof(hipart));
-                objsec.Data.Seek(lowreloc.DataOffset);
-                objsec.Data.Read(lopart,sizeof(lopart));
                 if (source_info.endian<>target_info.endian) then
                   begin
                     hipart:=swapendian(hipart);
