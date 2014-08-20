@@ -99,6 +99,7 @@ interface
         op : tasmop;
         hreg : tregister;
       begin
+        op:=A_NONE;
         secondpass(left);
         location_reset(location,LOC_MMXREGISTER,OS_NO);
         hreg:=tcgx86(cg).getmmxregister(current_asmdata.CurrAsmList);
@@ -142,6 +143,9 @@ interface
              mmxs32bit,mmxu32bit:
                op:=A_PSUBD;
           end;
+        if op = A_NONE then
+          internalerror(201408202);
+
         emit_reg_reg(op,S_NO,location.register,hreg);
         emit_reg_reg(A_MOVQ,S_NO,hreg,location.register);
       end;
