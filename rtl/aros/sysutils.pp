@@ -236,7 +236,7 @@ end;
 function FileRead(Handle: LongInt; out Buffer; Count: LongInt): LongInt;
 begin
   FileRead:=-1;
-  if (Count<=0) or (Handle<=0) then exit;
+  if (Count<=0) or (Handle=0) or (Handle=-1) then exit;
 
   FileRead:=dosRead(Handle,@Buffer,Count);
 end;
@@ -245,7 +245,7 @@ end;
 function FileWrite(Handle: LongInt; const Buffer; Count: LongInt): LongInt;
 begin
   FileWrite:=-1;
-  if (Count<=0) or (Handle<=0) then exit;
+  if (Count<=0) or (Handle=0) or (Handle=-1) then exit;
 
   FileWrite:=dosWrite(Handle,@Buffer,Count);
 end;
@@ -256,7 +256,7 @@ var
   seekMode: LongInt;
 begin
   FileSeek:=-1;
-  if (Handle<=0) then exit;
+  if (Handle=0) or (Handle=-1) then exit;
 
   case Origin of
     fsFromBeginning: seekMode:=OFFSET_BEGINNING;
@@ -276,7 +276,7 @@ end;
 
 procedure FileClose(Handle: LongInt);
 begin
-  if (Handle<=0) then exit;
+  if (Handle=0) or (Handle=-1) then exit;
 
   dosClose(Handle);
   RemoveFromList(MOS_fileList,Handle);
@@ -292,7 +292,7 @@ begin
   if Size > high (longint) then exit;
 {$WARNING Possible support for 64-bit FS to be checked!}
 
-  if (Handle<=0) then exit;
+  if (Handle=0) or (Handle=-1) then exit;
 
   dosResult:=SetFileSize(Handle, Size, OFFSET_BEGINNING);
   if (dosResult<0) then exit;

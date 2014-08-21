@@ -198,7 +198,7 @@ var dosResult: LongInt;
 begin
   checkCTRLC;
   do_write:=0;
-  if (len<=0) or (h<=0) then exit;
+  if (len<=0) or (h=0) or (h=-1) then exit;
 
 {$IFDEF MOSFPC_FILEDEBUG}
   if not ((h=StdOutputHandle) or (h=StdInputHandle) or
@@ -218,7 +218,7 @@ var dosResult: LongInt;
 begin
   checkCTRLC;
   do_read:=0;
-  if (len<=0) or (h<=0) then exit;
+  if (len<=0) or (h=0) or (h=-1) then exit;
 
 {$IFDEF MOSFPC_FILEDEBUG}
   if not ((h=StdOutputHandle) or (h=StdInputHandle) or
