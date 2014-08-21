@@ -1212,7 +1212,6 @@ var
   largeoffs : boolean;
 begin
   list.concat(tai_directive.create(asd_ent,current_procinfo.procdef.mangledname));
-  a_reg_alloc(list,NR_STACK_POINTER_REG);
 
   if nostackframe then
     begin
@@ -1220,9 +1219,6 @@ begin
       list.concat(taicpu.op_none(A_P_SET_NOREORDER));
       exit;
     end;
-
-  if (pi_needs_stackframe in current_procinfo.flags) then
-    a_reg_alloc(list,NR_FRAME_POINTER_REG);
 
   helplist:=TAsmList.Create;
 
