@@ -153,7 +153,7 @@ begin
 
   if (Handle <> 0) then begin
     new(tmpFIB);
-    if ExamineFH(Pointer(Handle),tmpFIB) then begin
+    if ExamineFH(BPTR(Handle),tmpFIB) then begin
       tmpDateTime:=AmigaFileDateToDateTime(tmpFIB^.fib_Date,validFile);
     end;
     dispose(tmpFIB);
@@ -173,7 +173,7 @@ var
 begin
   result:=0;
   if (Handle <> 0) then begin
-    if NameFromFH(Pointer(Handle), @tmpName, 256) then begin
+    if NameFromFH(BPTR(Handle), @tmpName, 256) then begin
       tmpDateStamp:=DateTimeToAmigaDateStamp(FileDateToDateTime(Age));
       if not SetFileDate(@tmpName,@tmpDateStamp) then begin
         IoErr(); // dump the error code for now (TODO)

@@ -110,12 +110,17 @@ implementation
 {$endif cpum68k}
 
 {$I system.inc}
+{$IFDEF AMIGAOS4}
+  // Required to allow opening of utility library interface...
+  {$include utilf.inc}
+{$ENDIF}
 
-{$IFDEF MOSFPC_FILEDEBUG}
+
+{$IFDEF ASYS_FPC_FILEDEBUG}
 {$WARNING Compiling with file debug enabled!}
 {$ENDIF}
 
-{$IFDEF MOSFPC_MEMDEBUG}
+{$IFDEF ASYS_FPC_MEMDEBUG}
 {$WARNING Compiling with memory debug enabled!}
 {$ENDIF}
 
@@ -137,7 +142,7 @@ begin
   end;
 
   { Closing opened files }
-  CloseList(AOS_fileList);
+  CloseList(ASYS_fileList);
 
   { Changing back to original directory if changed }
   if AOS_origDir<>0 then begin
@@ -389,7 +394,7 @@ begin
 { OS specific startup }
   AOS_wbMsg:=nil;
   AOS_origDir:=0;
-  AOS_fileList:=nil;
+  ASYS_fileList:=nil;
   envp:=nil;
   SysInitAmigaOS;
 { Set up signals handlers }

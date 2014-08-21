@@ -1,11 +1,8 @@
 {
     This file is part of the Free Pascal run time library.
+    Copyright (c) 2014 Free Pascal development team
 
-    dos functions (V50) for MorphOS/PowerPC
-    Copyright (c) 2002 The MorphOS Development Team, All Rights Reserved.
-
-    Free Pascal conversion
-    Copyright (c) 2004 Karoly Balogh for Genesi S.a.r.l. <www.genesi.lu>
+    dos functions (V40) for Amiga/68k
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -51,7 +48,7 @@ function dosDeleteFile(fname: PChar location 'd1'): Boolean;
 SysCall AOS_DOSBase 72;
 
 function dosRename(oldName: PChar location 'd1';
-                   newName: PChar location 'd2'): Boolean;
+                   newName: PChar location 'd2'): LongInt;
 SysCall AOS_DOSBase 78;
 
 function Lock(lname     : PChar   location 'd1';
@@ -65,7 +62,7 @@ function DupLock(lock: LongInt location 'd1'): LongInt;
 SysCall AOS_DOSBase 096;
 
 function Examine(lock         : LongInt        location 'd1';
-                 fileInfoBlock: PFileInfoBlock location 'd2'): Boolean;
+                 fileInfoBlock: PFileInfoBlock location 'd2'): LongInt;
 SysCall AOS_DOSBase 102;
 
 function ExNext(lock         : LongInt        location 'd1';
@@ -73,7 +70,7 @@ function ExNext(lock         : LongInt        location 'd1';
 SysCall AOS_DOSBase 108;
 
 function Info(lock          : LongInt   location 'd1';
-              parameterBlock: PInfoData location 'd2'): Boolean;
+              parameterBlock: PInfoData location 'd2'): LongInt;
 SysCall AOS_DOSBase 114;
 
 function dosCreateDir(dname: PChar location 'd1'): LongInt;
@@ -108,7 +105,7 @@ function SetComment(name   : PChar location 'd1';
 SysCall AOS_DOSBase 180;
 
 function SetProtection(name: PChar   location 'd1';
-                       mask: LongInt location 'd2'): Boolean;
+                       mask: LongInt location 'd2'): LongInt;
 SysCall AOS_DOSBase 186;
 
 function DateStamp(date: PDateStamp location 'd1'): PDateStamp;
@@ -285,7 +282,7 @@ SysCall AOS_DOSBase 378;
 function ParentOfFH(fh: LongInt location 'd1'): LongInt;
 SysCall AOS_DOSBase 384;
 
-function ExamineFH(fh : LongInt        location 'd1';
+function ExamineFH(fh : BPTR           location 'd1';
                    fib: PFileInfoBlock location 'd2'): Boolean;
 SysCall AOS_DOSBase 390;
 
@@ -298,9 +295,9 @@ function NameFromLock(lock  : LongInt location 'd1';
                       len   : LongInt location 'd3'): Boolean;
 SysCall AOS_DOSBase 402;
 
-function NameFromFH(fh    : LongInt location 'd1';
+function NameFromFH(fh    : BPTR    location 'd1';
                     buffer: PChar   location 'd2';
-                    len   : LongInt location 'd3'): LongInt;
+                    len   : LongInt location 'd3'): Boolean;
 SysCall AOS_DOSBase 408;
 
 function SplitName(name     : PChar    location 'd1';
