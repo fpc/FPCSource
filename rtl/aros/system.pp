@@ -1,8 +1,8 @@
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 2004-2006 by Karoly Balogh
-    
-    AROS conversation
+
+    AROS conversion
     Copyright (c) 2011 by Marcus Sackrow
 
     System unit for AROS
@@ -120,7 +120,7 @@ begin
     Exit;
   Killed := True;
   { Closing opened files }
-  CloseList(AOS_fileList);
+  CloseList(ASYS_fileList);
   //
   if AOS_wbMsg <> nil then
     ReplyMsg(AOS_wbMsg);
@@ -449,7 +449,7 @@ begin
 { OS specific startup }
   AOS_wbMsg := nil;
   AOS_origDir := 0;
-  AOS_fileList := nil;
+  ASYS_fileList := nil;
   envp := nil;
   SysInitAmigaOS;
 { Set up signals handlers }

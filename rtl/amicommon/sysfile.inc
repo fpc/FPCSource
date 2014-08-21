@@ -14,10 +14,10 @@
  **********************************************************************}
 
 { Enable this for file handling debug }
-{DEFINE MOSFPC_FILEDEBUG}
+{DEFINE ASYS_FPC_FILEDEBUG}
 
 {*****************************************************************************
-                  MorphOS File-handling Support Functions
+                      File-handling Support Functions
 *****************************************************************************}
 type
   { AmigaOS does not automatically close opened files on exit back to  }
@@ -31,7 +31,7 @@ type
   end;
 
 var
-  AOS_fileList: PFileList; public name 'AOS_FILELIST'; { List pointer to opened files }
+  ASYS_fileList: PFileList; public name 'ASYS_FILELIST'; { List pointer to opened files }
 
 { Function to be called at program shutdown, to close all opened files }
 procedure CloseList(l: PFileList);
@@ -88,7 +88,7 @@ begin
     p^.next:=l^.next;
     l^.next:=p;
   end
-{$IFDEF MOSFPC_FILEDEBUG}
+{$IFDEF ASYS_FPC_FILEDEBUG}
   else 
     RawDoFmt('FPC_FILE_DEBUG: Error! Trying add filehandle a filehandle twice: $%lx !'+#10,@h,pointer(1),nil);
 {$ENDIF}
@@ -118,7 +118,7 @@ begin
     dispose(p^.next);
     p^.next:=tmpList;
   end
-{$IFDEF MOSFPC_FILEDEBUG}
+{$IFDEF ASYS_FPC_FILEDEBUG}
   else 
     RawDoFmt('FPC_FILE_DEBUG: Error! Trying to remove not existing filehandle: $%lx !'+#10,@h,pointer(1),nil);
 {$ENDIF}
@@ -145,7 +145,7 @@ begin
     if p^.next^.handle=h then inList:=p^.next
                          else p:=p^.next;
 
-{$IFDEF MOSFPC_FILEDEBUG}
+{$IFDEF ASYS_FPC_FILEDEBUG}
   if inList=nil then
     RawDoFmt('FPC_FILE_DEBUG: Warning! Check for not existing filehandle: $%lx !'+#10,@h,pointer(1),nil);
 {$ENDIF}
@@ -162,7 +162,7 @@ end;
 { close a file from the handle value }
 procedure do_close(handle : longint);
 begin
-  if RemoveFromList(AOS_fileList,handle) then begin
+  if RemoveFromList(ASYS_fileList,handle) then begin
     { Do _NOT_ check CTRL_C on Close, because it will conflict
       with System_Exit! }
     if not dosClose(handle) then
@@ -200,9 +200,9 @@ begin
   do_write:=0;
   if (len<=0) or (h=0) or (h=-1) then exit;
 
-{$IFDEF MOSFPC_FILEDEBUG}
+{$IFDEF ASYS_FPC_FILEDEBUG}
   if not ((h=StdOutputHandle) or (h=StdInputHandle) or
-     (h=StdErrorHandle)) then CheckInList(AOS_fileList,h);
+     (h=StdErrorHandle)) then CheckInList(ASYS_fileList,h);
 {$ENDIF}
 
   dosResult:=dosWrite(h,addr,len);
@@ -220,9 +220,9 @@ begin
   do_read:=0;
   if (len<=0) or (h=0) or (h=-1) then exit;
 
-{$IFDEF MOSFPC_FILEDEBUG}
+{$IFDEF ASYS_FPC_FILEDEBUG}
   if not ((h=StdOutputHandle) or (h=StdInputHandle) or
-     (h=StdErrorHandle)) then CheckInList(AOS_fileList,h);
+     (h=StdErrorHandle)) then CheckInList(ASYS_fileList,h);
 {$ENDIF}
 
   dosResult:=dosRead(h,addr,len);
@@ -238,7 +238,7 @@ var dosResult: LongInt;
 begin
   checkCTRLC;
   do_filepos:=-1;
-  if CheckInList(AOS_fileList,handle)<>nil then begin
+  if CheckInList(ASYS_fileList,handle)<>nil then begin
 
     { Seeking zero from OFFSET_CURRENT to find out where we are }    
     dosResult:=dosSeek(handle,0,OFFSET_CURRENT);
@@ -253,7 +253,7 @@ end;
 procedure do_seek(handle, pos: longint);
 begin
   checkCTRLC;
-  if CheckInList(AOS_fileList,handle)<>nil then begin
+  if CheckInList(ASYS_fileList,handle)<>nil then begin
 
     { Seeking from OFFSET_BEGINNING }  
     if dosSeek(handle,pos,OFFSET_BEGINNING)<0 then
@@ -266,7 +266,7 @@ var dosResult: LongInt;
 begin
   checkCTRLC;
   do_seekend:=-1;
-  if CheckInList(AOS_fileList,handle)<>nil then begin
+  if CheckInList(ASYS_fileList,handle)<>nil then begin
 
     { Seeking to OFFSET_END }
     dosResult:=dosSeek(handle,0,OFFSET_END);
@@ -283,7 +283,7 @@ var currfilepos: longint;
 begin
   checkCTRLC;
   do_filesize:=-1;
-  if CheckInList(AOS_fileList,handle)<>nil then begin
+  if CheckInList(ASYS_fileList,handle)<>nil then begin
 
     currfilepos:=do_filepos(handle);
     { We have to do this twice, because seek returns the OLD position }
@@ -298,7 +298,7 @@ end;
 procedure do_truncate(handle, pos: longint);
 begin
   checkCTRLC;
-  if CheckInList(AOS_fileList,handle)<>nil then begin
+  if CheckInList(ASYS_fileList,handle)<>nil then begin
 
     { Seeking from OFFSET_BEGINNING }
     if SetFileSize(handle,pos,OFFSET_BEGINNING)<0 then
@@ -367,7 +367,7 @@ begin
   if handle=0 then begin
     dosError2InOut(IoErr);
   end else begin
-    AddToList(AOS_fileList,handle);
+    AddToList(ASYS_fileList,handle);
     filerec(f).handle:=handle;
   end;
 

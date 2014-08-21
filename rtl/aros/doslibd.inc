@@ -6,7 +6,7 @@
 
     Free Pascal conversion
     Copyright (c) 2004 Karoly Balogh for Genesi S.a.r.l. <www.genesi.lu>
-    
+
     AROS conversion
     Copyright (c) 2011 Marcus Sackrow
 

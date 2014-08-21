@@ -1,11 +1,14 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2004-2013 by Karoly Balogh
+    Copyright (c) 2014 by Free Pascal development team
 
     Sysutils unit for AmigaOS & clones
 
     Based on Amiga 1.x version by Carl Eric Codere, and other
     parts of the RTL
+
+    AmigaOS and MorphOS support by Karoly Balogh
+    AROS support by Marcus Sackrow
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -54,7 +57,7 @@ uses dos,sysconst;
 {$i sysutils.inc}
 
 
-{ * Include MorphOS specific includes * }
+{ * Include sytem specific includes * }
 {$include execd.inc}
 {$include execf.inc}
 {$include timerd.inc}
@@ -70,7 +73,7 @@ function RemoveFromList(var l: Pointer; h: LongInt): boolean; external name 'REM
 function CheckInList(var l: Pointer; h: LongInt): pointer; external name 'CHECKINLIST';
 
 var
-  MOS_fileList: Pointer; external name 'AOS_FILELIST';
+  ASYS_FileList: Pointer; external name 'ASYS_FILELIST';
 
 
 function AmigaFileDateToDateTime(aDate: TDateStamp; out success: boolean): TDateTime;
@@ -134,7 +137,7 @@ begin
   if dosResult=0 then
     dosResult:=-1
   else
-    AddToList(MOS_fileList,dosResult);
+    AddToList(ASYS_fileList,dosResult);
 
   FileOpen:=dosResult;
 end;
@@ -211,7 +214,7 @@ begin
   if dosResult = 0 then exit;
 
   if SetFileSize(dosResult, 0, OFFSET_BEGINNING) = 0 then 
-    AddToList(MOS_fileList,dosResult)
+    AddToList(ASYS_fileList,dosResult)
   else begin
     dosClose(dosResult);
     dosResult:=-1;
@@ -279,7 +282,7 @@ begin
   if (Handle=0) or (Handle=-1) then exit;
 
   dosClose(Handle);
-  RemoveFromList(MOS_fileList,Handle);
+  RemoveFromList(ASYS_fileList,Handle);
 end;
 
 

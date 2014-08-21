@@ -14,19 +14,19 @@
  **********************************************************************}
 
 { Enable this for memory allocation debugging }
-{DEFINE MOSFPC_MEMDEBUG}
+{DEFINE ASYS_FPC_MEMDEBUG}
 
 {*****************************************************************************
       OS Memory allocation / deallocation
  ****************************************************************************}
 
 function SysOSAlloc(size: ptruint): pointer;
-{$IFDEF MOSFPC_MEMDEBUG}
+{$IFDEF ASYS_FPC_MEMDEBUG}
 var values: array[0..2] of dword;
 {$ENDIF}
 begin
   result:=AllocPooled(AOS_heapPool,size);
-{$IFDEF MOSFPC_MEMDEBUG}
+{$IFDEF ASYS_FPC_MEMDEBUG}
   values[0]:=dword(result);
   values[1]:=dword(size);
   values[2]:=DWord(Sptr-StackBottom);
@@ -37,12 +37,12 @@ end;
 {$define HAS_SYSOSFREE}
 
 procedure SysOSFree(p: pointer; size: ptruint);
-{$IFDEF MOSFPC_MEMDEBUG}
+{$IFDEF ASYS_FPC_MEMDEBUG}
 var values: array[0..2] of dword;
 {$ENDIF}
 begin
   FreePooled(AOS_heapPool,p,size);
-{$IFDEF MOSFPC_MEMDEBUG}
+{$IFDEF ASYS_FPC_MEMDEBUG}
   values[0]:=dword(p);
   values[1]:=dword(size);
   values[2]:=DWord(Sptr-StackBottom);

@@ -1,12 +1,14 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2004 by Karoly Balogh for Genesi S.a.r.l.
+    Copyright (c) 2014 by the Free Pascal development team
 
-    Heavily based on the Commodore Amiga/m68k RTL by Nils Sjoholm and
+    DOS unit for AmigaOS & clones
+
+    Heavily based on the 1.x Amiga version by Nils Sjoholm and
     Carl Eric Codere
 
-    MorphOS port was done on a free Pegasos II/G4 machine
-    provided by Genesi S.a.r.l. <www.genesi.lu>
+    AmigaOS and MorphOS support by Karoly Balogh
+    AROS support by Marcus Sackrow
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.

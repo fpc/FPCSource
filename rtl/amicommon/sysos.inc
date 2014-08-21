@@ -32,10 +32,6 @@
 
 {$include execf.inc}
 {$include doslibf.inc}
-{$IFDEF AMIGAOS4}
-  // Required to allow opening of utility library interface...
-  {$include utilf.inc}
-{$ENDIF}
 
 
 {*****************************************************************************
