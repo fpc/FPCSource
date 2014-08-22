@@ -896,8 +896,7 @@ implementation
                  else
                    begin
                      { Load VMT value in register }
-                     { todo: fix vmt type for high level cg }
-                     hlcg.location_force_reg(current_asmdata.CurrAsmList,methodpointer.location,proc_addr_voidptrdef,proc_addr_voidptrdef,false);
+                     hlcg.location_force_reg(current_asmdata.CurrAsmList,methodpointer.location,methodpointer.resultdef,methodpointer.resultdef,false);
                      vmtreg:=methodpointer.location.register;
                      { test validity of VMT }
                      if not(is_interface(tprocdef(procdefinition).struct)) and
