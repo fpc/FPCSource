@@ -1466,7 +1466,7 @@ type
       k := 0;
       if (hx < $00100000) then              { x < 2**-1022  }
       begin
-        if (((hx and $7fffffff) or lx)=0) then
+        if (((hx and $7fffffff) or longint(lx))=0) then
           exit(-two54/zero);                { log(+-0)=-inf }
         if (hx<0) then
           exit((d-d)/zero);                 { log(-#) = NaN }
