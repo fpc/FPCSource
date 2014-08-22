@@ -58,11 +58,12 @@ const
 
 var
   MOS_ExecBase   : Pointer; external name '_ExecBase';
-  MOS_DOSBase    : Pointer;
+  MOS_DOSBase    : Pointer; public name 'AOS_DOSBASE';
+  AOS_DOSBase    : Pointer; external name 'AOS_DOSBASE'; { common Amiga code compatibility kludge }
   MOS_UtilityBase: Pointer;
 
-  MOS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
-  MOS_origDir  : LongInt; { original directory on startup }
+  AOS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
+  AOS_origDir  : LongInt; { original directory on startup }
   MOS_ambMsg   : Pointer;
   MOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
   MOS_ConHandle: LongInt;
@@ -102,11 +103,11 @@ begin
   end;
 
   { Closing opened files }
-  CloseList(MOS_fileList);
+  CloseList(ASYS_fileList);
 
   { Changing back to original directory if changed }
-  if MOS_origDir<>0 then begin
-    CurrentDir(MOS_origDir);
+  if AOS_origDir<>0 then begin
+    CurrentDir(AOS_origDir);
   end;
 
   { Closing CON: when in Ambient mode }
@@ -114,7 +115,7 @@ begin
 
   if MOS_UtilityBase<>nil then CloseLibrary(MOS_UtilityBase);
   if MOS_DOSBase<>nil then CloseLibrary(MOS_DOSBase);
-  if MOS_heapPool<>nil then DeletePool(MOS_heapPool);
+  if AOS_heapPool<>nil then DeletePool(AOS_heapPool);
 
   { If in Ambient mode, replying WBMsg }
   if MOS_ambMsg<>nil then begin
@@ -357,8 +358,8 @@ begin
  if MOS_UtilityBase=nil then Halt(1);
 
  { Creating the memory pool for growing heap }
- MOS_heapPool:=CreatePool(MEMF_FAST,growheapsize2,growheapsize1);
- if MOS_heapPool=nil then Halt(1);
+ AOS_heapPool:=CreatePool(MEMF_FAST,growheapsize2,growheapsize1);
+ if AOS_heapPool=nil then Halt(1);
 
  if MOS_ambMsg=nil then begin
    MOS_ConHandle:=0;
@@ -404,8 +405,8 @@ begin
   StackBottom := Sptr - StackLength;
 { OS specific startup }
   MOS_ambMsg:=nil;
-  MOS_origDir:=0;
-  MOS_fileList:=nil;
+  AOS_origDir:=0;
+  ASYS_fileList:=nil;
   envp:=nil;
   SysInitMorphOS;
 { Set up signals handlers }

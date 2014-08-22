@@ -38,8 +38,8 @@ target=morphos
 cpu=powerpc
 
 [compiler]
-includedir=$(INC) $(PROCINC)
-sourcedir=$(INC) $(PROCINC) $(COMMON)
+includedir=$(INC) $(PROCINC) $(AMIINC)
+sourcedir=$(INC) $(PROCINC) $(AMIINC) $(COMMON)
 
 
 [prerules]
@@ -47,6 +47,7 @@ RTL=..
 INC=$(RTL)/inc
 COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
+AMIINC=$(RTL)/amicommon
 UNITPREFIX=rtl
 SYSTEMUNIT=system
 
@@ -121,11 +122,11 @@ dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
 
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
                     objpas$(PPUEXT) dos$(PPUEXT) sysconst$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
+        $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(AMIINC)/sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) rtlconsts$(PPUEXT) typinfo$(PPUEXT) types$(PPUEXT) fgl$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
+        $(COMPILER) -Fi$(OBJPASDIR)/classes $(AMIINC)/classes.pp
 
 fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fgl.pp
