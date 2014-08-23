@@ -618,28 +618,30 @@ end;
 var
   StrOfPaths: String;
 
+function SystemTags(const command: PChar; const tags: array of DWord): LongInt;
+begin
+  SystemTags:=SystemTagList(command,@tags);
+end;
+
 function GetPathString: String;
 var
    f : text;
    s : string;
-   tmpBat: string;
-   tmpList: string;
 begin
    s := '';
    result := '';
 
-   tmpBat:='T:'+HexStr(FindTask(nil));
-   tmpList:=tmpBat+'_path.tmp';
-   tmpBat:=tmpBat+'_path.sh';
-
-   assign(f,tmpBat);
+   { Alternatively, this could use PIPE: handler on systems which
+     have this by default (not the case on classic Amiga), but then
+     the child process should be started async, which for a simple 
+     Path command probably isn't worth the trouble. (KB) }
+   assign(f,'T:'+HexStr(FindTask(nil))+'_path.tmp');
    rewrite(f);
-   writeln(f,'path >'+tmpList);
+   { This is a pretty ugly stunt, combining Pascal and Amiga system
+     functions, but works... }
+   SystemTags('C:Path',[SYS_Input, 0, SYS_Output, TextRec(f).Handle, TAG_END]);
    close(f);
-   exec('C:Execute',tmpBat);
-   erase(f);
 
-   assign(f,tmpList);
    reset(f);
    { skip the first line, garbage }
    if not eof(f) then readln(f,s);
@@ -647,7 +649,7 @@ begin
       readln(f,s);
       if result = '' then
         result := s
-      else 
+      else
         result := result + ';' + s;
    end;
    close(f);
