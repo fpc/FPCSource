@@ -2579,21 +2579,19 @@ TYPE
        ['{7FD52380-4E07-101B-AE2D-08002B2EC713}']
        Function IsDirty:HResult;StdCall;
        Function Load(pstm:IStream):HResult;StdCall;
-       Function Save(pstm:IStream;fClearDirty:Integer):HResult;StdCall;
+       Function Save(pstm:IStream;fClearDirty:Bool):HResult;StdCall;
        Function GetSizeMax(out pCbSize:_ULARGE_INTEGER):HResult;StdCall;
        Function InitNew:HResult;StdCall;
        End;
-       // IPersistMemory :
 
      IPersistMemory = interface(IPersist)
        ['{BD1AE5E0-A6AE-11CE-BD37-504200C10000}']
        function IsDirty:HResult;StdCall;
        function Load(var pMem:pointer;cbSize:LongWord):HResult;StdCall;
-       function Save(out pMem:pointer;fClearDirty:Integer;cbSize:LongWord):HResult;StdCall;
+       function Save(out pMem:pointer;fClearDirty:Bool;cbSize:LongWord):HResult;StdCall;
        function GetSizeMax(out pCbSize:LongWord):HResult;StdCall;
        function InitNew:HResult;StdCall;
       end;
-
 
 
     PIMoniker = ^IMoniker;
@@ -3536,7 +3534,7 @@ TYPE
      ['{37D84F60-42CB-11CE-8135-00AA004BB851}']
      function InitNew:HResult;stdcall;
      function Load(pPropBag:IPropertyBag;pErrorLog:IErrorLog):HResult;stdcall;
-     function Save(pPropBag:IPropertyBag;fClearDirty:Integer;fSaveAllProperties:Integer):HResult;stdcall;
+     function Save(pPropBag:IPropertyBag;fClearDirty:Bool;fSaveAllProperties:Bool):HResult;stdcall;
      end;
 
    IEnumGUID = interface(IUnknown)
@@ -3620,7 +3618,6 @@ type
    function GetMultiTypeInfoCount(out pcti:LongWord):HResult; StdCall;
    function GetInfoOfIndex(iti:LongWord;dwFlags:LongWord;out pptiCoClass:ITypeInfo;out pdwTIFlags:LongWord;out pcdispidReserved:LongWord;out piidPrimary:GUID;out piidSource:GUID):HResult; StdCall;
   end;
-  // IOleControl :
 
  IOleControl = interface(IUnknown)
    ['{B196B288-BAB4-101A-B69C-00AA00341D07}']
@@ -3629,8 +3626,6 @@ type
    function OnAmbientPropertyChange(dispID:Integer):HRESULT;stdcall;
    function FreezeEvents(bFreeze:Integer):HRESULT;stdcall;
   end;
-
-// IOleControlSite :
 
  IOleControlSite = interface(IUnknown)
    ['{B196B289-BAB4-101A-B69C-00AA00341D07}']
@@ -3643,8 +3638,6 @@ type
    function ShowPropertyFrame:HRESULT;stdcall;
   end;
 
-// IPerPropertyBrowsing :
-
   IPerPropertyBrowsing = interface(IUnknown)
   ['{376BD3AA-3845-101B-84ED-08002B2EC713}']
   function GetDisplayString(dispID:Integer;out pBstr:WideString):HRESULT;stdcall;
@@ -3652,8 +3645,6 @@ type
   function GetPredefinedStrings(dispID:Integer;out pCaStringsOut:tagCALPOLESTR;out pCaCookiesOut:tagCADWORD):HRESULT;stdcall;
   function GetPredefinedValue(dispID:Integer;dwCookie:LongWord;out pVarOut:OleVariant):HRESULT;stdcall;
  end;
-
-// IPropertyPage :
 
  IPropertyPageSite = interface;
 
@@ -3672,8 +3663,6 @@ type
    function TranslateAccelerator(var pMsg:tagMSG):HRESULT;stdcall;
   end;
 
-// IPropertyPageSite :
-
  IPropertyPageSite = interface(IUnknown)
    ['{B196B28C-BAB4-101A-B69C-00AA00341D07}']
    function OnStatusChange(dwFlags:LongWord):HRESULT;stdcall;
@@ -3682,14 +3671,10 @@ type
    function TranslateAccelerator(var pMsg:tagMSG):HRESULT;stdcall;
   end;
 
-// IPropertyPage2 :
-
  IPropertyPage2 = interface(IPropertyPage)
    ['{01E44665-24AC-101B-84ED-08002B2EC713}']
    function EditProperty(dispID:Integer):HRESULT;stdcall;
   end;
-
-// IPropertyNotifySink :
 
  IPropertyNotifySink = interface(IUnknown)
    ['{9BFBBC02-EFF1-101A-84ED-00AA00341D07}']
@@ -3697,22 +3682,16 @@ type
    function OnRequestEdit(dispID:Integer):HRESULT;stdcall;
   end;
 
-  // ISpecifyPropertyPages :
-
  ISpecifyPropertyPages = interface(IUnknown)
    ['{B196B28B-BAB4-101A-B69C-00AA00341D07}']
    function GetPages(out pPages:tagCAUUID):HRESULT;stdcall;
   end;
-
-// ISimpleFrameSite :
 
  ISimpleFrameSite = interface(IUnknown)
    ['{742B0E01-14E6-101B-914E-00AA00300CAB}']
    function PreMessageFilter(hwnd:wireHWND;msg:UInt;wp:UINT_PTR;lp:LONG_PTR;out plResult:LONG_PTR;out pdwCookie:LongWord):HRESULT;stdcall;
    function PostMessageFilter(hwnd:wireHWND;msg:UInt;wp:UINT_PTR;lp:LONG_PTR;out plResult:LONG_PTR;dwCookie:LongWord):HRESULT;stdcall;
   end;
-
-// IFont :
 
  IFont = interface(IUnknown)
    ['{BEF6E002-A874-101A-8BBA-00AA00300CAB}']
@@ -3741,8 +3720,6 @@ type
    function ReleaseHfont(hFont:wireHFONT):HRESULT;stdcall;
    function SetHdc(hDC:wireHDC):HRESULT;stdcall;
   end;
-
-// IPicture :
 
  IPicture = interface(IUnknown)
    ['{7BF80980-BF32-101A-8BBB-00AA00300CAB}']
@@ -3780,14 +3757,9 @@ type
    function get_Attributes(out pDwAttr:LongWord):HRESULT;stdcall;
   end;
 
-
-// IFontDisp :
-
  IFontDisp = interface(IDispatch)
    ['{BEF6E003-A874-101A-8BBA-00AA00300CAB}']
   end;
-
-// IPictureDisp :
 
  IPictureDisp = interface(IDispatch)
    ['{7BF80981-BF32-101A-8BBB-00AA00300CAB}']
