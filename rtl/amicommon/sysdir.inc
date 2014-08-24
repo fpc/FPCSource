@@ -84,16 +84,19 @@ begin
 end;
 
 procedure do_GetDir (DriveNr: byte; var Dir: RawByteString);
-var tmpbuf: array[0..255] of char;
+var
+  tmpbuf: array[0..255] of char;
+  lockDir: LongInt;
 begin
   checkCTRLC;
-  Dir:='';
+  Dir := '';
 
-  if not GetCurrentDirName(tmpbuf,256) then
-    dosError2InOut(IoErr)
-  else
-    begin
-      Dir:=tmpbuf;
-      SetCodePage(Dir,DefaultFileSystemCodePage,false);
-    end;
+  { dos.library's GetCurrentDirName() doesn't work when called from
+    Workbench (ie. when the process has no CLI sructure) }
+  { it also doesn't seem to work when invoked from make on AROS }
+  LockDir := CurrentDir(0);
+  NameFromLock(LockDir, tmpBuf, 256);
+  CurrentDir(LockDir);
+  Dir := tmpBuf;
+  SetCodePage(Dir,DefaultSystemCodePage,false);
 end;
