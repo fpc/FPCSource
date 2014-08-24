@@ -178,7 +178,7 @@
                   p := TinyHeapBlocks;
                   prev := nil;
 
-                  while assigned(p) and (p^.Size < size) do
+                  while assigned(p) and (TTinyHeapPointerArithmeticType(p) < TTinyHeapPointerArithmeticType(b)) do
                     begin
                       prev := p;
                       p := p^.Next;
