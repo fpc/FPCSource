@@ -273,7 +273,7 @@ begin
     if dosResult<0 then begin
       dosError2InOut(IoErr);
     end else begin
-      do_seekend:=dosResult;
+      do_seekend:=dosSeek(handle,0,OFFSET_CURRENT);
     end;
   end;
 end;
@@ -286,8 +286,6 @@ begin
   if CheckInList(ASYS_fileList,handle)<>nil then begin
 
     currfilepos:=do_filepos(handle);
-    { We have to do this twice, because seek returns the OLD position }
-    do_filesize:=do_seekend(handle);
     do_filesize:=do_seekend(handle);
     do_seek(handle,currfilepos);
 

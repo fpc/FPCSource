@@ -267,7 +267,10 @@ begin
     fsFromEnd      : seekMode:=OFFSET_END;
   end;
 
-  FileSeek:=dosSeek(Handle, FOffset, seekMode);
+  dosSeek(Handle, FOffset, seekMode);
+  { get the current position when FileSeek ends, which should return 
+    the *NEW* position, while Amiga Seek() returns the old one }
+  FileSeek:=dosSeek(Handle, 0, OFFSET_CURRENT);
 end;
 
 function FileSeek(Handle: LongInt; FOffset: Int64; Origin: Longint): Int64;
