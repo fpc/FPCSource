@@ -71,6 +71,7 @@
   add_lua(ADirectory+IncludeTrailingPathDelimiter('lua'));
   add_mad(ADirectory+IncludeTrailingPathDelimiter('mad'));
   add_modplug(ADirectory+IncludeTrailingPathDelimiter('modplug'));
+  add_morphunits(ADirectory+IncludeTrailingPathDelimiter('morphunits'));
   add_mysql(ADirectory+IncludeTrailingPathDelimiter('mysql'));
   add_ncurses(ADirectory+IncludeTrailingPathDelimiter('ncurses'));
   add_newt(ADirectory+IncludeTrailingPathDelimiter('newt'));

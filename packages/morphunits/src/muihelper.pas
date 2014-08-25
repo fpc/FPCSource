@@ -23,7 +23,7 @@ unit muihelper;
 
 interface
 
-uses intuition, mui, doslib, utility;
+uses intuition, mui, amigados, utility;
 
 
 const

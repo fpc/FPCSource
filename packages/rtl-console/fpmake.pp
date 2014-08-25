@@ -44,6 +44,7 @@ begin
     P.Description := 'Rtl-console, console abstraction';
     P.NeedLibC:= false;
     P.Dependencies.Add('rtl-extra'); // linux,android gpm.
+    P.Dependencies.Add('morphunits',[morphos]);
 
     P.SourcePath.Add('src/inc');
     P.SourcePath.Add('src/$(OS)');

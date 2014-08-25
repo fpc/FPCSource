@@ -20,7 +20,7 @@
  **********************************************************************}
 {$PACKRECORDS 2}
 
-unit graphics;
+unit agraphics;
 
 interface
 

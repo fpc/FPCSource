@@ -24,7 +24,7 @@ unit layers;
 
 interface
 
-uses exec, graphics, utility;
+uses exec, agraphics, utility;
 
 const
   LAYERSIMPLE         = 1;

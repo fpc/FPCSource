@@ -24,8 +24,8 @@ unit datatypes;
 
 interface
 
-uses exec, doslib, intuition, utility,
-     graphics{, iffparse, amigaprinter, prtbase};
+uses exec, amigados, intuition, utility,
+     agraphics{, iffparse, amigaprinter, prtbase};
 
 const
 {***************************************************************************}

@@ -416,6 +416,12 @@ begin
 {$include modplug/fpmake.pp}
 end;
 
+procedure add_morphunits(const ADirectory: string);
+begin
+  with Installer do
+{$include morphunits/fpmake.pp}
+end;
+
 procedure add_mysql(const ADirectory: string);
 begin
   with Installer do

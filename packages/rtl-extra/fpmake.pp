@@ -52,6 +52,7 @@ begin
     P.Email := '';
     P.Description := 'Rtl-extra, RTL not needed for bootstrapping';
     P.NeedLibC:= false;
+    P.Dependencies.Add('morphunits',[morphos]);
 
     P.SourcePath.Add('src/inc');
     P.SourcePath.Add('src/$(OS)');

@@ -37,7 +37,7 @@ var
 implementation
 
 uses
-   exec, graphics;
+   exec, agraphics;
 
 {$i video.inc}
 

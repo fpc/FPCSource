@@ -19,7 +19,7 @@ unit kvm;
 interface
 
 uses
-  exec, intuition, graphics;
+  exec, intuition, agraphics;
 
 
 function initKVM: boolean;

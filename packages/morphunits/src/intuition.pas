@@ -25,7 +25,7 @@ unit intuition;
 interface
 
 uses
-  exec, graphics, utility, inputevent, timer, layers;
+  exec, agraphics, utility, inputevent, timer, layers;
 
 
 {

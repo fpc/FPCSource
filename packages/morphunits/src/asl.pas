@@ -24,7 +24,7 @@ unit asl;
 
 interface
 
-uses exec, utility, {workbench,} graphics;
+uses exec, utility, {workbench,} agraphics;
 
 
 {************************************************************************}

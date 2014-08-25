@@ -22,6 +22,7 @@ begin
     P.Dependencies.Add('x11',AllUnixOSes-[darwin,iphonesim]);
     if Defaults.CPU<>arm then
       P.Dependencies.Add('x11',[darwin]);
+    P.Dependencies.Add('morphunits',[morphos]);
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

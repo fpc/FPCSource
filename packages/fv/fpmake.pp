@@ -29,6 +29,7 @@ begin
     P.IncludePath.Add('src');
     P.Dependencies.add('rtl-console');
     P.Dependencies.add('rtl-extra');
+    P.Dependencies.add('morphunits',[morphos]);
 
     T:=P.Targets.AddUnit('app.pas');
       with T.Dependencies do
