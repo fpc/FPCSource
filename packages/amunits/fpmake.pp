@@ -49,6 +49,7 @@ begin
     T:=P.Targets.AddUnit('timerutils.pas');
     T:=P.Targets.AddUnit('easyasl.pas');
     T:=P.Targets.AddUnit('doublebuffer.pas');
+    T:=P.Targets.AddUnit('exec.pas');
     T:=P.Targets.AddUnit('intuition.pas');
     T:=P.Targets.AddUnit('graphics.pas');
     T:=P.Targets.AddUnit('amigalib.pas');
