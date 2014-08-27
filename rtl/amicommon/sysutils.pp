@@ -568,8 +568,10 @@ end;
 Procedure GetLocalTime(var SystemTime: TSystemTime);
 var
  dayOfWeek: word;
+ Sec100: Word;
 begin
-  dos.GetTime(SystemTime.Hour, SystemTime.Minute, SystemTime.Second,SystemTime.Millisecond);
+  dos.GetTime(SystemTime.Hour, SystemTime.Minute, SystemTime.Second, Sec100);
+  SystemTime.Millisecond := Sec100 * 10;
   dos.GetDate(SystemTime.Year, SystemTime.Month, SystemTime.Day, DayOfWeek);
 end;
 
