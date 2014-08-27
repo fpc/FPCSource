@@ -1827,9 +1827,13 @@ implementation
         {No register, so memory reference.}
         if (input.typ<>top_ref) then
           internalerror(200409262);
-        if ((input.ref^.index<>NR_NO) and (getregtype(input.ref^.index)<>R_INTREGISTER)) or
+
+        if ((input.ref^.index<>NR_NO) and (getregtype(input.ref^.index)=R_MMREGISTER) and (input.ref^.base<>NR_NO) and (getregtype(input.ref^.base)<>R_INTREGISTER)) or // vector memory (AVX2)
+           ((input.ref^.index<>NR_NO) and (getregtype(input.ref^.index)<>R_INTREGISTER) and (getregtype(input.ref^.index)<>R_MMREGISTER)) or
            ((input.ref^.base<>NR_NO) and (getregtype(input.ref^.base)<>R_INTREGISTER)) then
-          internalerror(200301081);
+         internalerror(200301081);
+
+
         ir:=input.ref^.index;
         br:=input.ref^.base;
         isub:=getsubreg(ir);
@@ -1849,8 +1853,15 @@ implementation
         { it's an indirection }
          begin
            { 16 bit address? }
-           if ((ir<>NR_NO) and (isub<>R_SUBADDR)) or
-              ((br<>NR_NO) and (bsub<>R_SUBADDR)) then
+
+           if ((ir<>NR_NO) and (isub in [R_SUBMMX,R_SUBMMY]) and
+               (br<>NR_NO) and (bsub=R_SUBADDR)
+              ) then
+           begin
+             // vector memory (AVX2) =>> ignore
+           end
+           else if ((ir<>NR_NO) and (isub<>R_SUBADDR)) or
+                   ((br<>NR_NO) and (bsub<>R_SUBADDR)) then
              message(asmw_e_16bit_not_supported);
 {$ifdef OPTEA}
            { make single reg base }
@@ -1893,14 +1904,30 @@ implementation
            end;
            { index }
            case ir of
-             NR_EAX : index:=0;
-             NR_ECX : index:=1;
-             NR_EDX : index:=2;
-             NR_EBX : index:=3;
-             NR_NO  : index:=4;
-             NR_EBP : index:=5;
-             NR_ESI : index:=6;
-             NR_EDI : index:=7;
+             NR_EAX,
+             NR_XMM0,
+             NR_YMM0: index:=0;
+             NR_ECX,
+             NR_XMM1,
+             NR_YMM1: index:=1;
+             NR_EDX,
+             NR_XMM2,
+             NR_YMM2: index:=2;
+             NR_EBX,
+             NR_XMM3,
+             NR_YMM3: index:=3;
+             NR_NO,
+             NR_XMM4,
+             NR_YMM4: index:=4;
+             NR_EBP,
+             NR_XMM5,
+             NR_YMM5: index:=5;
+             NR_ESI,
+             NR_XMM6,
+             NR_YMM6: index:=6;
+             NR_EDI,
+             NR_XMM7,
+             NR_YMM7: index:=7;
            else
              exit;
            end;
