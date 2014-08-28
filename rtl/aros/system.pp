@@ -65,7 +65,7 @@ var
   AOS_UtilityBase: Pointer;
   
 
-  AOS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
+  ASYS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
   AOS_origDir  : LongInt; { original directory on startup }
   AOS_wbMsg    : Pointer;
   AOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
@@ -130,10 +130,10 @@ begin
   end;
   if AOS_UtilityBase <> nil then
     CloseLibrary(AOS_UtilityBase);
-  if AOS_heapPool <> nil then
-    DeletePool(AOS_heapPool);
+  if ASYS_heapPool <> nil then
+    DeletePool(ASYS_heapPool);
   AOS_UtilityBase := nil;
-  AOS_HeapPool := nil;
+  ASYS_HeapPool := nil;
   //
   if AOS_DOSBase<>nil then
     CloseLibrary(AOS_DOSBase);
@@ -398,8 +398,8 @@ begin
     AOS_ThreadBase := OpenLibrary('thread.library', 0);
     
   { Creating the memory pool for growing heap }
-  AOS_heapPool := CreatePool(MEMF_ANY or MEMF_SEM_PROTECTED, growheapsize2, growheapsize1);
-  if AOS_heapPool = nil then
+  ASYS_heapPool := CreatePool(MEMF_ANY or MEMF_SEM_PROTECTED, growheapsize2, growheapsize1);
+  if ASYS_heapPool = nil then
     Halt(1);
   
   if AOS_wbMsg = nil then begin

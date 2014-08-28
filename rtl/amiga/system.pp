@@ -77,7 +77,7 @@ var
   IUtility : Pointer;
 {$ENDIF}
 
-  AOS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
+  ASYS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
   AOS_origDir  : LongInt; { original directory on startup }
   AOS_wbMsg    : Pointer; public name '_WBenchMsg'; { the "public" part is amunits compatibility kludge }
   _WBenchMsg   : Pointer; external name '_WBenchMsg'; { amunits compatibility kludge }
@@ -157,7 +157,7 @@ begin
   if AOS_IntuitionBase<>nil then CloseLibrary(AOS_IntuitionBase); { amunits kludge }
   if AOS_UtilityBase<>nil then CloseLibrary(AOS_UtilityBase);
   if AOS_DOSBase<>nil then CloseLibrary(AOS_DOSBase);
-  if AOS_heapPool<>nil then DeletePool(AOS_heapPool);
+  if ASYS_heapPool<>nil then DeletePool(ASYS_heapPool);
 
   { If in Workbench mode, replying WBMsg }
   if AOS_wbMsg<>nil then begin
@@ -343,8 +343,8 @@ begin
 {$ENDIF}
 
   { Creating the memory pool for growing heap }
-  AOS_heapPool:=CreatePool(MEMF_FAST,growheapsize2,growheapsize1);
-  if AOS_heapPool=nil then Halt(1);
+  ASYS_heapPool:=CreatePool(MEMF_FAST,growheapsize2,growheapsize1);
+  if ASYS_heapPool=nil then Halt(1);
 
   if AOS_wbMsg=nil then begin
     StdInputHandle:=dosInput;

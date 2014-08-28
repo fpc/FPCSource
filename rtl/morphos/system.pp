@@ -62,7 +62,7 @@ var
   AOS_DOSBase    : Pointer; external name 'AOS_DOSBASE'; { common Amiga code compatibility kludge }
   MOS_UtilityBase: Pointer;
 
-  AOS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
+  ASYS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
   AOS_origDir  : LongInt; { original directory on startup }
   MOS_ambMsg   : Pointer;
   MOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
@@ -115,7 +115,7 @@ begin
 
   if MOS_UtilityBase<>nil then CloseLibrary(MOS_UtilityBase);
   if MOS_DOSBase<>nil then CloseLibrary(MOS_DOSBase);
-  if AOS_heapPool<>nil then DeletePool(AOS_heapPool);
+  if ASYS_heapPool<>nil then DeletePool(ASYS_heapPool);
 
   { If in Ambient mode, replying WBMsg }
   if MOS_ambMsg<>nil then begin
@@ -358,8 +358,8 @@ begin
  if MOS_UtilityBase=nil then Halt(1);
 
  { Creating the memory pool for growing heap }
- AOS_heapPool:=CreatePool(MEMF_FAST,growheapsize2,growheapsize1);
- if AOS_heapPool=nil then Halt(1);
+ ASYS_heapPool:=CreatePool(MEMF_FAST,growheapsize2,growheapsize1);
+ if ASYS_heapPool=nil then Halt(1);
 
  if MOS_ambMsg=nil then begin
    MOS_ConHandle:=0;

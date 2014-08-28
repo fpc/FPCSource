@@ -25,7 +25,7 @@ function SysOSAlloc(size: ptruint): pointer;
 var values: array[0..2] of dword;
 {$ENDIF}
 begin
-  result:=AllocPooled(AOS_heapPool,size);
+  result:=AllocPooled(ASYS_heapPool,size);
 {$IFDEF ASYS_FPC_MEMDEBUG}
   values[0]:=dword(result);
   values[1]:=dword(size);
@@ -41,7 +41,7 @@ procedure SysOSFree(p: pointer; size: ptruint);
 var values: array[0..2] of dword;
 {$ENDIF}
 begin
-  FreePooled(AOS_heapPool,p,size);
+  FreePooled(ASYS_heapPool,p,size);
 {$IFDEF ASYS_FPC_MEMDEBUG}
   values[0]:=dword(p);
   values[1]:=dword(size);
