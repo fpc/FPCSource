@@ -1479,11 +1479,10 @@ begin
   If CheckRange(AValue) then
     SetData(@AValue)
   else
-    begin
-    if FMinValue<>0 then Min:=FMinValue else Min:=FMinRange;
-    if FMaxValue<>0 then Max:=FMaxValue else Max:=FMaxRange;
-    RangeError(AValue,Min,Max);
-    end;
+    if (FMinValue<>0) or (FMaxValue<>0) then
+      RangeError(AValue,FMinValue,FMaxValue)
+    else
+      RangeError(AValue,FMinRange,FMaxRange);
 end;
 
 procedure TLongintField.SetVarValue(const AValue: Variant);
@@ -1511,15 +1510,10 @@ end;
 Function TLongintField.CheckRange(AValue : longint) : Boolean;
 
 begin
-  if FMaxValue = 0 then
-    Result := AValue<=FMaxRange
+  if (FMinValue<>0) or (FMaxValue<>0) then
+    Result := (AValue>=FMinValue) and (AValue<=FMaxValue)
   else
-    Result := AValue<=FMaxValue;
-
-  if FMinValue = 0 then
-    Result := Result and (AValue>=FMinRange)
-  else
-    Result := Result and (AValue>=FMinValue);
+    Result := (AValue>=FMinRange) and (AValue<=FMaxRange);
 end;
 
 Procedure TLongintField.SetMaxValue (AValue : longint);
@@ -1644,7 +1638,7 @@ begin
   If CheckRange(AValue) then
     SetData(@AValue)
   else
-    RangeError(AValue,FMinRange,FMaxRange);
+    RangeError(AValue,FMinValue,FMaxValue);
 end;
 
 procedure TLargeintField.SetAsInteger(AValue: Longint);
@@ -1679,15 +1673,10 @@ end;
 Function TLargeintField.CheckRange(AValue : largeint) : Boolean;
 
 begin
-  if FMaxValue = 0 then
-    Result := AValue<=FMaxRange
+  if (FMinValue<>0) or (FMaxValue<>0) then
+    Result := (AValue>=FMinValue) and (AValue<=FMaxValue)
   else
-    Result := AValue<=FMaxValue;
-
-  if FMinValue = 0 then
-    Result := Result and (AValue>=FMinRange)
-  else
-    Result := Result and (AValue>=FMinValue);
+    Result := (AValue>=FMinRange) and (AValue<=FMaxRange);
 end;
 
 Procedure TLargeintField.SetMaxValue (AValue : largeint);
@@ -2498,7 +2487,7 @@ procedure TBCDField.SetAsCurrency(AValue: Currency);
 
 begin
   If CheckRange(AValue) then
-    setdata(@AValue)
+    SetData(@AValue)
   else
     RangeError(AValue,FMinValue,FMaxValue);
 end;
