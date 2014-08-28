@@ -33,7 +33,14 @@
 
       { TTinyHeapFreeBlockSize holds the size of a *free* memory block, as a
         part of the TTinyHeapBlock structure }
+{$ifdef FPC_HEAP_HUGE}
+      TTinyHeapFreeBlockSize = record
+        OfsSize: Word;
+        SegSize: Word;
+      end;
+{$else FPC_HEAP_HUGE}
       TTinyHeapFreeBlockSize = PtrUInt;
+{$endif FPC_HEAP_HUGE}
 
       TTinyHeapPointerArithmeticType = ^Byte; {$ifdef FPC_HEAP_HUGE}huge;{$endif}
 
@@ -51,7 +58,26 @@
     var
       TinyHeapBlocks: PTinyHeapBlock = nil;
 
-    procedure InternalTinyFreeMem(Addr: Pointer; Size: TTinyHeapFreeBlockSize); forward;
+    function EncodeTinyHeapFreeBlockSize(Size: PtrUInt): TTinyHeapFreeBlockSize; inline;
+      begin
+{$ifdef FPC_HEAP_HUGE}
+        EncodeTinyHeapFreeBlockSize.OfsSize := Size and 15;
+        EncodeTinyHeapFreeBlockSize.SegSize := Size shr 4;
+{$else FPC_HEAP_HUGE}
+        EncodeTinyHeapFreeBlockSize := Size;
+{$endif FPC_HEAP_HUGE}
+      end;
+
+    function DecodeTinyHeapFreeBlockSize(Size: TTinyHeapFreeBlockSize): PtrUInt; inline;
+      begin
+{$ifdef FPC_HEAP_HUGE}
+        DecodeTinyHeapFreeBlockSize := (PtrUInt(Size.SegSize) shl 4) + Size.OfsSize;
+{$else FPC_HEAP_HUGE}
+        DecodeTinyHeapFreeBlockSize := Size;
+{$endif FPC_HEAP_HUGE}
+      end;
+
+    procedure InternalTinyFreeMem(Addr: Pointer; Size: PtrUInt); forward;
 
     function FindSize(p: pointer): TTinyHeapMemBlockSize;
       begin
@@ -70,7 +96,7 @@
 
         p := TinyHeapBlocks;
         prev := nil;
-        while assigned(p) and (p^.Size < AllocSize) do
+        while assigned(p) and (DecodeTinyHeapFreeBlockSize(p^.Size) < AllocSize) do
           begin
             prev := p;
             p := p^.Next;
@@ -80,11 +106,11 @@
           begin
             result := @PTinyHeapMemBlockSize(p)[1];
 
-            if p^.Size-AllocSize >= TinyHeapMinBlock then
-              RestSize := p^.Size-AllocSize
+            if DecodeTinyHeapFreeBlockSize(p^.Size)-AllocSize >= TinyHeapMinBlock then
+              RestSize := DecodeTinyHeapFreeBlockSize(p^.Size)-AllocSize
             else
               begin
-                AllocSize := p^.Size;
+                AllocSize := DecodeTinyHeapFreeBlockSize(p^.Size);
                 RestSize := 0;
               end;
 
@@ -124,7 +150,7 @@
           end;
       end;
 
-    procedure InternalTinyFreeMem(Addr: Pointer; Size: TTinyHeapFreeBlockSize);
+    procedure InternalTinyFreeMem(Addr: Pointer; Size: PtrUInt);
       var 
         b, p, prev: PTinyHeapBlock;
         EndAddr: Pointer;
@@ -135,7 +161,7 @@
           b := addr;
 
           b^.Next := TinyHeapBlocks;
-          b^.Size := Size;
+          b^.Size := EncodeTinyHeapFreeBlockSize(Size);
           EndAddr := pointer(TTinyHeapPointerArithmeticType(addr)+size);
 
           if TinyHeapBlocks = nil then
@@ -147,10 +173,10 @@
 
               while assigned(p) do
                 begin
-                  if (TTinyHeapPointerArithmeticType(p)+p^.Size) = TTinyHeapPointerArithmeticType(Addr) then
+                  if (TTinyHeapPointerArithmeticType(p)+DecodeTinyHeapFreeBlockSize(p^.Size)) = TTinyHeapPointerArithmeticType(Addr) then
                     begin
                       addr:=p;
-                      size:=p^.size+size;
+                      size:=DecodeTinyHeapFreeBlockSize(p^.size)+size;
                       if prev = nil then
                         TinyHeapBlocks:=p^.next
                       else
@@ -160,7 +186,7 @@
                     end
                   else if p = EndAddr then
                     begin
-                      size:=p^.size+size;
+                      size:=DecodeTinyHeapFreeBlockSize(p^.size)+size;
                       if prev = nil then
                         TinyHeapBlocks:=p^.next
                       else
