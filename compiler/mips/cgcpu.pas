@@ -1071,7 +1071,28 @@ end;
 
 
 procedure TCGMIPS.a_jmp_flags(list: tasmlist; const f: TResFlags; l: tasmlabel);
+  var
+    ai: taicpu;
   begin
+    case f.reg1 of
+      NR_FCC0..NR_FCC7:
+        begin
+          if (f.reg1=NR_FCC0) then
+            ai:=taicpu.op_sym(A_BC,l)
+          else
+            ai:=taicpu.op_reg_sym(A_BC,f.reg1,l);
+          list.concat(ai);
+          { delay slot }
+          list.concat(taicpu.op_none(A_NOP));
+          case f.cond of
+            OC_NE: ai.SetCondition(C_COP1TRUE);
+            OC_EQ: ai.SetCondition(C_COP1FALSE);
+          else
+            InternalError(2014082901);
+          end;
+          exit;
+        end;
+    end;
     if f.use_const then
       a_cmp_const_reg_label(list,OS_INT,f.cond,f.value,f.reg1,l)
     else
@@ -1083,7 +1104,33 @@ procedure TCGMIPS.g_flags2reg(list: tasmlist; size: tcgsize; const f: tresflags;
   var
     left,right: tregister;
     unsigned: boolean;
+    hl: tasmlabel;
   begin
+    case f.reg1 of
+      NR_FCC0..NR_FCC7:
+        begin
+          if (current_settings.cputype>=cpu_mips4) then
+            begin
+              a_load_const_reg(list,size,1,reg);
+              case f.cond of
+                OC_NE: list.concat(taicpu.op_reg_reg_reg(A_MOVF,reg,NR_R0,f.reg1));
+                OC_EQ: list.concat(taicpu.op_reg_reg_reg(A_MOVT,reg,NR_R0,f.reg1));
+              else
+                InternalError(2014082902);
+              end;
+            end
+          else
+            begin
+              { TODO: still possible to do branchless by extracting appropriate bit from FCSR? }
+              current_asmdata.getjumplabel(hl);
+              a_load_const_reg(list,size,1,reg);
+              a_jmp_flags(list,f,hl);
+              a_load_const_reg(list,size,0,reg);
+              a_label(list,hl);
+            end;
+          exit;
+        end;
+    end;
     if (f.cond in [OC_EQ,OC_NE]) then
       begin
         left:=reg;

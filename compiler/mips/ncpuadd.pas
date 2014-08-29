@@ -46,7 +46,6 @@ type
     procedure second_cmpordinal; override;
     procedure second_addordinal; override;
   public
-    function pass_1: tnode; override;
     function use_generic_mul32to64: boolean; override;
   end;
 
@@ -185,21 +184,6 @@ begin
 end;
 
 
-function tmipsaddnode.pass_1 : tnode;
-  begin
-    result:=inherited pass_1;
-
-    if not(assigned(result)) then
-      begin
-        if (nodetype in [ltn,lten,gtn,gten,equaln,unequaln]) then
-          begin
-            if (left.resultdef.typ=floatdef) or (right.resultdef.typ=floatdef) then
-              expectloc:=LOC_JUMP;
-          end;
-      end;
-  end;
-
-
 procedure tmipsaddnode.second_addfloat;
 var
   op: TAsmOp;
@@ -273,7 +257,7 @@ begin
 
   hlcg.location_force_fpureg(current_asmdata.CurrAsmList, left.location, left.resultdef, True);
   hlcg.location_force_fpureg(current_asmdata.CurrAsmList, right.location, right.resultdef, True);
-  location_reset(location, LOC_JUMP, OS_NO);
+  location_reset(location, LOC_FLAGS, OS_NO);
 
   op:=ops_cmpfloat[left.location.size=OS_F64,nodetype];
 
@@ -289,14 +273,11 @@ begin
     end;
 
   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,lreg,rreg));
-  ai:=taicpu.op_sym(A_BC,current_procinfo.CurrTrueLabel);
+  location.resflags.reg1:=NR_FCC0;
   if (nodetype=unequaln) then
-    ai.SetCondition(C_COP1FALSE)
+    location.resflags.cond:=OC_EQ
   else
-    ai.SetCondition(C_COP1TRUE);
-  current_asmdata.CurrAsmList.concat(ai);
-  current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
-  cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+    location.resflags.cond:=OC_NE;
 end;
 
 
