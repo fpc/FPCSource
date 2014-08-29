@@ -308,6 +308,12 @@ unit rgcpu;
                    (get_alias(getsupreg(oper[0]^.reg))=orgreg) and
                    (get_alias(getsupreg(oper[1]^.reg))<>orgreg) then
                   begin
+                    { do not replace if we're on Thumb, the offset is too
+                      large and the stack pointer reg would be the store source }
+                    if GenerateThumbCode and
+                       (oper[1]^.reg = NR_STACK_POINTER_REG) and
+                       (abs(spilltemp.offset) > 63) then exit;
+
                     { str expects the register in oper[0] }
                     instr.loadreg(0,oper[1]^.reg);
                     instr.loadref(1,spilltemp);
