@@ -78,7 +78,7 @@ var
 {$ENDIF}
 
   ASYS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
-  AOS_origDir  : LongInt; { original directory on startup }
+  ASYS_origDir  : LongInt; { original directory on startup }
   AOS_wbMsg    : Pointer; public name '_WBenchMsg'; { the "public" part is amunits compatibility kludge }
   _WBenchMsg   : Pointer; external name '_WBenchMsg'; { amunits compatibility kludge }
   AOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
@@ -132,6 +132,8 @@ implementation
 procedure haltproc(e:longint);cdecl;external name '_haltproc';
 
 procedure System_exit;
+var
+  oldDirLock: LongInt;
 begin
   { We must remove the CTRL-C FLAG here because halt }
   { may call I/O routines, which in turn might call  }
@@ -145,8 +147,11 @@ begin
   CloseList(ASYS_fileList);
 
   { Changing back to original directory if changed }
-  if AOS_origDir<>0 then begin
-    CurrentDir(AOS_origDir);
+  if ASYS_origDir<>0 then begin
+    oldDirLock:=CurrentDir(ASYS_origDir);
+    { unlock our lock if its safe, so we won't leak the lock }
+    if (oldDirLock<>0) and (oldDirLock<>ASYS_origDir) then
+      Unlock(oldDirLock);
   end;
 
 {$IFDEF AMIGAOS4}
@@ -393,7 +398,7 @@ begin
   StackBottom := Sptr - StackLength;
 { OS specific startup }
   AOS_wbMsg:=nil;
-  AOS_origDir:=0;
+  ASYS_origDir:=0;
   ASYS_fileList:=nil;
   envp:=nil;
   SysInitAmigaOS;

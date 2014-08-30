@@ -69,10 +69,10 @@ begin
   FIB:=nil;
   new(FIB);
 
-  if (Examine(tmpLock,FIB)>0) and (FIB^.fib_DirEntryType>0) then begin
+  if (Examine(tmpLock,FIB)<>0) and (FIB^.fib_DirEntryType>0) then begin
     tmpLock:=CurrentDir(tmpLock);
-    if AOS_OrigDir=0 then begin
-      AOS_OrigDir:=tmpLock;
+    if ASYS_OrigDir=0 then begin
+      ASYS_OrigDir:=tmpLock;
       tmpLock:=0;
     end;
   end else begin

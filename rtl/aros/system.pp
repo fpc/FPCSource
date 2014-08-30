@@ -66,7 +66,7 @@ var
   
 
   ASYS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
-  AOS_origDir  : LongInt; { original directory on startup }
+  ASYS_origDir  : LongInt; { original directory on startup }
   AOS_wbMsg    : Pointer;
   AOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
   AOS_ConHandle: THandle;
@@ -114,7 +114,7 @@ procedure haltproc(e:longint); cdecl; external name '_haltproc';
 
 procedure System_exit;
 var
-  a: LongInt;
+  oldDirLock: LongInt;
 begin
   if Killed then
     Exit;
@@ -125,8 +125,11 @@ begin
   if AOS_wbMsg <> nil then
     ReplyMsg(AOS_wbMsg);
   { Changing back to original directory if changed }
-  if AOS_OrigDir <> 0 then begin
-    CurrentDir(AOS_origDir);
+  if ASYS_OrigDir <> 0 then begin
+    oldDirLock:=CurrentDir(ASYS_origDir);
+    { unlock our lock if its safe, so we won't leak the lock }
+    if (oldDirLock<>0) and (oldDirLock<>ASYS_origDir) then
+      Unlock(oldDirLock);
   end;
   if AOS_UtilityBase <> nil then
     CloseLibrary(AOS_UtilityBase);
@@ -448,7 +451,7 @@ begin
   StackBottom := Sptr - StackLength;
 { OS specific startup }
   AOS_wbMsg := nil;
-  AOS_origDir := 0;
+  ASYS_origDir := 0;
   ASYS_fileList := nil;
   envp := nil;
   SysInitAmigaOS;
