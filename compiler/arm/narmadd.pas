@@ -389,7 +389,7 @@ interface
               tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
               if right.location.loc = LOC_CONSTANT then
                 begin
-                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_AND,tmpreg,left.location.register,right.location.value));
+                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_AND,OS_32,right.location.value,left.location.register,tmpreg);
                   cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,tmpreg,right.location.value));
                 end
