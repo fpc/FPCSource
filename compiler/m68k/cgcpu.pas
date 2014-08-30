@@ -914,10 +914,13 @@ unit cgcpu;
       var
         instr : taicpu;
       begin
-         { move to destination register }
-         instr:=taicpu.op_reg_reg(A_MOVE,TCGSize2OpSize[fromsize],reg1,reg2);
-         add_move_instruction(instr);
-         list.concat(instr);
+        { move to destination register }
+        if (reg1<>reg2) then
+          begin
+            instr:=taicpu.op_reg_reg(A_MOVE,TCGSize2OpSize[fromsize],reg1,reg2);
+            add_move_instruction(instr);
+            list.concat(instr);
+          end;
          sign_extend(list, fromsize, reg2);
       end;
 
