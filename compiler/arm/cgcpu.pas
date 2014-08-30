@@ -3201,6 +3201,7 @@ unit cgcpu;
               if (href.offset in [0..124]) and ((href.offset mod 4)=0) then
                 begin
                   list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
+                  list.concat(taicpu.op_reg_reg(A_MOV,NR_R0,NR_R12));
                   cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R0);
                   list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_R0));
                   list.concat(taicpu.op_regset(A_POP,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
@@ -3218,20 +3219,21 @@ unit cgcpu;
                   tmpref.symbol:=l;
                   tmpref.base:=NR_PC;
                   list.concat(taicpu.op_reg_ref(A_LDR,NR_R1,tmpref));
+                  list.concat(taicpu.op_reg_reg(A_MOV,NR_R0,NR_R12));
                   href.offset:=0;
+                  href.base:=NR_R0;
                   href.index:=NR_R1;
                   cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R0);
                   list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_R0));
                   list.concat(taicpu.op_regset(A_POP,R_INTREGISTER,R_SUBWHOLE,[RS_R0,RS_R1]));
                 end;
-              list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R12));
             end
           else
             begin
               reference_reset_base(href,NR_R12,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
               cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R12);
-              list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R12));
             end;
+          list.concat(taicpu.op_reg(A_BX,NR_R12));
         end;
 
       var
@@ -3247,6 +3249,9 @@ unit cgcpu;
           Internalerror(200006138);
         if procdef.owner.symtabletype<>ObjectSymtable then
           Internalerror(200109191);
+
+          if GenerateThumbCode or GenerateThumb2Code then
+            list.concat(tai_thumb_func.create);
 
         make_global:=false;
         if (not current_module.is_unit) or
@@ -3293,7 +3298,7 @@ unit cgcpu;
             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,NR_R0);
             list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_R0));
             list.concat(taicpu.op_regset(A_POP,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
-            list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R12));
+            list.concat(taicpu.op_reg(A_BX,NR_R12));
           end
         else
           list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname)));
