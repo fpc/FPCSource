@@ -1893,21 +1893,22 @@ Const
 { The SCREENTYPE bits are reserved for describing various Screen types
  * available under Intuition.
  }
-    SCREENTYPE_f        = $000F;        { all the screens types available       }
+    SCREENTYPE_F        = $000F;        { all the screens types available       }
 { --- the definitions for the Screen Type ------------------------------- }
-    WBENCHSCREEN_f      = $0001;        { Ta Da!  The Workbench         }
-    CUSTOMSCREEN_f      = $000F;        { for that special look         }
+    WBENCHSCREEN_F      = $0001;        { Ta Da!  The Workbench         }
+    PUBLICSCREEN_F      = $0002;        { Public shared (custom) screen }
+    CUSTOMSCREEN_F      = $000F;        { for that special look         }
 
-    SHOWTITLE_f         = $0010;        { this gets set by a call to ShowTitle() }
+    SHOWTITLE_F         = $0010;        { this gets set by a call to ShowTitle() }
 
-    BEEPING_f           = $0020;        { set when Screen is beeping            }
+    BEEPING_F           = $0020;        { set when Screen is beeping            }
 
-    CUSTOMBITMAP_f      = $0040;        { if you are supplying your own BitMap }
+    CUSTOMBITMAP_F      = $0040;        { if you are supplying your own BitMap }
 
-    SCREENBEHIND_f      = $0080;        { if you want your screen to open behind
+    SCREENBEHIND_F      = $0080;        { if you want your screen to open behind
                                          * already open screens
                                          }
-    SCREENQUIET_f       = $0100;        { if you do not want Intuition to render
+    SCREENQUIET_F       = $0100;        { if you do not want Intuition to render
                                          * into your screen (gadgets, title)     }
     SCREENHIRES         = $0200;        { do no use lowres gadgets (private)       }
 
