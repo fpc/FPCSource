@@ -4063,10 +4063,17 @@ unit cgcpu;
 
             reference_reset_base(href,tmpreg,0,ref.alignment);
           end
-        else if (op=A_LDR) and
-           (oppostfix in [PF_None]) and
-           (ref.base<>NR_STACK_POINTER_REG)  and
-           (abs(ref.offset)>124) then
+        else if ((op=A_LDR) and (oppostfix in [PF_None]) and
+           (ref.base<>NR_STACK_POINTER_REG) and
+           (abs(ref.offset)>124)) or
+           { LDRB limitations }
+           (
+            (((op=A_LDR) and (oppostfix=PF_B)) or
+             ((op=A_LDRB) and (oppostfix=PF_None))) and
+            ((ref.base=NR_STACK_POINTER_REG) or
+             (ref.index=NR_STACK_POINTER_REG) or
+             (abs(ref.offset)>31))
+            ) then
           begin
             tmpreg:=getintregister(list,OS_ADDR);
             a_loadaddr_ref_reg(list,ref,tmpreg);
