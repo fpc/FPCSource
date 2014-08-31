@@ -2339,7 +2339,7 @@ PROCEDURE LoadView(view : pView);
 PROCEDURE LockLayerRom(layer : pLayer);
 FUNCTION MakeVPort(view : pView; vp : pViewPort) : ULONG;
 FUNCTION ModeNotAvailable(modeID : ULONG) : LONGINT;
-PROCEDURE Move(rp : pRastPort; x : LONGINT; y : LONGINT);
+PROCEDURE gfxMove(rp : pRastPort location 'a1'; x : LONGINT location 'd0'; y : LONGINT location 'd1'); syscall GfxBase 240;
 PROCEDURE MoveSprite(vp : pViewPort; sprite : pSimpleSprite; x : LONGINT; y : LONGINT);
 FUNCTION MrgCop(view : pView) : ULONG;
 FUNCTION NewRegion : pRegion;
@@ -3809,19 +3809,6 @@ BEGIN
     JSR -798(A6)
     MOVEA.L (A7)+,A6
     MOVE.L  D0,@RESULT
-  END;
-END;
-
-PROCEDURE Move(rp : pRastPort; x : LONGINT; y : LONGINT);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L rp,A1
-    MOVE.L  x,D0
-    MOVE.L  y,D1
-    MOVEA.L GfxBase,A6
-    JSR -240(A6)
-    MOVEA.L (A7)+,A6
   END;
 END;
 
