@@ -44,7 +44,7 @@ unit diskfont;
 
 INTERFACE
 
-uses exec, graphics,utility;
+uses exec, agraphics,utility;
 
 Const
 

@@ -43,7 +43,7 @@
 
     nils.sjoholm@mailbox.swipnet.se
 }
-
+{$PACKRECORDS 2}
 
 {$I useamigasmartlink.inc}
 {$ifdef use_amiga_smartlink}

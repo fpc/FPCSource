@@ -147,7 +147,7 @@ interface
      Items marked with "Custom Class" are for use in custom classes only!
    }
 
-uses exec, intuition,utility,graphics,iffparse;
+uses exec, intuition,utility,agraphics,iffparse;
 
 
   const

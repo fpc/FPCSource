@@ -36,7 +36,7 @@
 UNIT MYSTICVIEW;
 
 INTERFACE
-USES Exec,graphics,utility,intuition;
+USES Exec,agraphics,utility,intuition;
 
 VAR MysticBase : pLibrary;
 

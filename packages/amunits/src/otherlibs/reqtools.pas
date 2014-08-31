@@ -47,7 +47,7 @@ UNIT REQTOOLS;
 
 INTERFACE
 
-USES Exec, intuition, amigados, diskfont, graphics, utility;
+USES Exec, intuition, amigados, diskfont, agraphics, utility;
 
 
 

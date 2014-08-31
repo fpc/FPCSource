@@ -37,7 +37,7 @@
 UNIT TTENGINE;
 
 INTERFACE
-USES Exec,utility,graphics;
+USES Exec,utility,agraphics;
 
 VAR TTEngineBase : pLibrary;
 

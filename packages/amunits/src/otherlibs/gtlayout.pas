@@ -51,7 +51,7 @@ UNIT GTLAYOUT;
 
 INTERFACE
 
-USES Exec,intuition,utility, gadtools,graphics;
+USES Exec,intuition,utility, gadtools,agraphics;
 
 
 

@@ -37,7 +37,7 @@
 UNIT CYBERGRAPHICS;
 
 INTERFACE
-USES Exec,graphics,utility;
+USES Exec,agraphics,utility;
 
 VAR CyberGfxBase : pLibrary;
 

@@ -37,7 +37,7 @@
 UNIT GUIGFX;
 
 INTERFACE
-USES Exec,utility,graphics;
+USES Exec,utility,agraphics;
 
 VAR GuiGFXBase : pLibrary;
 

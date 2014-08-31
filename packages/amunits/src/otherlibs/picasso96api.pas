@@ -43,7 +43,7 @@
 UNIT PICASSO96API;
 
 INTERFACE
-USES Exec, utility, graphics, intuition;
+USES Exec, utility, agraphics, intuition;
 
   {  Picasso96.h -- include File
       (C) Copyright 1996-98 Alexander Kneer & Tobias Abt

@@ -55,7 +55,7 @@ unit gadtools;
 
 INTERFACE
 
-uses exec, intuition, graphics, utility;
+uses exec, intuition, agraphics, utility;
 
 
 {------------------------------------------------------------------------}

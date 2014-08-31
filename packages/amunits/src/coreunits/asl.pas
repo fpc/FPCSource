@@ -57,7 +57,7 @@
 UNIT asl;
 
 INTERFACE
-uses exec, utility, workbench, graphics;
+uses exec, utility, workbench, agraphics;
 
 {************************************************************************}
 

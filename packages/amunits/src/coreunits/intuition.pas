@@ -45,6 +45,7 @@
    nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 
 }
+{$PACKRECORDS 2}
 
 {$I useamigasmartlink.inc}
 {$ifdef use_amiga_smartlink}
@@ -56,7 +57,7 @@ unit intuition;
 INTERFACE
 
 
-uses exec, graphics, utility, inputevent, timer, layers;
+uses exec, agraphics, utility, inputevent, timer, layers;
 
 {
  * NOTE:  intuition/iobsolete.h is included at the END of this file!

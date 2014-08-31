@@ -56,7 +56,7 @@ unit datatypes;
 INTERFACE
 
 uses exec, amigados, intuition, utility,
-     graphics, iffparse, amigaprinter, prtbase;
+     agraphics, iffparse, amigaprinter, prtbase;
 
 const
 {***************************************************************************}

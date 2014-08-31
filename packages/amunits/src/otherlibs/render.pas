@@ -37,7 +37,7 @@
 UNIT RENDER;
 
 INTERFACE
-USES Exec,utility,graphics;
+USES Exec,utility,agraphics;
 
 VAR RenderBase : pLibrary;
 

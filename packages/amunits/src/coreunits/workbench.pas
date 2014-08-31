@@ -68,7 +68,7 @@ unit workbench;
 
 INTERFACE
 
-uses exec,amigados,utility, intuition,graphics;
+uses exec,amigados,utility,intuition,agraphics;
 
 
 

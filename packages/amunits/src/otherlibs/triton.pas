@@ -43,7 +43,7 @@ UNIT TRITON;
 
 INTERFACE
 
-uses exec, intuition, graphics, utility;
+uses exec, intuition, agraphics, utility;
 
 
 {* ------------------------------------------------------------------------------ *}

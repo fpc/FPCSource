@@ -9,7 +9,7 @@ version=2.7.1
 [target]
 units= msgbox amigautils wbargs vartags pastoc tagsarray systemvartags deadkeys \
        deadkeys consoleio pcq longarray linklist hisoft exec timerutils easyasl \
-       doublebuffer intuition graphics amigalib nonvolatile iffparse hardware  \
+       doublebuffer intuition agraphics amigalib nonvolatile iffparse hardware  \
        expansion diskfont conunit amigados configvars keyboard bootblock icon  \
        cd realtime rexx translator scsidisk lowlevel configregs prefs parallel \
        gadtools prtgfx romboot_base trackdisk expansionbase amigaguide         \
