@@ -10,6 +10,12 @@ begin
 {$include amunits/fpmake.pp}
 end;
 
+procedure add_arosunits(const ADirectory: string);
+begin
+  with Installer do
+{$include arosunits/fpmake.pp}
+end;
+
 procedure add_aspell(const ADirectory: string);
 begin
   with Installer do

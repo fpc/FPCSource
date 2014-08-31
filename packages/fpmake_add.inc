@@ -1,5 +1,6 @@
   add_a52(ADirectory+IncludeTrailingPathDelimiter('a52'));
   add_amunits(ADirectory+IncludeTrailingPathDelimiter('amunits'));
+  add_arosunits(ADirectory+IncludeTrailingPathDelimiter('arosunits'));
   add_aspell(ADirectory+IncludeTrailingPathDelimiter('aspell'));
   add_bfd(ADirectory+IncludeTrailingPathDelimiter('bfd'));
   add_bzip2(ADirectory+IncludeTrailingPathDelimiter('bzip2'));
