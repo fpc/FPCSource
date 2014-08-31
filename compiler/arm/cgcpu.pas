@@ -182,6 +182,8 @@ unit cgcpu;
         procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint); override;
 
         function handle_load_store(list: TAsmList; op: tasmop; oppostfix: toppostfix; reg: tregister; ref: treference): treference; override;
+
+        procedure g_external_wrapper(list : TAsmList; procdef : tprocdef; const externalname : string); override;
       end;
 
       tthumbcg64farm = class(tbasecg64farm)
@@ -4283,6 +4285,32 @@ unit cgcpu;
         list.concat(taicpu.op_reg_const(A_MOV,reg,1));
         a_reg_dealloc(list,NR_DEFAULTFLAGS);
         cg.a_label(list,l2);
+      end;
+
+
+    procedure tthumbcgarm.g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string);
+      var
+        tmpref : treference;
+        l : tasmlabel;
+      begin
+        { there is no branch instruction on thumb which allows big distances and which leaves LR as it is
+          and which allows to switch the instruction set }
+
+        { create const entry }
+        reference_reset(tmpref,4);
+        current_asmdata.getjumplabel(l);
+        tmpref.symbol:=l;
+        tmpref.base:=NR_PC;
+        list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
+        list.concat(taicpu.op_reg_ref(A_LDR,NR_R0,tmpref));
+        list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_R0));
+        list.concat(taicpu.op_regset(A_POP,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
+        list.concat(taicpu.op_reg(A_BX,NR_R12));
+
+        { append const entry }
+        list.Concat(tai_align.Create(4));
+        list.Concat(tai_label.create(l));
+        list.concat(tai_const.Create_sym(current_asmdata.RefAsmSymbol(externalname)));
       end;
 
 
