@@ -249,6 +249,9 @@ procedure SysInitVideo;
 var
   Counter: LongInt;
 begin
+  InitGraphicsLibrary;
+  InitIntuitionLibrary;
+
   {$ifdef VIDEODEBUG}
   WriteLn('FULLSCREEN VIDEO UNIT MODIFICATION v2');  
   if FPC_VIDEO_FULLSCREEN then
