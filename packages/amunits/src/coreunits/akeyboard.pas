@@ -18,7 +18,7 @@
         Keyboard device command definitions
 }
 
-unit keyboard;
+unit akeyboard;
 
 INTERFACE
 
