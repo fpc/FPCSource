@@ -205,7 +205,7 @@ Type
         id_InUse                : Longint;      { Flag, zero if not in use }
     end;
 
-{$PACKRECORDS NORMAL}
+{$PACKRECORDS 2}
 
 Const
 
