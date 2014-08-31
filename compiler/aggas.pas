@@ -1244,6 +1244,11 @@ implementation
                     end;
                   if tai_label(hp).labsym.bind in [AB_GLOBAL,AB_PRIVATE_EXTERN] then
                    begin
+{$ifdef arm}
+                     { do no change arm mode accidently, .globl seems to reset the mode }
+                     if GenerateThumbCode or GenerateThumb2Code then
+                       AsmWriteln(#9'.thumb_func'#9);
+{$endif arm}
                      AsmWrite('.globl'#9);
                      if replaceforbidden then
                        AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_label(hp).labsym.name))
