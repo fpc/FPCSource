@@ -13,10 +13,10 @@ Const
   UnixLikes = AllUnixOSes -[QNX];
  
   WinEventOSes = [win32,win64];
-  KVMAll       = [emx,go32v2,MorphOS,aros,netware,netwlibc,os2,win32,win64]+UnixLikes;
+  KVMAll       = [emx,go32v2,netware,netwlibc,os2,win32,win64]+UnixLikes+AllAmigaLikeOSes;
   
-  // all full KVMers have crt too, except MorphOS and AROS
-  CrtOSes      = KVMALL+[msdos,WatCom]-[MorphOS,aros];
+  // all full KVMers have crt too, except Amigalikes
+  CrtOSes      = KVMALL+[msdos,WatCom]-AllAmigaLikeOSes;
   KbdOSes      = KVMALL+[msdos];
   VideoOSes    = KVMALL;
   MouseOSes    = KVMALL;
@@ -46,18 +46,19 @@ begin
     P.Dependencies.Add('rtl-extra'); // linux,android gpm.
     P.Dependencies.Add('morphunits',[morphos]);
     P.Dependencies.Add('arosunits',[aros]);
+    P.Dependencies.Add('amunits',[amiga]);
 
     P.SourcePath.Add('src/inc');
     P.SourcePath.Add('src/$(OS)');
     P.SourcePath.Add('src/darwin',[iphonesim]);
     P.SourcePath.Add('src/unix',AllUnixOSes);
     P.SourcePath.Add('src/os2commn',[os2,emx]);
-    P.SourcePath.Add('src/amicommon',[aros,morphos]);
+    P.SourcePath.Add('src/amicommon',AllAmigaLikeOSes);
     P.SourcePath.Add('src/win',WinEventOSes);
 
     P.IncludePath.Add('src/inc');
     P.IncludePath.Add('src/unix',AllUnixOSes);
-    P.IncludePath.add('src/amicommon',[aros,morphos]);
+    P.IncludePath.add('src/amicommon',AllAmigaLikeOSes);
     P.IncludePath.Add('src/$(OS)');
     P.IncludePath.Add('src/darwin',[iphonesim]);
 
@@ -86,7 +87,7 @@ begin
      begin
        AddInclude('videoh.inc');
        AddInclude('video.inc');
-       AddInclude('videodata.inc',[MorphOS]);
+       AddInclude('videodata.inc',AllAmigaLikeOSes);
        AddInclude('convert.inc',AllUnixOSes);
        AddInclude('nwsys.inc',[netware]);
      end;
