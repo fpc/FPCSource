@@ -64,7 +64,7 @@ dirs_palmos=palmunits
 dirs_go32v2=rtl-console fv graph unzip gdbint
 dirs_amiga=amunits
 dirs_morphos=morphunits rtl-console fv opengl sdl
-dirs_aros=arosunits
+dirs_aros=arosunits rtl-console fv
 dirs_wii=libogcfpc
 dirs_arm_nds=libndsfpc
 

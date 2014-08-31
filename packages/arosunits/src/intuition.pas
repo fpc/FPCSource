@@ -562,11 +562,11 @@ type
     Width,
     Height: SmallInt;      // screen dimensions of window
 {$ifdef AROS_FLAVOUR_BINCOMPAT}
-    MouseX,
-    MouseY: SmallInt;      // relative to upper-left of window
-{$else}
     MouseY,
     MouseX: SmallInt;      // relative to upper-left of window
+{$else}
+    MouseX,
+    MouseY: SmallInt;      // relative to upper-left of window
 {$endif}
     MinWidth,
     MinHeight: SmallInt;   // minimum sizes

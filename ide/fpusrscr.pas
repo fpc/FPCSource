@@ -86,6 +86,11 @@ type
   {$DEFINE AMIGASCREEN}
 {$ENDIF}
 
+{$IFDEF AROS}
+  {$DEFINE AMIGASCREEN}
+{$ENDIF}
+
+
 {$IFDEF AMIGASCREEN}
     PAmigaScreen = ^TAmigaScreen;
     TAmigaScreen = object(TScreen)

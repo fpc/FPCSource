@@ -13,10 +13,10 @@ Const
   UnixLikes = AllUnixOSes -[QNX];
  
   WinEventOSes = [win32,win64];
-  KVMAll       = [emx,go32v2,MorphOS,netware,netwlibc,os2,win32,win64]+UnixLikes;
+  KVMAll       = [emx,go32v2,MorphOS,aros,netware,netwlibc,os2,win32,win64]+UnixLikes;
   
   // all full KVMers have crt too, except MorphOS
-  CrtOSes      = KVMALL+[msdos,WatCom]-[MorphOS];
+  CrtOSes      = KVMALL+[msdos,WatCom]-[MorphOS,aros];
   KbdOSes      = KVMALL+[msdos];
   VideoOSes    = KVMALL;
   MouseOSes    = KVMALL;
@@ -45,6 +45,7 @@ begin
     P.NeedLibC:= false;
     P.Dependencies.Add('rtl-extra'); // linux,android gpm.
     P.Dependencies.Add('morphunits',[morphos]);
+    P.Dependencies.Add('arosunits',[aros]);
 
     P.SourcePath.Add('src/inc');
     P.SourcePath.Add('src/$(OS)');

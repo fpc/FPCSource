@@ -2165,7 +2165,7 @@ procedure LoadView(View: PView); syscall GfxBase 37;
 procedure LockLayerRom(l: PLayer); syscall GfxBase 72;
 function MakeVPort(View: PView; ViewPort: PViewPort): LongWord; syscall GfxBase 36;
 function ModeNotAvailable(ModeID: LongWord): LongWord; syscall GfxBase 133;
-procedure Move(Rp: PRastPort; x, y: SmallInt); syscall GfxBase 40;
+procedure GfxMove(Rp: PRastPort; x, y: SmallInt); syscall GfxBase 40;
 procedure MoveSprite(Vp: PViewPort; Sprite: PSimpleSprite; x, y: SmallInt); syscall GfxBase 71;
 function MrgCop(View: PView): LongWord; syscall GfxBase 35;
 function NewRectRegion(MinX, MinY, MaxX, MaxY: SmallInt): PRegion; syscall GfxBase 194;

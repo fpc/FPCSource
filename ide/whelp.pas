@@ -192,6 +192,9 @@ uses
 {$ifdef netware_clib}
   nwserv,
 {$endif}
+{$ifdef aros}
+  dos,
+{$endif}
   Strings,
   WConsts;
 
@@ -201,6 +204,11 @@ type
     function At(Index: sw_Integer): PHelpFileType;
     procedure FreeItem(Item: Pointer); virtual;
   end;
+
+{$ifdef AROS}
+var
+  StartupTicks: Int64;
+{$endif}
 
 const
   HelpFileTypes : PHelpFileTypeCollection = nil;
@@ -314,6 +322,11 @@ end;
 {$ifdef morphos}
 begin
   GetDosTicks := -1;
+end;
+{$endif}
+{$ifdef AROS}
+begin
+  GetDosTicks := ((dos.GetMsCount div 55) - StartupTicks) and $7FFFFFFF;
 end;
 {$endif}
 
@@ -991,5 +1004,10 @@ begin
   inherited Done;
   Dispose(HelpFiles, Done);
 end;
+
+{$ifdef AROS}
+INITIALIZATION
+  StartupTicks := dos.GetMsCount div 55;
+{$endif}
 
 END.

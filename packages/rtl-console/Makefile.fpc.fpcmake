@@ -30,6 +30,7 @@ units_os2=crt video mouse keyboard
 units_netware=crt video mouse keyboard
 units_netwlibc=crt video mouse keyboard
 units_morphos=video mouse keyboard
+units_aros=video mouse keyboard
 
 [compiler]
 includedir=src/$(OS_TARGET) src/inc

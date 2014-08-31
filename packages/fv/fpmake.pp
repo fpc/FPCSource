@@ -20,7 +20,7 @@ begin
     P.Author := 'Leon De Boer and Pierre Mueller';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
-    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,os2,emx,netware,netwlibc,go32v2,morphos,aix];
+    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,os2,emx,netware,netwlibc,go32v2,morphos,aros,aix];
     P.Email := '';
     P.Description := 'Free Vision, a portable Turbo Vision clone.';
     P.NeedLibC:= false;
@@ -30,6 +30,7 @@ begin
     P.Dependencies.add('rtl-console');
     P.Dependencies.add('rtl-extra');
     P.Dependencies.add('morphunits',[morphos]);
+    P.Dependencies.add('arosunits',[aros]);
 
     T:=P.Targets.AddUnit('app.pas');
       with T.Dependencies do

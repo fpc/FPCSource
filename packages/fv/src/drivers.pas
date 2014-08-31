@@ -94,7 +94,7 @@ USES
    {$ENDIF}
 
    {$IFDEF OS_AMIGA}
-      amigados,
+      dos, amigados,
    {$ENDIF}
 
    video,
@@ -718,7 +718,9 @@ VAR
    EventQueue : Array [0..EventQSize - 1] Of TEvent;  { Event queue }
    EventQLast : RECORD END;                           { Simple end marker }
    StartupScreenMode : TVideoMode;
-
+   {$ifdef OS_AMIGA}
+   StartupTicks: Int64; // ticks at Startup for GetDOSTicks
+   {$endif}
 {---------------------------------------------------------------------------}
 {  GetDosTicks (18.2 Hz)                                                    }
 {---------------------------------------------------------------------------}
@@ -769,8 +771,7 @@ var
 {$ENDIF}
 {$IFDEF OS_AMIGA}
   begin
-{$WARNING FIXME: dummy implementation}
-    GetDosTicks:=-1;
+    GetDosTicks:= ((dos.GetMsCount div 55) - StartupTicks) and $7FFFFFFF;
   end;
 {$ENDIF OS_AMIGA}
 
@@ -824,7 +825,11 @@ end;
 {$IFDEF OS_AMIGA}
   begin
     { AmigaOS Delay() wait's argument in 1/50 seconds }
+    {$IFDEF AROS}
+    DOSDelay(2);
+    {$ELSE}
     AmigaDOS.Delay(2);
+    {$ENDIF}
   end;
 {$ENDIF OS_AMIGA}
 
@@ -1583,6 +1588,9 @@ END;
 {                      UNIT INITIALIZATION ROUTINE                          }
 {***************************************************************************}
 BEGIN
+{$IFDEF OS_AMIGA}
+  StartupTicks := (dos.GetMsCount div 55);
+{$ENDIF}
    ButtonCount := DetectMouse;                        { Detect mouse }
    DetectVideo;                                       { Detect video }
 {   InitKeyboard;}
