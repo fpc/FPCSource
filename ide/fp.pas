@@ -336,7 +336,7 @@ procedure InitCompilerSwitches;
 {$if defined(unix) or defined(HASAMIGA)}
 const bullet='*';
 {$else}
-const bullet='þ';
+const bullet=#254;
 {$endif}
 
 BEGIN
