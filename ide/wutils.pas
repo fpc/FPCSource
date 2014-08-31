@@ -1233,7 +1233,7 @@ var Dir: string;
 begin
   Dir:=GetEnv('TEMP');
   if Dir='' then Dir:=GetEnv('TMP');
-{$if defined(morphos) or defined(amiga)}
+{$ifdef HASAMIGA}
   if Dir='' then Dir:='T:';
 {$endif}
   if (Dir<>'') then if not ExistsDir(Dir) then Dir:='';

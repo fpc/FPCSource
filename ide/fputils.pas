@@ -29,11 +29,19 @@ const
   pasext = '.pas';
   ppext  = '.pp';
 {$else}
+  {$ifdef HASAMIGA}
+    listsep = [';'];
+    exeext = '';
+    pasext = '.pas';
+    ppext  = '.pp';
+  {$else HASAMIGA}
   listsep = [';'];
   exeext = '.exe';
   pasext = '.pas';
   ppext  = '.pp';
+  {$endif HASAMIGA}
 {$endif}
+
 
 function SmartPath(Path: string): string;
 Function FixPath(s:string;allowdot:boolean):string;

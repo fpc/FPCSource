@@ -1671,9 +1671,13 @@ var
     {$ifdef Unix}
     if Path=DirSeparator then Root:=true;
     {$else}
+    {$ifdef HASAMIGA}
+    if Length(Path) > 0 then Root := Path[Length(Path)] = DriveSeparator;
+    {$else}
     if (length(Path)=3) and (Upcase(Path[1]) in['A'..'Z']) and
        (Path[2]=':') and (Path[3]=DirSeparator) then
          Root:=true;
+    {$endif}
     {$endif}
     if (Root=false) and (copy(Path,length(Path),1)=DirSeparator) then
       NormalizeDir:=copy(Path,1,length(Path)-1)
