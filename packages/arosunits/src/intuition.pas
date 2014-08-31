@@ -1544,8 +1544,8 @@ const
   BAUD_19200 = $06;
   BAUD_MIDI  = $07;
   // PaperType
-  ptFANFOLD = $00;
-  ptSingle  = $80;
+  FANFOLD_PT = $00;
+  Single_PT  = $80;
   // PrintPitch
   PICA  = $000;
   ELITE = $400;

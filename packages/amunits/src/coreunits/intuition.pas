@@ -2515,8 +2515,8 @@ Const
     BAUD_MIDI           = $07;
 
 { PaperType }
-    FANFOLD             = $00;
-    SINGLE              = $80;
+    FANFOLD_PT           = $00;
+    SINGLE_PT            = $80;
 
 { PrintPitch }
     PICA                = $000;
