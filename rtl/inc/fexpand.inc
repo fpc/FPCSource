@@ -599,7 +599,10 @@ begin
                                                                            then
         Delete (PA,length(PA),1);
 {$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
-
+{$IF defined(FPC_FEXPAND_SYSUTILS) and not defined(SYSUTILSUNICODE)}
+    { return result in expected code page }
+    SetCodePage(Pa,DefaultRTLFileSystemCodePage);
+{$ENDIF FPC_FEXPAND_SYSUTILS and not SYSUTILSUNICODE}
     FExpand := Pa;
 end;
 
