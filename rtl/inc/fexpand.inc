@@ -79,6 +79,10 @@ begin
   OldInOutRes := InOutRes;
   InOutRes := 0;
   GetDir (DriveNr, Dir);
+{$IF defined(FPC_FEXPAND_SYSUTILS) and not defined(SYSUTILSUNICODE)}
+  { set the same codepage as used for the strings in fexpand itself }
+  SetCodePage(Dir,DefaultFileSystemCodePage);
+{$ENDIF FPC_FEXPAND_SYSUTILS and not SYSUTILSUNICODE}
   InOutRes := OldInOutRes;
 end;
 
