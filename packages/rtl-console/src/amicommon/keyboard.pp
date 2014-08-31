@@ -33,6 +33,9 @@ var
 procedure SysInitKeyboard;
 begin
 //  writeln('sysinitkeyboard');
+{$IFDEF MORPHOS}
+  InitKeyMapLibrary;
+{$ENDIF}
   LastShiftState := 0;
   OldMouseX := -1;
   OldmouseY := -1;

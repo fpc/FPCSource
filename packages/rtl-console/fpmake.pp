@@ -15,7 +15,7 @@ Const
   WinEventOSes = [win32,win64];
   KVMAll       = [emx,go32v2,MorphOS,aros,netware,netwlibc,os2,win32,win64]+UnixLikes;
   
-  // all full KVMers have crt too, except MorphOS
+  // all full KVMers have crt too, except MorphOS and AROS
   CrtOSes      = KVMALL+[msdos,WatCom]-[MorphOS,aros];
   KbdOSes      = KVMALL+[msdos];
   VideoOSes    = KVMALL;
@@ -52,10 +52,12 @@ begin
     P.SourcePath.Add('src/darwin',[iphonesim]);
     P.SourcePath.Add('src/unix',AllUnixOSes);
     P.SourcePath.Add('src/os2commn',[os2,emx]);
+    P.SourcePath.Add('src/amicommon',[aros,morphos]);
     P.SourcePath.Add('src/win',WinEventOSes);
 
     P.IncludePath.Add('src/inc');
     P.IncludePath.Add('src/unix',AllUnixOSes);
+    P.IncludePath.add('src/amicommon',[aros,morphos]);
     P.IncludePath.Add('src/$(OS)');
     P.IncludePath.Add('src/darwin',[iphonesim]);
 
