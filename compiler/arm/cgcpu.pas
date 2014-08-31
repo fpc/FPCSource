@@ -4074,8 +4074,19 @@ unit cgcpu;
              ((op=A_LDRB) and (oppostfix=PF_None))) and
             ((ref.base=NR_STACK_POINTER_REG) or
              (ref.index=NR_STACK_POINTER_REG) or
-             (abs(ref.offset)>31))
-            ) then
+             (abs(ref.offset)>31)
+            )
+           ) or
+           { LDRH limitations }
+           (
+            (((op=A_LDR) and (oppostfix=PF_H)) or
+             ((op=A_LDRH) and (oppostfix=PF_None))) and
+            ((ref.base=NR_STACK_POINTER_REG) or
+             (ref.index=NR_STACK_POINTER_REG) or
+             (abs(ref.offset)>62) or
+             ((abs(ref.offset) mod 2)<>0)
+            )
+           ) then
           begin
             tmpreg:=getintregister(list,OS_ADDR);
             a_loadaddr_ref_reg(list,ref,tmpreg);
