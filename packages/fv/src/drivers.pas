@@ -825,11 +825,7 @@ end;
 {$IFDEF OS_AMIGA}
   begin
     { AmigaOS Delay() wait's argument in 1/50 seconds }
-    {$IFDEF AROS}
     DOSDelay(2);
-    {$ELSE}
-    AmigaDOS.Delay(2);
-    {$ENDIF}
   end;
 {$ENDIF OS_AMIGA}
 
