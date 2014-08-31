@@ -150,7 +150,8 @@ Const
   AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim,aix,Android];
   AllBSDOSes      = [FreeBSD,NetBSD,OpenBSD,Darwin,iphonesim];
   AllWindowsOSes  = [Win32,Win64,WinCE];
-  AllLimit83fsOses= [go32v2,os2,emx,watcom,msdos];
+  AllAmigaLikeOSes = [Amiga,MorphOS,AROS];
+  AllLimit83fsOses = [go32v2,os2,emx,watcom,msdos];
 
   AllSmartLinkLibraryOSes = [Linux,msdos,amiga,morphos,aros]; // OSes that use .a library files for smart-linking
   AllImportLibraryOSes = AllWindowsOSes + [os2,emx,netwlibc,netware,watcom,go32v2,macos,nativent,msdos];
