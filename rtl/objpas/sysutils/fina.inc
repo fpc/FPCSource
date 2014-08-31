@@ -424,7 +424,7 @@ begin
   Result:=Path;
   l:=Length(Result);
   If (L=0) or not CharInSet(Result[l],AllowDirectorySeparators) then
-{$if defined(Amiga) or defined(AROS) or defined(MorphOS)}
+{$ifdef HASAMIGA}
     If (L>0) and (Result[l] <> DriveSeparator) then
 {$endif}
 {$ifdef SYSUTILSUNICODE}
