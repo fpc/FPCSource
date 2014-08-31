@@ -108,7 +108,7 @@ var
 IMPLEMENTATION
 
 {$ifndef dont_use_openlib}
-uses msgbox;
+uses amsgbox;
 {$endif dont_use_openlib}
 
 FUNCTION DeleteNV(const appName : pCHAR;const itemName : pCHAR; killRequesters : LONGINT) : BOOLEAN;

@@ -27,7 +27,7 @@
     {$smartlink on}
 {$endif use_amiga_smartlink}
 
-unit MsgBox;
+unit AMsgBox;
 
 interface
 

@@ -510,7 +510,7 @@ IMPLEMENTATION
 
 uses
 {$ifndef dont_use_openlib}
-msgbox;
+amsgbox;
 {$endif dont_use_openlib}
 
 function GTMENUITEM_USERDATA(menuitem : pMenuItem): pointer;

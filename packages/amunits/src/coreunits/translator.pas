@@ -62,7 +62,7 @@ var
 IMPLEMENTATION
 
 {$ifndef dont_use_openlib}
-uses msgbox;
+uses amsgbox;
 {$endif dont_use_openlib}
 
 FUNCTION Translate(const inputString : pCHAR; inputLength : LONGINT; outputBuffer : pCHAR; bufferSize : LONGINT) : LONGINT;

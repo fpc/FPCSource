@@ -577,7 +577,7 @@ var
 IMPLEMENTATION
 
 {$ifndef dont_use_openlib}
-uses  msgbox;
+uses amsgbox;
 {$endif dont_use_openlib}
 
 FUNCTION AllocAslRequest(reqType : ULONG; tagList : pTagItem) : POINTER;

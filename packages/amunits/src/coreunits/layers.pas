@@ -138,7 +138,7 @@ IMPLEMENTATION
 
 uses
 {$ifndef dont_use_openlib}
-msgbox;
+amsgbox;
 {$endif dont_use_openlib}
 
 FUNCTION BeginUpdate(l : pLayer) : LONGINT;

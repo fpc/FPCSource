@@ -169,7 +169,7 @@ IMPLEMENTATION
 }
 uses
 {$ifndef dont_use_openlib}
-msgbox;
+amsgbox;
 {$endif dont_use_openlib}
 
 FUNCTION AvailFonts(buffer : pCHAR; bufBytes : LONGINT; flags : LONGINT) : LONGINT;

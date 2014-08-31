@@ -33,7 +33,7 @@ begin
     P.SourcePath.Add('src/utilunits');
     P.IncludePath.Add('src');
 
-    T:=P.Targets.AddUnit('msgbox.pas');
+    T:=P.Targets.AddUnit('amsgbox.pas');
     T:=P.Targets.AddUnit('amigautils.pas');
     T:=P.Targets.AddUnit('wbargs.pas');
     T:=P.Targets.AddUnit('vartags.pas');
@@ -61,7 +61,7 @@ begin
     T:=P.Targets.AddUnit('conunit.pas');
     T:=P.Targets.AddUnit('amigados.pas');
     T:=P.Targets.AddUnit('configvars.pas');
-    T:=P.Targets.AddUnit('keyboard.pas');
+    T:=P.Targets.AddUnit('akeyboard.pas');
     T:=P.Targets.AddUnit('bootblock.pas');
     T:=P.Targets.AddUnit('icon.pas');
     T:=P.Targets.AddUnit('cd.pas');

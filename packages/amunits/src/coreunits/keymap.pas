@@ -121,7 +121,7 @@ PROCEDURE SetKeyMapDefault(keyMap : pKeyMap);
 
 IMPLEMENTATION
 
-uses msgbox;
+uses amsgbox;
 
 FUNCTION AskKeyMapDefault : pKeyMap;
 BEGIN
