@@ -34,7 +34,7 @@ unit Video;
 interface
 
 uses
-  amigados, intuition, tagsarray, utility, sysutils;
+  amigados, intuition, utility, sysutils;
 
 {$i videoh.inc}
 
@@ -92,23 +92,23 @@ var
   and returns the pointer to the screen. Result can be nil when failed
   otherwise the screen got opened correctly.
 *)
-Function GetScreen: pScreen;
-var
-  ScreenTags: TTagsList;
-  Tags: PTagItem;
+function _OpenScreenTags(a: Pointer; tags: array of PtrUInt): pScreen;
 begin
-  AddTags(ScreenTags,[
-    SA_Title          , VIDEOSCREENNAME,
+  _OpenScreenTags:=OpenScreenTagList(a, @tags);
+end;
+
+Function GetScreen: pScreen;
+begin
+  GetScreen:=_OpenScreenTags(nil,[
+    SA_Title          , PtrUInt(PChar(VIDEOSCREENNAME)),
     SA_Left           , 0,
     SA_Top            , 0,
     SA_ShowTitle      , 0,    // Do not show the screen's TitleBar
-    SA_Type           , 1 shl 1, // pubscreen
-    SA_PubName        , VIDEOSCREENNAME,
-    SA_Quiet          , True,
+    SA_Type           , PUBLICSCREEN_F, // pubscreen
+    SA_PubName        , PtrUInt(PChar(VIDEOSCREENNAME)),
+    SA_Quiet          , 1,
     SA_LikeWorkbench  , 1     // Let OS  
   ]);
-  Tags := GetTagPtr(ScreenTags);
-  GetScreen := OpenScreenTagList(nil, Tags);
   {$ifdef VIDEODEBUG}
   if (GetScreen <> nil) then
     Writeln('DEBUG: Opened a new screen')
@@ -129,11 +129,13 @@ end;
   In windowed mode it returns a window with another kind of 
   settings then when it has to reside on it's own customscreen.
 *)
+function _OpenWindowTags(a: Pointer; tags: array of PtrUInt): pWindow;
+begin
+  _OpenWindowTags:=OpenWindowTagList(a, @tags);
+end;
+
 Function GetWindow: PWindow;
-Var
-  WindowTags: TTagsList;
-  Tags: PTagItem;
-begin  
+begin
   if FPC_VIDEO_FULLSCREEN then
   begin
     OS_Screen := GetScreen;
@@ -143,8 +145,8 @@ begin
     {$ifdef VIDEODEBUG}
     WriteLn('DEBUG: Opened customscreen succesfully');
     {$endif}
-    Addtags(WindowTags, [
-      WA_CustomScreen, OS_Screen,
+    GetWindow:=_OpenWindowTags(nil, [
+      WA_CustomScreen, PtrUint(OS_Screen),
       WA_Left       , 0,
       WA_Top        , 0,
       WA_InnerWidth , (OS_Screen^.Width div 8) * 8,
@@ -161,14 +163,14 @@ begin
     ]); 
   end else  
   begin      // Windowed Mode
-    AddTags(WindowTags, [
+    GetWindow:=_OpenWindowTags(nil, [
       WA_Left       , LastL,
       WA_Top        , LastT,
       WA_InnerWidth , LastW*8,
       WA_InnerHeight, LastH*16,
       WA_MaxWidth   , 32768,
       WA_MaxHeight  , 32768,
-      WA_Title      , PChar('FPC Video Window Output'),
+      WA_Title      , PtrUInt(PChar('FPC Video Window Output')),
       WA_Activate   , 1,
       WA_FLAGS      , (WFLG_GIMMEZEROZERO or WFLG_REPORTMOUSE   or
                        WFLG_SMART_REFRESH or WFLG_NOCAREREFRESH or 
@@ -179,9 +181,6 @@ begin
                        IDCMP_CHANGEWINDOW or IDCMP_CLOSEWINDOW)//,
     ]);  
   end;
-
-  Tags := GetTagPtr(WindowTags);
-  GetWindow := OpenWindowTagList(nil, Tags);
 
   Process := PProcess(FindTask(nil));
   WindowForReqSave := Process^.pr_WindowPtr;
@@ -254,7 +253,7 @@ begin
    {$endif}
    { viewpostcolormap info }
    videoColorMap := pScreen(videoWindow^.WScreen)^.ViewPort.ColorMap;
-   
+
    for Counter := 0 to 15 do 
    begin
      VideoPens[Counter] := ObtainPen(VideoColorMap, LongWord(-1),
@@ -265,9 +264,9 @@ begin
        WriteLn('errr color[',Counter,'] = ', VideoPens[Counter])
      else
        WriteLn('good color[',Counter,'] = ', VideoPens[Counter]);
-     {$endif}        
-   end;   
-   
+     {$endif}
+   end;
+
    CursorX := 0;
    CursorY := 0;
    OldCursorX := 0;
