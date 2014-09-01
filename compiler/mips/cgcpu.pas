@@ -295,10 +295,6 @@ begin
     [RS_F0,RS_F2,RS_F4,RS_F6, RS_F8,RS_F10,RS_F12,RS_F14,
      RS_F16,RS_F18,RS_F20,RS_F22, RS_F24,RS_F26,RS_F28,RS_F30],
     first_fpu_imreg, []);
-
-  { needs at least one element for rgobj not to crash }
-  rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBNONE,
-      [RS_R0],first_mm_imreg,[]);
 end;
 
 
@@ -307,7 +303,6 @@ procedure TCGMIPS.done_register_allocators;
 begin
   rg[R_INTREGISTER].Free;
   rg[R_FPUREGISTER].Free;
-  rg[R_MMREGISTER].Free;
   inherited done_register_allocators;
 end;
 
