@@ -2376,11 +2376,8 @@ function BsrByte(Const AValue: Byte): Byte;
 {$ifndef FPC_HAS_INTERNAL_BSF_WORD}
 function BsfWord(Const AValue: Word): {$ifdef CPU16}byte{$else}cardinal{$endif};
   begin
-    result:=$ff;
-    if lo(AValue)<>0 then
-      result:=BsfByte(lo(AValue))
-    else if hi(AValue) <> 0 then
-      result:=BsfByte(hi(AValue))+8
+    result:=ord(lo(AValue)=0)*8;
+    result:=result or BsfByte(byte(AValue shr result));
   end;
 {$endif}
 {$endif}
@@ -2389,10 +2386,8 @@ function BsfWord(Const AValue: Word): {$ifdef CPU16}byte{$else}cardinal{$endif};
 {$ifndef FPC_HAS_INTERNAL_BSR_WORD}
 function BsrWord(Const AValue: Word): {$ifdef CPU16}byte{$else}cardinal{$endif};
   begin
-    if hi(AValue)<>0 then
-      result:=BsrByte(hi(AValue))+8
-    else
-      result:=BsrByte(lo(AValue))
+    result:=ord(AValue>255)*8;
+    result:=result or BsrByte(byte(AValue shr result));
   end;
 {$endif}
 {$endif}
@@ -2400,37 +2395,47 @@ function BsrWord(Const AValue: Word): {$ifdef CPU16}byte{$else}cardinal{$endif};
 {$ifndef FPC_HAS_INTERNAL_BSF_DWORD}
 {$ifndef FPC_SYSTEM_HAS_BSF_DWORD}
 function BsfDWord(Const AValue : DWord): {$ifdef CPU16}byte{$else}cardinal{$endif};
-begin
-  result:=$ff;
-  if lo(AValue)<>0 then
-    result:=BsfWord(lo(AValue))
-  else if hi(AValue) <> 0 then
-    result:=BsfWord(hi(AValue))+16
-end;
+  var
+    tmp: DWord;
+  begin
+    result:=ord(lo(AValue)=0)*16;
+    tmp:=AValue shr result;
+    result:=result or (ord((tmp and $FF)=0)*8);
+    tmp:=tmp shr (result and 8);
+    result:=result or BsfByte(byte(tmp));
+  end;
 {$endif}
 {$endif}
 
 {$ifndef FPC_HAS_INTERNAL_BSR_DWORD}
 {$ifndef FPC_SYSTEM_HAS_BSR_DWORD}
 function BsrDWord(Const AValue : DWord): {$ifdef CPU16}byte{$else}cardinal{$endif};
-begin
-  if hi(AValue)<>0 then
-    result:=BsrWord(hi(AValue))+16
-  else
-    result:=BsrWord(lo(AValue))
-end;
+  var
+    tmp: DWord;
+  begin
+    result:=ord(AValue>$FFFF)*16;
+    tmp:=AValue shr result;
+    result:=result or (ord(tmp>$FF)*8);
+    tmp:=tmp shr (result and 8);
+    result:=result or BsrByte(byte(tmp));
+  end;
 {$endif}
 {$endif}
 
 {$ifndef FPC_HAS_INTERNAL_BSF_QWORD}
 {$ifndef FPC_SYSTEM_HAS_BSF_QWORD}
 function BsfQWord(Const AValue : QWord): {$ifdef CPU16}byte{$else}cardinal{$endif};
+  var
+    tmp: DWord;
   begin
-    result:=$ff;
-    if lo(AValue) <> 0 then
-      result:=BsfDWord(lo(AValue))
-    else if hi(AValue) <> 0 then
-      result:=BsfDWord(hi(AValue)) + 32;
+    result:=0;
+    tmp:=lo(AValue);
+    if (tmp=0) then
+      begin
+        tmp:=hi(AValue);
+        result:=32;
+      end;
+    result:=result or BsfDword(tmp);
   end;
 {$endif}
 {$endif}
@@ -2438,11 +2443,17 @@ function BsfQWord(Const AValue : QWord): {$ifdef CPU16}byte{$else}cardinal{$endi
 {$ifndef FPC_HAS_INTERNAL_BSR_QWORD}
 {$ifndef FPC_SYSTEM_HAS_BSR_QWORD}
 function BsrQWord(Const AValue : QWord): {$ifdef CPU16}byte{$else}cardinal{$endif};
+  var
+    tmp: DWord;
   begin
-    if hi(AValue) <> 0 then
-      result:=BsrDWord(hi(AValue)) + 32
-    else
-      result:=BsrDWord(lo(AValue))
+    result:=32;
+    tmp:=hi(AValue);
+    if (tmp=0) then
+      begin
+        tmp:=lo(AValue);
+        result:=0;
+      end;
+    result:=result or BsrDword(tmp);
   end;
 {$endif}
 {$endif}
