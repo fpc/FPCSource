@@ -2227,7 +2227,7 @@ implementation
                  break;
              end;
            if is_objectpascal_helper(structdef) and
-              (tobjectdef(structdef).typ in [recorddef,objectdef]) then
+              (tobjectdef(structdef).extendeddef.typ in [recorddef,objectdef]) then
              begin
                { search methods in the extended type as well }
                srsym:=tprocsym(tabstractrecorddef(tobjectdef(structdef).extendeddef).symtable.FindWithHash(hashedid));
