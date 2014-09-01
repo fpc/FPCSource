@@ -86,7 +86,7 @@
 
     function SysTinyGetMem(Size: ptruint): pointer;
       var
-        p, prev: PTinyHeapBlock;
+        p, prev, p2: PTinyHeapBlock;
         AllocSize, RestSize: ptruint;
       begin
 {$ifdef DEBUG_TINY_HEAP}
@@ -114,15 +114,25 @@
                 RestSize := 0;
               end;
 
-            if prev = nil then
-              TinyHeapBlocks := p^.Next
+            if RestSize > 0 then
+              begin
+                p2 := pointer(TTinyHeapPointerArithmeticType(p)+AllocSize);
+                p2^.Next := p^.Next;
+                p2^.Size := EncodeTinyHeapFreeBlockSize(RestSize);
+                if prev = nil then
+                  TinyHeapBlocks := p2
+                else
+                  prev^.next := p2;
+              end
             else
-              prev^.next := p^.next;
+              begin
+                if prev = nil then
+                  TinyHeapBlocks := p^.Next
+                else
+                  prev^.next := p^.next;
+              end;
 
             PTinyHeapMemBlockSize(p)^ := size;
-
-            if RestSize > 0 then
-              InternalTinyFreeMem(pointer(TTinyHeapPointerArithmeticType(p)+AllocSize), RestSize);
           end
         else
           if ReturnNilIfGrowHeapFails then
