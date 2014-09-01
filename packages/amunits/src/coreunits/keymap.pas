@@ -115,7 +115,7 @@ const
     KEYMAPNAME : PChar = 'keymap.library';
 
 FUNCTION AskKeyMapDefault : pKeyMap; syscall KeymapBase 036;
-FUNCTION MapANSI(thestring : pCHAR location 'a0'; count : LONGINT location 'd0'; buffer : pCHAR location 'a1'; length : LONGINT location 'd1'; keyMap : pKeyMap location 'a2') : LONGINT; sycall KeymapBase 048
+FUNCTION MapANSI(thestring : pCHAR location 'a0'; count : LONGINT location 'd0'; buffer : pCHAR location 'a1'; length : LONGINT location 'd1'; keyMap : pKeyMap location 'a2') : LONGINT; syscall KeymapBase 048;
 FUNCTION MapRawKey(event : pInputEvent location 'a0'; buffer : pCHAR location 'a1'; length : LONGINT location 'd1'; keyMap : pKeyMap location 'a2') : smallint; syscall KeymapBase 042;
 PROCEDURE SetKeyMapDefault(keyMap : pKeyMap location 'a0'); syscall KeymapBase 030;
 
