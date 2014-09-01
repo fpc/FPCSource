@@ -1613,7 +1613,7 @@ FUNCTION DoPkt2(port : pMsgPort; action : LONGINT; arg1 : LONGINT; arg2 : LONGIN
 FUNCTION DoPkt3(port : pMsgPort; action : LONGINT; arg1 : LONGINT; arg2 : LONGINT; arg3 : LONGINT) : LONGINT;
 FUNCTION DoPkt4(port : pMsgPort; action : LONGINT; arg1 : LONGINT; arg2 : LONGINT; arg3 : LONGINT; arg4 : LONGINT) : LONGINT;
 PROCEDURE DOSClose(file_ : LONGINT);
-PROCEDURE DOSDelay(timeout : LONGINT);
+PROCEDURE DOSDelay(timeout : LONGINT location 'd1'); syscall _DOSBase 198;
 PROCEDURE DOSExit(returnCode : LONGINT);
 FUNCTION DOSFlush(fh : LONGINT) : BOOLEAN;
 FUNCTION DOSInput : LONGINT;
@@ -2333,16 +2333,6 @@ BEGIN
   END;
 END;
 
-PROCEDURE DOSDelay(timeout : LONGINT);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVE.L  timeout,D1
-    MOVEA.L _DOSBase,A6
-    JSR -198(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
 
 PROCEDURE DOSExit(returnCode : LONGINT);
 BEGIN

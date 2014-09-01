@@ -4135,11 +4135,11 @@ PROCEDURE OffGadget(gadget : pGadget; window : pWindow; requester : pRequester);
 PROCEDURE OffMenu(window : pWindow; menuNumber : ULONG);
 PROCEDURE OnGadget(gadget : pGadget; window : pWindow; requester : pRequester);
 PROCEDURE OnMenu(window : pWindow; menuNumber : ULONG);
-FUNCTION OpenScreen(const newScreen : pNewScreen) : pScreen;
-FUNCTION OpenScreenTagList(const newScreen : pNewScreen;const tagList : pTagItem) : pScreen;
-FUNCTION OpenWindow(const newWindow : pNewWindow) : pWindow;
-FUNCTION OpenWindowTagList(const newWindow : pNewWindow;const tagList : pTagItem) : pWindow;
-FUNCTION OpenWorkBench : ULONG;
+FUNCTION OpenScreen(const newScreen : pNewScreen location 'a0') : pScreen; syscall _IntuitionBase 198;
+FUNCTION OpenScreenTagList(const newScreen : pNewScreen location 'a0'; const tagList : pTagItem location 'a1') : pScreen; syscall _IntuitionBase 612;
+FUNCTION OpenWindow(const newWindow : pNewWindow location 'a0') : pWindow; syscall _IntuitionBase 204;
+FUNCTION OpenWindowTagList(const newWindow : pNewWindow location 'a0'; const tagList : pTagItem location 'a1') : pWindow; syscall _Intuitionbase 606;
+FUNCTION OpenWorkBench : ULONG; syscall _IntuitionBase 210;
 FUNCTION PointInImage(point : ULONG; image : pImage) : BOOLEAN;
 PROCEDURE PrintIText(rp : pRastPort;const iText : pIntuiText; left : LONGINT; top : LONGINT);
 FUNCTION PubScreenStatus(screen : pScreen; statusFlags : ULONG) : WORD;
@@ -5244,66 +5244,6 @@ BEGIN
   END;
 END;
 
-FUNCTION OpenScreen(const newScreen : pNewScreen) : pScreen;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L newScreen,A0
-    MOVEA.L _IntuitionBase,A6
-    JSR -198(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION OpenScreenTagList(const newScreen : pNewScreen;const tagList : pTagItem) : pScreen;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L newScreen,A0
-    MOVEA.L tagList,A1
-    MOVEA.L _IntuitionBase,A6
-    JSR -612(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION OpenWindow(const newWindow : pNewWindow) : pWindow;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L newWindow,A0
-    MOVEA.L _IntuitionBase,A6
-    JSR -204(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION OpenWindowTagList(const newWindow : pNewWindow;const tagList : pTagItem) : pWindow;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L newWindow,A0
-    MOVEA.L tagList,A1
-    MOVEA.L _IntuitionBase,A6
-    JSR -606(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION OpenWorkBench : ULONG;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L _IntuitionBase,A6
-    JSR -210(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
 
 FUNCTION PointInImage(point : ULONG; image : pImage) : BOOLEAN;
 BEGIN

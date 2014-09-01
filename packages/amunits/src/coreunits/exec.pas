@@ -1247,7 +1247,7 @@ PROCEDURE FreeSignal(signalNum : LONGINT);
 PROCEDURE FreeTrap(trapNum : LONGINT);
 PROCEDURE FreeVec(memoryBlock : POINTER);
 FUNCTION GetCC : ULONG;
-FUNCTION GetMsg(port : pMsgPort) : pMessage;
+FUNCTION GetMsg(port : pMsgPort location 'a0') : pMessage; syscall _ExecBase 372;
 PROCEDURE InitCode(startClass : ULONG; version : ULONG);
 FUNCTION InitResident(const resident_ : pResident; segList : ULONG) : POINTER;
 PROCEDURE InitSemaphore(sigSem : pSignalSemaphore);
@@ -1279,7 +1279,7 @@ PROCEDURE RemResource(resource : POINTER);
 PROCEDURE RemSemaphore(sigSem : pSignalSemaphore);
 FUNCTION RemTail(list : pList) : pNode;
 PROCEDURE RemTask(task : pTask);
-PROCEDURE ReplyMsg(message : pMessage);
+PROCEDURE ReplyMsg(message : pMessage location 'a1'); syscall _ExecBase 378;
 PROCEDURE SendIO(ioRequest : pIORequest);
 FUNCTION SetExcept(newSignals : ULONG; signalSet : ULONG) : ULONG;
 FUNCTION SetFunction(lib : pLibrary; funcOffset : LONGINT; newFunction : tPROCEDURE) : POINTER;
@@ -1298,7 +1298,7 @@ PROCEDURE UserState(sysStack : POINTER);
 PROCEDURE Vacate(sigSem : pSignalSemaphore; bidMsg : pSemaphoreMessage);
 FUNCTION Wait(signalSet : ULONG) : ULONG;
 FUNCTION WaitIO(ioRequest : pIORequest) : shortint;
-FUNCTION WaitPort(port : pMsgPort) : pMessage;
+FUNCTION WaitPort(port : pMsgPort location 'a0') : pMessage; syscall _ExecBase 384;
 
 PROCEDURE NewMinList(minlist : pMinList);
 FUNCTION AVL_AddNode(root : ppAVLNode; node : pAVLNode; func : POINTER) : pAVLNode;
@@ -2133,18 +2133,6 @@ BEGIN
   END;
 END;
 
-FUNCTION GetMsg(port : pMsgPort) : pMessage;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L port,A0
-    MOVEA.L _ExecBase,A6
-    JSR -372(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
 PROCEDURE InitCode(startClass : ULONG; version : ULONG);
 BEGIN
   ASM
@@ -2520,16 +2508,6 @@ BEGIN
   END;
 END;
 
-PROCEDURE ReplyMsg(message : pMessage);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L message,A1
-    MOVEA.L _ExecBase,A6
-    JSR -378(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
 
 PROCEDURE SendIO(ioRequest : pIORequest);
 BEGIN
@@ -2745,18 +2723,6 @@ BEGIN
     JSR -474(A6)
     MOVEA.L (A7)+,A6
     MOVE.B  D0,@RESULT
-  END;
-END;
-
-FUNCTION WaitPort(port : pMsgPort) : pMessage;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L port,A0
-    MOVEA.L _ExecBase,A6
-    JSR -384(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
   END;
 END;
 

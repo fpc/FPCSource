@@ -2241,13 +2241,13 @@ const
 var
     GfxBase : pLibrary;
 
-PROCEDURE AddAnimOb(anOb : pAnimOb; anKey : ppAnimOb; rp : pRastPort);
-PROCEDURE AddBob(bob : pBob; rp : pRastPort);
-PROCEDURE AddFont(textFont : pTextFont);
-PROCEDURE AddVSprite(vSprite : pVSprite; rp : pRastPort);
-FUNCTION AllocBitMap(sizex : ULONG; sizey : ULONG; depth : ULONG; flags : ULONG;const friend_bitmap : pBitMap) : pBitMap;
-FUNCTION AllocDBufInfo(vp : pViewPort) : pDBufInfo;
-FUNCTION AllocRaster(width : ULONG; height : ULONG) : pCHAR;
+PROCEDURE AddAnimOb(anOb : pAnimOb location 'a0'; anKey : ppAnimOb location 'a1'; rp : pRastPort location 'a2'); syscall GfxBase 156;
+PROCEDURE AddBob(bob : pBob location 'a0'; rp : pRastPort location 'a1'); syscall GfxBase 096;
+PROCEDURE AddFont(textFont : pTextFont location 'a1'); syscall GfxBase 480;
+PROCEDURE AddVSprite(vSprite : pVSprite location 'a0'; rp : pRastPort location 'a1'); syscall GfxBase 102;
+FUNCTION AllocBitMap(sizex : ULONG location 'd0'; sizey : ULONG location 'd1'; depth : ULONG location 'd2'; flags : ULONG location 'd3'; const friend_bitmap : pBitMap location 'a0') : pBitMap; syscall GfxBase 918;
+FUNCTION AllocDBufInfo(vp : pViewPort location 'a0') : pDBufInfo; syscall GfxBase 966;
+FUNCTION AllocRaster(width : ULONG location 'd0'; height : ULONG location 'd1') : pCHAR; syscall GfxBase 492;
 FUNCTION AllocSpriteDataA(const bm : pBitMap;const tags : pTagItem) : pExtSprite;
 PROCEDURE AndRectRegion(region : pRegion;const rectangle : pRectangle);
 FUNCTION AndRegionRegion(const srcRegion : pRegion; destRegion : pRegion) : BOOLEAN;
@@ -2267,7 +2267,7 @@ PROCEDURE BltBitMapRastPort(const srcBitMap : pBitMap; xSrc : LONGINT; ySrc : LO
 PROCEDURE BltClear(memBlock : pCHAR; byteCount : ULONG; flags : ULONG);
 PROCEDURE BltMaskBitMapRastPort(const srcBitMap : pBitMap; xSrc : LONGINT; ySrc : LONGINT; destRP : pRastPort; xDest : LONGINT; yDest : LONGINT; xSize : LONGINT; ySize : LONGINT; minterm : ULONG;const bltMask : pCHAR);
 PROCEDURE BltPattern(rp : pRastPort;const mask : pCHAR; xMin : LONGINT; yMin : LONGINT; xMax : LONGINT; yMax : LONGINT; maskBPR : ULONG);
-PROCEDURE BltTemplate(const source : pCHAR; xSrc : LONGINT; srcMod : LONGINT; destRP : pRastPort; xDest : LONGINT; yDest : LONGINT; xSize : LONGINT; ySize : LONGINT);
+PROCEDURE BltTemplate(const source : pCHAR location 'a0'; xSrc : LONGINT location 'd0'; srcMod : LONGINT location 'd1'; destRP : pRastPort location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'); syscall GfxBase 036;
 FUNCTION CalcIVG(v : pView; vp : pViewPort) : WORD;
 PROCEDURE CBump(copList : pUCopList);
 FUNCTION ChangeExtSpriteA(vp : pViewPort; oldsprite : pExtSprite; newsprite : pExtSprite;const tags : pTagItem) : LONGINT;
@@ -2287,7 +2287,7 @@ PROCEDURE CWait(copList : pUCopList; v : LONGINT; h : LONGINT);
 PROCEDURE DisownBlitter;
 PROCEDURE DisposeRegion(region : pRegion);
 PROCEDURE DoCollision(rp : pRastPort);
-PROCEDURE Draw(rp : pRastPort; x : LONGINT; y : LONGINT);
+PROCEDURE Draw(rp : pRastPort location 'a1'; x : LONGINT location 'd0'; y : LONGINT location 'd1'); syscall GfxBase 246;
 PROCEDURE DrawEllipse(rp : pRastPort; xCenter : LONGINT; yCenter : LONGINT; a : LONGINT; b : LONGINT);
 PROCEDURE DrawGList(rp : pRastPort; vp : pViewPort);
 PROCEDURE EraseRect(rp : pRastPort; xMin : LONGINT; yMin : LONGINT; xMax : LONGINT; yMax : LONGINT);
@@ -2345,7 +2345,7 @@ FUNCTION MrgCop(view : pView) : ULONG;
 FUNCTION NewRegion : pRegion;
 FUNCTION NextDisplayInfo(displayID : ULONG) : ULONG;
 FUNCTION ObtainBestPenA(cm : pColorMap; r : ULONG; g : ULONG; b : ULONG;const tags : pTagItem) : LONGINT;
-FUNCTION ObtainPen(cm : pColorMap; n : ULONG; r : ULONG; g : ULONG; b : ULONG; f : LONGINT) : ULONG;
+FUNCTION ObtainPen(cm : pColorMap location 'a0'; n : ULONG location 'd0'; r : ULONG location 'd1'; g : ULONG location 'd2'; b : ULONG location 'd3'; f : LONGINT location 'd4') : ULONG; syscall GfxBase 954;
 FUNCTION OpenFont(textAttr : pTextAttr) : pTextFont;
 FUNCTION OpenMonitor(const monitorName : pCHAR; displayID : ULONG) : pMonitorSpec;
 FUNCTION OrRectRegion(region : pRegion;const rectangle : pRectangle) : BOOLEAN;
@@ -2358,7 +2358,7 @@ FUNCTION ReadPixel(rp : pRastPort; x : LONGINT; y : LONGINT) : ULONG;
 FUNCTION ReadPixelArray8(rp : pRastPort; xstart : ULONG; ystart : ULONG; xstop : ULONG; ystop : ULONG; array_ : pointer; temprp : pRastPort) : LONGINT;
 FUNCTION ReadPixelLine8(rp : pRastPort; xstart : ULONG; ystart : ULONG; width : ULONG; array_ : pointer; tempRP : pRastPort) : LONGINT;
 PROCEDURE RectFill(rp : pRastPort; xMin : LONGINT; yMin : LONGINT; xMax : LONGINT; yMax : LONGINT);
-PROCEDURE ReleasePen(cm : pColorMap; n : ULONG);
+PROCEDURE ReleasePen(cm : pColorMap location 'a0'; n : ULONG location 'd0'); syscall GfxBase 948;
 PROCEDURE RemFont(textFont : pTextFont);
 PROCEDURE RemIBob(bob : pBob; rp : pRastPort; vp : pViewPort);
 PROCEDURE RemVSprite(vSprite : pVSprite);
@@ -2366,9 +2366,9 @@ FUNCTION ScalerDiv(factor : ULONG; numerator : ULONG; denominator : ULONG) : WOR
 PROCEDURE ScrollRaster(rp : pRastPort; dx : LONGINT; dy : LONGINT; xMin : LONGINT; yMin : LONGINT; xMax : LONGINT; yMax : LONGINT);
 PROCEDURE ScrollRasterBF(rp : pRastPort; dx : LONGINT; dy : LONGINT; xMin : LONGINT; yMin : LONGINT; xMax : LONGINT; yMax : LONGINT);
 PROCEDURE ScrollVPort(vp : pViewPort);
-PROCEDURE SetABPenDrMd(rp : pRastPort; apen : ULONG; bpen : ULONG; drawmode : ULONG);
-PROCEDURE SetAPen(rp : pRastPort; pen : ULONG);
-PROCEDURE SetBPen(rp : pRastPort; pen : ULONG);
+PROCEDURE SetABPenDrMd(rp : pRastPort location 'a1'; apen : ULONG location 'd0'; bpen : ULONG location 'd1'; drawmode : ULONG location 'd2'); syscall GfxBase 894;
+PROCEDURE SetAPen(rp : pRastPort location 'a1'; pen : ULONG location 'd0'); syscall GfxBase 342;
+PROCEDURE SetBPen(rp : pRastPort location 'a1'; pen : ULONG location 'd0'); syscall GfxBase 348;
 FUNCTION SetChipRev(want : ULONG) : ULONG;
 PROCEDURE SetCollision(num : ULONG; routine : tPROCEDURE; gelsInfo : pGelsInfo);
 PROCEDURE SetDrMd(rp : pRastPort; drawMode : ULONG);
@@ -2535,95 +2535,6 @@ END;
 PROCEDURE ON_VBLANK (cust: pCustom);
 BEGIN
     cust^.intena := BITSET OR INTF_VERTB;
-END;
-
-PROCEDURE AddAnimOb(anOb : pAnimOb; anKey : ppAnimOb; rp : pRastPort);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L anOb,A0
-    MOVEA.L anKey,A1
-    MOVEA.L rp,A2
-    MOVEA.L GfxBase,A6
-    JSR -156(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-PROCEDURE AddBob(bob : pBob; rp : pRastPort);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L bob,A0
-    MOVEA.L rp,A1
-    MOVEA.L GfxBase,A6
-    JSR -096(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-PROCEDURE AddFont(textFont : pTextFont);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L textFont,A1
-    MOVEA.L GfxBase,A6
-    JSR -480(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-PROCEDURE AddVSprite(vSprite : pVSprite; rp : pRastPort);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L vSprite,A0
-    MOVEA.L rp,A1
-    MOVEA.L GfxBase,A6
-    JSR -102(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-FUNCTION AllocBitMap(sizex : ULONG; sizey : ULONG; depth : ULONG; flags : ULONG;const friend_bitmap : pBitMap) : pBitMap;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVE.L  sizex,D0
-    MOVE.L  sizey,D1
-    MOVE.L  depth,D2
-    MOVE.L  flags,D3
-    MOVEA.L friend_bitmap,A0
-    MOVEA.L GfxBase,A6
-    JSR -918(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION AllocDBufInfo(vp : pViewPort) : pDBufInfo;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L vp,A0
-    MOVEA.L GfxBase,A6
-    JSR -966(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION AllocRaster(width : ULONG; height : ULONG) : pCHAR;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVE.L  width,D0
-    MOVE.L  height,D1
-    MOVEA.L GfxBase,A6
-    JSR -492(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
 END;
 
 FUNCTION AllocSpriteDataA(const bm : pBitMap;const tags : pTagItem) : pExtSprite;
@@ -2901,23 +2812,6 @@ BEGIN
   END;
 END;
 
-PROCEDURE BltTemplate(const source : pCHAR; xSrc : LONGINT; srcMod : LONGINT; destRP : pRastPort; xDest : LONGINT; yDest : LONGINT; xSize : LONGINT; ySize : LONGINT);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L source,A0
-    MOVE.L  xSrc,D0
-    MOVE.L  srcMod,D1
-    MOVEA.L destRP,A1
-    MOVE.L  xDest,D2
-    MOVE.L  yDest,D3
-    MOVE.L  xSize,D4
-    MOVE.L  ySize,D5
-    MOVEA.L GfxBase,A6
-    JSR -036(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
 
 FUNCTION CalcIVG(v : pView; vp : pViewPort) : WORD;
 BEGIN
@@ -3161,18 +3055,6 @@ BEGIN
   END;
 END;
 
-PROCEDURE Draw(rp : pRastPort; x : LONGINT; y : LONGINT);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L rp,A1
-    MOVE.L  x,D0
-    MOVE.L  y,D1
-    MOVEA.L GfxBase,A6
-    JSR -246(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
 
 PROCEDURE DrawEllipse(rp : pRastPort; xCenter : LONGINT; yCenter : LONGINT; a : LONGINT; b : LONGINT);
 BEGIN
@@ -3877,22 +3759,6 @@ BEGIN
   END;
 END;
 
-FUNCTION ObtainPen(cm : pColorMap; n : ULONG; r : ULONG; g : ULONG; b : ULONG; f : LONGINT) : ULONG;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L cm,A0
-    MOVE.L  n,D0
-    MOVE.L  r,D1
-    MOVE.L  g,D2
-    MOVE.L  b,D3
-    MOVE.L  f,D4
-    MOVEA.L GfxBase,A6
-    JSR -954(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
 
 FUNCTION OpenFont(textAttr : pTextAttr) : pTextFont;
 BEGIN
@@ -4060,17 +3926,6 @@ BEGIN
   END;
 END;
 
-PROCEDURE ReleasePen(cm : pColorMap; n : ULONG);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L cm,A0
-    MOVE.L  n,D0
-    MOVEA.L GfxBase,A6
-    JSR -948(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
 
 PROCEDURE RemFont(textFont : pTextFont);
 BEGIN
@@ -4166,43 +4021,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE SetABPenDrMd(rp : pRastPort; apen : ULONG; bpen : ULONG; drawmode : ULONG);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L rp,A1
-    MOVE.L  apen,D0
-    MOVE.L  bpen,D1
-    MOVE.L  drawmode,D2
-    MOVEA.L GfxBase,A6
-    JSR -894(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
 
-PROCEDURE SetAPen(rp : pRastPort; pen : ULONG);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L rp,A1
-    MOVE.L  pen,D0
-    MOVEA.L GfxBase,A6
-    JSR -342(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-PROCEDURE SetBPen(rp : pRastPort; pen : ULONG);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L rp,A1
-    MOVE.L  pen,D0
-    MOVEA.L GfxBase,A6
-    JSR -348(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
 
 FUNCTION SetChipRev(want : ULONG) : ULONG;
 BEGIN
