@@ -232,7 +232,7 @@ end;
 
 FUNCTION AslRequestTags(requester : POINTER; Const argv : Array Of Const) : BOOLEAN;
 begin
-    AslRequestTags := AslRequest(requester,readintags(argv));
+    AslRequestTags := AslRequest(requester,readintags(argv)) <> 0;
 end;
 
 FUNCTION ObtainInfo(glyphEngine : pGlyphEngine; Const argv : Array Of Const) : ULONG;
