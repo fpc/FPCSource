@@ -420,7 +420,12 @@ implementation
               newparaloc^.loc:=paraloc^.loc;
             case newparaloc^.loc of
               LOC_REGISTER :
-                newparaloc^.register:=cg.getintregister(list,paraloc^.size);
+                begin
+                  if (vo_has_explicit_paraloc in parasym.varoptions) and (paraloc^.loc = LOC_REGISTER) then
+                    newparaloc^.register:=paraloc^.register
+                  else
+                    newparaloc^.register:=cg.getintregister(list,paraloc^.size);
+                end;
               LOC_FPUREGISTER :
                 newparaloc^.register:=cg.getfpuregister(list,paraloc^.size);
               LOC_MMREGISTER :

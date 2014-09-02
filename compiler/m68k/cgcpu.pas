@@ -945,10 +945,18 @@ unit cgcpu;
     procedure tcg68k.a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);
       var
         href : treference;
+        hreg : tregister;
       begin
         href:=ref;
         fixref(list, href);
-        list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,r));
+        if not isaddressregister(r) then
+          begin
+            hreg:=getaddressregister(list);
+            list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,hreg));
+            a_load_reg_reg(list, OS_ADDR, OS_ADDR, hreg, r);
+          end
+        else
+          list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,r));
       end;
 
 
