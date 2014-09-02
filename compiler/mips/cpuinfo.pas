@@ -104,24 +104,26 @@ Const
 
    mips_abi : tabitype = abi_default;
 
-{$ifdef MIPSEL}
 type
-   tcpuflags=(CPUMIPS_HAS_XXXX); //Todo: Does this need to be filled?
+   tcpuflags=(
+     CPUMIPS_HAS_CMOV,             { conditional move instructions (mips4+) }
+     CPUMIPS_HAS_ISA32R2           { mips32r2 instructions (also on PIC32)  }
+   );
 
 const
   cpu_capabilities : array[tcputype] of set of tcpuflags =
-    ( { cpu_none } [],
-      { cpu_mips1 } [],
-      { cpu_mips2 } [],
-      { cpu_mips3 } [],
-      { cpu_mips4 } [],
-      { cpu_mips5 } [],
-      { cpu_mips32 } [],
-      { cpu_mips32r2 } [],
-      { cpu_pic32mx } []
+    ( { cpu_none }     [],
+      { cpu_mips1 }    [],
+      { cpu_mips2 }    [],
+      { cpu_mips3 }    [],
+      { cpu_mips4 }    [CPUMIPS_HAS_CMOV],
+      { cpu_mips5 }    [CPUMIPS_HAS_CMOV],
+      { cpu_mips32 }   [CPUMIPS_HAS_CMOV],
+      { cpu_mips32r2 } [CPUMIPS_HAS_CMOV,CPUMIPS_HAS_ISA32R2],
+      { cpu_pic32mx }  [CPUMIPS_HAS_CMOV,CPUMIPS_HAS_ISA32R2]
     );
 
-
+{$ifdef MIPSEL}
 type
    tcontrollertype =
      (ct_none,
