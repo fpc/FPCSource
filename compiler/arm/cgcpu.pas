@@ -4057,30 +4057,30 @@ unit cgcpu;
         tmpreg : TRegister;
       begin
         href:=ref;
-        if (op in [A_STR,A_STRB,A_STRH]) and
-           (abs(ref.offset)>124) then
-          begin
-            tmpreg:=getintregister(list,OS_ADDR);
-            a_loadaddr_ref_reg(list,ref,tmpreg);
-
-            reference_reset_base(href,tmpreg,0,ref.alignment);
-          end
-        else if ((op=A_LDR) and (oppostfix in [PF_None]) and
-           (ref.base<>NR_STACK_POINTER_REG) and
-           (abs(ref.offset)>124)) or
-           { LDRB limitations }
+        if { LDR/STR limitations }
            (
-            (((op=A_LDR) and (oppostfix=PF_B)) or
-             ((op=A_LDRB) and (oppostfix=PF_None))) and
+            (((op=A_LDR) and (oppostfix=PF_None)) or
+             ((op=A_STR) and (oppostfix=PF_None))) and
+            (ref.base<>NR_STACK_POINTER_REG) and
+            (abs(ref.offset)>124)
+           ) or
+           { LDRB/STRB limitations }
+           (
+           (((op=A_LDR) and (oppostfix=PF_B)) or
+            ((op=A_LDRB) and (oppostfix=PF_None)) or
+            ((op=A_STR) and (oppostfix=PF_B)) or
+            ((op=A_STRB) and (oppostfix=PF_None))) and
             ((ref.base=NR_STACK_POINTER_REG) or
              (ref.index=NR_STACK_POINTER_REG) or
              (abs(ref.offset)>31)
             )
            ) or
-           { LDRH limitations }
+           { LDRH/STRH limitations }
            (
             (((op=A_LDR) and (oppostfix=PF_H)) or
-             ((op=A_LDRH) and (oppostfix=PF_None))) and
+             ((op=A_LDRH) and (oppostfix=PF_None)) or
+             ((op=A_STR) and (oppostfix=PF_H)) or
+             ((op=A_STRH) and (oppostfix=PF_None))) and
             ((ref.base=NR_STACK_POINTER_REG) or
              (ref.index=NR_STACK_POINTER_REG) or
              (abs(ref.offset)>62) or
