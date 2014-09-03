@@ -436,7 +436,7 @@ end;
 procedure TCGMIPS.a_load_const_reg(list: tasmlist; size: TCGSize; a: tcgint; reg: TRegister);
 begin
   if (a = 0) then
-    list.concat(taicpu.op_reg_reg(A_MOVE, reg, NR_R0))
+    a_load_reg_reg(list, OS_INT, OS_INT, NR_R0, reg)
   else if (a >= simm16lo) and (a <= simm16hi) then
     list.concat(taicpu.op_reg_reg_const(A_ADDIU, reg, NR_R0, a))
   else if (a>=0) and (a <= 65535) then
@@ -541,13 +541,23 @@ begin
         done:=false;
       OS_S8:
       begin
-        list.concat(taicpu.op_reg_reg_const(A_SLL, reg2, reg1, 24));
-        list.concat(taicpu.op_reg_reg_const(A_SRA, reg2, reg2, 24));
+        if (CPUMIPS_HAS_ISA32R2 in cpu_capabilities[current_settings.cputype]) then
+          list.concat(taicpu.op_reg_reg(A_SEB,reg2,reg1))
+        else
+          begin
+            list.concat(taicpu.op_reg_reg_const(A_SLL, reg2, reg1, 24));
+            list.concat(taicpu.op_reg_reg_const(A_SRA, reg2, reg2, 24));
+          end;
       end;
       OS_S16:
       begin
-        list.concat(taicpu.op_reg_reg_const(A_SLL, reg2, reg1, 16));
-        list.concat(taicpu.op_reg_reg_const(A_SRA, reg2, reg2, 16));
+        if (CPUMIPS_HAS_ISA32R2 in cpu_capabilities[current_settings.cputype]) then
+          list.concat(taicpu.op_reg_reg(A_SEH,reg2,reg1))
+        else
+          begin
+            list.concat(taicpu.op_reg_reg_const(A_SLL, reg2, reg1, 16));
+            list.concat(taicpu.op_reg_reg_const(A_SRA, reg2, reg2, 16));
+          end;
       end;
       else
         internalerror(2002090901);
@@ -815,6 +825,7 @@ var
   hreg: TRegister;
   asmop: TAsmOp;
 begin
+  a:=aint(a);
   ovloc.loc := LOC_VOID;
   optimize_op_const(size,op,a);
   signed:=(size in [OS_S8,OS_S16,OS_S32]);
@@ -930,23 +941,30 @@ begin
       end;
     OP_MUL,OP_IMUL:
       begin
-        list.concat(taicpu.op_reg_reg(TOpCg2AsmOp[op], src2, src1));
-        list.concat(taicpu.op_reg(A_MFLO, dst));
-        if setflags then
+        if (CPUMIPS_HAS_ISA32R2 in cpu_capabilities[current_settings.cputype]) and
+           (not setflags) then
+          { NOTE: MUL is actually mips32r1 instruction; on older cores it is handled as macro }
+          list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src2,src1))
+        else
           begin
-            current_asmdata.getjumplabel(hl);
-            hreg:=GetIntRegister(list,OS_INT);
-            list.concat(taicpu.op_reg(A_MFHI,hreg));
-            if (op=OP_IMUL) then
+            list.concat(taicpu.op_reg_reg(TOpCg2AsmOp[op], src2, src1));
+            list.concat(taicpu.op_reg(A_MFLO, dst));
+            if setflags then
               begin
-                hreg2:=GetIntRegister(list,OS_INT);
-                list.concat(taicpu.op_reg_reg_const(A_SRA,hreg2,dst,31));
-                a_cmp_reg_reg_label(list,OS_INT,OC_EQ,hreg2,hreg,hl);
-              end
-            else
-              a_cmp_reg_reg_label(list,OS_INT,OC_EQ,hreg,NR_R0,hl);
-            list.concat(taicpu.op_const(A_BREAK,6));
-            a_label(list,hl);
+                current_asmdata.getjumplabel(hl);
+                hreg:=GetIntRegister(list,OS_INT);
+                list.concat(taicpu.op_reg(A_MFHI,hreg));
+                if (op=OP_IMUL) then
+                  begin
+                    hreg2:=GetIntRegister(list,OS_INT);
+                    list.concat(taicpu.op_reg_reg_const(A_SRA,hreg2,dst,31));
+                    a_cmp_reg_reg_label(list,OS_INT,OC_EQ,hreg2,hreg,hl);
+                  end
+                else
+                  a_cmp_reg_reg_label(list,OS_INT,OC_EQ,hreg,NR_R0,hl);
+                list.concat(taicpu.op_const(A_BREAK,6));
+                a_label(list,hl);
+              end;
           end;
       end;
     OP_AND,OP_OR,OP_XOR:
