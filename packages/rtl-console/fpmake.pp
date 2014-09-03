@@ -16,7 +16,7 @@ Const
   KVMAll       = [emx,go32v2,netware,netwlibc,os2,win32,win64]+UnixLikes+AllAmigaLikeOSes;
   
   // all full KVMers have crt too, except Amigalikes
-  CrtOSes      = KVMALL+[msdos,WatCom]-AllAmigaLikeOSes;
+  CrtOSes      = KVMALL+[msdos,WatCom]-[aros,morphos];
   KbdOSes      = KVMALL+[msdos];
   VideoOSes    = KVMALL;
   MouseOSes    = KVMALL;

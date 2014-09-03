@@ -40,6 +40,9 @@ Const
 
 Implementation
 
+uses
+  exec, amigados, conunit, intuition;
+
 var
   maxcols,maxrows : longint;
 
@@ -49,7 +52,7 @@ CONST
   KeyPress : char = #0;
   _LVODisplayBeep = -96;
 
-
+(*
 Type
 
     pInfoData = ^tInfoData;
@@ -184,7 +187,7 @@ Type
         IFont           : Pointer;
         MoreFlags       : Longint;
     end;
-
+*)
     const
 
     M_LNM               = 20;           { linefeed newline mode }
@@ -193,6 +196,7 @@ Type
     MAXTABS     = 80;
     IECLASS_MAX = $15;
 
+(*
 type
 
     pKeyMap = ^tKeyMap;
@@ -263,7 +267,7 @@ type
                                 { one bit per mode }
         cu_RawEvents    : Array [0..(IECLASS_MAX+7) div 8 - 1] of Byte;
     end;
-
+*)
 const
 
 
@@ -276,7 +280,7 @@ const
 
    SIGBREAKF_CTRL_C = 4096;
 
-function AllocVec( size, reqm : Longint ): Pointer;
+{function AllocVec( size, reqm : Longint ): Pointer;
 begin
    asm
        MOVE.L  A6,-(A7)
@@ -412,7 +416,7 @@ begin
        MOVE.L  (A7)+,A6
        MOVE.L  d0,@RESULT
    end;
-end;
+end;}
 
 function OpenInfo : pInfoData;
 var
@@ -703,23 +707,23 @@ procedure sound(hz : word);
 begin
 end;
 
-procedure delay(DTime : Word);
+procedure delay(ms : Word);
 var
     dummy : Longint;
 begin
-    dummy := trunc((real(DTime) / 1000.0) * 50.0);
-    Delay_(dummy);
+    dummy := trunc((real(ms) / 1000.0) * 50.0);
+    DOSDelay(dummy);
 end;
 
-function CheckBreak : boolean;
+{function CheckBreak : boolean;
 begin
    if (SetSignal(0, 0) and SIGBREAKF_CTRL_C) = SIGBREAKF_CTRL_C then
       CheckBreak := true
    else
       CheckBreak := false;
-end;
+end;}
 
-procedure textmode(mode : integer);
+procedure textmode(mode : word);
 begin
        lastmode:=mode;
        mode:=mode and $ff;
@@ -822,7 +826,7 @@ end;
                  begin
                    buf[0]:=c;
                    realgotoxy(row,col);
-                   do_write(f.handle,longint(@buf[0]),1);
+                   {do_write(f.handle,longint(@buf[0]),1);}
                    inc(col);
                  end;
               end;
@@ -858,7 +862,7 @@ end;
 
    Function CrtRead(Var F: TextRec): Integer;
      Begin
-       f.bufend:=do_read(f.handle,longint(f.bufptr),f.bufsize);
+       {f.bufend:=do_read(f.handle,longint(f.bufptr),f.bufsize);}
        f.bufpos:=0;
        CrtRead:=0;
      End;
