@@ -927,33 +927,95 @@ begin
    getpathstring := temp;
 end;
 
+var
+  EnvList: array of record
+    Name: string;
+    Local: Boolean;
+    Value: string;
+  end;
+
+procedure InitEnvironmentStrings;
+Const
+  BUFFER_SIZE       = 254;
+Var
+  ThisProcess: PProcess;
+  LocalVars_List: PMinList;  // Local Var structure in struct process (pr_LocalVarsis is actually a minlist
+  LocalVar_Node: PLocalVar;
+  Buffer: array[0..BUFFER_SIZE] of Char; // Buffer to hold a value for GetVar()
+  TempLen: LongInt;      // hold returnlength of GetVar()
+  // for env: searching
+  Anchor: TAnchorPath;
+  Res: Integer;
+begin
+  SetLength(EnvList, 0);
+  ThisProcess := PProcess(FindTask(nil));  //Get the pointer to our process
+  LocalVars_List := @(ThisProcess^.pr_LocalVars);  //get the list of pr_LocalVars as pointer
+  LocalVar_Node  := pLocalVar(LocalVars_List^.mlh_head); //get the headnode of the LocalVars list
+
+  // loop through the localvar list
+  while ( Pointer(LocalVar_Node^.lv_node.ln_Succ) <> Pointer(LocalVars_List^.mlh_Tail)) do
+  begin
+    // make sure the active node is valid instead of empty
+    If not(LocalVar_Node <> nil) then
+      break;
+
+    { - process the current node - }
+    If (LocalVar_Node^.lv_node.ln_Type = LV_Var) then
+    begin
+      FillChar(Buffer[0], Length(Buffer), #0); // clear Buffer
+
+      // get active node's name environment variable value ino buffer and make sure it's local
+      TempLen := GetVar(LocalVar_Node^.lv_Node.ln_Name, @Buffer[0], BUFFER_SIZE, GVF_LOCAL_ONLY);
+      If TempLen <> -1 then
+      begin
+        SetLength(EnvList, Length(EnvList) + 1);
+        EnvList[High(EnvList)].Name := LocalVar_Node^.lv_Node.ln_Name;
+        EnvList[High(EnvList)].Value := string(PChar(@Buffer[0]));
+        EnvList[High(EnvList)].Local := True;
+      end;
+    end;
+    LocalVar_Node := pLocalVar(LocalVar_Node^.lv_node.ln_Succ); //we need to get the next node
+  end;
+  // search in env for all Variables
+  FillChar(Anchor,sizeof(TAnchorPath),#0);
+  Res := MatchFirst('ENV:#?', @Anchor);
+  while Res = 0 do
+  begin
+    if Anchor.ap_Info.fib_DirEntryType <= 0 then
+    begin
+      SetLength(EnvList, Length(EnvList) + 1);
+      EnvList[High(EnvList)].Name := Anchor.ap_Info.fib_FileName;
+      EnvList[High(EnvList)].Value := '';
+      EnvList[High(EnvList)].Local := False;
+    end;
+    Res := MatchNext(@Anchor);
+  end;
+  MatchEnd(@Anchor);
+  // add PATH as Fake Variable:
+  SetLength(EnvList, Length(EnvList) + 1);
+  EnvList[High(EnvList)].Name := 'PATH';
+  EnvList[High(EnvList)].Value := '';
+  EnvList[High(EnvList)].Local := False;
+end;
+
 
 function EnvCount: Longint;
-{ HOW TO GET THIS VALUE:                                }
-{   Each time this function is called, we look at the   }
-{   local variables in the Process structure (2.0+)     }
-{   And we also read all files in the ENV: directory    }
 begin
-  EnvCount := 0;
+  InitEnvironmentStrings;
+  EnvCount := Length(EnvList);
 end;
 
 
-function EnvStr(Index: LongInt): String;
-begin
-  EnvStr:='';
-end;
-
-
-function GetEnv(envvar : String): String;
+function GetEnvFromEnv(envvar : String): String;
 var
    bufarr : array[0..255] of char;
    strbuffer : array[0..255] of char;
    temp : Longint;
 begin
-   GetEnv := '';
+   GetEnvFromEnv := '';
    if UpCase(envvar) = 'PATH' then begin
        if StrOfpaths = '' then StrOfPaths := GetPathString;
-       GetEnv := StrOfPaths;
+       GetEnvFromEnv := StrOfPaths;
    end else begin
       if (Pos(DriveSeparator,envvar) <> 0) or
          (Pos(DirectorySeparator,envvar) <> 0) then exit;
@@ -961,8 +1023,51 @@ begin
       strbuffer[length(envvar)] := #0;
       temp := GetVar(strbuffer,bufarr,255,$100);
       if temp <> -1 then
-         GetEnv := StrPas(bufarr);
+         GetEnvFromEnv := StrPas(bufarr);
    end;
+end;
+
+function EnvStr(Index: LongInt): String;
+begin
+  EnvStr := '';
+  if Length(EnvList) = 0 then
+    InitEnvironmentStrings;
+  if (Index >= 0) and (Index <= High(EnvList)) then
+  begin
+    if EnvList[Index].Local then
+      EnvStr := EnvList[Index].Name + '=' + EnvList[Index].Value
+    else
+      EnvStr := EnvList[Index].Name + '=' + GetEnvFromEnv(EnvList[Index].Name);  
+  end;
+end;
+
+function GetEnv(envvar : String): String;
+var
+  EnvVarName: String;
+  i: Integer;
+begin
+  GetEnv := '';
+  EnvVarName := UpCase(EnvVar);
+  if EnvVarName = 'PATH' then
+  begin
+    if StrOfpaths = '' then
+      StrOfPaths := GetPathString;
+    GetEnv := StrOfPaths;
+  end else
+  begin    
+    InitEnvironmentStrings;  
+    for i := 0 to High(EnvList) do
+    begin
+      if EnvVarName = UpCase(EnvList[i].Name) then
+      begin
+        if EnvList[i].Local then
+          GetEnv := EnvList[i].Value
+        else
+          GetEnv := GetEnvFromEnv(EnvList[i].Name);
+        Break;
+      end;  
+    end;
+  end;  
 end;
 
 
