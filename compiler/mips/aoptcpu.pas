@@ -97,10 +97,15 @@ unit aoptcpu;
     end;
 
 
-  function CanBeCMOV(p: tai): boolean;
+  function CanBeCMOV(p: tai; condreg: tregister): boolean;
     begin
       result:=assigned(p) and (p.typ=ait_instruction) and
-        (taicpu(p).opcode in [A_MOV_D,A_MOV_S,A_MOVE]);
+        ((taicpu(p).opcode in [A_MOV_D,A_MOV_S]) or
+        (
+          { register with condition must not be overwritten }
+          (taicpu(p).opcode=A_MOVE) and
+          (taicpu(p).oper[0]^.reg<>condreg)
+        ));
     end;
 
 
@@ -576,7 +581,7 @@ unit aoptcpu;
                           }
                           l:=0;
                           GetNextInstruction(p, hp1);
-                          while CanBeCMOV(hp1) do       // CanBeCMOV returns False for nil or labels
+                          while CanBeCMOV(hp1,condreg) do       // CanBeCMOV returns False for nil or labels
                             begin
                               inc(l);
                               GetNextInstruction(hp1,hp1);
@@ -594,7 +599,7 @@ unit aoptcpu;
                                       repeat
                                         ChangeToCMOV(taicpu(hp1),condition,condreg);
                                         GetNextInstruction(hp1,hp1);
-                                      until not CanBeCMOV(hp1);
+                                      until not CanBeCMOV(hp1,condreg);
                                       { wait with removing else GetNextInstruction could
                                         ignore the label if it was the only usage in the
                                         jump moved away }
@@ -632,7 +637,7 @@ unit aoptcpu;
                                       l:=0;
                                       { skip hp1 to <several moves 2> }
                                       GetNextInstruction(hp1, hp1);
-                                      while CanBeCMOV(hp1) do
+                                      while CanBeCMOV(hp1,condreg) do
                                         begin
                                           inc(l);
                                           GetNextInstruction(hp1, hp1);
@@ -648,7 +653,7 @@ unit aoptcpu;
                                           repeat
                                             ChangeToCMOV(taicpu(hp1),condition,condreg);
                                             GetNextInstruction(hp1,hp1);
-                                          until not CanBeCMOV(hp1);
+                                          until not CanBeCMOV(hp1,condreg);
                                           { hp2 is still at b yyy }
                                           GetNextInstruction(hp2,hp1);
                                           { hp2 is now at xxx: }
@@ -658,7 +663,7 @@ unit aoptcpu;
                                           repeat
                                             ChangeToCMOV(taicpu(hp1),condition,condreg);
                                             GetNextInstruction(hp1,hp1);
-                                          until not CanBeCMOV(hp1);
+                                          until not CanBeCMOV(hp1,condreg);
                                           { remove bCC }
                                           tasmlabel(taicpu(hp3).oper[taicpu(hp3).ops-1]^.ref^.symbol).decrefs;
                                           RemoveDelaySlot(hp3);
