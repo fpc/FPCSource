@@ -59,6 +59,12 @@ Const
 {$endif}
 {$endif}
 {$ENDIF}
+  MariaDBVersion =
+{$IFDEF mysql56}   // MariaDB 10.0 is compatible with MySQL 5.6
+    '10.0';
+{$ELSE} // MariaDB 5.1..5.5 presumably report the same version number as MySQL
+     MySQLVersion;
+{$ENDIF}
 
 Type
   TTransactionName = Class(TSQLHandle)
@@ -459,13 +465,15 @@ end;
 
 procedure TConnectionName.DoInternalConnect;
 var
-  FullVersion, 
-  ClientVerStr: string;
+  FullVersion: string;
 begin
   InitialiseMysql;
   Fullversion:=strpas(mysql_get_client_info());
-  ClientVerStr := copy(FullVersion,1,3);
-  If (ClientVerStr<>MySQLVersion) then
+  // Version string should start with version number:
+  // Note: in case of MariaDB version mismatch: tough luck, we report MySQL
+  // version only.
+  if (pos(MySQLVersion, Fullversion) <> 1) and
+    (pos(MariaDBVersion, Fullversion) <> 1) then
     Raise EInOutError.CreateFmt(SErrVersionMisMatch,[ClassName,MySQLVersion,FullVersion]);
   inherited DoInternalConnect;
   ConnectToServer;
