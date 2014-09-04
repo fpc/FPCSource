@@ -665,6 +665,8 @@ Const
     DISPID_AMBIENT_USERAGENT              = -5513;
     DISPID_SECURITYDOMAIN                 = -5514;
 
+    MEMBERID_NIL            = -1;
+
     DISPATCH_METHOD         = $1;
     DISPATCH_PROPERTYGET    = $2;
     DISPATCH_PROPERTYPUT    = $4;
@@ -1103,6 +1105,9 @@ Const
     OLERENDER_DRAW    = 1;
     OLERENDER_FORMAT  = 2;
     OLERENDER_ASIS    = 3;
+
+    OLEVERBATTRIB_NEVERDIRTIES    = 1;
+    OLEVERBATTRIB_ONCONTAINERMENU = 2;
 
     XFORMCOORDS_POSITION                  = $1;
     XFORMCOORDS_SIZE                      = $2;
@@ -1842,6 +1847,7 @@ TYPE
 
    StorageLayout                = tagStorageLayout;
 
+   PtagSTATDATA                 = ^tagSTATDATA;
    tagSTATDATA                  = Record
                                                                 // field used by:
                                     FORMATETC   : Tformatetc;   // EnumAdvise, EnumData (cache), EnumFormats
@@ -1849,6 +1855,8 @@ TYPE
                                     padvSink    : Pointer {IAdviseSink};  // EnumAdvise
                                     dwConnection: DWord;        // EnumAdvise
                                     End;
+   PStatData                    = PtagSTATDATA;
+   TStatData                    = tagSTATDATA;
    STATDATA                     = TagStatData;
    LPStatData                   = ^StatData;
 
@@ -1867,8 +1875,20 @@ TYPE
                                       End;
    TYPEDESC                     = tagTYPEDESC;
 
-
-
+   PtagOBJECTDESCRIPTOR = ^tagOBJECTDESCRIPTOR;
+   tagOBJECTDESCRIPTOR = packed record
+     cbSize : LongWord;
+     clsid : TCLSID;
+     dwDrawAspect : LongWord;
+     sizel : SIZEL;
+     pointl : POINTL;
+     dwStatus : LongWord;
+     dwFullUserTypeName : LongWord;
+     dwSrcOfCopy : LongWord;
+   end;
+   POBJECTDESCRIPTOR = PtagOBJECTDESCRIPTOR;
+   TOBJECTDESCRIPTOR = tagOBJECTDESCRIPTOR;
+   OBJECTDESCRIPTOR = TOBJECTDESCRIPTOR;
 
    tagARRAYDESC                 = Record
                                      tdescElem   : TYPEDESC;                       // element type
@@ -3624,17 +3644,17 @@ type
    function GetControlInfo(var pCI:tagCONTROLINFO):HRESULT;stdcall;
    function OnMnemonic(var pMsg:tagMSG):HRESULT;stdcall;
    function OnAmbientPropertyChange(dispID:Integer):HRESULT;stdcall;
-   function FreezeEvents(bFreeze:Integer):HRESULT;stdcall;
+   function FreezeEvents(bFreeze:Bool):HRESULT;stdcall;
   end;
 
  IOleControlSite = interface(IUnknown)
    ['{B196B289-BAB4-101A-B69C-00AA00341D07}']
    function OnControlInfoChanged:HRESULT;stdcall;
-   function LockInPlaceActive(fLock:Integer):HRESULT;stdcall;
+   function LockInPlaceActive(fLock:Bool):HRESULT;stdcall;
    function GetExtendedControl(out ppDisp:IDispatch):HRESULT;stdcall;
    function TransformCoords(var pPtlHimetric:_POINTL;var pPtfContainer:tagPOINTF;dwFlags:LongWord):HRESULT;stdcall;
    function TranslateAccelerator(var pMsg:tagMSG;grfModifiers:LongWord):HRESULT;stdcall;
-   function OnFocus(fGotFocus:Integer):HRESULT;stdcall;
+   function OnFocus(fGotFocus:Bool):HRESULT;stdcall;
    function ShowPropertyFrame:HRESULT;stdcall;
   end;
 
@@ -3651,7 +3671,7 @@ type
  IPropertyPage = interface(IUnknown)
    ['{B196B28D-BAB4-101A-B69C-00AA00341D07}']
    function SetPageSite(pPageSite:IPropertyPageSite):HRESULT;stdcall;
-   function Activate(hWndParent:wireHWND;var pRect:TRECT;bModal:Integer):HRESULT;stdcall;
+   function Activate(hWndParent:wireHWND;var pRect:TRECT;bModal:Bool):HRESULT;stdcall;
    function Deactivate:HRESULT;stdcall;
    function GetPageInfo(out pPageInfo:tagPROPPAGEINFO):HRESULT;stdcall;
    function SetObjects(cObjects:LongWord;var ppUnk:IUnknown):HRESULT;stdcall;
@@ -3699,14 +3719,14 @@ type
    function put_Name(name:WideString):HRESULT;stdcall;
    function get_Size(out pSize:Currency):HRESULT;stdcall;
    function put_Size(size:Currency):HRESULT;stdcall;
-   function get_Bold(out pBold:Integer):HRESULT;stdcall;
-   function put_Bold(bold:Integer):HRESULT;stdcall;
-   function get_Italic(out pItalic:Integer):HRESULT;stdcall;
-   function put_Italic(italic:Integer):HRESULT;stdcall;
-   function get_Underline(out pUnderline:Integer):HRESULT;stdcall;
-   function put_Underline(underline:Integer):HRESULT;stdcall;
-   function get_Strikethrough(out pStrikethrough:Integer):HRESULT;stdcall;
-   function put_Strikethrough(strikethrough:Integer):HRESULT;stdcall;
+   function get_Bold(out pBold:Bool):HRESULT;stdcall;
+   function put_Bold(bold:Bool):HRESULT;stdcall;
+   function get_Italic(out pItalic:Bool):HRESULT;stdcall;
+   function put_Italic(italic:Bool):HRESULT;stdcall;
+   function get_Underline(out pUnderline:Bool):HRESULT;stdcall;
+   function put_Underline(underline:Bool):HRESULT;stdcall;
+   function get_Strikethrough(out pStrikethrough:Bool):HRESULT;stdcall;
+   function put_Strikethrough(strikethrough:Bool):HRESULT;stdcall;
    function get_Weight(out pWeight:Smallint):HRESULT;stdcall;
    function put_Weight(weight:Smallint):HRESULT;stdcall;
    function get_Charset(out pCharset:Smallint):HRESULT;stdcall;
@@ -3732,10 +3752,10 @@ type
    function set_hPal(hPal:OLE_HANDLE):HRESULT;stdcall;
    function get_CurDC(out phDC:wireHDC):HRESULT;stdcall;
    function SelectPicture(hDCIn:wireHDC;out phDCOut:wireHDC;out phBmpOut:OLE_HANDLE):HRESULT;stdcall;
-   function get_KeepOriginalFormat(out pKeep:Integer):HRESULT;stdcall;
-   function put_KeepOriginalFormat(keep:Integer):HRESULT;stdcall;
+   function get_KeepOriginalFormat(out pKeep:Bool):HRESULT;stdcall;
+   function put_KeepOriginalFormat(keep:Bool):HRESULT;stdcall;
    function PictureChanged:HRESULT;stdcall;
-   function SaveAsFile(pStream:IStream;fSaveMemCopy:Integer;out pCbSize:Integer):HRESULT;stdcall;
+   function SaveAsFile(pStream:IStream;fSaveMemCopy:Bool;out pCbSize:Integer):HRESULT;stdcall;
    function get_Attributes(out pDwAttr:LongWord):HRESULT;stdcall;
   end;
 
@@ -3951,8 +3971,8 @@ type
 
    IOleInPlaceSiteEx = interface(IOleInPlaceSite)
       ['{9C2CAD80-3424-11CF-B670-00AA004CD6D8}']
-      function OnInPlaceActivateEx(out pfNoRedraw:Integer;dwFlags:LongWord):HResult;stdcall;
-      function OnInPlaceDeactivateEx(fNoRedraw:Integer):HResult;stdcall;
+      function OnInPlaceActivateEx(out pfNoRedraw:Bool;dwFlags:LongWord):HResult;stdcall;
+      function OnInPlaceDeactivateEx(fNoRedraw:Bool):HResult;stdcall;
       function RequestUIActivate:HResult;stdcall;
       end;
 
@@ -3960,13 +3980,13 @@ type
       ['{922EADA0-3424-11CF-B670-00AA004CD6D8}']
       function CanWindowlessActivate:HResult;stdcall;
       function GetCapture:HResult;stdcall;
-      function SetCapture(fCapture:Integer):HResult;stdcall;
+      function SetCapture(fCapture:Bool):HResult;stdcall;
       function GetFocus:HResult;stdcall;
-      function SetFocus(fFocus:Integer):HResult;stdcall;
+      function SetFocus(fFocus:Bool):HResult;stdcall;
       function GetDC(var pRect:tagRECT;grfFlags:LongWord;out phDC:wireHDC):HResult;stdcall;
       function ReleaseDC(hDC:wireHDC):HResult;stdcall;
-      function InvalidateRect(var pRect:tagRECT;fErase:Integer):HResult;stdcall;
-      function InvalidateRgn(hRGN:wireHRGN;fErase:Integer):HResult;stdcall;
+      function InvalidateRect(var pRect:tagRECT;fErase:Bool):HResult;stdcall;
+      function InvalidateRgn(hRGN:wireHRGN;fErase:Bool):HResult;stdcall;
       function ScrollRect(dx:SYSINT;dy:SYSINT;var pRectScroll:tagRECT;var pRectClip:tagRECT):HResult;stdcall;
       function AdjustRect(var prc:tagRECT):HResult;stdcall;
       function OnDefWindowMessage(msg:UInt;wParam:UINT_PTR;lParam:LONG_PTR;out plResult:LONG_PTR):HResult;stdcall;
@@ -4042,7 +4062,7 @@ type
        function Uncache(dwConnection:LongWord):HRESULT;stdcall;
        function EnumCache(out ppenumSTATDATA:IEnumSTATDATA):HRESULT;stdcall;
        function InitCache(pDataObject:IDataObject):HRESULT;stdcall;
-       function SetData(var pFormatetc:tagFORMATETC;var pmedium:wireSTGMEDIUM;fRelease:Integer):HRESULT;stdcall;
+       function SetData(var pFormatetc:tagFORMATETC;var pmedium:wireSTGMEDIUM;fRelease:Bool):HRESULT;stdcall;
       end;
 
     IOleCache2 = interface(IOleCache)
