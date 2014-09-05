@@ -728,6 +728,8 @@ var
 
 begin
   DocNode:=Engine.FindDocNode(Package);
+  if not Assigned(DocNode) then
+    exit;
   if Assigned(DocNode) and not IsDescrNodeEmpty(DocNode.Descr) then
     begin
     StartSection(SDocOverview);
