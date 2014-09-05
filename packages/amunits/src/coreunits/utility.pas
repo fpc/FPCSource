@@ -31,11 +31,7 @@
 
     nils.sjoholm@mailbox.swipnet.se
 }
-
-{$I useamigasmartlink.inc}
-{$ifdef use_amiga_smartlink}
-    {$smartlink on}
-{$endif use_amiga_smartlink}
+{$PACKRECORDS 2}
 
 unit utility;
 
