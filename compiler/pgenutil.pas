@@ -182,11 +182,26 @@ uses
                           odt_interfacecorba,
                           odt_interfacejava,
                           odt_dispinterface:
-                            if not def_is_related(paraobjdef,formalobjdef.childof) then
-                              begin
-                                MessagePos2(filepos,type_e_incompatible_types,paraobjdef.typename,formalobjdef.childof.typename);
-                                result:=false;
-                              end;
+                            begin
+                              if (oo_is_forward in paraobjdef.objectoptions) and
+                                  (paraobjdef.objecttype=formalobjdef.objecttype) and
+                                  (df_genconstraint in formalobjdef.defoptions) and
+                                  (
+                                    (formalobjdef.objecttype=odt_interfacecom) and
+                                    (formalobjdef.childof=interface_iunknown)
+                                  )
+                                  or
+                                  (
+                                    (formalobjdef.objecttype=odt_interfacecorba) and
+                                    (formalobjdef.childof=nil)
+                                  ) then
+                                continue;
+                              if not def_is_related(paraobjdef,formalobjdef.childof) then
+                                begin
+                                  MessagePos2(filepos,type_e_incompatible_types,paraobjdef.typename,formalobjdef.childof.typename);
+                                  result:=false;
+                                end;
+                            end;
                           odt_class,
                           odt_javaclass:
                             begin
@@ -224,6 +239,14 @@ uses
                             MessagePos1(filepos,type_e_class_type_expected,paraobjdef.typename);
                             result:=false;
                             continue;
+                          end;
+                        { for forward declared classes we allow pure TObject/class declarations }
+                        if (oo_is_forward in paraobjdef.objectoptions) and
+                            (df_genconstraint in formaldef.defoptions) then
+                          begin
+                            if (formalobjdef.childof=class_tobject) and
+                                not formalobjdef.implements_any_interfaces then
+                              continue;
                           end;
                         if assigned(formalobjdef.childof) and
                             not def_is_related(paradef,formalobjdef.childof) then
