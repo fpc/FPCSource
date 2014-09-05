@@ -249,6 +249,7 @@ var
   counter: Byte;
 begin
   GetProgDir:='';
+  SetLength(s1, 256);
   FillChar(s1,255,#0);
   { GetLock of program directory }
 
@@ -257,7 +258,7 @@ begin
     if NameFromLock(alock,@s1[1],255) then begin
       counter:=1;
       while (s1[counter]<>#0) and (counter<>0) do Inc(counter);
-      s1[0]:=Char(counter-1);
+      SetLength(s1, counter-1);
       GetProgDir:=s1;
     end;
   end;
@@ -270,13 +271,14 @@ var
   counter: Byte;
 begin
   GetProgramName:='';
+  SetLength(s1, 256);
   FillChar(s1,255,#0);
 
   if GetProgramName(@s1[1],255) then begin
     { now check out and assign the length of the string }
     counter := 1;
     while (s1[counter]<>#0) and (counter<>0) do Inc(counter);
-    s1[0]:=Char(counter-1);
+    SetLength(s1, counter-1);
 
     { now remove any component path which should not be there }
     for counter:=length(s1) downto 1 do
@@ -408,11 +410,13 @@ begin
   if AOS_wbMsg = nil then begin
     StdInputHandle := THandle(dosInput);
     StdOutputHandle := THandle(dosOutput);
+    StdErrorHandle := THandle(DosError1);
   end else begin
     AOS_ConHandle := Open(AOS_ConName, MODE_OLDFILE);
     if AOS_ConHandle <> 0 then begin
       StdInputHandle := AOS_ConHandle;
       StdOutputHandle := AOS_ConHandle;
+      StdErrorHandle := AOS_ConHandle;
     end else
       Halt(1);
   end;
@@ -424,12 +428,7 @@ begin
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-
-  { * AmigaOS doesn't have a separate stderr * }
-
-  StdErrorHandle:=StdOutputHandle;
-  //OpenStdIO(StdErr,fmOutput,StdErrorHandle);
-  //OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
+  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 end;
 
 function GetProcessID: SizeUInt;

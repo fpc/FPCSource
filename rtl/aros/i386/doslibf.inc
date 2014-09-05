@@ -39,6 +39,7 @@ function SetFileDate(name: PChar; date: PDateStamp): LongBool; syscall AOS_DOSBa
 function NameFromLock(lock: longint; buffer: PChar; len: longint): LongBool; syscall AOS_DOSBase 67;
 function SetFileSize(fh: longint; pos: longint; mode: longint): longint; syscall AOS_DOSBase 76;
 function Cli : pCommandLineInterface; syscall AOS_DOSBase 82;
+function CreateNewProc(const Tags: PTagItem): PProcess; syscall AOS_DOSBase 83;
 function GetArgStr: PChar; syscall AOS_DOSBase 89;
 function GetCurrentDirName(buf: PChar; len: longint): LongBool; syscall AOS_DOSBase 94;
 function GetProgramName(buf: PChar; len: longint): LongBool; syscall AOS_DOSBase 96;

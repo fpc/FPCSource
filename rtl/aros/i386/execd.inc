@@ -876,7 +876,7 @@ type
   PStackSwapStruct = ^TStackSwapStruct;
   TStackSwapStruct = record
     stk_Lower  : Pointer; { * Lowest byte of stack * }
-    stk_Upper  : Pointer; { * Upper end of stack (size + Lowert) * }
+    stk_Upper  : Pointer; { * Upper end of stack (size + Lowert) * }
     stk_Pointer: Pointer; { * Stack pointer at switch point * }
   end;
 
