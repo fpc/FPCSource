@@ -56,7 +56,7 @@
       TinyHeapAllocGranularity = sizeof(TTinyHeapBlock);
 
     var
-      FreeList: PTinyHeapBlock = nil;
+      FreeList: Pointer = nil;
 
     function EncodeTinyHeapFreeBlockSize(Size: PtrUInt): TTinyHeapFreeBlockSize; inline;
       begin
