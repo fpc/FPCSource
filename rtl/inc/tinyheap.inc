@@ -56,7 +56,7 @@
       TinyHeapAllocGranularity = sizeof(TTinyHeapBlock);
 
     var
-      TinyHeapBlocks: PTinyHeapBlock = nil;
+      FreeList: PTinyHeapBlock = nil;
 
     function EncodeTinyHeapFreeBlockSize(Size: PtrUInt): TTinyHeapFreeBlockSize; inline;
       begin
@@ -94,7 +94,7 @@
 {$endif DEBUG_TINY_HEAP}
         AllocSize := align(size+sizeof(TTinyHeapMemBlockSize), TinyHeapAllocGranularity);
 
-        p := TinyHeapBlocks;
+        p := FreeList;
         prev := nil;
         while assigned(p) and (DecodeTinyHeapFreeBlockSize(p^.Size) < AllocSize) do
           begin
@@ -120,14 +120,14 @@
                 p2^.Next := p^.Next;
                 p2^.Size := EncodeTinyHeapFreeBlockSize(RestSize);
                 if prev = nil then
-                  TinyHeapBlocks := p2
+                  FreeList := p2
                 else
                   prev^.next := p2;
               end
             else
               begin
                 if prev = nil then
-                  TinyHeapBlocks := p^.Next
+                  FreeList := p^.Next
                 else
                   prev^.next := p^.next;
               end;
@@ -170,15 +170,15 @@
           concatenated := false;
           b := addr;
 
-          b^.Next := TinyHeapBlocks;
+          b^.Next := FreeList;
           b^.Size := EncodeTinyHeapFreeBlockSize(Size);
           EndAddr := pointer(TTinyHeapPointerArithmeticType(addr)+size);
 
-          if TinyHeapBlocks = nil then
-            TinyHeapBlocks := b
+          if FreeList = nil then
+            FreeList := b
           else
             begin
-              p := TinyHeapBlocks;
+              p := FreeList;
               prev := nil;
 
               while assigned(p) do
@@ -188,7 +188,7 @@
                       addr:=p;
                       size:=DecodeTinyHeapFreeBlockSize(p^.size)+size;
                       if prev = nil then
-                        TinyHeapBlocks:=p^.next
+                        FreeList:=p^.next
                       else
                         prev^.next:=p^.next;
                       concatenated:=true;
@@ -198,7 +198,7 @@
                     begin
                       size:=DecodeTinyHeapFreeBlockSize(p^.size)+size;
                       if prev = nil then
-                        TinyHeapBlocks:=p^.next
+                        FreeList:=p^.next
                       else
                         prev^.next:=p^.next;
                       concatenated:=true;
@@ -211,7 +211,7 @@
 
               if not concatenated then
                 begin
-                  p := TinyHeapBlocks;
+                  p := FreeList;
                   prev := nil;
 
                   while assigned(p) and (TTinyHeapPointerArithmeticType(p) < TTinyHeapPointerArithmeticType(b)) do
@@ -226,7 +226,7 @@
                       prev^.Next := b;
                     end
                   else
-                    TinyHeapBlocks := b;
+                    FreeList := b;
                 end;
             end;
         until not concatenated;
