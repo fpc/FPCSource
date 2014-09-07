@@ -13,6 +13,17 @@
 
  **********************************************************************}
 
+{ The heap, implemented here is TP7-compatible in the i8086 far data memory
+  models. It's basically a linked list of free blocks, which are kept ordered by
+  start address. The FreeList variable points to the start of the list. Each
+  free block, except the last one, contains a TTinyHeapBlock structure, which
+  holds the block size and a pointer to the next free block. The HeapPtr
+  variable points to the last free block, indicating the end of the list. The
+  last block is special in that it doesn't contain a TTinyHeapBlock structure.
+  Instead its size is determined by the pointer difference (HeapEnd-HeapPtr).
+  It *can* become zero sized, when all the memory inside of it is allocated, in
+  which case, HeapPtr will become equal to HeapEnd. }
+
 {$ifdef cpui8086}
   {$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
     {$define FPC_HEAP_HUGE}
@@ -55,9 +66,6 @@
 
       TinyHeapAllocGranularity = sizeof(TTinyHeapBlock);
 
-    var
-      FreeList: Pointer = nil;
-
     function EncodeTinyHeapFreeBlockSize(Size: PtrUInt): TTinyHeapFreeBlockSize; inline;
       begin
 {$ifdef FPC_HEAP_HUGE}
@@ -96,13 +104,13 @@
 
         p := FreeList;
         prev := nil;
-        while assigned(p) and (DecodeTinyHeapFreeBlockSize(p^.Size) < AllocSize) do
+        while (p<>HeapPtr) and (DecodeTinyHeapFreeBlockSize(p^.Size) < AllocSize) do
           begin
             prev := p;
             p := p^.Next;
           end;
 
-        if assigned(p) then
+        if p<>HeapPtr then
           begin
             result := @PTinyHeapMemBlockSize(p)[1];
 
@@ -135,10 +143,23 @@
             PTinyHeapMemBlockSize(p)^ := size;
           end
         else
-          if ReturnNilIfGrowHeapFails then
-            Result := nil
-          else
-            HandleError(203);
+          begin
+            { p=HeapPtr }
+            if PtrUInt(TTinyHeapPointerArithmeticType(HeapEnd)-TTinyHeapPointerArithmeticType(HeapPtr))<AllocSize then
+              if ReturnNilIfGrowHeapFails then
+                Result := nil
+              else
+                 HandleError(203);
+
+            result := @PTinyHeapMemBlockSize(HeapPtr)[1];
+            PTinyHeapMemBlockSize(HeapPtr)^ := size;
+
+            HeapPtr := pointer(TTinyHeapPointerArithmeticType(HeapPtr)+AllocSize);
+            if prev = nil then
+              FreeList := HeapPtr
+            else
+              prev^.next := HeapPtr;
+          end;
 {$ifdef DEBUG_TINY_HEAP}
         Writeln(ptruint(Result));
 {$endif DEBUG_TINY_HEAP}
@@ -161,75 +182,46 @@
       end;
 
     procedure InternalTinyFreeMem(Addr: Pointer; Size: PtrUInt);
-      var 
-        b, p, prev: PTinyHeapBlock;
-        EndAddr: Pointer;
-        concatenated: boolean;
+      var
+        p, prev: PTinyHeapBlock;
       begin
-        repeat
-          concatenated := false;
-          b := addr;
+        p := FreeList;
+        prev := nil;
 
-          b^.Next := FreeList;
-          b^.Size := EncodeTinyHeapFreeBlockSize(Size);
-          EndAddr := pointer(TTinyHeapPointerArithmeticType(addr)+size);
+        while (p<>HeapPtr) and (TTinyHeapPointerArithmeticType(p) < TTinyHeapPointerArithmeticType(Addr)) do
+          begin
+            prev := p;
+            p := p^.Next;
+          end;
 
-          if FreeList = nil then
-            FreeList := b
+        { join with previous block? }
+        if assigned(prev) and ((TTinyHeapPointerArithmeticType(prev)+DecodeTinyHeapFreeBlockSize(prev^.Size)) = TTinyHeapPointerArithmeticType(Addr)) then
+          begin
+            Addr:=prev;
+            Size:=DecodeTinyHeapFreeBlockSize(prev^.size)+Size;
+          end
+        else
+          if assigned(prev) then
+            prev^.Next := Addr
           else
-            begin
-              p := FreeList;
-              prev := nil;
+            FreeList := Addr;
 
-              while assigned(p) do
-                begin
-                  if (TTinyHeapPointerArithmeticType(p)+DecodeTinyHeapFreeBlockSize(p^.Size)) = TTinyHeapPointerArithmeticType(Addr) then
-                    begin
-                      addr:=p;
-                      size:=DecodeTinyHeapFreeBlockSize(p^.size)+size;
-                      if prev = nil then
-                        FreeList:=p^.next
-                      else
-                        prev^.next:=p^.next;
-                      concatenated:=true;
-                      break;
-                    end
-                  else if p = EndAddr then
-                    begin
-                      size:=DecodeTinyHeapFreeBlockSize(p^.size)+size;
-                      if prev = nil then
-                        FreeList:=p^.next
-                      else
-                        prev^.next:=p^.next;
-                      concatenated:=true;
-                      break;
-                    end;
-
-                  prev := p;
-                  p := p^.next;
-                end;
-
-              if not concatenated then
-                begin
-                  p := FreeList;
-                  prev := nil;
-
-                  while assigned(p) and (TTinyHeapPointerArithmeticType(p) < TTinyHeapPointerArithmeticType(b)) do
-                    begin
-                      prev := p;
-                      p := p^.Next;
-                    end;
-
-                  if assigned(prev) then
-                    begin
-                      b^.Next := p;
-                      prev^.Next := b;
-                    end
-                  else
-                    FreeList := b;
-                end;
-            end;
-        until not concatenated;
+        { join with next block? }
+        if TTinyHeapPointerArithmeticType(p)=(TTinyHeapPointerArithmeticType(Addr)+Size) then
+          begin
+            if p=HeapPtr then
+              HeapPtr:=Addr
+            else
+              begin
+                PTinyHeapBlock(Addr)^.Next:=p^.Next;
+                PTinyHeapBlock(Addr)^.Size:=EncodeTinyHeapFreeBlockSize(Size+DecodeTinyHeapFreeBlockSize(p^.Size));
+              end;
+          end
+        else
+          begin
+            PTinyHeapBlock(Addr)^.Next:=p;
+            PTinyHeapBlock(Addr)^.Size:=EncodeTinyHeapFreeBlockSize(Size);
+          end;
       end;
 
     function SysTinyFreeMem(Addr: Pointer): ptruint;
@@ -310,11 +302,21 @@
         Inc(AAddress,alignment_inc);
         Dec(ASize,alignment_inc);
         Dec(ASize,ASize mod TinyHeapAllocGranularity);
-        if (HeapOrg=nil) or (TTinyHeapPointerArithmeticType(HeapOrg) > TTinyHeapPointerArithmeticType(AAddress)) then
-          HeapOrg:=AAddress;
-        if (HeapEnd=nil) or (TTinyHeapPointerArithmeticType(HeapEnd) < (TTinyHeapPointerArithmeticType(AAddress)+ASize)) then
-          HeapEnd:=Pointer(TTinyHeapPointerArithmeticType(AAddress)+ASize);
-        InternalTinyFreeMem(AAddress, ASize);
+        if HeapOrg=nil then
+          begin
+            HeapOrg:=AAddress;
+            HeapPtr:=AAddress;
+            FreeList:=AAddress;
+            HeapEnd:=Pointer(TTinyHeapPointerArithmeticType(AAddress)+ASize);
+          end
+        else
+          begin
+            if (HeapOrg=nil) or (TTinyHeapPointerArithmeticType(HeapOrg) > TTinyHeapPointerArithmeticType(AAddress)) then
+              HeapOrg:=AAddress;
+            if (HeapEnd=nil) or (TTinyHeapPointerArithmeticType(HeapEnd) < (TTinyHeapPointerArithmeticType(AAddress)+ASize)) then
+              HeapEnd:=Pointer(TTinyHeapPointerArithmeticType(AAddress)+ASize);
+            InternalTinyFreeMem(AAddress, ASize);
+          end;
       end;
 
     const

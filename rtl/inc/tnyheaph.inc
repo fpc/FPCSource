@@ -17,3 +17,6 @@
       { these vars are TP7-compatible }
       HeapOrg: Pointer = nil;  { start of heap }
       HeapEnd: Pointer = nil;  { end of heap }
+      FreeList: Pointer = nil; { pointer to the first free block }
+      HeapPtr: Pointer = nil;  { pointer to the last free block }
+
