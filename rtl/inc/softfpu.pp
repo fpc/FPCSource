@@ -1323,9 +1323,9 @@ Var
     aHigh, aLow, bHigh, bLow: bits16;
     z0, zMiddleA, zMiddleB, z1: bits32;
 Begin
-    aLow := a and $ffff;
+    aLow := bits16(a);
     aHigh := a shr 16;
-    bLow := b and $ffff;
+    bLow := bits16(b);
     bHigh := b shr 16;
     z1 := ( bits32( aLow) ) * bLow;
     zMiddleA := ( bits32 (aLow) ) * bHigh;
