@@ -107,15 +107,16 @@ type
      (CPUM68K_HAS_DBRA,      { CPU supports the DBRA instruction                         }
       CPUM68K_HAS_CAS,       { CPU supports the CAS instruction                          }
       CPUM68K_HAS_TAS,       { CPU supports the TAS instruction                          }
-      CPUM68K_HAS_BRAL       { CPU supports the BRA.L/Bcc.L instructions                 }
+      CPUM68K_HAS_BRAL,      { CPU supports the BRA.L/Bcc.L instructions                 }
+      CPUM68K_HAS_ROLROR     { CPU supports the ROL/ROR and ROXL/ROXR instructions       }
      );
 
 const
   cpu_capabilities : array[tcputype] of set of tcpuflags =
     ( { cpu_none     } [],
-      { cpu_68000    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_TAS],
-      { cpu_68020    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_CAS,CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL],
-      { cpu_68040    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_CAS,CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL],
+      { cpu_68000    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_TAS,CPUM68K_HAS_ROLROR],
+      { cpu_68020    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_CAS,CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL,CPUM68K_HAS_ROLROR],
+      { cpu_68040    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_CAS,CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL,CPUM68K_HAS_ROLROR],
       { cpu_isaa     } [],
       { cpu_isaap    } [CPUM68K_HAS_BRAL],
       { cpu_isab     } [CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL],
