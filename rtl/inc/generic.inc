@@ -1854,45 +1854,35 @@ function SwapEndian(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endi
 
 function SwapEndian(const AValue: LongInt): LongInt;
   begin
-    Result := (AValue shl 24)
-           or ((AValue and $0000FF00) shl 8)
-           or ((AValue and $00FF0000) shr 8)
-           or (AValue shr 24);
+    Result := ((AValue shl 8) and $FF00FF00) or ((AValue shr 8) and $00FF00FF);
+    Result := (Result shl 16) or (Result shr 16);
   end;
 
 {$ifndef cpujvm}
 function SwapEndian(const AValue: DWord): DWord;
   begin
-    Result := (AValue shl 24)
-           or ((AValue and $0000FF00) shl 8)
-           or ((AValue and $00FF0000) shr 8)
-           or (AValue shr 24);
+    Result := ((AValue shl 8) and $FF00FF00) or ((AValue shr 8) and $00FF00FF);
+    Result := (Result shl 16) or (Result shr 16);
   end;
 {$endif}
 
 function SwapEndian(const AValue: Int64): Int64;
   begin
-    Result := (AValue shl 56)
-           or ((AValue and $000000000000FF00) shl 40)
-           or ((AValue and $0000000000FF0000) shl 24)
-           or ((AValue and $00000000FF000000) shl 8)
-           or ((AValue and $000000FF00000000) shr 8)
-           or ((AValue and $0000FF0000000000) shr 24)
-           or ((AValue and $00FF000000000000) shr 40)
-           or (AValue shr 56);
+    Result := ((AValue shl 8) and $FF00FF00FF00FF00) or
+            ((AValue shr 8) and $00FF00FF00FF00FF);
+    Result := ((Result shl 16) and $FFFF0000FFFF0000) or
+            ((Result shr 16) and $0000FFFF0000FFFF);
+    Result := (Result shl 32) or ((Result shr 32));
   end;
 
 {$ifndef cpujvm}
 function SwapEndian(const AValue: QWord): QWord;
   begin
-    Result := (AValue shl 56)
-           or ((AValue and $000000000000FF00) shl 40)
-           or ((AValue and $0000000000FF0000) shl 24)
-           or ((AValue and $00000000FF000000) shl 8)
-           or ((AValue and $000000FF00000000) shr 8)
-           or ((AValue and $0000FF0000000000) shr 24)
-           or ((AValue and $00FF000000000000) shr 40)
-           or (AValue shr 56);
+    Result := ((AValue shl 8) and $FF00FF00FF00FF00) or
+            ((AValue shr 8) and $00FF00FF00FF00FF);
+    Result := ((Result shl 16) and $FFFF0000FFFF0000) or
+            ((Result shr 16) and $0000FFFF0000FFFF);
+    Result := (Result shl 32) or ((Result shr 32));
   end;
 {$endif}
 {$endif FPC_SYSTEM_HAS_SWAPENDIAN}
