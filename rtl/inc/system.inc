@@ -352,22 +352,22 @@ End;
 
 Function Swap (X : Longint) : Longint;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
-  Swap:=(X and $ffff) shl 16 + (X shr 16)
+  Swap:=(X shl 16) + (X shr 16);
 End;
 
 Function Swap (X : Cardinal) : Cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
-  Swap:=(X and $ffff) shl 16 + (X shr 16)
+  Swap:=(X shl 16) + (X shr 16);
 End;
 
 Function Swap (X : QWord) : QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
-  Swap:=(X and $ffffffff) shl 32 + (X shr 32);
+  Swap:=(X shl 32) + (X shr 32);
 End;
 
-Function swap (X : Int64) : Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Swap (X : Int64) : Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
-  Swap:=(X and $ffffffff) shl 32 + (X shr 32);
+  Swap:=(X shl 32) + (X shr 32);
 End;
 
 {$ifdef SUPPORT_DOUBLE}
