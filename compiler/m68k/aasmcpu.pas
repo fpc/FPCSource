@@ -479,7 +479,7 @@ type
           A_CLR, A_SXX, A_SEQ, A_SNE, A_SLT, A_SLE, A_SGT, A_SGE, A_SCS, A_SCC,
           A_SMI, A_SPL, A_SF, A_ST, A_SVS, A_SVC, A_SHI, A_SLS:
             result:=operand_write;
-          A_NEG, A_NEGX, A_EXT, A_EXTB, A_NOT:
+          A_NEG, A_NEGX, A_EXT, A_EXTB, A_NOT, A_SWAP:
             result:=operand_readwrite;
           A_TST,A_CMP,A_CMPI:
             begin end; { Do nothing, default operand_read is fine here. }

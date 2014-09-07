@@ -1123,9 +1123,35 @@ unit cgcpu;
               begin
                 scratch_reg := force_to_dataregister(list, size, reg);
                 sign_extend(list, size, scratch_reg);
-                if (a >= 1) and (a <= 8) then
+
+                { some special cases which can generate smarter code 
+                  using the SWAP instruction }
+                if (a = 16) then
+                  begin
+                    if (op = OP_SHL) then
+                      begin
+                        list.concat(taicpu.op_reg(A_SWAP,S_NO,scratch_reg));
+                        list.concat(taicpu.op_reg(A_CLR,S_W,scratch_reg));
+                      end
+                    else if (op = OP_SHR) then
+                      begin
+                        list.concat(taicpu.op_reg(A_CLR,S_W,scratch_reg));
+                        list.concat(taicpu.op_reg(A_SWAP,S_NO,scratch_reg));
+                      end
+                    else if (op = OP_ROR) or (op = OP_ROL) then
+                      list.concat(taicpu.op_reg(A_SWAP,S_NO,scratch_reg))
+                  end
+                else if (a >= 1) and (a <= 8) then
                   begin
                     list.concat(taicpu.op_const_reg(opcode, S_L, a, scratch_reg));
+                  end
+                else if (a >= 9) and (a < 16) then
+                  begin
+                    { Use two ops instead of const -> reg + shift with reg, because
+                      this way is the same in length and speed but has less register
+                      pressure }
+                    list.concat(taicpu.op_const_reg(opcode, S_L, 8, scratch_reg));
+                    list.concat(taicpu.op_const_reg(opcode, S_L, a-8, scratch_reg));
                   end
                 else
                   begin
