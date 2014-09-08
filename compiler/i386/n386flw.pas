@@ -316,6 +316,7 @@ procedure ti386tryfinallynode.pass_generate_code;
     breakfinallylabel:=nil;
     exceptlabel:=nil;
     safecalllabel:=nil;
+    hreg:=NR_NO;
     is_safecall:=implicitframe and (current_procinfo.procdef.proccalloption=pocall_safecall);
 
     { check if child nodes do a break/continue/exit }
@@ -488,6 +489,12 @@ procedure ti386tryexceptnode.pass_generate_code;
         exit;
       end;
     location_reset(location,LOC_VOID,OS_NO);
+
+    exceptflowcontrol:=[];
+    breakexceptlabel:=nil;
+    continueexceptlabel:=nil;
+    breaktrylabel:=nil;
+    continuetrylabel:=nil;
 
     oldflowcontrol:=flowcontrol;
     flowcontrol:=[fc_inflowcontrol];
