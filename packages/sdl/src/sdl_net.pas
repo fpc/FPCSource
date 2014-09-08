@@ -258,11 +258,12 @@ type
 {$ENDIF}
   end;
 
+  PPSDLNet_Socket = ^PSDLNet_Socket;
   PSDLNet_SocketSet = ^TSDLNet_SocketSet;
   TSDLNet_SocketSet = record
     numsockets : integer;
     maxsockets : integer;
-    sockets : PSDLNet_Socket;
+    sockets : PPSDLNet_Socket;
   end;
 
   {* Any network socket can be safely cast to this socket type *}

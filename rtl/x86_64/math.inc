@@ -13,24 +13,13 @@
 
  **********************************************************************}
 
-label
-  FPC_ABSMASK_DOUBLE,
-  FPC_ABSMASK_SINGLE;
 
-procedure dummyproc;assembler;nostackframe;
-  asm
-  .data
-    .balign 16
-    .globl FPC_ABSMASK_SINGLE
-FPC_ABSMASK_SINGLE:
-    .quad 0x7FFFFFFF7FFFFFFF
-    .quad 0x7FFFFFFF7FFFFFFF
-    .globl FPC_ABSMASK_DOUBLE
-FPC_ABSMASK_DOUBLE:
-    .quad 0x7FFFFFFFFFFFFFFF
-    .quad 0x7FFFFFFFFFFFFFFF
-  .text
-  end;
+{$push}
+{$codealign constmin=16}
+const
+  FPC_ABSMASK_SINGLE: array[0..1] of qword=($7fffffff7fffffff,$7fffffff7fffffff); cvar; public;
+  FPC_ABSMASK_DOUBLE: array[0..1] of qword=($7fffffffffffffff,$7fffffffffffffff); cvar; public;
+{$pop}
 
 {****************************************************************************
                             FPU Control word
@@ -56,16 +45,16 @@ FPC_ABSMASK_DOUBLE:
       end;
 
 
-    procedure SetSSECSR(w : dword);
+    procedure SetMXCSR(w : dword);
       begin
-        mxcsr:=w;
+        defaultmxcsr:=w;
         asm
           ldmxcsr w
         end;
       end;
 
 
-    function GetSSECSR : dword;assembler;
+    function GetMXCSR : dword;assembler;
       var
         _w : dword;
       asm
@@ -73,19 +62,22 @@ FPC_ABSMASK_DOUBLE:
         movl    _w,%eax
       end;
 
+
+    procedure SetSSECSR(w : dword);
+      begin
+        SetMXCSR(w);
+      end;
+
+
+    function GetSSECSR: dword;
+      begin
+        result:=GetMXCSR;
+      end;
+
 {****************************************************************************
                        EXTENDED data type routines
  ****************************************************************************}
 
-    {$ifndef FPC_SYSTEM_HAS_PI}
-    {$define FPC_SYSTEM_HAS_PI}
-    function fpc_pi_real : ValReal;compilerproc;
-    begin
-      { Function is handled internal in the compiler }
-      runerror(207);
-      result:=0;
-    end;
-    {$endif FPC_SYSTEM_HAS_PI}
     {$ifndef FPC_SYSTEM_HAS_ABS}
     {$define FPC_SYSTEM_HAS_ABS}
     function fpc_abs_real(d : ValReal) : ValReal;compilerproc;
@@ -113,6 +105,9 @@ FPC_ABSMASK_DOUBLE:
       result:=0;
     end;
     {$endif FPC_SYSTEM_HAS_SQRT}
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+
     {$ifndef FPC_SYSTEM_HAS_ARCTAN}
     {$define FPC_SYSTEM_HAS_ARCTAN}
     function fpc_arctan_real(d : ValReal) : ValReal;compilerproc;
@@ -150,7 +145,6 @@ FPC_ABSMASK_DOUBLE:
     end;
     {$endif FPC_SYSTEM_HAS_COS}
 
-{$ifdef FPC_HAS_TYPE_EXTENDED}
     {$ifndef FPC_SYSTEM_HAS_EXP}
     {$define FPC_SYSTEM_HAS_EXP}
     function fpc_exp_real(d : ValReal) : ValReal;assembler;compilerproc;
@@ -261,26 +255,18 @@ FPC_ABSMASK_DOUBLE:
       end;
     {$endif FPC_SYSTEM_HAS_ROUND}
 
+{$else FPC_HAS_TYPE_EXTENDED}
 
-    {$ifndef FPC_SYSTEM_HAS_POWER}
-    {$define FPC_SYSTEM_HAS_POWER}
-    function power(bas,expo : extended) : extended;
-      begin
-         if bas=0 then
-           begin
-             if expo<>0 then
-               power:=0.0
-             else
-               HandleError(207);
-           end
-         else if expo=0 then
-          power:=1
-         else
-         { bas < 0 is not allowed }
-          if bas<0 then
-           handleerror(207)
-          else
-           power:=exp(ln(bas)*expo);
+    {$define FPC_SYSTEM_HAS_TRUNC}
+    function fpc_trunc_real(d : ValReal) : int64;compilerproc; assembler; nostackframe;
+      asm
+        cvttsd2si   %xmm0,%rax;
       end;
-    {$endif FPC_SYSTEM_HAS_POWER}
+
+    {$define FPC_SYSTEM_HAS_ROUND}
+    function fpc_round_real(d : ValReal) : int64;compilerproc; assembler; nostackframe;
+      asm
+        cvtsd2si   %xmm0,%rax;
+      end;
+
 {$endif FPC_HAS_TYPE_EXTENDED}

@@ -209,7 +209,7 @@ Const
 
 destructor TSocketStream.Destroy;
 begin
-  FileClose(Handle);
+  CloseSocket(Handle);
   inherited Destroy;
 end;
 

@@ -37,7 +37,7 @@
 UNIT CYBERGRAPHICS;
 
 INTERFACE
-USES Exec,graphics,utility;
+USES Exec,agraphics,utility;
 
 VAR CyberGfxBase : pLibrary;
 
@@ -273,7 +273,7 @@ IMPLEMENTATION
 
 uses
 {$ifndef dont_use_openlib}
-msgbox,
+amsgbox,
 {$endif dont_use_openlib}
 tagsarray;
 

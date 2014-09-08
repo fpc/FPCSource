@@ -3,28 +3,7 @@ unit dbf_str;
 interface
 
 {$I dbf_common.inc}
-
-var
-  STRING_FILE_NOT_FOUND: string;
-  STRING_VERSION: string;
-
-  STRING_RECORD_LOCKED: string;
-  STRING_KEY_VIOLATION: string;
-
-  STRING_INVALID_DBF_FILE: string;
-  STRING_INVALID_DBF_FILE_FIELDERROR: string;
-  STRING_FIELD_TOO_LONG: string;
-  STRING_INVALID_FIELD_COUNT: string;
-  STRING_INVALID_FIELD_TYPE: string;
-
-  STRING_INDEX_BASED_ON_UNKNOWN_FIELD: string;
-  STRING_INDEX_BASED_ON_INVALID_FIELD: string;
-  STRING_INDEX_EXPRESSION_TOO_LONG: string;
-  STRING_INVALID_INDEX_TYPE: string;
-  STRING_CANNOT_OPEN_INDEX: string;
-  STRING_TOO_MANY_INDEXES: string;
-  STRING_INDEX_NOT_EXIST: string;
-  STRING_NEED_EXCLUSIVE_ACCESS: string;
+{$I dbf_str.inc}
 
 implementation
 
@@ -32,7 +11,8 @@ initialization
 
   STRING_FILE_NOT_FOUND               := 'Ouverture: fichier non trouvé: "%s"';
   STRING_VERSION                      := 'TDbf V%d.%d';
-
+  STRING_FEATURE_NOT_SUPPORTED_THIS_TABLELEVEL: string; := 'Cette fonctionnalité n'est pas supporté dans tablelevel %d'; 
+  
   STRING_RECORD_LOCKED                := 'Enregistrement verrouillé.';
   STRING_KEY_VIOLATION                := 'Violation de clé. (doublon dans un index).'+#13+#10+
                                          'Index: %s'+#13+#10+'Enregistrement=%d Cle=''%s''';

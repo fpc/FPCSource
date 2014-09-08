@@ -42,7 +42,7 @@ Type
 
 Type
   {$ifdef UNIX}
-  TProcessForkEvent = procedure;
+  TProcessForkEvent = procedure(Sender : TObject) of object;
   {$endif UNIX}
 
   { TProcess }
@@ -81,6 +81,7 @@ Type
     FPipeBufferSize : cardinal;
     Procedure FreeStreams;
     Function  GetExitStatus : Integer;
+    Function  GetExitCode : Integer;
     Function  GetRunning : Boolean;
     Function  GetWindowRect : TRect;
     procedure SetCommandLine(const AValue: String);
@@ -130,6 +131,7 @@ Type
     Property Output : TInputPipeStream  Read FOutputStream;
     Property Stderr : TinputPipeStream  Read FStderrStream;
     Property ExitStatus : Integer Read GetExitStatus;
+    Property ExitCode : Integer Read GetExitCode;
     Property InheritHandles : Boolean Read FInheritHandles Write FInheritHandles;
     {$ifdef UNIX}
     property OnForkEvent : TProcessForkEvent Read FForkEvent Write FForkEvent;
@@ -280,6 +282,16 @@ begin
   Result:=FExitCode;
 end;
 
+{$IFNDEF OS_HASEXITCODE}
+Function TProcess.GetExitCode : Integer;
+
+begin
+  if Not Running then
+    Result:=GetExitStatus
+  else
+    Result:=0
+end;
+{$ENDIF}
 
 Function TProcess.GetRunning : Boolean;
 

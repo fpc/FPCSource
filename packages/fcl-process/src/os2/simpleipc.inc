@@ -171,6 +171,7 @@ begin
   Owner.FMsgType := Hdr.MsgType;
   if Hdr.MsgLen > 0 then
     begin
+      Owner.FMsgData.Size:=0;
       Owner.FMsgData.Seek (0, soFromBeginning);
       Owner.FMsgData.CopyFrom (FStream, Hdr.MsgLen);
     end

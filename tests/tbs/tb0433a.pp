@@ -1,5 +1,8 @@
 {$ifdef fpc}
 {$mode delphi}
+{$else fpc}
+type
+  codepointer = pointer;
 {$endif fpc}
 
 function times2(x : longint) : longint;
@@ -10,8 +13,8 @@ end;
 
 var
  x:function(x:longint):longint;
- y:pointer absolute x;
- z,w,v:pointer;
+ y:codepointer absolute x;
+ z,w,v:codepointer;
 begin
  x:=times2;
  z:=@x;

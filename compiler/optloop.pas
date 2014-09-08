@@ -23,6 +23,8 @@ unit optloop;
 
 {$i fpcdefs.inc}
 
+{ $define DEBUG_OPTSTRENGTH}
+
   interface
 
     uses
@@ -36,6 +38,7 @@ unit optloop;
     uses
       cutils,cclasses,
       globtype,globals,constexp,
+      verbose,
       symdef,symsym,
       defutil,
       cpuinfo,
@@ -50,7 +53,7 @@ unit optloop;
       begin
 {$ifdef i386}
         { multiply by 2 for CPUs with a long pipeline }
-        if current_settings.cputype in [cpu_Pentium4] then
+        if current_settings.optimizecputype in [cpu_Pentium4] then
           number_unrolls:=60 div node_count(node)
         else
 {$endif i386}
@@ -62,7 +65,7 @@ unit optloop;
 
     type
       treplaceinfo = record
-        loadnode : tloadnode;
+        node : tnode;
         value : Tconstexprint;
       end;
       preplaceinfo = ^treplaceinfo;
@@ -78,12 +81,15 @@ unit optloop;
 
     function replaceloadnodes(var n: tnode; arg: pointer): foreachnoderesult;
       begin
-        if (n.nodetype=loadn) and (tloadnode(n).symtableentry=preplaceinfo(arg)^.loadnode.symtableentry) then
+        if ((n.nodetype=loadn) and (preplaceinfo(arg)^.node.nodetype=loadn) and
+          (tloadnode(n).symtableentry=tloadnode(preplaceinfo(arg)^.node).symtableentry)) or
+          ((n.nodetype=temprefn) and (preplaceinfo(arg)^.node.nodetype=temprefn) and
+          (ttemprefnode(n).tempinfo=ttemprefnode(preplaceinfo(arg)^.node).tempinfo)) then
           begin
-            if n.flags*[nf_modify,nf_write]<>[] then
+            if n.flags*[nf_modify,nf_write,nf_address_taken]<>[] then
               internalerror(2012090402);
             n.free;
-            n:=cordconstnode.create(preplaceinfo(arg)^.value,preplaceinfo(arg)^.loadnode.resultdef,false);
+            n:=cordconstnode.create(preplaceinfo(arg)^.value,preplaceinfo(arg)^.node.resultdef,false);
           end;
         result:=fen_false;
       end;
@@ -97,6 +103,7 @@ unit optloop;
         unrollblock : tblocknode;
         getridoffor : boolean;
         replaceinfo : treplaceinfo;
+        usesbreakcontinue : boolean;
       begin
         result:=nil;
         if (cs_opt_size in current_settings.optimizerswitches) then
@@ -114,6 +121,8 @@ unit optloop;
                 else
                   counts:=tordconstnode(tfornode(node).t1).value-tordconstnode(tfornode(node).right).value+1;
 
+                usesbreakcontinue:=foreachnodestatic(tfornode(node).t2,@checkbreakcontinue,nil);
+
                 { don't unroll more than we need,
 
                   multiply unroll by two here because we can get rid
@@ -126,13 +135,13 @@ unit optloop;
                 unrollblock:=internalstatements(unrollstatement);
 
                 { can we get rid completly of the for ? }
-                getridoffor:=(unrolls=counts) and not(foreachnodestatic(tfornode(node).t2,@checkbreakcontinue,nil));
+                getridoffor:=(unrolls=counts) and not(usesbreakcontinue);
 
                 if getridoffor then
                   begin
-                    if tfornode(node).left.nodetype<>loadn then
+                    if not(tfornode(node).left.nodetype in [temprefn,loadn]) then
                       internalerror(2012090301);
-                    replaceinfo.loadnode:=tloadnode(tfornode(node).left);
+                    replaceinfo.node:=tfornode(node).left;
                     replaceinfo.value:=tordconstnode(tfornode(node).right).value;
                   end;
 
@@ -146,32 +155,32 @@ unit optloop;
                     if (counts mod unrolls<>0) and
                       ((counts mod unrolls)=unrolls-i) then
                       begin
-                        tfornode(node).entrylabel:=clabelnode.create(cnothingnode.create,tlabelsym.create('$optunrol'));
+                        tfornode(node).entrylabel:=clabelnode.create(cnothingnode.create,clabelsym.create('$optunrol'));
                         addstatement(unrollstatement,tfornode(node).entrylabel);
                       end;
 
-                        if getridoffor then
-                          begin
-                            foreachnodestatic(tnode(unrollstatement),@replaceloadnodes,@replaceinfo);
-                            if lnf_backward in tfornode(node).loopflags then
-                              replaceinfo.value:=replaceinfo.value-1
-                            else
-                              replaceinfo.value:=replaceinfo.value+1;
-                          end
+                    if getridoffor then
+                      begin
+                        foreachnodestatic(tnode(unrollstatement),@replaceloadnodes,@replaceinfo);
+                        if lnf_backward in tfornode(node).loopflags then
+                          replaceinfo.value:=replaceinfo.value-1
                         else
+                          replaceinfo.value:=replaceinfo.value+1;
+                      end
+                    else
+                      begin
+                        { for itself increases at the last iteration }
+                        if i<unrolls then
                           begin
-                            { for itself increases at the last iteration }
-                            if i<unrolls then
-                              begin
-                                { insert incr/decrementation of counter var }
-                                if lnf_backward in tfornode(node).loopflags then
-                                  addstatement(unrollstatement,
-                                    geninlinenode(in_dec_x,false,ccallparanode.create(tfornode(node).left.getcopy,nil)))
-                                else
-                                  addstatement(unrollstatement,
-                                    geninlinenode(in_inc_x,false,ccallparanode.create(tfornode(node).left.getcopy,nil)));
-                              end;
-                           end;
+                            { insert incr/decrementation of counter var }
+                            if lnf_backward in tfornode(node).loopflags then
+                              addstatement(unrollstatement,
+                                geninlinenode(in_dec_x,false,ccallparanode.create(tfornode(node).left.getcopy,nil)))
+                            else
+                              addstatement(unrollstatement,
+                                geninlinenode(in_inc_x,false,ccallparanode.create(tfornode(node).left.getcopy,nil)));
+                          end;
+                       end;
                   end;
                 { can we get rid of the for statement? }
                 if getridoffor then
@@ -381,7 +390,7 @@ unit optloop;
                 { direct array access? }
                 ((tvecnode(n).left.nodetype=loadn) or
                 { ... or loop invariant expression? }
-                is_loop_invariant(tfornode(arg),tvecnode(n).left)) and
+                is_loop_invariant(tfornode(arg),tvecnode(n).right)) and
                 { removing the multiplication is only worth the
                   effort if it's not a simple shift }
                 not(ispowerof2(tcgvecnode(n).get_mul_size,dummy)) then
@@ -390,6 +399,12 @@ unit optloop;
                   { did we use the same expression before already? }
                   if not(findpreviousstrengthreduction) then
                     begin
+{$ifdef DEBUG_OPTSTRENGTH}
+                      writeln('**********************************************************************************');
+                      writeln('Found expression for strength reduction: ');
+                      printnode(n);
+                      writeln('**********************************************************************************');
+{$endif DEBUG_OPTSTRENGTH}
                       tempnode:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
 
                       templist.Add(tempnode);
@@ -469,10 +484,10 @@ unit optloop;
             node:=fornode;
 
             loopcode:=internalstatements(loopcodestatements);
-            addstatement(loopcodestatements,calccode);
             addstatement(loopcodestatements,tfornode(node).t2);
             tfornode(node).t2:=loopcode;
             do_firstpass(node);
+            addstatement(loopcodestatements,calccode);
 
             result:=internalstatements(newcodestatements);
             addstatement(newcodestatements,initcode);
@@ -494,7 +509,7 @@ unit optloop;
             { do we have DFA available? }
             if pi_dfaavailable in current_procinfo.flags then
               begin
-                CalcDefSum(n);
+                CalcDefSum(tfornode(n).t2);
               end;
 
             containsnestedforloop:=false;
@@ -519,3 +534,4 @@ unit optloop;
       end;
 
 end.
+

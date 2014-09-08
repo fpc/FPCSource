@@ -41,6 +41,9 @@ implementation
     {$ifndef NOTARGETAMIGA}
       ,t_amiga
     {$endif}
+    {$ifndef NOTARGETATARI}
+      ,t_atari
+    {$endif}
     {$ifndef NOTARGETPALMOS}
       ,t_palmos
     {$endif}
@@ -67,6 +70,14 @@ implementation
   {$ifndef NoDbgDwarf}
       ,dbgdwarf
   {$endif NoDbgDwarf}
+
+{**************************************
+             Optimizer
+**************************************}
+
+    {$ifndef NOOPT}
+      , aoptcpu
+    {$endif NOOPT}
       ;
 
 end.

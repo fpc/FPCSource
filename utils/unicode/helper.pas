@@ -26,6 +26,13 @@ unit helper;
 {$typedaddress on}
 {$warn 4056 off}  //Conversion between ordinals and pointers is not portable
 
+{$macro on}
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  {$define X_PACKED:=}
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
+  {$define X_PACKED:=packed}
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+
 interface
 
 uses
@@ -197,7 +204,7 @@ type
     StartPosition : Word;
     Length        : Byte;
   end;
-  TDecompositionBook = packed record
+  TDecompositionBook = X_PACKED record
     Index      : array of TDecompositionIndexRec;
     CodePoints : array of TUnicodeCodePoint;
   end;
@@ -230,7 +237,7 @@ type
   end;
   TUCA_WeightRecArray = array of TUCA_WeightRec;
 
-  TUCA_LineContextItemRec = packed record
+  TUCA_LineContextItemRec = X_PACKED record
   public
     CodePoints : TUnicodeCodePointArray;
     Weights    : TUCA_WeightRecArray;
@@ -241,7 +248,7 @@ type
   end;
   PUCA_LineContextItemRec = ^TUCA_LineContextItemRec;
 
-  TUCA_LineContextRec = packed record
+  TUCA_LineContextRec = X_PACKED record
   public
     Data : array of TUCA_LineContextItemRec;
   public
@@ -253,7 +260,7 @@ type
 
   { TUCA_LineRec }
 
-  TUCA_LineRec = packed record
+  TUCA_LineRec = X_PACKED record
   public
     CodePoints : TUnicodeCodePointArray;
     Weights    : TUCA_WeightRecArray;
@@ -272,7 +279,7 @@ type
     ucaShifted, ucaNonIgnorable, ucaBlanked, ucaShiftedTrimmed,
     ucaIgnoreSP
   );
-  TUCA_DataBook = packed record
+  TUCA_DataBook = X_PACKED record
     Version        : string;
     VariableWeight : TUCA_VariableKind;
     Backwards      : array[0..3] of Boolean;
@@ -352,7 +359,7 @@ type
     Position  : Integer;
   end;
   PUCA_PropIndexItem = ^TUCA_PropIndexItem;
-  TUCA_PropBook = packed record
+  TUCA_PropBook = X_PACKED record
     ItemSize      : Integer;
     Index         : array of TUCA_PropIndexItem;
     Items         : PUCA_PropItemRec; //Native Endian
@@ -480,13 +487,31 @@ const
     var   AFirstTable            : TucaBmpFirstTable;
     var   ASecondTable           : TucaBmpSecondTable
   );
+  procedure GenerateBinaryUCA_BmpTables(
+          ANativeEndianStream,
+          ANonNativeEndianStream : TStream;
+    var   AFirstTable            : TucaBmpFirstTable;
+    var   ASecondTable           : TucaBmpSecondTable
+  );
   procedure GenerateUCA_PropTable(
           ADest     : TStream;
     const APropBook : PUCA_PropBook;
     const AEndian   : TEndianKind
   );
+  procedure GenerateBinaryUCA_PropTable(
+  // WARNING : files must be generated for each endianess (Little / Big)
+          ANativeEndianStream,
+          ANonNativeEndianStream : TStream;
+    const APropBook              : PUCA_PropBook
+  );
   procedure GenerateUCA_OBmpTables(
           AStream,
+          ANativeEndianStream,
+          ANonNativeEndianStream : TStream;
+    var   AFirstTable            : TucaOBmpFirstTable;
+    var   ASecondTable           : TucaOBmpSecondTable
+  );
+  procedure GenerateBinaryUCA_OBmpTables(
           ANativeEndianStream,
           ANonNativeEndianStream : TStream;
     var   AFirstTable            : TucaOBmpFirstTable;
@@ -604,7 +629,6 @@ const
   ): PPropRec; inline;overload;
   procedure FromUCS4(const AValue : TUnicodeCodePoint; var AHighS, ALowS : Word);inline;
   function ToUCS4(const AHighS, ALowS : Word) : TUnicodeCodePoint; inline;
-//--------------------
 
 type
   TBitOrder = 0..7;
@@ -632,6 +656,29 @@ type
           AProp2   : PUCA_PropItemRec;
     const ADataLen : Integer
   );
+
+type
+  TCollationName = string[128];
+  TSerializedCollationHeader = packed record
+    Base               : TCollationName;
+    Version            : TCollationName;
+    CollationName      : TCollationName;
+    VariableWeight     : Byte;
+    Backwards          : Byte;
+    BMP_Table1Length   : DWord;
+    BMP_Table2Length   : DWord;
+    OBMP_Table1Length  : DWord;
+    OBMP_Table2Length  : DWord;
+    PropCount          : DWord;
+    VariableLowLimit   : Word;
+    VariableHighLimit  : Word;
+    ChangedFields      : Byte;
+  end;
+  PSerializedCollationHeader = ^TSerializedCollationHeader;
+
+  procedure ReverseRecordBytes(var AItem : TSerializedCollationHeader);
+  procedure ReverseBytes(var AData; const ALength : Integer);
+  procedure ReverseArray(var AValue; const AArrayLength, AItemSize : PtrInt);
 
 resourcestring
   SInsufficientMemoryBuffer = 'Insufficient Memory Buffer';
@@ -2689,10 +2736,10 @@ begin
   end else begin
     Result := SizeOf(TUCA_PropItemRec) + (wl*SizeOf(TUCA_PropWeights));
     pb := PByte(PtrUInt(p) + SizeOf(TUCA_PropItemRec));
-    PWord(pb)^ := AWeights[0].Weights[0];
+    Unaligned(PWord(pb)^) := AWeights[0].Weights[0];
     pb := pb + 2;
     if (AWeights[0].Weights[1] > High(Byte)) then begin
-      PWord(pb)^ := AWeights[0].Weights[1];
+      Unaligned(PWord(pb)^) := AWeights[0].Weights[1];
       pb := pb + 2;
     end else begin
       SetBit(p^.Flags,p^.FLAG_COMPRESS_WEIGHT_1,True);
@@ -2701,7 +2748,7 @@ begin
       Result := Result - 1;
     end;
     if (AWeights[0].Weights[2] > High(Byte)) then begin
-      PWord(pb)^ := AWeights[0].Weights[2];
+      Unaligned(PWord(pb)^) := AWeights[0].Weights[2];
       pb := pb + 2;
     end else begin
       SetBit(p^.Flags,p^.FLAG_COMPRESS_WEIGHT_2,True);
@@ -2720,12 +2767,12 @@ begin
   end;
   hasContext := (AContext <> nil) and (Length(AContext^.Data) > 0);
   if AStoreCP or hasContext then begin
-    PUInt24(PtrUInt(AItem)+Result)^ := ACodePoint;
+    Unaligned(PUInt24(PtrUInt(AItem)+Result)^) := ACodePoint;
     Result := Result + SizeOf(UInt24);
     SetBit(AItem^.Flags,AItem^.FLAG_CODEPOINT,True);
   end;
   if hasContext then begin
-    contextTree := ConstructContextTree(AContext,Pointer(PtrUInt(AItem)+Result)^,MaxInt);
+    contextTree := ConstructContextTree(AContext,Unaligned(Pointer(PtrUInt(AItem)+Result)^),MaxInt);
     Result := Result + Cardinal(contextTree^.Size);
     SetBit(AItem^.Flags,AItem^.FLAG_CONTEXTUAL,True);
   end;
@@ -3287,6 +3334,28 @@ begin
   AddLine(ANonNativeEndianStream,'  );' + sLineBreak);
 end;
 
+procedure GenerateBinaryUCA_BmpTables(
+        ANativeEndianStream,
+        ANonNativeEndianStream : TStream;
+  var   AFirstTable            : TucaBmpFirstTable;
+  var   ASecondTable           : TucaBmpSecondTable
+);
+var
+  i, j : Integer;
+  value : UInt24;
+begin
+  ANativeEndianStream.Write(AFirstTable[0],Length(AFirstTable));
+  ANonNativeEndianStream.Write(AFirstTable[0],Length(AFirstTable));
+  for i := Low(ASecondTable) to High(ASecondTable) do begin
+    for j := Low(TucaBmpSecondTableItem) to High(TucaBmpSecondTableItem) do begin
+      value := ASecondTable[i][j];
+      ANativeEndianStream.Write(value,SizeOf(value));
+      ReverseBytes(value,SizeOf(value));
+      ANonNativeEndianStream.Write(value,SizeOf(value));
+    end;
+  end;
+end;
+
 procedure GenerateUCA_PropTable(
 // WARNING : files must be generated for each endianess (Little / Big)
         ADest     : TStream;
@@ -3327,6 +3396,17 @@ begin
   locLine := '    ' + locLine;
   AddLine(locLine);
   AddLine('  );' + sLineBreak);
+end;
+
+procedure GenerateBinaryUCA_PropTable(
+// WARNING : files must be generated for each endianess (Little / Big)
+        ANativeEndianStream,
+        ANonNativeEndianStream : TStream;
+  const APropBook              : PUCA_PropBook
+);
+begin
+  ANativeEndianStream.Write(APropBook^.Items^,APropBook^.ItemSize);
+  ANonNativeEndianStream.Write(APropBook^.ItemsOtherEndian^,APropBook^.ItemSize);
 end;
 
 procedure GenerateUCA_OBmpTables(
@@ -3403,7 +3483,34 @@ begin
   AddLine(ANonNativeEndianStream,'  );' + sLineBreak);
 end;
 
-//-------------------------------------------
+procedure GenerateBinaryUCA_OBmpTables(
+        ANativeEndianStream,
+        ANonNativeEndianStream : TStream;
+  var   AFirstTable            : TucaOBmpFirstTable;
+  var   ASecondTable           : TucaOBmpSecondTable
+);
+var
+  i, j : Integer;
+  locLine : string;
+  wordValue : Word;
+  value : UInt24;
+begin
+  for i := Low(AFirstTable) to High(AFirstTable) do begin
+    wordValue := AFirstTable[i];
+    ANativeEndianStream.Write(wordValue,SizeOf(wordValue));
+    ReverseBytes(wordValue,SizeOf(wordValue));
+    ANonNativeEndianStream.Write(wordValue,SizeOf(wordValue));
+  end;
+
+  for i := Low(ASecondTable) to High(ASecondTable) do begin
+    for j := Low(TucaOBmpSecondTableItem) to High(TucaOBmpSecondTableItem) do begin
+      value := ASecondTable[i][j];
+      ANativeEndianStream.Write(value,SizeOf(value));
+      ReverseBytes(value,SizeOf(value));
+      ANonNativeEndianStream.Write(value,SizeOf(value));
+    end;
+  end;
+end;
 
 type
   POBmpSecondTableItem = ^TOBmpSecondTableItem;
@@ -4096,6 +4203,17 @@ begin
   Result := r;
 end;
 
+procedure ReverseRecordBytes(var AItem : TSerializedCollationHeader);
+begin
+  ReverseBytes(AItem.BMP_Table1Length,SizeOf(AItem.BMP_Table1Length));
+  ReverseBytes(AItem.BMP_Table2Length,SizeOf(AItem.BMP_Table2Length));
+  ReverseBytes(AItem.OBMP_Table1Length,SizeOf(AItem.OBMP_Table1Length));
+  ReverseBytes(AItem.OBMP_Table2Length,SizeOf(AItem.OBMP_Table2Length));
+  ReverseBytes(AItem.PropCount,SizeOf(AItem.PropCount));
+  ReverseBytes(AItem.VariableLowLimit,SizeOf(AItem.VariableLowLimit));
+  ReverseBytes(AItem.VariableHighLimit,SizeOf(AItem.VariableHighLimit));
+end;
+
 procedure ReverseBytes(var AData; const ALength : Integer);
 var
   i,j : PtrInt;
@@ -4219,7 +4337,7 @@ begin
         k := s^.GetSelfOnlySize() - SizeOf(UInt24);
       p_s := PByte(PtrUInt(s) + k);
       p_d := PByte(PtrUInt(d) + k);
-      PUInt24(p_d)^ := PUInt24(p_s)^;
+      Unaligned(PUInt24(p_d)^) := Unaligned(PUInt24(p_s)^);
         ReverseBytes(p_d^,SizeOf(UInt24));
     end;
     if (s^.WeightLength > 0) then begin
@@ -4227,8 +4345,8 @@ begin
       p_s := PByte(PtrUInt(s) + k);
       p_d := PByte(PtrUInt(d) + k);
       k := SizeOf(Word);
-      PWord(p_d)^ := PWord(p_s)^;
-        ReverseBytes(p_d^,k);
+      Unaligned(PWord(p_d)^) := Unaligned(PWord(p_s)^);
+        ReverseBytes(Unaligned(p_d^),k);
       p_s := PByte(PtrUInt(p_s) + k);
       p_d := PByte(PtrUInt(p_d) + k);
       if s^.IsWeightCompress_1() then begin
@@ -4236,7 +4354,7 @@ begin
         PByte(p_d)^ := PByte(p_s)^;
       end else begin
         k := SizeOf(Word);
-        PWord(p_d)^ := PWord(p_s)^;
+        Unaligned(PWord(p_d)^) := Unaligned(PWord(p_s)^);
       end;
       ReverseBytes(p_d^,k);
       p_s := PByte(PtrUInt(p_s) + k);
@@ -4246,7 +4364,7 @@ begin
         PByte(p_d)^ := PByte(p_s)^;
       end else begin
         k := SizeOf(Word);
-        PWord(p_d)^ := PWord(p_s)^;
+        Unaligned(PWord(p_d)^) := Unaligned(PWord(p_s)^);
       end;
       ReverseBytes(p_d^,k);
       if (s^.WeightLength > 1) then begin
@@ -4365,7 +4483,7 @@ begin
         k := d^.GetSelfOnlySize() - SizeOf(UInt24);
       p_s := PByte(PtrUInt(s) + k);
       p_d := PByte(PtrUInt(d) + k);
-      PUInt24(p_d)^ := PUInt24(p_s)^;
+      Unaligned(PUInt24(p_d)^) := Unaligned(PUInt24(p_s)^);
         ReverseBytes(p_d^,SizeOf(UInt24));
     end;
     if (d^.WeightLength > 0) then begin
@@ -4373,7 +4491,7 @@ begin
       p_s := PByte(PtrUInt(s) + k);
       p_d := PByte(PtrUInt(d) + k);
       k := SizeOf(Word);
-      PWord(p_d)^ := PWord(p_s)^;
+      Unaligned(PWord(p_d)^) := Unaligned(PWord(p_s)^);
         ReverseBytes(p_d^,k);
       p_s := PByte(PtrUInt(p_s) + k);
       p_d := PByte(PtrUInt(p_d) + k);
@@ -4382,7 +4500,7 @@ begin
         PByte(p_d)^ := PByte(p_s)^;
       end else begin
         k := SizeOf(Word);
-        PWord(p_d)^ := PWord(p_s)^;
+        Unaligned(PWord(p_d)^) := Unaligned(PWord(p_s)^);
       end;
       ReverseBytes(p_d^,k);
       p_s := PByte(PtrUInt(p_s) + k);
@@ -4392,7 +4510,7 @@ begin
         PByte(p_d)^ := PByte(p_s)^;
       end else begin
         k := SizeOf(Word);
-        PWord(p_d)^ := PWord(p_s)^;
+        Unaligned(PWord(p_d)^) := Unaligned(PWord(p_s)^);
       end;
       ReverseBytes(p_d^,k);
       if (d^.WeightLength > 1) then begin

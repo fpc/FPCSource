@@ -1182,7 +1182,7 @@ begin
        AddSelectItem(opt_mode_objectpascal,'objfpc',idNone);
        AddSelectItem(opt_mode_turbopascal,'tp',idNone);
        AddSelectItem(opt_mode_delphi,'delphi',idNone);
-       AddSelectItem(opt_mode_macpascal,'macpascal',idNone);
+       AddSelectItem(opt_mode_macpascal,'macpas',idNone);
 {      GNU Pascal mode doesn't do much, better disable it
        AddSelectItem(opt_mode_gnupascal,'gpc',idNone);}
     end;

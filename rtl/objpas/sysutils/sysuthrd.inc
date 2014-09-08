@@ -50,17 +50,21 @@ begin
   System.InitCriticalSection(fwritelock);
   fwaitingwriterlock:=RTLEventCreate;
   RTLEventResetEvent(fwaitingwriterlock);
-  { make sure all threads see the initialisation of fwritelock and
-    freadercount (we only use atomic operation further on as well) }
+  { atomic initialisation because BeginRead does not contain a memory barrier
+    before it modifies freadercount (with an atomic operation), so we have
+    to ensure that it sees this initial value }
   System.InterlockedExchange(freadercount,0);
-  System.InterlockedExchange(fwritelocked,0);
+  fwritelocked:=0;
   freaderqueue:=BasicEventCreate(nil,true,false,'');
+  { synchronize initialization with later reads/writes }
+  ReadWriteBarrier;
 end;
 
 
 destructor TMultiReadExclusiveWriteSynchronizer.Destroy;
 begin
-  System.InterlockedExchange(fwritelocked,0);
+  { synchronize destruction with previous endread/write operations }
+  ReadWriteBarrier;
   System.DoneCriticalSection(fwritelock);
   RtlEventDestroy(fwaitingwriterlock);
   BasicEventDestroy(freaderqueue);
@@ -85,13 +89,13 @@ begin
     decrement instead of setting 1/0, because a single thread can
     recursively acquire the write lock multiple times }
   System.InterlockedIncrement(fwritelocked);
+  { order increment vs freadercount check }
+  ReadWriteBarrier;
 
-  { wait until all readers are gone -- freadercount and fwritelocked are only
-    accessed using atomic operations (that's why we use
-    InterLockedExchangeAdd(x,0) below) -> always in-order. The writer always
-    first sets fwritelocked and then checks freadercount, while the readers
+  { wait until all readers are gone. The writer always first sets
+    fwritelocked and then checks freadercount, while the readers
     always first increase freadercount and then check fwritelocked }
-  while (System.InterLockedExchangeAdd(freadercount,0)<>0) do
+  while freadercount<>0 do
     RTLEventWaitFor(fwaitingwriterlock);
 
   { Make sure that out-of-order execution cannot already perform reads
@@ -106,7 +110,7 @@ end;
 procedure  TMultiReadExclusiveWriteSynchronizer.Endwrite;
 begin
   { Finish all writes inside the section so that everything executing
-    afterwards will certainly see these results }
+    afterwards will certainly see those results }
   WriteBarrier;
 
   { signal potential readers that the coast is clear if all recursive
@@ -133,12 +137,16 @@ Const
   wrError    = 3;
 begin
   System.InterlockedIncrement(freadercount);
+  { order vs fwritelocked check }
+  ReadWriteBarrier;
   { wait until there is no more writer }
-  while System.InterLockedExchangeAdd(fwritelocked,0)<>0 do
+  while fwritelocked<>0 do
     begin
       { there's a writer busy or wanting to start -> wait until it's
         finished; a writer may already be blocked in the mean time, so
-        wake it up if we're the last to go to sleep }
+        wake it up if we're the last to go to sleep -- order frwritelocked 
+        check above vs freadercount check/modification below }
+      ReadWriteBarrier;
       if System.InterlockedDecrement(freadercount)=0 then
         RTLEventSetEvent(fwaitingwriterlock);
       if (BasicEventWaitFor(high(cardinal),freaderqueue) in [wrAbandoned,wrError]) then
@@ -146,23 +154,31 @@ begin
       { and try again: first increase freadercount, only then check
         fwritelocked }
       System.InterlockedIncrement(freadercount);
+     { order vs fwritelocked check at the start of the loop }
+      ReadWriteBarrier;
     end;
-  { Make sure that out-of-order execution cannot perform reads
-    inside the critical section before the lock has been acquired }
-  ReadBarrier;
 end;
 
 
 procedure  TMultiReadExclusiveWriteSynchronizer.Endread;
 begin
+  { order freadercount decrement to all operations in the critical section 
+    (otherwise, freadercount could become zero in another thread/cpu before
+     all reads in the protected section were committed, so a writelock could
+     become active and change things that we will still see) }
+  ReadWriteBarrier;
   { If no more readers, wake writer in the ready-queue if any. Since a writer
-    always first atomically sets fwritelocked and then atomically checks the
-    freadercount, first modifying freadercount and then checking fwritelock
+    always first sets fwritelocked and then checks the freadercount (with a
+    barrier in between) first modifying freadercount and then checking fwritelock
     ensures that we cannot miss one of the events regardless of execution
     order. }
-  if (System.InterlockedDecrement(freadercount)=0) and
-     (System.InterLockedExchangeAdd(fwritelocked,0)<>0) then
-    RTLEventSetEvent(fwaitingwriterlock);
+  if System.InterlockedDecrement(freadercount)=0 then
+    begin
+      { order fwritelocked check vs freadercount modification }
+      ReadWriteBarrier;
+      if fwritelocked<>0 then
+        RTLEventSetEvent(fwaitingwriterlock);
+    end;
 end;
 {$endif FPC_HAS_FEATURE_THREADING}
 

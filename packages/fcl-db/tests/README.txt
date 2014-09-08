@@ -47,7 +47,7 @@ initialization
     end;
 	
 In your individual tests, you can indicate you want to run tests only in certain cases, e.g. for certain SQLDB databases:
-  if not(SQLDbType in [interbase]) then Ignore(STestNotApplicable);
+  if not(SQLConnType in [interbase]) then Ignore(STestNotApplicable);
   
 Setting up your database
 ========================

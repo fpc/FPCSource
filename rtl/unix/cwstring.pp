@@ -47,6 +47,8 @@ implementation
  {$define useiconv}
 {$endif not iconv_is_in_libc}
 
+{$i rtldefs.inc}
+
 Uses
   BaseUnix,
   ctypes,
@@ -989,6 +991,13 @@ function GetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystemCodePag
 var
   langinfo: pchar;
 begin
+{$ifdef FPCRTL_FILESYSTEM_UTF8}
+  if stdcp=scpFileSystemSingleByte then
+    begin
+      result:=CP_UTF8;
+      exit;
+    end;
+{$endif}
   langinfo:=nl_langinfo(CODESET);
   { there's a bug in the Mac OS X 10.5 libc (based on FreeBSD's)
     that causes it to return an empty string of UTF-8 locales
@@ -1001,7 +1010,7 @@ begin
 end;
 
 {$ifdef FPC_HAS_CPSTRING}
-{$i textrec.inc}
+
 procedure SetStdIOCodePage(var T: Text); inline;
 begin
   case TextRec(T).Mode of
@@ -1020,11 +1029,15 @@ begin
 end;
 {$endif FPC_HAS_CPSTRING}
 
+var
+  OrgWideStringManager: TUnicodeStringManager;
+
 Procedure SetCWideStringManager;
 Var
   CWideStringManager : TUnicodeStringManager;
 begin
-  CWideStringManager:=widestringmanager;
+  GetUnicodeStringManager(OrgWideStringManager);
+  CWideStringManager:=OrgWideStringManager;
   With CWideStringManager do
     begin
       Wide2AnsiMoveProc:=@Wide2AnsiMove;
@@ -1082,6 +1095,8 @@ initialization
 
   { set the DefaultSystemCodePage }
   DefaultSystemCodePage:=GetStandardCodePage(scpAnsi);
+  DefaultFileSystemCodePage:=GetStandardCodePage(scpFileSystemSingleByte);
+  DefaultRTLFileSystemCodePage:=DefaultFileSystemCodePage;
 
   {$ifdef FPC_HAS_CPSTRING}
   SetStdIOCodePages;
@@ -1095,4 +1110,7 @@ finalization
   { unload iconv library }
   if iconvlib<>0 then
     FreeLibrary(iconvlib);
+  { restore previous (probably default) widestring manager so that subsequent calls
+    into the widestring manager won't trigger the finalized functionality }
+  SetWideStringManager(OrgWideStringManager);
 end.

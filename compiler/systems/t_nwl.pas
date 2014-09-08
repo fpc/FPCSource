@@ -624,7 +624,7 @@ end;
 
 
 initialization
-  RegisterExternalLinker(system_i386_netwlibc_info,TLinkerNetwlibc);
+  RegisterLinker(ld_netwlibc,TLinkerNetwlibc);
   RegisterImport(system_i386_netwlibc,TImportLibNetwlibc);
   RegisterExport(system_i386_netwlibc,TExportLibNetwlibc);
   RegisterTarget(system_i386_netwlibc_info);

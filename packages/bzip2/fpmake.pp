@@ -20,7 +20,6 @@ begin
 
     P.Version:='2.7.1';
 
-    P.Version:='2.7.1';
     P.Author := 'Library: Julian R. Seward, header: Daniel Mantione';
     // 3 clause becaue "prominent notice" is not required.
     P.License := 'Library: 3 clause BSD, header: 3 clause BSD ';
@@ -28,10 +27,11 @@ begin
     P.Email := '';
     P.Description := 'BZip2 decompression unit.';
     P.NeedLibC:= true;
-    P.OSes := P.OSes - [embedded,nativent];
+    P.OSes := P.OSes - [embedded,nativent,msdos];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
+    P.Dependencies.Add('rtl-extra');
 
     T:=P.Targets.AddUnit('bzip2comn.pp');
     T:=P.Targets.AddUnit('bzip2.pas');

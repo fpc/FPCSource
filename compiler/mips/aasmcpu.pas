@@ -33,9 +33,9 @@ uses
 
 const
   { "mov reg,reg" source operand number }
-  O_MOV_SOURCE = 0;
+  O_MOV_SOURCE = 1;
   { "mov reg,reg" source operand number }
-  O_MOV_DEST   = 1;
+  O_MOV_DEST   = 0;
 
 type
   { taicpu }
@@ -401,13 +401,22 @@ end;
       A_SNE,
       A_EXT,
       A_INS,
-      A_MFC0];
+      A_MFC0,
+      A_SEB,
+      A_SEH];
 
       begin
         result := operand_read;
-        if opcode in op_write_set then
-          if opnr = 0 then
-            result := operand_write;
+        case opcode of
+          A_DIV,   { these have 3 operands if used as macros }
+          A_DIVU:
+            if (ops=3) and (opnr=0) then
+              result:=operand_write;
+        else
+          if opcode in op_write_set then
+            if opnr = 0 then
+              result := operand_write;
+        end;
       end;
 
 
@@ -469,11 +478,12 @@ procedure fixup_jmps(list: TAsmList);
   var
     p,pdelayslot: tai;
     newcomment: tai_comment;
-    newjmp,newnoop: taicpu;
+    newins,newjmp,newnoop: taicpu;
     labelpositions: TFPList;
     instrpos: ptrint;
     l: tasmlabel;
     inserted_something: boolean;
+    href: treference;
   begin
     // if certainly not enough instructions to cause an overflow, dont bother
     if (list.count <= (high(smallint) div 4)) then
@@ -541,11 +551,36 @@ procedure fixup_jmps(list: TAsmList);
                        (ptruint(abs(ptrint(labelpositions[tasmlabel(taicpu(p).oper[0]^.ref^.symbol).labelnr]-instrpos)) - (low(smallint) div 4)) > ptruint((high(smallint) - low(smallint)) div 4)) then
 {$pop}
                       begin
-                        { This is not PIC safe }
-                        taicpu(p).opcode:=A_J;
-                        newcomment:=tai_comment.create(strpnew('fixup_jmps, A_BA changed into A_J'));
-                        list.insertbefore(newcomment,p);
-                      end;
+                        if (cs_create_pic in current_settings.moduleswitches) then
+                          begin
+                            newcomment:=tai_comment.create(strpnew('fixup_jmps, A_BA changed into PIC sequence'));
+                            list.insertbefore(newcomment,p);
+                            href:=taicpu(p).oper[0]^.ref^;
+                            href.refaddr:=addr_pic;
+                            href.base:=NR_GP;
+                            newins:=taicpu.op_reg_ref(A_LW,NR_PIC_FUNC,href);
+                            newins.fileinfo:=taicpu(p).fileinfo;
+                            list.insertbefore(newins,p);
+                            inc(instrpos,2);
+                            if (href.symbol.bind=AB_LOCAL) then
+                              begin
+                                href.refaddr:=addr_low;
+                                href.base:=NR_NO;
+                                newins:=taicpu.op_reg_reg_ref(A_ADDIU,NR_PIC_FUNC,NR_PIC_FUNC,href);
+                                newins.fileinfo:=taicpu(p).fileinfo;
+                                list.insertbefore(newins,p);
+                                inc(instrpos,2);
+                              end;
+                            taicpu(p).opcode:=A_JR;
+                            taicpu(p).loadreg(0,NR_PIC_FUNC);
+                          end
+                        else
+                          begin
+                            taicpu(p).opcode:=A_J;
+                            newcomment:=tai_comment.create(strpnew('fixup_jmps, A_BA changed into A_J'));
+                            list.insertbefore(newcomment,p);
+                          end;
+                       end;
                   A_BC:
                     if (taicpu(p).ops=3) and (taicpu(p).oper[2]^.typ = top_ref) and
                        assigned(taicpu(p).oper[2]^.ref^.symbol) and
@@ -574,11 +609,39 @@ procedure fixup_jmps(list: TAsmList);
                         // add a new unconditional jump between this jump and the label
                         newcomment:=tai_comment.create(strpnew('fixup_jmps, A_BXX changed into A_BNOTXX label;A_J;label:'));
                         list.insertbefore(newcomment,p);
-                        newjmp := taicpu.op_sym(A_J,taicpu(p).oper[2]^.ref^.symbol);
-                        newjmp.is_jmp := true;
-                        newjmp.fileinfo := taicpu(p).fileinfo;
-                        list.insertafter(newjmp,pdelayslot);
-                        inc(instrpos,2);
+                        if (cs_create_pic in current_settings.moduleswitches) then
+                          begin
+                            reference_reset_symbol(href,taicpu(p).oper[2]^.ref^.symbol,0,sizeof(pint));
+                            href.refaddr:=addr_pic;
+                            href.base:=NR_GP;
+                            newins:=taicpu.op_reg_ref(A_LW,NR_PIC_FUNC,href);
+                            newins.fileinfo:=taicpu(p).fileinfo;
+                            list.insertafter(newins,pdelayslot);
+                            pdelayslot:=newins;
+                            inc(instrpos,2);
+                            if (href.symbol.bind=AB_LOCAL) then
+                              begin
+                                href.base:=NR_NO;
+                                href.refaddr:=addr_low;
+                                newins:=taicpu.op_reg_reg_ref(A_ADDIU,NR_PIC_FUNC,NR_PIC_FUNC,href);
+                                newins.fileinfo:=taicpu(p).fileinfo;
+                                list.insertafter(newins,pdelayslot);
+                                pdelayslot:=newins;
+                                inc(instrpos,2);
+                              end;
+                            newjmp:=taicpu.op_reg(A_JR,NR_PIC_FUNC);
+                            newjmp.fileinfo:=taicpu(p).fileinfo;
+                            list.insertafter(newjmp,pdelayslot);
+                            inc(instrpos,2);
+                          end
+                        else
+                          begin
+                            newjmp := taicpu.op_sym(A_J,taicpu(p).oper[2]^.ref^.symbol);
+                            newjmp.is_jmp := true;
+                            newjmp.fileinfo := taicpu(p).fileinfo;
+                            list.insertafter(newjmp,pdelayslot);
+                            inc(instrpos,2);
+                          end;
                         { Add a delay slot for new A_J instruction }
                         newnoop:=taicpu.op_none(A_NOP);
                         newnoop.fileinfo := taicpu(p).fileinfo;

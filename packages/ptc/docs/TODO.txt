@@ -1,3 +1,4 @@
+ - Mac OS X support
  - mouse grab support
  - add more event types (expose, focus in, focus out, etc.)
  - mouse support for the x11 dga console

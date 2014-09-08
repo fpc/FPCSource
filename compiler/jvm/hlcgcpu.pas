@@ -30,6 +30,7 @@ uses
   globtype,
   aasmbase,aasmdata,
   symbase,symconst,symtype,symdef,symsym,
+  node,
   cpubase, hlcgobj, cgbase, cgutils, parabase;
 
   type
@@ -103,6 +104,7 @@ uses
       procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;var ovloc : tlocation); override;
 
       procedure location_get_data_ref(list:TAsmList;def: tdef; const l:tlocation;var ref:treference;loadref:boolean; alignment: longint);override;
+      procedure maybe_change_load_node_reg(list: TAsmList; var n: tnode; reload: boolean); override;
       procedure g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister); override;
       procedure g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation); override;
 
@@ -246,7 +248,7 @@ implementation
     verbose,cutils,globals,fmodule,constexp,
     defutil,
     aasmtai,aasmcpu,
-    symtable,jvmdef,
+    symtable,symcpu,jvmdef,
     procinfo,cpuinfo,cgcpu,tgobj;
 
   const
@@ -271,7 +273,7 @@ implementation
       if (fevalstackheight>fmaxevalstackheight) then
         fmaxevalstackheight:=fevalstackheight;
       if cs_asm_regalloc in current_settings.globalswitches then
-        list.concat(tai_comment.Create(strpnew('allocated '+tostr(slots)+', stack height = '+tostr(fevalstackheight))));
+        list.concat(tai_comment.Create(strpnew('    allocated '+tostr(slots)+', stack height = '+tostr(fevalstackheight))));
     end;
 
   procedure thlcgjvm.decstack(list: TAsmList;slots: longint);
@@ -559,8 +561,6 @@ implementation
     begin
       maybepreparedivu32(list,op,size,trunc32);
       case op of
-        OP_NEG,OP_NOT:
-          ;
         OP_SHL,OP_SHR,OP_SAR:
           if not is_64bitint(size) then
             a_load_reg_stack(list,size,reg)
@@ -590,8 +590,6 @@ implementation
         internalerror(2010121102);
       maybepreparedivu32(list,op,size,trunc32);
       case op of
-        OP_NEG,OP_NOT:
-          ;
         OP_SHL,OP_SHR,OP_SAR:
           begin
             if not is_64bitint(size) then
@@ -1033,7 +1031,7 @@ implementation
               end;
             art_indexref:
               begin
-                reference_reset_base(href,ref.indexbase,ref.indexoffset,4);
+                cgutils.reference_reset_base(href,ref.indexbase,ref.indexoffset,4);
                 href.symbol:=ref.indexsymbol;
                 a_load_ref_stack(list,s32inttype,href,prepare_stack_for_ref(list,href,false));
               end;
@@ -1157,14 +1155,16 @@ implementation
 
   procedure thlcgjvm.a_op_ref_reg(list: TAsmList; Op: TOpCG; size: tdef; const ref: TReference; reg: TRegister);
     begin
-      a_load_reg_stack(list,size,reg);
+      if not(op in [OP_NOT,OP_NEG]) then
+        a_load_reg_stack(list,size,reg);
       a_op_ref_stack(list,op,size,ref);
       a_load_stack_reg(list,size,reg);
     end;
 
   procedure thlcgjvm.a_op_reg_reg_reg(list: TAsmList; op: TOpCg; size: tdef; src1, src2, dst: tregister);
     begin
-      a_load_reg_stack(list,size,src2);
+      if not(op in [OP_NOT,OP_NEG]) then
+        a_load_reg_stack(list,size,src2);
       a_op_reg_stack(list,op,size,src1);
       a_load_stack_reg(list,size,dst);
     end;
@@ -1514,7 +1514,7 @@ implementation
           begin
             if not tprocvardef(size).is_addressonly then
               begin
-                concatcopy_record(list,tprocvardef(size).classdef,source,dest);
+                concatcopy_record(list,tcpuprocvardef(size).classdef,source,dest);
                 handled:=true;
               end;
           end;
@@ -1627,8 +1627,8 @@ implementation
       if not code.empty and
          current_asmdata.asmlists[al_procedures].empty then
         current_asmdata.asmlists[al_procedures].concat(tai_align.Create(4));
-      pd.exprasmlist:=TAsmList.create;
-      pd.exprasmlist.concatlist(code);
+      tcpuprocdef(pd).exprasmlist:=TAsmList.create;
+      tcpuprocdef(pd).exprasmlist.concatlist(code);
       if assigned(data) and
          not data.empty then
         internalerror(2010122801);
@@ -1713,7 +1713,9 @@ implementation
               if tprocsym(sym).procdeflist.Count<>1 then
                 internalerror(2011071713);
               pd:=tprocdef(tprocsym(sym).procdeflist[0]);
-            end;
+            end
+          else
+            internalerror(2013113008);
           a_load_ref_stack(list,java_jlobject,ref,prepare_stack_for_ref(list,ref,false));
           a_call_name(list,pd,pd.mangledname,nil,false);
           { parameter removed, no result }
@@ -1787,7 +1789,7 @@ implementation
               { passed by reference in array of single element; l contains the
                 base address of the array }
               location_reset_ref(tmploc,LOC_REFERENCE,OS_ADDR,4);
-              reference_reset_base(tmploc.reference,getaddressregister(list,java_jlobject),0,4);
+              cgutils.reference_reset_base(tmploc.reference,getaddressregister(list,java_jlobject),0,4);
               tmploc.reference.arrayreftype:=art_indexconst;
               tmploc.reference.indexoffset:=0;
               a_load_loc_reg(list,java_jlobject,java_jlobject,l,tmploc.reference.base);
@@ -1812,6 +1814,11 @@ implementation
         else
           internalerror(2011020603);
       end;
+    end;
+
+  procedure thlcgjvm.maybe_change_load_node_reg(list: TAsmList; var n: tnode; reload: boolean);
+    begin
+      { don't do anything, all registers become stack locations anyway }
     end;
 
   procedure thlcgjvm.g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister);
@@ -1849,7 +1856,7 @@ implementation
       case current_procinfo.procdef.proctypeoption of
         potype_unitinit:
           begin
-            reference_reset_base(ref,NR_NO,0,1);
+            cgutils.reference_reset_base(ref,NR_NO,0,1);
             if assigned(current_module.globalsymtable) then
               allocate_implicit_structs_for_st_with_base_ref(list,current_module.globalsymtable,ref,staticvarsym);
             allocate_implicit_structs_for_st_with_base_ref(list,current_module.localsymtable,ref,staticvarsym);
@@ -1859,7 +1866,7 @@ implementation
             { also initialise local variables, if any }
             inherited;
             { initialise class fields }
-            reference_reset_base(ref,NR_NO,0,1);
+            cgutils.reference_reset_base(ref,NR_NO,0,1);
             allocate_implicit_structs_for_st_with_base_ref(list,tabstractrecorddef(current_procinfo.procdef.owner.defowner).symtable,ref,staticvarsym);
           end
         else
@@ -2308,7 +2315,7 @@ implementation
       sym: tstaticvarsym;
     begin
       result:=false;
-      sym:=tstaticvarsym(tenumdef(def).getbasedef.classdef.symtable.Find('__FPC_ZERO_INITIALIZER'));
+      sym:=tstaticvarsym(tcpuenumdef(tenumdef(def).getbasedef).classdef.symtable.Find('__FPC_ZERO_INITIALIZER'));
       { no enum with ordinal value 0 -> exit }
       if not assigned(sym) then
         exit;
@@ -2408,7 +2415,7 @@ implementation
         internalerror(2011033001);
       selfreg:=getaddressregister(list,selfpara.vardef);
       a_load_loc_reg(list,obj,obj,selfpara.localloc,selfreg);
-      reference_reset_base(ref,selfreg,0,1);
+      cgutils.reference_reset_base(ref,selfreg,0,1);
       allocate_implicit_structs_for_st_with_base_ref(list,obj.symtable,ref,fieldvarsym);
     end;
 
@@ -2422,7 +2429,7 @@ implementation
          (checkdef.typ=formaldef) then
         checkdef:=java_jlobject
       else if checkdef.typ=enumdef then
-        checkdef:=tenumdef(checkdef).classdef
+        checkdef:=tcpuenumdef(checkdef).classdef
       else if checkdef.typ=setdef then
         begin
           if tsetdef(checkdef).elementdef.typ=enumdef then
@@ -2431,7 +2438,7 @@ implementation
             checkdef:=java_jubitset;
         end
       else if checkdef.typ=procvardef then
-        checkdef:=tprocvardef(checkdef).classdef
+        checkdef:=tcpuprocvardef(checkdef).classdef
       else if is_wide_or_unicode_string(checkdef) then
         checkdef:=java_jlstring
       else if is_ansistring(checkdef) then

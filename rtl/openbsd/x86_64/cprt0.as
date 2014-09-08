@@ -91,7 +91,7 @@ ___start:
 	movzbl	(%rax), %eax
 	testb	%al, %al
 	je	.L9
-	movl	$__progname_storage+255, %eax
+	movq	$__progname_storage+255, %rax
 	cmpq	%rax, -16(%rbp)
 	jb	.L8
 .L9:
@@ -107,7 +107,7 @@ ___start:
 	movq	%rax, %rdi
 	call	monstartup
 	movl	$0, %eax
-	call	__init
+	call	_init
 	movq	environ(%rip), %rdx
 	movq	-32(%rbp), %rsi
 	movl	-20(%rbp), %edi

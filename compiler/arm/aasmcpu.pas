@@ -644,6 +644,8 @@ implementation
                   op:=A_FLDD;
                 R_SUBFS:
                   op:=A_FLDS;
+                R_SUBNONE:
+                  op:=A_VLDR;
                 else
                   internalerror(2009112905);
               end;
@@ -674,6 +676,8 @@ implementation
                   op:=A_FSTD;
                 R_SUBFS:
                   op:=A_FSTS;
+                R_SUBNONE:
+                  op:=A_VSTR;
                 else
                   internalerror(2009112904);
               end;
@@ -715,7 +719,8 @@ implementation
           A_FTOUIS,A_FTOUID,A_FUITOS,A_FUITOD,
           A_SXTB16,A_UXTB16,
           A_UXTB,A_UXTH,A_SXTB,A_SXTH,
-          A_NEG:
+          A_NEG,
+          A_VABS,A_VADD,A_VCVT,A_VDIV,A_VLDR,A_VMOV,A_VMUL,A_VNEG,A_VSQRT,A_VSUB:
             if opnr=0 then
               result:=operand_write
             else
@@ -724,7 +729,8 @@ implementation
           A_CMN,A_CMP,A_TEQ,A_TST,
           A_CMF,A_CMFE,A_WFS,A_CNF,
           A_FCMPS,A_FCMPD,A_FCMPES,A_FCMPED,A_FCMPEZS,A_FCMPEZD,
-          A_FCMPZS,A_FCMPZD:
+          A_FCMPZS,A_FCMPZD,
+          A_VCMP,A_VCMPE:
             result:=operand_read;
           A_SMLAL,A_UMLAL:
             if opnr in [0,1] then
@@ -739,7 +745,8 @@ implementation
               result:=operand_read;
           A_STR,A_STRB,A_STRBT,
           A_STRH,A_STRT,A_STF,A_SFM,
-          A_FSTS,A_FSTD:
+          A_FSTS,A_FSTD,
+          A_VSTR:
             { important is what happens with the involved registers }
             if opnr=0 then
               result := operand_read
@@ -763,8 +770,7 @@ implementation
             else
               result:=operand_read;
           A_STREX:
-            if opnr in [0,1,2] then
-              result:=operand_write;
+            result:=operand_write;
           else
             internalerror(200403151);
         end;
@@ -863,6 +869,26 @@ implementation
 *)
 
     procedure insertpcrelativedata(list,listtoinsert : TAsmList);
+
+      var
+        limit: longint;
+
+      { FLD/FST VFP instructions have a limit of +/- 1024, not 4096, this
+        function checks the next count instructions if the limit must be
+        decreased }
+      procedure CheckLimit(hp : tai;count : integer);
+        var
+          i : Integer;
+        begin
+          for i:=1 to count do
+            if SimpleGetNextInstruction(hp,hp) and
+               (tai(hp).typ=ait_instruction) and
+               ((taicpu(hp).opcode=A_FLDS) or
+                (taicpu(hp).opcode=A_FLDD) or
+                (taicpu(hp).opcode=A_VLDR)) then
+              limit:=254;
+        end;
+
       var
         curinspos,
         penalty,
@@ -870,7 +896,6 @@ implementation
         { increased for every data element > 4 bytes inserted }
         currentsize,
         extradataoffset,
-        limit: longint;
         curop : longint;
         curtai : tai;
         ai_label : tai_label;
@@ -885,7 +910,7 @@ implementation
         lastinspos:=-1;
         curinspos:=0;
         extradataoffset:=0;
-        if current_settings.cputype in cpu_thumb then
+        if GenerateThumbCode then
           begin
             multiplier:=2;
             limit:=504;
@@ -915,7 +940,7 @@ implementation
                             begin
                               { create a new copy of a data entry on arm thumb if the entry has been inserted already
                                 before because arm thumb does not allow pc relative negative offsets }
-                              if (current_settings.cputype in cpu_thumb) and
+                              if (GenerateThumbCode) and
                                 tai_label(curdatatai).inserted then
                                 begin
                                   current_asmdata.getjumplabel(l);
@@ -1025,32 +1050,81 @@ implementation
                 end;
             end;
             { special case for case jump tables }
+            penalty:=0;
             if SimpleGetNextInstruction(curtai,hp) and
-              (tai(hp).typ=ait_instruction) and
-              (taicpu(hp).opcode=A_LDR) and
-              (taicpu(hp).oper[0]^.typ=top_reg) and
-              (taicpu(hp).oper[0]^.reg=NR_PC) then
+              (tai(hp).typ=ait_instruction) then
               begin
-                penalty:=1*multiplier;
-                hp:=tai(hp.next);
-                { skip register allocations and comments inserted by the optimizer }
-                while assigned(hp) and (hp.typ in [ait_comment,ait_regalloc]) do
-                  hp:=tai(hp.next);
-                while assigned(hp) and (hp.typ=ait_const) do
-                  begin
-                    inc(penalty,multiplier);
-                    hp:=tai(hp.next);
-                  end;
-              end
-            else
-              penalty:=0;
+                case taicpu(hp).opcode of
+                  A_BX,
+                  A_LDR,
+                  A_ADD:
+                    { approximation if we hit a case jump table }
+                    if ((taicpu(hp).opcode in [A_ADD,A_LDR]) and not(GenerateThumbCode or GenerateThumb2Code) and
+                       (taicpu(hp).oper[0]^.typ=top_reg) and
+                      (taicpu(hp).oper[0]^.reg=NR_PC)) or
+                      ((taicpu(hp).opcode=A_BX) and (GenerateThumbCode) and
+                       (taicpu(hp).oper[0]^.typ=top_reg))
+                       then
+                      begin
+                        penalty:=multiplier;
+                        hp:=tai(hp.next);
+                        { skip register allocations and comments inserted by the optimizer as well as a label
+                          as jump tables for thumb might have }
+                        while assigned(hp) and (hp.typ in [ait_comment,ait_regalloc,ait_label]) do
+                          hp:=tai(hp.next);
+                        while assigned(hp) and (hp.typ=ait_const) do
+                          begin
+                            inc(penalty,multiplier);
+                            hp:=tai(hp.next);
+                          end;
+                      end;
+                  A_IT:
+                    begin
+                      if GenerateThumb2Code then
+                        penalty:=multiplier;
+                        { check if the next instruction fits as well
+                          or if we splitted after the it so split before }
+                        CheckLimit(hp,1);
+                    end;
+                  A_ITE,
+                  A_ITT:
+                    begin
+                      if GenerateThumb2Code then
+                        penalty:=2*multiplier;
+                        { check if the next two instructions fit as well
+                          or if we splitted them so split before }
+                        CheckLimit(hp,2);
+                    end;
+                  A_ITEE,
+                  A_ITTE,
+                  A_ITET,
+                  A_ITTT:
+                    begin
+                      if GenerateThumb2Code then
+                        penalty:=3*multiplier;
+                        { check if the next three instructions fit as well
+                          or if we splitted them so split before }
+                        CheckLimit(hp,3);
+                    end;
+                  A_ITEEE,
+                  A_ITTEE,
+                  A_ITETE,
+                  A_ITTTE,
+                  A_ITEET,
+                  A_ITTET,
+                  A_ITETT,
+                  A_ITTTT:
+                    begin
+                      if GenerateThumb2Code then
+                        penalty:=4*multiplier;
+                        { check if the next three instructions fit as well
+                          or if we splitted them so split before }
+                      CheckLimit(hp,4);
+                    end;
+                end;
+              end;
 
-            { FLD/FST VFP instructions have a limit of +/- 1024, not 4096 }
-            if SimpleGetNextInstruction(curtai,hp) and
-               (tai(hp).typ=ait_instruction) and
-               ((taicpu(hp).opcode=A_FLDS) or
-                (taicpu(hp).opcode=A_FLDD)) then
-              limit:=254;
+            CheckLimit(curtai,1);
 
             { don't miss an insert }
             doinsert:=doinsert or
@@ -1071,7 +1145,7 @@ implementation
               ) and
               (
                 { do not insert data after a B instruction due to their limited range }
-                not((current_settings.cputype in cpu_thumb) and
+                not((GenerateThumbCode) and
                     (taicpu(curtai).opcode=A_B)
                    )
               ) then
@@ -1079,23 +1153,23 @@ implementation
                 lastinspos:=-1;
                 extradataoffset:=0;
 
-                if current_settings.cputype in cpu_thumb then
+                if GenerateThumbCode then
                   limit:=502
                 else
                   limit:=1016;
 
-                { on arm thumb, insert the date always after all labels etc. following an instruction so it
+                { on arm thumb, insert the data always after all labels etc. following an instruction so it
                   is prevent that a bxx yyy; bl xxx; yyyy: sequence gets separated ( we never insert on arm thumb after
                   bxx) and the distance of bxx gets too long }
-                if current_settings.cputype in cpu_thumb then
+                if GenerateThumbCode then
                   while assigned(tai(curtai.Next)) and (tai(curtai.Next).typ in SkipInstr+[ait_label]) do
                     curtai:=tai(curtai.next);
 
                 doinsert:=false;
                 current_asmdata.getjumplabel(l);
 
-                { align thumb in thumb .text section to 4 bytes }
-                if not(curdata.empty) and (current_settings.cputype in cpu_thumb) then
+                { align jump in thumb .text section to 4 bytes }
+                if not(curdata.empty) and (GenerateThumbCode) then
                   curdata.Insert(tai_align.Create(4));
                 curdata.insert(taicpu.op_sym(A_B,l));
                 curdata.concat(tai_label.create(l));
@@ -1122,8 +1196,8 @@ implementation
             else
               curtai:=tai(curtai.next);
           end;
-        { align thumb in thumb .text section to 4 bytes }
-        if not(curdata.empty) and (current_settings.cputype in cpu_thumb+cpu_thumb2) then
+        { align jump in thumb .text section to 4 bytes }
+        if not(curdata.empty) and (GenerateThumbCode or GenerateThumb2Code) then
           curdata.Insert(tai_align.Create(4));
         list.concatlist(curdata);
         curdata.free;
@@ -1285,7 +1359,7 @@ implementation
     procedure finalizearmcode(list, listtoinsert: TAsmList);
       begin
         { Do Thumb-2 16bit -> 32bit transformations }
-        if current_settings.cputype in cpu_thumb2 then
+        if GenerateThumb2Code then
           begin
             ensurethumb2encodings(list);
             foldITInstructions(list);
@@ -2058,6 +2132,7 @@ implementation
 
       begin
         bytes:=$0;
+        i_field:=0;
         { evaluate and set condition code }
 
         { condition code allowed? }

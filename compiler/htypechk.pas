@@ -870,6 +870,8 @@ implementation
       begin
         isbinaryoverloaded:=false;
         operpd:=nil;
+        ppn:=nil;
+
         { load easier access variables }
         ld:=tbinarynode(t).left.resultdef;
         rd:=tbinarynode(t).right.resultdef;
@@ -972,6 +974,8 @@ implementation
     { marks an lvalue as "unregable" }
     procedure make_not_regable_intern(p : tnode; how: tregableinfoflags; records_only: boolean);
       begin
+        if ra_addr_taken in how then
+          include(p.flags,nf_address_taken);
         repeat
           case p.nodetype of
             subscriptn:
@@ -1135,8 +1139,13 @@ implementation
                      exclude(varstateflags,vsf_must_be_valid);
                    tc_pchar_2_string,
                    tc_pointer_2_array :
-                     include(varstateflags,vsf_must_be_valid);
-                 end;
+                     begin
+                       include(varstateflags,vsf_must_be_valid);
+                       { when a pointer is used for array access, the
+                         pointer itself is read and never written }
+                       newstate := vs_read;
+                     end;
+               end;
                  p:=tunarynode(p).left;
                end;
              subscriptn :
@@ -1148,6 +1157,9 @@ implementation
              vecn:
                begin
                  set_varstate(tbinarynode(p).right,vs_read,[vsf_must_be_valid]);
+                 { dyn. arrays and dyn. strings are read }
+                 if is_implicit_array_pointer(tunarynode(p).left.resultdef) then
+                   newstate:=vs_read;
                  if (newstate in [vs_read,vs_readwritten]) or
                     not(tunarynode(p).left.resultdef.typ in [stringdef,arraydef]) then
                    include(varstateflags,vsf_must_be_valid)
@@ -1472,7 +1484,7 @@ implementation
                         is_open_array(fromdef) or
                         is_open_array(todef) or
                         ((fromdef.typ=pointerdef) and (todef.typ=arraydef)) or
-                        (fromdef.is_related(todef))) and
+                        (def_is_related(fromdef,todef))) and
                     (fromdef.size<>todef.size) then
                   begin
                     { in TP it is allowed to typecast to smaller types. But the variable can't
@@ -1505,8 +1517,8 @@ implementation
                      begin
                        { pointer -> array conversion is done then we need to see it
                          as a deref, because a ^ is then not required anymore }
-                       if (ttypeconvnode(hp).left.resultdef.typ=pointerdef) then
-                        gotderef:=true;
+                       if ttypeconvnode(hp).convtype=tc_pointer_2_array then
+                         gotderef:=true;
                      end;
                  end;
                  hp:=ttypeconvnode(hp).left;
@@ -1964,7 +1976,7 @@ implementation
                   (tobjectdef(def_from).objecttype=odt_object) and
                   (tobjectdef(def_to).objecttype=odt_object)
                  ) and
-                 (tobjectdef(def_from).is_related(tobjectdef(def_to))) then
+                 (def_is_related(tobjectdef(def_from),tobjectdef(def_to))) then
                 eq:=te_convert_l1;
             end;
           filedef :
@@ -2215,7 +2227,7 @@ implementation
                  break;
              end;
            if is_objectpascal_helper(structdef) and
-              (tobjectdef(structdef).typ in [recorddef,objectdef]) then
+              (tobjectdef(structdef).extendeddef.typ in [recorddef,objectdef]) then
              begin
                { search methods in the extended type as well }
                srsym:=tprocsym(tabstractrecorddef(tobjectdef(structdef).extendeddef).symtable.FindWithHash(hashedid));
@@ -2696,8 +2708,8 @@ implementation
               { for value and const parameters check precision of real, give
                 penalty for loosing of precision. var and out parameters must match exactly }
                if not(currpara.varspez in [vs_var,vs_out]) and
-                  is_real(def_from) and
-                  is_real(def_to) then
+                  is_real_or_cextended(def_from) and
+                  is_real_or_cextended(def_to) then
                  begin
                    eq:=te_equal;
                    if is_extended(def_to) then
@@ -2728,7 +2740,7 @@ implementation
                   (def_from.typ=objectdef) and
                   (def_to.typ=objectdef) and
                   (tobjectdef(def_from).objecttype=tobjectdef(def_to).objecttype) and
-                  tobjectdef(def_from).is_related(tobjectdef(def_to)) then
+                  def_is_related(tobjectdef(def_from),tobjectdef(def_to)) then
                  begin
                    eq:=te_convert_l1;
                    objdef:=tobjectdef(def_from);
@@ -3226,7 +3238,7 @@ implementation
                   the struct in which the current best method was found }
                 if assigned(pd.struct) and
                    (pd.struct<>tprocdef(bestpd).struct) and
-                   tprocdef(bestpd).struct.is_related(pd.struct) then
+                   def_is_related(tprocdef(bestpd).struct,pd.struct) then
                   break;
                 if (pd.proctypeoption=bestpd.proctypeoption) and
                    ((pd.procoptions*[po_classmethod,po_methodpointer])=(bestpd.procoptions*[po_classmethod,po_methodpointer])) and

@@ -820,64 +820,13 @@ begin
 end;
 
 class function TCharacter.ToLower(const AString : UnicodeString; const AOptions : TCharacterOptions) : UnicodeString;
-var
-  i, c : SizeInt;
-  pp, pr : PUnicodeChar;
-  pu : PUC_Prop;
-  locIsSurrogate, locIgnoreInvalid : Boolean;
 begin
-  c := Length(AString);
-  SetLength(Result,2*c);
-  if (c > 0) then begin
-    locIgnoreInvalid := (TCharacterOption.coIgnoreInvalidSequence in AOptions);
-    pp := @AString[1];
-    pr := @Result[1];
-    i := 1;
-    while (i <= c) do begin
-      pu := GetProps(Word(pp^));
-      locIsSurrogate := (TUnicodeCategory(pu^.Category) = TUnicodeCategory.ucSurrogate);
-      if locIsSurrogate then begin
-        if locIgnoreInvalid then begin
-          if (i = c) or not(IsSurrogatePair(pp[0],pp[1])) then begin
-            pr^ := pp^;
-            Inc(pp);
-            Inc(pr);
-            Inc(i);
-            Continue;
-          end;
-        end;
-        if not IsSurrogatePair(AString,i) then
-          raise EArgumentException.Create(SInvalidUnicodeCodePointSequence);
-        pu := GetProps(pp^,AString[i+1]);
-      end;
-      if (pu^.SimpleLowerCase = 0) then begin
-        pr^ := pp^;
-        if locIsSurrogate then begin
-          Inc(pp);
-          Inc(pr);
-          Inc(i);
-          pr^ := pp^;
-        end;
-      end else begin
-        if (pu^.SimpleLowerCase <= $FFFF) then begin
-          pr^ := UnicodeChar(Word(pu^.SimpleLowerCase));
-        end else begin
-          FromUCS4(UCS4Char(Cardinal(pu^.SimpleLowerCase)),pr^,PUnicodeChar(PtrUInt(pr)+SizeOf(UnicodeChar))^);
-          Inc(pr);
-        end;
-        if locIsSurrogate then begin
-          Inc(pp);
-          Inc(i);
-        end;
-      end;
-      Inc(pp);
-      Inc(pr);
-      Inc(i);
-    end;
-    Dec(pp);
-    i := ((PtrUInt(pr) - PtrUInt(@Result[1])) div SizeOf(UnicodeChar));
-    SetLength(Result,i)
-  end;
+  if (UnicodeToLower(
+       AString,(TCharacterOption.coIgnoreInvalidSequence in AOptions),Result
+       ) <> 0
+     )
+  then
+    raise EArgumentException.Create(SInvalidUnicodeCodePointSequence);
 end;
 
 class function TCharacter.ToUpper(AChar : UnicodeChar) : UnicodeChar;
@@ -893,64 +842,13 @@ begin
 end;
 
 class function TCharacter.ToUpper(const AString : UnicodeString; const AOptions : TCharacterOptions) : UnicodeString;
-var
-  i, c : SizeInt;
-  pp, pr : PUnicodeChar;
-  pu : PUC_Prop;
-  locIsSurrogate, locIgnoreInvalid : Boolean;
 begin
-  c := Length(AString);
-  SetLength(Result,2*c);
-  if (c > 0) then begin
-    locIgnoreInvalid := (TCharacterOption.coIgnoreInvalidSequence in AOptions);
-    pp := @AString[1];
-    pr := @Result[1];
-    i := 1;
-    while (i <= c) do begin
-      pu := GetProps(Word(pp^));
-      locIsSurrogate := (TUnicodeCategory(pu^.Category) = TUnicodeCategory.ucSurrogate);
-      if locIsSurrogate then begin
-        if locIgnoreInvalid then begin
-          if (i = c) or not(IsSurrogatePair(pp[0],pp[1])) then begin
-            pr^ := pp^;
-            Inc(pp);
-            Inc(pr);
-            Inc(i);
-            Continue;
-          end;
-        end;
-        if not IsSurrogatePair(AString,i) then
-          raise EArgumentException.Create(SInvalidUnicodeCodePointSequence);
-        pu := GetProps(pp^,AString[i+1]);
-      end;
-      if (pu^.SimpleUpperCase = 0) then begin
-        pr^ := pp^;
-        if locIsSurrogate then begin
-          Inc(pp);
-          Inc(pr);
-          Inc(i);
-          pr^ := pp^;
-        end;
-      end else begin
-        if (pu^.SimpleUpperCase <= $FFFF) then begin
-          pr^ := UnicodeChar(Word(pu^.SimpleUpperCase));
-        end else begin
-          FromUCS4(UCS4Char(Cardinal(pu^.SimpleUpperCase)),pr^,PUnicodeChar(PtrUInt(pr)+SizeOf(UnicodeChar))^);
-          Inc(pr);
-        end;
-        if locIsSurrogate then begin
-          Inc(pp);
-          Inc(i);
-        end;
-      end;
-      Inc(pp);
-      Inc(pr);
-      Inc(i);
-    end;
-    Dec(pp);
-    i := ((PtrUInt(pr) - PtrUInt(@Result[1])) div SizeOf(UnicodeChar));
-    SetLength(Result,i)
-  end;
+  if (UnicodeToUpper(
+       AString,(TCharacterOption.coIgnoreInvalidSequence in AOptions),Result
+       ) <> 0
+     )
+  then
+    raise EArgumentException.Create(SInvalidUnicodeCodePointSequence);
 end;
 
 {$endif VER2_4}

@@ -1,0 +1,25 @@
+#
+#   Makefile.fpc for Free Pascal MorphOS units Bindings
+#
+
+[package]
+name=morphunits
+version=2.7.1
+
+[target]
+units= aboxlib agraphics ahi amigados asl clipboard datatypes exec get9 \
+       hardware inputevent intuition keymap kvm layers mui muihelper timer \
+       tinygl utility
+
+[compiler]
+includedir=src
+sourcedir=src
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:

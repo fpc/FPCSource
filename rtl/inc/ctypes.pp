@@ -53,11 +53,6 @@ type
 
   cint32                 = longint;            pcint32                = ^cint32;
   cuint32                = longword;           pcuint32               = ^cuint32;
-  cint                   = cint32;             pcint                  = ^cint;              { minimum range is : 32-bit    }
-  csint                  = cint32;             pcsint                 = ^csint;             { minimum range is : 32-bit    }
-  cuint                  = cuint32;            pcuint                 = ^cuint;             { minimum range is : 32-bit    }
-  csigned                = cint;               pcsigned               = ^csigned;
-  cunsigned              = cuint;              pcunsigned             = ^cunsigned;
 
   cint64                 = int64;              pcint64                = ^cint64;
   cuint64                = qword;              pcuint64               = ^cuint64;
@@ -68,14 +63,31 @@ type
   cbool                  = longbool;           pcbool                 = ^cbool;
 
 {$if defined(cpu64) and not(defined(win64) and defined(cpux86_64))}
+  cint                   = cint32;             pcint                  = ^cint;              { minimum range is : 32-bit    }
+  csint                  = cint32;             pcsint                 = ^csint;             { minimum range is : 32-bit    }
+  cuint                  = cuint32;            pcuint                 = ^cuint;             { minimum range is : 32-bit    }
   clong                  = int64;              pclong                 = ^clong;
   cslong                 = int64;              pcslong                = ^cslong;
   culong                 = qword;              pculong                = ^culong;
+{$elseif defined(cpu16)}
+  { 16-bit int sizes checked against Borland C++ 3.1 and Open Watcom 1.9 }
+  cint                   = cint16;             pcint                  = ^cint;
+  csint                  = cint16;             pcsint                 = ^csint;
+  cuint                  = cuint16;            pcuint                 = ^cuint;
+  clong                  = longint;            pclong                 = ^clong;
+  cslong                 = longint;            pcslong                = ^cslong;
+  culong                 = cardinal;           pculong                = ^culong;
 {$else}
+  cint                   = cint32;             pcint                  = ^cint;              { minimum range is : 32-bit    }
+  csint                  = cint32;             pcsint                 = ^csint;             { minimum range is : 32-bit    }
+  cuint                  = cuint32;            pcuint                 = ^cuint;             { minimum range is : 32-bit    }
   clong                  = longint;            pclong                 = ^clong;
   cslong                 = longint;            pcslong                = ^cslong;
   culong                 = cardinal;           pculong                = ^culong;
 {$ifend}
+
+  csigned                = cint;               pcsigned               = ^csigned;
+  cunsigned              = cuint;              pcunsigned             = ^cunsigned;
 
   csize_t                = ptruint;            pcsize_t               = pptruint;
 
@@ -102,7 +114,7 @@ type
 {$if defined(longdouble_is_double) or not defined(FPC_HAS_CEXTENDED)}
   clongdouble=double;
 {$else}
-  {$if defined(cpui386) or defined(cpux86_64) or defined(cpuavr)}
+  {$if defined(cpui8086) or defined(cpui386) or defined(cpux86_64) or defined(cpuavr)}
   clongdouble = cextended;
   {$else}
   {$define longdouble_assignment_overload_real128}

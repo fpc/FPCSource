@@ -52,6 +52,9 @@ unit procinfo;
        { This object gives information on the current routine being
          compiled.
        }
+
+       { tprocinfo }
+
        tprocinfo = class(tlinkedlistitem)
        private
           { list to store the procinfo's of the nested procedures }
@@ -165,6 +168,7 @@ unit procinfo;
 
           function get_first_nestedproc: tprocinfo;
           function has_nestedprocs: boolean;
+          function get_normal_proc: tprocinfo;
 
           { Add to parent's list of nested procedures even if parent is a 'main' procedure }
           procedure force_nested;
@@ -174,6 +178,8 @@ unit procinfo;
           { Update the resuired alignment for the current stack frame based
             on the current value and the new required alignment }
           procedure updatestackalignment(alignment: longint);
+          { Specific actions after the code has been generated }
+          procedure postprocess_code; virtual;
        end;
        tcprocinfo = class of tprocinfo;
 
@@ -268,6 +274,13 @@ implementation
         result:=assigned(nestedprocs) and (nestedprocs.count>0);
       end;
 
+    function tprocinfo.get_normal_proc: tprocinfo;
+      begin
+        result:=self;
+        while assigned(result.parent)and(result.procdef.parast.symtablelevel>normal_function_level) do
+          result:=result.parent;
+      end;
+
     procedure tprocinfo.save_jump_labels(out saved: tsavedlabels);
       begin
         saved[false]:=CurrFalseLabel;
@@ -321,5 +334,10 @@ implementation
           be initialized }
       end;
 
+
+    procedure tprocinfo.postprocess_code;
+      begin
+        { no action by default }
+      end;
 
 end.

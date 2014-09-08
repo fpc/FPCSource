@@ -26,21 +26,22 @@ unit n8086con;
 interface
 
     uses
-       node,ncon,ncgcon,nx86con;
+       globtype,symtype,ncon,ncgcon,nx86con;
 
     type
 
-      { tcgpointerconstnode }
+      { ti8086pointerconstnode }
 
       ti8086pointerconstnode = class(tcgpointerconstnode)
+        constructor create(v : TConstPtrUInt;def:tdef);override;
         procedure pass_generate_code;override;
       end;
 
 implementation
 
     uses
-      systems,globals,globtype,
-      symconst,symdef,
+      systems,globals,
+      symconst,symdef,symcpu,
       defutil,
       cpubase,
       cga,cgx86,cgobj,cgbase,cgutils;
@@ -49,10 +50,20 @@ implementation
                                T8086POINTERCONSTNODE
     *****************************************************************************}
 
+
+    constructor ti8086pointerconstnode.create(v: TConstPtrUInt; def: tdef);
+      begin
+        { truncate near pointers }
+        if (def.typ<>pointerdef) or not (tcpupointerdef(def).x86pointertyp in [x86pt_far,x86pt_huge]) then
+          v := Word(v);
+        inherited create(v, def);
+      end;
+
+
     procedure ti8086pointerconstnode.pass_generate_code;
       begin
         { far pointer? }
-        if (typedef.typ=pointerdef) and (tpointerdef(typedef).x86pointertyp in [x86pt_far,x86pt_huge]) then
+        if (typedef.typ=pointerdef) and (tcpupointerdef(typedef).x86pointertyp in [x86pt_far,x86pt_huge]) then
           begin
             location_reset(location,LOC_CONSTANT,OS_32);
             location.value:=longint(value);

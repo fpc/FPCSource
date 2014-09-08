@@ -773,8 +773,8 @@ unit rgobj;
         if supreg>=first_imaginary then
           with reginfo[supreg] do
             begin
-              if aweight>weight then
-                weight:=aweight;
+              // if aweight>weight then
+              inc(weight,aweight);
               if (live_range_direction=rad_forward) then
                 begin
                   if not assigned(live_start) then
@@ -1121,6 +1121,15 @@ unit rgobj;
     procedure trgobj.set_alias(u,v:Tsuperregister);
 
     begin
+      { don't make registers that the register allocator shouldn't touch (such
+        as stack and frame pointers) be aliases for other registers, because
+        then it can propagate them and even start changing them if the aliased
+        register gets changed }
+      if ((u<first_imaginary) and
+          not(u in usable_register_set)) or
+         ((v<first_imaginary) and
+          not(v in usable_register_set)) then
+        exit;
       include(reginfo[v].flags,ri_coalesced);
       if reginfo[v].alias<>0 then
         internalerror(200712291);
@@ -1272,9 +1281,15 @@ unit rgobj;
           add_worklist(u);
           add_worklist(v);
         end
-      {Next test: is it possible and a good idea to coalesce??}
-      else if ((u<first_imaginary) and adjacent_ok(u,v)) or
-              ((u>=first_imaginary) and conservative(u,v)) then
+      {Next test: is it possible and a good idea to coalesce?? Note: don't
+       coalesce registers that should not be touched by the register allocator,
+       such as stack/framepointers, because otherwise they can be changed }
+      else if (((u<first_imaginary) and adjacent_ok(u,v)) or
+               conservative(u,v)) and
+              ((u>first_imaginary) or
+               (u in usable_register_set)) and
+              ((v>first_imaginary) or
+               (v in usable_register_set)) then
         begin
           m.moveset:=ms_coalesced_moves;  {Move coalesced!}
           coalesced_moves.insert(m);
@@ -1389,7 +1404,7 @@ unit rgobj;
         colourednodes : Tsuperregisterset;
         adj_colours:set of 0..255;
         found : boolean;
-
+        tmpr: tregister;
     begin
       spillednodes.clear;
       {Reset colours}
@@ -1413,7 +1428,10 @@ unit rgobj;
                 if supregset_in(colourednodes,a) and (reginfo[a].colour<=255) then
                   include(adj_colours,reginfo[a].colour);
               end;
-          if regtype=R_INTREGISTER then
+          { FIXME: temp variable r is needed here to avoid Internal error 20060521 }
+          {        while compiling the compiler. }
+          tmpr:=NR_STACK_POINTER_REG;
+          if regtype=getregtype(tmpr) then
             include(adj_colours,RS_STACK_POINTER_REG);
           {Assume a spill by default...}
           found:=false;
@@ -1649,7 +1667,7 @@ unit rgobj;
 {$ifdef DEBUG_REGISTERLIFE}
                             write(live_registers.length,'  ');
                             for i:=0 to live_registers.length-1 do
-                              write(std_regname(newreg(R_INTREGISTER,live_registers.buf^[i],defaultsub)),' ');
+                              write(std_regname(newreg(regtype,live_registers.buf^[i],defaultsub)),' ');
                             writeln;
 {$endif DEBUG_REGISTERLIFE}
                             add_edges_used(supreg);
@@ -1660,7 +1678,7 @@ unit rgobj;
 {$ifdef DEBUG_REGISTERLIFE}
                             write(live_registers.length,'  ');
                             for i:=0 to live_registers.length-1 do
-                              write(std_regname(newreg(R_INTREGISTER,live_registers.buf^[i],defaultsub)),' ');
+                              write(std_regname(newreg(regtype,live_registers.buf^[i],defaultsub)),' ');
                             writeln;
 {$endif DEBUG_REGISTERLIFE}
                             add_edges_used(supreg);
@@ -1681,7 +1699,7 @@ unit rgobj;
               begin
                 { Only report for imaginary registers }
                 if live_registers.buf^[i]>=first_imaginary then
-                  Comment(V_Warning,'Register '+std_regname(newreg(R_INTREGISTER,live_registers.buf^[i],defaultsub))+' not released');
+                  Comment(V_Warning,'Register '+std_regname(newreg(regtype,live_registers.buf^[i],defaultsub))+' not released');
               end;
           end;
 {$endif}
@@ -1832,7 +1850,7 @@ unit rgobj;
 {$endif}
                                         setsupreg(index,reginfo[u].colour);
                                       end;
-{$if defined(x86) or defined(m68k)}
+{$if defined(x86)}
                                     if (segment<>NR_NO) and
                                        (getregtype(segment)=regtype) then
                                       begin
@@ -1843,7 +1861,7 @@ unit rgobj;
 {$endif}
                                         setsupreg(segment,reginfo[u].colour);
                                       end;
-{$endif defined(x86) or defined(m68k)}
+{$endif defined(x86)}
                                   end;
                             end;
 {$ifdef arm}
@@ -2112,11 +2130,11 @@ unit rgobj;
                         if (index <> NR_NO) and
                             (getregtype(index)=regtype) then
                           addreginfo(index,instr.spilling_get_operation_type_ref(counter,index));
-{$if defined(x86) or defined(m68k)}
+{$if defined(x86)}
                         if (segment <> NR_NO) and
                             (getregtype(segment)=regtype) then
                           addreginfo(segment,instr.spilling_get_operation_type_ref(counter,segment));
-{$endif defined(x86) or defined(m68k)}
+{$endif defined(x86)}
                       end;
                 end;
 {$ifdef ARM}
@@ -2134,7 +2152,7 @@ unit rgobj;
         if not spilled then
           exit;
 
-{$if defined(x86) or defined(mips)}
+{$if defined(x86) or defined(mips) or defined(sparc) or defined(arm) or defined(m68k)}
         { Try replacing the register with the spilltemp. This is useful only
           for the i386,x86_64 that support memory locations for several instructions
 
@@ -2149,7 +2167,7 @@ unit rgobj;
                     mustbespilled:=false;
                 end;
             end;
-{$endif defined(x86) or defined(mips)}
+{$endif defined(x86) or defined(mips) or defined(sparc) or defined(arm) or defined(m68k)}
 
         {
           There are registers that need are spilled. We generate the
@@ -2226,8 +2244,13 @@ unit rgobj;
             begin
               if mustbespilled and regread and (not regwritten) then
                 begin
-                  { The original instruction will be the next that uses this register }
-                  add_reg_instruction(instr,tempreg,1);
+                  { The original instruction will be the next that uses this register
+
+                    set weigth of the newly allocated register higher than the old one,
+                    so it will selected for spilling with a lower priority than
+                    the original one, this prevents an endless spilling loop if orgreg
+                    is short living, see e.g. tw25164.pp }
+                  add_reg_instruction(instr,tempreg,reginfo[orgreg].weight+1);
                   ungetregisterinline(list,tempreg);
                 end;
             end;
@@ -2243,8 +2266,13 @@ unit rgobj;
                   if (not regread) then
                     tempreg:=getregisterinline(list,regs[counter].spillregconstraints);
                   { The original instruction will be the next that uses this register, this
-                    also needs to be done for read-write registers }
-                  add_reg_instruction(instr,tempreg,1);
+                    also needs to be done for read-write registers,
+
+                    set weigth of the newly allocated register higher than the old one,
+                    so it will selected for spilling with a lower priority than
+                    the original one, this prevents an endless spilling loop if orgreg
+                    is short living, see e.g. tw25164.pp }
+                  add_reg_instruction(instr,tempreg,reginfo[orgreg].weight+1);
                 end;
             end;
 
@@ -2285,11 +2313,11 @@ unit rgobj;
                       if (ref^.index <> NR_NO) and
                           (getregtype(ref^.index)=regtype) then
                         tryreplacereg(ref^.index);
-{$if defined(x86) or defined(m68k)}
+{$if defined(x86)}
                       if (ref^.segment <> NR_NO) and
                           (getregtype(ref^.segment)=regtype) then
                         tryreplacereg(ref^.segment);
-{$endif defined(x86) or defined(m68k)}
+{$endif defined(x86)}
                     end;
                 end;
 {$ifdef ARM}

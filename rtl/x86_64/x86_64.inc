@@ -673,9 +673,9 @@ function declocked(var l : longint) : boolean;assembler; nostackframe;
      { of time!                                             }
 {$ifdef FPC_PIC}
      movq       IsMultithread@GOTPCREL(%rip),%rax
-     cmpb       $0,(%rax)
+     cmpl       $0,(%rax)
 {$else FPC_PIC}
-     cmpb       $0,IsMultithread(%rip)
+     cmpl       $0,IsMultithread(%rip)
 {$endif FPC_PIC}
 {$ifndef win64}
      mov        %rdi, %rcx
@@ -698,9 +698,9 @@ function declocked(var l : int64) : boolean;assembler; nostackframe;
      { of time!                                             }
 {$ifdef FPC_PIC}
      movq       IsMultithread@GOTPCREL(%rip),%rax
-     cmpb       $0,(%rax)
+     cmpl       $0,(%rax)
 {$else FPC_PIC}
-     cmpb       $0,IsMultithread(%rip)
+     cmpl       $0,IsMultithread(%rip)
 {$endif FPC_PIC}
 {$ifndef win64}
      mov        %rdi, %rcx
@@ -724,9 +724,9 @@ procedure inclocked(var l : longint);assembler; nostackframe;
      { of time!                                             }
 {$ifdef FPC_PIC}
      movq       IsMultithread@GOTPCREL(%rip),%rax
-     cmpb       $0,(%rax)
+     cmpl       $0,(%rax)
 {$else FPC_PIC}
-     cmpb       $0,IsMultithread(%rip)
+     cmpl       $0,IsMultithread(%rip)
 {$endif FPC_PIC}
 {$ifndef win64}
      mov        %rdi, %rcx
@@ -749,9 +749,9 @@ procedure inclocked(var l : int64);assembler; nostackframe;
      { of time!                                             }
 {$ifdef FPC_PIC}
      movq       IsMultithread@GOTPCREL(%rip),%rax
-     cmpb       $0,(%rax)
+     cmpl       $0,(%rax)
 {$else FPC_PIC}
-     cmpb       $0,IsMultithread(%rip)
+     cmpl       $0,IsMultithread(%rip)
 {$endif FPC_PIC}
 {$ifndef win64}
      mov        %rdi, %rcx
@@ -925,8 +925,6 @@ const
   FPU_StackOverflow = $40;
   FPU_ExceptionMask = $ff;
 
-  fpucw : word = $1300 or FPU_StackUnderflow or FPU_Underflow or FPU_Denormal;
-
   MM_MaskInvalidOp = %0000000010000000;
   MM_MaskDenorm    = %0000000100000000;
   MM_MaskDivZero   = %0000001000000000;
@@ -934,7 +932,6 @@ const
   MM_MaskUnderflow = %0000100000000000;
   MM_MaskPrecision = %0001000000000000;
 
-  mxcsr : dword = MM_MaskUnderflow or MM_MaskPrecision or MM_MaskDenorm;
 
 procedure fpc_cpuinit;
   begin
@@ -942,30 +939,14 @@ procedure fpc_cpuinit;
     if IsLibrary then
       begin
         Default8087CW:=Get8087CW;
-        mxcsr:=GetSSECSR;
+        DefaultMXCSR:=GetMXCSR;
       end;
     SysResetFPU;
-    if not(IsLibrary) then
-      SysInitFPU;
   end;
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
 Procedure SysInitFPU;
-  var
-    { these locals are so we don't have to hack pic code in the assembler }
-    localmxcsr: dword;
-    localfpucw: word;
-
 begin
-  localmxcsr:=mxcsr;
-  localfpucw:=fpucw;
-  asm
-    fldcw localfpucw
-    { set sse exceptions }
-    ldmxcsr localmxcsr
-  end ['RAX'];
-  { x86-64 might use softfloat code }
-  softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
 end;
 
 
@@ -977,15 +958,13 @@ Procedure SysResetFPU;
     localfpucw: word;
   begin
     localfpucw:=Default8087CW;
-    localmxcsr:=mxcsr;
+    localmxcsr:=DefaultMXCSR;
     asm
       fninit
       fwait
       fldcw   localfpucw
       ldmxcsr localmxcsr
     end;
-    { x86-64 might use softfloat code }
-    softfloat_exception_flags:=0;
   end;
 
 

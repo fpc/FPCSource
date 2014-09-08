@@ -5,6 +5,8 @@
 {$INCLUDE eventi.inc}
 {$INCLUDE keyeventi.inc}
 {$INCLUDE mouseeventi.inc}
+{$INCLUDE closeeventi.inc}
+{$INCLUDE resizeeventi.inc}
 {$INCLUDE modei.inc}
 {$INCLUDE palettei.inc}
 {$INCLUDE cleari.inc}

@@ -30,11 +30,15 @@ unit rgcpu;
     uses
       cpubase,
       cpuinfo,
-      aasmbase,aasmtai,aasmdata,
-      cclasses,globtype,cgbase,rgobj,rgx86;
+      aasmbase,aasmtai,aasmdata,aasmcpu,
+      cclasses,globtype,cgbase,cgutils,rgobj,rgx86;
 
     type
+
+       { trgcpu }
+
        trgcpu = class(trgx86)
+          function  do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;override;
           procedure add_constraints(reg:Tregister);override;
        end;
 
@@ -47,9 +51,7 @@ implementation
 
     uses
       systems,
-      verbose,
-      aasmcpu,
-      cgutils;
+      verbose;
 
     const
        { This value is used in tsaved. If the array value is equal
@@ -59,6 +61,17 @@ implementation
 {************************************************************************
                                  trgcpu
 *************************************************************************}
+
+    function trgcpu.do_spill_replace(list: TAsmList; instr: taicpu; orgreg: tsuperregister; const spilltemp: treference): boolean;
+      var
+        spilltemp2: treference;
+      begin
+        spilltemp2:=spilltemp;
+        if spilltemp2.segment=NR_SS then
+          spilltemp2.segment:=NR_NO;
+        Result:=inherited do_spill_replace(list, instr, orgreg, spilltemp2);
+      end;
+
 
     procedure trgcpu.add_constraints(reg:Tregister);
       var
@@ -87,21 +100,44 @@ implementation
                 if taicpu(p).oper[i]^.typ=top_ref then
                   begin
                     href:=taicpu(p).oper[i]^.ref^;
-                    if (href.base<>NR_NO) and (getsupreg(href.base)>=first_int_imreg) then
+                    { in case there's exactly one register used, we can treat it
+                      as either base or index and choose it from the larger set
+                      of registers [BX, BP, SI, DI] }
+                    if (href.base<>NR_NO) xor (href.index<>NR_NO) then
                       begin
-                        add_edge(getsupreg(href.base),RS_AX);
-                        add_edge(getsupreg(href.base),RS_CX);
-                        add_edge(getsupreg(href.base),RS_DX);
-                        add_edge(getsupreg(href.base),RS_SI);
-                        add_edge(getsupreg(href.base),RS_DI);
-                      end;
-                    if (href.index<>NR_NO) and (getsupreg(href.index)>=first_int_imreg) then
+                        if (href.base<>NR_NO) and (getsupreg(href.base)>=first_int_imreg) then
+                          begin
+                            add_edge(getsupreg(href.base),RS_AX);
+                            add_edge(getsupreg(href.base),RS_CX);
+                            add_edge(getsupreg(href.base),RS_DX);
+                          end;
+                        if (href.index<>NR_NO) and (getsupreg(href.index)>=first_int_imreg) then
+                          begin
+                            add_edge(getsupreg(href.index),RS_AX);
+                            add_edge(getsupreg(href.index),RS_CX);
+                            add_edge(getsupreg(href.index),RS_DX);
+                          end;
+                      end
+                    else
                       begin
-                        add_edge(getsupreg(href.index),RS_AX);
-                        add_edge(getsupreg(href.index),RS_BX);
-                        add_edge(getsupreg(href.index),RS_CX);
-                        add_edge(getsupreg(href.index),RS_DX);
-                        add_edge(getsupreg(href.index),RS_BP);
+                        { base is chosen from the set [BX, BP] }
+                        if (href.base<>NR_NO) and (getsupreg(href.base)>=first_int_imreg) then
+                          begin
+                            add_edge(getsupreg(href.base),RS_AX);
+                            add_edge(getsupreg(href.base),RS_CX);
+                            add_edge(getsupreg(href.base),RS_DX);
+                            add_edge(getsupreg(href.base),RS_SI);
+                            add_edge(getsupreg(href.base),RS_DI);
+                          end;
+                        { index is chosen from the set [SI, DI] }
+                        if (href.index<>NR_NO) and (getsupreg(href.index)>=first_int_imreg) then
+                          begin
+                            add_edge(getsupreg(href.index),RS_AX);
+                            add_edge(getsupreg(href.index),RS_BX);
+                            add_edge(getsupreg(href.index),RS_CX);
+                            add_edge(getsupreg(href.index),RS_DX);
+                            add_edge(getsupreg(href.index),RS_BP);
+                          end;
                       end;
                   end;
               end;

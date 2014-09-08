@@ -43,6 +43,9 @@ interface
 {$ifdef morphos}
       longint
 {$endif morphos}
+{$ifdef aros}
+      longint
+{$endif aros}
     ;
 Procedure SaveConsoleMode(var ConsoleMode : TConsoleMode);
 Procedure RestoreConsoleMode(const ConsoleMode : TConsoleMode);

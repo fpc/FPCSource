@@ -37,6 +37,7 @@ interface
       TRTTIWriter=class
       private
         procedure fields_write_rtti(st:tsymtable;rt:trttitype);
+        procedure params_write_rtti(def:tabstractprocdef;rt:trttitype);
         procedure fields_write_rtti_data(def:tabstractrecorddef;rt:trttitype);
         procedure write_rtti_extrasyms(def:Tdef;rt:Trttitype;mainrtti:Tasmsymbol);
         procedure published_write_rtti(st:tsymtable;rt:trttitype);
@@ -204,6 +205,20 @@ implementation
       end;
 
 
+    procedure TRTTIWriter.params_write_rtti(def:tabstractprocdef;rt:trttitype);
+      var
+        i   : longint;
+        sym : tparavarsym;
+      begin
+        for i:=0 to def.paras.count-1 do
+          begin
+            sym:=tparavarsym(def.paras[i]);
+            if not (vo_is_hidden_para in sym.varoptions) then
+              write_rtti(sym.vardef,rt);
+          end;
+      end;
+
+
     procedure TRTTIWriter.published_write_rtti(st:tsymtable;rt:trttitype);
       var
         i   : longint;
@@ -343,7 +358,7 @@ implementation
                 if not(po_virtualmethod in tprocdef(propaccesslist.procdef).procoptions) or
                    is_objectpascal_helper(tprocdef(propaccesslist.procdef).struct) then
                   begin
-                     current_asmdata.asmlists[al_rtti].concat(Tai_const.createname(tprocdef(propaccesslist.procdef).mangledname,0));
+                     current_asmdata.asmlists[al_rtti].concat(Tai_const.createname(tprocdef(propaccesslist.procdef).mangledname,AT_FUNCTION,0));
                      typvalue:=1;
                   end
                 else
@@ -699,6 +714,8 @@ implementation
                  vs_var     : paraspec := pfVar;
                  vs_out     : paraspec := pfOut;
                  vs_constref: paraspec := pfConstRef;
+                 else
+                   internalerror(2013112904);
                end;
                { Kylix also seems to always add both pfArray and pfReference
                  in this case
@@ -857,9 +874,9 @@ implementation
 
             if not is_objectpascal_helper(def) then
               if (oo_has_vmt in def.objectoptions) then
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Createname(def.vmt_mangledname,0))
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Createname(def.vmt_mangledname,AT_DATA,0))
               else
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.create_sym(nil));
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_nil_dataptr);
 
             { write parent typeinfo }
             write_rtti_reference(def.childof,fullrtti);
@@ -1293,6 +1310,8 @@ implementation
           pointerdef:
             if not is_objc_class_or_protocol(tabstractpointerdef(def).pointeddef) then
               write_rtti(tabstractpointerdef(def).pointeddef,rt);
+          procvardef:
+            params_write_rtti(tabstractprocdef(def),rt);
         end;
       end;
 
@@ -1307,7 +1326,7 @@ implementation
 
     function TRTTIWriter.ref_rtti(def:tdef;rt:trttitype):tasmsymbol;
       begin
-        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt));
+        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt),AT_DATA);
         if (cs_create_pic in current_settings.moduleswitches) and
            assigned(current_procinfo) then
           include(current_procinfo.flags,pi_needs_got);
@@ -1343,7 +1362,7 @@ implementation
 
     function TRTTIWriter.get_rtti_label(def:tdef;rt:trttitype):tasmsymbol;
       begin
-        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt));
+        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt),AT_DATA);
         if (cs_create_pic in current_settings.moduleswitches) and
            assigned(current_procinfo) then
           include(current_procinfo.flags,pi_needs_got);
@@ -1351,7 +1370,7 @@ implementation
 
     function TRTTIWriter.get_rtti_label_ord2str(def:tdef;rt:trttitype):tasmsymbol;
       begin
-        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt)+'_o2s');
+        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt)+'_o2s',AT_DATA);
         if (cs_create_pic in current_settings.moduleswitches) and
            assigned(current_procinfo) then
           include(current_procinfo.flags,pi_needs_got);
@@ -1359,7 +1378,7 @@ implementation
 
     function TRTTIWriter.get_rtti_label_str2ord(def:tdef;rt:trttitype):tasmsymbol;
       begin
-        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt)+'_s2o');
+        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt)+'_s2o',AT_DATA);
         if (cs_create_pic in current_settings.moduleswitches) and
            assigned(current_procinfo) then
           include(current_procinfo.flags,pi_needs_got);

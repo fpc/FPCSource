@@ -83,6 +83,7 @@ begin
          'h': FHelp := true;
          'f': if sValue = 'fpc' then FOutputFormat := 'f'
                else if sValue = 'nasm' then FOutputFormat := 'n'
+               else if sValue = 'fasm' then FOutputFormat := 'F'
                else IsInvalidParam := true;
          'p': if sValue = 'x8664' then
               begin

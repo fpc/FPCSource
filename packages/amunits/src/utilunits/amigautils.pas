@@ -78,7 +78,7 @@ Type
         fib_Reserved     : Array [0..31] of Char;
     end;
 
-{$PACKRECORDS NORMAL}
+{$PACKRECORDS 2}
 
 FUNCTION Examine(lock : LONGINT; fileInfoBlock : pFileInfoBlock) : BOOLEAN;
 BEGIN

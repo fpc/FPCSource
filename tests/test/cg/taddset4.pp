@@ -21,7 +21,7 @@ var
   b:boolean;
 begin
   b:=true;
-  t(longint([
+  t({$ifdef CPU16}byte{$else}longint{$endif}([
       TCompilerIntfFlag(ord(ifHasGuid)*ord(b)),
       TCompilerIntfFlag(ord(ifHasStrGUID)*ord(b)),
       TCompilerIntfFlag(ord(ifDispInterface)*ord(b))

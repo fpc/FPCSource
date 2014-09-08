@@ -169,6 +169,7 @@ Var
 begin
   CDS:=PCopyDataStruct(Msg.Lparam);
   Owner.FMsgType:=CDS^.dwData;
+  Owner.FMsgData.Size:=0;
   Owner.FMsgData.Seek(0,soFrombeginning);
   Owner.FMsgData.WriteBuffer(CDS^.lpData^,CDS^.cbData);
 end;
@@ -257,7 +258,7 @@ begin
     CDS.dwData:=MsgType;
     CDS.lpData:=Data.Memory;
     CDS.cbData:=Data.Size;
-    Windows.SendMessage(FHWnd,WM_COPYDATA,0,Integer(@CDS));
+    Windows.SendMessage(FHWnd,WM_COPYDATA,0,PtrInt(@CDS));
   Finally
     FreeAndNil(FMemStr);
   end;

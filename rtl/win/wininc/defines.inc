@@ -1188,6 +1188,13 @@
   { EnumProtocols  }
   { EnumResLangProc  }
 
+  // layout
+   LAYOUT_RTL                         = 1; // Right to left
+   LAYOUT_BTT                         = 2; // Bottom to top
+   LAYOUT_VBH                         = 4; // Vertical before horizontal
+   LAYOUT_ORIENTATIONMASK             = (LAYOUT_RTL or LAYOUT_BTT or LAYOUT_VBH);
+   LAYOUT_BITMAPORIENTATIONPRESERVED  = 8;
+
   // DEVMODE dmDisplayFixedOutput 
      DMDFO_DEFAULT = 0;
      DMDFO_STRETCH = 1;
@@ -5315,6 +5322,8 @@ Type
      PFD_SWAP_LAYER_BUFFERS = $800;
      PFD_GENERIC_ACCELERATED = $1000;
      PFD_SUPPORT_DIRECTDRAW = $2000;
+     PFD_DIRECT3D_ACCELERATED = $4000;
+     PFD_SUPPORT_COMPOSITION = $8000;
   { TEXTMETRIC structure  }
      TMPF_FIXED_PITCH = $1;
      TMPF_VECTOR = $2;

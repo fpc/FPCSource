@@ -13,7 +13,7 @@ begin
     10: correct := '                  -Inf';
     8: correct := '                  -Inf';
   end;
-  str(mindouble,s);
+  str(mindouble:22,s);
   if s<>correct then
     begin
       writeln('error');

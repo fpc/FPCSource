@@ -1,3 +1,9 @@
+type
+  TWinRegData = record
+    RootKeyOwned: Boolean;
+  end;
+  PWinRegData = ^TWinRegData;
+
 {******************************************************************************
                                   TRegistry
  ******************************************************************************}
@@ -5,11 +11,16 @@
 Procedure TRegistry.SysRegCreate;
 begin
   FStringSizeIncludesNull:=True;
+  New(PWinRegData(FSysData));
+  PWinRegData(FSysData)^.RootKeyOwned := False;
 end;
 
 Procedure TRegistry.SysRegfree;
 
 begin
+  if PWinRegData(FSysData)^.RootKeyOwned and (RootKey <> 0) then
+    RegCloseKey(RootKey);
+  Dispose(PWinRegData(FSysData));
 end;
 
 Function PrepKey(Const S : String) : pChar;
@@ -219,8 +230,20 @@ begin
 end;
 
 function TRegistry.RegistryConnect(const UNCName: string): Boolean;
+{$ifndef WinCE}
+var
+  newroot: HKEY;
+{$endif}
 begin
-  Result := False;
+{$ifdef WinCE}
+  Result:=False;
+{$else}
+  Result:=RegConnectRegistryA(PChar(UNCName),RootKey,newroot)=ERROR_SUCCESS;
+  if Result then begin
+    RootKey:=newroot;
+    PWinRegData(FSysData)^.RootKeyOwned:=True;
+  end;
+{$endif}
 end;
 
 function TRegistry.ReplaceKey(const Key, FileName, BackUpFileName: string): Boolean;
@@ -384,6 +407,13 @@ end;
 
 procedure TRegistry.SetRootKey(Value: HKEY);
 begin
+  if fRootKey = Value then
+    Exit;
+  { close a root key that was opened using RegistryConnect }
+  if PWinRegData(FSysData)^.RootKeyOwned and (fRootKey <> 0) then begin
+    RegCloseKey(fRootKey);
+    PWinRegData(FSysData)^.RootKeyOwned := False;
+  end;
   fRootKey := Value;
 end;
 

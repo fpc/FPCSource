@@ -76,11 +76,11 @@ interface
 
       tasmlisttypedconstbuilder = class(ttypedconstbuilder)
        private
-        list: tasmlist;
         curoffset: asizeint;
 
         function parse_single_packed_const(def: tdef; var bp: tbitpackedval): boolean;
        protected
+        list: tasmlist;
 
         procedure parse_packed_array_def(def: tarraydef);
         procedure parse_arraydef(def:tarraydef);override;
@@ -442,6 +442,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         winlike   : boolean;
         hsym      : tconstsym;
       begin
+        strval:='';
         { load strval and strlength of the constant tree }
         if (node.nodetype=stringconstn) or is_wide_or_unicode_string(def) or is_constwidecharnode(node) or
           ((node.nodetype=typen) and is_interfacecorba(ttypenode(node).typedef)) then
@@ -454,6 +455,12 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               begin
                 strlength:=tstringconstnode(node).len;
                 strval:=tstringconstnode(node).value_str;
+                { the def may have changed from e.g. RawByteString to
+                  AnsiString(CP_ACP) }
+                if node.resultdef.typ=stringdef then
+                  def:=tstringdef(node.resultdef)
+                else
+                  internalerror(2014010501);
               end
             else
               begin
@@ -491,7 +498,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               begin
                 current_asmdata.ResStrInits.Concat(
                   TTCInitItem.Create(tcsym,curoffset,
-                  current_asmdata.RefAsmSymbol(make_mangledname('RESSTR',hsym.owner,hsym.name)))
+                  current_asmdata.RefAsmSymbol(make_mangledname('RESSTR',hsym.owner,hsym.name),AT_DATA))
                 );
                 Include(tcsym.varoptions,vo_force_finalize);
               end;
@@ -709,6 +716,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
       var
         value : bestreal;
       begin
+        value:=0.0;
         if is_constrealnode(node) then
           value:=trealconstnode(node).value_real
         else if is_constintnode(node) then
@@ -750,9 +758,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         case node.nodetype of
           loadvmtaddrn:
             begin
-              if not Tobjectdef(tclassrefdef(node.resultdef).pointeddef).is_related(tobjectdef(def.pointeddef)) then
+              if not def_is_related(tobjectdef(tclassrefdef(node.resultdef).pointeddef),tobjectdef(def.pointeddef)) then
                 IncompatibleTypes(node.resultdef, def);
-              list.concat(Tai_const.Create_sym(current_asmdata.RefAsmSymbol(Tobjectdef(tclassrefdef(node.resultdef).pointeddef).vmt_mangledname)));
+              list.concat(Tai_const.Create_sym(current_asmdata.RefAsmSymbol(Tobjectdef(tclassrefdef(node.resultdef).pointeddef).vmt_mangledname,AT_DATA)));
             end;
            niln:
              list.concat(Tai_const.Create_sym(nil));
@@ -888,14 +896,11 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                        case hp.nodetype of
                          vecn :
                            begin
+                             len:=1;
+                             base:=0;
                              case tvecnode(hp).left.resultdef.typ of
                                stringdef :
-                                 begin
-                                    { this seems OK for shortstring and ansistrings PM }
-                                    { it is wrong for widestrings !! }
-                                    len:=1;
-                                    base:=0;
-                                 end;
+                                 ;
                                arraydef :
                                  begin
                                     if not is_packed_array(tvecnode(hp).left.resultdef) then
@@ -904,12 +909,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                                         base:=tarraydef(tvecnode(hp).left.resultdef).lowrange;
                                       end
                                     else
-                                      begin
-                                        Message(parser_e_packed_dynamic_open_array);
-                                        len:=1;
-                                        base:=0;
-                                      end;
-                                 end
+                                      Message(parser_e_packed_dynamic_open_array);
+                                 end;
                                else
                                  Message(parser_e_illegal_expression);
                              end;
@@ -959,7 +960,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                       list.concat(Tai_const.Createname(tlabelsym(srsym).mangledname,offset));
                     constsym :
                       if tconstsym(srsym).consttyp=constresourcestring then
-                        list.concat(Tai_const.Createname(make_mangledname('RESSTR',tconstsym(srsym).owner,tconstsym(srsym).name),sizeof(pint)))
+                        list.concat(Tai_const.Createname(make_mangledname('RESSTR',tconstsym(srsym).owner,tconstsym(srsym).name),AT_DATA,sizeof(pint)))
                       else
                         Message(type_e_variable_id_expected);
                     else
@@ -977,7 +978,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               if (tinlinenode(node).left.nodetype=typen) then
                 begin
                   list.concat(Tai_const.createname(
-                    tobjectdef(tinlinenode(node).left.resultdef).vmt_mangledname,0));
+                    tobjectdef(tinlinenode(node).left.resultdef).vmt_mangledname,AT_DATA,0));
                 end
               else
                 Message(parser_e_illegal_expression);
@@ -1085,6 +1086,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         int_const: tai_const;
         char_size: integer;
         oldoffset: asizeint;
+        dummy : byte;
       begin
         { dynamic array nil }
         if is_dynamic_array(def) then
@@ -1194,6 +1196,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                begin
                  Message(parser_e_illegal_expression);
                  len:=0;
+                 { avoid crash later on }
+                 dummy:=0;
+                 ca:=@dummy;
                end;
              if len>(def.highrange-def.lowrange+1) then
                Message(parser_e_string_larger_array);
@@ -1627,7 +1632,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                     begin
                       for i:=1 to def.vmt_offset-objoffset do
                         list.concat(tai_const.create_8bit(0));
-                      list.concat(tai_const.createname(def.vmt_mangledname,0));
+                      list.concat(tai_const.createname(def.vmt_mangledname,AT_DATA,0));
                       { this is more general }
                       objoffset:=def.vmt_offset + sizeof(pint);
                       vmtwritten:=true;
@@ -1656,7 +1661,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           begin
             for i:=1 to def.vmt_offset-objoffset do
               list.concat(tai_const.create_8bit(0));
-            list.concat(tai_const.createname(def.vmt_mangledname,0));
+            list.concat(tai_const.createname(def.vmt_mangledname,AT_DATA,0));
             { this is more general }
             objoffset:=def.vmt_offset + sizeof(pint);
           end;

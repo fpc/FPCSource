@@ -140,7 +140,7 @@ begin
     SendDebug('Last    :'+FormatDateTime('yyyy/mm/dd hh:nn:ss.zzz',L));
   SendDebug('Timeout :'+IntToStr(t));
   {$endif}
-  Result:=((Now-L)>(T/(24*60)))
+  Result:=((Now-L)>(T/(24*60)));
   {$ifdef cgidebug}
   if Result then
     begin
@@ -385,7 +385,7 @@ begin
   If (S<>'') then
     begin
     FN:=IncludeTrailingPathDelimiter(SessionDir)+SF.SessionFilePrefix+S;
-{$ifdef cgidebug}SendDebug('Reading ini file:'+FN);{$endif}
+{$ifdef cgidebug}SendDebug('Existing session. Reading ini file:'+FN);{$endif}
     FIniFile:=CreateIniFile(FN);
     if SF.SessionExpired(FIniFile) then
       begin
@@ -405,7 +405,7 @@ begin
       OnNewSession(Self);
     GetSessionID;
     S:=IncludeTrailingPathDelimiter(SessionDir)+SF.SessionFilePrefix+SessionID;
-{$ifdef cgidebug}SendDebug('Creating new Ini file : '+S);{$endif}
+{$ifdef cgidebug}SendDebug('Expired or new session. Creating new Ini file : '+S);{$endif}
     FIniFile:=CreateIniFile(S);
     FIniFile.WriteDateTime(SSession,KeyStart,Now);
     FIniFile.WriteInteger(SSession,KeyTimeOut,Self.TimeOutMinutes);
@@ -423,25 +423,23 @@ Var
   C : TCookie;
 
 begin
-{$ifdef cgidebug}SendMethodEnter('TIniWebSession.InitResponse');{$endif}
-  If FSessionStarted then
+{$ifdef cgidebug}SendMethodEnter('TIniWebSession.InitResponse: '+SID);{$endif}
+  C:=AResponse.Cookies.FindCookie(SessionCookie);
+  If (C=Nil) then
     begin
-{$ifdef cgidebug}SendDebug('Session started');{$endif}
-    C:=AResponse.Cookies.FindCookie(SessionCookie);
-    If (C=Nil) then
-      begin
-      C:=AResponse.Cookies.Add;
-      C.Name:=SessionCookie;
-      end;
-    C.Value:=SID;
-    C.Path:=SessionCookiePath;
-    end
-  else If FTerminated then
-    begin
-{$ifdef cgidebug}SendDebug('Session terminated');{$endif}
     C:=AResponse.Cookies.Add;
     C.Name:=SessionCookie;
+    end;
+  If FTerminated then
+    begin
+{$ifdef cgidebug}SendDebug('Session terminated');{$endif}
     C.Value:='';
+    end
+  else
+    begin
+{$ifdef cgidebug}SendDebug('Existing session or Session started');{$endif}
+    C.Value:=SID;
+    C.Path:=SessionCookiePath;
     end;
 {$ifdef cgidebug}SendMethodExit('TIniWebSession.InitResponse');{$endif}
 end;

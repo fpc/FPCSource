@@ -35,6 +35,17 @@ begin
   end;
 end;
 
+procedure testBCDToStr(const bcd: TBCD; const Output: string);
+var s: string;
+begin
+  s := BCDToStr(bcd);
+  if s <> Output then
+  begin
+    writeln('BCDToStr: ', s, ' Expected: ', Output);
+    inc(ErrorCount);
+  end;
+end;
+
 procedure testBCDToStrF(const s1, s2: string);
 begin
   if s1 <> s2 then
@@ -44,7 +55,7 @@ begin
   end;
 end;
 
-procedure testFormatBCD(const Format: string; BCD: TBCD; Output: string);
+procedure testFormatBCD(const Format: string; BCD: TBCD; const Output: string);
 var s: string;
 begin
   s := FormatBCD(Format, BCD);
@@ -138,9 +149,20 @@ end;
 begin
   ErrorCount := 0;
 
-  // test BCDToStrF:
+  // test BCDToStr:
   DFS:=DefaultFormatSettings;
 
+  FS.DecimalSeparator:=',';
+  FS.ThousandSeparator:=#0;
+  DefaultFormatSettings:=FS;
+  testBCDToStr(0, '0');
+  testBCDToStr(-123, '-123');
+  testBCDToStr(0.5, '0,5');
+  testBCDToStr(-1.03125, '-1,03125');
+  testBCDToStr(CurrToBCD(1.2345), '1,2345');
+  testBCDToStr(CurrToBCD(-0.0045), '-0,0045');
+
+  // test BCDToStrF:
   FS.DecimalSeparator:=',';
   FS.ThousandSeparator:=' ';
   FS.CurrencyDecimals:=2;

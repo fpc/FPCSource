@@ -60,7 +60,7 @@ implementation
 
     uses
       verbose,globals,globtype,constexp,cutils,
-      symconst,symtable,symsym,defutil,
+      symconst,symtable,symsym,symcpu,defutil,
       cgutils,tgobj,procinfo,htypechk,
       cpubase,aasmdata,aasmcpu,
       hlcgobj,hlcgcpu,
@@ -527,7 +527,7 @@ implementation
     var
       pdclass: tobjectdef;
     begin
-      pdclass:=tprocvardef(right.resultdef).classdef;
+      pdclass:=tcpuprocvardef(right.resultdef).classdef;
       { convert procvar type into corresponding class }
       if not tprocvardef(right.resultdef).is_addressonly then
         begin
@@ -590,6 +590,10 @@ implementation
           result:=inherited pass_1;
           if assigned(result) then
             exit;
+          { set fforcedprocname so that even virtual method calls will be
+            name-based (instead of based on VMT entry numbers) }
+          if procdefinition.typ=procdef then
+            fforcedprocname:=tprocdef(procdefinition).mangledname
         end;
     end;
 

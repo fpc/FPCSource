@@ -226,7 +226,7 @@ uses
          close;
       { free memory }
         if assigned(linebuf) then
-         freemem(linebuf,maxlinebuf shl 2);
+         freemem(linebuf,maxlinebuf*sizeof(linebuf^[0]));
       end;
 
 
@@ -368,24 +368,16 @@ uses
 
 
     procedure tinputfile.setline(line,linepos:longint);
-      var
-        oldlinebuf  : plongintarr;
       begin
         if line<1 then
          exit;
         while (line>=maxlinebuf) do
-         begin
-           oldlinebuf:=linebuf;
-         { create new linebuf and move old info }
-           getmem(linebuf,(maxlinebuf+linebufincrease) shl 2);
-           if assigned(oldlinebuf) then
-            begin
-              move(oldlinebuf^,linebuf^,maxlinebuf shl 2);
-              freemem(oldlinebuf,maxlinebuf shl 2);
-            end;
-           fillchar(linebuf^[maxlinebuf],linebufincrease shl 2,0);
-           inc(maxlinebuf,linebufincrease);
-         end;
+          begin
+            { create new linebuf and move old info }
+            linebuf:=reallocmem(linebuf,(maxlinebuf+linebufincrease)*sizeof(linebuf^[0]));
+            fillchar(linebuf^[maxlinebuf],linebufincrease*sizeof(linebuf^[0]),0);
+            inc(maxlinebuf,linebufincrease);
+          end;
         linebuf^[line]:=linepos;
       end;
 

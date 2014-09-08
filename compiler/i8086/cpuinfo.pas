@@ -123,9 +123,9 @@ Const
                                   cs_opt_tailrecursion,cs_opt_nodecse,cs_useebp,
 				  cs_opt_reorder_fields,cs_opt_fastmath];
 
-   level1optimizerswitches = genericlevel1optimizerswitches + [cs_opt_peephole];
+   level1optimizerswitches = genericlevel1optimizerswitches;
    level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches +
-     [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion,cs_opt_nodecse];
+     [{cs_opt_regvar,}cs_opt_stackframe,cs_opt_tailrecursion{,cs_opt_nodecse}];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [cs_useebp];
 

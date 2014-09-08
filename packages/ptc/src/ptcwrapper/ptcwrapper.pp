@@ -1,6 +1,6 @@
 {
     Free Pascal PTCPas framebuffer library threaded wrapper
-    Copyright (C) 2010, 2011, 2012 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2010, 2011, 2012, 2013 Nikolay Nikolov (nickysn@users.sourceforge.net)
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -262,6 +262,7 @@ procedure TPTCWrapperThread.Execute;
 begin
   try
     FConsole := TPTCConsoleFactory.CreateNew;
+    FConsole.Option('intercept window close');
 
     FEventQueue := TEventQueue.Create;
     FPalette := TPTCPaletteFactory.CreateNew;

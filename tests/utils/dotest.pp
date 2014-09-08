@@ -304,6 +304,16 @@ begin
   SplitFileBase:=n;
 end;
 
+Function SplitFileExt(const s:string):string;
+var
+  p : dirstr;
+  n : namestr;
+  e : extstr;
+begin
+  FSplit(s,p,n,e);
+  SplitFileExt:=e;
+end;
+
 
 function ForceExtension(Const HStr,ext:String):String;
 {
@@ -901,7 +911,7 @@ begin
   DelOptions:=opts;
 end;
 
-function RunCompiler:boolean;
+function RunCompiler(const ExtraPara: string):boolean;
 var
   args,LocalExtraArgs,
   wpoargs : string;
@@ -913,6 +923,8 @@ var
 begin
   RunCompiler:=false;
   args:='-n -T'+CompilerTarget+' -Fu'+RTLUnitsDir;
+  if ExtraPara<>'' then
+    args:=args+' '+ExtraPara;
   { the helper object files have been copied to the common directory }
   if UniqueSuffix<>'' then
     args:=args+' -Fo'+TestOutputDir+'/..';
@@ -1154,13 +1166,15 @@ begin
   LibraryExists:=false;
 end;
 
-function ExecuteRemote(const prog,args:string;out StartTicks,EndTicks : int64):boolean;
+function ExecuteRemote(prog,args:string;out StartTicks,EndTicks : int64):boolean;
 const
   MaxTrials = 5;
 var
   Trials : longint;
   Res : boolean;
 begin
+  if SplitFileExt(prog)='' then
+    prog:=prog+SrcExeExt;
   Verbose(V_Debug,'RemoteExecuting '+Prog+' '+args);
   StartTicks:=GetMicroSTicks;
   Res:=false;
@@ -1988,9 +2002,9 @@ begin
 
   if Res then
    begin
-     Res:=RunCompiler;
+     Res:=RunCompiler('');
      if Res and Config.NeedRecompile then
-      Res:=RunCompiler;
+      Res:=RunCompiler(Config.RecompileOpt);
    end;
 
   if Res and (not Config.ShouldFail) then

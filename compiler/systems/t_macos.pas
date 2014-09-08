@@ -248,7 +248,7 @@ initialization
   RegisterImport(system_m68k_macos,timportlibmacos);
 {$endif m68k}
 {$ifdef powerpc}
-  RegisterExternalLinker(system_powerpc_macos_info,TLinkerMPW);
+  RegisterLinker(ld_mpw,TLinkerMPW);
   RegisterTarget(system_powerpc_macos_info);
   RegisterImport(system_powerpc_macos,timportlibmacos);
 {$endif powerpc}

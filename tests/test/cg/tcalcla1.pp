@@ -29,6 +29,9 @@ program tcalcla1;
 {$endif}
 {$ifdef cpu8086}
   {$define cpusmall}
+  {$if defined(FPC_MM_LARGE) or defined(FPC_MM_HUGE)}
+    {$hugecode on}
+  {$endif}
 {$endif}
 
  const

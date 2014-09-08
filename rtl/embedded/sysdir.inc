@@ -19,17 +19,40 @@
 {*****************************************************************************
                            Directory Handling
 *****************************************************************************}
-procedure mkdir(s: pchar;len:sizeuint);[IOCheck];
+{$if defined(FPC_HAS_FEATURE_ANSISTRINGS)}
+procedure do_mkdir(const s: rawbytestring);
 begin
   InOutRes:=3;
 end;
 
-procedure rmdir(s: pchar;len:sizeuint);[IOCheck];
+procedure do_rmdir(const s: rawbytestring);
 begin
   InOutRes:=3;
 end;
 
-procedure chdir(s: pchar;len:sizeuint);[IOCheck];
+procedure do_chdir(const s: rawbytestring);
+begin
+  InOutRes:=3;
+end;
+
+procedure do_GetDir (DriveNr: byte; var Dir: RawByteString);
+begin
+  InOutRes:=3;
+end;
+
+{$else FPC_HAS_FEATURE_ANSISTRINGS}
+
+procedure mkdir(const s: shortstring);
+begin
+  InOutRes:=3;
+end;
+
+procedure rmdir(const s: shortstring);
+begin
+  InOutRes:=3;
+end;
+
+procedure chdir(const s: shortstring);
 begin
   InOutRes:=3;
 end;
@@ -38,6 +61,7 @@ procedure GetDir (DriveNr: byte; var Dir: ShortString);
 begin
   InOutRes:=3;
 end;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 
 

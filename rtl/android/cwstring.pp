@@ -361,7 +361,6 @@ begin
   Result := CP_UTF8; // Android always uses UTF-8
 end;
 
-{$i textrec.inc}
 procedure SetStdIOCodePage(var T: Text); inline;
 begin
   case TextRec(T).Mode of

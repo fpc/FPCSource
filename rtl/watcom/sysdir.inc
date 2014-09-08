@@ -2,11 +2,16 @@
                            Directory Handling
 *****************************************************************************}
 
-procedure DosDir(func:byte;const s:string);
+procedure DosDir(func:byte;const s:rawbytestring);
 var
   buffer : array[0..255] of char;
   regs   : trealregs;
 begin
+  if length(s)>255 then
+    begin
+      inoutres:=3;
+      exit;
+    end;
   move(s[1],buffer,length(s));
   buffer[length(s)]:=#0;
   DoDirSeparators(pchar(@buffer));
@@ -29,30 +34,27 @@ begin
 end;
 
 
-procedure mkdir(const s : string);[IOCheck];
+procedure do_mkdir(const s : rawbytestring);
 begin
-  If (s='') or (InOutRes <> 0) then
-   exit;
   DosDir($39,s);
 end;
 
 
-procedure rmdir(const s : string);[IOCheck];
+procedure do_rmdir(const s : rawbytestring);
 begin
-  if (s = '.' ) then
-    InOutRes := 16;
-  If (s='') or (InOutRes <> 0) then
-   exit;
+  if s = '.' then
+    begin
+      InOutRes := 16;
+      exit;
+    end;
   DosDir($3a,s);
 end;
 
 
-procedure chdir(const s : string);[IOCheck];
+procedure do_chdir(const s : rawbytestring);
 var
   regs : trealregs;
 begin
-  If (s='') or (InOutRes <> 0) then
-   exit;
 { First handle Drive changes }
   if (length(s)>=2) and (s[2]=':') then
    begin
@@ -76,7 +78,7 @@ begin
 end;
 
 
-procedure getdir(drivenr : byte;var dir : shortstring);
+procedure do_getdir(drivenr : byte;var dir : RawByteString);
 var
   temp : array[0..255] of char;
   i    : longint;
@@ -94,12 +96,14 @@ begin
    Begin
      GetInOutRes(lo(regs.realeax));
      Dir := char (DriveNr + 64) + ':\';
+     SetCodePage(dir,DefaultFileSystemCodePage,false);
      exit;
    end
   else
    syscopyfromdos(longint(@temp),251);
 { conversion to Pascal string including slash conversion }
   i:=0;
+  SetLength(Dir,255);
   while (temp[i]<>#0) do
    begin
      if temp[i] in AllowDirectorySeparators then
@@ -109,7 +113,8 @@ begin
    end;
   dir[2]:=':';
   dir[3]:='\';
-  dir[0]:=char(i+3);
+  SetLength(Dir,i+3);
+  SetCodePage(dir,DefaultFileSystemCodePage,false);
 { upcase the string }
   if not FileNameCasePreserving then
    dir:=upcase(dir);

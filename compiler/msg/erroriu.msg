@@ -1568,8 +1568,8 @@ sym_e_forward_type_not_resolved=05009_E_Tipo "$1" dichiarato ma non implementato
 % A symbol was forward defined, but no declaration was encountered.
 sym_e_only_static_in_static=05010_E_Al di fuori dei metodi o nei metodi statici si possono usare solo variabli statiche
 % A static method of an object can only access static variables.
-sym_f_type_must_be_rec_or_class=05012_F_Qui era atteso un tipo record o classe
-% The variable or expression isn't of the type \var{record} or \var{class}.
+sym_e_type_must_be_rec_or_object_or_class=05012_E_Record or object or class type expected
+% The variable or expression isn't of the type \var{record} or \var{object} or \var{class}.
 sym_e_no_instance_of_abstract_object=05013_E_Non sono permesse istanze di classi o di oggetti con un metodo astratto
 % You are trying to generate an instance of a class which has an abstract
 % method that wasn't overridden.
@@ -2690,7 +2690,7 @@ wpo_cant_create_feedback_file=12019_E_Impossibile creare il file di feedback "$1
 #
 option_logo=11023_[
 Compilatore Free Pascal, versione $FPCFULLVERSION [$FPCDATE] per $FPCCPU
-Copyright (c) 1993-2010 di Florian Klaempfl
+Copyright (c) 1993-2014 di Florian Klaempfl
 ]
 
 #

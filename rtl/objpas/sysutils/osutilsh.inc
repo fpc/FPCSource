@@ -21,9 +21,11 @@ Function GetLastOSError : Integer;
 {$endif}
 Procedure RaiseLastOSError;overload;
 Procedure RaiseLastOSError(LastError: Integer);overload;
-Function GetEnvironmentVariable(Const EnvVar : String) : String;
+
+Function GetEnvironmentVariable(Const EnvVar : AnsiString) : AnsiString;
+Function GetEnvironmentVariable(Const EnvVar : UnicodeString) : UnicodeString;
+Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 Function GetEnvironmentVariableCount : Integer;
-Function GetEnvironmentString(Index : Integer) : String;
 {$IFDEF HAS_SLEEP}
 procedure Sleep(milliseconds: Cardinal);
 {$ENDIF}

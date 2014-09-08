@@ -11,6 +11,7 @@ initialization
 
   STRING_FILE_NOT_FOUND               := 'Openen: bestand niet gevonden: "%s"';
   STRING_VERSION                      := 'TDbf V%d.%d';
+  STRING_FEATURE_NOT_SUPPORTED_THIS_TABLELEVEL: string; := 'Deze functionaliteit wordt niet ondersteund in tablelevel %d'; 
 
   STRING_RECORD_LOCKED                := 'Record in gebruik.';
   STRING_WRITE_ERROR                  := 'Error tijdens schrijven. (Disk vol?)';

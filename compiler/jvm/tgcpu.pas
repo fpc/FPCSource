@@ -46,7 +46,7 @@ unit tgcpu;
         public
          procedure setfirsttemp(l : longint); override;
          procedure getlocal(list: TAsmList; size: longint; alignment: shortint; def: tdef; var ref: treference); override;
-         procedure gethltemp(list: TAsmList; def: tdef; forcesize: aint; temptype: ttemptype; out ref: treference); override;
+         procedure gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference); override;
          procedure gethltemptyped(list: TAsmList; def: tdef; temptype: ttemptype; out ref: treference); override;
        end;
 
@@ -55,7 +55,7 @@ unit tgcpu;
     uses
        verbose,
        cgbase,
-       symconst,symdef,symsym,defutil,
+       symconst,symdef,symsym,symcpu,defutil,
        cpubase,aasmcpu,
        hlcgobj,hlcgcpu;
 
@@ -135,7 +135,7 @@ unit tgcpu;
               if tsetdef(def).elementdef.typ=enumdef then
                 begin
                   { load enum class type }
-                  list.concat(taicpu.op_sym(a_ldc,current_asmdata.RefAsmSymbol(tenumdef(tsetdef(def).elementdef).getbasedef.classdef.jvm_full_typename(true))));
+                  list.concat(taicpu.op_sym(a_ldc,current_asmdata.RefAsmSymbol(tcpuenumdef(tenumdef(tsetdef(def).elementdef).getbasedef).classdef.jvm_full_typename(true))));
                   thlcgjvm(hlcg).incstack(current_asmdata.CurrAsmList,1);
                   { call tenumset.noneOf() class method }
                   sym:=tsym(tobjectdef(java_juenumset).symtable.find('NONEOF'));
@@ -145,8 +145,8 @@ unit tgcpu;
                       if tprocsym(sym).procdeflist.Count<>1 then
                         internalerror(2011062801);
                       pd:=tprocdef(tprocsym(sym).procdeflist[0]);
+                      hlcg.a_call_name(list,pd,pd.mangledname,nil,false);
                     end;
-                  hlcg.a_call_name(list,pd,pd.mangledname,nil,false);
                   { static calls method replaces parameter with set instance
                     -> no change in stack height }
                 end
@@ -182,7 +182,7 @@ unit tgcpu;
             begin
               if not tprocvardef(def).is_addressonly then
                 begin
-                  getimplicitobjtemp(list,tprocvardef(def).classdef,temptype,ref);
+                  getimplicitobjtemp(list,tcpuprocvardef(def).classdef,temptype,ref);
                   result:=true;
                 end;
             end;
@@ -202,8 +202,8 @@ unit tgcpu;
                       if tprocsym(sym).procdeflist.Count<>1 then
                         internalerror(2011052404);
                       pd:=tprocdef(tprocsym(sym).procdeflist[0]);
+                      hlcg.a_call_name(list,pd,pd.mangledname,nil,false);
                     end;
-                  hlcg.a_call_name(list,pd,pd.mangledname,nil,false);
                   { static calls method replaces parameter with string instance
                     -> no change in stack height }
                   { store reference to instance }
@@ -245,7 +245,7 @@ unit tgcpu;
       end;
 
 
-    procedure ttgjvm.gethltemp(list: TAsmList; def: tdef; forcesize: aint; temptype: ttemptype; out ref: treference);
+    procedure ttgjvm.gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference);
       begin
         if not getifspecialtemp(list,def,forcesize,temptype,ref) then
           inherited;

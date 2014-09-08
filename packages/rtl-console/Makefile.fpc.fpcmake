@@ -1,0 +1,79 @@
+#
+#   Makefile.fpc for Free Vision for Free Pascal
+#
+
+[package]
+name=rtl-console
+version=2.7.1
+
+# all Unices support everything except QNX(nothing)
+[target]
+units_android=crt video mouse keyboard
+units_aix=crt video mouse keyboard
+units_linux=crt video mouse keyboard
+units_solaris=crt video mouse keyboard
+units_freebsd=crt video mouse keyboard
+units_netbsd=crt video mouse keyboard
+units_openbsd=crt video mouse keyboard
+units_darwin=crt video mouse keyboard
+units_iphonesim=crt video mouse keyboard
+units_beos=crt video mouse keyboard
+units_haiku=crt video mouse keyboard
+
+units_go32v2=crt video mouse keyboard vesamode
+units_watcom=crt
+units_msdos=crt,keyboard
+units_win32=winevent crt video mouse keyboard
+units_win64=winevent crt video mouse keyboard
+units_emx=crt video mouse keyboard
+units_os2=crt video mouse keyboard
+units_netware=crt video mouse keyboard
+units_netwlibc=crt video mouse keyboard
+units_morphos=video mouse keyboard
+units_aros=video mouse keyboard
+
+[compiler]
+includedir=src/$(OS_TARGET) src/inc
+includedir_linux=src/unix
+includedir_android=src/unix
+includedir_freebsd=src/unix
+includedir_openbsd=src/unix
+includedir_netbsd=src/unix
+includedir_solaris=src/unix
+includedir_darwin=src/unix
+includedir_iphonesim=src/unix
+includedir_aix=src/unix
+includedir_beos=src/unix
+includedir_haiku=src/unix
+	
+includedir_win32=src/win
+includedir_win64=src/win
+includedir_os2=src/os2commn
+includedir_emx=src/os2commn
+
+sourcedir=src/$(OS_TARGET)  src/inc
+sourcedir_iphonesim=src/darwin
+sourcedir_win32=src/win
+sourcedir_win64=src/win
+sourcedir_os2=src/os2commn
+sourcedir_emx=src/os2commn
+sourcedir_linux=src/unix
+sourcedir_android=src/unix
+sourcedir_freebsd=src/unix
+sourcedir_openbsd=src/unix
+sourcedir_netbsd=src/unix
+sourcedir_solaris=src/unix
+sourcedir_darwin=src/unix
+sourcedir_iphonesim=src/unix
+sourcedir_aix=src/unix
+sourcedir_beos=src/unix
+sourcedir_haiku=src/unix
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:

@@ -452,6 +452,7 @@ end;
          curX2, curY2, xpos2, ypos2, x2, y2: graph_float;
          oldvalues     : linesettingstype;
          fontbitmap    : TBitmapChar;
+         fontbitmapbyte: byte;
          chr           : char;
          curx2i,cury2i,
          xpos2i,ypos2i : longint;
@@ -483,11 +484,17 @@ end;
                      if CharSize = 1 then
                       Begin
                         for j:=0 to 7 do
-                           for k:=0 to 7 do
-                             if Fontbitmap[j,k]<>0 then
-                               PutPixel(xpos+k,j+y,CurrentColor)
-                             else if DrawTextBackground then
-                               PutPixel(xpos+k,j+y,CurrentBkColor);
+                          begin
+                            fontbitmapbyte:=Fontbitmap[j];
+                            for k:=0 to 7 do
+                              begin
+                                if (fontbitmapbyte and $80)<>0 then
+                                  PutPixel(xpos+k,j+y,CurrentColor)
+                                else if DrawTextBackground then
+                                  PutPixel(xpos+k,j+y,CurrentBkColor);
+                                fontbitmapbyte:=fontbitmapbyte shl 1;
+                              end;
+                          end;
                       end
                      else
                       { perform scaling of bitmap font }
@@ -502,17 +509,19 @@ end;
                            begin
                              k:=0;
                              cnt2 := 0;
+                             fontbitmapbyte:=Fontbitmap[j];
                              while k <= 7  do
                                 begin
                                   for cnt1 := 0 to charsize-1 do
                                     begin
-                                       If FontBitmap[j,k] <> 0 then
+                                       If (fontbitmapbyte and $80) <> 0 then
                                            PutPixel(xpos+cnt1+cnt2,y+cnt3+cnt4,CurrentColor)
                                        else if DrawTextBackground then
                                            PutPixel(xpos+cnt1+cnt2,y+cnt3+cnt4,CurrentBkColor);
                                     end;
-                                    Inc(k);
-                                    Inc(cnt2,charsize);
+                                  Inc(k);
+                                  Inc(cnt2,charsize);
+                                  fontbitmapbyte:=fontbitmapbyte shl 1;
                                 end;
                            end;
                           Inc(j);
@@ -535,11 +544,17 @@ end;
                 if CharSize = 1 then
                  Begin
                    for j:=0 to 7 do
-                      for k:=0 to 7 do
-                        if Fontbitmap[j,k] <> 0 then
-                          PutPixel(xpos+j,ypos-k,CurrentColor)
-                        else if DrawTextBackground then
-                          PutPixel(xpos+j,ypos-k,CurrentBkColor);
+                     begin
+                       fontbitmapbyte:=Fontbitmap[j];
+                       for k:=0 to 7 do
+                         begin
+                           if (fontbitmapbyte and $80) <> 0 then
+                             PutPixel(xpos+j,ypos-k,CurrentColor)
+                           else if DrawTextBackground then
+                             PutPixel(xpos+j,ypos-k,CurrentBkColor);
+                           fontbitmapbyte:=fontbitmapbyte shl 1;
+                         end;
+                     end;
                  end
                 else
                  { perform scaling of bitmap font }
@@ -554,17 +569,19 @@ end;
                       begin
                         k:=0;
                         cnt2 := 0;
+                        fontbitmapbyte:=Fontbitmap[j];
                         while k<=7  do
                            begin
                              for cnt1 := 0 to charsize-1 do
                                begin
-                                  If FontBitmap[j,k] <> 0 then
+                                  If (fontbitmapbyte and $80) <> 0 then
                                     PutPixel(xpos+cnt3-cnt4,ypos+cnt1-cnt2,CurrentColor)
                                   else if DrawTextBackground then
                                     PutPixel(xpos+cnt3-cnt4,ypos+cnt1-cnt2,CurrentBkColor);
                                end;
-                               Inc(k);
-                               Inc(cnt2,charsize);
+                             Inc(k);
+                             Inc(cnt2,charsize);
+                             fontbitmapbyte:=fontbitmapbyte shl 1;
                            end;
                       end;
                      Inc(j);

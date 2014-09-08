@@ -30,7 +30,8 @@ begin
 
  temp_float:=9/200;
  try
-  { This innocent instruction will raise EOverflow exception.
+  { The following expression triggers 'lost precision' condition;
+    RTL has no dedicated exception class for it and maps to EInvalidOp.
 
     Note: if this will be changed to "Round(9/200)" then
     this whole program will run with no exception

@@ -160,8 +160,11 @@
              system_arm_android,        { 77 }
              system_i386_android,       { 78 }
              system_i8086_msdos,        { 79 }
-             system_mipseb_embedded,    { 80 }
-             system_mipsel_embedded     { 81 }
+             system_mipsel_android,     { 80 }
+             system_mipseb_embedded,    { 81 }
+             system_mipsel_embedded,    { 82 }
+             system_i386_aros,          { 83 }
+             system_x86_64_aros         { 84 }
        );
 
      type
@@ -197,6 +200,51 @@
              ,as_i386_nlmcoff
              ,as_powerpc_xcoff
              ,as_jvm_jasmin
+             ,as_yasm
+             ,as_i386_nasm
+             ,as_i386_nasmdarwin
+             ,as_x86_64_nasm
+             ,as_x86_64_nasmwin64
+             ,as_x86_64_nasmelf
+             ,as_x86_64_nasmdarwin
+             ,as_i8086_nasm
+             ,as_i8086_nasmobj
+             ,as_gas_powerpc_xcoff
+       );
+
+       tlink = (ld_none,
+             ld_aix,           { external linkers (one per OS, handles all CPUs) }
+             ld_amiga,
+             ld_aros,
+             ld_atari,
+             ld_android,
+             ld_beos,
+             ld_bsd,
+             ld_embedded,
+             ld_emx,
+             ld_gba,
+             ld_go32v2,
+             ld_haiku,
+             ld_jvm,
+             ld_linux,
+             ld_morphos,
+             ld_mpw,
+             ld_msdos,
+             ld_nds,
+             ld_netwlibc,
+             ld_netware,
+             ld_os2,
+             ld_palmos,
+             ld_solaris,
+             ld_watcom,
+             ld_wdosx,
+             ld_wii,
+             ld_windows,
+             ld_int_go32v2,    { implemented internal linkers }
+             ld_int_linux,
+             ld_int_nativent,
+             ld_int_netware,
+             ld_int_windows
        );
 
        tar = (ar_none
@@ -205,6 +253,7 @@
             ,ar_gnu_ar_scripted
             ,ar_gnu_gar
             ,ar_watcom_wlib_omf
+            ,ar_watcom_wlib_omf_scripted
        );
 
        tres = (res_none
@@ -230,6 +279,7 @@
        tabi = (abi_default
             ,abi_powerpc_sysv,abi_powerpc_aix
             ,abi_eabi,abi_armeb,abi_eabihf
+            ,abi_old_win32_gnu
        );
 
 

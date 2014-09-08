@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003, 2006, 2009-2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2009-2013  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -86,6 +86,8 @@ type
     procedure Synchronize(AUpdate: Boolean);
     procedure Centering(ACenter: Boolean);
     procedure Close;
+
+    procedure InternalResize(AWidth, AHeight: Integer);
 
     procedure Update;
 

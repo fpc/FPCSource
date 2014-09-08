@@ -20,9 +20,15 @@ unit dynlibs;
 
 interface
 
+{$i rtldefs.inc}
+
 { ---------------------------------------------------------------------
   Read OS-dependent interface declarations.
   ---------------------------------------------------------------------}
+
+{ Note: should define the TOrdinalEntry type and define
+        DYNLIBS_SUPPORTS_ORDINAL if the operating system supports loading
+        functions by a ordinal like e.g. Windows or OS/2 do }
 
 {$define readinterface}
 {$i dynlibs.inc}
@@ -31,11 +37,18 @@ interface
 { ---------------------------------------------------------------------
   OS - Independent declarations.
   ---------------------------------------------------------------------}
+{$IFNDEF DYNLIBS_SUPPORTS_ORDINAL}
+type
+ TOrdinalEntry = SizeUInt;
+{$ENDIF DYNLIBS_SUPPORTS_ORDINAL}
 
+Function SafeLoadLibrary(const Name : RawByteString) : TLibHandle;
+Function LoadLibrary(const Name : RawByteString) : TLibHandle;
+Function SafeLoadLibrary(const Name : UnicodeString) : TLibHandle;
+Function LoadLibrary(const Name : UnicodeString) : TLibHandle;
 
-Function SafeLoadLibrary(const Name : AnsiString) : TLibHandle;
-Function LoadLibrary(const Name : AnsiString) : TLibHandle;
 Function GetProcedureAddress(Lib : TlibHandle; const ProcName : AnsiString) : Pointer;
+Function GetProcedureAddress(Lib : TLibHandle; Ordinal: TOrdinalEntry) : Pointer;
 Function UnloadLibrary(Lib : TLibHandle) : Boolean;
 Function GetLoadErrorStr: string;
 
@@ -53,21 +66,15 @@ Implementation
   OS - Independent declarations.
   ---------------------------------------------------------------------}
 
+{ Note: should define the TOrdinalEntry overload if the operating system
+        supports loading functions by a ordinal like e.g. Windows or OS/2 do }
 {$i dynlibs.inc}
 
-Function FreeLibrary(Lib : TLibHandle) : Boolean;
-
-begin
-  Result:=UnloadLibrary(lib);
-end;
-
-Function GetProcAddress(Lib : TlibHandle; const ProcName : AnsiString) : Pointer;
-
-begin
-  Result:=GetProcedureAddress(Lib,Procname);
-end;
-
-Function SafeLoadLibrary(const Name : AnsiString) : TLibHandle;
+{$ifndef FPCRTL_FILESYSTEM_TWO_BYTE_API}
+Function DoSafeLoadLibrary(const Name : RawByteString) : TLibHandle;
+{$else not FPCRTL_FILESYSTEM_TWO_BYTE_API}
+Function DoSafeLoadLibrary(const Name : UnicodeString) : TLibHandle;
+{$endif not FPCRTL_FILESYSTEM_TWO_BYTE_API}
 {$if defined(cpui386) or defined(cpux86_64)}
   var
     fpucw : Word;
@@ -80,23 +87,89 @@ Function SafeLoadLibrary(const Name : AnsiString) : TLibHandle;
 {$ifdef cpui386}
       if has_sse_support then
 {$endif cpui386}
-        ssecw:=GetSSECSR;
+        ssecw:=GetMXCSR;
 {$endif}
-{$if defined(windows) or defined(win32)}
-      Result:=LoadLibraryA(PChar(Name));
-{$else}
-      Result:=loadlibrary(Name);
-{$endif}
+      Result:=doloadlibrary(Name);
       finally
 {$if defined(cpui386) or defined(cpux86_64)}
       Set8087CW(fpucw);
 {$ifdef cpui386}
       if has_sse_support then
 {$endif cpui386}
-        SetSSECSR(ssecw);
+        SetMXCSR(ssecw);
 {$endif}
     end;
   end;
+
+{$ifndef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+Function SafeLoadLibrary(const Name : RawByteString) : TLibHandle;
+begin
+  Result:=DoSafeLoadLibrary(UnicodeString(Name));
+end;
+
+Function LoadLibrary(const Name : RawByteString) : TLibHandle;
+begin
+  Result:=DoLoadLibrary(UnicodeString(Name));
+end;
+
+{$else not FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+
+Function SafeLoadLibrary(const Name : RawByteString) : TLibHandle;
+begin
+  Result:=DoSafeLoadLibrary(ToSingleByteFileSystemEncodedFileName(Name));
+end;
+
+Function LoadLibrary(const Name : RawByteString) : TLibHandle;
+begin
+  Result:=DoLoadLibrary(ToSingleByteFileSystemEncodedFileName(Name));
+end;
+{$endif not FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+
+
+{$ifndef FPCRTL_FILESYSTEM_TWO_BYTE_API}
+Function SafeLoadLibrary(const Name : UnicodeString) : TLibHandle;
+begin
+  Result:=DoSafeLoadLibrary(ToSingleByteFileSystemEncodedFileName(Name));
+end;
+
+Function LoadLibrary(const Name : UnicodeString) : TLibHandle;
+begin
+  Result:=DoLoadLibrary(ToSingleByteFileSystemEncodedFileName(Name));
+end;
+
+{$else not FPCRTL_FILESYSTEM_TWO_BYTE_API}
+
+Function SafeLoadLibrary(const Name : UnicodeString) : TLibHandle;
+begin
+  Result:=DoSafeLoadLibrary(Name);
+end;
+
+Function LoadLibrary(const Name : UnicodeString) : TLibHandle;
+begin
+  Result:=DoLoadLibrary(Name);
+end;
+{$endif not FPCRTL_FILESYSTEM_TWO_BYTE_API}
+
+{$ifndef DYNLIBS_SUPPORTS_ORDINAL}
+{ OS does not support loading by ordinal (or it's not implemented yet), so by
+  default we simply return Nil }
+Function GetProcedureAddress(Lib : TLibHandle; Ordinal : TOrdinalEntry) : Pointer;
+begin
+  Result := Nil;
+end;
+{$endif not DYNLIBS_SUPPORTS_ORDINAL}
+
+Function FreeLibrary(Lib : TLibHandle) : Boolean;
+
+begin
+  Result:=UnloadLibrary(lib);
+end;
+
+Function GetProcAddress(Lib : TlibHandle; const ProcName : AnsiString) : Pointer;
+
+begin
+  Result:=GetProcedureAddress(Lib,Procname);
+end;
 
 
 end.

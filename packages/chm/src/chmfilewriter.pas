@@ -60,6 +60,7 @@ type
     fOtherFiles : TStrings; // Files found in a scan.
     fAllowedExtensions: TStringList;
     fTotalFileList : TAvlTree;
+    fAnchorList    : TStringList;
     FSpareString   : TStringIndex;
     FBasePath      : String;     // location of the .hhp file. Needed to resolve relative paths
     FReadmeMessage : String;     // readme message
@@ -75,6 +76,7 @@ type
     procedure ScanList(toscan,newfiles:TStrings;recursion:boolean);
     procedure ScanSitemap(sitemap:TChmSiteMap;newfiles:TStrings;recursion:boolean);
     function  FileInTotalList(const s:String):boolean;
+    function  SanitizeURL(const basepath, instring, localpath, localname:string; var outstring:String):Boolean;
   public
     constructor Create; virtual;
     destructor Destroy; override;
@@ -82,6 +84,7 @@ type
     procedure LoadFromhhp (AFileName:String;LeaveInclude:Boolean); virtual;
     procedure SaveToFile(AFileName: String); virtual;
     procedure WriteChm(AOutStream: TStream); virtual;
+    procedure ShowUndefinedAnchors;
     function ProjectDir: String;
     procedure LoadSitemaps;
     procedure AddFileWithContext(contextid:integer;filename:ansistring;contextname:ansistring='');
@@ -125,6 +128,23 @@ Const
 implementation
 
 uses XmlCfg, CHMTypes;
+
+type
+
+  { TFirstReference }
+
+  TFirstReference = class
+  public
+   Location: string;
+   constructor Create(Const ALocation: string);
+  end;
+
+{ TFirstReference }
+
+constructor TFirstReference.Create(const ALocation: string);
+begin
+  Location := ALocation;
+end;
 
 { TChmProject }
 
@@ -187,6 +207,9 @@ begin
   ScanHtmlContents:=False;
   FTotalFileList:=TAvlTree.Create(@CompareStrings);
   FSparestring  :=TStringIndex.Create;
+  fAnchorList := TStringList.Create;
+  fAnchorList.Sorted := True;
+  fAnchorList.OwnsObjects := True;
 end;
 
 destructor TChmProject.Destroy;
@@ -206,6 +229,7 @@ begin
   FIndex.free;
   FTocStream.Free;
   FIndexStream.Free;
+  fAnchorList.Free;
   inherited Destroy;
 end;
 
@@ -690,11 +714,12 @@ begin
 end;
 
 const
-   protocols   : array[0..2] of string = ('HTTP:','FTP:','MS-ITS:');
-   protocollen : array[0..2] of integer= ( 5 ,4 ,7);
+   protocols   : array[0..3] of string = ('HTTP:','FTP:','MS-ITS:', 'MAILTO:');
+   protocollen : array[0..3] of integer= ( 5 ,4 ,7, 7);
 
-function sanitizeurl(const basepath,instring:string;var outstring:String):Boolean;
+function TChmProject.SanitizeURL(const basepath,instring,localpath,localname:string;var outstring:String):Boolean;
 var i,j,len : integer;
+  Anchor: String;
 begin
   result:=true; outstring:='';
   if instring='' then
@@ -703,6 +728,7 @@ begin
   len:=length(instring);
   if len=0 then
     exit(false);
+  { Check for protocols before adding local path }
   i:=0;
   while (i<=high(protocols)) do
     begin
@@ -710,11 +736,22 @@ begin
         exit(false);
       inc(i);
     end;
-   outstring:=instring;
+   outstring:=localpath+instring;
 
    i:=pos('#',outstring);
-   if i<>0 then
+   if i<>0 then begin
+     if i > 1 then
+       Anchor := outstring
+     else
+       Anchor := localname+outstring;
+     j := fAnchorList.IndexOf(Anchor);
+     if j < 0 then begin
+       fAnchorList.AddObject(Anchor,TFirstReference.Create(localname));
+       Anchor := '(new) '+Anchor;
+     end;
+     Error(CHMNote, 'Anchor found '+Anchor+' while scanning '+localname,1);
      delete(outstring,i,length(outstring)-i+1);
+   end;
 
   outstring:=expandfilename(StringReplace(outstring,'%20',' ',[rfReplaceAll]));// expandfilename(instring));
 
@@ -737,37 +774,44 @@ procedure TChmProject.ScanList(toscan,newfiles:TStrings;recursion:boolean);
 var
   localpath : string;
 
-procedure checkattributes(node:TDomNode;attributename:string;filelist :TStringList);
+function findattribute(node:TDomNode;attributename:string):String;
 var
     Attributes: TDOMNamedNodeMap;
     atnode    : TDomNode;
-    fn        : String;
     n         : integer;
 begin
+  Result := '';
   if assigned(node) then
     begin
       Attributes:=node.Attributes;
       if assigned(attributes) then
-         begin
-           for n:=0 to attributes.length-1 do
-             begin
-               atnode :=attributes[n];
-               if assigned(atnode) and (uppercase(atnode.nodename)=attributename) then
-                 begin
-                   if sanitizeurl(fbasepath,localpath+atnode.nodevalue,fn) then
-                    if not FileInTotalList(uppercase(fn)) then
-                      filelist.add(fn);
-                 end;
-             end;
-         end;
+        for n:=0 to attributes.length-1 do
+          begin
+            atnode :=attributes[n];
+            if assigned(atnode) and (uppercase(atnode.nodename)=attributename) then
+              exit(atnode.nodevalue);
+          end;
     end;
 end;
 
+procedure checkattributes(node:TDomNode;attributename:string; const localname: string; filelist :TStringList);
+var
+    fn  : String;
+    val : String;
+begin
+  val := findattribute(node,attributename);
+  if sanitizeurl(fbasepath,val,localpath,localname,fn) then
+    if (Length(fn) > 0) { Skip links to self using named anchors }
+        and not FileInTotalList(uppercase(fn)) then
+      filelist.add(fn);
+end;
 
-function scantags(prnt:TDomNode;filelist:TStringlist):TDomNode;
+
+function scantags(prnt:TDomNode; const localname: string; filelist:TStringlist):TDomNode;
 // Seach first matching tag in siblings
 var chld: TDomNode;
     s   : ansistring;
+    i   : Integer;
 begin
   result:=nil;
   if assigned(prnt )  then
@@ -775,24 +819,39 @@ begin
       chld:=prnt.firstchild;
       while assigned(chld) do
         begin
-          scantags(chld,filelist);  // depth first.
+          scantags(chld, localname, filelist);  // depth first.
           if (chld is TDomElement) then
             begin
               s:=uppercase(tdomelement(chld).tagname);
               if s='LINK' then
                 begin
                   //printattributes(chld,'');
-                  checkattributes(chld,'HREF',filelist);
+                  checkattributes(chld,'HREF',localname,filelist);
                 end;
              if s='IMG'then
                begin
                   //printattributes(chld,'');
-                  checkattributes(chld,'SRC',filelist);
+                  checkattributes(chld,'SRC',localname,filelist);
                end;
              if s='A'then
                begin
                   //printattributes(chld,'');
-                  checkattributes(chld,'HREF',filelist);
+                  checkattributes(chld,'HREF',localname,filelist);
+                  s := findattribute(chld,'NAME');
+                  if s <> '' then
+                    begin
+                      i := fAnchorList.IndexOf(localname+'#'+s);
+                      if i < 0 then begin
+                        fAnchorList.Add(localname+'#'+s);
+                        Error(ChmNote,'New Anchor with name '+s+' found while scanning '+localname,1);
+                      end else if fAnchorList.Objects[i] = nil then
+                        Error(chmwarning,'Duplicate anchor definitions with name '+s+' found while scanning '+localname,1)
+                      else begin
+                        fAnchorList.Objects[i].Free;
+                        fAnchorList.Objects[i] := nil;
+                        Error(ChmNote,'Anchor with name '+s+' defined while scanning '+localname,1);
+                      end;
+                    end;
                 end;
             end;
           chld:=chld.nextsibling;
@@ -818,7 +877,7 @@ begin
   if FileInTotalList(vn2) then
    begin
      Error(ChmNote,'Found duplicate file '+vn+' while scanning '+fn,1);
-     exit(false);
+     exit(true);
    end;
 
   result:=false;
@@ -851,7 +910,7 @@ begin
                localpath:=extractfilepath(fn);
                if (length(localpath)>0) and not (localpath[length(localpath)] in ['/','\']) then
                  localpath:=localpath+pathsep;
-               scantags(domdoc,localfilelist);
+               scantags(domdoc,extractfilename(fn),localfilelist);
                for i:=0 to localFilelist.count-1 do
                  begin
                    s:=localfilelist[i];
@@ -896,7 +955,7 @@ begin
   for i:=0 to it.count -1 do
     begin
       x:=it.item[i];
-      if sanitizeurl(fbasepath,x.local,S) then   // sanitize, remove stuff etc.
+      if sanitizeurl(fbasepath,x.local,'','Site Map for '+x.Text,S) then   // sanitize, remove stuff etc.
         begin
           if not FileInTotalList(uppercase(s)) then
             begin
@@ -1064,6 +1123,15 @@ begin
   if Assigned(TOCStream) then TOCStream.Free;
   if Assigned(IndexStream) then IndexStream.Free;
   Writer.Free;
+end;
+
+procedure TChmProject.ShowUndefinedAnchors;
+var
+  i:Integer;
+begin
+  for i := 0 to fAnchorList.Count-1 do
+    if fAnchorList.Objects[i] <> nil then
+      Error(chmerror,'Anchor '+fAnchorList[i]+' undefined; first use '+TFirstReference(fAnchorList.Objects[i]).Location);
 end;
 
 procedure TChmProject.LoadSitemaps;

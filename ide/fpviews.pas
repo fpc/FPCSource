@@ -510,6 +510,7 @@ const menu_key_common_copy_borland   = 'Ctrl+Ins';
       menu_key_edit_cut_microsoft    = 'Ctrl+X';
       menu_key_edit_copy_microsoft   = menu_key_common_copy_microsoft;
       menu_key_edit_paste_microsoft  = 'Ctrl+V';
+      menu_key_edit_all_borland      = '';
       menu_key_edit_clear            = 'Ctrl+Del';
 
       menu_key_common_helpindex      = 'Shift+F1';
@@ -530,10 +531,12 @@ const menu_key_common_copy_borland   = 'Ctrl+Ins';
 const menu_key_edit_cut:string[63]=menu_key_edit_cut_borland;
       menu_key_edit_copy:string[63]=menu_key_edit_copy_borland;
       menu_key_edit_paste:string[63]=menu_key_edit_paste_borland;
+      menu_key_edit_all:string[63]=menu_key_edit_all_borland;
       menu_key_hlplocal_copy:string[63]=menu_key_hlplocal_copy_borland;
       cut_key:word=kbShiftDel;
       copy_key:word=kbCtrlIns;
       paste_key:word=kbShiftIns;
+      all_key:word=kbNoKey;
 
 procedure RegisterFPViews;
 
@@ -954,10 +957,18 @@ end;
 
 {$ifdef powerpc}
   {$define USE_TasmCondFlag}
+  { powerpc only has A_B prefix }
+  const
+    CondAsmOps = 1;
+    CondAsmOpStr : array [0..CondAsmOps-1] of string[2] = ('b');
   {$define Use_gas_op2str}
 {$endif}
 {$ifdef powerpc64}
   {$define USE_TasmCondFlag}
+  { powerpc64 only has A_B prefix }
+  const
+    CondAsmOps = 1;
+    CondAsmOpStr : array [0..CondAsmOps-1] of string[2] = ('b');
   {$define Use_gas_op2str}
 {$endif}
 {$ifdef i386}
@@ -4251,7 +4262,7 @@ begin
   else
 {$endif NODEBUG}
     R2.Move(0,2);
-  Insert(New(PStaticText, Init(R2, ^C'Copyright (C) 1998-2012 by')));
+  Insert(New(PStaticText, Init(R2, ^C'Copyright (C) 1998-2014 by')));
   R2.Move(0,2);
   Insert(New(PStaticText, Init(R2, ^C'B‚rczi G bor')));
   R2.Move(0,1);
@@ -4346,6 +4357,7 @@ end;
 procedure TFPASCIIChart.HandleEvent(var Event: TEvent);
 var W: PSourceWindow;
 begin
+  writeln(stderr,'all what=',event.what,' cmd=', event.command);
   case Event.What of
     evKeyDown :
       case Event.KeyCode of
@@ -4356,6 +4368,16 @@ begin
           end;
       end;
     evCommand :
+      begin
+      writeln(stderr,'fpascii what=',event.what, ' cmd=', event.command, ' ',cmtransfer,' ',cmsearchwindow);
+      if Event.Command=(AsciiTableCommandBase+1) then // variable
+          begin
+            W:=FirstEditorWindow;
+            if Assigned(W) and Assigned(Report) then
+              Message(W,evCommand,cmAddChar,Event.InfoPtr);
+            ClearEvent(Event);
+          end
+      else
       case Event.Command of
         cmTransfer :
           begin
@@ -4364,9 +4386,11 @@ begin
               Message(W,evCommand,cmAddChar,pointer(ptrint(ord(Report^.AsciiChar))));
             ClearEvent(Event);
           end;
+        
         cmSearchWindow+1..cmSearchWindow+99 :
           if (Event.Command-cmSearchWindow=Number) then
               ClearEvent(Event);
+      end;
       end;
   end;
   inherited HandleEvent(Event);

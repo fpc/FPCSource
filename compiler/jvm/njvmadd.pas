@@ -38,8 +38,6 @@ interface
        protected
           function jvm_first_addset: tnode;
 
-          function cmpnode2topcmp(unsigned: boolean): TOpCmp;
-
           procedure second_generic_compare(unsigned: boolean);
 
           procedure pass_left_right;override;
@@ -56,7 +54,7 @@ interface
     uses
       systems,
       cutils,verbose,constexp,globtype,
-      symconst,symtable,symdef,
+      symconst,symtable,symdef,symcpu,
       paramgr,procinfo,pass_1,
       aasmtai,aasmdata,aasmcpu,defutil,
       hlcgobj,hlcgcpu,cgutils,
@@ -215,6 +213,8 @@ interface
                       end;
                       procname:='CONTAINSALL'
                     end;
+                  else
+                    internalerror(2013120114);
                 end;
               result:=ccallnode.createinternmethod(left,procname,ccallparanode.create(right,nil));
               { for an unequaln, we have to negate the result of equals }
@@ -231,7 +231,7 @@ interface
                   procname:='OF';
                   if isenum then
                     begin
-                      inserttypeconv_explicit(tsetelementnode(right).left,tenumdef(tsetelementnode(right).left.resultdef).getbasedef.classdef);
+                      inserttypeconv_explicit(tsetelementnode(right).left,tcpuenumdef(tenumdef(tsetelementnode(right).left.resultdef).getbasedef).classdef);
                       result:=cloadvmtaddrnode.create(ctypenode.create(java_juenumset));
                     end
                   else
@@ -247,7 +247,7 @@ interface
                       procname:='RANGE';
                       if isenum then
                         begin
-                          inserttypeconv_explicit(tsetelementnode(right).right,tenumdef(tsetelementnode(right).right.resultdef).getbasedef.classdef);
+                          inserttypeconv_explicit(tsetelementnode(right).right,tcpuenumdef(tenumdef(tsetelementnode(right).right.resultdef).getbasedef).classdef);
                         end
                       else
                         begin
@@ -268,7 +268,7 @@ interface
                       procname:='ADD';
                       if isenum then
                         begin
-                          inserttypeconv_explicit(tsetelementnode(right).left,tenumdef(tsetelementnode(right).left.resultdef).getbasedef.classdef);
+                          inserttypeconv_explicit(tsetelementnode(right).left,tcpuenumdef(tenumdef(tsetelementnode(right).left.resultdef).getbasedef).classdef);
                         end
                       else
                         begin
@@ -284,7 +284,7 @@ interface
                             factory method, then add all of its elements }
                           if isenum then
                             begin
-                              inserttypeconv_explicit(tsetelementnode(right).right,tenumdef(tsetelementnode(right).right.resultdef).getbasedef.classdef);
+                              inserttypeconv_explicit(tsetelementnode(right).right,tcpuenumdef(tenumdef(tsetelementnode(right).right.resultdef).getbasedef).classdef);
                               tmpn:=cloadvmtaddrnode.create(ctypenode.create(java_juenumset));
                             end
                           else
@@ -330,33 +330,6 @@ interface
         { left and right are reused as parameters }
         left:=nil;
         right:=nil;
-      end;
-
-
-    function tjvmaddnode.cmpnode2topcmp(unsigned: boolean): TOpCmp;
-      begin
-        if not unsigned then
-          case nodetype of
-            gtn: result:=OC_GT;
-            gten: result:=OC_GTE;
-            ltn: result:=OC_LT;
-            lten: result:=OC_LTE;
-            equaln: result:=OC_EQ;
-            unequaln: result:=OC_NE;
-            else
-              internalerror(2011010412);
-          end
-        else
-        case nodetype of
-          gtn: result:=OC_A;
-          gten: result:=OC_AE;
-          ltn: result:=OC_B;
-          lten: result:=OC_BE;
-          equaln: result:=OC_EQ;
-          unequaln: result:=OC_NE;
-          else
-            internalerror(2011010412);
-        end;
       end;
 
 

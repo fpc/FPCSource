@@ -36,13 +36,18 @@ unit cgcpu;
       tcgx86_64 = class(tcgx86)
         procedure init_register_allocators;override;
 
-        procedure g_proc_entry(list : TAsmList; parasize:longint; nostackframe:boolean);override;
+        procedure g_proc_entry(list : TAsmList;localsize:longint; nostackframe:boolean);override;
         procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
         procedure g_local_unwind(list: TAsmList; l: TAsmLabel);override;
+        procedure g_save_registers(list: TAsmList);override;
+        procedure g_restore_registers(list: TAsmList);override;
 
         procedure a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize : tcgsize;intreg, mmreg: tregister; shuffle: pmmshuffle); override;
         procedure a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize : tcgsize;mmreg, intreg: tregister;shuffle : pmmshuffle); override;
+      private
+        function use_push: boolean;
+        function saved_xmm_reg_size: longint;
       end;
 
     procedure create_codegen;
@@ -52,12 +57,12 @@ unit cgcpu;
     uses
        globtype,globals,verbose,systems,cutils,cclasses,
        symsym,symtable,defutil,paramgr,fmodule,cpupi,
-       rgobj,tgobj,rgcpu;
+       rgobj,tgobj,rgcpu,ncgutil;
 
 
     procedure Tcgx86_64.init_register_allocators;
       const
-        win64_saved_std_regs : array[0..6] of tsuperregister = (RS_RBX,RS_RDI,RS_RSI,RS_R12,RS_R13,RS_R14,RS_R15);
+        win64_saved_std_regs : array[0..7] of tsuperregister = (RS_RBX,RS_RDI,RS_RSI,RS_R12,RS_R13,RS_R14,RS_R15,RS_RBP);
         others_saved_std_regs : array[0..4] of tsuperregister = (RS_RBX,RS_R12,RS_R13,RS_R14,RS_R15);
         saved_regs_length : array[boolean] of longint = (5,7);
 
@@ -65,7 +70,6 @@ unit cgcpu;
           RS_XMM8,RS_XMM9,RS_XMM10,RS_XMM11,RS_XMM12,RS_XMM13,RS_XMM14,RS_XMM15);
       var
         i : longint;
-        framepointer : tsuperregister;
       begin
         inherited init_register_allocators;
 
@@ -91,17 +95,20 @@ unit cgcpu;
                   saved_standard_registers[i]:=others_saved_std_regs[i];
               end;
           end;
-        if assigned(current_procinfo) then
-          framepointer:=getsupreg(current_procinfo.framepointer)
-        else
-          { in intf. wrapper code generation }
-          framepointer:=RS_FRAME_POINTER_REG;
         if target_info.system=system_x86_64_win64 then
-          rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_RAX,RS_RDX,RS_RCX,RS_R8,RS_R9,RS_R10,
-            RS_R11,RS_RBX,RS_RSI,RS_RDI,RS_R12,RS_R13,RS_R14,RS_R15],first_int_imreg,[framepointer])
+          begin
+            if (cs_userbp in current_settings.optimizerswitches) and assigned(current_procinfo) and (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
+              begin
+                rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_RAX,RS_RDX,RS_RCX,RS_R8,RS_R9,RS_R10,
+                  RS_R11,RS_RBX,RS_RSI,RS_RDI,RS_R12,RS_R13,RS_R14,RS_R15,RS_RBP],first_int_imreg,[]);
+              end
+            else
+              rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_RAX,RS_RDX,RS_RCX,RS_R8,RS_R9,RS_R10,
+                RS_R11,RS_RBX,RS_RSI,RS_RDI,RS_R12,RS_R13,RS_R14,RS_R15],first_int_imreg,[])
+          end
         else
           rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_RAX,RS_RDX,RS_RCX,RS_RSI,RS_RDI,RS_R8,
-            RS_R9,RS_R10,RS_R11,RS_RBX,RS_R12,RS_R13,RS_R14,RS_R15],first_int_imreg,[framepointer]);
+            RS_R9,RS_R10,RS_R11,RS_RBX,RS_R12,RS_R13,RS_R14,RS_R15],first_int_imreg,[]);
 
         rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBWHOLE,[RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5,RS_XMM6,RS_XMM7,
           RS_XMM8,RS_XMM9,RS_XMM10,RS_XMM11,RS_XMM12,RS_XMM13,RS_XMM14,RS_XMM15],first_mm_imreg,[]);
@@ -109,7 +116,30 @@ unit cgcpu;
       end;
 
 
-    procedure tcgx86_64.g_proc_entry(list : TAsmList;parasize:longint;nostackframe:boolean);
+    function tcgx86_64.use_push: boolean;
+      begin
+        result:=(current_procinfo.framepointer=NR_STACK_POINTER_REG) or
+          (current_procinfo.procdef.proctypeoption=potype_exceptfilter);
+      end;
+
+
+    function tcgx86_64.saved_xmm_reg_size: longint;
+      var
+        i: longint;
+      begin
+        result:=0;
+        if (target_info.system<>system_x86_64_win64) or
+           (not uses_registers(R_MMREGISTER)) then
+          exit;
+        for i:=low(saved_mm_registers) to high(saved_mm_registers) do
+          begin
+            if (saved_mm_registers[i] in rg[R_MMREGISTER].used_in_proc) then
+              inc(result,tcgsize2size[OS_VECTOR]);
+          end;
+      end;
+
+
+    procedure tcgx86_64.g_proc_entry(list : TAsmList;localsize:longint;nostackframe:boolean);
       var
         hitem: tlinkedlistitem;
         r: integer;
@@ -117,13 +147,118 @@ unit cgcpu;
         templist: TAsmList;
         frame_offset: longint;
         suppress_endprologue: boolean;
+        stackmisalignment: longint;
+        xmmsize: longint;
+
+      procedure push_one_reg(reg: tregister);
+        begin
+          list.concat(taicpu.op_reg(A_PUSH,tcgsize2opsize[OS_ADDR],reg));
+          if (target_info.system=system_x86_64_win64) then
+            begin
+              list.concat(cai_seh_directive.create_reg(ash_pushreg,reg));
+              include(current_procinfo.flags,pi_has_unwind_info);
+            end;
+        end;
+
+      procedure push_regs;
+        var
+          r: longint;
+        begin
+          for r := low(saved_standard_registers) to high(saved_standard_registers) do
+            if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
+              begin
+                inc(stackmisalignment,sizeof(pint));
+                push_one_reg(newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE));
+              end;
+        end;
+
       begin
         hitem:=list.last;
         { pi_has_unwind_info may already be set at this point if there are
           SEH directives in assembler body. In this case, .seh_endprologue
           is expected to be one of those directives, and not generated here. }
         suppress_endprologue:=(pi_has_unwind_info in current_procinfo.flags);
-        inherited g_proc_entry(list,parasize,nostackframe);
+
+        { save old framepointer }
+        if not nostackframe then
+          begin
+            { return address }
+            stackmisalignment := sizeof(pint);
+            list.concat(tai_regalloc.alloc(current_procinfo.framepointer,nil));
+            if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+              begin
+                push_regs;
+                CGmessage(cg_d_stackframe_omited);
+              end
+            else
+              begin
+                { push <frame_pointer> }
+                inc(stackmisalignment,sizeof(pint));
+                push_one_reg(NR_FRAME_POINTER_REG);
+                { Return address and FP are both on stack }
+                current_asmdata.asmcfi.cfa_def_cfa_offset(list,2*sizeof(pint));
+                current_asmdata.asmcfi.cfa_offset(list,NR_FRAME_POINTER_REG,-(2*sizeof(pint)));
+                if current_procinfo.procdef.proctypeoption<>potype_exceptfilter then
+                  list.concat(Taicpu.op_reg_reg(A_MOV,tcgsize2opsize[OS_ADDR],NR_STACK_POINTER_REG,NR_FRAME_POINTER_REG))
+                else
+                  begin
+                    push_regs;
+                    gen_load_frame_for_exceptfilter(list);
+                    { Need only as much stack space as necessary to do the calls.
+                      Exception filters don't have own local vars, and temps are 'mapped'
+                      to the parent procedure.
+                      maxpushedparasize is already aligned at least on x86_64. }
+                    localsize:=current_procinfo.maxpushedparasize;
+                  end;
+                current_asmdata.asmcfi.cfa_def_cfa_register(list,NR_FRAME_POINTER_REG);
+                {
+                  TODO: current framepointer handling is not compatible with Win64 at all:
+                  Win64 expects FP to point to the top or into the middle of local area.
+                  In FPC it points to the bottom, making it impossible to generate
+                  UWOP_SET_FPREG unwind code if local area is > 240 bytes.
+                  So for now pretend we never have a framepointer.
+                }
+              end;
+
+            xmmsize:=saved_xmm_reg_size;
+            if use_push and (xmmsize<>0) then
+              begin
+                localsize:=align(localsize,target_info.stackalign)+xmmsize;
+                reference_reset_base(current_procinfo.save_regs_ref,NR_STACK_POINTER_REG,
+                  localsize-xmmsize,tcgsize2size[OS_VECTOR]);
+              end;
+
+            { allocate stackframe space }
+            if (localsize<>0) or
+               ((target_info.stackalign>sizeof(pint)) and
+                (stackmisalignment <> 0) and
+                ((pi_do_call in current_procinfo.flags) or
+                 (po_assembler in current_procinfo.procdef.procoptions))) then
+              begin
+                if target_info.stackalign>sizeof(pint) then
+                  localsize := align(localsize+stackmisalignment,target_info.stackalign)-stackmisalignment;
+                cg.g_stackpointer_alloc(list,localsize);
+                if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+                  current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize+sizeof(pint));
+                current_procinfo.final_localsize:=localsize;
+                if (target_info.system=system_x86_64_win64) then
+                  begin
+                    if localsize<>0 then
+                      list.concat(cai_seh_directive.create_offset(ash_stackalloc,localsize));
+                    include(current_procinfo.flags,pi_has_unwind_info);
+                    if use_push and (xmmsize<>0) then
+                      begin
+                        href:=current_procinfo.save_regs_ref;
+                        for r:=low(saved_mm_registers) to high(saved_mm_registers) do
+                          if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
+                            begin
+                              a_loadmm_reg_ref(list,OS_VECTOR,OS_VECTOR,newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBMMWHOLE),href,nil);
+                              inc(href.offset,tcgsize2size[OS_VECTOR]);
+                            end;
+                      end;
+                  end;
+               end;
+          end;
 
         if not (pi_has_unwind_info in current_procinfo.flags) then
           exit;
@@ -133,7 +268,7 @@ unit cgcpu;
 
         { We need to record postive offsets from RSP; if registers are saved
           at negative offsets from RBP we need to account for it. }
-        if current_procinfo.framepointer=NR_FRAME_POINTER_REG then
+        if (not use_push) then
           frame_offset:=current_procinfo.final_localsize
         else
           frame_offset:=0;
@@ -142,14 +277,17 @@ unit cgcpu;
           since registers are not modified before they are saved, and saves do not
           change RSP, 'logically' all saves can happen at the end of prologue. }
         href:=current_procinfo.save_regs_ref;
-        for r:=low(saved_standard_registers) to high(saved_standard_registers) do
-          if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
-            begin
-              templist.concat(cai_seh_directive.create_reg_offset(ash_savereg,
-                newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE),
-                href.offset+frame_offset));
-              inc(href.offset,sizeof(aint));
-            end;
+        if (not use_push) then
+          begin
+            for r:=low(saved_standard_registers) to high(saved_standard_registers) do
+              if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
+                begin
+                  templist.concat(cai_seh_directive.create_reg_offset(ash_savereg,
+                    newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE),
+                    href.offset+frame_offset));
+                 inc(href.offset,sizeof(aint));
+                end;
+          end;
         if uses_registers(R_MMREGISTER) then
           begin
             if (href.offset mod tcgsize2size[OS_VECTOR])<>0 then
@@ -189,6 +327,8 @@ unit cgcpu;
 
       var
         href : treference;
+        hreg : tregister;
+        r : longint;
       begin
         { Release PIC register }
         if cs_create_pic in current_settings.moduleswitches then
@@ -201,11 +341,26 @@ unit cgcpu;
         { remove stackframe }
         if not nostackframe then
           begin
-            if (current_procinfo.framepointer=NR_STACK_POINTER_REG) or
-               (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
+            if use_push then
               begin
+                if (saved_xmm_reg_size<>0) then
+                  begin
+                    href:=current_procinfo.save_regs_ref;
+                    for r:=low(saved_mm_registers) to high(saved_mm_registers) do
+                      if saved_mm_registers[r] in rg[R_MMREGISTER].used_in_proc then
+                        begin
+                          { Allocate register so the optimizer does not remove the load }
+                          hreg:=newreg(R_MMREGISTER,saved_mm_registers[r],R_SUBMMWHOLE);
+                          a_reg_alloc(list,hreg);
+                          a_loadmm_ref_reg(list,OS_VECTOR,OS_VECTOR,href,hreg,nil);
+                          inc(href.offset,tcgsize2size[OS_VECTOR]);
+                        end;
+                  end;
+
                 if (current_procinfo.final_localsize<>0) then
                   increase_sp(current_procinfo.final_localsize);
+                internal_restore_regs(list,true);
+
                 if (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
                   list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],NR_FRAME_POINTER_REG));
               end
@@ -221,7 +376,7 @@ unit cgcpu;
               end
             else
               list.concat(Taicpu.op_none(A_LEAVE,S_NO));
-            list.concat(tai_regalloc.dealloc(NR_FRAME_POINTER_REG,nil));
+            list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
           end;
 
         list.concat(Taicpu.Op_none(A_RET,S_NO));
@@ -230,6 +385,20 @@ unit cgcpu;
             tx86_64procinfo(current_procinfo).dump_scopes(list);
             list.concat(cai_seh_directive.create(ash_endproc));
           end;
+      end;
+
+
+    procedure tcgx86_64.g_save_registers(list: TAsmList);
+      begin
+        if (not use_push) then
+          inherited g_save_registers(list);
+      end;
+
+
+    procedure tcgx86_64.g_restore_registers(list: TAsmList);
+      begin
+        if (not use_push) then
+          inherited g_restore_registers(list);
       end;
 
 
@@ -276,8 +445,7 @@ unit cgcpu;
             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_RAX);
             { jmp *vmtoffs(%eax) ; method offs }
             reference_reset_base(href,NR_RAX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
-            list.concat(taicpu.op_ref_reg(A_MOV,S_Q,href,NR_RAX));
-            list.concat(taicpu.op_reg(A_JMP,S_Q,NR_RAX));
+            list.concat(taicpu.op_ref(A_JMP,S_Q,href));
           end
         else
           begin
@@ -319,7 +487,7 @@ unit cgcpu;
         a_loadaddr_ref_cgpara(list,href,para2);
         paramanager.freecgpara(list,para2);
         paramanager.freecgpara(list,para1);
-        g_call(current_asmdata.CurrAsmList,'_FPC_local_unwind');
+        g_call(list,'_FPC_local_unwind');
         para2.done;
         para1.done;
       end;

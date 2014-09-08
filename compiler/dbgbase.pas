@@ -418,7 +418,9 @@ implementation
         beforeappendsym(list,sym);
         case sym.typ of
           staticvarsym :
-            appendsym_staticvar(list,tstaticvarsym(sym));
+            if not assigned(tstaticvarsym(sym).fieldvarsym) or
+               not(df_generic in tdef(tstaticvarsym(sym).fieldvarsym.owner.defowner).defoptions) then
+              appendsym_staticvar(list,tstaticvarsym(sym));
           unitsym:
             appendsym_unit(list,tunitsym(sym));
           labelsym :
@@ -527,7 +529,11 @@ implementation
           begin
             sym:=tsym(st.SymList[i]);
             if (sym.visibility<>vis_hidden) and
-               (not sym.isdbgwritten) then
+               (not sym.isdbgwritten) and
+               { avoid all generic symbols }
+               not (sp_generic_dummy in sym.symoptions) and
+               not ((sym.typ=typesym) and assigned(ttypesym(sym).typedef) and
+                    (df_generic in ttypesym(sym).typedef.defoptions)) then
               appendsym(list,sym);
           end;
         case st.symtabletype of

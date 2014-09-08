@@ -1,7 +1,7 @@
 {
     Copyright (c) 1998-2002 by the Free Pascal development team
 
-    Basic Processor information for the ARM
+    Basic Processor information for the MIPS
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -60,16 +60,11 @@ Const
    extended_size = 8;
    {# Size of a multimedia register               }
    mmreg_size = 0;
-   { target cpu string (used by compiler options) }
-{$ifdef MIPSEL}
-   target_cpu_string = 'mipsel';
-{$else MIPSEL}
-   target_cpu_string = 'mips';
-{$endif MIPSEL}
    { calling conventions supported by the code generator }
    supported_calling_conventions : tproccalloptions = [
      pocall_internproc,
      pocall_stdcall,
+     pocall_safecall,
      { same as stdcall only different name mangling }
      pocall_cdecl,
      { same as stdcall only different name mangling }
@@ -107,30 +102,28 @@ Const
       { abi_eabi    } 'eabi'
      );
 
-//{$ifdef MIPSEL}
-//   mips_abi : tabitype = abi_eabi;
-//{$else}
    mips_abi : tabitype = abi_default;
-//{$endif}
 
-{$ifdef MIPSEL}
 type
-   tcpuflags=(CPUMIPS_HAS_XXXX); //Todo: Does this need to be filled?
+   tcpuflags=(
+     CPUMIPS_HAS_CMOV,             { conditional move instructions (mips4+) }
+     CPUMIPS_HAS_ISA32R2           { mips32r2 instructions (also on PIC32)  }
+   );
 
 const
   cpu_capabilities : array[tcputype] of set of tcpuflags =
-    ( { cpu_none } [],
-      { cpu_mips1 } [],
-      { cpu_mips2 } [],
-      { cpu_mips3 } [],
-      { cpu_mips4 } [],
-      { cpu_mips5 } [],
-      { cpu_mips32 } [],
-      { cpu_mips32r2 } [],
-      { cpu_pic32mx } []
+    ( { cpu_none }     [],
+      { cpu_mips1 }    [],
+      { cpu_mips2 }    [],
+      { cpu_mips3 }    [],
+      { cpu_mips4 }    [CPUMIPS_HAS_CMOV],
+      { cpu_mips5 }    [CPUMIPS_HAS_CMOV],
+      { cpu_mips32 }   [CPUMIPS_HAS_CMOV],
+      { cpu_mips32r2 } [CPUMIPS_HAS_CMOV,CPUMIPS_HAS_ISA32R2],
+      { cpu_pic32mx }  [CPUMIPS_HAS_CMOV,CPUMIPS_HAS_ISA32R2]
     );
 
-
+{$ifdef MIPSEL}
 type
    tcontrollertype =
      (ct_none,
@@ -218,7 +211,7 @@ const
    supported_optimizerswitches = [cs_opt_regvar,cs_opt_loopunroll,cs_opt_nodecse,
                                   cs_opt_reorder_fields,cs_opt_fastmath];
 
-   level1optimizerswitches = [cs_opt_level1];
+   level1optimizerswitches = genericlevel1optimizerswitches;
    level2optimizerswitches = level1optimizerswitches + [cs_opt_regvar,cs_opt_stackframe,cs_opt_nodecse];
    level3optimizerswitches = level2optimizerswitches + [cs_opt_loopunroll];
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [];

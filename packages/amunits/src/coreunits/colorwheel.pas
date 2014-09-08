@@ -89,7 +89,7 @@ PROCEDURE ConvertRGBToHSB(rgb : pColorWheelRGB; hsb : pColorWheelHSB);
 
 IMPLEMENTATION
 
-uses msgbox;
+uses amsgbox;
 
 PROCEDURE ConvertHSBToRGB(hsb : pColorWheelHSB; rgb : pColorWheelRGB);
 BEGIN

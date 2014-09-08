@@ -336,6 +336,29 @@ begin
       ct_at91sam7x256,
       ct_at91sam7xc256,
 
+      ct_stm32f030c6,
+      ct_stm32f030c8,
+      ct_stm32f030f4,
+      ct_stm32f030k6,
+      ct_stm32f030r8,
+      ct_stm32f050c4,
+      ct_stm32f050c6,
+      ct_stm32f050f4,
+      ct_stm32f050f6,
+      ct_stm32f050g4,
+      ct_stm32f050g6,
+      ct_stm32f050k4,
+      ct_stm32f050k6,
+      ct_stm32f051c4,
+      ct_stm32f051c6,
+      ct_stm32f051c8,
+      ct_stm32f051k4,
+      ct_stm32f051k6,
+      ct_stm32f051k8,
+      ct_stm32f051r4,
+      ct_stm32f051r6,
+      ct_stm32f051r8,
+
       ct_stm32f100x4,
       ct_stm32f100x6,
       ct_stm32f100x8,
@@ -368,6 +391,16 @@ begin
       ct_stm32f107x8,
       ct_stm32f107xB,
       ct_stm32f107xC,
+      ct_stm32f105r8,
+      ct_stm32f105rb,
+      ct_stm32f105rc,
+      ct_stm32f105v8,
+      ct_stm32f105vb,
+      ct_stm32f105vc,
+      ct_stm32f107rb,
+      ct_stm32f107rc,
+      ct_stm32f107vb,
+      ct_stm32f107vc,
 
       { TI - 64 K Flash, 16 K SRAM Devices }
       ct_lm3s1110,
@@ -475,6 +508,13 @@ begin
 
               Add('}');
               Add('_stack_top = 0x' + IntToHex(sramsize+srambase,8) + ';');
+    
+              // Add Checksum Calculation for LPC Controllers so that the bootloader starts the uploaded binary 
+              writeln(controllerunitstr);
+              if (controllerunitstr = 'LPC8xx') or (controllerunitstr = 'LPC11XX') or (controllerunitstr = 'LPC122X') then
+                Add('Startup_Checksum = 0 - (_stack_top + _START + 1 + NonMaskableInt_interrupt + 1 + Hardfault_interrupt + 1);');
+              if (controllerunitstr = 'LPC13XX') then
+                Add('Startup_Checksum = 0 - (_stack_top + _START + 1 + NonMaskableInt_interrupt + 1 + MemoryManagement_interrupt + 1 + BusFault_interrupt + 1 + UsageFault_interrupt + 1);');
             end;
         end
     else
@@ -503,7 +543,7 @@ begin
         begin
           Add('    } >ram');
         end;
-      Add('    .note.gnu.build-id : { *(.note.gnu.build-id) }');
+      Add('    .note.gnu.build-id : { *(.note.gnu.build-id) } >flash ');
 
       Add('    .data :');
       Add('    {');
@@ -646,8 +686,7 @@ begin
       Add('  /* Internal text space or external memory.  */');
       Add('  .text   :');
       Add('  {');
-      Add('    *(.vectors)');
-      Add('    KEEP(*(.vectors))');
+      Add('    KEEP(*(.init, .init.*))');
       Add('    /* For data that needs to reside in the lower 64k of progmem.  */');
       Add('    *(.progmem.gcc*)');
       Add('    *(.progmem*)');
@@ -1049,15 +1088,14 @@ begin
     Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
     Replace(cmdstr,'$DYNLINK',DynLinkStr);
    end;
-  writeln('***** '+FindUtil(utilsprefix+BinStr) + ' ' + cmdstr);
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
 { Remove ReponseFile }
-//  if success and not(cs_link_nolink in current_settings.globalswitches) then
-//   DeleteFile(outputexedir+Info.ResName);
+  if success and not(cs_link_nolink in current_settings.globalswitches) then
+   DeleteFile(outputexedir+Info.ResName);
 
 { Post process }
-  if success then
+  if success and not(cs_link_nolink in current_settings.globalswitches) then
     success:=PostProcessExecutable(current_module.exefilename+'.elf',false);
 
   if success and (target_info.system in [system_arm_embedded,system_avr_embedded,system_mipsel_embedded]) then
@@ -1065,6 +1103,10 @@ begin
       success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O ihex '+
         ChangeFileExt(current_module.exefilename,'.elf')+' '+
         ChangeFileExt(current_module.exefilename,'.hex'),true,false);
+      if success then
+        success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+
+          ChangeFileExt(current_module.exefilename,'.elf')+' '+
+          ChangeFileExt(current_module.exefilename,'.bin'),true,false);
     end;
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
@@ -1234,22 +1276,22 @@ function TLinkerEmbedded.postprocessexecutable(const fn : string;isdll:boolean):
 
 initialization
 {$ifdef arm}
-  RegisterExternalLinker(system_arm_embedded_info,TlinkerEmbedded);
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
   RegisterTarget(system_arm_embedded_info);
 {$endif arm}
 
 {$ifdef avr}
-  RegisterExternalLinker(system_avr_embedded_info,TlinkerEmbedded);
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
   RegisterTarget(system_avr_embedded_info);
 {$endif avr}
 
 {$ifdef i386}
-  RegisterExternalLinker(system_i386_embedded_info,TlinkerEmbedded);
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
   RegisterTarget(system_i386_embedded_info);
 {$endif i386}
 
 {$ifdef mipsel}
-  RegisterExternalLinker(system_mipsel_embedded_info,TlinkerEmbedded);
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
   RegisterTarget(system_mipsel_embedded_info);
 {$endif mipsel}
 

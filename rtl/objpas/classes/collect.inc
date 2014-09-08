@@ -33,7 +33,6 @@ begin
     begin
     If FCollection<>Nil then FCollection.RemoveItem(Self);
     if Value<>Nil then Value.InsertItem(Self);
-    FCollection:=Value;
     end;
 end;
 
@@ -203,6 +202,7 @@ begin
   If Not(Item Is FitemClass) then
     exit;
   FItems.add(Pointer(Item));
+  Item.FCollection:=Self;
   Item.FID:=FNextID;
   inc(FNextID);
   SetItemName(Item);
@@ -302,8 +302,12 @@ end;
 
 destructor TCollection.Destroy;
 begin
-  BeginUpdate; // Prevent OnChange
-  DoClear;
+  FUpdateCount:=1; // Prevent OnChange
+  try
+    DoClear;
+  Finally
+    FUpdateCount:=0;
+  end;
   FItems.Free;
   Inherited Destroy;
 end;
@@ -357,7 +361,8 @@ end;
 
 procedure TCollection.EndUpdate;
 begin
-  dec(FUpdateCount);
+  if FUpdateCount>0 then
+    dec(FUpdateCount);
   if FUpdateCount=0 then
     Changed;
 end;
@@ -396,7 +401,7 @@ end;
 
 procedure TCollection.Notify(Item: TCollectionItem;Action: TCollectionNotification);
 begin
-  if Assigned(FObservers) then
+  if Assigned(FObservers) and (FUpdateCount = 0) then
     Case Action of
       cnAdded      : FPONotifyObservers(Self,ooAddItem,Pointer(Item));
       cnExtracting : FPONotifyObservers(Self,ooDeleteItem,Pointer(Item));
@@ -419,7 +424,8 @@ procedure TCollection.Exchange(Const Index1, index2: integer);
 
 begin
   FItems.Exchange(Index1,Index2);
-  FPONotifyObservers(Self,ooChange,Nil);
+  if FUpdateCount = 0 then
+    FPONotifyObservers(Self,ooChange,Nil);
 end;
 
 

@@ -32,7 +32,7 @@ begin
     P.IncludePath.Add('src/apr');
     P.IncludePath.Add('src/aprutil');
 
-//    P.Dependencies.Add('x11');
+    P.Dependencies.Add('rtl-extra');
 
     T:=P.Targets.AddUnit('apr24.pas');
       with T.Dependencies do
@@ -59,6 +59,7 @@ begin
           AddInclude('http_config.inc');
           AddInclude('http_core.inc');
           AddInclude('util_filter.inc');
+          AddInclude('util_script.inc');
           AddInclude('http_log.inc');
           AddInclude('http_protocol.inc');
           AddInclude('aprutil/apr_buckets.inc');

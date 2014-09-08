@@ -290,6 +290,26 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         pthread_exit(ThreadMain);
       end;
 
+  Procedure InitCThreading;
+  
+  begin
+    if (InterLockedExchange(longint(IsMultiThread),ord(true)) = 0) then
+      begin
+        { We're still running in single thread mode, setup the TLS }
+        pthread_key_create(@TLSKey,nil);
+        InitThreadVars(@CRelocateThreadvar);
+        { used to clean up threads that we did not create ourselves:
+           a) the default value for a key (and hence also this one) in
+              new threads is NULL, and if it's still like that when the
+              thread terminates, nothing will happen
+           b) if it's non-NULL, the destructor routine will be called
+              when the thread terminates
+         -> we will set it to 1 if the threadvar relocation routine is
+            called from a thread we did not create, so that we can
+            clean up everything at the end }
+        pthread_key_create(@CleanupKey,@CthreadCleanup);
+      end
+  end;
 
   function CBeginThread(sa : Pointer;stacksize : PtrUInt;
                        ThreadFunction : tthreadfunc;p : pointer;
@@ -303,24 +323,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 {$endif DEBUG_MT}
       { Initialize multithreading if not done }
       if not IsMultiThread then
-        begin
-          if (InterLockedExchange(longint(IsMultiThread),ord(true)) = 0) then
-            begin
-              { We're still running in single thread mode, setup the TLS }
-              pthread_key_create(@TLSKey,nil);
-              InitThreadVars(@CRelocateThreadvar);
-              { used to clean up threads that we did not create ourselves:
-                 a) the default value for a key (and hence also this one) in
-                    new threads is NULL, and if it's still like that when the
-                    thread terminates, nothing will happen
-                 b) if it's non-NULL, the destructor routine will be called
-                    when the thread terminates
-               -> we will set it to 1 if the threadvar relocation routine is
-                  called from a thread we did not create, so that we can
-                  clean up everything at the end }
-              pthread_key_create(@CleanupKey,@CthreadCleanup);
-            end
-        end;
+        InitCThreading;
       { the only way to pass data to the newly created thread
         in a MT safe way, is to use the heap }
       new(ti);
@@ -357,6 +360,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
           threadid := TThreadID(0);
         end;
       CBeginThread:=threadid;
+      pthread_attr_destroy(@thread_attr);
 {$ifdef DEBUG_MT}
       writeln('BeginThread returning ',ptrint(CBeginThread));
 {$endif DEBUG_MT}
@@ -627,7 +631,9 @@ begin
     { the process exits                                              }
     sem_unlink(name)
   else
-    cIntSemaphoreOpen:=NIL;
+    { 0 is a valid for sem_open on some platforms; pointer(-1) shouldn't
+      be valid anywhere, even for sem_init }
+    cIntSemaphoreOpen:=pointer(-1);
 end;
 {$endif}
 
@@ -644,7 +650,9 @@ begin
   if sem_init(PSemaphore(cIntSemaphoreInit), 0, ord(initvalue)) <> 0 then
     begin
       FreeMem(cIntSemaphoreInit);
-      cIntSemaphoreInit:=NIL;
+      { 0 is a valid for sem_open on some platforms; pointer(-1) shouldn't
+        be valid anywhere, even for sem_init }
+      cIntSemaphoreInit:=pointer(-1);
     end;
 {$else}
 {$ifdef has_sem_open}
@@ -658,7 +666,9 @@ begin
   if (fppipe(PFilDes(cIntSemaphoreInit)^) <> 0) then
     begin
       FreeMem(cIntSemaphoreInit);
-      cIntSemaphoreInit:=nil;
+      { 0 is a valid for sem_open on some platforms; pointer(-1) shouldn't
+        be valid anywhere, even for sem_init }
+      cIntSemaphoreInit:=pointer(-1);
     end
   else if initvalue then
     cSemaphorePost(cIntSemaphoreInit);
@@ -963,6 +973,8 @@ begin
 {$ifdef DEBUG_MT}
   Writeln('InitThreads : ',Result);
 {$endif DEBUG_MT}
+  // We assume that if you set the thread manager, the application is multithreading.
+  InitCThreading;
 end;
 
 Function CDoneThreads : Boolean;

@@ -57,7 +57,7 @@ Begin
      exit;
    end;
   End;
-  Do_Open(t,PChar(@t.Name),Flags);
+  Do_Open(t,PFileTextRecChar(@t.Name),Flags,False);
   t.CloseFunc:=@FileCloseFunc;
   t.FlushFunc:=nil;
   if t.Mode=fmInput then
@@ -74,9 +74,9 @@ Begin
    end;
 End;
 
+Procedure InitText(Var t : Text);
 
-Procedure Assign(out t:Text;const s:String);
-Begin
+begin
   FillChar(t,SizeOf(TextRec),0);
 { only set things that are not zero }
   TextRec(t).Handle:=UnusedHandle;
@@ -89,20 +89,74 @@ Begin
     tlbsCRLF: TextRec(t).LineEnd := #13#10;
     tlbsCR: TextRec(t).LineEnd := #13;
   End;
-  Move(s[1],TextRec(t).Name,Length(s));
+end;
+
+
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+Procedure Assign(out t:Text;const s : UnicodeString);
+begin
+  InitText(t);
+{$ifdef FPC_ANSI_TEXTFILEREC}
+  TextRec(t).Name:=ToSingleByteFileSystemEncodedFileName(S);
+{$else FPC_ANSI_TEXTFILEREC}
+  TextRec(t).Name:=S;
+{$endif FPC_ANSI_TEXTFILEREC}
+  { null terminate, since the name array is regularly used as p(wide)char }
+  TextRec(t).Name[high(TextRec(t).Name)]:=#0;
+end;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
+
+
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+Procedure Assign(out t:Text;const s: RawByteString);
+Begin
+  InitText(t);
+{$ifdef FPC_ANSI_TEXTFILEREC}
+  { ensure the characters in the record's filename are encoded correctly }
+  TextRec(t).Name:=ToSingleByteFileSystemEncodedFileName(S);
+{$else FPC_ANSI_TEXTFILEREC}
+  TextRec(t).Name:=S;
+{$endif FPC_ANSI_TEXTFILEREC}
+  { null terminate, since the name array is regularly used as p(wide)char }
+  TextRec(t).Name[high(TextRec(t).Name)]:=#0;
+End;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
+
+Procedure Assign(out t:Text;const s: ShortString);
+Begin
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+  Assign(t,AnsiString(s));
+{$else FPC_HAS_FEATURE_ANSISTRINGS}
+  InitText(t);
+  { warning: no encoding support }
+  TextRec(t).Name:=s;
+  { null terminate, since the name array is regularly used as p(wide)char }
+  TextRec(t).Name[high(TextRec(t).Name)]:=#0;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 End;
 
 
-Procedure Assign(out t:Text;p:pchar);
-begin
-  Assign(t,StrPas(p));
-end;
+Procedure Assign(out t:Text;const p: PAnsiChar);
+Begin
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+  Assign(t,AnsiString(p));
+{$else FPC_HAS_FEATURE_ANSISTRINGS}
+  { no use in making this the one that does the work, since the name field is
+    limited to 255 characters anyway }
+  Assign(t,strpas(p));
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+End;
 
 
-Procedure Assign(out t:Text;c:char);
-begin
-  Assign(t,string(c));
-end;
+Procedure Assign(out t:Text;const c: AnsiChar);
+Begin
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+  Assign(t,AnsiString(c));
+{$else FPC_HAS_FEATURE_ANSISTRINGS}
+  Assign(t,ShortString(c));
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+End;
 
 
 Procedure Close(var t : Text);[IOCheck];
@@ -148,8 +202,7 @@ Begin
   TextRec(t).bufend:=0;
   {$ifdef FPC_HAS_CPSTRING}
   { if no codepage is yet assigned then assign default ansi codepage }
-  if TextRec(t).CodePage=CP_ACP then
-    TextRec(t).CodePage:=DefaultSystemCodePage;
+  TextRec(t).CodePage:=TranslatePlaceholderCP(TextRec(t).CodePage);
   {$endif}
   FileFunc(TextRec(t).OpenFunc)(TextRec(t));
   { reset the mode to closed when an error has occured }
@@ -202,50 +255,151 @@ End;
 
 Procedure Erase(var t:Text);[IOCheck];
 Begin
-  If InOutRes <> 0 then
-   exit;
-  If TextRec(t).mode=fmClosed Then
-   Do_Erase(PChar(@TextRec(t).Name));
+  if InOutRes<>0 then
+    exit;
+  if TextRec(t).mode<>fmClosed then
+    begin
+      InOutRes:=102;
+      exit;
+    end;
+  Do_Erase(PFileTextRecChar(@TextRec(t).Name),false);
 End;
 
 
-Procedure Rename(var t : text;p:pchar);[IOCheck];
+Procedure Rename(var t : Text;const s : unicodestring);[IOCheck];
+{$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+var
+  fs: RawByteString;
+{$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
 Begin
-  If InOutRes <> 0 then
-   exit;
-  If TextRec(t).mode=fmClosed Then
-   Begin
-     Do_Rename(PChar(@TextRec(t).Name),p);
-     { check error code of do_rename }
-     If InOutRes = 0 then
-         Move(p^,TextRec(t).Name,StrLen(p)+1);
-   End;
+  if InOutRes<>0 then
+    exit;
+  if TextRec(t).mode<>fmClosed then
+    begin
+      InOutRes:=102;
+      exit;
+    end;
+{$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  { it's slightly faster to convert the unicodestring here to rawbytestring
+    than doing it in do_rename(), because here we still know the length }
+  fs:=ToSingleByteFileSystemEncodedFileName(s);
+  Do_Rename(PFileTextRecChar(@TextRec(t).Name),PAnsiChar(fs),false,true);
+  If InOutRes=0 then
+     TextRec(t).Name:=fs
+{$else FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  Do_Rename(PFileTextRecChar(@TextRec(t).Name),PUnicodeChar(S),false,false);
+  If InOutRes=0 then
+{$ifdef FPC_ANSI_TEXTTextRec}
+    TextRec(t).Name:=ToSingleByteFileSystemEncodedFileName(s);
+{$else FPC_ANSI_TEXTFILEREC}
+    TextRec(t).Name:=s
+{$endif FPC_ANSI_TEXTFILEREC}
+{$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
 End;
 
 
-Procedure Rename(var t : Text;const s : string);[IOCheck];
+Procedure Rename(var t : Text;const s : rawbytestring);[IOCheck];
+var
+{$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  fs: RawByteString;
+  pdst: PAnsiChar;
+{$else FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  fs: UnicodeString;
+  pdst: PUnicodeChar;
+{$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  dstchangeable: boolean;
+Begin
+  if InOutRes<>0 then
+    exit;
+  if TextRec(t).mode<>fmClosed then
+    begin
+      InOutRes:=102;
+      exit;
+    end;
+{$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  dstchangeable:=false;
+  pdst:=PAnsiChar(s);
+  if TranslatePlaceholderCP(StringCodePage(s))<>DefaultFileSystemCodePage then
+    begin
+      fs:=ToSingleByteFileSystemEncodedFileName(s);
+      pdst:=PAnsiChar(fs);
+      dstchangeable:=true;
+    end
+  else
+    fs:=s;
+{$else FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+   { it's slightly faster to convert the rawbytestring here to unicodestring
+     than doing it in do_rename, because here we still know the length }
+   fs:=unicodestring(s);
+   pdst:=PUnicodeChar(fs);
+   dstchangeable:=true;
+{$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  Do_Rename(PFileTextRecChar(@TextRec(t).Name),pdst,false,dstchangeable);
+  If InOutRes=0 then
+{$if defined(FPC_ANSI_TEXTTextRec) and not defined(FPCRTL_FILESYSTEM_SINGLE_BYTE_API)}
+    TextRec(t).Name:=ToSingleByteFileSystemEncodedFileName(fs)
+{$else FPC_ANSI_TEXTTextRec and not FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+    TextRec(t).Name:=fs
+{$endif FPC_ANSI_TEXTTextRec and not FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+End;
+
+
+Procedure Rename(var t : Text;const s : ShortString);[IOCheck];
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+Begin
+  Rename(t,AnsiString(s));
+End;
+{$else FPC_HAS_FEATURE_ANSISTRINGS}
 var
   p : array[0..255] Of Char;
 Begin
-  If InOutRes <> 0 then
-   exit;
   Move(s[1],p,Length(s));
   p[Length(s)]:=#0;
   Rename(t,Pchar(@p));
 End;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
-
-Procedure Rename(var t : Text;c : char);[IOCheck];
-var
-  p : array[0..1] Of Char;
+Procedure Rename(var t:Text;const p:PAnsiChar);
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Begin
-  If InOutRes <> 0 then
-   exit;
+  Rename(t,AnsiString(p));
+End;
+{$else FPC_HAS_FEATURE_ANSISTRINGS}
+var
+  len: SizeInt
+Begin
+  if InOutRes<>0 then
+    exit;
+  if TextRec(f).mode<>fmClosed then
+    begin
+      InOutRes:=102;
+      exit;
+    end;
+  Do_Rename(PFileTextRecChar(@TextRec(t).Name),p,false);
+  { check error code of do_rename }
+  if InOutRes=0 then
+    begin
+      len:=min(StrLen(p),high(TextRec(t).Name));
+      Move(p^,TextRec(t).Name,len);
+      TextRec(t).Name[len]:=#0;
+    end;
+End;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
+Procedure Rename(var t : Text;const c : AnsiChar);[IOCheck];
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+Begin
+  Rename(t,AnsiString(c));
+End;
+{$else FPC_HAS_FEATURE_ANSISTRINGS}
+var
+  p : array[0..1] Of AnsiChar;
+Begin
   p[0]:=c;
   p[1]:=#0;
-  Rename(t,Pchar(@p));
+  Rename(t,PAnsiChar(@p));
 End;
-
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 Function Eof(Var t: Text): Boolean;[IOCheck];
 Begin
@@ -458,7 +612,7 @@ end;
 procedure SetTextCodePage(var T: Text; CodePage: TSystemCodePage);
 begin
 {$ifdef FPC_HAS_CPSTRING}
-  TextRec(T).CodePage:=CodePage;
+  TextRec(T).CodePage:=TranslatePlaceholderCP(CodePage);
 {$endif}
 end;
 
@@ -472,6 +626,19 @@ end;
 Function fpc_get_output:PText;compilerproc;
 begin
   fpc_get_output:=@Output;
+end;
+
+
+Procedure fpc_textinit_iso(var t : Text;nr : DWord);compilerproc;
+begin
+  assign(t,paramstr(nr));
+  reset(t);
+end;
+
+
+Procedure fpc_textclose_iso(var t : Text);compilerproc;
+begin
+  close(t);
 end;
 
 
@@ -705,7 +872,7 @@ begin
         if SLen > 0 then
           begin
             {$if defined(FPC_HAS_CPSTRING) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
-            if TextRec(f).CodePage<>StringCodePage(S) then
+            if TextRec(f).CodePage<>TranslatePlaceholderCP(StringCodePage(S)) then
               begin
                 a:=fpc_AnsiStr_To_AnsiStr(S,TextRec(f).CodePage);
                 fpc_WriteBuffer(f,PAnsiChar(a)^,Length(a));
@@ -933,6 +1100,60 @@ end;
 
 
 procedure fpc_write_text_longint_iso(len : longint;var t : text;i : longint); iocheck; compilerproc;
+var
+  s : string;
+begin
+  if (InOutRes<>0) then
+   exit;
+  str(i,s);
+  { default value? }
+  if len=-1 then
+    len:=11
+  else if len<length(s) then
+    len:=length(s);
+  write_str_iso(len,t,s);
+end;
+
+
+procedure fpc_write_text_word(len : longint;var t : text;q : word); iocheck; compilerproc;
+var
+  s : string;
+begin
+  if (InOutRes<>0) then
+   exit;
+  str(q,s);
+  write_str(len,t,s);
+end;
+
+
+procedure fpc_write_text_smallint(len : longint;var t : text;i : smallint); iocheck; compilerproc;
+var
+  s : string;
+begin
+  if (InOutRes<>0) then
+   exit;
+  str(i,s);
+  write_str(len,t,s);
+end;
+
+
+procedure fpc_write_text_word_iso(len : longint;var t : text;q : word); iocheck; compilerproc;
+var
+  s : string;
+begin
+  if (InOutRes<>0) then
+    exit;
+  str(q,s);
+  { default value? }
+  if len=-1 then
+    len:=11
+  else if len<length(s) then
+    len:=length(s);
+  write_str_iso(len,t,s);
+end;
+
+
+procedure fpc_write_text_smallint_iso(len : longint;var t : text;i : smallint); iocheck; compilerproc;
 var
   s : string;
 begin
@@ -1584,7 +1805,7 @@ end;
 procedure fpc_Read_Text_Char_intern(var f : Text; out c: char); iocheck; [external name 'FPC_READ_TEXT_CHAR'];
 
 
-function fpc_GetBuf(var f : Text) : pchar; iocheck; compilerproc;
+function fpc_GetBuf_Text(var f : Text) : pchar; iocheck; compilerproc;
 Begin
   Result:=@TextRec(f).Bufptr^[TextRec(f).BufEnd];
   If not CheckRead(f) then
@@ -2069,25 +2290,112 @@ end;
 
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
-procedure WriteStrUnicode(var t: textrec);
+function UTF8CodePointLength(firstbyte: byte): SizeInt;
 var
-  temp: ansistring;
+  firstzerobit: SizeInt;
+begin
+  result:=1;
+  { bsr searches for the leftmost 1 bit. We are interested in the
+    leftmost 0 bit, so first invert the value
+  }
+  firstzerobit:=BsrByte(not(firstbyte));
+  { if there is no zero bit or the first zero bit is the rightmost bit
+    (bit 0), this is an invalid UTF-8 byte ($ff cannot appear in an
+    UTF-8-encoded string, and in the worst case bit 1 has to be zero)
+  }
+  if (firstzerobit=0) or (firstzerobit=255)  then
+    exit;
+  { the number of bytes belonging to this code point is
+    7-(pos first 0-bit).
+  }
+  result:=7-firstzerobit;
+end;
+
+
+function EndOfLastCompleteUTF8CodePoint(var t: textrec): SizeInt;
+var
+  i, lenfound, codepointlen: SizeInt;
+  b: byte;
+begin
+  lenfound:=0;
+  for i:=t.bufpos-1 downto 0 do
+    begin
+      b:=byte(t.bufptr^[i]);
+      if b<=127 then
+        begin
+          if lenfound = 0 then
+            { valid simple code point }
+            result:=i+1
+          else
+            { valid simple code point followed by a bunch of invalid data ->
+              handle everything since it can't become valid by adding more
+              bytes }
+            result:=t.bufpos;
+          exit;
+        end;
+      { start of a complex character }
+      if (b and %11000000)<>0 then
+        begin
+          codepointlen:=UTF8CodePointLength(b);
+          { we did not yet get all bytes of the last code point -> handle
+            everything until the start of this character }
+          if codepointlen>lenfound+1 then
+            if i<>0 then
+              result:=i
+            { the buffer is too small to contain the entire utf-8 code point
+              -> nothing else to do but handle the entire buffer (and end up
+              with an invalid character) -- since writestr uses the default
+              buffer size of 32 bytes, this can only happen for invalid utf-8
+              encodings }
+            else
+              result:=t.bufpos
+          { the last code point is invalid -> handle everything since it can't
+            become valid by adding more bytes; in case it's complete, we also
+            handle everything, of course}
+          else
+            result:=t.bufpos;
+          exit;
+        end;
+      inc(lenfound);
+    end;
+  { all invalid data, or the buffer is too small to be able to deal with the
+    complete utf8char -> nothing else to do but to handle the entire buffer }
+  result:=t.bufpos;
+end;
+
+
+procedure WriteStrUnicodeIntern(var t: textrec; flush: boolean);
+var
+  temp: unicodestring;
   str: punicodestring;
+  validend: SizeInt;
 begin
   if (t.bufpos=0) then
     exit;
   str:=punicodestring(@t.userdata[TempWriteStrDestIndex]);
-  setlength(temp,t.bufpos);
-  move(t.bufptr^,temp[1],t.bufpos);
+  if not flush then
+    validend:=EndOfLastCompleteUTF8CodePoint(t)
+  else
+    validend:=t.bufpos;
+  widestringmanager.Ansi2UnicodeMoveProc(@t.bufptr^[0],CP_UTF8,temp,validend);
   str^:=str^+temp;
-  t.bufpos:=0;
+  dec(t.bufpos,validend);
+  { move remainder to the start }
+  if t.bufpos<>0 then
+    move(t.bufptr^[validend],t.bufptr^[0],t.bufpos);
+end;
+
+
+procedure WriteStrUnicode(var t: textrec);
+begin
+  WriteStrUnicodeIntern(t,false);
 end;
 
 
 procedure WriteStrUnicodeFlush(var t: textrec);
 begin
   { see comment in WriteStrShortFlush }
-  WriteStrUnicode(t);
+  WriteStrUnicodeIntern(t,true);
   punicodestring(ppointer(@t.userdata[StrPtrIndex])^)^:=
     punicodestring(@t.userdata[TempWriteStrDestIndex])^;
   { free memory/finalize temp }
@@ -2096,25 +2404,38 @@ end;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
-procedure WriteStrWide(var t: textrec);
+procedure WriteStrWideIntern(var t: textrec; flush: boolean);
 var
-  temp: ansistring;
+  temp: unicodestring;
   str: pwidestring;
+  validend: SizeInt;
 begin
   if (t.bufpos=0) then
     exit;
   str:=pwidestring(@t.userdata[TempWriteStrDestIndex]);
-  setlength(temp,t.bufpos);
-  move(t.bufptr^,temp[1],t.bufpos);
+  if not flush then
+    validend:=EndOfLastCompleteUTF8CodePoint(t)
+  else
+    validend:=t.bufpos;
+  widestringmanager.Ansi2UnicodeMoveProc(@t.bufptr^[0],CP_UTF8,temp,validend);
   str^:=str^+temp;
-  t.bufpos:=0;
+  dec(t.bufpos,validend);
+  { move remainder to the start }
+  if t.bufpos<>0 then
+    move(t.bufptr^[validend],t.bufptr^[0],t.bufpos);
+end;
+
+
+procedure WriteStrWide(var t: textrec);
+begin
+  WriteStrUnicodeIntern(t,false);
 end;
 
 
 procedure WriteStrWideFlush(var t: textrec);
 begin
   { see comment in WriteStrShortFlush }
-  WriteStrWide(t);
+  WriteStrWideIntern(t,true);
   pwidestring(ppointer(@t.userdata[StrPtrIndex])^)^:=
     pwidestring(@t.userdata[TempWriteStrDestIndex])^;
   { free memory/finalize temp }
@@ -2122,7 +2443,7 @@ begin
 end;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
-procedure SetupWriteStrCommon(out t: textrec);
+procedure SetupWriteStrCommon(out t: textrec; cp: TSystemCodePage);
 begin
   // initialise
   Assign(text(t),'');
@@ -2130,14 +2451,14 @@ begin
   t.OpenFunc:=nil;
   t.CloseFunc:=nil;
   {$ifdef FPC_HAS_CPSTRING}
-  t.CodePage:=DefaultSystemCodePage;
+  t.CodePage:=TranslatePlaceholderCP(cp);
   {$endif}
 end;
 
 
 procedure fpc_SetupWriteStr_Shortstr(var ReadWriteStrText: text; var s: shortstring); compilerproc;
 begin
-  setupwritestrcommon(TextRec(ReadWriteStrText));
+  SetupWriteStrCommon(TextRec(ReadWriteStrText),DefaultSystemCodePage);
   PPointer(@TextRec(ReadWriteStrText).userdata[StrPtrIndex])^:=@s;
 
   { temporary destination (see comments for TempWriteStrDestIndex) }
@@ -2151,9 +2472,12 @@ end;
 
 
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-procedure fpc_SetupWriteStr_Ansistr(var ReadWriteStrText: text; var s: ansistring); compilerproc;
+procedure fpc_SetupWriteStr_Ansistr(var ReadWriteStrText: text; var s: ansistring; cp: TSystemCodePage); compilerproc;
 begin
-  setupwritestrcommon(TextRec(ReadWriteStrText));
+  { destination rawbytestring -> use CP_ACP }
+  if cp=CP_NONE then
+    cp:=CP_ACP;
+  SetupWriteStrCommon(TextRec(ReadWriteStrText),cp);
   PPointer(@TextRec(ReadWriteStrText).userdata[StrPtrIndex])^:=@s;
 
   { temp destination ansistring, nil = empty string }
@@ -2168,7 +2492,7 @@ end;
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 procedure fpc_SetupWriteStr_Unicodestr(var ReadWriteStrText: text; var s: unicodestring); compilerproc;
 begin
-  setupwritestrcommon(TextRec(ReadWriteStrText));
+  SetupWriteStrCommon(TextRec(ReadWriteStrText),CP_UTF8);
   PPointer(@TextRec(ReadWriteStrText).userdata[StrPtrIndex])^:=@s;
 
   { temp destination unicodestring, nil = empty string }
@@ -2183,7 +2507,7 @@ end;
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
 procedure fpc_SetupWriteStr_Widestr(var ReadWriteStrText: text; var s: widestring); compilerproc;
 begin
-  setupwritestrcommon(TextRec(ReadWriteStrText));
+  SetupWriteStrCommon(TextRec(ReadWriteStrText),CP_UTF8);
   PPointer(@TextRec(ReadWriteStrText).userdata[StrPtrIndex])^:=@s;
 
   { temp destination widestring }
@@ -2230,7 +2554,7 @@ begin
 end;
 
 
-procedure SetupReadStrCommon(out t: textrec);
+procedure SetupReadStrCommon(out t: textrec; cp: TSystemCodePage);
 begin
   // initialise
   Assign(text(t),'');
@@ -2238,7 +2562,7 @@ begin
   t.OpenFunc:=nil;
   t.CloseFunc:=nil;
   {$ifdef FPC_HAS_CPSTRING}
-  t.CodePage:=DefaultSystemCodePage;
+  t.CodePage:=TranslatePlaceholderCP(cp);
   {$endif}
   PSizeInt(@t.userdata[BytesReadIndex])^:=0;
 end;
@@ -2247,7 +2571,7 @@ end;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 procedure fpc_SetupReadStr_Ansistr(var ReadWriteStrText: text; const s: ansistring); [public, alias: 'FPC_SETUPREADSTR_ANSISTR']; compilerproc;
 begin
-  setupreadstrcommon(TextRec(ReadWriteStrText));
+  SetupReadStrCommon(TextRec(ReadWriteStrText),StringCodePage(s));
   { we need a reference, because 's' may be a temporary expression }
   PAnsiString(@TextRec(ReadWriteStrText).userdata[StrPtrIndex])^:=s;
   TextRec(ReadWriteStrText).InOutFunc:=@ReadStrAnsi;
@@ -2255,7 +2579,7 @@ begin
   TextRec(ReadWriteStrText).FlushFunc:=@ReadAnsiStrFinal;
 end;
 
-procedure fpc_SetupReadStr_Ansistr_Intern(var ReadWriteStrText: text; const s: ansistring); [external name 'FPC_SETUPREADSTR_ANSISTR'];
+procedure fpc_SetupReadStr_Ansistr_Intern(var ReadWriteStrText: text; const s: rawbytestring); [external name 'FPC_SETUPREADSTR_ANSISTR'];
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 
@@ -2296,9 +2620,8 @@ end;
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 procedure fpc_SetupReadStr_Unicodestr(var ReadWriteStrText: text; const s: unicodestring); compilerproc;
 begin
-  { we use an ansistring to avoid code duplication, and let the    }
-  { assignment convert the widestring to an equivalent ansistring  }
-  fpc_SetupReadStr_Ansistr_Intern(ReadWriteStrText,s);
+  { we use an utf8string to avoid code duplication }
+  fpc_SetupReadStr_Ansistr_Intern(ReadWriteStrText,utf8string(s));
 end;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
@@ -2306,9 +2629,8 @@ end;
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
 procedure fpc_SetupReadStr_Widestr(var ReadWriteStrText: text; const s: widestring); compilerproc;
 begin
-  { we use an ansistring to avoid code duplication, and let the    }
-  { assignment convert the widestring to an equivalent ansistring  }
-  fpc_SetupReadStr_Ansistr_Intern(ReadWriteStrText,s);
+  { we use an utf8string to avoid code duplication }
+  fpc_SetupReadStr_Ansistr_Intern(ReadWriteStrText,utf8string(s));
 end;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 

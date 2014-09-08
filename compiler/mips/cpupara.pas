@@ -439,7 +439,10 @@ implementation
                         intparareg:=mips_nb_used_registers;
                       end;
                     paraloc^.loc:=LOC_REFERENCE;
-                    paraloc^.size:=int_cgsize(paralen);
+                    if (paradef.typ=floatdef) then
+                      paraloc^.size:=int_float_cgsize(paralen)
+                    else
+                      paraloc^.size:=int_cgsize(paralen);
                     paraloc^.def:=get_paraloc_def(locdef,paralen,firstparaloc);
 
                     if side=callerside then

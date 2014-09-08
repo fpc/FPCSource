@@ -30,10 +30,6 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{$WARNING this has to go to the windows unit}
-const
-  GWLP_WNDPROC = GWL_WNDPROC;
-
 type
   PWin32Hook_Lookup = ^TWin32Hook_Lookup;
   TWin32Hook_Lookup = record

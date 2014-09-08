@@ -8,26 +8,24 @@ main=rtl
 [target]
 loaders=
 #units=system objpas macpas iso7185 buildrtl lineinfo lnfodwrf
-units=system uuchar objpas iso7185 buildrtl
+units=system uuchar objpas iso7185 cpall buildrtl
 implicitunits=ndk ndkutils ddk \
       ctypes strings \
 #      heaptrc
-      matrix \
 #      initc cmem dynlibs signals \
-#      dos crt objects \
+#      dos \
       rtlconsts sysconst sysutils math types \
-      strutils dateutils varutils variants typinfo fgl classes \
-      convutils stdconvs $(CPU_UNITS) charset cpall ucomplex getopts \
+      typinfo fgl classes \
+      $(CPU_UNITS) charset getopts \
 #      sockets printer \
-#      video mouse keyboard
-       fmtbcd \
+#      keyboard
 #      sharemem exeinfo fpintres \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp850 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5
+      cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
 
 # shared=$(DLLS)
 
-rsts=math varutils typinfo variants classes dateutils sysconst
+rsts=math typinfo classes sysconst
 
 [require]
 nortl=y
@@ -124,3 +122,6 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) buildrtl$(PPUEXT)
 
 buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -I$(OBJPASDIR) -Fi$(DDKINC) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
+
+cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) objpas$(PPUEXT)
+        $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas

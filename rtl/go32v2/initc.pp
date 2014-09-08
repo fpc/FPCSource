@@ -72,7 +72,7 @@ procedure run_c_destructors;
        exit;
      already_done:=bss_count;
      f:=dtor[0];
-     nb:=((cardinal(last_dtor)-cardinal(first_dtor)) div sizeof(pointer));
+     nb:=((cardinal(@last_dtor)-cardinal(@first_dtor)) div sizeof(pointer));
      for i:=1 to nb do
        begin
           f();

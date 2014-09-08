@@ -91,7 +91,7 @@ ___start:
 	movzbl	(%rax), %eax
 	testb	%al, %al
 	je	.L9
-	movl	$__progname_storage+255, %eax
+	movq	$__progname_storage+255, %rax
 	cmpq	%rax, -16(%rbp)
 	jb	.L8
 .L9:
@@ -139,6 +139,7 @@ _haltproc:
 .LErrorcode:
          movq  %rax,%rbx
          movq  $-1,%rax
+	 ret
 .LFE9:
 	.size	___start, .-___start
 	.type	_strrchr, @function

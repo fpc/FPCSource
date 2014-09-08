@@ -186,6 +186,8 @@ type
   private
     FValue: string;
   public
+    // Allow undelimited, delimited by single quotes, delimited by double quotes
+    // If delimited, allow escaping inside string with double delimiters
     constructor Create(AValue: string);
 
     function AsPointer: PChar; override;
@@ -199,6 +201,17 @@ type
 
     function AsPointer: PChar; override;
   end;
+
+{$ifdef SUPPORT_INT64}
+  TLargeIntConstant = class(TConstant)
+  private
+    FValue: Int64;
+  public
+    constructor Create(AValue: Int64);
+
+    function AsPointer: PChar; override;
+  end;
+{$endif}
 
   TBooleanConstant = class(TConstant)
   private
@@ -324,6 +337,7 @@ type
       AExprFunc: TExprFunc; AIsOperator: Boolean; AOperPrec: Integer);
   public
     constructor Create(AName, AShortName, ATypeSpec: string; AMinFuncArg: Integer; AResultType: TExpressionType; AExprFunc: TExprFunc; Descr: string);
+    // Create operator: name, param types used, result type, func addr, operator precedence
     constructor CreateOper(AName, ATypeSpec: string; AResultType: TExpressionType; AExprFunc: TExprFunc; AOperPrec: Integer);
 
     function IsFunction: Boolean; override;
@@ -333,8 +347,8 @@ type
   end;
 
   TVaryingFunction = class(TFunction)
-    // Functions that can vary for ex. random generators
-    // should be TVaryingFunction to be sure that they are
+    // Functions that can vary e.g. random generators
+    // should be TVaryingFunction to ensure that they are
     // always evaluated
   protected
     function GetCanVary: Boolean; override;
@@ -594,7 +608,10 @@ begin
   firstChar := AValue[1];
   lastChar := AValue[Length(AValue)];
   if (firstChar = lastChar) and ((firstChar = '''') or (firstChar = '"')) then
-    FValue := Copy(AValue, 2, Length(AValue) - 2)
+  begin
+    FValue := Copy(AValue, 2, Length(AValue) - 2);
+    FValue := StringReplace(FValue, firstChar+FirstChar, firstChar, [rfReplaceAll,rfIgnoreCase])
+  end
   else
     FValue := AValue;
 end;
@@ -631,6 +648,22 @@ function TIntegerConstant.AsPointer: PChar;
 begin
   Result := PChar(@FValue);
 end;
+
+{$ifdef SUPPORT_INT64}
+{ TLargeIntConstant }
+
+constructor TLargeIntConstant.Create(AValue: Int64);
+begin
+  inherited Create(IntToStr(AValue), etLargeInt, _LargeIntVariable);
+
+  FValue := AValue;
+end;
+
+function TLargeIntConstant.AsPointer: PChar;
+begin
+  Result := PChar(@FValue);
+end;
+{$endif}
 
 { TVariable }
 

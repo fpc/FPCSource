@@ -53,29 +53,30 @@ const
   fpu_rounding_plus_inf = 2;
   fpu_rounding_minus_inf = 3;
 
+  fpu_all_bits = fpu_enable_mask or fpu_flags_mask or fpu_cause_mask or fpu_rounding_mask;
 
-procedure fpc_cpuinit;
-var
-  tmp32: longint;
+{$define FPC_SYSTEM_HAS_SYSINITFPU}
+procedure SysInitFPU;
   begin
-    { don't let libraries influence the FPU cw set by the host program }
-    if not IsLibrary then
-      begin
-        tmp32 := get_fsr();
-        { enable div by 0 and invalid operation fpu exceptions,
-          disable the other exceptions }
-        tmp32 := (tmp32 and not fpu_enable_mask) or default_fpu_enable;
-        { Reset flags and cause }
-        tmp32 := tmp32 and not (fpu_flags_mask or fpu_cause_mask);
-
-        { round towards nearest; ieee compliant arithmetics }
-        tmp32 := (tmp32 and not fpu_rounding_mask) or fpu_rounding_nearest;
-
-        set_fsr(tmp32);
-      end;
+    set_fsr(get_fsr and (not fpu_all_bits) or (default_fpu_enable or fpu_rounding_nearest));
   end;
 
 
+{$define FPC_SYSTEM_HAS_SYSRESETFPU}
+procedure SysResetFPU;
+  begin
+  end;
+
+
+procedure fpc_cpuinit;
+  begin
+    SysResetFPU;
+    if (not IsLibrary) then
+      SysInitFPU;
+  end;
+
+
+{$ifndef INTERNAL_BACKTRACE}
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame:pointer;assembler;nostackframe;
   asm
@@ -94,12 +95,13 @@ function get_frame:pointer;assembler;nostackframe;
     // lw $2,0($sp)
     move $2,$30
   end;
+{$endif INTERNAL_BACKTRACE}
 
 
 { Try to find previous $fp,$ra register pair
   reset both to nil if failure }
 {$define FPC_SYSTEM_HAS_GET_CALLER_STACKINFO}
-procedure get_caller_stackinfo(var framebp,addr : pointer);
+procedure get_caller_stackinfo(var framebp : pointer; var addr : codepointer);
 const
   instr_size = 4;
   MAX_INSTRUCTIONS = 64000;
@@ -408,14 +410,6 @@ procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];
 {****************************************************************************
                                Integer math
 ****************************************************************************}
-
-{$define FPC_SYSTEM_HAS_ABS_LONGINT}
-function abs(l:longint):longint; assembler;{$ifdef SYSTEMINLINE}inline;{$endif}nostackframe;
-asm
-    sra $1,$4,31 // $at,$4,31
-    xor $2,$4,$1 // $2,$4,$at
-    sub $2,$2,$1 // $2,$2,$at
-end;
 
 var
   fpc_system_lock : longint; export name 'fpc_system_lock';

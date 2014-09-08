@@ -25,11 +25,7 @@
     nils.sjoholm@mailbox.swipnet.se
 
 }
-
-{$I useamigasmartlink.inc}
-{$ifdef use_amiga_smartlink}
-    {$smartlink on}
-{$endif use_amiga_smartlink}
+{$PACKRECORDS 2}
 
 unit timer;
 
@@ -88,73 +84,12 @@ Const
 var
     TimerBase   : Pointer;
 
-Procedure AddTime( Dest, Source : ptimeval);
-Function CmpTime( Dest, Source : ptimeval) : ULONG;
-Procedure SubTime( Dest, Source : ptimeval);
-function ReadEClock(Dest : pEClockVal): longint;
-procedure GetSysTime( Dest : ptimeval);
+Procedure AddTime( Dest : ptimeval location 'a0'; Source : ptimeval location 'a1'); syscall TimerBase 042;
+Function CmpTime( Dest : ptimeval location 'a0'; Source : ptimeval location 'a1') : ULONG; syscall TimerBase 054;
+Procedure SubTime( Dest : ptimeval location 'a0'; Source : ptimeval location 'a1'); syscall TimerBase 048;
+function ReadEClock(Dest : pEClockVal location 'a0'): longint; syscall TimerBase 060;
+procedure GetSysTime( Dest : ptimeval location 'a0'); syscall TimerBase 066;
 
 IMPLEMENTATION
-
-Procedure AddTime( Dest, Source : ptimeval);
-begin
-   asm
-       MOVE.L  A6,-(A7)
-       MOVE.L  Dest,a0
-       MOVE.L  Source,a1
-       MOVE.L  TimerBase,A6
-       JSR -042(A6)
-       MOVE.L  (A7)+,A6
-   end;
-end;
-
-Function CmpTime( Dest, Source : ptimeval) : ULONG;
-begin
-   asm
-       MOVE.L  A6,-(A7)
-       MOVE.L  Dest,a0
-       MOVE.L  Source,a1
-       MOVE.L  TimerBase,A6
-       JSR -054(A6)
-       MOVE.L  (A7)+,A6
-       MOVE.L  d0,@RESULT
-   end;
-end;
-
-Procedure SubTime( Dest, Source : ptimeval);
-begin
-   asm
-       MOVE.L  A6,-(A7)
-       MOVE.L  Dest,a0
-       MOVE.L  Source,a1
-       MOVE.L  TimerBase,A6
-       JSR -048(A6)
-       MOVE.L  (A7)+,A6
-   end;
-end;
-
-function ReadEClock(Dest : pEClockVal): longint;
-begin
-   asm
-       MOVE.L  A6,-(A7)
-       MOVE.L  Dest,a0
-       MOVE.L  TimerBase,A6
-       JSR -060(A6)
-       MOVE.L  (A7)+,A6
-       MOVE.L  d0,@RESULT
-   end;
-end;
-
-procedure GetSysTime( Dest : ptimeval);
-begin
-   asm
-       MOVE.L  A6,-(A7)
-       MOVE.L  Dest,a0
-       MOVE.L  TimerBase,A6
-       JSR -066(A6)
-       MOVE.L  (A7)+,A6
-   end;
-end;
-
 
 end.

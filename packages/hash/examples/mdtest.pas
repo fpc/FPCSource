@@ -1,8 +1,8 @@
 {
     This file is part of the Free Pascal packages.
-    Copyright (c) 1999-2000 by the Free Pascal development team
+    Copyright (c) 1999-2014 by the Free Pascal development team
 
-    Tests the MD5 program.
+    Tests MD2, MD4 and MD5 hashes.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -15,10 +15,10 @@
 
 program mdtest;
 
-{$h+}
+{$mode objfpc}{$h+}
 
 uses
-  md5;
+  SysUtils, md5;
 
 const
   Suite: array[1..7] of string = (
@@ -60,31 +60,57 @@ const
      '57edf4a22be3c955ac49da2e2107b67a')
   );
 
-procedure performTest(const Ver: TMDVersion);
+function performTest(const Ver: TMDVersion; const Verbose: boolean): boolean;
+// Runs test and returns success or failure
 var
   I: Integer;
   S: String;
 begin
+  result := false;
   for I := Low(Suite) to High(Suite) do
   begin
     S := LowerCase(MDPrint(MDString(Suite[I], Ver)));
     if S = Results[Ver, I] then
-      Write('passed  ') else
-      Write('failed  ');
-    WriteLn('  "', Suite[I], '" = ', S);
+      result := true;
+    if Verbose then WriteLn('  "', Suite[I], '" = ', S);
   end;
 end;
 
+var
+  i: integer;
 begin
+  i:=0;
   Writeln('Executing RFC 1319 test suite ...');
-  performTest(MD_VERSION_2);
+  if performTest(MD_VERSION_2,true) then
+    Write('RFC 1319 test suite passed  ')
+  else
+  begin
+    Write('RFC 1319 test suite failed  ');
+    i:=i or 1;
+  end;
+  Writeln;
   Writeln;
 
   Writeln('Executing RFC 1320 test suite ...');
-  performTest(MD_VERSION_4);
+  if performTest(MD_VERSION_4,true) then
+    Write('RFC 1320 test suite passed  ')
+  else
+  begin
+    Write('RFC 1320 test suite failed  ');
+    i:=i or 2;
+  end;
+  Writeln;
   Writeln;
 
   Writeln('Executing RFC 1321 test suite ...');
-  performTest(MD_VERSION_5);
+  if performTest(MD_VERSION_5,true) then
+    Write('RFC 1321 test suite passed  ')
+  else
+  begin
+    Write('RFC 1321 test suite failed  ');
+    i:=i or 4;
+  end;
   Writeln;
+  Writeln;
+  halt(i); //halt with error code 0 if everything ok
 end.

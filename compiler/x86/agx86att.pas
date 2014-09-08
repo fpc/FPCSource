@@ -29,12 +29,13 @@ interface
 
     uses
       cclasses,cpubase,
-      globals,cgutils,
+      globals,globtype,cgutils,
       aasmbase,aasmtai,aasmdata,assemble,aggas;
 
     type
       Tx86ATTAssembler=class(TGNUassembler)
         constructor create(smart: boolean); override;
+        function MakeCmdLine: TCmdStr; override;
       end;
 
       Tx86AppleGNUAssembler=class(TAppleGNUassembler)
@@ -53,6 +54,8 @@ interface
         procedure WriteOper_jmp(const o:toper);
        protected
         fskipPopcountSuffix: boolean;
+        { http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56656 }
+        fNoInterUnitMovQ: boolean;
        public
         procedure WriteInstruction(hp: tai);override;
      end;
@@ -62,7 +65,6 @@ interface
   implementation
 
     uses
-      globtype,
       cutils,systems,
       verbose,
       itcpugas,
@@ -80,6 +82,44 @@ interface
         InstrWriter := Tx86InstrWriter.create(self);
       end;
 
+    function TX86ATTAssembler.MakeCmdLine: TCmdStr;
+      var
+        FormatName : string;
+      begin
+        result:=Inherited MakeCmdLine;
+{$ifdef i386}
+        case target_info.system of
+          system_i386_go32v2:
+            FormatName:='coff';
+          system_i386_wdosx,
+          system_i386_win32:
+            FormatName:='win32';
+          system_i386_embedded:
+            FormatName:='obj';
+          system_i386_linux,
+          system_i386_beos:
+            FormatName:='elf';
+          system_i386_darwin:
+            FormatName:='macho32';
+        else
+          FormatName:='elf';
+        end;
+{$endif i386}
+{$ifdef x86_64}
+        case target_info.system of
+          system_x86_64_win64:
+            FormatName:='win64';
+          system_x86_64_darwin:
+            FormatName:='macho64';
+          system_x86_64_linux:
+            FormatName:='elf64';
+        else
+          FormatName:='elf64';
+        end;
+{$endif x86_64}
+        Replace(result,'$FORMAT',FormatName);
+      end;
+
 {****************************************************************************
                           Tx86AppleGNUAssembler
  ****************************************************************************}
@@ -90,6 +130,8 @@ interface
         InstrWriter := Tx86InstrWriter.create(self);
         { Apple's assembler does not support a size suffix for popcount }
         Tx86InstrWriter(InstrWriter).fskipPopcountSuffix := true;
+        { Apple's assembler is broken regarding some movq suffix handling }
+        Tx86InstrWriter(InstrWriter).fNoInterUnitMovQ := true;
       end;
 
 {****************************************************************************
@@ -147,11 +189,20 @@ interface
              owner.AsmWrite('0');
            if (index<>NR_NO) and (base=NR_NO) then
             begin
-              owner.AsmWrite('(,'+gas_regname(index));
-              if scalefactor<>0 then
-               owner.AsmWrite(','+tostr(scalefactor)+')')
+              if scalefactor in [0,1] then
+                { Switching index to base position gives shorter
+                  assembler instructions }
+                begin
+                  owner.AsmWrite('('+gas_regname(index)+')');
+                end
               else
-               owner.AsmWrite(')');
+                begin
+                  owner.AsmWrite('(,'+gas_regname(index));
+                  if scalefactor<>0 then
+                   owner.AsmWrite(','+tostr(scalefactor)+')')
+                  else
+                   owner.AsmWrite(')');
+                end;
             end
            else
             if (index=NR_NO) and (base<>NR_NO) then
@@ -293,6 +344,23 @@ interface
                end;
            end;
 {$endif x86_64}
+        { see fNoInterUnitMovQ declaration comment }
+        if fNoInterUnitMovQ then
+          begin
+            if ((op=A_MOVQ) or
+                (op=A_VMOVQ)) and
+               (((taicpu(hp).oper[0]^.typ=top_reg) and
+                 (getregtype(taicpu(hp).oper[0]^.reg)=R_INTREGISTER)) or
+                ((taicpu(hp).oper[1]^.typ=top_reg) and
+                 (getregtype(taicpu(hp).oper[1]^.reg)=R_INTREGISTER))) then
+              begin
+                if op=A_MOVQ then
+                  op:=A_MOVD
+                else
+                  op:=A_VMOVD;
+                taicpu(hp).opcode:=op;
+              end;
+          end;
         owner.AsmWrite(#9);
         { movsd should not be translated to movsl when there
           are (xmm) arguments }
@@ -386,6 +454,7 @@ interface
           end;
       end;
 
+
 {*****************************************************************************
                                   Initialize
 *****************************************************************************}
@@ -397,10 +466,23 @@ interface
             id     : as_gas;
             idtxt  : 'AS';
             asmbin : 'as';
-            asmcmd : '--64 -o $OBJ $ASM';
+            asmcmd : '--64 -o $OBJ $EXTRAOPT $ASM';
             supported_targets : [system_x86_64_linux,system_x86_64_freebsd,
                                  system_x86_64_win64,system_x86_64_embedded,
                                  system_x86_64_openbsd,system_x86_64_netbsd];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
+            labelprefix : '.L';
+            comment : '# ';
+            dollarsign: '$';
+          );
+
+       as_x86_64_yasm_info : tasminfo =
+          (
+            id     : as_yasm;
+            idtxt  : 'YASM';
+            asmbin : 'yasm';
+            asmcmd : '-a x86 -p gas -f $FORMAT -o $OBJ $EXTRAOPT $ASM';
+            supported_targets : [system_x86_64_linux,system_x86_64_freebsd,system_x86_64_win64,system_x86_64_embedded];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
@@ -412,7 +494,7 @@ interface
             id     : as_ggas;
             idtxt  : 'GAS';
             asmbin : 'gas';
-            asmcmd : '--64 -o $OBJ $ASM';
+            asmcmd : '--64 -o $OBJ $EXTRAOPT $ASM';
             supported_targets : [system_x86_64_solaris];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
@@ -427,7 +509,7 @@ interface
             id     : as_darwin;
             idtxt  : 'AS-Darwin';
             asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM -arch x86_64';
+            asmcmd : '-o $OBJ $EXTRAOPT $ASM -arch x86_64';
             supported_targets : [system_x86_64_darwin];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : 'L';
@@ -441,11 +523,27 @@ interface
             id     : as_gas;
             idtxt  : 'AS';
             asmbin : 'as';
-            asmcmd : '--32 -o $OBJ $ASM';
+            asmcmd : '--32 -o $OBJ $EXTRAOPT $ASM';
             supported_targets : [system_i386_GO32V2,system_i386_linux,system_i386_Win32,system_i386_freebsd,system_i386_solaris,system_i386_beos,
                                 system_i386_netbsd,system_i386_Netware,system_i386_qnx,system_i386_wdosx,system_i386_openbsd,
                                 system_i386_netwlibc,system_i386_wince,system_i386_embedded,system_i386_symbian,system_i386_haiku,system_x86_6432_linux,
-                                system_i386_nativent,system_i386_android];
+                                system_i386_nativent,system_i386_android,system_i386_aros];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
+            labelprefix : '.L';
+            comment : '# ';
+            dollarsign: '$';
+          );
+
+       as_i386_yasm_info : tasminfo =
+          (
+            id     : as_yasm;
+            idtxt  : 'YASM';
+            asmbin : 'yasm';
+            asmcmd : '-a x86 -p gas -f $FORMAT -o $OBJ $EXTRAOPT $ASM';
+            supported_targets : [system_i386_GO32V2,system_i386_linux,system_i386_Win32,system_i386_freebsd,system_i386_solaris,system_i386_beos,
+                                system_i386_netbsd,system_i386_Netware,system_i386_qnx,system_i386_wdosx,system_i386_openbsd,
+                                system_i386_netwlibc,system_i386_wince,system_i386_embedded,system_i386_symbian,system_i386_haiku,system_x86_6432_linux,
+                                system_i386_nativent];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
@@ -458,7 +556,7 @@ interface
             id           : as_i386_as_aout;
             idtxt  : 'AS_AOUT';
             asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM';
+            asmcmd : '-o $OBJ $EXTRAOPT $ASM';
             supported_targets : [system_i386_linux,system_i386_OS2,system_i386_freebsd,system_i386_netbsd,system_i386_openbsd,system_i386_EMX,system_i386_embedded];
             flags : [af_needar,af_stabs_use_function_absolute_addresses];
             labelprefix : 'L';
@@ -472,7 +570,7 @@ interface
             id     : as_darwin;
             idtxt  : 'AS-Darwin';
             asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM -arch i386';
+            asmcmd : '-o $OBJ $EXTRAOPT $ASM -arch i386';
             supported_targets : [system_i386_darwin,system_i386_iphonesim];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
             labelprefix : 'L';
@@ -485,7 +583,7 @@ interface
             id     : as_ggas;
             idtxt  : 'GAS';
             asmbin : 'gas';
-            asmcmd : '--32 -o $OBJ $ASM';
+            asmcmd : '--32 -o $OBJ $EXTRAOPT $ASM';
             supported_targets : [system_i386_GO32V2,system_i386_linux,system_i386_Win32,system_i386_freebsd,system_i386_solaris,system_i386_beos,
                                 system_i386_netbsd,system_i386_Netware,system_i386_qnx,system_i386_wdosx,system_i386_openbsd,
                                 system_i386_netwlibc,system_i386_wince,system_i386_embedded,system_i386_symbian,system_i386_haiku,
@@ -500,11 +598,13 @@ interface
 initialization
 {$ifdef x86_64}
   RegisterAssembler(as_x86_64_as_info,Tx86ATTAssembler);
+  RegisterAssembler(as_x86_64_yasm_info,Tx86ATTAssembler);
   RegisterAssembler(as_x86_64_gas_info,Tx86ATTAssembler);
   RegisterAssembler(as_x86_64_gas_darwin_info,Tx86AppleGNUAssembler);
 {$else x86_64}
   RegisterAssembler(as_i386_as_info,Tx86ATTAssembler);
   RegisterAssembler(as_i386_gas_info,Tx86ATTAssembler);
+  RegisterAssembler(as_i386_yasm_info,Tx86ATTAssembler);
   RegisterAssembler(as_i386_gas_darwin_info,Tx86AppleGNUAssembler);
   RegisterAssembler(as_i386_as_aout_info,Tx86AoutGNUAssembler);
 {$endif x86_64}

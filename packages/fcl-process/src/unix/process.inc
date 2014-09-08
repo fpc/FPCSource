@@ -10,6 +10,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+ 
+{$DEFINE OS_HASEXITCODE}
 uses
    ctypes,
    UnixType,
@@ -37,6 +39,15 @@ begin
  // Do nothing. Win32 call.
 end;
 
+Function TProcess.GetExitCode : Integer;
+
+begin
+  if (Not Running) and wifexited(FExitCode) then
+    Result:=wexitstatus(FExitCode)
+  else
+    Result:=0;
+end;
+
 Function TProcess.PeekExitStatus : Boolean;
 var
   res: cint;
@@ -45,13 +56,7 @@ begin
     res:=fpWaitPid(Handle,pcint(@FExitCode),WNOHANG);
   until (res<>-1) or (fpgeterrno<>ESysEINTR);
   result:=res=Handle;
-  If Result then
-   begin
-      if wifexited(FExitCode) then
-        FExitCode:=wexitstatus(FExitCode);
-      // else pass errorvalue unmodified like shell does, bug #22055
-     end
-   else
+  If Not Result then
     FexitCode:=cardinal(-1); // was 0, better testable for abnormal exit.
 end;
 
@@ -120,8 +125,8 @@ Function DetectXterm : String;
 Const
   Konsole   = 'konsole';
   GNomeTerm = 'gnome-terminal';
-  DefaultTerminals : Array [1..5] of string
-                   = ('x-terminal-emulator','xterm','aterm','wterm','rxvt');
+  DefaultTerminals : Array [1..6] of string
+                   = ('x-terminal-emulator','xterm','aterm','wterm','rxvt','xfce4-terminal');
 
 Var
   D :String;
@@ -148,7 +153,9 @@ begin
         begin
         If not TestTerminal('aterm') then
           TestTerminal('wterm');
-        end;
+        end
+      else if (D='xfce') then
+        TestTerminal('xfce4-terminal');
       end;
     if (XTermProgram='') then
       TestTerminals(DefaultTerminals)
@@ -389,7 +396,7 @@ begin
                 safefpdup2(fd,2);
               end;
             if Assigned(FForkEvent) then
-              FForkEvent;
+              FForkEvent(Self);
             if (poRunSuspended in Options) then
               sigraise(SIGSTOP);
             if FEnv<>Nil then

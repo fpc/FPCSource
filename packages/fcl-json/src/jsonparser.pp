@@ -67,12 +67,31 @@ Resourcestring
   SErrExpectedElementName    = 'Expected element name, got token "%s"';
   SExpectedCommaorBraceClose = 'Expected , or ], got token "%s".';
   SErrInvalidNumber          = 'Number is not an integer or real number: %s';
+  SErrNoScanner = 'No scanner. No source specified ?';
   
 { TJSONParser }
+
+procedure DefJSONParserHandler(AStream: TStream; const AUseUTF8: Boolean; out
+  Data: TJSONData);
+
+Var
+  P : TJSONParser;
+
+begin
+  Data:=Nil;
+  P:=TJSONParser.Create(AStream,AUseUTF8);
+  try
+    Data:=P.Parse;
+  finally
+    P.Free;
+  end;
+end;
 
 Function TJSONParser.Parse : TJSONData;
 
 begin
+  if (FScanner=Nil) then
+    DoError(SErrNoScanner);
   Result:=DoParse(False,True);
 end;
 
@@ -113,10 +132,10 @@ begin
     Case T of
       tkEof : If Not AllowEof then
                 DoError(SErrUnexpectedEOF);
-      tkNull  : Result:=TJSONNull.Create;
+      tkNull  : Result:=CreateJSON;
       tkTrue,
-      tkFalse : Result:=TJSONBoolean.Create(t=tkTrue);
-      tkString : Result:=TJSONString.Create(CurrentTokenString);
+      tkFalse : Result:=CreateJSON(t=tkTrue);
+      tkString : Result:=CreateJSON(CurrentTokenString);
       tkCurlyBraceOpen : Result:=ParseObject;
       tkCurlyBraceClose : DoError(SErrUnexpectedToken);
       tkSQuaredBraceOpen : Result:=ParseArray;
@@ -137,24 +156,49 @@ Function TJSONParser.ParseNumber : TJSONNumber;
 Var
   I : Integer;
   I64 : Int64;
+  QW  : QWord;
   F : TJSONFloat;
   S : String;
 
 begin
   S:=CurrentTokenString;
   I:=0;
-  If TryStrToInt64(S,I64) then
-    Result:=TJSONInt64Number.Create(I64)
-  Else If TryStrToInt(S,I) then
-    Result:=TJSONIntegerNumber.Create(I)
+  if TryStrToQWord(S,QW) then
+    begin
+    if QW>qword(high(Int64)) then
+      Result:=CreateJSON(QW)
+    else
+      if QW>MaxInt then
+      begin
+        I64 := QW;
+        Result:=CreateJSON(I64);
+      end
+      else
+      begin
+        I := QW;
+        Result:=CreateJSON(I);
+      end
+    end
   else
     begin
-    I:=0;
-    Val(S,F,I);
-    If (I<>0) then
-      DoError(SErrInvalidNumber);
-    Result:=TJSONFloatNumber.Create(F);
+    If TryStrToInt64(S,I64) then
+      if (I64>Maxint) or (I64<-MaxInt) then
+        Result:=CreateJSON(I64)
+      Else
+        begin
+        I:=I64;
+        Result:=CreateJSON(I);
+        end
+    else
+      begin
+      I:=0;
+      Val(S,F,I);
+      If (I<>0) then
+        DoError(SErrInvalidNumber);
+      Result:=CreateJSON(F);
+      end;
     end;
+
 end;
 
 function TJSONParser.GetUTF8 : Boolean;
@@ -192,7 +236,7 @@ Var
   N : String;
   
 begin
-  Result:=TJSONObject.Create;
+  Result:=CreateJSONObject([]);
   Try
     T:=GetNextToken;
     While T<>tkCurlyBraceClose do
@@ -226,7 +270,7 @@ Var
   LastComma : Boolean;
   
 begin
-  Result:=TJSONArray.Create;
+  Result:=CreateJSONArray([]);
   LastComma:=False;
   Try
     Repeat
@@ -292,5 +336,23 @@ begin
   inherited Destroy();
 end;
 
+Procedure InitJSONHandler;
+
+begin
+  if GetJSONParserHandler=Nil then
+    SetJSONParserHandler(@DefJSONParserHandler);
+end;
+
+Procedure DoneJSONHandler;
+
+begin
+  if GetJSONParserHandler=@DefJSONParserHandler then
+    SetJSONParserHandler(Nil);
+end;
+
+initialization
+  InitJSONHandler;
+finalization
+  DoneJSONHandler;
 end.
 

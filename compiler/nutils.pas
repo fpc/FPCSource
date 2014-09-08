@@ -135,6 +135,12 @@ interface
       node tree }
     procedure replacenode(var dest,src : tnode);
 
+    { strip off deref/addr combinations when looking for a the load node of an open array/array of const
+      since there is no possiblity to defined a pointer to an open array/array of const, we have not to
+      take care of type casts, further, it means also that deref/addr nodes must always appear coupled
+    }
+    function get_open_const_array(p : tnode) : tnode;
+
 implementation
 
     uses
@@ -673,6 +679,16 @@ implementation
 {$endif ARM}
                   exit;
                 end;
+              exitn:
+                begin
+                  inc(result,2);
+                  if (result >= NODE_COMPLEXITY_INF) then
+                    begin
+                      result := NODE_COMPLEXITY_INF;
+                      exit;
+                    end;
+                  p:=texitnode(p).left;
+                end;
               tempcreaten,
               tempdeleten,
               pointerconstn,
@@ -700,19 +716,28 @@ implementation
                     in_trunc_real,
                     in_int_real,
                     in_frac_real,
-                    in_cos_real,
-                    in_sin_real,
-                    in_arctan_real,
                     in_pi_real,
                     in_abs_real,
-                    in_sqr_real,
-                    in_sqrt_real,
-                    in_ln_real,
                     in_aligned_x,
                     in_unaligned_x,
                     in_prefetch_var:
                       begin
                         inc(result);
+                        p:=tunarynode(p).left;
+                      end;
+                    in_cos_real,
+                    in_sin_real,
+                    in_arctan_real,
+                    in_sqr_real,
+                    in_sqrt_real,
+                    in_ln_real:
+                      begin
+                        inc(result,2);
+                        if (result >= NODE_COMPLEXITY_INF) then
+                          begin
+                            result:=NODE_COMPLEXITY_INF;
+                            exit;
+                          end;
                         p:=tunarynode(p).left;
                       end;
                     in_abs_long:
@@ -1032,7 +1057,7 @@ implementation
             else
              static_name:=lower(generate_nested_name(sym.owner,'_'))+'_'+sym.name;
             if sym.owner.defowner.typ=objectdef then
-              searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable,true)
+              searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable,[ssf_search_helper])
             else
               searchsym_in_record(trecorddef(sym.owner.defowner),static_name,sym,srsymtable);
             if assigned(sym) then
@@ -1182,5 +1207,11 @@ implementation
       end;
 
 
+    function get_open_const_array(p : tnode) : tnode;
+      begin
+        result:=p;
+        if (p.nodetype=derefn) and (tderefnode(p).left.nodetype=addrn) then
+          result:=get_open_const_array(taddrnode(tderefnode(result).left).left);
+      end;
 
 end.

@@ -127,40 +127,9 @@ const
 
 VAR ConsoleDevice : pDevice;
 
-FUNCTION CDInputHandler(events : pInputEvent; consoleDev : pLibrary) : pInputEvent;
-FUNCTION RawKeyConvert(events : pInputEvent; buffer : pCHAR; length : LONGINT; keyMap : pKeyMap) : LONGINT;
+FUNCTION CDInputHandler(events : pInputEvent location 'a0'; consoleDev : pLibrary location 'a1') : pInputEvent; syscall ConsoleDevice 042;
+FUNCTION RawKeyConvert(events : pInputEvent location 'a0'; buffer : pCHAR location 'a1'; length : LONGINT location 'd1'; keyMap : pKeyMap location 'a2') : LONGINT; syscall ConsoleDevice 048;
 
 IMPLEMENTATION
 
-FUNCTION CDInputHandler(events : pInputEvent; consoleDev : pLibrary) : pInputEvent;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L events,A0
-    MOVEA.L consoleDev,A1
-    MOVEA.L ConsoleDevice,A6
-    JSR -042(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION RawKeyConvert(events : pInputEvent; buffer : pCHAR; length : LONGINT; keyMap : pKeyMap) : LONGINT;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L events,A0
-    MOVEA.L buffer,A1
-    MOVE.L  length,D1
-    MOVEA.L keyMap,A2
-    MOVEA.L ConsoleDevice,A6
-    JSR -048(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
 END. (* UNIT CONSOLE *)
-
-
-

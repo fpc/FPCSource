@@ -12,6 +12,7 @@
  **********************************************************************}
 
 function AnsiCompareFileName(const S1, S2 : string) : SizeInt;
+Function SameFileName(const S1, S2: string): Boolean;
 function AnsiLowerCaseFileName(const s : string) : string;
 function AnsiUpperCaseFileName(const s : string) : string;
 function AnsiPos(const substr,s : string) : SizeInt;
@@ -23,4 +24,4 @@ function HashName(Name: PAnsiChar): LongWord;
 function BytesOf(const Val: RawByteString): TBytes;
 function BytesOf(const Val: AnsiChar): TBytes;
 
-Function CharInSet(Ch: AnsiChar;Const CSet : TSysCharSet) : Boolean;
+Function CharInSet(Ch: AnsiChar;Const CSet : TSysCharSet) : Boolean; inline;

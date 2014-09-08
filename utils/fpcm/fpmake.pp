@@ -3,6 +3,11 @@
  {$DEFINE NO_THREADING}
 {$ENDIF}
 
+{$IFDEF AROS}
+ {$DEFINE NO_UNIT_PROCESS}
+ {$DEFINE NO_THREADING}
+{$ENDIF}
+
 {$IFDEF OS2}
  {$DEFINE NO_UNIT_PROCESS}
 {$ENDIF OS2}
@@ -43,6 +48,8 @@ procedure fpcm_update_revision_info(Sender: TObject);
     i := AProcess.Output.Read(b,1);
     if i > 0 then
       begin
+        if b = 13 then
+          continue;
         if b = 10 then
           exit;
         ALine := ALine + chr(b);
@@ -77,7 +84,7 @@ begin
       // Run svn info, and catch output.
       P := sender as TPackage;
       P.Options.Add('-dREVINC');
-      SVNBin := ExeSearch('svn', GetEnvironmentvariable('PATH'));
+      SVNBin := ExeSearch(AddProgramExtension('svn', Defaults.BuildOS), GetEnvironmentvariable('PATH'));
       if SVNBin<>'' then
         begin
           SVNProcess := TProcess.create(nil);
@@ -191,6 +198,7 @@ procedure add_fpcm(const ADirectory: string);
 Var
   P : TPackage;
   T : TTarget;
+  Data2IncBin : String;
 
 begin
   With Installer do
@@ -219,6 +227,8 @@ begin
     writeln('Process-unit not available. Svn-revision in fpmake executable might be out-of-date.');
 {$endif HAS_UNIT_PROCESS}
 
+    Data2IncBin := AddProgramExtension('data2inc',Defaults.BuildOS);
+    p.Commands.AddCommand(caBeforeCompile, Data2IncBin, '-b -s fpcmake.ini fpcmake.inc fpcmakeini','fpcmake.inc','fpcmake.ini');
     T:=P.Targets.AddUnit('fpcmmain.pp');
     T.install:=false;
     T.ResourceStrings:=true;
@@ -226,7 +236,7 @@ begin
     P.Targets.AddUnit('fpcmwr.pp').install:=false;
     P.Targets.AddUnit('fpcmpkg.pp').install:=false;
 
-    P.Sources.AddSrc('fpcmake.ini');
+    // P.Sources.AddSrc('fpcmake.ini');
     P.Sources.AddSrc('fpcmake.inc');
     end;
 end;

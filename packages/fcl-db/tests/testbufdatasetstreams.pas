@@ -7,7 +7,7 @@ unit TestBufDatasetStreams;
 interface
 
 uses
-  fpcunit, testutils, testregistry, testdecorator,
+  fpcunit, testregistry,
   Classes, SysUtils, db, BufDataset;
 
 type
@@ -36,6 +36,9 @@ type
     procedure NullInsertChange(ADataset: TCustomBufDataset);
     procedure NullEditChange(ADataset: TCustomBufDataset);
     procedure AppendDeleteChange(ADataset: TCustomBufDataset);
+
+    procedure TestStreamingDataFields(AFormat: TDataPacketFormat);
+    procedure TestStreamingNullFields(AFormat: TDataPacketFormat);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -69,8 +72,11 @@ type
     procedure TestSeveralEditsXML;
     procedure TestDeleteAllXML;
     procedure TestDeleteAllInsertXML;
-    procedure TestStreamingBlobFieldsXML;
+    procedure TestStreamingDataFieldsBIN;
+    procedure TestStreamingDataFieldsXML;
     procedure TestStreamingBigBlobFieldsXML;
+    procedure TestStreamingNullFieldsBIN;
+    procedure TestStreamingNullFieldsXML;
     procedure TestStreamingCalculatedFieldsXML;
 
     procedure TestAppendDeleteBIN;
@@ -86,6 +92,7 @@ uses toolsunit, SQLDBToolsUnit, sqldb, XMLDatapacketReader;
 
 const TestXMLFileName = 'test.xml';
       TestBINFileName = 'test.dat';
+      TestFileNames: array[TDataPacketFormat] of string = (TestBINFileName, TestXMLFileName, TestXMLFileName, '');
 
 procedure TTestBufDatasetStreams.CompareDatasets(ADataset1,
   ADataset2: TDataset);
@@ -147,10 +154,7 @@ var FileName: string;
     SaveDs,
     LoadDs : TCustomBufDataset;
 begin
-  case AFormat of
-    dfBinary:  FileName := 'Basics.dat';
-    else       FileName := 'Basics.xml';
-  end;
+  FileName := TestFileNames[AFormat];
 
   SaveDs := DBConnector.GetNDataset(true,15) as TCustomBufDataset;
   SaveDs.Open;
@@ -410,10 +414,10 @@ var SaveDs: TCustomBufDataset;
 begin
   SaveDs := DBConnector.GetNDataset(true,15) as TCustomBufDataset;
   SaveDs.Open;
-  SaveDs.SaveToFile('Basics.xml',dfXML);
+  SaveDs.SaveToFile(TestXMLFileName, dfXML);
 
   LoadDs := TCustomBufDataset.Create(nil);
-  LoadDs.LoadFromFile('Basics.xml');
+  LoadDs.LoadFromFile(TestXMLFileName);
   CompareDatasets(SaveDs,LoadDs);
   LoadDs.Free;
 end;
@@ -458,28 +462,41 @@ begin
   TestChangesXML(@DeleteAllInsertChange);
 end;
 
-procedure TTestBufDatasetStreams.TestStreamingBlobFieldsXML;
+procedure TTestBufDatasetStreams.TestStreamingDataFields(AFormat: TDataPacketFormat);
 var SaveDs: TCustomBufDataset;
     LoadDs: TCustomBufDataset;
+    i: integer;
 begin
   SaveDs := DBConnector.GetFieldDataset as TCustomBufDataset;
   SaveDs.Open;
-  SaveDs.SaveToFile(TestXMLFileName,dfXML);
+  SaveDs.SaveToFile(TestFileNames[AFormat], AFormat);
 
   LoadDs := TCustomBufDataset.Create(nil);
-  LoadDs.LoadFromFile(TestXMLFileName);
+  LoadDs.LoadFromFile(TestFileNames[AFormat]);
+  AssertEquals(SaveDs.FieldCount, LoadDs.FieldCount);
 
   LoadDS.First;
   SaveDS.First;
   while not LoadDS.EOF do
     begin
-    AssertEquals(LoadDS.FieldByName('FBLOB').AsString,SaveDS.FieldByName('FBLOB').AsString);
-    AssertEquals(LoadDS.FieldByName('FMEMO').AsString,SaveDS.FieldByName('FMEMO').AsString);
+    for i:=0 to LoadDS.FieldCount-1 do
+      // all FieldTypes supports GetAsString
+      AssertEquals(LoadDS.Fields[i].FieldName, SaveDS.Fields[i].AsString, LoadDS.Fields[i].AsString);
     LoadDS.Next;
     SaveDS.Next;
     end;
 
   LoadDs.Free;
+end;
+
+procedure TTestBufDatasetStreams.TestStreamingDataFieldsBIN;
+begin
+  TestStreamingDataFields(dfBinary);
+end;
+
+procedure TTestBufDatasetStreams.TestStreamingDataFieldsXML;
+begin
+  TestStreamingDataFields(dfXML);
 end;
 
 procedure TTestBufDatasetStreams.TestStreamingBigBlobFieldsXML;
@@ -545,6 +562,57 @@ begin
   finally
     DeleteFile(fn);
   end;
+end;
+
+procedure TTestBufDatasetStreams.TestStreamingNullFields(AFormat: TDataPacketFormat);
+var
+  SaveDs: TCustomBufDataset;
+  LoadDs: TCustomBufDataset;
+  i: integer;
+begin
+  SaveDs := DBConnector.GetFieldDataset(true) as TCustomBufDataset;
+  with SaveDs do
+    begin
+    Open;
+    Next;
+    Edit;
+    // set all fields, which are not required to null
+    for i:=0 to FieldCount-1 do
+      if not Fields[i].Required and not Fields[i].ReadOnly then
+        Fields[i].Clear;
+    Post;
+    // check if they are null
+    for i:=0 to FieldCount-1 do
+      if not Fields[i].Required and not Fields[i].ReadOnly then
+        AssertTrue(Fields[i].FieldName, Fields[i].IsNull);
+    SaveToFile(TestFileNames[AFormat], AFormat);
+    end;
+
+  LoadDs := TCustomBufDataset.Create(nil);
+  try
+    LoadDs.LoadFromFile(TestFileNames[AFormat]);
+    AssertEquals(SaveDs.FieldCount, LoadDs.FieldCount);
+    SaveDs.First;
+    while not SaveDs.EOF do
+      begin
+      for i:=0 to SaveDs.FieldCount-1 do
+        AssertEquals(SaveDs.Fields[i].FieldName, SaveDs.Fields[i].IsNull, LoadDs.Fields[i].IsNull);
+      LoadDs.Next;
+      SaveDs.Next;
+      end;
+  finally
+    LoadDs.Free;
+  end;
+end;
+
+procedure TTestBufDatasetStreams.TestStreamingNullFieldsBIN;
+begin
+  TestStreamingNullFields(dfBinary);
+end;
+
+procedure TTestBufDatasetStreams.TestStreamingNullFieldsXML;
+begin
+  TestStreamingNullFields(dfXML);
 end;
 
 procedure TTestBufDatasetStreams.TestStreamingCalculatedFieldsXML;
@@ -692,12 +760,12 @@ end;
 
 procedure TTestBufDatasetStreams.SetUp;
 begin
-  DBConnector.StartTest;
+  DBConnector.StartTest(TestName);
 end;
 
 procedure TTestBufDatasetStreams.TearDown;
 begin
-  DBConnector.StopTest;
+  DBConnector.StopTest(TestName);
 end;
 
 

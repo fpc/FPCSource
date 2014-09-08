@@ -69,7 +69,8 @@ implementation
           begin
             { Fixes the case when there are calls done by low-level means
               (cg.a_call_name) but no child callnode }
-            if (pi_do_call in flags) then
+            if (pi_do_call in flags) and
+              not (po_nostackframe in procdef.procoptions) then
               allocate_push_parasize(32);
 
             if not(po_assembler in procdef.procoptions) and

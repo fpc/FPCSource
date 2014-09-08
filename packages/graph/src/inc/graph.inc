@@ -14,7 +14,7 @@
  **********************************************************************}
 
 var
-  ExitSave: pointer;
+  ExitSave: codepointer;
 
 const
   firstCallOfInitGraph: boolean = true;
@@ -47,7 +47,7 @@ const
    StdBufferSize = 4096;   { Buffer size for FloodFill }
 
 type
-  tinttable = array[0..16383] of smallint;
+  tinttable = array[0..16382] of smallint;
   pinttable = ^tinttable;
 
   WordArray = Array [0..StdbufferSize] Of word;
@@ -98,7 +98,7 @@ var
   { information for Text Output routines }
   CurrentTextInfo : TextSettingsType;
   CurrentXRatio, CurrentYRatio: graph_float;
-  installedfonts: longint;  { Number of installed fonts }
+  installedfonts: smallint;  { Number of installed fonts }
 
 
   StartXViewPort: smallint; { absolute }
@@ -112,6 +112,20 @@ var
 
   ArcCall: ArcCoordsType;   { Information on the last call to Arc or Ellipse }
 
+
+type
+  PNewModelist = ^TNewModeList;
+  TNewModeList = record
+    Mode: PModeInfo;
+    next: PNewModeList;
+    internModeNumber: smallint;
+  end;
+  TNewModeInfo = record
+    modeInfo: array[lowNewDriver..highNewDriver] of PNewModeList;
+    loHiModeNr: array[lowNewDriver..highNewDriver] of record
+      lo,hi: smallint;
+    end;
+  end;
 
 var
 
@@ -1110,7 +1124,7 @@ end;
 
 Procedure DefaultPutImage(X,Y: smallint; var Bitmap; BitBlt: Word); {$ifndef fpc}far;{$endif fpc}
 type
-  pt = array[0..$fffffff] of word;
+  pt = array[0..{$ifdef cpu16}16382{$else}$fffffff{$endif}] of word;
   ptw = array[0..2] of longint;
 var
   k: longint;
@@ -1176,7 +1190,7 @@ end;
 
 Procedure DefaultGetImage(X1,Y1,X2,Y2: smallint; Var Bitmap); {$ifndef fpc}far;{$endif fpc}
 type
-  pt = array[0..$fffffff] of word;
+  pt = array[0..{$ifdef cpu16}16382{$else}$fffffff{$endif}] of word;
   ptw = array[0..2] of longint;
 var
   i,j: smallint;
@@ -1906,7 +1920,7 @@ end;
   procedure DrawPoly(numpoints : word;var polypoints);
     type
       ppointtype = ^pointtype;
-      pt = array[0..16000] of pointtype;
+      pt = array[0..8190] of pointtype;
     var
       i, j, LastPolygonStart: longint;
       Closing: boolean;
@@ -2103,7 +2117,9 @@ end;
   var
     list: PModeInfo;
     tmp : PModeInfo;
-    c: longint;
+    newList: PNewModeList;
+    newTmp : PNewModeList;
+    c: smallint;
   begin
    { restore old exitproc! }
    exitproc := exitsave;
@@ -2124,12 +2140,12 @@ end;
      end;
    for c := lowNewDriver to highNewDriver do
      begin
-       list := newModeList.modeinfo[c];
-       while assigned(list) do
+       newList := newModeList.modeinfo[c];
+       while assigned(newList) do
          begin
-           tmp := list;
-           list:=list^.next;
-           dispose(tmp);
+           newTmp := newList;
+           newList:=newList^.next;
+           dispose(newTmp);
          end;
      end;
 {$IFDEF DPMI}

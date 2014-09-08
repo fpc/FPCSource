@@ -980,8 +980,8 @@ end;
 
 
 initialization
-  RegisterExternalLinker(system_i386_netware_info,TLinkerNetware);
-  RegisterInternalLinker(system_i386_netware_info,TInternalLinkerNetware);
+  RegisterLinker(ld_netware,TLinkerNetware);
+  RegisterLinker(ld_int_netware,TInternalLinkerNetware);
   RegisterImport(system_i386_netware,TImportLibNetware);
   RegisterExport(system_i386_netware,TExportLibNetware);
   RegisterTarget(system_i386_netware_info);

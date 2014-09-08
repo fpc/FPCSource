@@ -228,7 +228,10 @@ begin
             DoLog('%s(%d,%d): %s',[e.Filename, e.Row, e.Column, e.Message]);
       end;
     if Not ParseOnly then
+      begin
+      Engine.StartDocumenting;
       CreateOutput(APackage,Engine);
+      end;
   finally
     FreeAndNil(Engine);
     FCurPackage:=Nil;

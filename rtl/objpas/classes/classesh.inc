@@ -215,11 +215,6 @@ Type
     property Current: Pointer read GetCurrent;
   end;
 
-{$ifdef VER2_4}
-type
-  TDirection = (FromBeginning, FromEnd);
-{$endif}
-
   TFPList = class(TObject)
   private
     FList: PPointerList;
@@ -459,8 +454,8 @@ type
     FOwnerInterface: IInterface;
   protected
     { IInterface }
-    function _AddRef: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
-    function _Release: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _AddRef: Longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _Release: Longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
   public
     function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} IID: TGUID; out Obj): HResult; virtual; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
     procedure AfterConstruction; override;
@@ -627,6 +622,7 @@ type
     procedure SetQuoteChar(c:Char);
     procedure SetNameValueSeparator(c:Char);
     procedure WriteData(Writer: TWriter);
+    procedure DoSetTextStr(const Value: string; DoClear : Boolean);
   protected
     procedure DefineProperties(Filer: TFiler); override;
     procedure Error(const Msg: string; Data: Integer);
@@ -655,6 +651,7 @@ type
     procedure Append(const S: string);
     procedure AddStrings(TheStrings: TStrings); overload; virtual;
     procedure AddStrings(const TheStrings: array of string); overload; virtual;
+    Procedure AddText(Const S : String); virtual;
     procedure Assign(Source: TPersistent); override;
     procedure BeginUpdate;
     procedure Clear; virtual; abstract;
@@ -726,13 +723,14 @@ type
     FSorted: Boolean;
     FForceSort : Boolean;
     FOwnsObjects : Boolean;
-    procedure ExchangeItems(Index1, Index2: Integer);
+    procedure ExchangeItemsInt(Index1, Index2: Integer); inline;
     procedure Grow;
-    procedure InternalClear;
+    procedure InternalClear(FromIndex : Integer = 0; ClearOnly : Boolean = False);
     procedure QuickSort(L, R: Integer; CompareFn: TStringListSortCompare);
     procedure SetSorted(Value: Boolean);
     procedure SetCaseSensitive(b : boolean);
   protected
+    procedure ExchangeItems(Index1, Index2: Integer); virtual;
     procedure Changed; virtual;
     procedure Changing; virtual;
     function Get(Index: Integer): string; override;
@@ -746,6 +744,7 @@ type
     procedure InsertItem(Index: Integer; const S: string); virtual;
     procedure InsertItem(Index: Integer; const S: string; O: TObject); virtual;
     Function DoCompareText(const s1,s2 : string) : PtrInt; override;
+    function CompareStrings(const s1,s2 : string) : Integer; virtual;
 
   public
     destructor Destroy; override;
@@ -855,8 +854,8 @@ type
     procedure WriteComponentRes(const ResName: string; Instance: TComponent);
     procedure WriteDescendent(Instance, Ancestor: TComponent);
     procedure WriteDescendentRes(const ResName: string; Instance, Ancestor: TComponent);
-    procedure WriteResourceHeader(const ResName: string; {!!!:out} var FixupInfo: Integer);
-    procedure FixupResourceHeader(FixupInfo: Integer);
+    procedure WriteResourceHeader(const ResName: string; {!!!:out} var FixupInfo: Longint);
+    procedure FixupResourceHeader(FixupInfo: Longint);
     procedure ReadResHeader;
     function ReadByte : Byte;
     function ReadWord : Word;
@@ -882,7 +881,7 @@ type
     function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(const Offset: int64; Origin: TSeekOrigin): int64; override;
-    procedure Check(err:longint); virtual;
+    procedure Check(err:integer); virtual;
   end;
 
   { TOwnerStream }
@@ -1183,7 +1182,7 @@ type
 
 
   TFindMethodEvent = procedure(Reader: TReader; const MethodName: string;
-    var Address: Pointer; var Error: Boolean) of object;
+    var Address: CodePointer; var Error: Boolean) of object;
   TSetMethodPropertyEvent = procedure(Reader: TReader; Instance: TPersistent;
     PropInfo: PPropInfo; const TheMethodName: string;
     var Handled: boolean) of object;
@@ -1232,7 +1231,7 @@ type
     function FindComponentClass(const AClassName: string): TComponentClass;
   protected
     function Error(const Message: string): Boolean; virtual;
-    function FindMethod(ARoot: TComponent; const AMethodName: string): Pointer; virtual;
+    function FindMethod(ARoot: TComponent; const AMethodName: string): CodePointer; virtual;
     procedure ReadProperty(AInstance: TPersistent);
     procedure ReadPropValue(Instance: TPersistent; PropInfo: Pointer);
     procedure PropertyError;
@@ -1689,7 +1688,7 @@ type
       NameCount, LocaleID: Integer; DispIDs: Pointer): HResult; stdcall;
     function Invoke(DispID: Integer; const IID: TGUID; LocaleID: Integer;
       Flags: Word; var Params; VarResult, ExcepInfo, ArgErr: Pointer): HResult; stdcall;
-    function SafeCallException(ExceptObject: TObject; ExceptAddr: Pointer): HResult;
+    function SafeCallException(ExceptObject: TObject; ExceptAddr: CodePointer): HResult;
     procedure FreeOnRelease;
   end;
 
@@ -1772,8 +1771,8 @@ type
     procedure ValidateInsert(AComponent: TComponent); dynamic;
     { IUnknown }
     function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} IID: TGUID; out Obj): Hresult; virtual; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
-    function _AddRef: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
-    function _Release: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _AddRef: Longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _Release: Longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
     function iicrGetComponent: TComponent;
     { IDispatch }
     function GetTypeInfoCount(out Count: Integer): HResult; stdcall;
@@ -1806,7 +1805,7 @@ type
     procedure InsertComponent(AComponent: TComponent);
     procedure RemoveComponent(AComponent: TComponent);
     function SafeCallException(ExceptObject: TObject;
-      ExceptAddr: Pointer): HResult; override;
+      ExceptAddr: CodePointer): HResult; override;
     procedure SetSubComponent(ASubComponent: Boolean);
     function UpdateAction(Action: TBasicAction): Boolean; dynamic;
     property ComObject: IUnknown read GetComObject;
@@ -2142,5 +2141,5 @@ procedure ObjectTextToResource(Input, Output: TStream);
 function LineStart(Buffer, BufPos: PChar): PChar;
 procedure BinToHex(BinValue, HexValue: PChar; BinBufSize: Integer);
 function HexToBin(HexValue, BinValue: PChar; BinBufSize: Integer): Integer;
-function ExtractStrings(Separators, WhiteSpace: TSysCharSet; Content: PChar; Strings: TStrings): Integer;
+function ExtractStrings(Separators, WhiteSpace: TSysCharSet; Content: PChar; Strings: TStrings; AddEmptyStrings : Boolean = False): Integer;
 

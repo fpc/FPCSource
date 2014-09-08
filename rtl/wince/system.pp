@@ -87,15 +87,17 @@ function Win32GetCurrentThreadId:DWORD;
 function TlsAlloc : DWord;
 function TlsFree(dwTlsIndex : DWord) : LongBool;
 
-function GetFileAttributes(p : pchar) : dword;
-function DeleteFile(p : pchar) : longint;
-function MoveFile(old,_new : pchar) : longint;
-function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
+
+function GetFileAttributesW(p : pwidechar) : dword;
+    cdecl; external KernelDLL name 'GetFileAttributesW';
+function DeleteFileW(p : pwidechar) : longint;
+    cdecl; external KernelDLL name 'DeleteFileW';
+function MoveFileW(old,_new : pwidechar) : longint;
+    cdecl; external KernelDLL name 'MoveFileW';
+function CreateFileW(lpFileName:pwidechar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
                    lpSecurityAttributes:pointer; dwCreationDisposition:DWORD;
                    dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint;
-
-function CreateDirectory(name : pointer;sec : pointer) : longbool;
-function RemoveDirectory(name:pointer):longbool;
+    cdecl; external KernelDLL name 'CreateFileW';
 
 
 {$ifdef CPUARM}
@@ -206,6 +208,12 @@ var
 function MessageBox(w1:longint;l1,l2:PWideChar;w2:longint):longint;
    cdecl; external 'coredll' name 'MessageBoxW';
 
+function CreateDirectoryW(name : pwidechar;sec : pointer) : longbool;
+    cdecl; external KernelDLL name 'CreateDirectoryW';
+function RemoveDirectoryW(name:pwidechar):longbool;
+    cdecl; external KernelDLL name 'RemoveDirectoryW';
+
+
 {*****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_MOVE}
@@ -304,7 +312,6 @@ const
      MB_COMPOSITE = 2;
      MB_ERR_INVALID_CHARS = 8;
      MB_USEGLYPHCHARS = 4;
-     CP_OEMCP = 1;
 
 function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:PChar; cchMultiByte:longint; lpWideCharStr:PWideChar;cchWideChar:longint):longint;
      cdecl; external 'coredll' name 'MultiByteToWideChar';
@@ -413,73 +420,6 @@ end;
 {*****************************************************************************
                       WinAPI wrappers implementation
 *****************************************************************************}
-
-function GetFileAttributesW(p : pwidechar) : dword;
-    cdecl; external KernelDLL name 'GetFileAttributesW';
-function DeleteFileW(p : pwidechar) : longint;
-    cdecl; external KernelDLL name 'DeleteFileW';
-function MoveFileW(old,_new : pwidechar) : longint;
-    cdecl; external KernelDLL name 'MoveFileW';
-function CreateFileW(lpFileName:pwidechar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
-                   lpSecurityAttributes:pointer; dwCreationDisposition:DWORD;
-                   dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint;
-    cdecl; external KernelDLL name 'CreateFileW';
-function CreateDirectoryW(name : pwidechar;sec : pointer) : longbool;
-    cdecl; external KernelDLL name 'CreateDirectoryW';
-function RemoveDirectoryW(name:pwidechar):longbool;
-    cdecl; external KernelDLL name 'RemoveDirectoryW';
-
-function GetFileAttributes(p : pchar) : dword;
-var
-  buf: array[0..MaxPathLen] of WideChar;
-begin
-  AnsiToWideBuf(p, -1, buf, SizeOf(buf));
-  GetFileAttributes := GetFileAttributesW(buf);
-end;
-
-function DeleteFile(p : pchar) : longint;
-var
-  buf: array[0..MaxPathLen] of WideChar;
-begin
-  AnsiToWideBuf(p, -1, buf, SizeOf(buf));
-  DeleteFile := DeleteFileW(buf);
-end;
-
-function MoveFile(old,_new : pchar) : longint;
-var
-  buf_old, buf_new: array[0..MaxPathLen] of WideChar;
-begin
-  AnsiToWideBuf(old, -1, buf_old, SizeOf(buf_old));
-  AnsiToWideBuf(_new, -1, buf_new, SizeOf(buf_new));
-  MoveFile := MoveFileW(buf_old, buf_new);
-end;
-
-function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
-                   lpSecurityAttributes:pointer; dwCreationDisposition:DWORD;
-                   dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint;
-var
-  buf: array[0..MaxPathLen] of WideChar;
-begin
-  AnsiToWideBuf(lpFileName, -1, buf, SizeOf(buf));
-  CreateFile := CreateFileW(buf, dwDesiredAccess, dwShareMode, lpSecurityAttributes,
-                            dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
-end;
-
-function CreateDirectory(name : pointer;sec : pointer) : longbool;
-var
-  buf: array[0..MaxPathLen] of WideChar;
-begin
-  AnsiToWideBuf(name, -1, buf, SizeOf(buf));
-  CreateDirectory := CreateDirectoryW(buf, sec);
-end;
-
-function RemoveDirectory(name:pointer):longbool;
-var
-  buf: array[0..MaxPathLen] of WideChar;
-begin
-  AnsiToWideBuf(name, -1, buf, SizeOf(buf));
-  RemoveDirectory := RemoveDirectoryW(buf);
-end;
 
 const
 {$ifdef CPUARM}
@@ -1410,15 +1350,9 @@ end;
 {$endif WINCE_EXCEPTION_HANDLING}
 
 procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
-var
-  st: pointer;
 begin
   IsLibrary:=false;
 {$ifdef CPUARM}
-  asm
-    str sp,st
-  end;
-  StackTop:=st;
   asm
     mov fp,#0
     bl PASCALMAIN;
@@ -1433,11 +1367,6 @@ begin
     mov %esp,%fs:(0)
   {$endif WINCE_EXCEPTION_HANDLING}
     pushl %ebp
-    movl %esp,%eax
-    movl %eax,st
-  end;
-  StackTop:=st;
-  asm
     xorl %eax,%eax
     movw %ss,%ax
     movl %eax,_SS
@@ -1591,6 +1520,9 @@ function WinCEGetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystemCo
       scpAnsi: Result := GetACP;
       scpConsoleInput: Result := GetACP;
       scpConsoleOutput: Result := GetACP;
+      { all of WinCE's file APIs are based on UTF8 -> prevent data loss when using
+        single byte strings }
+      scpFileSystemSingleByte: Result := CP_UTF8;
     end;
   end;
 
@@ -1611,6 +1543,8 @@ procedure InitWinCEWidestrings;
     widestringmanager.GetStandardCodePageProc:=@WinCEGetStandardCodePage;
 
     DefaultSystemCodePage:=GetACP;
+    DefaultFileSystemCodePage:=WinCEGetStandardCodePage(scpFileSystemSingleByte);
+    DefaultRTLFileSystemCodePage:=DefaultFileSystemCodePage;
     DefaultUnicodeCodePage:=CP_UTF16;
   end;
 
@@ -1695,7 +1629,7 @@ var
   ErrorBufW : array[0..ErrorBufferLength] of widechar;
   ErrorLen : longint;
 
-Function ErrorWrite(Var F: TextRec): Integer;
+procedure ErrorWrite(Var F: TextRec);
 {
   An error message should always end with #13#10#13#10
 }
@@ -1721,11 +1655,10 @@ Begin
         end;
       Dec(F.BufPos,i);
     end;
-  ErrorWrite:=0;
 End;
 
 
-Function ErrorClose(Var F: TextRec): Integer;
+procedure ErrorClose(Var F: TextRec);
 begin
   if ErrorLen>0 then
    begin
@@ -1734,17 +1667,15 @@ begin
      ErrorLen:=0;
    end;
   ErrorLen:=0;
-  ErrorClose:=0;
 end;
 
 
-Function ErrorOpen(Var F: TextRec): Integer;
+procedure ErrorOpen(Var F: TextRec);
 Begin
   TextRec(F).InOutFunc:=@ErrorWrite;
   TextRec(F).FlushFunc:=@ErrorWrite;
   TextRec(F).CloseFunc:=@ErrorClose;
   ErrorLen:=0;
-  ErrorOpen:=0;
 End;
 
 
@@ -1816,7 +1747,7 @@ initialization
   if not(IsLibrary) then
     SysInitFPU;
   StackLength := CheckInitialStkLen(InitialStkLen);
-  StackBottom := StackTop - StackLength;
+  StackBottom := Sptr - StackLength;
   { some misc stuff }
   hprevinst:=0;
   if not IsLibrary then
@@ -1838,8 +1769,6 @@ initialization
   ProcessID := GetCurrentProcessID;
   { threading }
   InitSystemThreads;
-  { Reset internal error variable }
-  errno:=0;
   initvariantmanager;
   DispCallByIDProc:=@DoDispCallByIDError;
 

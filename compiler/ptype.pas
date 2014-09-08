@@ -44,10 +44,13 @@ interface
     procedure single_type(var def:tdef;options:TSingleTypeOptions);
 
     { reads any type declaration, where the resulting type will get name as type identifier }
-    procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean;hadtypetoken:boolean);
+    procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;parseprocvardir:boolean;var hadtypetoken:boolean);
 
     { reads any type declaration }
     procedure read_anon_type(var def : tdef;parseprocvardir:boolean);
+
+    { parse nested type declaration of the def (typedef) }
+    procedure parse_nested_types(var def: tdef; isforwarddef: boolean; currentstructstack: tfpobjectlist);
 
 
     { add a definition for a method to a record/objectdef that will contain
@@ -93,14 +96,23 @@ implementation
         dummysymoptions : tsymoptions;
         deprecatedmsg : pshortstring;
       begin
-        dummysymoptions:=[];
-        deprecatedmsg:=nil;
+        if assigned(pd) then
+          begin
+            dummysymoptions:=pd.symoptions;
+            deprecatedmsg:=pd.deprecatedmsg;
+          end
+        else
+          begin
+            dummysymoptions:=[];
+            deprecatedmsg:=nil;
+          end;
         while try_consume_hintdirective(dummysymoptions,deprecatedmsg) do
-          Consume(_SEMICOLON);
+          consume(_SEMICOLON);
         if assigned(pd) then
           begin
             pd.symoptions:=pd.symoptions+dummysymoptions;
-            pd.deprecatedmsg:=deprecatedmsg;
+            if sp_has_deprecated_msg in dummysymoptions then
+              pd.deprecatedmsg:=deprecatedmsg;
           end
         else
           stringdispose(deprecatedmsg);
@@ -158,7 +170,7 @@ implementation
                                 { or an unspecialized generic symbol, which is
                                   the case for generics defined in non-Delphi
                                   modes }
-                                (df_generic in ttypesym(srsym).typedef.defoptions) and
+                                tstoreddef(ttypesym(srsym).typedef).is_generic and
                                 not parse_generic
                               )
                             ) then
@@ -288,7 +300,7 @@ implementation
     { to a appropriating tdef, s gets the name of   }
     { the type to allow name mangling          }
       var
-        is_unit_specific : boolean;
+        is_unit_specific,not_a_type : boolean;
         pos : tfileposinfo;
         s,sorg : TIDString;
         t : ttoken;
@@ -304,10 +316,21 @@ implementation
             try_parse_structdef_nested_type(def,current_structdef,isforwarddef) then
            exit;
          { Use the special searchsym_type that search only types }
-         searchsym_type(s,srsym,srsymtable);
+         if not searchsym_type(s,srsym,srsymtable) then
+           { for a good error message we need to know whether the symbol really did not exist or
+             whether we found a non-type one }
+           not_a_type:=searchsym(s,srsym,srsymtable)
+         else
+           not_a_type:=false;
          { handle unit specification like System.Writeln }
          is_unit_specific:=try_consume_unitsym(srsym,srsymtable,t,true);
          consume(t);
+         if not_a_type then
+           begin
+             { reset the symbol and symtable to not leak any unexpected values }
+             srsym:=nil;
+             srsymtable:=nil;
+           end;
          { Types are first defined with an error def before assigning
            the real type so check if it's an errordef. if so then
            give an error. Only check for typesyms in the current symbol
@@ -327,18 +350,18 @@ implementation
          if isforwarddef and
             not(is_unit_specific) then
            begin
-             def:=tforwarddef.create(sorg,pos);
+             def:=cforwarddef.create(sorg,pos);
              exit;
            end;
          { unknown sym ? }
-         if not assigned(srsym) then
+         if not assigned(srsym) and not not_a_type then
           begin
             Message1(sym_e_id_not_found,sorg);
             def:=generrordef;
             exit;
           end;
          { type sym ? }
-         if (srsym.typ<>typesym) then
+         if not_a_type or (srsym.typ<>typesym) then
           begin
             Message(type_e_type_id_expected);
             def:=generrordef;
@@ -378,6 +401,7 @@ implementation
          srsymtable : tsymtable;
        begin
          dospecialize:=false;
+         srsym:=nil;
          repeat
            again:=false;
              case token of
@@ -395,7 +419,7 @@ implementation
                          single_type(t2,[stoAllowTypeDef]);
                          if is_managed_type(t2) then
                            Message(parser_e_no_refcounted_typed_file);
-                         def:=tfiledef.createtyped(t2);
+                         def:=cfiledef.createtyped(t2);
                       end
                     else
                       def:=cfiletype;
@@ -452,6 +476,7 @@ implementation
             if def.typ=forwarddef then
               def:=ttypesym(srsym).typedef;
             generate_specialization(def,stoParseClassParent in options,'');
+            parse_nested_types(def,stoIsForwardDef in options,nil);
           end
         else
           begin
@@ -474,24 +499,39 @@ implementation
               begin
                 def:=t2
               end
-            else if (df_generic in def.defoptions) and
+            else if tstoreddef(def).is_generic and
                 not
                   (
                     parse_generic and
-                    (current_genericdef.typ in [recorddef,objectdef]) and
                     (
-                      { if both defs belong to the same generic (e.g. both are
-                        subtypes) then we must allow the usage }
-                      defs_belong_to_same_generic(def,current_genericdef) or
-                      { this is needed to correctly resolve "type Foo=SomeGeneric<T>"
-                        declarations inside a generic }
-                      sym_is_owned_by(srsym,tabstractrecorddef(current_genericdef).symtable)
+                      { if this is a generic parameter than it has already been checked that this is
+                        a valid usage of a generic }
+                      (sp_generic_para in srsym.symoptions) or
+                      (
+                        (current_genericdef.typ in [recorddef,objectdef]) and
+                        (
+                          { if both defs belong to the same generic (e.g. both are
+                            subtypes) then we must allow the usage }
+                          defs_belong_to_same_generic(def,current_genericdef) or
+                          { this is needed to correctly resolve "type Foo=SomeGeneric<T>"
+                            declarations inside a generic }
+                          sym_is_owned_by(srsym,tabstractrecorddef(current_genericdef).symtable)
+                        )
+                      )
                     )
                   )
                 then
               begin
-                Message(parser_e_no_generics_as_types);
-                def:=generrordef;
+                srsym:=resolve_generic_dummysym(srsym.name);
+                if assigned(srsym) and
+                    not (sp_generic_dummy in srsym.symoptions) and
+                    (srsym.typ=typesym) then
+                  def:=ttypesym(srsym).typedef
+                else
+                  begin
+                    Message(parser_e_no_generics_as_types);
+                    def:=generrordef;
+                  end;
               end
             else if (def.typ=undefineddef) and
                 (sp_generic_dummy in srsym.symoptions) and
@@ -501,8 +541,16 @@ implementation
               begin
                 if m_delphi in current_settings.modeswitches then
                   begin
-                    Message(parser_e_no_generics_as_types);
-                    def:=generrordef;
+                    srsym:=resolve_generic_dummysym(srsym.name);
+                    if assigned(srsym) and
+                        not (sp_generic_dummy in srsym.symoptions) and
+                        (srsym.typ=typesym) then
+                      def:=ttypesym(srsym).typedef
+                    else
+                      begin
+                        Message(parser_e_no_generics_as_types);
+                        def:=generrordef;
+                      end;
                   end
                 else
                   def:=current_genericdef;
@@ -517,12 +565,35 @@ implementation
       end;
 
 
-    procedure parse_record_members;
+    procedure parse_record_members(recsym:tsym);
 
       function IsAnonOrLocal: Boolean;
         begin
           result:=(current_structdef.objname^='') or
                   not(symtablestack.stack^.next^.symtable.symtabletype in [globalsymtable,staticsymtable,objectsymtable,recordsymtable]);
+        end;
+
+      var
+        olddef : tdef;
+
+      procedure set_typesym;
+        begin
+          if not assigned(recsym) then
+            exit;
+          if ttypesym(recsym).typedef=current_structdef then
+            exit;
+          ttypesym(recsym).typedef:=current_structdef;
+          current_structdef.typesym:=recsym;
+        end;
+
+      procedure reset_typesym;
+        begin
+          if not assigned(recsym) then
+            exit;
+          if ttypesym(recsym).typedef<>current_structdef then
+            exit;
+          ttypesym(recsym).typedef:=olddef;
+          current_structdef.typesym:=nil;
         end;
 
       var
@@ -536,6 +607,14 @@ implementation
         if (token=_SEMICOLON) then
           Exit;
 
+        { the correct typesym<->def relationship is needed for example when
+          parsing parameters that are specializations of the record or when
+          using nested constants and such }
+        if assigned(recsym) then
+          olddef:=ttypesym(recsym).typedef
+        else
+          olddef:=nil;
+        set_typesym;
         current_structdef.symtable.currentvisibility:=vis_public;
         fields_allowed:=true;
         is_classdef:=false;
@@ -765,10 +844,11 @@ implementation
               consume(_ID); { Give a ident expected message, like tp7 }
           end;
         until false;
+        reset_typesym;
       end;
 
     { reads a record declaration }
-    function record_dec(const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList):tdef;
+    function record_dec(const n:tidstring;recsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist):tdef;
       var
          old_current_structdef: tabstractrecorddef;
          old_current_genericdef,
@@ -790,14 +870,14 @@ implementation
              recst:=trecordsymtable.create(n,current_settings.packrecords);
              { can't use recst.realname^ instead of n, because recst.realname is
                nil in case of an empty name }
-             current_structdef:=trecorddef.create(n,recst);
+             current_structdef:=crecorddef.create(n,recst);
            end
          else
            begin
              { for the JVM target records always need a name, because they are
                represented by a class }
              recst:=trecordsymtable.create(current_module.realmodulename^+'__fpc_intern_recname_'+tostr(current_module.deflist.count),current_settings.packrecords);
-             current_structdef:=trecorddef.create(recst.name^,recst);
+             current_structdef:=crecorddef.create(recst.name^,recst);
            end;
          result:=current_structdef;
          { insert in symtablestack }
@@ -833,7 +913,7 @@ implementation
 
          if m_advanced_records in current_settings.modeswitches then
            begin
-             parse_record_members;
+             parse_record_members(recsym);
            end
          else
            begin
@@ -866,7 +946,7 @@ implementation
 
 
     { reads a type definition and returns a pointer to it }
-    procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean;hadtypetoken:boolean);
+    procedure read_named_type(var def:tdef;const newsym:tsym;genericdef:tstoreddef;genericlist:tfphashobjectlist;parseprocvardir:boolean;var hadtypetoken:boolean);
       var
         pt : tnode;
         tt2 : tdef;
@@ -884,6 +964,9 @@ implementation
            old_block_type : tblock_type;
            dospecialize : boolean;
            newdef  : tdef;
+           sym     : tsym;
+           genstr  : string;
+           gencount : longint;
         begin
            old_block_type:=block_type;
            dospecialize:=false;
@@ -923,18 +1006,18 @@ implementation
                        { All checks passed, create the new def }
                        case pt1.resultdef.typ of
                          enumdef :
-                           def:=tenumdef.create_subrange(tenumdef(pt1.resultdef),lv.svalue,hv.svalue);
+                           def:=cenumdef.create_subrange(tenumdef(pt1.resultdef),lv.svalue,hv.svalue);
                          orddef :
                            begin
                              if is_char(pt1.resultdef) then
-                               def:=torddef.create(uchar,lv,hv)
+                               def:=corddef.create(uchar,lv,hv)
                              else
                                if is_boolean(pt1.resultdef) then
-                                 def:=torddef.create(pasbool8,lv,hv)
+                                 def:=corddef.create(pasbool8,lv,hv)
                                else if is_signed(pt1.resultdef) then
-                                 def:=torddef.create(range_to_basetype(lv,hv),lv,hv)
+                                 def:=corddef.create(range_to_basetype(lv,hv),lv,hv)
                                else
-                                 def:=torddef.create(range_to_basetype(lv,hv),lv,hv);
+                                 def:=corddef.create(range_to_basetype(lv,hv),lv,hv);
                            end;
                        end;
                      end;
@@ -1007,7 +1090,7 @@ implementation
                          begin
                            def:=current_genericdef
                          end
-                       else if (df_generic in def.defoptions) and
+                       else if tstoreddef(def).is_generic and
                            { TODO : check once nested generics are allowed }
                            not
                              (
@@ -1028,8 +1111,26 @@ implementation
                              )
                            then
                          begin
-                           Message(parser_e_no_generics_as_types);
-                           def:=generrordef;
+                           if assigned(def.typesym) then
+                             begin
+                               if ttypesym(def.typesym).typedef.typ<>undefineddef then
+                                 { non-Delphi modes... }
+                                 split_generic_name(def.typesym.name,genstr,gencount)
+                               else
+                                 genstr:=def.typesym.name;
+                               sym:=resolve_generic_dummysym(genstr);
+                             end
+                           else
+                             sym:=nil;
+                           if assigned(sym) and
+                               not (sp_generic_dummy in sym.symoptions) and
+                               (sym.typ=typesym) then
+                             def:=ttypesym(sym).typedef
+                           else
+                             begin
+                               Message(parser_e_no_generics_as_types);
+                               def:=generrordef;
+                             end;
                          end
                        else if is_classhelper(def) then
                          begin
@@ -1058,8 +1159,8 @@ implementation
                enumdef :
                  if (tenumdef(tt2).min>=0) and
                     (tenumdef(tt2).max<=255) then
-                  // !! def:=tsetdef.create(tt2,tenumdef(tt2.def).min,tenumdef(tt2.def).max))
-                  def:=tsetdef.create(tt2,tenumdef(tt2).min,tenumdef(tt2).max)
+                  // !! def:=csetdef.create(tt2,tenumdef(tt2.def).min,tenumdef(tt2.def).max))
+                  def:=csetdef.create(tt2,tenumdef(tt2).min,tenumdef(tt2).max)
                  else
                   Message(sym_e_ill_type_decl_set);
                orddef :
@@ -1067,11 +1168,11 @@ implementation
                    if (torddef(tt2).ordtype<>uvoid) and
                       (torddef(tt2).ordtype<>uwidechar) and
                       (torddef(tt2).low>=0) then
-                     // !! def:=tsetdef.create(tt2,torddef(tt2.def).low,torddef(tt2.def).high))
+                     // !! def:=csetdef.create(tt2,torddef(tt2.def).low,torddef(tt2.def).high))
                      if Torddef(tt2).high>int64(high(byte)) then
                        message(sym_e_ill_type_decl_set)
                      else
-                       def:=tsetdef.create(tt2,torddef(tt2).low.svalue,torddef(tt2).high.svalue)
+                       def:=csetdef.create(tt2,torddef(tt2).low.svalue,torddef(tt2).high.svalue)
                    else
                      Message(sym_e_ill_type_decl_set);
                  end;
@@ -1084,7 +1185,7 @@ implementation
         end;
 
 
-      procedure array_dec(is_packed:boolean;genericdef:tstoreddef;genericlist:TFPObjectList);
+      procedure array_dec(is_packed:boolean;genericdef:tstoreddef;genericlist:tfphashobjectlist);
         var
           lowval,
           highval   : TConstExprInt;
@@ -1144,7 +1245,7 @@ implementation
            current_genericdef:=nil;
            current_specializedef:=nil;
            first:=true;
-           arrdef:=tarraydef.create(0,0,s32inttype);
+           arrdef:=carraydef.create(0,0,s32inttype);
            consume(_ARRAY);
 
            { usage of specialized type inside its generic template }
@@ -1161,7 +1262,9 @@ implementation
              in both cases we need "parse_generic" and "current_genericdef"
              so that e.g. specializations of another generic inside the
              current generic can be used (either inline ones or "type" ones) }
-           parse_generic:=(df_generic in arrdef.defoptions) or old_parse_generic;
+           if old_parse_generic then
+             include(arrdef.defoptions,df_generic);
+           parse_generic:=(df_generic in arrdef.defoptions);
            if parse_generic and not assigned(current_genericdef) then
              current_genericdef:=old_current_genericdef;
 
@@ -1224,7 +1327,10 @@ implementation
                                end
                              else
                                if not parse_generic then
-                                 Message(type_e_cant_eval_constant_expr);
+                                 Message(type_e_cant_eval_constant_expr)
+                               else
+                                 { we need a valid range for debug information }
+                                 range_to_type(lowval,highval,indexdef);
                            end
                          else
                            Message(sym_e_error_in_type_def)
@@ -1236,7 +1342,7 @@ implementation
                     as element of the existing array, otherwise modify the existing array }
                   if not(first) then
                     begin
-                      arrdef.elementdef:=tarraydef.create(lowval.svalue,highval.svalue,indexdef);
+                      arrdef.elementdef:=carraydef.create(lowval.svalue,highval.svalue,indexdef);
                       { push new symtable }
                       symtablestack.pop(arrdef.symtable);
                       arrdef:=tarraydef(arrdef.elementdef);
@@ -1288,7 +1394,7 @@ implementation
         end;
 
 
-        function procvar_dec(genericdef:tstoreddef;genericlist:TFPObjectList):tdef;
+        function procvar_dec(genericdef:tstoreddef;genericlist:tfphashobjectlist):tdef;
           var
             is_func:boolean;
             pd:tabstractprocdef;
@@ -1306,7 +1412,7 @@ implementation
 
             is_func:=(token=_FUNCTION);
             consume(token);
-            pd:=tprocvardef.create(normal_function_level);
+            pd:=cprocvardef.create(normal_function_level);
 
             { usage of specialized type inside its generic template }
             if assigned(genericdef) then
@@ -1322,7 +1428,9 @@ implementation
               in both cases we need "parse_generic" and "current_genericdef"
               so that e.g. specializations of another generic inside the
               current generic can be used (either inline ones or "type" ones) }
-            parse_generic:=(df_generic in pd.defoptions) or old_parse_generic;
+            if old_parse_generic then
+              include(pd.defoptions,df_generic);
+            parse_generic:=(df_generic in pd.defoptions);
             if parse_generic and not assigned(current_genericdef) then
               current_genericdef:=old_current_genericdef;
             { don't allow to add defs to the symtable - use it for type param search only }
@@ -1355,7 +1463,7 @@ implementation
               begin
                 if check_proc_directive(true) then
                   begin
-                    newtype:=ttypesym.create('unnamed',result);
+                    newtype:=ctypesym.create('unnamed',result);
                     parse_var_proc_directives(tsym(newtype));
                     newtype.typedef:=nil;
                     result.typesym:=nil;
@@ -1384,6 +1492,8 @@ implementation
         st: tsymtable;
       begin
          def:=nil;
+         v:=0;
+         l:=0;
          if assigned(newsym) then
            name:=newsym.RealName
          else
@@ -1417,7 +1527,7 @@ implementation
                       break;
                   end;
                 if not is_specialize then
-                  aktenumdef:=tenumdef.create
+                  aktenumdef:=cenumdef.create
                 else
                   aktenumdef:=nil;
                 repeat
@@ -1479,9 +1589,9 @@ implementation
                     begin
                       storepos:=current_tokenpos;
                       current_tokenpos:=defpos;
-                      tenumsymtable(aktenumdef.symtable).insert(tenumsym.create(s,aktenumdef,longint(l.svalue)));
+                      tenumsymtable(aktenumdef.symtable).insert(cenumsym.create(s,aktenumdef,longint(l.svalue)));
                       if not (cs_scopedenums in current_settings.localswitches) then
-                        tstoredsymtable(aktenumdef.owner).insert(tenumsym.create(s,aktenumdef,longint(l.svalue)));
+                        tstoredsymtable(aktenumdef.owner).insert(cenumsym.create(s,aktenumdef,longint(l.svalue)));
                       current_tokenpos:=storepos;
                     end;
                 until not try_to_consume(_COMMA);
@@ -1512,10 +1622,18 @@ implementation
                     (tt2.typ=undefineddef) and
                     assigned(tt2.typesym) and
                     (sp_generic_dummy in tt2.typesym.symoptions) then
-                  Message(parser_e_no_generics_as_types);
+                  begin
+                    sym:=resolve_generic_dummysym(tt2.typesym.name);
+                    if assigned(sym) and
+                        not (sp_generic_dummy in sym.symoptions) and
+                        (sym.typ=typesym) then
+                      tt2:=ttypesym(sym).typedef
+                    else
+                      Message(parser_e_no_generics_as_types);
+                  end;
                 { don't use getpointerdef() here, since this is a type
                   declaration (-> must create new typedef) }
-                def:=tpointerdef.create(tt2);
+                def:=cpointerdef.create(tt2);
                 if tt2.typ=forwarddef then
                   current_module.checkforwarddefs.add(def);
               end;
@@ -1528,7 +1646,7 @@ implementation
                     def:=object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_record);
                   end
                 else
-                  def:=record_dec(name,genericdef,genericlist);
+                  def:=record_dec(name,newsym,genericdef,genericlist);
               end;
             _PACKED,
             _BITPACKED:
@@ -1564,7 +1682,7 @@ implementation
                         end;
                       else begin
                         consume(_RECORD);
-                        def:=record_dec(name,genericdef,genericlist);
+                        def:=record_dec(name,newsym,genericdef,genericlist);
                       end;
                     end;
                     current_settings.packrecords:=oldpackrecords;
@@ -1594,11 +1712,11 @@ implementation
                     if is_class(hdef) or
                        is_objcclass(hdef) or
                        is_javaclass(hdef) then
-                      def:=tclassrefdef.create(hdef)
+                      def:=cclassrefdef.create(hdef)
                     else
                       if hdef.typ=forwarddef then
                         begin
-                          def:=tclassrefdef.create(hdef);
+                          def:=cclassrefdef.create(hdef);
                           current_module.checkforwarddefs.add(def);
                         end
                     else
@@ -1678,16 +1796,19 @@ implementation
                 begin
                   consume(_KLAMMERAFFE);
                   single_type(tt2,SingleTypeOptionsInTypeBlock[block_type=bt_type]);
-                  def:=tpointerdef.create(tt2);
+                  def:=cpointerdef.create(tt2);
                   if tt2.typ=forwarddef then
                     current_module.checkforwarddefs.add(def);
                 end
               else
                 if hadtypetoken and
-                    { don't allow "type helper" in mode delphi and require modeswitch class }
-                    ([m_delphi,m_class]*current_settings.modeswitches=[m_class]) and
+                    { don't allow "type helper" in mode delphi and require modeswitch typehelpers }
+                    ([m_delphi,m_type_helpers]*current_settings.modeswitches=[m_type_helpers]) and
                     (token=_ID) and (idtoken=_HELPER) then
                   begin
+                    { reset hadtypetoken, so that calling code knows that it should not be handled
+                      as a "unique" type }
+                    hadtypetoken:=false;
                     consume(_HELPER);
                     def:=object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_type);
                   end
@@ -1701,8 +1822,11 @@ implementation
 
 
     procedure read_anon_type(var def : tdef;parseprocvardir:boolean);
+      var
+        hadtypetoken : boolean;
       begin
-        read_named_type(def,nil,nil,nil,parseprocvardir,false);
+        hadtypetoken:=false;
+        read_named_type(def,nil,nil,nil,parseprocvardir,hadtypetoken);
       end;
 
 

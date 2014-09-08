@@ -1,7 +1,7 @@
 {
     This file is part of the Free Pascal run time library.
     This unit contains the record definition for the Win32 API
-    Copyright (c) 1999-2000 by Florian KLaempfl,
+    Copyright (c) 1999-2014 by Florian Klaempfl,
     member of the Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -60,10 +60,10 @@ procedure FreeLibraryAndExitThread(hLibModule:HMODULE; dwExitCode:DWORD); extern
 function DisableThreadLibraryCalls(hLibModule:HMODULE):WINBOOL; external 'kernel32' name 'DisableThreadLibraryCalls';
 function GetProcAddress(hModule:HINST; lpProcName:LPCSTR):FARPROC; external 'kernel32' name 'GetProcAddress';
 function GetVersion:DWORD; external 'kernel32' name 'GetVersion';
-function GlobalAlloc(uFlags:UINT; dwBytes:DWORD):HGLOBAL; external 'kernel32' name 'GlobalAlloc';
+function GlobalAlloc(uFlags:UINT; dwBytes:PTRUINT):HGLOBAL; external 'kernel32' name 'GlobalAlloc';
 function GlobalDiscard(hglbMem:HGLOBAL):HGLOBAL;
-function GlobalReAlloc(hMem:HGLOBAL; dwBytes:DWORD; uFlags:UINT):HGLOBAL; external 'kernel32' name 'GlobalReAlloc';
-function GlobalSize(hMem:HGLOBAL):DWORD; external 'kernel32' name 'GlobalSize';
+function GlobalReAlloc(hMem:HGLOBAL; dwBytes:PTRUINT; uFlags:UINT):HGLOBAL; external 'kernel32' name 'GlobalReAlloc';
+function GlobalSize(hMem:HGLOBAL):PTRUINT; external 'kernel32' name 'GlobalSize';
 function GlobalFlags(hMem:HGLOBAL):UINT; external 'kernel32' name 'GlobalFlags';
 function GlobalLock(hMem:HGLOBAL):LPVOID; external 'kernel32' name 'GlobalLock';
 function GlobalHandle(pMem:LPCVOID):HGLOBAL; external 'kernel32' name 'GlobalHandle';
@@ -75,9 +75,9 @@ procedure GlobalUnfix(hMem:HGLOBAL); external 'kernel32' name 'GlobalUnfix';
 function GlobalWire(hMem:HGLOBAL):LPVOID; external 'kernel32' name 'GlobalWire';
 function GlobalUnWire(hMem:HGLOBAL):WINBOOL; external 'kernel32' name 'GlobalUnWire';
 procedure GlobalMemoryStatus(lpBuffer:LPMEMORYSTATUS); external 'kernel32' name 'GlobalMemoryStatus';
-function LocalAlloc(uFlags:UINT; uBytes:UINT):HLOCAL; external 'kernel32' name 'LocalAlloc';
+function LocalAlloc(uFlags:UINT; uBytes:PTRUINT):HLOCAL; external 'kernel32' name 'LocalAlloc';
 function LocalDiscard(hlocMem:HLOCAL):HLOCAL;
-function LocalReAlloc(hMem:HLOCAL; uBytes:UINT; uFlags:UINT):HLOCAL; external 'kernel32' name 'LocalReAlloc';
+function LocalReAlloc(hMem:HLOCAL; uBytes:PTRUINT; uFlags:UINT):HLOCAL; external 'kernel32' name 'LocalReAlloc';
 function LocalLock(hMem:HLOCAL):LPVOID; external 'kernel32' name 'LocalLock';
 function LocalHandle(pMem:LPCVOID):HLOCAL; external 'kernel32' name 'LocalHandle';
 function LocalUnlock(hMem:HLOCAL):WINBOOL; external 'kernel32' name 'LocalUnlock';
@@ -86,7 +86,7 @@ function LocalFlags(hMem:HLOCAL):UINT; external 'kernel32' name 'LocalFlags';
 function LocalFree(hMem:HLOCAL):HLOCAL; external 'kernel32' name 'LocalFree';
 function LocalShrink(hMem:HLOCAL; cbNewSize:UINT):UINT; external 'kernel32' name 'LocalShrink';
 function LocalCompact(uMinFree:UINT):UINT; external 'kernel32' name 'LocalCompact';
-function FlushInstructionCache(hProcess:HANDLE; lpBaseAddress:LPCVOID; dwSize:DWORD):WINBOOL; external 'kernel32' name 'FlushInstructionCache';
+function FlushInstructionCache(hProcess:HANDLE; lpBaseAddress:LPCVOID; dwSize:PTRUINT):WINBOOL; external 'kernel32' name 'FlushInstructionCache';
 function VirtualAlloc(lpAddress:LPVOID; dwSize:PTRUINT; flAllocationType:DWORD; flProtect:DWORD):LPVOID; external 'kernel32' name 'VirtualAlloc';
 function VirtualAllocEx(hProcess:THandle;lpAddress:LPVOID;dwsize:PTRUINT;flAllocationType :DWORD;flProtect:DWORD):LPVOID; external 'kernel32' name 'VirtualAllocEx';
 function VirtualAllocExNuma(hProcess:THandle;lpAddress:LPVOID;dwsize:PTRUINT;flAllocationType :DWORD;flProtect:DWORD;nndPreferred:DWORD):LPVOID; external 'kernel32' name 'VirtualAllocExNuma';
@@ -94,11 +94,11 @@ function VirtualFree(lpAddress:LPVOID; dwSize:PTRUINT; dwFreeType:DWORD):WINBOOL
 function VirtualFreeEx(hProcess:THandle;lpAddress:LPVOID; dwSize:PTRUINT; dwFreeType:DWORD):WINBOOL; external 'kernel32' name 'VirtualFreeEx';
 function VirtualProtect(lpAddress:LPVOID; dwSize:PTRUINT; flNewProtect:DWORD; lpflOldProtect:PDWORD):WINBOOL; external 'kernel32' name 'VirtualProtect';
 function VirtualQuery(lpAddress:LPCVOID; lpBuffer:PMEMORY_BASIC_INFORMATION; dwLength:PTRUINT):PTRUINT; external 'kernel32' name 'VirtualQuery';
-function VirtualProtectEx(hProcess:HANDLE; lpAddress:LPVOID; dwSize:DWORD; flNewProtect:DWORD; lpflOldProtect:PDWORD):WINBOOL; external 'kernel32' name 'VirtualProtectEx';
+function VirtualProtectEx(hProcess:HANDLE; lpAddress:LPVOID; dwSize:PTRUINT; flNewProtect:DWORD; lpflOldProtect:PDWORD):WINBOOL; external 'kernel32' name 'VirtualProtectEx';
 function VirtualQueryEx(hProcess:HANDLE; lpAddress:LPCVOID; lpBuffer:PMEMORY_BASIC_INFORMATION; dwLength:PTRUINT):PTRUINT; external 'kernel32' name 'VirtualQueryEx';
 function HeapCreate(flOptions:DWORD; dwInitialSize:PTRUINT; dwMaximumSize:PTRUINT):HANDLE; external 'kernel32' name 'HeapCreate';
 function HeapDestroy(hHeap:HANDLE):WINBOOL; external 'kernel32' name 'HeapDestroy';
-function HeapAlloc(hHeap:HANDLE; dwFlags:DWORD; dwBytes:DWORD):LPVOID; external 'kernel32' name 'HeapAlloc';
+function HeapAlloc(hHeap:HANDLE; dwFlags:DWORD; dwBytes:PTRUINT):LPVOID; external 'kernel32' name 'HeapAlloc';
 function HeapReAlloc(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPVOID; dwBytes:PTRUINT):LPVOID; external 'kernel32' name 'HeapReAlloc';
 function HeapFree(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPVOID):WINBOOL; external 'kernel32' name 'HeapFree';
 function HeapSize(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPCVOID):PTRUINT; external 'kernel32' name 'HeapSize';
@@ -111,8 +111,8 @@ function HeapUnlock(hHeap:HANDLE):WINBOOL; external 'kernel32' name 'HeapUnlock'
 function HeapWalk(hHeap:HANDLE; lpEntry:LPPROCESS_HEAP_ENTRY):WINBOOL; external 'kernel32' name 'HeapWalk';
 function GetProcessAffinityMask(hProcess:HANDLE; lpProcessAffinityMask:PDWORD_PTR; lpSystemAffinityMask:PDWORD_PTR):WINBOOL; external 'kernel32' name 'GetProcessAffinityMask';
 function GetProcessTimes(hProcess:HANDLE; lpCreationTime:LPFILETIME; lpExitTime:LPFILETIME; lpKernelTime:LPFILETIME; lpUserTime:LPFILETIME):WINBOOL; external 'kernel32' name 'GetProcessTimes';
-function GetProcessWorkingSetSize(hProcess:HANDLE; lpMinimumWorkingSetSize:LPDWORD; lpMaximumWorkingSetSize:LPDWORD):WINBOOL; external 'kernel32' name 'GetProcessWorkingSetSize';
-function SetProcessWorkingSetSize(hProcess:HANDLE; dwMinimumWorkingSetSize:DWORD; dwMaximumWorkingSetSize:DWORD):WINBOOL; external 'kernel32' name 'SetProcessWorkingSetSize';
+function GetProcessWorkingSetSize(hProcess:HANDLE; lpMinimumWorkingSetSize:PPTRUINT; lpMaximumWorkingSetSize:PPTRUINT):WINBOOL; external 'kernel32' name 'GetProcessWorkingSetSize';
+function SetProcessWorkingSetSize(hProcess:HANDLE; dwMinimumWorkingSetSize:PTRUINT; dwMaximumWorkingSetSize:PTRUINT):WINBOOL; external 'kernel32' name 'SetProcessWorkingSetSize';
 function OpenProcess(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; dwProcessId:DWORD):HANDLE; external 'kernel32' name 'OpenProcess';
 function GetCurrentProcess:HANDLE; external 'kernel32' name 'GetCurrentProcess';
 function GetCurrentProcessId:DWORD; external 'kernel32' name 'GetCurrentProcessId';
@@ -123,7 +123,7 @@ function GetExitCodeProcess(hProcess:HANDLE; lpExitCode:LPDWORD):WINBOOL; extern
 procedure FatalExit(ExitCode:longint); external 'kernel32' name 'FatalExit';
 procedure RaiseException(dwExceptionCode:DWORD; dwExceptionFlags:DWORD; nNumberOfArguments:DWORD; lpArguments:LPDWORD); external 'kernel32' name 'RaiseException';
 function UnhandledExceptionFilter(ExceptionInfo:lpemptyrecord):LONG; external 'kernel32' name 'UnhandledExceptionFilter';
-function CreateRemoteThread(hProcess:HANDLE; lpThreadAttributes:LPSECURITY_ATTRIBUTES; dwStackSize:DWORD; lpStartAddress:LPTHREAD_START_ROUTINE; lpParameter:LPVOID;
+function CreateRemoteThread(hProcess:HANDLE; lpThreadAttributes:LPSECURITY_ATTRIBUTES; dwStackSize:PTRUINT; lpStartAddress:LPTHREAD_START_ROUTINE; lpParameter:LPVOID;
   dwCreationFlags:DWORD; lpThreadId:LPDWORD):HANDLE; external 'kernel32' name 'CreateRemoteThread';
 function GetCurrentThread:HANDLE; external 'kernel32' name 'GetCurrentThread';
 function GetCurrentThreadId:DWORD; external 'kernel32' name 'GetCurrentThreadId';
@@ -139,8 +139,8 @@ function GetLastError:DWORD; external 'kernel32' name 'GetLastError';
 procedure SetLastError(dwErrCode:DWORD); external 'kernel32' name 'SetLastError';
 function CreateIoCompletionPort(FileHandle:HANDLE; ExistingCompletionPort:HANDLE; CompletionKey:ULONG_PTR; NumberOfConcurrentThreads:DWORD):HANDLE; external 'kernel32' name 'CreateIoCompletionPort';
 function SetErrorMode(uMode:UINT):UINT; external 'kernel32' name 'SetErrorMode';
-function ReadProcessMemory(hProcess:HANDLE; lpBaseAddress:LPCVOID; lpBuffer:LPVOID; nSize:DWORD; lpNumberOfBytesRead:LPDWORD):WINBOOL; external 'kernel32' name 'ReadProcessMemory';
-function WriteProcessMemory(hProcess:HANDLE; lpBaseAddress:LPVOID; lpBuffer:LPVOID; nSize:DWORD; lpNumberOfBytesWritten:LPDWORD):WINBOOL; external 'kernel32' name 'WriteProcessMemory';
+function ReadProcessMemory(hProcess:HANDLE; lpBaseAddress:LPCVOID; lpBuffer:LPVOID; nSize:PTRUINT; lpNumberOfBytesRead:PPTRUINT):WINBOOL; external 'kernel32' name 'ReadProcessMemory';
+function WriteProcessMemory(hProcess:HANDLE; lpBaseAddress:LPVOID; lpBuffer:LPVOID; nSize:PTRUINT; lpNumberOfBytesWritten:PPTRUINT):WINBOOL; external 'kernel32' name 'WriteProcessMemory';
 function GetThreadContext(hThread:HANDLE; lpContext:LPCONTEXT):WINBOOL; external 'kernel32' name 'GetThreadContext';
 function SuspendThread(hThread:HANDLE):DWORD; external 'kernel32' name 'SuspendThread';
 function ResumeThread(hThread:HANDLE):DWORD; external 'kernel32' name 'ResumeThread';
@@ -189,8 +189,8 @@ function DuplicateHandle(hSourceProcessHandle:HANDLE; hSourceHandle:HANDLE; hTar
 function GetHandleInformation(hObject:HANDLE; lpdwFlags:LPDWORD):WINBOOL; external 'kernel32' name 'GetHandleInformation';
 function SetHandleInformation(hObject:HANDLE; dwMask:DWORD; dwFlags:DWORD):WINBOOL; external 'kernel32' name 'SetHandleInformation';
 function LoadModule(lpModuleName:LPCSTR; lpParameterBlock:LPVOID):DWORD; external 'kernel32' name 'LoadModule';
-// Winexec is a win16 legacy function, deprecated for 17 years (deprecated since win95). 
-// Annotated the MS deprecated status with a FPC deprecated directive  so it won't be used for new development.
+// Winexec is a win16 legacy function, deprecated for 17 years (deprecated since Windows 95).
+// Annotated the MS deprecated status with a FPC deprecated directive so it won't be used for new development.
 function WinExec(lpCmdLine:LPCSTR; uCmdShow:UINT):UINT; external 'kernel32' name 'WinExec'; deprecated;
 function ClearCommBreak(hFile:HANDLE):WINBOOL; external 'kernel32' name 'ClearCommBreak';
 function ClearCommError(hFile:HANDLE; lpErrors:LPDWORD; lpStat:LPCOMSTAT):WINBOOL; external 'kernel32' name 'ClearCommError';
@@ -256,6 +256,7 @@ function CompareFileTime(lpFileTime1:LPFILETIME; lpFileTime2:LPFILETIME):LONG; e
 function FileTimeToDosDateTime(lpFileTime:LPFILETIME; lpFatDate:LPWORD; lpFatTime:LPWORD):WINBOOL; external 'kernel32' name 'FileTimeToDosDateTime';
 function DosDateTimeToFileTime(wFatDate:WORD; wFatTime:WORD; lpFileTime:LPFILETIME):WINBOOL; external 'kernel32' name 'DosDateTimeToFileTime';
 function GetTickCount:DWORD; external 'kernel32' name 'GetTickCount';
+// GetTickCount64 requires Windows Vista/Windows Server 2008 or higher
 function GetTickCount64:ULONGLONG; external 'kernel32' name 'GetTickCount64';
 function SetSystemTimeAdjustment(dwTimeAdjustment:DWORD; bTimeAdjustmentDisabled:WINBOOL):WINBOOL; external 'kernel32' name 'SetSystemTimeAdjustment';
 function GetSystemTimeAdjustment(lpTimeAdjustment:PDWORD; lpTimeIncrement:PDWORD; lpTimeAdjustmentDisabled:PWINBOOL):WINBOOL; external 'kernel32' name 'GetSystemTimeAdjustment';
@@ -372,8 +373,8 @@ function MakeAbsoluteSD(pSelfRelativeSecurityDescriptor:PSECURITY_DESCRIPTOR; pA
 function SetKernelObjectSecurity(Handle:HANDLE; SecurityInformation:SECURITY_INFORMATION; SecurityDescriptor:PSECURITY_DESCRIPTOR):WINBOOL; external 'advapi32' name 'SetKernelObjectSecurity';
 function FindNextChangeNotification(hChangeHandle:HANDLE):WINBOOL; external 'kernel32' name 'FindNextChangeNotification';
 function FindCloseChangeNotification(hChangeHandle:HANDLE):WINBOOL; external 'kernel32' name 'FindCloseChangeNotification';
-function VirtualLock(lpAddress:LPVOID; dwSize:DWORD):WINBOOL; external 'kernel32' name 'VirtualLock';
-function VirtualUnlock(lpAddress:LPVOID; dwSize:DWORD):WINBOOL; external 'kernel32' name 'VirtualUnlock';
+function VirtualLock(lpAddress:LPVOID; dwSize:PTRUINT):WINBOOL; external 'kernel32' name 'VirtualLock';
+function VirtualUnlock(lpAddress:LPVOID; dwSize:PTRUINT):WINBOOL; external 'kernel32' name 'VirtualUnlock';
 function MapViewOfFileEx(hFileMappingObject:HANDLE; dwDesiredAccess:DWORD; dwFileOffsetHigh:DWORD; dwFileOffsetLow:DWORD; dwNumberOfBytesToMap:SIZE_T;lpBaseAddress:LPVOID):LPVOID; external 'kernel32' name 'MapViewOfFileEx';
 function SetPriorityClass(hProcess:HANDLE; dwPriorityClass:DWORD):WINBOOL; external 'kernel32' name 'SetPriorityClass';
 function GetPriorityClass(hProcess:HANDLE):DWORD; external 'kernel32' name 'GetPriorityClass';
@@ -665,6 +666,8 @@ function DrawAnimatedRects(hwnd:HWND; idAni:longint; const lprcFrom:RECT; const 
 function TrackPopupMenuEx(_para1:HMENU; _para2:UINT; _para3:longint; _para4:longint; _para5:HWND;_para6:LPTPMPARAMS):WINBOOL; external 'user32' name 'TrackPopupMenuEx';
 function ChildWindowFromPointEx(_para1:HWND; _para2:POINT; _para3:UINT):HWND; external 'user32' name 'ChildWindowFromPointEx';
 function DrawIconEx(hdc:HDC; xLeft:longint; yTop:longint; hIcon:HICON; cxWidth:longint;cyWidth:longint; istepIfAniCur:UINT; hbrFlickerFreeDraw:HBRUSH; diFlags:UINT):WINBOOL; external 'user32' name 'DrawIconEx';
+function GetWindowInfo(hWnd:HWND; pwi:PWindowInfo):WINBOOL; external 'user32' name 'GetWindowInfo';
+
 function AnimatePalette(_para1:HPALETTE; _para2:UINT; _para3:UINT; var _para4:PALETTEENTRY):WINBOOL; external 'gdi32' name 'AnimatePalette';
 function Arc(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:longint; _para7:longint; _para8:longint; _para9:longint):WINBOOL; external 'gdi32' name 'Arc';
 function BitBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:HDC; _para7:longint; _para8:longint; _para9:DWORD):WINBOOL; external 'gdi32' name 'BitBlt';
@@ -924,7 +927,7 @@ function ImageList_GetImageInfo(himl:HIMAGELIST; i:longint; var pImageInfo:IMAGE
 function ImageList_Merge(himl1:HIMAGELIST; i1:longint; himl2:HIMAGELIST; i2:longint; dx:longint;dy:longint):HIMAGELIST; external 'comctl32' name 'ImageList_Merge';
 function ImageList_SetImageCount(himl: HIMAGELIST; uNewCount: UINT): Integer; external 'comctl32.dll' name 'ImageList_SetImageCount';
 
-function CreateToolbarEx(hwnd:HWND; ws:DWORD; wID:UINT; nBitmaps:longint; hBMInst:HINST;wBMID:UINT; lpButtons:LPCTBBUTTON; iNumButtons:longint; dxButton:longint; dyButton:longint;dxBitmap:longint;
+function CreateToolbarEx(hwnd:HWND; ws:DWORD; wID:UINT; nBitmaps:longint; hBMInst:HINST;wBMID:UINT_PTR; lpButtons:LPCTBBUTTON; iNumButtons:longint; dxButton:longint; dyButton:longint;dxBitmap:longint;
   dyBitmap:longint; uStructSize:UINT):HWND; external 'comctl32' name 'CreateToolbarEx';
 function CreateMappedBitmap(hInstance:HINST; idBitmap:longint; wFlags:UINT; lpColorMap:LPCOLORMAP; iNumMaps:longint):HBITMAP; external 'comctl32' name 'CreateMappedBitmap';
 procedure MenuHelp(uMsg:UINT; wParam:WPARAM; lParam:LPARAM; hMainMenu:HMENU; hInst:HINST;hwndStatus:HWND; var lpwIDs:UINT); external 'comctl32' name 'MenuHelp';

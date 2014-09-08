@@ -226,10 +226,12 @@ begin
     if LThread.FInitialSuspended then begin
        LThread.Suspend;
       if not LThread.FInitialSuspended then begin
+        CurrentThreadVar := LThread;
         WRITE_DEBUG('going into LThread.Execute'#13#10);
         LThread.Execute;
       end;
     end else begin
+      CurrentThreadVar := LThread;
       WRITE_DEBUG('going into LThread.Execute'#13#10);
       LThread.Execute;
     end;

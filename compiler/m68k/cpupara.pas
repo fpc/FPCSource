@@ -19,8 +19,6 @@
 
  ****************************************************************************
 }
-{ Generates the argument location information for 680x0.
-}
 unit cpupara;
 
 {$i fpcdefs.inc}
@@ -41,7 +39,8 @@ unit cpupara;
          rtl are used.
        }
        tm68kparamanager = class(tparamanager)
-          procedure getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
+          function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;override;
+          function param_use_paraloc(const cgpara:tcgpara):boolean;override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
@@ -50,10 +49,11 @@ unit cpupara;
           function parseparaloc(p : tparavarsym;const s : string) : boolean;override;
           function parsefuncretloc(p : tabstractprocdef; const s : string) : boolean;override;
           function get_volatile_registers_int(calloption:tproccalloption):tcpuregisterset;override;
+          function get_volatile_registers_address(calloption:tproccalloption):tcpuregisterset;override;
          private
-          procedure init_values(var curintreg, curfloatreg: tsuperregister; var cur_stack_offset: aword);
+          function parse_loc_string_to_register(var locreg: tregister; const s : string): boolean;
           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
-                                               var curintreg, curfloatreg: tsuperregister; var cur_stack_offset: aword):longint;
+                                                var cur_stack_offset: aword):longint;
        end;
 
   implementation
@@ -65,94 +65,39 @@ unit cpupara;
        cpuinfo,
        defutil;
 
-    procedure tm68kparamanager.getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
-      var
-        paraloc : pcgparalocation;
-        psym: tparavarsym;
-        pdef: tdef;
+
+    function tm68kparamanager.get_volatile_registers_int(calloption:tproccalloption):tcpuregisterset;
       begin
-         if nr<1 then
-           internalerror(2002070801);
-         psym:=tparavarsym(pd.paras[nr-1]);
-         pdef:=psym.vardef;
-         if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
-           pdef:=getpointerdef(pdef);
-         cgpara.reset;
-         cgpara.size:=def_cgsize(pdef);
-         cgpara.intsize:=tcgsize2size[cgpara.size];
-         cgpara.alignment:=std_param_align;
-         cgpara.def:=pdef;
-         paraloc:=cgpara.add_location;
-         with paraloc^ do
-           begin
-              { warning : THIS ONLY WORKS WITH INTERNAL ROUTINES,
-                WHICH MUST ALWAYS PASS 4-BYTE PARAMETERS!!
-              }
-              loc:=LOC_REFERENCE;
-              reference.index:=NR_STACK_POINTER_REG;
-              reference.offset:=target_info.first_parm_offset+nr*4;
-              size:=def_cgsize(pdef);
-              def:=pdef;
-           end;
+        { d0 and d1 are considered volatile }
+        Result:=VOLATILE_INTREGISTERS;
       end;
 
-    function getparaloc(p : tdef) : tcgloc;
 
+    function tm68kparamanager.get_volatile_registers_address(calloption:tproccalloption):tcpuregisterset;
       begin
-         result:=LOC_REFERENCE;
-         (* Later, the LOC_REFERENCE is in most cases changed into LOC_REGISTER
-           if push_addr_param for the def is true
-         case p.typ of
-            orddef:
-              result:=LOC_REGISTER;
-            floatdef:
-              result:=LOC_FPUREGISTER;
-            enumdef:
-              result:=LOC_REGISTER;
-            pointerdef:
-              result:=LOC_REGISTER;
-            formaldef:
-              result:=LOC_REGISTER;
-            classrefdef:
-              result:=LOC_REGISTER;
-            recorddef:
-              if (target_info.abi<>abi_powerpc_aix) then
-                result:=LOC_REFERENCE
-              else
-                result:=LOC_REGISTER;
-            objectdef:
-              if is_object(p) then
-                result:=LOC_REFERENCE
-              else
-                result:=LOC_REGISTER;
-            stringdef:
-              if is_shortstring(p) or is_longstring(p) then
-                result:=LOC_REFERENCE
-              else
-                result:=LOC_REGISTER;
-            procvardef:
-              if (po_methodpointer in tprocvardef(p).procoptions) then
-                result:=LOC_REFERENCE
-              else
-                result:=LOC_REGISTER;
-            filedef:
-              result:=LOC_REGISTER;
-            arraydef:
-              result:=LOC_REFERENCE;
-            setdef:
-              if is_smallset(p) then
-                result:=LOC_REGISTER
-              else
-                result:=LOC_REFERENCE;
-            variantdef:
-              result:=LOC_REFERENCE;
-            { avoid problems with errornous definitions }
-            errordef:
-              result:=LOC_REGISTER;
-            else
-              internalerror(2002071001);
-         end;
-         *)
+        { a0 and a1 are considered volatile }
+        Result:=VOLATILE_ADDRESSREGISTERS;
+      end;
+
+
+    function tm68kparamanager.param_use_paraloc(const cgpara:tcgpara):boolean;
+      var
+        paraloc : pcgparalocation;
+      begin
+        if not assigned(cgpara.location) then
+          internalerror(200410102);
+        result:=true;
+        { All locations are LOC_REFERENCE }
+        paraloc:=cgpara.location;
+        while assigned(paraloc) do
+          begin
+            if (paraloc^.loc<>LOC_REFERENCE) then
+              begin
+                result:=false;
+                exit;
+              end;
+            paraloc:=paraloc^.next;
+          end;
       end;
 
 
@@ -171,7 +116,7 @@ unit cpupara;
           formaldef :
             result:=true;
           recorddef:
-            result:=true;
+            result:=false;
           arraydef:
             result:=(tarraydef(def).highrange>=tarraydef(def).lowrange) or
                              is_open_array(def) or
@@ -184,16 +129,28 @@ unit cpupara;
           stringdef :
             result:=tstringdef(def).stringtype in [st_shortstring,st_longstring];
           procvardef :
-            result:=po_methodpointer in tprocvardef(def).procoptions;
+            { Handling of methods must match that of records }
+            result:=false;
         end;
       end;
 
-    procedure tm68kparamanager.init_values(var curintreg, curfloatreg: tsuperregister; var cur_stack_offset: aword);
+
+    function tm68kparamanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
       begin
-        cur_stack_offset:=8;
-        curintreg:=RS_D0;
-        curfloatreg:=RS_FP0;
+        if handle_common_ret_in_param(def,pd,result) then
+          exit;
+
+        case def.typ of
+          recorddef:
+            if def.size in [1,2,4] then
+              begin
+                result:=false;
+                exit;
+              end;
+        end;
+        result:=inherited ret_in_param(def,pd);
       end;
+
 
     function tm68kparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
       var
@@ -202,6 +159,17 @@ unit cpupara;
       begin
         if set_common_funcretloc_info(p,forcetempdef,retcgsize,result) then
           exit;
+
+        { always use the whole 32 bit register when returning values }
+        if (side=calleeside) and
+           (result.intsize>0) and
+           (result.intsize<sizeof(aint)) then
+          begin
+            result.def:=sinttype;
+            result.intsize:=sizeof(aint);
+            retcgsize:=OS_SINT;
+            result.size:=retcgsize;
+          end;
 
         paraloc:=result.add_location;
         { Return in FPU register? }
@@ -252,45 +220,33 @@ unit cpupara;
     function tm68kparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
       var
         cur_stack_offset: aword;
-        curintreg, curfloatreg: tsuperregister;
       begin
-        init_values(curintreg,curfloatreg,cur_stack_offset);
-
-        result:=create_paraloc_info_intern(p,side,p.paras,curintreg,curfloatreg,cur_stack_offset);
+        cur_stack_offset:=0;
+        result:=create_paraloc_info_intern(p,side,p.paras,cur_stack_offset);
 
         create_funcretloc_info(p,side);
       end;
 
     function tm68kparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
-                               var curintreg, curfloatreg: tsuperregister; var cur_stack_offset: aword):longint;
+                               var cur_stack_offset: aword):longint;
       var
         paraloc      : pcgparalocation;
         hp           : tparavarsym;
         paracgsize   : tcgsize;
         paralen      : aint;
-        parasize     : longint;
-	paradef      : tdef;
+        paradef      : tdef;
         i            : longint;
-	loc          : tcgloc;
-	nextintreg,
-	nextfloatreg : tsuperregister;
-	stack_offset : longint;
         firstparaloc : boolean;
 
       begin
         result:=0;
-	nextintreg:=curintreg;
-	nextfloatreg:=curfloatreg;
-	stack_offset:=cur_stack_offset;
 
-        parasize:=0;
-
-        for i:=0 to p.paras.count-1 do
+        for i:=0 to paras.count-1 do
           begin
             hp:=tparavarsym(paras[i]);
-	    paradef:=hp.vardef;
+            paradef:=hp.vardef;
 
-	    { syscall for AmigaOS can have already a paraloc set }
+            { syscall for AmigaOS can have already a paraloc set }
             if (vo_has_explicit_paraloc in hp.varoptions) then
               begin
                 if not(vo_is_syscall_lib in hp.varoptions) then
@@ -303,13 +259,10 @@ unit cpupara;
             if (p.proccalloption in cstylearrayofconst) and
                is_array_of_const(paradef) then
               begin
-{$ifdef DEBUG_CHARLIE}
-                writeln('loc register');
-{$endif DEBUG_CHARLIE}
                 paraloc:=hp.paraloc[side].add_location;
                 { hack: the paraloc must be valid, but is not actually used }
                 paraloc^.loc:=LOC_REGISTER;
-		paraloc^.register:=NR_D0;
+                paraloc^.register:=NR_D0;
                 paraloc^.size:=OS_ADDR;
                 paraloc^.def:=voidpointertype;
                 break;
@@ -317,11 +270,7 @@ unit cpupara;
 
             if push_addr_param(hp.varspez,paradef,p.proccalloption) then
               begin
-{$ifdef DEBUG_CHARLIE}
-                writeln('loc register');
-{$endif DEBUG_CHARLIE}
                 paradef:=getpointerdef(paradef);
-                loc:=LOC_REGISTER;
                 paracgsize := OS_ADDR;
                 paralen := tcgsize2size[OS_ADDR];
               end
@@ -332,10 +281,9 @@ unit cpupara;
                 else
                   paralen:=tcgsize2size[def_cgsize(paradef)];
 
-                loc:=getparaloc(paradef);
                 paracgsize:=def_cgsize(paradef);
                 { for things like formaldef }
-                if (paracgsize=OS_NO) then
+                if (paracgsize=OS_NO) and (paradef.typ<>recorddef) then
                   begin
                     paracgsize:=OS_ADDR;
                     paralen := tcgsize2size[OS_ADDR];
@@ -360,140 +308,50 @@ unit cpupara;
             while (paralen > 0) do
               begin
                 paraloc:=hp.paraloc[side].add_location;
-                (*
-                  by default, the m68k doesn't know any register parameters  (FK)
-                if (loc = LOC_REGISTER) and
-                   (nextintreg <= RS_D2) then
+
+                paraloc^.loc:=LOC_REFERENCE;
+                paraloc^.def:=get_paraloc_def(paradef,paralen,firstparaloc);
+                if (paradef.typ=floatdef) then
+                  paraloc^.size:=int_float_cgsize(paralen)
+                else
+                  paraloc^.size:=int_cgsize(paralen);
+
+                paraloc^.reference.offset:=cur_stack_offset;
+                if (side = callerside) then
+                  paraloc^.reference.index:=NR_STACK_POINTER_REG
+                else
                   begin
-		    //writeln('loc register');
-                    paraloc^.loc := loc;
-                    { make sure we don't lose whether or not the type is signed }
-                    if (paradef.typ <> orddef) then
-                      paracgsize := int_cgsize(paralen);
-                    if (paracgsize in [OS_NO,OS_64,OS_S64]) then
-                      paraloc^.size := OS_INT
-                    else
-                      paraloc^.size := paracgsize;
-                    paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBNONE);
-                    inc(nextintreg);
-                    dec(paralen,tcgsize2size[paraloc^.size]);
-                  end
-                else if (loc = LOC_FPUREGISTER) and
-                        (nextfloatreg <= RS_FP2) then
-                  begin
-//		    writeln('loc fpuregister');
-                    paraloc^.loc:=loc;
-                    paraloc^.size := paracgsize;
-                    paraloc^.register:=newreg(R_FPUREGISTER,nextfloatreg,R_SUBWHOLE);
-                    inc(nextfloatreg);
-                    dec(paralen,tcgsize2size[paraloc^.size]);
-                  end
-                else { LOC_REFERENCE }
-                *)
-                  begin
-{$ifdef DEBUG_CHARLIE}
-		    writeln('loc reference');
-{$endif DEBUG_CHARLIE}
-                    paraloc^.loc:=LOC_REFERENCE;
-                    paraloc^.size:=int_cgsize(paralen);
-                    paraloc^.def:=get_paraloc_def(paradef,paralen,firstparaloc);
-                    if (side = callerside) then
-                      paraloc^.reference.index:=NR_STACK_POINTER_REG
-                    else
-                      paraloc^.reference.index:=NR_FRAME_POINTER_REG;
-                    paraloc^.reference.offset:=stack_offset;
-                    inc(stack_offset,align(paralen,4));
-                    paralen := 0;
+                    paraloc^.reference.index:=NR_FRAME_POINTER_REG;
+                    inc(paraloc^.reference.offset,target_info.first_parm_offset);
+                    { M68K is a big-endian target }
+                    if (paralen<tcgsize2size[OS_INT]) then
+                      inc(paraloc^.reference.offset,4-paralen);
                   end;
+                inc(cur_stack_offset,align(paralen,4));
+                paralen := 0;
+
                 firstparaloc:=false;
               end;
           end;
-         result:=stack_offset;
-//	 writeln('stack offset:',stack_offset);
+         result:=cur_stack_offset;
       end;
 
 
-{
-
-            if push_addr_param(hp.varspez,paradef,p.proccalloption) then
-              paracgsize:=OS_ADDR
-            else
-              begin
-                paracgsize:=def_cgsize(paradef);
-                if paracgsize=OS_NO then
-                  paracgsize:=OS_ADDR;
-              end;
-            hp.paraloc[side].size:=paracgsize;
-            hp.paraloc[side].Alignment:=std_param_align;
-            paraloc:=hp.paraloc[side].add_location;
-            paraloc^.size:=paracgsize;
-            paraloc^.loc:=LOC_REFERENCE;
-            if side=callerside then
-              paraloc^.reference.index:=NR_STACK_POINTER_REG
-            else
-              paraloc^.reference.index:=NR_FRAME_POINTER_REG;
-            paraloc^.reference.offset:=target_info.first_parm_offset+parasize;
-          end;
-	create_funcretloc_info(p,side);
-        result:=parasize;
+    function tm68kparamanager.parse_loc_string_to_register(var locreg: tregister; const s : string): boolean;
+      begin
+        locreg:=std_regnum_search(lowercase(s));
+        result:=(locreg <> NR_NO) and (locreg <> NR_SP);
       end;
-}
 
     function tm68kparamanager.parsefuncretloc(p : tabstractprocdef; const s : string) : boolean;
       begin
-        result:=false;
         case target_info.system of
           system_m68k_amiga:
-            begin
-              if s='D0' then
-                p.exp_funcretloc:=NR_D0
-              else if s='D1' then
-                p.exp_funcretloc:=NR_D1
-              else if s='D2' then
-                p.exp_funcretloc:=NR_D2
-              else if s='D3' then
-                p.exp_funcretloc:=NR_D3
-              else if s='D4' then
-                p.exp_funcretloc:=NR_D4
-              else if s='D5' then
-                p.exp_funcretloc:=NR_D5
-              else if s='D6' then
-                p.exp_funcretloc:=NR_D6
-              else if s='D7' then
-                p.exp_funcretloc:=NR_D7
-              else if s='A0' then
-                p.exp_funcretloc:=NR_A0
-              else if s='A1' then
-                p.exp_funcretloc:=NR_A1
-              else if s='A2' then
-                p.exp_funcretloc:=NR_A2
-              else if s='A3' then
-                p.exp_funcretloc:=NR_A3
-              else if s='A4' then
-                p.exp_funcretloc:=NR_A4
-              else if s='A5' then
-                p.exp_funcretloc:=NR_A5
-              { 'A6' is problematic, since it's the frame pointer in fpc,
-                so it should be saved before a call! }
-              else if s='A6' then
-                p.exp_funcretloc:=NR_A6
-              { 'A7' is the stack pointer on 68k, can't be overwritten by API calls }
-              else
-                p.exp_funcretloc:=NR_NO;
-
-              if p.exp_funcretloc<>NR_NO then result:=true;
-            end;
+            result:=parse_loc_string_to_register(p.exp_funcretloc, s);
           else
             internalerror(2005121801);
         end;
       end;
-
-    function tm68kparamanager.get_volatile_registers_int(calloption:tproccalloption):tcpuregisterset;
-      begin
-        { for now we set all int registers as volatile }
-        Result:=[RS_D0..RS_D7];
-      end;
-
 
     function tm68kparamanager.parseparaloc(p : tparavarsym;const s : string) : boolean;
       var
@@ -508,41 +366,8 @@ unit cpupara;
               paraloc^.loc:=LOC_REGISTER;
               paraloc^.size:=def_cgsize(p.vardef);
               paraloc^.def:=p.vardef;
-              { pattern is always uppercase'd }
-              if s='D0' then
-                paraloc^.register:=NR_D0
-              else if s='D1' then
-                paraloc^.register:=NR_D1
-              else if s='D2' then
-                paraloc^.register:=NR_D2
-              else if s='D3' then
-                paraloc^.register:=NR_D3
-              else if s='D4' then
-                paraloc^.register:=NR_D4
-              else if s='D5' then
-                paraloc^.register:=NR_D5
-              else if s='D6' then
-                paraloc^.register:=NR_D6
-              else if s='D7' then
-                paraloc^.register:=NR_D7
-              else if s='A0' then
-                paraloc^.register:=NR_A0
-              else if s='A1' then
-                paraloc^.register:=NR_A1
-              else if s='A2' then
-                paraloc^.register:=NR_A2
-              else if s='A3' then
-                paraloc^.register:=NR_A3
-              else if s='A4' then
-                paraloc^.register:=NR_A4
-              else if s='A5' then
-                paraloc^.register:=NR_A5
-              { 'A6' is problematic, since it's the frame pointer in fpc,
-                so it should be saved before a call! }
-              else if s='A6' then
-                paraloc^.register:=NR_A6
-              { 'A7' is the stack pointer on 68k, can't be overwritten by API calls }
-              else
+
+              if not parse_loc_string_to_register(paraloc^.register, s) then
                 exit;
 
               { copy to callee side }
@@ -556,10 +381,7 @@ unit cpupara;
 
 
     procedure tm68kparamanager.createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);
-      var
-        paraloc : pcgparalocation;
       begin
-        paraloc:=parasym.paraloc[callerside].location;
         { Never a need for temps when value is pushed (calls inside parameters
           will simply allocate even more stack space for their parameters) }
         if not(use_fixed_stack) then
@@ -570,14 +392,13 @@ unit cpupara;
     function tm68kparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
       var
         cur_stack_offset: aword;
-        curintreg, curfloatreg: tsuperregister;
       begin
-        init_values(curintreg,curfloatreg,cur_stack_offset);
+        cur_stack_offset:=0;
 
-        result:=create_paraloc_info_intern(p,callerside,p.paras,curintreg,curfloatreg,cur_stack_offset);
+        result:=create_paraloc_info_intern(p,callerside,p.paras,cur_stack_offset);
         if (p.proccalloption in cstylearrayofconst) then
           { just continue loading the parameters in the registers }
-          result:=create_paraloc_info_intern(p,callerside,varargspara,curintreg,curfloatreg,cur_stack_offset)
+          result:=create_paraloc_info_intern(p,callerside,varargspara,cur_stack_offset)
         else
           internalerror(200410231);
       end;

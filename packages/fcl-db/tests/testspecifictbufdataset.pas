@@ -2,7 +2,7 @@ unit TestSpecificTBufDataset;
 
 {
   Unit tests which are specific to stand-alone TBufDataset-datasets. (So not
-  for derrived datasets like TQuery )
+  for derived datasets like TQuery )
 }
 
 {$IFDEF FPC}
@@ -124,12 +124,12 @@ end;
 
 procedure TTestSpecificTBufDataset.SetUp;
 begin
-  DBConnector.StartTest;
+  DBConnector.StartTest(TestName);
 end;
 
 procedure TTestSpecificTBufDataset.TearDown;
 begin
-  DBConnector.StopTest;
+  DBConnector.StopTest(TestName);
 end;
 
 procedure TTestSpecificTBufDataset.CreateDatasetFromFielddefs;

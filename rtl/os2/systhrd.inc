@@ -170,10 +170,6 @@ function DosQuerySysState (EntityList, EntityLevel, PID, TID: cardinal;
                                 var Buffer; BufLen: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 368;
 
-function DosQuerySysInfo (First, Last: cardinal; var Buf; BufSize: cardinal):
-                                                               cardinal; cdecl;
-                                                 external 'DOSCALLS' index 348;
-
 
 
 {*****************************************************************************

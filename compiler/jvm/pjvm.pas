@@ -48,13 +48,6 @@ interface
 
     function jvm_wrap_method_with_vis(pd: tprocdef; vis: tvisibility): tprocdef;
 
-    { when a private/protected field is exposed via a property with a higher
-      visibility, then we have to create a getter and/or setter with that same
-      higher visibility to make sure that using the property does not result
-      in JVM verification errors }
-    procedure jvm_create_getter_for_property(p: tpropertysym; orgaccesspd: tprocdef);
-    procedure jvm_create_setter_for_property(p: tpropertysym; orgaccesspd: tprocdef);
-
 
 implementation
 
@@ -64,7 +57,7 @@ implementation
     fmodule,
     parabase,aasmdata,
     pdecsub,ngenutil,pparautl,
-    symtable,symcreat,defcmp,jvmdef,nobj,
+    symtable,symcreat,defcmp,jvmdef,symcpu,nobj,
     defutil,paramgr;
 
 
@@ -80,6 +73,7 @@ implementation
         sstate: tscannerstate;
         needclassconstructor: boolean;
       begin
+        ps:=nil;
         { if there is at least one constructor for a class, do nothing (for
            records, we'll always also need a parameterless constructor) }
         if not is_javaclass(obj) or
@@ -130,7 +124,7 @@ implementation
               end;
             if not assigned(sym) then
               begin
-                ps:=tprocsym.create('Create');
+                ps:=cprocsym.create('Create');
                 obj.symtable.insert(ps);
               end;
             { determine symtable level }
@@ -138,7 +132,7 @@ implementation
             while not(topowner.owner.symtabletype in [staticsymtable,globalsymtable]) do
               topowner:=topowner.owner.defowner;
             { create procdef }
-            pd:=tprocdef.create(topowner.owner.symtablelevel+1);
+            pd:=cprocdef.create(topowner.owner.symtablelevel+1);
             if df_generic in obj.defoptions then
               include(pd.defoptions,df_generic);
             { method of this objectdef }
@@ -303,8 +297,8 @@ implementation
         { create new class (different internal name than enum to prevent name
           clash; at unit level because we don't want its methods to be nested
           inside a function in case its a local type) }
-        enumclass:=tobjectdef.create(odt_javaclass,'$'+current_module.realmodulename^+'$'+name+'$InternEnum$'+tostr(def.defid),java_jlenum);
-        tenumdef(def).classdef:=enumclass;
+        enumclass:=cobjectdef.create(odt_javaclass,'$'+current_module.realmodulename^+'$'+name+'$InternEnum$'+tostr(def.defid),java_jlenum);
+        tcpuenumdef(def).classdef:=enumclass;
         include(enumclass.objectoptions,oo_is_enum_class);
         include(enumclass.objectoptions,oo_is_sealed);
         { implement FpcEnumValueObtainable interface }
@@ -313,11 +307,11 @@ implementation
           name that can be used in generated Pascal code without risking an
           identifier conflict (since it is local to this class; the global name
           is unique because it's an identifier that contains $-signs) }
-        enumclass.symtable.insert(ttypesym.create('__FPC_TEnumClassAlias',enumclass));
+        enumclass.symtable.insert(ctypesym.create('__FPC_TEnumClassAlias',enumclass));
 
         { also create an alias for the enum type so that we can iterate over
           all enum values when creating the body of the class constructor }
-        temptypesym:=ttypesym.create('__FPC_TEnumAlias',nil);
+        temptypesym:=ctypesym.create('__FPC_TEnumAlias',nil);
         { don't pass def to the ttypesym constructor, because then it
           will replace the current (real) typesym of that def with the alias }
         temptypesym.typedef:=def;
@@ -349,23 +343,23 @@ implementation
         { create static fields representing all enums }
         for i:=0 to tenumdef(def).symtable.symlist.count-1 do
           begin
-            fsym:=tfieldvarsym.create(tenumsym(tenumdef(def).symtable.symlist[i]).realname,vs_final,enumclass,[]);
+            fsym:=cfieldvarsym.create(tenumsym(tenumdef(def).symtable.symlist[i]).realname,vs_final,enumclass,[]);
             enumclass.symtable.insert(fsym);
             sym:=make_field_static(enumclass.symtable,fsym);
             { add alias for the field representing ordinal(0), for use in
               initialization code }
             if tenumsym(tenumdef(def).symtable.symlist[i]).value=0 then
               begin
-                aliassym:=tstaticvarsym.create('__FPC_Zero_Initializer',vs_final,enumclass,[vo_is_external]);
+                aliassym:=cstaticvarsym.create('__FPC_Zero_Initializer',vs_final,enumclass,[vo_is_external]);
                 enumclass.symtable.insert(aliassym);
                 aliassym.set_raw_mangledname(sym.mangledname);
               end;
           end;
         { create local "array of enumtype" type for the "values" functionality
           (used internally by the JDK) }
-        arrdef:=tarraydef.create(0,tenumdef(def).symtable.symlist.count-1,s32inttype);
+        arrdef:=carraydef.create(0,tenumdef(def).symtable.symlist.count-1,s32inttype);
         arrdef.elementdef:=enumclass;
-        arrsym:=ttypesym.create('__FPC_TEnumValues',arrdef);
+        arrsym:=ctypesym.create('__FPC_TEnumValues',arrdef);
         enumclass.symtable.insert(arrsym);
         { insert "public static values: array of enumclass" that returns $VALUES.clone()
           (rather than a dynamic array and using clone --which we don't support yet for arrays--
@@ -379,12 +373,12 @@ implementation
         if tenumdef(def).has_jumps then
           begin
             { add field for the value }
-            fsym:=tfieldvarsym.create('__fpc_fenumval',vs_final,s32inttype,[]);
+            fsym:=cfieldvarsym.create('__fpc_fenumval',vs_final,s32inttype,[]);
             enumclass.symtable.insert(fsym);
             tobjectsymtable(enumclass.symtable).addfield(fsym,vis_strictprivate);
             { add class field with hash table that maps from FPC-declared ordinal value -> enum instance }
             juhashmap:=search_system_type('JUHASHMAP').typedef;
-            fsym:=tfieldvarsym.create('__fpc_ord2enum',vs_final,juhashmap,[]);
+            fsym:=cfieldvarsym.create('__fpc_ord2enum',vs_final,juhashmap,[]);
             enumclass.symtable.insert(fsym);
             make_field_static(enumclass.symtable,fsym);
             { add custom constructor }
@@ -441,14 +435,14 @@ implementation
           "Values" instance method -- that's also the reason why we insert the
           field only now, because we cannot disable duplicate identifier
           checking when creating the "Values" method }
-        fsym:=tfieldvarsym.create('$VALUES',vs_final,arrdef,[]);
+        fsym:=cfieldvarsym.create('$VALUES',vs_final,arrdef,[]);
         fsym.visibility:=vis_strictprivate;
         enumclass.symtable.insert(fsym,false);
         sym:=make_field_static(enumclass.symtable,fsym);
         { alias for accessing the field in generated Pascal code }
         sl:=tpropaccesslist.create;
         sl.addsym(sl_load,sym);
-        enumclass.symtable.insert(tabsolutevarsym.create_ref('__fpc_FVALUES',arrdef,sl));
+        enumclass.symtable.insert(cabsolutevarsym.create_ref('__fpc_FVALUES',arrdef,sl));
         { add initialization of the static class fields created above }
         if not str_parse_method_dec('constructor fpc_enum_class_constructor;',potype_class_constructor,true,enumclass,pd) then
           internalerror(2011062303);
@@ -488,13 +482,13 @@ implementation
         { create new class (different internal name than pvar to prevent name
           clash; at unit level because we don't want its methods to be nested
           inside a function in case its a local type) }
-        pvclass:=tobjectdef.create(odt_javaclass,'$'+current_module.realmodulename^+'$'+name+'$InternProcvar$'+tostr(def.defid),java_procvarbase);
-        tprocvardef(def).classdef:=pvclass;
+        pvclass:=cobjectdef.create(odt_javaclass,'$'+current_module.realmodulename^+'$'+name+'$InternProcvar$'+tostr(def.defid),java_procvarbase);
+        tcpuprocvardef(def).classdef:=pvclass;
         include(pvclass.objectoptions,oo_is_sealed);
         if df_generic in def.defoptions then
           include(pvclass.defoptions,df_generic);
         { associate typesym }
-        pvclass.symtable.insert(ttypesym.create('__FPC_TProcVarClassAlias',pvclass));
+        pvclass.symtable.insert(ctypesym.create('__FPC_TProcVarClassAlias',pvclass));
         { set external name to match procvar type name }
         if not islocal then
           pvclass.objextname:=stringdup(name)
@@ -511,12 +505,13 @@ implementation
         methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_bareproc));
         finish_copied_procdef(methoddef,'invoke',pvclass.symtable,pvclass);
         insert_self_and_vmt_para(methoddef);
+        insert_funcret_para(methoddef);
         methoddef.synthetickind:=tsk_jvm_procvar_invoke;
         methoddef.calcparas;
 
         { add local alias for the procvartype that we can use when implementing
           the invoke method }
-        temptypesym:=ttypesym.create('__FPC_ProcVarAlias',nil);
+        temptypesym:=ctypesym.create('__FPC_ProcVarAlias',nil);
         { don't pass def to the ttypesym constructor, because then it
           will replace the current (real) typesym of that def with the alias }
         temptypesym.typedef:=def;
@@ -532,12 +527,12 @@ implementation
            not islocal and
            not force_no_callback_intf then
           begin
-            pvintf:=tobjectdef.create(odt_interfacejava,'Callback',nil);
+            pvintf:=cobjectdef.create(odt_interfacejava,'Callback',nil);
             pvintf.objextname:=stringdup('Callback');
             if df_generic in def.defoptions then
               include(pvintf.defoptions,df_generic);
             { associate typesym }
-            pvclass.symtable.insert(ttypesym.create('Callback',pvintf));
+            pvclass.symtable.insert(ctypesym.create('Callback',pvintf));
 
             { add a method prototype matching the procvar (like the invoke
               in the procvarclass itself) }
@@ -545,6 +540,7 @@ implementation
             methoddef:=tprocdef(tprocvardef(def).getcopyas(procdef,pc_bareproc));
             finish_copied_procdef(methoddef,name+'Callback',pvintf.symtable,pvintf);
             insert_self_and_vmt_para(methoddef);
+            insert_funcret_para(methoddef);
             { can't be final/static/private/protected, and must be virtual
               since it's an interface method }
             methoddef.procoptions:=methoddef.procoptions-[po_staticmethod,po_finalmethod];
@@ -582,7 +578,7 @@ implementation
     procedure jvm_wrap_virtual_class_method(pd: tprocdef);
       var
         wrapperpd: tprocdef;
-        wrapperpv: tprocvardef;
+        wrapperpv: tcpuprocvardef;
         typ: ttypesym;
         wrappername: shortstring;
       begin
@@ -640,14 +636,14 @@ implementation
         wrapperpd.synthetickind:=tsk_jvm_virtual_clmethod;
         wrapperpd.skpara:=pd;
         { also create procvar type that we can use in the implementation }
-        wrapperpv:=tprocvardef(pd.getcopyas(procvardef,pc_normal));
+        wrapperpv:=tcpuprocvardef(pd.getcopyas(procvardef,pc_normal));
         wrapperpv.calcparas;
         { no use in creating a callback wrapper here, this procvar type isn't
           for public consumption }
         jvm_create_procvar_class_intern('__fpc_virtualclassmethod_pv_t'+tostr(wrapperpd.defid),wrapperpv,true);
         { create alias for the procvar type so we can use it in generated
           Pascal code }
-        typ:=ttypesym.create('__fpc_virtualclassmethod_pv_t'+tostr(wrapperpd.defid),wrapperpv);
+        typ:=ctypesym.create('__fpc_virtualclassmethod_pv_t'+tostr(wrapperpd.defid),wrapperpv);
         wrapperpv.classdef.typesym.visibility:=vis_strictprivate;
         symtablestack.top.insert(typ);
         symtablestack.pop(pd.owner);
@@ -686,6 +682,7 @@ implementation
         { since it was a bare copy, insert the self parameter (we can't just
           copy the vmt parameter from the constructor, that's different) }
         insert_self_and_vmt_para(wrapperpd);
+        insert_funcret_para(wrapperpd);
         wrapperpd.calcparas;
         { implementation: call through to the constructor
           Exception: if the current class is abstract, do not call the
@@ -733,12 +730,14 @@ implementation
         conststr: ansistring;
         first: boolean;
       begin
+        result:=nil;
+        esym:=nil;
         case csym.constdef.typ of
           enumdef:
             begin
               { make sure we don't emit a definition for this field (we'll do
                 that for the constsym already) -> mark as external }
-              ssym:=tstaticvarsym.create(internal_static_field_name(csym.realname),vs_final,csym.constdef,[vo_is_external]);
+              ssym:=cstaticvarsym.create(internal_static_field_name(csym.realname),vs_final,csym.constdef,[vo_is_external]);
               csym.owner.insert(ssym);
               { alias storage to the constsym }
               ssym.set_mangledname(csym.realname);
@@ -776,7 +775,7 @@ implementation
                 has been compiler -> insert a copy in the unit's staticsymtable
               }
               symtablestack.push(current_module.localsymtable);
-              ssym:=tstaticvarsym.create(internal_static_field_name(csym.realname),vs_final,tsetdef(csym.constdef).getcopy,[vo_is_external,vo_has_local_copy]);
+              ssym:=cstaticvarsym.create(internal_static_field_name(csym.realname),vs_final,tsetdef(csym.constdef).getcopy,[vo_is_external,vo_has_local_copy]);
               symtablestack.top.insert(ssym);
               symtablestack.pop(current_module.localsymtable);
               { alias storage to the constsym }
@@ -849,271 +848,5 @@ implementation
         symtablestack.pop(obj.symtable);
       end;
 
-
-    procedure jvm_create_getter_or_setter_for_property(p: tpropertysym; orgaccesspd: tprocdef; getter: boolean);
-      var
-        obj: tabstractrecorddef;
-        ps: tprocsym;
-        pvs: tparavarsym;
-        sym: tsym;
-        pd, parentpd, accessorparapd: tprocdef;
-        tmpaccesslist: tpropaccesslist;
-        callthroughpropname,
-        name: string;
-        callthroughprop: tpropertysym;
-        accesstyp: tpropaccesslisttypes;
-        sktype: tsynthetickind;
-        procoptions: tprocoptions;
-        paranr: word;
-        explicitwrapper: boolean;
-      begin
-        obj:=current_structdef;
-        { if someone gets the idea to add a property to an external class
-          definition, don't try to wrap it since we cannot add methods to
-          external classes }
-        if oo_is_external in obj.objectoptions then
-          exit;
-        symtablestack.push(obj.symtable);
-
-        try
-          if getter then
-            accesstyp:=palt_read
-          else
-            accesstyp:=palt_write;
-
-          { we can't use str_parse_method_dec here because the type of the field
-            may not be visible at the Pascal level }
-
-          explicitwrapper:=
-            { private methods are not visibile outside the current class, so
-              no use in making life harder for us by introducing potential
-              (future or current) naming conflicts }
-            (p.visibility<>vis_private) and
-            (getter and
-             (prop_auto_getter_prefix<>'')) or
-            (not getter and
-             (prop_auto_setter_prefix<>''));
-          sym:=nil;
-          procoptions:=[];
-          if explicitwrapper then
-            begin
-              if getter then
-                name:=prop_auto_getter_prefix+p.realname
-              else
-                name:=prop_auto_setter_prefix+p.realname;
-              sym:=search_struct_member_no_helper(obj,upper(name));
-              if getter then
-                sktype:=tsk_field_getter
-              else
-                sktype:=tsk_field_setter;
-              if assigned(sym) then
-                begin
-                  if ((sym.typ<>procsym) or
-                      (tprocsym(sym).procdeflist.count<>1) or
-                      (tprocdef(tprocsym(sym).procdeflist[0]).synthetickind<>sktype)) and
-                     (not assigned(orgaccesspd) or
-                      (sym<>orgaccesspd.procsym)) then
-                    begin
-                      MessagePos2(p.fileinfo,parser_e_cannot_generate_property_getter_setter,name,FullTypeName(tdef(sym.owner.defowner),nil)+'.'+name);
-                      exit;
-                    end
-                  else
-                    begin
-                      if name<>sym.realname then
-                        MessagePos2(p.fileinfo,parser_w_case_difference_auto_property_getter_setter_prefix,sym.realname,name);
-                      { is the specified getter/setter defined in the current
-                        struct and was it originally specified as the getter/
-                        setter for this property? If so, simply adjust its
-                        visibility if necessary.
-                      }
-                      if assigned(orgaccesspd) then
-                        parentpd:=orgaccesspd
-                      else
-                        parentpd:=tprocdef(tprocsym(sym).procdeflist[0]);
-                      if parentpd.owner.defowner=p.owner.defowner then
-                        begin
-                          if parentpd.visibility<p.visibility then
-                            begin
-                              parentpd.visibility:=p.visibility;
-                              include(parentpd.procoptions,po_auto_raised_visibility);
-                            end;
-                          { we are done, no need to create a wrapper }
-                          exit
-                        end
-                      { a parent already included this getter/setter -> try to
-                        override it }
-                      else if parentpd.visibility<>vis_private then
-                        begin
-                          if po_virtualmethod in parentpd.procoptions then
-                            begin
-                              procoptions:=procoptions+[po_virtualmethod,po_overridingmethod];
-                              Message2(parser_w_overriding_property_getter_setter,name,FullTypeName(tdef(parentpd.owner.defowner),nil));
-                            end;
-                          { otherwise we can't do anything, and
-                            proc_add_definition will give an error }
-                        end
-                    end;
-                end;
-              { make the artificial getter/setter virtual so we can override it in
-                children if necessary }
-              if not(sp_static in p.symoptions) and
-                 (obj.typ=objectdef) then
-                include(procoptions,po_virtualmethod);
-              { prevent problems in Delphi mode }
-              include(procoptions,po_overload);
-            end
-          else
-            begin
-              { construct procsym name (unique for this access; reusing the same
-                helper for multiple accesses to the same field is hard because the
-                propacesslist can contain subscript nodes etc) }
-              name:=visibilityName[p.visibility];
-              replace(name,' ','_');
-              if getter then
-                name:=name+'$getter'
-              else
-                name:=name+'$setter';
-            end;
-
-          { create procdef }
-          if not assigned(orgaccesspd) then
-            begin
-              pd:=tprocdef.create(normal_function_level);
-              if df_generic in obj.defoptions then
-                include(pd.defoptions,df_generic);
-              { method of this objectdef }
-              pd.struct:=obj;
-              { can only construct the artificial name now, because it requires
-                pd.defid }
-              if not explicitwrapper then
-                name:='$'+obj.symtable.realname^+'$'+p.realname+'$'+name+'$'+tostr(pd.defid);
-            end
-          else
-            begin
-              { getter/setter could have parameters in case of indexed access
-                -> copy original procdef }
-              pd:=tprocdef(orgaccesspd.getcopy);
-              exclude(pd.procoptions,po_abstractmethod);
-              { can only construct the artificial name now, because it requires
-                pd.defid }
-              if not explicitwrapper then
-                name:='$'+obj.symtable.realname^+'$'+p.realname+'$'+name+'$'+tostr(pd.defid);
-              finish_copied_procdef(pd,name,obj.symtable,obj);
-              sym:=pd.procsym;
-            end;
-          { add previously collected procoptions }
-          pd.procoptions:=pd.procoptions+procoptions;
-          { visibility }
-          pd.visibility:=p.visibility;
-
-          { new procsym? }
-          if not assigned(sym) or
-             (sym.owner<>p.owner)  then
-            begin
-              ps:=tprocsym.create(name);
-              obj.symtable.insert(ps);
-            end
-          else
-            ps:=tprocsym(sym);
-          { associate procsym with procdef}
-          pd.procsym:=ps;
-
-
-
-          { function/procedure }
-          accessorparapd:=nil;
-          if getter then
-            begin
-              pd.proctypeoption:=potype_function;
-              pd.synthetickind:=tsk_field_getter;
-              { result type }
-              pd.returndef:=p.propdef;
-              if (ppo_hasparameters in p.propoptions) and
-                 not assigned(orgaccesspd) then
-                accessorparapd:=pd;
-            end
-          else
-            begin
-              pd.proctypeoption:=potype_procedure;
-              pd.synthetickind:=tsk_field_setter;
-              pd.returndef:=voidtype;
-              if not assigned(orgaccesspd) then
-                begin
-                  { parameter with value to set }
-                  pvs:=tparavarsym.create('__fpc_newval__',10,vs_const,p.propdef,[]);
-                  pd.parast.insert(pvs);
-                end;
-              if (ppo_hasparameters in p.propoptions) and
-                 not assigned(orgaccesspd) then
-                accessorparapd:=pd;
-            end;
-
-          { create a property for the old symaccesslist with a new name, so that
-            we can reuse it in the implementation (rather than having to
-            translate the symaccesslist back to Pascal code) }
-          callthroughpropname:='__fpc__'+p.realname;
-          if getter then
-            callthroughpropname:=callthroughpropname+'__getter_wrapper'
-          else
-            callthroughpropname:=callthroughpropname+'__setter_wrapper';
-          callthroughprop:=tpropertysym.create(callthroughpropname);
-          callthroughprop.visibility:=p.visibility;
-
-          if getter then
-            p.makeduplicate(callthroughprop,accessorparapd,nil,paranr)
-          else
-            p.makeduplicate(callthroughprop,nil,accessorparapd,paranr);
-
-          callthroughprop.default:=longint($80000000);
-          callthroughprop.default:=0;
-          callthroughprop.propoptions:=callthroughprop.propoptions-[ppo_stored,ppo_enumerator_current,ppo_overrides,ppo_defaultproperty];
-          if sp_static in p.symoptions then
-            include(callthroughprop.symoptions, sp_static);
-          { copy original property target to callthrough property (and replace
-            original one with the new empty list; will be filled in later) }
-          tmpaccesslist:=callthroughprop.propaccesslist[accesstyp];
-          callthroughprop.propaccesslist[accesstyp]:=p.propaccesslist[accesstyp];
-          p.propaccesslist[accesstyp]:=tmpaccesslist;
-          p.owner.insert(callthroughprop);
-
-          pd.skpara:=callthroughprop;
-          { needs to be exported }
-          include(pd.procoptions,po_global);
-          { class property -> static class method }
-          if sp_static in p.symoptions then
-            pd.procoptions:=pd.procoptions+[po_classmethod,po_staticmethod];
-
-          { in case we made a copy of the original accessor, this has all been
-            done already }
-          if not assigned(orgaccesspd) then
-            begin
-              { calling convention, self, ... }
-              if obj.typ=recorddef then
-                handle_calling_convention(pd,[hcc_check])
-              else
-                handle_calling_convention(pd,hcc_all);
-              { register forward declaration with procsym }
-              proc_add_definition(pd);
-            end;
-
-          { make the property call this new function }
-          p.propaccesslist[accesstyp].addsym(sl_call,ps);
-          p.propaccesslist[accesstyp].procdef:=pd;
-        finally
-          symtablestack.pop(obj.symtable);
-        end;
-      end;
-
-
-    procedure jvm_create_getter_for_property(p: tpropertysym; orgaccesspd: tprocdef);
-      begin
-        jvm_create_getter_or_setter_for_property(p,orgaccesspd,true);
-      end;
-
-
-    procedure jvm_create_setter_for_property(p: tpropertysym; orgaccesspd: tprocdef);
-      begin
-        jvm_create_getter_or_setter_for_property(p,orgaccesspd,false);
-      end;
 
 end.

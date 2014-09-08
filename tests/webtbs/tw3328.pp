@@ -3,6 +3,8 @@
 { e-mail: chrivers@iversen-net.dk }
 program fpcdelphi;
 
+{$mode delphi}
+
 var
   err : boolean;
 

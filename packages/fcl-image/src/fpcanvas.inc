@@ -609,7 +609,7 @@ begin
   nb:= Brush.style <> bsClear;  // Need brush ?
   dp:=(pen is TFPCustomDrawPen); // Pen draws ?
   db:=(brush is TFPCustomDrawBrush); // Brush draws ?
-  if (np and nb) and not (db or db) then
+  if (np and nb) and not (db or dp) then
     DoRectangleAndFill (bounds)
   else
     begin

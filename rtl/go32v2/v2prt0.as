@@ -857,6 +857,7 @@ _pascal_start:
         movl    12(%ebx),%eax
         movl    %eax,operatingsystem_parameter_envp
         movl    %eax,__environ
+        movl    %eax,_environ
         movl    8(%ebx),%eax
         movl    %eax,_args
         movl    4(%ebx),%eax
@@ -895,9 +896,10 @@ ___v2prt0_start_fs:
          /* corresponding to _environ C variable */
          /* instead of _environ symbol since commit rev 1.11 */
          /* Thu Aug 19 9:11:52 2004 UTC by peuha */
-         /* _environ is provided by linker script at the same address */
-         /* as __environ if needed by linker. */
+         /* Provide both here to avoid crt1.o loading. */
         .comm  __environ,4
+        .comm  _environ,4
+
 
 /* Here Pierre Muller added all what was in crt1.c  */
 /* in assembler                              */

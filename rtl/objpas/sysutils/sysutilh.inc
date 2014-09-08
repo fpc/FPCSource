@@ -113,15 +113,17 @@ type
       constructor CreateFmt(const msg : string; const args : array of const);
       constructor CreateRes(ResString: PString);
       constructor CreateResFmt(ResString: PString; const Args: array of const);
-      constructor CreateHelp(const Msg: string; AHelpContext: Integer);
+      constructor CreateHelp(const Msg: string; AHelpContext: Longint);
       constructor CreateFmtHelp(const Msg: string; const Args: array of const;
-        AHelpContext: Integer);
-      constructor CreateResHelp(ResString: PString; AHelpContext: Integer);
+        AHelpContext: Longint);
+      constructor CreateResHelp(ResString: PString; AHelpContext: Longint);
       constructor CreateResFmtHelp(ResString: PString; const Args: array of const;
-        AHelpContext: Integer);
+        AHelpContext: Longint);
+      Function ToString : String; override;  
       { !!!! }
       property HelpContext : longint read fhelpcontext write fhelpcontext;
       property Message : string read fmessage write fmessage;
+      
    end;
 
    ExceptClass = class of Exception;
@@ -154,7 +156,7 @@ type
    { Run-time and I/O Errors }
    EInOutError = class(Exception)
      public
-       ErrorCode : Longint;
+       ErrorCode : Integer;
    end;
 
    EHeapMemoryError = class(Exception)
@@ -217,9 +219,9 @@ type
 
    { Exception handling routines }
    function ExceptObject: TObject;
-   function ExceptAddr: Pointer;
+   function ExceptAddr: CodePointer;
    function ExceptFrameCount: Longint;
-   function ExceptFrames: PPointer;
+   function ExceptFrames: PCodePointer;
    function ExceptionErrorMessage(ExceptObject: TObject; ExceptAddr: Pointer;
                                   Buffer: PChar; Size: Integer): Integer;
    procedure ShowException(ExceptObject: TObject; ExceptAddr: Pointer);
@@ -253,10 +255,6 @@ type
 Var
    OnShowException : Procedure (Msg : ShortString);
 
-  { FileRec/TextRec }
-  {$i filerec.inc}
-  {$i textrec.inc}
-
 Const
    HexDisplayPrefix : string = '$';
 
@@ -288,8 +286,17 @@ Type
   {$i sysencodingh.inc}
 {$endif FPC_HAS_UNICODESTRING}
 
+{$macro on}
+{$define PathStr:=UnicodeString}
+{$define PathPChar:=PWideChar}
   { Read filename handling functions declaration }
   {$i finah.inc}
+{$define PathStr:=RawByteString}
+{$define PathPChar:=PAnsiChar}
+  { Read filename handling functions declaration }
+  {$i finah.inc}
+{$undef PathStr}
+{$undef PathPChar}
 
   { Read other file handling function declarations }
   {$i filutilh.inc}

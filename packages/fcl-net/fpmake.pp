@@ -18,9 +18,11 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Dependencies.Add('fcl-base');
+    P.Dependencies.Add('openssl');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-passrc');
     P.Dependencies.Add('fcl-async',[linux,freebsd,netbsd,openbsd]);
+    P.Dependencies.Add('rtl-extra');
 
     P.Author := 'Sebastian Guenther and Free Pascal development team';
     P.License := 'LGPL with modification, ';
@@ -28,7 +30,7 @@ begin
     P.Email := '';
     P.Description := 'Network related parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes:=P.OSes-[embedded];
+    P.OSes:=P.OSes-[embedded,msdos];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src/unix',AllUnixOSes);
@@ -49,6 +51,12 @@ begin
       with T.Dependencies do
         begin
           AddUnit('resolve');
+        end;
+    T.ResourceStrings := True;
+    T:=P.Targets.AddUnit('sslsockets.pp',AllUnixOSes+AllWindowsOSes);
+      with T.Dependencies do
+        begin
+          AddUnit('ssockets');
         end;
     T.ResourceStrings := True;
 

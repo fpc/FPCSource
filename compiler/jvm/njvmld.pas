@@ -66,7 +66,7 @@ uses
   symconst,symsym,symdef,symtable,defutil,jvmdef,
   paramgr,
   pass_1,
-  cgbase,hlcgobj,cpuinfo;
+  cpubase,cgbase,hlcgobj,cpuinfo;
 
 { tjvmassignmentnode }
 

@@ -51,6 +51,7 @@ Unit Rax86int;
          actasmtoken : tasmtoken;
          prevasmtoken : tasmtoken;
          ActOpsize : topsize;
+         inexpression : boolean;
          constructor create;override;
          function is_asmopcode(const s: string):boolean;
          function is_asmoperator(const s: string):boolean;
@@ -80,7 +81,7 @@ Unit Rax86int;
        cutils,
        { global }
        globals,verbose,
-       systems,
+       systems,cpuinfo,
        { aasm }
        aasmtai,aasmdata,aasmcpu,
        { symtable }
@@ -128,9 +129,6 @@ Unit Rax86int;
         '','','sizeof','vmtoffset','','type','ptr','mod','shl','shr','not',
         'and','or','xor','wrt','..gotpcrel'
       );
-
-    var
-      inexpression   : boolean;
 
     constructor tx86intreader.create;
       var
@@ -351,8 +349,8 @@ Unit Rax86int;
                     c:=current_scanner.asmgetchar;
                   end;
                  uppervar(actasmpattern);
-                 { after prefix we allow also a new opcode }
-                 If is_prefix(actopcode) and is_asmopcode(actasmpattern) then
+                 { after prefix (or segment override) we allow also a new opcode }
+                 If (is_prefix(actopcode) or is_override(actopcode)) and is_asmopcode(actasmpattern) then
                   Begin
                     { if we are not in a constant }
                     { expression than this is an  }
@@ -2046,10 +2044,13 @@ Unit Rax86int;
           instr.opcode:=A_POPFW
         else if (instr.opcode=A_PUSHF) then
           instr.opcode:=A_PUSHFW
+{$ifndef x86_64}
         else if (instr.opcode=A_PUSHA) then
           instr.opcode:=A_PUSHAW
         else if (instr.opcode=A_POPA) then
-          instr.opcode:=A_POPAW;
+          instr.opcode:=A_POPAW
+{$endif x86_64}
+        ;
         { We are reading operands, so opcode will be an AS_ID }
         operandnum:=1;
         is_far_const:=false;
@@ -2130,6 +2131,16 @@ Unit Rax86int;
         if (instr.ops=1) and
            (instr.operands[1].typesize<>0) then
           instr.operands[1].setsize(instr.operands[1].typesize,false);
+{$ifdef i8086}
+        { convert 'call symbol' to 'call far symbol' for memory models with far code }
+        for i:=1 to operandnum do
+          with instr.operands[i].opr do
+            if (instr.opcode=A_CALL) and (typ=OPR_SYMBOL) and (symbol<>nil) and (symbol.typ<>AT_DATA) then
+              if current_settings.x86memorymodel in x86_far_code_models then
+                begin
+                  instr.opsize:=S_FAR;
+                end;
+{$endif i8086}
       end;
 
 
@@ -2219,8 +2230,6 @@ Unit Rax86int;
        end;
       }
       curlist:=TAsmList.Create;
-      { setup label linked list }
-      LocalLabelList:=TLocalLabelList.Create;
       { we might need to know which parameters are passed in registers }
       if not parse_generic then
         current_procinfo.generate_parameter_info;
@@ -2321,9 +2330,8 @@ Unit Rax86int;
             end;
         end; { end case }
       until false;
-      { Check LocalLabelList }
-      LocalLabelList.CheckEmitted;
-      LocalLabelList.Free;
+      { check that all referenced local labels are defined }
+      checklocallabels;
       { Return the list in an asmnode }
       assemble:=curlist;
       Message1(asmr_d_finish_reading,'intel');

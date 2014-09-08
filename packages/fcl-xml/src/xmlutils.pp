@@ -80,7 +80,7 @@ type
 {$ifndef fpc}
   PtrInt = LongInt;
   TFPList = TList;
-{$endif}  
+{$endif}
 
   PPHashItem = ^PHashItem;
   PHashItem = ^THashItem;
@@ -90,7 +90,11 @@ type
     Next: PHashItem;
     Data: TObject;
   end;
+{$ifdef CPU16}
+  THashItemArray = array[0..MaxSmallInt div sizeof(Pointer)-1] of PHashItem;
+{$else CPU16}
   THashItemArray = array[0..MaxInt div sizeof(Pointer)-1] of PHashItem;
+{$endif CPU16}
   PHashItemArray = ^THashItemArray;
 
   THashForEach = function(Entry: PHashItem; arg: Pointer): Boolean;
@@ -127,7 +131,11 @@ type
     lname: PWideChar;
     lnameLen: Integer;
   end;
+{$ifdef CPU16}
+  TExpHashEntryArray = array[0..MaxSmallInt div sizeof(TExpHashEntry)-1] of TExpHashEntry;
+{$else CPU16}
   TExpHashEntryArray = array[0..MaxInt div sizeof(TExpHashEntry)-1] of TExpHashEntry;
+{$endif CPU16}
   PExpHashEntryArray = ^TExpHashEntryArray;
 
   TDblHashArray = class(TObject)
@@ -135,7 +143,7 @@ type
     FSizeLog: Integer;
     FRevision: LongWord;
     FData: PExpHashEntryArray;
-  public  
+  public
     procedure Init(NumSlots: Integer);
     function Locate(uri: Pointer; localName: PWideChar; localLength: Integer): Boolean;
     destructor Destroy; override;
@@ -533,7 +541,7 @@ begin
   if Assigned(e) then
     Result := e^.Data
   else
-    Result := nil;  
+    Result := nil;
 end;
 
 function THashTable.Lookup(Key: PWideChar; KeyLength: Integer;

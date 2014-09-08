@@ -43,7 +43,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion = 161;
+  CurrentPPUVersion = 172;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -162,6 +162,10 @@ const
   uf_wideinits           = $400000; { this unit has winlike widestring typed constants }
   uf_classinits          = $800000; { this unit has class constructors/destructors }
   uf_resstrinits        = $1000000; { this unit has string consts referencing resourcestrings }
+  uf_i8086_far_code     = $2000000; { this unit uses an i8086 memory model with far code (i.e. medium, large or huge) }
+  uf_i8086_far_data     = $4000000; { this unit uses an i8086 memory model with far data (i.e. compact or large) }
+  uf_i8086_huge_data    = $8000000; { this unit uses an i8086 memory model with huge data (i.e. huge) }
+  uf_i8086_cs_equals_ds = $10000000; { this unit uses an i8086 memory model with CS=DS (i.e. tiny) }
 
 {$ifdef generic_cpu}
 { We need to use the correct size of aint and pint for
@@ -790,6 +794,7 @@ begin
       result:=0;
     end;
 {$else not generic_cpu}
+  result:=4;
   case sizeof(aint) of
     8: result:=getint64;
     4: result:=getlongint;
@@ -843,11 +848,13 @@ begin
       result:=0;
     end;
 {$else not generic_cpu}
-{$ifdef cpu64bitalu}
-  result:=getqword;
-{$else cpu64bitalu}
-  result:=getdword;
-{$endif cpu64bitalu}
+  result:=4;
+  case sizeof(aword) of
+    8: result:=getqword;
+    4: result:=getdword;
+    2: result:=getword;
+    1: result:=getbyte;
+  end;
 {$endif not generic_cpu}
 end;
 
@@ -950,6 +957,7 @@ begin
   if entryidx+len>entry.size then
    begin
      error:=true;
+     result:='';
      exit;
    end;
   setlength(result,len);

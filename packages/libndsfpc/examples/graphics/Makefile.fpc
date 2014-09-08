@@ -3,7 +3,7 @@
 #
 
 [target]
-dirs=3D Backgrounds Printing Sprites
+dirs=3D Backgrounds Effects Ext_Palettes Printing Sprites
 
 [require]
 packages=libndsfpc

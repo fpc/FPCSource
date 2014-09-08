@@ -6,6 +6,9 @@
 name=hash
 version=2.7.1
 
+[require]
+packages=rtl-objpas
+
 [target]
 units=md5 crc ntlm sha1 uuid
 units_linux=unixcrypt

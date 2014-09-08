@@ -41,12 +41,14 @@ implementation
 
     uses
       systems,globals,
+      cpubase,cgbase,
       tgobj,paramgr,symconst;
 
     constructor tsparcprocinfo.create(aparent:tprocinfo);
       begin
         inherited create(aparent);
         maxpushedparasize:=0;
+        got:=NR_L7;
       end;
 
 

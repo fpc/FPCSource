@@ -67,6 +67,8 @@ resourcestring
   SPasTreeFunction = 'function';
   SPasTreeClassProcedure = 'class procedure';
   SPasTreeClassFunction = 'class function';
+  SPasTreeClassConstructor = 'class constructor';
+  SPasTreeClassDestructor = 'class destructor';
   SPasTreeConstructor = 'constructor';
   SPasTreeDestructor = 'destructor';
   SPasTreeProcedureImpl = 'procedure/function implementation';
@@ -773,9 +775,25 @@ type
     function TypeName: string; override;
   end;
 
+  { TPasClassConstructor }
+
+  TPasClassConstructor  = class(TPasConstructor)
+  public
+    function ElementTypeName: string; override;
+    function TypeName: string; override;
+  end;
+
   { TPasDestructor }
 
   TPasDestructor = class(TPasProcedure)
+  public
+    function ElementTypeName: string; override;
+    function TypeName: string; override;
+  end;
+
+  { TPasClassDestructor }
+
+  TPasClassDestructor  = class(TPasDestructor)
   public
     function ElementTypeName: string; override;
     function TypeName: string; override;
@@ -1164,6 +1182,13 @@ implementation
 
 uses SysUtils;
 
+{ TPasClassConstructor }
+
+function TPasClassConstructor.TypeName: string;
+begin
+  Result:='class '+ inherited TypeName;
+end;
+
 { TPasImplRaise }
 
 destructor TPasImplRaise.Destroy;
@@ -1346,6 +1371,14 @@ end;
 
 function TPasFunction.ElementTypeName: string; begin Result := SPasTreeFunction end;
 function TPasClassProcedure.ElementTypeName: string; begin Result := SPasTreeClassProcedure; end;
+function TPasClassConstructor.ElementTypeName: string; begin Result := SPasTreeClassConstructor; end;
+function TPasClassDestructor.ElementTypeName: string; begin Result := SPasTreeClassDestructor; end;
+
+function TPasClassDestructor.TypeName: string;
+begin
+  Result:='destructor';
+end;
+
 function TPasClassFunction.ElementTypeName: string; begin Result := SPasTreeClassFunction; end;
 function TPasOperator.ElementTypeName: string; begin Result := SPasTreeFunction end;
 function TPasConstructor.ElementTypeName: string; begin Result := SPasTreeConstructor end;

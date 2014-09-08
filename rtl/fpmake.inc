@@ -201,7 +201,6 @@ begin
     T.Dependencies.Add('sysutils');
     T:=AddUnit('objpas/math.pp');
     T.Dependencies.Add('sysutils');
-    T.Dependencies.Add(CPUDir+'mathuh.inc');
     T.Dependencies.Add(CPUDir+'mathu.inc');
     T.ResourceStrings:=True;
     T:=AddUnit('objpas/sysconst.pp');

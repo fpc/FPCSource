@@ -1,11 +1,11 @@
 { %cpu=i386 }
-procedure p1;assembler;
+procedure p1;assembler;nostackframe;
   asm
     INSERTQ $1,$3,%xmm0,%xmm1
   end;
 
 {$asmmode intel}
-procedure p2;assembler;
+procedure p2;assembler;nostackframe;
   asm
     INSERTQ xmm1,xmm0,3,1
   end;

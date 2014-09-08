@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Michael Van Canneyt, member of the
+    Copyright (c) 1999-2014 by Michael Van Canneyt, member of the
     Free Pascal development team
 
     Dataset implementation
@@ -24,9 +24,9 @@ constructor TDataSet.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOwner);
-  FFieldDefs:=TFieldDefs.Create(Self);
-  FFieldList:=TFields.Create(Self);
-  FDataSources:=TList.Create;
+  FFieldDefs:=FieldDefsClass.Create(Self);
+  FFieldList:=FieldsClass.Create(Self);
+  FDataSources:=TFPList.Create;
   FConstraints:=TCheckConstraints.Create(Self);
   
 // FBuffer must be allocated on create, to make Activebuffer return nil
@@ -52,10 +52,10 @@ begin
   Active:=False;
   FFieldDefs.Free;
   FFieldList.Free;
-  With FDatasources do
+  With FDataSources do
     begin
     While Count>0 do
-      TDatasource(Items[Count - 1]).DataSet:=Nil;
+      TDataSource(Items[Count - 1]).DataSet:=Nil;
     Free;
     end;
   for i := 0 to FBufferCount do
@@ -66,7 +66,7 @@ begin
 end;
 
 // This procedure must be called when the first record is made/read
-Procedure TDataset.ActivateBuffers;
+procedure TDataSet.ActivateBuffers;
 
 begin
   FBOF:=False;
@@ -74,16 +74,16 @@ begin
   FActiveRecord:=0;
 end;
 
-Procedure TDataset.UpdateFieldDefs;
+procedure TDataSet.UpdateFieldDefs;
 
 begin
   //!! To be implemented
 end;
 
-Procedure TDataset.BindFields(Binding: Boolean);
+procedure TDataSet.BindFields(Binding: Boolean);
 
 var i, FieldIndex: Integer;
-    FieldDef: TFieldDef;
+
 begin
   { FieldNo is set to -1 for calculated/lookup fields, to 0 for unbound field
     and for bound fields it is set to FieldDef.FieldNo }
@@ -91,6 +91,7 @@ begin
   FBlobFieldCount := 0;
   for i := 0 to Fields.Count - 1 do
     with Fields[i] do begin
+      FFieldDef:=Nil;
       if Binding then begin
         if FieldKind in [fkCalculated, fkLookup] then begin
           FFieldNo := -1;
@@ -107,14 +108,14 @@ begin
             if FLookupCache then RefreshLookupList;
           end
         end else begin
-          FieldDef := nil;
+          FFieldDef := nil;
           FieldIndex := FieldDefs.IndexOf(Fields[i].FieldName);
           if FieldIndex <> -1 then begin
-            FieldDef := FieldDefs[FieldIndex];
-            FFieldNo := FieldDef.FieldNo;
+            FFieldDef := FieldDefs[FieldIndex];
+            FFieldNo := FFieldDef.FieldNo;
             if FieldDef.InternalCalcField then FInternalCalcFields := True;
             if IsBlob then begin
-              FSize := FieldDef.Size;
+              FSize := FFieldDef.Size;
               FOffset := FBlobFieldCount;
               Inc(FBlobFieldCount);
             end;
@@ -124,7 +125,7 @@ begin
     end;
 end;
 
-Function TDataset.BookmarkAvailable: Boolean;
+function TDataSet.BookmarkAvailable: Boolean;
 
 Const BookmarkStates = [dsBrowse,dsEdit,dsInsert];
 
@@ -133,7 +134,7 @@ begin
           and (getBookMarkFlag(ActiveBuffer)=bfCurrent);
 end;
 
-Procedure TDataset.CalculateFields(Buffer: TRecordBuffer);
+procedure TDataSet.CalculateFields(Buffer: TRecordBuffer);
 var
   i: Integer;
   OldState: TDatasetState;
@@ -156,53 +157,54 @@ begin
   end;
 end;
 
-Procedure TDataset.CheckActive;
+procedure TDataSet.CheckActive;
 
 begin
   If Not Active then
     DataBaseError(SInactiveDataset);
 end;
 
-Procedure TDataset.CheckInactive;
+procedure TDataSet.CheckInactive;
 
 begin
   If Active then
     DataBaseError(SActiveDataset);
 end;
 
-Procedure TDataset.ClearBuffers;
+procedure TDataSet.ClearBuffers;
 
 begin
   FRecordCount:=0;
-  FactiveRecord:=0;
+  FActiveRecord:=0;
   FCurrentRecord:=-1;
   FBOF:=True;
   FEOF:=True;
 end;
 
-Procedure TDataset.ClearCalcFields(Buffer: TRecordBuffer);
+procedure TDataSet.ClearCalcFields(Buffer: TRecordBuffer);
 
 begin
   // Empty
 end;
 
-Procedure TDataset.CloseBlob(Field: TField);
+procedure TDataSet.CloseBlob(Field: TField);
 
 begin
   //!! To be implemented
 end;
 
-Procedure TDataset.CloseCursor;
+procedure TDataSet.CloseCursor;
 
 begin
   FreeFieldBuffers;
   ClearBuffers;
   SetBufListSize(0);
+  Fields.ClearFieldDefs;
   InternalClose;
   FInternalOpenComplete := False;
 end;
 
-Procedure TDataset.CreateFields;
+procedure TDataSet.CreateFields;
 
 Var I : longint;
 
@@ -218,13 +220,13 @@ begin
       If DataType<>ftUnknown then
         begin
         {$ifdef DSDebug}
-        Writeln('About to create field',FieldDefs.Items[i].Name);
+        Writeln('About to create field ',FieldDefs.Items[i].Name);
         {$endif}
         CreateField(self);
         end;
 end;
 
-Procedure TDataset.DataEvent(Event: TDataEvent; Info: Ptrint);
+procedure TDataSet.DataEvent(Event: TDataEvent; Info: Ptrint);
 
   procedure HandleFieldChange(aField: TField);
   begin
@@ -265,139 +267,139 @@ begin
   end;
 end;
 
-Procedure TDataset.DestroyFields;
+procedure TDataSet.DestroyFields;
 
 begin
   FFieldList.Clear;
 end;
 
-Procedure TDataset.DoAfterCancel;
+procedure TDataSet.DoAfterCancel;
 
 begin
  If assigned(FAfterCancel) then
    FAfterCancel(Self);
 end;
 
-Procedure TDataset.DoAfterClose;
+procedure TDataSet.DoAfterClose;
 
 begin
  If assigned(FAfterClose) and not (csDestroying in ComponentState) then
    FAfterClose(Self);
 end;
 
-Procedure TDataset.DoAfterDelete;
+procedure TDataSet.DoAfterDelete;
 
 begin
  If assigned(FAfterDelete) then
    FAfterDelete(Self);
 end;
 
-Procedure TDataset.DoAfterEdit;
+procedure TDataSet.DoAfterEdit;
 
 begin
  If assigned(FAfterEdit) then
    FAfterEdit(Self);
 end;
 
-Procedure TDataset.DoAfterInsert;
+procedure TDataSet.DoAfterInsert;
 
 begin
  If assigned(FAfterInsert) then
    FAfterInsert(Self);
 end;
 
-Procedure TDataset.DoAfterOpen;
+procedure TDataSet.DoAfterOpen;
 
 begin
  If assigned(FAfterOpen) then
    FAfterOpen(Self);
 end;
 
-Procedure TDataset.DoAfterPost;
+procedure TDataSet.DoAfterPost;
 
 begin
  If assigned(FAfterPost) then
    FAfterPost(Self);
 end;
 
-Procedure TDataset.DoAfterScroll;
+procedure TDataSet.DoAfterScroll;
 
 begin
  If assigned(FAfterScroll) then
    FAfterScroll(Self);
 end;
 
-Procedure TDataset.DoAfterRefresh;
+procedure TDataSet.DoAfterRefresh;
 
 begin
  If assigned(FAfterRefresh) then
    FAfterRefresh(Self);
 end;
 
-Procedure TDataset.DoBeforeCancel;
+procedure TDataSet.DoBeforeCancel;
 
 begin
  If assigned(FBeforeCancel) then
    FBeforeCancel(Self);
 end;
 
-Procedure TDataset.DoBeforeClose;
+procedure TDataSet.DoBeforeClose;
 
 begin
  If assigned(FBeforeClose) and not (csDestroying in ComponentState) then
    FBeforeClose(Self);
 end;
 
-Procedure TDataset.DoBeforeDelete;
+procedure TDataSet.DoBeforeDelete;
 
 begin
  If assigned(FBeforeDelete) then
    FBeforeDelete(Self);
 end;
 
-Procedure TDataset.DoBeforeEdit;
+procedure TDataSet.DoBeforeEdit;
 
 begin
  If assigned(FBeforeEdit) then
    FBeforeEdit(Self);
 end;
 
-Procedure TDataset.DoBeforeInsert;
+procedure TDataSet.DoBeforeInsert;
 
 begin
  If assigned(FBeforeInsert) then
    FBeforeInsert(Self);
 end;
 
-Procedure TDataset.DoBeforeOpen;
+procedure TDataSet.DoBeforeOpen;
 
 begin
  If assigned(FBeforeOpen) then
    FBeforeOpen(Self);
 end;
 
-Procedure TDataset.DoBeforePost;
+procedure TDataSet.DoBeforePost;
 
 begin
  If assigned(FBeforePost) then
    FBeforePost(Self);
 end;
 
-Procedure TDataset.DoBeforeScroll;
+procedure TDataSet.DoBeforeScroll;
 
 begin
  If assigned(FBeforeScroll) then
    FBeforeScroll(Self);
 end;
 
-Procedure TDataset.DoBeforeRefresh;
+procedure TDataSet.DoBeforeRefresh;
 
 begin
  If assigned(FBeforeRefresh) then
    FBeforeRefresh(Self);
 end;
 
-Procedure TDataset.DoInternalOpen;
+procedure TDataSet.DoInternalOpen;
 
 begin
   InternalOpen;
@@ -408,39 +410,39 @@ begin
 {$ifdef dsdebug}
   Writeln ('Calling RecalcBufListSize');
 {$endif}
-  FRecordcount := 0;
+  FRecordCount := 0;
   RecalcBufListSize;
-  FBOF:=True;
-  FEOF := (FRecordcount = 0);
+  FBOF := True;
+  FEOF := (FRecordCount = 0);
 end;
 
-Procedure TDataset.DoOnCalcFields;
+procedure TDataSet.DoOnCalcFields;
 
 begin
  If Assigned(FOnCalcfields) then
    FOnCalcFields(Self);
 end;
 
-Procedure TDataset.DoOnNewRecord;
+procedure TDataSet.DoOnNewRecord;
 
 begin
  If assigned(FOnNewRecord) then
    FOnNewRecord(Self);
 end;
 
-Function TDataset.FieldByNumber(FieldNo: Longint): TField;
+function TDataSet.FieldByNumber(FieldNo: Longint): TField;
 
 begin
   Result:=FFieldList.FieldByNumber(FieldNo);
 end;
 
-Function TDataset.FindRecord(Restart, GoForward: Boolean): Boolean;
+function TDataSet.FindRecord(Restart, GoForward: Boolean): Boolean;
 
 begin
   //!! To be implemented
 end;
 
-Procedure TDataset.FreeFieldBuffers;
+procedure TDataSet.FreeFieldBuffers;
 
 Var I : longint;
 
@@ -449,7 +451,7 @@ begin
     FFieldList[i].FreeBuffers;
 end;
 
-Function TDataset.GetBookmarkStr: TBookmarkStr;
+function TDataSet.GetBookmarkStr: TBookmarkStr;
 
 begin
   Result:='';
@@ -460,26 +462,26 @@ begin
     end
 end;
 
-Function TDataset.GetBuffer (Index : longint) : TRecordBuffer;
+function TDataSet.GetBuffer(Index: longint): TRecordBuffer;
 
 begin
   Result:=FBuffers[Index];
 end;
 
-Procedure TDataset.GetCalcFields(Buffer: TRecordBuffer);
+procedure TDataSet.GetCalcFields(Buffer: TRecordBuffer);
 
 begin
   if (FCalcFieldsSize > 0) or FInternalCalcFields then
     CalculateFields(Buffer);
 end;
 
-Function TDataset.GetCanModify: Boolean;
+function TDataSet.GetCanModify: Boolean;
 
 begin
   Result:= not FIsUnidirectional;
 end;
 
-Procedure TDataset.GetChildren(Proc: TGetChildProc; Root: TComponent);
+procedure TDataSet.GetChildren(Proc: TGetChildProc; Root: TComponent);
 
 var
  I: Integer;
@@ -493,7 +495,7 @@ begin
  end;
 end;
 
-Function TDataset.GetDataSource: TDataSource;
+function TDataSet.GetDataSource: TDataSource;
 begin
   Result:=nil;
 end;
@@ -689,19 +691,19 @@ begin
     end;
 end;
 
-Function TDataset.GetField (Index : Longint) : TField;
+function TDataSet.GetField(Index: Longint): TField;
 
 begin
   Result:=FFIeldList[index];
 end;
 
-Function TDataset.GetFieldClass(FieldType: TFieldType): TFieldClass;
+function TDataSet.GetFieldClass(FieldType: TFieldType): TFieldClass;
 
 begin
   Result := DefaultFieldClasses[FieldType];
 end;
 
-Function TDataset.GetIsIndexField(Field: TField): Boolean;
+function TDataSet.GetIsIndexField(Field: TField): Boolean;
 
 begin
   Result:=False;
@@ -742,7 +744,7 @@ begin
   IndexFields.Free;
 end;
 
-Function TDataset.GetNextRecord: Boolean;
+function TDataSet.GetNextRecord: Boolean;
 
   procedure ExchangeBuffers(var buf1,buf2 : pointer);
 
@@ -759,18 +761,18 @@ begin
   Writeln ('Getting next record. Internal RecordCount : ',FRecordCount);
 {$endif}
   If FRecordCount>0 Then SetCurrentRecord(FRecordCount-1);
-  Result:=GetRecord(FBuffers[FBuffercount],gmNext,True)=grOK;
+  Result:=GetRecord(FBuffers[FBufferCount],gmNext,True)=grOK;
 
   if result then
     begin
       If FRecordCount=0 then ActivateBuffers;
-      if FRecordcount=FBuffercount then
-        shiftbuffersbackward
+      if FRecordCount=FBufferCount then
+        ShiftBuffersBackward
       else
         begin
           inc(FRecordCount);
           FCurrentRecord:=FRecordCount - 1;
-          ExchangeBuffers(Fbuffers[FCurrentRecord],FBuffers[FBuffercount]);
+          ExchangeBuffers(FBuffers[FCurrentRecord],FBuffers[FBufferCount]);
         end;
     end
   else
@@ -780,7 +782,7 @@ begin
 {$endif}
 end;
 
-Function TDataset.GetNextRecords: Longint;
+function TDataSet.GetNextRecords: Longint;
 
 begin
   Result:=0;
@@ -794,7 +796,7 @@ begin
 {$endif}
 end;
 
-Function TDataset.GetPriorRecord: Boolean;
+function TDataSet.GetPriorRecord: Boolean;
 
 begin
 {$ifdef dsdebug}
@@ -802,13 +804,13 @@ begin
 {$endif}
   CheckBiDirectional;
   If FRecordCount>0 Then SetCurrentRecord(0);
-  Result:=GetRecord(FBuffers[FBuffercount],gmPrior,True)=grOK;
+  Result:=GetRecord(FBuffers[FBufferCount],gmPrior,True)=grOK;
   if result then
     begin
       If FRecordCount=0 then ActivateBuffers;
-      shiftbuffersforward;
+      ShiftBuffersForward;
 
-      if FRecordcount<FBuffercount then
+      if FRecordCount<FBufferCount then
         inc(FRecordCount);
     end
   else
@@ -818,30 +820,30 @@ begin
 {$endif}
 end;
 
-Function TDataset.GetPriorRecords: Longint;
+function TDataSet.GetPriorRecords: Longint;
 
 begin
   Result:=0;
 {$ifdef dsdebug}
   Writeln ('Getting previous record(s), need :',FBufferCount);
 {$endif}
-  While (FRecordCount<FbufferCount) and GetPriorRecord do
+  While (FRecordCount<FBufferCount) and GetPriorRecord do
     Inc(Result);
 end;
 
-Function TDataset.GetRecNo: Longint;
+function TDataSet.GetRecNo: Longint;
 
 begin
   Result := -1;
 end;
 
-Function TDataset.GetRecordCount: Longint;
+function TDataSet.GetRecordCount: Longint;
 
 begin
   Result := -1;
 end;
 
-Procedure TDataset.InitFieldDefs;
+procedure TDataSet.InitFieldDefs;
 
 begin
   if IsCursorOpen then
@@ -874,9 +876,10 @@ begin
   end;	
 end;
 
-Procedure TDataSet.SetFieldDefs(AFieldDefs: TFieldDefs);
+procedure TDataSet.SetFieldDefs(AFieldDefs: TFieldDefs);
 
 begin
+  Fields.ClearFieldDefs;
   FFieldDefs.Assign(AFieldDefs);
 end;
 
@@ -899,6 +902,7 @@ end;
 
 procedure TDataSet.InitFieldDefsFromfields;
 var i : integer;
+
 begin
   if FieldDefs.count = 0 then
     begin
@@ -907,7 +911,8 @@ begin
       for i := 0 to Fields.Count-1 do with fields[i] do
         if not (FieldKind in [fkCalculated,fkLookup]) then // Do not add fielddefs for calculated/lookup fields.
           begin
-          with TFieldDef.Create(FieldDefs,FieldName,DataType,Size,Required,FieldDefs.Count+1) do
+          FFieldDef:=FieldDefs.FieldDefClass.Create(FieldDefs,FieldName,DataType,Size,Required,FieldDefs.Count+1);
+          with FFieldDef do
             begin
             if Required then Attributes := attributes + [faRequired];
             if ReadOnly then Attributes := attributes + [faReadOnly];
@@ -921,37 +926,37 @@ begin
     end;
 end;
 
-Procedure TDataset.InitRecord(Buffer: TRecordBuffer);
+procedure TDataSet.InitRecord(Buffer: TRecordBuffer);
 
 begin
   InternalInitRecord(Buffer);
   ClearCalcFields(Buffer);
 end;
 
-Procedure TDataset.InternalCancel;
+procedure TDataSet.InternalCancel;
 
 begin
   //!! To be implemented
 end;
 
-Procedure TDataset.InternalEdit;
+procedure TDataSet.InternalEdit;
 
 begin
   //!! To be implemented
 end;
 
-Procedure TDataset.InternalRefresh;
+procedure TDataSet.InternalRefresh;
 
 begin
   //!! To be implemented
 end;
 
-Procedure TDataset.OpenCursor(InfoQuery: Boolean);
+procedure TDataSet.OpenCursor(InfoQuery: Boolean);
 
 begin
   if InfoQuery then
-    InternalInitfieldDefs
-  else if state <> dsOpening then
+    InternalInitFieldDefs
+  else if State <> dsOpening then
     DoInternalOpen;
 end;
 
@@ -975,13 +980,13 @@ begin
   end;
 end;
 
-Procedure TDataset.RefreshInternalCalcFields(Buffer: TRecordBuffer);
+procedure TDataSet.RefreshInternalCalcFields(Buffer: TRecordBuffer);
 
 begin
   //!! To be implemented
 end;
 
-Function TDataset.SetTempState(const Value: TDataSetState): TDataSetState;
+function TDataSet.SetTempState(const Value: TDataSetState): TDataSetState;
 
 begin
   result := FState;
@@ -989,20 +994,20 @@ begin
   inc(FDisableControlsCount);
 end;
 
-Procedure TDataset.RestoreState(const Value: TDataSetState);
+procedure TDataSet.RestoreState(const Value: TDataSetState);
 
 begin
   FState := value;
   dec(FDisableControlsCount);
 end;
 
-function TDataset.GetActive : boolean;
+function TDataSet.GetActive: boolean;
 
 begin
   result := (FState <> dsInactive) and (FState <> dsOpening);
 end;
 
-Procedure TDataset.InternalHandleException;
+procedure TDataSet.InternalHandleException;
 
 begin
   if assigned(classes.ApplicationHandleException) then
@@ -1060,7 +1065,17 @@ begin
   FIsUniDirectional := Value;
 end;
 
-Procedure TDataset.SetActive (Value : Boolean);
+class function TDataSet.FieldDefsClass: TFieldDefsClass;
+begin
+  Result:=TFieldDefs;
+end;
+
+class function TDataSet.FieldsClass: TFieldsClass;
+begin
+  Result:=TFields;
+end;
+
+procedure TDataSet.SetActive(Value: Boolean);
 
 begin
   if value and (Fstate = dsInactive) then
@@ -1094,7 +1109,7 @@ begin
     end
 end;
 
-procedure TDataset.Loaded;
+procedure TDataSet.Loaded;
 
 begin
   inherited;
@@ -1124,7 +1139,11 @@ begin
 {$ifdef dsdebug}
   Writeln('Recalculating buffer list size');
 {$endif}
-  ABufferCount := DefaultBufferCount;
+  if IsUniDirectional then
+    ABufferCount := 1
+  else
+    ABufferCount := DefaultBufferCount;
+
   for i := 0 to FDataSources.Count - 1 do
     for j := 0 to TDataSource(FDataSources[i]).DataLinks.Count - 1 do
       begin
@@ -1159,13 +1178,13 @@ begin
 {$Endif}
 end;
 
-Procedure TDataset.SetBookmarkStr(const Value: TBookmarkStr);
+procedure TDataSet.SetBookmarkStr(const Value: TBookmarkStr);
 
 begin
   GotoBookMark(Pointer(Value))
 end;
 
-Procedure TDataset.SetBufListSize(Value: Longint);
+procedure TDataSet.SetBufListSize(Value: Longint);
 
 Var I : longint;
 
@@ -1186,18 +1205,18 @@ begin
     Writeln ('   Filling memory :',(Value+1-FBufferCount)*SizeOf(TRecordBuffer));
 {$endif}
     inc(FBufferCount); // Cause FBuffers[FBufferCount] is already allocated
-    FillChar(FBuffers[FBufferCount],(Value+1-FBufferCount)*SizeOF(TRecordBuffer),#0);
+    FillChar(FBuffers[FBufferCount],(Value+1-FBufferCount)*SizeOf(TRecordBuffer),#0);
 {$ifdef dsdebug}
-    Writeln ('   Filled memory :');
+    Writeln ('   Filled memory');
 {$endif}
     Try
 {$ifdef dsdebug}
-      Writeln ('   Assigning buffers :',(Value)*SizeOf(TRecordBuffer));
+      Writeln ('   Assigning buffers : ',(Value)*SizeOf(TRecordBuffer));
 {$endif}
       For I:=FBufferCount to Value do
         FBuffers[i]:=AllocRecordBuffer;
 {$ifdef dsdebug}
-      Writeln ('   Assigned buffers ',FBufferCount,' :',(Value)*SizeOf(TRecordBuffer));
+      Writeln ('   Assigned buffers (FBufferCount:',FBufferCount,') : ',(Value)*SizeOf(TRecordBuffer));
 {$endif}
     except
       I:=FBufferCount;
@@ -1217,8 +1236,8 @@ begin
     if (value > -1) and (FActiveRecord>Value-1) then
       begin
       for i := 0 to (FActiveRecord-Value) do
-        shiftbuffersbackward;
-      FActiverecord := Value -1;
+        ShiftBuffersBackward;
+      FActiveRecord := Value -1;
       end;
 
     If Assigned(FBuffers) then
@@ -1238,13 +1257,13 @@ begin
   FBufferCount:=Value;
   If Value=-1 then
     Value:=0;
-  if FRecordcount > Value then FRecordcount := Value;
+  if FRecordCount > Value then FRecordCount := Value;
 {$ifdef dsdebug}
   Writeln ('   SetBufListSize: Final FBufferCount=',FBufferCount);
 {$endif}
 end;
 
-Procedure TDataset.SetChildOrder(Component: TComponent; Order: Longint);
+procedure TDataSet.SetChildOrder(Component: TComponent; Order: Longint);
 
 var
   Field: TField;
@@ -1254,13 +1273,13 @@ begin
     Field.Index := Order;
 end;
 
-Procedure TDataset.SetCurrentRecord(Index: Longint);
+procedure TDataSet.SetCurrentRecord(Index: Longint);
 
 begin
   If FCurrentRecord<>Index then
     begin
 {$ifdef DSdebug}
-    Writeln ('Setting current record to',index);
+    Writeln ('Setting current record to: ',index);
 {$endif}
     if not FIsUniDirectional then Case GetBookMarkFlag(FBuffers[Index]) of
       bfCurrent : InternalSetToRecord(FBuffers[Index]);
@@ -1276,32 +1295,32 @@ begin
   FDefaultFields := Value;
 end;
 
-Procedure TDataset.SetField (Index : Longint;Value : TField);
+procedure TDataSet.SetField(Index: Longint; Value: TField);
 
 begin
   //!! To be implemented
 end;
 
-Procedure TDataset.CheckBiDirectional;
+procedure TDataSet.CheckBiDirectional;
 
 begin
   if FIsUniDirectional then DataBaseError(SUniDirectional);
 end;
 
-Procedure TDataset.SetFilterOptions(Value: TFilterOptions);
+procedure TDataSet.SetFilterOptions(Value: TFilterOptions);
 
 begin
   CheckBiDirectional;
   FFilterOptions := Value;
 end;
 
-Procedure TDataset.SetFilterText(const Value: string);
+procedure TDataSet.SetFilterText(const Value: string);
 
 begin
   FFilterText := value;
 end;
 
-Procedure TDataset.SetFiltered(Value: Boolean);
+procedure TDataSet.SetFiltered(Value: Boolean);
 
 begin
   if Value then CheckBiDirectional;
@@ -1313,13 +1332,13 @@ begin
   FFound := Value;
 end;
 
-Procedure TDataset.SetModified(Value: Boolean);
+procedure TDataSet.SetModified(Value: Boolean);
 
 begin
   FModified := value;
 end;
 
-Procedure TDataset.SetName(const Value: TComponentName);
+procedure TDataSet.SetName(const Value: TComponentName);
 
 function CheckName(const FieldName: string): string;
 var i,j: integer;
@@ -1349,20 +1368,20 @@ begin
     end;
 end;
 
-Procedure TDataset.SetOnFilterRecord(const Value: TFilterRecordEvent);
+procedure TDataSet.SetOnFilterRecord(const Value: TFilterRecordEvent);
 
 begin
   CheckBiDirectional;
   FOnFilterRecord := Value;
 end;
 
-Procedure TDataset.SetRecNo(Value: Longint);
+procedure TDataSet.SetRecNo(Value: Longint);
 
 begin
   //!! To be implemented
 end;
 
-Procedure TDataset.SetState(Value: TDataSetState);
+procedure TDataSet.SetState(Value: TDataSetState);
 
 begin
   If Value<>FState then
@@ -1374,13 +1393,13 @@ begin
     end;
 end;
 
-Function TDataset.Tempbuffer: TRecordBuffer;
+function TDataSet.TempBuffer: TRecordBuffer;
 
 begin
   Result := FBuffers[FRecordCount];
 end;
 
-Procedure TDataset.UpdateIndexDefs;
+procedure TDataSet.UpdateIndexDefs;
 
 begin
   // Empty Abstract
@@ -1406,40 +1425,40 @@ begin
   Result := bfCurrent;
 end;
 
-Function TDataset.ControlsDisabled: Boolean;
+function TDataSet.ControlsDisabled: Boolean;
 
 begin
   Result := (FDisableControlsCount > 0);
 end;
 
-Function TDataset.ActiveBuffer: TRecordBuffer;
+function TDataSet.ActiveBuffer: TRecordBuffer;
 
 begin
 {$ifdef dsdebug}
-  Writeln ('Active buffer requested. Returning:',ActiveRecord);
+  Writeln ('Active buffer requested. Returning record number:',ActiveRecord);
 {$endif}
   Result:=FBuffers[FActiveRecord];
 end;
 
-Procedure TDataset.Append;
+procedure TDataSet.Append;
 
 begin
   DoInsertAppend(True);
 end;
 
-Procedure TDataset.InternalInsert;
+procedure TDataSet.InternalInsert;
 
 begin
   //!! To be implemented
 end;
 
-Procedure TDataset.AppendRecord(const Values: array of const);
+procedure TDataSet.AppendRecord(const Values: array of const);
 
 begin
   DoInsertAppendRecord(Values,True);
 end;
 
-Function TDataset.BookmarkValid(ABookmark: TBookmark): Boolean;
+function TDataSet.BookmarkValid(ABookmark: TBookmark): Boolean;
 {
   Should be overridden by descendant objects.
 }
@@ -1447,7 +1466,7 @@ begin
   Result:=False
 end;
 
-Procedure TDataset.Cancel;
+procedure TDataSet.Cancel;
 
 begin
   If State in [dsEdit,dsInsert] then
@@ -1457,11 +1476,11 @@ begin
     UpdateCursorPos;
     InternalCancel;
     FreeFieldBuffers;
-    if (state = dsInsert) and (FRecordcount = 1) then
+    if (State = dsInsert) and (FRecordCount = 1) then
       begin
       FEOF := true;
       FBOF := true;
-      FRecordcount := 0;
+      FRecordCount := 0;
       InitRecord(ActiveBuffer);
       SetState(dsBrowse);
       DataEvent(deDatasetChange,0);
@@ -1469,20 +1488,20 @@ begin
     else
       begin
       SetState(dsBrowse);
-      SetCurrentRecord(FActiverecord);
+      SetCurrentRecord(FActiveRecord);
       resync([]);
       end;
     DoAfterCancel;
     end;
 end;
 
-Procedure TDataset.CheckBrowseMode;
+procedure TDataSet.CheckBrowseMode;
 
 begin
   CheckActive;
   DataEvent(deCheckBrowseMode,0);
   Case State of
-    dsedit,dsinsert: begin
+    dsEdit,dsInsert: begin
       UpdateRecord;
       If Modified then Post else Cancel;
     end;
@@ -1490,7 +1509,7 @@ begin
   end;
 end;
 
-Procedure TDataset.ClearFields;
+procedure TDataSet.ClearFields;
 
 
 begin
@@ -1501,33 +1520,34 @@ begin
   DataEvent(deRecordChange, 0);
 end;
 
-Procedure TDataset.Close;
+procedure TDataSet.Close;
 
 begin
   Active:=False;
 end;
 
-Function TDataset.CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Longint;
+function TDataSet.CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Longint;
 
 begin
   Result:=0;
 end;
 
-Function TDataset.CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream;
+function TDataSet.CreateBlobStream(Field: TField; Mode: TBlobStreamMode
+  ): TStream;
 
 
 begin
   Result:=Nil;
 end;
 
-Procedure TDataset.CursorPosChanged;
+procedure TDataSet.CursorPosChanged;
 
 
 begin
   FCurrentRecord:=-1;
 end;
 
-Procedure TDataset.Delete;
+procedure TDataSet.Delete;
 
 begin
   If Not CanModify then
@@ -1553,14 +1573,14 @@ begin
 {$ifdef dsdebug}
     writeln ('Delete: Browse mode set');
 {$endif}
-    SetCurrentRecord(FActiverecord);
+    SetCurrentRecord(FActiveRecord);
     Resync([]);
     DoAfterDelete;
     DoAfterScroll;
   end;
 end;
 
-Procedure TDataset.DisableControls;
+procedure TDataSet.DisableControls;
 
 
 begin
@@ -1575,7 +1595,7 @@ begin
   Inc(FDisableControlsCount);
 end;
 
-Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
+procedure TDataSet.DoInsertAppend(DoAppend: Boolean);
 
 
   procedure DoInsert(DoAppend : Boolean);
@@ -1586,20 +1606,20 @@ Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
   begin
   // need to scroll up al buffers after current one,
   // but copy current bookmark to insert buffer.
-  If FRecordcount > 0 then
+  If FRecordCount > 0 then
     BookBeforeInsert:=Bookmark;
 
   if not DoAppend then
     begin
     if FRecordCount > 0 then
       begin
-      TempBuf := FBuffers[FBuffercount];
-      move(FBuffers[FActiveRecord],FBuffers[FActiveRecord+1],(Fbuffercount-FActiveRecord)*sizeof(FBuffers[0]));
+      TempBuf := FBuffers[FBufferCount];
+      move(FBuffers[FActiveRecord],FBuffers[FActiveRecord+1],(FBufferCount-FActiveRecord)*sizeof(FBuffers[0]));
       FBuffers[FActiveRecord]:=TempBuf;
       end;
     end
-  else if FRecordcount=FBuffercount then
-    shiftbuffersbackward
+  else if FRecordCount=FBufferCount then
+    ShiftBuffersBackward
   else
     begin
     if FRecordCount>0 then
@@ -1621,7 +1641,7 @@ Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
 
     // 1-apr-06, JvdS: It just sets the bookmark of the newly inserted record to the place
     // where the record should be inserted. So it is ok.
-    if FRecordcount > 0 then
+    if FRecordCount > 0 then
       begin
       SetBookMarkData(ActiveBuffer,pointer(BookBeforeInsert));
       FreeBookmark(BookBeforeInsert);
@@ -1667,7 +1687,7 @@ begin
   try
     DoOnNewRecord;
   except
-    SetCurrentRecord(FActiverecord);
+    SetCurrentRecord(FActiveRecord);
     resync([]);
     raise;
   end;
@@ -1682,10 +1702,10 @@ begin
 {$endif}
 end;
 
-Procedure TDataset.Edit;
+procedure TDataSet.Edit;
 
 begin
-  If State in [dsedit,dsinsert] then exit;
+  If State in [dsEdit,dsInsert] then exit;
   CheckBrowseMode;
   If Not CanModify then
     DatabaseError(SDatasetReadOnly,Self);
@@ -1697,12 +1717,12 @@ begin
   DoBeforeEdit;
   If Not TryDoing(@InternalEdit,OnEditError) then exit;
   GetCalcFields(ActiveBuffer);
-  SetState(dsedit);
+  SetState(dsEdit);
   DataEvent(deRecordChange,0);
   DoAfterEdit;
 end;
 
-Procedure TDataset.EnableControls;
+procedure TDataSet.EnableControls;
 
 
 begin
@@ -1718,7 +1738,7 @@ begin
   end;
 end;
 
-Function TDataset.FieldByName(const FieldName: string): TField;
+function TDataSet.FieldByName(const FieldName: string): TField;
 
 
 begin
@@ -1727,42 +1747,42 @@ begin
     DatabaseErrorFmt(SFieldNotFound,[FieldName],Self);
 end;
 
-Function TDataset.FindField(const FieldName: string): TField;
+function TDataSet.FindField(const FieldName: string): TField;
 
 
 begin
   Result:=FFieldList.FindField(FieldName);
 end;
 
-Function TDataset.FindFirst: Boolean;
+function TDataSet.FindFirst: Boolean;
 
 
 begin
   Result:=False;
 end;
 
-Function TDataset.FindLast: Boolean;
+function TDataSet.FindLast: Boolean;
 
 
 begin
   Result:=False;
 end;
 
-Function TDataset.FindNext: Boolean;
+function TDataSet.FindNext: Boolean;
 
 
 begin
   Result:=False;
 end;
 
-Function TDataset.FindPrior: Boolean;
+function TDataSet.FindPrior: Boolean;
 
 
 begin
   Result:=False;
 end;
 
-Procedure TDataset.First;
+procedure TDataSet.First;
 
 
 begin
@@ -1785,7 +1805,7 @@ begin
     end;
 end;
 
-Procedure TDataset.FreeBookmark(ABookmark: TBookmark);
+procedure TDataSet.FreeBookmark(ABookmark: TBookmark);
 
 
 begin
@@ -1794,7 +1814,7 @@ begin
   {$endif}
 end;
 
-Function TDataset.GetBookmark: TBookmark;
+function TDataSet.GetBookmark: TBookmark;
 
 
 begin
@@ -1811,14 +1831,14 @@ begin
     Result:=Nil;
 end;
 
-Function TDataset.GetCurrentRecord(Buffer: TRecordBuffer): Boolean;
+function TDataSet.GetCurrentRecord(Buffer: TRecordBuffer): Boolean;
 
 
 begin
   Result:=False;
 end;
 
-Procedure TDataset.GetFieldList(List: TList; const FieldNames: string);
+procedure TDataSet.GetFieldList(List: TList; const FieldNames: string);
 
 var
   F: TField;
@@ -1836,14 +1856,14 @@ begin
   until StrPos > Length(FieldNames);
 end;
 
-Procedure TDataset.GetFieldNames(List: TStrings);
+procedure TDataSet.GetFieldNames(List: TStrings);
 
 
 begin
   FFieldList.GetFieldNames(List);
 end;
 
-Procedure TDataset.GotoBookmark(const ABookmark: TBookmark);
+procedure TDataSet.GotoBookmark(const ABookmark: TBookmark);
 
 
 begin
@@ -1857,26 +1877,26 @@ begin
     end;
 end;
 
-Procedure TDataset.Insert;
+procedure TDataSet.Insert;
 
 begin
   DoInsertAppend(False);
 end;
 
-Procedure TDataset.InsertRecord(const Values: array of const);
+procedure TDataSet.InsertRecord(const Values: array of const);
 
 begin
   DoInsertAppendRecord(Values,False);
 end;
 
-Function TDataset.IsEmpty: Boolean;
+function TDataSet.IsEmpty: Boolean;
 
 begin
   Result:=(fBof and fEof) and
-          (not (state = dsinsert)); // After an insert on an empty dataset, both fBof and fEof are true
+          (not (State = dsInsert)); // After an insert on an empty dataset, both fBof and fEof are true
 end;
 
-Function TDataset.IsLinkedTo(ADataSource: TDataSource): Boolean;
+function TDataSet.IsLinkedTo(ADataSource: TDataSource): Boolean;
 
 begin
 //!! Not tested, I never used nested DS
@@ -1890,13 +1910,13 @@ begin
 //!! DataSetField not implemented
 end;
 
-Function TDataset.IsSequenced: Boolean;
+function TDataSet.IsSequenced: Boolean;
 
 begin
   Result := True;
 end;
 
-Procedure TDataset.Last;
+procedure TDataSet.Last;
 
 begin
   CheckBiDirectional;
@@ -1915,16 +1935,15 @@ begin
     end;
 end;
 
-Function TDataset.MoveBy(Distance: Longint): Longint;
+function TDataSet.MoveBy(Distance: Longint): Longint;
 Var
   TheResult: Integer;
 
-  Function Scrollforward : Integer;
-
+  Function ScrollForward : Integer;
   begin
     Result:=0;
 {$ifdef dsdebug}
-    Writeln('Scrolling forward :',Distance);
+    Writeln('Scrolling forward : ',Distance);
     Writeln('Active buffer : ',FActiveRecord);
     Writeln('RecordCount   : ',FRecordCount);
     WriteLn('BufferCount   : ',FBufferCount);
@@ -1954,13 +1973,13 @@ Var
         end;
       end
   end;
-  Function ScrollBackward : Integer;
 
+  Function ScrollBackward : Integer;
   begin
     CheckBiDirectional;
     Result:=0;
 {$ifdef dsdebug}
-    Writeln('Scrolling backward:',Abs(Distance));
+    Writeln('Scrolling backward : ',Abs(Distance));
     Writeln('Active buffer : ',FActiveRecord);
     Writeln('RecordCunt    : ',FRecordCount);
     WriteLn('BufferCount   : ',FBufferCount);
@@ -2018,7 +2037,7 @@ begin
   end;
 end;
 
-Procedure TDataset.Next;
+procedure TDataSet.Next;
 
 begin
   if BlockReadSize>0 then
@@ -2027,18 +2046,18 @@ begin
     MoveBy(1);
 end;
 
-Procedure TDataset.BlockReadNext;
+procedure TDataSet.BlockReadNext;
 begin
   MoveBy(1);
 end;
 
-Procedure TDataset.Open;
+procedure TDataSet.Open;
 
 begin
   Active:=True;
 end;
 
-Procedure TDataset.Post;
+procedure TDataSet.Post;
 
 begin
   if State in [dsEdit,dsInsert] then
@@ -2068,13 +2087,13 @@ begin
     DatabaseErrorFmt(SNotEditing, [Name], Self);
 end;
 
-Procedure TDataset.Prior;
+procedure TDataSet.Prior;
 
 begin
   MoveBy(-1);
 end;
 
-Procedure TDataset.Refresh;
+procedure TDataSet.Refresh;
 
 begin
   CheckbrowseMode;
@@ -2083,20 +2102,20 @@ begin
   InternalRefresh;
 { SetCurrentRecord is called by UpdateCursorPos already, so as long as
   InternalRefresh doesn't do strange things this should be ok. }
-//  SetCurrentRecord(FActiverecord);
+//  SetCurrentRecord(FActiveRecord);
   Resync([]);
   DoAfterRefresh;
 end;
 
-Procedure TDataset.RegisterDataSource(ADatasource : TDataSource);
+procedure TDataSet.RegisterDataSource(ADataSource: TDataSource);
 
 begin
-  FDatasources.Add(ADataSource);
+  FDataSources.Add(ADataSource);
   RecalcBufListSize;
 end;
 
 
-Procedure TDataset.Resync(Mode: TResyncMode);
+procedure TDataSet.Resync(Mode: TResyncMode);
 
 var i,count : integer;
 
@@ -2107,16 +2126,16 @@ begin
 {$endif}
   if FIsUnidirectional then Exit;
 // place the cursor of the underlying dataset to the active record
-//  SetCurrentRecord(FActiverecord);
+//  SetCurrentRecord(FActiveRecord);
 
 // Now look if the data on the current cursor of the underlying dataset is still available
-  If GetRecord(Fbuffers[0],gmcurrent,False)<>grOk Then
+  If GetRecord(FBuffers[0],gmCurrent,False)<>grOk Then
 // If that fails and rmExact is set, then raise an exception
     If rmExact in Mode then
       DatabaseError(SNoSuchRecord,Self)
 // else, if rmexact is not set, try to fetch the next  or prior record in the underlying dataset
-    else if (GetRecord(Fbuffers[0],gmnext,True)<>grOk) and
-            (GetRecord(Fbuffers[0],gmprior,True)<>grOk) then
+    else if (GetRecord(FBuffers[0],gmNext,True)<>grOk) and
+            (GetRecord(FBuffers[0],gmPrior,True)<>grOk) then
       begin
 {$ifdef dsdebug}
       Writeln ('Resync: fuzzy resync');
@@ -2138,7 +2157,7 @@ begin
   else
     count := FActiveRecord;
   i := 0;
-  FRecordcount := 1;
+  FRecordCount := 1;
   FActiveRecord := 0;
 
 // Fill the buffers before the active record
@@ -2148,12 +2167,12 @@ begin
 // Fill the rest of the buffer
   getnextrecords;
 // If the buffer is not full yet, try to fetch some more prior records
-  if FRecordcount < FBuffercount then inc(FActiverecord,getpriorrecords);
+  if FRecordCount < FBufferCount then inc(FActiveRecord,getpriorrecords);
 // That's all folks!
   DataEvent(deDatasetChange,0);
 end;
 
-Procedure TDataset.SetFields(const Values: array of const);
+procedure TDataSet.SetFields(const Values: array of const);
 
 Var I  : longint;
 begin
@@ -2161,14 +2180,14 @@ begin
     Fields[I].AssignValue(Values[I]);
 end;
 
-Function TDataset.Translate(Src, Dest: PChar; ToOem: Boolean): Integer;
+function TDataSet.Translate(Src, Dest: PChar; ToOem: Boolean): Integer;
 
 begin
   strcopy(dest,src);
   Result:=StrLen(dest);
 end;
 
-Function Tdataset.TryDoing (P : TDataOperation; Ev : TDatasetErrorEvent) : Boolean;
+function TDataSet.TryDoing(P: TDataOperation; Ev: TDatasetErrorEvent): Boolean;
 
 Var Retry : TDataAction;
 
@@ -2209,14 +2228,14 @@ begin
 {$endif dsdebug}
 end;
 
-Procedure TDataset.UpdateCursorPos;
+procedure TDataSet.UpdateCursorPos;
 
 begin
   If FRecordCount>0 then
-    SetCurrentRecord(FactiveRecord);
+    SetCurrentRecord(FActiveRecord);
 end;
 
-Procedure TDataset.UpdateRecord;
+procedure TDataSet.UpdateRecord;
 
 begin
   if not (State in dsEditModes) then
@@ -2224,13 +2243,13 @@ begin
   DataEvent(deUpdateRecord, 0);
 end;
 
-Function TDataSet.UpdateStatus: TUpdateStatus;
+function TDataSet.UpdateStatus: TUpdateStatus;
 
 begin
   Result:=usUnmodified;
 end;
 
-Procedure TDataset.RemoveField (Field : TField);
+procedure TDataSet.RemoveField(Field: TField);
 
 begin
   //!! To be implemented
@@ -2241,33 +2260,33 @@ begin
   FConstraints.Assign(Value);
 end;
 
-Function TDataset.Getfieldcount : Longint;
+function TDataSet.GetfieldCount: Integer;
 
 begin
   Result:=FFieldList.Count;
 end;
 
-Procedure TDataset.ShiftBuffersBackward;
+procedure TDataSet.ShiftBuffersBackward;
 
 var TempBuf : pointer;
 
 begin
   TempBuf := FBuffers[0];
-  move(FBuffers[1],FBuffers[0],(fbuffercount)*sizeof(FBuffers[0]));
-  FBuffers[buffercount]:=TempBuf;
+  move(FBuffers[1],FBuffers[0],(FBufferCount)*sizeof(FBuffers[0]));
+  FBuffers[BufferCount]:=TempBuf;
 end;
 
-Procedure TDataset.ShiftBuffersForward;
+procedure TDataSet.ShiftBuffersForward;
 
 var TempBuf : pointer;
 
 begin
   TempBuf := FBuffers[FBufferCount];
-  move(FBuffers[0],FBuffers[1],(fbuffercount)*sizeof(FBuffers[0]));
+  move(FBuffers[0],FBuffers[1],(FBufferCount)*sizeof(FBuffers[0]));
   FBuffers[0]:=TempBuf;
 end;
 
-function TDataset.GetFieldValues(const Fieldname: string): Variant;
+function TDataSet.GetFieldValues(const FieldName: string): Variant;
 
 var i: Integer;
     FieldList: TList;
@@ -2286,33 +2305,41 @@ begin
   end;
 end;
 
-procedure TDataset.SetFieldValues(const Fieldname: string; Value: Variant);
+procedure TDataSet.SetFieldValues(const FieldName: string; Value: Variant);
 
 var
-  i : Integer;
+  i, l, h : Integer;
   FieldList: TList;
 begin
   if VarIsArray(Value) then begin
     FieldList := TList.Create;
     try
       GetFieldList(FieldList, FieldName);
-      for i := 0 to FieldList.Count -1 do
-        TField(FieldList[i]).Value := Value[i];
+      l := VarArrayLowBound(Value, 1);
+      h := VarArrayHighBound(Value, 1);
+      if (FieldList.Count = 1) and (l < h) then
+        // Allow for a field type that can deal with an array
+        FieldByName(FieldName).Value := Value
+      else
+        for i := 0 to FieldList.Count - 1 do
+          TField(FieldList[i]).Value := Value[l+i];
     finally
       FieldList.Free;
     end;
   end else
-    FieldByName(Fieldname).Value := Value;
+    FieldByName(FieldName).Value := Value;
 end;
 
-Function TDataset.Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : boolean;
+function TDataSet.Locate(const KeyFields: string; const KeyValues: Variant;
+  Options: TLocateOptions): boolean;
 
 begin
   CheckBiDirectional;
   Result := False;
 end;
 
-Function TDataset.Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant;
+function TDataSet.Lookup(const KeyFields: string; const KeyValues: Variant;
+  const ResultFields: string): Variant;
 
 begin
   CheckBiDirectional;
@@ -2320,7 +2347,7 @@ begin
 end;
 
 
-Procedure TDataset.UnRegisterDataSource(ADatasource : TDatasource);
+procedure TDataSet.UnRegisterDataSource(ADataSource: TDataSource);
 
 begin
   FDataSources.Remove(ADataSource);
@@ -2329,77 +2356,77 @@ end;
 {------------------------------------------------------------------------------}
 { IProviderSupport methods}
 
-procedure TDataset.PSEndTransaction(Commit: Boolean);
+procedure TDataSet.PSEndTransaction(Commit: Boolean);
 begin
   DatabaseError('Provider support not available', Self);
 end;
 
-procedure TDataset.PSExecute;
+procedure TDataSet.PSExecute;
 begin
   DatabaseError('Provider support not available', Self);
 end;
 
-function TDataset.PSExecuteStatement(const ASQL: string; AParams: TParams;
+function TDataSet.PSExecuteStatement(const ASQL: string; AParams: TParams;
   ResultSet: Pointer): Integer;
 begin
   Result := 0;
   DatabaseError('Provider support not available', Self);
 end;
 
-procedure TDataset.PSGetAttributes(List: TList);
+procedure TDataSet.PSGetAttributes(List: TList);
 begin
   DatabaseError('Provider support not available', Self);
 end;
 
-function TDataset.PSGetCommandText: string;
+function TDataSet.PSGetCommandText: string;
 begin
   Result := '';
   DatabaseError('Provider support not available', Self);
 end;
 
-function TDataset.PSGetCommandType: TPSCommandType;
+function TDataSet.PSGetCommandType: TPSCommandType;
 begin
   Result := ctUnknown;
   DatabaseError('Provider support not available', Self);
 end;
 
-function TDataset.PSGetDefaultOrder: TIndexDef;
+function TDataSet.PSGetDefaultOrder: TIndexDef;
 begin
   Result := nil;
   //DatabaseError('Provider support not available', Self);
 end;
 
-function TDataset.PSGetIndexDefs(IndexTypes: TIndexOptions): TIndexDefs;
+function TDataSet.PSGetIndexDefs(IndexTypes: TIndexOptions): TIndexDefs;
 begin
   Result := nil;
   DatabaseError('Provider support not available', Self);
 end;
 
-function TDataset.PSGetKeyFields: string;
+function TDataSet.PSGetKeyFields: string;
 begin
   Result := '';
   DatabaseError('Provider support not available', Self);
 end;
 
-function TDataset.PSGetParams: TParams;
+function TDataSet.PSGetParams: TParams;
 begin
   Result := nil;
   DatabaseError('Provider support not available', Self);
 end;
 
-function TDataset.PSGetQuoteChar: string;
+function TDataSet.PSGetQuoteChar: string;
 begin
   Result := '';
   DatabaseError('Provider support not available', Self);
 end;
 
-function TDataset.PSGetTableName: string;
+function TDataSet.PSGetTableName: string;
 begin
   Result := '';
   DatabaseError('Provider support not available', Self);
 end;
 
-function TDataset.PSGetUpdateException(E: Exception; Prev: EUpdateError
+function TDataSet.PSGetUpdateException(E: Exception; Prev: EUpdateError
   ): EUpdateError;
 begin
   if Prev <> nil then
@@ -2408,45 +2435,45 @@ begin
     Result := EUpdateError.Create(E.Message, '', 0, 0, E)
 end;
 
-function TDataset.PSInTransaction: Boolean;
+function TDataSet.PSInTransaction: Boolean;
 begin
   Result := False;
   DatabaseError('Provider support not available', Self);
 end;
 
-function TDataset.PSIsSQLBased: Boolean;
+function TDataSet.PSIsSQLBased: Boolean;
 begin
   Result := False;
   DatabaseError('Provider support not available', Self);
 end;
 
-function TDataset.PSIsSQLSupported: Boolean;
+function TDataSet.PSIsSQLSupported: Boolean;
 begin
   Result := False;
   DatabaseError('Provider support not available', Self);
 end;
 
-procedure TDataset.PSReset;
+procedure TDataSet.PSReset;
 begin
   //DatabaseError('Provider support not available', Self);
 end;
 
-procedure TDataset.PSSetCommandText(const CommandText: string);
+procedure TDataSet.PSSetCommandText(const CommandText: string);
 begin
   DatabaseError('Provider support not available', Self);
 end;
 
-procedure TDataset.PSSetParams(AParams: TParams);
+procedure TDataSet.PSSetParams(AParams: TParams);
 begin
   DatabaseError('Provider support not available', Self);
 end;
 
-procedure TDataset.PSStartTransaction;
+procedure TDataSet.PSStartTransaction;
 begin
   DatabaseError('Provider support not available', Self);
 end;
 
-function TDataset.PSUpdateRecord(UpdateKind: TUpdateKind; Delta: TDataSet
+function TDataSet.PSUpdateRecord(UpdateKind: TUpdateKind; Delta: TDataSet
   ): Boolean;
 begin
   Result := False;

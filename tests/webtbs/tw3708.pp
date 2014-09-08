@@ -9,23 +9,14 @@ var
 
 begin
   v := 1.0000000000001;
-  for i := 1 to 20 do
+  for i := 1 to 13 do
     begin
       s := FloatToStrF(v, ffGeneral, i, 0);
       WriteLn(i, ' ', s);
-      if (i < 14) then
+      if (s <> '1') then
         begin
-          if (s <> '1') then
-            begin
-              writeln('error');
-              halt(1);
-            end;
-        end
-      else
-        if (s <> '1'+DecimalSeparator+'0000000000001') then
-          begin
-            writeln('error');
-            halt(1);
-          end;
+          writeln('error');
+          halt(1);
+        end;
     end;
 end.

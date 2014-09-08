@@ -192,10 +192,6 @@ type
   end;
 
 
-threadvar
-  errno : longint;
-
-
    { misc. functions }
    function GetLastError : DWORD;
      {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetLastError';
@@ -204,7 +200,7 @@ threadvar
      {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'SetLastError';
 
    { time and date functions }
-   function GetTickCount : longint;
+   function GetTickCount : DWORD;
      {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetTickCount';
 
 {$ifndef WINCE}
@@ -218,7 +214,7 @@ threadvar
    function GetStdHandle(nStdHandle:DWORD):THANDLE;
      stdcall;external KernelDLL name 'GetStdHandle';
 
-   {$ifdef FPC_UNICODE_RTL}
+   {$ifdef FPC_UNICODE_RTLx}
    { command line/environment functions }
 
    function GetCommandLine : pwidechar;
@@ -237,7 +233,7 @@ threadvar
   function GetCurrentProcess : THandle;
     stdcall;external 'kernel32' name 'GetCurrentProcess';
 
-  function ReadProcessMemory(process : THandle;address : pointer;dest : pointer;size : dword;bytesread : pdword) :  longbool;
+  function ReadProcessMemory(process : THandle;address : pointer;dest : pointer;size : ptruint;bytesread : pptruint) :  longbool;
     stdcall;external 'kernel32' name 'ReadProcessMemory';
 
   { module functions }
@@ -280,55 +276,40 @@ threadvar
      stdcall;external KernelDLL name 'GetFileType';
    function GetProcAddress(hModule:THandle; lpProcName:pchar):pointer; stdcall; external KernelDLL name 'GetProcAddress';
 
-   {$ifdef FPC_UNICODE_RTL}
-    function GetFileAttributes(p : punicodechar) : dword;
-     stdcall;external KernelDLL name 'GetFileAttributesW';
-   function DeleteFile(p : punicodechar) : longint;
+   { File }
+   function DeleteFileW(p : punicodechar) : longint;
      stdcall;external KernelDLL name 'DeleteFileW';
-   function MoveFile(old,_new : punicodechar) : longint;
+   function MoveFileW(old,_new : punicodechar) : longint;
      stdcall;external KernelDLL name 'MoveFileW';
-   function CreateFile(lpFileName:punicodechar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
+   function CreateFileW(lpFileName:punicodechar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
                        lpSecurityAttributes:PSECURITYATTRIBUTES; dwCreationDisposition:DWORD;
                        dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):THandle;
      stdcall;external KernelDLL name 'CreateFileW';
+   function GetFileAttributesW(p : punicodechar) : dword;
+     stdcall;external KernelDLL name 'GetFileAttributesW';
+
    { Directory }
-   function CreateDirectory(name : pointer;sec : pointer) : longbool;
+   function CreateDirectoryW(name : pointer;sec : pointer) : longbool;
      stdcall;external KernelDLL name 'CreateDirectoryW';
-   function RemoveDirectory(name:pointer):longbool;
+   function RemoveDirectoryW(name:pointer):longbool;
      stdcall;external KernelDLL name 'RemoveDirectoryW';
-   function SetCurrentDirectory(name : pointer) : longbool;
+   function SetCurrentDirectoryW(name : pointer) : longbool;
      stdcall;external KernelDLL name 'SetCurrentDirectoryW';
-   function GetCurrentDirectory(bufsize : longint;name : punicodechar) : longbool;
+   function GetCurrentDirectoryW(bufsize : longint;name : punicodechar) : Dword;
      stdcall;external KernelDLL name 'GetCurrentDirectoryW';
-
-   {$else}
-   function GetFileAttributes(p : pchar) : dword;
-     stdcall;external KernelDLL name 'GetFileAttributesA';
-   function DeleteFile(p : pchar) : longint;
-     stdcall;external KernelDLL name 'DeleteFileA';
-   function MoveFile(old,_new : pchar) : longint;
-     stdcall;external KernelDLL name 'MoveFileA';
-   function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
-                       lpSecurityAttributes:PSECURITYATTRIBUTES; dwCreationDisposition:DWORD;
-                       dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):THandle;
-     stdcall;external KernelDLL name 'CreateFileA';
-   { Directory }
-   function CreateDirectory(name : pointer;sec : pointer) : longbool;
-     stdcall;external KernelDLL name 'CreateDirectoryA';
-   function RemoveDirectory(name:pointer):longbool;
-     stdcall;external KernelDLL name 'RemoveDirectoryA';
-   function SetCurrentDirectory(name : pointer) : longbool;
-     stdcall;external KernelDLL name 'SetCurrentDirectoryA';
-   function GetCurrentDirectory(bufsize : longint;name : pchar) : longbool;
-     stdcall;external KernelDLL name 'GetCurrentDirectoryA';
-
-  {$endif}
+   function GetFullPathNameW (lpFileName: PUnicodeChar; nBufferLength: DWord;
+     lpBuffer: PUnicodeChar; var lpFilePart: PUnicodeChar): DWord;
+     stdcall; external KernelDLL name 'GetFullPathNameW';
+   function SetEnvironmentVariableW (lpName: PUnicodeChar; lpValue: PUnicodeChar): BOOL;
+     stdcall; external KernelDLL name 'SetEnvironmentVariableW';
 
    { Console functions needed for WriteFile fix for bug 17550 }
    function GetConsoleMode(hConsoleHandle:thandle; lpMode:LPDWORD):BOOL;
      stdcall;external KernelDLL name 'GetConsoleMode';
    function GetConsoleOutputCP : UINT;
      stdcall; external KernelDLL name 'GetConsoleOutputCP';
+   function GetOEMCP: UINT;
+     stdcall; external KernelDLL name 'GetOEMCP';
 
    function SysAllocStringLen(psz:pointer;len:dword):pointer;
      stdcall; external 'oleaut32.dll' name 'SysAllocStringLen';
@@ -338,19 +319,17 @@ threadvar
      len:dword): Integer; stdcall;external 'oleaut32.dll' name 'SysReAllocStringLen';
 {$endif WINCE}
 
-   Procedure Errno2InOutRes;
+   Procedure Errno2InOutRes(oserror: longword);
    var
      res : Word;
-     pErrno : ^longint;
    Begin
      { DO NOT MODIFY UNLESS YOU KNOW EXACTLY WHAT YOU ARE DOING }
-     pErrno:=@Errno;
-     case pErrno^ of
+     case oserror of
        ERROR_WRITE_PROTECT..ERROR_GEN_FAILURE :
          begin
            { This is the offset to the Win32 to add to directly map  }
            { to the DOS/TP compatible error codes when in this range }
-           res := word(pErrno^)+131;
+           res := word(oserror)+131;
          end;
        ERROR_DISK_FULL :
          res := 101;
@@ -363,10 +342,9 @@ threadvar
        else
          begin
            { other error codes can directly be mapped }
-           res := Word(pErrno^);
+           res := Word(oserror);
          end;
      end;
-     pErrno^:=0;
      InOutRes:=res;
    end;
 
@@ -403,3 +381,17 @@ threadvar
       SetString(widestring(pointer(result)),PWideChar(source),length(source));
     end;
 
+
+{$ifndef WINCE}
+{$define FPC_HAS_TRANSLATEPLACEHOLDERCP}
+function TranslatePlaceholderCP(cp: TSystemCodePage): TSystemCodePage; {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  TranslatePlaceholderCP:=cp;
+  case cp of
+    CP_OEMCP:
+      TranslatePlaceholderCP:=GetOEMCP;
+    CP_ACP:
+      TranslatePlaceholderCP:=DefaultSystemCodePage;
+  end;
+end;
+{$endif not WINCE}

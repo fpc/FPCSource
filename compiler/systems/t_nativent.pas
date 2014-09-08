@@ -85,7 +85,7 @@ implementation
 initialization
 {$ifdef i386}
   { NativeNT }
-  RegisterInternalLinker(system_i386_nativent_info,TInternalLinkerNativeNT);
+  RegisterLinker(ld_int_nativent,TInternalLinkerNativeNT);
   RegisterImport(system_i386_nativent,TImportLibNativeNT);
   RegisterExport(system_i386_nativent,TExportLibNativeNT);
 //  RegisterRes(res_gnu_windres_info,TWinLikeResourceFile);

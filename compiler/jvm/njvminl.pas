@@ -73,7 +73,7 @@ implementation
     uses
       cutils,globals,verbose,globtype,constexp,fmodule,
       aasmbase,aasmtai,aasmdata,aasmcpu,
-      symtype,symconst,symdef,symsym,symtable,jvmdef,
+      symtype,symconst,symdef,symsym,symcpu,symtable,jvmdef,
       defutil,
       nadd,nbas,ncon,ncnv,nmat,nmem,ncal,nld,nflw,nutils,
       cgbase,pass_1,pass_2,
@@ -87,13 +87,13 @@ implementation
 
     function tjvminlinenode.typecheck_length(var handled: boolean): tnode;
       begin
+        result:=nil;
         typecheckpass(left);
         if is_open_array(left.resultdef) or
            is_dynamic_array(left.resultdef) or
            is_array_of_const(left.resultdef) then
           begin
             resultdef:=s32inttype;
-            result:=nil;
             handled:=true;
           end;
       end;
@@ -101,6 +101,7 @@ implementation
 
     function tjvminlinenode.typecheck_high(var handled: boolean): tnode;
       begin
+        result:=nil;
         typecheckpass(left);
         if is_dynamic_array(left.resultdef) or
            is_open_array(left.resultdef) or
@@ -120,6 +121,7 @@ implementation
         para: tcallparanode;
         elemdef: tdef;
       begin
+        result:=nil;
         { normally never exists; used by the JVM backend to create new
           arrays because it requires special opcodes }
         tcallparanode(left).get_paratype;
@@ -150,7 +152,6 @@ implementation
                 para:=tcallparanode(para.right);
                 elemdef:=tarraydef(elemdef).elementdef;
               end;
-            result:=nil;
             resultdef:=left.resultdef;
             handled:=true;
           end;
@@ -289,6 +290,7 @@ implementation
       var
         handled: boolean;
       begin
+         result:=nil;
          handled:=false;
          case inlinenumber of
            in_length_x:
@@ -362,7 +364,7 @@ implementation
         if seteledef.typ=enumdef then
           begin
             inserttypeconv_explicit(setpara,java_juenumset);
-            inserttypeconv_explicit(valuepara.left,tenumdef(seteledef).getbasedef.classdef);
+            inserttypeconv_explicit(valuepara.left,tcpuenumdef(tenumdef(seteledef).getbasedef).classdef);
           end
         else
           begin
@@ -578,7 +580,7 @@ implementation
             else
               begin
                 lefttemp:=nil;
-                stringtemp:=left;
+                stringtemp:=ctypeconvnode.create_explicit(left,stringclass);
               end;
             left:=nil;
             lentemp:=ctempcreatenode.create(s32inttype,s32inttype.size,tt_persistent,true);

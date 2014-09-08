@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<schema xmlns:tns="urn:base-library" 
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+        targetNamespace="urn:base-library">
+  <xsd:complexType name="SampleBase_Type">
+    <xsd:sequence>
+      <xsd:element name="Name" type="xsd:string"/>
+      <xsd:element name="Identifier" type="xsd:int"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</schema>

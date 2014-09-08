@@ -212,10 +212,9 @@ procedure TBits.orbits(bitset : TBits);
 var
    loop : longint;
 begin
-   if FBSize < bitset.Size then
-     grow(bitset.Size);
+   grow(bitset.Size);
 
-   for loop := 0 to FSize-1 do
+   for loop := 0 to bitset.getFSize-1 do
       FBits^[loop] := FBits^[loop] or bitset.FBits^[loop];
 end;
 
@@ -223,10 +222,9 @@ procedure TBits.xorbits(bitset : TBits);
 var
    loop : longint;
 begin
-   if FBSize < bitset.Size then
-     grow(bitset.Size);
+   grow(bitset.Size);
 
-   for loop := 0 to FSize-1 do
+   for loop := 0 to bitset.getFSize-1 do
       FBits^[loop] := FBits^[loop] xor bitset.FBits^[loop];
 end;
 
@@ -321,16 +319,14 @@ end;
 function TBits.FindNextBit : longint;
 var
    loop : longint;
-   maxVal : longint;
 begin
    result := -1;  { will occur only if no other bits set to }
                   { current findState                        }
 
    if findIndex > -1 then { must have called FindFirstBit first }
    begin                  { or set the start index              }
-      maxVal := (FSize * 32) - 1;
 
-      for loop := findIndex + 1 to maxVal  do
+      for loop := findIndex + 1 to FBSize-1 do
       begin
          if get(loop) = findState then
          begin

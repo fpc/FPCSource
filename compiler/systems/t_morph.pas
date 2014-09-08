@@ -205,13 +205,13 @@ var
   success : boolean;
   StripStr: string[40];
 begin
+  StripStr:='';
 
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.exefilename);
 
   if UseVLink then
    begin
-    StripStr:='';
     if (cs_link_strip in current_settings.globalswitches) then
      StripStr:='-s -P __abox__';
    end;
@@ -263,6 +263,6 @@ end;
 *****************************************************************************}
 
 initialization
-  RegisterExternalLinker(system_powerpc_morphos_info,TLinkerMorphOS);
+  RegisterLinker(ld_morphos,TLinkerMorphOS);
   RegisterTarget(system_powerpc_morphos_info);
 end.

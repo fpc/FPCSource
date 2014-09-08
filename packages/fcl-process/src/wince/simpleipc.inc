@@ -168,6 +168,7 @@ Var
 
 begin
   CDS:=PCopyDataStruct(Msg.Lparam);
+  Owner.FMsgData.Size:=0;
   Owner.FMsgData.Seek(0,soFrombeginning);
   Owner.FMsgData.WriteBuffer(CDS^.lpData^,CDS^.cbData);
 end;
@@ -198,7 +199,7 @@ end;
 Type
   TWinMsgClientComm = Class(TIPCClientComm)
   Private
-    FWindowName: String;
+    FWindowName: WideString;
     FHWND : HWnd;
   Public
     Constructor Create(AOWner : TSimpleIPCClient); override;
@@ -206,7 +207,7 @@ Type
     Procedure Disconnect; override;
     Procedure SendMessage(MsgType : TMessageType; Stream : TStream); override;
     Function  ServerRunning : Boolean; override;
-    Property WindowName : String Read FWindowName;
+    Property WindowName : WideString Read FWindowName;
   end;
 
 

@@ -68,12 +68,14 @@ interface
          procedure deref;virtual;abstract;
          procedure derefimpl;virtual;abstract;
          function  typename:string;
+         function  fulltypename:string;
          function  GetTypeName:string;virtual;
          function  typesymbolprettyname:string;virtual;
          function  mangledparaname:string;
          function  getmangledparaname:TSymStr;virtual;
          function  rtti_mangledname(rt:trttitype):string;virtual;abstract;
          function  OwnerHierarchyName: string; virtual; abstract;
+         function  fullownerhierarchyname:string;virtual;abstract;
          function  size:asizeint;virtual;abstract;
          function  packedbitsize:asizeint;virtual;
          function  alignment:shortint;virtual;abstract;
@@ -85,7 +87,6 @@ interface
          function  is_publishable:boolean;virtual;abstract;
          function  needs_inittable:boolean;virtual;abstract;
          function  needs_separate_initrtti:boolean;virtual;abstract;
-         function  is_related(def:tdef):boolean;virtual;
          procedure ChangeOwner(st:TSymtable);
          procedure register_created_object_type;virtual;
       end;
@@ -161,6 +162,7 @@ interface
         constructor create;
         destructor  destroy;override;
         function  empty:boolean;
+        function getcopy: tpropaccesslist;
         procedure addsym(slt:tsltype;p:tsym);
         procedure addconst(slt:tsltype;v:TConstExprInt;d:tdef);
         procedure addtype(slt:tsltype;d:tdef);
@@ -274,11 +276,21 @@ implementation
           result:=result+GetTypeName;
       end;
 
+    function tdef.fulltypename:string;
+      begin
+        result:=fullownerhierarchyname;
+        if assigned(typesym) and
+           not(typ in [procvardef,procdef]) and
+           (typesym.realname[1]<>'$') then
+          result:=result+typesym.realname
+        else
+          result:=result+GetTypeName;
+      end;
+
 
     function tdef.GetTypeName : string;
       begin
-         GetTypeName:='<unknown type>'
-      end;
+         GetTypeName:='<unknown type>'      end;
 
 
     function tdef.typesymbolprettyname:string;
@@ -316,12 +328,6 @@ implementation
     function tdef.geTSymtable(t:tgeTSymtable):TSymtable;
       begin
         result:=nil;
-      end;
-
-
-    function tdef.is_related(def:tdef):boolean;
-      begin
-        result:=false;
       end;
 
 
@@ -455,6 +461,27 @@ implementation
     function tpropaccesslist.empty:boolean;
       begin
         empty:=(firstsym=nil);
+      end;
+
+    function tpropaccesslist.getcopy: tpropaccesslist;
+      var
+        hp, dest : ppropaccesslistitem;
+      begin
+        result:=tpropaccesslist.create;
+        result.procdef:=procdef;
+        hp:=firstsym;
+        while assigned(hp) do
+          begin
+            new(dest);
+            dest^:=hp^;
+            dest^.next:=nil;
+            if not assigned(result.firstsym) then
+              result.firstsym:=dest;
+            if assigned(result.lastsym) then
+              result.lastsym^.next:=dest;
+            result.lastsym:=dest;
+            hp:=hp^.next;
+          end;
       end;
 
 

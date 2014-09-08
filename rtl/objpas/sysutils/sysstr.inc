@@ -76,48 +76,49 @@ begin
 Dest := Dest + S;
 end ;
 
+Function InternalChangeCase(Const S : AnsiString; const Chars: TSysCharSet; const Adjustment: Longint): AnsiString;
+  var
+    i : Integer;
+    P : PChar;
+    Unique : Boolean;
+  begin
+    Result := S;
+    if Result='' then
+      exit;
+    Unique:=false;
+    P:=PChar(Result);
+    for i:=1 to Length(Result) do
+      begin
+        if CharInSet(P^,Chars) then
+          begin
+            if not Unique then
+              begin
+                UniqueString(Result);
+                p:=@Result[i];
+                Unique:=true;
+              end;
+            P^:=Char(Ord(P^)+Adjustment);
+          end;
+        Inc(P);
+      end;
+  end;
+
+
 {   UpperCase returns a copy of S where all lowercase characters ( from a to z )
     have been converted to uppercase   }
+Function UpperCase(Const S : AnsiString) : AnsiString;
+  begin
+    Result:=InternalChangeCase(S,['a'..'z'],-32);
+  end;
 
-
-Function UpperCase(Const S : String) : String;
-
-Var
-  i : Integer;
-  P : PChar;
-
-begin
-  Result := S;
-  if not assigned(pointer(result)) then exit;
-  UniqueString(Result);
-  P:=Pchar(pointer(Result));
-  for i := 1 to Length(Result) do
-    begin
-    if (P^ in ['a'..'z']) then P^ := char(byte(p^) - 32);
-      Inc(P);
-    end;
-end;
 
 {   LowerCase returns a copy of S where all uppercase characters ( from A to Z )
     have been converted to lowercase  }
+Function Lowercase(Const S : AnsiString) : AnsiString;
+  begin
+    Result:=InternalChangeCase(S,['A'..'Z'],32);
+  end;
 
-Function Lowercase(Const S : String) : String;
-
-Var
-  i : Integer;
-  P : PChar;
-
-begin
-  Result := S;
-  if not assigned(pointer(result)) then exit;
-  UniqueString(Result);
-  P:=Pchar(pointer(Result));
-  for i := 1 to Length(Result) do
-    begin
-    if (P^ in ['A'..'Z']) then P^ := char(byte(p^) + 32);
-      Inc(P);
-    end;
-end;
 
 function LowerCase(const V: variant): string; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
@@ -722,7 +723,7 @@ end ;
 
 {   IntToStr returns a string representing the value of Value    }
 
-function IntToStr(Value: integer): string;
+function IntToStr(Value: Longint): string;
 begin
  System.Str(Value, result);
 end ;
@@ -744,7 +745,7 @@ end ;
 const
    HexDigits: array[0..15] of char = '0123456789ABCDEF';
 
-function IntToHex(Value: integer; Digits: integer): string;
+function IntToHex(Value: Longint; Digits: integer): string;
 var i: integer;
 begin
  If Digits=0 then 
@@ -783,7 +784,7 @@ begin
   result:=IntToHex(Int64(Value),Digits);
 end;
 
-function TryStrToInt(const s: string; out i : integer) : boolean;
+function TryStrToInt(const s: string; out i : Longint) : boolean;
 var Error : word;
 begin
   Val(s, i, Error);
@@ -793,7 +794,7 @@ end;
 {   StrToInt converts the string S to an integer value,
     if S does not represent a valid integer value EConvertError is raised  }
 
-function StrToInt(const S: string): integer;
+function StrToInt(const S: string): Longint;
 var Error: word;
 begin
   Val(S, result, Error);
@@ -835,7 +836,7 @@ end;
 {   StrToIntDef converts the string S to an integer value,
     Default is returned in case S does not represent a valid integer value  }
 
-function StrToIntDef(const S: string; Default: integer): integer;
+function StrToIntDef(const S: string; Default: Longint): Longint;
 var Error: word;
 begin
   Val(S, result, Error);

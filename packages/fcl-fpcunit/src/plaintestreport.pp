@@ -23,11 +23,14 @@ uses
 
 type
 
+  { TPlainResultsWriter }
+
   TPlainResultsWriter = class(TCustomResultsWriter)
   private
     FDoc: TStringList;
     FSuiteHeaderIdx: TFPList;
     FTempFailure: TTestFailure;
+    function TimeFormat(ATiming: TDateTime): String;
   protected
     procedure WriteTestHeader(ATest: TTest; ALevel: integer; ACount: integer); override;
     procedure WriteTestFooter(ATest: TTest; ALevel: integer; ATiming: TDateTime); override;
@@ -50,6 +53,7 @@ function TestResultAsPlain(aTestResult: TTestResult): string;
 
 implementation
 
+uses dateutils;
 
 {TPlainResultsWriter}
 
@@ -110,7 +114,7 @@ begin
   inherited;
   S:='  ' + StringOfChar(' ',ALevel*2);
   if Not SkipTiming then
-    S:=S + FormatDateTime('ss.zzz', ATiming) + '  ';
+    S:=S + FormatDateTime(TimeFormat(ATiming), ATiming) + '  ';
   S:=S + ATest.TestName;
   FDoc.Add(S);
   if Assigned(FTempFailure) then
@@ -139,6 +143,20 @@ begin
   FTempFailure := nil;
 end;
 
+Function TPlainResultsWriter.TimeFormat(ATiming : TDateTime) : String;
+
+Var
+  M : Int64;
+
+begin
+  Result:='ss.zzz';
+  M:=MinutesBetween(ATiming,0);
+  if M>60 then
+    Result:='hh:mm:'+Result
+  else if M>1 then
+   Result:='mm:'+Result;
+end;
+
 procedure TPlainResultsWriter.WriteSuiteFooter(ATestSuite: TTestSuite; ALevel: integer; 
   ATiming: TDateTime; ANumRuns: integer; ANumErrors: integer; ANumFailures: integer;
   ANumIgnores: integer);
@@ -149,7 +167,7 @@ begin
   inherited;
   idx := Integer(FSuiteHeaderIdx[FSuiteHeaderIdx.Count -1]);
   if Not SkipTiming then
-    S:= ' Time:'+ FormatDateTime('ss.zzz', ATiming);
+    S:= ' Time:'+ FormatDateTime(TimeFormat(ATiming), ATiming);
   S:=S+ ' N:'+ IntToStr(ANumRuns)+ ' E:'+ IntToStr(ANumErrors)+ ' F:'+ IntToStr(ANumFailures)+
     ' I:'+ IntToStr(ANumIgnores) ;
   FDoc[idx] := FDoc[idx]+S;

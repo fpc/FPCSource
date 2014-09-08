@@ -143,7 +143,11 @@ interface
          cs_external_var, cs_externally_visible,
          { jvm specific }
          cs_check_var_copyout,
-         cs_zerobasedstrings
+         cs_zerobasedstrings,
+         { i8086 specific }
+         cs_force_far_calls,
+         cs_hugeptr_arithmetic_normalization,
+         cs_hugeptr_comparison_normalization
        );
        tlocalswitches = set of tlocalswitch;
 
@@ -162,7 +166,9 @@ interface
          { browser switches are back }
          cs_browser,cs_local_browser,
          { target specific }
-         cs_executable_stack
+         cs_executable_stack,
+         { i8086 specific }
+         cs_huge_code
        );
        tmoduleswitches = set of tmoduleswitch;
 
@@ -232,7 +238,16 @@ interface
            these strings as prefixes for the generated getters/setter names }
          ts_auto_getter_prefix,
          ts_auto_setter_predix,
-         ts_thumb_interworking
+         ts_thumb_interworking,
+         { lowercase the first character of routine names, used to generate
+           names that are compliant with Java coding standards from code
+           written according to Delphi coding standards }
+         ts_lowercase_proc_start,
+         { initialise local variables on the JVM target so you won't get
+           accidental uses of uninitialised values }
+         ts_init_locals,
+         { emit a CLD instruction before using the x86 string instructions }
+         ts_cld
        );
        ttargetswitches = set of ttargetswitch;
 
@@ -244,7 +259,8 @@ interface
          f_heap,f_init_final,f_rtti,f_classes,f_exceptions,f_exitcode,
          f_ansistrings,f_widestrings,f_textio,f_consoleio,f_fileio,
          f_random,f_variants,f_objects,f_dynarrays,f_threading,f_commandargs,
-         f_processes,f_stackcheck,f_dynlibs,f_softfpu,f_objectivec1,f_resources
+         f_processes,f_stackcheck,f_dynlibs,f_softfpu,f_objectivec1,f_resources,
+         f_unicodestring
        );
        tfeatures = set of tfeature;
 
@@ -254,7 +270,7 @@ interface
          cs_opt_level1,cs_opt_level2,cs_opt_level3,
          cs_opt_regvar,cs_opt_uncertain,cs_opt_size,cs_opt_stackframe,
          cs_opt_peephole,cs_opt_asmcse,cs_opt_loopunroll,cs_opt_tailrecursion,cs_opt_nodecse,
-         cs_opt_nodedfa,cs_opt_loopstrength,cs_opt_scheduler,cs_opt_autoinline,cs_useebp,
+         cs_opt_nodedfa,cs_opt_loopstrength,cs_opt_scheduler,cs_opt_autoinline,cs_useebp,cs_userbp,
          cs_opt_reorder_fields,cs_opt_fastmath,
          { Allow removing expressions whose result is not used, even when this
            can change program behaviour (range check errors disappear,
@@ -265,7 +281,10 @@ interface
          }
          cs_opt_dead_values,
          { compiler checks for empty procedures/methods and removes calls to them if possible }
-         cs_opt_remove_emtpy_proc
+         cs_opt_remove_emtpy_proc,
+         cs_opt_constant_propagate,
+         cs_opt_dead_store_eliminate,
+         cs_opt_forcenostackframe
        );
        toptimizerswitches = set of toptimizerswitch;
 
@@ -289,15 +308,18 @@ interface
           hasvalue: boolean;
           { target switch can be used only globally }
           isglobal: boolean;
+          define: string[15];
        end;
 
     const
-       OptimizerSwitchStr : array[toptimizerswitch] of string[16] = ('',
+       OptimizerSwitchStr : array[toptimizerswitch] of string[17] = ('',
          'LEVEL1','LEVEL2','LEVEL3',
          'REGVAR','UNCERTAIN','SIZE','STACKFRAME',
          'PEEPHOLE','ASMCSE','LOOPUNROLL','TAILREC','CSE',
-         'DFA','STRENGTH','SCHEDULE','AUTOINLINE','USEEBP',
-         'ORDERFIELDS','FASTMATH','DEADVALUES','REMOVEEMPTYPROCS'
+         'DFA','STRENGTH','SCHEDULE','AUTOINLINE','USEEBP','USERBP',
+         'ORDERFIELDS','FASTMATH','DEADVALUES','REMOVEEMPTYPROCS',
+         'CONSTPROP',
+         'DEADSTORE','FORCENOSTACKFRAME'
        );
        WPOptimizerSwitchStr : array [twpoptimizerswitch] of string[14] = (
          'DEVIRTCALLS','OPTVMTS','SYMBOLLIVENESS'
@@ -307,19 +329,22 @@ interface
          'DWARFSETS','STABSABSINCLUDES','DWARFMETHODCLASSPREFIX');
 
        TargetSwitchStr : array[ttargetswitch] of ttargetswitchinfo = (
-         (name: '';                    hasvalue: false; isglobal: true ),
-         (name: 'SMALLTOC';            hasvalue: false; isglobal: true ),
-         (name: 'COMPACTINTARRAYINIT'; hasvalue: false; isglobal: true ),
-         (name: 'ENUMFIELDINIT';       hasvalue: false; isglobal: true ),
-         (name: 'AUTOGETTERPREFIX';    hasvalue: true ; isglobal: false),
-         (name: 'AUTOSETTERPREFIX';    hasvalue: true ; isglobal: false),
-         (name: 'THUMBINTERWORKING';   hasvalue: false; isglobal: true )
+         (name: '';                    hasvalue: false; isglobal: true ; define: ''),
+         (name: 'SMALLTOC';            hasvalue: false; isglobal: true ; define: ''),
+         (name: 'COMPACTINTARRAYINIT'; hasvalue: false; isglobal: true ; define: ''),
+         (name: 'ENUMFIELDINIT';       hasvalue: false; isglobal: true ; define: ''),
+         (name: 'AUTOGETTERPREFIX';    hasvalue: true ; isglobal: false; define: ''),
+         (name: 'AUTOSETTERPREFIX';    hasvalue: true ; isglobal: false; define: ''),
+         (name: 'THUMBINTERWORKING';   hasvalue: false; isglobal: true ; define: ''),
+         (name: 'LOWERCASEPROCSTART';  hasvalue: false; isglobal: true ; define: ''),
+         (name: 'INITLOCALS';          hasvalue: false; isglobal: true ; define: ''),
+         (name: 'CLD';                 hasvalue: false; isglobal: true ; define: 'FPC_ENABLED_CLD')
        );
 
        { switches being applied to all CPUs at the given level }
-       genericlevel1optimizerswitches = [cs_opt_level1];
+       genericlevel1optimizerswitches = [cs_opt_level1,cs_opt_peephole];
        genericlevel2optimizerswitches = [cs_opt_level2,cs_opt_remove_emtpy_proc];
-       genericlevel3optimizerswitches = [cs_opt_level3];
+       genericlevel3optimizerswitches = [cs_opt_level3,cs_opt_constant_propagate,cs_opt_nodedfa];
        genericlevel4optimizerswitches = [cs_opt_reorder_fields,cs_opt_dead_values,cs_opt_fastmath];
 
        { whole program optimizations whose information generation requires
@@ -327,11 +352,12 @@ interface
        }
        WPOptimizationsNeedingAllUnitInfo = [cs_wpo_devirtualize_calls,cs_wpo_optimize_vmts];
 
-       featurestr : array[tfeature] of string[12] = (
+       featurestr : array[tfeature] of string[14] = (
          'HEAP','INITFINAL','RTTI','CLASSES','EXCEPTIONS','EXITCODE',
          'ANSISTRINGS','WIDESTRINGS','TEXTIO','CONSOLEIO','FILEIO',
          'RANDOM','VARIANTS','OBJECTS','DYNARRAYS','THREADING','COMMANDARGS',
-         'PROCESSES','STACKCHECK','DYNLIBS','SOFTFPU','OBJECTIVEC1','RESOURCES'
+         'PROCESSES','STACKCHECK','DYNLIBS','SOFTFPU','OBJECTIVEC1','RESOURCES',
+         'UNICODESTRINGS'
        );
 
     type
@@ -372,8 +398,10 @@ interface
          m_final_fields,        { allows declaring fields as "final", which means they must be initialised
                                   in the (class) constructor and are constant from then on (same as final
                                   fields in Java) }
-         m_default_unicodestring { makes the default string type in $h+ mode unicodestring rather than
-                                   ansistring; similarly, char becomes unicodechar rather than ansichar }
+         m_default_unicodestring, { makes the default string type in $h+ mode unicodestring rather than
+                                    ansistring; similarly, char becomes unicodechar rather than ansichar }
+         m_type_helpers         { allows the declaration of "type helper" (non-Delphi) or "record helper"
+                                  (Delphi) for primitive types }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -391,7 +419,8 @@ interface
          app_tool,      { tool application, (MPW tool for MacOS, MacOS only) }
          app_arm7,      { for Nintendo DS target }
          app_arm9,      { for Nintendo DS target }
-         app_bundle     { dynamically loadable bundle, Darwin only }
+         app_bundle,    { dynamically loadable bundle, Darwin only }
+         app_com        { DOS .COM file }
        );
 
        { interface types }
@@ -536,7 +565,8 @@ interface
          'ISOUNARYMINUS',
          'SYSTEMCODEPAGE',
          'FINALFIELDS',
-         'UNICODESTRINGS');
+         'UNICODESTRINGS',
+         'TYPEHELPERS');
 
 
      type
@@ -581,7 +611,11 @@ interface
          { subroutine contains inherited call }
          pi_has_inherited,
          { subroutine has nested exit }
-         pi_has_nested_exit
+         pi_has_nested_exit,
+         { allocates memory on stack, so stack is unbalanced on exit }
+         pi_has_stack_allocs,
+         { set if the stack frame of the procedure is estimated }
+         pi_estimatestacksize
        );
        tprocinfoflags=set of tprocinfoflag;
 

@@ -11,13 +11,36 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{-------------------------------------------------------------------------
+ Using functions from AMath/DAMath libraries, which are covered by the
+ following license:
+
+ (C) Copyright 2009-2013 Wolfgang Ehrhardt
+
+ This software is provided 'as-is', without any express or implied warranty.
+ In no event will the authors be held liable for any damages arising from
+ the use of this software.
+
+ Permission is granted to anyone to use this software for any purpose,
+ including commercial applications, and to alter it and redistribute it
+ freely, subject to the following restrictions:
+
+ 1. The origin of this software must not be misrepresented; you must not
+    claim that you wrote the original software. If you use this software in
+    a product, an acknowledgment in the product documentation would be
+    appreciated but is not required.
+
+ 2. Altered source versions must be plainly marked as such, and must not be
+    misrepresented as being the original software.
+
+ 3. This notice may not be removed or altered from any source distribution.
+----------------------------------------------------------------------------}
 {
   This unit is an equivalent to the Delphi math unit
   (with some improvements)
 
   What's to do:
     o some statistical functions
-    o all financial functions
     o optimizations
 }
 
@@ -58,43 +81,37 @@ interface
        { natural size for the processor                          }
        { WARNING : changing float type will                      }
        { break all assembler code  PM                            }
-{$ifdef FPC_HAS_TYPE_FLOAT128}
+{$if defined(FPC_HAS_TYPE_FLOAT128)}
       type
          float = float128;
 
       const
          MinFloat = MinFloat128;
          MaxFloat = MaxFloat128;
-{$else FPC_HAS_TYPE_FLOAT128}
-  {$ifdef FPC_HAS_TYPE_EXTENDED}
+{$elseif defined(FPC_HAS_TYPE_EXTENDED)}
       type
          float = extended;
 
       const
          MinFloat = MinExtended;
          MaxFloat = MaxExtended;
-  {$else FPC_HAS_TYPE_EXTENDED}
-    {$ifdef FPC_HAS_TYPE_DOUBLE}
+{$elseif defined(FPC_HAS_TYPE_DOUBLE)}
       type
          float = double;
 
       const
          MinFloat = MinDouble;
          MaxFloat = MaxDouble;
-    {$else FPC_HAS_TYPE_DOUBLE}
-      {$ifdef FPC_HAS_TYPE_SINGLE}
+{$elseif defined(FPC_HAS_TYPE_SINGLE)}
       type
          float = single;
 
       const
          MinFloat = MinSingle;
          MaxFloat = MaxSingle;
-      {$else FPC_HAS_TYPE_SINGLE}
+{$else}
         {$fatal At least one floating point type must be supported}
-      {$endif FPC_HAS_TYPE_SINGLE}
-    {$endif FPC_HAS_TYPE_DOUBLE}
-  {$endif FPC_HAS_TYPE_EXTENDED}
-{$endif FPC_HAS_TYPE_FLOAT128}
+{$endif}
 
     type
        PFloat = ^Float;
@@ -157,10 +174,10 @@ function EnsureRange(const AValue, AMin, AMax: Double): Double;inline;  overload
 {$endif FPC_HAS_TYPE_DOUBLE}
 
 
-procedure DivMod(Dividend: Integer; Divisor: Word;  var Result, Remainder: Word);
-procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: SmallInt);
+procedure DivMod(Dividend: LongInt; Divisor: Word;  var Result, Remainder: Word);
+procedure DivMod(Dividend: LongInt; Divisor: Word; var Result, Remainder: SmallInt);
 procedure DivMod(Dividend: DWord; Divisor: DWord; var Result, Remainder: DWord);
-procedure DivMod(Dividend: Integer; Divisor: Integer; var Result, Remainder: Integer);
+procedure DivMod(Dividend: LongInt; Divisor: LongInt; var Result, Remainder: LongInt);
 
 // Sign functions
 Type
@@ -250,6 +267,15 @@ function gradtodeg(grad : float) : float;inline;
 { one cycle are 2*Pi rad }
 function cycletorad(cycle : float) : float;inline;
 function radtocycle(rad : float) : float;inline;
+{$ifdef FPC_HAS_TYPE_SINGLE}
+Function DegNormalize(deg : single) : single; inline;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+Function DegNormalize(deg : double) : double; inline;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+Function DegNormalize(deg : extended) : extended; inline;
+{$ENDIF}
 
 { trigoniometric functions }
 
@@ -309,7 +335,7 @@ function log10(x : float) : float;
 function log2(x : float) : float;
 function logn(n,x : float) : float;
 
-{ returns natural logarithm of x+1 }
+{ returns natural logarithm of x+1, accurate for x values near zero }
 function lnxp1(x : float) : float;
 
 { exponential functions }
@@ -516,6 +542,25 @@ function norm(const data : array of Extended) : float;inline;
 function norm(const data : PExtended; Const N : Integer) : float;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
+{ Financial functions }
+
+function FutureValue(ARate: Float; NPeriods: Integer;
+  APayment, APresentValue: Float; APaymentTime: TPaymentTime): Float;
+
+function InterestRate(NPeriods: Integer; APayment, APresentValue, AFutureValue: Float;
+  APaymentTime: TPaymentTime): Float;
+
+function NumberOfPeriods(ARate, APayment, APresentValue, AFutureValue: Float;
+  APaymentTime: TPaymentTime): Float;
+
+function Payment(ARate: Float; NPeriods: Integer;
+  APresentValue, AFutureValue: Float; APaymentTime: TPaymentTime): Float;
+
+function PresentValue(ARate: Float; NPeriods: Integer;
+  APayment, AFutureValue: Float; APaymentTime: TPaymentTime): Float;
+
+{ Misc functions }
+
 function ifthen(val:boolean;const iftrue:integer; const iffalse:integer= 0) :integer; inline; overload;
 function ifthen(val:boolean;const iftrue:int64  ; const iffalse:int64 = 0)  :int64;   inline; overload;
 function ifthen(val:boolean;const iftrue:double ; const iffalse:double =0.0):double;  inline; overload;
@@ -538,8 +583,21 @@ function RandomFrom(const AValues: array of Double): Double; overload;
 function RandomFrom(const AValues: array of Integer): Integer; overload;
 function RandomFrom(const AValues: array of Int64): Int64; overload;
 
-{ include cpu specific stuff }
-{$i mathuh.inc}
+{ cpu specific stuff }
+type
+  TFPURoundingMode = system.TFPURoundingMode;
+  TFPUPrecisionMode = system.TFPUPrecisionMode;
+  TFPUException = system.TFPUException;
+  TFPUExceptionMask = system.TFPUExceptionMask;
+
+function GetRoundMode: TFPURoundingMode;
+function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
+function GetPrecisionMode: TFPUPrecisionMode;
+function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode;
+function GetExceptionMask: TFPUExceptionMask;
+function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
+procedure ClearExceptions(RaisePending: Boolean =true);
+
 
 implementation
 
@@ -663,6 +721,31 @@ function radtocycle(rad : float) : float;inline;
      radtocycle:=rad*(1/(2*pi));
   end;
 
+{$ifdef FPC_HAS_TYPE_SINGLE}
+Function DegNormalize(deg : single) : single; 
+
+begin
+  Result:=Deg-Trunc(Deg/360)*360;
+  If Result<0 then Result:=Result+360;
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+Function DegNormalize(deg : double) : double; inline;
+
+begin
+  Result:=Deg-Trunc(Deg/360)*360;
+  If (Result<0) then Result:=Result+360;
+end;
+{$ENDIF}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+Function DegNormalize(deg : extended) : extended; inline;
+
+begin
+  Result:=Deg-Trunc(Deg/360)*360;
+  If Result<0 then Result:=Result+360;
+end;
+{$ENDIF}
+
 {$ifndef FPC_MATH_HAS_TAN}
 function tan(x : float) : float;
   var
@@ -742,22 +825,21 @@ begin
   csc := cosecant(x);
 end;
 
-
-{ ArcSin and ArcCos from Arjan van Dijk (arjan.vanDijk@User.METAIR.WAU.NL) }
-
-
+{ arcsin and arccos functions from AMath library (C) Copyright 2009-2013 Wolfgang Ehrhardt }
 function arcsin(x : float) : float;
 begin
-  if abs(x) > 1 then InvalidArgument
-  else if abs(x) < 0.5 then
-    arcsin := arctan(x/sqrt(1-sqr(x)))
-  else
-    arcsin := sign(x) * (pi*0.5 - arctan(sqrt(1 / sqr(x) - 1)));
+  arcsin:=arctan2(x,sqrt((1.0-x)*(1.0+x)));
 end;
 
 function Arccos(x : Float) : Float;
 begin
-  arccos := pi*0.5 - arcsin(x);
+  if abs(x)=1.0 then
+    if x<0.0 then
+      arccos:=Pi
+    else
+      arccos:=0
+  else
+    arccos:=arctan2(sqrt((1.0-x)*(1.0+x)),x);
 end;
 
 
@@ -827,8 +909,8 @@ function arctanh(x : float) : float;inline;
 
 function arcosh(x : float) : float;
   begin
-     if x<1 then InvalidArgument;
-     arcosh:=Ln(x+Sqrt(x*x-1));
+    { Provides accuracy about 4*eps near 1.0 }
+    arcosh:=Ln(x+Sqrt((x-1.0)*(x+1.0)));
   end;
 
 function arsinh(x : float) : float;
@@ -838,36 +920,58 @@ function arsinh(x : float) : float;
 
 function artanh(x : float) : float;
   begin
-    If abs(x)>1 then InvalidArgument;
-    artanh:=(Ln((1+x)/(1-x)))*0.5;
+    artanh:=(lnxp1(x)-lnxp1(-x))*0.5;
   end;
 
+{ hypot function from AMath library (C) Copyright 2009-2013 Wolfgang Ehrhardt }
 function hypot(x,y : float) : float;
   begin
-     hypot:=Sqrt(x*x+y*y)
+    x:=abs(x);
+    y:=abs(y);
+    if (x>y) then
+      hypot:=x*sqrt(1.0+sqr(y/x))
+    else if (x>0.0) then
+      hypot:=y*sqrt(1.0+sqr(x/y))
+    else
+      hypot:=y;
   end;
 
 function log10(x : float) : float;
   begin
-     log10:=ln(x)/ln(10);
+    log10:=ln(x)*0.43429448190325182765;  { 1/ln(10) }
   end;
 
+{$ifndef FPC_MATH_HAS_LOG2}
 function log2(x : float) : float;
   begin
-     log2:=ln(x)/ln(2)
+    log2:=ln(x)*1.4426950408889634079;    { 1/ln(2) }
   end;
+{$endif FPC_MATH_HAS_LOG2}
 
 function logn(n,x : float) : float;
   begin
-     if n<0 then InvalidArgument;
      logn:=ln(x)/ln(n);
   end;
 
+{ lnxp1 function from AMath library (C) Copyright 2009-2013 Wolfgang Ehrhardt }
 function lnxp1(x : float) : float;
+  var
+    y: float;
   begin
-     if x<-1 then
-       InvalidArgument;
-     lnxp1:=ln(1+x);
+    if (x>=4.0) then
+      lnxp1:=ln(1.0+x)
+    else
+      begin
+        y:=1.0+x;
+        if (y=1.0) then
+          lnxp1:=x
+        else
+          begin
+            lnxp1:=ln(y);     { lnxp1(-1) = ln(0) = -Inf }
+            if y>0.0 then
+              lnxp1:=lnxp1+(x-(y-1.0))/y;
+          end;
+      end;
   end;
 
 function power(base,exponent : float) : float;
@@ -879,10 +983,8 @@ function power(base,exponent : float) : float;
       result:=0.0
     else if (abs(exponent)<=maxint) and (frac(exponent)=0.0) then
       result:=intpower(base,trunc(exponent))
-    else if base>0.0 then
-      result:=exp(exponent * ln (base))
     else
-      InvalidArgument;
+      result:=exp(exponent * ln (base));
   end;
 
 function intpower(base : float;const exponent : Integer) : float;
@@ -2046,24 +2148,8 @@ type
 
 
 function IsNan(const d : Single): Boolean; overload;
-  type
-    TSplitSingle = packed record
-      case byte of
-        0: (bytes: Array[0..3] of byte);
-        1: (words: Array[0..1] of word);
-        2: (cards: Array[0..0] of cardinal);
-    end;
-  var
-    fraczero, expMaximal: boolean;
   begin
-{$ifdef FPC_BIG_ENDIAN}
-    expMaximal := ((TSplitSingle(d).words[0] shr 7) and $ff) = 255;
-    fraczero:= (TSplitSingle(d).cards[0] and $7fffff = 0);
-{$else FPC_BIG_ENDIAN}
-    expMaximal := ((TSplitSingle(d).words[1] shr 7) and $ff) = 255;
-    fraczero := (TSplitSingle(d).cards[0] and $7fffff = 0);
-{$endif FPC_BIG_ENDIAN}
-    Result:=expMaximal and not(fraczero);
+    result:=(longword(d) and $7fffffff)>$7f800000;
   end;
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
@@ -2183,7 +2269,7 @@ end;
 // Some CPUs probably allow a faster way of doing this in a single operation...
 // There weshould define  FPC_MATH_HAS_CPUDIVMOD in the header mathuh.inc and implement it using asm.
 {$ifndef FPC_MATH_HAS_DIVMOD}
-procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: Word);
+procedure DivMod(Dividend: LongInt; Divisor: Word; var Result, Remainder: Word);
 begin
   if Dividend < 0 then
     begin
@@ -2204,7 +2290,7 @@ begin
 end;
 
 
-procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: SmallInt);
+procedure DivMod(Dividend: LongInt; Divisor: Word; var Result, Remainder: SmallInt);
 begin
   if Dividend < 0 then
     begin
@@ -2232,7 +2318,7 @@ begin
 end;
 
 
-procedure DivMod(Dividend: Integer; Divisor: Integer; var Result, Remainder: Integer);
+procedure DivMod(Dividend: LongInt; Divisor: LongInt; var Result, Remainder: LongInt);
 begin
   if Dividend < 0 then
     begin
@@ -2436,6 +2522,110 @@ begin
   result:=AValues[random(High(AValues)+1)];
 end;
 
+function FutureValue(ARate: Float; NPeriods: Integer;
+  APayment, APresentValue: Float; APaymentTime: TPaymentTime): Float;
+var
+  q, qn, factor: Float;
+begin
+  if ARate = 0 then
+    Result := -APresentValue - APayment * NPeriods
+  else begin
+    q := 1.0 + ARate;
+    qn := power(q, NPeriods);
+    factor := (qn - 1) / (q - 1);
+    if APaymentTime = ptStartOfPeriod then
+      factor := factor * q;
+    Result := -(APresentValue * qn + APayment*factor);
+  end;
+end;
+
+function InterestRate(NPeriods: Integer; APayment, APresentValue, AFutureValue: Float;
+  APaymentTime: TPaymentTime): Float;
+{ The interest rate cannot be calculated analytically. We solve the equation
+  numerically by means of the Newton method:
+  - guess value for the interest reate
+  - calculate at which interest rate the tangent of the curve fv(rate)
+    (straight line!) has the requested future vale.
+  - use this rate for the next iteration. }
+const
+  DELTA = 0.001;
+  EPS = 1E-9;   // required precision of interest rate (after typ. 6 iterations)
+  MAXIT = 20;   // max iteration count to protect agains non-convergence
+var
+  r1, r2, dr: Float;
+  fv1, fv2: Float;
+  iteration: Integer;
+begin
+  iteration := 0;
+  r1 := 0.05;  // inital guess
+  repeat
+    r2 := r1 + DELTA;
+    fv1 := FutureValue(r1, NPeriods, APayment, APresentValue, APaymentTime);
+    fv2 := FutureValue(r2, NPeriods, APayment, APresentValue, APaymentTime);
+    dr := (AFutureValue - fv1) / (fv2 - fv1) * delta;  // tangent at fv(r)
+    r1 := r1 + dr;      // next guess
+    inc(iteration);
+  until (abs(dr) < EPS) or (iteration >= MAXIT);
+  Result := r1;
+end;
+
+function NumberOfPeriods(ARate, APayment, APresentValue, AFutureValue: Float;
+  APaymentTime: TPaymentTime): Float;
+{ Solve the cash flow equation (1) for q^n and take the logarithm }
+var
+  q, x1, x2: Float;
+begin
+  if ARate = 0 then
+    Result := -(APresentValue + AFutureValue) / APayment
+  else begin
+    q := 1.0 + ARate;
+    if APaymentTime = ptStartOfPeriod then
+      APayment := APayment * q;
+    x1 := APayment - AFutureValue * ARate;
+    x2 := APayment + APresentValue * ARate;
+    if   (x2 = 0)                    // we have to divide by x2
+      or (sign(x1) * sign(x2) < 0)   // the argument of the log is negative
+    then
+      Result := Infinity
+    else begin
+      Result := ln(x1/x2) / ln(q);
+    end;
+  end;
+end;
+
+function Payment(ARate: Float; NPeriods: Integer;
+  APresentValue, AFutureValue: Float; APaymentTime: TPaymentTime): Float;
+var
+  q, qn, factor: Float;
+begin
+  if ARate = 0 then
+    Result := -(AFutureValue + APresentValue) / NPeriods
+  else begin
+    q := 1.0 + ARate;
+    qn := power(q, NPeriods);
+    factor := (qn - 1) / (q - 1);
+    if APaymentTime = ptStartOfPeriod then
+      factor := factor * q;
+    Result := -(AFutureValue + APresentValue * qn) / factor;
+  end;
+end;
+
+function PresentValue(ARate: Float; NPeriods: Integer;
+  APayment, AFutureValue: Float; APaymentTime: TPaymentTime): Float;
+var
+  q, qn, factor: Float;
+begin
+  if ARate = 0.0 then
+    Result := -AFutureValue - APayment * NPeriods
+  else begin
+    q := 1.0 + ARate;
+    qn := power(q, NPeriods);
+    factor := (qn - 1) / (q - 1);
+    if APaymentTime = ptStartOfPeriod then
+      factor := factor * q;
+    Result := -(AFutureValue + APayment*factor) / qn;
+  end;
+end;
 
 {$else}
 implementation

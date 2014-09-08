@@ -1,0 +1,29 @@
+#
+#   Makefile.fpc for Apple Universal Interfaces for Free Pascal
+#
+
+[package]
+name=univint
+version=2.7.1
+
+[target]
+units=iosxlocale
+
+[libs]
+libversion=2.0.0
+
+# FPCMacOSAll is not a build unit, but directly includes the code of
+# most other units
+[install]
+fpcpackage=y
+
+[compiler]
+includedir=src
+sourcedir=src
+
+[default]
+fpcdir=../..
+
+[prerules]
+
+[rules]

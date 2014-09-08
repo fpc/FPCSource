@@ -1,7 +1,5 @@
 unit system;
 
-{$ASMMODE intel}
-
 interface
 
 {$DEFINE FPC_NO_DEFAULT_HEAP}
@@ -16,6 +14,7 @@ interface
   $mode switch is not effective }
 
 {$I systemh.inc}
+{$I tnyheaph.inc}
 
 const
   LineEnding = #13#10;
@@ -45,10 +44,13 @@ const
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
 
 { Default memory segments (Tp7 compatibility) }
-  seg0040 = $0040;
-  segA000 = $A000;
-  segB000 = $B000;
-  segB800 = $B800;
+  seg0040: Word = $0040;
+  segA000: Word = $A000;
+  segB000: Word = $B000;
+  segB800: Word = $B800;
+{ The value that needs to be added to the segment to move the pointer by
+  64K bytes (BP7 compatibility) }
+  SelectorInc: Word = $1000;
 
 var
 { Mem[] support }
@@ -61,10 +63,10 @@ var
   envp:PPchar; //!! public name 'operatingsystem_parameter_envp';
   dos_argv0 : pchar; //!! public name 'dos_argv0';
 
-  dos_psp:Word;public name 'dos_psp';
-  __stkbottom : pointer;public name '__stkbottom';
-  __nearheap_start: pointer;public name '__nearheap_start';
-  __nearheap_end: pointer;public name '__nearheap_end';
+{ The DOS Program Segment Prefix segment (TP7 compatibility) }
+  PrefixSeg:Word;public name '__fpc_PrefixSeg';
+
+  SaveInt00: FarPointer;public name '__SaveInt00';
 
   AllFilesMask: string [3];
 {$ifndef RTLLITE}
@@ -75,10 +77,10 @@ const
   LFNSupport = false;
 {$endif RTLLITE}
 
-procedure DebugWrite(const S: string);
-procedure DebugWriteLn(const S: string);
-
 implementation
+
+procedure DebugWrite(const S: string); forward;
+procedure DebugWriteLn(const S: string); forward;
 
 const
   fCarry = 1;
@@ -91,6 +93,11 @@ const
 {$else FPC_X86_CODE_FAR}
   extra_param_offset = 0;
 {$endif FPC_X86_CODE_FAR}
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  extra_data_offset = 2;
+{$else}
+  extra_data_offset = 0;
+{$endif}
 
 type
   PFarByte = ^Byte;far;
@@ -98,6 +105,10 @@ type
   PFarWord = ^Word;far;
 
 var
+  __stktop : pointer;public name '__stktop';
+  __stkbottom : pointer;public name '__stkbottom';
+  __nearheap_start: pointer;public name '__nearheap_start';
+  __nearheap_end: pointer;public name '__nearheap_end';
   dos_version:Word;public name 'dos_version';
 
 {$I registers.inc}
@@ -110,6 +121,11 @@ procedure MsDos(var Regs: Registers); external name 'FPC_MSDOS';
   support them }
 procedure MsDos_Carry(var Regs: Registers); external name 'FPC_MSDOS_CARRY';
 
+procedure InstallInterruptHandlers; external name 'FPC_INSTALL_INTERRUPT_HANDLERS';
+procedure RestoreInterruptHandlers; external name 'FPC_RESTORE_INTERRUPT_HANDLERS';
+
+function CheckNullArea: Boolean; external name 'FPC_CHECK_NULLAREA';
+
 {$I system.inc}
 
 {$I tinyheap.inc}
@@ -117,10 +133,19 @@ procedure MsDos_Carry(var Regs: Registers); external name 'FPC_MSDOS_CARRY';
 procedure DebugWrite(const S: string);
 begin
   asm
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+    push ds
+	lds si, S
+{$else}
     mov si, S
+{$endif}
+{$ifdef FPC_ENABLED_CLD}
+    cld
+{$endif FPC_ENABLED_CLD}
     lodsb
     mov cl, al
     xor ch, ch
+    jcxz @@zero_length
     mov ah, 2
 
 @@1:
@@ -128,6 +153,10 @@ begin
     mov dl, al
     int 21h
     loop @@1
+@@zero_length:
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+    pop ds
+{$endif}
   end ['ax','bx','cx','dx','si','di'];
 end;
 
@@ -152,7 +181,7 @@ begin
       GetProgramName := '';
       exit;
     end;
-  dos_env_seg := PFarWord(Ptr(dos_psp, $2C))^;
+  dos_env_seg := PFarWord(Ptr(PrefixSeg, $2C))^;
   ofs := 1;
   repeat
     Ch := PFarChar(Ptr(dos_env_seg,ofs - 1))^;
@@ -188,17 +217,10 @@ function GetCommandLine: string;
 var
   len, I: Integer;
 begin
-  len := PFarByte(Ptr(dos_psp, $80))^;
-{$ifdef CG_BUG}
-  { doesn't work due to a code generator bug }
+  len := PFarByte(Ptr(PrefixSeg, $80))^;
   SetLength(GetCommandLine, len);
   for I := 1 to len do
-    GetCommandLine[I] := PFarChar(Ptr(dos_psp, $80 + I))^;
-{$else CG_BUG}
-  GetCommandLine := '';
-  for I := 1 to len do
-    GetCommandLine := GetCommandLine + PFarChar(Ptr(dos_psp, $80 + I))^;
-{$endif CG_BUG}
+    GetCommandLine[I] := PFarChar(Ptr(PrefixSeg, $80 + I))^;
 end;
 
 
@@ -263,6 +285,7 @@ procedure system_exit;
 var
   h : byte;
 begin
+  RestoreInterruptHandlers;
   for h:=0 to max_files-1 do
     if openfiles[h] then
       begin
@@ -272,6 +295,10 @@ begin
          if h>=5 then
            do_close(h);
       end;
+{$ifndef FPC_MM_TINY}
+  if not CheckNullArea then
+    writeln(stderr, 'Nil pointer assignment');
+{$endif FPC_MM_TINY}
   asm
     mov al, byte [exitcode]
     mov ah, 4Ch
@@ -283,10 +310,16 @@ end;
                          SystemUnit Initialization
 *****************************************************************************}
 
-procedure InitNearHeap;
+procedure InitDosHeap;
+type
+{$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
+  TPointerArithmeticType = HugePointer;
+{$else}
+  TPointerArithmeticType = Pointer;
+{$endif}
 begin
   SetMemoryManager(TinyHeapMemoryManager);
-  RegisterTinyHeapBlock(__nearheap_start, ptruint(__nearheap_end) - ptruint(__nearheap_start));
+  RegisterTinyHeapBlock(__nearheap_start, TPointerArithmeticType(__nearheap_end) - TPointerArithmeticType(__nearheap_start));
 end;
 
 function CheckLFN:boolean;
@@ -320,7 +353,7 @@ end;
 
 function GetProcessID: SizeUInt;
 begin
-  GetProcessID := dos_psp;
+  GetProcessID := PrefixSeg;
 end;
 
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
@@ -329,16 +362,18 @@ begin
 end;
 
 begin
-  StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := __stkbottom;
-  if DetectFPU then
+  StackLength := __stktop - __stkbottom;
+  InstallInterruptHandlers;
+  DetectFPU;
+  if Test8087>0 then
     SysInitFPU;
   { To be set if this is a GUI or console application }
   IsConsole := TRUE;
   { To be set if this is a library and not a program  }
   IsLibrary := FALSE;
 { Setup heap }
-  InitNearHeap;
+  InitDosHeap;
   SysInitExceptions;
   initunicodestringmanager;
 { Setup stdin, stdout and stderr }

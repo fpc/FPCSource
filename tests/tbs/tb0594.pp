@@ -3,6 +3,9 @@
 {$endif}
 
 type
+{$ifndef fpc}
+  codepointer = pointer;
+{$endif}
   tc = class
     class procedure test;
   end;
@@ -20,6 +23,6 @@ var
 begin
   p:=tp(tc.test);
   p2:=tc.test;
-  if pointer(@p)<>tmethod(p2).code then
+  if codepointer(@p)<>tmethod(p2).code then
     halt(1);
 end.

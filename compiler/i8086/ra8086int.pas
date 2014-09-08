@@ -69,6 +69,14 @@ const
             casmreader : ti8086intreader;
           );
 
+  asmmode_i8086_standard_info : tasmmodeinfo =
+          (
+            id    : asmmode_standard;
+            idtxt : 'STANDARD';
+            casmreader : ti8086intreader;
+          );
+
 begin
   RegisterAsmMode(asmmode_i8086_intel_info);
+  RegisterAsmMode(asmmode_i8086_standard_info);
 end.

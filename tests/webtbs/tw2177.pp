@@ -16,25 +16,25 @@ type
 
   Twii= class(TObject, ii)
     s: string;
-    function QueryInterface(constref IID: TGUID; out Obj): Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
-    function _AddRef: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
-    function _Release: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function QueryInterface(constref IID: TGUID; out Obj): Longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _AddRef: Longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _Release: Longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 
     procedure Show;stdcall;
   end;
 
   {________doomy interfaces______}
-  function Twii.QueryInterface(constref IID: TGUID; out Obj): Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+  function Twii.QueryInterface(constref IID: TGUID; out Obj): Longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
   begin
     result:= -1;
   end;
 
-  function Twii._AddRef: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+  function Twii._AddRef: Longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
   begin
     result:= -1;
   end;
 
-  function Twii._Release: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+  function Twii._Release: Longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
   begin
     result:= -1;
   end;

@@ -28,25 +28,67 @@ interface
     uses
       globtype,
       cgbase,cpuinfo,cpubase,
-      node,nmem,ncgmem,nx86mem;
+      node,nmem,ncgmem,nx86mem,ni86mem;
 
     type
+       ti8086addrnode = class(ti86addrnode)
+        protected
+         procedure set_absvarsym_resultdef; override;
+         function typecheck_non_proc(realsource: tnode; out res: tnode): boolean; override;
+       end;
+
        ti8086derefnode = class(tx86derefnode)
          procedure pass_generate_code;override;
+       end;
+
+       { tx86vecnode doesn't work for i8086, so we inherit tcgvecnode }
+       ti8086vecnode = class(tcgvecnode)
+        protected
+         function first_arraydef: tnode;override;
+         procedure update_reference_reg_mul(maybe_const_reg:tregister;l:aint);override;
        end;
 
 implementation
 
     uses
-      systems,globals,
+      systems,globals,constexp,
       cutils,verbose,
-      symbase,symconst,symdef,symtable,symtype,symsym,
+      symbase,symconst,symdef,symtable,symtype,symsym,symx86,symcpu,
       parabase,paramgr,
       aasmtai,aasmdata,
-      nld,ncon,nadd,
+      nld,ncon,nadd,ncal,ncnv,
       cgutils,cgobj,
       defutil,hlcgobj,
-      pass_2,ncgutil;
+      pass_1,pass_2,ncgutil;
+
+{*****************************************************************************
+                             TI8086ADDRNODE
+*****************************************************************************}
+
+    procedure ti8086addrnode.set_absvarsym_resultdef;
+      begin
+        if not(nf_typedaddr in flags) then
+          resultdef:=voidfarpointertype
+        else
+          resultdef:=tcpupointerdefclass(cpointerdef).createx86(left.resultdef,x86pt_far);
+      end;
+
+
+    function ti8086addrnode.typecheck_non_proc(realsource: tnode; out res: tnode): boolean;
+      begin
+        res:=nil;
+        if (realsource.nodetype=loadn) and
+           (tloadnode(realsource).symtableentry.typ=labelsym) then
+          begin
+            if current_settings.x86memorymodel in x86_far_code_models then
+              resultdef:=voidfarpointertype
+            else
+              resultdef:=voidnearpointertype;
+            result:=true
+          end
+        else
+          result:=inherited;
+      end;
 
 {*****************************************************************************
                              TI8086DEREFNODE
@@ -60,7 +102,7 @@ implementation
         st : tsymtable;
         tmpref: treference;
       begin
-        if tpointerdef(left.resultdef).x86pointertyp in [x86pt_far,x86pt_huge] then
+        if tcpupointerdef(left.resultdef).x86pointertyp in [x86pt_far,x86pt_huge] then
           begin
             secondpass(left);
             { assume natural alignment, except for packed records }
@@ -75,7 +117,7 @@ implementation
                LOC_CREGISTER,
                LOC_REGISTER:
                  begin
-                   maybechangeloadnodereg(current_asmdata.CurrAsmList,left,true);
+                   hlcg.maybe_change_load_node_reg(current_asmdata.CurrAsmList,left,true);
                    location.reference.base := left.location.register;
                    location.reference.segment := GetNextReg(left.location.register);
                  end;
@@ -102,7 +144,7 @@ implementation
                (cs_checkpointer in current_settings.localswitches) and
                not(cs_compilesystem in current_settings.moduleswitches) and
    {$ifdef x86}
-               (tpointerdef(left.resultdef).x86pointertyp = default_x86_data_pointer_type) and
+               (tcpupointerdef(left.resultdef).x86pointertyp = tcpupointerdefclass(cpointerdef).default_x86_data_pointer_type) and
    {$endif x86}
                not(nf_no_checkpointer in flags) and
                { can be NR_NO in case of LOC_CONSTANT }
@@ -126,7 +168,62 @@ implementation
           inherited pass_generate_code;
       end;
 
+{*****************************************************************************
+                             TI8086VECNODE
+*****************************************************************************}
+
+    function ti8086vecnode.first_arraydef: tnode;
+      var
+        arraydef: tcpuarraydef;
+        procname:string;
+      begin
+        if tcpuarraydef(left.resultdef).is_huge then
+          begin
+            arraydef:=tcpuarraydef(left.resultdef);
+
+            if not (ado_IsConvertedPointer in arraydef.arrayoptions) then
+              internalerror(2014080701);
+
+            if left.nodetype<>typeconvn then
+              internalerror(2014080702);
+
+            procname:='fpc_hugeptr_add_longint';
+            if cs_hugeptr_arithmetic_normalization in current_settings.localswitches then
+              procname:=procname+'_normalized';
+
+            if arraydef.elementdef.size>1 then
+              right:=caddnode.create(muln,right,
+                cordconstnode.create(arraydef.elementdef.size,s32inttype,true));
+
+            result:=ccallnode.createintern(procname,
+              ccallparanode.create(right,
+              ccallparanode.create(ttypeconvnode(left).left,nil)));
+            inserttypeconv_internal(result,getx86pointerdef(arraydef.elementdef,x86pt_huge));
+            result:=cderefnode.create(result);
+
+            ttypeconvnode(left).left:=nil;
+            ttypeconvnode(left).free;
+            left := nil;
+            right := nil;
+            firstpass(result);
+          end
+        else
+          result:=inherited;
+      end;
+
+
+    procedure ti8086vecnode.update_reference_reg_mul(maybe_const_reg:tregister;l:aint);
+      var
+        saveseg: TRegister;
+      begin
+        saveseg:=location.reference.segment;
+        location.reference.segment:=NR_NO;
+        inherited update_reference_reg_mul(maybe_const_reg,l);
+        location.reference.segment:=saveseg;
+      end;
 
 begin
+  caddrnode:=ti8086addrnode;
   cderefnode:=ti8086derefnode;
+  cvecnode:=ti8086vecnode;
 end.

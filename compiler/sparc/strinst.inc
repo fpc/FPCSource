@@ -67,6 +67,7 @@
           { internal instructions }
           'fmovd',
           'fabsd','fabsq',
+          'fnegd','fnegq',
           { memory barrier instructions }
           'stbar',
           'membar'

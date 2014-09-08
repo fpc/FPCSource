@@ -4,7 +4,7 @@
 
 unit mysql50conn;
 
-{$DEFINE MYSQL50_up}
+{$DEFINE MYSQL50_UP}
 {$DEFINE MYSQL50}
 
 {$i mysqlconn.inc}

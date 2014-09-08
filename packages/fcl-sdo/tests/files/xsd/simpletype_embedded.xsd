@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <xsd:schema 
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+  targetNamespace="urn:wst-test">
+  
+  <xsd:element name="EnumSampleType">
+  	<xsd:simpleType>
+  		<xsd:restriction base="xsd:token">
+  			<xsd:enumeration value="esOne">	</xsd:enumeration>
+  			<xsd:enumeration value="esTwo">	</xsd:enumeration>
+  			<xsd:enumeration value="esThree">	</xsd:enumeration>
+        <xsd:enumeration value="begin">	</xsd:enumeration>
+        <xsd:enumeration value="finally">	</xsd:enumeration>
+        <xsd:enumeration value="True">	</xsd:enumeration>
+        <xsd:enumeration value="False">	</xsd:enumeration>
+  		</xsd:restriction>
+  	</xsd:simpleType>
+  </xsd:element>
+  
+ </xsd:schema>

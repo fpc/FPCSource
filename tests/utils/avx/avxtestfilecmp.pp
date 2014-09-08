@@ -24,9 +24,9 @@ begin
         writeln('');
         writeln('-h  help');
         writeln('-m  sourcefile mask');
-        writeln('-n  sourcefile extention');
+        writeln('-n  sourcefile extension');
         writeln('-d  destination path');
-        writeln('-e  destinationfile extention');
+        writeln('-e  destinationfile extension');
         writeln('-s  silent');
         writeln('');
         {$IFDEF WINDOWS}
@@ -44,25 +44,25 @@ begin
 
         if ExtractFileExt(sm) = '' then
         begin
-          if trim(SourceFileExtention) <> '' then
+          if trim(SourceFileExtension) <> '' then
           begin
-            if copy(SourceFileExtention, 1, 1) <> '.' then sm := sm + '.' + SourceFileExtention
-             else sm := sm + SourceFileExtention;
+            if copy(SourceFileExtension, 1, 1) <> '.' then sm := sm + '.' + SourceFileExtension
+             else sm := sm + SourceFileExtension;
           end;
         end;
 
         if (ExtractFilePath(sm) = DestPath) and
-           (DestFileExtention = '') then
+           (DestFileExtension = '') then
         begin
           writeln(format('Do you want compare the same files (sourcepath: "%s"  destination path: "%s"). [Y/N]',
                          [ExtractFilePath(sm), DestPath]));
 
           read(ch);
-          if ch in ['Y', 'y', 'J', 'N'] then CompareFiles(NoSourceFileExtention, NoDestFileExtention, Silent,
-                                                          sm, DestPath, DestFileExtention);
+          if ch in ['Y', 'y', 'J', 'N'] then CompareFiles(NoSourceFileExtension, NoDestFileExtension, Silent,
+                                                          sm, DestPath, DestFileExtension);
         end
-        else CompareFiles(NoSourceFileExtention, NoDestFileExtention, Silent,
-                          sm, DestPath, DestFileExtention);
+        else CompareFiles(NoSourceFileExtension, NoDestFileExtension, Silent,
+                          sm, DestPath, DestFileExtension);
       end;
     finally
       Free;

@@ -28,6 +28,7 @@ var s : string;
         array[0..max_regcount-1] of string[63];
     regnumber_index,std_regname_index,int_regname_index,att_regname_index,
     nasm_regname_index:array[0..max_regcount-1] of byte;
+    i8086  : boolean;
     x86_64 : boolean;
     fileprefix : string;
 
@@ -307,7 +308,7 @@ end;
 
 procedure write_inc_files;
 
-var attfile,intfile,otfile,opfile,
+var attfile,intfile,otfile,
     norfile,nasmfile,stdfile,
     numfile,stabfile,dwrffile,confile,
     rnifile,irifile,srifile,
@@ -325,7 +326,6 @@ begin
   openinc(stabfile,fileprefix+'stab.inc');
   openinc(dwrffile,fileprefix+'dwrf.inc');
   openinc(otfile,fileprefix+'ot.inc');
-  openinc(opfile,fileprefix+'op.inc');
   openinc(norfile,fileprefix+'nor.inc');
   openinc(rnifile,fileprefix+'rni.inc');
   openinc(srifile,fileprefix+'sri.inc');
@@ -345,7 +345,6 @@ begin
           writeln(stabfile,',');
           writeln(dwrffile,',');
           writeln(otfile,',');
-          writeln(opfile,',');
           writeln(rnifile,',');
           writeln(srifile,',');
           writeln(arifile,',');
@@ -371,7 +370,6 @@ begin
       else
         write(dwrffile,dwarf32[i]);
       write(otfile,ots[i]);
-      write(opfile,ops[i]);
       write(rnifile,regnumber_index[i]);
       write(srifile,std_regname_index[i]);
       write(arifile,att_regname_index[i]);
@@ -388,7 +386,6 @@ begin
   closeinc(stabfile);
   closeinc(dwrffile);
   closeinc(otfile);
-  closeinc(opfile);
   closeinc(norfile);
   closeinc(rnifile);
   closeinc(srifile);
@@ -404,16 +401,18 @@ begin
    writeln('Register Table Converter Version ',Version);
    if paramcount=0 then
      begin
+       i8086:=false;
        x86_64:=false;
      end
    else
      begin
+       i8086:=paramstr(1)='i8086';
        x86_64:=paramstr(1)='x86_64';
        if (paramcount<>1) or
-          ((paramstr(1)<>'i386') and (paramstr(1)<>'x86_64')) then
+          ((paramstr(1)<>'i8086') and (paramstr(1)<>'i386') and (paramstr(1)<>'x86_64')) then
          begin
            writeln('Usage: ',paramstr(0));
-           writeln('Only one optional parameter is allowed: i386 or x86_64');
+           writeln('Only one optional parameter is allowed: i8086, i386 or x86_64');
            halt(1);
          end;
      end;
@@ -421,6 +420,11 @@ begin
      begin
        fileprefix:='r8664';
        writeln('Processing for CPU x86_64');
+     end
+   else if i8086 then
+     begin
+       fileprefix:='r8086';
+       writeln('Processing for CPU i8086');
      end
    else
      begin

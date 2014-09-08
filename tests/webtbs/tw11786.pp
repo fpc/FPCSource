@@ -1,5 +1,6 @@
 { %skiptarget=darwin}
 { %cpu=i386 }
+{ %OPT=-Cg- }
 var
   w : word;
   b1,b2,b3 : byte;

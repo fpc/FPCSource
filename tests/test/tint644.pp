@@ -1,3 +1,4 @@
+{ %OPT=-Oonoconstprop }
 { %result=215 }
 
 {$q+}

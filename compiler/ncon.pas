@@ -121,9 +121,11 @@ interface
           value_str : pchar;
           len     : longint;
           lab_str : tasmlabel;
+          astringdef : tdef;
+          astringdefderef : tderef;
           cst_type : tconststringtype;
           constructor createstr(const s : string);virtual;
-          constructor createpchar(s : pchar;l : longint);virtual;
+          constructor createpchar(s: pchar; l: longint; def: tdef);virtual;
           constructor createunistr(w : pcompilerwidestring);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -199,12 +201,14 @@ interface
     function is_emptyset(p : tnode):boolean;
     function genconstsymtree(p : tconstsym) : tnode;
 
+    function getbooleanvalue(p : tnode) : boolean;
+
 implementation
 
     uses
       cutils,
       verbose,systems,sysutils,
-      defutil,procinfo,
+      defcmp,defutil,procinfo,
       cpubase,cgbase,
       nld;
 
@@ -309,7 +313,7 @@ implementation
               getmem(pc,len+1);
               move(pchar(p.value.valueptr)^,pc^,len);
               pc[len]:=#0;
-              p1:=cstringconstnode.createpchar(pc,len);
+              p1:=cstringconstnode.createpchar(pc,len,p.constdef);
             end;
           constwstring :
             p1:=cstringconstnode.createunistr(pcompilerwidestring(p.value.valueptr));
@@ -327,6 +331,15 @@ implementation
             internalerror(200205103);
         end;
         genconstsymtree:=p1;
+      end;
+
+
+    function getbooleanvalue(p : tnode) : boolean;
+      begin
+        if is_constboolnode(p) then
+          result:=tordconstnode(p).value<>0
+        else
+          internalerror(2013111601);
       end;
 
 
@@ -705,7 +718,8 @@ implementation
       begin
         docompare :=
           inherited docompare(p) and
-          (value = tordconstnode(p).value);
+          (value = tordconstnode(p).value) and
+          equal_defs(typedef,tordconstnode(p).typedef);
       end;
 
 
@@ -724,11 +738,6 @@ implementation
 
       begin
          inherited create(pointerconstn);
-{$ifdef i8086}
-         { truncate near pointers }
-         if (def.typ<>pointerdef) or not (tpointerdef(def).x86pointertyp in [x86pt_far,x86pt_huge]) then
-           v := Word(v);
-{$endif i8086}
          value:=v;
          typedef:=def;
       end;
@@ -827,12 +836,19 @@ implementation
       end;
 
 
-    constructor tstringconstnode.createpchar(s : pchar;l : longint);
+    constructor tstringconstnode.createpchar(s: pchar; l: longint; def: tdef);
       begin
          inherited create(stringconstn);
          len:=l;
          value_str:=s;
-         cst_type:=cst_conststring;
+         if assigned(def) and
+            is_ansistring(def) then
+           begin
+             cst_type:=cst_ansistring;
+             astringdef:=def;
+           end
+         else
+           cst_type:=cst_conststring;
          lab_str:=nil;
       end;
 
@@ -880,6 +896,8 @@ implementation
             value_str[len]:=#0;
           end;
         lab_str:=tasmlabel(ppufile.getasmsymbol);
+        if cst_type=cst_ansistring then
+          ppufile.getderef(astringdefderef);
       end;
 
 
@@ -893,18 +911,24 @@ implementation
         else
           ppufile.putdata(value_str^,len);
         ppufile.putasmsymbol(lab_str);
+        if cst_type=cst_ansistring then
+          ppufile.putderef(astringdefderef);
       end;
 
 
     procedure tstringconstnode.buildderefimpl;
       begin
         inherited buildderefimpl;
+        if cst_type=cst_ansistring then
+          astringdefderef.build(astringdef);
       end;
 
 
     procedure tstringconstnode.derefimpl;
       begin
         inherited derefimpl;
+        if cst_type=cst_ansistring then
+          astringdef:=tdef(astringdefderef.resolve);
       end;
 
 
@@ -925,6 +949,7 @@ implementation
            end
          else
            n.value_str:=getpcharcopy;
+         n.astringdef:=astringdef;
          dogetcopy:=n;
       end;
 
@@ -941,14 +966,17 @@ implementation
                 l:=len-1
               else
                 l:=0;
-              resultdef:=tarraydef.create(0,l,s32inttype);
+              resultdef:=carraydef.create(0,l,s32inttype);
               tarraydef(resultdef).elementdef:=cansichartype;
               include(tarraydef(resultdef).arrayoptions,ado_IsConstString);
             end;
           cst_shortstring :
             resultdef:=cshortstringtype;
           cst_ansistring :
-            resultdef:=getansistringdef;
+            if not assigned(astringdef) then
+              resultdef:=getansistringdef
+            else
+              resultdef:=astringdef;
           cst_unicodestring :
             resultdef:=cunicodestringtype;
           cst_widestring :
@@ -1031,14 +1059,14 @@ implementation
             not(tstringdef(def).stringtype in [st_widestring,st_unicodestring]) then
             begin
               cp1:=tstringdef(def).encoding;
-              if (cp1=CP_NONE) or (cp1=0) then
+              if (cp1=globals.CP_NONE) or (cp1=0) then
                 cp1:=current_settings.sourcecodepage;
               if (cp1=CP_UTF8) then
                 begin
                   pw:=pcompilerwidestring(value_str);
                   l2:=len;
                   l:=UnicodeToUtf8(nil,0,PUnicodeChar(pw^.data),l2);
-                  getmem(pc,l);   
+                  getmem(pc,l);
                   UnicodeToUtf8(pc,l,PUnicodeChar(pw^.data),l2);
                   len:=l-1;
                   donewidestring(pw);
@@ -1053,7 +1081,7 @@ implementation
                   value_str:=pc;
                 end;
             end
-        else 
+        else
           if (tstringdef(def).stringtype = st_ansistring) and
              not(cst_type in [cst_widestring,cst_unicodestring]) then
             begin
@@ -1067,13 +1095,15 @@ implementation
                     cp2:=current_settings.sourcecodepage;
                 end
               else if (cst_type in [cst_shortstring,cst_conststring,cst_longstring]) then
-                cp2:=current_settings.sourcecodepage;
-              { don't change string if codepages are equal or string length is 0 }  
+                cp2:=current_settings.sourcecodepage
+              else
+                internalerror(2013112916);
+              { don't change string if codepages are equal or string length is 0 }
               if (cp1<>cp2) and (len>0) then
                 begin
                   if cpavailable(cp1) and cpavailable(cp2) then
                     changecodepage(value_str,len,cp2,value_str,cp1)
-                  else if (cp1 <> CP_NONE) and (cp2 <> CP_NONE) then
+                  else if (cp1 <> globals.CP_NONE) and (cp2 <> globals.CP_NONE) then
                     begin
                       { if source encoding is UTF8 convert using UTF8->UTF16->destination encoding }
                       if (cp2=CP_UTF8) then

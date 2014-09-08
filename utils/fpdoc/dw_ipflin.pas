@@ -149,7 +149,7 @@ type
 implementation
 
 uses
-  SysUtils, dwriter, dbugintf;
+  SysUtils, dwriter;
 
 
 { TFPDocWriter overrides }

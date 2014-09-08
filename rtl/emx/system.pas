@@ -535,7 +535,7 @@ begin
             begin
                 stackbottom:=pointer(heap_brk);     {In DOS mode, heap_brk is
                                                      also the stack bottom.}
-                StackTop := StackBottom + InitialStkLen;
+                StackLength:=sptr-stackbottom;
 {$WARNING To be checked/corrected!}
                 ApplicationType := 1;   (* Running under DOS. *)
                 IsConsole := true;
@@ -549,8 +549,10 @@ begin
         osOS2:
             begin
                 DosGetInfoBlocks (@TIB, @PIB);
-                StackBottom := pointer (TIB^.Stack);
-                StackTop := TIB^.StackLimit;
+                StackLength:=CheckInitialStkLen(InitialStklen);
+                { OS/2 has top of stack in TIB^.StackLimit - unlike Windows where it is in TIB^.Stack }
+                StackBottom := TIB^.StackLimit - StackLength;
+
                 Environment := pointer (PIB^.Env);
                 ApplicationType := PIB^.ProcType;
                 ProcessID := PIB^.PID;
@@ -562,7 +564,7 @@ begin
             begin
                 stackbottom:=nil;   {Not sure how to get it, but seems to be
                                      always zero.}
-                StackTop := StackBottom + InitialStkLen;
+                StackLength:=sptr-stackbottom;
 {$WARNING To be checked/corrected!}
                 ApplicationType := 1;   (* Running under DOS. *)
                 IsConsole := true;
@@ -570,7 +572,6 @@ begin
             end;
     end;
     exitproc:=nil;
-    StackLength := CheckInitialStkLen (InitialStkLen);
 
     {Initialize the heap.}
     initheap;

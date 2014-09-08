@@ -49,6 +49,10 @@
 const
 //** default bucket buffer size - 8KB minus room for memory allocator headers */
   APR_BUCKET_BUFF_SIZE = 8000;
+//** This bucket type represents actual data to send to the client. */
+  APR_BUCKET_DATA = 0;
+//** This bucket type represents metadata. */
+  APR_BUCKET_METADATA = 1;
 
 //** Determines how a bucket or brigade should be read */
 type
@@ -132,16 +136,8 @@ Papr_bucket_alloc_t = ^apr_bucket_alloc_t;
 //typedef struct apr_bucket_type_t apr_bucket_type_t;
 Papr_bucket_type_t = ^apr_bucket_type_t;
 
-{from below}
-is_metadata = (
-  //** This bucket type represents actual data to send to the client. */
-  APR_BUCKET_DATA = 0,
-  //** This bucket type represents metadata. */
-  APR_BUCKET_METADATA = 1
-);
-
 //    void ( *destroy)(void *data);
-  destroy_t = procedure(data: Pointer);
+  destroy_t = procedure(data: Pointer); cdecl;
 
 //    apr_status_t ( *read)(apr_bucket *b, const char **str, apr_size_t *len,
 //                         apr_read_type_e block);
@@ -181,7 +177,7 @@ is_metadata = (
      * that are the "content" of the brigade and "metadata" describes
      * that data but is not a proper part of it.
      *}
-{is_metadata is moved up}
+    is_metadata : integer;
 //    enum {
 //        /** This bucket type represents actual data to send to the client. */
 //        APR_BUCKET_DATA = 0,
@@ -253,7 +249,7 @@ is_metadata = (
 
 {from below}
 //    void (*free)(void *e);
-  free_t = procedure(e: Pointer);
+  free_t = procedure(e: Pointer); cdecl;
 
   link_t = record
     next: Papr_bucket;
@@ -341,7 +337,7 @@ is_metadata = (
  * Function called when a brigade should be flushed
  *}
 //typedef apr_status_t (*apr_brigade_flush)(apr_bucket_brigade *bb, void *ctx);
-apr_brigade_flush = function(bb: Papr_bucket_brigade; ctx: Pointer): apr_status_t;
+apr_brigade_flush = function(bb: Papr_bucket_brigade; ctx: Pointer): apr_status_t; cdecl;
 
 (*  fpc -> big part ignored here
 {*
@@ -392,14 +388,12 @@ apr_brigade_flush = function(bb: Papr_bucket_brigade; ctx: Pointer): apr_status_
  * @return The magic pointer value
  */
 #define APR_BRIGADE_SENTINEL(b)	APR_RING_SENTINEL(&(b)->list, apr_bucket, link)
-
 /**
  * Determine if the bucket brigade is empty
  * @param b The brigade to check
  * @return true or false
  */
 #define APR_BRIGADE_EMPTY(b)	APR_RING_EMPTY(&(b)->list, apr_bucket, link)
-
 /**
  * Return the first bucket in a brigade
  * @param b The brigade to query
@@ -412,7 +406,6 @@ apr_brigade_flush = function(bb: Papr_bucket_brigade; ctx: Pointer): apr_status_
  * @return The last bucket in the brigade
  */
 #define APR_BRIGADE_LAST(b)	APR_RING_LAST(&(b)->list)
-
 /**
  * Insert a list of buckets at the front of a brigade
  * @param b The brigade to add to
@@ -489,13 +482,11 @@ apr_brigade_flush = function(bb: Papr_bucket_brigade; ctx: Pointer): apr_status_
  * @return The previous bucket
  */
 #define APR_BUCKET_PREV(e)	APR_RING_PREV((e), link)
-
 /**
  * Remove a bucket from its bucket brigade
  * @param e The bucket to remove
  */
 #define APR_BUCKET_REMOVE(e)	APR_RING_REMOVE((e), link)
-
 /**
  * Initialize a new bucket's prev/next pointers
  * @param e The bucket to initialize
@@ -509,7 +500,6 @@ apr_brigade_flush = function(bb: Papr_bucket_brigade; ctx: Pointer): apr_status_
  * @return true or false
  */
 #define APR_BUCKET_IS_METADATA(e)    ((e)->type->is_metadata)
-
 /**
  * Determine if a bucket is a FLUSH bucket
  * @param e The bucket to inspect
@@ -607,7 +597,7 @@ Papr_bucket_heap = ^apr_bucket_heap;
 
 {from below}
 //    void (*free_func)(void *data);
-free_func_t = procedure (data: Pointer);
+free_func_t = procedure (data: Pointer); cdecl;
 
 {**
  * A bucket referring to data allocated off the heap.
@@ -819,8 +809,13 @@ APU_DECLARE(apr_status_t) apr_brigade_partition(apr_bucket_brigade *b,
  */
 APU_DECLARE(apr_status_t) apr_brigade_length(apr_bucket_brigade *bb,
                                              int read_all,
-                                             apr_off_t *length);
+                                             apr_off_t *length);*)
 
+function apr_brigade_length(bb: Papr_bucket_brigade; read_all: Integer;
+  length: Papr_off_t): apr_status_t; {$IFDEF WINDOWS}stdcall;{$ELSE}cdecl;{$ENDIF}
+  external LibAPRUtil name LibNamePrefix + 'apr_brigade_length' + LibSuff12;
+
+(*
 /**
  * Take a bucket brigade and store the data in a flat char*
  * @param bb The bucket brigade to create the char* from
@@ -830,8 +825,13 @@ APU_DECLARE(apr_status_t) apr_brigade_length(apr_bucket_brigade *bb,
  */
 APU_DECLARE(apr_status_t) apr_brigade_flatten(apr_bucket_brigade *bb,
                                               char *c,
-                                              apr_size_t *len);
+                                              apr_size_t *len);*)
 
+function apr_brigade_flatten(bb: Papr_bucket_brigade; c: Pchar;
+  len: Papr_size_t): apr_status_t;{$IFDEF WINDOWS}stdcall;{$ELSE}cdecl;{$ENDIF}
+  external LibAPRUtil name LibNamePrefix + 'apr_brigade_flatten' + LibSuff12;
+
+(*
 /**
  * Creates a pool-allocated string representing a flat bucket brigade
  * @param bb The bucket brigade to create the char array from

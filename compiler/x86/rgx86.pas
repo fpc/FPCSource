@@ -136,11 +136,18 @@ implementation
                 begin
                   { avx instruction?
                     currently this rule is sufficient but it might be extended }
-                  if (ops=3) and (opcode<>A_SHRD) and (opcode<>A_SHLD) then
+                  if (ops=3) and (opcode<>A_SHRD) and (opcode<>A_SHLD) and (opcode<>A_IMUL) then
                     begin
-                      { avx instructions allow only the first operand (at&t counting) to be a register operand }
-                      { all operands must be registers ... }
-                      if (oper[0]^.typ=top_reg) and
+                      { BMI shifting/rotating instructions have special requirements regarding spilling, only
+                        the middle operand can be replaced }
+                      if ((opcode=A_RORX) or (opcode=A_SHRX) or (opcode=A_SARX) or (opcode=A_SHLX)) then
+                        begin
+                          if (oper[1]^.typ=top_reg) and (getregtype(oper[1]^.reg)=regtype) and (get_alias(getsupreg(oper[1]^.reg))=orgreg) then
+                            replaceoper:=1;
+                        end
+                      { avx instructions allow only the first operand (at&t counting) to be a register operand
+                        all operands must be registers ... }
+                      else if (oper[0]^.typ=top_reg) and
                          (oper[1]^.typ=top_reg) and
                          (oper[2]^.typ=top_reg) and
                          { but they must be different }
@@ -155,7 +162,7 @@ implementation
                     end
                   else
                     begin
-                      { We can handle opcodes with 2 and shrd/shld the same way, where the 3rd operand is const or CL,
+                      { We can handle opcodes with 2 and 3-op imul/shrd/shld the same way, where the 3rd operand is const or CL,
                         that doesn't need spilling.
                         However, due to AT&T order inside the compiler, the 3rd operand is
                         numbered 0, so look at operand no. 1 and 2 if we have 3 operands by
@@ -163,7 +170,24 @@ implementation
                       n:=0;
                       if ops=3 then
                         n:=1;
-                      if (oper[n+0]^.typ=top_reg) and
+                      { lea is tricky: part of operand 0 can be spilled and the instruction can converted into an
+                        add, if base or index shall be spilled and the other one is equal the destination }
+                      if (opcode=A_LEA) then
+                        begin
+                          if (oper[0]^.ref^.offset=0) and
+                             (oper[0]^.ref^.scalefactor in [0,1]) and
+                             (((getregtype(oper[0]^.ref^.base)=regtype) and
+                               (get_alias(getsupreg(oper[0]^.ref^.base))=orgreg) and
+                               (getregtype(oper[0]^.ref^.index)=getregtype(oper[1]^.reg)) and
+                               (get_alias(getsupreg(oper[0]^.ref^.index))=get_alias(getsupreg(oper[1]^.reg)))) or
+                              ((getregtype(oper[0]^.ref^.index)=regtype) and
+                               (get_alias(getsupreg(oper[0]^.ref^.index))=orgreg) and
+                               (getregtype(oper[0]^.ref^.base)=getregtype(oper[1]^.reg)) and
+                               (get_alias(getsupreg(oper[0]^.ref^.base))=get_alias(getsupreg(oper[1]^.reg))))
+                             ) then
+                             replaceoper:=0;
+                        end
+                      else if (oper[n+0]^.typ=top_reg) and
                          (oper[n+1]^.typ=top_reg) and
                          ((getregtype(oper[n+0]^.reg)<>regtype) or
                           (getregtype(oper[n+1]^.reg)<>regtype) or
@@ -220,7 +244,9 @@ implementation
                               A_CMOVcc,
                               A_MOVZX,
                               A_MOVSX,
+{$ifdef x86_64}
                               A_MOVSXD,
+{$endif x86_64}
                               A_MULSS,
                               A_MULSD,
                               A_SUBSS,
@@ -229,6 +255,8 @@ implementation
                               A_ADDSS,
                               A_DIVSD,
                               A_DIVSS,
+                              A_SQRTSD,
+                              A_SQRTSS,
                               A_SHLD,
                               A_SHRD,
                               A_COMISD,
@@ -255,7 +283,6 @@ implementation
                               A_CVTSS2SI,
                               A_CVTTPS2PI,
                               A_CVTTSS2SI,
-                              A_IMUL,
                               A_XORPD,
                               A_XORPS,
                               A_ORPD,
@@ -265,9 +292,14 @@ implementation
                               A_UNPCKLPS,
                               A_UNPCKHPS,
                               A_SHUFPD,
-                              A_SHUFPS:
-
+                              A_SHUFPS,
+                              A_VCOMISD,
+                              A_VCOMISS:
                                 replaceoper:=-1;
+
+                              A_IMUL:
+                                if ops<>3 then
+                                  replaceoper:=-1;
 {$ifdef x86_64}
                               A_MOV:
                                  { 64 bit constants can only be moved into registers }
@@ -279,7 +311,16 @@ implementation
 {$endif x86_64}
                             end;
                           end;
-                        end;
+                        2 :
+                          begin
+                            { Some 3-op instructions don't allow memory references
+                              for destination }
+                            case instr.opcode of
+                              A_IMUL:
+                                replaceoper:=-1;
+                            end;
+                          end;
+                      end;
                     end;
                 end;
              end;
@@ -296,23 +337,31 @@ implementation
             { Replace register with spill reference }
             if replaceoper<>-1 then
               begin
-                is_subh:=getsubreg(oper[replaceoper]^.reg)=R_SUBH;
-                oper[replaceoper]^.typ:=top_ref;
-                new(oper[replaceoper]^.ref);
-                oper[replaceoper]^.ref^:=spilltemp;
-                if is_subh then
-                  inc(oper[replaceoper]^.ref^.offset);
-                { memory locations aren't guaranteed to be aligned }
-                case opcode of
-                  A_MOVAPS:
-                    opcode:=A_MOVSS;
-                  A_MOVAPD:
-                    opcode:=A_MOVSD;
-                  A_VMOVAPS:
-                    opcode:=A_VMOVSS;
-                  A_VMOVAPD:
-                    opcode:=A_VMOVSD;
-                end;
+                if opcode=A_LEA then
+                  begin
+                    opcode:=A_ADD;
+                    oper[0]^.ref^:=spilltemp;
+                  end
+                else
+                  begin
+                    is_subh:=getsubreg(oper[replaceoper]^.reg)=R_SUBH;
+                    oper[replaceoper]^.typ:=top_ref;
+                    new(oper[replaceoper]^.ref);
+                    oper[replaceoper]^.ref^:=spilltemp;
+                    if is_subh then
+                      inc(oper[replaceoper]^.ref^.offset);
+                    { memory locations aren't guaranteed to be aligned }
+                    case opcode of
+                      A_MOVAPS:
+                        opcode:=A_MOVSS;
+                      A_MOVAPD:
+                        opcode:=A_MOVSD;
+                      A_VMOVAPS:
+                        opcode:=A_VMOVSS;
+                      A_VMOVAPD:
+                        opcode:=A_VMOVSD;
+                    end;
+                  end;
                 result:=true;
               end;
           end;

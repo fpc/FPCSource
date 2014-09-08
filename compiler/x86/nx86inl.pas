@@ -45,6 +45,7 @@ interface
           function first_round_real: tnode; override;
           function first_trunc_real: tnode; override;
           function first_popcnt: tnode; override;
+          function first_fma: tnode; override;
           { second pass override to generate these nodes }
           procedure second_IncludeExclude;override;
           procedure second_pi; override;
@@ -64,6 +65,7 @@ interface
           procedure second_abs_long;override;
 {$endif not i8086}
           procedure second_popcnt;override;
+          procedure second_fma;override;
        private
           procedure load_fpu_location(lnode: tnode);
        end;
@@ -77,7 +79,7 @@ implementation
       symconst,
       defutil,
       aasmbase,aasmtai,aasmdata,aasmcpu,
-      symtype,symdef,
+      symtype,symdef,symcpu,
       cgbase,pass_2,
       cpuinfo,cpubase,paramgr,
       nbas,ncon,ncal,ncnv,nld,ncgutil,
@@ -91,15 +93,34 @@ implementation
 
      function tx86inlinenode.first_pi : tnode;
       begin
-        expectloc:=LOC_FPUREGISTER;
-        first_pi := nil;
+        if (tfloatdef(pbestrealtype^).floattype=s80real) then
+          begin
+            expectloc:=LOC_FPUREGISTER;
+            first_pi := nil;
+          end
+        else
+          result:=inherited;
       end;
 
 
      function tx86inlinenode.first_arctan_real : tnode;
       begin
-        expectloc:=LOC_FPUREGISTER;
-        first_arctan_real := nil;
+{$ifdef i8086}
+        { FPATAN's range is limited to (0 <= value < 1) on the 8087 and 80287,
+          so we need to use the RTL helper on these FPUs }
+        if current_settings.cputype < cpu_386 then
+          begin
+            result := inherited;
+            exit;
+          end;
+{$endif i8086}
+        if (tfloatdef(pbestrealtype^).floattype=s80real) then
+          begin
+            expectloc:=LOC_FPUREGISTER;
+            first_arctan_real := nil;
+          end
+        else
+          result:=inherited;
       end;
 
      function tx86inlinenode.first_abs_real : tnode;
@@ -113,20 +134,31 @@ implementation
 
      function tx86inlinenode.first_sqr_real : tnode;
       begin
-        expectloc:=LOC_FPUREGISTER;
+        if use_vectorfpu(resultdef) then
+          expectloc:=LOC_MMREGISTER
+        else
+          expectloc:=LOC_FPUREGISTER;
         first_sqr_real := nil;
       end;
 
      function tx86inlinenode.first_sqrt_real : tnode;
       begin
-        expectloc:=LOC_FPUREGISTER;
+        if use_vectorfpu(resultdef) then
+          expectloc:=LOC_MMREGISTER
+        else
+          expectloc:=LOC_FPUREGISTER;
         first_sqrt_real := nil;
       end;
 
      function tx86inlinenode.first_ln_real : tnode;
       begin
-        expectloc:=LOC_FPUREGISTER;
-        first_ln_real := nil;
+        if (tfloatdef(pbestrealtype^).floattype=s80real) then
+          begin
+            expectloc:=LOC_FPUREGISTER;
+            first_ln_real := nil;
+          end
+        else
+          result:=inherited;
       end;
 
      function tx86inlinenode.first_cos_real : tnode;
@@ -139,8 +171,13 @@ implementation
             exit;
           end;
 {$endif i8086}
-        expectloc:=LOC_FPUREGISTER;
-        first_cos_real := nil;
+        if (tfloatdef(pbestrealtype^).floattype=s80real) then
+          begin
+            expectloc:=LOC_FPUREGISTER;
+            result:=nil;
+          end
+        else
+          result:=inherited;
       end;
 
      function tx86inlinenode.first_sin_real : tnode;
@@ -153,8 +190,13 @@ implementation
             exit;
           end;
 {$endif i8086}
-        expectloc:=LOC_FPUREGISTER;
-        first_sin_real := nil;
+        if (tfloatdef(pbestrealtype^).floattype=s80real) then
+          begin
+            expectloc:=LOC_FPUREGISTER;
+            result:=nil;
+          end
+        else
+          result:=inherited;
       end;
 
 
@@ -194,18 +236,35 @@ implementation
      function tx86inlinenode.first_popcnt: tnode;
        begin
          Result:=nil;
-         if (current_settings.fputype<fpu_sse42)
-{$ifdef i386}
-           or is_64bit(left.resultdef)
-{$endif i386}
+{$ifndef i8086}
+         if (CPUX86_HAS_POPCNT in cpu_capabilities[current_settings.cputype])
+  {$ifdef i386}
+            and not is_64bit(left.resultdef)
+  {$endif i386}
            then
-           Result:=inherited first_popcnt
+             expectloc:=LOC_REGISTER
          else
-           expectloc:=LOC_REGISTER;
+{$endif not i8086}
+           Result:=inherited first_popcnt
        end;
 
 
-     procedure tx86inlinenode.second_Pi;
+     function tx86inlinenode.first_fma : tnode;
+       begin
+{$ifndef i8086}
+         if ((cpu_capabilities[current_settings.cputype]*[CPUX86_HAS_FMA,CPUX86_HAS_FMA4])<>[]) and
+           ((is_double(resultdef)) or (is_single(resultdef))) then
+           begin
+             expectloc:=LOC_MMREGISTER;
+             Result:=nil;
+           end
+         else
+{$endif i8086}
+           Result:=inherited first_fma;
+       end;
+
+
+     procedure tx86inlinenode.second_pi;
        begin
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
          emit_none(A_FLDPI,S_NO);
@@ -236,7 +295,7 @@ implementation
            LOC_MMREGISTER,LOC_CMMREGISTER:
              begin
                location:=lnode.location;
-               location_force_fpureg(current_asmdata.CurrAsmList,location,false);
+               hlcg.location_force_fpureg(current_asmdata.CurrAsmList,location,resultdef,false);
              end;
            else
              internalerror(309991);
@@ -259,18 +318,39 @@ implementation
          if use_vectorfpu(resultdef) then
            begin
              secondpass(left);
-             hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
-             location:=left.location;
+             if left.location.loc<>LOC_MMREGISTER then
+               hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
+             if UseAVX then
+               begin
+                 location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
+                 location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
+               end
+             else
+               location:=left.location;
              case tfloatdef(resultdef).floattype of
                s32real:
-                 reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_ABSMASK_SINGLE'),0,4);
+                 begin
+                   reference_reset_symbol(href,current_asmdata.RefAsmSymbol(target_info.cprefix+'FPC_ABSMASK_SINGLE'),0,4);
+                   tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList, href);
+                   if UseAVX then
+                     current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg_reg(
+                       A_VANDPS,S_XMM,href,left.location.register,location.register))
+                   else
+                     current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_ANDPS,S_XMM,href,location.register));
+                 end;
                s64real:
-                 reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_ABSMASK_DOUBLE'),0,4);
+                 begin
+                   reference_reset_symbol(href,current_asmdata.RefAsmSymbol(target_info.cprefix+'FPC_ABSMASK_DOUBLE'),0,4);
+                   tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList, href);
+                   if UseAVX then
+                     current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg_reg(
+                       A_VANDPD,S_XMM,href,left.location.register,location.register))
+                   else
+                     current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_ANDPD,S_XMM,href,location.register))
+                 end;
                else
                  internalerror(200506081);
              end;
-             tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList, href);
-             current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_ANDPS,S_XMM,href,location.register))
            end
          else
            begin
@@ -367,8 +447,19 @@ implementation
               begin
                 tg.GetTemp(current_asmdata.CurrAsmList,2,2,tt_normal,oldcw);
                 tg.GetTemp(current_asmdata.CurrAsmList,2,2,tt_normal,newcw);
-                emit_ref(A_FNSTCW,S_NO,newcw);
-                emit_ref(A_FNSTCW,S_NO,oldcw);
+{$ifdef i8086}
+                if current_settings.cputype<=cpu_286 then
+                  begin
+                    emit_ref(A_FSTCW,S_NO,newcw);
+                    emit_ref(A_FSTCW,S_NO,oldcw);
+                    emit_none(A_FWAIT,S_NO);
+                  end
+                else
+{$endif i8086}
+                  begin
+                    emit_ref(A_FNSTCW,S_NO,newcw);
+                    emit_ref(A_FNSTCW,S_NO,oldcw);
+                  end;
                 emit_const_ref(A_OR,S_W,$0f00,newcw);
                 load_fpu_location(left);
                 emit_ref(A_FLDCW,S_NO,newcw);
@@ -663,8 +754,168 @@ implementation
         location_reset(location,LOC_REGISTER,opsize);
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
         if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_POPCNT,TCGSize2OpSize[opsize],left.location.register,location.register))
+          emit_reg_reg(A_POPCNT,TCGSize2OpSize[opsize],left.location.register,location.register)
         else
-          current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_POPCNT,TCGSize2OpSize[opsize],left.location.reference,location.register));
+          emit_ref_reg(A_POPCNT,TCGSize2OpSize[opsize],left.location.reference,location.register);
       end;
+
+
+    procedure tx86inlinenode.second_fma;
+      const
+        op : array[false..true,false..true,s32real..s64real,0..3] of TAsmOp =
+          (
+           { positive product }
+           (
+            { positive third operand }
+            ((A_VFMADD231SS,A_VFMADD231SS,A_VFMADD231SS,A_VFMADD213SS),
+             (A_VFMADD231SD,A_VFMADD231SD,A_VFMADD231SD,A_VFMADD213SD)
+            ),
+            { negative third operand }
+            ((A_VFMSUB231SS,A_VFMSUB231SS,A_VFMSUB231SS,A_VFMSUB213SS),
+             (A_VFMSUB231SD,A_VFMSUB231SD,A_VFMSUB231SD,A_VFMSUB213SD)
+            )
+           ),
+           { negative product }
+           (
+            { positive third operand }
+            ((A_VFNMADD231SS,A_VFNMADD231SS,A_VFNMADD231SS,A_VFNMADD213SS),
+             (A_VFNMADD231SD,A_VFNMADD231SD,A_VFNMADD231SD,A_VFNMADD213SD)
+            ),
+            { negative third operand }
+            ((A_VFNMSUB231SS,A_VFNMSUB231SS,A_VFNMSUB231SS,A_VFNMSUB213SS),
+             (A_VFNMSUB231SD,A_VFNMSUB231SD,A_VFNMSUB231SD,A_VFNMSUB213SD)
+            )
+           )
+          );
+
+      var
+        paraarray : array[1..3] of tnode;
+        memop,
+        i : integer;
+        negop3,
+        negproduct,
+        gotmem : boolean;
+        hp : tnode;
+      begin
+{$ifndef i8086}
+         if (cpu_capabilities[current_settings.cputype]*[CPUX86_HAS_FMA,CPUX86_HAS_FMA4])<>[] then
+           begin
+             negop3:=false;
+             negproduct:=false;
+             paraarray[1]:=tcallparanode(tcallparanode(tcallparanode(parameters).nextpara).nextpara).paravalue;
+             paraarray[2]:=tcallparanode(tcallparanode(parameters).nextpara).paravalue;
+             paraarray[3]:=tcallparanode(parameters).paravalue;
+
+             { check if a neg. node can be removed
+               this is possible because changing the sign of
+               a floating point number does not affect its absolute
+               value in any way
+             }
+             if paraarray[1].nodetype=unaryminusn then
+               begin
+                 paraarray[1]:=tunarynode(paraarray[1]).left;
+                 { do not release the unused unary minus node, it is kept and release together with the other nodes,
+                   only no code is generated for it }
+                 negproduct:=not(negproduct);
+               end;
+
+             if paraarray[2].nodetype=unaryminusn then
+               begin
+                 paraarray[2]:=tunarynode(paraarray[2]).left;
+                 { do not release the unused unary minus node, it is kept and release together with the other nodes,
+                   only no code is generated for it }
+                 negproduct:=not(negproduct);
+               end;
+
+             if paraarray[3].nodetype=unaryminusn then
+               begin
+                 paraarray[3]:=tunarynode(paraarray[3]).left;
+                 { do not release the unused unary minus node, it is kept and release together with the other nodes,
+                   only no code is generated for it }
+                 negop3:=true;
+               end;
+
+              for i:=1 to 3 do
+               secondpass(paraarray[i]);
+
+             { only one memory operand is allowed }
+             gotmem:=false;
+             memop:=0;
+             for i:=1 to 3 do
+               begin
+                 if not(paraarray[i].location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
+                   begin
+                     if (paraarray[i].location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and not(gotmem) then
+                       begin
+                         memop:=i;
+                         gotmem:=true;
+                       end
+                     else
+                       hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,paraarray[i].location,paraarray[i].resultdef,true);
+                   end;
+               end;
+
+             location_reset(location,LOC_MMREGISTER,paraarray[1].location.size);
+             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+
+             if gotmem then
+               begin
+                 case memop of
+                   1:
+                     begin
+                       hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[3].resultdef,resultdef,
+                         paraarray[3].location.register,location.register,mms_movescalar);
+                       emit_ref_reg_reg(op[negproduct,negop3,tfloatdef(resultdef).floattype,memop],S_NO,
+                         paraarray[1].location.reference,paraarray[2].location.register,location.register);
+                     end;
+                   2:
+                     begin
+                       hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[3].resultdef,resultdef,
+                         paraarray[3].location.register,location.register,mms_movescalar);
+                       emit_ref_reg_reg(op[negproduct,negop3,tfloatdef(resultdef).floattype,memop],S_NO,
+                         paraarray[2].location.reference,paraarray[1].location.register,location.register);
+                     end;
+                   3:
+                     begin
+                       hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[1].resultdef,resultdef,
+                         paraarray[1].location.register,location.register,mms_movescalar);
+                       emit_ref_reg_reg(op[negproduct,negop3,tfloatdef(resultdef).floattype,memop],S_NO,
+                         paraarray[3].location.reference,paraarray[2].location.register,location.register);
+                     end
+                   else
+                     internalerror(2014041301);
+                 end;
+               end
+             else
+               begin
+                 { try to use the location which is already in a temp. mm register as destination,
+                   so the compiler might be able to re-use the register }
+                 if paraarray[1].location.loc=LOC_MMREGISTER then
+                   begin
+                     hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[1].resultdef,resultdef,
+                       paraarray[1].location.register,location.register,mms_movescalar);
+                     emit_reg_reg_reg(op[negproduct,negop3,tfloatdef(resultdef).floattype,3],S_NO,
+                       paraarray[3].location.register,paraarray[2].location.register,location.register);
+                   end
+                 else if paraarray[2].location.loc=LOC_MMREGISTER then
+                   begin
+                     hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[2].resultdef,resultdef,
+                       paraarray[2].location.register,location.register,mms_movescalar);
+                     emit_reg_reg_reg(op[negproduct,negop3,tfloatdef(resultdef).floattype,3],S_NO,
+                       paraarray[3].location.register,paraarray[1].location.register,location.register);
+                   end
+                 else
+                   begin
+                     hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[3].resultdef,resultdef,
+                       paraarray[3].location.register,location.register,mms_movescalar);
+                     emit_reg_reg_reg(op[negproduct,negop3,tfloatdef(resultdef).floattype,0],S_NO,
+                       paraarray[1].location.register,paraarray[2].location.register,location.register);
+                   end;
+               end;
+           end
+         else
+{$endif i8086}
+           internalerror(2014032301);
+      end;
+
 end.

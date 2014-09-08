@@ -193,7 +193,7 @@ const
   TIOCSDTR =         IOC_VOID or (ord('t') shl 8) or 121;           { set data terminal ready }
   TIOCCDTR =         IOC_VOID or (ord('t') shl 8) or 120;           { clear data terminal ready }
   TIOCGPGRP =        IOC_OUT or ((sizeof(cint) and IOCPARM_MASK) shl 16) or (ord('t') shl 8) or 119;     { get process group }
-  TIOCSPGRP =        IOC_IN or ((sizeof(cint) and IOCPARM_MASK) shl 16) or (ord('t') shl 8) or 118;      { set process group }
+  TIOCSPGRP =        cint(IOC_IN or ((sizeof(cint) and IOCPARM_MASK) shl 16) or (ord('t') shl 8) or 118);      { set process group }
 //  TIOCSLTC =         IOC_IN or ((sizeof(struct ltchars) and IOCPARM_MASK) shl 16) or (ord('t') shl 8) or 117{ set local special chars }
 //  TIOCGLTC =         IOC_OUT or ((sizeof(struct ltchars) and IOCPARM_MASK) shl 16) or (ord('t') shl 8) or 116{ get local special chars }
   TIOCOUTQ =         IOC_OUT or ((sizeof(cint) and IOCPARM_MASK) shl 16) or (ord('t') shl 8) or 115;     { output queue size }

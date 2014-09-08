@@ -64,7 +64,7 @@ type
     function GetCurColumn: Integer;
   protected
     procedure Error(const Msg: string);overload;
-    procedure Error(const Msg: string; Args: array of Const);overload;
+    procedure Error(const Msg: string; Const Args: array of Const);overload;
     function DoFetchToken: TJSONToken;
   public
     constructor Create(Source : TStream; AUseUTF8 : Boolean = True); overload;
@@ -140,7 +140,7 @@ begin
   raise EScannerError.Create(Msg);
 end;
 
-procedure TJSONScanner.Error(const Msg: string; Args: array of Const);
+procedure TJSONScanner.Error(const Msg: string; const Args: array of Const);
 begin
   raise EScannerError.CreateFmt(Msg, Args);
 end;

@@ -448,6 +448,7 @@ end;
 procedure TDbfFieldDef.VCLToNative;
 begin
   FNativeFieldType := #0;
+  // to do: look into ftBytes support; e.g. Visual FoxPro varbytes?
   case FFieldType of
     ftAutoInc  :
       if DbfVersion=xVisualFoxPro then
@@ -474,7 +475,8 @@ begin
 {$ifdef SUPPORT_INT64}
       , ftLargeInt
 {$endif}
-               : FNativeFieldType := 'N';
+               :
+      FNativeFieldType := 'N'; //numerical
     ftDate     :
       FNativeFieldType := 'D'; //date
     ftMemo     :

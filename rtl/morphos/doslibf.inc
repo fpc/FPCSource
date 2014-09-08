@@ -51,7 +51,7 @@ function dosDeleteFile(fname: PChar location 'd1'): Boolean;
 SysCall MOS_DOSBase 72;
 
 function dosRename(oldName: PChar location 'd1';
-                   newName: PChar location 'd2'): Boolean;
+                   newName: PChar location 'd2'): LongInt;
 SysCall MOS_DOSBase 78;
 
 function Lock(lname     : PChar   location 'd1';
@@ -65,7 +65,7 @@ function DupLock(lock: LongInt location 'd1'): LongInt;
 SysCall MOS_DOSBase 096;
 
 function Examine(lock         : LongInt        location 'd1';
-                 fileInfoBlock: PFileInfoBlock location 'd2'): Boolean;
+                 fileInfoBlock: PFileInfoBlock location 'd2'): LongInt;
 SysCall MOS_DOSBase 102;
 
 function ExNext(lock         : LongInt        location 'd1';
@@ -73,7 +73,7 @@ function ExNext(lock         : LongInt        location 'd1';
 SysCall MOS_DOSBase 108;
 
 function Info(lock          : LongInt   location 'd1';
-              parameterBlock: PInfoData location 'd2'): Boolean;
+              parameterBlock: PInfoData location 'd2'): LongInt;
 SysCall MOS_DOSBase 114;
 
 function dosCreateDir(dname: PChar location 'd1'): LongInt;
@@ -108,7 +108,7 @@ function SetComment(name   : PChar location 'd1';
 SysCall MOS_DOSBase 180;
 
 function SetProtection(name: PChar   location 'd1';
-                       mask: LongInt location 'd2'): Boolean;
+                       mask: LongInt location 'd2'): LongInt;
 SysCall MOS_DOSBase 186;
 
 function DateStamp(date: PDateStamp location 'd1'): PDateStamp;
@@ -300,7 +300,7 @@ SysCall MOS_DOSBase 402;
 
 function NameFromFH(fh    : LongInt location 'd1';
                     buffer: PChar   location 'd2';
-                    len   : LongInt location 'd3'): LongInt;
+                    len   : LongInt location 'd3'): Boolean;
 SysCall MOS_DOSBase 408;
 
 function SplitName(name     : PChar    location 'd1';

@@ -24,41 +24,14 @@
 
 {$ASMMODE GAS}
 
-{ This variable is needed in syscall.inc assembler code }
-var
-  fpc_threadvar_relocate_proc : TRelocateThreadVarHandler; public name 'FPC_THREADVAR_RELOCATE';
-{$define THREADVAR_RELOCATED_ALREADY_DEFINED}
-
 function fpsysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_DOSYS0'];
 
 asm
   movq sysnr,%rax         { Syscall number -> rax.  }
   syscall                 { Do the system call. }
   jnb .LSyscOK            { branch to exit if ok, errorhandler otherwise}
-  movq  %rax,%rdx
-{$ifdef FPC_PIC}
-  movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
-  movq  (%rax),%rax
-{$ifndef FPC_STATICRIPFIXED}
-  movq  Errno@GOTPCREL(%rip),%r11
-{$else}
-  leaq  Errno(%rip),%r11
-{$endif}
-{$else FPC_PIC}
-  movq  fpc_threadvar_relocate_proc,%rax
-  leaq  Errno,%r11
-{$endif FPC_PIC}
-  testq %rax,%rax
-  jne   .LThread
-  movl  %edx,8(%r11)
-  jmp   .LNoThread
-.LThread:
-  pushq %rdx
-  movq  (%r11),%rdi
-  call  *%rax
-  popq  %rdx
-  movl  %edx,(%rax)
-.LNoThread:
+  movq  %rax,%rdi
+  call  SetErrno
   movq  $-1,%rax
 .LSyscOK:
 end;
@@ -70,30 +43,8 @@ asm
   movq param1,%rdi        { shift arg1 - arg1. }
   syscall                 { Do the system call. }
   jnb .LSyscOK            { branch to exit if ok, errorhandler otherwise}
- movq  %rax,%rdx
-{$ifdef FPC_PIC}
-  movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
-  movq  (%rax),%rax
-{$ifndef FPC_STATICRIPFIXED}
-  movq  Errno@GOTPCREL(%rip),%r11
-{$else}
-  leaq  Errno(%rip),%r11
-{$endif}
-{$else FPC_PIC}
-  movq  fpc_threadvar_relocate_proc,%rax
-  leaq  Errno,%r11
-{$endif FPC_PIC}
-  testq %rax,%rax
-  jne   .LThread
-  movl  %edx,8(%r11)
-  jmp   .LNoThread
-.LThread:
-  pushq %rdx
-  movq  (%r11),%rdi
-  call  *%rax
-  popq  %rdx
-  movl  %edx,(%rax)
-.LNoThread:
+  movq  %rax,%rdi
+  call  SetErrno
   movq  $-1,%rax
 .LSyscOK:
 end;
@@ -106,30 +57,8 @@ asm
   movq param2,%rsi
   syscall                 { Do the system call. }
   jnb .LSyscOK            { branch to exit if ok, errorhandler otherwise}
- movq  %rax,%rdx
-{$ifdef FPC_PIC}
-  movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
-  movq  (%rax),%rax
-{$ifndef FPC_STATICRIPFIXED}
-  movq  Errno@GOTPCREL(%rip),%r11
-{$else}
-  leaq  Errno(%rip),%r11
-{$endif}
-{$else FPC_PIC}
-  movq  fpc_threadvar_relocate_proc,%rax
-  leaq  Errno,%r11
-{$endif FPC_PIC}
-  testq %rax,%rax
-  jne   .LThread
-  movl  %edx,8(%r11)
-  jmp   .LNoThread
-.LThread:
-  pushq %rdx
-  movq  (%r11),%rdi
-  call  *%rax
-  popq  %rdx
-  movl  %edx,(%rax)
-.LNoThread:
+  movq  %rax,%rdi
+  call  SetErrno
   movq  $-1,%rax
 .LSyscOK:
 end;
@@ -143,30 +72,8 @@ asm
   movq param3,%rdx
   syscall                 { Do the system call. }
   jnb .LSyscOK            { branch to exit if ok, errorhandler otherwise}
- movq  %rax,%rdx
-{$ifdef FPC_PIC}
-  movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
-  movq  (%rax),%rax
-{$ifndef FPC_STATICRIPFIXED}
-  movq  Errno@GOTPCREL(%rip),%r11
-{$else}
-  leaq  Errno(%rip),%r11
-{$endif}
-{$else FPC_PIC}
-  movq  fpc_threadvar_relocate_proc,%rax
-  leaq  Errno,%r11
-{$endif FPC_PIC}
-  testq %rax,%rax
-  jne   .LThread
-  movl  %edx,8(%r11)
-  jmp   .LNoThread
-.LThread:
-  pushq %rdx
-  movq  (%r11),%rdi
-  call  *%rax
-  popq  %rdx
-  movl  %edx,(%rax)
-.LNoThread:
+  movq  %rax,%rdi
+  call  SetErrno
   movq  $-1,%rax
 .LSyscOK:
 end;
@@ -181,30 +88,8 @@ asm
   movq param4,%r10
   syscall                 { Do the system call. }
   jnb .LSyscOK            { branch to exit if ok, errorhandler otherwise}
- movq  %rax,%rdx
-{$ifdef FPC_PIC}
-  movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
-  movq  (%rax),%rax
-{$ifndef FPC_STATICRIPFIXED}
-  movq  Errno@GOTPCREL(%rip),%r11
-{$else}
-  leaq  Errno(%rip),%r11
-{$endif}
-{$else FPC_PIC}
-  movq  fpc_threadvar_relocate_proc,%rax
-  leaq  Errno,%r11
-{$endif FPC_PIC}
-  testq %rax,%rax
-  jne   .LThread
-  movl  %edx,8(%r11)
-  jmp   .LNoThread
-.LThread:
-  pushq %rdx
-  movq  (%r11),%rdi
-  call  *%rax
-  popq  %rdx
-  movl  %edx,(%rax)
-.LNoThread:
+  movq  %rax,%rdi
+  call  SetErrno
   movq  $-1,%rax
 .LSyscOK:
 end;
@@ -220,30 +105,8 @@ asm
   movq param5,%r8
   syscall                 { Do the system call. }
   jnb .LSyscOK            { branch to exit if ok, errorhandler otherwise}
- movq  %rax,%rdx
-{$ifdef FPC_PIC}
-  movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
-  movq  (%rax),%rax
-{$ifndef FPC_STATICRIPFIXED}
-  movq  Errno@GOTPCREL(%rip),%r11
-{$else}
-  leaq  Errno(%rip),%r11
-{$endif}
-{$else FPC_PIC}
-  movq  fpc_threadvar_relocate_proc,%rax
-  leaq  Errno,%r11
-{$endif FPC_PIC}
-  testq %rax,%rax
-  jne   .LThread
-  movl  %edx,8(%r11)
-  jmp   .LNoThread
-.LThread:
-  pushq %rdx
-  movq  (%r11),%rdi
-  call  *%rax
-  popq  %rdx
-  movl  %edx,(%rax)
-.LNoThread:
+  movq  %rax,%rdi
+  call  SetErrno
   movq  $-1,%rax
 .LSyscOK:
 end;
@@ -260,30 +123,8 @@ asm
   movq param6,%r9
   syscall                 { Do the system call. }
   jnb .LSyscOK            { branch to exit if ok, errorhandler otherwise}
-  movq  %rax,%rdx
-{$ifdef FPC_PIC}
-  movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
-  movq  (%rax),%rax
-{$ifndef FPC_STATICRIPFIXED}
-  movq  Errno@GOTPCREL(%rip),%r11
-{$else}
-  leaq  Errno(%rip),%r11
-{$endif}
-{$else FPC_PIC}
-  movq  fpc_threadvar_relocate_proc,%rax
-  leaq  Errno,%r11
-{$endif FPC_PIC}
-  testq %rax,%rax
-  jne   .LThread
-  movl  %edx,8(%r11)
-  jmp   .LNoThread
-.LThread:
-  pushq %rdx
-  movq  (%r11),%rdi
-  call  *%rax
-  popq  %rdx
-  movl  %edx,(%rax)
-.LNoThread:
+  movq  %rax,%rdi
+  call  SetErrno
   movq  $-1,%rax
 .LSyscOK:
 
@@ -304,30 +145,8 @@ asm
   movq   %r11,8(%rsp)
   syscall                 { Do the system call. }
   jnb .LSyscOK            { branch to exit if ok, errorhandler otherwise}
-  movq  %rax,%rdx
-{$ifdef FPC_PIC}
-  movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
-  movq  (%rax),%rax
-{$ifndef FPC_STATICRIPFIXED}
-  movq  Errno@GOTPCREL(%rip),%r11
-{$else}
-  leaq  Errno(%rip),%r11
-{$endif}
-{$else FPC_PIC}
-  movq  fpc_threadvar_relocate_proc,%rax
-  leaq  Errno,%r11
-{$endif FPC_PIC}
-  testq %rax,%rax
-  jne   .LThread
-  movl  %edx,8(%r11)
-  jmp   .LNoThread
-.LThread:
-  pushq %rdx
-  movq  (%r11),%rdi
-  call  *%rax
-  popq  %rdx
-  movl  %edx,(%rax)
-.LNoThread:
+  movq  %rax,%rdi
+  call  SetErrno
   movq  $-1,%rax
 .LSyscOK:
   addq   $0x10,%rsp

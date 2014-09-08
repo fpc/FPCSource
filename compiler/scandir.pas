@@ -57,6 +57,7 @@ unit scandir;
       scanner,switches,
       fmodule,
       defutil,
+      dirparse,link,
       symconst,symtable,symbase,symtype,symsym,
       rabase;
 
@@ -109,13 +110,11 @@ unit scandir;
           recordpendinglocalswitch(sw,state);
       end;
 
-    procedure do_localswitchdefault(sw:tlocalswitch);
-      var
-        state : char;
+    function do_localswitchdefault(sw:tlocalswitch): char;
       begin
-        state:=current_scanner.readstatedefault;
-        if (sw<>cs_localnone) and (state in ['-','+','*']) then
-          recordpendinglocalswitch(sw,state);
+        result:=current_scanner.readstatedefault;
+        if (sw<>cs_localnone) and (result in ['-','+','*']) then
+          recordpendinglocalswitch(sw,result);
       end;
 
 
@@ -132,6 +131,7 @@ unit scandir;
     procedure dir_align;
       var
         hs : string;
+        b : byte;
       begin
         current_scanner.skipspace;
         if not(c in ['0'..'9']) then
@@ -152,7 +152,7 @@ unit scandir;
                else if (hs='POWER') or (hs='POWERPC') then
                  current_settings.packrecords:=C_alignment
                else if (hs='RESET') then
-                 current_settings.packrecords:=0
+                 current_settings.packrecords:=default_settings.packrecords
                else
                  Message1(scan_e_illegal_pack_records,hs);
              end
@@ -161,7 +161,8 @@ unit scandir;
          end
         else
          begin
-           case current_scanner.readval of
+           b:=current_scanner.readval;
+           case b of
              1 : current_settings.packrecords:=1;
              2 : current_settings.packrecords:=2;
              4 : current_settings.packrecords:=4;
@@ -169,7 +170,7 @@ unit scandir;
             16 : current_settings.packrecords:=16;
             32 : current_settings.packrecords:=32;
            else
-            Message1(scan_e_illegal_pack_records,hs);
+            Message1(scan_e_illegal_pack_records,tostr(b));
            end;
          end;
       end;
@@ -237,7 +238,8 @@ unit scandir;
       begin
         if not (target_info.system in systems_all_windows + [system_i386_os2,
                                        system_i386_emx, system_powerpc_macos,
-                                       system_arm_nds] + systems_nativent) then
+                                       system_arm_nds, system_i8086_msdos] +
+                                       systems_nativent) then
           begin
             if m_delphi in current_settings.modeswitches then
               Message(scan_n_app_type_not_support)
@@ -252,9 +254,9 @@ unit scandir;
               begin
                  current_scanner.skipspace;
                  hs:=current_scanner.readid;
-                 if hs='GUI' then
+                 if (hs='GUI') and not (target_info.system in [system_i8086_msdos]) then
                    SetApptype(app_gui)
-                 else if hs='CONSOLE' then
+                 else if (hs='CONSOLE') and not (target_info.system in [system_i8086_msdos]) then
                    SetApptype(app_cui)
                  else if (hs='NATIVE') and (target_info.system in systems_windows + systems_nativent) then
                    SetApptype(app_native)
@@ -267,6 +269,10 @@ unit scandir;
                    SetApptype(app_arm9)
                  else if (hs='ARM7') and (target_info.system in [system_arm_nds]) then
                    SetApptype(app_arm7)
+                 else if (hs='COM') and (target_info.system in [system_i8086_msdos]) then
+                   SetApptype(app_com)
+                 else if (hs='EXE') and (target_info.system in [system_i8086_msdos]) then
+                   SetApptype(app_cui)
                  else
                    Message1(scan_w_unsupported_app_type,hs);
               end;
@@ -294,8 +300,13 @@ unit scandir;
 
 
     procedure dir_checkpointer;
+      var
+        switch: char;
       begin
-        do_localswitchdefault(cs_checkpointer);
+        switch:=do_localswitchdefault(cs_checkpointer);
+        if (switch='+') and
+           not(target_info.system in systems_support_checkpointer) then
+          Message1(scan_e_unsupported_switch,'CHECKPOINTER+');
       end;
 
 
@@ -374,6 +385,20 @@ unit scandir;
     procedure dir_extendedsyntax;
       begin
         do_delphiswitch('X');
+      end;
+
+    procedure dir_forcefarcalls;
+      begin
+        if (target_info.system<>system_i8086_msdos)
+{$ifdef i8086}
+           or (current_settings.x86memorymodel in x86_near_code_models)
+{$endif i8086}
+            then
+          begin
+            Message1(scan_n_ignored_switch,pattern);
+            exit;
+          end;
+        do_localswitch(cs_force_far_calls);
       end;
 
     procedure dir_fatal;
@@ -678,18 +703,57 @@ unit scandir;
     procedure dir_memory;
       var
         l : longint;
+        heapsize_limit: longint;
+        maxheapsize_limit: longint;
       begin
+{$if defined(i8086)}
+        if current_settings.x86memorymodel in x86_far_data_models then
+          begin
+            heapsize_limit:=655360;
+            maxheapsize_limit:=655360;
+          end
+        else
+          begin
+            heapsize_limit:=65520;
+            maxheapsize_limit:=65520;
+          end;
+{$elseif defined(cpu16bitaddr)}
+        heapsize_limit:=65520;
+        maxheapsize_limit:=65520;
+{$else}
+        heapsize_limit:=high(heapsize);
+        maxheapsize_limit:=high(maxheapsize);
+{$endif}
         current_scanner.skipspace;
         l:=current_scanner.readval;
-        if l>1024 then
-          stacksize:=l;
+        if (l>=1024)
+{$ifdef cpu16bitaddr}
+          and (l<=65521) { TP7's $M directive allows specifying a stack size of
+                           65521, but it actually sets the stack size to 65520 }
+{$else cpu16bitaddr}
+          and (l<67107840)
+{$endif cpu16bitaddr}
+        then
+          stacksize:=min(l,{$ifdef cpu16bitaddr}65520{$else}67107839{$endif})
+        else
+          Message(scan_w_invalid_stacksize);
         if c=',' then
           begin
             current_scanner.readchar;
             current_scanner.skipspace;
             l:=current_scanner.readval;
-            if l>1024 then
-              heapsize:=l;
+            if l>=1024 then
+              heapsize:=min(l,heapsize_limit);
+            if c=',' then
+              begin
+                current_scanner.readchar;
+                current_scanner.skipspace;
+                l:=current_scanner.readval;
+                if l>=heapsize then
+                  maxheapsize:=min(l,maxheapsize_limit)
+                else
+                  Message(scan_w_heapmax_lessthan_heapmin);
+              end;
           end;
       end;
 
@@ -918,7 +982,7 @@ unit scandir;
             current_settings.packrecords:=C_alignment
            else
             if (hs='NORMAL') or (hs='DEFAULT') then
-             current_settings.packrecords:=0
+             current_settings.packrecords:=default_settings.packrecords
            else
             Message1(scan_e_illegal_pack_records,hs);
          end
@@ -1140,7 +1204,7 @@ unit scandir;
       begin
         do_moduleswitch(cs_create_smart);
         if (paratargetdbg in [dbg_dwarf2,dbg_dwarf3]) and
-            not(target_info.system in systems_darwin) and
+            not(target_info.system in (systems_darwin+[system_i8086_msdos])) and
             { smart linking does not yet work with DWARF debug info on most targets }
             (cs_create_smart in current_settings.moduleswitches) and
             not (af_outputbinary in target_asm.flags) then
@@ -1148,6 +1212,20 @@ unit scandir;
           Message(option_dwarf_smart_linking);
           Exclude(current_settings.moduleswitches,cs_create_smart);
         end;
+        { Also create a smartlinked version, on an assembler that
+          does not support smartlink sections like nasm?
+          This is not compatible with using internal linker. }
+       if ((cs_link_smart in current_settings.globalswitches) or
+           (cs_create_smart in current_settings.moduleswitches)) and
+          (af_needar in target_asm.flags) and
+          not (af_smartlink_sections in target_asm.flags) and
+          not (cs_link_extern in current_settings.globalswitches) then
+         begin
+           DoneLinker;
+           Message(option_smart_link_requires_external_linker);
+           include(current_settings.globalswitches,cs_link_extern);
+           InitLinker;
+         end
       end;
 
     procedure dir_stackframes;
@@ -1363,7 +1441,10 @@ unit scandir;
         end;
 
         if ident='CONSTRUCTING_ABSTRACT' then
-          recordpendingmessagestate(type_w_instance_with_abstract, msgstate)
+          begin
+            recordpendingmessagestate(type_w_instance_with_abstract, msgstate);
+            recordpendingmessagestate(type_w_instance_abstract_class, msgstate);
+          end
         else
         if ident='IMPLICIT_VARIANTS' then
           recordpendingmessagestate(parser_w_implicit_uses_of_variants_unit, msgstate)
@@ -1477,6 +1558,72 @@ unit scandir;
       begin
       end;
 
+    procedure dir_hugecode;
+      begin
+        if (target_info.system<>system_i8086_msdos)
+{$ifdef i8086}
+           or (current_settings.x86memorymodel in x86_near_code_models)
+{$endif i8086}
+            then
+          begin
+            Message1(scan_n_ignored_switch,pattern);
+            exit;
+          end;
+        do_moduleswitch(cs_huge_code);
+      end;
+
+    procedure dir_hugepointernormalization;
+      var
+        hs : string;
+      begin
+        if target_info.system<>system_i8086_msdos then
+          begin
+            Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERNORMALIZATION');
+            exit;
+          end;
+        current_scanner.skipspace;
+        hs:=current_scanner.readid;
+        case hs of
+          'BORLANDC':
+             begin
+               recordpendinglocalswitch(cs_hugeptr_arithmetic_normalization,'+');
+               recordpendinglocalswitch(cs_hugeptr_comparison_normalization,'+');
+             end;
+          'MICROSOFTC':
+             begin
+               recordpendinglocalswitch(cs_hugeptr_arithmetic_normalization,'-');
+               recordpendinglocalswitch(cs_hugeptr_comparison_normalization,'-');
+             end;
+          'WATCOMC':
+             begin
+               recordpendinglocalswitch(cs_hugeptr_arithmetic_normalization,'-');
+               recordpendinglocalswitch(cs_hugeptr_comparison_normalization,'+');
+             end;
+          else
+            Message(scan_e_illegal_hugepointernormalization);
+        end;
+      end;
+
+    procedure dir_hugepointerarithmeticnormalization;
+      begin
+        if target_info.system<>system_i8086_msdos then
+          begin
+            Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERARITHMETICNORMALIZATION');
+            exit;
+          end;
+        do_localswitch(cs_hugeptr_arithmetic_normalization);
+      end;
+
+    procedure dir_hugepointercomparisonnormalization;
+      begin
+        if target_info.system<>system_i8086_msdos then
+          begin
+            Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERCOMPARISONNORMALIZATION');
+            exit;
+          end;
+        do_localswitch(cs_hugeptr_comparison_normalization);
+      end;
+
     procedure dir_weakpackageunit;
       begin
       end;
@@ -1503,7 +1650,7 @@ unit scandir;
             s:=current_scanner.readcomment;
             if (upper(s)='UTF8') or (upper(s)='UTF-8') then
               current_settings.sourcecodepage:=CP_UTF8
-            else if not(cpavailable(s)) then
+            else if not cpavailable(s) then
               Message1(option_code_page_not_available,s)
             else
               current_settings.sourcecodepage:=codepagebyname(s);
@@ -1571,6 +1718,7 @@ unit scandir;
         AddDirective('ERRORC',directive_mac, @dir_error);
         AddDirective('EXTENDEDSYNTAX',directive_all, @dir_extendedsyntax);
         AddDirective('EXTERNALSYM',directive_all, @dir_externalsym);
+        AddDirective('F',directive_all, @dir_forcefarcalls);
         AddDirective('FATAL',directive_all, @dir_fatal);
         AddDirective('FPUTYPE',directive_all, @dir_fputype);
         AddDirective('FRAMEWORKPATH',directive_all, @dir_frameworkpath);
@@ -1578,6 +1726,10 @@ unit scandir;
         AddDirective('HINT',directive_all, @dir_hint);
         AddDirective('HINTS',directive_all, @dir_hints);
         AddDirective('HPPEMIT',directive_all, @dir_hppemit);
+        AddDirective('HUGECODE',directive_all, @dir_hugecode);
+        AddDirective('HUGEPOINTERNORMALIZATION',directive_all,@dir_hugepointernormalization);
+        AddDirective('HUGEPOINTERARITHMETICNORMALIZATION',directive_all,@dir_hugepointerarithmeticnormalization);
+        AddDirective('HUGEPOINTERCOMPARISONNORMALIZATION',directive_all,@dir_hugepointercomparisonnormalization);
         AddDirective('IEEEERRORS',directive_all,@dir_ieeeerrors);
         AddDirective('IOCHECKS',directive_all, @dir_iochecks);
         AddDirective('IMAGEBASE',directive_all, @dir_imagebase);

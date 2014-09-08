@@ -12,6 +12,16 @@
 
  **********************************************************************}
 
+{ ObjpasInt is the integer type, equivalent to Objpas.Integer (the Integer
+  type in ObjFpc and Delphi modes). It is defined here for use in the
+  implementation part of the System unit. }
+{$ifdef CPU16}
+type
+  ObjpasInt = SmallInt;
+{$else CPU16}
+type
+  ObjpasInt = LongInt;
+{$endif CPU16}
 
 { The RTTI is implemented through a series of constants : }
 
@@ -57,18 +67,6 @@ Const
                                 Local types
 ****************************************************************************}
 
-{
-  TextRec and FileRec are put in a separate file to make it available to other
-  units without putting it explicitly in systemh.
-  This way we keep TP compatibility, and the TextRec definition is available
-  for everyone who needs it.
-}
-{$ifdef FPC_HAS_FEATURE_FILEIO}
-{$i filerec.inc}
-{$endif FPC_HAS_FEATURE_FILEIO}
-
-{$i textrec.inc}
-
 {$ifdef FPC_HAS_FEATURE_EXITCODE}
   {$ifdef FPC_OBJFPC_EXTENDED_IF}
     {$if High(errorcode)<>maxExitCode}
@@ -81,8 +79,8 @@ Const
 
 Procedure HandleError (Errno : Longint); external name 'FPC_HANDLEERROR';
 Procedure HandleErrorFrame (Errno : longint;frame : Pointer); forward;
-Procedure HandleErrorAddrFrame (Errno : longint;addr,frame : Pointer); forward;
-Procedure HandleErrorAddrFrameInd (Errno : longint;addr,frame : Pointer); forward;
+Procedure HandleErrorAddrFrame (Errno : longint;addr : CodePointer; frame : Pointer); forward;
+Procedure HandleErrorAddrFrameInd (Errno : longint;addr : CodePointer; frame : Pointer); forward;
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
 type
@@ -229,10 +227,10 @@ function do_isdevice(handle:thandle):boolean;forward;
     {$Error Can't determine processor type !}
   {$endif}
   {$i armdefines.inc}
-  {$if defined(CPUARMV7EM) or defined(CPUARMV7M)}
+  {$if defined(CPUTHUMB2)}
     {$i thumb2.inc}  { Case dependent, don't change }
   {$else}
-    {$if defined(CPUARMV6M)}
+    {$if defined(CPUTHUMB)}
       {$i thumb.inc}  { Case dependent, don't change }
     {$else}
       {$i arm.inc}  { Case dependent, don't change }
@@ -354,22 +352,22 @@ End;
 
 Function Swap (X : Longint) : Longint;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
-  Swap:=(X and $ffff) shl 16 + (X shr 16)
+  Swap:=(X shl 16) + (X shr 16);
 End;
 
 Function Swap (X : Cardinal) : Cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
-  Swap:=(X and $ffff) shl 16 + (X shr 16)
+  Swap:=(X shl 16) + (X shr 16);
 End;
 
 Function Swap (X : QWord) : QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
-  Swap:=(X and $ffffffff) shl 32 + (X shr 32);
+  Swap:=(X shl 32) + (X shr 32);
 End;
 
-Function swap (X : Int64) : Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Swap (X : Int64) : Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
-  Swap:=(X and $ffffffff) shl 32 + (X shr 32);
+  Swap:=(X shl 32) + (X shr 32);
 End;
 
 {$ifdef SUPPORT_DOUBLE}
@@ -656,7 +654,7 @@ end;
 ****************************************************************************}
 
 {$ifndef FPC_SYSTEM_HAS_PTR}
-Function Ptr(sel,off : Longint) : farpointer;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Ptr(sel,off : {$ifdef CPU16}Word{$else}Longint{$endif}) : farpointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   ptr:=farpointer((sel shl 4)+off);
 End;
@@ -694,11 +692,18 @@ End;
                              Miscellaneous
 *****************************************************************************}
 
+{$ifndef FPC_SYSTEM_HAS_STACKTOP}
+function StackTop: pointer;
+begin
+  result:=StackBottom+StackLength;
+end;
+{$endif FPC_SYSTEM_HAS_STACKTOP}
+
 {$ifndef FPC_SYSTEM_HAS_GET_PC_ADDR}
   { This provides a dummy implementation
     of get_pc_addr function, for CPU's that don't need
     the instruction address to walk the stack. }
-function get_pc_addr : pointer;
+function get_pc_addr : codepointer;
 begin
   get_pc_addr:=nil;
 end;
@@ -709,9 +714,10 @@ end;
     of get_caller_stackinfo procedure,
     using get_caller_addr and get_caller_frame
     functions. }
-procedure get_caller_stackinfo(var framebp,addr : pointer);
+procedure get_caller_stackinfo(var framebp : pointer; var addr : codepointer);
 var
-  nextbp,nextaddr : pointer;
+  nextbp : pointer;
+  nextaddr : codepointer;
 begin
   nextbp:=get_caller_frame(framebp,addr);
   nextaddr:=get_caller_addr(framebp,addr);
@@ -843,7 +849,7 @@ type
   end;
   TInitFinalTable = record
     TableCount,
-    InitCount  : longint;
+    InitCount  : {$ifdef VER2_6}longint{$else}sizeint{$endif};
     Procs      : array[1..maxunits] of TInitFinalRec;
   end;
   PInitFinalTable = ^TInitFinalTable;
@@ -857,7 +863,7 @@ var
 
 procedure fpc_InitializeUnits;[public,alias:'FPC_INITIALIZEUNITS']; compilerproc;
 var
-  i : longint;
+  i : ObjpasInt;
 {$ifdef DEBUG}
   pt : PInitFinalTable;
 {$endif}
@@ -1020,8 +1026,10 @@ Begin
 
 {$ifdef FPC_HAS_FEATURE_HEAP}
 {$ifndef HAS_MEMORYMANAGER}
+{$ifndef FPC_NO_DEFAULT_HEAP}
   FinalizeHeap;
-{$endif HAS_MEMORYMANAGER}
+{$endif not FPC_NO_DEFAULT_HEAP}
+{$endif not HAS_MEMORYMANAGER}
 {$endif FPC_HAS_FEATURE_HEAP}
 End;
 
@@ -1053,13 +1061,43 @@ Begin
 end;
 
 
-function SysBackTraceStr (Addr: Pointer): ShortString;
+function SysBackTraceStr (Addr: CodePointer): ShortString;
 begin
   SysBackTraceStr:='  $'+hexstr(addr);
 end;
 
 
-Procedure HandleErrorAddrFrame (Errno : longint;addr,frame : Pointer);[public,alias:'FPC_BREAK_ERROR']; {$ifdef CPUI386} register; {$endif}
+function CaptureBacktrace(skipframes,count:sizeint;frames:PCodePointer):sizeint;
+var
+  curr_frame,prev_frame: pointer;
+  curr_addr: codepointer;
+  i: sizeint;
+begin
+  curr_frame:=get_frame;
+  curr_addr:=get_pc_addr;
+  prev_frame:=curr_frame;
+  get_caller_stackinfo(curr_frame,curr_addr);
+  i:=-skipframes;
+  while (i<count) and (curr_frame>prev_frame) and
+     (curr_frame<StackTop) do
+    begin
+      prev_frame:=curr_frame;
+      get_caller_stackinfo(curr_frame,curr_addr);
+      if (curr_addr=nil) or
+         (curr_frame=nil) then
+        break;
+      if (i>=0) then
+        frames[i]:=curr_addr;
+      inc(i);
+    end;
+  if i<0 then
+    result:=0
+  else
+    result:=i;
+end;
+
+
+Procedure HandleErrorAddrFrame (Errno : longint;addr : CodePointer; frame : Pointer);[public,alias:'FPC_BREAK_ERROR']; {$ifdef CPUI386} register; {$endif}
 begin
   If pointer(ErrorProc)<>Nil then
     ErrorProc(Errno,addr,frame);
@@ -1076,7 +1114,7 @@ end;
 { This is used internally by system skip first level,
   and generated the same output as before, when
   HandleErrorFrame function was used internally. }
-Procedure HandleErrorAddrFrameInd (Errno : longint;addr,frame : Pointer);
+Procedure HandleErrorAddrFrameInd (Errno : longint;addr : CodePointer; frame : Pointer);
 begin
   get_caller_stackinfo (frame, addr);
   HandleErrorAddrFrame (Errno,addr,frame);
@@ -1105,7 +1143,8 @@ end;
 
 procedure RunError(w : word);[alias: 'FPC_RUNERROR'];
 var
-  bp,pcaddr : pointer;
+  bp : pointer;
+  pcaddr : codepointer;
 begin
   errorcode:=w;
   pcaddr:=get_pc_addr;
@@ -1135,40 +1174,33 @@ begin
 end;
 
 
-Procedure dump_stack(var f : text;fp,addr : Pointer);
+Procedure dump_stack(var f : text;fp : Pointer; addr : CodePointer);
 var
   i : Longint;
   prevfp : Pointer;
-  prevaddr : pointer;
   is_dev : boolean;
-  caller_frame,
-  caller_addr : Pointer;
 Begin
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
   try
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
-    prevfp:=fp-1;
-    prevaddr:=nil;
+    { Frame of this procedure acts as StackBottom, fp values below that are invalid. }
+    prevfp:=get_frame;
     i:=0;
     is_dev:=do_isdevice(textrec(f).Handle);
     { sanity checks, new frame pointer must be always greater than the old one, further
       it must point into the stack area, else something went wrong }
-    while (fp>prevfp) and (fp<StackTop) and (fp>StackBottom)  Do
+    while (fp>prevfp) and (fp<StackTop) do
      Begin
-       caller_addr := get_caller_addr(fp,addr);
-       caller_frame := get_caller_frame(fp,addr);
-       if (caller_addr=nil) then
+       prevfp:=fp;
+       get_caller_stackinfo(fp,addr);
+       if (addr=nil) then
          break;
-       Writeln(f,BackTraceStrFunc(caller_addr));
-       if (caller_frame=nil) then
+       Writeln(f,BackTraceStrFunc(addr));
+       if (fp=nil) then
          break;
        Inc(i);
        If ((i>max_frame_dump) and is_dev) or (i>256) Then
          break;
-       prevfp:=fp;
-       prevaddr:=addr;
-       fp:=caller_frame;
-       addr:=caller_addr;
      End;
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
    except
@@ -1183,7 +1215,7 @@ procedure DumpExceptionBackTrace(var f:text);
 var
   FrameNumber,
   FrameCount   : longint;
-  Frames       : PPointer;
+  Frames       : PCodePointer;
 begin
   if RaiseList=nil then
     exit;
@@ -1413,8 +1445,10 @@ end;
 { Generic threadmanager }
 {$i thread.inc}
 
+{$ifndef FPC_SECTION_THREADVARS}
 { Generic threadvar support }
 {$i threadvr.inc}
+{$endif FPC_SECTION_THREADVARS}
 
 {$ifdef DISABLE_NO_THREAD_MANAGER}
 { OS Dependent implementation }
@@ -1430,13 +1464,49 @@ end;
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 { Allow slash and backslash as separators }
-procedure DoDirSeparators(p:Pchar);
+procedure DoDirSeparators(var p: pchar; inplace: boolean = true);
 var
   i : longint;
+  len : sizeint;
+  newp : pchar;
 begin
-  for i:=0 to strlen(p) do
+  len:=length(p);
+  newp:=nil;
+  for i:=0 to len do
     if p[i] in AllowDirectorySeparators then
-      p[i]:=DirectorySeparator;
+      begin
+        if not inplace and
+           not assigned(newp) then
+          begin
+            getmem(newp,len+1);
+            move(p^,newp^,len+1);
+            p:=newp;
+          end;
+        p[i]:=DirectorySeparator;
+      end;
+end;
+
+procedure DoDirSeparators(var p: pwidechar; inplace: boolean = true);
+var
+  i : longint;
+  len : sizeint;
+  newp : pwidechar;
+begin
+  len:=length(p);
+  newp:=nil;
+  for i:=0 to len do
+    if (ord(p[i])<255) and
+       (ansichar(ord(p[i])) in AllowDirectorySeparators) then
+      begin
+        if not inplace and
+           not assigned(newp) then
+          begin
+            getmem(newp,(len+1)*2);
+            move(p^,newp^,(len+1)*2);
+            p:=newp;
+          end;
+        p[i]:=DirectorySeparator;
+      end;
 end;
 
 procedure DoDirSeparators(var p:shortstring);
@@ -1447,11 +1517,129 @@ begin
     if p[i] in AllowDirectorySeparators then
       p[i]:=DirectorySeparator;
 end;
+
+
+procedure DoDirSeparators(var ps:RawByteString);
+var
+  i : longint;
+  p : pchar;
+  unique : boolean;
+begin
+  unique:=false;
+  for i:=1 to length(ps) do
+    if ps[i] in AllowDirectorySeparators then
+      begin
+        if not unique then
+          begin
+            uniquestring(ps);
+            p:=pchar(ps);
+            unique:=true;
+          end;
+        p[i-1]:=DirectorySeparator;
+      end;
+end;
+
+procedure DoDirSeparators(var ps:UnicodeString);
+var
+  i : longint;
+  p : pwidechar;
+  unique : boolean;
+begin
+  unique:=false;
+  for i:=1 to length(ps) do
+    if ps[i] in AllowDirectorySeparators then
+      begin
+        if not unique then
+          begin
+            uniquestring(ps);
+            p:=pwidechar(ps);
+            unique:=true;
+          end;
+        p[i-1]:=DirectorySeparator;
+      end;
+end;
+
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 { OS dependent low level file functions }
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 {$i sysfile.inc}
+
+{$ifndef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+{$ifdef FPC_ANSI_TEXTFILEREC}
+procedure do_open(var f; p: pansichar; flags: longint; pchangeable: boolean);
+var
+  u: UnicodeString;
+begin
+  widestringmanager.Ansi2UnicodeMoveProc(p,DefaultFileSystemCodePage,u,length(p));
+  do_open(f,pwidechar(u),flags,true);
+end;
+
+procedure do_erase(p: pansichar; pchangeable: boolean);
+var
+  u: UnicodeString;
+begin
+  widestringmanager.Ansi2UnicodeMoveProc(p,DefaultFileSystemCodePage,u,length(p));
+  do_erase(pwidechar(u),true);
+end;
+
+procedure do_rename(src, dst: pansichar; srcchangeable, dstchangeable: boolean);
+var
+  usrc, udst: UnicodeString;
+begin
+  widestringmanager.Ansi2UnicodeMoveProc(src,DefaultFileSystemCodePage,usrc,length(src));
+  widestringmanager.Ansi2UnicodeMoveProc(dst,DefaultFileSystemCodePage,udst,length(dst));
+  do_rename(pwidechar(usrc),pwidechar(udst),true,true);
+end;
+
+procedure do_rename(src: pansichar; dst: pwidechar; srcchangeable, dstchangeable: boolean);
+var
+  usrc: UnicodeString;
+begin
+  widestringmanager.Ansi2UnicodeMoveProc(src,DefaultFileSystemCodePage,usrc,length(src));
+  do_rename(pwidechar(usrc),dst,true,dstchangeable);
+end;
+{$endif FPC_ANSI_TEXTFILEREC}
+{$endif not FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+
+
+{$ifndef FPCRTL_FILESYSTEM_TWO_BYTE_API}
+{$ifndef FPC_ANSI_TEXTFILEREC}
+procedure do_open(var f; p: pwidechar; flags: longint; pchangeable: boolean);
+var
+  s: RawByteString;
+begin
+  widestringmanager.Unicode2AnsiMoveProc(p,s,DefaultFileSystemCodePage,length(p));
+  do_open(f,pansichar(s),flags,true);
+end;
+
+procedure do_erase(p: pwidechar; pchangeable: boolean);
+var
+  s: RawByteString;
+begin
+  widestringmanager.Unicode2AnsiMoveProc(p,s,DefaultFileSystemCodePage,length(p));
+  do_erase(pansichar(s),true);
+end;
+
+procedure do_rename(src, dst: pwidechar; srcchangeable, dstchangeable: boolean);
+var
+  rsrc, rdst: RawByteString;
+begin
+  widestringmanager.Unicode2AnsiMoveProc(src,rsrc,DefaultFileSystemCodePage,length(src));
+  widestringmanager.Unicode2AnsiMoveProc(dst,rdst,DefaultFileSystemCodePage,length(dst));
+  do_rename(pansichar(rsrc),pansichar(rdst),true,true);
+end;
+
+procedure do_rename(src: pwidechar; dst: pansichar; srcchangeable, dstchangeable: boolean);
+var
+  rsrc: RawByteString;
+begin
+  widestringmanager.Unicode2AnsiMoveProc(src,rsrc,DefaultFileSystemCodePage,length(src));
+  do_rename(pansichar(rsrc),dst,true,dstchangeable);
+end;
+{$endif not FPC_ANSI_TEXTFILEREC}
+{$endif not FPCRTL_FILESYSTEM_TWO_BYTE_API}
+
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 { Text file }
@@ -1473,55 +1661,182 @@ end;
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 { OS dependent dir functions }
 {$i sysdir.inc}
-{$endif FPC_HAS_FEATURE_FILEIO}
 
-{$if defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
-Procedure getdir(drivenr:byte;Var dir:ansistring);
-{ this is needed to also allow ansistrings, the shortstring version is
-  OS dependent }
+
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+
+{$ifndef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+procedure do_getdir(drivenr : byte;var dir : rawbytestring);
 var
-  s : shortstring;
+  u: unicodestring;
 begin
-  getdir(drivenr,s);
+  Do_getdir(drivenr,u);
+  widestringmanager.Unicode2AnsiMoveProc(pwidechar(u),dir,DefaultRTLFileSystemCodePage,length(u));
+end;
+{$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+
+Procedure MkDir(Const s: RawByteString);[IOCheck];
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+{$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  Do_mkdir(ToSingleByteFileSystemEncodedFileName(S));
+{$else FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  Do_mkdir(S);
+{$endif}
+end;
+
+
+Procedure RmDir(Const s: RawByteString);[IOCheck];
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+{$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  Do_rmdir(ToSingleByteFileSystemEncodedFileName(S));
+{$else FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  Do_rmdir(S);
+{$endif}
+End;
+
+
+Procedure ChDir(Const s: RawByteString);[IOCheck];
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+{$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  Do_chdir(ToSingleByteFileSystemEncodedFileName(S));
+{$else FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+  Do_chdir(S);
+{$endif}
+End;
+
+
+Procedure getdir(drivenr:byte;Var dir:rawbytestring);
+begin
+  Do_getdir(drivenr,dir);
+  { we should return results in the DefaultRTLFileSystemCodePage -> convert if
+    necessary }
+  setcodepage(dir,DefaultRTLFileSystemCodePage,true);
+end;
+
+{ the generic shortstring ones are only implemented elsewhere for systems *not*
+  supporting ansi/unicodestrings; for now assume there are no systems that
+  support unicodestrings but not ansistrings }
+
+{ avoid double string conversions }
+{$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+function GetDirStrFromShortstring(const s: shortstring): RawByteString;
+begin
+  GetDirStrFromShortstring:=ToSingleByteFileSystemEncodedFileName(ansistring(s));
+end;
+{$else FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+function GetDirStrFromShortstring(const s: shortstring): UnicodeString;
+begin
+  GetDirStrFromShortstring:=s;
+end;
+{$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
+
+Procedure MkDir(Const s: shortstring);[IOCheck];
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+  Do_mkdir(GetDirStrFromShortstring(S));
+End;
+
+
+Procedure RmDir(Const s: shortstring);[IOCheck];
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+  Do_rmdir(GetDirStrFromShortstring(S));
+End;
+
+
+Procedure ChDir(Const s: shortstring);[IOCheck];
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+  Do_chdir(GetDirStrFromShortstring(S));
+End;
+
+
+Procedure getdir(drivenr:byte;Var dir:shortstring);
+var
+  s: rawbytestring;
+begin
+  Do_getdir(drivenr,s);
+  if length(s)<=high(dir) then
+    dir:=s
+  else
+    inoutres:=3;
+end;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
+
+{$if defined(FPC_HAS_FEATURE_WIDESTRINGS)}
+
+{$ifndef FPCRTL_FILESYSTEM_TWO_BYTE_API}
+{ overloads required for mkdir/rmdir/chdir to ensure that the string is
+  converted to the right code page }
+procedure do_mkdir(const s: unicodestring); {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  do_mkdir(ToSingleByteFileSystemEncodedFileName(s));
+end;
+
+
+procedure do_rmdir(const s: unicodestring); {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  do_rmdir(ToSingleByteFileSystemEncodedFileName(s));
+end;
+
+
+procedure do_chdir(const s: unicodestring); {$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  do_chdir(ToSingleByteFileSystemEncodedFileName(s));
+end;
+
+
+procedure do_getdir(drivenr : byte;var dir : unicodestring);
+var
+  s: rawbytestring;
+begin
+  Do_getdir(drivenr,s);
   dir:=s;
 end;
-{$endif}
+{$endif FPCRTL_FILESYSTEM_TWO_BYTE_API}
 
-{$if defined(FPC_HAS_FEATURE_FILEIO)}
-
-Procedure MkDir(Const s: String);
-Var
-  Buffer: Array[0..255] of Char;
+Procedure MkDir(Const s: UnicodeString);[IOCheck];
 Begin
-  If (s='') or (InOutRes <> 0) then
+  if (s='') or (InOutRes <> 0) then
    exit;
-  Move(s[1], Buffer, Length(s));
-  Buffer[Length(s)] := #0;
-  MkDir(@buffer[0],length(s));
+  Do_mkdir(S);
 End;
 
-Procedure RmDir(Const s: String);
-Var
-  Buffer: Array[0..255] of Char;
+
+Procedure RmDir(Const s: UnicodeString);[IOCheck];
 Begin
-  If (s='') or (InOutRes <> 0) then
+  if (s='') or (InOutRes <> 0) then
    exit;
-  Move(s[1], Buffer, Length(s));
-  Buffer[Length(s)] := #0;
-  RmDir(@buffer[0],length(s));
+  Do_rmdir(S);
 End;
 
-Procedure ChDir(Const s: String);
-Var
-  Buffer: Array[0..255] of Char;
+
+Procedure ChDir(Const s: UnicodeString);[IOCheck];
 Begin
-  If (s='') or (InOutRes <> 0) then
+  if (s='') or (InOutRes <> 0) then
    exit;
-  Move(s[1], Buffer, Length(s));
-  Buffer[Length(s)] := #0;
-  ChDir(@buffer[0],length(s));
+  Do_chdir(S);
 End;
-{$endif}
+
+
+Procedure getdir(drivenr:byte;Var dir:unicodestring);
+begin
+  Do_getdir(drivenr,dir);
+end;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
+
+{$endif FPC_HAS_FEATURE_FILEIO}
+
 
 {*****************************************************************************
                             Resources support

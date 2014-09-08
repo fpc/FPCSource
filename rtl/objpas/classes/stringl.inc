@@ -557,7 +557,7 @@ begin
   Result:=True;
 end;
 
-Procedure TStrings.SetTextStr(const Value: string);
+Procedure TStrings.DoSetTextStr(const Value: string; DoClear : Boolean);
 
 Var
   S : String;
@@ -566,7 +566,8 @@ Var
 begin
   Try
     beginUpdate;
-    Clear;
+    if DoClear then
+      Clear;
     P:=1;
     While GetNextLine (Value,S,P) do
       Add(S);
@@ -575,7 +576,17 @@ begin
   end;
 end;
 
+Procedure TStrings.SetTextStr(const Value: string);
 
+begin
+  DoSetTextStr(Value,True);
+end;
+
+Procedure TStrings.AddText(const S: string);
+
+begin
+  DoSetTextStr(S,False);
+end;
 
 Procedure TStrings.SetUpdateState(Updating: Boolean);
 
@@ -922,7 +933,7 @@ end;
 
 {$if not defined(FPC_TESTGENERICS)}
 
-Procedure TStringList.ExchangeItems(Index1, Index2: Integer);
+Procedure TStringList.ExchangeItemsInt(Index1, Index2: Integer);
 
 Var P1,P2 : Pointer;
 
@@ -935,6 +946,11 @@ begin
   Pointer(Flist^[Index2].FObject):=P2;
 end;
 
+
+Procedure TStringList.ExchangeItems(Index1, Index2: Integer);
+begin
+  ExchangeItemsInt(Index1, Index2);
+end;
 
 
 Procedure TStringList.Grow;
@@ -953,37 +969,48 @@ begin
   SetCapacity(NC);
 end;
 
-Procedure TStringList.InternalClear;
+Procedure TStringList.InternalClear(FromIndex : Integer = 0; ClearOnly : Boolean = False);
 
 Var
   I: Integer;
 
 begin
-  if FOwnsObjects then
+  if FromIndex < FCount then
     begin
-      For I:=0 to FCount-1 do
+      if FOwnsObjects then
         begin
-          Flist^[I].FString:='';
-          freeandnil(Flist^[i].FObject);
+          For I:=FromIndex to FCount-1 do
+            begin
+              Flist^[I].FString:='';
+              freeandnil(Flist^[i].FObject);
+            end;
+        end
+      else
+        begin
+          For I:=FromIndex to FCount-1 do
+            Flist^[I].FString:='';
         end;
-    end
-  else
-    begin
-      For I:=0 to FCount-1 do
-        Flist^[I].FString:='';
+      FCount:=FromIndex;
     end;
-  FCount:=0;
-  SetCapacity(0);
+  if Not ClearOnly then
+    SetCapacity(0);
 end;
 
 Procedure TStringList.QuickSort(L, R: Integer; CompareFn: TStringListSortCompare);
 var
   Pivot, vL, vR: Integer;
+  ExchangeProc: procedure(Left, Right: Integer) of object;
 begin
+  //if ExchangeItems is override call that, else call (faster) ExchangeItemsInt
+  if TMethod(@Self.ExchangeItems).Code = CodePointer(@TStringList.ExchangeItems) then
+    ExchangeProc := @ExchangeItemsInt
+  else
+    ExchangeProc := @ExchangeItems;
+
   if R - L <= 1 then begin // a little bit of time saver
     if L < R then
       if CompareFn(Self, L, R) > 0 then
-        ExchangeItems(L, R);
+        ExchangeProc(L, R);
 
     Exit;
   end;
@@ -1000,7 +1027,7 @@ begin
     while (vR > Pivot) and (CompareFn(Self, vR, Pivot) > 0) do
       Dec(vR);
 
-    ExchangeItems(vL, vR);
+    ExchangeProc(vL, vR);
 
     if Pivot = vL then // swap pivot if we just hit it from one side
       Pivot := vR
@@ -1136,7 +1163,7 @@ end;
 Procedure TStringList.SetCapacity(NewCapacity: Integer);
 
 Var NewList : Pointer;
-    MSize : Longint;
+    I,MSize : Longint;
 
 begin
   If (NewCapacity<0) then
@@ -1160,10 +1187,13 @@ begin
     begin
     if NewCapacity = 0 then
     begin
+      if FCount > 0 then
+        InternalClear(0,True);
       FreeMem(FList);
       FList := nil;
     end else
     begin
+      InternalClear(NewCapacity,True);
       GetMem(NewList, NewCapacity * SizeOf(TStringItem));
       System.Move(FList^, NewList^, NewCapacity * SizeOf(TStringItem));
       FreeMem(FList);
@@ -1245,7 +1275,7 @@ begin
   If (Index2<0) or (Index2>=FCount) then
     Error(SListIndexError,Index2);
   Changing;
-  ExchangeItems(Index1,Index2);
+  ExchangeItemsInt(Index1,Index2);
   changed;
 end;
 
@@ -1271,6 +1301,12 @@ Function TStringList.DoCompareText(const s1,s2 : string) : PtrInt;
         else
           result:=AnsiCompareText(s1,s2);
   end;
+
+
+function TStringList.CompareStrings(const s1,s2 : string) : Integer;
+begin
+  Result := DoCompareText(s1, s2);
+end;
 
 
 Function TStringList.Find(const S: string; Out Index: Integer): Boolean;

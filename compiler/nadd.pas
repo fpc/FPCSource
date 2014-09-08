@@ -38,6 +38,7 @@ interface
        public
           resultrealdef : tdef;
           constructor create(tt : tnodetype;l,r : tnode);override;
+          constructor create_internal(tt:tnodetype;l,r:tnode);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -58,6 +59,8 @@ interface
           { only implements "muln" nodes, the rest always has to be done in }
           { the code generator for performance reasons (JM)                 }
           function first_add64bitint: tnode; virtual;
+          function first_addpointer: tnode; virtual;
+          function first_cmppointer: tnode; virtual;
 
           { override and return false if you can handle 32x32->64 }
           { bit multiplies directly in your code generator. If    }
@@ -66,6 +69,14 @@ interface
           { and resultdef of the muln s64bit or u64bit           }
           function use_generic_mul32to64: boolean; virtual;
 
+          { override and return false if code generator can handle }
+          { full 64 bit multiplies.                                }
+          function use_generic_mul64bit: boolean; virtual;
+
+          { shall be overriden if the target cpu supports
+            an fma instruction
+          }
+          function use_fma : boolean; virtual;
           { This routine calls internal runtime library helpers
             for all floating point arithmetic in the case
             where the emulation switches is on. Otherwise
@@ -73,18 +84,22 @@ interface
             the code generation phase.
           }
           function first_addfloat : tnode; virtual;
-         private
-           { checks whether a muln can be calculated as a 32bit }
-           { * 32bit -> 64 bit                                  }
-           function try_make_mul32to64: boolean;
-           { Match against the ranges, i.e.:
-             var a:1..10;
-             begin
-               if a>0 then
-                 ...
-             always evaluates to true. (DM)
-           }
-           function cmp_of_disjunct_ranges(var res : boolean) : boolean;
+       private
+          { checks whether a muln can be calculated as a 32bit }
+          { * 32bit -> 64 bit                                  }
+          function try_make_mul32to64: boolean;
+
+          { Match against the ranges, i.e.:
+            var a:1..10;
+            begin
+              if a>0 then
+                ...
+            always evaluates to true. (DM)
+          }
+          function cmp_of_disjunct_ranges(var res : boolean) : boolean;
+
+          { tries to replace the current node by a fma node }
+          function try_fma(ld,rd : tdef) : tnode;
        end;
        taddnodeclass = class of taddnode;
 
@@ -105,7 +120,7 @@ implementation
 {$ENDIF}
       globtype,systems,constexp,
       cutils,verbose,globals,widestr,
-      symconst,symdef,symsym,symtable,defutil,defcmp,
+      symconst,symdef,symsym,symcpu,symtable,defutil,defcmp,
       cgbase,
       htypechk,pass_1,
       nld,nbas,nmat,ncnv,ncon,nset,nopt,ncal,ninl,nmem,nutils,
@@ -150,6 +165,13 @@ implementation
     constructor taddnode.create(tt : tnodetype;l,r : tnode);
       begin
          inherited create(tt,l,r);
+      end;
+
+
+    constructor taddnode.create_internal(tt:tnodetype;l,r:tnode);
+      begin
+        create(tt,l,r);
+        include(flags,nf_internal);
       end;
 
 
@@ -361,6 +383,10 @@ implementation
         b       : boolean;
       begin
         result:=nil;
+        l1:=0;
+        l2:=0;
+        s1:=nil;
+        s2:=nil;
 
         { load easier access variables }
         rd:=right.resultdef;
@@ -404,6 +430,11 @@ implementation
              (nodetype in [addn,subn])
             ) or
             (
+             (rt = pointerconstn) and
+             is_constintnode(left) and
+             (nodetype=addn)
+            ) or
+            (
              (lt in [pointerconstn,niln]) and
              (rt in [pointerconstn,niln]) and
              (nodetype in [ltn,lten,gtn,gten,equaln,unequaln,subn])
@@ -444,7 +475,7 @@ implementation
                        { Recover }
                        t:=genintconstnode(0)
                      end
-                   else if (lt=pointerconstn) then
+                   else if (lt=pointerconstn) or (rt=pointerconstn) then
                      t := cpointerconstnode.create(qword(v),resultdef)
                    else
                      if is_integer(ld) then
@@ -545,15 +576,15 @@ implementation
             exit;
           end;
 
-        { Add,Sub,Mul with constant 0, 1 or -1?  }
+        { Add,Sub,Mul,Or,Xor,Andn with constant 0, 1 or -1?  }
         if is_constintnode(right) and is_integer(left.resultdef) then
           begin
             if tordconstnode(right).value = 0 then
               begin
                 case nodetype of
-                  addn,subn:
+                  addn,subn,orn,xorn:
                    result := left.getcopy;
-                  muln:
+                  andn,muln:
                    result:=cordconstnode.create(0,resultdef,true);
                 end;
               end
@@ -564,11 +595,7 @@ implementation
                    result := left.getcopy;
                 end;
               end
-{$ifdef VER2_2}
-            else if (tordconstnode(right).value.svalue = -1) and (tordconstnode(right).value.signed) then
-{$else}
             else if tordconstnode(right).value = -1 then
-{$endif}
               begin
                 case nodetype of
                   muln:
@@ -583,11 +610,11 @@ implementation
             if tordconstnode(left).value = 0 then
               begin
                 case nodetype of
-                  addn:
+                  addn,orn,xorn:
                    result := right.getcopy;
                   subn:
                    result := cunaryminusnode.create(right.getcopy);
-                  muln:
+                  andn,muln:
                    result:=cordconstnode.create(0,right.resultdef,true);
                 end;
               end
@@ -748,7 +775,7 @@ implementation
              case nodetype of
                 addn :
                   begin
-                    t:=cstringconstnode.createpchar(concatansistrings(s1,s2,l1,l2),l1+l2);
+                    t:=cstringconstnode.createpchar(concatansistrings(s1,s2,l1,l2),l1+l2,nil);
                     typecheckpass(t);
                     tstringconstnode(t).changestringtype(resultdef);
                   end;
@@ -994,8 +1021,21 @@ implementation
         change      : boolean;
 {$endif}
 
+        function maybe_cast_ordconst(var n: tnode; adef: tdef): boolean;
+          begin
+            result:=(tordconstnode(n).value>=torddef(adef).low) and
+              (tordconstnode(n).value<=torddef(adef).high);
+            if result then
+              inserttypeconv(n,adef);
+          end;
+
       begin
          result:=nil;
+         rlow:=0;
+         llow:=0;
+         rhigh:=0;
+         lhigh:=0;
+
          { avoid any problems with type parameters later on }
          if is_typeparam(left.resultdef) or is_typeparam(right.resultdef) then
            begin
@@ -1009,9 +1049,15 @@ implementation
          if codegenerror then
            exit;
 
-         { tp procvar support }
-         maybe_call_procvar(left,true);
-         maybe_call_procvar(right,true);
+         { tp procvar support. Omit for converted assigned() nodes }
+         if not (nf_load_procvar in flags) then
+           begin
+             maybe_call_procvar(left,true);
+             maybe_call_procvar(right,true);
+           end
+         else
+           if not (nodetype in [equaln,unequaln]) then
+             InternalError(2013091601);
 
          { convert array constructors to sets, because there is no other operator
            possible for array constructors }
@@ -1361,44 +1407,46 @@ implementation
              { size either as long as both values are signed or unsigned   }
              { "xor" and "or" also don't care about the sign if the values }
              { occupy an entire register                                   }
-             { don't do it if either type is 64 bit, since in that case we }
-             { can't safely find a "common" type                           }
+             { don't do it if either type is 64 bit (except for "and"),    }
+             { since in that case we can't safely find a "common" type     }
              else if is_integer(ld) and is_integer(rd) and
-                     not is_64bitint(ld) and not is_64bitint(rd) and
                      ((nodetype=andn) or
                       ((nodetype in [orn,xorn,equaln,unequaln,gtn,gten,ltn,lten]) and
-                       not(is_signed(ld) xor is_signed(rd)))) then
+                        not is_64bitint(ld) and not is_64bitint(rd) and
+                       (is_signed(ld)=is_signed(rd)))) then
                begin
-                 if (rd.size>ld.size) or
-                    { Delphi-compatible: prefer unsigned type for "and" with equal size }
-                    ((rd.size=ld.size) and
-                     not is_signed(rd)) then
-                   begin
-                     if (rd.size=ld.size) and
-                        is_signed(ld) then
-                       inserttypeconv_internal(left,rd)
-                     else
-                       begin
-                         { not to left right.resultdef, because that may
-                           cause a range error if left and right's def don't
-                           completely overlap }
-                         nd:=get_common_intdef(torddef(ld),torddef(rd),true);
-                         inserttypeconv(left,nd);
-                         inserttypeconv(right,nd);
-                       end;
-                   end
+                 { Delphi-compatible: prefer unsigned type for "and", when the
+                   unsigned type is bigger than the signed one, and also bigger
+                   than min(native_int, 32-bit) }
+                 if (is_oversizedint(rd) or is_nativeint(rd) or is_32bitint(rd)) and
+                    (rd.size>=ld.size) and
+                    not is_signed(rd) and is_signed(ld) then
+                      inserttypeconv_internal(left,rd)
+                 else if (is_oversizedint(ld) or is_nativeint(ld) or is_32bitint(ld)) and
+                    (ld.size>=rd.size) and
+                    not is_signed(ld) and is_signed(rd) then
+                      inserttypeconv_internal(right,ld)
                  else
                    begin
-                     if (rd.size=ld.size) and
-                        is_signed(rd) then
-                       inserttypeconv_internal(right,ld)
-                     else
-                       begin
-                         nd:=get_common_intdef(torddef(ld),torddef(rd),true);
-                         inserttypeconv(left,nd);
-                         inserttypeconv(right,nd);
-                       end;
-                   end
+                     { not to left right.resultdef, because that may
+                       cause a range error if left and right's def don't
+                       completely overlap }
+                     nd:=get_common_intdef(torddef(ld),torddef(rd),true);
+                     inserttypeconv(left,nd);
+                     inserttypeconv(right,nd);
+                   end;
+               end
+             { don't extend (sign-mismatched) comparisons if either side is a constant
+               whose value is within range of opposite side }
+             else if is_integer(ld) and is_integer(rd) and
+                     (nodetype in [equaln,unequaln,gtn,gten,ltn,lten]) and
+                     (is_signed(ld)<>is_signed(rd)) and
+                     (
+                       ((lt=ordconstn) and maybe_cast_ordconst(left,rd)) or
+                       ((rt=ordconstn) and maybe_cast_ordconst(right,ld))
+                     ) then
+               begin
+                 { done here }
                end
              { is there a signed 64 bit type ? }
              else if ((torddef(rd).ordtype=s64bit) or (torddef(ld).ordtype=s64bit)) then
@@ -1567,7 +1615,7 @@ implementation
                         llow:=rlow;
                         lhigh:=rhigh;
                       end;
-                    nd:=tsetdef.create(tsetdef(ld).elementdef,min(llow,rlow).svalue,max(lhigh,rhigh).svalue);
+                    nd:=csetdef.create(tsetdef(ld).elementdef,min(llow,rlow).svalue,max(lhigh,rhigh).svalue);
                     inserttypeconv(left,nd);
                     if (rd.typ=setdef) then
                       inserttypeconv(right,nd)
@@ -1622,15 +1670,18 @@ implementation
                     inserttypeconv_internal(left,java_jlobject);
                     inserttypeconv_internal(right,java_jlobject);
 {$elseif defined(i8086)}
-                    { we don't have a charfarpointertype yet, so for far pointers we use bytefarpointertype }
-                    if is_farpointer(left.resultdef) then
-                      inserttypeconv_internal(left,bytefarpointertype)
+                    if is_hugepointer(left.resultdef) then
+                      inserttypeconv_internal(left,charhugepointertype)
+                    else if is_farpointer(left.resultdef) then
+                      inserttypeconv_internal(left,charfarpointertype)
                     else
-                      inserttypeconv_internal(left,charpointertype);
-                    if is_farpointer(right.resultdef) then
-                      inserttypeconv_internal(right,bytefarpointertype)
+                      inserttypeconv_internal(left,charnearpointertype);
+                    if is_hugepointer(right.resultdef) then
+                      inserttypeconv_internal(right,charhugepointertype)
+                    else if is_farpointer(right.resultdef) then
+                      inserttypeconv_internal(right,charfarpointertype)
                     else
-                      inserttypeconv_internal(right,charpointertype);
+                      inserttypeconv_internal(right,charnearpointertype);
 {$else}
                     inserttypeconv_internal(left,charpointertype);
                     inserttypeconv_internal(right,charpointertype);
@@ -1638,7 +1689,8 @@ implementation
                  end;
                ltn,lten,gtn,gten:
                  begin
-                    if (cs_extsyntax in current_settings.moduleswitches) then
+                    if (cs_extsyntax in current_settings.moduleswitches) or
+                       (nf_internal in flags) then
                      begin
                        if is_voidpointer(right.resultdef) then
                         inserttypeconv(right,left.resultdef)
@@ -1673,9 +1725,10 @@ implementation
                       begin
                         hp:=getcopy;
                         include(hp.flags,nf_has_pointerdiv);
-                        result:=cmoddivnode.create(divn,hp,cordconstnode.create(tpointerdef(rd).pointeddef.size,sinttype,false));
+                        result:=cmoddivnode.create(divn,hp,
+                          cordconstnode.create(tpointerdef(rd).pointeddef.size,tpointerdef(rd).pointer_subtraction_result_type,false));
                       end;
-                    resultdef:=sinttype;
+                    resultdef:=tpointerdef(rd).pointer_subtraction_result_type;
                     exit;
                  end;
                else
@@ -1814,7 +1867,7 @@ implementation
               begin
                 if is_implicit_pointer_object_type(rd) and is_implicit_pointer_object_type(ld) then
                  begin
-                   if tobjectdef(rd).is_related(tobjectdef(ld)) then
+                   if def_is_related(tobjectdef(rd),tobjectdef(ld)) then
                     inserttypeconv(right,left.resultdef)
                    else
                     inserttypeconv(left,right.resultdef);
@@ -1832,7 +1885,7 @@ implementation
           begin
             if (nodetype in [equaln,unequaln]) then
               begin
-                if tobjectdef(tclassrefdef(rd).pointeddef).is_related(
+                if def_is_related(tobjectdef(tclassrefdef(rd).pointeddef),
                         tobjectdef(tclassrefdef(ld).pointeddef)) then
                   inserttypeconv(right,left.resultdef)
                 else
@@ -1942,9 +1995,11 @@ implementation
               end
             else
               resultdef:=right.resultdef;
-            inserttypeconv(left,sinttype);
+            inserttypeconv(left,tpointerdef(right.resultdef).pointer_arithmetic_int_type);
             if nodetype=addn then
               begin
+                if (rt=niln) then
+                  CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,'NIL');
                 if not(cs_extsyntax in current_settings.moduleswitches) or
                    (not (is_pchar(ld) or is_chararray(ld) or is_open_chararray(ld) or is_widechar(ld) or is_widechararray(ld) or is_open_widechararray(ld)) and
                     not(cs_pointermath in current_settings.localswitches) and
@@ -1954,7 +2009,7 @@ implementation
                    (tpointerdef(rd).pointeddef.size>1) then
                    begin
                      left:=caddnode.create(muln,left,
-                       cordconstnode.create(tpointerdef(rd).pointeddef.size,sinttype,true));
+                       cordconstnode.create(tpointerdef(rd).pointeddef.size,tpointerdef(right.resultdef).pointer_arithmetic_int_type,true));
                      typecheckpass(left);
                    end;
               end
@@ -1973,7 +2028,7 @@ implementation
              else
                resultdef:=left.resultdef;
 
-             inserttypeconv(right,sinttype);
+             inserttypeconv(right,tpointerdef(left.resultdef).pointer_arithmetic_int_type);
              if nodetype in [addn,subn] then
                begin
                  if (lt=niln) then
@@ -1990,7 +2045,7 @@ implementation
                    if (tpointerdef(ld).pointeddef.size>1) then
                    begin
                      right:=caddnode.create(muln,right,
-                       cordconstnode.create(tpointerdef(ld).pointeddef.size,sinttype,true));
+                       cordconstnode.create(tpointerdef(ld).pointeddef.size,tpointerdef(left.resultdef).pointer_arithmetic_int_type,true));
                      typecheckpass(right);
                    end
                  end else
@@ -1998,7 +2053,7 @@ implementation
                       (tarraydef(ld).elementdef.size>1) then
                      begin
                        right:=caddnode.create(muln,right,
-                         cordconstnode.create(tarraydef(ld).elementdef.size,sinttype,true));
+                         cordconstnode.create(tarraydef(ld).elementdef.size,tpointerdef(left.resultdef).pointer_arithmetic_int_type,true));
                        typecheckpass(right);
                      end;
                end
@@ -2133,6 +2188,7 @@ implementation
         cmpfuncname: string;
         para: tcallparanode;
       begin
+        result:=nil;
         { when we get here, we are sure that both the left and the right }
         { node are both strings of the same stringtype (JM)              }
         case nodetype of
@@ -2170,7 +2226,9 @@ implementation
                   if is_ansistring(resultdef) then
                     para:=ccallparanode.create(
                             cordconstnode.create(
-                              getparaencoding(resultdef),
+                              { don't use getparaencoding(), we have to know
+                                when the result is rawbytestring }
+                              tstringdef(resultdef).encoding,
                               u16inttype,
                               true
                             ),
@@ -2208,7 +2266,9 @@ implementation
                   if is_ansistring(resultdef) then
                     para:=ccallparanode.create(
                             cordconstnode.create(
-                              getparaencoding(resultdef),
+                              { don't use getparaencoding(), we have to know
+                                when the result is rawbytestring }
+                              tstringdef(resultdef).encoding,
                               u16inttype,
                               true
                             ),
@@ -2376,6 +2436,8 @@ implementation
                         right := tempn;
                       end;
                     end;
+                  else
+                    internalerror(2013112911);
                 end;
                 result := ccallnode.createinternres(procname,
                   ccallparanode.create(cordconstnode.create(left.resultdef.size,sinttype,false),
@@ -2491,6 +2553,12 @@ implementation
       end;
 
 
+    function taddnode.use_generic_mul64bit: boolean;
+      begin
+        result := true;
+      end;
+
+
     function taddnode.try_make_mul32to64: boolean;
 
       function canbe32bitint(v: tconstexprint): boolean;
@@ -2499,21 +2567,30 @@ implementation
                     ((v >= qword(low(cardinal))) and (v <= qword(high(cardinal))))
         end;
 
+      function is_32bitordconst(n: tnode): boolean;
+        begin
+          result := (n.nodetype = ordconstn) and
+                    canbe32bitint(tordconstnode(n).value);
+        end;
+
+      function is_32to64typeconv(n: tnode): boolean;
+        begin
+          result := (n.nodetype = typeconvn) and
+                    is_integer(ttypeconvnode(n).left.resultdef) and
+                    not is_64bit(ttypeconvnode(n).left.resultdef);
+        end;
+
       var
         temp: tnode;
       begin
         result := false;
-        if ((left.nodetype = typeconvn) and
-            is_integer(ttypeconvnode(left).left.resultdef) and
-            (not(torddef(ttypeconvnode(left).left.resultdef).ordtype in [u64bit,s64bit,scurrency])) and
-           (((right.nodetype = ordconstn) and canbe32bitint(tordconstnode(right).value)) or
-            ((right.nodetype = typeconvn) and
-             is_integer(ttypeconvnode(right).left.resultdef) and
-             not(torddef(ttypeconvnode(right).left.resultdef).ordtype in [u64bit,s64bit,scurrency])) and
+        if is_32to64typeconv(left) and
+           (is_32bitordconst(right) or
+            is_32to64typeconv(right) and
              ((is_signed(ttypeconvnode(left).left.resultdef) =
                is_signed(ttypeconvnode(right).left.resultdef)) or
               (is_signed(ttypeconvnode(left).left.resultdef) and
-               (torddef(ttypeconvnode(right).left.resultdef).ordtype in [u8bit,u16bit]))))) then
+               (torddef(ttypeconvnode(right).left.resultdef).ordtype in [u8bit,u16bit])))) then
           begin
             temp := ttypeconvnode(left).left;
             ttypeconvnode(left).left := nil;
@@ -2539,6 +2616,127 @@ implementation
             firstpass(left);
             firstpass(right);
             result := true;
+          end;
+      end;
+
+
+    function taddnode.use_fma : boolean;
+      begin
+        result:=false;
+      end;
+
+
+    function taddnode.try_fma(ld,rd : tdef) : tnode;
+      var
+        inlinennr : Integer;
+      begin
+        result:=nil;
+        if (cs_opt_fastmath in current_settings.optimizerswitches) and
+          use_fma and
+          (nodetype in [addn,subn]) and
+          (rd.typ=floatdef) and (ld.typ=floatdef) and
+          (is_single(rd) or is_double(rd)) and
+          equal_defs(rd,ld) and
+          { transforming a*b+c into fma(a,b,c) makes only sense if c can be
+            calculated easily. Consider a*b+c*d which results in
+
+            fmul
+            fmul
+            fadd
+
+            and in
+
+            fmul
+            fma
+
+            when using the fma optimization. On a super scalar architecture, the first instruction
+            sequence requires clock_cycles(fmul)+clock_cycles(fadd) clock cycles because the fmuls can be executed in parallel.
+            The second sequence requires clock_cycles(fmul)+clock_cycles(fma) because the fma has to wait for the
+            result of the fmul. Since typically clock_cycles(fma)>clock_cycles(fadd) applies, the first sequence is better.
+          }
+          (((left.nodetype=muln) and (node_complexity(right)<3)) or
+           ((right.nodetype=muln) and (node_complexity(left)<3)) or
+           ((left.nodetype=inlinen) and
+            (tinlinenode(left).inlinenumber=in_sqr_real) and
+             (node_complexity(right)<3)) or
+           ((right.nodetype=inlinen) and
+            (tinlinenode(right).inlinenumber=in_sqr_real) and
+            (node_complexity(left)<3))
+          ) then
+          begin
+            case tfloatdef(ld).floattype of
+              s32real:
+               inlinennr:=in_fma_single;
+              s64real:
+               inlinennr:=in_fma_double;
+              s80real:
+               inlinennr:=in_fma_extended;
+              s128real:
+               inlinennr:=in_fma_float128;
+              else
+                internalerror(2014042601);
+            end;
+            if left.nodetype=muln then
+              begin
+                if nodetype=subn then
+                  result:=cinlinenode.create(inlinennr,false,ccallparanode.create(cunaryminusnode.create(right),
+                    ccallparanode.create(taddnode(left).right,
+                    ccallparanode.create(taddnode(left).left,nil
+                    ))))
+                else
+                  result:=cinlinenode.create(inlinennr,false,ccallparanode.create(right,
+                    ccallparanode.create(taddnode(left).right,
+                    ccallparanode.create(taddnode(left).left,nil
+                    ))));
+                right:=nil;
+                taddnode(left).right:=nil;
+                taddnode(left).left:=nil;
+              end
+            else if right.nodetype=muln then
+              begin
+                if nodetype=subn then
+                  result:=cinlinenode.create(inlinennr,false,ccallparanode.create(left,
+                    ccallparanode.create(cunaryminusnode.create(taddnode(right).right),
+                    ccallparanode.create(taddnode(right).left,nil
+                    ))))
+                else
+                  result:=cinlinenode.create(inlinennr,false,ccallparanode.create(left,
+                    ccallparanode.create(taddnode(right).right,
+                    ccallparanode.create(taddnode(right).left,nil
+                    ))));
+                left:=nil;
+                taddnode(right).right:=nil;
+                taddnode(right).left:=nil;
+              end
+            else if (left.nodetype=inlinen) and (tinlinenode(left).inlinenumber=in_sqr_real) then
+              begin
+                if nodetype=subn then
+                  result:=cinlinenode.create(inlinennr,false,ccallparanode.create(cunaryminusnode.create(right),
+                    ccallparanode.create(tinlinenode(left).left.getcopy,
+                    ccallparanode.create(tinlinenode(left).left.getcopy,nil
+                    ))))
+                else
+                  result:=cinlinenode.create(inlinennr,false,ccallparanode.create(right,
+                    ccallparanode.create(tinlinenode(left).left.getcopy,
+                    ccallparanode.create(tinlinenode(left).left.getcopy,nil
+                    ))));
+                right:=nil;
+              end
+            { we get here only if right is a sqr node }
+            else if (right.nodetype=inlinen) and (tinlinenode(right).inlinenumber=in_sqr_real) then
+              begin
+                if nodetype=subn then
+                  result:=cinlinenode.create(inlinennr,false,ccallparanode.create(left,
+                    ccallparanode.create(cunaryminusnode.create(tinlinenode(right).left.getcopy),
+                    ccallparanode.create(tinlinenode(right).left.getcopy,nil
+                    ))))
+                else
+                  result:=cinlinenode.create(inlinennr,false,ccallparanode.create(left,
+                    ccallparanode.create(tinlinenode(right).left.getcopy,
+                    ccallparanode.create(tinlinenode(right).left.getcopy,nil
+                    ))));
+                left:=nil;
+              end;
           end;
       end;
 
@@ -2576,31 +2774,72 @@ implementation
             exit;
           end;
 
-        if not(use_generic_mul32to64) and
-           try_make_mul32to64 then
-          exit;
-
-        { when currency is used set the result of the
-          parameters to s64bit, so they are not converted }
-        if is_currency(resultdef) then
+        if try_make_mul32to64 then
           begin
-            left.resultdef:=s64inttype;
-            right.resultdef:=s64inttype;
-          end;
+            { if the code generator can handle 32 to 64-bit muls, we're done here }
+            if not use_generic_mul32to64 then
+              exit;
 
-        { otherwise, create the parameters for the helper }
-        right := ccallparanode.create(
-          cordconstnode.create(ord(cs_check_overflow in current_settings.localswitches),pasbool8type,true),
-          ccallparanode.create(right,ccallparanode.create(left,nil)));
-        left := nil;
-        { only qword needs the unsigned code, the
-          signed code is also used for currency }
-        if is_signed(resultdef) then
-          procname := 'fpc_mul_int64'
+            { this uses the same criteria for signedness as the 32 to 64-bit mul
+              handling in the i386 code generator }
+            if is_signed(left.resultdef) and is_signed(right.resultdef) then
+              procname := 'fpc_mul_longint_to_int64'
+            else
+              procname := 'fpc_mul_dword_to_qword';
+
+            right := ccallparanode.create(right,ccallparanode.create(left,nil));
+            result := ccallnode.createintern(procname,right);
+            left := nil;
+            right := nil;
+          end
         else
-          procname := 'fpc_mul_qword';
-        result := ccallnode.createintern(procname,right);
-        right := nil;
+          begin
+            { can full 64-bit multiplication be handled inline? }
+            if not use_generic_mul64bit then
+              begin
+                { generic handling replaces this node with call to fpc_mul_int64,
+                  whose result is int64 }
+                if is_currency(resultdef) then
+                  resultdef:=s64inttype;
+                exit;
+              end;
+
+            { when currency is used set the result of the
+              parameters to s64bit, so they are not converted }
+            if is_currency(resultdef) then
+              begin
+                left.resultdef:=s64inttype;
+                right.resultdef:=s64inttype;
+              end;
+
+            { otherwise, create the parameters for the helper }
+            right := ccallparanode.create(
+              cordconstnode.create(ord(cs_check_overflow in current_settings.localswitches),pasbool8type,true),
+              ccallparanode.create(right,ccallparanode.create(left,nil)));
+            left := nil;
+            { only qword needs the unsigned code, the
+              signed code is also used for currency }
+            if is_signed(resultdef) then
+              procname := 'fpc_mul_int64'
+            else
+              procname := 'fpc_mul_qword';
+            result := ccallnode.createintern(procname,right);
+            right := nil;
+          end;
+      end;
+
+
+    function taddnode.first_addpointer: tnode;
+      begin
+        result:=nil;
+        expectloc:=LOC_REGISTER;
+      end;
+
+
+    function taddnode.first_cmppointer: tnode;
+      begin
+        result:=nil;
+        expectloc:=LOC_FLAGS;
       end;
 
 
@@ -2613,6 +2852,7 @@ implementation
       begin
         result := nil;
         notnode := false;
+        fdef := nil;
         { In non-emulation mode, real opcodes are
           emitted for floating point values.
         }
@@ -2658,13 +2898,13 @@ implementation
                 procname:=procname+'_le';
               gtn:
                 begin
-                  procname:=procname+'_le';
-                  notnode:=true;
+                  procname:=procname+'_lt';
+                  swapleftright;
                 end;
               gten:
                 begin
-                  procname:=procname+'_lt';
-                  notnode:=true;
+                  procname:=procname+'_le';
+                  swapleftright;
                 end;
               equaln:
                 procname:=procname+'_eq';
@@ -2701,7 +2941,10 @@ implementation
               unequaln:
                 procname:='NE';
               else
-                CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),left.resultdef.typename,right.resultdef.typename);
+                begin
+                  CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),left.resultdef.typename,right.resultdef.typename);
+                  exit;
+                end;
             end;
             case tfloatdef(left.resultdef).floattype of
               s32real:
@@ -2748,7 +2991,7 @@ implementation
          hp      : tnode;
 {$endif addstringopt}
          rd,ld   : tdef;
-         i       : longint;
+         i,i2    : longint;
          lt,rt   : tnodetype;
 {$ifdef cpuneedsmulhelper}
          procname : string[32];
@@ -2796,18 +3039,20 @@ implementation
                 (((left.nodetype = ordconstn) and
                   ispowerof2(tordconstnode(left).value,i)) or
                  ((right.nodetype = ordconstn) and
-                  ispowerof2(tordconstnode(right).value,i))) then
+                  ispowerof2(tordconstnode(right).value,i2))) then
                begin
-                 if left.nodetype = ordconstn then
+                 if ((left.nodetype = ordconstn) and
+                     ispowerof2(tordconstnode(left).value,i)) then
                    begin
                      tordconstnode(left).value := i;
                      result := cshlshrnode.create(shln,right,left);
                    end
                  else
                    begin
-                     tordconstnode(right).value := i;
+                     tordconstnode(right).value := i2;
                      result := cshlshrnode.create(shln,left,right);
                    end;
+                 result.resultdef := resultdef;
                  left := nil;
                  right := nil;
                  exit;
@@ -2849,21 +3094,7 @@ implementation
                     expectloc:=LOC_JUMP;
                end
 {$endif cpu64bitalu}
-{$ifndef cpuneedsmulhelper}
-             { is there a cardinal? }
-             else if (torddef(ld).ordtype=u32bit) then
-               begin
-                  if nodetype in [addn,subn,muln,andn,orn,xorn] then
-                    expectloc:=LOC_REGISTER
-                  else
-{$ifdef cpu16bitalu}
-                    expectloc:=LOC_JUMP;
-{$else cpu16bitalu}
-                    expectloc:=LOC_FLAGS;
-{$endif cpu16bitalu}
-               end
-{$endif cpuneedsmulhelper}
-             { generic s32bit conversion }
+             { generic 32bit conversion }
              else
                begin
 {$ifdef cpuneedsmulhelper}
@@ -2884,7 +3115,7 @@ implementation
                          internalerror(2011022301);
                      end;
                      result := ccallnode.createintern(procname,
-                       ccallparanode.create(cordconstnode.create(0,pasbool8type,false),
+                       ccallparanode.create(cordconstnode.create(ord(cs_check_overflow in current_settings.localswitches),pasbool8type,false),
                        ccallparanode.create(right,
                        ccallparanode.create(left,nil))));
                      left := nil;
@@ -2895,12 +3126,10 @@ implementation
 {$endif cpuneedsmulhelper}
                   if nodetype in [addn,subn,muln,andn,orn,xorn] then
                     expectloc:=LOC_REGISTER
+                  else if torddef(ld).size>sizeof(aint) then
+                    expectloc:=LOC_JUMP
                   else
-{$ifdef cpu16bitalu}
-                    expectloc:=LOC_JUMP;
-{$else cpu16bitalu}
                     expectloc:=LOC_FLAGS;
-{$endif cpu16bitalu}
               end;
            end
 
@@ -2934,9 +3163,9 @@ implementation
          else if is_pchar(ld) then
            begin
              if nodetype in [addn,subn,muln,andn,orn,xorn] then
-               expectloc:=LOC_REGISTER
+               result:=first_addpointer
              else
-               expectloc:=LOC_FLAGS;
+               result:=first_cmppointer;
            end
 
          { is one of the operands a string }
@@ -3009,15 +3238,19 @@ implementation
                 expectloc:=LOC_FPUREGISTER
               else
                 expectloc:=LOC_FLAGS;
+
+              result:=try_fma(ld,rd);
+              if assigned(result) then
+                exit;
             end
 
          { pointer comperation and subtraction }
          else if (ld.typ=pointerdef) then
             begin
               if nodetype in [addn,subn,muln,andn,orn,xorn] then
-                expectloc:=LOC_REGISTER
+                result:=first_addpointer
               else
-                expectloc:=LOC_FLAGS;
+                result:=first_cmppointer;
            end
 
          else if is_implicit_pointer_object_type(ld) then
@@ -3049,7 +3282,7 @@ implementation
 
          else if (rd.typ=pointerdef) or (ld.typ=pointerdef) then
             begin
-              expectloc:=LOC_REGISTER;
+              result:=first_addpointer;
             end
 
          else  if (rd.typ=procvardef) and

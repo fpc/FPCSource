@@ -29,9 +29,13 @@ interface
 { force ansistrings }
 {$H+}
 
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+{ OS has an ansistring/single byte environment variable API }
+{$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
-
 
 implementation
 
@@ -45,7 +49,7 @@ uses
 {****************************************************************************
                               File Functions
 ****************************************************************************}
-function FileOpen(const FileName: string; Mode: Integer): LongInt;
+function FileOpen(const FileName: rawbytestring; Mode: Integer): LongInt;
 begin
   result := -1;
 end;
@@ -63,18 +67,18 @@ begin
 end;
 
 
-function FileCreate(const FileName: string) : LongInt;
+function FileCreate(const FileName: RawByteString) : LongInt;
 begin
   result := -1;
 end;
 
 
-function FileCreate(const FileName: string; Rights: integer): LongInt;
+function FileCreate(const FileName: RawByteString; Rights: integer): LongInt;
 begin
   result := -1;
 end;
 
-function FileCreate(const FileName: string; ShareMode: integer; Rights: integer): LongInt;
+function FileCreate(const FileName: RawByteString; ShareMode: integer; Rights: integer): LongInt;
 begin
   result := -1;
 end;
@@ -114,13 +118,13 @@ begin
 end;
 
 
-function DeleteFile(const FileName: string) : Boolean;
+function DeleteFile(const FileName: RawByteString) : Boolean;
 begin
   result := false;
 end;
 
 
-function RenameFile(const OldName, NewName: string): Boolean;
+function RenameFile(const OldName, NewName: RawByteString): Boolean;
 begin
   result := false;
 end;
@@ -129,41 +133,41 @@ end;
 (****** end of non portable routines ******)
 
 
-Function FileAge (Const FileName : String): Longint;
+Function FileAge (Const FileName : RawByteString): Longint;
 begin
   result := -1;
 end;
 
 
-Function FileExists (Const FileName : String) : Boolean;
+Function FileExists (Const FileName : RawByteString) : Boolean;
 Begin
   result := false;
 end;
 
 
 
-Function FindFirst (Const Path : String; Attr : Longint; Out Rslt : TSearchRec) : Longint;
+Function InternalFindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name: RawByteString) : Longint;
 begin
   result := -1;
 end;
 
 
-Function FindNext (Var Rslt : TSearchRec) : Longint;
+Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : RawByteString) : Longint;
 begin
   result := -1;
 end;
 
-Procedure FindClose (Var F : TSearchrec);
+Procedure InternalFindClose(var Handle: THandle);
 begin
 end;
 
-Function FileGetAttr (Const FileName : String) : Longint;
+Function FileGetAttr (Const FileName : RawByteString) : Longint;
 begin
   result := -1;
 end;
 
 
-Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
+Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
 begin
   result := -1;
 end;
@@ -193,31 +197,7 @@ Begin
 End;
 
 
-Function GetCurrentDir : String;
-begin
-  result := '';
-end;
-
-
-Function SetCurrentDir (Const NewDir : String) : Boolean;
-begin
-  result := false;
-end;
-
-
-Function CreateDir (Const NewDir : String) : Boolean;
-begin
-  result := false;
-end;
-
-
-Function RemoveDir (Const Dir : String) : Boolean;
-begin
-  result := false;
-end;
-
-
-function DirectoryExists(const Directory: string): Boolean;
+function DirectoryExists(const Directory: RawByteString): Boolean;
 begin
   result := false;
 end;
@@ -262,7 +242,7 @@ begin
   result := -1;
 end;
 
-Function GetEnvironmentString(Index : Integer) : String;
+Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 begin
   result := '';
 end;

@@ -132,15 +132,6 @@ TYPE
       2: (dummy : double);
   end;
 
-  int64rec = record
-    case byte of
-      1: (low,high : bits32);
-      // force the record to be aligned like a double
-      // else *_to_double will fail for cpus like sparc
-      // and avoid expensive unpacking/packing operations
-      2: (dummy : int64);
-  end;
-
   floatx80 = record
     case byte of
       1: (low : qword;high : word);
@@ -166,15 +157,6 @@ TYPE
         // else *_to_double will fail for cpus like sparc
         2: (dummy : double);
   end;
-
-  int64rec = record
-    case byte of
-      1: (high,low : bits32);
-      // force the record to be aligned like a double
-      // else *_to_double will fail for cpus like sparc
-      // and avoid expensive unpacking/packing operations
-      2: (dummy : int64);
-end;
 
   floatx80 = record
     case byte of
@@ -230,7 +212,7 @@ The operation is performed according to the IEC/IEEE Standard for Binary
 Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_sqrt( a: float64; var out: float64 ); compilerproc;
+function float64_sqrt( a: float64 ): float64; compilerproc;
 {*
 -------------------------------------------------------------------------------
 Returns the remainder of the double-precision floating-point value `a'
@@ -582,6 +564,13 @@ implementation
 (* ---------------------------------------------------------------------------*)
 (*****************************************************************************)
 
+{ This procedure serves as a single access point to softfloat_exception_flags.
+  It also helps to reduce code size a bit because softfloat_exception_flags is
+  a threadvar. }
+procedure set_inexact_flag;
+begin
+    include(softfloat_exception_flags,float_flag_inexact);
+end;
 
 {*----------------------------------------------------------------------------
 | Takes a 64-bit fixed-point value `absZ' with binary point between bits 6
@@ -596,15 +585,15 @@ implementation
 
 function roundAndPackInt32( zSign: flag; absZ : bits64): int32;
 var
-    roundingMode: int8;
-    roundNearestEven: flag;
+    roundingMode: TFPURoundingMode;
+    roundNearestEven: boolean;
     roundIncrement, roundBits: int8;
     z: int32;
 begin
     roundingMode := softfloat_rounding_mode;
-    roundNearestEven := ord( roundingMode = float_round_nearest_even );
+    roundNearestEven := (roundingMode = float_round_nearest_even);
     roundIncrement := $40;
-    if ( roundNearestEven=0 ) then
+    if not roundNearestEven then
     begin
         if ( roundingMode = float_round_to_zero ) then
         begin
@@ -623,13 +612,13 @@ begin
             end;
         end;
     end;
-    roundBits := absZ and $7F;
+    roundBits := lo(absZ) and $7F;
     absZ := ( absZ + roundIncrement ) shr 7;
-    absZ := absZ and not( ord( ( roundBits xor  $40 ) = 0 ) and roundNearestEven );
+    absZ := absZ and not( bits64( ord( ( roundBits xor  $40 ) = 0 ) and ord(roundNearestEven) ));
     z := absZ;
     if ( zSign<>0 ) then
       z := - z;
-    if ( ( absZ shr 32 ) or ( z and ( ord( z < 0 ) xor  zSign ) ) )<>0 then
+    if ( longint(hi( absZ )) or ( z and ( ord( z < 0 ) xor  zSign ) ) )<>0 then
     begin
         float_raise( float_flag_invalid );
         if zSign<>0 then
@@ -639,7 +628,7 @@ begin
         exit;
     end;
     if ( roundBits<>0 ) then
-      softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+      set_inexact_flag;
     result:=z;
 end;
 
@@ -657,7 +646,7 @@ end;
 
 function roundAndPackInt64( zSign: flag; absZ0: bits64; absZ1 : bits64): int64;
 var
-    roundingMode: int8;
+    roundingMode: TFPURoundingMode;
     roundNearestEven, increment: flag;
     z: int64;
 label
@@ -703,7 +692,7 @@ begin
         exit;
     end;
     if ( absZ1<>0 ) then
-      softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+      set_inexact_flag;
     result:=z;
 end;
 
@@ -762,7 +751,7 @@ begin
     end
     else
     begin
-         if ( count < 64 ) then
+         if ( count < 128 ) then
           z1 := a0 shr ( count and 63 )
         else
           z1 := 0;
@@ -797,7 +786,7 @@ begin
     end
     else if ( count < 64 ) then begin
         z1 := ( a0 shl negCount ) or ( a1 shr count ) or ord( ( a1 shl negCount ) <> 0 );
-        z0 := a0>>count;
+        z0 := a0 shr count;
     end
     else begin
         if ( count = 64 ) then begin
@@ -1334,9 +1323,9 @@ Var
     aHigh, aLow, bHigh, bLow: bits16;
     z0, zMiddleA, zMiddleB, z1: bits32;
 Begin
-    aLow := a and $ffff;
+    aLow := bits16(a);
     aHigh := a shr 16;
-    bLow := b and $ffff;
+    bLow := bits16(b);
     bHigh := b shr 16;
     z1 := ( bits32( aLow) ) * bLow;
     zMiddleA := ( bits32 (aLow) ) * bHigh;
@@ -1613,7 +1602,7 @@ Begin
           z := ( z shl 15 );
         if ( z <= a ) then
         Begin
-           estimateSqrt32 := bits32 ( ( sbits32 (a )) shr 1 );
+           estimateSqrt32 := bits32 ( SarLongint( sbits32 (a)) );
            exit;
         End;
     End;
@@ -1687,18 +1676,6 @@ End;
 
 {*
 -------------------------------------------------------------------------------
-Returns 1 if the 64-bit value formed by concatenating `a0' and `a1' is
-equal to the 64-bit value formed by concatenating `b0' and `b1'.  Otherwise,
-returns 0.
--------------------------------------------------------------------------------
-*}
-Function eq64( a0: bits32; a1:bits32 ;b0:bits32; b1:bits32 ): flag;
-Begin
-    eq64 :=  flag( a0 = b0 ) and flag( a1 = b1 );
-End;
-
-{*
--------------------------------------------------------------------------------
 Returns 1 if the 64-bit value formed by concatenating `a0' and `a1' is less
 than or equal to the 64-bit value formed by concatenating `b0' and `b1'.
 Otherwise, returns 0.
@@ -1721,18 +1698,6 @@ returns 0.
 Function lt64( a0: bits32; a1:bits32 ;b0:bits32; b1:bits32 ): flag;
 Begin
     lt64 := flag( a0 < b0 ) or flag( ( a0 = b0 ) and ( a1 < b1 ) );
-End;
-
-{*
--------------------------------------------------------------------------------
-Returns 1 if the 64-bit value formed by concatenating `a0' and `a1' is not
-equal to the 64-bit value formed by concatenating `b0' and `b1'.  Otherwise,
-returns 0.
--------------------------------------------------------------------------------
-*}
-Function ne64( a0: bits32; a1:bits32 ;b0:bits32; b1:bits32 ): flag;
-Begin
-    ne64:= flag( a0 <> b0 ) or flag( a1 <> b1 );
 End;
 
 const
@@ -1796,7 +1761,7 @@ Function float32_is_signaling_nan( a : float32  ): flag;
 Begin
 
     float32_is_signaling_nan := flag
-      ( ( ( a shr 22 ) and $1FF ) = $1FE ) and( a and $003FFFFF );
+      (( ( ( a shr 22 ) and $1FF ) = $1FE ) and (( a and $003FFFFF )<>0));
 
 End;
 
@@ -1912,8 +1877,8 @@ Function float64_is_nan( a : float64 ) : flag;
 Begin
 
     float64_is_nan :=
-           flag( $FFE00000 <= bits32 ( a.high shl 1 ) )
-        and ( a.low or ( a.high and $000FFFFF ) );
+           flag(( $FFE00000 <= bits32 ( a.high shl 1 ) )
+        and (( a.low or ( a.high and $000FFFFF ) )<>0));
 
 End;
 
@@ -2352,7 +2317,7 @@ var
 Returns the fraction bits of the single-precision floating-point value `a'.
 -------------------------------------------------------------------------------
 *}
-Function ExtractFloat32Frac(a : Float32) : Bits32;
+Function ExtractFloat32Frac(a : Float32) : Bits32; inline;
  Begin
     ExtractFloat32Frac := A AND $007FFFFF;
  End;
@@ -2362,7 +2327,7 @@ Function ExtractFloat32Frac(a : Float32) : Bits32;
 Returns the exponent bits of the single-precision floating-point value `a'.
 -------------------------------------------------------------------------------
 *}
-Function extractFloat32Exp( a: float32 ): Int16;
+Function extractFloat32Exp( a: float32 ): Int16; inline;
   Begin
     extractFloat32Exp := (a shr 23) AND $FF;
   End;
@@ -2372,7 +2337,7 @@ Function extractFloat32Exp( a: float32 ): Int16;
 Returns the sign bit of the single-precision floating-point value `a'.
 -------------------------------------------------------------------------------
 *}
-Function extractFloat32Sign( a: float32 ): Flag;
+Function extractFloat32Sign( a: float32 ): Flag; inline;
   Begin
     extractFloat32Sign := a shr 31;
   End;
@@ -2407,7 +2372,7 @@ than the desired result exponent whenever `zSig' is a complete, normalized
 significand.
 -------------------------------------------------------------------------------
 *}
-Function packFloat32( zSign: Flag; zExp : Int16; zSig: Bits32 ): Float32;
+Function packFloat32( zSign: Flag; zExp : Int16; zSig: Bits32 ): Float32; inline;
  Begin
 
     packFloat32 := ( ( bits32( zSign) ) shl 31 ) + ( ( bits32 (zExp) ) shl 23 )
@@ -2439,20 +2404,15 @@ Binary Floating-Point Arithmetic.
 *}
 Function roundAndPackFloat32( zSign : Flag; zExp : Int16; zSig : Bits32 ) : float32;
  Var
-   roundingMode : BYTE;
-   roundNearestEven : Flag;
+   roundingMode : TFPURoundingMode;
+   roundNearestEven : boolean;
    roundIncrement, roundBits : BYTE;
-   IsTiny : Flag;
+   IsTiny : boolean;
  Begin
     roundingMode := softfloat_rounding_mode;
-    if (roundingMode = float_round_nearest_even) then
-      Begin
-        roundNearestEven := Flag(TRUE);
-      end
-    else
-       roundNearestEven := Flag(FALSE);
+    roundNearestEven := (roundingMode = float_round_nearest_even);
     roundIncrement := $40;
-    if ( Boolean(roundNearestEven)  = FALSE)  then
+    if not roundNearestEven then
       Begin
         if ( roundingMode = float_round_to_zero ) Then
           Begin
@@ -2476,30 +2436,29 @@ Function roundAndPackFloat32( zSign : Flag; zExp : Int16; zSig : Bits32 ) : floa
      Begin
         if (( $FD < zExp ) OR  ( zExp = $FD ) AND ( sbits32 ( zSig + roundIncrement ) < 0 ) ) then
           Begin
-             float_raise( float_flag_overflow OR float_flag_inexact );
+             float_raise( [float_flag_overflow,float_flag_inexact] );
              roundAndPackFloat32:=packFloat32( zSign, $FF, 0 ) - Flag( roundIncrement = 0 );
              exit;
           End;
         if ( zExp < 0 ) then
           Begin
             isTiny :=
-                   flag(( softfloat_detect_tininess = float_tininess_before_rounding )
+                   ( softfloat_detect_tininess = float_tininess_before_rounding )
                 OR ( zExp < -1 )
-                OR ( (zSig + roundIncrement) < $80000000 ));
+                OR ( (zSig + roundIncrement) < $80000000 );
             shift32RightJamming( zSig, - zExp, zSig );
             zExp := 0;
             roundBits := zSig AND $7F;
-            if ( (isTiny = flag(TRUE)) and (roundBits<>0) ) then
+            if ( isTiny and (roundBits<>0) ) then
                float_raise( float_flag_underflow );
           End;
     End;
     if ( roundBits )<> 0 then
-       softfloat_exception_flags := float_flag_inexact OR softfloat_exception_flags;
+       set_inexact_flag;
     zSig := ( zSig + roundIncrement ) shr 7;
-    zSig := zSig AND not bits32( bits32( ( roundBits XOR $40 ) = 0 ) and roundNearestEven );
+    zSig := zSig AND not bits32( bits32( ( roundBits XOR $40 ) = 0 ) and ord(roundNearestEven) );
     if ( zSig = 0 ) then zExp := 0;
     roundAndPackFloat32 := packFloat32( zSign, zExp, zSig );
-    exit;
   End;
 
 {*
@@ -2526,7 +2485,7 @@ Returns the most-significant 20 fraction bits of the double-precision
 floating-point value `a'.
 -------------------------------------------------------------------------------
 *}
-Function extractFloat64Frac0(a: float64): bits32;
+Function extractFloat64Frac0(a: float64): bits32; inline;
   Begin
     extractFloat64Frac0 := a.high and $000FFFFF;
   End;
@@ -2537,14 +2496,14 @@ Returns the least-significant 32 fraction bits of the double-precision
 floating-point value `a'.
 -------------------------------------------------------------------------------
 *}
-Function extractFloat64Frac1(a: float64): bits32;
+Function extractFloat64Frac1(a: float64): bits32; inline;
   Begin
     extractFloat64Frac1 := a.low;
   End;
 
 
 {$define FPC_SYSTEM_HAS_extractFloat64Frac}
-Function extractFloat64Frac(a: float64): bits64;
+Function extractFloat64Frac(a: float64): bits64; inline;
   Begin
     extractFloat64Frac := bits64(a) and $000FFFFFFFFFFFFF;
   End;
@@ -2554,7 +2513,7 @@ Function extractFloat64Frac(a: float64): bits64;
 Returns the exponent bits of the double-precision floating-point value `a'.
 -------------------------------------------------------------------------------
 *}
-Function extractFloat64Exp(a: float64): int16;
+Function extractFloat64Exp(a: float64): int16; inline;
  Begin
     extractFloat64Exp:= ( a.high shr 20 ) AND $7FF;
  End;
@@ -2564,7 +2523,7 @@ Function extractFloat64Exp(a: float64): int16;
 Returns the sign bit of the double-precision floating-point value `a'.
 -------------------------------------------------------------------------------
 *}
-Function extractFloat64Sign(a: float64) : flag;
+Function extractFloat64Sign(a: float64) : flag; inline;
  Begin
     extractFloat64Sign := a.high shr 31;
  End;
@@ -2690,7 +2649,7 @@ Procedure
  roundAndPackFloat64(
      zSign: Flag; zExp: Int16; zSig0: Bits32; zSig1: Bits32; zSig2: Bits32; Var c: Float64 );
  Var
-   roundingMode : Int8;
+   roundingMode : TFPURoundingMode;
    roundNearestEven, increment, isTiny : Flag;
  Begin
 
@@ -2705,11 +2664,11 @@ Procedure
           Begin
             if ( zSign )<> 0 then
               Begin
-                increment := flag( roundingMode = float_round_down ) and zSig2;
+                increment := flag(( roundingMode = float_round_down ) and (zSig2<>0));
               End
             else
               Begin
-                increment := flag( roundingMode = float_round_up ) and zSig2;
+                increment := flag(( roundingMode = float_round_up ) and (zSig2<>0));
               End
           End
       End;
@@ -2717,12 +2676,12 @@ Procedure
       Begin
         if (( $7FD < zExp )
              or (( zExp = $7FD )
-                  and (eq64( $001FFFFF, $FFFFFFFF, zSig0, zSig1 )<>0)
-                  and (increment<>0)
+                   and (zSig0=$001FFFFF) and (zSig1=$FFFFFFFF)
+                   and (increment<>0)
                 )
            ) then
            Begin
-            float_raise( float_flag_overflow OR  float_flag_inexact );
+            float_raise( [float_flag_overflow,float_flag_inexact] );
             if (( roundingMode = float_round_to_zero )
                  or ( (zSign<>0) and ( roundingMode = float_round_up ) )
                  or ( (zSign = 0) and ( roundingMode = float_round_down ) )
@@ -2753,17 +2712,17 @@ Procedure
               Begin
                 if ( zSign )<>0 then
                   Begin
-                    increment := flag( roundingMode = float_round_down ) and zSig2;
+                    increment := flag(( roundingMode = float_round_down ) and (zSig2<>0));
                   End
                 else
                   Begin
-                    increment := flag( roundingMode = float_round_up ) and zSig2;
+                    increment := flag(( roundingMode = float_round_up ) and (zSig2<>0));
                   End
               End;
         End;
     End;
     if ( zSig2 )<>0 then
-       softfloat_exception_flags := softfloat_exception_flags OR  float_flag_inexact;
+       set_inexact_flag;
     if ( increment )<>0 then
       Begin
         add64( zSig0, zSig1, 0, 1, zSig0, zSig1 );
@@ -2800,7 +2759,7 @@ Procedure
 
 function roundAndPackFloat64( zSign: flag; zExp: int16; zSig : bits64): float64;
 var
-    roundingMode: int8;
+    roundingMode: TFPURoundingMode;
     roundNearestEven: flag;
     roundIncrement, roundBits: int16;
     isTiny: flag;
@@ -2835,7 +2794,7 @@ begin
                   and ( sbits64( zSig + roundIncrement ) < 0 ) )
            ) then
            begin
-            float_raise( float_flag_overflow or float_flag_inexact );
+            float_raise( [float_flag_overflow,float_flag_inexact] );
             result := float64(qword(packFloat64( zSign, $7FF, 0 )) - ord( roundIncrement = 0 ));
             exit;
         end;
@@ -2853,7 +2812,7 @@ begin
         end
     end;
     if ( roundBits<>0 ) then
-      softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+      set_inexact_flag;
     zSig := ( zSig + roundIncrement ) shr 10;
     zSig := zSig and not(qword(ord( ( roundBits xor $200 ) = 0 ) and roundNearestEven ));
     if ( zSig = 0 ) then
@@ -2900,6 +2859,25 @@ Procedure
     zExp := zExp - shiftCount;
     roundAndPackFloat64( zSign, zExp, zSig0, zSig1, zSig2, c );
   End;
+
+{*
+----------------------------------------------------------------------------
+Takes an abstract floating-point value having sign `zSign', exponent `zExp',
+and significand `zSig', and returns the proper double-precision floating-
+point value corresponding to the abstract input.  This routine is just like
+`roundAndPackFloat64' except that `zSig' does not have to be normalized.
+Bit 63 of `zSig' must be zero, and `zExp' must be 1 less than the ``true''
+floating-point exponent.
+----------------------------------------------------------------------------
+*}
+
+function normalizeRoundAndPackFloat64(zSign: flag; zExp: int16; zSig: bits64): float64;
+  var
+    shiftCount: int8;
+  begin
+    shiftCount := countLeadingZeros64( zSig ) - 1;
+    result := roundAndPackFloat64( zSign, zExp - shiftCount, zSig shl shiftCount);
+  end;
 
 {*
 -------------------------------------------------------------------------------
@@ -3053,7 +3031,7 @@ Function float32_to_int32( a : float32rec) : int32;compilerproc;
     aExp, shiftCount: int16;
     aSig, aSigExtra: bits32;
     z: int32;
-    roundingMode: int8;
+    roundingMode: TFPURoundingMode;
   Begin
 
     aSig := extractFloat32Frac( a.float32 );
@@ -3093,8 +3071,7 @@ Function float32_to_int32( a : float32rec) : int32;compilerproc;
             z := aSig shr ( - shiftCount );
          End;
         if ( aSigExtra<>0 ) then
-          softfloat_exception_flags := softfloat_exception_flags
-             or float_flag_inexact;
+          set_inexact_flag;
         roundingMode := softfloat_rounding_mode;
         if ( roundingMode = float_round_nearest_even ) then
           Begin
@@ -3164,8 +3141,7 @@ Function float32_to_int32_round_to_zero( a: Float32rec ): int32;compilerproc;
       if ( aExp <= $7E ) then
       Begin
         if ( aExp or aSig )<>0 then
-           softfloat_exception_flags :=
-             softfloat_exception_flags or float_flag_inexact;
+           set_inexact_flag;
         float32_to_int32_round_to_zero := 0;
         exit;
       End;
@@ -3173,8 +3149,7 @@ Function float32_to_int32_round_to_zero( a: Float32rec ): int32;compilerproc;
     z := aSig shr ( - shiftCount );
     if ( bits32 ( aSig shl ( shiftCount and 31 ) )<> 0 ) then
       Begin
-           softfloat_exception_flags :=
-             softfloat_exception_flags or float_flag_inexact;
+        set_inexact_flag;
       End;
     if ( aSign<>0 ) then z := - z;
     float32_to_int32_round_to_zero := z;
@@ -3251,7 +3226,7 @@ begin
         exit;
     end
     else if ( aExp <= $7E ) then begin
-        if ( aExp or aSig <> 0 ) then softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+        if ( aExp or aSig <> 0 ) then set_inexact_flag;
         result := 0;
         exit;
     end;
@@ -3259,7 +3234,7 @@ begin
     aSig64 := aSig64 shl 40;
     z := aSig64 shr ( - shiftCount );
     if bits64( aSig64 shl ( shiftCount and 63 ) ) <> 0 then
-        softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+        set_inexact_flag;
     if ( aSign <> 0 ) then z := - z;
     result := z;
 end;
@@ -3416,7 +3391,7 @@ Function float32_round_to_int( a: float32rec): float32rec;compilerproc;
     aSign: flag;
     aExp: int16;
     lastBitMask, roundBitsMask: bits32;
-    roundingMode: int8;
+    roundingMode: TFPURoundingMode;
     z: float32;
   Begin
     aExp := extractFloat32Exp( a.float32 );
@@ -3437,8 +3412,7 @@ Function float32_round_to_int( a: float32rec): float32rec;compilerproc;
              float32_round_to_int:=a;
              exit;
           end;
-        softfloat_exception_flags
-          := softfloat_exception_flags OR  float_flag_inexact;
+        set_inexact_flag;
         aSign := extractFloat32Sign( a.float32 );
 
         case ( softfloat_rounding_mode ) of
@@ -3491,7 +3465,7 @@ Function float32_round_to_int( a: float32rec): float32rec;compilerproc;
       End;
     z := z and not roundBitsMask;
     if ( z <> a.float32 ) then
-      softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+      set_inexact_flag;
     float32_round_to_int.float32 := z;
   End;
 
@@ -3777,7 +3751,7 @@ Function float32_mul(a: float32rec; b: float32rec ) : float32rec; compilerproc;
             float32_mul.float32 := propagateFloat32NaN( a.float32, b.float32 );
             exit;
         End;
-        if ( ( bExp OR  bSig ) = 0 ) then
+        if ( ( bits32(bExp) OR  bSig ) = 0 ) then
         Begin
             float_raise( float_flag_invalid );
             float32_mul.float32 := float32_default_nan;
@@ -3793,7 +3767,7 @@ Function float32_mul(a: float32rec; b: float32rec ) : float32rec; compilerproc;
            float32_mul.float32 := propagateFloat32NaN( a.float32, b.float32 );
            exit;
         End;
-        if ( ( aExp OR  aSig ) = 0 ) then
+        if ( ( bits32(aExp) OR  aSig ) = 0 ) then
         Begin
             float_raise( float_flag_invalid );
             float32_mul.float32 := float32_default_nan;
@@ -3888,7 +3862,7 @@ Function float32_div(a: float32rec;b: float32rec ): float32rec; compilerproc;
     Begin
         if ( bSig = 0 ) Then
         Begin
-            if ( ( aExp OR  aSig ) = 0 ) then
+            if ( ( bits32(aExp) OR  aSig ) = 0 ) then
             Begin
                 float_raise( float_flag_invalid );
                 float32_div.float32 := float32_default_nan;
@@ -4086,7 +4060,7 @@ Begin
     End;
     if ( aSign <> 0) then
     Begin
-        if ( ( aExp OR  aSig ) = 0 ) then
+        if ( ( bits32(aExp) OR  aSig ) = 0 ) then
         Begin
            float32_sqrt := a;
            exit;
@@ -4325,7 +4299,7 @@ var
     aExp, shiftCount: int16;
     aSig0, aSig1, absZ, aSigExtra: bits32;
     z: int32;
-    roundingMode: int8;
+    roundingMode: TFPURoundingMode;
     label invalid;
 Begin
     aSig1 := extractFloat64Frac1( a );
@@ -4399,7 +4373,7 @@ Begin
         exit;
     End;
     if ( aSigExtra <> 0) then
-       softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+      set_inexact_flag;
     float64_to_int32 := z;
 End;
 
@@ -4444,10 +4418,9 @@ Var
     Begin
         if ( aExp < $3FF ) then
         Begin
-            if ( aExp OR  aSig0 OR  aSig1 )<>0 then
+            if ( bits32(aExp) OR  aSig0 OR  aSig1 )<>0 then
             Begin
-                softfloat_exception_flags :=
-                  softfloat_exception_flags or float_flag_inexact;
+              set_inexact_flag;
             End;
             float64_to_int32_round_to_zero := 0;
             exit;
@@ -4471,7 +4444,7 @@ Var
         exit;
     End;
     if ( aSigExtra <> 0) then
-       softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+       set_inexact_flag;
     float64_to_int32_round_to_zero := z;
  End;
 
@@ -4559,13 +4532,13 @@ begin
     end
     else begin
         if ( aExp < $3FE ) then begin
-            if ( aExp or aSig <> 0 ) then softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+            if ( aExp or aSig <> 0 ) then set_inexact_flag;
             result := 0;
             exit;
         end;
         z := aSig shr ( - shiftCount );
         if ( bits64( aSig shl ( shiftCount and 63 ) ) <> 0 ) then
-            softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+          set_inexact_flag;
     end;
     if ( aSign <> 0 ) then z := - z;
     result := z;
@@ -4662,7 +4635,7 @@ Var
     aSign: flag;
     aExp: int16;
     lastBitMask, roundBitsMask: bits32;
-    roundingMode: int8;
+    roundingMode: TFPURoundingMode;
     z: float64;
 Begin
     aExp := extractFloat64Exp( a );
@@ -4725,8 +4698,7 @@ Begin
                 result := a;
                 exit;
             End;
-            softfloat_exception_flags := softfloat_exception_flags or
-               float_flag_inexact;
+            set_inexact_flag;
             aSign := extractFloat64Sign( a );
             case ( softfloat_rounding_mode ) of
              float_round_nearest_even:
@@ -4787,8 +4759,7 @@ Begin
     End;
     if ( ( z.low <> a.low ) OR ( z.high <> a.high ) ) then
     Begin
-        softfloat_exception_flags :=
-          softfloat_exception_flags or float_flag_inexact;
+       set_inexact_flag;
     End;
     result := z;
 End;
@@ -5095,7 +5066,7 @@ Begin
             propagateFloat64NaN( a, b, result );
             exit;
         End;
-        if ( ( bExp OR  bSig0 OR  bSig1 ) = 0 ) then goto invalid;
+        if ( ( bits32(bExp) OR  bSig0 OR  bSig1 ) = 0 ) then goto invalid;
         packFloat64( zSign, $7FF, 0, 0, result );
         exit;
     End;
@@ -5210,7 +5181,7 @@ Begin
     Begin
         if ( ( bSig0 OR  bSig1 ) = 0 ) then
         Begin
-            if ( ( aExp OR  aSig0 OR  aSig1 ) = 0 ) then
+            if ( ( bits32(aExp) OR  aSig0 OR  aSig1 ) = 0 ) then
             Begin
  invalid:
                 float_raise( float_flag_invalid );
@@ -5413,14 +5384,13 @@ The operation is performed according to the IEC/IEEE Standard for Binary
 Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_sqrt( a: float64; var out: float64 );
+function float64_sqrt( a: float64 ): float64;
 {$ifdef fpc}[public,Alias:'FLOAT64_SQRT'];compilerproc;{$endif}
 Var
     aSign: flag;
     aExp, zExp: int16;
     aSig0, aSig1, zSig0, zSig1, zSig2, doubleZSig0: bits32;
     rem0, rem1, rem2, rem3, term0, term1, term2, term3: bits32;
-    z: float64;
     label invalid;
 Begin
     aSig1 := extractFloat64Frac1( a );
@@ -5431,35 +5401,34 @@ Begin
     Begin
         if ( aSig0 OR  aSig1 ) <> 0 then
         Begin
-           propagateFloat64NaN( a, a, out );
+           propagateFloat64NaN( a, a, result );
            exit;
         End;
         if ( aSign = 0) then
         Begin
-          out := a;
+          result := a;
           exit;
         End;
         goto invalid;
     End;
     if ( aSign <> 0 ) then
     Begin
-        if ( ( aExp OR  aSig0 OR  aSig1 ) = 0 ) then
+        if ( ( bits32(aExp) OR  aSig0 OR  aSig1 ) = 0 ) then
         Begin
-           out := a;
+           result := a;
            exit;
         End;
  invalid:
         float_raise( float_flag_invalid );
-        z.low := float64_default_nan_low;
-        z.high := float64_default_nan_high;
-        out := z;
+        result.low := float64_default_nan_low;
+        result.high := float64_default_nan_high;
         exit;
     End;
     if ( aExp = 0 ) then
     Begin
         if ( ( aSig0 OR  aSig1 ) = 0 ) then
         Begin
-           packFloat64( 0, 0, 0, 0, out );
+           packFloat64( 0, 0, 0, 0, result );
            exit;
         End;
         normalizeFloat64Subnormal( aSig0, aSig1, aExp, aSig0, aSig1 );
@@ -5500,7 +5469,7 @@ Begin
         zSig1 := zSig1 or bits32( ( rem1 OR  rem2 OR  rem3 ) <> 0 );
     End;
     shift64ExtraRightJamming( zSig0, zSig1, 0, 10, zSig0, zSig1, zSig2 );
-    roundAndPackFloat64( 0, zExp, zSig0, zSig1, zSig2, out );
+    roundAndPackFloat64( 0, zExp, zSig0, zSig1, zSig2, result );
 End;
 
 {*
@@ -5787,7 +5756,6 @@ var
     zSign : flag;
     absA : uint64;
     shiftCount: int8;
-    intval : int64rec;
 Begin
     if ( a = 0 ) then
       begin
@@ -5811,14 +5779,7 @@ Begin
        begin
         shiftCount := shiftCount + 7;
         if ( shiftCount < 0 ) then
-          begin
-            intval.low := int64rec(AbsA).low;
-            intval.high := int64rec(AbsA).high;
-            shift64RightJamming( intval.high, intval.low, - shiftCount,
-               intval.high, intval.low);
-            int64rec(absA).low := intval.low;
-            int64rec(absA).high := intval.high;
-          end
+            shift64RightJamming( absA, - shiftCount, absA )
         else
             absA := absA shl shiftCount;
         int64_to_float32.float32:=roundAndPackFloat32( zSign, $9C - shiftCount, absA );
@@ -5833,38 +5794,28 @@ End;
 *----------------------------------------------------------------------------*}
 function qword_to_float32( a: qword ): float32rec; compilerproc;
 var
-    zSign : flag;
     absA : uint64;
     shiftCount: int8;
-    intval : int64rec;
 Begin
     if ( a = 0 ) then
       begin
        qword_to_float32.float32 := 0;
        exit;
       end;
-    zSign := flag(FALSE);
     absA := a;
     shiftCount := countLeadingZeros64( absA ) - 40;
     if ( 0 <= shiftCount ) then
       begin
-        qword_to_float32.float32:= packFloat32( zSign, $95 - shiftCount, absA shl shiftCount );
+        qword_to_float32.float32:= packFloat32( 0, $95 - shiftCount, absA shl shiftCount );
       end
     else
        begin
         shiftCount := shiftCount + 7;
         if ( shiftCount < 0 ) then
-          begin
-            intval.low := int64rec(AbsA).low;
-            intval.high := int64rec(AbsA).high;
-            shift64RightJamming( intval.high, intval.low, - shiftCount,
-               intval.high, intval.low);
-            int64rec(absA).low := intval.low;
-            int64rec(absA).high := intval.high;
-          end
+            shift64RightJamming( absA, - shiftCount, absA )
         else
             absA := absA shl shiftCount;
-        qword_to_float32.float32:=roundAndPackFloat32( zSign, $9C - shiftCount, absA );
+        qword_to_float32.float32:=roundAndPackFloat32( 0, $9C - shiftCount, absA );
       end;
 End;
 
@@ -5877,33 +5828,25 @@ End;
 function qword_to_float64( a: qword ): float64;
 {$ifdef fpc}[public,Alias:'QWORD_TO_FLOAT64'];compilerproc;{$endif}
 var
- zSign : flag;
- float_result : float64;
- AbsA : bits64;
- shiftcount : int8;
- zSig0, zSig1 : bits32;
+  shiftCount: int8;
 Begin
-    if ( a = 0 ) then
-      Begin
-       packFloat64( 0, 0, 0, 0, result );
-       exit;
-      end;
-    zSign := flag(FALSE);
-    AbsA := a;
-    shiftCount := countLeadingZeros64( absA ) - 11;
-    if ( 0 <= shiftCount ) then
-      Begin
-        absA := absA shl shiftcount;
-        zSig0:=int64rec(absA).high;
-        zSig1:=int64rec(absA).low;
-      End
-    else
-      Begin
-        shift64Right( int64rec(absA).high, int64rec(absA).low,
-                      - shiftCount, zSig0, zSig1 );
-      End;
-    packFloat64( zSign, $432 - shiftCount, zSig0, zSig1, float_result );
-    qword_to_float64:= float_result;
+  if ( a = 0 ) then
+    result := packFloat64( 0, 0, 0 )
+  else
+    begin
+      shiftCount := countLeadingZeros64(a) - 1;
+      { numbers with <= 53 significant bits are converted exactly }
+      if (shiftCount > 9) then
+        result := packFloat64(0, $43c - shiftCount, a shl (shiftCount-10))
+      else if (shiftCount>=0) then
+        result := roundAndPackFloat64( 0, $43c - shiftCount, a shl shiftCount)
+      else
+        begin
+          { the only possible negative value is -1, in case bit 63 of 'a' is set }
+          shift64RightJamming(a, 1, a);
+          result := roundAndPackFloat64(0, $43d, a);
+        end;
+    end;
 End;
 
 
@@ -5915,37 +5858,15 @@ End;
 *----------------------------------------------------------------------------*}
 function int64_to_float64( a: int64 ): float64;
 {$ifdef fpc}[public,Alias:'INT64_TO_FLOAT64'];compilerproc;{$endif}
-var
- zSign : flag;
- float_result : float64;
- AbsA : bits64;
- shiftcount : int8;
- zSig0, zSig1 : bits32;
 Begin
-    if ( a = 0 ) then
-      Begin
-       packFloat64( 0, 0, 0, 0, result );
-       exit;
-      end;
-    zSign := flag( a < 0 );
-    if ZSign<>0 then
-      AbsA := -a
-    else
-      AbsA := a;
-    shiftCount := countLeadingZeros64( absA ) - 11;
-    if ( 0 <= shiftCount ) then
-      Begin
-        absA := absA shl shiftcount;
-        zSig0:=int64rec(absA).high;
-        zSig1:=int64rec(absA).low;
-      End
-    else
-      Begin
-        shift64Right( int64rec(absA).high, int64rec(absA).low,
-                      - shiftCount, zSig0, zSig1 );
-      End;
-    packFloat64( zSign, $432 - shiftCount, zSig0, zSig1, float_result );
-    int64_to_float64:= float_result;
+  if ( a = 0 ) then
+    result := packFloat64( 0, 0, 0 )
+  else if (a = int64($8000000000000000)) then
+    result := packFloat64( 1, $43e, 0 )
+  else if (a < 0) then
+    result := normalizeRoundAndPackFloat64( 1, $43c, -a )
+  else
+    result := normalizeRoundAndPackFloat64( 0, $43c, a );
 End;
 
 
@@ -6365,7 +6286,7 @@ begin
             zExp := 0;
             roundBits := zSig0 and roundMask;
             if ( isTiny <> 0 ) and ( roundBits <> 0 ) then float_raise( float_flag_underflow );
-            if ( roundBits <> 0 ) then softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+            if ( roundBits <> 0 ) then set_inexact_flag;
             inc( zSig0, roundIncrement );
             if ( sbits64( zSig0 ) < 0 ) then zExp := 1;
             roundIncrement := roundMask + 1;
@@ -6377,7 +6298,7 @@ begin
             exit;
         end;
     end;
-    if ( roundBits <> 0 ) then softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+    if ( roundBits <> 0 ) then set_inexact_flag;
     inc( zSig0, roundIncrement );
     if ( zSig0 < roundIncrement ) then begin
         inc(zExp);
@@ -6415,7 +6336,7 @@ begin
            ) then begin
             roundMask := 0;
  overflow:
-            float_raise( float_flag_overflow or float_flag_inexact );
+            float_raise( [float_flag_overflow,float_flag_inexact] );
             if (    ( roundingMode = float_round_to_zero )
                  or ( ( zSign <> 0) and ( roundingMode = float_round_up ) )
                  or ( ( zSign = 0) and ( roundingMode = float_round_down ) )
@@ -6435,7 +6356,7 @@ begin
             shift64ExtraRightJamming( zSig0, zSig1, 1 - zExp, zSig0, zSig1 );
             zExp := 0;
             if ( ( isTiny <> 0 ) and ( zSig1 <> 0 ) ) then float_raise( float_flag_underflow );
-            if ( zSig1 <> 0 ) then softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+            if ( zSig1 <> 0 ) then set_inexact_flag;
             if ( roundNearestEven <> 0 ) then begin
                 increment := ord( sbits64( zSig1 ) < 0 );
             end
@@ -6457,7 +6378,7 @@ begin
             exit;
         end;
     end;
-    if ( zSig1 <> 0 ) then softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+    if ( zSig1 <> 0 ) then set_inexact_flag;
     if ( increment <> 0 ) then begin
         inc(zSig0);
         if ( zSig0 = 0 ) then begin
@@ -6555,7 +6476,7 @@ begin
         goto invalid;
     end
     else if ( aExp < $3FFF ) then begin
-        if ( aExp or aSig <> 0 ) then softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+        if ( aExp or aSig <> 0 ) then set_inexact_flag;
         result := 0;
         exit;
     end;
@@ -6571,7 +6492,7 @@ begin
         exit;
     end;
     if ( ( aSig shl shiftCount ) <> savedASig ) then begin
-        softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+        set_inexact_flag;
     end;
     result := z;
 
@@ -6654,13 +6575,13 @@ begin
         exit;
     end
     else if ( aExp < $3FFF ) then begin
-        if ( aExp or aSig <> 0 ) then softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+        if ( aExp or aSig <> 0 ) then set_inexact_flag;
         result := 0;
         exit;
     end;
     z := aSig shr ( - shiftCount );
     if bits64( aSig shl ( shiftCount and 63 ) ) <> 0 then begin
-        softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+        set_inexact_flag;
     end;
     if ( aSign <> 0 ) then z := - z;
     result := z;
@@ -6716,7 +6637,7 @@ end;
 
 function floatx80_is_nan(a : floatx80 ): flag;
 begin
-    result := ord( ( ( a.high and $7FFF ) = $7FFF ) and ( bits64( a.low<<1 ) <> 0 ) );
+    result := ord( ( ( a.high and $7FFF ) = $7FFF ) and ( bits64( a.low shl 1 ) <> 0 ) );
 end;
 
 {*----------------------------------------------------------------------------
@@ -6883,7 +6804,7 @@ begin
             result := a;
             exit;
         end;
-        softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+        set_inexact_flag;
         aSign := extractFloatx80Sign( a );
         case softfloat_rounding_mode of
          float_round_nearest_even:
@@ -6930,7 +6851,7 @@ begin
         inc(z.high);
         z.low := bits64( $8000000000000000 );
     end;
-    if ( z.low <> a.low ) then softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+    if ( z.low <> a.low ) then set_inexact_flag;
     result := z;
 
 end;
@@ -7467,8 +7388,8 @@ begin
         end;
         normalizeFloatx80Subnormal( aSig0, aExp, aSig0 );
     end;
-    zExp := ( ( aExp - $3FFF )>>1 ) + $3FFF;
-    zSig0 := estimateSqrt32( aExp, aSig0>>32 );
+    zExp := ( ( aExp - $3FFF ) shr 1 ) + $3FFF;
+    zSig0 := estimateSqrt32( aExp, aSig0 shr 32 );
     shift128Right( aSig0, 0, 2 + ( aExp and 1 ), aSig0, aSig1 );
     zSig0 := estimateDiv128To64( aSig0, aSig1, zSig0 shl 32 ) + ( zSig0 shl 30 );
     doubleZSig0 := zSig0 shl 1;
@@ -7477,7 +7398,7 @@ begin
     while ( sbits64( rem0 ) < 0 ) do begin
         dec(zSig0);
         dec( doubleZSig0, 2 );
-        add128( rem0, rem1, zSig0>>63, doubleZSig0 or 1, rem0, rem1 );
+        add128( rem0, rem1, zSig0 shr 63, doubleZSig0 or 1, rem0, rem1 );
     end;
     zSig1 := estimateDiv128To64( rem1, 0, doubleZSig0 );
     if ( ( zSig1 and $3FFFFFFFFFFFFFFF ) <= 5 ) then begin
@@ -7866,7 +7787,7 @@ begin
                 )
            )<>0 then
            begin
-            float_raise( float_flag_overflow or float_flag_inexact );
+            float_raise( [float_flag_overflow,float_flag_inexact] );
             if (    ord( roundingMode = float_round_to_zero )
                  or ( zSign and ord( roundingMode = float_round_up ) )
                  or ( ord( zSign = 0) and ord( roundingMode = float_round_down ) )
@@ -7917,7 +7838,7 @@ begin
         end;
     end;
     if ( zSig2<>0 ) then
-      softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+      set_inexact_flag;
     if ( increment<>0 ) then
     begin
         add128( zSig0, zSig1, 0, 1, zSig0, zSig1 );
@@ -8031,7 +7952,7 @@ begin
     else if ( aExp < $3FFF ) then
     begin
         if ( aExp or aSig0 )<>0 then
-          softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+          set_inexact_flag;
         result := 0;
         exit;
     end;
@@ -8054,7 +7975,7 @@ begin
     end;
     if ( ( aSig0 shl shiftCount ) <> savedASig ) then
     begin
-        softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+        set_inexact_flag;
     end;
     result := z;
 end;
@@ -8141,7 +8062,7 @@ begin
                  and ( aSig1 < int64( $0002000000000000 ) ) ) then
             begin
                 if ( aSig1<>0 ) then
-                  softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+                  set_inexact_flag;
             end
             else begin
                 float_raise( float_flag_invalid );
@@ -8154,10 +8075,10 @@ begin
             result := int64( $8000000000000000 );
             exit;
         end;
-        z := ( aSig0 shl shiftCount ) or ( aSig1>>( ( - shiftCount ) and 63 ) );
+        z := ( aSig0 shl shiftCount ) or ( aSig1 shr ( ( - shiftCount ) and 63 ) );
         if ( int64( aSig1 shl shiftCount )<>0 ) then
         begin
-            softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+            set_inexact_flag;
         end;
     end
     else begin
@@ -8165,7 +8086,7 @@ begin
         begin
             if ( aExp or aSig0 or aSig1 )<>0 then
             begin
-                softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+                set_inexact_flag;
             end;
             result := 0;
             exit;
@@ -8174,7 +8095,7 @@ begin
         if (    (aSig1<>0)
              or ( (shiftCount<>0) and (int64( aSig0 shl ( shiftCount and 63 ) )<>0) ) ) then
         begin
-            softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+            set_inexact_flag;
         end;
     end;
     if ( aSign<>0 ) then
@@ -8375,7 +8296,7 @@ begin
                 result := a;
                 exit;
               end;
-            softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+            set_inexact_flag;
             aSign := extractFloat128Sign( a );
             case softfloat_rounding_mode of
             float_round_nearest_even:
@@ -8430,7 +8351,7 @@ begin
         z.high := z.high and not(roundBitsMask);
     end;
     if ( ( z.low <> a.low ) or ( z.high <> a.high ) ) then begin
-        softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+        set_inexact_flag;
     end;
     result := z;
 
@@ -9048,9 +8969,9 @@ begin
         end;
         normalizeFloat128Subnormal( aSig0, aSig1, aExp, aSig0, aSig1 );
     end;
-    zExp := ( ( aExp - $3FFF )>>1 ) + $3FFE;
+    zExp := ( ( aExp - $3FFF ) shr 1 ) + $3FFE;
     aSig0 := aSig0 or int64( $0001000000000000 );
-    zSig0 := estimateSqrt32( aExp, aSig0>>17 );
+    zSig0 := estimateSqrt32( aExp, aSig0 shr 17 );
     shortShift128Left( aSig0, aSig1, 13 - ( aExp and 1 ), aSig0, aSig1 );
     zSig0 := estimateDiv128To64( aSig0, aSig1, zSig0 shl 32 ) + ( zSig0 shl 30 );
     doubleZSig0 := zSig0 shl 1;

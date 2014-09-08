@@ -108,6 +108,11 @@
   {$define FSCaseInsensitive}
 {$endif}
 
+{$ifdef AROS}
+  {$define FSCaseInsensitive}
+  {$define WinClipSupported}
+{$endif}
+
 { --- Exclude debugger support --- }
 {.$DEFINE NODEBUG}
 

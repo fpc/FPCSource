@@ -28,7 +28,7 @@ function getaltfpustate(sigcontext:psigcontextrec):longint; {inline;}
 begin
   if assigned(sigcontext) then
     begin
-      if mmx_support then
+      if has_mmx_support then
         getaltfpustate:=sigcontext^.sc_fpustate^.xmmState.fx_fsw 
       else
         getaltfpustate:=sigcontext^.sc_fpustate^.x87state.en_sw 

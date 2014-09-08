@@ -27,7 +27,7 @@ var
   d,e,f : cardinal;
   res,res2 : int64;
   RTE201Buf : Jmp_Buf;
-  OldExit : pointer;
+  OldExit : codepointer;
 
 procedure RTE201Exit;
 begin

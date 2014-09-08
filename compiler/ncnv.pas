@@ -293,8 +293,8 @@ implementation
    uses
       globtype,systems,constexp,
       cutils,verbose,globals,widestr,
-      symconst,symdef,symsym,symtable,
-      ncon,ncal,nset,nadd,nmem,nmat,nbas,nutils,
+      symconst,symdef,symsym,symcpu,symtable,
+      ncon,ncal,nset,nadd,nmem,nmat,nbas,nutils,ninl,
       cgbase,procinfo,
       htypechk,pass_1,cpuinfo;
 
@@ -643,7 +643,7 @@ implementation
            p.free;
          end;
         { set the initial set type }
-        constp.resultdef:=tsetdef.create(hdef,constsetlo.svalue,constsethi.svalue);
+        constp.resultdef:=csetdef.create(hdef,constsetlo.svalue,constsethi.svalue);
         { determine the resultdef for the tree }
         typecheckpass(buildp);
         { set the new tree }
@@ -1048,7 +1048,7 @@ implementation
                    begin
                      pchtemp:=concatansistrings(tstringconstnode(left).value_str,pchar(StringOfChar(#0,arrsize-tstringconstnode(left).len)),tstringconstnode(left).len,arrsize-tstringconstnode(left).len);
                      left.free;
-                     left:=cstringconstnode.createpchar(pchtemp,arrsize);
+                     left:=cstringconstnode.createpchar(pchtemp,arrsize,nil);
                      typecheckpass(left);
                    end;
                  exit;
@@ -1125,9 +1125,11 @@ implementation
                               // Delphi converts UniocodeChar to ansistring at the compile time
                               // old behavior:
                               // hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)));
+                              para:=ccallparanode.create(left,nil);
+                              if tstringdef(resultdef).stringtype=st_ansistring then
+                                para:=ccallparanode.create(cordconstnode.create(getparaencoding(resultdef),u16inttype,true),para);
                               result:=ccallnode.createinternres('fpc_uchar_to_'+tstringdef(resultdef).stringtypname,
-                                   ccallparanode.create(cordconstnode.create(getparaencoding(resultdef),u16inttype,true),
-                                   ccallparanode.create(left,nil)),resultdef);
+                                para,resultdef);
                               left:=nil;
                               exit;
                             end
@@ -1159,57 +1161,35 @@ implementation
               (torddef(left.resultdef).ordtype=uwidechar) or
               (target_info.system in systems_managed_vm) then
              begin
-               if (tstringdef(resultdef).stringtype<>st_shortstring) then
+               { parameter }
+               para:=ccallparanode.create(left,nil);
+               { encoding required? }
+               if tstringdef(resultdef).stringtype=st_ansistring then
+                 para:=ccallparanode.create(cordconstnode.create(getparaencoding(resultdef),u16inttype,true),para);
+
+               { create the procname }
+               if torddef(left.resultdef).ordtype<>uwidechar then
                  begin
-                   { parameter }
-                   para:=ccallparanode.create(left,nil);
-                   { encoding required? }
-                   if tstringdef(resultdef).stringtype=st_ansistring then
-                     para:=ccallparanode.create(cordconstnode.create(getparaencoding(resultdef),u16inttype,true),para);
-
-                   { create the procname }
-                   if torddef(left.resultdef).ordtype<>uwidechar then
-                     begin
-                       procname:='fpc_char_to_';
-                       if tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring] then
-                         if nf_explicit in flags then
-                           Message2(type_w_explicit_string_cast,left.resultdef.typename,resultdef.typename)
-                         else
-                           Message2(type_w_implicit_string_cast,left.resultdef.typename,resultdef.typename);
-                     end
-                   else
-                     begin
-                       procname:='fpc_uchar_to_';
-                       if not (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) then
-                         if nf_explicit in flags then
-                           Message2(type_w_explicit_string_cast_loss,left.resultdef.typename,resultdef.typename)
-                         else
-                           Message2(type_w_implicit_string_cast_loss,left.resultdef.typename,resultdef.typename);
-                     end;
-                   procname:=procname+tstringdef(resultdef).stringtypname;
-
-                   { and finally the call }
-                   result:=ccallnode.createinternres(procname,para,resultdef);
+                   procname:='fpc_char_to_';
+                   if tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring] then
+                     if nf_explicit in flags then
+                       Message2(type_w_explicit_string_cast,left.resultdef.typename,resultdef.typename)
+                     else
+                       Message2(type_w_implicit_string_cast,left.resultdef.typename,resultdef.typename);
                  end
                else
                  begin
-                   if nf_explicit in flags then
-                     Message2(type_w_explicit_string_cast_loss,left.resultdef.typename,resultdef.typename)
-                   else
-                     Message2(type_w_implicit_string_cast_loss,left.resultdef.typename,resultdef.typename);
-                   newblock:=internalstatements(newstat);
-                   restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
-                   addstatement(newstat,restemp);
-                   if torddef(left.resultdef).ordtype<>uwidechar then
-                     procname := 'fpc_char_to_shortstr'
-                   else
-                     procname := 'fpc_uchar_to_shortstr';
-                   addstatement(newstat,ccallnode.createintern(procname,ccallparanode.create(left,ccallparanode.create(
-                     ctemprefnode.create(restemp),nil))));
-                   addstatement(newstat,ctempdeletenode.create_normal_temp(restemp));
-                   addstatement(newstat,ctemprefnode.create(restemp));
-                   result:=newblock;
+                   procname:='fpc_uchar_to_';
+                   if not (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) then
+                     if nf_explicit in flags then
+                       Message2(type_w_explicit_string_cast_loss,left.resultdef.typename,resultdef.typename)
+                     else
+                       Message2(type_w_implicit_string_cast_loss,left.resultdef.typename,resultdef.typename);
                  end;
+               procname:=procname+tstringdef(resultdef).stringtypname;
+
+               { and finally the call }
+               result:=ccallnode.createinternres(procname,para,resultdef);
                left := nil;
              end
            else
@@ -1448,8 +1428,7 @@ implementation
           result:=cordconstnode.create(round(trealconstnode(left).value_real),resultdef,false)
         else
           begin
-            result:=ccallnode.createinternres('fpc_round_real',
-              ccallparanode.create(left,nil),resultdef);
+            result:=cinlinenode.create(in_round_real,false,left);
             left:=nil;
           end;
       end;
@@ -1478,10 +1457,10 @@ implementation
 
       begin
          result:=nil;
-         if is_pwidechar(resultdef) then
-           inserttypeconv(left,cunicodestringtype)
-         else
-           inserttypeconv(left,cshortstringtype);
+         { handle any constants via cunicodestringtype because the compiler
+           cannot convert arbitrary unicodechar constants at compile time to
+           a shortstring (since it doesn't know the code page to use) }
+         inserttypeconv(left,cunicodestringtype);
          { evaluate again, reset resultdef so the convert_typ
            will be calculated again and cstring_to_pchar will
            be used for futher conversion }
@@ -1605,7 +1584,9 @@ implementation
               CGMessage1(type_e_interface_has_no_guid,tobjectdef(left.resultdef).typename);
             result:=cstringconstnode.createstr(tobjectdef(left.resultdef).iidstr^);
             tstringconstnode(result).changestringtype(cshortstringtype);
-          end;
+          end
+        else
+          internalerror(2013112913);
       end;
 
 
@@ -1616,7 +1597,9 @@ implementation
             if not(oo_has_valid_guid in tobjectdef(left.resultdef).objectoptions) then
               CGMessage1(type_e_interface_has_no_guid,tobjectdef(left.resultdef).typename);
             result:=cguidconstnode.create(tobjectdef(left.resultdef).iidguid^);
-          end;
+          end
+        else
+          internalerror(2013112914);
       end;
 
 
@@ -1700,7 +1683,7 @@ implementation
 
     function ttypeconvnode.typecheck_variant_to_interface : tnode;
       begin
-        if tobjectdef(resultdef).is_related(tobjectdef(search_system_type('IDISPATCH').typedef)) then
+        if def_is_related(tobjectdef(resultdef),tobjectdef(search_system_type('IDISPATCH').typedef)) then
           result := ccallnode.createinternres(
             'fpc_variant_to_idispatch',
               ccallparanode.create(left,nil)
@@ -1717,7 +1700,7 @@ implementation
 
     function ttypeconvnode.typecheck_interface_to_variant : tnode;
       begin
-        if tobjectdef(left.resultdef).is_related(tobjectdef(search_system_type('IDISPATCH').typedef)) then
+        if def_is_related(tobjectdef(left.resultdef),tobjectdef(search_system_type('IDISPATCH').typedef)) then
           result := ccallnode.createinternres(
             'fpc_idispatch_to_variant',
               ccallparanode.create(left,nil)
@@ -2124,8 +2107,8 @@ implementation
         if (nf_absolute in flags) then
           begin
             convtype:=tc_equal;
-            if not(tstoreddef(resultdef).is_intregable) and
-               not(tstoreddef(resultdef).is_fpuregable) then
+            if (tstoreddef(resultdef).is_intregable<>tstoreddef(left.resultdef).is_intregable) or
+            (tstoreddef(resultdef).is_fpuregable<>tstoreddef(left.resultdef).is_fpuregable) then
               make_not_regable(left,[ra_addr_regable]);
             exit;
           end;
@@ -2302,21 +2285,14 @@ implementation
                            CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
                        end;
 
-                     { check if the result could be in a register }
-                     if (not(tstoreddef(resultdef).is_intregable) and
-                         not(tstoreddef(resultdef).is_fpuregable)) or
-                        ((left.resultdef.typ = floatdef) and
-                         (resultdef.typ <> floatdef))  then
-                       make_not_regable(left,[ra_addr_regable]);
-
                      { class/interface to class/interface, with checkobject support }
                      if is_class_or_interface_or_objc(resultdef) and
                         is_class_or_interface_or_objc(left.resultdef) then
                        begin
                          { check if the types are related }
                          if not(nf_internal in flags) and
-                            (not(tobjectdef(left.resultdef).is_related(tobjectdef(resultdef)))) and
-                            (not(tobjectdef(resultdef).is_related(tobjectdef(left.resultdef)))) then
+                            (not(def_is_related(tobjectdef(left.resultdef),tobjectdef(resultdef)))) and
+                            (not(def_is_related(tobjectdef(resultdef),tobjectdef(left.resultdef)))) then
                            begin
                              { Give an error when typecasting class to interface, this is compatible
                                with delphi }
@@ -2458,19 +2434,20 @@ implementation
         result:=typecheck_call_helper(convtype);
       end;
 
-{ this is done in case of no cpu64bitaddr define rather than cpu64bitalu,
-  because whether or not expressions are evaluated as 64 bit by default depends
-  on cpu64bitaddr. Even on a cpu with a 64 bit alu, a 32 bit operations are
-  likely to be faster than 64 bit ones. }
-{$ifndef cpu64bitaddr}
+{ some code generators for 64 bit CPUs might not support 32 bit operations, so we can
+  disable the following optimization in fpcdefs.inc. Currently the only CPU for which
+  this applies is powerpc64
+}
+{$ifndef CPUNO32BITOPS}
+    { checks whether we can safely remove 64 bit typeconversions
+      in case range and overflow checking are off, and in case
+      the result of this node tree is downcasted again to a
+      8/16/32 bit value afterwards
 
-    { checks whether we can safely remove 64 bit typeconversions }
-    { in case range and overflow checking are off, and in case   }
-    { the result of this node tree is downcasted again to a      }
-    { 8/16/32 bit value afterwards                               }
+      We do this on 64 bit CPUs as well, they benefit from it as well }
     function checkremove64bittypeconvs(n: tnode; out gotsint: boolean): boolean;
       var
-        gotmuldivmod: boolean;
+        gotdivmod: boolean;
 
       { checks whether a node is either an u32bit, or originally }
       { was one but was implicitly converted to s64bit           }
@@ -2478,27 +2455,27 @@ implementation
         begin
           if (n.resultdef.typ<>orddef) then
             exit(false);
-          if (torddef(n.resultdef).ordtype in [s32bit,u32bit]) then
+          if (torddef(n.resultdef).ordtype in [s8bit,u8bit,s16bit,u16bit,s32bit,u32bit]) then
             begin
-              if (torddef(n.resultdef).ordtype=s32bit) then
+              if (torddef(n.resultdef).ordtype in [s8bit,s16bit,s32bit]) then
                 gotsint:=true;
               exit(true);
             end;
-          if (torddef(n.resultdef).ordtype=s64bit) and
+          if (torddef(n.resultdef).ordtype in [u64bit,s64bit]) and
              { nf_explicit is also set for explicitly typecasted }
              { ordconstn's                                       }
              ([nf_internal,nf_explicit]*n.flags=[]) and
              { either a typeconversion node coming from u32bit }
              (((n.nodetype=typeconvn) and
                (ttypeconvnode(n).left.resultdef.typ=orddef) and
-               (torddef(ttypeconvnode(n).left.resultdef).ordtype in [s32bit,u32bit])) or
+               (torddef(ttypeconvnode(n).left.resultdef).ordtype in [s8bit,u8bit,s16bit,u16bit,s32bit,u32bit])) or
              { or an ordconstnode which was/is a valid cardinal }
               ((n.nodetype=ordconstn) and
                (tordconstnode(n).value>=int64(low(longint))) and
                (tordconstnode(n).value<=high(cardinal)))) then
             begin
               if ((n.nodetype=typeconvn) and
-                  (torddef(ttypeconvnode(n).left.resultdef).ordtype=s32bit)) or
+                  (torddef(ttypeconvnode(n).left.resultdef).ordtype in [s8bit,s16bit,s32bit])) or
                  ((n.nodetype=ordconstn) and
                   (tordconstnode(n).value<0)) then
                 gotsint:=true;
@@ -2516,36 +2493,32 @@ implementation
           case n.nodetype of
             subn,orn,xorn:
               begin
-                { nf_internal is set by taddnode.typecheckpass in  }
-                { case the arguments of this subn were u32bit, but }
-                { upcasted to s64bit for calculation correctness   }
-                { (normally only needed when range checking, but   }
-                {  also done otherwise so there is no difference   }
-                {  in overload choosing etc between $r+ and $r-)   }
-                if (nf_internal in n.flags) then
-                  result:=true
-                else
-                  result:=
-                    docheckremove64bittypeconvs(tbinarynode(n).left) and
-                    docheckremove64bittypeconvs(tbinarynode(n).right);
-              end;
-            addn,muln,divn,modn,andn:
-              begin
-                if n.nodetype in [muln,divn,modn] then
-                  gotmuldivmod:=true;
+                { the result could become negative in this case }
+                if n.nodetype=subn then
+                  gotsint:=true;
                 result:=
                   docheckremove64bittypeconvs(tbinarynode(n).left) and
                   docheckremove64bittypeconvs(tbinarynode(n).right);
+              end;
+            addn,muln,divn,modn,andn:
+              begin
+                if n.nodetype in [divn,modn] then
+                  gotdivmod:=true;
+                result:=
+                  (docheckremove64bittypeconvs(tbinarynode(n).left) and
+                   docheckremove64bittypeconvs(tbinarynode(n).right)) or
+                  ((n.nodetype=andn) and wasoriginallyint32(tbinarynode(n).left)) or
+                  ((n.nodetype=andn) and wasoriginallyint32(tbinarynode(n).right));
               end;
           end;
         end;
 
       begin { checkremove64bittypeconvs }
-        gotmuldivmod:=false;
+        gotdivmod:=false;
         gotsint:=false;
         result:=
           docheckremove64bittypeconvs(n) and
-          not(gotmuldivmod and gotsint);
+          not(gotdivmod and gotsint);
       end;
 
 
@@ -2568,25 +2541,31 @@ implementation
                   doremove64bittypeconvs(tbinarynode(n).right,u32inttype,forceunsigned);
                   n.resultdef:=u32inttype
                 end;
+              //if ((n.nodetype=andn) and (tbinarynode(n).left.nodetype=ordconstn) and
+              //    ((tordconstnode(tbinarynode(n).left).value and $7fffffff)=tordconstnode(tbinarynode(n).left).value)
+              //   ) then
+              //  inserttypeconv_internal(tbinarynode(n).right,n.resultdef)
+              //else if (n.nodetype=andn) and (tbinarynode(n).right.nodetype=ordconstn) and
+              //  ((tordconstnode(tbinarynode(n).right).value and $7fffffff)=tordconstnode(tbinarynode(n).right).value) then
+              //  inserttypeconv_internal(tbinarynode(n).left,n.resultdef);
             end;
-          ordconstn:
-            inserttypeconv_internal(n,todef);
           typeconvn:
             begin
               n.resultdef:=todef;
               ttypeconvnode(n).totypedef:=todef;
             end;
+          else
+            inserttypeconv_internal(n,todef);
         end;
       end;
-{$endif not cpu64bitaddr}
-
+{$endif not CPUNO32BITOPS}
 
     function ttypeconvnode.simplify(forinline : boolean): tnode;
       var
         hp: tnode;
-{$ifndef cpu64bitaddr}
+{$ifndef CPUNO32BITOPS}
         foundsint: boolean;
-{$endif not cpu64bitaddr}
+{$endif not CPUNO32BITOPS}
       begin
         result := nil;
         { Constant folding and other node transitions to
@@ -2612,6 +2591,7 @@ implementation
                 left:=nil;
                 exit;
               end;
+
           realconstn :
             begin
               if (convtype = tc_real_2_currency) then
@@ -2634,6 +2614,7 @@ implementation
                   hp.free;
                 end;
             end;
+
           niln :
             begin
               { nil to ordinal node }
@@ -2710,12 +2691,7 @@ implementation
                        if is_pasbool(resultdef) then
                          tordconstnode(left).value:=ord(tordconstnode(left).value<>0)
                        else
-{$ifdef VER2_2}
-                         tordconstnode(left).value:=ord(tordconstnode(left).value<>0);
-                         tordconstnode(left).value:=-tordconstnode(left).value;
-{$else}
                          tordconstnode(left).value:=-ord(tordconstnode(left).value<>0);
-{$endif VER2_2}
                      end
                    else
                      testrange(resultdef,tordconstnode(left).value,(nf_explicit in flags),false);
@@ -2758,8 +2734,7 @@ implementation
                 end;
             end;
         end;
-
-{$ifndef cpu64bitaddr}
+{$ifndef CPUNO32BITOPS}
         { must be done before code below, because we need the
           typeconversions for ordconstn's as well }
         case convtype of
@@ -2778,8 +2753,7 @@ implementation
                 end;
             end;
         end;
-{$endif not cpu64bitaddr}
-
+{$endif not CPUNO32BITOPS}
       end;
 
 
@@ -3067,21 +3041,11 @@ implementation
       begin
          first_bool_to_int:=nil;
          { byte(boolean) or word(wordbool) or longint(longbool) must
-         be accepted for var parameters }
+           be accepted for var parameters }
          if (nf_explicit in flags) and
             (left.resultdef.size=resultdef.size) and
             (left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
            exit;
-         { when converting to 64bit, first convert to a 32bit int and then   }
-         { convert to a 64bit int (only necessary for 32bit processors) (JM) }
-         if resultdef.size > sizeof(aint) then
-           begin
-             result := ctypeconvnode.create_internal(left,sinttype);
-             result := ctypeconvnode.create(result,resultdef);
-             left := nil;
-             firstpass(result);
-             exit;
-           end;
          expectloc:=LOC_REGISTER;
       end;
 
@@ -3262,7 +3226,7 @@ implementation
          hd:=tobjectdef(left.resultdef);
          while assigned(hd) do
            begin
-             ImplIntf:=hd.find_implemented_interface(tobjectdef(resultdef));
+             ImplIntf:=find_implemented_interface(hd,tobjectdef(resultdef));
              if assigned(ImplIntf) then
                begin
                  case ImplIntf.IType of
@@ -3545,6 +3509,15 @@ implementation
         if codegenerror then
          exit;
         expectloc:=left.expectloc;
+
+        if nf_explicit in flags then
+          { check if the result could be in a register }
+          if (not(tstoreddef(resultdef).is_intregable) and
+              not(tstoreddef(resultdef).is_fpuregable)) or
+             ((left.resultdef.typ = floatdef) and
+              (resultdef.typ <> floatdef))  then
+            make_not_regable(left,[ra_addr_regable]);
+
         result:=first_call_helper(convtype);
       end;
 
@@ -3587,11 +3560,11 @@ implementation
           are smaller than an entire register }
         if result and
            { don't try to check the size of an open array }
-           is_open_array(resultdef) or
-           (resultdef.size<left.resultdef.size) or
-           ((resultdef.size=left.resultdef.size) and
-            (left.resultdef.size<sizeof(aint)) and
-            (is_signed(resultdef) xor is_signed(left.resultdef))) then
+           (is_open_array(resultdef) or
+            (resultdef.size<left.resultdef.size) or
+            ((resultdef.size=left.resultdef.size) and
+             (left.resultdef.size<sizeof(aint)) and
+             (is_signed(resultdef) xor is_signed(left.resultdef)))) then
           make_not_regable(left,[ra_addr_regable]);
       end;
 
@@ -3844,9 +3817,9 @@ implementation
                     is_javaclass(left.resultdef) then
               begin
                 { the operands must be related }
-                if (not(tobjectdef(left.resultdef).is_related(
+                if (not(def_is_related(tobjectdef(left.resultdef),
                    tobjectdef(tclassrefdef(right.resultdef).pointeddef)))) and
-                   (not(tobjectdef(tclassrefdef(right.resultdef).pointeddef).is_related(
+                   (not(def_is_related(tobjectdef(tclassrefdef(right.resultdef).pointeddef),
                    tobjectdef(left.resultdef)))) then
                   CGMessage2(type_e_classes_not_related,
                      FullTypeName(left.resultdef,tclassrefdef(right.resultdef).pointeddef),

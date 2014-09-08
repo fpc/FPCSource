@@ -1,8 +1,12 @@
 {$ifdef fpc}{$mode delphi}{$endif}
 
 type
+{$ifndef fpc}
+  codepointer = pointer;
+{$endif}
    tmethod = record
-      code,data : pointer;
+      code : codepointer;
+      data : pointer;
    end;
 
 var

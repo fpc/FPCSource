@@ -70,34 +70,12 @@ const
   sLineBreak = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
 
-type
-  TStartupInfo = record
-    cb : longint;
-    lpReserved : Pointer;
-    lpDesktop : Pointer;
-    lpTitle : Pointer;
-    dwX : longint;
-    dwY : longint;
-    dwXSize : longint;
-    dwYSize : longint;
-    dwXCountChars : longint;
-    dwYCountChars : longint;
-    dwFillAttribute : longint;
-    dwFlags : longint;
-    wShowWindow : Word;
-    cbReserved2 : Word;
-    lpReserved2 : Pointer;
-    hStdInput : THandle;
-    hStdOutput : THandle;
-    hStdError : THandle;
-  end;
-
 var
 { C compatible arguments }
   argc : longint;
   argv : ppchar;
 { Win32 Info }
-  startupinfo : tstartupinfo;
+  startupinfo : tstartupinfo deprecated;  // Delphi does not have one in interface
   StartupConsoleMode : dword;
   MainInstance : qword;
   cmdshow     : longint;
@@ -137,6 +115,12 @@ asm
 .seh_handler __FPC_default_handler,@except,@unwind
 end;
 {$endif FPC_USE_WIN64_SEH}
+
+{$define FPC_SYSTEM_HAS_STACKTOP}
+function StackTop: pointer; assembler;nostackframe;
+asm
+   movq  %gs:(8),%rax
+end;
 
 { include system independent routines }
 {$I system.inc}
@@ -603,14 +587,7 @@ function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
     result:=tpeheader((pointer(getmodulehandle(nil))+(tdosheader(pointer(getmodulehandle(nil))^).e_lfanew))^).SizeOfStackReserve;
   end;
 
-
-function GetExceptionPointer : Pointer; assembler;nostackframe;
-asm
-  movq %gs:(8),%rax
-end;
-
 begin
-  StackTop:=GetExceptionPointer;
   { pass dummy value }
   StackLength := CheckInitialStkLen($1000000);
   StackBottom := StackTop - StackLength;
@@ -637,8 +614,6 @@ begin
   { Reset IO Error }
   InOutRes:=0;
   ProcessID := GetCurrentProcessID;
-  { Reset internal error variable }
-  errno:=0;
   initvariantmanager;
   DispCallByIDProc:=@DoDispCallByIDError;
 end.

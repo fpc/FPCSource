@@ -171,8 +171,11 @@ const
           hs:=s;
 
         { Search opcodes }
-        actopcode:=tasmop(PtrInt(iasmops.Find(hs)));
-        if actopcode<>A_NONE then
+        actopcode:=tasmop(PtrUInt(iasmops.Find(hs)));
+        { Also filter the helper opcodes, they can't be valid
+          while reading an assembly source }
+        if not (actopcode in
+           [A_NONE, A_LABEL, A_DBXX, A_SXX, A_BXX, A_FBXX]) then
           begin
             actasmtoken:=AS_OPCODE;
             result:=TRUE;
@@ -201,12 +204,26 @@ const
 
     function tm68kmotreader.is_register(const s:string):boolean;
       begin
-        is_register:=false;
-        // FIX ME!!! Ugly, needs a proper fix (KB)
+        result:=false;
+        // FIX ME!!! '%'+ is ugly, needs a proper fix (KB)
         actasmregister:=gas_regnum_search('%'+lower(s));
         if actasmregister<>NR_NO then
           begin
-            is_register:=true;
+            result:=true;
+            actasmtoken:=AS_REGISTER;
+          end;
+        { reg found?
+          possible aliases are always 2 char
+        }
+        if result or (length(s)<>2) then
+          exit;
+        if lower(s)='sp' then
+          actasmregister:=NR_STACK_POINTER_REG;
+        if lower(s)='fp' then
+          actasmregister:=NR_FRAME_POINTER_REG;
+        if actasmregister<>NR_NO then
+          begin
+            result:=true;
             actasmtoken:=AS_REGISTER;
           end;
       end;
@@ -317,8 +334,11 @@ const
 
                              { this isn't the first token, so it can't be an
                                opcode }
-                             {If is_asmopcode(actasmpattern) then
-                               exit;}
+                             { Actually, it's possible, since @label: OPCODE foo,bar
+                               is valid and was supported in 0.99/1.0 FPC for 68k,
+                               the amunits package is full of such code. (KB) }
+                             if is_asmopcode(actasmpattern) then
+                               exit;
                              if is_register(actasmpattern) then
                                exit;
                              if is_asmdirective(actasmpattern) then
@@ -596,6 +616,7 @@ const
       l : longint;
       errorflag: boolean;
   begin
+    BuildExpression:=0;
     errorflag := FALSE;
     expr := '';
     tempstr := '';
@@ -966,6 +987,7 @@ const
       l: longint;
       code: integer;
   begin
+     str:='';
      Consume(AS_STAR);
      if (oper.opr.ref.scalefactor <> 0)
      and (oper.opr.ref.scalefactor <> 1) then
@@ -1160,6 +1182,7 @@ const
       code: integer;
       str: string;
     begin
+       str:='';
        Consume(AS_LPAREN);
        case actasmtoken of
          { // (reg ... // }
@@ -1283,11 +1306,13 @@ const
     r:Tregister;
     hl: tasmlabel;
     reg_one, reg_two: tregister;
-    regset: tcpuregisterset;
+    addrregset,dataregset: tcpuregisterset;
     p: pointer;
   begin
-   regset := [];
+   dataregset := [];
+   addrregset := [];
    tempstr := '';
+   r:=NR_NO;
    case actasmtoken of
    { // Memory reference //  }
      AS_LPAREN:
@@ -1322,7 +1347,6 @@ const
                    end;
    { // A constant expression, or a Variable ref. // }
      AS_ID:  begin
-              Oper.InitRef;
               if actasmpattern[1] = '@' then
               { // Label or Special symbol reference // }
               begin
@@ -1409,7 +1433,6 @@ const
                               if expr = 'SELF' then
                                 oper.SetupSelf
                               else begin
-                                writeln('unknown id: ',expr);
                                 Message1(sym_e_unknown_id,expr);
                               end;
                               expr:='';
@@ -1458,7 +1481,6 @@ const
                   end;
    { // Register, a variable reference or a constant reference // }
      AS_REGISTER: begin
-//                   writeln('register! ',actasmpattern);
                    { save the type of register used. }
                    tempstr := actasmpattern;
                    Consume(AS_REGISTER);
@@ -1477,21 +1499,29 @@ const
                    if (actasmtoken = AS_SLASH) then
                    begin
                      r:=actasmregister;
-                     if getregtype(r)<>R_INTREGISTER then
+                     if getregtype(r)=R_ADDRESSREGISTER then
+                       include(addrregset,getsupreg(r))
+                     else if getregtype(r)=R_INTREGISTER then
+                       include(dataregset,getsupreg(r))
+                     else
                        internalerror(200302191);
-                     include(regset,getsupreg(r));
                      Consume(AS_SLASH);
                      if actasmtoken = AS_REGISTER then
                      begin
                        While not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) do
                        begin
                          case actasmtoken of
-                          AS_REGISTER: begin
-                                         if getregtype(r)<>R_INTREGISTER then
-                                           internalerror(200302191);
-                                         include(regset,getsupreg(r));
-                                         Consume(AS_REGISTER);
-                                       end;
+                          AS_REGISTER:
+                            begin
+                              r:=actasmregister;
+                              if getregtype(r)=R_ADDRESSREGISTER then
+                                include(addrregset,getsupreg(r))
+                              else if getregtype(r)=R_INTREGISTER then
+                                include(dataregset,getsupreg(r))
+                              else
+                                Message(asmr_e_invalid_reg_list_in_movem);
+                              Consume(AS_REGISTER);
+                            end;
                           AS_SLASH: Consume(AS_SLASH);
                           AS_SEPARATOR,AS_COMMA: break;
                          else
@@ -1502,14 +1532,15 @@ const
                          end; { end case }
                        end; { end while }
                        oper.opr.typ:= OPR_regset;
-                       oper.opr.regset := regset;
+                       oper.opr.regsetdata := dataregset;
+                       oper.opr.regsetaddr := addrregset;
                      end
                      else
                       { error recovery ... }
                       begin
-                            Message(asmr_e_invalid_reg_list_in_movem);
-                            while not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) do
-                               Consume(actasmtoken);
+                        Message(asmr_e_invalid_reg_list_in_movem);
+                        while not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) do
+                           Consume(actasmtoken);
                       end;
                    end
                    else
@@ -1519,34 +1550,47 @@ const
                      Consume(AS_MINUS);
                      reg_one:=actasmregister;
                      if actasmtoken <> AS_REGISTER then
-                     begin
-                       Message(asmr_e_invalid_reg_list_in_movem);
-                       while not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) do
-                         Consume(actasmtoken);
-                     end
+                       begin
+                         Message(asmr_e_invalid_reg_list_in_movem);
+                         while not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) do
+                           Consume(actasmtoken);
+                       end
                      else
-                     begin
-                      { determine the register range ... }
-                      reg_two:=actasmregister;
-                      if getregtype(reg_two)<>R_INTREGISTER then
-                        internalerror(200302191);
-                      if getsupreg(reg_one) > getsupreg(reg_two) then
-                       for i:=getsupreg(reg_two) to getsupreg(reg_one) do
-                         include(regset,i)
-                      else
-                       for i:=getsupreg(reg_one) to getsupreg(reg_two) do
-                         include(regset,i);
-                      Consume(AS_REGISTER);
-                      if not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) then
-                      begin
-                       Message(asmr_e_invalid_reg_list_in_movem);
-                       while not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) do
-                         Consume(actasmtoken);
-                      end;
-                      { set up instruction }
-                      oper.opr.typ:= OPR_regset;
-                      oper.opr.regset := regset;
-                     end;
+                       begin
+                         { determine the register range ... }
+                         reg_two:=actasmregister;
+                         if getregtype(r)=R_ADDRESSREGISTER then
+                           begin
+                             if getsupreg(reg_one) > getsupreg(reg_two) then
+                               for i:=getsupreg(reg_two) to getsupreg(reg_one) do
+                                 include(addrregset,i)
+                             else
+                              for i:=getsupreg(reg_one) to getsupreg(reg_two) do
+                                include(addrregset,i);
+                           end
+                         else if getregtype(r)=R_INTREGISTER then
+                           begin
+                             if getsupreg(reg_one) > getsupreg(reg_two) then
+                               for i:=getsupreg(reg_two) to getsupreg(reg_one) do
+                                 include(dataregset,i)
+                             else
+                              for i:=getsupreg(reg_one) to getsupreg(reg_two) do
+                                include(dataregset,i);
+                           end
+                         else
+                           Message(asmr_e_invalid_reg_list_in_movem);
+                         Consume(AS_REGISTER);
+                         if not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) then
+                           begin
+                             Message(asmr_e_invalid_reg_list_in_movem);
+                             while not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) do
+                               Consume(actasmtoken);
+                           end;
+                         { set up instruction }
+                         oper.opr.typ:= OPR_regset;
+                         oper.opr.regsetdata := dataregset;
+                         oper.opr.regsetaddr := addrregset;
+                       end;
                    end
                    else
                    { DIVSL/DIVS/MULS/MULU with long for MC68020 only }
@@ -1710,8 +1754,6 @@ const
             _asmsorted := TRUE;
           end;
         curlist:=TAsmList.Create;
-        { setup label linked list }
-        LocalLabelList:=TLocalLabelList.Create;
         c:=current_scanner.asmgetchar;
         gettoken;
         while actasmtoken<>AS_END do
@@ -1805,8 +1847,7 @@ const
           end; { end while }
 
         { Check LocalLabelList }
-        LocalLabelList.CheckEmitted;
-        LocalLabelList.Free;
+        checklocallabels;
 
         assemble:=curlist;
         //Message(asmr_d_finish_reading);

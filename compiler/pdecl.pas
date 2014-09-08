@@ -56,7 +56,7 @@ implementation
        globals,tokens,verbose,widestr,constexp,
        systems,aasmdata,fmodule,
        { symtable }
-       symconst,symbase,symtype,symtable,symcreat,defutil,
+       symconst,symbase,symtype,symcpu,symtable,symcreat,defutil,
        { pass 1 }
        htypechk,ninl,ncon,nobj,ngenutil,
        { parser }
@@ -93,9 +93,9 @@ implementation
            ordconstn:
              begin
                if p.resultdef.typ=pointerdef then
-                 hp:=tconstsym.create_ordptr(orgname,constpointer,tordconstnode(p).value.uvalue,p.resultdef)
+                 hp:=cconstsym.create_ordptr(orgname,constpointer,tordconstnode(p).value.uvalue,p.resultdef)
                else
-                 hp:=tconstsym.create_ord(orgname,constord,tordconstnode(p).value,p.resultdef);
+                 hp:=cconstsym.create_ord(orgname,constord,tordconstnode(p).value,p.resultdef);
              end;
            stringconstn:
              begin
@@ -103,34 +103,40 @@ implementation
                  begin
                    initwidestring(pw);
                    copywidestring(pcompilerwidestring(tstringconstnode(p).value_str),pw);
-                   hp:=tconstsym.create_wstring(orgname,constwstring,pw);
+                   hp:=cconstsym.create_wstring(orgname,constwstring,pw);
                  end
                else
                  begin
                    getmem(sp,tstringconstnode(p).len+1);
                    move(tstringconstnode(p).value_str^,sp^,tstringconstnode(p).len+1);
-                   hp:=tconstsym.create_string(orgname,conststring,sp,tstringconstnode(p).len);
+                   { if a non-default ansistring code page has been specified,
+                     keep it }
+                   if is_ansistring(p.resultdef) and
+                      (tstringdef(p.resultdef).encoding<>0) then
+                     hp:=cconstsym.create_string(orgname,conststring,sp,tstringconstnode(p).len,p.resultdef)
+                   else
+                     hp:=cconstsym.create_string(orgname,conststring,sp,tstringconstnode(p).len,nil);
                  end;
              end;
            realconstn :
              begin
                 new(pd);
                 pd^:=trealconstnode(p).value_real;
-                hp:=tconstsym.create_ptr(orgname,constreal,pd,p.resultdef);
+                hp:=cconstsym.create_ptr(orgname,constreal,pd,p.resultdef);
              end;
            setconstn :
              begin
                new(ps);
                ps^:=tsetconstnode(p).value_set^;
-               hp:=tconstsym.create_ptr(orgname,constset,ps,p.resultdef);
+               hp:=cconstsym.create_ptr(orgname,constset,ps,p.resultdef);
              end;
            pointerconstn :
              begin
-               hp:=tconstsym.create_ordptr(orgname,constpointer,tpointerconstnode(p).value,p.resultdef);
+               hp:=cconstsym.create_ordptr(orgname,constpointer,tpointerconstnode(p).value,p.resultdef);
              end;
            niln :
              begin
-               hp:=tconstsym.create_ord(orgname,constnil,0,p.resultdef);
+               hp:=cconstsym.create_ord(orgname,constnil,0,p.resultdef);
              end;
            typen :
              begin
@@ -140,7 +146,7 @@ implementation
                    begin
                      new(pg);
                      pg^:=tobjectdef(p.resultdef).iidguid^;
-                     hp:=tconstsym.create_ptr(orgname,constguid,pg,p.resultdef);
+                     hp:=cconstsym.create_ptr(orgname,constguid,pg,p.resultdef);
                    end
                   else
                    Message1(parser_e_interface_has_no_guid,tobjectdef(p.resultdef).objrealname^);
@@ -160,7 +166,7 @@ implementation
                  in_sizeof_x,
                  in_bitsizeof_x:
                    begin
-                     hp:=tconstsym.create_ord(orgname,constord,0,p.resultdef);
+                     hp:=cconstsym.create_ord(orgname,constord,0,p.resultdef);
                    end;
                  { add other cases here if necessary }
                  else
@@ -220,8 +226,11 @@ implementation
 {$ifdef jvm}
                        { for the JVM target, some constants need to be
                          initialized at run time (enums, sets) -> create fake
-                         typed const to do so }
-                       if assigned(tconstsym(sym).constdef) and
+                         typed const to do so (at least if they are visible
+                         outside this routine, since we won't directly access
+                         these symbols in the generated code) }
+                       if (symtablestack.top.symtablelevel<normal_function_level) and
+                          assigned(tconstsym(sym).constdef) and
                           (tconstsym(sym).constdef.typ in [enumdef,setdef]) then
                          jvm_add_typed_const_initializer(tconstsym(sym));
 {$endif}
@@ -257,13 +266,13 @@ implementation
                      to it from the structure or linking will fail }
                    if symtablestack.top.symtabletype in [recordsymtable,ObjectSymtable] then
                      begin
-                       sym:=tfieldvarsym.create(orgname,varspez,hdef,[]);
+                       sym:=cfieldvarsym.create(orgname,varspez,hdef,[]);
                        symtablestack.top.insert(sym);
                        sym:=make_field_static(symtablestack.top,tfieldvarsym(sym));
                      end
                    else
                      begin
-                       sym:=tstaticvarsym.create(orgname,varspez,hdef,[]);
+                       sym:=cstaticvarsym.create(orgname,varspez,hdef,[]);
                        sym.visibility:=symtablestack.top.currentvisibility;
                        symtablestack.top.insert(sym);
                      end;
@@ -330,20 +339,20 @@ implementation
            else
              begin
                 if token=_ID then
-                  labelsym:=tlabelsym.create(orgpattern)
+                  labelsym:=clabelsym.create(orgpattern)
                 else
-                  labelsym:=tlabelsym.create(pattern);
+                  labelsym:=clabelsym.create(pattern);
                 symtablestack.top.insert(labelsym);
                 if m_non_local_goto in current_settings.modeswitches then
                   begin
                     if symtablestack.top.symtabletype=localsymtable then
                       begin
-                        labelsym.jumpbuf:=tlocalvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
+                        labelsym.jumpbuf:=clocalvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
                         symtablestack.top.insert(labelsym.jumpbuf);
                       end
                     else
                       begin
-                        labelsym.jumpbuf:=tstaticvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
+                        labelsym.jumpbuf:=cstaticvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
                         symtablestack.top.insert(labelsym.jumpbuf);
                         cnodeutils.insertbssdata(tstaticvarsym(labelsym.jumpbuf));
                       end;
@@ -429,7 +438,7 @@ implementation
          isgeneric,
          isunique,
          istyperenaming : boolean;
-         generictypelist : TFPObjectList;
+         generictypelist : tfphashobjectlist;
          generictokenbuf : tdynamicarray;
          vmtbuilder : TVMTBuilder;
          p:tnode;
@@ -445,6 +454,7 @@ implementation
          old_checkforwarddefs:=current_module.checkforwarddefs;
          current_module.checkforwarddefs:=TFPObjectList.Create(false);
          block_type:=bt_type;
+         hdef:=nil;
          repeat
            defpos:=current_tokenpos;
            istyperenaming:=false;
@@ -561,7 +571,7 @@ implementation
                     hdef:=newtype.typedef;
                   end
                  else
-                   message1(parser_h_type_redef,genorgtypename);
+                  message1(parser_h_type_redef,genorgtypename);
                end;
             end;
            { no old type reused ? Then insert this new type }
@@ -582,7 +592,7 @@ implementation
                   sym:=tsym(symtablestack.top.Find(typename));
                   if not assigned(sym) then
                     begin
-                      sym:=ttypesym.create(orgtypename,tundefineddef.create);
+                      sym:=ctypesym.create(orgtypename,cundefineddef.create);
                       Include(sym.symoptions,sp_generic_dummy);
                       ttypesym(sym).typedef.typesym:=sym;
                       sym.visibility:=symtablestack.top.currentvisibility;
@@ -618,7 +628,7 @@ implementation
               { insert a new type if we don't reuse an existing symbol }
               if not assigned(newtype) then
                 begin
-                  newtype:=ttypesym.create(genorgtypename,hdef);
+                  newtype:=ctypesym.create(genorgtypename,hdef);
                   newtype.visibility:=symtablestack.top.currentvisibility;
                   symtablestack.top.insert(newtype);
                 end;
@@ -709,16 +719,24 @@ implementation
                     try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
                     consume(_SEMICOLON);
 {$ifdef x86}
+  {$ifdef i8086}
+                    if try_to_consume(_HUGE) then
+                     begin
+                       tcpupointerdef(hdef).x86pointertyp:=x86pt_huge;
+                       consume(_SEMICOLON);
+                     end
+                    else
+  {$endif i8086}
                     if try_to_consume(_FAR) then
                      begin
   {$if defined(i8086)}
-                       tpointerdef(hdef).x86pointertyp:=x86pt_far;
+                       tcpupointerdef(hdef).x86pointertyp:=x86pt_far;
   {$elseif defined(i386)}
-                       tpointerdef(hdef).x86pointertyp:=x86pt_near_fs;
+                       tcpupointerdef(hdef).x86pointertyp:=x86pt_near_fs;
   {$elseif defined(x86_64)}
                        { for compatibility with previous versions of fpc,
                          far pointer = regular pointer on x86_64 }
-                       { TODO: decide if we still want to keep this }
+                       Message1(parser_w_ptr_type_ignored,'FAR');
   {$endif}
                        consume(_SEMICOLON);
                      end
@@ -729,26 +747,26 @@ implementation
                            begin
                              segment_register:=get_stringconst;
                              case UpCase(segment_register) of
-                               'CS': tpointerdef(hdef).x86pointertyp:=x86pt_near_cs;
-                               'DS': tpointerdef(hdef).x86pointertyp:=x86pt_near_ds;
-                               'SS': tpointerdef(hdef).x86pointertyp:=x86pt_near_ss;
-                               'ES': tpointerdef(hdef).x86pointertyp:=x86pt_near_es;
-                               'FS': tpointerdef(hdef).x86pointertyp:=x86pt_near_fs;
-                               'GS': tpointerdef(hdef).x86pointertyp:=x86pt_near_gs;
+                               'CS': tcpupointerdef(hdef).x86pointertyp:=x86pt_near_cs;
+                               'DS': tcpupointerdef(hdef).x86pointertyp:=x86pt_near_ds;
+                               'SS': tcpupointerdef(hdef).x86pointertyp:=x86pt_near_ss;
+                               'ES': tcpupointerdef(hdef).x86pointertyp:=x86pt_near_es;
+                               'FS': tcpupointerdef(hdef).x86pointertyp:=x86pt_near_fs;
+                               'GS': tcpupointerdef(hdef).x86pointertyp:=x86pt_near_gs;
                                else
                                  Message(asmr_e_invalid_register);
                              end;
                            end
                          else
-                           tpointerdef(hdef).x86pointertyp:=x86pt_near;
+                           tcpupointerdef(hdef).x86pointertyp:=x86pt_near;
                          consume(_SEMICOLON);
                        end;
 {$else x86}
                     { Previous versions of FPC support declaring a pointer as
-                      far even on non-x86 platforms.
-                      TODO: decide if we still want to keep this }
+                      far even on non-x86 platforms. }
                     if try_to_consume(_FAR) then
                      begin
+                       Message1(parser_w_ptr_type_ignored,'FAR');
                        consume(_SEMICOLON);
                      end;
 {$endif x86}
@@ -788,8 +806,7 @@ implementation
 
                     { Build VMT indexes, skip for type renaming and forward classes }
                     if (hdef.typesym=newtype) and
-                       not(oo_is_forward in tobjectdef(hdef).objectoptions) and
-                       not(df_generic in hdef.defoptions) then
+                       not(oo_is_forward in tobjectdef(hdef).objectoptions) then
                       begin
                         vmtbuilder:=TVMTBuilder.Create(tobjectdef(hdef));
                         vmtbuilder.generate_vmt;
@@ -876,7 +893,7 @@ implementation
       begin
          consume(_PROPERTY);
          if not(symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
-           message(parser_e_resourcestring_only_sg);
+           message(parser_e_property_only_sgr);
          old_block_type:=block_type;
          block_type:=bt_const;
          repeat
@@ -942,7 +959,7 @@ implementation
                                 getmem(sp,2);
                                 sp[0]:=chr(tordconstnode(p).value.svalue);
                                 sp[1]:=#0;
-                                sym:=tconstsym.create_string(orgname,constresourcestring,sp,1);
+                                sym:=cconstsym.create_string(orgname,constresourcestring,sp,1,nil);
                              end
                            else
                              Message(parser_e_illegal_expression);
@@ -950,9 +967,12 @@ implementation
                       stringconstn:
                         with Tstringconstnode(p) do
                           begin
+                             { resourcestrings are currently always single byte }
+                             if cst_type in [cst_widestring,cst_unicodestring] then
+                               changestringtype(getansistringdef);
                              getmem(sp,len+1);
                              move(value_str^,sp^,len+1);
-                             sym:=tconstsym.create_string(orgname,constresourcestring,sp,len);
+                             sym:=cconstsym.create_string(orgname,constresourcestring,sp,len,nil);
                           end;
                       else
                         Message(parser_e_illegal_expression);

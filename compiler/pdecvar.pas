@@ -55,8 +55,8 @@ implementation
        systems,
        { symtable }
        symconst,symbase,symtype,defutil,defcmp,symcreat,
-{$ifdef jvm}
-       jvmdef,
+{$if defined(i386) or defined(i8086)}
+       symcpu,
 {$endif}
        fmodule,htypechk,
        { pass 1 }
@@ -67,9 +67,6 @@ implementation
        { parser }
        scanner,
        pbase,pexpr,ptype,ptconst,pdecsub,
-{$ifdef jvm}
-       pjvm,
-{$endif}
        { link }
        import
        ;
@@ -79,7 +76,7 @@ implementation
 
         { convert a node tree to symlist and return the last
           symbol }
-        function parse_symlist(pl:tpropaccesslist;var def:tdef):boolean;
+        function parse_symlist(pl:tpropaccesslist;out def:tdef):boolean;
           var
             idx : longint;
             sym : tsym;
@@ -254,7 +251,7 @@ implementation
               sym: tprocsym;
             begin
               handle_calling_convention(pd);
-              sym:=tprocsym.create(prefix+lower(p.realname));
+              sym:=cprocsym.create(prefix+lower(p.realname));
               symtablestack.top.insert(sym);
               pd.procsym:=sym;
               include(pd.procoptions,po_dispid);
@@ -278,6 +275,7 @@ implementation
 
               hasread:=true;
               haswrite:=true;
+              hdispid:=0;
 
               if try_to_consume(_READONLY) then
                 haswrite:=false
@@ -314,7 +312,7 @@ implementation
                 begin
                   { add an extra parameter, a placeholder of the value to set }
                   inc(paranr);
-                  hparavs:=tparavarsym.create('$value',10*paranr,vs_value,p.propdef,[]);
+                  hparavs:=cparavarsym.create('$value',10*paranr,vs_value,p.propdef,[]);
                   writepd.parast.insert(hparavs);
 
                   writepd.proctypeoption:=potype_propsetter;
@@ -337,22 +335,20 @@ implementation
          paranr : word;
          i      : longint;
          ImplIntf     : TImplementedInterface;
-         found        : boolean;
+         found,
+         gotreadorwrite: boolean;
          hreadparavs,
          hparavs      : tparavarsym;
          storedprocdef: tprocvardef;
          readprocdef,
          writeprocdef : tprocdef;
- {$ifdef jvm}
-          orgaccesspd : tprocdef;
-          wrongvisibility : boolean;
- {$endif}
       begin
+         result:=nil;
          { Generate temp procdefs to search for matching read/write
            procedures. the readprocdef will store all definitions }
          paranr:=0;
-         readprocdef:=tprocdef.create(normal_function_level);
-         writeprocdef:=tprocdef.create(normal_function_level);
+         readprocdef:=cprocdef.create(normal_function_level);
+         writeprocdef:=cprocdef.create(normal_function_level);
 
          readprocdef.struct:=astruct;
          writeprocdef.struct:=astruct;
@@ -370,7 +366,7 @@ implementation
               exit;
            end;
          { Generate propertysym and insert in symtablestack }
-         p:=tpropertysym.create(orgpattern);
+         p:=cpropertysym.create(orgpattern);
          p.visibility:=symtablestack.top.currentvisibility;
          p.default:=longint($80000000);
          if is_classproperty then
@@ -401,7 +397,7 @@ implementation
                 sc.clear;
                 repeat
                   inc(paranr);
-                  hreadparavs:=tparavarsym.create(orgpattern,10*paranr,varspez,generrordef,[]);
+                  hreadparavs:=cparavarsym.create(orgpattern,10*paranr,varspez,generrordef,[]);
                   p.parast.insert(hreadparavs);
                   sc.add(hreadparavs);
                   consume(_ID);
@@ -412,7 +408,7 @@ implementation
                       begin
                         consume(_OF);
                         { define range and type of range }
-                        hdef:=tarraydef.create(0,-1,s32inttype);
+                        hdef:=carraydef.create(0,-1,s32inttype);
                         { define field type }
                         single_type(arraytype,[]);
                         tarraydef(hdef).elementdef:=arraytype;
@@ -454,17 +450,23 @@ implementation
                    consume(_INDEX);
                    pt:=comp_expr(true,false);
                    { Only allow enum and integer indexes. Convert all integer
-                     values to s32int to be compatible with delphi, because the
-                     procedure matching requires equal parameters }
+                     values to objpas.integer (s32int on 32- and 64-bit targets,
+                     s16int on 16- and 8-bit) to be compatible with delphi,
+                     because the procedure matching requires equal parameters }
                    if is_constnode(pt) and
                       is_ordinal(pt.resultdef)
-{$ifndef cpu64bitaddr}
                       and (not is_64bitint(pt.resultdef))
-{$endif cpu64bitaddr}
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+                      and (not is_32bitint(pt.resultdef))
+{$endif}
                       then
                      begin
                        if is_integer(pt.resultdef) then
+{$if defined(cpu8bitalu) or defined(cpu16bitalu)}
+                         inserttypeconv_internal(pt,s16inttype);
+{$else}
                          inserttypeconv_internal(pt,s32inttype);
+{$endif}
                        p.index:=tordconstnode(pt).value.svalue;
                      end
                    else
@@ -482,7 +484,7 @@ implementation
          else
            begin
               { do an property override }
-              if (astruct.typ=objectdef) then
+              if (astruct.typ=objectdef) and assigned(tobjectdef(astruct).childof) then
                 overridden:=search_struct_member(tobjectdef(astruct).childof,p.name)
               else
                 overridden:=nil;
@@ -491,8 +493,7 @@ implementation
                  not(is_dispinterface(astruct)) then
                 begin
                   tpropertysym(overridden).makeduplicate(p,readprocdef,writeprocdef,paranr);
-                  p.overriddenpropsym:=tpropertysym(overridden);
-                  include(p.propoptions,ppo_overrides);
+                  p.register_override(tpropertysym(overridden));
                 end
               else
                 begin
@@ -509,164 +510,56 @@ implementation
 
          if not(is_dispinterface(astruct)) then
            begin
+             gotreadorwrite:=false;
+             { parse accessors }
              if try_to_consume(_READ) then
                begin
+                 gotreadorwrite:=true;
                  p.propaccesslist[palt_read].clear;
                  if parse_symlist(p.propaccesslist[palt_read],def) then
                   begin
                     sym:=p.propaccesslist[palt_read].firstsym^.sym;
-                    case sym.typ of
-                      procsym :
-                        begin
-                          { read is function returning the type of the property }
-                          readprocdef.returndef:=p.propdef;
-                          { Insert hidden parameters }
-                          handle_calling_convention(readprocdef);
-                          { search procdefs matching readprocdef }
-                          { we ignore hidden stuff here because the property access symbol might have
-                            non default calling conventions which might change the hidden stuff;
-                            see tw3216.pp (FK) }
-                          p.propaccesslist[palt_read].procdef:=Tprocsym(sym).Find_procdef_bypara(readprocdef.paras,p.propdef,[cpo_allowdefaults,cpo_ignorehidden]);
-                          if not assigned(p.propaccesslist[palt_read].procdef) or
-                            { because of cpo_ignorehidden we need to compare if it is a static class method and we have a class property }
-                            ((sp_static in p.symoptions) <> tprocdef(p.propaccesslist[palt_read].procdef).no_self_node) then
-                            Message(parser_e_ill_property_access_sym)
-                          else
-                            begin
-{$ifdef jvm}
-                              orgaccesspd:=tprocdef(p.propaccesslist[palt_read].procdef);
-                              wrongvisibility:=tprocdef(p.propaccesslist[palt_read].procdef).visibility<p.visibility;
-                              if (prop_auto_getter_prefix<>'') and
-                                 (wrongvisibility or
-                                   (p.propaccesslist[palt_read].firstsym^.sym.RealName<>prop_auto_getter_prefix+p.RealName)) then
-                                jvm_create_getter_for_property(p,orgaccesspd)
-                              { if the visibility of the getter is lower than
-                                the visibility of the property, wrap it so that
-                                we can call it from all contexts in which the
-                                property is visible }
-                              else if wrongvisibility then
-                               begin
-                                 p.propaccesslist[palt_read].procdef:=jvm_wrap_method_with_vis(tprocdef(p.propaccesslist[palt_read].procdef),p.visibility);
-                                 p.propaccesslist[palt_read].firstsym^.sym:=tprocdef(p.propaccesslist[palt_read].procdef).procsym;
-                               end;
-{$endif jvm}
-                            end;
-                        end;
-                      fieldvarsym :
-                        begin
-                          if not assigned(def) then
-                            internalerror(200310071);
-                          if compare_defs(def,p.propdef,nothingn)>=te_equal then
-                           begin
-                             { property parameters are allowed if this is
-                               an indexed property, because the index is then
-                               the parameter.
-                               Note: In the help of Kylix it is written
-                               that it isn't allowed, but the compiler accepts it (PFV) }
-                             if (ppo_hasparameters in p.propoptions) or
-                                ((sp_static in p.symoptions) <> (sp_static in sym.symoptions)) then
-                               Message(parser_e_ill_property_access_sym);
-{$ifdef jvm}
-                             { if the visibility of the field is lower than the
-                               visibility of the property, wrap it in a getter
-                               so that we can access it from all contexts in
-                               which the property is visibile }
-                             if (prop_auto_getter_prefix<>'') or
-                                (tfieldvarsym(sym).visibility<p.visibility) then
-                               jvm_create_getter_for_property(p,nil);
-{$endif}
-                           end
-                          else
-                           IncompatibleTypes(def,p.propdef);
-                        end;
-                      else
-                        Message(parser_e_ill_property_access_sym);
-                    end;
+                    { getter is a function returning the type of the property }
+                    if sym.typ=procsym then
+                      begin
+                        readprocdef.returndef:=p.propdef;
+                        { Insert hidden parameters }
+                        handle_calling_convention(readprocdef);
+                      end;
+                    p.add_getter_or_setter_for_sym(palt_read,sym,def,readprocdef);
                   end;
-               end;
+               end
+             else
+               p.inherit_accessor(palt_read);
              if try_to_consume(_WRITE) then
                begin
+                 gotreadorwrite:=true;
                  p.propaccesslist[palt_write].clear;
                  if parse_symlist(p.propaccesslist[palt_write],def) then
                   begin
                     sym:=p.propaccesslist[palt_write].firstsym^.sym;
-                    case sym.typ of
-                      procsym :
-                        begin
-                          { write is a procedure with an extra value parameter
-                            of the of the property }
-                          writeprocdef.returndef:=voidtype;
-                          inc(paranr);
-                          hparavs:=tparavarsym.create('$value',10*paranr,vs_value,p.propdef,[]);
-                          writeprocdef.parast.insert(hparavs);
-                          { Insert hidden parameters }
-                          handle_calling_convention(writeprocdef);
-                          { search procdefs matching writeprocdef }
-                          { skip hidden part (same as for _READ part ) because of the }
-                          { possible different calling conventions and especialy for  }
-                          { records - their methods hidden parameters are handled     }
-                          { after the full record parse                               }
-                          if cs_varpropsetter in current_settings.localswitches then
-                            p.propaccesslist[palt_write].procdef:=Tprocsym(sym).Find_procdef_bypara(writeprocdef.paras,writeprocdef.returndef,[cpo_allowdefaults,cpo_ignorevarspez,cpo_ignorehidden])
-                          else
-                            p.propaccesslist[palt_write].procdef:=Tprocsym(sym).Find_procdef_bypara(writeprocdef.paras,writeprocdef.returndef,[cpo_allowdefaults,cpo_ignorehidden]);
-                          if not assigned(p.propaccesslist[palt_write].procdef) or
-                             { because of cpo_ignorehidden we need to compare if it is a static class method and we have a class property }
-                             ((sp_static in p.symoptions) <> tprocdef(p.propaccesslist[palt_write].procdef).no_self_node) then
-                            Message(parser_e_ill_property_access_sym)
-                          else
-                            begin
-{$ifdef jvm}
-                              orgaccesspd:=tprocdef(p.propaccesslist[palt_write].procdef);
-                              wrongvisibility:=tprocdef(p.propaccesslist[palt_write].procdef).visibility<p.visibility;
-                              if (prop_auto_setter_prefix<>'') and
-                                 ((sym.RealName<>prop_auto_setter_prefix+p.RealName) or
-                                  wrongvisibility) then
-                                jvm_create_setter_for_property(p,orgaccesspd)
-                              { if the visibility of the setter is lower than
-                                the visibility of the property, wrap it so that
-                                we can call it from all contexts in which the
-                                property is visible }
-                              else if wrongvisibility then
-                                begin
-                                  p.propaccesslist[palt_write].procdef:=jvm_wrap_method_with_vis(tprocdef(p.propaccesslist[palt_write].procdef),p.visibility);
-                                  p.propaccesslist[palt_write].firstsym^.sym:=tprocdef(p.propaccesslist[palt_write].procdef).procsym;
-                                end;
-{$endif jvm}
-                            end;
-                        end;
-                      fieldvarsym :
-                        begin
-                          if not assigned(def) then
-                            internalerror(200310072);
-                          if compare_defs(def,p.propdef,nothingn)>=te_equal then
-                           begin
-                             { property parameters are allowed if this is
-                               an indexed property, because the index is then
-                               the parameter.
-                               Note: In the help of Kylix it is written
-                               that it isn't allowed, but the compiler accepts it (PFV) }
-                             if (ppo_hasparameters in p.propoptions) or
-                                ((sp_static in p.symoptions) <> (sp_static in sym.symoptions)) then
-                              Message(parser_e_ill_property_access_sym);
-{$ifdef jvm}
-                             { if the visibility of the field is lower than the
-                               visibility of the property, wrap it in a getter
-                               so that we can access it from all contexts in
-                               which the property is visibile }
-                             if (prop_auto_setter_prefix<>'') or
-                                (tfieldvarsym(sym).visibility<p.visibility) then
-                               jvm_create_setter_for_property(p,nil);
-{$endif}
-                           end
-                          else
-                           IncompatibleTypes(def,p.propdef);
-                        end;
-                      else
-                        Message(parser_e_ill_property_access_sym);
-                    end;
+                    if sym.typ=procsym then
+                      begin
+                        { settter is a procedure with an extra value parameter
+                          of the of the property }
+                        writeprocdef.returndef:=voidtype;
+                        inc(paranr);
+                        hparavs:=cparavarsym.create('$value',10*paranr,vs_value,p.propdef,[]);
+                        writeprocdef.parast.insert(hparavs);
+                        { Insert hidden parameters }
+                        handle_calling_convention(writeprocdef);
+                      end;
+                    p.add_getter_or_setter_for_sym(palt_write,sym,def,writeprocdef);
                   end;
-               end;
+               end
+             else
+               p.inherit_accessor(palt_write);
+             { a new property (needs to declare a getter or setter, except in
+               an interface }
+             if not(ppo_overrides in p.propoptions) and
+                not is_interface(astruct) and
+                not gotreadorwrite then
+               Consume(_READ);
            end
          else
            parse_dispinterface(p,readprocdef,writeprocdef,paranr);
@@ -681,96 +574,85 @@ implementation
               begin
                 include(p.propoptions,ppo_stored);
                 p.propaccesslist[palt_stored].clear;
-                case token of
-                  _ID:
-                    begin
-                      { in the case that idtoken=_DEFAULT }
-                      { we have to do nothing except      }
-                      { setting ppo_stored, it's the same }
-                      { as stored true                    }
-                      if idtoken<>_DEFAULT then
-                       begin
-                         { parse_symlist cannot deal with constsyms, and
-                           we also don't want to put constsyms in symlists
-                           since they have to be evaluated immediately rather
-                           than each time the property is accessed
+                if token=_ID then
+                  begin
+                    { in the case that idtoken=_DEFAULT }
+                    { we have to do nothing except      }
+                    { setting ppo_stored, it's the same }
+                    { as stored true                    }
+                    if idtoken<>_DEFAULT then
+                     begin
+                       { parse_symlist cannot deal with constsyms, and
+                         we also don't want to put constsyms in symlists
+                         since they have to be evaluated immediately rather
+                         than each time the property is accessed
 
-                           The proper fix would be to always create a parse tree
-                           and then convert that one, if appropriate, to a symlist.
-                           Currently, we e.g. don't support any constant expressions
-                           yet either here, while Delphi does.
+                         The proper fix would be to always create a parse tree
+                         and then convert that one, if appropriate, to a symlist.
+                         Currently, we e.g. don't support any constant expressions
+                         yet either here, while Delphi does.
 
-                         }
-                         { make sure we don't let constants mask class fields/
-                           methods
-                         }
-                         if (not assigned(astruct) or
-                             (search_struct_member(astruct,pattern)=nil)) and
-                            searchsym(pattern,sym,srsymtable) and
-                            (sym.typ = constsym) then
-                           begin
-                              addsymref(sym);
-                              if not is_boolean(tconstsym(sym).constdef) then
-                                Message(parser_e_stored_property_must_be_boolean)
-                              else if (tconstsym(sym).value.valueord=0) then
-                                { same as for _FALSE }
-                                exclude(p.propoptions,ppo_stored)
-                              else
-                                { same as for _TRUE }
-                                p.default:=longint($80000000);
-                              consume(_ID);
-                            end
-                         else if parse_symlist(p.propaccesslist[palt_stored],def) then
-                          begin
-                            sym:=p.propaccesslist[palt_stored].firstsym^.sym;
-                            case sym.typ of
-                              procsym :
-                                begin
-                                   { Create a temporary procvardef to handle parameters }
-                                   storedprocdef:=tprocvardef.create(normal_function_level);
-                                   include(storedprocdef.procoptions,po_methodpointer);
-                                   { Return type must be boolean }
-                                   storedprocdef.returndef:=pasbool8type;
-                                   { Add index parameter if needed }
-                                   if ppo_indexed in p.propoptions then
-                                     begin
-                                       hparavs:=tparavarsym.create('$index',10,vs_value,p.indexdef,[]);
-                                       storedprocdef.parast.insert(hparavs);
-                                     end;
+                       }
+                       { make sure we don't let constants mask class fields/
+                         methods
+                       }
+                       sym:=nil;
+                       if (not assigned(astruct) or
+                           (search_struct_member(astruct,pattern)=nil)) and
+                          searchsym(pattern,sym,srsymtable) and
+                          (sym.typ = constsym) then
+                         begin
+                            addsymref(sym);
+                            if not is_boolean(tconstsym(sym).constdef) then
+                              Message(parser_e_stored_property_must_be_boolean)
+                            else if (tconstsym(sym).value.valueord=0) then
+                              { same as for _FALSE }
+                              exclude(p.propoptions,ppo_stored)
+                            else
+                              { same as for _TRUE }
+                              p.default:=longint($80000000);
+                            consume(_ID);
+                          end
+                       else if parse_symlist(p.propaccesslist[palt_stored],def) then
+                        begin
+                          sym:=p.propaccesslist[palt_stored].firstsym^.sym;
+                          case sym.typ of
+                            procsym :
+                              begin
+                                 { Create a temporary procvardef to handle parameters }
+                                 storedprocdef:=cprocvardef.create(normal_function_level);
+                                 include(storedprocdef.procoptions,po_methodpointer);
+                                 { Return type must be boolean }
+                                 storedprocdef.returndef:=pasbool8type;
+                                 { Add index parameter if needed }
+                                 if ppo_indexed in p.propoptions then
+                                   begin
+                                     hparavs:=cparavarsym.create('$index',10,vs_value,p.indexdef,[]);
+                                     storedprocdef.parast.insert(hparavs);
+                                   end;
 
-                                   { Insert hidden parameters }
-                                   handle_calling_convention(storedprocdef);
-                                   p.propaccesslist[palt_stored].procdef:=Tprocsym(sym).Find_procdef_bypara(storedprocdef.paras,storedprocdef.returndef,[cpo_allowdefaults,cpo_ignorehidden]);
-                                   if not assigned(p.propaccesslist[palt_stored].procdef) then
-                                     message(parser_e_ill_property_storage_sym);
-                                   { Not needed anymore }
-                                   storedprocdef.owner.deletedef(storedprocdef);
-                                end;
-                              fieldvarsym :
-                                begin
-                                  if not assigned(def) then
-                                    internalerror(200310073);
-                                  if (ppo_hasparameters in p.propoptions) or
-                                     not(is_boolean(def)) then
-                                   Message(parser_e_stored_property_must_be_boolean);
-                                end;
-                              else
-                                Message(parser_e_ill_property_access_sym);
-                            end;
+                                 { Insert hidden parameters }
+                                 handle_calling_convention(storedprocdef);
+                                 p.propaccesslist[palt_stored].procdef:=Tprocsym(sym).Find_procdef_bypara(storedprocdef.paras,storedprocdef.returndef,[cpo_allowdefaults,cpo_ignorehidden]);
+                                 if not assigned(p.propaccesslist[palt_stored].procdef) then
+                                   message(parser_e_ill_property_storage_sym);
+                                 { Not needed anymore }
+                                 storedprocdef.owner.deletedef(storedprocdef);
+                              end;
+                            fieldvarsym :
+                              begin
+                                if not assigned(def) then
+                                  internalerror(200310073);
+                                if (ppo_hasparameters in p.propoptions) or
+                                   not(is_boolean(def)) then
+                                 Message(parser_e_stored_property_must_be_boolean);
+                              end;
+                            else
+                              Message(parser_e_ill_property_access_sym);
                           end;
-                       end;
-                    end;
-                  _FALSE:
-                    begin
-                      consume(_FALSE);
-                      exclude(p.propoptions,ppo_stored);
-                    end;
-                  _TRUE:
-                    begin
-                      p.default:=longint($80000000);
-                      consume(_TRUE);
-                    end;
-                end;
+                        end;
+                     end;
+                  end;
               end;
            end;
          if not is_record(astruct) and try_to_consume(_DEFAULT) then
@@ -835,7 +717,7 @@ implementation
              if is_interface(p.propdef) then
                begin
                  { an interface type may delegate itself or one of its ancestors }
-                 if not p.propdef.is_related(def) then
+                 if not def_is_related(p.propdef,def) then
                    begin
                      message2(parser_e_implements_must_have_correct_type,def.typename,p.propdef.typename);
                      exit;
@@ -843,7 +725,7 @@ implementation
                end
              else if is_class(p.propdef) then
                begin
-                 ImplIntf:=tobjectdef(p.propdef).find_implemented_interface(tobjectdef(def));
+                 ImplIntf:=find_implemented_interface(tobjectdef(p.propdef),tobjectdef(def));
                  if assigned(ImplIntf) then
                    begin
                      if compare_defs(ImplIntf.IntfDef,def,nothingn)<te_equal then
@@ -884,6 +766,7 @@ implementation
                  exit;
                end;
              found:=false;
+             ImplIntf:=nil;
              for i:=0 to tobjectdef(astruct).ImplementedInterfaces.Count-1 do
                begin
                  ImplIntf:=TImplementedInterface(tobjectdef(astruct).ImplementedInterfaces[i]);
@@ -958,7 +841,7 @@ implementation
             (def.typesym=nil) and
             check_proc_directive(true) then
            begin
-              newtype:=ttypesym.create('unnamed',def);
+              newtype:=ctypesym.create('unnamed',def);
               parse_var_proc_directives(tsym(newtype));
               newtype.typedef:=nil;
               def.typesym:=nil;
@@ -1007,6 +890,7 @@ implementation
       is_external_var:=false;
       is_public_var:=false;
       section_name := '';
+      dll_name := '';
       C_name:=vs.realname;
 
       { macpas specific handling due to some switches}
@@ -1182,7 +1066,7 @@ implementation
           case vs.typ of
             localvarsym :
               begin
-                tcsym:=tstaticvarsym.create('$default'+vs.realname,vs_const,vs.vardef,[]);
+                tcsym:=cstaticvarsym.create('$default'+vs.realname,vs_const,vs.vardef,[]);
                 include(tcsym.symoptions,sp_internal);
                 vs.defaultconstsym:=tcsym;
                 symtablestack.top.insert(tcsym);
@@ -1242,7 +1126,7 @@ implementation
           if (pt.nodetype=stringconstn) or
             (is_constcharnode(pt)) then
             begin
-              abssym:=tabsolutevarsym.create(vs.realname,vs.vardef);
+              abssym:=cabsolutevarsym.create(vs.realname,vs.vardef);
               abssym.fileinfo:=vs.fileinfo;
               if pt.nodetype=stringconstn then
                 abssym.asmname:=stringdup(strpas(tstringconstnode(pt).value_str))
@@ -1254,7 +1138,7 @@ implementation
           { address }
           else if is_constintnode(pt) then
             begin
-              abssym:=tabsolutevarsym.create(vs.realname,vs.vardef);
+              abssym:=cabsolutevarsym.create(vs.realname,vs.vardef);
               abssym.fileinfo:=vs.fileinfo;
               abssym.abstyp:=toaddr;
 {$ifndef cpu64bitaddr}
@@ -1269,7 +1153,7 @@ implementation
 {$endif}
                 abssym.addroffset:=Tordconstnode(pt).value.svalue;
 {$if defined(i386) or defined(i8086)}
-              abssym.absseg:=false;
+              tcpuabsolutevarsym(abssym).absseg:=false;
               if (target_info.system in [system_i386_go32v2,system_i386_watcom,system_i8086_msdos]) and
                   try_to_consume(_COLON) then
                 begin
@@ -1277,18 +1161,28 @@ implementation
                   pt:=expr(true);
                   if is_constintnode(pt) then
                     begin
-                      tmpaddr:=abssym.addroffset shl 4+tordconstnode(pt).value.svalue;
-                      if (tmpaddr<int64(low(abssym.addroffset))) or
-                         (tmpaddr>int64(high(abssym.addroffset))) then
-                        message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(abssym.addroffset)),tostr(high(abssym.addroffset)))
-                      else
-                        abssym.addroffset:=tmpaddr;
-                      abssym.absseg:=true;
+                      {$if defined(i8086)}
+                        tcpuabsolutevarsym(abssym).addrsegment:=abssym.addroffset;
+                        tmpaddr:=tordconstnode(pt).value.svalue;
+                        if (tmpaddr<int64(low(abssym.addroffset))) or
+                           (tmpaddr>int64(high(abssym.addroffset))) then
+                          message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(abssym.addroffset)),tostr(high(abssym.addroffset)))
+                        else
+                          abssym.addroffset:=tmpaddr;
+                      {$elseif defined(i386)}
+                        tmpaddr:=abssym.addroffset shl 4+tordconstnode(pt).value.svalue;
+                        if (tmpaddr<int64(low(abssym.addroffset))) or
+                           (tmpaddr>int64(high(abssym.addroffset))) then
+                          message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(abssym.addroffset)),tostr(high(abssym.addroffset)))
+                        else
+                          abssym.addroffset:=tmpaddr;
+                      {$endif}
+                      tcpuabsolutevarsym(abssym).absseg:=true;
                     end
                   else
                     Message(type_e_ordinal_expr_expected);
                 end;
-{$endif i386}
+{$endif i386 or i8086}
             end
           { variable }
           else
@@ -1336,7 +1230,7 @@ implementation
                   { we should check the result type of loadn }
                   if not (tloadnode(hp).symtableentry.typ in [fieldvarsym,staticvarsym,localvarsym,paravarsym]) then
                     Message(parser_e_absolute_only_to_var_or_const);
-                  abssym:=tabsolutevarsym.create(vs.realname,vs.vardef);
+                  abssym:=cabsolutevarsym.create(vs.realname,vs.vardef);
                   abssym.fileinfo:=vs.fileinfo;
                   abssym.abstyp:=tovar;
                   abssym.ref:=node_to_propaccesslist(pt);
@@ -1398,11 +1292,11 @@ implementation
                  begin
                    case symtablestack.top.symtabletype of
                      localsymtable :
-                       vs:=tlocalvarsym.create(orgpattern,vs_value,generrordef,[]);
+                       vs:=clocalvarsym.create(orgpattern,vs_value,generrordef,[]);
                      staticsymtable,
                      globalsymtable :
                        begin
-                         vs:=tstaticvarsym.create(orgpattern,vs_value,generrordef,[]);
+                         vs:=cstaticvarsym.create(orgpattern,vs_value,generrordef,[]);
                          if vd_threadvar in options then
                            include(vs.varoptions,vo_is_thread_var);
                        end;
@@ -1570,6 +1464,7 @@ implementation
          usedalign,
          maxalignment,startvarrecalign,
          maxpadalign, startpadalign: shortint;
+         stowner : tdef;
          pt : tnode;
          fieldvs   : tfieldvarsym;
          hstaticvs : tstaticvarsym;
@@ -1617,7 +1512,7 @@ implementation
                sorg:=orgpattern;
                if token=_ID then
                  begin
-                   vs:=tfieldvarsym.create(sorg,vs_value,generrordef,[]);
+                   vs:=cfieldvarsym.create(sorg,vs_value,generrordef,[]);
 
                    { normally the visibility is set via addfield, but sometimes
                      we collect symbols so we can add them in a batch of
@@ -1641,29 +1536,34 @@ implementation
              { allow only static fields reference to struct where they are declared }
              if not (vd_class in options) then
                begin
-                 if hdef.typ=arraydef then
+                 stowner:=tdef(recst.defowner);
+                 while assigned(stowner) and (stowner.typ in [objectdef,recorddef]) do
                    begin
-                     tmpdef:=hdef;
-                     while (tmpdef.typ=arraydef) do
+                     if hdef.typ=arraydef then
                        begin
-                         { dynamic arrays are allowed }
-                         if ado_IsDynamicArray in tarraydef(tmpdef).arrayoptions then
+                         tmpdef:=hdef;
+                         while (tmpdef.typ=arraydef) do
                            begin
-                             tmpdef:=nil;
-                             break;
+                             { dynamic arrays are allowed }
+                             if ado_IsDynamicArray in tarraydef(tmpdef).arrayoptions then
+                               begin
+                                 tmpdef:=nil;
+                                 break;
+                               end;
+                             tmpdef:=tarraydef(tmpdef).elementdef;
                            end;
-                         tmpdef:=tarraydef(tmpdef).elementdef;
+                       end
+                     else
+                       tmpdef:=hdef;
+                     if assigned(tmpdef) and
+                         (is_object(tmpdef) or is_record(tmpdef)) and
+                         is_owned_by(tabstractrecorddef(stowner),tabstractrecorddef(tmpdef)) then
+                       begin
+                         Message1(type_e_type_is_not_completly_defined, tabstractrecorddef(tmpdef).RttiName);
+                         { for error recovery or compiler will crash later }
+                         hdef:=generrordef;
                        end;
-                   end
-                 else
-                   tmpdef:=hdef;
-                 if assigned(tmpdef) and
-                     (is_object(tmpdef) or is_record(tmpdef)) and
-                     is_owned_by(tabstractrecorddef(recst.defowner),tabstractrecorddef(tmpdef)) then
-                   begin
-                     Message1(type_e_type_is_not_completly_defined, tabstractrecorddef(tmpdef).RttiName);
-                     { for error recovery or compiler will crash later }
-                     hdef:=generrordef;
+                     stowner:=tdef(stowner.owner.defowner);
                    end;
                end;
 
@@ -1779,10 +1679,8 @@ implementation
                      fieldvs:=tfieldvarsym(sc[i]);
                      fieldvs.visibility:=visibility;
                      hstaticvs:=make_field_static(recst,fieldvs);
-                     { for generics it would be better to disable the following,
-                       but simply disabling it in that case breaks linking with
-                       debug info }
-                     cnodeutils.insertbssdata(hstaticvs);
+                     if not parse_generic then
+                       cnodeutils.insertbssdata(hstaticvs);
                      if vd_final in options then
                        hstaticvs.varspez:=vs_final;
                    end;
@@ -1840,7 +1738,7 @@ implementation
                 begin
                   consume(_ID);
                   consume(_COLON);
-                  fieldvs:=tfieldvarsym.create(sorg,vs_value,generrordef,[]);
+                  fieldvs:=cfieldvarsym.create(sorg,vs_value,generrordef,[]);
                   variantdesc^^.variantselector:=fieldvs;
                   symtablestack.top.insert(fieldvs);
                 end;
@@ -1860,7 +1758,7 @@ implementation
               consume(_OF);
 
               UnionSymtable:=trecordsymtable.create('',current_settings.packrecords);
-              UnionDef:=trecorddef.create('',unionsymtable);
+              UnionDef:=crecorddef.create('',unionsymtable);
               uniondef.isunion:=true;
 
               startvarrecsize:=UnionSymtable.datasize;

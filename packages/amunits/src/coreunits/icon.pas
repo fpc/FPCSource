@@ -61,7 +61,7 @@ unit icon;
 INTERFACE
 
 
-uses exec, workbench,utility,amigados,graphics,intuition,datatypes;
+uses exec, workbench,utility,amigados,agraphics,intuition,datatypes;
 
     const
     ICONA_Dummy = TAG_USER + $9000;
@@ -413,7 +413,7 @@ IMPLEMENTATION
 
 uses
 {$ifndef dont_use_openlib}
-msgbox,
+amsgbox,
 {$endif dont_use_openlib}
 pastoc;
 

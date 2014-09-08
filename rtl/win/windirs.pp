@@ -59,8 +59,7 @@ uses
   sysutils;
 
 Type
-  PFNSHGetFolderPath = Function(Ahwnd: HWND; Csidl: Integer; Token: THandle; Flags: DWord; Path: PChar): HRESULT; stdcall;
-
+  PFNSHGetFolderPath = Function(Ahwnd: HWND; Csidl: Integer; Token: THandle; Flags: DWord; Path: {$ifdef FPC_UNICODE_RTL}PWideChar{$ELSE}PChar{$ENDIF}): HRESULT; stdcall;
 
 var
   SHGetFolderPath : PFNSHGetFolderPath = Nil;
@@ -69,7 +68,7 @@ var
 Procedure InitDLL;
 
 Var
-  pathBuf: array[0..MAX_PATH-1] of char;
+  pathBuf: array[0..MAX_PATH-1] of {$ifdef FPC_UNICODE_RTL}WideChar{$else}Ansichar{$endif};
   pathLength: Integer;
 begin
   { Load shfolder.dll using a full path, in order to prevent spoofing (Mantis #18185)
@@ -83,7 +82,7 @@ begin
 
     if (CFGDLLHandle<>0) then
     begin
-      Pointer(ShGetFolderPath):=GetProcAddress(CFGDLLHandle,'SHGetFolderPathA');
+      Pointer(ShGetFolderPath):=GetProcAddress(CFGDLLHandle,{$ifdef FPC_UNICODE_RTL}'SHGetFolderPathW'{$else}'SHGetFolderPathA'{$endif});
       If @ShGetFolderPath=nil then
       begin
         FreeLibrary(CFGDLLHandle);

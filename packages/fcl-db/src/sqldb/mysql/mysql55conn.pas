@@ -4,8 +4,7 @@
 
 unit mysql55conn;
 
-{$DEFINE MYSQL50_UP}
-{$DEFINE MYSQL51_UP}
+{$DEFINE MYSQL55_UP}
 {$DEFINE MYSQL55}
 
 {$i mysqlconn.inc}

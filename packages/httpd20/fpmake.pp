@@ -28,6 +28,7 @@ begin
 {$else ALLPACKAGES}
     P.OSes := AllUnixOSes+AllWindowsOSes-[qnx];
 {$endif ALLPACKAGES}
+    P.Dependencies.Add('rtl-extra');
 
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/apr');

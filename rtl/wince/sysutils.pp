@@ -31,6 +31,13 @@ uses
 {$DEFINE HAS_OSCONFIG}
 {$DEFINE HAS_TEMPDIR}
 {$DEFINE HAS_LOCALTIMEZONEOFFSET}
+
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
+{ OS has an ansistring/single byte environment variable API (it has a dummy
+  one currently, but that one uses ansistring) }
+{$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -94,10 +101,19 @@ begin
   end;
 end;
 
-function ExpandUNCFileName (const filename:string) : string;
+
+function ExpandUNCFileName (const filename:rawbytestring) : rawbytestring;
+var
+  u: unicodestring;
+begin
+  u:=ExpandUNCFileName(unicodestring(filename));
+  widestringmanager.Unicode2AnsiMoveProc(punicodechar(u),result,DefaultRTLFileSystemCodePage,length(u));
+end;
+
+function ExpandUNCFileName (const filename:unicodestring) : unicodestring;
 { returns empty string on errors }
 var
-  s    : widestring;
+  s    : unicodestring;
   size : dword;
   rc   : dword;
   buf  : pwidechar;
@@ -130,7 +146,7 @@ end;
                               File Functions
 ****************************************************************************}
 
-Function FileOpen (Const FileName : string; Mode : Integer) : THandle;
+Function FileOpen (Const FileName : unicodestring; Mode : Integer) : THandle;
 const
   AccessMode: array[0..2] of Cardinal  = (
     GENERIC_READ,
@@ -142,36 +158,28 @@ const
                FILE_SHARE_READ,
                FILE_SHARE_WRITE,
                FILE_SHARE_READ or FILE_SHARE_WRITE);
-var
-  fn: PWideChar;
 begin
-  fn:=StringToPWideChar(FileName);
-  result := CreateFile(fn, dword(AccessMode[Mode and 3]),
+  result := CreateFile(PWideChar(FileName), dword(AccessMode[Mode and 3]),
                        dword(ShareMode[(Mode and $F0) shr 4]), nil, OPEN_EXISTING,
                        FILE_ATTRIBUTE_NORMAL, 0);
   //if fail api return feInvalidHandle (INVALIDE_HANDLE=feInvalidHandle=-1)
-  FreeMem(fn);
 end;
 
 
-Function FileCreate (Const FileName : String) : THandle;
-var
-  fn: PWideChar;
+Function FileCreate (Const FileName : UnicodeString) : THandle;
 begin
-  fn:=StringToPWideChar(FileName);
-  Result := CreateFile(fn, GENERIC_READ or GENERIC_WRITE,
+  Result := CreateFile(PWideChar(FileName), GENERIC_READ or GENERIC_WRITE,
                        0, nil, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
-  FreeMem(fn);
 end;
 
 
-Function FileCreate (Const FileName : String; Rights:longint) : THandle;
+Function FileCreate (Const FileName : UnicodeString; Rights:longint) : THandle;
 begin
   FileCreate:=FileCreate(FileName);
 end;
 
 
-Function FileCreate (Const FileName : String; ShareMode:longint; Rights:longint) : THandle;
+Function FileCreate (Const FileName : UnicodeString; ShareMode:longint; Rights:longint) : THandle;
 begin
   FileCreate:=FileCreate(FileName);
 end;
@@ -240,15 +248,12 @@ begin
 end;
 
 
-Function FileAge (Const FileName : String): Longint;
+Function FileAge (Const FileName : UnicodeString): Longint;
 var
   Handle: THandle;
   FindData: TWin32FindData;
-  fn: PWideChar;
 begin
-  fn:=StringToPWideChar(FileName);
-  Handle := FindFirstFile(fn, FindData);
-  FreeMem(fn);
+  Handle := FindFirstFile(PWideChar(FileName), FindData);
   if Handle <> INVALID_HANDLE_VALUE then
     begin
       Windows.FindClose(Handle);
@@ -260,7 +265,7 @@ begin
 end;
 
 
-Function FileExists (Const FileName : String) : Boolean;
+Function FileExists (Const FileName : UnicodeString) : Boolean;
 var
   Attr:Dword;
 begin
@@ -272,7 +277,7 @@ begin
 end;
 
 
-Function DirectoryExists (Const Directory : String) : Boolean;
+Function DirectoryExists (Const Directory : UnicodeString) : Boolean;
 var
   Attr:Dword;
 begin
@@ -284,7 +289,7 @@ begin
 end;
 
 
-Function FindMatch(var f: TSearchRec) : Longint;
+Function FindMatch(var f: TAbstractSearchRec; var Name: UnicodeString) : Longint;
 begin
   { Find file with correct attribute }
   While (F.FindData.dwFileAttributes and cardinal(F.ExcludeAttr))<>0 do
@@ -299,46 +304,45 @@ begin
   WinToDosTime(F.FindData.ftLastWriteTime,F.Time);
   f.size:=F.FindData.NFileSizeLow;
   f.attr:=F.FindData.dwFileAttributes;
-  PWideCharToString(@F.FindData.cFileName[0], f.Name);
+  Name:=F.FindData.cFileName;
   Result:=0;
 end;
 
 
-Function FindFirst (Const Path : String; Attr : Longint; out Rslt : TSearchRec) : Longint;
+Function InternalFindFirst (Const Path : UnicodeString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name : UnicodeString) : Longint;
 var
   fn: PWideChar;
 begin
-  fn:=StringToPWideChar(Path);
-  Rslt.Name:=Path;
+  fn:=PWideChar(Path);
+  Name:=Path;
   Rslt.Attr:=attr;
   Rslt.ExcludeAttr:=(not Attr) and ($1e);
                  { $1e = faHidden or faSysFile or faVolumeID or faDirectory }
   { FindFirstFile is a WinCE Call }
   Rslt.FindHandle:=FindFirstFile (fn, Rslt.FindData);
-  FreeMem(fn);
   If Rslt.FindHandle=Invalid_Handle_value then
    begin
      Result:=GetLastError;
      exit;
    end;
   { Find file with correct attribute }
-  Result:=FindMatch(Rslt);
+  Result:=FindMatch(Rslt, Name);
 end;
 
 
-Function FindNext (Var Rslt : TSearchRec) : Longint;
+Function InternalFindNext (Var Rslt : TAbstractSearchRec; var Name: UnicodeString) : Longint;
 begin
   if FindNextFile(Rslt.FindHandle, Rslt.FindData) then
-    Result := FindMatch(Rslt)
+    Result := FindMatch(Rslt, Name)
   else
     Result := GetLastError;
 end;
 
 
-Procedure FindClose (Var F : TSearchrec);
+Procedure InternalFindClose (var Handle: THandle; var FindData: TFindData);
 begin
-   if F.FindHandle <> INVALID_HANDLE_VALUE then
-    Windows.FindClose(F.FindHandle);
+   if Handle <> INVALID_HANDLE_VALUE then
+     Windows.FindClose(Handle);
 end;
 
 
@@ -364,7 +368,7 @@ begin
 end;
 
 
-Function FileGetAttr (Const FileName : String) : Longint;
+Function FileGetAttr (Const FileName : UnicodeString) : Longint;
 var
   fn: PWideChar;
 begin
@@ -374,38 +378,24 @@ begin
 end;
 
 
-Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
-var
-  fn: PWideChar;
+Function FileSetAttr (Const Filename : UnicodeString; Attr: longint) : Longint;
 begin
-  fn:=StringToPWideChar(FileName);
-  if not SetFileAttributes(fn, Attr) then
+  if not SetFileAttributes(PWideChar(FileName), Attr) then
     Result := GetLastError
   else
     Result:=0;
-  FreeMem(fn);
 end;
 
 
-Function DeleteFile (Const FileName : String) : Boolean;
-var
-  fn: PWideChar;
+Function DeleteFile (Const FileName : UnicodeString) : Boolean;
 begin
-  fn:=StringToPWideChar(FileName);
-  DeleteFile:=Windows.DeleteFile(fn);
-  FreeMem(fn);
+  DeleteFile:=Windows.DeleteFile(PWideChar(FileName));
 end;
 
 
-Function RenameFile (Const OldName, NewName : String) : Boolean;
-var
-  fold, fnew: PWideChar;
+Function RenameFile (Const OldName, NewName : UnicodeString) : Boolean;
 begin
-  fold:=StringToPWideChar(OldName);
-  fnew:=StringToPWideChar(NewName);
-  Result := MoveFile(fold, fnew);
-  FreeMem(fnew);
-  FreeMem(fold);
+  Result := MoveFile(PWideChar(OldName), PWideChar(NewName));
 end;
 
 
@@ -422,39 +412,6 @@ end;
 function disksize(drive : byte) : int64;
 begin
   Result := Dos.disksize(drive);
-end;
-
-
-Function GetCurrentDir : String;
-begin
-  GetDir(0, result);
-end;
-
-
-Function SetCurrentDir (Const NewDir : String) : Boolean;
-begin
-  {$I-}
-   ChDir(NewDir);
-  {$I+}
-  result := (IOResult = 0);
-end;
-
-
-Function CreateDir (Const NewDir : String) : Boolean;
-begin
-  {$I-}
-   MkDir(NewDir);
-  {$I+}
-  result := (IOResult = 0);
-end;
-
-
-Function RemoveDir (Const Dir : String) : Boolean;
-begin
-  {$I-}
-   RmDir(Dir);
-  {$I+}
-  result := (IOResult = 0);
 end;
 
 
@@ -654,7 +611,7 @@ begin
   Result := 0;
 end;
 
-Function GetEnvironmentString(Index : Integer) : String;
+Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 begin
   Result := '';
 end;

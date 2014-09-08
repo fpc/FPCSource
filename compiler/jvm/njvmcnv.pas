@@ -55,6 +55,7 @@ interface
          { procedure second_real_to_real;override; }
          { procedure second_cord_to_pointer;override; }
           procedure second_proc_to_procvar;override;
+          procedure second_nil_to_methodprocvar;override;
           procedure second_bool_to_int;override;
           procedure second_int_to_bool;override;
          { procedure second_load_smallset;override;  }
@@ -95,7 +96,7 @@ implementation
 
    uses
       verbose,globals,globtype,constexp,cutils,
-      symbase,symconst,symdef,symsym,symtable,aasmbase,aasmdata,
+      symbase,symconst,symdef,symsym,symcpu,symtable,aasmbase,aasmdata,
       defutil,defcmp,jvmdef,
       cgbase,cgutils,pass_1,pass_2,
       nbas,ncon,ncal,ninl,nld,nmem,procinfo,
@@ -221,7 +222,7 @@ implementation
       if not assigned(totypedef) or
          (totypedef.typ<>procvardef) then
         begin
-          if assigned(tprocvardef(resultdef).classdef) then
+          if assigned(tcpuprocvardef(resultdef).classdef) then
             internalerror(2011072405);
           { associate generic classdef; this is the result of an @proc
             expression, and such expressions can never result in a direct call
@@ -231,7 +232,7 @@ implementation
             { todo }
             internalerror(2011072406)
           else
-            tprocvardef(resultdef).classdef:=java_procvarbase;
+            tcpuprocvardef(resultdef).classdef:=java_procvarbase;
         end;
     end;
 
@@ -257,7 +258,13 @@ implementation
 
     function tjvmtypeconvnode.pass_1: tnode;
       begin
-        if (nf_explicit in flags) then
+        if (nf_explicit in flags) or
+           { some implicit type conversions from voidpointer to other types
+             (such as dynamic array) are allowed too, even though the types are
+             incompatible -> make sure we check those too and insert checkcast
+             instructions as necessary }
+           (is_voidpointer(left.resultdef) and
+            not is_voidpointer(resultdef)) then
           begin
             do_target_specific_explicit_typeconv(false,result);
             if assigned(result) then
@@ -375,10 +382,10 @@ implementation
         result:=inherited first_nil_to_methodprocvar;
         if assigned(result) then
           exit;
-        if not assigned(tprocvardef(resultdef).classdef) then
-          tprocvardef(resultdef).classdef:=java_procvarbase;
+        if not assigned(tcpuprocvardef(resultdef).classdef) then
+          tcpuprocvardef(resultdef).classdef:=java_procvarbase;
         result:=ccallnode.createinternmethod(
-          cloadvmtaddrnode.create(ctypenode.create(tprocvardef(resultdef).classdef)),'CREATE',nil);
+          cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(resultdef).classdef)),'CREATE',nil);
         { method pointer is an implicit pointer type }
         result:=ctypeconvnode.create_explicit(result,getpointerdef(resultdef));
         result:=cderefnode.create(result);
@@ -481,7 +488,7 @@ implementation
         if not assigned(procdefparas) then
           procdefparas:=carrayconstructornode.create(nil,nil);
         constrparas:=ccallparanode.create(procdefparas,constrparas);
-        result:=ccallnode.createinternmethod(cloadvmtaddrnode.create(ctypenode.create(tprocvardef(resultdef).classdef)),'CREATE',constrparas);
+        result:=ccallnode.createinternmethod(cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(resultdef).classdef)),'CREATE',constrparas);
         { typecast to the procvar type }
         if tprocvardef(resultdef).is_addressonly then
           result:=ctypeconvnode.create_explicit(result,resultdef)
@@ -683,6 +690,17 @@ implementation
       end;
 
 
+    procedure tjvmtypeconvnode.second_nil_to_methodprocvar;
+      var
+        r: Treference;
+      begin
+        tg.gethltemp(current_asmdata.currasmlist,java_jlobject,java_jlobject.size,tt_normal,r);
+        hlcg.a_load_const_ref(current_asmdata.CurrAsmList,java_jlobject,0,r);
+        location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1);
+        location.reference:=r;
+      end;
+
+
     procedure tjvmtypeconvnode.second_bool_to_int;
       var
          newsize: tcgsize;
@@ -868,12 +886,12 @@ implementation
           left:=nil;
         end;
 
-      function ord_enum_explicit_typecast(fdef: torddef; todef: tenumdef): tnode;
+      function ord_enum_explicit_typecast(fdef: torddef; todef: tcpuenumdef): tnode;
         var
           psym: tsym;
         begin
           { we only create a class for the basedefs }
-          todef:=todef.getbasedef;
+          todef:=tcpuenumdef(todef.getbasedef);
           psym:=search_struct_member(todef.classdef,'FPCVALUEOF');
           if not assigned(psym) or
              (psym.typ<>procsym) then
@@ -887,12 +905,12 @@ implementation
           left:=nil;
         end;
 
-      function enum_ord_explicit_typecast(fdef: tenumdef; todef: torddef): tnode;
+      function enum_ord_explicit_typecast(fdef: tcpuenumdef; todef: torddef): tnode;
         var
           psym: tsym;
         begin
           { we only create a class for the basedef }
-          fdef:=fdef.getbasedef;
+          fdef:=tcpuenumdef(fdef.getbasedef);
           psym:=search_struct_member(fdef.classdef,'FPCORDINAL');
           if not assigned(psym) or
              (psym.typ<>procsym) then
@@ -938,7 +956,7 @@ implementation
           if tsetdef(resultdef).elementdef.typ=enumdef then
             begin
               inserttypeconv_explicit(left,s64inttype);
-              enumclassdef:=tenumdef(tsetdef(resultdef).elementdef).getbasedef.classdef;
+              enumclassdef:=tcpuenumdef(tenumdef(tsetdef(resultdef).elementdef).getbasedef).classdef;
               mp:=cloadvmtaddrnode.create(ctypenode.create(enumclassdef));
               helpername:='fpcLongToEnumSet';
               { enumclass.fpcLongToEnumSet(left,setbase,setsize) }
@@ -973,21 +991,21 @@ implementation
           result:=nil;
           if fromdef=todef then
             exit;
-          fsym:=tfieldvarsym(search_struct_member(tprocvardef(fromdef).classdef,'METHOD'));
+          fsym:=tfieldvarsym(search_struct_member(tcpuprocvardef(fromdef).classdef,'METHOD'));
           if not assigned(fsym) or
              (fsym.typ<>fieldvarsym) then
             internalerror(2011072414);
           { can either be a procvar or a procvarclass }
           if fromdef.typ=procvardef then
             begin
-              left:=ctypeconvnode.create_explicit(left,tprocvardef(fromdef).classdef);
+              left:=ctypeconvnode.create_explicit(left,tcpuprocvardef(fromdef).classdef);
               include(left.flags,nf_load_procvar);
               typecheckpass(left);
             end;
           result:=csubscriptnode.create(fsym,left);
           { create destination procvartype with info from source }
           result:=ccallnode.createinternmethod(
-            cloadvmtaddrnode.create(ctypenode.create(tprocvardef(todef).classdef)),
+            cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(todef).classdef)),
             'CREATE',ccallparanode.create(result,nil));
           left:=nil;
         end;
@@ -999,8 +1017,8 @@ implementation
           { must be procedure-of-object -> implicit pointer type -> get address
             before typecasting to corresponding classdef }
           left:=caddrnode.create_internal(left);
-          inserttypeconv_explicit(left,tprocvardef(fromdef).classdef);
-          fsym:=tfieldvarsym(search_struct_member(tprocvardef(fromdef).classdef,'METHOD'));
+          inserttypeconv_explicit(left,tcpuprocvardef(fromdef).classdef);
+          fsym:=tfieldvarsym(search_struct_member(tcpuprocvardef(fromdef).classdef,'METHOD'));
           if not assigned(fsym) or
              (fsym.typ<>fieldvarsym) then
             internalerror(2011072414);
@@ -1012,11 +1030,11 @@ implementation
         var
           fsym: tsym;
         begin
-          fsym:=tfieldvarsym(search_struct_member(tprocvardef(todef).classdef,'METHOD'));
+          fsym:=tfieldvarsym(search_struct_member(tcpuprocvardef(todef).classdef,'METHOD'));
           if not assigned(fsym) or
              (fsym.typ<>fieldvarsym) then
             internalerror(2011072415);
-          result:=ccallnode.createinternmethod(cloadvmtaddrnode.create(ctypenode.create(tprocvardef(todef).classdef)),
+          result:=ccallnode.createinternmethod(cloadvmtaddrnode.create(ctypenode.create(tcpuprocvardef(todef).classdef)),
             'CREATE',ccallparanode.create(left,nil));
           left:=nil;
         end;
@@ -1071,9 +1089,9 @@ implementation
           result:=true;
           { check procvar conversion compatibility via their classes }
           if fromdef.typ=procvardef then
-            fromdef:=tprocvardef(fromdef).classdef;
+            fromdef:=tcpuprocvardef(fromdef).classdef;
           if todef.typ=procvardef then
-            todef:=tprocvardef(todef).classdef;
+            todef:=tcpuprocvardef(todef).classdef;
           if (todef=java_jlobject) or
              (todef=voidpointertype) then
             exit;
@@ -1083,7 +1101,7 @@ implementation
             but do not allow records to be directly typecasted into class/
             pointer types (you have to use FpcBaseRecordType(@rec) instead) }
           if not is_record(fromdef) and
-             fromdef.is_related(todef) then
+             def_is_related(fromdef,todef) then
             exit;
           if check_type_equality(fromdef,todef) then
             exit;
@@ -1100,7 +1118,7 @@ implementation
             exit;
           if (fromdef.typ=classrefdef) and
              (todef.typ=classrefdef) and
-             tclassrefdef(fromdef).pointeddef.is_related(tclassrefdef(todef).pointeddef) then
+             def_is_related(tclassrefdef(fromdef).pointeddef,tclassrefdef(todef).pointeddef) then
             exit;
           { special case: "array of shortstring" to "array of ShortstringClass"
             and "array of <record>" to "array of FpcRecordBaseType" (normally
@@ -1331,14 +1349,14 @@ implementation
            if left.resultdef.typ=orddef then
              begin
                if not check_only then
-                 resnode:=ord_enum_explicit_typecast(torddef(left.resultdef),tenumdef(resultdef));
+                 resnode:=ord_enum_explicit_typecast(torddef(left.resultdef),tcpuenumdef(resultdef));
                result:=true;
                exit;
              end
            else if resultdef.typ=orddef then
              begin
                if not check_only then
-                 resnode:=enum_ord_explicit_typecast(tenumdef(left.resultdef),torddef(resultdef));
+                 resnode:=enum_ord_explicit_typecast(tcpuenumdef(left.resultdef),torddef(resultdef));
                result:=true;
                exit;
              end

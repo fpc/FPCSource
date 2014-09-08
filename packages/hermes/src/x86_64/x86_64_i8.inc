@@ -1,6 +1,6 @@
 {
     Free Pascal version of the Hermes pixel conversion library.
-    Copyright (C) 2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2012, 2013  Nikolay Nikolov (nickysn@users.sourceforge.net)
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -39,7 +39,7 @@
 
 procedure ConvertX86_64_index8_32(iface: PHermesConverterInterface); cdecl;
 label
-  loop_start, loop_pre_remainder, loop_remainder, done;
+  preloop_start, preloop_skip, loop_start, loop_pre_remainder, loop_remainder, done;
 var
   i: Integer;
   s_pixel: Uint8;
@@ -67,6 +67,21 @@ begin
         mov rdi, [dest]
         mov rbx, [lookup]
         mov rcx, [s_width]
+
+preloop_start:
+        test rdi, 15
+        jz preloop_skip
+
+        movzx rax, byte [rsi]
+        mov edx, dword [rbx + rax * 4]
+        movnti [rdi], edx
+        inc rsi
+        add rdi, 4
+        sub rcx, 1
+        jz done
+        jmp preloop_start
+
+preloop_skip:
         mov r8, rcx
         and r8, 3
         shr rcx, 2

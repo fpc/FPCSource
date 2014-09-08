@@ -78,7 +78,7 @@ type
 implementation
 
 uses
-  sdo_datafactory, sdo_date_utils, sdo_convert_helper;
+  sdo_datafactory, sdo_date_utils;
 
 const
   s_uri              = 'urn-test';

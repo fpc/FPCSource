@@ -8,6 +8,7 @@
 'adc',
 'add',
 'adf',
+'adr',
 'and',
 'b',
 'bic',

@@ -9,18 +9,29 @@ SourceForge: http://sourceforge.net/projects/tdbf/forums/forum/107245
 
 TDbf readme:
 
-See history.txt for changelog.
-See history.txt for version number, latest version is at the top.
+See history.txt for changelog, and version number.
 See INSTALL for installation procedure.
 License is LGPL (Library General Public License); see COPYING.LIB for details.
 
-Development notes/additions to end user documentation
+Development notes
+=================
+(Includes possible additions to end user documentation)
 
 property RecNo: approximate record number. Does not take deleted records into account. Used mainly in grids.
 
 File format references:
 Flagship/FoxPro/Clipper/DBase III..V .dbf file format description
 ftp://fship.com/pub/multisoft/flagship/docu/dbfspecs.txt
+
+DBase IV language drivers 
+- Russian list: ...
+http://www.autopark.ru/ASBProgrammerGuide/DBFSTRUC.HTM
+... English extract:
+- http://shapelib.maptools.org/codepage.html
+
+- as supported by ArcPad .shp files (basically DBase IV) (page 128):
+http://downloads.esri.com/support/documentation/pad_/ArcPad_RefGuide_dec2007.pdf
+
 
 FoxPro 2.x:
 http://support.microsoft.com/kb/98743/en-us

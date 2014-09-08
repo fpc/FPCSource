@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<sdo:datagraph xmlns:ns1="company.xsd" xmlns:sdo="commonj.sdo" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <xsd>
+    <schema xmlns:sdo="commonj.sdo" xmlns:tns="company.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="company.xsd">
+      <xsd:complexType name="EmployeeType">
+        <xsd:sequence>
+          <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+          <xsd:element name="SN" type="xsd:string" minOccurs="0"/>
+          <xsd:element name="manager" type="xsd:boolean" minOccurs="0"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="DepartmentType">
+        <xsd:sequence>
+          <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+          <xsd:element name="location" type="xsd:string" minOccurs="0"/>
+          <xsd:element name="number" type="xsd:int" minOccurs="0"/>
+          <xsd:element name="list_object" type="tns:EmployeeType" maxOccurs="unbounded" minOccurs="0"/>
+          <xsd:element name="changeSummary" type="sdo:ChangeSummary"/>
+        </xsd:sequence>
+      </xsd:complexType>
+    </schema>
+  </xsd>
+  <changeSummary create="#/DepartmentType/list_object[2] #/DepartmentType/list_object[1] #/DepartmentType/list_object[3] #/DepartmentType/list_object[0] #/DepartmentType/list_object[4]" delete="#/changeSummary/EmployeeType[0] #/changeSummary/EmployeeType[1] #/changeSummary/EmployeeType[2]">
+    <DepartmentType sdo:ref="#/DepartmentType">
+      <name>R &amp; D</name>
+      <location>Ouaga, BF</location>
+      <list_object>
+        <listChanges kind="change" index="0">
+          <dataValues sdo:ref="#/changeSummary/EmployeeType[0]"/>
+        </listChanges>
+        <listChanges kind="append" index="3"/>
+        <listChanges kind="insert" index="3"/>
+        <listChanges kind="append" index="5"/>
+        <listChanges kind="change" index="1">
+          <dataValues sdo:ref="#/changeSummary/EmployeeType[1]"/>
+        </listChanges>
+        <listChanges kind="delete" index="0">
+          <dataValues xsi:nil="true"/>
+        </listChanges>
+        <listChanges kind="delete" index="1">
+          <dataValues sdo:ref="#/changeSummary/EmployeeType[2]"/>
+        </listChanges>
+        <listChanges kind="append" index="4"/>
+      </list_object>
+    </DepartmentType>
+    <EmployeeType>
+      <name>Inoussa O.</name>
+      <SN>0001</SN>
+      <manager>1</manager>
+    </EmployeeType>
+    <EmployeeType>
+      <name>Kis O.</name>
+      <SN>0002</SN>
+      <manager>0</manager>
+    </EmployeeType>
+    <EmployeeType>
+      <name>WST</name>
+      <SN>0003</SN>
+      <manager>0</manager>
+    </EmployeeType>
+  </changeSummary>
+  <ns1:DepartmentType>
+    <name>R &amp; D Department</name>
+    <location>Ouaga 01, BF</location>
+    <number>1210</number>
+    <list_object>
+      <name>Lazarus</name>
+      <SN>0011</SN>
+      <manager>0</manager>
+    </list_object>
+    <list_object>
+      <name>FPC 5</name>
+      <SN>0050</SN>
+      <manager>0</manager>
+    </list_object>
+    <list_object>
+      <name>FPC 2 </name>
+      <SN>0020</SN>
+      <manager>1</manager>
+    </list_object>
+    <list_object>
+      <name>FPC 3</name>
+      <SN>0030</SN>
+      <manager>0</manager>
+    </list_object>
+    <list_object>
+      <name>FPC 4</name>
+      <SN>0040</SN>
+      <manager>1</manager>
+    </list_object>
+  </ns1:DepartmentType>
+</sdo:datagraph>

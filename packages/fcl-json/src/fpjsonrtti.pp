@@ -245,6 +245,7 @@ begin
         ntFloat   : Result:=Data.AsFloat;
         ntInteger : Result:=Data.AsInteger;
         ntInt64   : Result:=Data.Asint64;
+        ntQWord   : Result:=Data.AsQWord;
       end;
     jtString :
       Result:=Data.AsString;

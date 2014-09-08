@@ -140,7 +140,7 @@ interface
 { * Since native Amiga commands can't handle Unix-style relative paths used by the compiler,
     and some GNU tools, Unix2AmigaPath is needed to handle such situations (KB) * }
 
-{$IF DEFINED(MORPHOS) OR DEFINED(AMIGA)}
+{$IFDEF HASAMIGA}
 { * PATHCONV is implemented in the Amiga/MorphOS system unit * }
 {$NOTE TODO Amiga: implement PathConv() in System unit, which works with AnsiString}
 function Unix2AmigaPath(path: ShortString): ShortString; external name 'PATHCONV';
@@ -148,6 +148,10 @@ function Unix2AmigaPath(path: ShortString): ShortString; external name 'PATHCONV
 function Unix2AmigaPath(path: String): String;{$IFDEF USEINLINE}inline;{$ENDIF}
 {$ENDIF}
 
+{$if FPC_FULLVERSION < 20701}
+type
+  TRawByteSearchRec = TSearchRec;
+{$endif}
 
 
 implementation
@@ -183,7 +187,7 @@ implementation
       DirCache : TDirectoryCache;
 
 
-{$IF NOT (DEFINED(MORPHOS) OR DEFINED(AMIGA))}
+{$IFNDEF HASAMIGA}
 { Stub function for Unix2Amiga Path conversion functionality, only available in
   Amiga/MorphOS RTL. I'm open for better solutions. (KB) }
 function Unix2AmigaPath(path: String): String;{$IFDEF USEINLINE}inline;{$ENDIF}
@@ -269,7 +273,7 @@ end;
 
     procedure TCachedDirectory.Reload;
       var
-        dir   : TSearchRec;
+        dir   : TRawByteSearchRec;
         entry : PCachedDirectoryEntry;
       begin
         FreeDirectoryEntries;
@@ -299,8 +303,8 @@ end;
                     DirectoryEntries.Add(Dir.Name,Pointer(Ptrint(Dir.Attr)));
                 end;
             until findnext(dir) <> 0;
+            findclose(dir);
           end;
-        findclose(dir);
       end;
 
 
@@ -533,7 +537,7 @@ end;
 {$if defined(unix)}
         if (length(s)>0) and (s[1] in AllowDirectorySeparators) then
           result:=true;
-{$elseif defined(amiga) or defined(morphos)}
+{$elseif defined(hasamiga)}
         (* An Amiga path is absolute, if it has a volume/device name in it (contains ":"),
            otherwise it's always a relative path, no matter if it starts with a directory
            separator or not. (KB) *)
@@ -760,6 +764,7 @@ end;
   begin
     oldpos := 1;
     slashPos := Pos('/', path);
+    TranslatePathToMac:='';
     if (slashPos <> 0) then   {its a unix path}
       begin
         if slashPos = 1 then
@@ -1072,7 +1077,7 @@ end;
             currPath:=FixPath(ExpandFileName(currpath),false);
             if (CurrentDir<>'') and (Copy(currPath,1,length(CurrentDir))=CurrentDir) then
              begin
-{$if defined(amiga) and defined(morphos)}
+{$ifdef hasamiga}
                currPath:= CurrentDir+Copy(currPath,length(CurrentDir)+1,length(currPath));
 {$else}
                currPath:= CurDirRelPath(source_info)+Copy(currPath,length(CurrentDir)+1,length(currPath));
@@ -1122,8 +1127,8 @@ end;
                         end;
                     end;
                 until findnext(dir) <> 0;
+                FindClose(dir);
               end;
-            FindClose(dir);
 {$endif usedircache}
             if not subdirfound then
               WarnNonExistingPath(currpath);
@@ -1475,6 +1480,7 @@ end;
         inquotes:=false;
         result:='';
         i:=1;
+        temp:='';
         while i<=length(QuotedStr) do
           begin
             case QuotedStr[i] of
@@ -1517,6 +1523,10 @@ end;
       var
         quote_script: tscripttype;
       begin
+
+        if do_checkverbosity(V_Executable) then
+          do_comment(V_Executable,'Executing "'+Path+'" with command line "'+
+            ComLine+'"');
         if (cs_link_on_target in current_settings.globalswitches) then
           quote_script:=target_info.script
         else
@@ -1529,7 +1539,21 @@ end;
 
 
     function RequotedExecuteProcess(const Path: AnsiString; const ComLine: array of AnsiString; Flags: TExecuteFlags): Longint;
+      var
+        i : longint;
+        st : string;
       begin
+        if do_checkverbosity(V_Executable) then
+          begin
+            if high(ComLine)=0 then
+              st:=''
+            else
+              st:=ComLine[1];
+            for i:=2 to high(ComLine) do
+              st:=st+' '+ComLine[i];
+            do_comment(V_Executable,'Executing "'+Path+'" with command line "'+
+              st+'"');
+          end;
         result:=sysutils.ExecuteProcess(Path,ComLine,Flags);
       end;
 
@@ -1539,21 +1563,28 @@ end;
         expansion under linux }
 {$ifdef hasunix}
       begin
+        if do_checkverbosity(V_Used) then
+          do_comment(V_Executable,'Executing "'+Command+'" with fpSystem call');
         result := Unix.fpsystem(command);
       end;
 {$else hasunix}
-  {$ifdef amigashell}
+  {$ifdef hasamiga}
       begin
+        if do_checkverbosity(V_Used) then
+          do_comment(V_Executable,'Executing "'+Command+'" using RequotedExecuteProcess');
         result := RequotedExecuteProcess('',command);
       end;
-  {$else amigashell}
+  {$else hasamiga}
       var
         comspec : string;
       begin
         comspec:=GetEnvironmentVariable('COMSPEC');
+        if do_checkverbosity(V_Used) then
+          do_comment(V_Executable,'Executing "'+Command+'" using comspec "'
+            +ComSpec+'"');
         result := RequotedExecuteProcess(comspec,' /C '+command);
       end;
-   {$endif amigashell}
+   {$endif hasamiga}
 {$endif hasunix}
 
 

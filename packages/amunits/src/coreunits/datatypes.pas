@@ -45,6 +45,7 @@
 
     nils.sjoholm@mailbox.swipnet.se
 }
+{$PACKRECORDS 2}
 
 {$I useamigasmartlink.inc}
 {$ifdef use_amiga_smartlink}
@@ -56,7 +57,7 @@ unit datatypes;
 INTERFACE
 
 uses exec, amigados, intuition, utility,
-     graphics, iffparse, amigaprinter, prtbase;
+     agraphics, iffparse, amigaprinter, prtbase;
 
 const
 {***************************************************************************}
@@ -1316,7 +1317,7 @@ var
 IMPLEMENTATION
 
 {$ifndef dont_use_openlib}
-uses msgbox;
+uses amsgbox;
 {$endif dont_use_openlib}
 
 FUNCTION AddDTObject(win : pWindow; req : pRequester; o : pObject_; pos : LONGINT) : LONGINT;

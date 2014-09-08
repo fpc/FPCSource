@@ -336,7 +336,9 @@ begin
   test_fillchar;
   test_move;
   test_move_large(500);   // 512 longints=2048 bytes
+{$ifndef CPU16}
   test_move_large(500000);
+{$endif CPU16}
 {$ifdef fpc}
   test_fillword;
   test_filldword;

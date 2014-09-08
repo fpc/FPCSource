@@ -20,11 +20,24 @@
 
     procedure Set8087CW(cw:word);
     function Get8087CW:word;
-  {$ifndef cpui8086}
-    procedure SetSSECSR(w : dword);
-    function GetSSECSR : dword;
-  {$endif not cpui8086}
 {$endif}
+
+{$if defined (cpui386) or defined(cpux86_64)}
+    const
+      DefaultMXCSR: dword = $1900;
+
+    procedure SetMXCSR(w: dword);
+    function GetMXCSR: dword;
+    procedure SetSSECSR(w : dword); deprecated 'Renamed to SetMXCSR';
+    function GetSSECSR : dword; deprecated 'Renamed to GetMXCSR';
+{$endif}
+
+  type
+    TFPURoundingMode = (rmNearest, rmDown, rmUp, rmTruncate);
+    TFPUPrecisionMode = (pmSingle, pmReserved, pmDouble, pmExtended);
+    TFPUException = (exInvalidOp, exDenormalized, exZeroDivide,
+                     exOverflow, exUnderflow, exPrecision);
+    TFPUExceptionMask = set of TFPUException;
 
 const
 {*
@@ -32,33 +45,34 @@ const
 Software IEC/IEEE floating-point exception flags.
 -------------------------------------------------------------------------------
 *}
-    float_flag_invalid   =  1;
-    float_flag_denormal  =  2;
-    float_flag_divbyzero =  4;
-    float_flag_overflow  =  8;
-    float_flag_underflow = 16;
-    float_flag_inexact   = 32;
+    float_flag_invalid   =  exInvalidOp;
+    float_flag_denormal  =  exDenormalized;
+    float_flag_divbyzero =  exZeroDivide;
+    float_flag_overflow  =  exOverflow;
+    float_flag_underflow =  exUnderflow;
+    float_flag_inexact   =  exPrecision;
 
 {*
 -------------------------------------------------------------------------------
 Software IEC/IEEE floating-point rounding mode.
 -------------------------------------------------------------------------------
 *}
-    float_round_nearest_even = 0;
-    float_round_down         = 1;
-    float_round_up           = 2;
-    float_round_to_zero      = 3;
+    float_round_nearest_even = rmNearest;
+    float_round_down         = rmDown;
+    float_round_up           = rmUp;
+    float_round_to_zero      = rmTruncate;
 
 {$ifdef FPC_HAS_FEATURE_THREADING}
 ThreadVar
 {$else FPC_HAS_FEATURE_THREADING}
 Var
 {$endif FPC_HAS_FEATURE_THREADING}
-  softfloat_exception_mask : Byte;
-  softfloat_exception_flags : Byte;
-  softfloat_rounding_mode : Byte;
+  softfloat_exception_mask : TFPUExceptionMask;
+  softfloat_exception_flags : TFPUExceptionMask;
+  softfloat_rounding_mode : TFPURoundingMode;
 
-procedure float_raise(i: shortint);
+procedure float_raise(i: TFPUException);
+procedure float_raise(i: TFPUExceptionMask);
 
 {$ifdef cpui386}
   {$define INTERNMATH}
@@ -100,4 +114,16 @@ procedure float_raise(i: shortint);
 {$ifdef SUPPORT_EXTENDED}
     operator := (b:real48) e:extended;
 {$endif SUPPORT_EXTENDED}
+
+
+    function FMASingle(s1,s2,s3 : single) : single;[internproc:fpc_in_fma_single];
+{$ifdef SUPPORT_DOUBLE}
+    function FMADouble(d1,d2,d3 : double) : double;[internproc:fpc_in_fma_double];
+{$endif SUPPORT_DOUBLE}
+{$ifdef SUPPORT_EXTENDED}
+    function FMAExtended(e1,e2,e3 : extended) : extended;[internproc:fpc_in_fma_extended];
+{$endif SUPPORT_EXTENDED}
+{$ifdef SUPPORT_FLOAT128}
+    function FMAFloat128(f1,f2,f3 : float128) : float128;[internproc:fpc_in_fma_float128];
+{$endif SUPPORT_FLOAT128}
 

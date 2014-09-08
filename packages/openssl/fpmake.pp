@@ -18,10 +18,11 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.SourcePath.Add('src');
-    P.OSes := AllUnixOSes+AllWindowsOSes-[qnx];
+    P.OSes := AllUnixOSes+AllWindowsOSes+[OS2,EMX]-[qnx];
 //    P.Dependencies.Add('x11');
 
     T:=P.Targets.AddUnit('openssl.pas');
+    T:=P.Targets.AddUnit('fpopenssl.pp');
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('test1.pas');

@@ -61,13 +61,13 @@ begin
   len:=strlen(p)+1;
   Result:=StrAlloc(Len);
   if Result<>nil then
-   strmove(Result,p,len);
+   move(p^,Result^,len);
 end;
 
 
 {  StrPCopy copies the pascal string Source to Dest and returns Dest  }
 
-function StrPCopy(Dest: PChar; Source: string): PChar;overload;
+function StrPCopy(Dest: PChar; Const Source: string): PChar;overload;
 begin
   result := StrMove(Dest, PChar(Source), length(Source)+1);
 end ;
@@ -75,7 +75,7 @@ end ;
 {  StrPLCopy copies MaxLen or less characters from the pascal string
    Source to Dest and returns Dest  }
 
-function StrPLCopy(Dest: PChar; Source: string; MaxLen: SizeUInt): PChar;overload;
+function StrPLCopy(Dest: PChar; Const Source: string; MaxLen: SizeUInt): PChar;overload;
 var Count: SizeUInt;
 begin
 result := Dest;
@@ -103,10 +103,10 @@ end;
 
 {  StrBufSize returns the amount of memory allocated for pchar Str allocated with StrAlloc  }
 
-function StrBufSize(Str: PChar): SizeUInt;
+function StrBufSize(Str: PChar): Cardinal;
 begin
   if Str <> Nil then
-   result := SizeUInt(pointer(Str - SizeOf(SizeUInt))^)-sizeof(SizeUInt)
+   result := cardinal(pointer(Str - SizeOf(cardinal))^)-sizeof(cardinal)
   else
    result := 0;
 end ;

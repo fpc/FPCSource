@@ -6,8 +6,8 @@ A closed BufDataset normally has no data, so these tests won't work.
 
 To circumvent this, this unit saves the dataset contents to file and reloads them on opening
 using the BufDataset persistence mechanism.
-
 }
+
 {$mode objfpc}{$H+}
 
 interface
@@ -18,7 +18,6 @@ uses
   BufDataset;
 
 type
-{ TbufdatasetConnector }
 
   { TbufdatasetDBConnector }
 
@@ -138,11 +137,17 @@ begin
     FieldDefs.Add('FDATE',ftDate);
     FieldDefs.Add('FTIME',ftTime);
     FieldDefs.Add('FDATETIME',ftDateTime);
+    FieldDefs.Add('FVARBYTES',ftVarBytes,10);
     FieldDefs.Add('FBLOB',ftBlob);
     FieldDefs.Add('FMEMO',ftMemo);
-    FieldDefs.Add('FLARGEINT',ftLargeint);
     FieldDefs.Add('FFIXEDCHAR',ftFixedChar,10);
+    FieldDefs.Add('FLARGEINT',ftLargeint);
+    FieldDefs.Add('FVARIANT',ftVariant);
+    FieldDefs.Add('FGUID',ftGuid,38);
     FieldDefs.Add('FFMTBCD',ftFmtBCD);
+    FieldDefs.Add('FWIDESTRING',ftWideString,10);
+    FieldDefs.Add('FFIXEDWIDECHAR',ftFixedWideChar,10);
+    FieldDefs.Add('FWIDEMEMO',ftWideMemo);
     CreateDataset;
     Open;
     for i := 0 to testValuesCount-1 do
@@ -160,11 +165,17 @@ begin
       FieldByName('FDATE').AsDateTime := StrToDateTime(testDateValues[i], Self.FormatSettings);
       FieldByName('FTIME').AsDateTime := StrToTime(testTimeValues[i], Self.FormatSettings);
       FieldByName('FDATETIME').AsDateTime := StrToDateTime(testValues[ftDateTime,i], Self.FormatSettings);
+      FieldByName('FVARBYTES').AsString := testStringValues[i];
       FieldByName('FBLOB').AsString := testStringValues[i];
       FieldByName('FMEMO').AsString := testStringValues[i];
-      FieldByName('FLARGEINT').AsLargeInt := testLargeIntValues[i];
       FieldByName('FFIXEDCHAR').AsString := PadRight(testStringValues[i], 10);
+      FieldByName('FLARGEINT').AsLargeInt := testLargeIntValues[i];
+      FieldByName('FVARIANT').AsString := testStringValues[i];
+      FieldByName('FGUID').AsString := GuidToString(GUID_NULL);
       FieldByName('FFMTBCD').AsBCD := StrToBCD(testFmtBCDValues[i], Self.FormatSettings);
+      FieldByName('FWIDESTRING').AsString := testStringValues[i];
+      FieldByName('FFIXEDWIDECHAR').AsString := PadRight(testStringValues[i], 10);
+      FieldByName('FWIDEMEMO').AsString := testStringValues[i];
       Post;
     end;
     MergeChangeLog;

@@ -32,6 +32,7 @@ procedure RegisterTest(ASuitePath: String; ATestClass: TTestCaseClass); overload
 procedure RegisterTest(ASuitePath: String; ATest: TTest); overload;
 
 procedure RegisterTests(ATests: Array of TTestCaseClass);
+procedure RegisterTests(ASuitePath: String; ATests: Array of TTestCaseClass);
 
 procedure RegisterTestDecorator(ADecoratorClass: TTestDecoratorClass; ATestClass: TTestCaseClass);
 
@@ -140,6 +141,17 @@ begin
     if Assigned(ATests[i]) then
     begin
       RegisterTest(ATests[i]);
+    end;
+end;
+
+procedure RegisterTests(ASuitePath: String; ATests: Array of TTestCaseClass);
+var
+  i: integer;
+begin
+  for i := Low(ATests) to High(ATests) do
+    if Assigned(ATests[i]) then
+    begin
+      RegisterTest(ASuitePath,ATests[i]);
     end;
 end;
 

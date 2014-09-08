@@ -267,13 +267,16 @@ Unit aopt;
         pass_1;
         While Assigned(BlockStart) Do
           Begin
-             if pass = 0 then
-               PrePeepHoleOpts;
-            { Peephole optimizations }
-             PeepHoleOptPass1;
-            { Only perform them twice in the first pass }
-             if pass = 0 then
-               PeepHoleOptPass1;
+            if (cs_opt_peephole in current_settings.optimizerswitches) then
+              begin
+                if pass = 0 then
+                  PrePeepHoleOpts;
+                { Peephole optimizations }
+                PeepHoleOptPass1;
+                { Only perform them twice in the first pass }
+                if pass = 0 then
+                  PeepHoleOptPass1;
+              end;
             If (cs_opt_asmcse in current_settings.optimizerswitches) Then
               Begin
 //                DFA:=TAOptDFACpu.Create(AsmL,BlockStart,BlockEnd,LabelInfo);
@@ -283,9 +286,12 @@ Unit aopt;
       {          CSE;}
               End;
             { more peephole optimizations }
-            PeepHoleOptPass2;
-            { if pass = last_pass then }
-            PostPeepHoleOpts;
+            if (cs_opt_peephole in current_settings.optimizerswitches) then
+              begin
+                PeepHoleOptPass2;
+                { if pass = last_pass then }
+                PostPeepHoleOpts;
+              end;
             { free memory }
             clear;
             { continue where we left off, BlockEnd is either the start of an }

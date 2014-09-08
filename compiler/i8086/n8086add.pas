@@ -33,11 +33,19 @@ interface
        { ti8086addnode }
 
        ti8086addnode = class(tx86addnode)
+         function simplify(forinline: boolean) : tnode;override;
          function use_generic_mul32to64: boolean; override;
+         function first_addpointer: tnode; override;
+         function first_addhugepointer: tnode;
+         function first_cmppointer: tnode; override;
+         function first_cmphugepointer: tnode;
+         function first_cmpfarpointer: tnode;
          procedure second_addordinal; override;
          procedure second_add64bit;override;
+         procedure second_addfarpointer;
          procedure second_cmp64bit;override;
          procedure second_cmp32bit;
+         procedure second_cmpfarpointer;
          procedure second_cmpordinal;override;
          procedure second_mul(unsigned: boolean);
        end;
@@ -46,13 +54,104 @@ interface
 
     uses
       globtype,systems,
-      cutils,verbose,globals,
-      symconst,symdef,paramgr,defutil,
+      cutils,verbose,globals,constexp,pass_1,
+      symconst,symdef,symtype,symcpu,paramgr,defutil,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,procinfo,
-      ncon,nset,cgutils,tgobj,
+      ncal,ncon,nset,cgutils,tgobj,
       cga,ncgutil,cgobj,cg64f32,cgx86,
       hlcgobj;
+
+{*****************************************************************************
+                                simplify
+*****************************************************************************}
+
+    function ti8086addnode.simplify(forinline: boolean): tnode;
+      var
+        t    : tnode;
+        lt,rt: tnodetype;
+        rd,ld: tdef;
+        rv,lv,v: tconstexprint;
+      begin
+        { load easier access variables }
+        rd:=right.resultdef;
+        ld:=left.resultdef;
+        rt:=right.nodetype;
+        lt:=left.nodetype;
+
+        if (
+            (lt = pointerconstn) and is_farpointer(ld) and
+            is_constintnode(right) and
+            (nodetype in [addn,subn])
+           ) or
+           (
+            (rt = pointerconstn) and is_farpointer(rd) and
+            is_constintnode(left) and
+            (nodetype=addn)
+           ) then
+          begin
+            t:=nil;
+
+            { load values }
+            case lt of
+              ordconstn:
+                lv:=tordconstnode(left).value;
+              pointerconstn:
+                lv:=tpointerconstnode(left).value;
+              niln:
+                lv:=0;
+              else
+                internalerror(2002080202);
+            end;
+            case rt of
+              ordconstn:
+                rv:=tordconstnode(right).value;
+              pointerconstn:
+                rv:=tpointerconstnode(right).value;
+              niln:
+                rv:=0;
+              else
+                internalerror(2002080203);
+            end;
+
+            case nodetype of
+              addn:
+                begin
+                  v:=lv+rv;
+                  if lt=pointerconstn then
+                    t := cpointerconstnode.create((qword(lv) and $FFFF0000) or word(qword(v)),resultdef)
+                  else if rt=pointerconstn then
+                    t := cpointerconstnode.create((qword(rv) and $FFFF0000) or word(qword(v)),resultdef)
+                  else
+                    internalerror(2014040604);
+                end;
+              subn:
+                begin
+                  v:=lv-rv;
+                  if (lt=pointerconstn) then
+                    { pointer-pointer results in an integer }
+                    if (rt=pointerconstn) then
+                      begin
+                        if not(nf_has_pointerdiv in flags) then
+                          internalerror(2008030101);
+                        { todo: implement pointer-pointer as well }
+                        internalerror(2014040607);
+                        //t := cpointerconstnode.create(qword(v),resultdef);
+                      end
+                    else
+                      t := cpointerconstnode.create((qword(lv) and $FFFF0000) or word(qword(v)),resultdef)
+                  else
+                    internalerror(2014040606);
+                end;
+              else
+                internalerror(2014040605);
+            end;
+            result:=t;
+            exit;
+          end
+        else
+          Result:=inherited simplify(forinline);
+      end;
 
 {*****************************************************************************
                                 use_generic_mul32to64
@@ -72,6 +171,8 @@ interface
                 not(is_signed(right.resultdef));
       if nodetype=muln then
         second_mul(unsigned)
+      else if is_farpointer(left.resultdef) xor is_farpointer(right.resultdef) then
+        second_addfarpointer
       else
         inherited second_addordinal;
     end;
@@ -210,6 +311,208 @@ interface
          end;
 
         location_copy(location,left.location);
+      end;
+
+
+    function ti8086addnode.first_addpointer: tnode;
+      begin
+        if is_hugepointer(left.resultdef) or is_hugepointer(right.resultdef) then
+          result:=first_addhugepointer
+        else
+          result:=inherited;
+      end;
+
+
+    function ti8086addnode.first_addhugepointer: tnode;
+      var
+        procname:string;
+      begin
+        result:=nil;
+
+        if (nodetype=subn) and is_hugepointer(left.resultdef) and is_hugepointer(right.resultdef) then
+          procname:='fpc_hugeptr_sub_hugeptr'
+        else
+          begin
+            case nodetype of
+              addn:
+                procname:='fpc_hugeptr_add_longint';
+              subn:
+                procname:='fpc_hugeptr_sub_longint';
+              else
+                internalerror(2014070301);
+            end;
+
+            if cs_hugeptr_arithmetic_normalization in current_settings.localswitches then
+              procname:=procname+'_normalized';
+          end;
+
+        if is_hugepointer(left.resultdef) then
+          result := ccallnode.createintern(procname,
+            ccallparanode.create(right,
+            ccallparanode.create(left,nil)))
+        else
+          result := ccallnode.createintern(procname,
+            ccallparanode.create(left,
+            ccallparanode.create(right,nil)));
+        left := nil;
+        right := nil;
+        firstpass(result);
+      end;
+
+
+    function ti8086addnode.first_cmppointer: tnode;
+      begin
+        if is_hugepointer(left.resultdef) or is_hugepointer(right.resultdef) then
+          result:=first_cmphugepointer
+        else if is_farpointer(left.resultdef) or is_farpointer(right.resultdef) then
+          result:=first_cmpfarpointer
+        else
+          result:=inherited;
+      end;
+
+
+    function ti8086addnode.first_cmphugepointer: tnode;
+      var
+        procname:string;
+      begin
+        result:=nil;
+
+        if not (cs_hugeptr_comparison_normalization in current_settings.localswitches) then
+          begin
+            expectloc:=LOC_JUMP;
+            exit;
+          end;
+
+        case nodetype of
+          equaln:
+            procname:='fpc_hugeptr_cmp_normalized_e';
+          unequaln:
+            procname:='fpc_hugeptr_cmp_normalized_ne';
+          ltn:
+            procname:='fpc_hugeptr_cmp_normalized_b';
+          lten:
+            procname:='fpc_hugeptr_cmp_normalized_be';
+          gtn:
+            procname:='fpc_hugeptr_cmp_normalized_a';
+          gten:
+            procname:='fpc_hugeptr_cmp_normalized_ae';
+          else
+            internalerror(2014070401);
+        end;
+
+        result := ccallnode.createintern(procname,
+          ccallparanode.create(right,
+          ccallparanode.create(left,nil)));
+        left := nil;
+        right := nil;
+        firstpass(result);
+      end;
+
+
+    function ti8086addnode.first_cmpfarpointer: tnode;
+      begin
+        { = and <> are handled as a 32-bit comparison }
+        if nodetype in [equaln,unequaln] then
+          begin
+            result:=nil;
+            expectloc:=LOC_JUMP;
+          end
+        else
+          begin
+            result:=nil;
+            expectloc:=LOC_FLAGS;
+          end;
+      end;
+
+
+    procedure ti8086addnode.second_addfarpointer;
+      var
+        tmpreg : tregister;
+        pointernode: tnode;
+      begin
+        pass_left_right;
+        force_reg_left_right(false,true);
+        set_result_location_reg;
+
+        if (left.resultdef.typ=pointerdef) and (right.resultdef.typ<>pointerdef) then
+          pointernode:=left
+        else if (left.resultdef.typ<>pointerdef) and (right.resultdef.typ=pointerdef) then
+          pointernode:=right
+        else
+          internalerror(2014040601);
+
+        if not (nodetype in [addn,subn]) then
+          internalerror(2014040602);
+
+        if nodetype=addn then
+          begin
+            if (right.location.loc<>LOC_CONSTANT) then
+              begin
+                cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_16,
+                   left.location.register,right.location.register,location.register);
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,
+                   GetNextReg(pointernode.location.register),GetNextReg(location.register));
+              end
+            else
+              begin
+                if pointernode=left then
+                  begin
+                    { farptr_reg + int_const }
+                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_16,
+                       right.location.value,left.location.register,location.register);
+                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,
+                       GetNextReg(left.location.register),GetNextReg(location.register));
+                  end
+                else
+                  begin
+                    { int_reg + farptr_const }
+                    tmpreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+                    hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,
+                      right.location.value,tmpreg);
+                    cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_16,
+                      left.location.register,tmpreg,location.register);
+                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,
+                       GetNextReg(tmpreg),GetNextReg(location.register));
+                  end;
+              end;
+          end
+        else  { subtract is a special case since its not commutative }
+          begin
+            if (nf_swapped in flags) then
+              swapleftright;
+            { left can only be a pointer in this case, since (int-pointer) is not supported }
+            if pointernode<>left then
+              internalerror(2014040603);
+            if left.location.loc<>LOC_CONSTANT then
+              begin
+                if right.location.loc<>LOC_CONSTANT then
+                  begin
+                    cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_16,
+                        right.location.register,left.location.register,location.register);
+                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,
+                       GetNextReg(pointernode.location.register),GetNextReg(location.register));
+                  end
+                else
+                  begin
+                    { farptr_reg - int_const }
+                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_16,
+                       right.location.value,left.location.register,location.register);
+                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,
+                       GetNextReg(left.location.register),GetNextReg(location.register));
+                  end;
+              end
+            else
+              begin
+                { farptr_const - int_reg }
+                tmpreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+                hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,
+                  left.location.value,tmpreg);
+                cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_16,
+                  right.location.register,tmpreg,location.register);
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,
+                   GetNextReg(tmpreg),GetNextReg(location.register));
+              end;
+          end;
       end;
 
 
@@ -508,7 +811,8 @@ interface
         unsigned:=((left.resultdef.typ=orddef) and
                    (torddef(left.resultdef).ordtype=u32bit)) or
                   ((right.resultdef.typ=orddef) and
-                   (torddef(right.resultdef).ordtype=u32bit));
+                   (torddef(right.resultdef).ordtype=u32bit)) or
+                  is_hugepointer(left.resultdef);
 
         { left and right no register?  }
         { then one must be demanded    }
@@ -581,9 +885,60 @@ interface
         location_reset(location,LOC_JUMP,OS_NO)
       end;
 
+
+    procedure ti8086addnode.second_cmpfarpointer;
+      begin
+        { handle = and <> as a 32-bit comparison }
+        if nodetype in [equaln,unequaln] then
+          begin
+            second_cmp32bit;
+            exit;
+          end;
+
+        pass_left_right;
+
+        { <, >, <= and >= compare the 16-bit offset only }
+        if (right.location.loc=LOC_CONSTANT) and
+           (left.location.loc in [LOC_REFERENCE, LOC_CREFERENCE])
+        then
+          begin
+            emit_const_ref(A_CMP, S_W, word(right.location.value), left.location.reference);
+            location_freetemp(current_asmdata.CurrAsmList,left.location);
+          end
+        else
+          begin
+            { left location is not a register? }
+            if left.location.loc<>LOC_REGISTER then
+             begin
+               { if right is register then we can swap the locations }
+               if right.location.loc=LOC_REGISTER then
+                begin
+                  location_swap(left.location,right.location);
+                  toggleflag(nf_swapped);
+                end
+               else
+                begin
+                  { maybe we can reuse a constant register when the
+                    operation is a comparison that doesn't change the
+                    value of the register }
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,u16inttype,true);
+                end;
+              end;
+
+            emit_generic_code(A_CMP,OS_16,true,false,false);
+            location_freetemp(current_asmdata.CurrAsmList,right.location);
+            location_freetemp(current_asmdata.CurrAsmList,left.location);
+          end;
+        location_reset(location,LOC_FLAGS,OS_NO);
+        location.resflags:=getresflags(true);
+      end;
+
+
     procedure ti8086addnode.second_cmpordinal;
       begin
-        if is_32bit(left.resultdef) then
+        if is_farpointer(left.resultdef) then
+          second_cmpfarpointer
+        else if is_32bit(left.resultdef) or is_hugepointer(left.resultdef) then
           second_cmp32bit
         else
           inherited second_cmpordinal;
@@ -596,15 +951,6 @@ interface
 
     procedure ti8086addnode.second_mul(unsigned: boolean);
 
-      procedure add_mov(instr: Taicpu);
-        begin
-          { Notify the register allocator that we have written a move instruction so
-            it can try to eliminate it. }
-          if (instr.oper[0]^.reg<>current_procinfo.framepointer) and (instr.oper[0]^.reg<>NR_STACK_POINTER_REG) then
-            tcgx86(cg).add_move_instruction(instr);
-          current_asmdata.CurrAsmList.concat(instr);
-        end;
-
     var reg:Tregister;
         ref:Treference;
         use_ref:boolean;
@@ -614,7 +960,17 @@ interface
       asmops: array[boolean] of tasmop = (A_IMUL, A_MUL);
 
     begin
+      reg:=NR_NO;
+      reference_reset(ref,sizeof(pint));
+
       pass_left_right;
+
+      { MUL is faster than IMUL on the 8086 & 8088 (and equal in speed on 286+),
+        but it's only safe to use in place of IMUL when overflow checking is off
+        and we're doing a 16-bit>16-bit multiplication }
+      if not (cs_check_overflow in current_settings.localswitches) and
+        (not is_32bitint(resultdef)) then
+        unsigned:=true;
 
       {The location.register will be filled in later (JM)}
       location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
@@ -661,8 +1017,9 @@ interface
         {Allocate an imaginary 32-bit register, which consists of a pair of
          16-bit registers and store DX:AX into it}
         location.register := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-        add_mov(Taicpu.Op_reg_reg(A_MOV,S_W,NR_AX,location.register));
-        add_mov(Taicpu.Op_reg_reg(A_MOV,S_W,NR_DX,GetNextReg(location.register)));
+        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_DX,GetNextReg(location.register));
+        cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_AX);
+        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,NR_AX,location.register);
       end
       else
       begin

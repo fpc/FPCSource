@@ -780,9 +780,24 @@ Procedure GetFAttr(var f; var attr : word);
 Var
   info    : baseunix.stat;
   LinAttr : longint;
+  p       : pchar;
+{$ifndef FPC_ANSI_TEXTFILEREC}
+  r       : RawByteString;
+{$endif not FPC_ANSI_TEXTFILEREC}
 Begin
   DosError:=0;
-  if FPStat(@textrec(f).name[0],info)<0 then
+{$ifdef FPC_ANSI_TEXTFILEREC}
+  { encoding is already correct }
+  p:=@textrec(f).name;
+{$else}
+  r:=ToSingleByteFileSystemEncodedFileName(textrec(f).name);
+  p:=pchar(r);
+{$endif}
+  { use the pchar rather than the rawbytestring version so that we don't check
+    a second time whether the string needs to be converted to the right code
+    page
+  }
+  if FPStat(p,info)<0 then
    begin
      Attr:=0;
      DosError:=3;
@@ -794,7 +809,7 @@ Begin
    Attr:=$10
   else
    Attr:=$0;
-  if fpAccess(@textrec(f).name[0],W_OK)<0 then
+  if fpAccess(p,W_OK)<0 then
    Attr:=Attr or $1;
   if filerec(f).name[0]='.' then
    Attr:=Attr or $2;
@@ -822,7 +837,10 @@ Procedure setftime(var f; time : longint);
 Var
   utim: utimbuf;
   DT: DateTime;
-
+  p : pchar;
+{$ifndef FPC_ANSI_TEXTFILEREC}
+  r : Rawbytestring;
+{$endif not FPC_ANSI_TEXTFILEREC}
 Begin
   doserror:=0;
   with utim do
@@ -831,7 +849,18 @@ Begin
       UnPackTime(Time,DT);
       modtime:=DTToUnixDate(DT);
     end;
-  if fputime(@filerec(f).name[0],@utim)<0 then
+{$ifdef FPC_ANSI_TEXTFILEREC}
+  { encoding is already correct }
+  p:=@textrec(f).name;
+{$else}
+  r:=ToSingleByteFileSystemEncodedFileName(textrec(f).name);
+  p:=pchar(r);
+{$endif}
+  { use the pchar rather than the rawbytestring version so that we don't check
+    a second time whether the string needs to be converted to the right code
+    page
+  }
+  if fputime(p,@utim)<0 then
     begin
       Time:=0;
       doserror:=3;

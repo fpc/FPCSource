@@ -147,7 +147,7 @@ interface
      Items marked with "Custom Class" are for use in custom classes only!
    }
 
-uses exec, intuition,utility,graphics,iffparse;
+uses exec, intuition,utility,agraphics,iffparse;
 
 
   const
@@ -3493,7 +3493,7 @@ PROCEDURE MUI_RejectIDCMP(obj : pObject_; flags : ULONG);
 PROCEDURE MUI_Redraw(obj : pObject_; flags : ULONG);
 FUNCTION MUI_CreateCustomClass(base : pLibrary; supername : pChar; supermcc : pMUI_CustomClass; datasize : LONGINT; dispatcher : POINTER) : pMUI_CustomClass;
 FUNCTION MUI_DeleteCustomClass(mcc : pMUI_CustomClass) : BOOLEAN;
-FUNCTION MUI_MakeObjectA(typ: LONGINT; params : pULONG) : pULONG;
+FUNCTION MUI_MakeObjectA(typ: LONGINT; params : pULONG) : pObject_;
 FUNCTION MUI_Layout(obj : pObject_; l : LONGINT; t : LONGINT; w : LONGINT; h : LONGINT; flags : ULONG) : BOOLEAN;
 FUNCTION MUI_ObtainPen(mri : pMUI_RenderInfo; spec : pMUI_PenSpec; flags : ULONG) : LONGINT;
 PROCEDURE MUI_ReleasePen(mri : pMUI_RenderInfo; pen : LONGINT);
@@ -3598,7 +3598,7 @@ implementation
 
 uses
 {$ifndef dont_use_openlib}
-msgbox,
+amsgbox,
 {$endif dont_use_openlib}
 tagsarray,longarray;
 

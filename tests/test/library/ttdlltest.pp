@@ -15,11 +15,11 @@ uses
   Windows;
 
 procedure p1(var S : string);
- external 'testdll' name 'P1';
+ external 'ttdlltes1' name 'P1';
 procedure proc2(x:longint);
- external 'testdll' name 'Proc2';
+ external 'ttdlltes1' name 'Proc2';
 function GetTestStr : string;
- external 'testdll' name 'GetTestStr';
+ external 'ttdlltes1' name 'GetTestStr';
 
 
 const
@@ -58,7 +58,7 @@ end;
 
 
 var
-   s : string;external 'testdll' name 'FPC_string';
+   s : string;external 'ttdlltes1' name 'FPC_string';
    s2 : string;
 
 

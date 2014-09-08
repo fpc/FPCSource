@@ -20,8 +20,11 @@
     Interface declarations
   ---------------------------------------------------------------------}
 
+{$define DYNLIBS_SUPPORTS_ORDINAL}
+
 Type
   TLibHandle = System.THandle;
+  TOrdinalEntry = word;
 
 Const
   NilHandle = 0;
@@ -36,16 +39,22 @@ Const
 
 Uses windows;
 
-Function LoadLibrary(const Name : AnsiString) : TlibHandle;
+Function DoLoadLibrary(const Name : UnicodeString) : TlibHandle;
 
 begin
-  Result:=Windows.LoadLibrary(PChar(Name));
+  Result:=Windows.LoadLibraryW(PWideChar(Name));
 end;
 
 Function GetProcedureAddress(Lib : TLibHandle; const ProcName : AnsiString) : Pointer;
 
 begin
   Result:=Windows.GetProcAddress(Lib,PChar(ProcName));
+end;
+
+Function GetProcedureAddress(Lib : TLibHandle; Ordinal : Word) : Pointer;
+
+begin
+  Result:=Windows.GetProcAddress(Lib,PChar(Ordinal));
 end;
 
 Function UnloadLibrary(Lib : TLibHandle) : Boolean;

@@ -31,6 +31,9 @@
 
 procedure fpc_cpuinit;
   begin
+    SysResetFPU;
+    if (not IsLibrary) then
+      SysInitFPU;
   end;
 
 {$define FPC_SYSTEM_HAS_GET_FRAME}
@@ -87,36 +90,34 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FILLCHAR}
-procedure FillChar(var x;count:longint;value:byte); assembler;
-    asm
-     move.l x, a0          { destination                   }
-     move.l count, d1      { number of bytes to fill       }
-     move.b value, d0      { fill data                     }
-     tst.l d1              { anything to fill at all?      }
-     beq    @LMEMSET5
-     cmpi.l #65535, d1     { check, if this is a word move }
-     ble    @LMEMSET3      { use fast dbra mode            }
-     bra @LMEMSET2
-   @LMEMSET1:
-     move.b d0,(a0)+
-   @LMEMSET2:
-     subq.l #1,d1
-     cmp.l #-1,d1
-     bne  @LMEMSET1
-     bra @LMEMSET5        { finished slow mode , exit     }
-
-   @LMEMSET4:             { fast loop mode section 68010+ }
-     move.b d0,(a0)+
-   @LMEMSET3:
-{$ifdef CPUCOLDFIRE}
-     sub.l #1,d1
-     bmi @LMEMSET4
-{$else}
-     dbra d1,@LMEMSET4
-{$endif}
-
-   @LMEMSET5:
-    end ['d0','d1','a0'];
+procedure FillChar(var x; count : longint; value : byte); assembler;
+asm
+  move.l x, a0          { destination                   }
+  move.l count, d1      { number of bytes to fill       }
+  move.b value, d0      { fill data                     }
+  tst.l  d1             { anything to fill at all?      }
+  ble    @LMEMSET5
+{$ifdef CPUM68K_HAS_DBRA}
+{ FIXME: Any reason why not always just use DBRA mode on
+         CPUs which support it? (KB) }
+  cmpi.l #65535, d1     { check, if this is a word move }
+  ble    @LMEMSET3      { use fast dbra mode            }
+{$endif CPUM68K_HAS_DBRA}
+  bra    @LMEMSET2
+@LMEMSET1:
+  move.b d0,(a0)+
+@LMEMSET2:
+  subq.l #1,d1
+  bpl @LMEMSET1
+  bra @LMEMSET5         { finished slow mode , exit     }
+{$ifdef CPUM68K_HAS_DBRA}
+@LMEMSET4:              { fast loop mode section 68010+ }
+  move.b d0,(a0)+
+@LMEMSET3:
+  dbra d1,@LMEMSET4
+{$endif CPUM68K_HAS_DBRA}
+@LMEMSET5:
+end;
 
 
 {$ifdef dummy}
@@ -155,12 +156,12 @@ asm
 @LMSTRCOPY56:         { 68010 Fast loop mode }
    move.b (a0)+,(a1)+
 @LMSTRCOPY55:
-{$ifdef CPUCOLDFIRE}
+{$ifndef CPUM68K_HAS_DBRA}
    sub.l #1,d1
-   bmi @LMSTRCOPY56
-{$else}
+   bpl @LMSTRCOPY56
+{$else CPUM68K_HAS_DBRA}
    dbra  d1,@LMSTRCOPY56
-{$endif}
+{$endif CPUM68K_HAS_DBRA}
 @Lend:
 end;
 
@@ -195,12 +196,12 @@ procedure strconcat(s1,s2 : pointer);[public,alias: 'STRCONCAT'];
 @Loop:
       move.b  (a1)+,(a0)+          { s1[i] := s2[i];             }
 @ALoop:
-{$ifdef CPUCOLDFIRE}
+{$ifndef CPUM68K_HAS_DBRA}
       sub.l   #1,d6
-      bmi     @Loop
-{$else}
+      bpl     @Loop
+{$else CPUM68K_HAS_DBRA}
       dbra    d6,@Loop
-{$endif}
+{$endif CPUM68K_HAS_DBRA}
       move.l  s1,a0
       add.b   d0,(a0)              { change to new string length }
 @Lend:
@@ -263,15 +264,15 @@ begin
     clr.l      d0
     move.l   count, d0   {  number of bytes }
     tst.l  d0            { anything to copy at all? }
-    beq    @LMOVE5
+    ble    @LMOVE5
   @LMOVE0:
     move.l   dest, a1    {  destination          }
     move.l   source, a0  {  source               }
 
-{$ifndef CPUCOLDFIRE}
+{$ifdef CPUM68K_HAS_DBRA}
     cmpi.l #65535, d0     { check, if this is a word move }
     ble    @LMEMSET00     { use fast dbra mode 68010+     }
-{$endif CPUCOLDFIRE}
+{$endif CPUM68K_HAS_DBRA}
 
     cmp.l      a0,a1         {  check copy direction }
     bls      @LMOVE4
@@ -293,7 +294,7 @@ begin
     bne       @LMOVE3
     bra       @LMOVE5
 
-{$ifndef CPUCOLDFIRE}
+{$ifdef CPUM68K_HAS_DBRA}
   @LMEMSET00:            { use fast loop mode 68010+ }
     cmp.l      a0,a1         {  check copy direction }
     bls      @LMOVE04
@@ -309,7 +310,7 @@ begin
     move.b  (a0)+,(a1)+  { (s >= d) copy loop }
   @LMOVE04:
     dbra      d0,@LMOVE03
-{$endif CPUCOLDFIRE}
+{$endif CPUM68K_HAS_DBRA}
   { end fast loop mode }
   @LMOVE5:
   end ['d0','a0','a1'];
@@ -317,38 +318,21 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FILLWORD}
-procedure fillword(var x;count : longint;value : word);
-  begin
-    asm
-     move.l x, a0         { destination              }
-     move.l count, d1     { number of bytes to fill  }
-     move.w value, d0     { fill data                }
-     tst.l d1             { anything to fill at all? }
-     beq @LMEMSET3
-     bra @LMEMSET21
-   @LMEMSET11:
-     move.w d0,(a0)+
-   @LMEMSET21:
-     subq.l #1,d1
-     cmp.b #-1,d1
-     bne  @LMEMSET11
-   @LMEMSET3:
-    end ['d0','d1','a0'];
-  end;
-
-
-{$define FPC_SYSTEM_HAS_ABS_LONGINT}
-function abs(l : longint) : longint;
-  begin
-     asm
-        move.l l,d0
-        tst.l  d0
-        bpl @LMABS1
-        neg.l d0
-     @LMABS1:
-        move.l d0,@RESULT
-     end ['d0'];
-  end;
+procedure FillWord(var x; count : longint; value : word); assembler;
+asm
+  move.l x, a0         { destination              }
+  move.l count, d1     { number of bytes to fill  }
+  move.w value, d0     { fill data                }
+  tst.l  d1            { anything to fill at all? }
+  ble @LMEMSET3
+  bra @LMEMSET21
+@LMEMSET11:
+  move.w d0,(a0)+
+@LMEMSET21:
+  subq.l #1,d1
+  bpl @LMEMSET11
+@LMEMSET3:
+end;
 
 
 function InterLockedDecrement (var Target: longint) : longint;

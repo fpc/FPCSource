@@ -289,12 +289,22 @@ Unit AoptObj;
         { returns true if the operands o1 and o2 are completely equal }
         Function OpsEqual(const o1,o2:toper): Boolean;
 
-        { Returns the next ait_alloc object with ratype ra_dealloc for
+        { Returns the next ait_alloc object with ratype ra_alloc for
           Reg is found in the block
           of Tai's starting with StartPai and ending with the next "real"
           instruction. If none is found, it returns
-          nil                                                                        }
+          nil
+        }
         Function FindRegAlloc(Reg: TRegister; StartPai: Tai): tai_regalloc;
+
+        { Returns the last ait_alloc object with ratype ra_alloc for
+          Reg is found in the block
+          of Tai's starting with StartPai and ending with the next "real"
+          instruction. If none is found, it returns
+          nil
+        }
+        Function FindRegAllocBackward(Reg : TRegister; StartPai : Tai) : tai_regalloc;
+
 
         { Returns the next ait_alloc object with ratype ra_dealloc
           for Reg which is found in the block of Tai's starting with StartPai
@@ -319,6 +329,10 @@ Unit AoptObj;
         function GetFinalDestination(hp: taicpu; level: longint): boolean;
 
         function getlabelwithsym(sym: tasmlabel): tai;
+
+        { Removes an instruction following hp1 (possibly with reg.deallocations in between),
+          if its opcode is A_NOP. }
+        procedure RemoveDelaySlot(hp1: tai);
 
         { peephole optimizer }
         procedure PrePeepHoleOpts;
@@ -1048,6 +1062,33 @@ Unit AoptObj;
       End;
 
 
+      Function TAOptObj.FindRegAllocBackward(Reg: TRegister; StartPai: Tai): tai_regalloc;
+      Begin
+        Result:=nil;
+        Repeat
+          While Assigned(StartPai) And
+                ((StartPai.typ in (SkipInstr - [ait_regAlloc])) Or
+                 ((StartPai.typ = ait_label) and
+                  Not(Tai_Label(StartPai).labsym.Is_Used))) Do
+            StartPai := Tai(StartPai.Previous);
+          If Assigned(StartPai) And
+             (StartPai.typ = ait_regAlloc) Then
+            Begin
+              if (tai_regalloc(StartPai).ratype=ra_alloc) and
+                (getregtype(tai_regalloc(StartPai).Reg) = getregtype(Reg)) and
+                (getsupreg(tai_regalloc(StartPai).Reg) = getsupreg(Reg)) then
+               begin
+                 Result:=tai_regalloc(StartPai);
+                 exit;
+               end;
+              StartPai := Tai(StartPai.Previous);
+            End
+          else
+            exit;
+        Until false;
+      End;
+
+
       function TAOptObj.FindRegDeAlloc(Reg: TRegister; StartPai: Tai): tai_regalloc;
       Begin
          Result:=nil;
@@ -1078,7 +1119,7 @@ Unit AoptObj;
       function TAOptObj.RegUsedAfterInstruction(reg: Tregister; p: tai;
        var AllUsedRegs: TAllUsedRegs): Boolean;
        begin
-         AllUsedRegs[getregtype(reg)].Update(tai(p.Next));
+         AllUsedRegs[getregtype(reg)].Update(tai(p.Next),true);
          RegUsedAfterInstruction :=
            (AllUsedRegs[getregtype(reg)].IsUsed(reg)); { optimization and
               (not(getNextInstruction(p,p)) or
@@ -1140,6 +1181,24 @@ Unit AoptObj;
 {$endif arm}
           (JumpTargetOp(hp)^.typ = top_ref) and
           (JumpTargetOp(hp)^.ref^.symbol is TAsmLabel);
+      end;
+
+
+    procedure TAOptObj.RemoveDelaySlot(hp1:tai);
+      var
+        hp2: tai;
+      begin
+        hp2:=tai(hp1.next);
+        while assigned(hp2) and (hp2.typ in SkipInstr) do
+          hp2:=tai(hp2.next);
+        if assigned(hp2) and (hp2.typ=ait_instruction) and
+          (taicpu(hp2).opcode=A_NOP) then
+          begin
+            asml.remove(hp2);
+            hp2.free;
+          end;
+        { Anything except A_NOP must be left in place: these instructions
+          execute before branch, so code stays correct if branch is removed. }
       end;
 
 
@@ -1247,139 +1306,138 @@ Unit AoptObj;
     procedure TAOptObj.PeepHoleOptPass1;
       var
         p,hp1,hp2 : tai;
+        stoploop:boolean;
       begin
-        p := BlockStart;
-        ClearUsedRegs;
-        while (p <> BlockEnd) Do
-          begin
-            { I'am not sure why this is done, UsedRegs should reflect the register usage before the instruction
-              If an instruction needs the information of this, it can easily create a TempUsedRegs (FK)
-            UpdateUsedRegs(tai(p.next));
-            }
-{$ifdef DEBUG_OPTALLOC}
-            if p.Typ=ait_instruction then
-              InsertLLItem(tai(p.Previous),p,tai_comment.create(strpnew(GetAllocationString(UsedRegs))));
-{$endif DEBUG_OPTALLOC}
-            if PeepHoleOptPass1Cpu(p) then
-              begin
-                UpdateUsedRegs(p);
-                continue;
-              end;
-            case p.Typ Of
-              ait_instruction:
+        repeat
+          stoploop:=true;
+          p := BlockStart;
+          ClearUsedRegs;
+          while (p <> BlockEnd) Do
+            begin
+              { I'am not sure why this is done, UsedRegs should reflect the register usage before the instruction
+                If an instruction needs the information of this, it can easily create a TempUsedRegs (FK)
+              UpdateUsedRegs(tai(p.next));
+              }
+  {$ifdef DEBUG_OPTALLOC}
+              if p.Typ=ait_instruction then
+                InsertLLItem(tai(p.Previous),p,tai_comment.create(strpnew(GetAllocationString(UsedRegs))));
+  {$endif DEBUG_OPTALLOC}
+              if PeepHoleOptPass1Cpu(p) then
                 begin
-                  { Handle Jmp Optimizations }
-                  if taicpu(p).is_jmp then
-                    begin
-                      { the following if-block removes all code between a jmp and the next label,
-                        because it can never be executed
-                      }
-                      if IsJumpToLabel(taicpu(p)) then
-                        begin
-                          hp2:=p;
-                          while GetNextInstruction(hp2, hp1) and
-                                (hp1.typ <> ait_label) do
-                            if not(hp1.typ in ([ait_label,ait_align]+skipinstr)) then
-                              begin
-                                if (hp1.typ = ait_instruction) and
-                                   taicpu(hp1).is_jmp and
-                                   (JumpTargetOp(taicpu(hp1))^.typ = top_ref) and
-                                   (JumpTargetOp(taicpu(hp1))^.ref^.symbol is TAsmLabel) then
-                                   TAsmLabel(JumpTargetOp(taicpu(hp1))^.ref^.symbol).decrefs;
-                                { don't kill start/end of assembler block,
-                                  no-line-info-start/end etc }
-                                if hp1.typ<>ait_marker then
-                                  begin
-                                    asml.remove(hp1);
-                                    hp1.free;
-                                  end
-                                else
-                                  hp2:=hp1;
-                              end
-                            else break;
-                          end;
-                      { remove jumps to a label coming right after them }
-                      if GetNextInstruction(p, hp1) then
-                        begin
-                          if FindLabel(tasmlabel(JumpTargetOp(taicpu(p))^.ref^.symbol), hp1) and
-        { TODO: FIXME removing the first instruction fails}
-                              (p<>blockstart) then
-                            begin
-                              tasmlabel(JumpTargetOp(taicpu(p))^.ref^.symbol).decrefs;
-{$if defined(SPARC) or defined(MIPS)}
-                              hp2:=tai(p.next);
-                              asml.remove(hp2);
-                              hp2.free;
-{$endif SPARC or MIPS}
-                              hp2:=tai(hp1.next);
-                              asml.remove(p);
-                              p.free;
-                              p:=hp2;
-                              continue;
-                            end
-                          else
-                            begin
-                              if hp1.typ = ait_label then
-                                SkipLabels(hp1,hp1);
-                              if (tai(hp1).typ=ait_instruction) and
-                                  IsJumpToLabel(taicpu(hp1)) and
-                                  GetNextInstruction(hp1, hp2) and
-                                  FindLabel(tasmlabel(JumpTargetOp(taicpu(p))^.ref^.symbol), hp2) then
+                  stoploop:=false;
+                  UpdateUsedRegs(p);
+                  continue;
+                end;
+              case p.Typ Of
+                ait_instruction:
+                  begin
+                    { Handle Jmp Optimizations }
+                    if taicpu(p).is_jmp then
+                      begin
+                        { the following if-block removes all code between a jmp and the next label,
+                          because it can never be executed
+                        }
+                        if IsJumpToLabel(taicpu(p)) then
+                          begin
+                            hp2:=p;
+                            while GetNextInstruction(hp2, hp1) and
+                                  (hp1.typ <> ait_label) do
+                              if not(hp1.typ in ([ait_label,ait_align]+skipinstr)) then
                                 begin
-                                  if (taicpu(p).opcode=aopt_condjmp)
-{$ifdef arm}
-                                    and (taicpu(p).condition<>C_None)
-{$endif arm}
-                                  then
+                                  if (hp1.typ = ait_instruction) and
+                                     taicpu(hp1).is_jmp and
+                                     (JumpTargetOp(taicpu(hp1))^.typ = top_ref) and
+                                     (JumpTargetOp(taicpu(hp1))^.ref^.symbol is TAsmLabel) then
+                                     TAsmLabel(JumpTargetOp(taicpu(hp1))^.ref^.symbol).decrefs;
+                                  { don't kill start/end of assembler block,
+                                    no-line-info-start/end etc }
+                                  if hp1.typ<>ait_marker then
                                     begin
-                                      taicpu(p).condition:=inverse_cond(taicpu(p).condition);
-                                      tai_label(hp2).labsym.decrefs;
-                                      JumpTargetOp(taicpu(p))^.ref^.symbol:=JumpTargetOp(taicpu(hp1))^.ref^.symbol;
-                                      { when freeing hp1, the reference count
-                                        isn't decreased, so don't increase
-
-                                       taicpu(p).oper[0]^.ref^.symbol.increfs;
-                                      }
-{$if defined(SPARC) or defined(MIPS)}
-                                      { Remove delay slot. Initially is is placed immediately after
-                                        branch, but RA can insert regallocs in between. }
-                                      hp2:=tai(hp1.next);
-                                      while assigned(hp2) and (hp2.typ in SkipInstr) do
-                                        hp2:=tai(hp2.next);
-                                      if assigned(hp2) and (hp2.typ=ait_instruction) and
-                                         (taicpu(hp2).opcode=A_NOP) then
-                                        begin
-                                          asml.remove(hp2);
-                                          hp2.free;
-                                        end
-                                      else
-                                        InternalError(2013070301);
-{$endif SPARC or MIPS}
+  {$if defined(SPARC) or defined(MIPS) }
+                                      if (hp1.typ=ait_instruction) and (taicpu(hp1).is_jmp) then
+                                        RemoveDelaySlot(hp1);
+  {$endif SPARC or MIPS }
                                       asml.remove(hp1);
                                       hp1.free;
-                                      GetFinalDestination(taicpu(p),0);
+                                      stoploop:=false;
                                     end
                                   else
-                                    begin
-                                      GetFinalDestination(taicpu(p),0);
-                                      p:=tai(p.next);
-                                      continue;
-                                    end;
+                                    hp2:=hp1;
                                 end
-                              else
-                                GetFinalDestination(taicpu(p),0);
+                              else break;
                             end;
-                        end;
-                    end
-                  else
-                  { All other optimizes }
-                    begin
-                    end; { if is_jmp }
-                end;
+                        { remove jumps to a label coming right after them }
+                        if GetNextInstruction(p, hp1) then
+                          begin
+                            SkipEntryExitMarker(hp1,hp1);
+                            if FindLabel(tasmlabel(JumpTargetOp(taicpu(p))^.ref^.symbol), hp1) and
+          { TODO: FIXME removing the first instruction fails}
+                                (p<>blockstart) then
+                              begin
+                                tasmlabel(JumpTargetOp(taicpu(p))^.ref^.symbol).decrefs;
+  {$if defined(SPARC) or defined(MIPS)}
+                                RemoveDelaySlot(p);
+  {$endif SPARC or MIPS}
+                                hp2:=tai(hp1.next);
+                                asml.remove(p);
+                                p.free;
+                                p:=hp2;
+                                stoploop:=false;
+                                continue;
+                              end
+                            else if assigned(hp1) then
+                              begin
+                                if hp1.typ = ait_label then
+                                  SkipLabels(hp1,hp1);
+                                if (tai(hp1).typ=ait_instruction) and
+                                    IsJumpToLabel(taicpu(hp1)) and
+                                    GetNextInstruction(hp1, hp2) and
+                                    FindLabel(tasmlabel(JumpTargetOp(taicpu(p))^.ref^.symbol), hp2) then
+                                  begin
+                                    if (taicpu(p).opcode=aopt_condjmp)
+  {$ifdef arm}
+                                      and (taicpu(p).condition<>C_None)
+  {$endif arm}
+                                    then
+                                      begin
+                                        taicpu(p).condition:=inverse_cond(taicpu(p).condition);
+                                        tai_label(hp2).labsym.decrefs;
+                                        JumpTargetOp(taicpu(p))^.ref^.symbol:=JumpTargetOp(taicpu(hp1))^.ref^.symbol;
+                                        { when freeing hp1, the reference count
+                                          isn't decreased, so don't increase
+
+                                         taicpu(p).oper[0]^.ref^.symbol.increfs;
+                                        }
+  {$if defined(SPARC) or defined(MIPS)}
+                                        RemoveDelaySlot(hp1);
+  {$endif SPARC or MIPS}
+                                        asml.remove(hp1);
+                                        hp1.free;
+                                        stoploop:=false;
+                                        GetFinalDestination(taicpu(p),0);
+                                      end
+                                    else
+                                      begin
+                                        GetFinalDestination(taicpu(p),0);
+                                        p:=tai(p.next);
+                                        continue;
+                                      end;
+                                  end
+                                else
+                                  GetFinalDestination(taicpu(p),0);
+                              end;
+                          end;
+                      end
+                    else
+                    { All other optimizes }
+                      begin
+                      end; { if is_jmp }
+                  end;
+              end;
+              UpdateUsedRegs(p);
+              p:=tai(p.next);
             end;
-            UpdateUsedRegs(p);
-            p:=tai(p.next);
-          end;
+        until stoploop or not(cs_opt_level3 in current_settings.optimizerswitches);
       end;
 
 

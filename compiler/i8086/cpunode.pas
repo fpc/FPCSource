@@ -50,11 +50,16 @@ unit cpunode;
        n8086add,
        n8086cal,
        n8086cnv,
+       n8086ld,
        n8086mem{,
        n386set},
        n8086inl,
        n8086mat,
-       n8086con
+       n8086con,
+       { these are not really nodes }
+       n8086util,n8086tcon,tgcpu,
+       { symtable }
+       symcpu
        ;
 
 end.

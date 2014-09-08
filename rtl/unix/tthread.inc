@@ -51,33 +51,11 @@
 
 var
   ThreadsInited: boolean = false;
-  CurrentTM: TThreadManager;
 const
   // stupid, considering its not even implemented...
   Priorities: array [TThreadPriority] of Integer =
    (-20,-19,-10,0,9,18,19);
 
-procedure InitThreads;
-begin
-  { This is not thread safe, but it doesn't matter if this is executed }
-  { multiple times. Conversely, if one thread goes by this without the }
-  { operation having been finished by another thread already, it will  }
-  { use an uninitialised thread manager -> leave as it is              }
-  if not ThreadsInited then
-    begin
-      GetThreadManager(CurrentTM);
-{$ifdef FPC_HAS_MEMBAR}
-      { however, we have to ensure that a thread never sees ThreadsInited }
-      { as true while CurrentTM hasn't been initialised yet               }
-      WriteBarrier;
-      ThreadsInited := True;
-{$endif}
-    end
-  else
-    { See double checked lock example at                         }
-    { http://ridiculousfish.com/blog/archives/2007/02/17/barrier }
-    ReadDependencyBarrier;
-end;
 
 procedure DoneThreads;
 begin
@@ -105,12 +83,13 @@ begin
     if LThread.FInitialSuspended then
       begin
         WRITE_DEBUG('thread ', ptruint(LThread), ' waiting for semaphore ', ptruint(LThread.FSem));
-        CurrentTM.SemaphoreWait(LThread.FSem);
+        SemaphoreWait(LThread.FSem);
         if not(LThread.FTerminated) then
           begin
             if not LThread.FSuspended then
               begin
                 LThread.FInitialSuspended := false;
+                CurrentThreadVar := LThread;
                 WRITE_DEBUG('going into LThread.Execute');
                 LThread.Execute;
               end
@@ -124,7 +103,8 @@ begin
        begin
          LThread.FSuspendedInternal := true;
          WRITE_DEBUG('waiting for SuspendedInternal - ', LThread.ClassName);
-        CurrentTM.SemaphoreWait(LThread.FSem);
+         SemaphoreWait(LThread.FSem);
+         CurrentThreadVar := LThread;
          WRITE_DEBUG('going into LThread.Execute - ', LThread.ClassName);
          LThread.Execute;
        end;
@@ -161,10 +141,6 @@ begin
       // this function is the thread's main function (so it would have terminated
       // already in case it was joined)
       EndThread(Result);
-    end
-  else
-    begin
-      FlushThread;
     end;
 end;
 
@@ -172,11 +148,8 @@ end;
 procedure TThread.SysCreate(CreateSuspended: Boolean;
                             const StackSize: SizeUInt);
 begin
-  // lets just hope that the user doesn't create a thread
-  // via BeginThread and creates the first TThread Object in there!
-  InitThreads;
-  FSem := CurrentTM.SemaphoreInit();
-  if FSem = nil then
+  FSem := SemaphoreInit();
+  if FSem = pointer(-1) then
     raise EThread.create('Semaphore init failed (possibly too many concurrent threads)');
   WRITE_DEBUG('thread ', ptruint(self), ' created semaphore ', ptruint(FSem));
   FSuspended := CreateSuspended;
@@ -201,7 +174,7 @@ begin
   if (FHandle = TThreadID(0)) then
   { another exception in constructor }
     begin
-      CurrentTM.SemaphoreDestroy(FSem);
+      SemaphoreDestroy(FSem);
       exit;
     end;
   if (FThreadID = GetCurrentThreadID) then
@@ -227,7 +200,7 @@ begin
           WaitFor;
         end;
     end;
-  CurrentTM.SemaphoreDestroy(FSem);
+  SemaphoreDestroy(FSem);
   FFatalException.Free;
   FFatalException := nil;
   { threadvars have been released by cthreads.ThreadMain -> DoneThread, or  }
@@ -250,7 +223,7 @@ begin
     begin
       if not FSuspended and
          (InterLockedExchange(longint(FSuspended),longint(longbool(true))) = longint(longbool(false))) then
-        CurrentTM.SemaphoreWait(FSem)
+        SemaphoreWait(FSem)
     end
   else
     begin
@@ -266,7 +239,7 @@ begin
   if FSuspendedInternal and (InterLockedExchange(longint(FSuspendedInternal),ord(false)) = longint(longbool(true))) then
     begin
       WRITE_DEBUG('resuming thread after TThread construction',ptruint(self));
-      CurrentTM.SemaphorePost(FSem);
+      SemaphorePost(FSem);
     end
   else if (not FSuspendedExternal) then
     begin
@@ -276,7 +249,7 @@ begin
          (InterLockedExchange(longint(FSuspended),longint(false)) <> longint(longbool(false))) then
         begin
           WRITE_DEBUG('resuming ',ptruint(self));
-          CurrentTM.SemaphorePost(FSem);
+          SemaphorePost(FSem);
         end
     end
   else

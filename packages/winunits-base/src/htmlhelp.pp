@@ -24,6 +24,9 @@
 unit htmlhelp;
 
 interface
+{$ifdef FPC_OS_UNICODE}
+  {$define UNICODE}
+{$endif}
 
 Uses Windows;
 
@@ -383,7 +386,11 @@ Type
 
   function HtmlHelpA(hwndCaller:HWND; pszFile:LPCSTR; uCommand:UINT; dwData:DWORD_PTR):HWND;stdcall;external External_library name 'HtmlHelpA';
   function HtmlHelpW(hwndCaller:HWND; pszFile:LPCWSTR; uCommand:UINT; dwData:DWORD_PTR):HWND;stdcall;external External_library name 'HtmlHelpW';
-
+ {$ifdef Unicode}
+  function HtmlHelp(hwndCaller:HWND; pszFile:LPCWSTR; uCommand:UINT; dwData:DWORD_PTR):HWND;stdcall;external External_library name 'HtmlHelpW';
+ {$else}
+  function HtmlHelp(hwndCaller:HWND; pszFile:LPCSTR; uCommand:UINT; dwData:DWORD_PTR):HWND;stdcall;external External_library name 'HtmlHelpA';
+ {$endif}
 
 type HH_GPROPID = (
 

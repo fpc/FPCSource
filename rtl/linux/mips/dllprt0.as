@@ -58,7 +58,7 @@ _dynamic_start:
 */
 _start:
     .ent _start
-    .frame     $sp,36,$ra 
+    .frame     $sp,40,$ra 
     /* load fp */
     .set noreorder
     .cpload $25
@@ -70,7 +70,7 @@ _start:
     /* align stack */
     li      $at,-8
     and     $sp,$sp,$at
-    addiu   $sp,$sp,-36
+    addiu   $sp,$sp,-40
 
     /* Save needed regs:
        $t1, at offset 20
@@ -133,11 +133,8 @@ _start:
 	.size 	_start, .-_start
 
 	.globl  _haltproc
-    .globl  FPC_SHARED_LIB_EXIT
 	.ent	_haltproc
 	.type   _haltproc,@function
-    .type  FPC_SHARED_LIB_EXIT,@function
-FPC_SHARED_LIB_EXIT:
 _haltproc:
         /* TODO: need to check whether __dl_fini is non-zero and call the function pointer in case */
 
@@ -156,3 +153,4 @@ _haltproc:
         .comm operatingsystem_parameter_argc,4
         .comm operatingsystem_parameter_argv,4
 
+.section .note.GNU-stack,"",@progbits

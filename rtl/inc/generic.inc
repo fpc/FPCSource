@@ -358,7 +358,7 @@ begin
   if (len < 0) or
      (len > high(PtrInt) div 2) or
      (psrc+len < psrc) then
-    pend:=pdword(high(PtrUInt)-sizeof(dword))
+    pend:=pdword(high(PtrUInt)-PtrUInt(sizeof(dword)))
   else
     pend:=psrc+len;
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -399,7 +399,7 @@ begin
   if (len < 0) or
      (len > high(PtrInt) div 4) or
      (psrc+len < psrc) then
-    pend:=pqword(high(PtrUInt)-sizeof(qword))
+    pend:=pqword(high(PtrUInt)-PtrUInt(sizeof(qword)))
   else
     pend:=psrc+len;
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -548,8 +548,7 @@ begin
           inc(pptruint(psrc));
         end;
     end;
-  if (len <= high(ptrint)) and
-     (psrc+len >= psrc) then
+  if (psrc+len >= psrc) then
     pend:=psrc+len
   else
     pend:=pword(high(ptruint)-2);
@@ -689,7 +688,7 @@ begin
   { simulate assembler implementations behaviour, which is expected }
   { fpc_pchar_to_ansistr in astrings.inc                            }
   if (len < 0) then
-    pend:=pbyte(high(PtrUInt)-sizeof(byte))
+    pend:=pbyte(high(PtrUInt)-PtrUInt(sizeof(byte)))
   else
     pend:=psrc+len;
   while (psrc<pend) and (psrc^<>0) do
@@ -738,39 +737,38 @@ end;
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_OBJECTS}
+type
+  pobjectvmt=^tobjectvmt;
+  tobjectvmt=record
+    size,msize:sizeuint;
+    parent:pointer;
+  end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_HELP_CONSTRUCTOR}
 { Note: _vmt will be reset to -1 when memory is allocated,
   this is needed for fpc_help_fail }
 function fpc_help_constructor(_self:pointer;var _vmt:pointer;_vmt_pos:cardinal):pointer;[public,alias:'FPC_HELP_CONSTRUCTOR'];compilerproc;
-type
-  ppointer = ^pointer;
-  pvmt = ^tvmt;
-  tvmt=packed record
-    size,msize:ptruint;
-    parent:pointer;
-  end;
 var
-  vmtcopy : pointer;
+  vmtcopy : pobjectvmt;
 begin
+  vmtcopy:=pobjectvmt(_vmt);
   { Inherited call? }
-  if _vmt=nil then
+  if vmtcopy=nil then
     begin
       fpc_help_constructor:=_self;
       exit;
     end;
-  vmtcopy:=_vmt;
 
   if (_self=nil) and
-     (pvmt(_vmt)^.size>0) then
+     (vmtcopy^.size>0) then
     begin
-      getmem(_self,pvmt(_vmt)^.size);
+      getmem(_self,vmtcopy^.size);
       { reset vmt needed for fail }
       _vmt:=pointer(-1);
     end;
   if _self<>nil then
     begin
-      fillchar(_self^,pvmt(vmtcopy)^.size,0);
+      fillchar(_self^,vmtcopy^.size,0);
       ppointer(_self+_vmt_pos)^:=vmtcopy;
     end;
   fpc_help_constructor:=_self;
@@ -781,21 +779,14 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
 { Note: _self will not be reset, the compiler has to generate the reset }
 procedure fpc_help_destructor(_self,_vmt:pointer;vmt_pos:cardinal);[public,alias:'FPC_HELP_DESTRUCTOR'];  compilerproc;
-type
-  ppointer = ^pointer;
-  pvmt = ^tvmt;
-  tvmt = packed record
-    size,msize : ptruint;
-    parent : pointer;
-  end;
 begin
    { already released? }
    if (_self=nil) or
-      (_vmt=nil) or
+      (_vmt<>pointer(-1)) or
       (ppointer(_self+vmt_pos)^=nil) then
      exit;
-   if (pvmt(ppointer(_self+vmt_pos)^)^.size=0) or
-      (pvmt(ppointer(_self+vmt_pos)^)^.size+pvmt(ppointer(_self+vmt_pos)^)^.msize<>0) then
+   if (pobjectvmt(ppointer(_self+vmt_pos)^)^.size=0) or
+      (pobjectvmt(ppointer(_self+vmt_pos)^)^.size+pobjectvmt(ppointer(_self+vmt_pos)^)^.msize<>0) then
      RunError(210);
    { reset vmt to nil for protection }
    ppointer(_self+vmt_pos)^:=nil;
@@ -831,16 +822,10 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
 procedure fpc_check_object(_vmt : pointer); [public,alias:'FPC_CHECK_OBJECT'];  compilerproc;
-type
-  pvmt = ^tvmt;
-  tvmt = packed record
-    size,msize : ptruint;
-    parent : pointer;
-  end;
 begin
   if (_vmt=nil) or
-     (pvmt(_vmt)^.size=0) or
-     (pvmt(_vmt)^.size+pvmt(_vmt)^.msize<>0) then
+     (pobjectvmt(_vmt)^.size=0) or
+     (pobjectvmt(_vmt)^.size+pobjectvmt(_vmt)^.msize<>0) then
     RunError(210);
 end;
 
@@ -852,22 +837,16 @@ end;
 { deeper check to see if the current object is }
 { really related to the true }
 procedure fpc_check_object_ext(vmt, expvmt : pointer); [public,alias:'FPC_CHECK_OBJECT_EXT']; compilerproc;
-type
-  pvmt = ^tvmt;
-  tvmt = packed record
-    size,msize : ptruint;
-    parent : pointer;
-  end;
 begin
    if (vmt=nil) or
-      (pvmt(vmt)^.size=0) or
-      (pvmt(vmt)^.size+pvmt(vmt)^.msize<>0) then
+      (pobjectvmt(vmt)^.size=0) or
+      (pobjectvmt(vmt)^.size+pobjectvmt(vmt)^.msize<>0) then
         RunError(210);
    while assigned(vmt) do
      if vmt=expvmt then
        exit
      else
-       vmt:=pvmt(vmt)^.parent;
+       vmt:=pobjectvmt(vmt)^.parent;
    RunError(219);
 end;
 {$endif not FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
@@ -1205,39 +1184,46 @@ end;
         sign : boolean;
         q1,q2,q3 : word;
       begin
-        begin
-           sign:=false;
-           if f1<0 then
-             begin
+        { there's no difference between signed and unsigned multiplication,
+          when the destination size is equal to the source size and overflow
+          checking is off }
+        if not checkoverflow then
+          { word(f1)*word(f2) is coded as a call to mulword }
+          fpc_mul_integer:=integer(word(f1)*word(f2))
+        else
+          begin
+            sign:=false;
+            if f1<0 then
+              begin
                 sign:=not(sign);
                 q1:=word(-f1);
-             end
-           else
-             q1:=f1;
-           if f2<0 then
-             begin
+              end
+            else
+              q1:=f1;
+            if f2<0 then
+              begin
                 sign:=not(sign);
                 q2:=word(-f2);
-             end
-           else
-             q2:=f2;
-           { the q1*q2 is coded as call to mulqword }
-           q3:=q1*q2;
+              end
+            else
+              q2:=f2;
+            { the q1*q2 is coded as call to mulword }
+            q3:=q1*q2;
 
-           if checkoverflow and (q1 <> 0) and (q2 <>0) and
-           ((q1>q3) or (q2>q3) or
-             { the bit 63 can be only set if we have $8000 }
-             { and sign is true                            }
-             (q3 shr 15<>0) and
-              ((q3<>word(word(1) shl 15)) or not(sign))
-             ) then
-             HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
+            if (q1 <> 0) and (q2 <>0) and
+              ((q1>q3) or (q2>q3) or
+              { the bit 63 can be only set if we have $8000 }
+              { and sign is true                            }
+              (q3 shr 15<>0) and
+               ((q3<>word(word(1) shl 15)) or not(sign))
+              ) then
+              HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
 
-           if sign then
-             fpc_mul_integer:=-q3
-           else
-             fpc_mul_integer:=q3;
-        end;
+            if sign then
+              fpc_mul_integer:=-q3
+            else
+              fpc_mul_integer:=q3;
+          end;
       end;
 {$endif FPC_SYSTEM_HAS_MUL_INTEGER}
 
@@ -1281,39 +1267,46 @@ end;
         sign : boolean;
         q1,q2,q3 : dword;
       begin
-        begin
-           sign:=false;
-           if f1<0 then
-             begin
+        { there's no difference between signed and unsigned multiplication,
+          when the destination size is equal to the source size and overflow
+          checking is off }
+        if not checkoverflow then
+          { dword(f1)*dword(f2) is coded as a call to muldword }
+          fpc_mul_longint:=longint(dword(f1)*dword(f2))
+        else
+          begin
+            sign:=false;
+            if f1<0 then
+              begin
                 sign:=not(sign);
                 q1:=dword(-f1);
-             end
-           else
-             q1:=f1;
-           if f2<0 then
-             begin
+              end
+            else
+              q1:=f1;
+            if f2<0 then
+              begin
                 sign:=not(sign);
                 q2:=dword(-f2);
-             end
-           else
-             q2:=f2;
-           { the q1*q2 is coded as call to mulqword }
-           q3:=q1*q2;
+              end
+            else
+              q2:=f2;
+            { the q1*q2 is coded as call to muldword }
+            q3:=q1*q2;
 
-           if checkoverflow and (q1 <> 0) and (q2 <>0) and
-           ((q1>q3) or (q2>q3) or
-             { the bit 31 can be only set if we have $8000 0000 }
-             { and sign is true                                 }
-             (q3 shr 15<>0) and
-              ((q3<>dword(dword(1) shl 31)) or not(sign))
-             ) then
-             HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
+            if (q1 <> 0) and (q2 <>0) and
+              ((q1>q3) or (q2>q3) or
+              { the bit 31 can be only set if we have $8000 0000 }
+              { and sign is true                                 }
+              (q3 shr 15<>0) and
+               ((q3<>dword(dword(1) shl 31)) or not(sign))
+              ) then
+              HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
 
-           if sign then
-             fpc_mul_longint:=-q3
-           else
-             fpc_mul_longint:=q3;
-        end;
+            if sign then
+              fpc_mul_longint:=-q3
+            else
+              fpc_mul_longint:=q3;
+          end;
       end;
 {$endif FPC_SYSTEM_HAS_MUL_INTEGER}
 
@@ -1346,7 +1339,7 @@ end;
                   HandleErrorAddrFrameInd(215,get_pc_addr,get_frame);
               end;
             { when bootstrapping, we forget about overflow checking for qword :) }
-            f1overflowed:=f1overflowed or ((f1 and (1 shl 31))<>0);
+            f1overflowed:=f1overflowed or ((f1 and (dword(1) shl 31))<>0);
             f1:=f1 shl 1;
             bitpos:=bitpos shl 1;
           end;
@@ -1363,7 +1356,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_DIV_DWORD}
 function fpc_div_dword(n,z : dword) : dword; [public,alias: 'FPC_DIV_DWORD']; compilerproc;
   var
-     shift,lzz,lzn : longint;
+     shift,lzz,lzn : ObjpasInt;
   begin
      result:=0;
      if n=0 then
@@ -1384,7 +1377,7 @@ function fpc_div_dword(n,z : dword) : dword; [public,alias: 'FPC_DIV_DWORD']; co
          if z>=n then
            begin
               z:=z-n;
-              result:=result+dword(1 shl shift);
+              result:=result+dword(dword(1) shl shift);
            end;
          n:=n shr 1;
        end;
@@ -1395,7 +1388,7 @@ function fpc_div_dword(n,z : dword) : dword; [public,alias: 'FPC_DIV_DWORD']; co
 {$ifndef FPC_SYSTEM_HAS_MOD_DWORD}
 function fpc_mod_dword(n,z : dword) : dword; [public,alias: 'FPC_MOD_DWORD']; compilerproc;
   var
-     shift,lzz,lzn : longint;
+     shift,lzz,lzn : ObjpasInt;
   begin
      result:=0;
      if n=0 then
@@ -1493,6 +1486,8 @@ function fpc_mod_longint(n,z : longint) : longint; [public,alias: 'FPC_MOD_LONGI
 {****************************************************************************}
 
 {$ifndef FPC_SYSTEM_HAS_ABS_LONGINT}
+{ This is only needed to bootstrap on SPARC targets
+  (MIPS and m68k too, but they have no releases, so bootstrapping is not an issue) }
 function abs(l:longint):longint;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
    if l<0 then
@@ -1825,7 +1820,7 @@ end;
 
 procedure SysResetFpu;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
-  softfloat_exception_flags:=0;
+  softfloat_exception_flags:=[];
 end;
 
 {$endif FPC_SYSTEM_HAS_SYSRESETFPU}
@@ -1834,7 +1829,7 @@ end;
 
 procedure SysInitFpu;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
-  softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
+  softfloat_exception_mask:=[float_flag_underflow,float_flag_inexact,float_flag_denormal];
 end;
 
 {$endif FPC_SYSTEM_HAS_SYSINITFPU}
@@ -1859,45 +1854,35 @@ function SwapEndian(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endi
 
 function SwapEndian(const AValue: LongInt): LongInt;
   begin
-    Result := (AValue shl 24)
-           or ((AValue and $0000FF00) shl 8)
-           or ((AValue and $00FF0000) shr 8)
-           or (AValue shr 24);
+    Result := ((AValue shl 8) and $FF00FF00) or ((AValue shr 8) and $00FF00FF);
+    Result := (Result shl 16) or (Result shr 16);
   end;
 
 {$ifndef cpujvm}
 function SwapEndian(const AValue: DWord): DWord;
   begin
-    Result := (AValue shl 24)
-           or ((AValue and $0000FF00) shl 8)
-           or ((AValue and $00FF0000) shr 8)
-           or (AValue shr 24);
+    Result := ((AValue shl 8) and $FF00FF00) or ((AValue shr 8) and $00FF00FF);
+    Result := (Result shl 16) or (Result shr 16);
   end;
 {$endif}
 
 function SwapEndian(const AValue: Int64): Int64;
   begin
-    Result := (AValue shl 56)
-           or ((AValue and $000000000000FF00) shl 40)
-           or ((AValue and $0000000000FF0000) shl 24)
-           or ((AValue and $00000000FF000000) shl 8)
-           or ((AValue and $000000FF00000000) shr 8)
-           or ((AValue and $0000FF0000000000) shr 24)
-           or ((AValue and $00FF000000000000) shr 40)
-           or (AValue shr 56);
+    Result := ((AValue shl 8) and $FF00FF00FF00FF00) or
+            ((AValue shr 8) and $00FF00FF00FF00FF);
+    Result := ((Result shl 16) and $FFFF0000FFFF0000) or
+            ((Result shr 16) and $0000FFFF0000FFFF);
+    Result := (Result shl 32) or ((Result shr 32));
   end;
 
 {$ifndef cpujvm}
 function SwapEndian(const AValue: QWord): QWord;
   begin
-    Result := (AValue shl 56)
-           or ((AValue and $000000000000FF00) shl 40)
-           or ((AValue and $0000000000FF0000) shl 24)
-           or ((AValue and $00000000FF000000) shl 8)
-           or ((AValue and $000000FF00000000) shr 8)
-           or ((AValue and $0000FF0000000000) shr 24)
-           or ((AValue and $00FF000000000000) shr 40)
-           or (AValue shr 56);
+    Result := ((AValue shl 8) and $FF00FF00FF00FF00) or
+            ((AValue shr 8) and $00FF00FF00FF00FF);
+    Result := ((Result shl 16) and $FFFF0000FFFF0000) or
+            ((Result shr 16) and $0000FFFF0000FFFF);
+    Result := (Result shl 32) or ((Result shr 32));
   end;
 {$endif}
 {$endif FPC_SYSTEM_HAS_SWAPENDIAN}
@@ -2379,75 +2364,86 @@ function BsrByte(Const AValue: Byte): Byte;
 
 {$ifndef FPC_SYSTEM_HAS_BSF_WORD}
 {$ifndef FPC_HAS_INTERNAL_BSF_WORD}
-function BsfWord(Const AValue: Word): cardinal;
+function BsfWord(Const AValue: Word): {$ifdef CPU16}byte{$else}cardinal{$endif};
   begin
-    result:=$ff;
-    if lo(AValue)<>0 then
-      result:=BsfByte(lo(AValue))
-    else if hi(AValue) <> 0 then
-      result:=BsfByte(hi(AValue))+8
+    result:=ord(lo(AValue)=0)*8;
+    result:=result or BsfByte(byte(AValue shr result));
   end;
 {$endif}
 {$endif}
 
 {$ifndef FPC_SYSTEM_HAS_BSR_WORD}
 {$ifndef FPC_HAS_INTERNAL_BSR_WORD}
-function BsrWord(Const AValue: Word): cardinal;
+function BsrWord(Const AValue: Word): {$ifdef CPU16}byte{$else}cardinal{$endif};
   begin
-    if hi(AValue)<>0 then
-      result:=BsrByte(hi(AValue))+8
-    else
-      result:=BsrByte(lo(AValue))
+    result:=ord(AValue>255)*8;
+    result:=result or BsrByte(byte(AValue shr result));
   end;
 {$endif}
 {$endif}
 
 {$ifndef FPC_HAS_INTERNAL_BSF_DWORD}
 {$ifndef FPC_SYSTEM_HAS_BSF_DWORD}
-function BsfDWord(Const AValue : DWord): cardinal;
-begin
-  result:=$ff;
-  if lo(AValue)<>0 then
-    result:=BsfWord(lo(AValue))
-  else if hi(AValue) <> 0 then
-    result:=BsfWord(hi(AValue))+16
-end;
+function BsfDWord(Const AValue : DWord): {$ifdef CPU16}byte{$else}cardinal{$endif};
+  var
+    tmp: DWord;
+  begin
+    result:=ord(lo(AValue)=0)*16;
+    tmp:=AValue shr result;
+    result:=result or (ord((tmp and $FF)=0)*8);
+    tmp:=tmp shr (result and 8);
+    result:=result or BsfByte(byte(tmp));
+  end;
 {$endif}
 {$endif}
 
 {$ifndef FPC_HAS_INTERNAL_BSR_DWORD}
 {$ifndef FPC_SYSTEM_HAS_BSR_DWORD}
-function BsrDWord(Const AValue : DWord): cardinal;
-begin
-  if hi(AValue)<>0 then
-    result:=BsrWord(hi(AValue))+16
-  else
-    result:=BsrWord(lo(AValue))
-end;
+function BsrDWord(Const AValue : DWord): {$ifdef CPU16}byte{$else}cardinal{$endif};
+  var
+    tmp: DWord;
+  begin
+    result:=ord(AValue>$FFFF)*16;
+    tmp:=AValue shr result;
+    result:=result or (ord(tmp>$FF)*8);
+    tmp:=tmp shr (result and 8);
+    result:=result or BsrByte(byte(tmp));
+  end;
 {$endif}
 {$endif}
 
 {$ifndef FPC_HAS_INTERNAL_BSF_QWORD}
 {$ifndef FPC_SYSTEM_HAS_BSF_QWORD}
-function BsfQWord(Const AValue : QWord): cardinal;
+function BsfQWord(Const AValue : QWord): {$ifdef CPU16}byte{$else}cardinal{$endif};
+  var
+    tmp: DWord;
   begin
-    result:=$ff;
-    if lo(AValue) <> 0 then
-      result:=BsfDWord(lo(AValue))
-    else if hi(AValue) <> 0 then
-      result:=BsfDWord(hi(AValue)) + 32;
+    result:=0;
+    tmp:=lo(AValue);
+    if (tmp=0) then
+      begin
+        tmp:=hi(AValue);
+        result:=32;
+      end;
+    result:=result or BsfDword(tmp);
   end;
 {$endif}
 {$endif}
 
 {$ifndef FPC_HAS_INTERNAL_BSR_QWORD}
 {$ifndef FPC_SYSTEM_HAS_BSR_QWORD}
-function BsrQWord(Const AValue : QWord): cardinal;
+function BsrQWord(Const AValue : QWord): {$ifdef CPU16}byte{$else}cardinal{$endif};
+  var
+    tmp: DWord;
   begin
-    if hi(AValue) <> 0 then
-      result:=BsrDWord(hi(AValue)) + 32
-    else
-      result:=BsrDWord(lo(AValue))
+    result:=32;
+    tmp:=hi(AValue);
+    if (tmp=0) then
+      begin
+        tmp:=lo(AValue);
+        result:=0;
+      end;
+    result:=result or BsrDword(tmp);
   end;
 {$endif}
 {$endif}

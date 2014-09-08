@@ -23,6 +23,35 @@ function arctan2(y,x : float) : float;assembler;
      fpatan
      fwait
   end;
+
+{$define FPC_MATH_HAS_TAN}
+function tan(x : float) : float;assembler;
+  asm
+    fldt X
+    fptan
+    fstp %st
+    fwait
+  end;
+
+
+{$define FPC_MATH_HAS_COTAN}
+function cotan(x : float) : float;assembler;
+  asm
+    fldt X
+    fptan
+    fdivp %st,%st(1)
+    fwait
+  end;
+
+
+{$define FPC_MATH_HAS_LOG2}
+function log2(x : float) : float;assembler;
+  asm
+    fld1
+    fldt x
+    fyl2x
+    fwait
+  end;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
 
@@ -75,7 +104,7 @@ procedure sincos(theta : single;out sinus,cosinus : single);assembler;
 function GetRoundMode: TFPURoundingMode;
 begin
 {$ifndef FPC_HAS_TYPE_EXTENDED}
-  Result:=TFPURoundingMode((GetSSECSR shr 13) and $3);
+  Result:=TFPURoundingMode((GetMXCSR shr 13) and $3);
 {$else win64}
   Result:=TFPURoundingMode((Get8087CW shr 10) and $3);
 {$endif win64}
@@ -84,11 +113,17 @@ end;
 function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
 var
   CtlWord: Word;
+  SSECSR: dword;
 begin
   CtlWord:=Get8087CW;
+  SSECSR:=GetMXCSR;
   Set8087CW((CtlWord and $F3FF) or (Ord(RoundMode) shl 10));
-  SetSSECSR((GetSSECSR and $ffff9fff) or (dword(RoundMode) shl 13));
-  Result:=GetRoundMode;
+  SetMXCSR((SSECSR and $ffff9fff) or (dword(RoundMode) shl 13));
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+  Result:=TFPURoundingMode((CtlWord shr 10) and 3);
+{$else}
+  Result:=TFPURoundingMode((SSECSR shr 13) and 3);
+{$endif FPC_HAS_TYPE_EXTENDED}
 end;
 
 function GetPrecisionMode: TFPUPrecisionMode;
@@ -108,7 +143,7 @@ end;
 function GetExceptionMask: TFPUExceptionMask;
 begin
 {$ifndef FPC_HAS_TYPE_EXTENDED}
-  Result:=TFPUExceptionMask(dword((GetSSECSR shr 7) and $3f));
+  Result:=TFPUExceptionMask(dword((GetMXCSR shr 7) and $3f));
 {$else win64}
   Result:=TFPUExceptionMask(dword(Get8087CW and $3F));
 {$endif win64}
@@ -117,12 +152,17 @@ end;
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
 var
   CtlWord: Word;
+  SSECSR: dword;
 begin
   CtlWord:=Get8087CW;
+  SSECSR:=GetMXCSR;
   Set8087CW((CtlWord and $FFC0) or Byte(Longint(Mask)));
-  SetSSECSR((GetSSECSR and $ffffe07f) or (dword(Mask) shl 7));
-  softfloat_exception_mask:=dword(Mask);
-  Result:=GetExceptionMask;
+  SetMXCSR((SSECSR and $ffffe07f) or (dword(Mask) shl 7));
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+  Result:=TFPUExceptionMask(dword(CtlWord and $3F));
+{$else}
+  Result:=TFPUExceptionMask((SSECSR shr 7) and $3F);
+{$endif FPC_HAS_TYPE_EXTENDED}
 end;
 
 

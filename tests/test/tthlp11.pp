@@ -5,6 +5,7 @@
 program tthlp11;
 
 {$mode delphi}
+{$modeswitch typehelpers}
 
 type
   TProcedure = procedure;

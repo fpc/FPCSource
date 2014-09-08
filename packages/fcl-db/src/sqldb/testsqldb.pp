@@ -22,7 +22,7 @@ program testsqldb;
 uses
   Classes,
   pqconnection,
-  mysql4conn,
+  mysql51conn,
   IBConnection,
   sqlite3conn,
   sqldb;
@@ -35,7 +35,7 @@ var connection  : tSQLConnection;
 
 begin
   dbtype := paramstr(1);
-  if dbtype = 'mysql' then connection := tMySQLConnection.Create(nil);
+  if dbtype = 'mysql' then connection := tMySQL51Connection.Create(nil);
   if dbtype = 'postgresql' then connection := tpqConnection.Create(nil);
   if dbtype = 'interbase' then connection := tIBConnection.Create(nil);
   if dbtype = 'sqlite3' then connection := tSQLite3Connection.Create(nil);

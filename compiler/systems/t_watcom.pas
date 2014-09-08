@@ -174,6 +174,6 @@ end;}
 *****************************************************************************}
 
 initialization
-  RegisterExternalLinker(system_i386_watcom_info,TLinkerWatcom);
+  RegisterLinker(ld_watcom,TLinkerWatcom);
   RegisterTarget(system_i386_watcom_info);
 end.

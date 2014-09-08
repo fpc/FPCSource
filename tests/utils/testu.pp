@@ -10,7 +10,7 @@ Interface
   ---------------------------------------------------------------------}
 
 type
-  TVerboseLevel=(V_Abort,V_Error,V_Warning,V_Normal,V_Debug);
+  TVerboseLevel=(V_Abort,V_Error,V_Warning,V_Normal,V_Debug,V_SQL);
 
   TConfig = record
     NeedOptions,
@@ -23,7 +23,8 @@ type
     MinVersion,
     MaxVersion,
     KnownRunNote,
-    KnownCompileNote : string;
+    KnownCompileNote,
+    RecompileOpt: string;
     ResultCode    : longint;
     KnownRunError : longint;
     KnownCompileError : longint;
@@ -47,6 +48,7 @@ type
 
 Const
   DoVerbose : boolean = false;
+  DoSQL     : boolean = false;
 
 procedure TrimB(var s:string);
 procedure TrimE(var s:string);
@@ -65,6 +67,9 @@ begin
     V_Debug :
       if DoVerbose then
        writeln('Debug: ',s);
+    V_SQL :
+      if DoSQL then
+       writeln('SQL: ',s);
     V_Warning :
       writeln('Warning: ',s);
     V_Error :
@@ -211,7 +216,10 @@ begin
                 r.ShouldFail:=true
               else
                if GetEntry('RECOMPILE') then
-                r.NeedRecompile:=true
+	        begin
+                  r.NeedRecompile:=true;
+		  r.RecompileOpt:=res;
+		end
               else
                if GetEntry('NORUN') then
                 r.NoRun:=true

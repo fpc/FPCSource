@@ -330,6 +330,7 @@ unit cpubase;
         (RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,RS_R10);
 
       { this is only for the generic code which is not used for this architecture }
+      saved_address_registers : array[0..0] of tsuperregister = (RS_INVALID);
       saved_mm_registers : array[0..0] of tsuperregister = (RS_INVALID);
 
       { Required parameter alignment when calling a routine declared as
@@ -373,6 +374,10 @@ unit cpubase;
 
     function IsIT(op: TAsmOp) : boolean;
     function GetITLevels(op: TAsmOp) : longint;
+
+    function GenerateARMCode : boolean;
+    function GenerateThumbCode : boolean;
+    function GenerateThumb2Code : boolean;
 
   implementation
 
@@ -526,7 +531,7 @@ unit cpubase;
       var
          i : longint;
       begin
-        if current_settings.cputype in cpu_thumb2 then
+        if GenerateThumb2Code then
           begin
             for i:=0 to 24 do
               begin
@@ -566,35 +571,23 @@ unit cpubase;
         i : longint;
         imm : byte;
       begin
-        result:=false;
+        {Loading 0-255 is simple}
         if (d and $FF) = d then
-          begin
-            result:=true;
-            exit;
-          end;
-        if ((d and $FF00FF00) = 0) and
-           ((d shr 16)=(d and $FFFF)) then
-          begin
-            result:=true;
-            exit;
-          end;
-        if ((d and $00FF00FF) = 0) and
-           ((d shr 16)=(d and $FFFF)) then
-          begin
-            result:=true;
-            exit;
-          end;
-        if ((d shr 16)=(d and $FFFF)) and
-           ((d shr 8)=(d and $FF)) then
-          begin
-            result:=true;
-            exit;
-          end;
-        if is_shifter_const(d,imm) then
-          begin
-            result:=true;
-            exit;
-          end;
+          result:=true
+        { If top and bottom are equal, check if either all 4 bytes are equal
+          or byte 0 and 2 or byte 1 and 3 are equal }
+        else if ((d shr 16)=(d and $FFFF)) and
+                (
+                  ((d and $FF00FF00) = 0) or
+                  ((d and $00FF00FF) = 0) or
+                  ((d shr 8)=(d and $FF))
+                ) then
+          result:=true
+        {Can an 8-bit value be shifted accordingly?}
+        else if is_shifter_const(d,imm) then
+          result:=true
+        else
+          result:=false;
       end;
     
     function is_continuous_mask(d : aint;var lsb, width: byte) : boolean;
@@ -616,7 +609,7 @@ unit cpubase;
       begin
         Result:=false;
         {Thumb2 is not supported (YET?)}
-        if current_settings.cputype in cpu_thumb2 then exit;
+        if GenerateThumb2Code then exit;
         d:=DWord(value);
         for i:=0 to 15 do
           begin
@@ -707,4 +700,24 @@ unit cpubase;
         end;
       end;
 
+
+    function GenerateARMCode : boolean;
+      begin
+        Result:=current_settings.instructionset=is_arm;
+      end;
+
+
+    function GenerateThumbCode : boolean;
+      begin
+        Result:=(current_settings.instructionset=is_thumb) and not(CPUARM_HAS_THUMB2 in cpu_capabilities[current_settings.cputype]);
+      end;
+
+
+    function GenerateThumb2Code : boolean;
+      begin
+        Result:=(current_settings.instructionset=is_thumb) and (CPUARM_HAS_THUMB2 in cpu_capabilities[current_settings.cputype]);
+      end;
+
+
 end.
+

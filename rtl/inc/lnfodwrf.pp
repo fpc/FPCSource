@@ -483,7 +483,7 @@ var
   adjusted_opcode : Int64;
 
   opcode : PtrInt;
-  extended_opcode : Byte;
+  extended_opcode : PtrInt;
   extended_opcode_length : PtrInt;
   i, addrIncrement, lineIncrement : PtrInt;
 
@@ -579,6 +579,9 @@ begin
         extended_opcode_length := ReadULEB128();
         extended_opcode := ReadNext();
         case (extended_opcode) of
+          -1: begin
+            exit;
+          end;
           DW_LNE_END_SEQUENCE : begin
             state.end_sequence := true;
             state.append_row := true;
@@ -598,7 +601,8 @@ begin
           else begin
             DEBUG_WRITELN('Unknown extended opcode (opcode ', extended_opcode, ' length ', extended_opcode_length, ')');
             for i := 0 to extended_opcode_length-2 do
-              ReadNext();
+              if ReadNext() = -1 then
+                exit;
           end;
         end;
       end;

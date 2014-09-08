@@ -30,6 +30,11 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
+{$ifdef VER2_6}
+type
+  WNDCLASSEXA = WNDCLASSEX;
+{$endif VER2_6}
+
 { $R win32\base\ptcres.res}
 
 { bug in the compiler???}
@@ -48,7 +53,7 @@ function WndProcMultiThreaded(hWnd: HWND; message: UINT; wParam: WPARAM; lParam:
 
 constructor TWin32Window.Create(const AWndClass, ATitle: string; AExtra, AStyle, AClassStyle: DWord;
                                 AShow, AX, AY, AWidth, AHeight: Integer; ACenter, AMultithreaded,
-                                ACursor: Boolean);
+                                ACursor, AInterceptClose: Boolean);
 var
   program_instance{, library_instance}: DWord;
   rectangle: RECT;
@@ -59,9 +64,10 @@ begin
   Defaults;
   FMultithreaded := AMultithreaded;
   try
+    FInterceptClose := AInterceptClose;
     program_instance := GetModuleHandle(nil);
 {    library_instance := program_instance;}
-    wc.cbSize := SizeOf(WNDCLASSEX);
+    wc.cbSize := SizeOf(wc);
     wc.hInstance := program_instance;
     wc.lpszClassName := PChar(AWndClass);
     wc.style := AClassStyle;
@@ -135,15 +141,13 @@ procedure TWin32Window.Cursor(AFlag: Boolean);
 begin
   if AFlag then
   begin
-    {$WARNING GCLP_HCURSOR not defined in windows unit}
 //    SetClassLong(FWindow, GCL_HCURSOR, LoadCursor(0, IDC_ARROW));
-    SetClassLongPtr(FWindow, {GCLP_HCURSOR}GCL_HCURSOR, LoadCursor(0, IDC_ARROW));
+    SetClassLongPtr(FWindow, GCLP_HCURSOR, LoadCursor(0, IDC_ARROW));
   end
   else
   begin
-    {$WARNING GCLP_HCURSOR not defined in windows unit}
 //    SetClassLong(FWindow, GCL_HCURSOR, 0);
-    SetClassLongPtr(FWindow, {GCLP_HCURSOR}GCL_HCURSOR, 0);
+    SetClassLongPtr(FWindow, GCLP_HCURSOR, 0);
   end;
   SendMessage(FWindow, WM_SETCURSOR, 0, 0);
 end;
@@ -264,8 +268,7 @@ begin
           Result := DefWindowProcA(hWnd, message, wParam, lParam);
       end;
     WM_SETCURSOR: begin
-      {$WARNING GCLP_HCURSOR not defined in windows unit}
-      if (LOWORD(lParam) = HTCLIENT) and (GetClassLongPtr(hWnd, {GCLP_HCURSOR}GCL_HCURSOR) = 0) then
+      if (LOWORD(lParam) = HTCLIENT) and (GetClassLongPtr(hWnd, GCLP_HCURSOR) = 0) then
       begin
         SetCursor(0);
 	Result := 1;
@@ -275,7 +278,11 @@ begin
     end;
     WM_CLOSE: begin
       LOG('TWin32Window WM_CLOSE');
-      Halt(0);
+      WindowObject := TWin32Window(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+      if WindowObject.InterceptClose then
+        Result := 0
+      else
+        Halt(0);
     end;
     else
       Result := DefWindowProcA(hWnd, message, wParam, lParam);
@@ -295,8 +302,7 @@ begin
           Result := DefWindowProcA(hWnd, message, wParam, lParam);
       end;
     WM_SETCURSOR: begin
-      {$WARNING GCLP_HCURSOR not defined in windows unit}
-      if (LOWORD(lParam) = HTCLIENT) and (GetClassLongPtr(hWnd, {GCLP_HCURSOR}GCL_HCURSOR) = 0) then
+      if (LOWORD(lParam) = HTCLIENT) and (GetClassLongPtr(hWnd, GCLP_HCURSOR) = 0) then
       begin
         SetCursor(0);
 	Result := 1;
@@ -334,6 +340,7 @@ begin
   FHeight := 0;
   FManaged := True;
   FMultithreaded := False;
+  FInterceptClose := False;
 end;
 
 procedure TWin32Window.Close;
@@ -379,7 +386,7 @@ var
 begin
   with AOwner do
   begin
-    FWindow := CreateWindowExA(FExtra, PChar(FName), PChar(FTitle), FStyle, FX, FY, FWidth, FHeight, 0, 0, 0, nil);
+    FWindow := CreateWindowEx(FExtra, PChar(FName), PChar(FTitle), FStyle, FX, FY, FWidth, FHeight, 0, 0, 0, nil);
     if IsWindow(FWindow) then
     begin
       ShowWindow(FWindow, FShow);

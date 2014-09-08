@@ -20,7 +20,7 @@ target=nds
 fpcdir=../../../../../..
 
 [compiler]
-options=-g -Xm
+options=-Xm
 #-d__THUMB__
 
 [clean]

@@ -18,6 +18,7 @@ Based on:
 
  Original translation of cairo-ft.h by Jeffrey Pohlmeyer 
  updated to version 1.4 by Luiz Américo Pereira Câmara 2007
+ updated to version 1.12 by Valdinilson Lourenço da Cunha 2012
 
 As per original authors wish, this file is dual licensed LGPL-MPL see the original file
 cairo.pp for the full license.
@@ -43,13 +44,20 @@ type
   *)
   FcPattern = Pointer;
   PFcPattern = ^FcPattern;
-    
-function  cairo_ft_font_face_create_for_pattern(pattern:PFcPattern):Pcairo_font_face_t; cdecl; external LIB_CAIRO;
-procedure cairo_ft_font_options_substitute(options:Pcairo_font_options_t; pattern:PFcPattern); cdecl; external LIB_CAIRO;
+
+  cairo_ft_synthesize_t = (
+    CAIRO_FT_SYNTHESIZE_BOLD = 1 shl 0,
+    CAIRO_FT_SYNTHESIZE_OBLIQUE = 1 shl 1
+  );
+
 function  cairo_ft_font_face_create_for_ft_face(face:TFT_Face; load_flags:longint):Pcairo_font_face_t; cdecl; external LIB_CAIRO;
+procedure cairo_ft_font_face_set_synthesize(font_face: Pcairo_font_face_t; synth_flags: LongWord); cdecl; external LIB_CAIRO;
+procedure cairo_ft_font_face_unset_synthesize(font_face: Pcairo_font_face_t; synth_flags: LongWord);  cdecl; external LIB_CAIRO;
+function  cairo_ft_font_face_get_synthesize(font_face: Pcairo_font_face_t): LongWord;  cdecl; external LIB_CAIRO;
 function  cairo_ft_scaled_font_lock_face(scaled_font:Pcairo_scaled_font_t):TFT_Face; cdecl; external LIB_CAIRO;
 procedure cairo_ft_scaled_font_unlock_face(scaled_font:Pcairo_scaled_font_t); cdecl; external LIB_CAIRO;
-
+function  cairo_ft_font_face_create_for_pattern(pattern: PFcPattern): Pcairo_font_face_t; cdecl; external LIB_CAIRO;
+procedure cairo_ft_font_options_substitute(options: Pcairo_font_options_t; pattern: PFcPattern); cdecl; external LIB_CAIRO;
 
 implementation
 

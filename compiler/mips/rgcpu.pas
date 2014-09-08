@@ -34,7 +34,6 @@ unit rgcpu;
 
     type
       trgcpu=class(trgobj)
-        procedure add_constraints(reg:tregister);override;
         function get_spill_subreg(r : tregister) : tsubregister;override;
         procedure do_spill_read(list:tasmlist;pos:tai;const spilltemp:treference;tempreg:tregister);override;
         procedure do_spill_written(list:tasmlist;pos:tai;const spilltemp:treference;tempreg:tregister);override;
@@ -51,36 +50,6 @@ implementation
       globtype,
       verbose,cutils,
       cgobj;
-
-    procedure trgcpu.add_constraints(reg:tregister);
-      var
-        supreg,i : Tsuperregister;
-      begin
-        case getsubreg(reg) of
-          { Let 64bit floats conflict with all odd float regs }
-          R_SUBFD:
-            begin
-              supreg:=getsupreg(reg);
-              i:=RS_F1;
-              while (i<=RS_F31) do
-                begin
-                  add_edge(supreg,i);
-                  inc(i,2);
-                end;
-            end;
-          { Let 64bit ints conflict with all odd int regs }
-          R_SUBQ:
-            begin
-              supreg:=getsupreg(reg);
-              i:=RS_R1;
-              while (i<=RS_R31) do
-                begin
-                  add_edge(supreg,i);
-                  inc(i,2);
-                end;
-            end;
-        end;
-      end;
 
 
     function trgcpu.get_spill_subreg(r : tregister) : tsubregister;
@@ -162,22 +131,50 @@ implementation
         result:=false;
         { Replace 'move  orgreg,src' with 'sw  src,spilltemp'
               and 'move  dst,orgreg' with 'lw  dst,spilltemp' }
-        { TODO: A_MOV_S and A_MOV_D for float registers are also replaceable }
-        if (instr.opcode<>A_MOVE) or (abs(spilltemp.offset)>32767) then
+
+        if (not (instr.opcode in [A_MOVE,A_MOV_S,A_MOV_D,A_MTC1])) or (abs(spilltemp.offset)>32767) then
           exit;
         if (instr.ops<>2) or
            (instr.oper[0]^.typ<>top_reg) or
-           (instr.oper[1]^.typ<>top_reg) or
-           (getregtype(instr.oper[0]^.reg)<>regtype) or
-           (getregtype(instr.oper[1]^.reg)<>regtype) then
+           (instr.oper[1]^.typ<>top_reg) then
           InternalError(2013061001);
+        if (getregtype(instr.oper[0]^.reg)<>regtype) or
+           (getregtype(instr.oper[1]^.reg)<>regtype) then
+          begin
+            if (instr.opcode=A_MTC1) then
+              begin
+                { TODO: MTC1 src,orgreg  ==>  SW    src,0/4(spilltemp) (endian-dependent!!) }
+                if (regtype=R_FPUREGISTER) then
+                  exit;
+              end
+            else
+              InternalError(2013061003);
+          end;
         if get_alias(getsupreg(instr.oper[1]^.reg))=orgreg then
           begin
-            instr.opcode:=A_LW;
+            case instr.opcode of
+              A_MOVE:  instr.opcode:=A_LW;
+              A_MOV_S: instr.opcode:=A_LWC1;
+              A_MOV_D: instr.opcode:=A_LDC1;
+            else
+              InternalError(2013061004);
+            end;
           end
         else if get_alias(getsupreg(instr.oper[0]^.reg))=orgreg then
           begin
-            instr.opcode:=A_SW;
+            case instr.opcode of
+              A_MOVE:  instr.opcode:=A_SW;
+              A_MOV_S: instr.opcode:=A_SWC1;
+              A_MOV_D: instr.opcode:=A_SDC1;
+              A_MTC1:
+                begin
+                  if (getregtype(instr.oper[0]^.reg)<>R_INTREGISTER) then
+                    InternalError(2013061006);
+                  instr.opcode:=A_LWC1;
+                end
+            else
+              InternalError(2013061005);
+            end;
             instr.oper[0]^:=instr.oper[1]^;
           end
         else

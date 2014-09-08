@@ -24,8 +24,8 @@ begin
     P.Description := 'A portable, yet usable substitute for the Turbo Pascal Graph unit.';
     P.NeedLibC:= false;  // true for headers that indirectly link to libc? OS specific?
 
-    P.CPUs:=[i386,x86_64,powerpc];
-    P.OSes:=[go32v2,win32,win64,linux,freebsd,darwin];
+    P.CPUs:=[i386,x86_64,powerpc,i8086];
+    P.OSes:=[go32v2,win32,win64,linux,freebsd,darwin,msdos];
 
     P.Dependencies.Add('sdl',[i386,powerpc],[win32,linux,freebsd,darwin]);
     P.Dependencies.Add('ptc',[win32,win64,linux]);
@@ -41,11 +41,13 @@ begin
     P.SourcePath.Add('src/macosx',[darwin]);
     P.SourcePath.Add('src/amiga',[amiga]);
     P.SourcePath.Add('src/go32v2',[go32v2]);
+    P.SourcePath.Add('src/msdos',[msdos]);
     P.SourcePath.Add('src/win32',[win32,win64]);
     P.SourcePath.Add('src/unix',[freebsd,linux]);  // Darwin has own.
 
     P.IncludePath.Add('src/inc');
     P.IncludePath.Add('src/go32v2',[go32v2]);
+    P.IncludePath.Add('src/msdos',[msdos]);
     P.IncludePath.Add('src/unix',[freebsd,linux]);  // Darwin has own.
     P.IncludePath.Add('src/go32v2',[go32v2]);
 
@@ -76,7 +78,7 @@ begin
           AddInclude('graph16.inc',[freebsd,linux]);
         end;
     // Graph unit other targets
-    T:=P.Targets.AddUnit('graph.pp',[go32v2,amiga,win32,win64,freebsd]);
+    T:=P.Targets.AddUnit('graph.pp',[go32v2,amiga,win32,win64,freebsd,msdos]);
       with T.Dependencies do
         begin
           AddInclude('graphh.inc');
@@ -88,6 +90,8 @@ begin
           AddInclude('fills.inc');
           AddInclude('gtext.inc');
           AddInclude('graph16.inc',[freebsd,linux]);
+          AddInclude('vesa.inc',[go32v2,msdos]);
+          AddInclude('vesah.inc',[go32v2,msdos]);
         end;
 
     T:=P.Targets.AddUnit('src/sdlgraph/sdlgraph.pp',[i386,powerpc],[win32,linux,freebsd,darwin]);
@@ -113,7 +117,23 @@ begin
           AddUnit('graph');
         end;
     T:=P.Targets.AddUnit('ptcgraph.pp',[win32,win64,linux]);
+      with T.Dependencies do
+        begin
+          AddInclude('graphh.inc');
+          AddInclude('graph.inc');
+          AddInclude('fontdata.inc');
+          AddInclude('clip.inc');
+          AddInclude('palette.inc');
+          AddInclude('modes.inc');
+          AddInclude('fills.inc');
+          AddInclude('gtext.inc');
+        end;
     T:=P.Targets.AddUnit('ptccrt.pp',[win32,win64,linux]);
+      with T.Dependencies do
+        begin
+          AddUnit('ptcgraph');
+        end;
+    T:=P.Targets.AddUnit('ptcmouse.pp',[win32,win64,linux]);
       with T.Dependencies do
         begin
           AddUnit('ptcgraph');

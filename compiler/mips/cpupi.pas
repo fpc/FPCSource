@@ -49,6 +49,7 @@ interface
       function calc_stackframe_size:longint;override;
       procedure set_first_temp_offset;override;
       procedure allocate_got_register(list:tasmlist);override;
+      procedure postprocess_code;override;
     end;
 
    { Used by Stabs debug info generator }
@@ -60,13 +61,13 @@ implementation
     uses
       systems,globals,verbose,
       cpubase,cgbase,cgobj,
-      tgobj,paramgr,symconst;
+      tgobj,paramgr,symconst,symcpu,aasmcpu;
 
     constructor TMIPSProcInfo.create(aparent: tprocinfo);
       begin
         inherited create(aparent);
-        { if (cs_generate_stackframes in current_settings.localswitches) or
-           not (cs_opt_stackframe in current_settings.optimizerswitches) then }
+        if (cs_generate_stackframes in current_settings.localswitches) or
+           not (cs_opt_stackframe in current_settings.optimizerswitches) then
           include(flags,pi_needs_stackframe);
 
         floatregssave:=12; { f20-f31 }
@@ -105,7 +106,10 @@ implementation
           also declared as nostackframe and everything is managed manually. }
         if (pi_do_call in flags) or
            ((pi_is_assembler in flags) and not (po_nostackframe in procdef.procoptions)) then
-          allocate_push_parasize(mips_nb_used_registers*sizeof(aint));
+          begin
+            include(flags,pi_do_call);   // for pi_is_assembler case
+            allocate_push_parasize(mips_nb_used_registers*sizeof(aint));
+          end;
 
         if not (po_nostackframe in procdef.procoptions) then
           tg.setfirsttemp(Align(maxpushedparasize+
@@ -140,18 +144,25 @@ implementation
         if computed_local_size=-1 then
           begin
             computed_local_size:=result;
-            procdef.total_local_size:=result;
+            tcpuprocdef(procdef).total_local_size:=result;
           end
         else if computed_local_size <> result then
           Comment(V_Error,'TMIPSProcInfo.calc_stackframe_size result changed');
       end;
+
+
+    procedure TMIPSProcInfo.postprocess_code;
+      begin
+        fixup_jmps(aktproccode);
+      end;
+
 
     function mips_extra_offset(procdef : tprocdef) : longint;
       begin
         if procdef=nil then
           mips_extra_offset:=0
         else
-          mips_extra_offset:=procdef.total_local_size;
+          mips_extra_offset:=tcpuprocdef(procdef).total_local_size;
       end;
 
 begin

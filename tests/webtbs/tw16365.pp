@@ -11,8 +11,8 @@ type
  
  timpclass = class(tobject,itest)
   protected
-   function _addref: integer; virtual; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
-   function _release: integer; virtual; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+   function _addref: longint; virtual; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+   function _release: longint; virtual; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
    function QueryInterface(constref IID: TGUID; out Obj): HResult; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
   public
    function test: longint;
@@ -35,12 +35,12 @@ begin
  result:=123456;
 end;
 
-function timpclass._addref: integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+function timpclass._addref: longint; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 begin
  result:= -1;
 end;
 
-function timpclass._release: integer;  {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+function timpclass._release: longint;  {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 begin
  result:= -1;
 end;
@@ -51,7 +51,7 @@ begin
    Result:=0
  end
  else begin
-  result:= integer(e_nointerface);
+  result:= HResult(e_nointerface);
  end;
 end;
 

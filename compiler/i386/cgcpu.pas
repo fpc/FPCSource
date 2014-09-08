@@ -30,7 +30,7 @@ unit cgcpu;
        cgbase,cgobj,cg64f32,cgx86,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,parabase,cgutils,
-       symconst,symdef
+       symconst,symdef,symsym
        ;
 
     type
@@ -200,7 +200,7 @@ unit cgcpu;
         if use_push(cgpara) then
           begin
             { Record copy? }
-            if (cgpara.size in [OS_NO,OS_F64]) or (size=OS_NO) then
+            if (cgpara.size=OS_NO) or (size=OS_NO) then
               begin
                 cgpara.check_simple_location;
                 len:=align(cgpara.intsize,cgpara.alignment);
@@ -212,9 +212,19 @@ unit cgcpu;
               begin
                 if tcgsize2size[cgpara.size]<>tcgsize2size[size] then
                   internalerror(200501161);
-                { We need to push the data in reverse order,
-                  therefor we use a recursive algorithm }
-                pushdata(cgpara.location,0);
+                if (cgpara.size=OS_F64) then
+                  begin
+                    href:=r;
+                    make_simple_ref(list,href);
+                    inc(href.offset,4);
+                    list.concat(taicpu.op_ref(A_PUSH,S_L,href));
+                    dec(href.offset,4);
+                    list.concat(taicpu.op_ref(A_PUSH,S_L,href));
+                  end
+                else
+                  { We need to push the data in reverse order,
+                    therefor we use a recursive algorithm }
+                  pushdata(cgpara.location,0);
               end
           end
         else
@@ -294,17 +304,15 @@ unit cgcpu;
 
     procedure tcg386.g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);
 
-      procedure increase_fp(a : tcgint);
+      procedure increase_sp(a : tcgint);
         var
           href : treference;
         begin
-          reference_reset_base(href,current_procinfo.framepointer,a,0);
+          reference_reset_base(href,NR_STACK_POINTER_REG,a,0);
           { normally, lea is a better choice than an add }
-          list.concat(Taicpu.op_ref_reg(A_LEA,TCGSize2OpSize[OS_ADDR],href,current_procinfo.framepointer));
+          list.concat(Taicpu.op_ref_reg(A_LEA,TCGSize2OpSize[OS_ADDR],href,NR_STACK_POINTER_REG));
         end;
 
-      var
-        stacksize : longint;
       begin
         { MMX needs to call EMMS }
         if assigned(rg[R_MMXREGISTER]) and
@@ -314,21 +322,22 @@ unit cgcpu;
         { remove stackframe }
         if not nostackframe then
           begin
-            if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+            if (current_procinfo.framepointer=NR_STACK_POINTER_REG) or
+               (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
               begin
-                stacksize:=current_procinfo.calc_stackframe_size;
-                if (target_info.stackalign>4) and
-                   ((stacksize <> 0) or
-                    (pi_do_call in current_procinfo.flags) or
-                    { can't detect if a call in this case -> use nostackframe }
-                    { if you (think you) know what you are doing              }
-                    (po_assembler in current_procinfo.procdef.procoptions)) then
-                  stacksize := align(stacksize+sizeof(aint),target_info.stackalign) - sizeof(aint);
-                if stacksize<>0 then
-                  increase_fp(stacksize);
+                if current_procinfo.final_localsize<>0 then
+                  increase_sp(current_procinfo.final_localsize);
+                if (not paramanager.use_fixed_stack) then
+                  internal_restore_regs(list,true);
+                if (current_procinfo.procdef.proctypeoption=potype_exceptfilter) then
+                  list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],NR_FRAME_POINTER_REG));
               end
             else
-              list.concat(Taicpu.op_none(A_LEAVE,S_NO));
+              begin
+                if (not paramanager.use_fixed_stack) then
+                  internal_restore_regs(list,not (pi_has_stack_allocs in current_procinfo.flags));
+                list.concat(Taicpu.op_none(A_LEAVE,S_NO));
+              end;
             list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
           end;
 
@@ -381,7 +390,8 @@ unit cgcpu;
            { but not on win32 }
            { and not for safecall with hidden exceptions, because the result }
            { wich contains the exception is passed in EAX }
-           if (target_info.system <> system_i386_win32) and
+           if ((target_info.system <> system_i386_win32) or
+               (target_info.abi=abi_old_win32_gnu)) and
               not ((current_procinfo.procdef.proccalloption = pocall_safecall) and
                (tf_safecall_exceptions in target_info.flags)) and
               paramanager.ret_in_param(current_procinfo.procdef.returndef,
@@ -405,7 +415,7 @@ unit cgcpu;
 
     procedure tcg386.g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:tcgint;destreg:tregister);
       var
-        power,len  : longint;
+        power  : longint;
         opsize : topsize;
 {$ifndef __NOWINPECOFF__}
         again,ok : tasmlabel;
@@ -415,9 +425,21 @@ unit cgcpu;
         getcpuregister(list,NR_EDI);
         a_load_loc_reg(list,OS_INT,lenloc,NR_EDI);
         list.concat(Taicpu.op_reg(A_INC,S_L,NR_EDI));
-        { Now EDI contains (high+1). Copy it to ECX for later use. }
-        getcpuregister(list,NR_ECX);
-        list.concat(Taicpu.op_reg_reg(A_MOV,S_L,NR_EDI,NR_ECX));
+        { Now EDI contains (high+1). }
+
+        { special case handling for elesize=8, 4 and 2:
+          set ECX = (high+1) instead of ECX = (high+1)*elesize.
+
+          In the case of elesize=4 and 2, this allows us to avoid the SHR later.
+          In the case of elesize=8, we can later use a SHL ECX, 1 instead of
+          SHR ECX, 2 which is one byte shorter. }
+        if (elesize=8) or (elesize=4) or (elesize=2) then
+          begin
+            { Now EDI contains (high+1). Copy it to ECX for later use. }
+            getcpuregister(list,NR_ECX);
+            list.concat(Taicpu.op_reg_reg(A_MOV,S_L,NR_EDI,NR_ECX));
+          end;
+        { EDI := EDI * elesize }
         if (elesize<>1) then
          begin
            if ispowerof2(elesize, power) then
@@ -425,6 +447,12 @@ unit cgcpu;
            else
              list.concat(Taicpu.op_const_reg(A_IMUL,S_L,elesize,NR_EDI));
          end;
+        if (elesize<>8) and (elesize<>4) and (elesize<>2) then
+          begin
+            { Now EDI contains (high+1)*elesize. Copy it to ECX for later use. }
+            getcpuregister(list,NR_ECX);
+            list.concat(Taicpu.op_reg_reg(A_MOV,S_L,NR_EDI,NR_ECX));
+          end;
 {$ifndef __NOWINPECOFF__}
         { windows guards only a few pages for stack growing, }
         { so we have to access every page first              }
@@ -458,27 +486,40 @@ unit cgcpu;
         a_loadaddr_ref_reg(list,ref,NR_ESI);
 
         { calculate size }
-        len:=elesize;
         opsize:=S_B;
-        if (len and 3)=0 then
-         begin
-           opsize:=S_L;
-           len:=len shr 2;
-         end
-        else
-         if (len and 1)=0 then
+        if elesize=8 then
+          begin
+            opsize:=S_L;
+            { ECX is number of qwords, convert to dwords }
+            list.concat(Taicpu.op_const_reg(A_SHL,S_L,1,NR_ECX))
+          end
+        else if elesize=4 then
+          begin
+            opsize:=S_L;
+            { ECX is already number of dwords, so no need to SHL/SHR }
+          end
+        else if elesize=2 then
           begin
             opsize:=S_W;
-            len:=len shr 1;
+            { ECX is already number of words, so no need to SHL/SHR }
+          end
+        else
+         if (elesize and 3)=0 then
+         begin
+           opsize:=S_L;
+           { ECX is number of bytes, convert to dwords }
+           list.concat(Taicpu.op_const_reg(A_SHR,S_L,2,NR_ECX))
+         end
+        else
+         if (elesize and 1)=0 then
+          begin
+            opsize:=S_W;
+            { ECX is number of bytes, convert to words }
+            list.concat(Taicpu.op_const_reg(A_SHR,S_L,1,NR_ECX))
           end;
 
-        if len>1 then
-          begin
-            if ispowerof2(len, power) then
-              list.concat(Taicpu.op_const_reg(A_SHL,S_L,power,NR_ECX))
-            else
-              list.concat(Taicpu.op_const_reg(A_IMUL,S_L,len,NR_ECX));
-          end;
+        if ts_cld in current_settings.targetswitches then
+          list.concat(Taicpu.op_none(A_CLD,S_NO));
         list.concat(Taicpu.op_none(A_REP,S_NO));
         case opsize of
           S_B : list.concat(Taicpu.Op_none(A_MOVSB,S_NO));
@@ -492,6 +533,7 @@ unit cgcpu;
         { patch the new address, but don't use a_load_reg_reg, that will add a move instruction
           that can confuse the reg allocator }
         list.concat(Taicpu.Op_reg_reg(A_MOV,S_L,NR_ESP,destreg));
+        include(current_procinfo.flags,pi_has_stack_allocs);
       end;
 
 
@@ -523,7 +565,7 @@ unit cgcpu;
       begin
         if not paramanager.use_fixed_stack then
           begin
-            cg.a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
+            a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
             list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_INT],NR_FUNCTION_RESULT_REG))
           end
         else
@@ -552,7 +594,7 @@ unit cgcpu;
                (current_settings.optimizecputype in [cpu_Pentium2,cpu_Pentium3,cpu_Pentium4]) } then
               begin
                 current_module.requires_ebx_pic_helper:=true;
-                cg.a_call_name_static(list,'fpc_geteipasebx');
+                a_call_name_static(list,'fpc_geteipasebx');
               end
             else
               begin
@@ -578,17 +620,17 @@ unit cgcpu;
       possible calling conventions:
                     default stdcall cdecl pascal register
       default(0):      OK     OK    OK     OK       OK
-      virtual(1):      OK     OK    OK     OK       OK(2)
+      virtual(1):      OK     OK    OK     OK       OK(2 or 1)
 
       (0):
           set self parameter to correct value
           jmp mangledname
 
-      (1): The wrapper code use %eax to reach the virtual method address
+      (1): The wrapper code use %ecx to reach the virtual method address
            set self to correct value
            move self,%eax
-           mov  0(%eax),%eax ; load vmt
-           jmp  vmtoffs(%eax) ; method offs
+           mov  0(%eax),%ecx ; load vmt
+           jmp  vmtoffs(%ecx) ; method offs
 
       (2): Virtual use values pushed on stack to reach the method address
            so the following code be generated:
@@ -604,6 +646,30 @@ unit cgcpu;
 
       }
 
+      { returns whether ECX is used (either as a parameter or is nonvolatile and shouldn't be changed) }
+      function is_ecx_used: boolean;
+        var
+          i: Integer;
+          hp: tparavarsym;
+          paraloc: PCGParaLocation;
+        begin
+          if not (RS_ECX in paramanager.get_volatile_registers_int(procdef.proccalloption)) then
+            exit(true);
+          for i:=0 to procdef.paras.count-1 do
+           begin
+             hp:=tparavarsym(procdef.paras[i]);
+             procdef.init_paraloc_info(calleeside);
+             paraloc:=hp.paraloc[calleeside].Location;
+             while paraloc<>nil do
+               begin
+                 if (paraloc^.Loc=LOC_REGISTER) and (getsupreg(paraloc^.register)=RS_ECX) then
+                   exit(true);
+                 paraloc:=paraloc^.Next;
+               end;
+           end;
+          Result:=false;
+        end;
+
       procedure getselftoeax(offs: longint);
         var
           href : treference;
@@ -618,27 +684,27 @@ unit cgcpu;
               else
                 selfoffsetfromsp:=sizeof(aint);
               reference_reset_base(href,NR_ESP,selfoffsetfromsp+offs,4);
-              cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
+              a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
             end;
         end;
 
-      procedure loadvmttoeax;
+      procedure loadvmtto(reg: tregister);
         var
           href : treference;
         begin
-          { mov  0(%eax),%eax ; load vmt}
+          { mov  0(%eax),%reg ; load vmt}
           reference_reset_base(href,NR_EAX,0,4);
-          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
+          a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,reg);
         end;
 
-      procedure op_oneaxmethodaddr(op: TAsmOp);
+      procedure op_onregmethodaddr(op: TAsmOp; reg: tregister);
         var
           href : treference;
         begin
           if (procdef.extnumber=$ffff) then
             Internalerror(200006139);
-          { call/jmp  vmtoffs(%eax) ; method offs }
-          reference_reset_base(href,NR_EAX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4);
+          { call/jmp  vmtoffs(%reg) ; method offs }
+          reference_reset_base(href,reg,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4);
           list.concat(taicpu.op_ref(op,S_L,href));
         end;
 
@@ -651,7 +717,7 @@ unit cgcpu;
             Internalerror(200006139);
           { mov vmtoffs(%eax),%eax ; method offs }
           reference_reset_base(href,NR_EAX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4);
-          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
+          a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
         end;
 
 
@@ -686,13 +752,13 @@ unit cgcpu;
         if (po_virtualmethod in procdef.procoptions) and
             not is_objectpascal_helper(procdef.struct) then
           begin
-            if (procdef.proccalloption=pocall_register) then
+            if (procdef.proccalloption=pocall_register) and is_ecx_used then
               begin
                 { case 2 }
                 list.concat(taicpu.op_reg(A_PUSH,S_L,NR_EBX)); { allocate space for address}
                 list.concat(taicpu.op_reg(A_PUSH,S_L,NR_EAX));
                 getselftoeax(8);
-                loadvmttoeax;
+                loadvmtto(NR_EAX);
                 loadmethodoffstoeax;
                 { mov %eax,4(%esp) }
                 reference_reset_base(href,NR_ESP,4,4);
@@ -706,8 +772,8 @@ unit cgcpu;
               begin
                 { case 1 }
                 getselftoeax(0);
-                loadvmttoeax;
-                op_oneaxmethodaddr(A_JMP);
+                loadvmtto(NR_ECX);
+                op_onregmethodaddr(A_JMP,NR_ECX);
               end;
           end
         { case 0 }

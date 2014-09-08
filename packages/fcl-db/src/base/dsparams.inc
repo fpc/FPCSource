@@ -24,27 +24,27 @@ end;
 
 { TParams }
 
-Function TParams.GetItem(Index: Integer): TParam;
+function TParams.GetItem(Index: Integer): TParam;
 begin
   Result:=(Inherited GetItem(Index)) as TParam;
 end;
 
-Function TParams.GetParamValue(const ParamName: string): Variant;
+function TParams.GetParamValue(const ParamName: string): Variant;
 begin
   Result:=ParamByName(ParamName).Value;
 end;
 
-Procedure TParams.SetItem(Index: Integer; Value: TParam);
+procedure TParams.SetItem(Index: Integer; Value: TParam);
 begin
   Inherited SetItem(Index,Value);
 end;
 
-Procedure TParams.SetParamValue(const ParamName: string; const Value: Variant);
+procedure TParams.SetParamValue(const ParamName: string; const Value: Variant);
 begin
   ParamByName(ParamName).Value:=Value;
 end;
 
-Procedure TParams.AssignTo(Dest: TPersistent);
+procedure TParams.AssignTo(Dest: TPersistent);
 begin
  if (Dest is TParams) then
    TParams(Dest).Assign(Self)
@@ -52,7 +52,7 @@ begin
    inherited AssignTo(Dest);
 end;
 
-Function TParams.GetDataSet: TDataSet;
+function TParams.GetDataSet: TDataSet;
 begin
   If (FOwner is TDataset) Then
     Result:=TDataset(FOwner)
@@ -60,16 +60,27 @@ begin
     Result:=Nil;
 end;
 
-Function TParams.GetOwner: TPersistent;
+function TParams.GetOwner: TPersistent;
 begin
   Result:=FOwner;
+end;
+
+class function TParams.ParamClass: TParamClass;
+begin
+  Result:=TParam;
+end;
+
+constructor TParams.Create(AOwner: TPersistent; AItemClass: TCollectionItemClass
+  );
+begin
+  Inherited Create(AItemClass);
+  FOwner:=AOwner;
 end;
 
 
 constructor TParams.Create(AOwner: TPersistent);
 begin
-  Inherited Create(TParam);
-  Fowner:=AOwner;
+  Create(AOwner,ParamClass);
 end;
 
 constructor TParams.Create;
@@ -77,12 +88,12 @@ begin
   Create(TPersistent(Nil));
 end;
 
-Procedure TParams.AddParam(Value: TParam);
+procedure TParams.AddParam(Value: TParam);
 begin
   Value.Collection:=Self;
 end;
 
-Procedure TParams.AssignValues(Value: TParams);
+procedure TParams.AssignValues(Value: TParams);
 
 Var
   I : Integer;
@@ -98,7 +109,7 @@ begin
     end;
 end;
 
-Function TParams.CreateParam(FldType: TFieldType; const ParamName: string;
+function TParams.CreateParam(FldType: TFieldType; const ParamName: string;
   ParamType: TParamType): TParam;
 
 begin
@@ -108,7 +119,7 @@ begin
   Result.ParamType:=ParamType;
 end;
 
-Function TParams.FindParam(const Value: string): TParam;
+function TParams.FindParam(const Value: string): TParam;
 
 Var
   I : Integer;
@@ -123,7 +134,7 @@ begin
       Dec(i);
 end;
 
-Procedure TParams.GetParamList(List: TList; const ParamNames: string);
+procedure TParams.GetParamList(List: TList; const ParamNames: string);
 
 Var
   P: TParam;
@@ -141,7 +152,7 @@ begin
   until StrPos > Length(ParamNames);
 end;
 
-Function TParams.IsEqual(Value: TParams): Boolean;
+function TParams.IsEqual(Value: TParams): Boolean;
 
 Var
   I : Integer;
@@ -156,14 +167,14 @@ begin
     end;
 end;
 
-Function TParams.ParamByName(const Value: string): TParam;
+function TParams.ParamByName(const Value: string): TParam;
 begin
   Result:=FindParam(Value);
   If (Result=Nil) then
     DatabaseErrorFmt(SParameterNotFound,[Value],Dataset);
 end;
 
-Function TParams.ParseSQL(SQL: String; DoCreate: Boolean): String;
+function TParams.ParseSQL(SQL: String; DoCreate: Boolean): String;
 
 var pb : TParamBinding;
     rs : string;
@@ -172,7 +183,8 @@ begin
   Result := ParseSQL(SQL,DoCreate,True,True,psInterbase, pb, rs);
 end;
 
-Function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle): String;
+function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash,
+  EscapeRepeat: Boolean; ParameterStyle: TParamStyle): String;
 
 var pb : TParamBinding;
     rs : string;
@@ -181,7 +193,9 @@ begin
   Result := ParseSQL(SQL,DoCreate,EscapeSlash,EscapeRepeat,ParameterStyle,pb, rs);
 end;
 
-Function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; out ParamBinding: TParambinding): String;
+function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash,
+  EscapeRepeat: Boolean; ParameterStyle: TParamStyle; out
+  ParamBinding: TParambinding): String;
 
 var rs : string;
 
@@ -192,16 +206,12 @@ end;
 function SkipComments(var p: PChar; EscapeSlash, EscapeRepeat : Boolean) : Boolean;
 
 begin
-  result := false;
+  Result := False;
   case p^ of
-    '''':
+    '''', '"', '`':
       begin
-        SkipQuotesString(p,'''',EscapeSlash,EscapeRepeat); // single quote delimited string
-        Result := True;
-      end;
-    '"':
-      begin
-        SkipQuotesString(p,'"',EscapeSlash,EscapeRepeat);  // double quote delimited string
+        // single quote, double quote or backtick delimited string
+        SkipQuotesString(p, p^, EscapeSlash, EscapeRepeat);
         Result := True;
       end;
     '-': // possible start of -- comment
@@ -212,9 +222,9 @@ begin
           Result := True;
           repeat // skip until at end of line
             Inc(p);
-          until p^ in [#10, #0];
+          until p^ in [#10, #13, #0];
+          while p^ in [#10, #13] do Inc(p); // newline is part of comment
         end;
-        if p^<>#0 then Inc(p); // newline is part of comment
       end;
     '/': // possible start of /* */ comment
       begin
@@ -236,7 +246,9 @@ begin
   end; {case}
 end;
 
-Function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat: Boolean; ParameterStyle : TParamStyle; out ParamBinding: TParambinding; out ReplaceString : string): String;
+function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash,
+  EscapeRepeat: Boolean; ParameterStyle: TParamStyle; out
+  ParamBinding: TParambinding; out ReplaceString: string): String;
 
 type
   // used for ParamPart
@@ -418,12 +430,12 @@ begin
   end
   else
     NewQuery:=SQL;
-    
+
   Result := NewQuery;
 end;
 
 
-Procedure TParams.RemoveParam(Value: TParam);
+procedure TParams.RemoveParam(Value: TParam);
 begin
    Value.Collection:=Nil;
 end;
@@ -485,6 +497,17 @@ begin
   If IsNull then
     Result:=False
   else
+    Result:=FValue;
+end;
+
+function TParam.GetAsBytes: TBytes;
+begin
+  if IsNull then
+    Result:=nil
+  else if VarIsArray(FValue) then
+    Result:=FValue
+  else
+    // todo: conversion from other variant types to TBytes
     Result:=FValue;
 end;
 
@@ -564,7 +587,6 @@ begin
     Result := FValue;
 end;
 
-
 Function TParam.GetAsVariant: Variant;
 begin
   if IsNull then
@@ -605,86 +627,98 @@ begin
           and (FValue=AValue.FValue);
 end;
 
+procedure TParam.SetAsBCD(const AValue: Currency);
+begin
+  FDataType:=ftBCD;
+  Value:=AValue;
+end;
+
 Procedure TParam.SetAsBlob(const AValue: TBlobData);
 begin
-  Value:=AValue;
   FDataType:=ftBlob;
+  Value:=AValue;
 end;
 
 Procedure TParam.SetAsBoolean(AValue: Boolean);
 begin
-  Value:=AValue;
   FDataType:=ftBoolean;
+  Value:=AValue;
+end;
+
+procedure TParam.SetAsBytes(const AValue: TBytes);
+begin
+  FDataType:=ftVarBytes;
+  Value:=AValue;
 end;
 
 Procedure TParam.SetAsCurrency(const AValue: Currency);
 begin
-  Value:=Avalue;
   FDataType:=ftCurrency;
+  Value:=AValue;
 end;
 
 Procedure TParam.SetAsDate(const AValue: TDateTime);
 begin
-  Value:=Avalue;
   FDataType:=ftDate;
+  Value:=AValue;
 end;
 
 Procedure TParam.SetAsDateTime(const AValue: TDateTime);
 begin
-  Value:=AValue;
   FDataType:=ftDateTime;
+  Value:=AValue;
 end;
 
 Procedure TParam.SetAsFloat(const AValue: Double);
 begin
-  Value:=AValue;
   FDataType:=ftFloat;
+  Value:=AValue;
 end;
 
 Procedure TParam.SetAsInteger(AValue: Longint);
 begin
-  Value:=AValue;
   FDataType:=ftInteger;
+  Value:=AValue;
 end;
 
 Procedure TParam.SetAsLargeInt(AValue: LargeInt);
 begin
-  Value:=AValue;
   FDataType:=ftLargeint;
+  Value:=AValue;
 end;
 
 Procedure TParam.SetAsMemo(const AValue: string);
 begin
-  Value:=AValue;
   FDataType:=ftMemo;
+  Value:=AValue;
 end;
 
 
 Procedure TParam.SetAsSmallInt(AValue: LongInt);
 begin
-  Value:=AValue;
   FDataType:=ftSmallInt;
+  Value:=AValue;
 end;
 
 Procedure TParam.SetAsString(const AValue: string);
 begin
-  Value:=AValue;
   if FDataType <> ftFixedChar then
     FDataType := ftString;
+  Value:=AValue;
 end;
 
 procedure TParam.SetAsWideString(const aValue: WideString);
 begin
-  Value := aValue;
   if FDataType <> ftFixedWideChar then
     FDataType := ftWideString;
+  Value := aValue;
 end;
 
 
 Procedure TParam.SetAsTime(const AValue: TDateTime);
 begin
-  Value:=AValue;
   FDataType:=ftTime;
+  Value:=AValue;
 end;
 
 Procedure TParam.SetAsVariant(const AValue: Variant);
@@ -712,7 +746,7 @@ begin
       if VarIsFmtBCD(Value) then
         FDataType:=ftFmtBCD
       else if VarIsArray(AValue) and (VarType(AValue) and varTypeMask = varByte) then
-        FDataType:=ftBytes
+        FDataType:=ftVarBytes
       else
         FDataType:=ftUnknown;
     end;
@@ -720,14 +754,14 @@ end;
 
 Procedure TParam.SetAsWord(AValue: LongInt);
 begin
-  Value:=AValue;
   FDataType:=ftWord;
+  Value:=AValue;
 end;
 
 procedure TParam.SetAsFMTBCD(const AValue: TBCD);
 begin
-  FValue:=VarFmtBCDCreate(AValue);
   FDataType:=ftFMTBcd;
+  FValue:=VarFmtBCDCreate(AValue);
 end;
 
 Procedure TParam.SetDataType(AValue: TFieldType);
@@ -1089,13 +1123,14 @@ begin
 end;
 
 
-Procedure TParams.CopyParamValuesFromDataset(ADataset : TDataset; CopyBound : Boolean);
+procedure TParams.CopyParamValuesFromDataset(ADataset: TDataset;
+  CopyBound: Boolean);
 
 Var
   I : Integer;
   P : TParam;
   F : TField;
-  
+
 begin
   If (ADataSet<>Nil) then
     For I:=0 to Count-1 do

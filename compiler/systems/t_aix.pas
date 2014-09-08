@@ -414,14 +414,13 @@ end;
 *****************************************************************************}
 
 initialization
+  RegisterLinker(ld_aix,TLinkerAIX);
 {$ifdef powerpc}
-  RegisterExternalLinker(system_powerpc_aix_info,TLinkerAIX);
   RegisterImport(system_powerpc_aix,timportlibaix);
   RegisterExport(system_powerpc_aix,texportlibaix);
   RegisterTarget(system_powerpc_aix_info);
 {$endif powerpc}
 {$ifdef powerpc64}
-  RegisterExternalLinker(system_powerpc64_aix_info,TLinkerAIX);
   RegisterImport(system_powerpc64_aix,timportlibaix);
   RegisterExport(system_powerpc64_aix,texportlibaix);
   RegisterTarget(system_powerpc64_aix_info);

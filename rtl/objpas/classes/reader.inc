@@ -165,7 +165,7 @@ begin
   if (Byte(NextValue) and $f0) = $f0 then
   begin
     Prefix := Byte(ReadValue);
-    Flags := TFilerFlags(longint(Prefix and $0f));
+    Flags := TFilerFlags(TFilerFlagsInt(Prefix and $0f));
     if ffChildPos in Flags then
     begin
       ValueType := ReadValue;
@@ -207,20 +207,41 @@ begin
 end;
 
 function TBinaryObjectReader.ReadSingle: Single;
+var
+  r: record
+    case byte of
+      1: (d: dword);
+      2: (s: single);
+  end;
 begin
-  Result:=single(ReadDWord);
+  r.d:=ReadDWord;
+  Result:=r.s;
 end;
 {$endif}
 
 function TBinaryObjectReader.ReadCurrency: Currency;
+var
+  r: record
+    case byte of
+      1: (q: qword);
+      2: (c: currency);
+  end;
 begin
-  Result:=currency(ReadQWord);
+  r.c:=ReadQWord;
+  Result:=r.c;
 end;
 
 {$ifndef FPUNONE}
 function TBinaryObjectReader.ReadDate: TDateTime;
+var
+  r: record
+    case byte of
+      1: (q: qword);
+      2: (d: TDateTime);
+  end;
 begin
-  Result:=TDateTime(ReadQWord);
+  r.q:=ReadQWord;
+  Result:=r.d;
 end;
 {$endif}
 
@@ -268,7 +289,9 @@ end;
 
 function TBinaryObjectReader.ReadSet(EnumType: Pointer): Integer;
 type
-  tset = set of 0..31;
+{$packset 1}
+  tset = set of 0..(SizeOf(Integer)*8-1);
+{$packset default}
 var
   Name: String;
   Value: Integer;
@@ -656,7 +679,7 @@ begin
     FOnError(Self, Message, Result);
 end;
 
-function TReader.FindMethod(ARoot: TComponent; const AMethodName: String): Pointer;
+function TReader.FindMethod(ARoot: TComponent; const AMethodName: String): CodePointer;
 var
   ErrorResult: Boolean;
 begin
@@ -1126,6 +1149,7 @@ begin
     vaFalse,vaTrue:
       begin
         Result:=(nv<>vaFalse);
+        readValue;
       end;
     vaCurrency:
       begin

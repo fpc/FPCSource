@@ -40,6 +40,9 @@ type
 
   taicpu = class(tai_cpu_abstract_sym)
      opsize : topsize;
+
+     procedure loadregset(opidx:longint; const dataregs,addrregs:tcpuregisterset);
+
      constructor op_none(op : tasmop);
      constructor op_none(op : tasmop;_size : topsize);
 
@@ -65,11 +68,11 @@ type
      constructor op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister; _op3 : treference);
      constructor op_const_reg_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : treference);
 
-     constructor op_reg_regset(op: tasmop; _size : topsize; _op1: tregister;const _op2: tcpuregisterset);
-     constructor op_regset_reg(op: tasmop; _size : topsize;const  _op1: tcpuregisterset; _op2: tregister);
+     constructor op_reg_regset(op: tasmop; _size : topsize; _op1: tregister;const _op2data,_op2addr: tcpuregisterset);
+     constructor op_regset_reg(op: tasmop; _size : topsize;const _op1data,_op1addr: tcpuregisterset; _op2: tregister);
 
-     constructor op_ref_regset(op: tasmop; _size : topsize; _op1: treference;const _op2: tcpuregisterset);
-     constructor op_regset_ref(op: tasmop; _size : topsize;const  _op1: tcpuregisterset; _op2: treference);
+     constructor op_ref_regset(op: tasmop; _size : topsize; _op1: treference;const _op2data,_op2addr: tcpuregisterset);
+     constructor op_regset_ref(op: tasmop; _size : topsize;const _op1data,_op1addr: tcpuregisterset; _op2: treference);
 
      { this is for Jmp instructions }
      constructor op_cond_sym(op : tasmop;cond:TAsmCond;_size : topsize;_op1 : tasmsymbol);
@@ -86,7 +89,6 @@ type
      function spilling_get_operation_type(opnr: longint): topertype;override;
 
   private
-     procedure loadregset(opidx:longint;const s:tcpuregisterset);
      procedure init(_size : topsize); { this need to be called by all constructor }
   end;
 
@@ -107,68 +109,13 @@ type
       globtype;
 
 
-{ TODO: FIX ME!! useful for debug, remove it, same table as in ag68kgas }
-    const
-      gas_op2str:op2strtable=
-    {  warning: CPU32 opcodes are not fully compatible with the MC68020. }
-       { 68000 only opcodes }
-       ( '',
-         'abcd','add','adda','addi','addq','addx','and','andi',
-         'asl','asr','bcc','bcs','beq','bge','bgt','bhi',
-         'ble','bls','blt','bmi','bne','bpl','bvc','bvs',
-         'bchg','bclr','bra','bset','bsr','btst','chk',
-         'clr','cmp','cmpa','cmpi','cmpm','dbcc','dbcs','dbeq','dbge',
-         'dbgt','dbhi','dble','dbls','dblt','dbmi','dbne','dbra',
-         'dbpl','dbt','dbvc','dbvs','dbf','divs','divu',
-         'eor','eori','exg','illegal','ext','jmp','jsr',
-         'lea','link','lsl','lsr','move','movea','movei','moveq',
-         'movem','movep','muls','mulu','nbcd','neg','negx',
-         'nop','not','or','ori','pea','rol','ror','roxl',
-         'roxr','rtr','rts','sbcd','scc','scs','seq','sge',
-         'sgt','shi','sle','sls','slt','smi','sne',
-         'spl','st','svc','svs','sf','sub','suba','subi','subq',
-         'subx','swap','tas','trap','trapv','tst','unlk',
-         'rte','reset','stop',
-         { mc68010 instructions }
-         'bkpt','movec','moves','rtd',
-         { mc68020 instructions }
-         'bfchg','bfclr','bfexts','bfextu','bfffo',
-         'bfins','bfset','bftst','callm','cas','cas2',
-         'chk2','cmp2','divsl','divul','extb','pack','rtm',
-         'trapcc','tracs','trapeq','trapf','trapge','trapgt',
-         'traphi','traple','trapls','traplt','trapmi','trapne',
-         'trappl','trapt','trapvc','trapvs','unpk',
-         { fpu processor instructions - directly supported only. }
-         { ieee aware and misc. condition codes not supported   }
-         'fabs','fadd',
-         'fbeq','fbne','fbngt','fbgt','fbge','fbnge',
-         'fblt','fbnlt','fble','fbgl','fbngl','fbgle','fbngle',
-         'fdbeq','fdbne','fdbgt','fdbngt','fdbge','fdbnge',
-         'fdblt','fdbnlt','fdble','fdbgl','fdbngl','fdbgle','fdbngle',
-         'fseq','fsne','fsgt','fsngt','fsge','fsnge',
-         'fslt','fsnlt','fsle','fsgl','fsngl','fsgle','fsngle',
-         'fcmp','fdiv','fmove','fmovem',
-         'fmul','fneg','fnop','fsqrt','fsub','fsgldiv',
-         'fsflmul','ftst',
-         'ftrapeq','ftrapne','ftrapgt','ftrapngt','ftrapge','ftrapnge',
-         'ftraplt','ftrapnlt','ftraple','ftrapgl','ftrapngl','ftrapgle','ftrapngle',
-         { protected instructions }
-         'cprestore','cpsave',
-         { fpu unit protected instructions                    }
-         { and 68030/68851 common mmu instructions            }
-         { (this may include 68040 mmu instructions)          }
-         'frestore','fsave','pflush','pflusha','pload','pmove','ptest',
-         { useful for assembly language output }
-         'label','db','s','b','fb');
-
-
 {*****************************************************************************
                                  Taicpu Constructors
 *****************************************************************************}
 
 
 
-    procedure taicpu.loadregset(opidx:longint;const s:tcpuregisterset);
+    procedure taicpu.loadregset(opidx:longint; const dataregs,addrregs:tcpuregisterset);
       var
         i : byte;
       begin
@@ -177,17 +124,19 @@ type
          begin
            if typ<>top_regset then
              clearop(opidx);
-           new(regset);
-           regset^:=s;
+           new(dataregset);
+           new(addrregset);
+           dataregset^:=dataregs;
+           addrregset^:=addrregs;
            typ:=top_regset;
            for i:=RS_D0 to RS_D7 do
              begin
-               if assigned(add_reg_instruction_hook) and (i in regset^) then
+               if assigned(add_reg_instruction_hook) and (i in dataregset^) then
                  add_reg_instruction_hook(self,newreg(R_INTREGISTER,i,R_SUBWHOLE));
              end;
            for i:=RS_A0 to RS_SP do
              begin
-               if assigned(add_reg_instruction_hook) and (i in regset^) then
+               if assigned(add_reg_instruction_hook) and (i in addrregset^) then
                  add_reg_instruction_hook(self,newreg(R_ADDRESSREGISTER,i,R_SUBWHOLE));
              end;
          end;
@@ -377,42 +326,43 @@ type
       end;
 
 
-   constructor taicpu.op_ref_regset(op: tasmop; _size : topsize; _op1: treference;const _op2: tcpuregisterset);
+   constructor taicpu.op_ref_regset(op: tasmop; _size : topsize; _op1: treference;const _op2data,_op2addr: tcpuregisterset);
      Begin
         inherited create(op);
         init(_size);
         ops:=2;
         loadref(0,_op1);
-        loadregset(1,_op2);
+        loadregset(1,_op2data,_op2addr);
      end;
 
-   constructor taicpu.op_regset_ref(op: tasmop; _size : topsize;const _op1: tcpuregisterset; _op2: treference);
+
+   constructor taicpu.op_regset_ref(op: tasmop; _size : topsize;const _op1data,_op1addr: tcpuregisterset; _op2: treference);
      Begin
         inherited create(op);
         init(_size);
         ops:=2;
-        loadregset(0,_op1);
+        loadregset(0,_op1data,_op1addr);
         loadref(1,_op2);
      End;
 
 
 
-   constructor taicpu.op_reg_regset(op: tasmop; _size : topsize; _op1: tregister;const _op2: tcpuregisterset);
+   constructor taicpu.op_reg_regset(op: tasmop; _size : topsize; _op1: tregister;const _op2data,_op2addr: tcpuregisterset);
      Begin
         inherited create(op);
         init(_size);
         ops:=2;
         loadreg(0,_op1);
-        loadregset(1,_op2);
+        loadregset(1,_op2data,_op2addr);
      end;
 
 
-   constructor taicpu.op_regset_reg(op: tasmop; _size : topsize;const _op1: tcpuregisterset; _op2: tregister);
+   constructor taicpu.op_regset_reg(op: tasmop; _size : topsize;const _op1data,_op1addr: tcpuregisterset; _op2: tregister);
      Begin
         inherited create(op);
         init(_size);
         ops:=2;
-        loadregset(0,_op1);
+        loadregset(0,_op1data,_op1addr);
         loadreg(1,_op2);
      End;
 
@@ -511,31 +461,29 @@ type
 
     function taicpu.spilling_get_operation_type(opnr: longint): topertype;
       begin
+        result:=operand_read;
+
         case opcode of
-          A_MOVE, A_MOVEQ, A_ADD, A_ADDQ, A_ADDX, A_SUB, A_SUBQ, A_SUBX,
-          A_AND, A_LSR, A_LSL, A_ASR, A_ASL, A_EOR, A_EORI, A_OR,
-          A_MULS, A_MULU, A_DIVS, A_DIVU, A_DIVSL, A_DIVUL:
-            if opnr=1 then begin
+          A_MOVE, A_MOVEQ, A_MOVEA, A_MVZ, A_MVS, A_MOV3Q, A_LEA:
+            if opnr=1 then
               result:=operand_write;
-            end else begin
-              result:=operand_read;
-            end;
-          A_DBRA:
-            if opnr=1 then begin
+          A_ADD, A_ADDQ, A_ADDX, A_SUB, A_SUBQ, A_SUBX,
+          A_AND, A_LSR, A_LSL, A_ASR, A_ASL, A_EOR, A_EORI, A_OR,
+          A_ROL, A_ROR, A_ROXL, A_ROXR,
+          A_MULS, A_MULU, A_DIVS, A_DIVU, A_DIVSL, A_DIVUL:
+            if opnr=1 then
               result:=operand_readwrite;
-            end else begin
-              result:=operand_read;
-            end;
-          A_TST,A_CMP,A_CMPI:
-            result:=operand_read;
+          A_DBRA:
+            if opnr=0 then
+              result:=operand_readwrite;
           A_CLR, A_SXX, A_SEQ, A_SNE, A_SLT, A_SLE, A_SGT, A_SGE, A_SCS, A_SCC,
           A_SMI, A_SPL, A_SF, A_ST, A_SVS, A_SVC, A_SHI, A_SLS:
             result:=operand_write;
-          A_NEG, A_EXT, A_EXTB, A_NOT, A_NEGX:
+          A_NEG, A_NEGX, A_EXT, A_EXTB, A_NOT, A_SWAP:
             result:=operand_readwrite;
+          A_TST,A_CMP,A_CMPI:
+            begin end; { Do nothing, default operand_read is fine here. }
           else begin
-{ TODO: FIX ME!!! remove ugly debug code ... }
-            writeln('M68K: unknown opcode when spilling: ',gas_op2str[opcode]);
             internalerror(2004040903);
           end;
         end;

@@ -41,7 +41,7 @@ const
   AllowDriveSeparators : set of char = [':'];
   maxExitCode = 255;
   MaxPathLen = 256;
-  AllFilesMask = '*';
+  AllFilesMask = '#?';
 
 const
   UnusedHandle    : LongInt = -1;
@@ -50,7 +50,7 @@ const
   StdErrorHandle  : LongInt = 0;
 
   FileNameCaseSensitive : Boolean = False;
-  FileNameCasePreserving: boolean = false;
+  FileNameCasePreserving: boolean = True;
   CtrlZMarksEOF: boolean = false; (* #26 not considered as end of file *)
 
   sLineBreak = LineEnding;
@@ -58,13 +58,18 @@ const
 
   BreakOn : Boolean = True;
 
-
+{ FIX ME: remove the kludge required by amunits package, which needs a huge rework }
 var
   AOS_ExecBase   : Pointer; external name '_ExecBase';
-  AOS_DOSBase    : Pointer;
-  AOS_UtilityBase: Pointer;
+  _ExecBase: Pointer; external name '_ExecBase'; { amunits compatibility kludge }
+  AOS_DOSBase    : Pointer; public name '_DOSBase'; { the "public" part is amunits compatibility kludge }
+  _DOSBase: Pointer; external name '_DOSBase'; { amunits compatibility kludge }
+  AOS_UtilityBase: Pointer; public name '_UtilityBase'; { the "public" part is amunits compatibility kludge }
+  _UtilityBase: Pointer; external name '_UtilityBase'; { amunits compatibility kludge }
+  AOS_IntuitionBase: Pointer; public name '_IntuitionBase'; { amunits compatibility kludge }
+  _IntuitionBase: Pointer; external name '_IntuitionBase'; { amunits compatibility kludge }
 
-{$IFDEF CPUPOWERPC}
+{$IFDEF AMIGAOS4}
 {$WARNING iExec, iDOS and iUtility should be typed pointer later}
 var
   IExec : Pointer; external name '_IExec';
@@ -72,9 +77,10 @@ var
   IUtility : Pointer;
 {$ENDIF}
 
-  AOS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
-  AOS_origDir  : LongInt; { original directory on startup }
-  AOS_wbMsg    : Pointer;
+  ASYS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
+  ASYS_origDir  : LongInt; { original directory on startup }
+  AOS_wbMsg    : Pointer; public name '_WBenchMsg'; { the "public" part is amunits compatibility kludge }
+  _WBenchMsg   : Pointer; external name '_WBenchMsg'; { amunits compatibility kludge }
   AOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
   AOS_ConHandle: LongInt;
 
@@ -104,12 +110,17 @@ implementation
 {$endif cpum68k}
 
 {$I system.inc}
+{$IFDEF AMIGAOS4}
+  // Required to allow opening of utility library interface...
+  {$include utilf.inc}
+{$ENDIF}
 
-{$IFDEF MOSFPC_FILEDEBUG}
+
+{$IFDEF ASYS_FPC_FILEDEBUG}
 {$WARNING Compiling with file debug enabled!}
 {$ENDIF}
 
-{$IFDEF MOSFPC_MEMDEBUG}
+{$IFDEF ASYS_FPC_MEMDEBUG}
 {$WARNING Compiling with memory debug enabled!}
 {$ENDIF}
 
@@ -121,6 +132,8 @@ implementation
 procedure haltproc(e:longint);cdecl;external name '_haltproc';
 
 procedure System_exit;
+var
+  oldDirLock: LongInt;
 begin
   { We must remove the CTRL-C FLAG here because halt }
   { may call I/O routines, which in turn might call  }
@@ -131,11 +144,14 @@ begin
   end;
 
   { Closing opened files }
-  CloseList(AOS_fileList);
+  CloseList(ASYS_fileList);
 
   { Changing back to original directory if changed }
-  if AOS_origDir<>0 then begin
-    CurrentDir(AOS_origDir);
+  if ASYS_origDir<>0 then begin
+    oldDirLock:=CurrentDir(ASYS_origDir);
+    { unlock our lock if its safe, so we won't leak the lock }
+    if (oldDirLock<>0) and (oldDirLock<>ASYS_origDir) then
+      Unlock(oldDirLock);
   end;
 
 {$IFDEF AMIGAOS4}
@@ -143,9 +159,10 @@ begin
   if iUtility<>nil then DropInterface(iUtility);
 {$ENDIF}
 
+  if AOS_IntuitionBase<>nil then CloseLibrary(AOS_IntuitionBase); { amunits kludge }
   if AOS_UtilityBase<>nil then CloseLibrary(AOS_UtilityBase);
   if AOS_DOSBase<>nil then CloseLibrary(AOS_DOSBase);
-  if AOS_heapPool<>nil then DeletePool(AOS_heapPool);
+  if ASYS_heapPool<>nil then DeletePool(ASYS_heapPool);
 
   { If in Workbench mode, replying WBMsg }
   if AOS_wbMsg<>nil then begin
@@ -317,10 +334,12 @@ begin
     AOS_wbMsg:=GetMsg(@self^.pr_MsgPort);
   end;
 
-  AOS_DOSBase:=OpenLibrary('dos.library',50);
+  AOS_DOSBase:=OpenLibrary('dos.library',37);
   if AOS_DOSBase=nil then Halt(1);
-  AOS_UtilityBase:=OpenLibrary('utility.library',50);
+  AOS_UtilityBase:=OpenLibrary('utility.library',37);
   if AOS_UtilityBase=nil then Halt(1);
+  AOS_IntuitionBase:=OpenLibrary('intuition.library',37); { amunits support kludge }
+  if AOS_IntuitionBase=nil then Halt(1);
 
 {$IFDEF AMIGAOS4}
   { Open main interfaces on OS4 }
@@ -329,8 +348,8 @@ begin
 {$ENDIF}
 
   { Creating the memory pool for growing heap }
-  AOS_heapPool:=CreatePool(MEMF_FAST,growheapsize2,growheapsize1);
-  if AOS_heapPool=nil then Halt(1);
+  ASYS_heapPool:=CreatePool(MEMF_FAST,growheapsize2,growheapsize1);
+  if ASYS_heapPool=nil then Halt(1);
 
   if AOS_wbMsg=nil then begin
     StdInputHandle:=dosInput;
@@ -379,8 +398,8 @@ begin
   StackBottom := Sptr - StackLength;
 { OS specific startup }
   AOS_wbMsg:=nil;
-  AOS_origDir:=0;
-  AOS_fileList:=nil;
+  ASYS_origDir:=0;
+  ASYS_fileList:=nil;
   envp:=nil;
   SysInitAmigaOS;
 { Set up signals handlers }

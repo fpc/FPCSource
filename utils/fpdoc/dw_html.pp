@@ -225,7 +225,7 @@ type
     function AppendRecordType(CodeEl, TableEl: TDOMElement;
       Element: TPasRecordType; NestingLevel: Integer): TDOMElement;
 
-    procedure AppendTitle(const AText: DOMString);
+    procedure AppendTitle(const AText: DOMString; Hints : TPasMemberHints = []);
     procedure AppendMenuBar(ASubpageIndex: Integer);
     procedure AppendTopicMenuBar(Topic : TTopicElement);
     procedure AppendSourceRef(AElement: TPasElement);
@@ -590,8 +590,7 @@ constructor THTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
           for j := 0 to ClassEl.Members.Count - 1 do
             begin
             FPEl := TPasElement(ClassEl.Members[j]);
-            if ((FPEl.Visibility = visPrivate) and Engine.HidePrivate) or
-              ((FPEl.Visibility = visProtected) and Engine.HideProtected) then
+            if Not Engine.ShowElement(FPEl) then
               continue;
 
             DocNode := Engine.FindDocNode(FPEl);
@@ -1975,10 +1974,16 @@ begin
   Result := CodeEl;
 end;
 
-procedure THTMLWriter.AppendTitle(const AText: DOMString);
+procedure THTMLWriter.AppendTitle(const AText: DOMString; Hints : TPasMemberHints = []);
+
+Var
+  T : String;
 begin
+  T:=AText;
+  if (Hints<>[]) then
+    T:=T+' ('+Engine.HintsToStr(Hints)+')';
   AppendText(TitleElement, AText);
-  AppendText(CreateH1(BodyElement), AText);
+  AppendText(CreateH1(BodyElement), T);
 end;
 
 procedure THTMLWriter.AppendTopicMenuBar(Topic : TTopicElement);
@@ -2791,7 +2796,7 @@ procedure THTMLWriter.CreateModulePageBody(AModule: TPasModule;
     DocNode: TDocNode;
   begin
     AppendMenuBar(0);
-    AppendTitle(Format(SDocUnitTitle, [AModule.Name]));
+    AppendTitle(Format(SDocUnitTitle, [AModule.Name]),AModule.Hints);
     AppendShortDescr(CreatePara(BodyElement), AModule);
 
     if AModule.InterfaceSection.UsesList.Count > 0 then
@@ -2918,7 +2923,7 @@ var
   TableEl, CodeEl: TDOMElement;
 begin
   AppendMenuBar(-1);
-  AppendTitle(AConst.Name);
+  AppendTitle(AConst.Name,AConst.Hints);
   AppendShortDescr(CreatePara(BodyElement), AConst);
   AppendText(CreateH2(BodyElement), SDocDeclaration);
   AppendSourceRef(AConst);
@@ -3057,7 +3062,7 @@ var
   Variable: TPasVariable;
 begin
   AppendMenuBar(-1);
-  AppendTitle(AType.Name);
+  AppendTitle(AType.Name,AType.Hints);
   AppendShortDescr(CreatePara(BodyElement), AType);
   AppendText(CreateH2(BodyElement), SDocDeclaration);
   AppendSourceRef(AType);
@@ -3169,7 +3174,7 @@ var
     ThisNode  : TPasUnresolvedTypeRef;
   begin
     AppendMenuBar(-1);
-    AppendTitle(AClass.Name);
+    AppendTitle(AClass.Name,AClass.Hints);
 
     ParaEl := CreatePara(BodyElement);
     AppendMemberListLink(PropertiesByInheritanceSubindex, SDocProperties);
@@ -3233,8 +3238,7 @@ var
         ah:=ol or ((Member is TPasProcedure) and (TPasProcedure(Member).ProcType.Args.Count > 0));
         if ol then
           Member:=TPasElement((Member as TPasOverloadedProc).Overloads[0]);
-        if ((MVisibility = visPrivate) and Engine.HidePrivate) or
-          ( (MVisibility = visProtected) and Engine.HideProtected) then
+        if Not Engine.ShowElement(Member) then
           continue;
         if (CurVisibility <> MVisibility) then
           begin
@@ -3328,6 +3332,12 @@ var
           end
         else
           AppendText(CreateWarning(CodeEl), '<' + Member.ClassName + '>');
+        if (Member.Hints<>[]) then
+          begin
+          AppendKW(CodeEl,' '+Engine.HintsToStr(Member.Hints));
+          AppendText(CodeEl, ' ');
+          AppendSym(CodeEl, ';');
+          end;
       end;
 
       CodeEl := CreateCode(CreatePara(CreateTD(CreateTR(TableEl))));
@@ -3435,9 +3445,7 @@ var
       for i := 0 to ThisClass.Members.Count - 1 do
       begin
         Member := TPasElement(ThisClass.Members[i]);
-        if ((Member.Visibility = visPrivate) and Engine.HidePrivate) or
-          ((Member.Visibility = visProtected) and Engine.HideProtected) or
-          not AFilter(Member) then
+        if Not (Engine.ShowElement(Member) and AFilter(Member)) then
           continue;
         TREl := CreateTR(TableEl);
         ParaEl := CreatePara(CreateTD(TREl));
@@ -3488,9 +3496,7 @@ var
         for i := 0 to ThisClass.Members.Count - 1 do
         begin
           Member := TPasElement(ThisClass.Members[i]);
-          if (not (((Member.Visibility = visPrivate) and Engine.HidePrivate) or
-            ((Member.Visibility = visProtected) and Engine.HideProtected))) and
-            AFilter(Member) then
+          if Engine.ShowElement(Member) and AFilter(Member) then
           begin
             j := 0;
             while (j < List.Count) and
@@ -3688,7 +3694,7 @@ var
   DocNode: TDocNode;
 begin
   AppendMenuBar(-1);
-  AppendTitle(AElement.FullName);
+  AppendTitle(AElement.FullName,AElement.Hints);
   AppendShortDescr(CreatePara(BodyElement), AElement);
   AppendText(CreateH2(BodyElement), SDocDeclaration);
   AppendSourceRef(AElement);
@@ -3727,7 +3733,7 @@ var
   DocNode: TDocNode;
 begin
   AppendMenuBar(-1);
-  AppendTitle(AVar.FullName);
+  AppendTitle(AVar.FullName,AVar.Hints);
   AppendShortDescr(CreatePara(BodyElement), AVar);
   AppendText(CreateH2(BodyElement), SDocDeclaration);
   AppendSourceRef(AVar);
@@ -3758,7 +3764,7 @@ var
   TableEl, TREl, TDEl, CodeEl: TDOMElement;
 begin
   AppendMenuBar(-1);
-  AppendTitle(AProc.Name);
+  AppendTitle(AProc.Name,AProc.Hints);
   AppendShortDescr(CreatePara(BodyElement), AProc);
   AppendText(CreateH2(BodyElement), SDocDeclaration);
   AppendSourceRef(AProc);

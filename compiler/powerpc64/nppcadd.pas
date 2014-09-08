@@ -68,6 +68,8 @@ var
 
   opsize : TCgSize;
 begin
+  tmpreg:=NR_NO;
+
   { get the constant on the right if there is one }
   if (left.location.loc = LOC_CONSTANT) then
     swapleftright;
@@ -244,6 +246,8 @@ begin
               cgop := OP_OR;
             andn:
               cgop := OP_AND;
+            else
+              internalerror(2013120112);
           end;
           if (left.location.loc = LOC_CONSTANT) then
             swapleftright;

@@ -31,7 +31,7 @@
 program unihelper;
 
 {$mode objfpc}{$H+}
-{$typedadress on}
+{$typedaddress on}
 
 uses
   SysUtils, Classes,
@@ -66,6 +66,7 @@ end;
 var
   dataPath, outputPath : string;
   stream, binStreamNE, binStreamOE, tmpStream : TMemoryStream;
+  binaryStreamNE, binaryStreamOE : TMemoryStream;
   hangulSyllables : TCodePointRecArray;
   ucaBook : TUCA_DataBook;
   ucaPropBook : PUCA_PropBook;
@@ -95,6 +96,7 @@ var
   ucaoFirstTable   : TucaoBmpFirstTable;
   ucaoSecondTable  : TucaOBmpSecondTable;
   WL : Integer;
+  serializedHeader : TSerializedCollationHeader;
 begin
   WriteLn(SUsage+sLineBreak);
   if (ParamCount > 0) then
@@ -125,6 +127,8 @@ begin
     Halt(1);
   end;
 
+  binaryStreamNE := nil;
+  binaryStreamOE := nil;
   binStreamOE := nil;
   binStreamNE := nil;
   tmpStream := nil;
@@ -206,6 +210,8 @@ begin
 {$IFDEF UCA_TEST}
     uca_CheckProp_2y(ucaBook,ucaPropBook,@ucaoFirstTable,@ucaoSecondTable);
 {$ENDIF UCA_TEST}
+    binaryStreamNE := TMemoryStream.Create();
+    binaryStreamOE := TMemoryStream.Create();
     WriteLn('Generate UCA Props tables ...');
     binStreamNE.Clear();
     binStreamOE.Clear();
@@ -226,6 +232,37 @@ begin
       binStreamOE.SaveToFile(GenerateEndianIncludeFileName(s,ENDIAN_NON_NATIVE));
     binStreamNE.Clear();
     binStreamOE.Clear();
+// Binary DUCET
+    FillChar(serializedHeader,SizeOf(TSerializedCollationHeader),0);
+    serializedHeader.Version := ucaBook.Version;
+    serializedHeader.CollationName := 'DUCET';//'Default Unicode Collation Element Table (DUCET)';
+    serializedHeader.VariableWeight := Ord(ucaBook.VariableWeight);
+    SetBit(serializedHeader.Backwards,0,ucaBook.Backwards[0]);
+    SetBit(serializedHeader.Backwards,1,ucaBook.Backwards[1]);
+    SetBit(serializedHeader.Backwards,2,ucaBook.Backwards[2]);
+    SetBit(serializedHeader.Backwards,3,ucaBook.Backwards[3]);
+    serializedHeader.BMP_Table1Length := Length(ucaFirstTable);
+    serializedHeader.BMP_Table2Length := Length(TucaBmpSecondTableItem) *
+                                         (Length(ucaSecondTable) * SizeOf(UInt24));
+    serializedHeader.OBMP_Table1Length := Length(ucaoFirstTable) * SizeOf(Word);
+    serializedHeader.OBMP_Table2Length := Length(TucaOBmpSecondTableItem) *
+                                         (Length(ucaoSecondTable) * SizeOf(UInt24));
+    serializedHeader.PropCount := ucaPropBook^.ItemSize;
+    serializedHeader.VariableLowLimit := ucaPropBook^.VariableLowLimit;
+    serializedHeader.VariableHighLimit := ucaPropBook^.VariableHighLimit;
+    binaryStreamNE.Write(serializedHeader,SizeOf(serializedHeader));
+    ReverseRecordBytes(serializedHeader);
+    binaryStreamOE.Write(serializedHeader,SizeOf(serializedHeader));
+      GenerateBinaryUCA_BmpTables(binaryStreamNE,binaryStreamOE,ucaFirstTable,ucaSecondTable);
+      GenerateBinaryUCA_OBmpTables(binaryStreamNE,binaryStreamOE,ucaoFirstTable,ucaoSecondTable);
+      GenerateBinaryUCA_PropTable(binaryStreamNE,binaryStreamOE,ucaPropBook);
+    binaryStreamNE.SaveToFile(
+      outputPath + Format('collation_ducet_%s.bco',[ENDIAN_SUFFIX[ENDIAN_NATIVE]])
+    );
+    binaryStreamOE.SaveToFile(
+      outputPath + Format('collation_ducet_%s.bco',[ENDIAN_SUFFIX[ENDIAN_NON_NATIVE]])
+    );
+// Binary DUCET - END
 
 
     stream.Clear();
@@ -386,6 +423,8 @@ begin
     end;
     stream.SaveToFile(outputPath + 'diff2.txt');
   finally
+    binaryStreamOE.Free();
+    binaryStreamNE.Free();
     tmpStream.Free();
     binStreamOE.Free();
     binStreamNE.Free();

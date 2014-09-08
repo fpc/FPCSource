@@ -106,6 +106,8 @@ begin
     SetLength(locRes, ( 2 * Length(AValue) ) );
     BinToHex(PAnsiChar(@(AValue[0])),PAnsiChar(@(locRes[1])),Length(AValue));
     Result := locRes;
+  end else begin
+    Result := '';
   end;
 end;
 
@@ -117,6 +119,8 @@ begin
     SetLength(locRes, ( 2 * Length(AValue) ) );
     BinToHex(PAnsiChar(@(AValue[0])),PAnsiChar(@(locRes[1])),Length(AValue));
     Result := locRes;
+  end else begin
+    Result := '';
   end;
 end;
 

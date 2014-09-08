@@ -68,11 +68,6 @@ type
 
     procedure a_jmp_name(list: TAsmList; const s: string); override;
     procedure a_jmp_always(list: TAsmList; l: tasmlabel); override;
-    procedure a_jmp_flags(list: TAsmList; const f: TResFlags; l: tasmlabel);
-      override;
-
-    procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags;
-      reg: TRegister); override;
 
     { need to override this for ppc64 to avoid calling CG methods which allocate
       registers during creation of the interface wrappers to subtract ioffset from
@@ -160,105 +155,6 @@ begin
   end;
 end;
 
-{$push}
-{$r-}
-{$q-}
-{ helper function which calculate "magic" values for replacement of unsigned
- division by constant operation by multiplication. See the PowerPC compiler
- developer manual for more information }
-procedure getmagic_unsignedN(const N : byte; const d : aWord;
-  out magic_m : aWord; out magic_add : boolean; out magic_shift : byte);
-var
-    p : aInt;
-    nc, delta, q1, r1, q2, r2, two_N_minus_1 : aWord;
-begin
-  assert(d > 0);
-
-  two_N_minus_1 := aWord(1) shl (N-1);
-
-  magic_add := false;
-{$push}
-{$warnings off }
-  nc := aWord(-1) - (-d) mod d;
-{$pop}
-  p := N-1; { initialize p }
-  q1 := two_N_minus_1 div nc; { initialize q1 = 2p/nc }
-  r1 := two_N_minus_1 - q1*nc; { initialize r1 = rem(2p,nc) }
-  q2 := (two_N_minus_1-1) div d; { initialize q2 = (2p-1)/d }
-  r2 := (two_N_minus_1-1) - q2*d; { initialize r2 = rem((2p-1),d) }
-  repeat
-    inc(p);
-    if (r1 >= (nc - r1)) then begin
-      q1 := 2 * q1 + 1; { update q1 }
-      r1 := 2*r1 - nc; { update r1 }
-    end else begin
-      q1 := 2*q1; { update q1 }
-      r1 := 2*r1; { update r1 }
-    end;
-    if ((r2 + 1) >= (d - r2)) then begin
-      if (q2 >= (two_N_minus_1-1)) then
-        magic_add := true;
-      q2 := 2*q2 + 1; { update q2 }
-      r2 := 2*r2 + 1 - d; { update r2 }
-    end else begin
-      if (q2 >= two_N_minus_1) then
-        magic_add := true;
-      q2 := 2*q2; { update q2 }
-      r2 := 2*r2 + 1; { update r2 }
-    end;
-    delta := d - 1 - r2;
-  until not ((p < (2*N)) and ((q1 < delta) or ((q1 = delta) and (r1 = 0))));
-  magic_m := q2 + 1; { resulting magic number }
-  magic_shift := p - N; { resulting shift }
-end;
-
-{ helper function which calculate "magic" values for replacement of signed
- division by constant operation by multiplication. See the PowerPC compiler
- developer manual for more information }
-procedure getmagic_signedN(const N : byte; const d : aInt;
-  out magic_m : aInt; out magic_s : aInt);
-var
-  p : aInt;
-  ad, anc, delta, q1, r1, q2, r2, t : aWord;
-  two_N_minus_1 : aWord;
-
-begin
-  assert((d < -1) or (d > 1));
-
-  two_N_minus_1 := aWord(1) shl (N-1);
-
-  ad := abs(d);
-  t := two_N_minus_1 + (aWord(d) shr (N-1));
-  anc := t - 1 - t mod ad; { absolute value of nc }
-  p := (N-1); { initialize p }
-  q1 := two_N_minus_1 div anc; { initialize q1 = 2p/abs(nc) }
-  r1 := two_N_minus_1 - q1*anc; { initialize r1 = rem(2p,abs(nc)) }
-  q2 := two_N_minus_1 div ad; { initialize q2 = 2p/abs(d) }
-  r2 := two_N_minus_1 - q2*ad; { initialize r2 = rem(2p,abs(d)) }
-  repeat
-    inc(p);
-    q1 := 2*q1; { update q1 = 2p/abs(nc) }
-    r1 := 2*r1; { update r1 = rem(2p/abs(nc)) }
-    if (r1 >= anc) then begin { must be unsigned comparison }
-      inc(q1);
-      dec(r1, anc);
-    end;
-    q2 := 2*q2; { update q2 = 2p/abs(d) }
-    r2 := 2*r2; { update r2 = rem(2p/abs(d)) }
-    if (r2 >= ad) then begin { must be unsigned comparison }
-      inc(q2);
-      dec(r2, ad);
-    end;
-    delta := ad - r2;
-  until not ((q1 < delta) or ((q1 = delta) and (r1 = 0)));
-  magic_m := q2 + 1;
-  if (d < 0) then begin
-    magic_m := -magic_m; { resulting magic number }
-  end;
-  magic_s := p - N; { resulting shift }
-end;
-{$pop}
-
 { finds positive and negative powers of two of the given value, returning the
  power and whether it's a negative power or not in addition to the actual result
  of the function }
@@ -267,6 +163,7 @@ var
   i : longint;
   hl : aInt;
 begin
+  result := false;
   neg := false;
   { also try to find negative power of two's by negating if the
    value is negative. low(aInt) is special because it can not be
@@ -418,7 +315,7 @@ begin
   if (target_info.abi<>abi_powerpc_sysv) then
     inherited a_call_reg(list,reg)
   else if (not (cs_opt_size in current_settings.optimizerswitches)) then begin
-    tempreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
+    tempreg := getintregister(list, OS_INT);
     { load actual function entry (reg contains the reference to the function descriptor)
     into tempreg }
     reference_reset_base(tmpref, reg, 0, sizeof(pint));
@@ -651,6 +548,8 @@ begin
         instr := taicpu.op_reg_reg_const_const(A_RLDICL, reg2, reg1, 0, (8-tcgsize2size[tosize])*8);
       OS_S64, OS_64:
         instr := taicpu.op_reg_reg(A_MR, reg2, reg1);
+      else
+        internalerror(2013113007);
     end;
   end else
     instr := taicpu.op_reg_reg(A_MR, reg2, reg1);
@@ -712,7 +611,7 @@ var
   const
     negops : array[boolean] of tasmop = (A_NEG, A_NEGO);
   var
-    magic, shift : int64;
+    magic : int64;
     u_magic : qword;
     u_shift : byte;
     u_add : boolean;
@@ -724,58 +623,58 @@ var
     if (a = 0) then begin
       internalerror(2005061701);
     end else if (a = 1) then begin
-      cg.a_load_reg_reg(current_asmdata.CurrAsmList, OS_INT, OS_INT, src, dst);
+      a_load_reg_reg(list, OS_INT, OS_INT, src, dst);
     end else if (a = -1) and (signed) then begin
       { note: only in the signed case possible..., may overflow }
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(negops[cs_check_overflow in current_settings.localswitches], dst, src));
+      list.concat(taicpu.op_reg_reg(negops[cs_check_overflow in current_settings.localswitches], dst, src));
     end else if (ispowerof2(a, power, isNegPower)) then begin
       if (signed) then begin
         { From "The PowerPC Compiler Writer's Guide", pg. 52ff          }
-        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SAR, OS_INT, power,
+        a_op_const_reg_reg(list, OP_SAR, OS_INT, power,
           src, dst);
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_ADDZE, dst, dst));
+        list.concat(taicpu.op_reg_reg(A_ADDZE, dst, dst));
         if (isNegPower) then
-          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_NEG, dst, dst));
+          list.concat(taicpu.op_reg_reg(A_NEG, dst, dst));
       end else begin
-        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, OS_INT, power, src, dst)
+        a_op_const_reg_reg(list, OP_SHR, OS_INT, power, src, dst)
       end;
     end else begin
       { replace division by multiplication, both implementations }
       { from "The PowerPC Compiler Writer's Guide" pg. 53ff      }
-      divreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
+      divreg := getintregister(list, OS_INT);
       if (signed) then begin
-        getmagic_signedN(sizeof(aInt)*8, a, magic, shift);
+        calc_divconst_magic_signed(sizeof(aInt)*8, a, magic, u_shift);
         { load magic value }
-        cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, magic, divreg);
+        a_load_const_reg(list, OS_INT, magic, divreg);
         { multiply }
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULHD, dst, src, divreg));
+        list.concat(taicpu.op_reg_reg_reg(A_MULHD, dst, src, divreg));
         { add/subtract numerator }
         if (a > 0) and (magic < 0) then begin
-          cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_ADD, OS_INT, src, dst, dst);
+          a_op_reg_reg_reg(list, OP_ADD, OS_INT, src, dst, dst);
         end else if (a < 0) and (magic > 0) then begin
-          cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_SUB, OS_INT, src, dst, dst);
+          a_op_reg_reg_reg(list, OP_SUB, OS_INT, src, dst, dst);
         end;
         { shift shift places to the right (arithmetic) }
-        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SAR, OS_INT, shift, dst, dst);
+        a_op_const_reg_reg(list, OP_SAR, OS_INT, u_shift, dst, dst);
         { extract and add sign bit }
         if (a >= 0) then begin
-          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, OS_INT, 63, src, divreg);
+          a_op_const_reg_reg(list, OP_SHR, OS_INT, 63, src, divreg);
         end else begin
-          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, OS_INT, 63, dst, divreg);
+          a_op_const_reg_reg(list, OP_SHR, OS_INT, 63, dst, divreg);
         end;
-        cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_ADD, OS_INT, dst, divreg, dst);
+        a_op_reg_reg_reg(list, OP_ADD, OS_INT, dst, divreg, dst);
       end else begin
-        getmagic_unsignedN(sizeof(aWord)*8, a, u_magic, u_add, u_shift);
+        calc_divconst_magic_unsigned(sizeof(aWord)*8, a, u_magic, u_add, u_shift);
         { load magic in divreg }
-        cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, aint(u_magic), divreg);
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULHDU, dst, src, divreg));
+        a_load_const_reg(list, OS_INT, aint(u_magic), divreg);
+        list.concat(taicpu.op_reg_reg_reg(A_MULHDU, dst, src, divreg));
         if (u_add) then begin
-          cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_SUB, OS_INT, dst, src, divreg);
-          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, OS_INT,  1, divreg, divreg);
-          cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_ADD, OS_INT, divreg, dst, divreg);
-          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, OS_INT, u_shift-1, divreg, dst);
+          a_op_reg_reg_reg(list, OP_SUB, OS_INT, dst, src, divreg);
+          a_op_const_reg_reg(list, OP_SHR, OS_INT,  1, divreg, divreg);
+          a_op_reg_reg_reg(list, OP_ADD, OS_INT, divreg, dst, divreg);
+          a_op_const_reg_reg(list, OP_SHR, OS_INT, u_shift-1, divreg, dst);
         end else begin
-          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, OS_INT, u_shift, dst, dst);
+          a_op_const_reg_reg(list, OP_SHR, OS_INT, u_shift, dst, dst);
         end;
       end;
     end;
@@ -821,7 +720,7 @@ begin
       else if ispowerof2(a, shift, isneg) then begin
         list.concat(taicpu.op_reg_reg_const(A_SLDI, dst, src, shift));
         if (isneg) then
-          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_NEG, dst, dst));
+          list.concat(taicpu.op_reg_reg(A_NEG, dst, dst));
       end else if (a >= low(smallint)) and (a <= high(smallint)) then
         list.concat(taicpu.op_reg_reg_const(A_MULLI, dst, src,
           smallint(a)))
@@ -936,7 +835,7 @@ begin
       end;
     OP_ROR:
       begin
-        tmpreg := getintregister(current_asmdata.CurrAsmList, OS_INT);
+        tmpreg := getintregister(list, OS_INT);
 	list.concat(taicpu.op_reg_reg(A_NEG, tmpreg, src1));
         if (size in [OS_64, OS_S64]) then begin
 	  list.concat(taicpu.op_reg_reg_reg_const(A_RLDCL, dst, src2, tmpreg, 0));
@@ -995,7 +894,7 @@ begin
       opsize := OS_S32
     else
       opsize := OS_32;
-    a_load_reg_reg(current_asmdata.CurrAsmList, size, opsize, reg, reg);
+    a_load_reg_reg(list, size, opsize, reg, reg);
   end;
 
   { can we use immediate compares? }
@@ -1007,8 +906,8 @@ begin
   if (useconst) then begin
     list.concat(taicpu.op_reg_reg_const(op, NR_CR0, reg, a));
   end else begin
-    tmpreg := getintregister(current_asmdata.CurrAsmList, OS_INT);
-    a_load_const_reg(current_asmdata.CurrAsmList, opsize, a, tmpreg);
+    tmpreg := getintregister(list, OS_INT);
+    a_load_const_reg(list, opsize, a, tmpreg);
     list.concat(taicpu.op_reg_reg_reg(op, NR_CR0, reg, tmpreg));
   end;
 
@@ -1073,55 +972,6 @@ procedure tcgppc.a_jmp_always(list: TAsmList; l: tasmlabel);
 
 begin
   a_jmp(list, A_B, C_None, 0, l);
-end;
-
-procedure tcgppc.a_jmp_flags(list: TAsmList; const f: TResFlags; l:
-  tasmlabel);
-
-var
-  c: tasmcond;
-begin
-  c := flags_to_cond(f);
-  a_jmp(list, A_BC, c.cond, c.cr - RS_CR0, l);
-end;
-
-procedure tcgppc.g_flags2reg(list: TAsmList; size: TCgSize; const f:
-  TResFlags; reg: TRegister);
-var
-  testbit: byte;
-  bitvalue: boolean;
-begin
-  { get the bit to extract from the conditional register + its requested value (0 or 1) }
-  testbit := ((f.cr - RS_CR0) * 4);
-  case f.flag of
-    F_EQ, F_NE:
-      begin
-        inc(testbit, 2);
-        bitvalue := f.flag = F_EQ;
-      end;
-    F_LT, F_GE:
-      begin
-        bitvalue := f.flag = F_LT;
-      end;
-    F_GT, F_LE:
-      begin
-        inc(testbit);
-        bitvalue := f.flag = F_GT;
-      end;
-  else
-    internalerror(200112261);
-  end;
-  { load the conditional register in the destination reg }
-  list.concat(taicpu.op_reg(A_MFCR, reg));
-  { we will move the bit that has to be tested to bit 0 by rotating left }
-  testbit := (testbit + 1) and 31;
-  { extract bit }
-  list.concat(taicpu.op_reg_reg_const_const_const(
-    A_RLWINM,reg,reg,testbit,31,31));
-
-  { if we need the inverse, xor with 1 }
-  if not bitvalue then
-    list.concat(taicpu.op_reg_reg_const(A_XORI, reg, reg, 1));
 end;
 
 { *********** entry/exit code and address loading ************ }
@@ -1273,11 +1123,11 @@ var
     if (cs_opt_size in current_settings.optimizerswitches) and
        (target_info.system <> system_powerpc64_darwin) then begin
       mayNeedLRStore := false;
+      if target_info.system=system_powerpc64_aix then
+        opc:=A_BLA
+      else
+        opc:=A_BL;
       if ((fprcount > 0) and (gprcount > 0)) then begin
-        if target_info.system=system_powerpc64_aix then
-          opc:=A_BLA
-        else
-          opc:=A_BL;
         a_op_const_reg_reg(list, OP_SUB, OS_INT, 8 * fprcount, NR_R1, NR_R12);
         a_call_name_direct(list, opc, '_savegpr1_' + intToStr(32-gprcount), false, false, false, false);
         a_call_name_direct(list, opc, '_savefpr_' + intToStr(32-fprcount), false, false, false, false);
@@ -1965,7 +1815,7 @@ var
   symname : string;
 begin
   maybe_new_object_file(current_asmdata.asmlists[al_picdata]);
-  symname := '_$' + current_asmdata.name + '$toc$' + hexstr(a, sizeof(a)*2);
+  symname := '_$' + current_asmdata.name^ + '$toc$' + hexstr(a, sizeof(a)*2);
   l:=current_asmdata.getasmsymbol(symname);
   if not(assigned(l)) then begin
     l:=current_asmdata.DefineAsmSymbol(symname,AB_GLOBAL, AT_DATA);
@@ -1980,7 +1830,7 @@ begin
   {$IFDEF EXTDEBUG}
   list.concat(tai_comment.create(strpnew('loading value from TOC reference for ' + symname)));
   {$ENDIF EXTDEBUG}
-  cg.a_load_ref_reg(list, OS_INT, OS_INT, ref, reg);
+  a_load_ref_reg(list, OS_INT, OS_INT, ref, reg);
 end;
 
 

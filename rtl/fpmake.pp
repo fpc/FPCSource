@@ -77,7 +77,6 @@ begin
           AddInclude('int64.inc');
           AddInclude('astrings.inc');
           AddInclude('wstrings.inc');
-          AddInclude('wustrings.inc');
           AddInclude('aliases.inc');
           AddInclude('dynarr.inc');
           AddInclude('objpas.inc');
@@ -91,7 +90,6 @@ begin
           AddInclude('innr.inc');
           AddInclude('$(CPU).inc');
           AddInclude('fastmove.inc',[i386],AllOSes);
-          AddInclude('strpas.inc',[i386,powerpc,powerpc64],AllOSes);
           AddInclude('math.inc');
           AddInclude('real2str.inc');
           AddInclude('systhrd.inc',AllWindowsOSes+[Netware,Netwlibc,EMX,OS2]);
@@ -548,7 +546,6 @@ begin
       With T.Dependencies do
         begin
           AddUnit('sysutils');
-          AddInclude('mathuh.inc');
           AddInclude('mathu.inc');
         end;
 

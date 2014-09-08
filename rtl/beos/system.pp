@@ -376,12 +376,12 @@ begin
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := Sptr - StackLength;
 
-  SysResetFPU;
-  if not(IsLibrary) then
-    SysInitFPU;
-
   { Set up signals handlers (may be needed by init code to test cpu features) }
   InstallSignals;
+
+{$ifdef cpui386}
+  fpc_cpucodeinit;
+{$endif}
 
   { Setup heap }
   myheapsize:=4096*1;// $ 20000;

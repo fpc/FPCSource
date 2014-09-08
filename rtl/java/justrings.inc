@@ -122,8 +122,7 @@ Function fpc_UnicodeStr_To_AnsiStr (const S2 : UnicodeString{$ifdef FPC_HAS_CPST
 Var
   Size : SizeInt;
 begin
-  if (cp=CP_ACP) then
-    cp:=DefaultSystemCodePage;
+  cp:=TranslatePlaceholderCP(cp);
   { avoid codepage conversion -- why isn't the result rawbytestring? }
   pointer(result):=pointer(AnsistringClass.Create(s2,cp));
 end;
@@ -185,8 +184,7 @@ begin
   if (p=nil) or
      (p^=#0) then
     exit;
-  if (cp=CP_ACP) then
-    cp:=DefaultSystemCodePage;
+  cp:=TranslatePlaceholderCP(cp);
   pointer(result):=pointer(AnsistringClass.Create(unicodestring(p),cp));
 end;
 
@@ -317,14 +315,13 @@ var
   arr: array[0..0] of unicodechar;
 begin
   arr[0]:=c;
-  if (cp=CP_ACP) then
-    cp:=DefaultSystemCodePage;
+  cp:=TranslatePlaceholderCP(cp);
   widestringmanager.Unicode2AnsiMoveProc(punicodechar(@arr), RawByteString(fpc_UChar_To_AnsiStr), cp, 1);
 end;
 
 
 {$define FPC_HAS_UCHAR_TO_SHORTSTR}
-procedure fpc_UChar_To_ShortStr(out res : shortstring;const c : UnicodeChar) compilerproc;
+function fpc_UChar_To_ShortStr(const c : UnicodeChar): shortstring; compilerproc;
 {
   Converts a UnicodeChar to a AnsiString;
 }
@@ -332,7 +329,7 @@ var
   u: unicodestring;
 begin
   u:=c;
-  res:=u;
+  result:=u;
 end;
 
 
@@ -351,8 +348,7 @@ begin
 {$ifndef FPC_HAS_CPSTRING}
   cp:=DefaultSystemCodePage;
 {$endif FPC_HAS_CPSTRING}
-  if (cp=CP_ACP) then
-    cp:=DefaultSystemCodePage;
+  cp:=TranslatePlaceholderCP(cp);
   arr[0]:=c;
   widestringmanager.Unicode2AnsiMoveProc(punicodechar(@arr[0]), fpc_UChar_To_AnsiStr, cp, 1);
 end;
@@ -906,6 +902,18 @@ function StringCodePage(const S : UnicodeString): TSystemCodePage;
       result:=DefaultUnicodeCodePage;
   end;
 
+{$define FPC_HAS_TOSINGLEBYTEFILESYSTEMENCODEDFILENAME_UNICODESTRING}
+Function ToSingleByteFileSystemEncodedFileName(const Str: UnicodeString): RawByteString;
+Begin
+  result:=AnsiString(AnsistringClass.Create(Str,DefaultFileSystemCodePage));
+End;
+
+{$define FPC_HAS_TOSINGLEBYTEFILESYSTEMENCODEDFILENAME_UNICODECHARARRAY}
+Function ToSingleByteFileSystemEncodedFileName(const arr: array of widechar): RawByteString;
+Begin
+  result:=AnsiString(AnsistringClass.Create(arr,DefaultFileSystemCodePage));
+End;
+
 
 { helpers for converting between Windows and Java code page identifiers }
 
@@ -1009,6 +1017,8 @@ class constructor TUnicodeStringManager.ClassCreate;
       stdin etc, so setting this to utf-8 or so won't help) }
     if DefaultSystemCodePage=65535 then
       DefaultSystemCodePage:=20127;
+    DefaultFileSystemCodePage:=DefaultSystemCodePage;
+    DefaultRTLFileSystemCodePage:=DefaultFileSystemCodePage;
     DefaultUnicodeCodePage:=CP_UTF16BE;
   end;
 

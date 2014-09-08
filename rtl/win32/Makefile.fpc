@@ -7,34 +7,31 @@ main=rtl
 
 [target]
 loaders=$(LOADERS)
-units=system uuchar objpas macpas iso7185 buildrtl buildcollations cpall lineinfo lnfodwrf
+units=system uuchar objpas macpas iso7185 buildrtl cpall lineinfo lnfodwrf
 implicitunits=sysinitpas sysinitcyg sysinitgprof \
       ctypes strings \
-      heaptrc matrix \
-      windows winsock winsock2 initc cmem dynlibs signals \
-      dos crt objects messages \
+      heaptrc \
+      windows initc cmem dynlibs signals \
+      dos messages \
       rtlconsts sysconst sysutils math types \
-      strutils dateutils varutils variants typinfo fgl classes \
-      convutils stdconvs cpu mmx charset character ucomplex getopts \
-      winevent sockets printer \
-      video mouse keyboard fmtbcd fpwidestring \
+      typinfo fgl classes \
+      cpu mmx charset character getopts \
+      fpwidestring \
       winsysut sharemem exeinfo fpintres windirs \
       cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
-      cp437 cp646 cp850 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5 \
-      unicodedata unicodeducet unicodenumtable \
-      collation_de collation_es collation_fr_ca collation_ja collation_ko collation_ru collation_sv collation_zh
-
+      cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 \
+      unicodedata  unicodenumtable 
 
 # shared=$(DLLS)
 
-rsts=math varutils typinfo variants classes dateutils sysconst
+rsts=math typinfo classes sysconst
 
 [require]
 nortl=y
 
 [install]
 fpcpackage=y
-buildunit=buildcollations$(PPUEXT) buildrtl
+buildunit=buildrtl
 
 [default]
 fpcdir=../..
@@ -134,9 +131,6 @@ buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT)
 
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) objpas$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
-
-buildcollations$(PPUEXT): $(OBJPASDIR)/collations/buildcollations.pas system$(PPUEXT) objpas$(PPUEXT)
-        $(COMPILER) -Fu$(OBJPASDIR) -Fi$(OBJPASDIR)/collations -I$(OBJPASDIR)/collations $(OBJPASDIR)/collations/buildcollations.pas
 
 softfpu$(PPUEXT) : ../inc/softfpu.pp system$(PPUEXT)
 	$(COMPILER) ../inc/softfpu.pp

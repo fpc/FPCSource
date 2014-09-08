@@ -43,7 +43,6 @@ Type
     function GetFieldValue(Index: Integer): String; override;
     procedure SetFieldValue(Index: Integer; Value: String);override;
     Procedure InitRequestVars; override;
-    procedure SetContent(AValue : String);
   published
     Property Connection : TFPHTTPConnection Read FConnection;
   end;
@@ -119,6 +118,7 @@ Type
     FServerBanner: string;
     FLookupHostNames,
     FThreaded: Boolean;
+    FConnectionCount : Integer;
     function GetActive: Boolean;
     procedure SetActive(const AValue: Boolean);
     procedure SetOnAllowConnect(const AValue: TConnectQuery);
@@ -126,13 +126,15 @@ Type
     procedure SetQueueSize(const AValue: Word);
     procedure SetThreaded(const AValue: Boolean);
     procedure SetupSocket;
-    procedure StartServerSocket;
+    procedure WaitForRequests;
   Protected
     // Override these to create descendents of the request/response instead.
     Function CreateRequest : TFPHTTPConnectionRequest; virtual;
     Function CreateResponse(ARequest : TFPHTTPConnectionRequest) : TFPHTTPConnectionResponse; virtual;
     Procedure InitRequest(ARequest : TFPHTTPConnectionRequest); virtual;
     Procedure InitResponse(AResponse : TFPHTTPConnectionResponse); virtual;
+    // Called on accept errors
+    procedure DoAcceptError(Sender: TObject; ASocket: Longint; E: Exception;  var ErrorAction: TAcceptErrorAction);
     // Create a connection handling object.
     function CreateConnection(Data : TSocketStream) : TFPHTTPConnection; virtual;
     // Create a connection handling thread.
@@ -143,13 +145,19 @@ Type
     Procedure DoConnect(Sender : TObject; Data : TSocketStream); virtual;
     // Create and configure TInetServer
     Procedure CreateServerSocket; virtual;
-    // Stop and free TInetServer
+    // Start server socket
+    procedure StartServerSocket; virtual;
+    // Stop server stocket
+    procedure StopServerSocket; virtual;
+    // free server socket instance
     Procedure FreeServerSocket; virtual;
     // Handle request. This calls OnRequest. It can be overridden by descendants to provide standard handling.
     procedure HandleRequest(Var ARequest: TFPHTTPConnectionRequest;
                             Var AResponse : TFPHTTPConnectionResponse); virtual;
     // Called when a connection encounters an unexpected error. Will call OnRequestError when set.
     procedure HandleRequestError(Sender: TObject; E: Exception); virtual;
+    // Connection count
+    Property ConnectionCount : Integer Read FConnectionCount;
   public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
@@ -187,7 +195,7 @@ Type
     Property OnRequestError;
   end;
 
-  EHTTPServer = Class(Exception);
+  EHTTPServer = Class(EHTTP);
 
   Function GetStatusCode (ACode: Integer) : String;
 
@@ -249,11 +257,6 @@ begin
   end;
 end;
 
-procedure HandleRequestError(Sender: TObject; E: Exception);
-begin
-
-end;
-
 procedure TFPHTTPConnectionRequest.InitRequestVars;
 Var
   P : Integer;
@@ -286,13 +289,6 @@ begin
   finally
     FreeAndNil(Resolver);
   end;
-end;
-
-procedure TFPHTTPConnectionRequest.SetContent(AValue : String);
-
-begin
-  FContent:=Avalue;
-  FContentRead:=true;
 end;
 
 
@@ -479,7 +475,7 @@ begin
   Request.PathInfo:=Request.URL;
   S:=GetNextWord(AStartLine);
   If (Pos('HTTP/',S)<>1) then
-    Raise Exception.Create(SErrMissingProtocol);
+    Raise EHTTPServer.CreateHelp(SErrMissingProtocol,400);
   Delete(S,1,5);
   Request.ProtocolVersion:=trim(S);
 end;
@@ -515,8 +511,7 @@ begin
         end;
       end;  
     end;
-  ARequest.SetContent(S);
-
+  ARequest.InitContent(S);
 end;
 
 function TFPHTTPConnection.ReadRequestHeaders: TFPHTTPConnectionRequest;
@@ -547,10 +542,14 @@ constructor TFPHTTPConnection.Create(AServer: TFPCustomHttpServer; ASocket: TSoc
 begin
   FSocket:=ASocket;
   FServer:=AServer;
+  If Assigned(FServer) then
+    InterLockedIncrement(FServer.FConnectionCount)
 end;
 
 destructor TFPHTTPConnection.Destroy;
 begin
+  If Assigned(FServer) then
+    InterLockedDecrement(FServer.FConnectionCount);
   FreeAndNil(FSocket);
   Inherited;
 end;
@@ -637,8 +636,15 @@ begin
     except
       // Do not let errors in user code escape.
     end
+end;
+
+procedure TFPCustomHttpServer.DoAcceptError(Sender: TObject; ASocket: Longint;
+  E: Exception; var ErrorAction: TAcceptErrorAction);
+begin
+  If Not Active then
+    ErrorAction:=AEAStop
   else
-    Writeln('Unhandled exception : ',E.ClassName,' : ',E.Message);
+    ErrorAction:=AEARaise
 end;
 
 function TFPCustomHttpServer.GetActive: Boolean;
@@ -647,6 +653,11 @@ begin
     Result:=FLoadActivate
   else
     Result:=Assigned(FServer);
+end;
+
+procedure TFPCustomHttpServer.StopServerSocket;
+begin
+  FServer.StopAccepting(True);
 end;
 
 procedure TFPCustomHttpServer.SetActive(const AValue: Boolean);
@@ -659,9 +670,10 @@ begin
       CreateServerSocket;
       SetupSocket;
       StartServerSocket;
+      FreeServerSocket;
       end
     else
-      FreeServerSocket;
+      StopServerSocket;
 end;
 
 procedure TFPCustomHttpServer.SetOnAllowConnect(const AValue: TConnectQuery);
@@ -765,6 +777,7 @@ begin
   FServer.MaxConnections:=-1;
   FServer.OnConnectQuery:=OnAllowConnect;
   FServer.OnConnect:=@DOConnect;
+  FServer.OnAcceptError:=@DoAcceptError;
 end;
 
 procedure TFPCustomHttpServer.StartServerSocket;
@@ -776,7 +789,6 @@ end;
 
 procedure TFPCustomHttpServer.FreeServerSocket;
 begin
-  FServer.StopAccepting;
   FreeAndNil(FServer);
 end;
 
@@ -795,9 +807,29 @@ begin
   FServerBanner := 'Freepascal';
 end;
 
+Procedure TFPCustomHttpServer.WaitForRequests;
+
+Var
+  FLastCount,ACount : Integer;
+
+begin
+  ACount:=0;
+  FLastCount:=FConnectionCount;
+  While (FConnectionCount>0) and (ACount<10) do
+    begin
+    Sleep(100);
+    if (FConnectionCount=FLastCount) then
+      Dec(ACount)
+    else
+      FLastCount:=FConnectionCount;
+    end;
+end;
+
 destructor TFPCustomHttpServer.Destroy;
 begin
   Active:=False;
+  if Threaded and (FConnectionCount>0) then
+    WaitForRequests;
   inherited Destroy;
 end;
 

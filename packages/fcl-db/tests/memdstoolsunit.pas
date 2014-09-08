@@ -23,6 +23,9 @@ type
 
 implementation
 
+uses
+  StrUtils, FmtBCD;
+
 { TMemDSDBConnector }
 
 procedure TMemDSDBConnector.CreateNDatasets;
@@ -51,6 +54,7 @@ var MemDS  : TMemDataset;
 
 begin
   MemDs := TMemDataset.Create(nil);
+  MemDS.Name := 'NDataset';
   MemDS.FieldDefs.Add('ID',ftInteger);
   MemDS.FieldDefs.Add('NAME',ftString,50);
   MemDS.CreateTable;
@@ -73,22 +77,29 @@ var MemDS  : TMemDataset;
     i      : integer;
 
 begin
+  // Values >= 24:00:00.000 can't be handled by StrToTime function
+  testTimeValues[2] := '23:59:59.000';
+  testTimeValues[3] := '23:59:59.003';
+
   MemDs := TMemDataset.Create(nil);
   with MemDS do
     begin
+    Name := 'FieldDataset';
     FieldDefs.Add('ID',ftInteger);
     FieldDefs.Add('FSTRING',ftString,10);
     FieldDefs.Add('FSMALLINT',ftSmallint);
     FieldDefs.Add('FINTEGER',ftInteger);
-//    FieldDefs.Add('FWORD',ftWord);
+    FieldDefs.Add('FWORD',ftWord);
     FieldDefs.Add('FBOOLEAN',ftBoolean);
     FieldDefs.Add('FFLOAT',ftFloat);
-//    FieldDefs.Add('FCURRENCY',ftCurrency);
-//    FieldDefs.Add('FBCD',ftBCD);
+    FieldDefs.Add('FCURRENCY',ftCurrency);
+    FieldDefs.Add('FBCD',ftBCD);
     FieldDefs.Add('FDATE',ftDate);
     FieldDefs.Add('FTIME',ftTime);
     FieldDefs.Add('FDATETIME',ftDateTime);
+    FieldDefs.Add('FFIXEDCHAR',ftFixedChar,10);
     FieldDefs.Add('FLARGEINT',ftLargeint);
+    FieldDefs.Add('FFMTBCD',ftFmtBCD);
     CreateTable;
     Open;
     for i := 0 to testValuesCount-1 do
@@ -98,11 +109,17 @@ begin
       FieldByName('FSTRING').AsString := testStringValues[i];
       FieldByName('FSMALLINT').AsInteger := testSmallIntValues[i];
       FieldByName('FINTEGER').AsInteger := testIntValues[i];
+      FieldByName('FWORD').AsInteger := testWordValues[i];
       FieldByName('FBOOLEAN').AsBoolean := testBooleanValues[i];
       FieldByName('FFLOAT').AsFloat := testFloatValues[i];
-      ShortDateFormat := 'yyyy-mm-dd';
-      FieldByName('FDATE').AsDateTime := StrToDate(testDateValues[i]);
+      FieldByName('FCURRENCY').AsCurrency := testCurrencyValues[i];
+      FieldByName('FBCD').AsCurrency := testCurrencyValues[i];
+      FieldByName('FDATE').AsDateTime := StrToDateTime(testDateValues[i], Self.FormatSettings);
+      FieldByName('FTIME').AsDateTime := StrToTime(testTimeValues[i], Self.FormatSettings);
+      FieldByName('FDATETIME').AsDateTime := StrToDateTime(testValues[ftDateTime,i], Self.FormatSettings);
+      FieldByName('FFIXEDCHAR').AsString := PadRight(testStringValues[i], 10);
       FieldByName('FLARGEINT').AsLargeInt := testLargeIntValues[i];
+      FieldByName('FFMTBCD').AsBCD := StrToBCD(testFmtBCDValues[i], Self.FormatSettings);
       Post;
       end;
     Close;

@@ -111,6 +111,7 @@
      HDC = HANDLE;
      HDDEDATA = HANDLE;
      HDESK = HANDLE;
+     HDEVNOTIFY = HANDLE;
      HDROP = HANDLE;
      HDWP = HANDLE;
      HENHMETAFILE = HANDLE;
@@ -196,6 +197,10 @@
      LPWORD = ^word;
      LPWSTR = Pwidechar;
      NWPSTR = Pwidechar;
+
+     LPPSTR = ^LPSTR;
+     LPPWSTR = ^LPWSTR;
+     LPPTSTR = ^LPTSTR;
 
      PWINBOOL = ^WINBOOL;
      PBOOLEAN = ^BYTE {$ifndef VER2_2} deprecated {$endif};
@@ -333,18 +338,61 @@
 
      _SID_NAME_USE = SID_NAME_USE;
 
-     TOKEN_INFORMATION_CLASS = (TokenUser := 1,TokenGroups,TokenPrivileges,
-       TokenOwner,TokenPrimaryGroup,TokenDefaultDacl,
-       TokenSource,TokenType,TokenImpersonationLevel,
-       TokenStatistics);
+     TOKEN_TYPE = (
+       TokenPrimary = 1,
+       TokenImpersonation
+     );
+     _TOKEN_TYPE = TOKEN_TYPE;
+     TTokenType = TOKEN_TYPE;
 
+     TOKEN_ELEVATION_TYPE = (
+       TokenElevationTypeDefault = 1,
+       TokenElevationTypeFull,
+       TokenElevationTypeLimited
+     );
+     _TOKEN_ELEVATION_TYPE = TOKEN_ELEVATION_TYPE;
+     TTokenElevationType = TOKEN_ELEVATION_TYPE;
+
+     TOKEN_INFORMATION_CLASS = (
+       TokenUser = 1,
+       TokenGroups,
+       TokenPrivileges,
+       TokenOwner,
+       TokenPrimaryGroup,
+       TokenDefaultDacl,
+       TokenSource,
+       TokenType,
+       TokenImpersonationLevel,
+       TokenStatistics,
+       TokenRestrictedSids,
+       TokenSessionId,
+       TokenGroupsAndPrivileges,
+       TokenSessionReference,
+       TokenSandBoxInert,
+       TokenAuditPolicy,
+       TokenOrigin,
+       TokenElevationType,
+       TokenLinkedToken,
+       TokenElevation,
+       TokenHasRestrictions,
+       TokenAccessInformation,
+       TokenVirtualizationAllowed,
+       TokenVirtualizationEnabled,
+       TokenIntegrityLevel,
+       TokenUIAccess,
+       TokenMandatoryPolicy,
+       TokenLogonSid,
+       MaxTokenInfoClass  // MaxTokenInfoClass should always be the last enum
+     );
      _TOKEN_INFORMATION_CLASS = TOKEN_INFORMATION_CLASS;
      TTokenInformationClass   = TOKEN_INFORMATION_CLASS;
 
-     TOKEN_TYPE = (TokenPrimary := 1,TokenImpersonation
-       );
-
-     tagTOKEN_TYPE = TOKEN_TYPE;
+     _TOKEN_ELEVATION = record
+       TokenIsElevated: DWORD;
+     end;
+     TOKEN_ELEVATION = _TOKEN_ELEVATION;
+     TTokenElevation = _TOKEN_ELEVATION;
+     PTokenElevation = ^TTokenElevation;
 
     _FINDEX_INFO_LEVELS = (FindExInfoStandard,FindExInfoBasic,FindExInfoMaxInfoLevel);
     _FINDEX_SEARCH_OPS  = (FindExSearchNameMatch, FindExSearchLimitToDirectories,
@@ -561,7 +609,7 @@
 
      LPTHREAD_START_ROUTINE = PTHREAD_START_ROUTINE;
 
-     EDITSTREAMCALLBACK = function (_para1:DWORD; _para2:LPBYTE; _para3:LONG; _para4:LONG):DWORD;stdcall;
+     EDITSTREAMCALLBACK = function (_para1:DWORD_PTR; _para2:LPBYTE; _para3:LONG; _para4:LONG):DWORD;stdcall;
 
      LPFRHOOKPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):UINT_PTR;stdcall;
 
@@ -575,7 +623,7 @@
 
      PFNPROPSHEETCALLBACK = function (_para1:HWND; _para2:UINT; _para3:LPARAM):longint;stdcall;
 
-     LPSERVICE_MAIN_FUNCTION = procedure (_para1:DWORD; _para2:LPTSTR);stdcall;
+     LPSERVICE_MAIN_FUNCTION = procedure (_para1:DWORD; _para2:LPPTSTR);stdcall;
 
      PFNTVCOMPARE = function (_para1:LPARAM; _para2:LPARAM; _para3:LPARAM):longint;stdcall;
 
@@ -589,11 +637,11 @@
 
      PROC = FARPROC;
 
-     ENUMRESTYPEPROC = function (hModule:HANDLE; lpszType:LPTSTR; lParam:LONG_PTR):WINBOOL;stdcall;
+     ENUMRESTYPEPROC = function (hModule:HMODULE; lpszType:LPTSTR; lParam:LONG_PTR):WINBOOL;stdcall;
 
-     ENUMRESNAMEPROC = function (hModule:HANDLE; lpszType:LPCTSTR; lpszName:LPTSTR; lParam:LONG_PTR):WINBOOL;stdcall;
+     ENUMRESNAMEPROC = function (hModule:HMODULE; lpszType:LPCTSTR; lpszName:LPTSTR; lParam:LONG_PTR):WINBOOL;stdcall;
 
-     ENUMRESLANGPROC = function (hModule:HANDLE; lpszType:LPCTSTR; lpszName:LPCTSTR; wIDLanguage:WORD; lParam:LONG_PTR):WINBOOL;stdcall;
+     ENUMRESLANGPROC = function (hModule:HMODULE; lpszType:LPCTSTR; lpszName:LPCTSTR; wIDLanguage:WORD; lParam:LONG_PTR):WINBOOL;stdcall;
 
      DESKTOPENUMPROC = FARPROC;
 
@@ -601,7 +649,7 @@
 
      ENUMWINDOWSTATIONPROC = function (_para1:LPTSTR; _para2:LPARAM):WINBOOL;stdcall;
 
-     SENDASYNCPROC = procedure (_para1:HWND; _para2:UINT; _para3:DWORD; _para4:LRESULT);stdcall;
+     SENDASYNCPROC = procedure (_para1:HWND; _para2:UINT; _para3:ULONG_PTR; _para4:LRESULT);stdcall;
 
      TIMERPROC = procedure (hWnd: HWND; uMsg: UINT; idEvent: UINT_PTR; dwTime: DWORD); stdcall;
 
@@ -609,9 +657,9 @@
 
      DRAWSTATEPROC = function (_para1:HDC; _para2:LPARAM; _para3:WPARAM; _para4:longint; _para5:longint):WINBOOL;stdcall;
 
-     PROPENUMPROCEXA = function (_para1:HWND; _para2:LPCSTR;  _para3:HANDLE; _para4:DWORD):WINBOOL;stdcall;
-     PROPENUMPROCEXW = function (_para1:HWND; _para2:LPCWSTR; _para3:HANDLE; _para4:DWORD):WINBOOL;stdcall;
-     PROPENUMPROCEX  = function (_para1:HWND; _para2:LPCTSTR; _para3:HANDLE; _para4:DWORD):WINBOOL;stdcall;
+     PROPENUMPROCEXA = function (_para1:HWND; _para2:LPCSTR;  _para3:HANDLE; _para4:DWORD_PTR):WINBOOL;stdcall;
+     PROPENUMPROCEXW = function (_para1:HWND; _para2:LPCWSTR; _para3:HANDLE; _para4:DWORD_PTR):WINBOOL;stdcall;
+     PROPENUMPROCEX  = function (_para1:HWND; _para2:LPCTSTR; _para3:HANDLE; _para4:DWORD_PTR):WINBOOL;stdcall;
 
      PROPENUMPROCA = function (_para1:HWND; _para2:LPCSTR;  _para3:HANDLE):WINBOOL;stdcall;
      PROPENUMPROCW = function (_para1:HWND; _para2:LPCWSTR; _para3:HANDLE):WINBOOL;stdcall;

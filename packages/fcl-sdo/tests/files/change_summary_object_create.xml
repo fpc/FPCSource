@@ -1,0 +1,26 @@
+<sdo:datagraph xmlns:sdo="commonj.sdo" xmlns:ns1="company.xsd">
+	<xsd>
+		<schema targetNamespace="company.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="company.xsd" xmlns:sdo="commonj.sdo">
+			<xsd:complexType name="DepartmentType">
+				<xsd:sequence>
+					<xsd:element name="Employee" type="tns:Employee" minOccurs="0"/>
+          <xsd:element name="changeSummary" type="sdo:ChangeSummary"/>
+				</xsd:sequence>
+				<xsd:attribute name="name" type="xsd:string"/>
+				<xsd:attribute name="location" type="xsd:string"/>
+				<xsd:attribute name="number" type="xsd:int"/>
+			</xsd:complexType>
+			<xsd:complexType name="Employee">
+				<xsd:attribute name="name" type="xsd:string"/>
+				<xsd:attribute name="SN" type="xsd:string"/>
+				<xsd:attribute name="manager" type="xsd:boolean"/>
+			</xsd:complexType>
+		</schema>
+	</xsd>
+	<changeSummary create="#/DepartmentType/Employee">
+		<DepartmentType sdo:ref="#/DepartmentType" name="R &amp; D" location="Ouaga, BF" sdo:unset="number Employee"/>
+	</changeSummary>
+	<ns1:DepartmentType name="R &amp; D Department" location="Ouaga 01, BF" number="1210">
+		<Employee name="Inoussa OUEDRAOGO" SN="001" manager="1"/>
+	</ns1:DepartmentType>
+</sdo:datagraph>

@@ -21,9 +21,10 @@ begin
     P.IncludePath.Add('src');
     P.Dependencies.Add('x11',AllUnixOSes);
     P.Dependencies.Add('pthreads',AllUnixOSes);
+    P.Dependencies.Add('morphunits',[morphos]);
     if Defaults.CPU=arm then
        P.OSes := P.OSes - [darwin];
-    P.OSes := P.OSes - [iphonesim,os2,emx,go32v2,watcom,nativent,embedded,android];
+    P.OSes := P.OSes - [iphonesim,os2,emx,go32v2,watcom,nativent,embedded,android,amiga,aros,msdos];
 
     T:=P.Targets.AddUnit('logger.pas');
       with T.Dependencies do

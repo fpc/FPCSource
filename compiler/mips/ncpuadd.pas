@@ -46,7 +46,6 @@ type
     procedure second_cmpordinal; override;
     procedure second_addordinal; override;
   public
-    function pass_1: tnode; override;
     function use_generic_mul32to64: boolean; override;
   end;
 
@@ -63,98 +62,31 @@ uses
   procinfo,
   symconst,symdef,
   ncon, nset, nadd,
-  ncgutil, cgobj;
+  ncgutil, hlcgobj, cgobj;
 
 {*****************************************************************************
                                tmipsaddnode
 *****************************************************************************}
-const
-  swapped_nodetype: array[ltn..gten] of tnodetype =
-    //lt  lte  gt  gte
-    (gtn, gten,ltn,lten);
-
-  ops: array[boolean] of tasmop = (A_SLT,A_SLTU);
-  ops_immed: array[boolean] of tasmop = (A_SLTI,A_SLTIU);
 
 procedure tmipsaddnode.second_generic_cmp32(unsigned: boolean);
 var
-  ntype: tnodetype;
-  tmp_left,tmp_right: TRegister;
+  cond: TOpCmp;
 begin
   pass_left_right;
   force_reg_left_right(True, True);
-  location_reset(location,LOC_REGISTER,OS_INT);
-  location.register:=cg.GetIntRegister(current_asmdata.CurrAsmList, OS_INT);
+  location_reset(location,LOC_FLAGS,OS_NO);
 
-  if nodetype in [equaln,unequaln] then
-    begin
-      tmp_left:=location.register;
-      { XORI needs unsigned immediate in range 0-65535 }
-      if (right.location.loc=LOC_CONSTANT) and (right.location.value>=0) and
-        (right.location.value<=65535) then
-        begin
-          if right.location.value<>0 then
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_XORI,location.register,left.location.register,right.location.value))
-          else
-            tmp_left:=left.location.register;
-        end
-      else
-        begin
-          if (right.location.loc<>LOC_CONSTANT) then
-            tmp_right:=right.location.register
-          else
-            begin
-              tmp_right:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
-              cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,right.location.value,tmp_right);
-            end;
-          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_XOR,location.register,left.location.register,tmp_right));
-        end;
-
-      if nodetype=equaln then
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_SLTIU,location.register,tmp_left,1))
-      else
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLTU,location.register,NR_R0,tmp_left));
-      exit;
-    end;
-
-  ntype:=nodetype;
+  cond:=cmpnode2topcmp(unsigned);
   if nf_swapped in flags then
-    ntype:=swapped_nodetype[nodetype];
+    cond:=swap_opcmp(cond);
 
-  {
-    sle  x,a,b  -->  slt   x,b,a; xori  x,x,1    immediate not possible (or must be at left)
-    sgt  x,a,b  -->  slt   x,b,a                 likewise
-    sge  x,a,b  -->  slt   x,a,b; xori  x,x,1
-    slt  x,a,b  -->  unchanged
-  }
-
-  if (ntype in [gten,ltn]) and
-    (right.location.loc=LOC_CONSTANT) and
-    (right.location.value>=simm16lo) and
-    (right.location.value<=simm16hi) then
-    current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_const(ops_immed[unsigned],location.register,left.location.register,right.location.value))
+  location.resflags.cond:=cond;
+  location.resflags.reg1:=left.location.register;
+  location.resflags.use_const:=(right.location.loc=LOC_CONSTANT);
+  if location.resflags.use_const then
+    location.resflags.value:=right.location.value
   else
-    begin
-      if (right.location.loc=LOC_CONSTANT) then
-        begin
-          if (right.location.value=0) then
-            tmp_right:=NR_R0
-          else
-            begin
-             tmp_right:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
-             cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,right.location.value,tmp_right);
-          end;
-        end
-      else
-        tmp_right:=right.location.register;
-
-      if (ntype in [lten,gtn]) then
-        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(ops[unsigned],location.register,tmp_right,left.location.register))
-      else
-        current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(ops[unsigned],location.register,left.location.register,tmp_right));
-    end;
-  if (ntype in [lten,gten]) then
-    current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_const(A_XORI,location.register,location.register,1));
+    location.resflags.reg2:=right.location.register;
 end;
 
 
@@ -252,24 +184,6 @@ begin
 end;
 
 
-function tmipsaddnode.pass_1 : tnode;
-  begin
-    result:=inherited pass_1;
-
-    if not(assigned(result)) then
-      begin
-        if (nodetype in [ltn,lten,gtn,gten,equaln,unequaln]) then
-          begin
-            if (left.resultdef.typ=floatdef) or (right.resultdef.typ=floatdef) then
-              expectloc:=LOC_JUMP
-            else if ((left.resultdef.typ<>orddef) or
-              (not (torddef(left.resultdef).ordtype in [s64bit,u64bit,scurrency]))) then
-              expectloc:=LOC_REGISTER;
-          end;
-      end;
-  end;
-
-
 procedure tmipsaddnode.second_addfloat;
 var
   op: TAsmOp;
@@ -280,14 +194,11 @@ begin
 
         { force fpureg as location, left right doesn't matter
           as both will be in a fpureg }
-  location_force_fpureg(current_asmdata.CurrAsmList, left.location, True);
-  location_force_fpureg(current_asmdata.CurrAsmList, right.location, (left.location.loc <> LOC_CFPUREGISTER));
+  hlcg.location_force_fpureg(current_asmdata.CurrAsmList, left.location, left.resultdef, True);
+  hlcg.location_force_fpureg(current_asmdata.CurrAsmList, right.location, right.resultdef, True);
 
   location_reset(location, LOC_FPUREGISTER, def_cgsize(resultdef));
-  if left.location.loc <> LOC_CFPUREGISTER then
-    location.Register := left.location.Register
-  else
-    location.Register := right.location.Register;
+  location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
 
   case nodetype of
     addn:
@@ -344,9 +255,9 @@ begin
   if nf_swapped in flags then
     swapleftright;
 
-  location_force_fpureg(current_asmdata.CurrAsmList, left.location, True);
-  location_force_fpureg(current_asmdata.CurrAsmList, right.location, True);
-  location_reset(location, LOC_JUMP, OS_NO);
+  hlcg.location_force_fpureg(current_asmdata.CurrAsmList, left.location, left.resultdef, True);
+  hlcg.location_force_fpureg(current_asmdata.CurrAsmList, right.location, right.resultdef, True);
+  location_reset(location, LOC_FLAGS, OS_NO);
 
   op:=ops_cmpfloat[left.location.size=OS_F64,nodetype];
 
@@ -362,14 +273,11 @@ begin
     end;
 
   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,lreg,rreg));
-  ai:=taicpu.op_sym(A_BC,current_procinfo.CurrTrueLabel);
+  location.resflags.reg1:=NR_FCC0;
   if (nodetype=unequaln) then
-    ai.SetCondition(C_COP1FALSE)
+    location.resflags.cond:=OC_EQ
   else
-    ai.SetCondition(C_COP1TRUE);
-  current_asmdata.CurrAsmList.concat(ai);
-  current_asmdata.CurrAsmList.concat(TAiCpu.Op_none(A_NOP));
-  cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+    location.resflags.cond:=OC_NE;
 end;
 
 

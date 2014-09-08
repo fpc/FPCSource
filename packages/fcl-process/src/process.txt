@@ -160,6 +160,12 @@ Property ExitStatus : Integer;
   Read-Only
   This returns the exit status of the application, or STILL_ACTIVE
   (defined in Windows.pas) if the application is still running.
+  This is the low-level exit status as reported by the OS.
+
+Property ExitCode : Integer;  
+  Read-Only
+  This returns the exit code as returned by the application, if it exited correcly.
+  It returns 0 if the process didn't exit correctly (e.g. a signal).
   
 Property FillAttribute : Integer;
   For console processes only.

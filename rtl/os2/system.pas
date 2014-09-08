@@ -1121,15 +1121,12 @@ begin
      xorl %eax,%eax
      movw %ss,%ax
      movl %eax,_SS
-     call SysResetFPU
     end;
 {$ENDIF OS2EXCEPTIONS}
     DosGetInfoBlocks (@TIB, @PIB);
-    StackBottom := TIB^.Stack;
-{ $IFNDEF OS2EXCEPTIONS}
-    StackTop := TIB^.StackLimit;
-{ $ENDIF OS2EXCEPTIONS}
     StackLength := CheckInitialStkLen (InitialStkLen);
+    { OS/2 has top of stack in TIB^.StackLimit - unlike Windows where it is in TIB^.Stack }
+    StackBottom := TIB^.StackLimit - StackLength;
 
     {Set type of application}
     ApplicationType := PIB^.ProcType;
@@ -1138,7 +1135,7 @@ begin
     IsConsole := ApplicationType <> 3;
 
     {Query maximum path length (QSV_MAX_PATH_LEN = 1)}
-    if DosQuerySysInfo (1, 1, @DW, SizeOf (DW)) = 0 then
+    if DosQuerySysInfo (1, 1, DW, SizeOf (DW)) = 0 then
      RealMaxPathLen := DW;
 
     ExitProc := nil;

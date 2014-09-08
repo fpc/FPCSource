@@ -944,8 +944,11 @@ var
  buffer:array[0..255] of char;
 begin
   DosError := 0;
-  path:='';
-  path := StrPas(filerec(f).Name);
+{$ifdef FPC_ANSI_TEXTFILEREC}
+  path:=filerec(f).Name;
+{$else}
+  path:=ToSingleByteFileSystemEncodedFileName(filerec(f).Name);
+{$endif}
   { Takes care of slash and backslash support }
   path:=FExpand(path);
   move(path[1],buffer,length(path));
@@ -974,9 +977,12 @@ var
  path:  pathstr;
  buffer:array[0..255] of char;
 begin
-  path:='';
   DosError := 0;
-  path := StrPas(filerec(f).Name);
+{$ifdef FPC_ANSI_TEXTFILEREC}
+  path:=filerec(f).Name;
+{$else}
+  path:=ToSingleByteFileSystemEncodedFileName(filerec(f).Name);
+{$endif}
   { Takes care of slash and backslash support }
   path:=FExpand(path);
   move(path[1],buffer,length(path));

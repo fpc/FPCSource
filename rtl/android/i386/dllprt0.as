@@ -31,7 +31,7 @@ FPC_SHARED_LIB_START:
         /* Get environment info from libc */
         movl    environ,%eax
         /* Check if environment is NULL */
-        cmpl    %eax,0
+        test    %eax,%eax
         jne     env_ok
         leal    EmptyEnv,%eax
 env_ok:

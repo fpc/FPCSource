@@ -26,7 +26,7 @@ unit systemvartags;
 interface
 
 uses exec,amigados, amigaguide, asl, bullet, intuition, datatypes ,
-     gadtools, graphics, locale, lowlevel, realtime,
+     gadtools, agraphics, locale, lowlevel, realtime,
      workbench, utility, tagsarray;
 
 {    As of today boolean and char doesn't function in
@@ -232,7 +232,7 @@ end;
 
 FUNCTION AslRequestTags(requester : POINTER; Const argv : Array Of Const) : BOOLEAN;
 begin
-    AslRequestTags := AslRequest(requester,readintags(argv));
+    AslRequestTags := AslRequest(requester,readintags(argv)) <> 0;
 end;
 
 FUNCTION ObtainInfo(glyphEngine : pGlyphEngine; Const argv : Array Of Const) : ULONG;

@@ -539,7 +539,9 @@ implementation
           '.objc_nlclasslist',
           '.objc_catlist',
           '.obcj_nlcatlist',
-          '.objc_protolist'
+          '.objc_protolist',
+          '.stack',
+          '.heap'
         );
 
 const go32v2stub : array[0..2047] of byte=(
@@ -917,27 +919,27 @@ const pemagic : array[0..3] of byte = (
                 RELOC_RELATIVE_1:
                   begin
                     address:=address-objsec.mempos+relocval;
-                    dec(address,objreloc.dataoffset+1);
+                    dec(address,objreloc.dataoffset+5);
                   end;
                 RELOC_RELATIVE_2:
                   begin
                     address:=address-objsec.mempos+relocval;
-                    dec(address,objreloc.dataoffset+2);
+                    dec(address,objreloc.dataoffset+6);
                   end;
                 RELOC_RELATIVE_3:
                   begin
                     address:=address-objsec.mempos+relocval;
-                    dec(address,objreloc.dataoffset+3);
+                    dec(address,objreloc.dataoffset+7);
                   end;
                 RELOC_RELATIVE_4:
                   begin
                     address:=address-objsec.mempos+relocval;
-                    dec(address,objreloc.dataoffset+4);
+                    dec(address,objreloc.dataoffset+8);
                   end;
                 RELOC_RELATIVE_5:
                   begin
                     address:=address-objsec.mempos+relocval;
-                    dec(address,objreloc.dataoffset+5);
+                    dec(address,objreloc.dataoffset+9);
                   end;
                 RELOC_ABSOLUTE32,
 {$endif x86_64}
@@ -2873,6 +2875,7 @@ const pemagic : array[0..3] of byte = (
 {$endif win32}
       begin
         result:=false;
+        fillchar(sechdr,sizeof(sechdr),0);
 {$ifdef win32}
         if (target_info.system=system_x86_64_win64) and
           assigned(Wow64DisableWow64FsRedirection) then

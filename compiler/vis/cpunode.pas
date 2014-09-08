@@ -41,7 +41,9 @@ unit cpunode;
 //       nvismem,
 //       nvisinl,
 //       nvismat,
-//       nviscnv
+//       nviscnv,
+       { symtable }
+       symcpu
        ;
 
 end.

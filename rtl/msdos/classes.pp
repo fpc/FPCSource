@@ -18,6 +18,14 @@
 { determine the type of the resource/form file }
 {$define Win16Res}
 
+{$if defined(FPC_MM_TINY) or defined(FPC_MM_SMALL) or defined(FPC_MM_LARGE) or defined(FPC_MM_HUGE)}
+  { CodePointer = Pointer; nothing to define }
+{$elseif defined(FPC_MM_MEDIUM) or defined(FPC_MM_COMPACT)}
+  {$define FPC_CODEPOINTER_DIFFERENT_THAN_POINTER}
+{$else}
+  {$fatal Unknown i8086 memory model.}
+{$endif}
+
 unit Classes;
 
 interface
@@ -26,7 +34,7 @@ uses
   typinfo,
   rtlconsts,
   types,
-{$ifdef FPC_TESTGENERICS}
+{$if defined(FPC_TESTGENERICS) or defined(FPC_CODEPOINTER_DIFFERENT_THAN_POINTER)}
   fgl,
 {$endif}
   sysutils;
@@ -34,6 +42,13 @@ uses
 {$i classesh.inc}
 
 implementation
+
+type
+{$ifdef FPC_CODEPOINTER_DIFFERENT_THAN_POINTER}
+  TCodePtrList = specialize TFPGList<CodePointer>;
+{$else FPC_CODEPOINTER_DIFFERENT_THAN_POINTER}
+  TCodePtrList = TList;
+{$endif FPC_CODEPOINTER_DIFFERENT_THAN_POINTER}
 
 { OS - independent class implementations are in /inc directory. }
 {$i classes.inc}

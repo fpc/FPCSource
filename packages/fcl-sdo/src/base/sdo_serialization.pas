@@ -815,17 +815,19 @@ var
     if ( q > 0 ) then begin
       pt := AItem.Prop.getType();
       FStreamer.BeginObject(AItem.Prop.getName(), pt);
-        for k := 0 to Pred(q) do begin
-          FStreamer.BeginObject(s_listChanges, pt);
-            ch := AItem.GetItem(k);
-            PushSerializationStyle(ssAttibuteSerialization);
-              FStreamer.Put(s_index, locIntType, ch.Index);
-              FStreamer.Put(s_kind, locStringType, PROP_ACTION_STRING[ch.Action]);
-            PopSerializationStyle();
-            if ( ch.Action in [mvpaChange, mvpaDelete] ) then
-              FStreamer.Put(s_dataValues, pt, ch.Value);
-          FStreamer.EndScope();
-        end;
+        FStreamer.BeginArray(s_listChanges, pt, [0,(q-1)]);
+          for k := 0 to Pred(q) do begin
+            FStreamer.BeginObject(s_listChanges, pt);
+              ch := AItem.GetItem(k);
+              PushSerializationStyle(ssAttibuteSerialization);
+                FStreamer.Put(s_index, locIntType, ch.Index);
+                FStreamer.Put(s_kind, locStringType, PROP_ACTION_STRING[ch.Action]);
+                if ( ch.Action in [mvpaChange, mvpaDelete] ) then
+                  FStreamer.Put(s_dataValues, pt, ch.Value);
+              PopSerializationStyle();
+            FStreamer.EndScope();
+          end;
+        FStreamer.EndScope();
       FStreamer.EndScope();
     end;
   end;
@@ -840,17 +842,19 @@ var
     if ( q > 0 ) then begin
       pt := AItem.Prop.getType();
       FStreamer.BeginObject(AItem.Prop.getName(), pt);
-        for k := 0 to Pred(q) do begin
-          FStreamer.BeginObject(s_listChanges, pt);
-            ch := AItem.GetItem(k);
-            PushSerializationStyle(ssAttibuteSerialization);
-              FStreamer.Put(s_index, locIntType, ch.Index);
-              FStreamer.Put(s_kind, locStringType, PROP_ACTION_STRING[ch.Action]);
-            PopSerializationStyle();
-            if ( ch.Action in [mvpaChange, mvpaDelete] ) then
-              AddPropertyRefRecallWrite(rritSettingItem,ADataObject,AItem.Prop,ch.Value.ObjectValue^);
-          FStreamer.EndScope();
-        end;
+        FStreamer.BeginArray(s_listChanges, pt, [0,(q-1)]);
+          for k := 0 to Pred(q) do begin
+            FStreamer.BeginObject(s_listChanges, pt);
+              ch := AItem.GetItem(k);
+              PushSerializationStyle(ssAttibuteSerialization);
+                FStreamer.Put(s_index, locIntType, ch.Index);
+                FStreamer.Put(s_kind, locStringType, PROP_ACTION_STRING[ch.Action]);
+              PopSerializationStyle();
+              if ( ch.Action in [mvpaChange, mvpaDelete] ) then
+                AddPropertyRefRecallWrite(rritSettingItem,ADataObject,AItem.Prop,ch.Value.ObjectValue^);
+            FStreamer.EndScope();
+          end;
+        FStreamer.EndScope();
       FStreamer.EndScope();
     end;
   end;
@@ -865,23 +869,25 @@ var
     if ( q > 0 ) then begin
       pt := AItem.Prop.getType();
       FStreamer.BeginObject(AItem.Prop.getName(), pt);
-        for k := 0 to Pred(q) do begin
-          FStreamer.BeginObject(s_listChanges, pt);
-            ch := AItem.GetItem(k);
-            PushSerializationStyle(ssAttibuteSerialization);
-              FStreamer.Put(s_index, locIntType, ch.Index);
-              FStreamer.Put(s_kind, locStringType, PROP_ACTION_STRING[ch.Action]);
-            PopSerializationStyle();
-            if ( ch.Action in [mvpaChange, mvpaDelete] ) then begin
-              case pt.getTypeEnum() of
-                StringType   :  FStreamer.Put(s_dataValues, pt, ch.Value.StringValue^);
-{$IFDEF HAS_SDO_BYTES}
-                BytesType    :  FStreamer.Put(s_dataValues, pt, ch.Value.BytesValue^);
-{$ENDIF HAS_SDO_BYTES}
+        FStreamer.BeginArray(s_listChanges, pt, [0,(q-1)]);
+          for k := 0 to Pred(q) do begin
+            FStreamer.BeginObject(s_listChanges, pt);
+              ch := AItem.GetItem(k);
+              PushSerializationStyle(ssAttibuteSerialization);
+                FStreamer.Put(s_index, locIntType, ch.Index);
+                FStreamer.Put(s_kind, locStringType, PROP_ACTION_STRING[ch.Action]);
+              PopSerializationStyle();
+              if ( ch.Action in [mvpaChange, mvpaDelete] ) then begin
+                case pt.getTypeEnum() of
+                  StringType   :  FStreamer.Put(s_dataValues, pt, ch.Value.StringValue^);
+  {$IFDEF HAS_SDO_BYTES}
+                  BytesType    :  FStreamer.Put(s_dataValues, pt, ch.Value.BytesValue^);
+  {$ENDIF HAS_SDO_BYTES}
+                end;
               end;
-            end;
-          FStreamer.EndScope();
-        end;
+            FStreamer.EndScope();
+          end;
+        FStreamer.EndScope();
       FStreamer.EndScope();
     end;
   end;
@@ -956,25 +962,49 @@ var
 begin
   r := '';
   x := AObj;
-  p := x.getContainer();
-  while ( p <> nil ) do begin
-    prp := x.getContainmentProperty();
-    if prp.isMany() then
-      r := Format('%s[%d]/%s',[prp.getName(),indexOf(x,p.getList(prp)),r])
-    else
-      r := prp.getName() + '/' + r;
-    x := p;
+  if not FChangeSummary.isDeleted(x) then begin
     p := x.getContainer();
-  end;
-  prp := FChangeSummaryList.getInstanceProperties().find(x.getType().getName());
-  if ( prp <> nil ) then begin
-    ls := FChangeSummaryList.getList(prp);
-    locPos := indexOf(x,ls) ;
-    if ( locPos > -1 ) then begin
-      if ( r = '' ) then
-        r := Format('#/%s/%s[%d]',[s_changeSummary,x.getType().getName(),locPos])
+    while ( p <> nil ) do begin
+      prp := x.getContainmentProperty();
+      if prp.isMany() then
+        r := Format('%s[%d]/%s',[prp.getName(),indexOf(x,p.getList(prp)),r])
       else
-        r := Format('#/%s/%s[%d]/%s',[s_changeSummary,x.getType().getName(),locPos,r]);
+        r := prp.getName() + '/' + r;
+      x := p;
+      p := x.getContainer();
+    end;
+    prp := FChangeSummaryList.getInstanceProperties().find(x.getType().getName());
+    if ( prp <> nil ) then begin
+      ls := FChangeSummaryList.getList(prp);
+      locPos := indexOf(x,ls) ;
+      if ( locPos > -1 ) then begin
+        if ( r = '' ) then
+          r := Format('#/%s/%s[%d]',[s_changeSummary,x.getType().getName(),locPos])
+        else
+          r := Format('#/%s/%s[%d]/%s',[s_changeSummary,x.getType().getName(),locPos,r]);
+      end;
+    end;
+  end else begin
+    p := x.getContainer();
+    while (p <> nil) and FChangeSummary.isDeleted(p) do begin
+      prp := x.getContainmentProperty();
+      if prp.isMany() then
+        r := Format('%s[%d]/%s',[prp.getName(),indexOf(x,p.getList(prp)),r])
+      else
+        r := prp.getName() + '/' + r;
+      x := p;
+      p := x.getContainer();
+    end;
+    prp := FChangeSummaryList.getInstanceProperties().find(x.getType().getName());
+    if ( prp <> nil ) then begin
+      ls := FChangeSummaryList.getList(prp);
+      locPos := indexOf(x,ls) ;
+      if ( locPos > -1 ) then begin
+        if ( r = '' ) then
+          r := Format('#/%s/%s[%d]',[s_changeSummary,x.getType().getName(),locPos])
+        else
+          r := Format('#/%s/%s[%d]/%s',[s_changeSummary,x.getType().getName(),locPos,r]);
+      end;
     end;
   end;
   Result := r;
@@ -2164,6 +2194,8 @@ var
         lsReaded := TStringList.Create();
         lsReaded.Duplicates := dupIgnore;
         lsReaded.Sorted := True;
+        lsReaded.Add(s_create);
+        lsReaded.Add(s_delete);
         changedObjList := AValue.getChangedDataObjects() as ISDOChangedDataObjectListEx;
         c := ls.Count;
         for i := 0 to Pred(c) do begin
@@ -2504,6 +2536,7 @@ procedure TSDOSerializer.WriteChangeSummary(
       p := ASetting.getProperty();
       if ASetting.isSet() then begin
         if p.getType().isDataType() then begin
+          PushSerializationStyle(getSerializationStyle(p));
           case p.getTypeEnum() of
             BooleanType :
               begin
@@ -2582,6 +2615,7 @@ procedure TSDOSerializer.WriteChangeSummary(
             else
               raise Exception.Create('NOT-IMPLEMENTED');
           end;
+          PopSerializationStyle();
         end else if p.getType().isDataObjectType() then begin
           if p.isContainment() then begin
             if ( ASetting.getDataObjectValue() = nil ) then begin
@@ -2777,17 +2811,13 @@ procedure TSDOSerializer.InternalWriteObject(
   procedure WriteArrayProp(const AProp : ISDOProperty);
   var
     ls : ISDODataObjectList;
-    k, lsCount : PtrInt;
+    k : PtrInt;
     crsr : ISDOCursor;
     wrtProc : TPropListWriterProc;
     bmk : ISDOCursorBookmark;
   begin
     ls := AObject.getList(AProp);
-    lsCount := ls.size();
-    if ( lsCount > 0 ) then
-      k := lsCount - 1
-    else
-      k := 0;
+    k := ls.size() - 1;
     crsr := ls.getCursor();
     FStreamer.BeginArray(AProp.getName(),AProp.getType(),[0,k]);
     try

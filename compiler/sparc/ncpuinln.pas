@@ -51,7 +51,7 @@ implementation
       cgbase,pass_2,
       cpubase,paramgr,
       nbas,ncon,ncal,ncnv,nld,
-      ncgutil,cgobj,cgutils;
+      hlcgobj,ncgutil,cgobj,cgutils;
 
 {*****************************************************************************
                               tsparcinlinenode
@@ -60,7 +60,7 @@ implementation
     procedure tsparcinlinenode.load_fpu_location;
       begin
         secondpass(left);
-        location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
+        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
         location_copy(location,left.location);
         if left.location.loc=LOC_CFPUREGISTER then
           begin

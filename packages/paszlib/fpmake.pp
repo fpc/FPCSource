@@ -18,7 +18,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
-    P.OSes := P.OSes - [embedded,nativent];
+    P.OSes := P.OSes - [embedded,nativent,msdos];
 
     D:=P.Dependencies.Add('hash');
       D.Version:='2.7.1';

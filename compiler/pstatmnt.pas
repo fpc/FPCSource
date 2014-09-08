@@ -53,7 +53,7 @@ implementation
        nutils,ngenutil,nbas,nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
        scanner,
-       pbase,pexpr,
+       pbase,ptype,pexpr,
        { codegen }
        procinfo,cgbase,
        { assembler reader }
@@ -73,7 +73,7 @@ implementation
          consume(_IF);
          ex:=comp_expr(true,false);
          consume(_THEN);
-         if token<>_ELSE then
+         if not(token in endtokens) then
            if_a:=statement
          else
            if_a:=nil;
@@ -93,6 +93,7 @@ implementation
 
       begin
          first:=nil;
+         last:=nil;
          while token<>_END do
            begin
               if first=nil then
@@ -297,8 +298,9 @@ implementation
 
       begin
          consume(_REPEAT);
-         first:=nil;
 
+         first:=nil;
+         last:=nil;
          while token<>_UNTIL do
            begin
               if first=nil then
@@ -336,6 +338,24 @@ implementation
          result:=cwhilerepeatnode.create(p_e,p_a,true,false);
       end;
 
+    { a helper function which is used both by "with" and "for-in loop" nodes }
+    function skip_nodes_before_load(p: tnode): tnode;
+      begin
+        { ignore nodes that don't add instructions in the tree }
+        while assigned(p) and
+           { equal type conversions }
+           (
+            (p.nodetype=typeconvn) and
+            (ttypeconvnode(p).convtype=tc_equal)
+           ) or
+           { constant array index }
+           (
+            (p.nodetype=vecn) and
+            (tvecnode(p).right.nodetype=ordconstn)
+           ) do
+          p:=tunarynode(p).left;
+        result:=p;
+      end;
 
     function for_statement : tnode;
 
@@ -487,8 +507,18 @@ implementation
 
           function for_in_loop_create(hloopvar: tnode): tnode;
             var
-              expr: tnode;
+              expr,hloopbody,hp: tnode;
+              loopvarsym: tabstractvarsym;
             begin
+              hp:=skip_nodes_before_load(hloopvar);
+              if assigned(hp)and(hp.nodetype=loadn) then
+                begin
+                  loopvarsym:=tabstractvarsym(tloadnode(hp).symtableentry);
+                  include(loopvarsym.varoptions,vo_is_loop_counter);
+                end
+              else
+                loopvarsym:=nil;
+
               expr:=comp_expr(true,false);
 
               consume(_DO);
@@ -496,7 +526,10 @@ implementation
               set_varstate(hloopvar,vs_written,[]);
               set_varstate(hloopvar,vs_read,[vsf_must_be_valid]);
 
-              result:=create_for_in_loop(hloopvar,statement,expr);
+              hloopbody:=statement;
+              if assigned(loopvarsym) then
+                exclude(loopvarsym.varoptions,vo_is_loop_counter);
+              result:=create_for_in_loop(hloopvar,hloopbody,expr);
 
               expr.free;
             end;
@@ -516,7 +549,10 @@ implementation
          else if try_to_consume(_IN) then
            result:=for_in_loop_create(hloopvar)
          else
-           consume(_ASSIGNMENT); // fail
+           begin
+             consume(_ASSIGNMENT); // fail
+             result:=cerrornode.create;
+           end;
       end;
 
 
@@ -567,6 +603,7 @@ implementation
 
 
       begin
+         calltempnode:=nil;
          p:=comp_expr(true,false);
          do_typecheckpass(p);
 
@@ -585,19 +622,7 @@ implementation
             valuenode:=nil;
             tempnode:=nil;
 
-            { ignore nodes that don't add instructions in the tree }
-            hp:=p;
-            while { equal type conversions }
-                  (
-                   (hp.nodetype=typeconvn) and
-                   (ttypeconvnode(hp).convtype=tc_equal)
-                  ) or
-                  { constant array index }
-                  (
-                   (hp.nodetype=vecn) and
-                   (tvecnode(hp).right.nodetype=ordconstn)
-                  ) do
-              hp:=tunarynode(hp).left;
+            hp:=skip_nodes_before_load(p);
             if (hp.nodetype=loadn) and
                (
                 (tloadnode(hp).symtable=current_procinfo.procdef.localst) or
@@ -617,7 +642,6 @@ implementation
               end
             else
               begin
-                calltempnode:=nil;
                 { complex load, load in temp first }
                 newblock:=internalstatements(newstatement);
                 { when we can't take the address of p, load it in a temp }
@@ -647,7 +671,7 @@ implementation
                 if hasimplicitderef then
                   hdef:=p.resultdef
                 else
-                  hdef:=tpointerdef.create(p.resultdef);
+                  hdef:=cpointerdef.create(p.resultdef);
                 { load address of the value in a temp }
                 tempnode:=ctempcreatenode.create_withnode(hdef,sizeof(pint),tt_persistent,true,p);
                 typecheckpass(tnode(tempnode));
@@ -825,6 +849,18 @@ implementation
 
 
     function try_statement : tnode;
+
+      procedure check_type_valid(var def: tdef);
+        begin
+           if not (is_class(def) or is_javaclass(def) or
+              { skip showing error message the second time }
+              (def.typ=errordef)) then
+             begin
+               Message1(type_e_class_type_expected,def.typename);
+               def:=generrordef;
+             end;
+        end;
+
       var
          p_try_block,p_finally_block,first,last,
          p_default,p_specific,hp : tnode;
@@ -841,6 +877,8 @@ implementation
       begin
          p_default:=nil;
          p_specific:=nil;
+         excepTSymtable:=nil;
+         last:=nil;
 
          { read statements to try }
          consume(_TRY);
@@ -900,22 +938,9 @@ implementation
                           { is a explicit name for the exception given ? }
                           if try_to_consume(_COLON) then
                             begin
-                               consume_sym(srsym,srsymtable);
-                               if (srsym.typ=typesym) and
-                                  (is_class(ttypesym(srsym).typedef) or
-                                   is_javaclass(ttypesym(srsym).typedef)) then
-                                 begin
-                                    ot:=ttypesym(srsym).typedef;
-                                    sym:=tlocalvarsym.create(objrealname,vs_value,ot,[]);
-                                 end
-                               else
-                                 begin
-                                    sym:=tlocalvarsym.create(objrealname,vs_value,generrordef,[]);
-                                    if (srsym.typ=typesym) then
-                                      Message1(type_e_class_type_expected,ttypesym(srsym).typedef.typename)
-                                    else
-                                      Message1(type_e_class_type_expected,ot.typename);
-                                 end;
+                              single_type(ot,[]);
+                              check_type_valid(ot);
+                              sym:=clocalvarsym.create(objrealname,vs_value,ot,[]);
                             end
                           else
                             begin
@@ -933,22 +958,22 @@ implementation
                                  consume(t);
                                { check if type is valid, must be done here because
                                  with "e: Exception" the e is not necessary }
-                               if (srsym.typ=typesym) and
-                                  (is_class(ttypesym(srsym).typedef) or
-                                   is_javaclass(ttypesym(srsym).typedef)) then
-                                 ot:=ttypesym(srsym).typedef
+                               if (srsym.typ=typesym) then
+                                 begin
+                                   ot:=ttypesym(srsym).typedef;
+                                   parse_nested_types(ot,false,nil);
+                                   check_type_valid(ot);
+                                 end
                                else
                                  begin
-                                    ot:=generrordef;
-                                    if (srsym.typ=typesym) then
-                                      Message1(type_e_class_type_expected,ttypesym(srsym).typedef.typename)
-                                    else
-                                      Message1(type_e_class_type_expected,ot.typename);
+                                   Message(type_e_type_id_expected);
+                                   ot:=generrordef;
                                  end;
-                               { create dummy symbol so we don't need a special
+
+                                 { create dummy symbol so we don't need a special
                                  case in ncgflw, and so that we always know the
                                  type }
-                               sym:=tlocalvarsym.create('$exceptsym',vs_value,ot,[]);
+                               sym:=clocalvarsym.create('$exceptsym',vs_value,ot,[]);
                             end;
                           excepTSymtable:=tstt_excepTSymtable.create;
                           excepTSymtable.insert(sym);
@@ -1022,6 +1047,7 @@ implementation
         entrypos : tfileposinfo;
       begin
          Inside_asm_statement:=true;
+         asmstat:=nil;
          if assigned(asmmodeinfos[current_settings.asmmode]) then
            begin
              asmreader:=asmmodeinfos[current_settings.asmmode]^.casmreader.create;
@@ -1098,6 +1124,7 @@ implementation
          s          : TIDString;
       begin
          filepos:=current_tokenpos;
+         code:=nil;
          case token of
            _GOTO :
              begin
@@ -1295,8 +1322,14 @@ implementation
                     not(is_void(p.resultdef)) and
                     { can be nil in case there was an error in the expression }
                     assigned(tcallnode(p).procdefinition) and
-                    not((tcallnode(p).procdefinition.proctypeoption=potype_constructor) and
-                        is_object(tprocdef(tcallnode(p).procdefinition).struct)) then
+                    { allow constructor calls to drop the result if they are
+                      called as instance methods instead of class methods }
+                    not(
+                      (tcallnode(p).procdefinition.proctypeoption=potype_constructor) and
+                      is_class_or_object(tprocdef(tcallnode(p).procdefinition).struct) and
+                      assigned(tcallnode(p).methodpointer) and
+                      (tnode(tcallnode(p).methodpointer).resultdef.typ=objectdef)
+                    ) then
                    Message(parser_e_illegal_expression);
                end;
              code:=p;
@@ -1319,6 +1352,7 @@ implementation
 
       begin
          first:=nil;
+         last:=nil;
          filepos:=current_tokenpos;
          consume(starttoken);
 

@@ -642,7 +642,10 @@ end;
 var
   temp_int : tseginfo;
 Begin
-  StackLength := CheckInitialStkLen(InitialStkLen);
+{ v2prt0.as adds 256 bytes to __stkbottom for extra safety during stack
+  checking, so we subtract 256 here in order to calculate StackTop correctly
+  and to ensure that StackLength = StackTop - StackBottom }
+  StackLength := CheckInitialStkLen(InitialStkLen)-256;
   StackBottom := __stkbottom;
   { To be set if this is a GUI or console application }
   IsConsole := TRUE;

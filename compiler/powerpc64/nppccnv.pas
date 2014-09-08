@@ -58,7 +58,7 @@ implementation
 uses
   verbose, globtype, globals, systems,
   symconst, symdef, aasmbase, aasmtai,aasmdata,
-  defutil,
+  defutil, symcpu,
   cgbase, cgutils, pass_1, pass_2,
   ncon, ncal,procinfo,
   ncgutil,
@@ -105,8 +105,9 @@ var
   size: tcgsize;
   signed: boolean;
 begin
-
   location_reset(location, LOC_FPUREGISTER, def_cgsize(resultdef));
+  reference_reset(disp2,0);
+  tempconst:=nil;
 
   { the code here comes from the PowerPC Compiler Writer's Guide }
   { * longint to double (works for all rounding modes) }

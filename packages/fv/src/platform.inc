@@ -420,6 +420,12 @@ FOR FPC THESE ARE THE TRANSLATIONS
   {$ENDIF}
 {$ENDIF}
 
+{ AROS has AmigaOS API, so define OS_AMIGA }
+{$IFDEF AROS}
+  {$UNDEF OS_DOS}
+  {$DEFINE OS_AMIGA}
+{$ENDIF}
+
 {---------------------------------------------------------------------------}
 {  FPC ATARI COMPILER changes op system and CPU type - Updated 27Aug98 LdB  }
 {---------------------------------------------------------------------------}

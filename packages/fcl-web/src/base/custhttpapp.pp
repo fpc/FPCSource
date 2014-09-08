@@ -33,8 +33,8 @@ Type
   Private
     FWebHandler: TFPHTTPServerHandler;
   protected
-    Procedure InitRequest(ARequest : TFPHTTPConnectionRequest); virtual;
-    Procedure InitResponse(AResponse : TFPHTTPConnectionResponse); virtual;
+    Procedure InitRequest(ARequest : TFPHTTPConnectionRequest); override;
+    Procedure InitResponse(AResponse : TFPHTTPConnectionResponse); override;
     Property WebHandler : TFPHTTPServerHandler Read FWebHandler;
     Property Active;
   end;
@@ -44,9 +44,6 @@ Type
   { TFPHTTPServerHandler }
 
   TFPHTTPServerHandler = class(TWebHandler)
-    procedure HTTPHandleRequest(Sender: TObject;
-      var ARequest: TFPHTTPConnectionRequest;
-      var AResponse: TFPHTTPConnectionResponse);
   Private
     FOnRequestError: TRequestErrorHandler;
     FServer: TEmbeddedHTTPServer;
@@ -61,6 +58,7 @@ Type
     function GetLookupHostNames : Boolean;
     Procedure SetLookupHostnames(Avalue : Boolean);
   protected
+    procedure HTTPHandleRequest(Sender: TObject; var ARequest: TFPHTTPConnectionRequest; var AResponse: TFPHTTPConnectionResponse); virtual;
     procedure HandleRequestError(Sender: TObject; E: Exception); virtual;
     Procedure InitRequest(ARequest : TRequest); override;
     Procedure InitResponse(AResponse : TResponse); override;
@@ -69,6 +67,7 @@ Type
     Property HTTPServer : TEmbeddedHttpServer Read FServer;
   Public
     Procedure Run; override;
+    Procedure Terminate; override;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     // Port to listen on.
@@ -219,11 +218,12 @@ procedure TFPHTTPServerHandler.HTTPHandleRequest(Sender: TObject;
   var AResponse: TFPHTTPConnectionResponse);
 begin
   // Exceptions are handled by (Do)HandleRequest. It also frees the response/request
-  DoHandleRequest(ARequest,AResponse);
-  ARequest:=Nil;
-  AResponse:=Nil;
-  If Terminated then
-    FServer.Active:=False;
+  try
+    DoHandleRequest(ARequest,AResponse);
+  finally  
+    ARequest:=Nil;
+    AResponse:=Nil;
+  end;    
   if Assigned(OnIdle) then
     OnIdle(Self);
 end;
@@ -308,6 +308,13 @@ begin
   Fserver.Active:=True;
 end;
 
+procedure TFPHTTPServerHandler.Terminate;
+begin
+  Inherited;
+  if Assigned(FServer) then
+    Fserver.Active:=False;
+end;
+
 constructor TFPHTTPServerHandler.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -319,8 +326,11 @@ end;
 
 destructor TFPHTTPServerHandler.Destroy;
 begin
-  FServer.Active:=False;
-  FreeAndNil(FServer);
+  if Assigned(FServer) then
+    begin
+    FServer.Active:=False;
+    FreeAndNil(FServer);
+    end;
   inherited Destroy;
 
 end;

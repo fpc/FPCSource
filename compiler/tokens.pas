@@ -135,13 +135,13 @@ type
     _FAIL,
     _FILE,
     _GOTO,
+    _HUGE,
     _NAME,
     _NEAR,
     _READ,
     _SELF,
     _SYSV,
     _THEN,
-    _TRUE,
     _TYPE,
     _UNIT,
     _UNIV,
@@ -155,7 +155,6 @@ type
     _CLASS,
     _CONST,
     _EQUAL,
-    _FALSE,
     _FAR16,
     _FINAL,
     _INDEX,
@@ -226,6 +225,7 @@ type
     _MULTIPLY,
     _MWPASCAL,
     _NEGATIVE,
+    _NORETURN,
     _NOTEQUAL,
     _OPERATOR,
     _OPTIONAL,
@@ -295,6 +295,15 @@ type
     _GREATERTHANOREQUAL
   );
 
+  { sub_expr(opmultiply) is need to get -1 ** 4 to be
+    read as - (1**4) and not (-1)**4 PM }
+  toperator_precedence=(
+    opcompare,
+    opaddition,
+    opmultiply,
+    oppower
+  );
+
 const
   tokenlenmin = 1;
   tokenlenmax = 18;
@@ -306,6 +315,16 @@ const
   first_overloaded = succ(NOTOKEN);
   last_overloaded  = _OP_DEC;
   last_operator = _GENERICSPECIALTOKEN;
+
+  highest_precedence = oppower;
+
+  { Warning these stay be ordered !! }
+  operator_levels:array[Toperator_precedence] of set of NOTOKEN..last_operator=
+      ([_LT,_LTE,_GT,_GTE,_EQ,_NE,_OP_IN],
+       [_PLUS,_MINUS,_OP_OR,_PIPE,_OP_XOR],
+       [_CARET,_SYMDIF,_STARSTAR,_STAR,_SLASH,
+        _OP_AS,_OP_IS,_OP_AND,_AMPERSAND,_OP_DIV,_OP_MOD,_OP_SHL,_OP_SHR],
+       [_STARSTAR] );
 
 type
   tokenrec=record
@@ -434,13 +453,13 @@ const
       (str:'FAIL'          ;special:false;keyword:[m_none];op:NOTOKEN), { only set within constructors PM }
       (str:'FILE'          ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
       (str:'GOTO'          ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
+      (str:'HUGE'          ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'NAME'          ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'NEAR'          ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'READ'          ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'SELF'          ;special:false;keyword:[m_none];op:NOTOKEN), {set inside methods only PM }
       (str:'SYSV'          ;special:false;keyword:[m_none];op:NOTOKEN),   { Syscall variation on MorphOS }
       (str:'THEN'          ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
-      (str:'TRUE'          ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
       (str:'TYPE'          ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
       (str:'UNIT'          ;special:false;keyword:alllanguagemodes-[m_iso];op:NOTOKEN),
       (str:'UNIV'          ;special:false;keyword:[m_mac];op:NOTOKEN),
@@ -454,7 +473,6 @@ const
       (str:'CLASS'         ;special:false;keyword:[m_class];op:NOTOKEN),
       (str:'CONST'         ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
       (str:'EQUAL'         ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
-      (str:'FALSE'         ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
       (str:'FAR16'         ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'FINAL'         ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'INDEX'         ;special:false;keyword:[m_none];op:NOTOKEN),
@@ -525,6 +543,7 @@ const
       (str:'MULTIPLY'      ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
       (str:'MWPASCAL'      ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'NEGATIVE'      ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
+      (str:'NORETURN'      ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'NOTEQUAL'      ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
       (str:'OPERATOR'      ;special:false;keyword:[m_fpc];op:NOTOKEN),
       (str:'OPTIONAL'      ;special:false;keyword:[m_none];op:NOTOKEN), { optional methods in an Objective-C protocol }

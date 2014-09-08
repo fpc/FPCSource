@@ -34,7 +34,6 @@ interface
           function first_int_to_real: tnode; override;
           procedure second_int_to_real;override;
           procedure second_int_to_bool;override;
-//          procedure pass_generate_code;override;
        end;
 
 implementation
@@ -158,12 +157,14 @@ implementation
       var
         hreg1,
         hreg2    : tregister;
+        reg64    : tregister64;
         resflags : tresflags;
         opsize   : tcgsize;
         newsize  : tcgsize;
         hlabel,
         oldTrueLabel,
         oldFalseLabel : tasmlabel;
+        tmpreference : treference;
       begin
          oldTrueLabel:=current_procinfo.CurrTrueLabel;
          oldFalseLabel:=current_procinfo.CurrFalseLabel;
@@ -190,46 +191,71 @@ implementation
               exit;
            end;
 
-         location_reset(location,LOC_REGISTER,def_cgsize(left.resultdef));
+         resflags:=F_NE;
+
+         newsize:=def_cgsize(resultdef);
          opsize := def_cgsize(left.resultdef);
          case left.location.loc of
             LOC_CREFERENCE,LOC_REFERENCE :
               begin
-                { can we optimize it, or do we need to fix the ref. ? }
-                if isvalidrefoffset(left.location.reference) then
+                if opsize in [OS_64,OS_S64] then
                   begin
-                    current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,TCGSize2OpSize[opsize],
-                       left.location.reference));
+                    reg64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                    reg64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                    cg64.a_load64_loc_reg(current_asmdata.CurrAsmList,left.location,reg64);
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_OR,S_L,reg64.reghi,reg64.reglo));
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_L,reg64.reglo));
                   end
                 else
                   begin
-                     hreg2:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                     cg.a_load_ref_reg(current_asmdata.CurrAsmList,opsize,opsize,
-                        left.location.reference,hreg2);
-                     current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[opsize],hreg2));
-//                     cg.ungetcpuregister(current_asmdata.CurrAsmList,hreg2);
+                    { can we optimize it, or do we need to fix the ref. ? }
+                    if isvalidrefoffset(left.location.reference) then
+                      begin
+                        { Coldfire cannot handle tst.l 123(dX) }
+                        if (current_settings.cputype in (cpu_coldfire + [cpu_mc68000])) and
+                           isintregister(left.location.reference.base) then
+                          begin
+                            tmpreference:=left.location.reference;
+                            hreg2:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                            tmpreference.base:=hreg2;
+                            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MOVE,S_L,left.location.reference.base,hreg2));
+                            current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,TCGSize2OpSize[opsize],tmpreference));
+                          end
+                        else
+                          current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,TCGSize2OpSize[opsize],left.location.reference));
+                      end
+                    else
+                      begin
+                         hreg2:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+                         cg.a_load_ref_reg(current_asmdata.CurrAsmList,opsize,opsize,
+                            left.location.reference,hreg2);
+                         current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[opsize],hreg2));
+                      end;
                   end;
-//                reference_release(current_asmdata.CurrAsmList,left.location.reference);
-                resflags:=F_NE;
-                hreg1:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
               end;
             LOC_REGISTER,LOC_CREGISTER :
               begin
-                hreg2:=left.location.register;
-                current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[opsize],hreg2));
-//                cg.ungetcpuregister(current_asmdata.CurrAsmList,hreg2);
-                hreg1:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                resflags:=F_NE;
+                if opsize in [OS_64,OS_S64] then
+                  begin
+                    hreg2:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MOVE,S_L,left.location.register64.reglo,hreg2));
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_OR,S_L,left.location.register64.reghi,hreg2));
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_L,hreg2));
+                  end
+                else
+                  begin
+                    hreg2:=left.location.register;
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[opsize],hreg2));
+                  end;
               end;
             LOC_FLAGS :
               begin
-                hreg1:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
                 resflags:=left.location.resflags;
               end;
             LOC_JUMP :
               begin
                 { for now blindly copied from nx86cnv }
-                location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+                location_reset(location,LOC_REGISTER,newsize);
                 location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
                 current_asmdata.getjumplabel(hlabel);
                 cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
@@ -247,36 +273,34 @@ implementation
          end;
          if left.location.loc<>LOC_JUMP then
            begin
-             cg.g_flags2reg(current_asmdata.CurrAsmList,location.size,resflags,hreg1);
-             if (is_cbool(resultdef)) then
-               cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,location.size,hreg1,hreg1);
-             location.register := hreg1;
+             location_reset(location,LOC_REGISTER,newsize);
+             if newsize in [OS_64,OS_S64] then
+               begin
+                 hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                 cg.g_flags2reg(current_asmdata.CurrAsmList,OS_32,resflags,hreg2);
+                 if (is_cbool(resultdef)) then
+                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,OS_32,hreg2,hreg2);
+                 location.register64.reglo:=hreg2;
+                 location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                 if (is_cbool(resultdef)) then
+                   { reglo is either 0 or -1 -> reghi has to become the same }
+                   cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,location.register64.reglo,location.register64.reghi)
+                 else
+                   { unsigned }
+                   cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,location.register64.reghi);
+               end
+            else
+              begin
+                location.register:=cg.getintregister(current_asmdata.CurrAsmList,newsize);
+                cg.g_flags2reg(current_asmdata.CurrAsmList,newsize,resflags,location.register);
+                if (is_cbool(resultdef)) then
+                  cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,newsize,location.register,location.register);
+              end
            end;
          current_procinfo.CurrTrueLabel:=oldTrueLabel;
          current_procinfo.CurrFalseLabel:=oldFalseLabel;
       end;
 
-{
-    procedure tm68ktypeconvnode.pass_generate_code;
-{$ifdef TESTOBJEXT2}
-      var
-         r : preference;
-         nillabel : plabel;
-{$endif TESTOBJEXT2}
-      begin
-         { this isn't good coding, I think tc_bool_2_int, shouldn't be }
-         { type conversion (FK)                                 }
-
-         if not(convtype in [tc_bool_2_int,tc_bool_2_bool]) then
-           begin
-              secondpass(left);
-              location_copy(location,left.location);
-              if codegenerror then
-               exit;
-           end;
-         second_call_helper(convtype);
-      end;
-}
 
 begin
    ctypeconvnode:=tm68ktypeconvnode;

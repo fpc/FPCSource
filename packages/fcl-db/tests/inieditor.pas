@@ -15,6 +15,7 @@ type
 
   TFormIniEditor = class(TForm)
     GUITimer: TIdleTimer;
+    Label1: TLabel;
     OKButton: TButton;
     CancelButton: TButton;
     ProfileSelect: TComboBox;

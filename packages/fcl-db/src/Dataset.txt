@@ -31,23 +31,23 @@ since FValueBuffer is only valid during validation.
 The Buffers
 ===========
 A buffer contains all the data for 1 record of the dataset, and also
-the bookmark information. (bookmarkinformation is REQUIRED)
+the bookmark information. Bookmark information is REQUIRED.
 
 The dataset allocates by default 'DefaultBufferCount+1' records(buffers)
-This constant can be changed, at the beginning of dataset.inc, e.g.
+This constant can be changed at the beginning of dataset.inc, e.g.
 if you know you'll be working with big datasets, you can 
 increase this constant.
 
 The buffers are stored as pchars in the FBuffers array;
 The following constants are userd when handling this array:
 
-FBuffercount :   The number of buffers allocated, minus one.
+FBufferCount :   The number of buffers allocated, minus one.
 FRecordCount :   The number of buffers that is actually filled in.
 FActiveBuffer :  The index of the active record in TDataset.
-FCurrentRecord : The index of the supposedly active record in the underlaying
+FCurrentRecord : The index of the supposedly active record in the underlying
                  dataset (ie. the index in the last call to SetToInternalRecord)
-                 call CursopPosChanged to reset FCurrentRecord if the active
-                 record in the underlaying dataset has changed).
+                 Call CursorPosChanged to reset FCurrentRecord if the active
+                 record in the underlaying dataset has changed.
 
 So the following picture follows from this:
 
@@ -79,13 +79,13 @@ The array is zero based.
 
 The following methods are used to manipulate the array:
 
-GetNextRecords: Tries to fill up the entire array, going forward
+GetNextRecords: tries to fill up the entire array, going forward
 GetPriorRecords: tries to fill up the entire array, going backward
-GetNextRecord: gets the next record. Shifts the array if FrecordCount=BufferCount-1
-GetPriorRecord: gets the previous record. Shifts the array if FrecordCount=BufferCount-1
+GetNextRecord: gets the next record. Shifts the array if FRecordCount=BufferCount-1
+GetPriorRecord: gets the previous record. Shifts the array if FRecordCount=BufferCount-1
 
 For the last 2 methods: the underlying record pointer must be on the 
-last/first record in the dataset, or it will go wrong.
+last/first record in the dataset, or things will go wrong.
 
 resync tries to refresh the array from the underlying dataset; it uses the
 bookmarks for that.
@@ -124,7 +124,7 @@ function GetFieldData(Field: TField; Buffer: Pointer): Boolean; virtual; abstrac
 ----------------------------------------------------------------------------------
 Puts the data for field Field from the active buffer into Buffer. 
 This is called whenever a field value is demanded, so it must be
-efficient. 
+efficient.
 
 function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; virtual; abstract;
 -----------------------------------------------------------------------------------
@@ -140,7 +140,7 @@ This method must do 3 things:
    raised.
 
 3) It should initialize bookmark data for this record with flag 'bfCurrent'
-   This data can be stored in the bufer, if space was allocated for it with
+   This data can be stored in the buffer, if space was allocated for it with
    AllocRecordBuffer.
  
 function GetRecordSize: Word; virtual; abstract;
@@ -178,7 +178,10 @@ the GetBookMarkData call, and should be kept for each record.
 
 procedure InternalHandleException; virtual; abstract;
 -----------------------------------------------------
-Not needed yet. Just implement an empty call.
+This procedure can try to handle exceptions raised in the Dataset, and 
+raise an exception if it cannot handle it.
+If not used, just implement an empty call (as is currently done with
+most datasets).
 
 procedure InternalInitFieldDefs; virtual; abstract;
 ---------------------------------------------------
@@ -229,7 +232,9 @@ Move the bookmark data in 'Data' to the bookmark data associated with Buffer
 
 procedure SetFieldData(Field: TField; Buffer: Pointer); virtual; abstract;
 --------------------------------------------------------------------------
-Move the data in associated with Field from Buffer to the active buffer.
+Move the data associated with Field from Buffer to the active record buffer.
+This procedure is called after inserting/editing field data.
+
 
 ===================
 Switchable datasets
@@ -237,7 +242,7 @@ Switchable datasets
 In order to have flexible database access, the concept of TDatabase and
 TDBDataset is introduced. The idea is that, in a visual IDE, the change
 from one database to another is achieved by simply removing one TDatabase
-descendent (Say, TMySqlDatabase) with another (Say, TPostGreSQLDatabase)
+descendent (say, TMySqlDatabase) with another (say, TPostGreSQLDatabase)
 and that the Datasets remain untouched.
 
 In order to make this possible, the following scheme is used:
@@ -260,16 +265,16 @@ What is needed:
 Some properties describing the data:
 
 FieldCount        : Number of fields in a record.
-FieldTypes[Index] : Types of the fields (TFieldType), zero based.
+FieldTypes[Index] : Types of the fields (TFieldType). Zero based.
 FieldNames[Index] : Names of the fields. Zero based.
-FieldSizes[index] : Size of the fields. zero based.
+FieldSizes[index] : Size of the fields. Zero based.
 BookmarkSize      : Size of a bookmark.
 
 Some properties with the data content:
 
 FieldBuffers[Index] : Buffers containing the actual data of the current record.
                       (Nil if the field is empty)
-                      This data should be of size indicated FieldSizes, and 
+                      This data should be of size indicated in FieldSizes, and 
                       in a format that matches the fieldtype.
 BookMarkBuffer      : Buffer with the current bookmark.
 
@@ -280,12 +285,12 @@ OpenRecordSet  : Opens the recordset. It should initialize the FieldCount
 
 CloseRecordSet : Do whatever is needed to close the recordset.
 
-GotoBookMark   : go to the record described by the bookmark. Returns True
-                 if successful, false if not.
+GotoBookMark   : go to the record described by the bookmark. Returns true
+                 if successful, False if not.
 
-Next           : Go to the next record. Returns true or false 
-Prior          : Go to the previous record. Returns true or false
-First          : Go to the first record. Returns true or false
-Last           : Go to the last record. Returns true or False
+Next           : Go to the next record. Returns true or false.
+Prior          : Go to the previous record. Returns true or false.
+First          : Go to the first record. Returns true or false.
+Last           : Go to the last record. Returns true or false.
 
 AppendBuffer   : Append a buffer to the records.

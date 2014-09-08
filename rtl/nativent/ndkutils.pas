@@ -24,7 +24,7 @@ uses
 
 // Helpers for converting Pascal string types to NT's UNICODE_STRING
 procedure ShortStrToNTStr(aStr: ShortString; var aNTStr: UNICODE_STRING);
-procedure AnsiStrToNTStr(const aStr: String; var aNTStr: UNICODE_STRING);
+procedure AnsiStrToNTStr(const aStr: RawByteString; var aNTStr: UNICODE_STRING);
 procedure UnicodeStrToNtStr(const aStr: UnicodeString;
     var aNTStr: UNICODE_STRING);
 procedure PCharToNTStr(aStr: PChar; aLen: Cardinal; var aNTStr: UNICODE_STRING);
@@ -53,7 +53,7 @@ begin
   aNTStr.MaximumLength := aNTStr.Length;
 end;
 
-procedure AnsiStrToNTStr(const aStr: String; var aNTStr: UNICODE_STRING);
+procedure AnsiStrToNTStr(const aStr: RawByteString; var aNTStr: UNICODE_STRING);
 var
   buf: PWideChar;
   i: Integer;

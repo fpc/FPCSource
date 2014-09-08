@@ -25,7 +25,8 @@ uses
   Classes, SysUtils, InstantFPTools;
 
 const
-  Version = '1.2';
+  Version = '1.3';
+  // 1.3 compile in a separate directory, so that parallel invocations do not overwrite link.res files
 
 
 Procedure Usage;
@@ -92,7 +93,6 @@ var
   CacheDir: String;
   CacheFilename: String;
   OutputFilename: String;
-  ExeExt: String;
   E : String;
   RunIt: boolean = true;
   
@@ -184,8 +184,7 @@ begin
     E:=LowerCase(ExtractFileExt(CacheFileName));
     if (E<>'.pp') and (E<>'.pas') and (E<>'.lpr') then
       CacheFileName:=CacheFileName+'.pas';
-    ExeExt:='';
-    OutputFilename:=CacheDir+ChangeFileExt(ExtractFileName(Filename),ExeExt);
+    OutputFilename:=CacheDir+ChangeFileExt(ExtractFileName(Filename),'');
     if not IsCacheValid(Src,CacheFilename,OutputFilename) then begin
       // save source in cache to find out next time if something changed
       Src.SaveToFile(CacheFilename);

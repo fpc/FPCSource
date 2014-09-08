@@ -68,7 +68,7 @@ unit workbench;
 
 INTERFACE
 
-uses exec,amigados,utility, intuition,graphics;
+uses exec,amigados,utility,intuition,agraphics;
 
 
 
@@ -897,7 +897,7 @@ IMPLEMENTATION
 
 uses
 {$ifndef dont_use_openlib}
-msgbox,
+amsgbox,
 {$endif dont_use_openlib}
 pastoc;
 

@@ -57,7 +57,7 @@ type
 implementation
 
 resourcestring
-  SErrNoDatasetForField = '%s: Geen dataset om veld %s in te zoeken.';
+  SErrNoDatasetForField = '%s: no dataset to search field %s in.';
 
 { TFieldMap }
 

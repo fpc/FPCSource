@@ -44,6 +44,11 @@ type
                 exactMatch: Boolean;
   end;
 
+{ used OS file system APIs use ansistring }
+{$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
+{ OS has an ansistring/single byte environment variable API }
+{$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -66,12 +71,13 @@ uses
                               File Functions
 ****************************************************************************}
 
-Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
+Function FileOpen (Const FileName : rawbytestring; Mode : Integer) : Longint;
 
 Var LinuxFlags : longint;
-
-BEGIN
+    SystemFileName: RawByteString;
+begin
   (* TODO fix
+  SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
   LinuxFlags:=0;
   Case (Mode and 3) of
     0 : LinuxFlags:=LinuxFlags or Open_RdOnly;
@@ -84,7 +90,7 @@ BEGIN
 end;
 
 
-Function FileCreate (Const FileName : String) : Longint;
+Function FileCreate (Const FileName : RawByteString) : Longint;
 
 begin
   (* TODO fix
@@ -93,7 +99,7 @@ begin
 end;
 
 
-Function FileCreate (Const FileName : String;Rights : Longint) : Longint;
+Function FileCreate (Const FileName : RawByteString;Rights : Longint) : Longint;
 
 Var LinuxFlags : longint;
 
@@ -109,7 +115,7 @@ BEGIN
   *)
 end;
 
-Function FileCreate (Const FileName : String;ShareMode : Longint; Rights : Longint) : Longint;
+Function FileCreate (Const FileName : RawByteString;ShareMode : Longint; Rights : Longint) : Longint;
 
 Var LinuxFlags : longint;
 
@@ -179,7 +185,7 @@ begin
   *)
 end;
 
-Function FileAge (Const FileName : String): Longint;
+Function FileAge (Const FileName : RawByteString): Longint;
 
   (*
 Var Info : Stat;
@@ -199,7 +205,7 @@ begin
 end;
 
 
-Function FileExists (Const FileName : String) : Boolean;
+Function FileExists (Const FileName : RawByteString) : Boolean;
 
   (*
 Var Info : Stat;
@@ -212,7 +218,7 @@ begin
 end;
 
 
-Function DirectoryExists (Const Directory : String) : Boolean;
+Function DirectoryExists (Const Directory : RawByteString) : Boolean;
 
   (*
 Var Info : Stat;
@@ -289,7 +295,7 @@ end;
 *)
 
 
-procedure DoFind (var F: TSearchRec; firstTime: Boolean);
+procedure DoFind (var F: TSearchRec; var retname: RawByteString; firstTime: Boolean);
 
   var
     err: OSErr;
@@ -323,7 +329,8 @@ begin
           attr := GetFileAttrFromPB(Rslt.paramBlock);
           if ((Attr and not(searchAttr)) = 0) then
             begin
-              name := s;
+              retname := s;
+              SetCodePage(retname, DefaultFileSystemCodePage, false);
               UpperString(s, true);
 
               if FNMatch(Rslt.searchFSSpec.name, s) then
@@ -339,13 +346,11 @@ begin
 end;
 
 
-Function FindFirst (Const Path : String; Attr : Longint; out Rslt : TSearchRec) : Longint;
+Function InternalFindFirst (Const Path : RawByteString; Attr : Longint; out Rslt : TAbstractSearchRec; var Name: RawByteString) : Longint;
   var
     s: Str255;
 
 begin
-  fillchar(Rslt, sizeof(Rslt), 0);
-
   if path = '' then
     begin
       Result := 3;
@@ -355,10 +360,12 @@ begin
   {We always also search for readonly and archive, regardless of Attr.}
   Rslt.searchAttr := (Attr or (archive or readonly));
 
+  { TODO: convert PathArgToFSSpec (and the routines it calls) to rawbytestring }
   Result := PathArgToFSSpec(path, Rslt.searchFSSpec);
   with Rslt do
     if (Result = 0) or (Result = 2) then
       begin
+        { FIXME: SearchSpec is a shortstring -> ignores encoding }
         SearchSpec := path;
         NamePos := Length(path) - Length(searchFSSpec.name);
 
@@ -372,6 +379,7 @@ begin
                 if ((Attr and not(searchAttr)) = 0) then
                   begin
                     name := searchFSSpec.name;
+                    SetCodePage(name, DefaultFileSystemCodePage, false);
                     size := GetFileSizeFromPB(paramBlock);
                     time := MacTimeToDosPackedTime(paramBlock.ioFlMdDat);
                   end
@@ -389,23 +397,23 @@ begin
             UpperString(s, true);
             Rslt.searchFSSpec.name := s;
 
-            DoFind(Rslt, true);
+            DoFind(Rslt, name, true);
           end;
       end;
 end;
 
 
-Function FindNext (Var Rslt : TSearchRec) : Longint;
+Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : RawByteString) : Longint;
 
 begin
   if F.exactMatch then
     Result := 18
   else
-    Result:=DoFind (Rslt);
+    Result:=DoFind (Rslt, Name, false);
 end;
 
 
-Procedure FindClose (Var F : TSearchrec);
+Procedure InternalFindClose (var Handle: THandle; var FindData: TFindData);
 
   (*
 Var
@@ -414,7 +422,7 @@ Var
 
 begin
   (* TODO fix
-  GlobSearchRec:=PGlobSearchRec(F.FindHandle);
+  GlobSearchRec:=PGlobSearchRec(Handle);
   GlobFree (GlobSearchRec^.GlobHandle);
   Dispose(GlobSearchRec);
   *)
@@ -446,7 +454,7 @@ begin
 end;
 
 
-Function FileGetAttr (Const FileName : String) : Longint;
+Function FileGetAttr (Const FileName : RawByteString) : Longint;
 
   (*
 Var Info : Stat;
@@ -462,14 +470,14 @@ begin
 end;
 
 
-Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
+Function FileSetAttr (Const Filename : RawByteString; Attr: longint) : Longint;
 
 begin
   Result:=-1;
 end;
 
 
-Function DeleteFile (Const FileName : String) : Boolean;
+Function DeleteFile (Const FileName : RawByteString) : Boolean;
 
 begin
   (* TODO fix
@@ -478,7 +486,7 @@ begin
 end;
 
 
-Function RenameFile (Const OldName, NewName : String) : Boolean;
+Function RenameFile (Const OldName, NewName : RawByteString) : Boolean;
 
 begin
   (* TODO fix
@@ -558,39 +566,6 @@ Begin
   *)
 End;
 
-Function GetCurrentDir : String;
-begin
-  GetDir (0,Result);
-end;
-
-
-Function SetCurrentDir (Const NewDir : String) : Boolean;
-begin
-  {$I-}
-   ChDir(NewDir);
-  {$I+}
-  result := (IOResult = 0);
-end;
-
-
-Function CreateDir (Const NewDir : String) : Boolean;
-begin
-  {$I-}
-   MkDir(NewDir);
-  {$I+}
-  result := (IOResult = 0);
-end;
-
-
-Function RemoveDir (Const Dir : String) : Boolean;
-begin
-  {$I-}
-   RmDir(Dir);
-  {$I+}
-  result := (IOResult = 0);
-end;
-
-
 {****************************************************************************
                               Misc Functions
 ****************************************************************************}
@@ -660,7 +635,7 @@ Function GetEnvironmentVariable(Const EnvVar : String) : String;
 
 begin
   (* TODO fix
-  Result:=StrPas(Unix.Getenv(PChar(EnvVar)));
+  Result:=Unix.Getenv(PChar(EnvVar));
   *)
 end;
 
@@ -671,7 +646,7 @@ begin
   Result:=0;
 end;
 
-Function GetEnvironmentString(Index : Integer) : String;
+Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
 
 begin
   // Result:=FPCGetEnvStrFromP(Envp,Index);

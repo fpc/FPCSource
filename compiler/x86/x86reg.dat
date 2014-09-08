@@ -6,6 +6,14 @@
 ;
 ; For stab/dwarf numbers see gdb/i386-tdep.c and gdb/amd64-tdep.c
 ;
+; NOTE: registers are numbered so that 3 LSB of superregister number matches the opcode.
+; Exceptions are:
+;  - high byte registers (AH/CH/DH/BH)
+;  - NR_FLAGS, NR_EIP and NR_RIP.
+;  - We use order [eax ecx edx ebx esi edi ebp esp], while the correct
+;    one is       [eax ecx edx ebx esp ebp esi edi],
+;    this is due to asm optimizer coding style
+
 NR_NO,$00000000,INVALID,INVALID,INVALID,INVALID,-1,-1,-1,OT_NONE,0
 NR_AL,$01010000,al,%al,al,al,0,0,0,OT_REG_AL,0
 NR_AH,$01020000,ah,%ah,ah,ah,0,0,0,OT_REG8,4
@@ -76,33 +84,33 @@ NR_R15L,$0101000f,r15b,%r15b,r15b,r15b,-1,-1,15,OT_REG8,7,64
 NR_R15W,$0103000f,r15w,%r15w,r15w,r15w,-1,-1,15,OT_REG16,7,64
 NR_R15D,$0104000f,r15d,%r15d,r15d,r15d,-1,-1,15,OT_REG32,7,64
 
-; EIP is needed for DWARF call frame info return address (RA)
-NR_RIP,$05050000,rip,%rip,rip,rip,-1,8,16,OT_NONE,0,64
-NR_EIP,$05040000,eip,%eip,eip,eip,-1,8,16,OT_NONE,0
+NR_ES,$05000000,es,%es,es,es,-1,-1,-1,OT_REG_DESS,0
 NR_CS,$05000001,cs,%cs,cs,cs,-1,-1,-1,OT_REG_CS,1
-NR_DS,$05000002,ds,%ds,ds,ds,-1,-1,-1,OT_REG_DESS,3
-NR_ES,$05000003,es,%es,es,es,-1,-1,-1,OT_REG_DESS,0
-NR_SS,$05000004,ss,%ss,ss,ss,-1,-1,-1,OT_REG_DESS,2
-NR_FS,$05000005,fs,%fs,fs,fs,-1,-1,-1,OT_REG_FSGS,4
-NR_GS,$05000006,gs,%gs,gs,gs,-1,-1,-1,OT_REG_FSGS,5
+NR_SS,$05000002,ss,%ss,ss,ss,-1,-1,-1,OT_REG_DESS,2
+NR_DS,$05000003,ds,%ds,ds,ds,-1,-1,-1,OT_REG_DESS,3
+NR_FS,$05000004,fs,%fs,fs,fs,-1,-1,-1,OT_REG_FSGS,4
+NR_GS,$05000005,gs,%gs,gs,gs,-1,-1,-1,OT_REG_FSGS,5
 
-NR_DR0,$05000007,dr0,%dr0,dr0,dr0,-1,-1,-1,OT_REG_DREG,0
-NR_DR1,$05000008,dr1,%dr1,dr1,dr1,-1,-1,-1,OT_REG_DREG,1
-NR_DR2,$05000009,dr2,%dr2,dr2,dr2,-1,-1,-1,OT_REG_DREG,2
-NR_DR3,$0500000a,dr3,%dr3,dr3,dr3,-1,-1,-1,OT_REG_DREG,3
-NR_DR6,$0500000b,dr6,%dr6,dr6,dr6,-1,-1,-1,OT_REG_DREG,6
-NR_DR7,$0500000c,dr7,%dr7,dr7,dr7,-1,-1,-1,OT_REG_DREG,7
-NR_CR0,$0500000d,cr0,%cr0,cr0,cr0,-1,-1,-1,OT_REG_CREG,0
-NR_CR2,$0500000e,cr2,%cr2,cr2,cr2,-1,-1,-1,OT_REG_CREG,2
-NR_CR3,$0500000f,cr3,%cr3,cr3,cr3,-1,-1,-1,OT_REG_CREG,3
-NR_CR4,$05000010,cr4,%cr4,cr4,cr4,-1,-1,-1,OT_REG_CR4,4
-NR_TR3,$05000011,tr3,%tr3,tr3,tr3,-1,-1,-1,OT_REG_TREG,3
-NR_TR4,$05000012,tr4,%tr4,tr4,tr4,-1,-1,-1,OT_REG_TREG,4
-NR_TR5,$05000013,tr5,%tr5,tr5,tr5,-1,-1,-1,OT_REG_TREG,5
-NR_TR6,$05000014,tr6,%tr6,tr6,tr6,-1,-1,-1,OT_REG_TREG,6
-NR_TR7,$05000015,tr7,%tr7,tr7,tr7,-1,-1,-1,OT_REG_TREG,7
+NR_FLAGS,$05000006,flags,%flags,flags,flags,-1,-1,-1,OT_NONE,0
+; EIP is needed for DWARF call frame info return address (RA)
+NR_RIP,$05050007,rip,%rip,rip,rip,-1,8,16,OT_NONE,0,64
+NR_EIP,$05040007,eip,%eip,eip,eip,-1,8,16,OT_NONE,0
 
-NR_FLAGS,$05000016,flags,%flags,flags,flags,-1,-1,-1,OT_NONE,0
+NR_DR0,$05000008,dr0,%dr0,dr0,dr0,-1,-1,-1,OT_REG_DREG,0
+NR_DR1,$05000009,dr1,%dr1,dr1,dr1,-1,-1,-1,OT_REG_DREG,1
+NR_DR2,$0500000a,dr2,%dr2,dr2,dr2,-1,-1,-1,OT_REG_DREG,2
+NR_DR3,$0500000b,dr3,%dr3,dr3,dr3,-1,-1,-1,OT_REG_DREG,3
+NR_DR6,$0500000d,dr6,%dr6,dr6,dr6,-1,-1,-1,OT_REG_DREG,6
+NR_DR7,$0500000e,dr7,%dr7,dr7,dr7,-1,-1,-1,OT_REG_DREG,7
+NR_CR0,$05000010,cr0,%cr0,cr0,cr0,-1,-1,-1,OT_REG_CREG,0
+NR_CR2,$05000012,cr2,%cr2,cr2,cr2,-1,-1,-1,OT_REG_CREG,2
+NR_CR3,$05000013,cr3,%cr3,cr3,cr3,-1,-1,-1,OT_REG_CREG,3
+NR_CR4,$05000014,cr4,%cr4,cr4,cr4,-1,-1,-1,OT_REG_CR4,4
+NR_TR3,$0500001b,tr3,%tr3,tr3,tr3,-1,-1,-1,OT_REG_TREG,3
+NR_TR4,$0500001c,tr4,%tr4,tr4,tr4,-1,-1,-1,OT_REG_TREG,4
+NR_TR5,$0500001d,tr5,%tr5,tr5,tr5,-1,-1,-1,OT_REG_TREG,5
+NR_TR6,$0500001e,tr6,%tr6,tr6,tr6,-1,-1,-1,OT_REG_TREG,6
+NR_TR7,$0500001f,tr7,%tr7,tr7,tr7,-1,-1,-1,OT_REG_TREG,7
 
 NR_ST0,$02000000,st(0),%st(0),st(0),st0,12,11,33,OT_FPU0,0
 NR_ST1,$02000001,st(1),%st(1),st(1),st1,13,12,34,OT_FPUREG,1

@@ -32,31 +32,44 @@ begin
 end;
 
 
-procedure do_erase(p : pchar);
+procedure do_erase(p: pwidechar; pchangeable: boolean);
+var
+  oldp: pwidechar;
+  err: longword;
 begin
-   DoDirSeparators(p);
-   if DeleteFile(p)=0 then
+   oldp:=p;
+   DoDirSeparators(p,pchangeable);
+   if DeleteFileW(p)=0 then
     Begin
-      errno:=GetLastError;
-      if errno=5 then
+      err:=GetLastError;
+      if err=5 then
        begin
-         if ((GetFileAttributes(p) and FILE_ATTRIBUTE_DIRECTORY)=FILE_ATTRIBUTE_DIRECTORY) then
-          errno:=2;
+         if ((GetFileAttributesW(p) and FILE_ATTRIBUTE_DIRECTORY)=FILE_ATTRIBUTE_DIRECTORY) then
+          err:=2;
        end;
-      Errno2InoutRes;
+      Errno2InoutRes(err);
     end;
+   if p<>oldp then
+     freemem(p);
 end;
 
 
-procedure do_rename(p1,p2 : pchar);
+procedure do_rename(p1,p2: pwidechar; p1changeable, p2changeable: boolean);
+var
+  oldp1,oldp2: pwidechar;
 begin
-  DoDirSeparators(p1);
-  DoDirSeparators(p2);
-  if MoveFile(p1,p2)=0 then
-   Begin
-      errno:=GetLastError;
-      Errno2InoutRes;
-   end;
+  oldp1:=p1;
+  oldp2:=p2;
+  DoDirSeparators(p1,p1changeable);
+  DoDirSeparators(p2,p2changeable);
+  if MoveFileW(p1,p2)=0 then
+    Begin
+      Errno2InoutRes(GetLastError);
+    end;
+  if p1<>oldp1 then
+    freemem(p1);
+  if p2<>oldp2 then
+    freemem(p2);
 end;
 
 
@@ -71,8 +84,7 @@ var
 begin
    if writefile(h,addr,len,size,nil)=0 then
     Begin
-      errno:=GetLastError;
-      Errno2InoutRes;
+      Errno2InoutRes(GetLastError);
 {$ifndef WINCE}
     end
    else if (size<len) then
@@ -107,14 +119,13 @@ end;
 function do_read(h:thandle;addr:pointer;len : longint) : longint;
 var
   _result:longint;
+  err: longword;
 begin
   if readfile(h,addr,len,_result,nil)=0 then
     Begin
-      errno:=GetLastError;
-      if errno=ERROR_BROKEN_PIPE then
-        errno:=0
-      else
-        Errno2InoutRes;
+      err:=GetLastError;
+      if err<>ERROR_BROKEN_PIPE then
+        Errno2InoutRes(err);
     end;
   do_read:=_result;
 end;
@@ -133,8 +144,7 @@ begin
   rslt.low := SetFilePointer(handle, 0, @rslt.high, FILE_CURRENT);
   if (rslt.low = $FFFFFFFF) and (GetLastError <> 0) then
   begin
-    errno := GetLastError;
-    Errno2InoutRes;
+    Errno2InoutRes(GetLastError);
   end;
   do_filepos := int64(rslt);
 end;
@@ -149,8 +159,7 @@ begin
   { return value of -1 is valid unless GetLastError is non-zero }
     (GetLastError <> 0) then
   begin
-    errno := GetLastError;
-    Errno2InoutRes;
+    Errno2InoutRes(GetLastError);
   end;
 end;
 
@@ -163,8 +172,7 @@ begin
   rslt.low := SetFilePointer(handle, 0, @rslt.high, FILE_END);
   if (rslt.low = $FFFFFFFF) and (GetLastError <> 0) then
   begin
-    errno := GetLastError;
-    Errno2InoutRes;
+    Errno2InoutRes(GetLastError);
   end;
   do_seekend := int64(rslt);
 end;
@@ -185,13 +193,12 @@ begin
    do_seek(handle,pos);
    if not(SetEndOfFile(handle)) then
     begin
-      errno:=GetLastError;
-      Errno2InoutRes;
+      Errno2InoutRes(GetLastError);
     end;
 end;
 
 
-procedure do_open(var f;p:pchar;flags:longint);
+procedure do_open(var f; p: pwidechar; flags: longint; pchangeable: boolean);
 {
   filerec and textrec have both handle and mode as the first items so
   they could use the same routine for opening/creating.
@@ -207,8 +214,8 @@ Var
   shflags,
   oflags,cd : longint;
   security : TSecurityAttributes;
+  oldp : pwidechar;
 begin
-  DoDirSeparators(p);
   { close first if opened }
   if ((flags and $10000)=0) then
    begin
@@ -223,6 +230,8 @@ begin
       end;
      end;
    end;
+  oldp:=p;
+  DoDirSeparators(p,pchangeable);
   { reset file handle }
   filerec(f).handle:=UnusedHandle;
   { convert filesharing }
@@ -280,12 +289,14 @@ begin
            FileRec(f).mode:=fmoutput; {fool fmappend}
          end;
      end;
+     { no dirseparators can have been replaced in the empty string -> no need
+       to check whether we have to free p }
      exit;
    end;
   security.nLength := Sizeof(TSecurityAttributes);
   security.bInheritHandle:=true;
   security.lpSecurityDescriptor:=nil;
-  filerec(f).handle:=CreateFile(p,oflags,shflags,@security,cd,FILE_ATTRIBUTE_NORMAL,0);
+  filerec(f).handle:=CreateFileW(p,oflags,shflags,@security,cd,FILE_ATTRIBUTE_NORMAL,0);
 
   { append mode }
   if ((flags and $100)<>0) and
@@ -300,7 +311,8 @@ begin
   { handle -1 is returned sometimes !! (PM) }
   if (filerec(f).handle=0) or (filerec(f).handle=UnusedHandle) then
     begin
-      errno:=GetLastError;
-      Errno2InoutRes;
+      Errno2InoutRes(GetLastError);
     end;
+  if oldp<>p then
+    freemem(p);
 end;

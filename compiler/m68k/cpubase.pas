@@ -64,6 +64,10 @@ unit cpubase;
          a_trapcc,a_tracs,a_trapeq,a_trapf,a_trapge,a_trapgt,
          a_traphi,a_traple,a_trapls,a_traplt,a_trapmi,a_trapne,
          a_trappl,a_trapt,a_trapvc,a_trapvs,a_unpk,
+         { mc64040 instructions }
+         a_move16,
+         { coldfire v4 instructions }
+         a_mov3q,a_mvz,a_mvs,a_sats,
          { fpu processor instructions - directly supported only. }
          { ieee aware and misc. condition codes not supported   }
          a_fabs,a_fadd,
@@ -107,12 +111,14 @@ unit cpubase;
     const
       { Available Superregisters }
       {$i r68ksup.inc}
+      RS_SP = RS_A7;
 
       { ? whatever... }
       R_SUBWHOLE = R_SUBNONE;
 
       { Available Registers }
       {$i r68kcon.inc}
+      NR_SP = NR_A7;
 
       { Integer Super registers first and last }
       first_int_imreg = RS_D7+1;
@@ -148,7 +154,7 @@ unit cpubase;
       { registers which may be destroyed by calls }
       VOLATILE_INTREGISTERS = [RS_D0,RS_D1];
       VOLATILE_FPUREGISTERS = [];
-      VOLATILE_ADDRESSREGISTER = [RS_A0,RS_A1];
+      VOLATILE_ADDRESSREGISTERS = [RS_A0,RS_A1];
 
     type
       totherregisterset = set of tregisterindex;
@@ -304,8 +310,8 @@ unit cpubase;
          GCC source.
       }
       saved_standard_registers : array[0..5] of tsuperregister = (RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7);
-      saved_standard_address_registers : array[0..3] of tsuperregister = (RS_A2,RS_A3,RS_A4,RS_A5);
-      
+      saved_address_registers : array[0..4] of tsuperregister = (RS_A2,RS_A3,RS_A4,RS_A5,RS_A6);
+
       { this is only for the generic code which is not used for this architecture }
       saved_mm_registers : array[0..0] of tsuperregister = (RS_INVALID);
 
@@ -328,6 +334,13 @@ unit cpubase;
                                   Helpers
 *****************************************************************************}
 
+    const
+      tcgsize2opsize: Array[tcgsize] of topsize =
+        (S_NO,S_B,S_W,S_L,S_L,S_NO,S_B,S_W,S_L,S_L,S_NO,
+         S_FS,S_FD,S_FX,S_NO,S_NO,
+         S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,
+         S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
+
     function  is_calljmp(o:tasmop):boolean;
 
     procedure inverse_flags(var r : TResFlags);
@@ -340,6 +353,7 @@ unit cpubase;
     function std_regname(r:Tregister):string;
 
     function isaddressregister(reg : tregister) : boolean;
+    function isintregister(reg : tregister) : boolean;
 
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
@@ -428,7 +442,6 @@ implementation
             cgsize2subreg:=R_SUBWHOLE;
           OS_64,OS_S64:
             begin
-//             writeln('64bit regsize?');
              cgsize2subreg:=R_SUBWHOLE;
             end;
           OS_F32 :
@@ -442,7 +455,6 @@ implementation
             end;
 }
           else begin
-            writeln('M68K: invalid register size');
     // this supposed to be debug
     //        p:=nil; dword(p^):=0;
     //        internalerror(200301231);
@@ -495,13 +507,19 @@ implementation
         result:=getregtype(reg)=R_ADDRESSREGISTER;
       end;
 
+    function isintregister(reg : tregister) : boolean;
+      begin
+        result:=getregtype(reg)=R_INTREGISTER;
+      end;
+
 
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       const
         inverse:array[TAsmCond] of TAsmCond=(C_None,
-{ TODO: TODO, this is just a copy!}
-           C_CC,C_LS,C_CS,C_LT,C_EQ,C_MI,C_F,C_NE,
-           C_GE,C_PL,C_GT,C_T,C_HI,C_VC,C_LE,C_VS
+         //C_CC,C_LS,C_CS,C_LT,C_EQ,C_MI,C_F,C_NE,
+           C_CS,C_HI,C_CC,C_GE,C_NE,C_PL,C_T,C_EQ,
+         //C_GE,C_PL,C_GT,C_T,C_HI,C_VC,C_LE,C_VS
+           C_LT,C_MI,C_LE,C_F,C_LS,C_VS,C_GT,C_VC
         );
       begin
         result := inverse[c];

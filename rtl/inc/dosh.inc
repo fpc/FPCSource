@@ -63,15 +63,6 @@ Type
   NameStr = String[FileNameLen];
   ExtStr  = String[FileNameLen];
 
-{
-  filerec.inc contains the definition of the filerec.
-  textrec.inc contains the definition of the textrec.
-  It is in a separate file to make it available in other units without
-  having to use the DOS unit for it.
-}
-{$i filerec.inc}
-{$i textrec.inc}
-
   DateTime = packed record
     Year,
     Month,
@@ -134,8 +125,8 @@ Procedure SetVerify(verify: boolean);
 
 {Do Nothing Functions}
 Procedure SwapVectors;
-Procedure GetIntVec(intno: byte; var vector: {$ifdef i8086}farpointer{$else}pointer{$endif});
-Procedure SetIntVec(intno: byte; vector: {$ifdef i8086}farpointer{$else}pointer{$endif});
+Procedure GetIntVec(intno: byte; var vector: {$ifdef cpui8086}farpointer{$else}pointer{$endif});
+Procedure SetIntVec(intno: byte; vector: {$ifdef cpui8086}farpointer{$else}pointer{$endif});
 Procedure Keep(exitcode: word);
 
 {Additional (non-TP) function for quick access to system timer - for FV etc.}

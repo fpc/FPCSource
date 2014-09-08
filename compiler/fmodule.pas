@@ -44,7 +44,7 @@ interface
     uses
        cutils,cclasses,cfileutl,
        globtype,finput,ogbase,
-       symbase,symsym,
+       symbase,symconst,symsym,symcpu,
        wpobase,
        aasmbase,aasmtai,aasmdata;
 
@@ -142,7 +142,7 @@ interface
         checkforwarddefs,
         deflist,
         symlist       : TFPObjectList;
-        ptrdefs       : THashSet; { list of pointerdefs created in this module so we can reuse them (not saved/restored) }
+        ptrdefs       : tPtrDefHashSet; { list of pointerdefs created in this module so we can reuse them (not saved/restored) }
         arraydefs     : THashSet; { list of single-element-arraydefs created in this module so we can reuse them (not saved/restored) }
         ansistrdef    : tobject; { an ansistring def redefined for the current module }
         wpoinfo       : tunitwpoinfobase; { whole program optimization-related information that is generated during the current run for this unit }
@@ -184,6 +184,11 @@ interface
           the full name of the type and the data is a TFPObjectList of
           tobjectdef instances (the helper defs) }
         extendeddefs: TFPHashObjectList;
+        { contains a list of the current topmost non-generic symbol for a
+          typename of which at least one generic exists; the key is the
+          non-generic typename and the data is a TFPObjectList of tgenericdummyentry
+          instances whereby the last one is the current top most one }
+        genericdummysyms: TFPHashObjectList;
 
         { this contains a list of units that needs to be waited for until the
           unit can be finished (code generated, etc.); this is needed to handle
@@ -216,7 +221,6 @@ interface
         procedure flagdependent(callermodule:tmodule);
         function  addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
         procedure updatemaps;
-        procedure check_hints;
         function  derefidx_unit(id:longint):longint;
         function  resolve_unit(id:longint):tmodule;
         procedure allunitsused;
@@ -235,6 +239,7 @@ interface
           u               : tmodule;
           unitsym         : tunitsym;
           constructor create(_u : tmodule;intface,inuses:boolean;usym:tunitsym);
+          procedure check_hints;
        end;
 
        tdependent_unit = class(tlinkedlistitem)
@@ -470,6 +475,27 @@ implementation
       end;
 
 
+    procedure tused_unit.check_hints;
+      var
+        uname: pshortstring;
+      begin
+        uname:=u.realmodulename;
+        if mo_hint_deprecated in u.moduleoptions then
+          if (mo_has_deprecated_msg in u.moduleoptions) and (u.deprecatedmsg <> nil) then
+            MessagePos2(unitsym.fileinfo,sym_w_deprecated_unit_with_msg,uname^,u.deprecatedmsg^)
+          else
+            MessagePos1(unitsym.fileinfo,sym_w_deprecated_unit,uname^);
+        if mo_hint_experimental in u.moduleoptions then
+          MessagePos1(unitsym.fileinfo,sym_w_experimental_unit,uname^);
+        if mo_hint_platform in u.moduleoptions then
+          MessagePos1(unitsym.fileinfo,sym_w_non_portable_unit,uname^);
+        if mo_hint_library in u.moduleoptions then
+          MessagePos1(unitsym.fileinfo,sym_w_library_unit,uname^);
+        if mo_hint_unimplemented in u.moduleoptions then
+          MessagePos1(unitsym.fileinfo,sym_w_non_implemented_unit,uname^);
+      end;
+
+
 {****************************************************************************
                             TDENPENDENT_UNIT
  ****************************************************************************}
@@ -541,12 +567,13 @@ implementation
         derefdataintflen:=0;
         deflist:=TFPObjectList.Create(false);
         symlist:=TFPObjectList.Create(false);
-        ptrdefs:=THashSet.Create(64,true,false);
+        ptrdefs:=cPtrDefHashSet.Create;
         arraydefs:=THashSet.Create(64,true,false);
         ansistrdef:=nil;
         wpoinfo:=nil;
         checkforwarddefs:=TFPObjectList.Create(false);
         extendeddefs:=TFPHashObjectList.Create(true);
+        genericdummysyms:=tfphashobjectlist.create(true);
         waitingforunit:=tfpobjectlist.create(false);
         waitingunits:=tfpobjectlist.create(false);
         globalsymtable:=nil;
@@ -574,7 +601,7 @@ implementation
         tcinitcode:=nil;
         _exports:=TLinkedList.Create;
         dllscannerinputlist:=TFPHashList.Create;
-        asmdata:=casmdata.create(realmodulename^);
+        asmdata:=casmdata.create(modulename);
         InitDebugInfo(self,false);
       end;
 
@@ -636,6 +663,7 @@ implementation
         stringdispose(mainname);
         FImportLibraryList.Free;
         extendeddefs.Free;
+        genericdummysyms.free;
         waitingforunit.free;
         waitingunits.free;
         stringdispose(asmprefix);
@@ -716,7 +744,7 @@ implementation
         symlist.free;
         symlist:=TFPObjectList.Create(false);
         ptrdefs.free;
-        ptrdefs:=THashSet.Create(64,true,false);
+        ptrdefs:=cPtrDefHashSet.Create;
         arraydefs.free;
         arraydefs:=THashSet.Create(64,true,false);
         wpoinfo.free;
@@ -743,7 +771,7 @@ implementation
         derefdataintflen:=0;
         sourcefiles.free;
         sourcefiles:=tinputfilemanager.create;
-        asmdata:=casmdata.create(realmodulename^);
+        asmdata:=casmdata.create(modulename);
         InitDebugInfo(self,current_debuginfo_reset);
         _exports.free;
         _exports:=tlinkedlist.create;
@@ -892,22 +920,6 @@ implementation
           end;
       end;
 
-    procedure tmodule.check_hints;
-      begin
-        if mo_hint_deprecated in moduleoptions then
-          if (mo_has_deprecated_msg in moduleoptions) and (deprecatedmsg <> nil) then
-            Message2(sym_w_deprecated_unit_with_msg,realmodulename^,deprecatedmsg^)
-          else
-            Message1(sym_w_deprecated_unit,realmodulename^);
-        if mo_hint_experimental in moduleoptions then
-          Message1(sym_w_experimental_unit,realmodulename^);
-        if mo_hint_platform in moduleoptions then
-          Message1(sym_w_non_portable_unit,realmodulename^);
-        if mo_hint_library in moduleoptions then
-          Message1(sym_w_library_unit,realmodulename^);
-        if mo_hint_unimplemented in moduleoptions then
-          Message1(sym_w_non_implemented_unit,realmodulename^);
-      end;
 
 
     function tmodule.derefidx_unit(id:longint):longint;
@@ -1017,8 +1029,7 @@ implementation
         modulename:=stringdup(upper(s));
         realmodulename:=stringdup(s);
         { also update asmlibrary names }
-        current_asmdata.name:=modulename^;
-        current_asmdata.realname:=realmodulename^;
+        current_asmdata.name:=modulename;
       end;
 
 

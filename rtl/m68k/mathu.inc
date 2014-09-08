@@ -12,15 +12,40 @@
 
  **********************************************************************}
 
-{$warning TODO}
-
 function GetExceptionMask: TFPUExceptionMask;
 begin
-  Result := [];
+  Result := softfloat_exception_mask;
 end;
 
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
 begin
-  { TODO }
+  result:=softfloat_exception_mask;
+  softfloat_exception_mask:=mask;
+end;
+
+function GetRoundMode: TFPURoundingMode;
+begin
+  Result:=softfloat_rounding_mode;
+end;
+
+function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
+begin
+  Result:=softfloat_rounding_mode;
+  softfloat_rounding_mode:=RoundMode;
+end;
+
+function GetPrecisionMode: TFPUPrecisionMode;
+begin
+  result:=pmDouble;
+end;
+
+function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode;
+begin
+  result:=pmDouble;
+end;
+
+procedure ClearExceptions(RaisePending: Boolean);
+begin
+  softfloat_exception_flags:=[];
 end;
 

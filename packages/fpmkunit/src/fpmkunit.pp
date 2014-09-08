@@ -32,6 +32,16 @@ Interface
  {$DEFINE NO_THREADING}
 {$ENDIF}
 
+{$IFDEF AMIGA}
+ {$DEFINE NO_UNIT_PROCESS}
+ {$DEFINE NO_THREADING}
+{$ENDIF}
+
+{$IFDEF AROS}
+ {$DEFINE NO_UNIT_PROCESS}
+ {$DEFINE NO_THREADING}
+{$ENDIF}
+
 {$IFDEF OS2}
  {$DEFINE NO_UNIT_PROCESS}
 {$ENDIF OS2}
@@ -66,7 +76,7 @@ uses
   cthreads,
 {$endif UNIX}
 {$endif NO_THREADING}
-  SysUtils, Classes, StrUtils
+  SysUtils, Classes
 {$ifdef HAS_UNIT_PROCESS}
   ,process
 {$endif HAS_UNIT_PROCESS}
@@ -96,7 +106,7 @@ Type
     amiga,atari, solaris, qnx, netware, openbsd,wdosx,
     palmos,macos,darwin,emx,watcom,morphos,netwlibc,
     win64,wince,gba,nds,embedded,symbian,haiku,iphonesim,
-    aix,java,android,nativent,msdos
+    aix,java,android,nativent,msdos,wii,aros
   );
   TOSes = Set of TOS;
 
@@ -150,9 +160,10 @@ Const
   AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim,aix,Android];
   AllBSDOSes      = [FreeBSD,NetBSD,OpenBSD,Darwin,iphonesim];
   AllWindowsOSes  = [Win32,Win64,WinCE];
-  AllLimit83fsOses= [go32v2,os2,emx,watcom,msdos];
+  AllAmigaLikeOSes = [Amiga,MorphOS,AROS];
+  AllLimit83fsOses = [go32v2,os2,emx,watcom,msdos];
 
-  AllSmartLinkLibraryOSes = [Linux]; // OSes that use .a library files for smart-linking
+  AllSmartLinkLibraryOSes = [Linux,msdos,amiga,morphos,aros]; // OSes that use .a library files for smart-linking
   AllImportLibraryOSes = AllWindowsOSes + [os2,emx,netwlibc,netware,watcom,go32v2,macos,nativent,msdos];
 
   { This table is kept OS,Cpu because it is easier to maintain (PFV) }
@@ -165,13 +176,13 @@ Const
     { os2 }     ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false),
     { freebsd } ( false, true,  true,  false, false, true,  false, false, false, false, false, false, false, false),
     { beos }    ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false),
-    { netbsd }  ( false, true,  true,  true,  true,  false, false, false, false, false, false, false, false, false),
+    { netbsd }  ( false, true,  true,  true,  true,  true,  false, false, false, false, false, false, false, false),
     { amiga }   ( false, false, true,  true,  false, false, false, false, false, false, false, false, false, false),
     { atari }   ( false, false, true,  false, false, false, false, false, false, false, false, false, false, false),
     { solaris } ( false, true,  false, false, true,  false, false, false, false, false, false, false, false, false),
     { qnx }     ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false),
     { netware } ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false),
-    { openbsd } ( false, true,  true,  false, false, false, false, false, false, false, false, false, false, false),
+    { openbsd } ( false, true,  true,  false, false, true,  false, false, false, false, false, false, false, false),
     { wdosx }   ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false),
     { palmos }  ( false, false, true,  false, false, false, true,  false, false, false, false, false, false, false),
     { macos }   ( false, false, false, true,  false, false, false, false, false, false, false, false, false, false),
@@ -190,9 +201,11 @@ Const
     { iphonesim}( false, true,  false, false, false, false, false, false, false, false, false, false, false, false),
     { aix    }  ( false, false, false, true,  false, false, false, true,  false, false, false, false, false, false),
     { java }    ( false, false, false, false, false, false, false, false, false, false, false, false, true , false),
-    { android } ( false, true,  false, false, false, false, true,  false, false, false, false, false, true , false),
+    { android } ( false, true,  false, false, false, false, true,  false, false, false, false, true,  true , false),
     { nativent }( false, true,  false, false, false, false, false, false, false, false, false, false, false, false),
-    { msdos }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true )
+    { msdos }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true ),
+    { wii }     ( false, false, false, true , false, false, false, false, false, false, false, false, false, false ),
+    { aros }    ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false )
   );
 
   // Useful
@@ -203,6 +216,7 @@ Const
   IncExt  = '.inc';
   ObjExt  = '.o';
   RstExt  = '.rst';
+  RsjExt  = '.rsj';
   LibExt  = '.a';
   SharedLibExt = '.so';
   DLLExt  = '.dll';
@@ -543,9 +557,10 @@ Type
   Protected
     Function GetSourceFileName : String; virtual;
     Function GetUnitFileName : String; virtual;
-    function GetUnitLibFileName: String; virtual;
+    function GetUnitLibFileName(AOS: TOS): String; virtual;
     Function GetObjectFileName : String; virtual;
-    Function GetRSTFileName : String; Virtual;
+    function GetRSTFileName : String; Virtual;
+    function GetRSJFileName : String; Virtual;
     function GetImportLibFileName(AOS : TOS) : String; Virtual;
     Function GetProgramFileName(AOS : TOS) : String; Virtual;
     Function GetProgramDebugFileName(AOS : TOS) : String; Virtual;
@@ -570,9 +585,9 @@ Type
     Property Options : TStrings Read GetOptions Write SetOptions;
     Property SourceFileName: String Read GetSourceFileName ;
     Property UnitFileName : String Read GetUnitFileName;
-    Property UnitLibFileName : String Read GetUnitLibFileName;
     Property ObjectFileName : String Read GetObjectFileName;
     Property RSTFileName : String Read GetRSTFileName;
+    Property RSJFileName : String Read GetRSJFileName;
     Property FPCTarget : String Read FFPCTarget Write FFPCTarget;
     Property Extension : String Read FExtension Write FExtension;
     Property FileType : TFileType Read FFileType Write FFileType;
@@ -1287,6 +1302,129 @@ Implementation
 
 uses typinfo, rtlconsts;
 
+{----------------- from strutils ---------------------}
+
+function FindPart(const HelpWilds, inputStr: string): Integer;
+var
+  i, J: Integer;
+  Diff: Integer;
+begin
+  Result:=0;
+  i:=Pos('?',HelpWilds);
+  if (i=0) then
+    Result:=Pos(HelpWilds, inputStr)
+  else
+    begin
+    Diff:=Length(inputStr) - Length(HelpWilds);
+    for i:=0 to Diff do
+      begin
+      for J:=1 to Length(HelpWilds) do
+        if (inputStr[i + J] = HelpWilds[J]) or (HelpWilds[J] = '?') then
+          begin
+          if (J=Length(HelpWilds)) then
+            begin
+            Result:=i+1;
+            Exit;
+            end;
+          end
+        else
+          Break;
+      end;
+    end;
+end;
+
+function isWild(inputStr, Wilds: string; ignoreCase: Boolean): Boolean;
+
+ function SearchNext(var Wilds: string): Integer;
+
+ begin
+   Result:=Pos('*', Wilds);
+   if Result>0 then
+     Wilds:=Copy(Wilds,1,Result - 1);
+ end;
+
+var
+  CWild, CinputWord: Integer; { counter for positions }
+  i, LenHelpWilds: Integer;
+  MaxinputWord, MaxWilds: Integer; { Length of inputStr and Wilds }
+  HelpWilds: string;
+begin
+  if Wilds = inputStr then begin
+    Result:=True;
+    Exit;
+  end;
+  repeat { delete '**', because '**' = '*' }
+    i:=Pos('**', Wilds);
+    if i > 0 then
+      Wilds:=Copy(Wilds, 1, i - 1) + '*' + Copy(Wilds, i + 2, Maxint);
+  until i = 0;
+  if Wilds = '*' then begin { for fast end, if Wilds only '*' }
+    Result:=True;
+    Exit;
+  end;
+  MaxinputWord:=Length(inputStr);
+  MaxWilds:=Length(Wilds);
+  if ignoreCase then begin { upcase all letters }
+    inputStr:=AnsiUpperCase(inputStr);
+    Wilds:=AnsiUpperCase(Wilds);
+  end;
+  if (MaxWilds = 0) or (MaxinputWord = 0) then begin
+    Result:=False;
+    Exit;
+  end;
+  CinputWord:=1;
+  CWild:=1;
+  Result:=True;
+  repeat
+    if inputStr[CinputWord] = Wilds[CWild] then begin { equal letters }
+      { goto next letter }
+      inc(CWild);
+      inc(CinputWord);
+      Continue;
+    end;
+    if Wilds[CWild] = '?' then begin { equal to '?' }
+      { goto next letter }
+      inc(CWild);
+      inc(CinputWord);
+      Continue;
+    end;
+    if Wilds[CWild] = '*' then begin { handling of '*' }
+      HelpWilds:=Copy(Wilds, CWild + 1, MaxWilds);
+      i:=SearchNext(HelpWilds);
+      LenHelpWilds:=Length(HelpWilds);
+      if i = 0 then begin
+        { no '*' in the rest, compare the ends }
+        if HelpWilds = '' then Exit; { '*' is the last letter }
+        { check the rest for equal Length and no '?' }
+        for i:=0 to LenHelpWilds - 1 do begin
+          if (HelpWilds[LenHelpWilds - i] <> inputStr[MaxinputWord - i]) and
+            (HelpWilds[LenHelpWilds - i]<> '?') then
+          begin
+            Result:=False;
+            Exit;
+          end;
+        end;
+        Exit;
+      end;
+      { handle all to the next '*' }
+      inc(CWild, 1 + LenHelpWilds);
+      i:=FindPart(HelpWilds, Copy(inputStr, CinputWord, Maxint));
+      if i= 0 then begin
+        Result:=False;
+        Exit;
+      end;
+      CinputWord:=i + LenHelpWilds;
+      Continue;
+    end;
+    Result:=False;
+    Exit;
+  until (CinputWord > MaxinputWord) or (CWild > MaxWilds);
+  { no completed evaluation }
+  if CinputWord <= MaxinputWord then Result:=False;
+  if (CWild <= MaxWilds) and (Wilds[MaxWilds] <> '*') then Result:=False;
+end;
+
+
 type
   TUnsortedDuplicatesStringList = class(TStringList)
   public
@@ -1510,7 +1648,7 @@ var
   P: TProcess;
   BytesRead: longint;
 
-  function ReadFromStream: longint;
+  function ReadFromStream(const ReadFromStdErr: boolean): longint;
 
   const
     READ_BYTES = 2048;
@@ -1534,7 +1672,10 @@ var
     ConsoleOutput.SetSize(BytesRead + READ_BYTES);
 
     // try reading it
-    n := P.Output.Read((ConsoleOutput.Memory + BytesRead)^, READ_BYTES);
+    if ReadFromStdErr then
+      n := P.Stderr.Read((ConsoleOutput.Memory + BytesRead)^, READ_BYTES)
+    else
+      n := P.Output.Read((ConsoleOutput.Memory + BytesRead)^, READ_BYTES);
     if n > 0 then
     begin
       Inc(BytesRead, n);
@@ -1602,11 +1743,17 @@ begin
 
     P.Execute;
     while P.Running do
-      ReadFromStream;
+      ReadFromStream(false);
 
     // read last part
     repeat
-    until ReadFromStream = 0;
+    until ReadFromStream(false)=0;
+
+    // read stderr
+    // JvdS: Note that this way stderr is added to the end of the stream. But I
+    // see no way showing the stderr output at the place it was actually written
+    repeat
+    until ReadFromStream(true)=0;
     ConsoleOutput.SetSize(BytesRead);
 
     result := P.ExitStatus;
@@ -1761,7 +1908,7 @@ end;
 
 function maybequoted(const s:string):string;
 const
-  {$IF DEFINED(MSWINDOWS) OR DEFINED(AMIGA) OR DEFINED(MORPHOS)}
+  {$IF DEFINED(MSWINDOWS) OR DEFINED(AMIGA) OR DEFINED(MORPHOS) OR DEFINED(AROS)}
     FORBIDDEN_CHARS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
                        '{', '}', '''', '`', '~'];
   {$ELSE}
@@ -2194,8 +2341,10 @@ end;
 
 function GetImportLibraryFilename(const UnitName: string; AOS: TOS): string;
 begin
-  if AOS in [go32v2,watcom,os2,emx] then
+  if AOS in [go32v2,watcom] then
     Result := 'libimp'+UnitName
+  else if AOS in [os2,emx] then
+    Result := UnitName
   else if AOS in [netware,netwlibc,macos] then
     Result := 'lib'+UnitName
   else
@@ -5165,11 +5314,8 @@ Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;D
         if (D.DependencyType=depInclude) then
           begin
             if D.TargetFileName<>'' then
-              begin
-              Exit;
-              Log(vlDebug,SDbgSourceAlreadyResolved,[T.Name]);
-              end;
-            if (ACPU in D.CPUs) and (AOS in D.OSes) then
+              Log(vlDebug,SDbgSourceAlreadyResolved,[D.Value])
+            else if (ACPU in D.CPUs) and (AOS in D.OSes) then
               begin
                 if ExtractFilePath(D.Value)='' then
                   begin
@@ -6115,7 +6261,7 @@ begin
   case Defaults.BuildMode of
     bmOneByOne:  begin
                    if (bmOneByOne in APackage.SupportBuildModes) then
-                     APackage.FBuildMode:=bmBuildUnit
+                     APackage.FBuildMode:=bmOneByOne
                    else if bmBuildUnit in APackage.SupportBuildModes then
                      begin
                        log(vlInfo,SInfoFallbackBuildmodeBU);
@@ -6467,6 +6613,8 @@ begin
         for IOS:=Low(TOS) to high(TOS) do
           if OSCPUSupported[IOS,ICPU] then
             begin
+              // Make sure that the package is resolved for each targbet
+              APackage.FAllFilesResolved:=false;
               ResolveFileNames(APackage,ICPU,IOS,false);
               APackage.GetArchiveFiles(L, ICPU, IOS);
             end;
@@ -6543,8 +6691,11 @@ begin
           for ACPU:=low(TCpu) to high(TCpu) do if ACPU<>cpuNone then
             for AOS:=low(TOS) to high(TOS) do if AOS<>osNone then
               begin
-                DirectoryList.Add(ExtractFileDir(APackage.GetUnitsOutputDir(ACPU,AOS)));
-                DirectoryList.Add(ExtractFileDir(APackage.GetBinOutputDir(ACPU,AOS)));
+                if OSCPUSupported[AOS,ACPU] then
+                  begin
+                    DirectoryList.Add(ExtractFileDir(APackage.GetUnitsOutputDir(ACPU,AOS)));
+                    DirectoryList.Add(ExtractFileDir(APackage.GetBinOutputDir(ACPU,AOS)));
+                  end;
               end;
           CmdRemoveTrees(DirectoryList);
         finally
@@ -6929,10 +7080,10 @@ begin
   Log(vldebug, SDbgBuildEngineCleaning);
   For I:=0 to Packages.Count-1 do
     begin
-    P:=Packages.PackageItems[i];
-    If AllTargets or PackageOK(P) then
-      Clean(P, AllTargets);
-    log(vlWarning, SWarnCleanPackagecomplete, [P.Name]);
+      P:=Packages.PackageItems[i];
+      If AllTargets or PackageOK(P) then
+        Clean(P, AllTargets);
+      log(vlWarning, SWarnCleanPackagecomplete, [P.Name]);
     end;
   If Assigned(AfterClean) then
     AfterClean(Self);
@@ -7115,9 +7266,16 @@ begin
   result := GetImportLibraryFilename(Name,AOS);
 end;
 
-function TTarget.GetUnitLibFileName: String;
+function TTarget.GetUnitLibFileName(AOS : TOS): String;
 begin
-  Result:='libp'+Name+LibExt;
+  if AOS in [atari,netwlibc,go32v2,watcom,wdosx,msdos] then
+    Result := Name+LibExt
+  else if AOS in [java] then
+    Result:=Name+'.jar'
+  else if AOS in [macos] then
+    Result:=Name+'Lib'
+  else
+    Result:='libp'+Name+LibExt;
 end;
 
 procedure TTarget.SetOptions(const AValue: TStrings);
@@ -7149,6 +7307,12 @@ end;
 function TTarget.GetRSTFileName: String;
 begin
   Result:=Name+RSText;
+end;
+
+
+function TTarget.GetRSJFileName: String;
+begin
+  Result:=Name+RSJext;
 end;
 
 
@@ -7204,8 +7368,8 @@ begin
   If (TargetType in [ttUnit,ttImplicitUnit,ttExampleUnit, ttCleanOnlyUnit]) then
     begin
       List.Add(APrefixU + UnitFileName);
-      if (AOS in AllSmartLinkLibraryOSes) and FileExists(APrefixU + UnitLibFileName) then
-        List.Add(APrefixU + UnitLibFileName);
+      if (AOS in AllSmartLinkLibraryOSes) and FileExists(APrefixU + GetUnitLibFileName(AOS)) then
+        List.Add(APrefixU + GetUnitLibFileName(AOS));
       if (AOS in AllImportLibraryOSes) and FileExists(APrefixU + GetImportLibFilename(AOS)) then
         List.Add(APrefixU + GetImportLibFilename(AOS));
     end
@@ -7216,7 +7380,13 @@ begin
       List.Add(APrefixB + GetProgramDebugFileName(AOS));
     end;
   If ResourceStrings then
-    List.Add(APrefixU + RSTFileName);
+    begin
+      // choose between 2 possible resource files
+      if FileExists(APrefixU + RSJFileName) then
+        List.Add(APrefixU + RSJFileName)
+      else
+        List.Add(APrefixU + RSTFileName);
+    end;
   // Maybe add later ?  AddConditionalStrings(List,CleanFiles);
 end;
 
@@ -7229,15 +7399,21 @@ begin
   If (TargetType in [ttUnit,ttImplicitUnit,ttExampleUnit]) then
     begin
     List.Add(APrefixU + UnitFileName);
-    if (AOS in AllSmartLinkLibraryOSes) and FileExists(APrefixU + UnitLibFileName) then
-      List.Add(APrefixU + UnitLibFileName);
+    if (AOS in AllSmartLinkLibraryOSes) and FileExists(APrefixU + GetUnitLibFileName(AOS)) then
+      List.Add(APrefixU + GetUnitLibFileName(AOS));
     if (AOS in AllImportLibraryOSes) and FileExists(APrefixU + GetImportLibFilename(AOS)) then
       List.Add(APrefixU + GetImportLibFilename(AOS));
     end
   else If (TargetType in [ttProgram,ttExampleProgram]) then
     List.Add(APrefixB + GetProgramFileName(AOS));
   If ResourceStrings then
-    List.Add(APrefixU + RSTFileName);
+    begin
+      // choose between 2 possible resource files
+      if FileExists(APrefixU + RSJFileName) then
+        List.Add(APrefixU + RSJFileName)
+      else
+        List.Add(APrefixU + RSTFileName);
+    end;
 end;
 
 

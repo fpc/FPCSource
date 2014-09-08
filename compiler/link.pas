@@ -46,7 +46,7 @@ interface
         DynamicLinker : string[100];
       end;
 
-      TLinker = class(TAbstractLinker)
+      TLinker = class(TObject)
       public
          HasResources,
          HasExports      : boolean;
@@ -132,12 +132,16 @@ interface
          procedure AddImportSymbol(const libname,symname,symmangledname:TCmdStr;OrdNr: longint;isvar:boolean);override;
        end;
 
+      TLinkerClass = class of Tlinker;
+
     var
       Linker  : TLinker;
 
     function FindObjectFile(s : TCmdStr;const unitpath:TCmdStr;isunit:boolean) : TCmdStr;
     function FindLibraryFile(s:TCmdStr;const prefix,ext:TCmdStr;var foundfile : TCmdStr) : boolean;
     function FindDLL(const s:TCmdStr;var founddll:TCmdStr):boolean;
+
+    procedure RegisterLinker(id:tlink;c:TLinkerClass);
 
     procedure InitLinker;
     procedure DoneLinker;
@@ -154,8 +158,8 @@ Implementation
       aasmbase,aasmtai,aasmdata,aasmcpu,
       owbase,owar,ogmap;
 
-    type
-     TLinkerClass = class of Tlinker;
+    var
+      CLinker : array[tlink] of TLinkerClass;
 
 {*****************************************************************************
                                    Helpers
@@ -562,7 +566,7 @@ Implementation
     Function TLinker.MakeStaticLibrary:boolean;
       begin
         MakeStaticLibrary:=false;
-        Message(exec_e_dll_not_supported);
+        Message(exec_e_static_lib_not_supported);
       end;
 
 
@@ -783,7 +787,8 @@ Implementation
         binstr := FindUtil(utilsprefix + binstr);
 
 
-        scripted_ar:=target_ar.id=ar_gnu_ar_scripted;
+        scripted_ar:=(target_ar.id=ar_gnu_ar_scripted) or
+                     (target_ar.id=ar_watcom_wlib_omf_scripted);
 
         if scripted_ar then
           begin
@@ -792,15 +797,25 @@ Implementation
             Assign(script, scriptfile);
             Rewrite(script);
             try
-              writeln(script, 'CREATE ' + current_module.staticlibfilename);
+              if (target_ar.id=ar_gnu_ar_scripted) then
+                writeln(script, 'CREATE ' + current_module.staticlibfilename)
+              else { wlib case }
+                writeln(script,'-q -fo -c -b '+
+                  maybequoted(current_module.staticlibfilename));
               current := TCmdStrListItem(SmartLinkOFiles.First);
               while current <> nil do
                 begin
-                  writeln(script, 'ADDMOD ' + current.str);
+                  if (target_ar.id=ar_gnu_ar_scripted) then
+                  writeln(script, 'ADDMOD ' + current.str)
+                  else
+                    writeln(script,'+' + current.str);
                   current := TCmdStrListItem(current.next);
                 end;
-              writeln(script, 'SAVE');
-              writeln(script, 'END');
+              if (target_ar.id=ar_gnu_ar_scripted) then
+                begin
+                  writeln(script, 'SAVE');
+                  writeln(script, 'END');
+                end;
             finally
               Close(script);
             end;
@@ -1033,6 +1048,8 @@ Implementation
           exit;
         Comment(V_Tried,'Opening library '+para);
         objreader:=TArObjectreader.create(para,true);
+        if ErrorCount>0 then
+          exit;
         if objreader.isarchive then
           TFPObjectList(FGroupStack.Last).Add(TStaticLibrary.Create(para,objreader,CObjInput))
         else
@@ -1518,21 +1535,23 @@ Implementation
                                  Init/Done
 *****************************************************************************}
 
+    procedure RegisterLinker(id:tlink;c:TLinkerClass);
+      begin
+        CLinker[id]:=c;
+      end;
+
+
     procedure InitLinker;
-      var
-        lk : TlinkerClass;
       begin
         if (cs_link_extern in current_settings.globalswitches) and
-           assigned(target_info.linkextern) then
+           assigned(CLinker[target_info.linkextern]) then
           begin
-            lk:=TlinkerClass(target_info.linkextern);
-            linker:=lk.Create;
+            linker:=CLinker[target_info.linkextern].Create;
           end
         else
-          if assigned(target_info.link) then
+          if assigned(CLinker[target_info.link]) then
             begin
-              lk:=TLinkerClass(target_info.link);
-              linker:=lk.Create;
+              linker:=CLinker[target_info.link].Create;
             end
         else
           linker:=Tlinker.Create;
@@ -1573,7 +1592,14 @@ Implementation
 
       ar_watcom_wlib_omf_info : tarinfo =
           ( id          : ar_watcom_wlib_omf;
-            arcmd       : 'wlib -q -fo -c $LIB $FILES';
+            arcmd       : 'wlib -q -fo -c -b $LIB $FILES';
+            arfinishcmd : ''
+          );
+
+      ar_watcom_wlib_omf_scripted_info : tarinfo =
+          (
+            id    : ar_watcom_wlib_omf_scripted;
+            arcmd : 'wlib @$SCRIPT';
             arfinishcmd : ''
           );
 
@@ -1583,4 +1609,5 @@ initialization
   RegisterAr(ar_gnu_ar_scripted_info);
   RegisterAr(ar_gnu_gar_info);
   RegisterAr(ar_watcom_wlib_omf_info);
+  RegisterAr(ar_watcom_wlib_omf_scripted_info);
 end.

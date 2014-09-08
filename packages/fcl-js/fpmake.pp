@@ -22,16 +22,19 @@ begin
     P.HomepageURL := 'www.freepascal.org';
     P.Email := 'michael@freepascal.org';
     P.Description := 'Javascript scanner/parser/syntax tree units';
-    P.OSes:=AllOSes-[embedded];
+    P.OSes:=AllOSes-[embedded,msdos];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
     T:=P.Targets.AddUnit('jsbase.pp');
+    T:=P.Targets.AddUnit('jstoken.pp');
     T:=P.Targets.AddUnit('jstree.pp');
     T:=P.Targets.AddUnit('jsscanner.pp');
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('jsparser.pp');
+      T.ResourceStrings:=true;
+    T:=P.Targets.AddUnit('jswriter.pp');
       T.ResourceStrings:=true;
 {$ifndef ALLPACKAGES}
     Run;
