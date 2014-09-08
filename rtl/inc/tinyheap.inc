@@ -294,6 +294,7 @@
     procedure RegisterTinyHeapBlock(AAddress: pointer; ASize: ptruint);
       var
         alignment_inc: smallint;
+        p: PTinyHeapBlock;
       begin
 {$ifdef DEBUG_TINY_HEAP}
         Writeln('RegisterTinyHeapBlock(', ptruint(AAddress), ',', ASize, ')');
@@ -311,11 +312,34 @@
           end
         else
           begin
-            if (HeapOrg=nil) or (TTinyHeapPointerArithmeticType(HeapOrg) > TTinyHeapPointerArithmeticType(AAddress)) then
+            if (TTinyHeapPointerArithmeticType(HeapOrg) > TTinyHeapPointerArithmeticType(AAddress)) then
               HeapOrg:=AAddress;
-            if (HeapEnd=nil) or (TTinyHeapPointerArithmeticType(HeapEnd) < (TTinyHeapPointerArithmeticType(AAddress)+ASize)) then
-              HeapEnd:=Pointer(TTinyHeapPointerArithmeticType(AAddress)+ASize);
-            InternalTinyFreeMem(AAddress, ASize);
+            if TTinyHeapPointerArithmeticType(AAddress) > TTinyHeapPointerArithmeticType(HeapEnd) then
+              begin
+                if TTinyHeapPointerArithmeticType(HeapPtr) = TTinyHeapPointerArithmeticType(HeapEnd) then
+                  begin
+                    if FreeList=HeapPtr then
+                      FreeList:=AAddress
+                    else
+                      begin
+                        p:=FreeList;
+                        while p^.Next<>HeapPtr do
+                          p:=p^.Next;
+                        PTinyHeapBlock(HeapPtr)^.Next:=AAddress;
+                      end;
+                  end
+                else
+                  begin
+                    PTinyHeapBlock(HeapPtr)^.Size:=EncodeTinyHeapFreeBlockSize(TTinyHeapPointerArithmeticType(HeapEnd)-TTinyHeapPointerArithmeticType(HeapPtr));
+                    PTinyHeapBlock(HeapPtr)^.Next:=AAddress;
+                  end;
+                HeapPtr:=AAddress;
+                HeapEnd:=Pointer(TTinyHeapPointerArithmeticType(AAddress)+ASize);
+              end
+            else if TTinyHeapPointerArithmeticType(AAddress) = TTinyHeapPointerArithmeticType(HeapEnd) then
+              HeapEnd:=Pointer(TTinyHeapPointerArithmeticType(AAddress)+ASize)
+            else
+              InternalTinyFreeMem(AAddress, ASize);
           end;
       end;
 
