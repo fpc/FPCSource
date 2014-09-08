@@ -64,13 +64,15 @@ implementation
 
         if not(target_info.system in systems_typed_constants_node_init) then
           begin
-            if sym.varspez=vs_const then
-              cursectype:=sec_rodata
-            else
-              cursectype:=sec_data;
             maybe_new_object_file(list);
             tcbuilder:=tasmlisttypedconstbuilderclass(ctypedconstbuilder).create(sym);
             reslist:=tasmlisttypedconstbuilder(tcbuilder).parse_into_asmlist;
+            { Certain types like windows WideString are initialized at runtime and cannot
+              be placed into readonly memory }
+            if (sym.varspez=vs_const) and not (vo_force_finalize in sym.varoptions) then
+              cursectype:=sec_rodata
+            else
+              cursectype:=sec_data;
             tcbuilder.free;
           end
         else
