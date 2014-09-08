@@ -2409,7 +2409,7 @@ implementation
                     else
                       begin
                         templist.concat(tai_const.create_8bit(ord(DW_OP_addr)));
-                        templist.concat(tai_const.Create_type_name(aitconst_ptr,sym.mangledname,offset));
+                        templist.concat(tai_const.Create_type_name(aitconst_ptr_unaligned,sym.mangledname,offset));
                         blocksize:=1+sizeof(puint);
                       end;
                   end;
@@ -2870,7 +2870,7 @@ implementation
           toasm :
             begin
               templist.concat(tai_const.create_8bit(3));
-              templist.concat(tai_const.create_type_name(aitconst_ptr,sym.mangledname,0));
+              templist.concat(tai_const.create_type_name(aitconst_ptr_unaligned,sym.mangledname,0));
               blocksize:=1+sizeof(puint);
             end;
           tovar:
