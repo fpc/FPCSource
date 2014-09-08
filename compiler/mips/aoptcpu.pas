@@ -239,7 +239,7 @@ unit aoptcpu;
         opcode may be A_MOVE, A_MOV_s, A_MOV_d, etc.
       }
       result:=false;
-      if (taicpu(p).ops>1) and
+      if (taicpu(p).ops>0) and
          GetNextInstructionUsingReg(p,next,taicpu(p).oper[0]^.reg) and
          MatchInstruction(next,opcode) and
          MatchOperand(taicpu(next).oper[1]^,taicpu(p).oper[0]^.reg) and
@@ -280,6 +280,7 @@ unit aoptcpu;
               taicpu(p).loadreg(0,taicpu(next).oper[0]^.reg);
               asml.remove(next);
               next.free;
+              result:=true;
             end;
         end;
     end;
@@ -513,7 +514,7 @@ unit aoptcpu;
                             end;
                         end
                       { MOVE  Rx,Ry; opcode Rz,Rx,any; dealloc Rx  ==> opcode Rz,Ry,any }
-                      else if (taicpu(next).opcode in [A_ADD,A_ADDU,A_ADDI,A_ADDIU,A_SUB,A_SUBU,A_SLT,A_SLTU]) and
+                      else if (taicpu(next).opcode in [A_ADD,A_ADDU,A_ADDI,A_ADDIU,A_SUB,A_SUBU,A_SLT,A_SLTU,A_DIV,A_DIVU]) and
                          Assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(next.next))) then
                         begin
                           if MatchOperand(taicpu(next).oper[1]^,taicpu(p).oper[0]^.reg) then
@@ -549,6 +550,17 @@ unit aoptcpu;
                               p.free;
                               p:=next;
                             end;
+                        end
+                      else if TryRemoveMov(p,A_MOVE) then
+                        begin
+                          { Ended up with move between same register? Suicide then. }
+                          if (taicpu(p).oper[0]^.reg=taicpu(p).oper[1]^.reg) then
+                            begin
+                              GetNextInstruction(p,next);
+                              asml.remove(p);
+                              p.free;
+                              p:=next;
+                            end;
                         end;
                       { TODO: MOVE  Rx,Ry; Bcc Rx,Rz,label; dealloc Rx   ==> Bcc Ry,Rz,label  }
                     end;
@@ -561,6 +573,7 @@ unit aoptcpu;
               A_SRA,A_SRAV,
               A_SRLV,
               A_SLLV,
+              A_MFLO,A_MFHI,
               A_AND,A_OR,A_XOR,A_ORI,A_XORI:
                 TryRemoveMov(p,A_MOVE);
 
