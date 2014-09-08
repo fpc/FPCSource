@@ -54,11 +54,12 @@ const
   fpu_rounding_minus_inf = 3;
 
   fpu_all_bits = fpu_enable_mask or fpu_flags_mask or fpu_cause_mask or fpu_rounding_mask;
-
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
 procedure SysInitFPU;
   begin
+{$ifndef FPC_HAS_FEATURE_SOFTFPU}
     set_fsr(get_fsr and (not fpu_all_bits) or (default_fpu_enable or fpu_rounding_nearest));
+{$ENDIF FPC_HAS_FEATURE_SOFTFPU}
   end;
 
 
@@ -74,7 +75,6 @@ procedure fpc_cpuinit;
     if (not IsLibrary) then
       SysInitFPU;
   end;
-
 
 {$ifndef INTERNAL_BACKTRACE}
 {$define FPC_SYSTEM_HAS_GET_FRAME}
