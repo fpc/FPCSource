@@ -25,11 +25,6 @@
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
-{$I useamigasmartlink.inc}
-{$ifdef use_amiga_smartlink}
-   {$smartlink on}
-{$endif use_amiga_smartlink}
-
 UNIT translator;
 
 INTERFACE
@@ -46,7 +41,7 @@ VAR TranslatorBase : pLibrary;
 const
     TRANSLATORNAME : PChar = 'translator.library';
 
-FUNCTION Translate(const inputString : pCHAR; inputLength : LONGINT; outputBuffer : pCHAR; bufferSize : LONGINT) : LONGINT;
+FUNCTION Translate(const inputString : pCHAR location 'a0'; inputLength : LONGINT location 'd0'; outputBuffer : pCHAR location 'a1'; bufferSize : LONGINT location 'd1') : LONGINT; syscall TranslatorBase 030;
 
 {Here we read how to compile this unit}
 {You can remove this include and use a define instead}
@@ -64,21 +59,6 @@ IMPLEMENTATION
 {$ifndef dont_use_openlib}
 uses amsgbox;
 {$endif dont_use_openlib}
-
-FUNCTION Translate(const inputString : pCHAR; inputLength : LONGINT; outputBuffer : pCHAR; bufferSize : LONGINT) : LONGINT;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L inputString,A0
-    MOVE.L  inputLength,D0
-    MOVEA.L outputBuffer,A1
-    MOVE.L  bufferSize,D1
-    MOVEA.L TranslatorBase,A6
-    JSR -030(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
 
 const
     { Change VERSION and LIBVERSION to proper values }
