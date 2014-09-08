@@ -61,7 +61,7 @@ _reset:
         ##################################################################
         # Startup code
         ##################################################################
-        .section .startup,"ax",@progbits
+        .section .reset.startup,"ax",@progbits
         .align 2
         .set noreorder
         .ent _startup
@@ -138,21 +138,20 @@ _bss_check:
         # Copy initialized data from program flash to data memory
         #   src=_data_image_begin dst=_data_begin stop=_data_end
         ##################################################################
-#       TODO
-#        la      $t0,_data_image_begin
-#        la      $t1,_data
-#        la      $t2,_edata
-#        b       _init_check
-#        nop
+        la      $t0,_etext
+        la      $t1,_data
+        la      $t2,_edata
+        b       _init_check
+        nop
 
 _init_data:
-#        lw      $t3,($t0)
-#        sw      $t3,($t1)
-#        addu    $t0,4
-#        addu    $t1,4
+        lw      $t3,($t0)
+        sw      $t3,($t1)
+        addu    $t0,4
+        addu    $t1,4
 _init_check:
-#        bltu    $t1,$t2,_init_data
-#        nop
+        bltu    $t1,$t2,_init_data
+        nop
 
         ##################################################################
         # If there are no RAM functions, skip the next two sections --
@@ -338,6 +337,9 @@ _main_entry:
         # Haltproc
         ##################################################################
         .text
+        .align  2
+        .weak   _haltproc
+        .set    nomips16
         .ent _haltproc
 _haltproc:
         b       _haltproc

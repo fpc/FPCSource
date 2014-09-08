@@ -90,7 +90,18 @@ endif
 
 ifeq ($(ARCH),mipsel)
 ifeq ($(SUBARCH),pic32mx)
-  CPU_UNITS=pic32mx1xxfxxxb pic32mx2xxfxxxb pic32mx1xxfxxxc pic32mx2xxfxxxc pic32mx1xxfxxxd pic32mx2xxfxxxd pic32mx7x5fxxxl pic32mx7x5fxxxh
+  CPU_UNITS=pic32mx110f016b pic32mx110f016c pic32mx110f016d pic32mx120f032b pic32mx120f032c pic32mx120f032d pic32mx130f064b pic32mx130f064c \
+            pic32mx130f064d pic32mx150f128b pic32mx150f128c pic32mx150f128d pic32mx170f256b pic32mx170f256d pic32mx210f016b pic32mx210f016c \
+            pic32mx210f016d pic32mx220f032b pic32mx220f032c pic32mx220f032d pic32mx230f064b pic32mx230f064c pic32mx230f064d pic32mx250f128b \
+            pic32mx250f128c pic32mx250f128d pic32mx270f256b pic32mx270f256d pic32mx320f032h pic32mx320f064h pic32mx320f128h pic32mx320f128l \
+            pic32mx330f064h pic32mx330f064l pic32mx340f128h pic32mx340f128l pic32mx340f256h pic32mx340f512h pic32mx350f128h pic32mx350f128l \
+            pic32mx350f256h pic32mx350f256l pic32mx360f256l pic32mx360f512l pic32mx370f512h pic32mx370f512l pic32mx420f032h pic32mx430f064h \
+            pic32mx430f064l pic32mx440f128h pic32mx440f128l pic32mx440f256h pic32mx440f512h pic32mx450f128h pic32mx450f128l pic32mx450f256h \
+            pic32mx450f256l pic32mx460f256l pic32mx460f512l pic32mx470f512h pic32mx470f512l pic32mx534f064h pic32mx534f064l pic32mx564f064h \
+            pic32mx564f064l pic32mx564f128h pic32mx564f128l pic32mx575f256h pic32mx575f256l pic32mx575f512h pic32mx575f512l pic32mx664f064h \
+            pic32mx664f064l pic32mx664f128h pic32mx664f128l pic32mx675f256h pic32mx675f256l pic32mx675f512h pic32mx675f512l pic32mx695f512h \
+            pic32mx695f512l pic32mx764f128h pic32mx764f128l pic32mx775f256h pic32mx775f256l pic32mx775f512h pic32mx775f512l pic32mx795f512h \
+            pic32mx795f512l
 endif
 endif
 

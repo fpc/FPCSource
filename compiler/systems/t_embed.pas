@@ -861,6 +861,9 @@ begin
       ct_pic32mx150f128b,
       ct_pic32mx150f128c,
       ct_pic32mx150f128d,
+      ct_pic32mx170f256b,
+      ct_pic32mx170f256c,
+      ct_pic32mx170f256d,
       ct_pic32mx210f016b,
       ct_pic32mx210f016c,
       ct_pic32mx210f016d,
@@ -873,6 +876,64 @@ begin
       ct_pic32mx250f128b,
       ct_pic32mx250f128c,
       ct_pic32mx250f128d,
+      ct_pic32mx270f256b,
+      ct_pic32mx270f256c,
+      ct_pic32mx270f256d,
+      ct_pic32mx320f032h,
+      ct_pic32mx320f064h,
+      ct_pic32mx320f128h,
+      ct_pic32mx320f128l,
+      ct_pic32mx330f064h,
+      ct_pic32mx330f064l,
+      ct_pic32mx340f128h,
+      ct_pic32mx340f128l,
+      ct_pic32mx340f256h,
+      ct_pic32mx340f512h,
+      ct_pic32mx350f128h,
+      ct_pic32mx350f128l,
+      ct_pic32mx350f256h,
+      ct_pic32mx350f256l,
+      ct_pic32mx360f256l,
+      ct_pic32mx360f512l,
+      ct_pic32mx370f512h,
+      ct_pic32mx370f512l,
+      ct_pic32mx420f032h,
+      ct_pic32mx430f064h,
+      ct_pic32mx430f064l,
+      ct_pic32mx440f128h,
+      ct_pic32mx440f128l,
+      ct_pic32mx440f256h,
+      ct_pic32mx440f512h,
+      ct_pic32mx450f128h,
+      ct_pic32mx450f128l,
+      ct_pic32mx450f256h,
+      ct_pic32mx450f256l,
+      ct_pic32mx460f256l,
+      ct_pic32mx460f512l,
+      ct_pic32mx470f512h,
+      ct_pic32mx470f512l,
+      ct_pic32mx534f064h,
+      ct_pic32mx534f064l,
+      ct_pic32mx564f064h,
+      ct_pic32mx564f064l,
+      ct_pic32mx564f128h,
+      ct_pic32mx564f128l,
+      ct_pic32mx575f256h,
+      ct_pic32mx575f256l,
+      ct_pic32mx575f512h,
+      ct_pic32mx575f512l,
+      ct_pic32mx664f064h,
+      ct_pic32mx664f064l,
+      ct_pic32mx664f128h,
+      ct_pic32mx664f128l,
+      ct_pic32mx675f256h,
+      ct_pic32mx675f256l,
+      ct_pic32mx675f512h,
+      ct_pic32mx675f512l,
+      ct_pic32mx695f512h,
+      ct_pic32mx695f512l,
+      ct_pic32mx764f128h,
+      ct_pic32mx764f128l,
       ct_pic32mx775f256h,
       ct_pic32mx775f256l,
       ct_pic32mx775f512h,
@@ -888,23 +949,25 @@ begin
               Add('ENTRY(_reset)');
               Add('PROVIDE(_vector_spacing = 0x00000001);');
               Add('_ebase_address = 0x'+IntToHex(flashbase,8)+';');
-              Add('_RESET_ADDR              = 0xBFC00000;');
-              Add('_BEV_EXCPT_ADDR          = 0xBFC00380;');
-              Add('_DBG_EXCPT_ADDR          = 0xBFC00480;');
+              Add('_RESET_ADDR              = 0x'+IntToHex(bootbase,8)+';');
+              Add('_BEV_EXCPT_ADDR          = 0x'+IntToHex(bootbase+strtoint('0x380'),8)+';');
+              Add('_DBG_EXCPT_ADDR          = 0x'+IntToHex(bootbase+strtoint('0x480'),8)+';');
               Add('_GEN_EXCPT_ADDR          = _ebase_address + 0x180;');
               Add('MEMORY');
               Add('{');
               if flashsize<>0 then
                 begin
                   Add('  kseg0_program_mem          : ORIGIN = 0x'+IntToHex(flashbase,8)+', LENGTH = 0x'+IntToHex(flashsize,8));
-                  //TODO This should better be placed into the controllertype records
-                  Add('  kseg1_boot_mem             : ORIGIN = 0xBFC00000, LENGTH = 0xbef');
-                  Add('  config3                    : ORIGIN = 0xBFC00BF0, LENGTH = 0x4');
-                  Add('  config2                    : ORIGIN = 0xBFC00BF4, LENGTH = 0x4');
-                  Add('  config1                    : ORIGIN = 0xBFC00BF8, LENGTH = 0x4');
-                  Add('  config0                    : ORIGIN = 0xBFC00BFC, LENGTH = 0x4');
+                  Add('  kseg0_boot_mem             : ORIGIN = 0x'+IntToHex(bootbase-$20000000,8)+ ', LENGTH = 0x'+IntToHex(bootsize,8));
+                  Add('  kseg1_boot_mem             : ORIGIN = 0x'+IntToHex(bootbase,8)+ ', LENGTH = 0x'+IntToHex(bootsize,8));
+                  Add('  devcfg3                    : ORIGIN = 0x'+IntToHex(bootbase+bootsize+1,8)+', LENGTH = 0x04');
+                  Add('  devcfg2                    : ORIGIN = 0x'+IntToHex(bootbase+bootsize+5,8)+', LENGTH = 0x04');
+                  Add('  devcfg1                    : ORIGIN = 0x'+IntToHex(bootbase+bootsize+9,8)+', LENGTH = 0x04');
+                  Add('  devcfg0                    : ORIGIN = 0x'+IntToHex(bootbase+bootsize+13,8)+', LENGTH = 0x04');
                 end;
 
+              Add('  kseg1_data_mem             : ORIGIN = 0x' + IntToHex(srambase,8)
+              	+ ', LENGTH = 0x' + IntToHex(sramsize,8));
               Add('  ram                        : ORIGIN = 0x' + IntToHex(srambase,8)
               	+ ', LENGTH = 0x' + IntToHex(sramsize,8));
 
@@ -958,9 +1021,9 @@ begin
       Add('    _data = .;');
       Add('    *(.data .data.*)');
       Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
+      Add('    _edata = .;');
       Add('    . = .;');
       Add('    _gp = ALIGN(16) + 0x7ff0;');
-      Add('    _edata = .;');
       if embedded_controllers[current_settings.controllertype].flashsize<>0 then
         begin
           Add('    } >ram AT >kseg0_program_mem');
@@ -969,26 +1032,30 @@ begin
         begin
           Add('    } >ram');
         end;
-      Add('  .config_BFC00BF0 : {');
-      Add('    KEEP(*(.config_BFC00BF0))');
-      Add('  } > config3');
-      Add('  .config_BFC00BF4 : {');
-      Add('    KEEP(*(.config_BFC00BF4))');
-      Add('  } > config2');
-      Add('  .config_BFC00BF8 : {');
-      Add('    KEEP(*(.config_BFC00BF8))');
-      Add('  } > config1');
-      Add('  .config_BFC00BFC : {');
-      Add('    KEEP(*(.config_BFC00BFC))');
-      Add('  } > config0');
+
+      Add('  .devcfg3 : {');
+      Add('    *(.devcfg3)');
+      Add('  } > devcfg3');
+      Add('  .devcfg2 : {');
+      Add('    KEEP(*(.devcfg2))');
+      Add('  } > devcfg2');
+      Add('  .devcfg1 : {');
+      Add('    KEEP(*(.devcfg1))');
+      Add('  } > devcfg1');
+      Add('  .devcfg0 : {');
+      Add('    KEEP(*(.devcfg0))');
+      Add('  } > devcfg0');
+
       Add('    .bss :');
       Add('    {');
       Add('    _bss_start = .;');
       Add('    *(.bss, .bss.*)');
       Add('    *(COMMON)');
-      Add('    } >ram');
       Add('. = ALIGN(4);');
       Add('_bss_end = . ;');
+      Add('    } >ram');
+      Add('. = ALIGN(4);');
+      //Add('_bss_end = . ;');
       Add('  .comment       0 : { *(.comment) }');
       Add('  /* DWARF debug sections.');
       Add('     Symbols in the DWARF debugging sections are relative to the beginning');
@@ -1005,10 +1072,10 @@ begin
       Add('  /* DWARF 2 */');
       Add('  .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }');
       Add('  .debug_abbrev   0 : { *(.debug_abbrev) }');
-      Add('  /DISCARD/         : { *(.debug_line) }');
+      Add('  .debug_line     0 : { *(.debug_line) }');
       Add('  .debug_frame    0 : { *(.debug_frame) }');
       Add('  .debug_str      0 : { *(.debug_str) }');
-      Add('  /DISCARD/         : { *(.debug_loc) }');
+      Add('  .debug_loc      0 : { *(.debug_loc) }');
       Add('  .debug_macinfo  0 : { *(.debug_macinfo) }');
       Add('  /* SGI/MIPS DWARF 2 extensions */');
       Add('  .debug_weaknames 0 : { *(.debug_weaknames) }');
