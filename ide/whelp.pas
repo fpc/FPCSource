@@ -192,7 +192,7 @@ uses
 {$ifdef netware_clib}
   nwserv,
 {$endif}
-{$ifdef aros}
+{$ifdef HASAMIGA}
   dos,
 {$endif}
   Strings,
@@ -205,7 +205,7 @@ type
     procedure FreeItem(Item: Pointer); virtual;
   end;
 
-{$ifdef AROS}
+{$ifdef HASAMIGA}
 var
   StartupTicks: Int64;
 {$endif}
@@ -314,17 +314,7 @@ begin
   GetDosTicks := Nwserv.GetCurrentTicks;
 end;
 {$endif}
-{$ifdef amiga}
-begin
-  GetDosTicks := -1;
-end;
-{$endif}
-{$ifdef morphos}
-begin
-  GetDosTicks := -1;
-end;
-{$endif}
-{$ifdef AROS}
+{$ifdef HASAMIGA}
 begin
   GetDosTicks := ((dos.GetMsCount div 55) - StartupTicks) and $7FFFFFFF;
 end;
@@ -1005,7 +995,7 @@ begin
   Dispose(HelpFiles, Done);
 end;
 
-{$ifdef AROS}
+{$ifdef HASAMIGA}
 INITIALIZATION
   StartupTicks := dos.GetMsCount div 55;
 {$endif}

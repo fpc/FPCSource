@@ -1554,7 +1554,7 @@ begin
       Writeln('Running "'+ProgramPath+' '+Params+'"');
      { DO NOT use COMSPEC for exe files as the
       ExitCode is lost in those cases PM }
-{$ifdef AROS}
+{$ifdef HASAMIGA}
   DosExecute(ProgramPath, Params);
 {$else}
 {$ifndef Unix}
@@ -1583,7 +1583,7 @@ begin
           InFile,OutFile,ErrFile);
      end;
 {$endif Unix}
-{$endif AROS}
+{$endif HASAMIGA}
 
 {$ifdef Unix}
     if (DebuggeeTTY='') and (OutFile='') and (ExecType<>exDosShell) then
@@ -1732,7 +1732,7 @@ procedure TIDEApp.DosShell;
 var
   s : string;
 begin
-{$ifdef AROS}
+{$ifdef HASAMIGA}
   s := 'C:NewShell';
 {$else}
 {$ifdef Unix}

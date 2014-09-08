@@ -90,7 +90,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       ShowStatusOnError: boolean = true;
       StartupDir       : string = '.'+DirSep;
       IDEDir           : string = '.'+DirSep;
-{$if defined(WINDOWS) or defined(Unix)}
+{$if defined(WINDOWS) or defined(Unix) or defined(Aros)}
       SystemIDEDir     : string = '';
 {$endif defined(WINDOWS) or defined(Unix)}
       INIFileName      : string = ININame;

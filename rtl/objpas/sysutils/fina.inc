@@ -74,7 +74,7 @@ begin
   l:=Length(FileName);
   if (l<2) then
     exit;
-{$IF DEFINED(AMIGA) OR DEFINED(MORPHOS)}
+{$IFDEF HASAMIGA}
   i:=Pos(DriveSeparator,FileName);
   if (i > 0) then Result:=Copy(FileName,1,i); 
 {$ELSE}

@@ -514,7 +514,11 @@ function DirOf(const S: string): string;
 var D: DirStr; E: ExtStr; N: NameStr;
 begin
   FSplit(S,D,N,E);
-  if (D<>'') and (D[Length(D)]<>DirSep) then
+  if (D<>'') and (D[Length(D)]<>DirSep)
+  {$ifdef HASAMIGA}
+    and (D[Length(D)]<>DriveSeparator)
+  {$endif}
+  then
    DirOf:=D+DirSep
   else
    DirOf:=D;
@@ -1220,7 +1224,11 @@ function GetCurDir: string;
 var S: string;
 begin
   GetDir(0,S);
+{$ifdef HASAMIGA}
+  if (copy(S,length(S),1)<>DirSep) and (copy(S,length(S),1)<>DriveSeparator) then S:=S+DirSep;
+{$else}
   if copy(S,length(S),1)<>DirSep then S:=S+DirSep;
+{$endif}
   GetCurDir:=S;
 end;
 
