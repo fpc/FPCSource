@@ -161,7 +161,7 @@
               prev^.next := HeapPtr;
           end;
 {$ifdef DEBUG_TINY_HEAP}
-        Writeln(ptruint(Result));
+        Writeln(HexStr(Result));
 {$endif DEBUG_TINY_HEAP}
       end;
 
@@ -229,7 +229,7 @@
         sz: ptruint;
       begin
 {$ifdef DEBUG_TINY_HEAP}
-        Writeln('SysTinyFreeMem(', ptruint(Addr), ')');
+        Writeln('SysTinyFreeMem(', HexStr(Addr), ')');
 {$endif DEBUG_TINY_HEAP}
         if addr=nil then
           begin
@@ -268,7 +268,7 @@
         sz: ptruint;
       begin
 {$ifdef DEBUG_TINY_HEAP}
-        Write('SysTinyReAllocMem(', ptruint(p), ',', size, ')=');
+        Write('SysTinyReAllocMem(', HexStr(p), ',', size, ')=');
 {$endif DEBUG_TINY_HEAP}
         if size=0 then
           result := nil
@@ -287,7 +287,7 @@
         SysTinyFreeMem(p);
         p := result;
 {$ifdef DEBUG_TINY_HEAP}
-        Writeln(ptruint(result));
+        Writeln(HexStr(result));
 {$endif DEBUG_TINY_HEAP}
       end;
 
@@ -297,7 +297,7 @@
         p: PTinyHeapBlock;
       begin
 {$ifdef DEBUG_TINY_HEAP}
-        Writeln('RegisterTinyHeapBlock(', ptruint(AAddress), ',', ASize, ')');
+        Writeln('RegisterTinyHeapBlock(', HexStr(AAddress), ',', ASize, ')');
 {$endif DEBUG_TINY_HEAP}
         alignment_inc := TTinyHeapPointerArithmeticType(align(AAddress,TinyHeapAllocGranularity))-TTinyHeapPointerArithmeticType(AAddress);
         Inc(AAddress,alignment_inc);
