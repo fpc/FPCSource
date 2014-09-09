@@ -165,7 +165,7 @@ begin
     { This one is only needed if DEBUG is set }
     P.Dependencies.Add('regexpr');
     if not (NoGDBOption) then
-      P.Dependencies.Add('gdbint',AllOSes-[morphos,aros]);
+      P.Dependencies.Add('gdbint',AllOSes-AllAmigaLikeOSes);
     P.Dependencies.Add('graph',[go32v2]);
 
     P.SupportBuildModes:=[bmOneByOne];
