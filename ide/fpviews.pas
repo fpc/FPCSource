@@ -4357,7 +4357,7 @@ end;
 procedure TFPASCIIChart.HandleEvent(var Event: TEvent);
 var W: PSourceWindow;
 begin
-  writeln(stderr,'all what=',event.what,' cmd=', event.command);
+  {writeln(stderr,'all what=',event.what,' cmd=', event.command);}
   case Event.What of
     evKeyDown :
       case Event.KeyCode of
@@ -4369,7 +4369,7 @@ begin
       end;
     evCommand :
       begin
-      writeln(stderr,'fpascii what=',event.what, ' cmd=', event.command, ' ',cmtransfer,' ',cmsearchwindow);
+      {writeln(stderr,'fpascii what=',event.what, ' cmd=', event.command, ' ',cmtransfer,' ',cmsearchwindow);}
       if Event.Command=(AsciiTableCommandBase+1) then // variable
           begin
             W:=FirstEditorWindow;
