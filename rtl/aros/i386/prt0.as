@@ -89,7 +89,8 @@ _allocStack:
     movl     %eax,8(%ecx)           /* Initial stackpointer */
     movl     _ExecBase,%eax
     pushl    %eax
-    pushl    $0
+    lea      StackSwapArgs,%ebx
+    pushl    %ebx
     lea      _initProc,%ebx
     pushl    %ebx
     pushl    %ecx
@@ -158,3 +159,4 @@ _ExecBase:      .skip   4
 
 StackAreaPtr:    .skip   4
 StackSwapStruct: .skip   12
+StackSwapArgs:   .skip   32
