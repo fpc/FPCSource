@@ -291,6 +291,31 @@
 {$endif DEBUG_TINY_HEAP}
       end;
 
+    procedure InternalTinyAlign(var AAddress: Pointer; ASize: PtrUInt);
+      var
+        alignment_inc: smallint;
+      begin
+        alignment_inc := TTinyHeapPointerArithmeticType(align(AAddress,TinyHeapAllocGranularity))-TTinyHeapPointerArithmeticType(AAddress);
+        Inc(AAddress,alignment_inc);
+        Dec(ASize,alignment_inc);
+        Dec(ASize,ASize mod TinyHeapAllocGranularity);
+      end;
+
+    { Strongly simplified version of RegisterTinyHeapBlock, which can be used when
+      the heap is only a single contiguous memory block. If you want to add
+      multiple blocks to the heap, you should use RegisterTinyHeapBlock instead. }
+    procedure RegisterTinyHeapBlock_Simple(AAddress: Pointer; ASize: PtrUInt);
+      begin
+{$ifdef DEBUG_TINY_HEAP}
+        Writeln('RegisterTinyHeapBlock_Simple(', HexStr(AAddress), ',', ASize, ')');
+{$endif DEBUG_TINY_HEAP}
+        InternalTinyAlign(AAddress, ASize);
+        HeapOrg:=AAddress;
+        HeapPtr:=AAddress;
+        FreeList:=AAddress;
+        HeapEnd:=Pointer(TTinyHeapPointerArithmeticType(AAddress)+ASize);
+      end;
+
     procedure RegisterTinyHeapBlock(AAddress: pointer; ASize: ptruint);
       var
         alignment_inc: smallint;
@@ -299,10 +324,7 @@
 {$ifdef DEBUG_TINY_HEAP}
         Writeln('RegisterTinyHeapBlock(', HexStr(AAddress), ',', ASize, ')');
 {$endif DEBUG_TINY_HEAP}
-        alignment_inc := TTinyHeapPointerArithmeticType(align(AAddress,TinyHeapAllocGranularity))-TTinyHeapPointerArithmeticType(AAddress);
-        Inc(AAddress,alignment_inc);
-        Dec(ASize,alignment_inc);
-        Dec(ASize,ASize mod TinyHeapAllocGranularity);
+        InternalTinyAlign(AAddress, ASize);
         if HeapOrg=nil then
           begin
             HeapOrg:=AAddress;
