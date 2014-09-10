@@ -33,11 +33,7 @@
 
     nils.sjoholm@mailbox.swipnet.se
 }
-
-{$I useamigasmartlink.inc}
-{$ifdef use_amiga_smartlink}
-   {$smartlink on}
-{$endif use_amiga_smartlink}
+{$PACKRECORDS 2}
 
 UNIT rexx;
 
@@ -487,16 +483,16 @@ VAR RexxSysBase : pLibrary;
 const
     REXXSYSLIBNAME : PChar = 'rexxsyslib.library';
 
-PROCEDURE ClearRexxMsg(msgptr : pRexxMsg; count : ULONG);
-FUNCTION CreateArgstring(const argstring : pCHAR; length : ULONG) : pCHAR;
-FUNCTION CreateRexxMsg(const port : pMsgPort;const extension : pCHAR; host : pCHAR) : pRexxMsg;
-PROCEDURE DeleteArgstring(argstring : pCHAR);
-PROCEDURE DeleteRexxMsg(packet : pRexxMsg);
-FUNCTION FillRexxMsg(msgptr : pRexxMsg; count : ULONG; mask : ULONG) : BOOLEAN;
-FUNCTION IsRexxMsg(const msgptr : pRexxMsg) : BOOLEAN;
-FUNCTION LengthArgstring(const argstring : pCHAR) : ULONG;
-PROCEDURE LockRexxBase(resource : ULONG);
-PROCEDURE UnlockRexxBase(resource : ULONG);
+PROCEDURE ClearRexxMsg(msgptr : pRexxMsg location 'a0'; count : ULONG location 'd0'); syscall RexxSysBase 156;
+FUNCTION CreateArgstring(const argstring : pCHAR location 'a0'; length : ULONG location 'd0') : pCHAR; syscall RexxSysBase 126;
+FUNCTION CreateRexxMsg(const port : pMsgPort location 'a0'; const extension : pCHAR location 'a1'; host : pCHAR location 'd0') : pRexxMsg; syscall RexxSysBase 144;
+PROCEDURE DeleteArgstring(argstring : pCHAR location 'd0'); syscall RexxSysBase 132;
+PROCEDURE DeleteRexxMsg(packet : pRexxMsg location 'a0'); syscall RexxSysBase 150;
+FUNCTION FillRexxMsg(msgptr : pRexxMsg location 'a0'; count : ULONG location 'd0'; mask : ULONG location 'd1') : BOOLEAN; syscall RexxSysBase 162;
+FUNCTION IsRexxMsg(const msgptr : pRexxMsg location 'a0') : BOOLEAN; syscall RexxSysBase 168;
+FUNCTION LengthArgstring(const argstring : pCHAR location 'a0') : ULONG; syscall RexxSysBase 138;
+PROCEDURE LockRexxBase(resource : ULONG location 'd0'); syscall RexxSysBase 450;
+PROCEDURE UnlockRexxBase(resource : ULONG location 'd0'); syscall RexxSysBase 456;
 
 FUNCTION CreateArgstring(const argstring : string; length : ULONG) : pCHAR;
 FUNCTION CreateRexxMsg(const port : pMsgPort;const extension : string; host : pCHAR) : pRexxMsg;
@@ -523,135 +519,6 @@ uses
 amsgbox,
 {$endif dont_use_openlib}
 pastoc;
-
-
-PROCEDURE ClearRexxMsg(msgptr : pRexxMsg; count : ULONG);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L msgptr,A0
-    MOVE.L  count,D0
-    MOVEA.L RexxSysBase,A6
-    JSR -156(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-FUNCTION CreateArgstring(const argstring : pCHAR; length : ULONG) : pCHAR;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L argstring,A0
-    MOVE.L  length,D0
-    MOVEA.L RexxSysBase,A6
-    JSR -126(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION CreateRexxMsg(const port : pMsgPort;const extension : pCHAR; host : pCHAR) : pRexxMsg;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L port,A0
-    MOVEA.L extension,A1
-    MOVE.L  host,D0
-    MOVEA.L RexxSysBase,A6
-    JSR -144(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-PROCEDURE DeleteArgstring(argstring : pCHAR);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L argstring,A0
-    MOVEA.L RexxSysBase,A6
-    JSR -132(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-PROCEDURE DeleteRexxMsg(packet : pRexxMsg);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L packet,A0
-    MOVEA.L RexxSysBase,A6
-    JSR -150(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-FUNCTION FillRexxMsg(msgptr : pRexxMsg; count : ULONG; mask : ULONG) : BOOLEAN;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L msgptr,A0
-    MOVE.L  count,D0
-    MOVE.L  mask,D1
-    MOVEA.L RexxSysBase,A6
-    JSR -162(A6)
-    MOVEA.L (A7)+,A6
-    TST.W   D0
-    BEQ.B   @end
-    MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-FUNCTION IsRexxMsg(const msgptr : pRexxMsg) : BOOLEAN;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L msgptr,A0
-    MOVEA.L RexxSysBase,A6
-    JSR -168(A6)
-    MOVEA.L (A7)+,A6
-    TST.W   D0
-    BEQ.B   @end
-    MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-FUNCTION LengthArgstring(const argstring : pCHAR) : ULONG;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L argstring,A0
-    MOVEA.L RexxSysBase,A6
-    JSR -138(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-PROCEDURE LockRexxBase(resource : ULONG);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVE.L  resource,D0
-    MOVEA.L RexxSysBase,A6
-    JSR -450(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-PROCEDURE UnlockRexxBase(resource : ULONG);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVE.L  resource,D0
-    MOVEA.L RexxSysBase,A6
-    JSR -456(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
 
 FUNCTION CreateArgstring(const argstring : string; length : ULONG) : pCHAR;
 begin
