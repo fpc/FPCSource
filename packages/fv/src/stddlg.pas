@@ -1292,7 +1292,11 @@ end;
   function RelativePath(var S: PathStr): Boolean;
   begin
     S := LTrim(RTrim(S));
+    {$ifdef HASAMIGA}
+    RelativePath := Pos(DriveSeparator, S) = 0;
+    {$ELSE}
     RelativePath := not ((S <> '') and ((S[1] = DirSeparator) or (S[2] = ':')));
+    {$ENDIF}
   end;
 
 { try to reduce the length of S+dir as a file path+pattern }
@@ -2169,7 +2173,12 @@ begin
     CurDir := ''
   else begin
     CurDir := DirInput^.Data^;
-    if (CurDir[Length(CurDir)] <> DirSeparator) then
+    
+    if (CurDir[Length(CurDir)] <> DirSeparator) 
+    {$IFDEF HASAMIGA}
+      and (CurDir[Length(CurDir)] <> DriveSeparator) 
+    {$endif}
+    then
       CurDir := CurDir + DirSeparator;
   end;
 end;
@@ -2395,7 +2404,11 @@ begin
     ExtractDir := '';
     Exit;
   end;
-  if D[Byte(D[0])] <> DirSeparator then
+  if (D[Byte(D[0])] <> DirSeparator)
+  {$ifdef HASAMIGA}
+    and (D[Byte(D[0])] <> DriveSeparator)
+  {$endif}
+  then
     D := D + DirSeparator;
   ExtractDir := D;
 end;
@@ -2478,7 +2491,11 @@ begin
 {$ifdef Unix}
   Is:=(S=DirSeparator); { handle root }
 {$else}
+  {$ifdef HASAMIGA}
+  Is := (Length(S) > 0) and (S[Length(S)] = DriveSeparator);
+  {$else}
   Is:=(length(S)=3) and (Upcase(S[1]) in['A'..'Z']) and (S[2]=':') and (S[3]=DirSeparator);
+  {$endif}
   { handle root dirs }
 {$endif}
   if Is=false then
@@ -2718,7 +2735,11 @@ begin
     if (i = 0) then
       AFile := AFile + D1
     else AFile := AFile + Copy(D1,Succ(i),Length(D1)-i);
-    if AFile[Length(AFile)] <> DirSeparator then
+    if (AFile[Length(AFile)] <> DirSeparator)
+    {$ifdef HASAMIGA}
+      and (AFile[Length(AFile)] <> DriveSeparator)
+    {$endif}
+    then
       AFile := AFile + DirSeparator;
     if Length(AFile)+Length(N1)+Length(E1) <= MaxLen then
       AFile := AFile + N1 + E1
