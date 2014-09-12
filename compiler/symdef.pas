@@ -1771,7 +1771,7 @@ implementation
             include(defstates,ds_init_table_used);
           end;
         if indirect then
-          suffix:='$INDIRECT'
+          suffix:=indirect_suffix
         else
           suffix:='';
         if assigned(typesym) and
@@ -6410,7 +6410,7 @@ implementation
           Message1(parser_n_object_has_no_vmt,objrealname^);
         suffix:=objname^;
         if indirect then
-          suffix:=suffix+'$indirect';
+          suffix:=suffix+indirect_suffix;
         vmt_mangledname:=make_mangledname('VMT',owner,suffix);
       end;
 
@@ -6543,7 +6543,7 @@ implementation
               end;
             result:=result+objextname^;
             if indirect then
-              result:=result+'$INDIRECT';
+              result:=result+indirect_suffix;
           end;
       end;
 

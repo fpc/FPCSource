@@ -724,6 +724,8 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
        'public','published',''
      );
 
+     indirect_suffix = '$indirect';
+
 
 {$ifndef jvm}
      default_class_type=odt_class;
