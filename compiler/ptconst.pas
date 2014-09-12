@@ -50,6 +50,7 @@ implementation
         reslist      : tasmlist;
         restree,
         previnit     : tnode;
+        labind       : tasmsymbol;
       begin
         { mark the staticvarsym as typedconst }
         include(sym.varoptions,vo_is_typed_const);
@@ -158,6 +159,14 @@ implementation
             list.concatlist(reslist);
             reslist.free;
             list.concat(tai_symbol_end.Createname(sym.mangledname));
+
+            { add indirect symbol }
+            if (vo_has_section in sym.varoptions) or (cursectype<>sec_rodata) then
+              new_section(list,sec_rodata,lower(sym.mangledname+indirect_suffix),const_align(sym.vardef.alignment));
+            labind:=current_asmdata.DefineAsmSymbol(sym.mangledname+indirect_suffix,AB_GLOBAL,AT_DATA);
+            list.concat(Tai_symbol.Create_Global(labind,0));
+            list.concat(Tai_const.Createname(sym.mangledname,AT_DATA,0));
+            list.concat(tai_symbol_end.Create(labind));
           end
         else
           begin

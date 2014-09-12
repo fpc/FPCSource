@@ -67,7 +67,7 @@ implementation
     uses
       cutils,
       systems,
-      verbose,globals,constexp,
+      verbose,globals,constexp,fmodule,
       nutils,
       symtable,symconst,symdef,defutil,paramgr,ncon,nbas,ncgrtti,
       aasmbase,
@@ -415,10 +415,36 @@ implementation
                 else
                   begin
                     if gvs.localloc.loc=LOC_INVALID then
-                      if not(vo_is_weak_external in gvs.varoptions) then
-                        reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
-                      else
-                        reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
+                      begin
+                        { we are using a direct reference if:
+                          - the target does not support packages
+                          - the variable is declared as (weak) external
+                          - G- is set
+                          - the variable is located inside the same unit }
+                        if not (tf_supports_packages in target_info.flags) or
+                            (vo_is_external in gvs.varoptions) or (vo_is_weak_external in gvs.varoptions) or
+                            not (cs_imported_data in current_settings.localswitches) or
+                            sym_is_owned_by(gvs,current_module.globalsymtable) or
+                            (
+                              (current_module.globalsymtable<>current_module.localsymtable) and
+                              sym_is_owned_by(gvs,current_module.localsymtable)
+                            ) then
+                          begin
+                            { direct reference }
+                            if not(vo_is_weak_external in gvs.varoptions) then
+                              reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
+                            else
+                              reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
+                          end
+                        else
+                          begin
+                            { indirect reference }
+                            hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                            location.reference.symbol:=current_asmdata.RefAsmSymbol(gvs.mangledname+indirect_suffix);
+                            cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,location.reference,hregister);
+                            reference_reset_base(location.reference,hregister,0,location.reference.alignment);
+                          end;
+                      end
                     else
                       location:=gvs.localloc;
                   end;
