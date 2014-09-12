@@ -191,6 +191,26 @@ type
     ExceptionInformation : array[0..EXCEPTION_MAXIMUM_PARAMETERS-1] of Pointer;
   end;
 
+  TSystemInfo = record
+           case LongInt of
+              0 : ( dwOemId : DWord;
+               dwPageSize : DWord;
+               lpMinimumApplicationAddress : Pointer;
+               lpMaximumApplicationAddress : Pointer;
+               dwActiveProcessorMask : PDWord;
+               dwNumberOfProcessors : DWord;
+                    dwProcessorType : DWord;
+                    dwAllocationGranularity : DWord;
+                    wProcessorLevel : Word;
+                    wProcessorRevision : Word;
+                 );
+              1 : (
+                   wProcessorArchitecture : Word;
+                   wReserved : Word;
+                 );
+    end;
+  PSystemInfo = ^TSystemInfo;
+
 
    { misc. functions }
    function GetLastError : DWORD;
@@ -269,6 +289,8 @@ type
    function SetEndOfFile(h : thandle) : longbool;
      {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'SetEndOfFile';
    function FreeLibrary(hLibModule:THandle):ByteBool; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'FreeLibrary';
+
+   procedure GetSystemInfo(lpSystemInfo: PSystemInfo); {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetSystemInfo';
 
 {$ifndef WINCE}
    function LoadLibrary(lpLibFileName:pchar):THandle; stdcall; external KernelDLL name 'LoadLibraryA';
@@ -395,3 +417,13 @@ begin
   end;
 end;
 {$endif not WINCE}
+
+{$define HAS_GETCPUCOUNT}
+function GetCPUCount: LongWord;
+var
+  info: TSystemInfo;
+begin
+  FillChar(info, SizeOf(info), 0);
+  GetSystemInfo(@info);
+  Result := info.dwNumberOfProcessors;
+end;
