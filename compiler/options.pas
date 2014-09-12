@@ -112,7 +112,7 @@ var
 
 const
   { gprof (requires implementation of g_profilecode in the code generator) }
-  supported_targets_pg = [system_i386_linux,system_x86_64_linux,system_mipseb_linux,system_mipsel_linux]
+  supported_targets_pg = [system_i386_linux,system_x86_64_linux,system_mipseb_linux,system_mipsel_linux,system_arm_linux]
                         + [system_i386_win32]
                         + [system_powerpc_darwin,system_x86_64_darwin]
                         + [system_i386_GO32V2]

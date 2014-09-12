@@ -71,6 +71,8 @@ unit cgcpu;
 
         procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags; reg: TRegister); override;
 
+        procedure g_profilecode(list : TAsmList); override;
+
         procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);override;
         procedure g_proc_exit(list : TAsmList;parasize : longint;nostackframe:boolean); override;
         procedure g_maybe_got_init(list : TAsmList); override;
@@ -1796,6 +1798,13 @@ unit cgcpu;
         list.concat(setcondition(taicpu.op_reg_const(A_MOV,reg,0),inverse_cond(flags_to_cond(f))));
       end;
 
+    procedure tbasecgarm.g_profilecode(list : TAsmList);
+      begin
+        if target_info.system = system_arm_linux then
+          a_call_name(list,target_info.Cprefix+'mcount',false)
+        else
+          internalerror(2014091201);
+      end;
 
     procedure tbasecgarm.g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);
       var
