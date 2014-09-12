@@ -1191,6 +1191,23 @@ implementation
         i : integer;
         varsym : tabstractnormalvarsym;
         {RedoDFA : boolean;}
+
+        procedure delete_marker(anode: tasmnode);
+          var
+            ai: tai;
+          begin
+            if assigned(anode) then
+              begin
+                ai:=anode.currenttai;
+                if assigned(ai) then
+                  begin
+                    aktproccode.remove(ai);
+                    ai.free;
+                    anode.currenttai:=nil;
+                  end;
+              end;
+          end;
+
       begin
         { the initialization procedure can be empty, then we
           don't need to generate anything. When it was an empty
@@ -1580,6 +1597,16 @@ implementation
                not(pi_has_implicit_finally in flags) and
                not(target_info.system in systems_garbage_collected_managed_types) then
              internalerror(200405231);
+
+            { Position markers are only used to insert additional code after the secondpass
+              and before this point. They are of no use in optimizer. Instead of checking and
+              ignoring all over the optimizer, just remove them here. }
+            delete_marker(entry_asmnode);
+            delete_marker(loadpara_asmnode);
+            delete_marker(exitlabel_asmnode);
+            delete_marker(stackcheck_asmnode);
+            delete_marker(init_asmnode);
+            delete_marker(final_asmnode);
 
 {$ifndef NoOpt}
             if not(cs_no_regalloc in current_settings.globalswitches) then
