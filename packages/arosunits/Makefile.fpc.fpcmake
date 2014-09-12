@@ -9,7 +9,7 @@ version=2.7.1
 [target]
 units= agraphics amigados exec hardware inputevent intuition keymap layers \
        longarray tagsarray timer utility diskfont iffparse clipboard       \
-       workbench icon
+       workbench icon gadtools asl mui
 
 [compiler]
 includedir=src
