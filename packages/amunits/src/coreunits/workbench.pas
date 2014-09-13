@@ -58,18 +58,13 @@
 
     nils.sjoholm@mailbox.swipnet.se
 }
-
-{$I useamigasmartlink.inc}
-{$ifdef use_amiga_smartlink}
-   {$smartlink on}
-{$endif use_amiga_smartlink}
+{$PACKRECORDS 2}
 
 unit workbench;
 
 INTERFACE
 
 uses exec,amigados,utility,intuition,agraphics;
-
 
 
 Type
@@ -855,21 +850,21 @@ type
 VAR
     WorkbenchBase : pLibrary;
 
-FUNCTION AddAppIconA(id : ULONG; userdata : ULONG; text_ : pCHAR; msgport : pMsgPort; lock : pFileLock; diskobj : pDiskObject;const taglist : pTagItem) : pAppIcon;
-FUNCTION AddAppMenuItemA(id : ULONG; userdata : ULONG; text_ : pCHAR; msgport : pMsgPort;const taglist : pTagItem) : pAppMenuItem;
-FUNCTION AddAppWindowA(id : ULONG; userdata : ULONG; window : pWindow; msgport : pMsgPort;const taglist : pTagItem) : pAppWindow;
-FUNCTION RemoveAppIcon(appIcon : pAppIcon) : BOOLEAN;
-FUNCTION RemoveAppMenuItem(appMenuItem : pAppMenuItem) : BOOLEAN;
-FUNCTION RemoveAppWindow(appWindow : pAppWindow) : BOOLEAN;
-PROCEDURE WBInfo(lock : BPTR; name : pCHAR; screen : pScreen);
+FUNCTION AddAppIconA(id : ULONG location 'd0'; userdata : ULONG location 'd1'; text_ : pCHAR location 'a0'; msgport : pMsgPort location 'a1'; lock : pFileLock location 'a2'; diskobj : pDiskObject location 'a3'; const taglist : pTagItem location 'a4') : pAppIcon; syscall WorkbenchBase 060;
+FUNCTION AddAppMenuItemA(id : ULONG location 'd0'; userdata : ULONG location 'd1'; text_ : pCHAR location 'a0'; msgport : pMsgPort location 'a1'; const taglist : pTagItem location 'a2') : pAppMenuItem; syscall WorkbenchBase 072;
+FUNCTION AddAppWindowA(id : ULONG location 'd0'; userdata : ULONG location 'd1'; window : pWindow location 'a0'; msgport : pMsgPort location 'a1'; const taglist : pTagItem location 'a2') : pAppWindow; syscall WorkbenchBase 042;
+FUNCTION RemoveAppIcon(appIcon : pAppIcon location 'a0') : BOOLEAN; syscall WorkbenchBase 066;
+FUNCTION RemoveAppMenuItem(appMenuItem : pAppMenuItem location 'a0') : BOOLEAN; syscall WorkbenchBase 078;
+FUNCTION RemoveAppWindow(appWindow : pAppWindow location 'a0') : BOOLEAN; syscall WorkbenchBase 054;
+PROCEDURE WBInfo(lock : BPTR location 'a0'; name : pCHAR location 'a1'; screen : pScreen location 'a2'); syscall WorkbenchBase 090;
 
-FUNCTION AddAppWindowDropZoneA(aw : pAppWindow; id : longword; userdata : longword;const tags : pTagItem) : pAppWindowDropZone;
-FUNCTION ChangeWorkbenchSelectionA(name : pCHAR; hook : pHook;const tags : pTagItem) : BOOLEAN;
-FUNCTION CloseWorkbenchObjectA(name : pCHAR;const tags : pTagItem) : BOOLEAN;
-FUNCTION MakeWorkbenchObjectVisibleA(name : pCHAR;const tags : pTagItem) : BOOLEAN;
-FUNCTION OpenWorkbenchObjectA(name : pCHAR;const tags : pTagItem) : BOOLEAN;
-FUNCTION RemoveAppWindowDropZone(aw : pAppWindow; dropZone : pAppWindowDropZone) : BOOLEAN;
-FUNCTION WorkbenchControlA(name : pCHAR;const tags : pTagItem) : BOOLEAN;
+FUNCTION AddAppWindowDropZoneA(aw : pAppWindow location 'a0'; id : longword location 'd0'; userdata : longword location 'd1'; const tags : pTagItem location 'a1') : pAppWindowDropZone; syscall WorkbenchBase 114;
+FUNCTION ChangeWorkbenchSelectionA(name : pCHAR location 'a0'; hook : pHook location 'a1'; const tags : pTagItem location 'a2') : BOOLEAN; syscall WorkbenchBase 126;
+FUNCTION CloseWorkbenchObjectA(name : pCHAR location 'a0'; const tags : pTagItem location 'a1') : BOOLEAN; syscall WorkbenchBase 102;
+FUNCTION MakeWorkbenchObjectVisibleA(name : pCHAR location 'a0'; const tags : pTagItem location 'a1') : BOOLEAN; syscall WorkbenchBase 132;
+FUNCTION OpenWorkbenchObjectA(name : pCHAR location 'a0'; const tags : pTagItem location 'a1') : BOOLEAN; syscall WorkbenchBase 096;
+FUNCTION RemoveAppWindowDropZone(aw : pAppWindow location 'a0'; dropZone : pAppWindowDropZone location 'a1') : BOOLEAN; syscall WorkbenchBase 120;
+FUNCTION WorkbenchControlA(name : pCHAR location 'a0'; const tags : pTagItem location 'a1') : BOOLEAN; syscall WorkbenchBase 108;
 
 { overlays }
 FUNCTION AddAppIconA(id : ULONG; userdata : ULONG; text_ : string; msgport : pMsgPort; lock : pFileLock; diskobj : pDiskObject;const taglist : pTagItem) : pAppIcon;
@@ -900,227 +895,6 @@ uses
 amsgbox,
 {$endif dont_use_openlib}
 pastoc;
-
-FUNCTION AddAppIconA(id : ULONG; userdata : ULONG; text_ : pCHAR; msgport : pMsgPort; lock : pFileLock; diskobj : pDiskObject;const taglist : pTagItem) : pAppIcon;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVE.L  id,D0
-    MOVE.L  userdata,D1
-    MOVEA.L text_,A0
-    MOVEA.L msgport,A1
-    MOVEA.L lock,A2
-    MOVEA.L diskobj,A3
-    MOVEA.L taglist,A4
-    MOVEA.L WorkbenchBase,A6
-    JSR -060(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION AddAppMenuItemA(id : ULONG; userdata : ULONG; text_ : pCHAR; msgport : pMsgPort;const taglist : pTagItem) : pAppMenuItem;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVE.L  id,D0
-    MOVE.L  userdata,D1
-    MOVEA.L text_,A0
-    MOVEA.L msgport,A1
-    MOVEA.L taglist,A2
-    MOVEA.L WorkbenchBase,A6
-    JSR -072(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION AddAppWindowA(id : ULONG; userdata : ULONG; window : pWindow; msgport : pMsgPort;const taglist : pTagItem) : pAppWindow;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVE.L  id,D0
-    MOVE.L  userdata,D1
-    MOVEA.L window,A0
-    MOVEA.L msgport,A1
-    MOVEA.L taglist,A2
-    MOVEA.L WorkbenchBase,A6
-    JSR -048(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION RemoveAppIcon(appIcon : pAppIcon) : BOOLEAN;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L appIcon,A0
-    MOVEA.L WorkbenchBase,A6
-    JSR -066(A6)
-    MOVEA.L (A7)+,A6
-    TST.W   D0
-    BEQ.B   @end
-    MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-FUNCTION RemoveAppMenuItem(appMenuItem : pAppMenuItem) : BOOLEAN;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L appMenuItem,A0
-    MOVEA.L WorkbenchBase,A6
-    JSR -078(A6)
-    MOVEA.L (A7)+,A6
-    TST.W   D0
-    BEQ.B   @end
-    MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-FUNCTION RemoveAppWindow(appWindow : pAppWindow) : BOOLEAN;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L appWindow,A0
-    MOVEA.L WorkbenchBase,A6
-    JSR -054(A6)
-    MOVEA.L (A7)+,A6
-    TST.W   D0
-    BEQ.B   @end
-    MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-PROCEDURE WBInfo(lock : BPTR; name : pCHAR; screen : pScreen);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L lock,A0
-    MOVEA.L name,A1
-    MOVEA.L screen,A2
-    MOVEA.L WorkbenchBase,A6
-    JSR -090(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-FUNCTION AddAppWindowDropZoneA(aw : pAppWindow; id : longword; userdata : longword;const tags : pTagItem) : pAppWindowDropZone;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L aw,A0
-        MOVE.L  id,D0
-        MOVE.L  userdata,D1
-        MOVEA.L tags,A1
-        MOVEA.L WorkbenchBase,A6
-        JSR     -114(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION ChangeWorkbenchSelectionA(name : pCHAR; hook : pHook;const tags : pTagItem) : BOOLEAN;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L name,A0
-        MOVEA.L hook,A1
-        MOVEA.L tags,A2
-        MOVEA.L WorkbenchBase,A6
-        JSR     -126(A6)
-        MOVEA.L (A7)+,A6
-        TST.W   D0
-        BEQ.B   @end
-        MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-FUNCTION CloseWorkbenchObjectA(name : pCHAR;const tags : pTagItem) : BOOLEAN;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L name,A0
-        MOVEA.L tags,A1
-        MOVEA.L WorkbenchBase,A6
-        JSR     -102(A6)
-        MOVEA.L (A7)+,A6
-        TST.W   D0
-        BEQ.B   @end
-        MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-FUNCTION MakeWorkbenchObjectVisibleA(name : pCHAR;const tags : pTagItem) : BOOLEAN;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L name,A0
-        MOVEA.L tags,A1
-        MOVEA.L WorkbenchBase,A6
-        JSR     -132(A6)
-        MOVEA.L (A7)+,A6
-        TST.W   D0
-        BEQ.B   @end
-        MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-FUNCTION OpenWorkbenchObjectA(name : pCHAR;const tags : pTagItem) : BOOLEAN;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L name,A0
-        MOVEA.L tags,A1
-        MOVEA.L WorkbenchBase,A6
-        JSR     -096(A6)
-        MOVEA.L (A7)+,A6
-        TST.W   D0
-        BEQ.B   @end
-        MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-
-FUNCTION RemoveAppWindowDropZone(aw : pAppWindow; dropZone : pAppWindowDropZone) : BOOLEAN;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L aw,A0
-        MOVEA.L dropZone,A1
-        MOVEA.L WorkbenchBase,A6
-        JSR     -120(A6)
-        MOVEA.L (A7)+,A6
-        TST.W   D0
-        BEQ.B   @end
-        MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-FUNCTION WorkbenchControlA(name : pCHAR;const tags : pTagItem) : BOOLEAN;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L name,A0
-        MOVEA.L tags,A1
-        MOVEA.L WorkbenchBase,A6
-        JSR     -108(A6)
-        MOVEA.L (A7)+,A6
-        TST.W   D0
-        BEQ.B   @end
-        MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
 
 FUNCTION AddAppIconA(id : ULONG; userdata : ULONG; text_ : string; msgport : pMsgPort; lock : pFileLock; diskobj : pDiskObject;const taglist : pTagItem) : pAppIcon;
 begin
@@ -1245,7 +1019,3 @@ begin
 
 
 END. (* UNIT WB *)
-
-
-
-
