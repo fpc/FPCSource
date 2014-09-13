@@ -319,7 +319,7 @@ type
 {$endif}
 begin
   SetMemoryManager(TinyHeapMemoryManager);
-  RegisterTinyHeapBlock_Simple(__nearheap_start, TPointerArithmeticType(__nearheap_end) - TPointerArithmeticType(__nearheap_start));
+  RegisterTinyHeapBlock_Simple_Prealigned(__nearheap_start, TPointerArithmeticType(__nearheap_end) - TPointerArithmeticType(__nearheap_start));
 end;
 
 function CheckLFN:boolean;
