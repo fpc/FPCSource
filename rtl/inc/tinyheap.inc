@@ -316,6 +316,20 @@
         HeapEnd:=Pointer(TTinyHeapPointerArithmeticType(AAddress)+ASize);
       end;
 
+    { Strongly simplified version of RegisterTinyHeapBlock, which can be used when
+      the heap is only a single contiguous memory block and the address and size
+      are already aligned on a TinyHeapAllocGranularity boundary. }
+    procedure RegisterTinyHeapBlock_Simple_Prealigned(AAddress: Pointer; ASize: PtrUInt);
+      begin
+{$ifdef DEBUG_TINY_HEAP}
+        Writeln('RegisterTinyHeapBlock_Simple_Prealigned(', HexStr(AAddress), ',', ASize, ')');
+{$endif DEBUG_TINY_HEAP}
+        HeapOrg:=AAddress;
+        HeapPtr:=AAddress;
+        FreeList:=AAddress;
+        HeapEnd:=Pointer(TTinyHeapPointerArithmeticType(AAddress)+ASize);
+      end;
+
     procedure RegisterTinyHeapBlock(AAddress: pointer; ASize: ptruint);
       var
         alignment_inc: smallint;
