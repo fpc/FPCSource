@@ -1801,7 +1801,10 @@ unit cgcpu;
     procedure tbasecgarm.g_profilecode(list : TAsmList);
       begin
         if target_info.system = system_arm_linux then
-          a_call_name(list,target_info.Cprefix+'mcount',false)
+          begin
+            list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R14]));
+            a_call_name(list,'__gnu_mcount_nc',false);
+          end
         else
           internalerror(2014091201);
       end;
