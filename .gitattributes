@@ -14916,6 +14916,7 @@ utils/debugsvr/gtk/frmmain.pp svneol=native#text/plain
 utils/debugsvr/msgintf.pp svneol=native#text/plain
 utils/debugsvr/speeddebug.pp svneol=native#text/plain
 utils/debugsvr/testdebug.pp svneol=native#text/plain
+utils/delp.lpi svneol=native#text/plain
 utils/delp.pp svneol=native#text/plain
 utils/dxegen/Makefile svneol=native#text/plain
 utils/dxegen/Makefile.fpc svneol=native#text/plain
