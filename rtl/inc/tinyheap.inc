@@ -285,7 +285,7 @@
 {$endif DEBUG_TINY_HEAP}
       end;
 
-    function MemAvail: PtrUInt;
+    function MemAvail: {$ifdef FPC_TINYHEAP_HUGE}LongInt{$else}PtrUInt{$endif};
       var
         p: PTinyHeapBlock;
       begin
@@ -301,7 +301,7 @@
           end;
       end;
 
-    function MaxAvail: PtrUInt;
+    function MaxAvail: {$ifdef FPC_TINYHEAP_HUGE}LongInt{$else}PtrUInt{$endif};
       var
         p: PTinyHeapBlock;
       begin

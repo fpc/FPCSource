@@ -26,6 +26,6 @@
       FreeList: Pointer = nil; { pointer to the first free block }
       HeapPtr: Pointer = nil;  { pointer to the last free block }
 
-    function MemAvail: PtrUInt;
-    function MaxAvail: PtrUInt;
+    function MemAvail: {$ifdef FPC_TINYHEAP_HUGE}LongInt{$else}PtrUInt{$endif};
+    function MaxAvail: {$ifdef FPC_TINYHEAP_HUGE}LongInt{$else}PtrUInt{$endif};
 
