@@ -26,34 +26,34 @@
 
 {$ifdef cpui8086}
   {$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
-    {$define FPC_HEAP_HUGE}
+    {$define FPC_TINYHEAP_HUGE}
   {$endif}
 {$endif cpui8086}
 
-{$ifdef FPC_HEAP_HUGE}
+{$ifdef FPC_TINYHEAP_HUGE}
   {$HugePointerArithmeticNormalization On}
   {$HugePointerComparisonNormalization On}
-{$endif FPC_HEAP_HUGE}
+{$endif FPC_TINYHEAP_HUGE}
 
     type
       { TTinyHeapMemBlockSize holds the size of an *allocated* memory block,
         and is written at position:
           memblockstart-sizeof(TTinyHeapMemBlockSize) }
-      PTinyHeapMemBlockSize = ^TTinyHeapMemBlockSize; {$ifdef FPC_HEAP_HUGE}huge;{$endif}
+      PTinyHeapMemBlockSize = ^TTinyHeapMemBlockSize; {$ifdef FPC_TINYHEAP_HUGE}huge;{$endif}
       TTinyHeapMemBlockSize = PtrUInt;
 
       { TTinyHeapFreeBlockSize holds the size of a *free* memory block, as a
         part of the TTinyHeapBlock structure }
-{$ifdef FPC_HEAP_HUGE}
+{$ifdef FPC_TINYHEAP_HUGE}
       TTinyHeapFreeBlockSize = record
         OfsSize: Word;
         SegSize: Word;
       end;
-{$else FPC_HEAP_HUGE}
+{$else FPC_TINYHEAP_HUGE}
       TTinyHeapFreeBlockSize = PtrUInt;
-{$endif FPC_HEAP_HUGE}
+{$endif FPC_TINYHEAP_HUGE}
 
-      TTinyHeapPointerArithmeticType = ^Byte; {$ifdef FPC_HEAP_HUGE}huge;{$endif}
+      TTinyHeapPointerArithmeticType = ^Byte; {$ifdef FPC_TINYHEAP_HUGE}huge;{$endif}
 
       PTinyHeapBlock = ^TTinyHeapBlock;
       TTinyHeapBlock = record
@@ -68,21 +68,21 @@
 
     function EncodeTinyHeapFreeBlockSize(Size: PtrUInt): TTinyHeapFreeBlockSize; inline;
       begin
-{$ifdef FPC_HEAP_HUGE}
+{$ifdef FPC_TINYHEAP_HUGE}
         EncodeTinyHeapFreeBlockSize.OfsSize := Size and 15;
         EncodeTinyHeapFreeBlockSize.SegSize := Size shr 4;
-{$else FPC_HEAP_HUGE}
+{$else FPC_TINYHEAP_HUGE}
         EncodeTinyHeapFreeBlockSize := Size;
-{$endif FPC_HEAP_HUGE}
+{$endif FPC_TINYHEAP_HUGE}
       end;
 
     function DecodeTinyHeapFreeBlockSize(Size: TTinyHeapFreeBlockSize): PtrUInt; inline;
       begin
-{$ifdef FPC_HEAP_HUGE}
+{$ifdef FPC_TINYHEAP_HUGE}
         DecodeTinyHeapFreeBlockSize := (PtrUInt(Size.SegSize) shl 4) + Size.OfsSize;
-{$else FPC_HEAP_HUGE}
+{$else FPC_TINYHEAP_HUGE}
         DecodeTinyHeapFreeBlockSize := Size;
-{$endif FPC_HEAP_HUGE}
+{$endif FPC_TINYHEAP_HUGE}
       end;
 
     procedure InternalTinyFreeMem(Addr: Pointer; Size: PtrUInt); forward;
