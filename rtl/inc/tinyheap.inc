@@ -291,6 +291,40 @@
 {$endif DEBUG_TINY_HEAP}
       end;
 
+    function MemAvail: PtrUInt;
+      var
+        p: PTinyHeapBlock;
+      begin
+        MemAvail := PtrUInt(TTinyHeapPointerArithmeticType(HeapEnd)-TTinyHeapPointerArithmeticType(HeapPtr));
+        if MemAvail > 0 then
+          Dec(MemAvail, SizeOf(TTinyHeapMemBlockSize));
+
+        p := FreeList;
+        while p <> HeapPtr do
+          begin
+            Inc(MemAvail, DecodeTinyHeapFreeBlockSize(p^.Size)-SizeOf(TTinyHeapMemBlockSize));
+            p := p^.Next;
+          end;
+      end;
+
+    function MaxAvail: PtrUInt;
+      var
+        p: PTinyHeapBlock;
+      begin
+        MaxAvail := PtrUInt(TTinyHeapPointerArithmeticType(HeapEnd)-TTinyHeapPointerArithmeticType(HeapPtr));
+
+        p := FreeList;
+        while p <> HeapPtr do
+          begin
+            if DecodeTinyHeapFreeBlockSize(p^.Size) > MaxAvail then
+              MaxAvail := DecodeTinyHeapFreeBlockSize(p^.Size);
+            p := p^.Next;
+          end;
+
+        if MaxAvail > 0 then
+          Dec(MaxAvail, SizeOf(TTinyHeapMemBlockSize));
+      end;
+
     procedure InternalTinyAlign(var AAddress: Pointer; ASize: PtrUInt);
       var
         alignment_inc: smallint;

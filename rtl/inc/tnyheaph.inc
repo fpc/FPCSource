@@ -20,3 +20,6 @@
       FreeList: Pointer = nil; { pointer to the first free block }
       HeapPtr: Pointer = nil;  { pointer to the last free block }
 
+    function MemAvail: PtrUInt;
+    function MaxAvail: PtrUInt;
+
