@@ -237,7 +237,7 @@
             exit;
           end;
         if (TTinyHeapPointerArithmeticType(addr) < TTinyHeapPointerArithmeticType(HeapOrg)) or
-           (TTinyHeapPointerArithmeticType(addr) >= TTinyHeapPointerArithmeticType(HeapEnd)) then
+           (TTinyHeapPointerArithmeticType(addr) >= TTinyHeapPointerArithmeticType(HeapPtr)) then
           HandleError(204);
         sz := Align(FindSize(addr)+SizeOf(TTinyHeapMemBlockSize), TinyHeapAllocGranularity);
 
