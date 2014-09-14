@@ -24,12 +24,6 @@
   It *can* become zero sized, when all the memory inside of it is allocated, in
   which case, HeapPtr will become equal to HeapEnd. }
 
-{$ifdef cpui8086}
-  {$if defined(FPC_X86_DATA_FAR) or defined(FPC_X86_DATA_HUGE)}
-    {$define FPC_TINYHEAP_HUGE}
-  {$endif}
-{$endif cpui8086}
-
 {$ifdef FPC_TINYHEAP_HUGE}
   {$HugePointerArithmeticNormalization On}
   {$HugePointerComparisonNormalization On}
