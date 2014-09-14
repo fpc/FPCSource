@@ -1138,6 +1138,11 @@ unit cgcpu;
                         list.concat(taicpu.op_reg(A_CLR,S_W,scratch_reg));
                         list.concat(taicpu.op_reg(A_SWAP,S_NO,scratch_reg));
                       end
+                    else if (op = OP_SAR) then
+                      begin
+                        list.concat(taicpu.op_reg(A_SWAP,S_NO,scratch_reg));
+                        list.concat(taicpu.op_reg(A_EXT,S_L,scratch_reg));
+                      end
                     else if (op = OP_ROR) or (op = OP_ROL) then
                       list.concat(taicpu.op_reg(A_SWAP,S_NO,scratch_reg))
                   end
