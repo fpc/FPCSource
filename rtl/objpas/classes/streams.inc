@@ -184,15 +184,31 @@ end;
 
   procedure TStream.ReadBuffer(var Buffer; Count: Longint);
 
-    begin
-       if Read(Buffer,Count)<Count then
-         Raise EReadError.Create(SReadError);
-    end;
+  Var
+    r,t : longint;
+
+  begin
+    t:=0;
+    repeat
+      r:=Read(PByte(@Buffer)[t],Count);
+      inc(t,r);
+    until (t=Count) or (r=0);
+    if (t<Count) then
+      Raise EReadError.Create(SReadError);
+  end;
 
   procedure TStream.WriteBuffer(const Buffer; Count: Longint);
 
+  var
+    r,t : Longint;
+
     begin
-       if Write(Buffer,Count)<Count then
+      T:=0;
+      Repeat
+         r:=Write(PByte(@Buffer)[t],Count);
+         inc(t,r);
+      Until (t=count) or (r=0);
+      if (t<Count) then
          Raise EWriteError.Create(SWriteError);
     end;
 
