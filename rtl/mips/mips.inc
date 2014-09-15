@@ -55,6 +55,7 @@ const
 
   fpu_all_bits = fpu_enable_mask or fpu_flags_mask or fpu_cause_mask or fpu_rounding_mask;
 
+{$if defined(FPUMIPS2) or defined(FPUMIPS3)}
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
 procedure SysInitFPU;
   begin
@@ -66,13 +67,16 @@ procedure SysInitFPU;
 procedure SysResetFPU;
   begin
   end;
+{$endif FPUMIPS2 or FPUMIPS3}
 
 
 procedure fpc_cpuinit;
   begin
+{$ifndef FPUNONE}
     SysResetFPU;
     if (not IsLibrary) then
       SysInitFPU;
+{$endif FPUNONE}
   end;
 
 

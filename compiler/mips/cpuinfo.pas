@@ -87,7 +87,7 @@ Const
 
    fputypestr : array[tfputype] of string[9] = ('',
      'SOFT',
-     'FPU_MIPS2','FPU_MIPS3'
+     'MIPS2','MIPS3'
    );
 
    { abi strings as accepted by 
