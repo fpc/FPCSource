@@ -21,11 +21,7 @@
 
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
-
-{$I useamigasmartlink.inc}
-{$ifdef use_amiga_smartlink}
-    {$smartlink on}
-{$endif use_amiga_smartlink}
+{$PACKRECORDS 2}
 
 unit AMsgBox;
 
@@ -49,20 +45,8 @@ type
     es_GadgetFormat : pchar;   { 'printf' style formatting string   }
    END;
 
-FUNCTION EasyRequestArgs(window : pointer; easyStruct : pEasyStruct; idcmpPtr : longint; args : POINTER) : LONGINT;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L window,A0
-    MOVEA.L easyStruct,A1
-    MOVEA.L idcmpPtr,A2
-    MOVEA.L args,A3
-    MOVEA.L _IntuitionBase,A6
-    JSR -588(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
+
+FUNCTION EasyRequestArgs(window : pointer location 'a0'; easyStruct : pEasyStruct location 'a1'; idcmpPtr : longint location 'a2'; args : POINTER location 'a3') : LONGINT; syscall _IntuitionBase 588;
 
 FUNCTION MessageBox(tit,txt,gad:string) : LONGint;
 begin
