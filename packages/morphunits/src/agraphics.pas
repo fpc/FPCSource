@@ -2262,7 +2262,7 @@ SysCall GfxBase 156;
 procedure Animate(anKey : ppAnimOb location 'a0'; rp : pRastPort location 'a1');
 SysCall GfxBase 162;
 
-function GetGBuffers(anOb : pAnimOb location 'a0'; rp : pRastPort location 'a1'; flag : LongInt location 'd0') : BOOLEAN;
+function GetGBuffers(anOb : pAnimOb location 'a0'; rp : pRastPort location 'a1'; flag : LongInt location 'd0') : LongBool;
 SysCall GfxBase 168;
 
 procedure InitGMasks(anOb : pAnimOb location 'a0');
@@ -2343,7 +2343,7 @@ SysCall GfxBase 318;
 function WritePixel(rp : pRastPort location 'a1'; x : LongInt location 'd0'; y : LongInt location 'd1') : LongInt;
 SysCall GfxBase 324;
 
-function Flood(rp : pRastPort location 'a1'; mode : CARDINAL location 'd2'; x : LongInt location 'd0'; y : LongInt location 'd1') : BOOLEAN;
+function Flood(rp : pRastPort location 'a1'; mode : CARDINAL location 'd2'; x : LongInt location 'd0'; y : LongInt location 'd1') : LongBool;
 SysCall GfxBase 330;
 
 procedure PolyDraw(rp : pRastPort location 'a1'; count : LongInt location 'd0'; VAR polyTable : INTEGER location 'a0');
@@ -2433,13 +2433,13 @@ SysCall GfxBase 498;
 procedure AndRectRegion(region : pRegion location 'a0'; rectangle : pRectangle location 'a1');
 SysCall GfxBase 504;
 
-function OrRectRegion(region : pRegion location 'a0'; rectangle : pRectangle location 'a1') : BOOLEAN;
+function OrRectRegion(region : pRegion location 'a0'; rectangle : pRectangle location 'a1') : LongBool;
 SysCall GfxBase 510;
 
 function NewRegion : pRegion;
 SysCall GfxBase 516;
 
-function ClearRectRegion(region : pRegion location 'a0'; rectangle : pRectangle location 'a1') : BOOLEAN;
+function ClearRectRegion(region : pRegion location 'a0'; rectangle : pRectangle location 'a1') : LongBool;
 SysCall GfxBase 522;
 
 procedure ClearRegion(region : pRegion location 'a0');
@@ -2457,7 +2457,7 @@ SysCall GfxBase 546;
 procedure ClipBlit(srcRP : pRastPort location 'a0'; xSrc : LongInt location 'd0'; ySrc : LongInt location 'd1'; destRP : pRastPort location 'a1'; xDest : LongInt location 'd2'; yDest : LongInt location 'd3'; xSize : LongInt location 'd4'; ySize : LongInt location 'd5'; minterm : CARDINAL location 'd6');
 SysCall GfxBase 552;
 
-function XorRectRegion(region : pRegion location 'a0'; rectangle : pRectangle location 'a1') : BOOLEAN;
+function XorRectRegion(region : pRegion location 'a0'; rectangle : pRectangle location 'a1') : LongBool;
 SysCall GfxBase 558;
 
 procedure FreeCprList(cprList : pcprlist location 'a0');
@@ -2484,13 +2484,13 @@ SysCall GfxBase 600;
 procedure BltBitMapRastPort(srcBitMap : pBitMap location 'a0'; xSrc : LongInt location 'd0'; ySrc : LongInt location 'd1'; destRP : pRastPort location 'a1'; xDest : LongInt location 'd2'; yDest : LongInt location 'd3'; xSize : LongInt location 'd4'; ySize : LongInt location 'd5'; minterm : CARDINAL location 'd6');
 SysCall GfxBase 606;
 
-function OrRegionRegion(srcRegion : pRegion location 'a0'; destRegion : pRegion location 'a1') : BOOLEAN;
+function OrRegionRegion(srcRegion : pRegion location 'a0'; destRegion : pRegion location 'a1') : LongBool;
 SysCall GfxBase 612;
 
-function XorRegionRegion(srcRegion : pRegion location 'a0'; destRegion : pRegion location 'a1') : BOOLEAN;
+function XorRegionRegion(srcRegion : pRegion location 'a0'; destRegion : pRegion location 'a1') : LongBool;
 SysCall GfxBase 618;
 
-function AndRegionRegion(srcRegion : pRegion location 'a0'; destRegion : pRegion location 'a1') : BOOLEAN;
+function AndRegionRegion(srcRegion : pRegion location 'a0'; destRegion : pRegion location 'a1') : LongBool;
 SysCall GfxBase 624;
 
 procedure SetRGB4CM(colorMap : pColorMap location 'a0'; index : LongInt location 'd0'; red : CARDINAL location 'd1'; green : CARDINAL location 'd2'; blue : CARDINAL location 'd3');
@@ -2499,7 +2499,7 @@ SysCall GfxBase 630;
 procedure BltMaskBitMapRastPort(srcBitMap : pBitMap location 'a0'; xSrc : LongInt location 'd0'; ySrc : LongInt location 'd1'; destRP : pRastPort location 'a1'; xDest : LongInt location 'd2'; yDest : LongInt location 'd3'; xSize : LongInt location 'd4'; ySize : LongInt location 'd5'; minterm : CARDINAL location 'd6'; bltMask : pCHAR location 'a2');
 SysCall GfxBase 636;
 
-function AttemptLockLayerRom(layer : pLayer location 'a5') : BOOLEAN;
+function AttemptLockLayerRom(layer : pLayer location 'a5') : LongBool;
 SysCall GfxBase 654;
 
 function GfxNew(gfxNodeType : CARDINAL location 'd0') : POINTER;
@@ -2526,13 +2526,13 @@ SysCall GfxBase 696;
 function GfxLookUp(associateNode : POINTER location 'a0') : POINTER;
 SysCall GfxBase 702;
 
-function VideoControl(colorMap : pColorMap location 'a0'; tagarray : pTagItem location 'a1') : BOOLEAN;
+function VideoControl(colorMap : pColorMap location 'a0'; tagarray : pTagItem location 'a1') : LongBool;
 SysCall GfxBase 708;
 
 function OpenMonitor(monitorName : pSHORTINT location 'a1'; displayID : CARDINAL location 'd0') : pMonitorSpec;
 SysCall GfxBase 714;
 
-function CloseMonitor(monitorSpec : pMonitorSpec location 'a0') : BOOLEAN;
+function CloseMonitor(monitorSpec : pMonitorSpec location 'a0') : LongBool;
 SysCall GfxBase 720;
 
 function FindDisplayInfo(displayID : CARDINAL location 'd0') : POINTER;

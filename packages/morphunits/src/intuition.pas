@@ -4052,7 +4052,7 @@ SysCall IntuitionBase 036;
 function AddGadget(window : pWindow location 'a0'; gadget : pGadget location 'a1'; position : CARDINAL location 'd0') : Word;
 SysCall IntuitionBase 042;
 
-function ClearDMRequest(window : pWindow location 'a0') : BOOLEAN;
+function ClearDMRequest(window : pWindow location 'a0') : LongBool;
 SysCall IntuitionBase 048;
 
 procedure ClearMenuStrip(window : pWindow location 'a0');
@@ -4061,7 +4061,7 @@ SysCall IntuitionBase 054;
 procedure ClearPointer(window : pWindow location 'a0');
 SysCall IntuitionBase 060;
 
-function CloseScreen(screen : pScreen location 'a0') : BOOLEAN;
+function CloseScreen(screen : pScreen location 'a0') : LongBool;
 SysCall IntuitionBase 066;
 
 procedure CloseWindow(window : pWindow location 'a0');
@@ -4073,13 +4073,13 @@ SysCall IntuitionBase 078;
 procedure CurrentTime(VAR seconds : CARDINAL location 'a0'; VAR micros : CARDINAL location 'a1');
 SysCall IntuitionBase 084;
 
-function DisplayAlert(alertNumber : CARDINAL location 'd0'; string1 : PChar location 'a0'; height : CARDINAL location 'd1') : BOOLEAN;
+function DisplayAlert(alertNumber : CARDINAL location 'd0'; string1 : PChar location 'a0'; height : CARDINAL location 'd1') : LongBool;
 SysCall IntuitionBase 090;
 
 procedure DisplayBeep(screen : pScreen location 'a0');
 SysCall IntuitionBase 096;
 
-function DoubleClick(sSeconds : CARDINAL location 'd0'; sMicros : CARDINAL location 'd1'; cSeconds : CARDINAL location 'd2'; cMicros : CARDINAL location 'd3') : BOOLEAN;
+function DoubleClick(sSeconds : CARDINAL location 'd0'; sMicros : CARDINAL location 'd1'; cSeconds : CARDINAL location 'd2'; cMicros : CARDINAL location 'd3') : LongBool;
 SysCall IntuitionBase 102;
 
 procedure DrawBorder(rp : pRastPort location 'a0'; border : pBorder location 'a1'; leftOffset : LongInt location 'd0'; topOffset : LongInt location 'd1');
@@ -4103,7 +4103,7 @@ SysCall IntuitionBase 138;
 function ItemAddress(menuStrip : pMenu location 'a0'; menuNumber : CARDINAL location 'd0') : pMenuItem;
 SysCall IntuitionBase 144;
 
-function ModifyIDCMP(window : pWindow location 'a0'; flags : CARDINAL location 'd0') : BOOLEAN;
+function ModifyIDCMP(window : pWindow location 'a0'; flags : CARDINAL location 'd0') : LongBool;
 SysCall IntuitionBase 150;
 
 procedure ModifyProp(gadget : pGadget location 'a0'; window : pWindow location 'a1'; requester : pRequester location 'a2'; flags : CARDINAL location 'd0'; horizPot : CARDINAL location 'd1'; vertPot : CARDINAL location 'd2'; horizBody : CARDINAL location 'd3'; vertBody : CARDINAL location 'd4');
@@ -4148,7 +4148,7 @@ SysCall IntuitionBase 228;
 procedure ReportMouse(flag : LongInt location 'd0'; window : pWindow location 'a0');
 SysCall IntuitionBase 234;
 
-function Request(requester : pRequester location 'a0'; window : pWindow location 'a1') : BOOLEAN;
+function Request(requester : pRequester location 'a0'; window : pWindow location 'a1') : LongBool;
 SysCall IntuitionBase 240;
 
 procedure ScreenToBack(screen : pScreen location 'a0');
@@ -4157,10 +4157,10 @@ SysCall IntuitionBase 246;
 procedure ScreenToFront(screen : pScreen location 'a0');
 SysCall IntuitionBase 252;
 
-function SetDMRequest(window : pWindow location 'a0'; requester : pRequester location 'a1') : BOOLEAN;
+function SetDMRequest(window : pWindow location 'a0'; requester : pRequester location 'a1') : LongBool;
 SysCall IntuitionBase 258;
 
-function SetMenuStrip(window : pWindow location 'a0'; menu : pMenu location 'a1') : BOOLEAN;
+function SetMenuStrip(window : pWindow location 'a0'; menu : pMenu location 'a1') : LongBool;
 SysCall IntuitionBase 264;
 
 procedure SetPointer(window : pWindow location 'a0'; VAR pointer : Word location 'a1'; height : LongInt location 'd0'; width : LongInt location 'd1'; xOffset : LongInt location 'd2'; yOffset : LongInt location 'd3');
@@ -4187,7 +4187,7 @@ SysCall IntuitionBase 306;
 procedure WindowToFront(window : pWindow location 'a0');
 SysCall IntuitionBase 312;
 
-function WindowLimits(window : pWindow location 'a0'; widthMin : LongInt location 'd0'; heightMin : LongInt location 'd1'; widthMax : CARDINAL location 'd2'; heightMax : CARDINAL location 'd3') : BOOLEAN;
+function WindowLimits(window : pWindow location 'a0'; widthMin : LongInt location 'd0'; heightMin : LongInt location 'd1'; widthMax : CARDINAL location 'd2'; heightMax : CARDINAL location 'd3') : LongBool;
 SysCall IntuitionBase 318;
 
 function SetPrefs(preferences : pPreferences location 'a0'; size : LongInt location 'd0'; inform : LongInt location 'd1') : pPreferences;
@@ -4196,13 +4196,13 @@ SysCall IntuitionBase 324;
 function IntuiTextLength(iText : pIntuiText location 'a0') : LongInt;
 SysCall IntuitionBase 330;
 
-function WBenchToBack : BOOLEAN;
+function WBenchToBack : LongBool;
 SysCall IntuitionBase 336;
 
-function WBenchToFront : BOOLEAN;
+function WBenchToFront : LongBool;
 SysCall IntuitionBase 342;
 
-function AutoRequest(window : pWindow location 'a0'; body : pIntuiText location 'a1'; posText : pIntuiText location 'a2'; negText : pIntuiText location 'a3'; pFlag : CARDINAL location 'd0'; nFlag : CARDINAL location 'd1'; width : CARDINAL location 'd2'; height : CARDINAL location 'd3') : BOOLEAN;
+function AutoRequest(window : pWindow location 'a0'; body : pIntuiText location 'a1'; posText : pIntuiText location 'a2'; negText : pIntuiText location 'a3'; pFlag : CARDINAL location 'd0'; nFlag : CARDINAL location 'd1'; width : CARDINAL location 'd2'; height : CARDINAL location 'd3') : LongBool;
 SysCall IntuitionBase 348;
 
 procedure BeginRefresh(window : pWindow location 'a0');
@@ -4256,7 +4256,7 @@ SysCall IntuitionBase 450;
 procedure RefreshWindowFrame(window : pWindow location 'a0');
 SysCall IntuitionBase 456;
 
-function ActivateGadget(gadgets : pGadget location 'a0'; window : pWindow location 'a1'; requester : pRequester location 'a2') : BOOLEAN;
+function ActivateGadget(gadgets : pGadget location 'a0'; window : pWindow location 'a1'; requester : pRequester location 'a2') : LongBool;
 SysCall IntuitionBase 462;
 
 procedure NewModifyProp(gadget : pGadget location 'a0'; window : pWindow location 'a1'; requester : pRequester location 'a2'; flags : CARDINAL location 'd0'; horizPot : CARDINAL location 'd1'; vertPot : CARDINAL location 'd2'; horizBody : CARDINAL location 'd3'; vertBody : CARDINAL location 'd4'; numGad : LongInt location 'd5');
@@ -4338,7 +4338,7 @@ function OpenScreenTags(newScreen : pNewScreen; tagList : array of DWord) : pScr
 procedure DrawImageState(rp : pRastPort location 'a0'; image : pImage location 'a1'; leftOffset : LongInt location 'd0'; topOffset : LongInt location 'd1'; state : CARDINAL location 'd2'; drawInfo : pDrawInfo location 'a2');
 SysCall IntuitionBase 618;
 
-function PointInImage(point : CARDINAL location 'd0'; image : pImage location 'a0') : BOOLEAN;
+function PointInImage(point : CARDINAL location 'd0'; image : pImage location 'a0') : LongBool;
 SysCall IntuitionBase 624;
 
 procedure EraseImage(rp : pRastPort location 'a0'; image : pImage location 'a1'; leftOffset : LongInt location 'd0'; topOffset : LongInt location 'd1');
@@ -4376,13 +4376,13 @@ SysCall IntuitionBase 690;
 procedure FreeScreenDrawInfo(screen : pScreen location 'a0'; drawInfo : pDrawInfo location 'a1');
 SysCall IntuitionBase 696;
 
-function ResetMenuStrip(window : pWindow location 'a0'; menu : pMenu location 'a1') : BOOLEAN;
+function ResetMenuStrip(window : pWindow location 'a0'; menu : pMenu location 'a1') : LongBool;
 SysCall IntuitionBase 702;
 
 procedure RemoveClass(classPtr : pIClass location 'a0');
 SysCall IntuitionBase 708;
 
-function FreeClass(classPtr : pIClass location 'a0') : BOOLEAN;
+function FreeClass(classPtr : pIClass location 'a0') : LongBool;
 SysCall IntuitionBase 714;
 
 function AllocScreenBuffer(sc : pScreen location 'a0'; bm : pBitMap location 'a1'; flags : CARDINAL location 'd0') : pScreenBuffer;
@@ -4412,7 +4412,7 @@ SysCall IntuitionBase 810;
 procedure SetWindowPointerA(win : pWindow location 'a0'; taglist : pTagItem location 'a1');
 SysCall IntuitionBase 816;
 
-function TimedDisplayAlert(alertNumber : CARDINAL location 'd0'; string1 : PChar location 'a0'; height : CARDINAL location 'd1'; time : CARDINAL location 'a1') : BOOLEAN;
+function TimedDisplayAlert(alertNumber : CARDINAL location 'd0'; string1 : PChar location 'a0'; height : CARDINAL location 'd1'; time : CARDINAL location 'a1') : LongBool;
 SysCall IntuitionBase 822;
 
 procedure HelpControl(win : pWindow location 'a0'; flags : CARDINAL location 'd0');
@@ -4433,7 +4433,7 @@ SysCall IntuitionBase 936;
 procedure WindowAction(window : pWindow location 'a0'; action : CARDINAL location 'd0'; tags : pTagItem location 'a1');
 SysCall IntuitionBase 942;
 
-function TransparencyControl(window : pWindow location 'a0'; method : CARDINAL location 'd0'; tags : pTagItem location 'a1') : BOOLEAN;
+function TransparencyControl(window : pWindow location 'a0'; method : CARDINAL location 'd0'; tags : pTagItem location 'a1') : LongBool;
 SysCall IntuitionBase 948;
 
 procedure ScrollWindowRasterNoFill(win : pWindow location 'a1'; dx : LongInt location 'd0'; dy : LongInt location 'd1'; xMin : LongInt location 'd2'; yMin : LongInt location 'd3'; xMax : LongInt location 'd4'; yMax : LongInt location 'd5');

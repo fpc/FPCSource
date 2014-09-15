@@ -511,7 +511,7 @@ SysCall AHIBase 096;
 function AHI_NextAudioID(Last_ID : Cardinal location 'd0') : Cardinal;
 SysCall AHIBase 102;
 
-function AHI_GetAudioAttrsA(ID : Cardinal location 'd0'; Audioctrl : pAHIAudioCtrl location 'a2'; tagList : pTagItem location 'a1') : BOOLEAN;
+function AHI_GetAudioAttrsA(ID : Cardinal location 'd0'; Audioctrl : pAHIAudioCtrl location 'a2'; tagList : pTagItem location 'a1') : LongBool;
 SysCall AHIBase 108;
 
 function AHI_BestAudioIDA(tagList : pTagItem location 'a1') : Cardinal;
@@ -520,7 +520,7 @@ SysCall AHIBase 114;
 function AHI_AllocAudioRequestA(tagList : pTagItem location 'a0') : pAHIAudioModeRequester;
 SysCall AHIBase 120;
 
-function AHI_AudioRequestA(Requester : pAHIAudioModeRequester location 'a0'; tagList : pTagItem location 'a1') : BOOLEAN;
+function AHI_AudioRequestA(Requester : pAHIAudioModeRequester location 'a0'; tagList : pTagItem location 'a1') : LongBool;
 SysCall AHIBase 126;
 
 procedure AHI_FreeAudioRequest(Requester : pAHIAudioModeRequester location 'a0');

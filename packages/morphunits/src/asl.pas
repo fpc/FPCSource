@@ -530,7 +530,7 @@ SysCall AslBase 030;
 procedure FreeFileRequest(fileReq : pFileRequester location 'a0');
 SysCall AslBase 036;
 
-function RequestFile(fileReq : pFileRequester location 'a0'): Boolean;
+function RequestFile(fileReq : pFileRequester location 'a0'): LongBool;
 SysCall AslBase 042;
 
 function AllocAslRequest(reqType: Cardinal location 'd0';
@@ -541,7 +541,7 @@ procedure FreeAslRequest(requester: Pointer location 'a0');
 SysCall AslBase 054;
 
 function AslRequest(requester: Pointer  location 'a0';
-                    tagList  : pTagItem location 'a1'): Boolean;
+                    tagList  : pTagItem location 'a1'): LongBool;
 SysCall AslBase 060;
 
 procedure AbortAslRequest(requester: Pointer location 'a0');
@@ -553,7 +553,7 @@ SysCall AslBase 084;
 function AllocAslRequestTags(reqType: Cardinal;
                              tagList: array of DWord): Pointer; Inline;
 function AslRequestTags(requester: Pointer;
-                        tagList  : array of DWord): Boolean; Inline;
+                        tagList  : array of DWord): LongBool; Inline;
 
 function InitAslLibrary : boolean;
 
