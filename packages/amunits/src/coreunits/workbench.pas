@@ -853,18 +853,18 @@ VAR
 FUNCTION AddAppIconA(id : ULONG location 'd0'; userdata : ULONG location 'd1'; text_ : pCHAR location 'a0'; msgport : pMsgPort location 'a1'; lock : pFileLock location 'a2'; diskobj : pDiskObject location 'a3'; const taglist : pTagItem location 'a4') : pAppIcon; syscall WorkbenchBase 060;
 FUNCTION AddAppMenuItemA(id : ULONG location 'd0'; userdata : ULONG location 'd1'; text_ : pCHAR location 'a0'; msgport : pMsgPort location 'a1'; const taglist : pTagItem location 'a2') : pAppMenuItem; syscall WorkbenchBase 072;
 FUNCTION AddAppWindowA(id : ULONG location 'd0'; userdata : ULONG location 'd1'; window : pWindow location 'a0'; msgport : pMsgPort location 'a1'; const taglist : pTagItem location 'a2') : pAppWindow; syscall WorkbenchBase 042;
-FUNCTION RemoveAppIcon(appIcon : pAppIcon location 'a0') : BOOLEAN; syscall WorkbenchBase 066;
-FUNCTION RemoveAppMenuItem(appMenuItem : pAppMenuItem location 'a0') : BOOLEAN; syscall WorkbenchBase 078;
-FUNCTION RemoveAppWindow(appWindow : pAppWindow location 'a0') : BOOLEAN; syscall WorkbenchBase 054;
+FUNCTION RemoveAppIcon(appIcon : pAppIcon location 'a0') : longbool; syscall WorkbenchBase 066;
+FUNCTION RemoveAppMenuItem(appMenuItem : pAppMenuItem location 'a0') : longbool; syscall WorkbenchBase 078;
+FUNCTION RemoveAppWindow(appWindow : pAppWindow location 'a0') : longbool; syscall WorkbenchBase 054;
 PROCEDURE WBInfo(lock : BPTR location 'a0'; name : pCHAR location 'a1'; screen : pScreen location 'a2'); syscall WorkbenchBase 090;
 
 FUNCTION AddAppWindowDropZoneA(aw : pAppWindow location 'a0'; id : longword location 'd0'; userdata : longword location 'd1'; const tags : pTagItem location 'a1') : pAppWindowDropZone; syscall WorkbenchBase 114;
-FUNCTION ChangeWorkbenchSelectionA(name : pCHAR location 'a0'; hook : pHook location 'a1'; const tags : pTagItem location 'a2') : BOOLEAN; syscall WorkbenchBase 126;
-FUNCTION CloseWorkbenchObjectA(name : pCHAR location 'a0'; const tags : pTagItem location 'a1') : BOOLEAN; syscall WorkbenchBase 102;
-FUNCTION MakeWorkbenchObjectVisibleA(name : pCHAR location 'a0'; const tags : pTagItem location 'a1') : BOOLEAN; syscall WorkbenchBase 132;
-FUNCTION OpenWorkbenchObjectA(name : pCHAR location 'a0'; const tags : pTagItem location 'a1') : BOOLEAN; syscall WorkbenchBase 096;
-FUNCTION RemoveAppWindowDropZone(aw : pAppWindow location 'a0'; dropZone : pAppWindowDropZone location 'a1') : BOOLEAN; syscall WorkbenchBase 120;
-FUNCTION WorkbenchControlA(name : pCHAR location 'a0'; const tags : pTagItem location 'a1') : BOOLEAN; syscall WorkbenchBase 108;
+FUNCTION ChangeWorkbenchSelectionA(name : pCHAR location 'a0'; hook : pHook location 'a1'; const tags : pTagItem location 'a2') : longbool; syscall WorkbenchBase 126;
+FUNCTION CloseWorkbenchObjectA(name : pCHAR location 'a0'; const tags : pTagItem location 'a1') : longbool; syscall WorkbenchBase 102;
+FUNCTION MakeWorkbenchObjectVisibleA(name : pCHAR location 'a0'; const tags : pTagItem location 'a1') : longbool; syscall WorkbenchBase 132;
+FUNCTION OpenWorkbenchObjectA(name : pCHAR location 'a0'; const tags : pTagItem location 'a1') : longbool; syscall WorkbenchBase 096;
+FUNCTION RemoveAppWindowDropZone(aw : pAppWindow location 'a0'; dropZone : pAppWindowDropZone location 'a1') : longbool; syscall WorkbenchBase 120;
+FUNCTION WorkbenchControlA(name : pCHAR location 'a0'; const tags : pTagItem location 'a1') : longbool; syscall WorkbenchBase 108;
 
 { overlays }
 FUNCTION AddAppIconA(id : ULONG; userdata : ULONG; text_ : string; msgport : pMsgPort; lock : pFileLock; diskobj : pDiskObject;const taglist : pTagItem) : pAppIcon;

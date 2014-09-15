@@ -82,12 +82,12 @@ VAR NVBase : pLibrary;
 const
     NONVOLATILENAME : PChar = 'nonvolatile.library';
 
-FUNCTION DeleteNV(const appName : pCHAR location 'a0'; const itemName : pCHAR location 'a1'; killRequesters : LONGINT location 'd1') : BOOLEAN; syscall NVBase 048;
+FUNCTION DeleteNV(const appName : pCHAR location 'a0'; const itemName : pCHAR location 'a1'; killRequesters : LONGINT location 'd1') : LongBool; syscall NVBase 048;
 PROCEDURE FreeNVData(data : POINTER location 'a0'); syscall NVBase 036;
 FUNCTION GetCopyNV(const appName : pCHAR location 'a0'; const itemName : pCHAR location 'a1'; killRequesters : LONGINT location 'd1') : POINTER; syscall NVBase 030;
 FUNCTION GetNVInfo(killRequesters : LONGINT location 'd1') : pNVInfo; syscall NVBase 054;
 FUNCTION GetNVList(const appName : pCHAR location 'a0'; killRequesters : LONGINT location 'd1') : pMinList; syscall NVBase 060;
-FUNCTION SetNVProtection(const appName : pCHAR location 'a0'; const itemName : pCHAR location 'a1'; mask : LONGINT location 'd2'; killRequesters : LONGINT location 'd1') : BOOLEAN; syscall NVBase 066;
+FUNCTION SetNVProtection(const appName : pCHAR location 'a0'; const itemName : pCHAR location 'a1'; mask : LONGINT location 'd2'; killRequesters : LONGINT location 'd1') : LongBool; syscall NVBase 066;
 FUNCTION StoreNV(const appName : pCHAR location 'a0'; const itemName : pCHAR location 'a1'; const data : POINTER location 'a2'; length : ULONG location 'd0'; killRequesters : LONGINT location 'd1') : WORD; syscall NVBase 042;
 
 {Here we read how to compile this unit}

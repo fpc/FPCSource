@@ -4062,31 +4062,31 @@ CONST
  *      uses this processing when activating a string gadget.
  }
 
-FUNCTION ActivateGadget(gadgets : pGadget location 'a0'; window : pWindow location 'a1'; requester : pRequester location 'a2') : BOOLEAN syscall _IntuitionBase 462;
+FUNCTION ActivateGadget(gadgets : pGadget location 'a0'; window : pWindow location 'a1'; requester : pRequester location 'a2') : LongBool syscall _IntuitionBase 462;
 PROCEDURE ActivateWindow(window : pWindow location 'a0'); syscall _IntuitionBase 450;
 PROCEDURE AddClass(classPtr : pIClass location 'a0'); syscall _IntuitionBase 684;
 FUNCTION AddGadget(window : pWindow location 'a0'; gadget : pGadget location 'a1'; position : ULONG location 'd0') : WORD; syscall _IntuitionBase 042;
 FUNCTION AddGList(window : pWindow location 'a0'; gadget : pGadget location 'a1'; position : ULONG location 'd0'; numGad : LONGINT location 'd1'; requester : pRequester location 'a2') : WORD; syscall _IntuitionBase 438;
 FUNCTION AllocRemember(var rememberKey : pRemember location 'a0'; size : ULONG location 'd0'; flags : ULONG location 'd1') : POINTER syscall _IntuitionBase 396;
 FUNCTION AllocScreenBuffer(sc : pScreen location 'a0'; bm : pBitMap location 'a1'; flags : ULONG location 'd0') : pScreenBuffer;  syscall _IntuitionBase 768;
-FUNCTION AutoRequest(window : pWindow location 'a0';const body : pIntuiText location 'a1';const posText : pIntuiText location 'a2';const negText : pIntuiText location 'a3'; pFlag : ULONG location 'd0'; nFlag : ULONG location 'd1'; width : ULONG location 'd2'; height : ULONG location 'd3') : BOOLEAN; syscall _IntuitionBase 348;
+FUNCTION AutoRequest(window : pWindow location 'a0';const body : pIntuiText location 'a1';const posText : pIntuiText location 'a2';const negText : pIntuiText location 'a3'; pFlag : ULONG location 'd0'; nFlag : ULONG location 'd1'; width : ULONG location 'd2'; height : ULONG location 'd3') : LongBool; syscall _IntuitionBase 348;
 PROCEDURE BeginRefresh(window : pWindow location 'a0'); syscall _IntuitionBase 354;
 FUNCTION BuildEasyRequestArgs(window : pWindow location 'a0';const easyStruct : pEasyStruct location 'a1'; idcmp : ULONG location 'd0';const args : POINTER location 'a3') : pWindow; syscall _IntuitionBase 594;
 FUNCTION BuildSysRequest(window : pWindow location 'a0';const body : pIntuiText location 'a1';const posText : pIntuiText location 'a2';const negText : pIntuiText location 'a3'; flags : ULONG location 'd0'; width : ULONG location 'd1'; height : ULONG location 'd2') : pWindow; syscall _IntuitionBase 360;
 FUNCTION ChangeScreenBuffer(sc : pScreen location 'a0'; sb : pScreenBuffer location 'a1') : ULONG; syscall _IntuitionBase 780;
 PROCEDURE ChangeWindowBox(window : pWindow location 'a0'; left : LONGINT location 'd0'; top : LONGINT location 'd1'; width : LONGINT location 'd2'; height : LONGINT location 'd3'); syscall _IntuitionBase 486;
-FUNCTION ClearDMRequest(window : pWindow location 'a0') : BOOLEAN; syscall _IntuitionBase 048;
+FUNCTION ClearDMRequest(window : pWindow location 'a0') : LongBool; syscall _IntuitionBase 048;
 PROCEDURE ClearMenuStrip(window : pWindow location 'a0'); syscall _IntuitionBase 054;
 PROCEDURE ClearPointer(window : pWindow location 'a0'); syscall _IntuitionBase 060;
 PROCEDURE CloseScreen(screen : pScreen location 'a0'); syscall _IntuitionBase 066;
 PROCEDURE CloseWindow(window : pWindow location 'a0'); syscall _IntuitionBase 072;
-FUNCTION CloseWorkBench : BOOLEAN; syscall _IntuitionBase 078;
+FUNCTION CloseWorkBench : LongBool; syscall _IntuitionBase 078;
 PROCEDURE CurrentTime(VAR seconds : ULONG location 'a0'; VAR micros : ULONG location 'a1'); syscall _IntuitionBase 084;
-FUNCTION DisplayAlert(alertNumber : ULONG location 'd0';const string_ : pCHAR location 'a0'; height : ULONG location 'd1') : BOOLEAN; syscall _IntuitionBase 090;
+FUNCTION DisplayAlert(alertNumber : ULONG location 'd0';const string_ : pCHAR location 'a0'; height : ULONG location 'd1') : LongBool; syscall _IntuitionBase 090;
 PROCEDURE DisplayBeep(screen : pScreen location 'a0'); syscall _IntuitionBase 096;
 PROCEDURE DisposeObject(obj : POINTER location 'a0'); syscall _IntuitionBase 642;
 FUNCTION DoGadgetMethodA(gad : pGadget location 'a0'; win : pWindow location 'a1'; req : pRequester location 'a2'; message : tMsg location 'a3') : ULONG; syscall _IntuitionBase 810;
-FUNCTION DoubleClick(sSeconds : ULONG location 'd0'; sMicros : ULONG location 'd1'; cSeconds : ULONG location 'd2'; cMicros : ULONG location 'd3') : BOOLEAN; syscall _IntuitionBase 102;
+FUNCTION DoubleClick(sSeconds : ULONG location 'd0'; sMicros : ULONG location 'd1'; cSeconds : ULONG location 'd2'; cMicros : ULONG location 'd3') : LongBool; syscall _IntuitionBase 102;
 PROCEDURE DrawBorder(rp : pRastPort location 'a0';const border : pBorder location 'a1'; leftOffset : LONGINT location 'd0'; topOffset : LONGINT location 'd1'); syscall _IntuitionBase 108;
 PROCEDURE DrawImage(rp : pRastPort location 'a0'; image : pImage location 'a1'; leftOffset : LONGINT location 'd0'; topOffset : LONGINT location 'd1'); syscall _IntuitionBase 114;
 PROCEDURE DrawImageState(rp : pRastPort location 'a0'; image : pImage location 'a1'; leftOffset : LONGINT location 'd0'; topOffset : LONGINT location 'd1'; state : ULONG location 'd2';const drawInfo : pDrawInfo location 'a2'); syscall _IntuitionBase 618;
@@ -4094,7 +4094,7 @@ FUNCTION EasyRequestArgs(window : pWindow location 'a0';const easyStruct : pEasy
 PROCEDURE EndRefresh(window : pWindow location 'a0'; complete : LONGINT location 'd0'); syscall _IntuitionBase 366;
 PROCEDURE EndRequest(requester : pRequester location 'a0'; window : pWindow location 'a1'); syscall _IntuitionBase 120;
 PROCEDURE EraseImage(rp : pRastPort location 'a0'; image : pImage location 'a1'; leftOffset : LONGINT location 'd0'; topOffset : LONGINT location 'd1'); syscall _IntuitionBase 630;
-FUNCTION FreeClass(classPtr : pIClass location 'a0') : BOOLEAN; syscall _IntuitionBase 714;
+FUNCTION FreeClass(classPtr : pIClass location 'a0') : LongBool; syscall _IntuitionBase 714;
 PROCEDURE FreeRemember(VAR rememberKey : pRemember location 'a0'; reallyForget : LONGINT location 'd0'); syscall _IntuitionBase 408;
 PROCEDURE FreeScreenBuffer(sc : pScreen location 'a0'; sb : pScreenBuffer location 'a1'); syscall _IntuitionBase 774;
 PROCEDURE FreeScreenDrawInfo(screen : pScreen location 'a0'; drawInfo : pDrawInfo location 'a1'); syscall _IntuitionBase 696;
@@ -4104,7 +4104,7 @@ FUNCTION GetAttr(attrID : ULONG location 'd0'; obj : POINTER location 'a0'; stor
 PROCEDURE GetDefaultPubScreen(nameBuffer : pCHAR location 'a0'); syscall _IntuitionBase 582;
 FUNCTION GetDefPrefs(preferences : pPreferences location 'a0'; size : LONGINT location 'd0') : pPreferences; syscall _IntuitionBase 126;
 FUNCTION GetPrefs(preferences : pPreferences location 'a0'; size : LONGINT location 'd0') : pPreferences; syscall _IntuitionBase 132;
-FUNCTION GetScreenData(buffer : POINTER location 'a0'; size : ULONG location 'D0'; type_ : ULONG location 'd1';const screen : pScreen location 'a1') : BOOLEAN; syscall _IntuitionBase 426;
+FUNCTION GetScreenData(buffer : POINTER location 'a0'; size : ULONG location 'D0'; type_ : ULONG location 'd1';const screen : pScreen location 'a1') : LongBool; syscall _IntuitionBase 426;
 FUNCTION GetScreenDrawInfo(screen : pScreen location 'a0') : pDrawInfo; syscall _IntuitionBase 690;
 PROCEDURE HelpControl(win : pWindow location 'a0'; flags : ULONG location 'd0'); syscall _IntuitionBase 828;
 PROCEDURE InitRequester(requester : pRequester location 'a0'); syscall _IntuitionBase 138;
@@ -4116,7 +4116,7 @@ FUNCTION LockPubScreen(const name : pCHAR location 'a0') : pScreen; syscall _Int
 FUNCTION LockPubScreenList : pList; syscall _IntuitionBase 522;
 FUNCTION MakeClass(const classID : pCHAR location 'a0';const superClassID : pCHAR location 'a1';const superClassPtr : pIClass location 'a2'; instanceSize : ULONG location 'd0'; flags : ULONG location 'd1') : pIClass; syscall _IntuitionBase 678;
 FUNCTION MakeScreen(screen : pScreen location 'a0') : LONGINT; syscall _IntuitionBase 378;
-FUNCTION ModifyIDCMP(window : pWindow location 'a0'; flags : ULONG location 'd0') : BOOLEAN; syscall _IntuitionBase 150;
+FUNCTION ModifyIDCMP(window : pWindow location 'a0'; flags : ULONG location 'd0') : LongBool; syscall _IntuitionBase 150;
 PROCEDURE ModifyProp(gadget : pGadget location 'a0'; window : pWindow location 'a1'; requester : pRequester location 'a2'; flags : ULONG location 'd0'; horizPot : ULONG location 'd1'; vertPot : ULONG location 'd2'; horizBody : ULONG location 'd3'; vertBody : ULONG location 'd4'); syscall _IntuitionBase 156;
 PROCEDURE MoveScreen(screen : pScreen location 'a0'; dx : LONGINT location 'd0'; dy : LONGINT location 'd1'); syscall _IntuitionBase 162;
 PROCEDURE MoveWindow(window : pWindow location 'a0'; dx : LONGINT location 'd0'; dy : LONGINT location 'd1'); syscall _IntuitionBase 168;
@@ -4135,7 +4135,7 @@ FUNCTION OpenScreenTagList(const newScreen : pNewScreen location 'a0'; const tag
 FUNCTION OpenWindow(const newWindow : pNewWindow location 'a0') : pWindow; syscall _IntuitionBase 204;
 FUNCTION OpenWindowTagList(const newWindow : pNewWindow location 'a0'; const tagList : pTagItem location 'a1') : pWindow; syscall _IntuitionBase 606;
 FUNCTION OpenWorkBench : ULONG; syscall _IntuitionBase 210;
-FUNCTION PointInImage(point : ULONG location 'd0'; image : pImage location 'a0') : BOOLEAN; syscall _IntuitionBase 624;
+FUNCTION PointInImage(point : ULONG location 'd0'; image : pImage location 'a0') : LongBool; syscall _IntuitionBase 624;
 PROCEDURE PrintIText(rp : pRastPort location 'a0';const iText : pIntuiText location 'a1'; left : LONGINT location 'd0'; top : LONGINT location 'd1'); syscall _IntuitionBase 216;
 FUNCTION PubScreenStatus(screen : pScreen location 'a0'; statusFlags : ULONG location 'd0') : WORD; syscall _IntuitionBase 552;
 FUNCTION QueryOverscan(displayID : ULONG location 'a0'; rect : pRectangle location 'a1'; oScanType : LONGINT location 'd0') : LONGINT; syscall _IntuitionBase 474;
@@ -4148,8 +4148,8 @@ PROCEDURE RemoveClass(classPtr : pIClass location 'a0'); syscall _IntuitionBase 
 FUNCTION RemoveGadget(window : pWindow; gadget : pGadget) : WORD; syscall _IntuitionBase 228;
 FUNCTION RemoveGList(remPtr : pWindow location 'a0'; gadget : pGadget location 'a1'; numGad : LONGINT location 'd0') : WORD; syscall _IntuitionBase 444;
 PROCEDURE ReportMouse(flag : LONGINT location 'd0'; window : pWindow location 'a0'); syscall _IntuitionBase 234;
-FUNCTION Request(requester : pRequester location 'a0'; window : pWindow location 'a1') : BOOLEAN; syscall _IntuitionBase 240;
-FUNCTION ResetMenuStrip(window : pWindow location 'a0'; menu : pMenu location 'a1') : BOOLEAN; syscall _IntuitionBase 702;
+FUNCTION Request(requester : pRequester location 'a0'; window : pWindow location 'a1') : LongBool; syscall _IntuitionBase 240;
+FUNCTION ResetMenuStrip(window : pWindow location 'a0'; menu : pMenu location 'a1') : LongBool; syscall _IntuitionBase 702;
 FUNCTION RethinkDisplay : LONGINT; syscall _IntuitionBase 390;
 PROCEDURE ScreenDepth(screen : pScreen location 'a0'; flags : ULONG location 'd0'; reserved : POINTER location 'a1'); syscall _IntuitionBase 786;
 PROCEDURE ScreenPosition(screen : pScreen location 'a0'; flags : ULONG location 'd0'; x1 : LONGINT location 'd1'; y1 : LONGINT location 'd2'; x2 : LONGINT location 'd3'; y2 : LONGINT location 'd4'); syscall _IntuitionBase 792;
@@ -4158,10 +4158,10 @@ PROCEDURE ScreenToFront(screen : pScreen location 'a0'); syscall _IntuitionBase 
 PROCEDURE ScrollWindowRaster(win : pWindow location 'a0'; dx : LONGINT location 'd0'; dy : LONGINT location 'd1'; xMin : LONGINT location 'd2'; yMin : LONGINT location 'd3'; xMax : LONGINT location 'd4'; yMax : LONGINT location 'd5'); syscall _IntuitionBase 798;
 FUNCTION SetAttrsA(obj : POINTER location 'a0';const tagList : pTagItem location 'a1') : ULONG; syscall _IntuitionBase 648;
 PROCEDURE SetDefaultPubScreen(const name : pCHAR location 'a0'); syscall _IntuitionBase 540;
-FUNCTION SetDMRequest(window : pWindow location 'a0'; requester : pRequester location 'a1') : BOOLEAN; syscall _IntuitionBase 258;
+FUNCTION SetDMRequest(window : pWindow location 'a0'; requester : pRequester location 'a1') : LongBool; syscall _IntuitionBase 258;
 FUNCTION SetEditHook(hook : pHook location 'a0') : pHook; syscall _IntuitionBase 492;
 FUNCTION SetGadgetAttrsA(gadget : pGadget location 'a0'; window : pWindow location 'a1'; requester : pRequester location 'a2';const tagList : pTagItem location 'a3') : ULONG; syscall _IntuitionBase 660;
-FUNCTION SetMenuStrip(window : pWindow location 'a0'; menu : pMenu location 'a1') : BOOLEAN; syscall _IntuitionBase 264;
+FUNCTION SetMenuStrip(window : pWindow location 'a0'; menu : pMenu location 'a1') : LongBool; syscall _IntuitionBase 264;
 FUNCTION SetMouseQueue(window : pWindow location 'a0'; queueLength : ULONG location 'd0') : LONGINT; syscall _IntuitionBase 498;
 PROCEDURE SetPointer(window : pWindow location 'a0'; pointer_ : pword location 'a1'; height : LONGINT location 'd0'; width : LONGINT location 'd1'; xOffset : LONGINT location 'd2'; yOffset : LONGINT location 'd3'); syscall _IntuitionBase 270;
 FUNCTION SetPrefs(const   preferences : pPreferences location 'a0'; size : LONGINT location 'd0'; inform : LONGINT location 'd1') : pPreferences; syscall _IntuitionBase 324;
@@ -4171,15 +4171,15 @@ PROCEDURE SetWindowTitles(window : pWindow location 'a0';const windowTitle : pCH
 PROCEDURE ShowTitle(screen : pScreen location 'a0'; showIt : LONGINT location 'd0'); syscall _IntuitionBase 282;
 PROCEDURE SizeWindow(window : pWindow location 'a0'; dx : LONGINT location 'd0'; dy : LONGINT location 'd1'); syscall _IntuitionBase 288;
 FUNCTION SysReqHandler(window : pWindow location 'a0'; idcmpPtr : pULONG location 'a1'; waitInput : LONGINT location 'd0') : LONGINT; syscall _IntuitionBase 600;
-FUNCTION TimedDisplayAlert(alertNumber : ULONG location 'd0';const string_ : pCHAR location 'a0'; height : ULONG location 'd1'; time : ULONG location 'a1') : BOOLEAN; syscall _IntuitionBase 822;
+FUNCTION TimedDisplayAlert(alertNumber : ULONG location 'd0';const string_ : pCHAR location 'a0'; height : ULONG location 'd1'; time : ULONG location 'a1') : LongBool; syscall _IntuitionBase 822;
 PROCEDURE UnlockIBase(ibLock : ULONG location 'a0'); syscall _IntuitionBase 420;
 PROCEDURE UnlockPubScreen(const name : pCHAR location 'a0'; screen : pScreen location 'a1'); syscall _IntuitionBase 516;
 PROCEDURE UnlockPubScreenList; syscall _IntuitionBase 528;
 FUNCTION ViewAddress : pView; syscall _IntuitionBase 294;
 FUNCTION ViewPortAddress(const window : pWindow location 'a0') : pViewPort; syscall _IntuitionBase 300;
-FUNCTION WBenchToBack : BOOLEAN; syscall _IntuitionBase 336;
-FUNCTION WBenchToFront : BOOLEAN; syscall _IntuitionBase 342;
-FUNCTION WindowLimits(window : pWindow location 'a0'; widthMin : LONGINT location 'd0'; heightMin : LONGINT location 'd1'; widthMax : ULONG location 'd2'; heightMax : ULONG location 'd3') : BOOLEAN; syscall _IntuitionBase 318;
+FUNCTION WBenchToBack : LongBool; syscall _IntuitionBase 336;
+FUNCTION WBenchToFront : LongBool; syscall _IntuitionBase 342;
+FUNCTION WindowLimits(window : pWindow location 'a0'; widthMin : LONGINT location 'd0'; heightMin : LONGINT location 'd1'; widthMax : ULONG location 'd2'; heightMax : ULONG location 'd3') : LongBool; syscall _IntuitionBase 318;
 PROCEDURE WindowToBack(window : pWindow location 'a0'); syscall _IntuitionBase 306;
 PROCEDURE WindowToFront(window : pWindow location 'a0'); syscall _IntuitionBase 312;
 PROCEDURE ZipWindow(window : pWindow location 'a0'); syscall _IntuitionBase 504;

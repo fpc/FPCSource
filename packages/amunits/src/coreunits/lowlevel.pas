@@ -274,7 +274,7 @@ FUNCTION ReadJoyPort(port : ULONG location 'd0') : ULONG; syscall LowLevelBase 0
 PROCEDURE RemKBInt(intHandle : POINTER location 'a1'); syscall LowLevelBase 066;
 PROCEDURE RemTimerInt(intHandle : POINTER location 'a1'); syscall LowLevelBase 084;
 PROCEDURE RemVBlankInt(intHandle : POINTER location 'a1'); syscall LowLevelBase 114;
-FUNCTION SetJoyPortAttrsA(portNumber : ULONG location 'd0'; const tagList : pTagItem location 'a1') : BOOLEAN; syscall LowLevelBase 132;
+FUNCTION SetJoyPortAttrsA(portNumber : ULONG location 'd0'; const tagList : pTagItem location 'a1') : LongBool; syscall LowLevelBase 132;
 PROCEDURE StartTimerInt(intHandle : POINTER location 'a1'; timeInterval : ULONG location 'd0'; continuous : LONGINT location 'd1'); syscall LowLevelBase 096;
 PROCEDURE StopTimerInt(intHandle : POINTER location 'a1'); syscall LowLevelBase 090;
 FUNCTION SystemControlA(const tagList : pTagItem location 'a1') : ULONG; syscall LowLevelBase 072;

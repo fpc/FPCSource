@@ -484,8 +484,8 @@ FUNCTION GT_PostFilterIMsg(imsg : pIntuiMessage location 'a1') : pIntuiMessage; 
 PROCEDURE GT_RefreshWindow(win : pWindow location 'a0'; req : pRequester location 'a1'); syscall GadToolsBase 084;
 PROCEDURE GT_ReplyIMsg(imsg : pIntuiMessage location 'a1'); syscall GadToolsBase 078;
 PROCEDURE GT_SetGadgetAttrsA(gad : pGadget location 'a0'; win : pWindow location 'a1'; req : pRequester location 'a2'; const taglist : pTagItem location 'a3'); syscall GadToolsBase 042;
-FUNCTION LayoutMenuItemsA(firstitem : pMenuItem location 'a0'; vi : POINTER location 'a1'; const taglist : pTagItem location 'a2') : BOOLEAN; syscall GadToolsBase 060;
-FUNCTION LayoutMenusA(firstmenu : pMenu location 'a0'; vi : POINTER location 'a1'; const taglist : pTagItem location 'a2') : BOOLEAN; syscall GadToolsBase 066;
+FUNCTION LayoutMenuItemsA(firstitem : pMenuItem location 'a0'; vi : POINTER location 'a1'; const taglist : pTagItem location 'a2') : LongBool; syscall GadToolsBase 060;
+FUNCTION LayoutMenusA(firstmenu : pMenu location 'a0'; vi : POINTER location 'a1'; const taglist : pTagItem location 'a2') : LongBool; syscall GadToolsBase 066;
 
 function GTMENUITEM_USERDATA(menuitem : pMenuItem): pointer;
 function GTMENU_USERDATA(menu : pMenu): pointer;
