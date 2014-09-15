@@ -21,7 +21,8 @@ units_emx=resolve ssockets
 units_os2=resolve ssockets 
 units_win32=resolve ssockets 
 units_win64=resolve ssockets 
-units_wince=resolve ssockets 
+units_wince=resolve ssockets
+units_aros=resolve ssockets
 
 [require]
 packages=fcl-base fcl-xml fcl-passrc fcl-async

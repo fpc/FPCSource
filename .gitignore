@@ -1344,6 +1344,15 @@ packages/fcl-net/src/*.o
 packages/fcl-net/src/*.ppu
 packages/fcl-net/src/*.s
 packages/fcl-net/src/Package.fpc
+packages/fcl-net/src/aros/*.bak
+packages/fcl-net/src/aros/*.exe
+packages/fcl-net/src/aros/*.o
+packages/fcl-net/src/aros/*.ppu
+packages/fcl-net/src/aros/*.s
+packages/fcl-net/src/aros/Package.fpc
+packages/fcl-net/src/aros/build-stamp.*
+packages/fcl-net/src/aros/fpcmade.*
+packages/fcl-net/src/aros/units
 packages/fcl-net/src/fpcmade.*
 packages/fcl-net/src/netware/*.bak
 packages/fcl-net/src/netware/*.exe
