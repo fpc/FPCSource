@@ -2242,8 +2242,12 @@ Var
         Insert('e',Exponent,1);
       End;
     DigitExponent:=DecimalPoint-2;
-    If (Digits[1]='-') Then
+    I:=1;
+    While (I<=Length(Digits)) and (Digits[i] in [' ','-']) do
+      begin
       Dec(DigitExponent);
+      Inc(i);
+      end;
     UnexpectedDigits:=DecimalPoint-1-(Placehold[1]+Placehold[2]);
   End;
 
@@ -2262,7 +2266,7 @@ Var
     Dig := 1;
     While (Fmt<FmtStop) Do
       Begin
-      //Write(Fmt[0]);
+//      WriteLn('Treating : "',Fmt[0],'"');
       Case Fmt[0] Of
         #34:
           Begin
