@@ -67,7 +67,7 @@ unit cpubase;
          { mc64040 instructions }
          a_move16,
          { coldfire v4 instructions }
-         a_mov3q,a_mvz,a_mvs,a_sats,
+         a_mov3q,a_mvz,a_mvs,a_sats,a_byterev,a_ff1,
          { fpu processor instructions - directly supported only. }
          { ieee aware and misc. condition codes not supported   }
          a_fabs,a_fadd,
