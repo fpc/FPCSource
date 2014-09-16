@@ -564,7 +564,7 @@ type  // Checked OK 05.08.2011 ALB
     dl_NulLock      : PUnit;
     // LDDemon private Data
     dl_LDObjectsListSigSem : TSignalSemaphore;
-    dl_LDObjectsList       : TList;
+    dl_LDObjectsList       : TEList;
     dl_LDHandler           : TInterrupt;
     dl_LDDemonPort         : PMsgPort;
     dl_LDDemonTask         : PProcess;

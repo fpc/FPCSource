@@ -25,7 +25,7 @@ interface
 
 {$define FPC_IS_SYSTEM}
 
-{.$define DISABLE_NO_THREAD_MANAGER}
+{$define DISABLE_NO_THREAD_MANAGER}
 
 {$I systemh.inc}
 
@@ -63,15 +63,13 @@ var
   AOS_ExecBase   : Pointer; external name '_ExecBase';
   AOS_DOSBase    : Pointer;
   AOS_UtilityBase: Pointer;
-  
+  AROS_ThreadLib : Pointer = nil;
 
   ASYS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
   ASYS_origDir  : LongInt; { original directory on startup }
   AOS_wbMsg    : Pointer;
   AOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
   AOS_ConHandle: THandle;
-
-  AOS_ThreadBase: Pointer;
 
   argc: LongInt;
   argv: PPChar;
@@ -141,9 +139,6 @@ begin
   if AOS_DOSBase<>nil then
     CloseLibrary(AOS_DOSBase);
   AOS_DOSBase := nil;
-  if AOS_ThreadBase <> nil then
-    CloseLibrary(AOS_ThreadBase);
-  AOS_ThreadBase := nil;
   //
   HaltProc(ExitCode);
 end;
@@ -399,8 +394,6 @@ begin
   AOS_UtilityBase := OpenLibrary('utility.library', 0);
   if AOS_UtilityBase = nil then
     Halt(1);
-  if AOS_ThreadBase = nil then
-    AOS_ThreadBase := OpenLibrary('thread.library', 0);
     
   { Creating the memory pool for growing heap }
   ASYS_heapPool := CreatePool(MEMF_ANY or MEMF_SEM_PROTECTED, growheapsize2, growheapsize1);
