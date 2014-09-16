@@ -80,7 +80,7 @@ Type
 
 {$PACKRECORDS 2}
 
-FUNCTION Examine(lock : LONGINT location 'd1'; fileInfoBlock : pFileInfoBlock location 'd2') : BOOLEAN; syscall _DOSBase 102;
+FUNCTION Examine(lock : LONGINT location 'd1'; fileInfoBlock : pFileInfoBlock location 'd2') : LongBool; syscall _DOSBase 102;
 FUNCTION Lock(name : pCHAR location 'd1'; type_ : LONGINT location 'd2') : LONGINT; syscall _DOSBase 084;
 PROCEDURE UnLock(lock : LONGINT location 'd1'); syscall _DOSBase 090;
 
