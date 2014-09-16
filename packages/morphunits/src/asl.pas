@@ -568,7 +568,7 @@ begin
 end;
 
 function AslRequestTags(requester: Pointer;
-                        tagList  : array of DWord): Boolean; Inline;
+                        tagList  : array of DWord): LongBool; Inline;
 begin
   AslRequestTags:=AslRequest(requester,@tagList);
 end;
