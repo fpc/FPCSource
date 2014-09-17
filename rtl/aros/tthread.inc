@@ -53,9 +53,6 @@ end;
 procedure TThread.SysCreate(CreateSuspended: Boolean; const StackSize: SizeUInt);
 begin
   if not Assigned(AROSThreadStruct) then
-    AROSThreadStruct := AROS_ThreadLib;
-  
-  if not Assigned(AROSThreadStruct) then
     raise EThread.CreateFmt(SThreadCreateError, ['ThreadLib not found']);
   
   FSuspended := CreateSuspended;

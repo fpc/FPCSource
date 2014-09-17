@@ -49,7 +49,7 @@ type
   PAROSThreadStruct = ^TAROSThreadStruct;
 
 var
-  AROSThreadStruct: PAROSThreadStruct;
+  AROSThreadStruct: PAROSThreadStruct external name 'AROS_THREADLIB';
 
 
 function CreateNewProcTags(const Tags: array of PtrUInt): PProcess;
@@ -293,7 +293,7 @@ begin
   // create New Stack
   StackMem := GetMem(NewThread^.StackSize);
   sswap.stk_Lower := StackMem;
-  sswap.stk_Upper := Pointer(PtrUInt(sswap.stk_Lower) + 256*1024);
+  sswap.stk_Upper := Pointer(PtrUInt(sswap.stk_Lower) + NewThread^.StackSize);
   sswap.stk_Pointer := sswap.stk_Upper;
   ReleaseSemaphore(@AROSThreadStruct^.ThreadMemSem);
   // semaphore against too fast startup
@@ -369,6 +369,8 @@ begin
   // Semaphore for too fast startup
   ObtainSemaphore(@(NewThread^.StartupSemaphore));
   
+  // a very ugly Bugfix, for crashing AROS, on the very first Task after reboot
+  // recheck later if can be removed
   if NewThread^.ThreadID  = 1 then
   begin
     //debugln('make empty thread');
@@ -377,13 +379,13 @@ begin
       NP_Entry, PtrUInt(@EmptyFunc),
       TAG_DONE, TAG_END]);
     ObtainSemaphore(@AROSThreadStruct^.EmptySemaphore);
-    Delay(10);
+    Delay(1);
   end;
   //
   NewThread^.Task := CreateNewProcTags([
     NP_Entry, PtrUInt(@StarterFunc),
     //NP_Name, PtrUInt(PChar('Thread' + IntToStr(LastThreadNum))),
-    //NP_StackSize, 256 * 1024,
+    //NP_StackSize, 10024 * 1024,
     NP_Priority, Priority, 
     NP_UserData, PtrUInt(NewThread),
     TAG_DONE, TAG_END]);
@@ -516,6 +518,7 @@ end;
 procedure WaitAllThreads;
 var
   i: Integer;
+  TID: LongWord;
 begin
   if not Assigned(AROSThreadStruct) then
     Exit;
@@ -525,12 +528,13 @@ begin
   begin
     if Assigned(AROSThreadStruct^.ThreadList[i]) then
     begin
-      ReleaseSemaphore(@AROSThreadStruct^.ThreadListSem);
+      TID := AROSThreadStruct^.ThreadList[i]^.ThreadID;      
       //
       ObtainSemaphore(@(AROSThreadStruct^.ThreadList[i]^.StartupSemaphore));
       ReleaseSemaphore(@(AROSThreadStruct^.ThreadList[i]^.StartupSemaphore));
       //
-      AROSWaitThread(AROSThreadStruct^.ThreadList[i]^.ThreadID);
+      ReleaseSemaphore(@AROSThreadStruct^.ThreadListSem);
+      AROSWaitThread(TID);
       ObtainSemaphore(@AROSThreadStruct^.ThreadListSem); 
     end;  
     Inc(i);
@@ -543,7 +547,6 @@ end;
 procedure InitThreadLib;
 begin
   New(AROSThreadStruct);
-  AROS_ThreadLib := AROSThreadStruct;
   AROSThreadStruct^.LastThreadNum := 0;
   InitSemaphore(@(AROSThreadStruct^.MutexListSem));
   InitSemaphore(@(AROSThreadStruct^.ConditionListSem));
@@ -581,7 +584,6 @@ begin
   ReleaseSemaphore(@AROSThreadStruct^.ConditionListSem);
   Dispose(AROSThreadStruct);
   AROSThreadStruct := nil;
-  AROS_ThreadLib := nil;
 end;
 
 {$endif THREAD_SYSTEM}

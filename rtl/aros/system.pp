@@ -63,7 +63,7 @@ var
   AOS_ExecBase   : Pointer; external name '_ExecBase';
   AOS_DOSBase    : Pointer;
   AOS_UtilityBase: Pointer;
-  AROS_ThreadLib : Pointer = nil;
+  AROS_ThreadLib : Pointer; public name 'AROS_THREADLIB';
 
   ASYS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
   ASYS_origDir  : LongInt; { original directory on startup }
