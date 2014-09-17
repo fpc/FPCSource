@@ -26,11 +26,7 @@
 
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
-
-{$I useamigasmartlink.inc}
-{$ifdef use_amiga_smartlink}
-   {$smartlink on}
-{$endif use_amiga_smartlink}
+{$PACKRECORDS 2}
 
 UNIT colorwheel;
 
@@ -84,36 +80,13 @@ VAR ColorWheelBase : pLibrary;
 const
     COLORWHEELNAME : Pchar = 'colorwheel.library';
 
-PROCEDURE ConvertHSBToRGB(hsb : pColorWheelHSB; rgb : pColorWheelRGB);
-PROCEDURE ConvertRGBToHSB(rgb : pColorWheelRGB; hsb : pColorWheelHSB);
+PROCEDURE ConvertHSBToRGB(hsb : pColorWheelHSB location 'a0'; rgb : pColorWheelRGB location 'a1'); syscall ColorWheelBase 030;
+PROCEDURE ConvertRGBToHSB(rgb : pColorWheelRGB location 'a0'; hsb : pColorWheelHSB location 'a1'); syscall ColorWheelBase 036;
 
 IMPLEMENTATION
 
 uses amsgbox;
 
-PROCEDURE ConvertHSBToRGB(hsb : pColorWheelHSB; rgb : pColorWheelRGB);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L hsb,A0
-    MOVEA.L rgb,A1
-    MOVEA.L ColorWheelBase,A6
-    JSR -030(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-PROCEDURE ConvertRGBToHSB(rgb : pColorWheelRGB; hsb : pColorWheelHSB);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L rgb,A0
-    MOVEA.L hsb,A1
-    MOVEA.L ColorWheelBase,A6
-    JSR -036(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
 
 {$I useautoopenlib.inc}
 {$ifdef use_auto_openlib}
