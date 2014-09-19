@@ -266,7 +266,7 @@ begin
      Error('Error: Not a PPU File : '+PPUFn,false);
      Exit;
    end;
-  ppuversion:=inppu.GetPPUVersion;
+  ppuversion:=inppu.getversion;
   if ppuversion<CurrentPPUVersion then
    begin
      inppu.free;

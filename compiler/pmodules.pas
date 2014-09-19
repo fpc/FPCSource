@@ -1405,7 +1405,7 @@ type
            Comment(V_Error,'Not a PPU File : '+PPUFn);
            Exit;
          end;
-        ppuversion:=inppu.GetPPUVersion;
+        ppuversion:=inppu.getversion;
         if ppuversion<CurrentPPUVersion then
          begin
            inppu.free;
