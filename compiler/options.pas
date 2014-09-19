@@ -3493,6 +3493,16 @@ if (target_info.abi = abi_eabihf) then
         if not option.FPUSetExplicitly then
           init_settings.fputype:=fpu_mips2;
       end;
+    system_mipsel_embedded:
+      begin
+        { set default cpu type to PIC32MX and softfloat for MIPSEL-EMBEDDED target unless specified otherwise }
+        if not option.CPUSetExplicitly then
+          init_settings.cputype:=cpu_pic32mx;
+        if not option.OptCPUSetExplicitly then
+          init_settings.optimizecputype:=cpu_pic32mx;
+        if not option.FPUSetExplicitly then
+          init_settings.fputype:=fpu_soft;
+      end;
   end;
 {$endif mipsel}
 
