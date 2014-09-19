@@ -26,6 +26,7 @@ interface
 {$define FPC_IS_SYSTEM}
 
 {$I systemh.inc}
+{$I osdebugh.inc}
 
 const
   LineEnding = #10;
@@ -76,6 +77,7 @@ var
 implementation
 
 {$I system.inc}
+{$I osdebug.inc}
 
 {$IFDEF MOSFPC_FILEDEBUG}
 {$WARNING Compiling with file debug enabled!}
