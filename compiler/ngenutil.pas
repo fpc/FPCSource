@@ -513,6 +513,7 @@ implementation
       storefilepos : tfileposinfo;
       list : TAsmList;
       sectype : TAsmSectiontype;
+      labind : TAsmSymbol;
     begin
       storefilepos:=current_filepos;
       current_filepos:=sym.fileinfo;
