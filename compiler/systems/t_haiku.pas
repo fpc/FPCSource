@@ -94,7 +94,7 @@ var
   hp2 : texported_item;
 begin
   { first test the index value }
-  if (hp.options and eo_index)<>0 then
+  if eo_index in hp.options then
    begin
      Message1(parser_e_no_export_with_index_for_target,'haiku');
      exit;

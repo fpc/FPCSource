@@ -1310,7 +1310,7 @@ type
       begin
         hp:=texported_item.create;
         hp.name:=stringdup(s);
-        hp.options:=hp.options or eo_name;
+        hp.options:=hp.options+[eo_name];
         exportlib.exportprocedure(hp);
       end;
 
@@ -1321,7 +1321,7 @@ type
       begin
         hp:=texported_item.create;
         hp.name:=stringdup(s);
-        hp.options:=hp.options or eo_name;
+        hp.options:=hp.options+[eo_name];
         exportlib.exportvar(hp);
       end;
 
