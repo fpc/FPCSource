@@ -34,11 +34,11 @@ var
 begin
   if s <> '' then
     for i:=1 to Length(s) do
-      RawPutChar(LongWord(s[i]));
-  RawPutChar(LongWord(#10));
+      RawPutChar(s[i]);
+  RawPutChar(#10);
 end;
 
 procedure SysDebugLn; {$IFDEF SYSTEMINLINE}inline;{$ENDIF} platform;
 begin
-  RawPutChar(LongWord(#10));
+  RawPutChar(#10);
 end;
