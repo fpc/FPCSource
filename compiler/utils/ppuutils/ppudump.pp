@@ -31,6 +31,7 @@ uses
   constexp,
   symconst,
   ppu,
+  entfile,
   systems,
   globals,
   globtype,
@@ -2444,9 +2445,9 @@ begin
                toaddr :
                  begin
                    Write(['Address : ',getaword]);
-                   if tsystemcpu(ppufile.header.cpu)=cpu_i386 then
+                   if tsystemcpu(ppufile.header.common.cpu)=cpu_i386 then
                      Write([' (Far: ',getbyte<>0,')']);
-                   if tsystemcpu(ppufile.header.cpu)=cpu_i8086 then
+                   if tsystemcpu(ppufile.header.common.cpu)=cpu_i8086 then
                      if getbyte<>0 then
                        Write([' (Far: TRUE, Segment=',getaword,')'])
                      else
@@ -2653,7 +2654,7 @@ begin
              write  ([space,'     Pointed Type : ']);
              readderef('',TPpuPointerDef(def).Ptr);
              writeln([space,' Has Pointer Math : ',(getbyte<>0)]);
-             if tsystemcpu(ppufile.header.cpu) in [cpu_i8086,cpu_i386,cpu_x86_64] then
+             if tsystemcpu(ppufile.header.common.cpu) in [cpu_i8086,cpu_i386,cpu_x86_64] then
                begin
                  write([space,' X86 Pointer Type : ']);
                  b:=getbyte;
@@ -2892,7 +2893,7 @@ begin
              write  ([space,'       SymOptions : ']);
              readsymoptions(space+'       ');
              writeln  ([space,'   Synthetic kind : ',Synthetic2Str(ppufile.getbyte)]);
-             if tsystemcpu(ppufile.header.cpu)=cpu_powerpc then
+             if tsystemcpu(ppufile.header.common.cpu)=cpu_powerpc then
                begin
                  { library symbol for AmigaOS/MorphOS }
                  write  ([space,'   Library symbol : ']);
@@ -3527,13 +3528,13 @@ begin
      Writeln('-------');
      with ppufile.header do
       begin
-        Writeln(['Compiler version        : ',ppufile.header.compiler shr 14,'.',
-                                             (ppufile.header.compiler shr 7) and $7f,'.',
-                                             ppufile.header.compiler and $7f]);
-        WriteLn(['Target processor        : ',Cpu2Str(cpu)]);
-        WriteLn(['Target operating system : ',Target2Str(target)]);
-        Writeln(['Unit flags              : ',PPUFlags2Str(flags)]);
-        Writeln(['FileSize (w/o header)   : ',size]);
+        Writeln(['Compiler version        : ',ppufile.header.common.compiler shr 14,'.',
+                                             (ppufile.header.common.compiler shr 7) and $7f,'.',
+                                             ppufile.header.common.compiler and $7f]);
+        WriteLn(['Target processor        : ',Cpu2Str(common.cpu)]);
+        WriteLn(['Target operating system : ',Target2Str(common.target)]);
+        Writeln(['Unit flags              : ',PPUFlags2Str(common.flags)]);
+        Writeln(['FileSize (w/o header)   : ',common.size]);
         Writeln(['Checksum                : ',hexstr(checksum,8)]);
         Writeln(['Interface Checksum      : ',hexstr(interface_checksum,8)]);
         Writeln(['Indirect Checksum       : ',hexstr(indirect_checksum,8)]);
@@ -3546,8 +3547,8 @@ begin
     begin
       CurUnit.Crc:=checksum;
       CurUnit.IntfCrc:=interface_checksum;
-      CurUnit.TargetCPU:=Cpu2Str(cpu);
-      CurUnit.TargetOS:=Target2Str(target);
+      CurUnit.TargetCPU:=Cpu2Str(common.cpu);
+      CurUnit.TargetOS:=Target2Str(common.target);
     end;
 
 {read the general stuff}
@@ -3626,7 +3627,7 @@ begin
   Writeln('Implementation symtable');
   Writeln('----------------------');
   readsymtableoptions('implementation');
-  if (ppufile.header.flags and uf_local_symtable)<>0 then
+  if (ppufile.header.common.flags and uf_local_symtable)<>0 then
    begin
      if (verbose and v_defs)<>0 then
       begin
