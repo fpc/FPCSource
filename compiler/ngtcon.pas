@@ -1060,8 +1060,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
            (not equal_defs(node.resultdef,def) and
             not is_subequal(node.resultdef,def)) then
           begin
-            node.free;
             incompatibletypes(node.resultdef,def);
+            node.free;
             consume_all_until(_SEMICOLON);
             result:=false;
             exit;
