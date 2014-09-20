@@ -319,6 +319,17 @@
           Dec(MaxAvail, SizeOf(TTinyHeapMemBlockSize));
       end;
 
+    procedure Mark(var p: Pointer);
+      begin
+        p := HeapPtr;
+      end;
+
+    procedure Release(var p: Pointer);
+      begin
+        HeapPtr := p;
+        FreeList := p;
+      end;
+
     procedure InternalTinyAlign(var AAddress: Pointer; ASize: PtrUInt);
       var
         alignment_inc: smallint;

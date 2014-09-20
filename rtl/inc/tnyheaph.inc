@@ -28,4 +28,5 @@
 
     function MemAvail: {$ifdef FPC_TINYHEAP_HUGE}LongInt{$else}PtrUInt{$endif};
     function MaxAvail: {$ifdef FPC_TINYHEAP_HUGE}LongInt{$else}PtrUInt{$endif};
-
+    procedure Mark(var p: Pointer);
+    procedure Release(var p: Pointer);
