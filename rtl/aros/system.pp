@@ -28,6 +28,7 @@ interface
 {$define DISABLE_NO_THREAD_MANAGER}
 
 {$I systemh.inc}
+{$I osdebugh.inc}
 
 const
   LineEnding = #10;
@@ -83,6 +84,7 @@ procedure Debugln(s: string);
 implementation
 
 {$I system.inc}
+{$I osdebug.inc}
 type
     PWBArg = ^TWBArg;
     TWBArg = record

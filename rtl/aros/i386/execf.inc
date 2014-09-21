@@ -45,6 +45,7 @@ procedure DeletePool(poolHeader: Pointer); syscall LocalExecBase 117;
 function AllocPooled(poolHeader: Pointer; memSize: Cardinal): Pointer; syscall LocalExecBase 118;
 function FreePooled(poolHeader: Pointer; memory: Pointer; memSize: Cardinal): Pointer; syscall LocalExecBase 119;
 procedure StackSwap(NewStack: PStackSwapStruct); syscall AOS_ExecBase 122;
+procedure RawPutChar(c: Char); syscall AOS_ExecBase 86;
 
 //function RawDoFmt(const formatString : pCHAR;const dataStream : POINTER; putChProc : tPROCEDURE; putChData : POINTER): pointer;
 function RawDoFmt(const formatString : pCHAR;const dataStream : POINTER; putChProc : POINTER; putChData : POINTER): pointer; syscall LocalExecBase 87;
