@@ -256,9 +256,8 @@ begin
 
    for Counter := 0 to 15 do 
    begin
-     VideoPens[Counter] := ObtainPen(VideoColorMap, LongWord(-1),
-         vgacolors[counter, 0] shl 24, vgacolors[counter, 1] shl 24, vgacolors[counter, 2] shl 24,
-         PEN_EXCLUSIVE);
+     VideoPens[Counter] := ObtainBestPenA(VideoColorMap,
+         vgacolors[counter, 0] shl 24, vgacolors[counter, 1] shl 24, vgacolors[counter, 2] shl 24, nil);
      {$ifdef VIDEODEBUG}
      If VideoPens[Counter] = -1 then
        WriteLn('errr color[',Counter,'] = ', VideoPens[Counter])
