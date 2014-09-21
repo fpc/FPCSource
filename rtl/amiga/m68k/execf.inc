@@ -273,6 +273,15 @@ SysCall AOS_ExecBase 492;
 function OpenResource(resName: PChar location 'a1'): Pointer;
 SysCall AOS_ExecBase 498;
 
+procedure RawIOInit;
+SysCall AOS_ExecBase 504;
+
+function RawMayGetChar: Char;
+SysCall AOS_ExecBase 510;
+
+procedure RawPutChar(d0arg: Char location 'd0');
+SysCall AOS_ExecBase 516;
+
 function RawDoFmt(formatString: PChar   location 'a0';
                   dataStream  : Pointer location 'a1';
                   putChProc   : Pointer location 'a2';

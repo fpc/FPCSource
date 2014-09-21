@@ -23,6 +23,7 @@ interface
 {$define FPC_IS_SYSTEM}
 
 {$I systemh.inc}
+{$I osdebugh.inc}
 
 {$ifdef cpum68k}
 {$define fpc_softfpu_interface}
@@ -110,6 +111,8 @@ implementation
 {$endif cpum68k}
 
 {$I system.inc}
+{$I osdebug.inc}
+
 {$IFDEF AMIGAOS4}
   // Required to allow opening of utility library interface...
   {$include utilf.inc}
