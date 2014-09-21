@@ -689,39 +689,6 @@ uses
            (current_structdef.objname^=ufinalspecializename) then
           tt:=current_structdef;
 
-        { decide in which symtable to put the specialization }
-        if parse_generic then
-          begin
-            if not assigned(current_genericdef) then
-              internalerror(2014050901);
-            if assigned(current_procinfo) and (df_generic in current_procinfo.procdef.defoptions) then
-              { if we are parsing the definition of a method we specialize into
-                the local symtable of it }
-              specializest:=current_procinfo.procdef.getsymtable(gs_local)
-            else
-              { we specialize the partial specialization into the symtable of the currently parsed
-                generic }
-              case current_genericdef.typ of
-                procvardef,
-                procdef:
-                  specializest:=current_genericdef.getsymtable(gs_local);
-                objectdef,
-                recorddef:
-                  specializest:=current_genericdef.getsymtable(gs_record);
-                arraydef:
-                  specializest:=tarraydef(current_genericdef).symtable;
-                else
-                  internalerror(2014050902);
-              end;
-          end
-        else
-          if current_module.is_unit and current_module.in_interface then
-            specializest:=current_module.globalsymtable
-          else
-            specializest:=current_module.localsymtable;
-        if not assigned(specializest) then
-          internalerror(2014050910);
-
         { Can we reuse an already specialized type? }
 
         { for this first check whether we are currently specializing a nested
@@ -758,6 +725,39 @@ uses
                 def:=tstoreddef(def.owner.defowner);
               end;
           end;
+
+        { decide in which symtable to put the specialization }
+        if parse_generic and not assigned(tt) then
+          begin
+            if not assigned(current_genericdef) then
+              internalerror(2014050901);
+            if assigned(current_procinfo) and (df_generic in current_procinfo.procdef.defoptions) then
+              { if we are parsing the definition of a method we specialize into
+                the local symtable of it }
+              specializest:=current_procinfo.procdef.getsymtable(gs_local)
+            else
+              { we specialize the partial specialization into the symtable of the currently parsed
+                generic }
+              case current_genericdef.typ of
+                procvardef,
+                procdef:
+                  specializest:=current_genericdef.getsymtable(gs_local);
+                objectdef,
+                recorddef:
+                  specializest:=current_genericdef.getsymtable(gs_record);
+                arraydef:
+                  specializest:=tarraydef(current_genericdef).symtable;
+                else
+                  internalerror(2014050902);
+              end;
+          end
+        else
+          if current_module.is_unit and current_module.in_interface then
+            specializest:=current_module.globalsymtable
+          else
+            specializest:=current_module.localsymtable;
+        if not assigned(specializest) then
+          internalerror(2014050910);
 
         { now check whether there is a specialization somewhere else }
         if not assigned(tt) then
