@@ -656,7 +656,7 @@ implementation
                if def.elementdef.needs_inittable then
                  write_rtti_reference(def.elementdef,rt)
                else
-                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(0));
+                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_nil_dataptr);
                { write unit name }
                write_string(current_module.realmodulename^);
              end;
