@@ -28,7 +28,7 @@ Const
   WinsockOSes   = [win32,win64,wince,os2,emx,netware,netwlibc];
   WinSock2OSes  = [win32,win64,wince];
   // sockets of  morphos is implemented, but not active
-  SocketsOSes   = UnixLikes+[aros,netware,netwlibc,os2,wince,win32,win64];
+  SocketsOSes   = UnixLikes+[amiga,aros,netware,netwlibc,os2,wince,win32,win64];
   Socksyscall   = [beos,freebsd,haiku,linux,netbsd,openbsd];
   Socklibc	= unixlikes-socksyscall;
   gpmOSes	= [Linux,Android];
@@ -54,6 +54,7 @@ begin
     P.NeedLibC:= false;
     P.Dependencies.Add('morphunits',[morphos]);
     P.Dependencies.Add('arosunits',[aros]);
+    P.Dependencies.Add('amunits',[amiga]);
 
     P.SourcePath.Add('src/inc');
     P.SourcePath.Add('src/$(OS)');

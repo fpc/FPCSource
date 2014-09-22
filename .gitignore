@@ -1344,6 +1344,15 @@ packages/fcl-net/src/*.o
 packages/fcl-net/src/*.ppu
 packages/fcl-net/src/*.s
 packages/fcl-net/src/Package.fpc
+packages/fcl-net/src/amiga/*.bak
+packages/fcl-net/src/amiga/*.exe
+packages/fcl-net/src/amiga/*.o
+packages/fcl-net/src/amiga/*.ppu
+packages/fcl-net/src/amiga/*.s
+packages/fcl-net/src/amiga/Package.fpc
+packages/fcl-net/src/amiga/build-stamp.*
+packages/fcl-net/src/amiga/fpcmade.*
+packages/fcl-net/src/amiga/units
 packages/fcl-net/src/aros/*.bak
 packages/fcl-net/src/aros/*.exe
 packages/fcl-net/src/aros/*.o

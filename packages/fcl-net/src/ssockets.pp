@@ -474,7 +474,7 @@ var
 begin
 {$if defined(unix)}
   fpShutdown(FSocket,SHUT_RDWR);
-{$elseif defined(mswindows) or defined(aros)}
+{$elseif defined(mswindows) or defined(aros) or defined(amiga)}
   CloseSocket(FSocket);
 {$else}
   {$WARNING Method Abort is not tested on this platform!}

@@ -18,7 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.Dependencies.Add('fcl-base');
-    P.Dependencies.Add('openssl',AllOSes - [aros]);
+    P.Dependencies.Add('openssl',AllOSes - [amiga,aros]);
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-passrc');
     P.Dependencies.Add('fcl-async',[linux,freebsd,netbsd,openbsd]);
@@ -40,14 +40,14 @@ begin
 
     // IP and Sockets
     T:=P.Targets.AddUnit('netdb.pp',AllUnixOSes);
-    T:=P.Targets.AddUnit('resolve.pp',AllUnixOSes+AllWindowsOSes+[OS2,EMX,aros]);
+    T:=P.Targets.AddUnit('resolve.pp',AllUnixOSes+AllWindowsOSes+[OS2,EMX,amiga,aros]);
       with T.Dependencies do
         begin
           AddInclude('resolve.inc');
           AddUnit('netdb',AllUnixOSes);
         end;
     T.ResourceStrings := True;
-    T:=P.Targets.AddUnit('ssockets.pp',AllUnixOSes+AllWindowsOSes+[OS2,EMX, aros]);
+    T:=P.Targets.AddUnit('ssockets.pp',AllUnixOSes+AllWindowsOSes+[OS2,EMX, amiga,aros]);
       with T.Dependencies do
         begin
           AddUnit('resolve');
