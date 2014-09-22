@@ -212,7 +212,7 @@ uses
          function is_same_reg_move(regtype: Tregistertype):boolean; override;
 
          function spilling_get_operation_type(opnr: longint): topertype;override;
-
+         function spilling_get_operation_type_ref(opnr: longint; reg: tregister): topertype;override;
          { assembler }
       public
          { the next will reset all instructions that can change in pass 2 }
@@ -774,6 +774,15 @@ implementation
           else
             internalerror(200403151);
         end;
+      end;
+
+
+    function taicpu.spilling_get_operation_type_ref(opnr: longint; reg: tregister): topertype;
+      begin
+        result := operand_read;
+        if (oper[opnr]^.ref^.base = reg) and
+          (oper[opnr]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) then
+           result := operand_readwrite;
       end;
 
 

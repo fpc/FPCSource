@@ -124,11 +124,14 @@ Implementation
     begin
       result:=false;
       for i:=0 to taicpu(p1).ops-1 do
-        if (taicpu(p1).oper[i]^.typ=top_reg) and (taicpu(p1).oper[i]^.reg=Reg) and (taicpu(p1).spilling_get_operation_type(i) in [operand_write,operand_readwrite]) then
-          begin
-            result:=true;
-            exit;
-          end;
+        case taicpu(p1).oper[i]^.typ of
+          top_reg:
+            if (taicpu(p1).oper[i]^.reg=Reg) and (taicpu(p1).spilling_get_operation_type(i) in [operand_write,operand_readwrite]) then
+              exit(true);
+          top_ref:
+            if (taicpu(p1).spilling_get_operation_type_ref(i,Reg)<>operand_read) then
+              exit(true);
+        end;
     end;
 
 End.
