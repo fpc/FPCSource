@@ -30,7 +30,7 @@ type
    packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
    record
-     elSize : PtrUInt;
+     elSize : SizeUInt;
      elType2 : Pointer;
      varType : Longint;
    end;
