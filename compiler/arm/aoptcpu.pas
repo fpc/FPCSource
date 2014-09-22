@@ -2418,7 +2418,7 @@ Implementation
     begin
       result:=true;
 
-      list:=TAsmList.create_without_marker;
+      list:=TAsmList.create;
       p:=BlockStart;
       while p<>BlockEnd Do
         begin

@@ -122,8 +122,6 @@ interface
     type
       TAsmList = class(tlinkedlist)
          constructor create;
-         constructor create_without_marker;
-         function  empty : boolean;
          function  getlasttaifilepos : pfileposinfo;
       end;
 
@@ -284,20 +282,6 @@ implementation
     constructor TAsmList.create;
       begin
         inherited create;
-        { make sure the optimizer won't remove the first tai of this list}
-        insert(tai_marker.create(mark_BlockStart));
-      end;
-
-    constructor TAsmList.create_without_marker;
-      begin
-        inherited create;
-      end;
-
-    function TAsmList.empty : boolean;
-      begin
-        { there is always a mark_BlockStart available,
-          see TAsmList.create }
-        result:=(count<=1);
       end;
 
 
