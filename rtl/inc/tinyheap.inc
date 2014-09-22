@@ -259,27 +259,48 @@
 
     function SysTinyReAllocMem(var p: pointer; size: ptruint):pointer;
       var
-        sz: ptruint;
+        oldsize, OldAllocSize, NewAllocSize: ptruint;
       begin
 {$ifdef DEBUG_TINY_HEAP}
         Write('SysTinyReAllocMem(', HexStr(p), ',', size, ')=');
 {$endif DEBUG_TINY_HEAP}
         if size=0 then
-          result := nil
-        else
-          result := AllocMem(size);
-        if result <> nil then
           begin
-            if p <> nil then
+            SysTinyFreeMem(p);
+            result := nil;
+            p := nil;
+          end
+        else if p=nil then
+          begin
+            result := AllocMem(size);
+            p := result;
+          end
+        else
+          begin
+            oldsize := FindSize(p);
+            OldAllocSize := align(oldsize+sizeof(TTinyHeapMemBlockSize), TinyHeapAllocGranularity);
+            NewAllocSize := align(size+sizeof(TTinyHeapMemBlockSize), TinyHeapAllocGranularity);
+            if OldAllocSize = NewAllocSize then
               begin
-                sz := FindSize(p);
-                if sz > size then
-                  sz := size;
-                move(pbyte(p)^, pbyte(result)^, sz);
+                { old and new size are the same after alignment, so the memory block is already allocated }
+                { we just need to update the size }
+                PTinyHeapMemBlockSize(p)[-1] := size;
+                if size > oldsize then
+                  FillChar((TTinyHeapPointerArithmeticType(p)+oldsize)^, size-oldsize, 0);
+              end
+            else
+              begin
+                result := AllocMem(size);
+                if result <> nil then
+                  begin
+                    if oldsize > size then
+                      oldsize := size;
+                    move(pbyte(p)^, pbyte(result)^, oldsize);
+                  end;
+                SysTinyFreeMem(p);
+                p := result;
               end;
           end;
-        SysTinyFreeMem(p);
-        p := result;
 {$ifdef DEBUG_TINY_HEAP}
         Writeln(HexStr(result));
 {$endif DEBUG_TINY_HEAP}
