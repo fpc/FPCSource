@@ -288,6 +288,12 @@
                 if size > oldsize then
                   FillChar((TTinyHeapPointerArithmeticType(p)+oldsize)^, size-oldsize, 0);
               end
+            else if OldAllocSize > NewAllocSize then
+              begin
+                { we're decreasing the memory block size, so we can just free the remaining memory at the end }
+                PTinyHeapMemBlockSize(p)[-1] := size;
+                InternalTinyFreeMem(Pointer(TTinyHeapPointerArithmeticType(p)+(NewAllocSize-PtrUInt(SizeOf(TTinyHeapMemBlockSize)))), OldAllocSize-NewAllocSize);
+              end
             else
               begin
                 result := AllocMem(size);
