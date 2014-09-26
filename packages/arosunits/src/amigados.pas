@@ -17,8 +17,11 @@
  BSTR Funktions
  
  defines:
- AROS_FAST_BPTR: BPTR is a pointer or a 2 shifted Pointer ->? whats standard?
+ AROS_FAST_BPTR: BPTR is a pointer or a 2 shifted Pointer
+   -> atm its standard ABIv0, for v1 needs a ifdef
 }
+
+{$define AROS_FAST_BPTR}
 
 unit amigados;
 {$mode objfpc}
