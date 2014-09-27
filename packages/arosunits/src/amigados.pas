@@ -2095,8 +2095,8 @@ function StrToLong(const String_: STRPTR; var Value: LongInt): LongInt; syscall 
 function SystemTagList(const Command: STRPTR; const Tags: PTagItem): LongInt; syscall AOS_DOSBase 101;
   //function DOSSystem(const command : PChar;const Tags : PTagItem) : LongInt; //* Real: SystemTagList ???
 function UnGetC(File_: BPTR; Character: LongInt): LongInt; syscall AOS_DOSBase 53;
-procedure UnLoadSeg(Seglist: BPTR); syscall AOS_DOSBase 25;
-function UnLock(Lock: BPTR): LongBool; syscall AOS_DOSBase 26;
+procedure UnLoadSeg(Seglist: BPTR); syscall AOS_DOSBase 26;
+function UnLock(Lock: BPTR): LongBool; syscall AOS_DOSBase 15;
 procedure UnLockDosList(Flags: LongWord); syscall AOS_DOSBase 110;
 function UnLockRecord(Fh: BPTR; Offset: LongWord; Length: LongWord): LongBool; syscall AOS_DOSBase 47;
 function UnLockRecords(RecArray: PRecordLock): LongBool; syscall AOS_DOSBase 48;
