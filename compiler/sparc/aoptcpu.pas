@@ -127,7 +127,7 @@ unit aoptcpu;
         Result:=GetNextInstruction(Next,Next);
       until {not(cs_opt_level3 in current_settings.optimizerswitches) or} not(Result) or (Next.typ<>ait_instruction) or (RegInInstruction(reg,Next)) or
         (is_calljmp(taicpu(Next).opcode));
-      if is_calljmp(taicpu(next).opcode) then
+      if result and (next.typ=ait_instruction) and is_calljmp(taicpu(next).opcode) then
         begin
           result:=false;
           next:=nil;
