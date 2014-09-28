@@ -51,6 +51,7 @@ begin
     T:=P.Targets.AddUnit('gadtools.pas');
     T:=P.Targets.AddUnit('asl.pas');
     T:=P.Targets.AddUnit('mui.pas');
+    T:=P.Targets.AddUnit('cybergraphics.pas');
 
 {$ifndef ALLPACKAGES}
     Run;
