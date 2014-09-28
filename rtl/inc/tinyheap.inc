@@ -277,6 +277,9 @@
           end
         else
           begin
+            if (TTinyHeapPointerArithmeticType(p) < TTinyHeapPointerArithmeticType(HeapOrg)) or
+               (TTinyHeapPointerArithmeticType(p) >= TTinyHeapPointerArithmeticType(HeapPtr)) then
+              HandleError(204);
             oldsize := FindSize(p);
             OldAllocSize := align(oldsize+sizeof(TTinyHeapMemBlockSize), TinyHeapAllocGranularity);
             NewAllocSize := align(size+sizeof(TTinyHeapMemBlockSize), TinyHeapAllocGranularity);
