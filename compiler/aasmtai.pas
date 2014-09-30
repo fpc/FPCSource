@@ -1750,35 +1750,13 @@ implementation
 
     constructor tai_const.Create_nil_codeptr;
       begin
-        inherited Create;
-        typ:=ait_const;
-{$ifdef i8086}
-        if current_settings.x86memorymodel in x86_far_code_models then
-          consttype:=aitconst_farptr
-        else
-{$endif i8086}
-          consttype:=aitconst_ptr;
-        sym:=nil;
-        endsym:=nil;
-        symofs:=0;
-        value:=0;
+        self.Create_int_codeptr(0);
       end;
 
 
     constructor tai_const.Create_nil_dataptr;
       begin
-        inherited Create;
-        typ:=ait_const;
-{$ifdef i8086}
-        if current_settings.x86memorymodel in x86_far_data_models then
-          consttype:=aitconst_farptr
-        else
-{$endif i8086}
-          consttype:=aitconst_ptr;
-        sym:=nil;
-        endsym:=nil;
-        symofs:=0;
-        value:=0;
+        self.Create_int_dataptr(0);
       end;
 
 
