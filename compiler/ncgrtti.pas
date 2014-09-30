@@ -307,7 +307,7 @@ implementation
            until not assigned(hpropsym);
            if not(assigned(propaccesslist) and assigned(propaccesslist.firstsym))  then
              begin
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.create(aitconst_ptr,unsetvalue));
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_int_codeptr(unsetvalue));
                 typvalue:=3;
              end
            else if propaccesslist.firstsym^.sym.typ=fieldvarsym then
@@ -347,7 +347,7 @@ implementation
                      end;
                      hp:=hp^.next;
                   end;
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.create(aitconst_ptr,address));
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_int_codeptr(address));
                 typvalue:=0;
              end
            else
@@ -364,7 +364,7 @@ implementation
                 else
                   begin
                      { virtual method, write vmt offset }
-                     current_asmdata.asmlists[al_rtti].concat(Tai_const.create(aitconst_ptr,
+                     current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_int_codeptr(
                        tobjectdef(tprocdef(propaccesslist.procdef).struct).vmtmethodoffset(tprocdef(propaccesslist.procdef).extnumber)));
                      { register for wpo }
                      tobjectdef(tprocdef(propaccesslist.procdef).struct).register_vmt_call(tprocdef(propaccesslist.procdef).extnumber);
@@ -396,7 +396,7 @@ implementation
                 if not(ppo_stored in tpropertysym(sym).propoptions) then
                   begin
                     { no, so put a constant zero }
-                    current_asmdata.asmlists[al_rtti].concat(Tai_const.create(aitconst_ptr,0));
+                    current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_nil_codeptr);
                     proctypesinfo:=proctypesinfo or (3 shl 4);
                   end
                 else
