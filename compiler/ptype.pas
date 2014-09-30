@@ -1040,39 +1040,39 @@ implementation
                        without "specialize" or "<T>" of the same type we're
                        currently parsing, so we need to handle that special }
                      newdef:=nil;
-                     if not dospecialize and
-                         assigned(ttypenode(pt1).typesym) and
-                         (ttypenode(pt1).typesym.typ=typesym) and
-                         (sp_generic_dummy in ttypenode(pt1).typesym.symoptions) and
-                         assigned(current_structdef) and
+                   if not dospecialize and
+                       assigned(ttypenode(pt1).typesym) and
+                       (ttypenode(pt1).typesym.typ=typesym) and
+                       (sp_generic_dummy in ttypenode(pt1).typesym.symoptions) and
+                       assigned(current_structdef) and
+                       (
                          (
-                           (
-                             not (m_delphi in current_settings.modeswitches) and
-                             (ttypesym(ttypenode(pt1).typesym).typedef.typ=undefineddef) and
-                             (df_generic in current_structdef.defoptions) and
-                             (ttypesym(ttypenode(pt1).typesym).typedef.owner=current_structdef.owner) and
-                             (upper(ttypenode(pt1).typesym.realname)=copy(current_structdef.objname^,1,pos('$',current_structdef.objname^)-1))
-                           ) or (
-                             { this could be a nested specialization which uses
-                               the type name of a surrounding generic to
-                               reference the specialization of said surrounding
-                               class }
-                             (df_specialization in current_structdef.defoptions) and
-                             return_specialization_of_generic(current_structdef,ttypesym(ttypenode(pt1).typesym).typedef,newdef)
-                           )
+                           not (m_delphi in current_settings.modeswitches) and
+                           (ttypesym(ttypenode(pt1).typesym).typedef.typ=undefineddef) and
+                           (df_generic in current_structdef.defoptions) and
+                           (ttypesym(ttypenode(pt1).typesym).typedef.owner=current_structdef.owner) and
+                           (upper(ttypenode(pt1).typesym.realname)=copy(current_structdef.objname^,1,pos('$',current_structdef.objname^)-1))
+                         ) or (
+                           { this could be a nested specialization which uses
+                             the type name of a surrounding generic to
+                             reference the specialization of said surrounding
+                             class }
+                           (df_specialization in current_structdef.defoptions) and
+                           return_specialization_of_generic(current_structdef,ttypesym(ttypenode(pt1).typesym).typedef,newdef)
                          )
-                         then
-                       begin
-                         if assigned(newdef) then
-                           def:=newdef
-                         else
-                           def:=current_structdef;
-                         if assigned(def) then
-                           { handle nested types }
-                           post_comp_expr_gendef(def)
-                         else
-                           def:=generrordef;
-                       end;
+                       )
+                       then
+                     begin
+                       if assigned(newdef) then
+                         def:=newdef
+                       else
+                         def:=current_structdef;
+                       if assigned(def) then
+                         { handle nested types }
+                         post_comp_expr_gendef(def)
+                       else
+                         def:=generrordef;
+                     end;
                    if dospecialize then
                      begin
                        generate_specialization(def,false,name);
