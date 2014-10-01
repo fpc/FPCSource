@@ -1528,6 +1528,19 @@ begin
         end;
     end;
 
+  if [df_generic,df_specialization]*defoptions<>[] then
+    begin
+      nb:=ppufile.getlongint;
+      writeln([space,'has ',nb,' parameters']);
+      if nb>0 then
+        begin
+          for i:=0 to nb-1 do
+            begin
+              writeln([space,'parameter ',i,': ',ppufile.getstring]);
+              readderef(space);
+            end;
+        end;
+    end;
   if df_generic in defoptions then
     begin
       tokenbufsize:=ppufile.getlongint;
