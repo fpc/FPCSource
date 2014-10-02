@@ -243,6 +243,12 @@ Const
   GCS_HELPTEXTW    = $00000005;     // help text (unicode version)
   GCS_VALIDATEW    = $00000006;     // validate command exists (unicode)
   GCS_UNICODE      = $00000004;     // for bit testing - Unicode string
+  CMIC_MASK_ICON          = $00000010;
+  CMIC_MASK_HOTKEY        = $00000020;
+  CMIC_MASK_FLAG_NO_UI    = $00000400;
+  CMIC_MASK_UNICODE       = $00004000;
+  CMIC_MASK_NO_CONSOLE    = $00008000;
+  CMIC_MASK_ASYNCOK       = $00100000;
   CMIC_MASK_SHIFT_DOWN    = $10000000;
   CMIC_MASK_CONTROL_DOWN  = $40000000;
   CMIC_MASK_PTINVOKE      = $20000000;
@@ -408,6 +414,26 @@ Const
   BIF_BROWSEFORPRINTER            = $2000;  // Browsing for Printers
   BIF_BROWSEINCLUDEFILES          = $4000;  // Browsing for Everything
   BIF_SHAREABLE                   = $8000;  // sharable resources displayed (remote shares, requires BIF_USENEWUI)
+  BFFM_INITIALIZED                = $0001;
+  BFFM_SELCHANGED                 = $0002;
+  BFFM_VALIDATEFAILEDA            = $0003;
+  BFFM_VALIDATEFAILEDW            = $0004;
+  BFFM_SETSTATUSTEXTA             = WM_USER + 100;
+  BFFM_SETSTATUSTEXTW             = WM_USER + 104;
+  BFFM_ENABLEOK                   = WM_USER + 101;
+  BFFM_SETSELECTIONA              = WM_USER + 102;
+  BFFM_SETSELECTIONW              = WM_USER + 103;
+  BFFM_SETOKTEXT                  = WM_USER + 105;
+  BFFM_SETEXPANDED                = WM_USER + 106;
+  {$ifdef Unicode}
+  BFFM_SETSTATUSTEXT  = BFFM_SETSTATUSTEXTW;
+  BFFM_SETSELECTION   = BFFM_SETSELECTIONW;
+  BFFM_VALIDATEFAILED = BFFM_VALIDATEFAILEDW;
+  {$else}
+  BFFM_SETSTATUSTEXT  = BFFM_SETSTATUSTEXTA;
+  BFFM_SETSELECTION   = BFFM_SETSELECTIONA;
+  BFFM_VALIDATEFAILED = BFFM_VALIDATEFAILEDA;
+  {$endif}
   PROGDLG_NORMAL                  = $00000000;      // default normal progress dlg behavior
   PROGDLG_MODAL                   = $00000001;      // the dialog is modal to its hwndParent (default is modeless)
   PROGDLG_AUTOTIME                = $00000002;      // automatically updates the "Line3" text with the "time remaining" (you cant call SetLine3 if you passs this!)
@@ -1946,7 +1972,13 @@ Type
        function Skip(celt: ULONG): HRESULT; stdcall; function Reset: HRESULT; stdcall;
        function Clone(out ppenum: IEnumExtraSearch): HRESULT; stdcall;
       end;
-    
+
+   IShellDetails = interface(IUnknown)
+        ['{000214EC-0000-0000-C000-000000000046}']
+        function GetDetailsOf(pidl:LPCITEMIDLIST;iColumn:UINT;pDetails:PSHELLDETAILS):HResult;StdCall;
+        function ColumnClick(iColumn:UINT):HResult;StdCall;
+      end;
+
    IShellFolder = interface(IUnknown)
         ['{000214E6-0000-0000-C000-000000000046}']
         function ParseDisplayName(hwndOwner: HWND; pbcReserved: Pointer; lpszDisplayName: POLESTR; out pchEaten: ULONG; out ppidl: PItemIDList; var dwAttributes: ULONG): HRESULT; stdcall;
