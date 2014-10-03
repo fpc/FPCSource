@@ -1739,6 +1739,7 @@ const
      (mask:po_syscall_basesysv;str:'SyscallBaseSysV'),
      (mask:po_syscall_sysvbase;str:'SyscallSysVBase'),
      (mask:po_syscall_r12base; str:'SyscallR12Base'),
+     (mask:po_syscall_has_libsym; str:'Has LibSym'),
      (mask:po_inline;          str:'Inline'),
      (mask:po_compilerproc;    str:'CompilerProc'),
      (mask:po_has_importdll;   str:'HasImportDLL'),
@@ -1817,6 +1818,8 @@ begin
       i:=ppufile.getbyte;
       ppufile.getdata(tempbuf,i);
     end;
+  if po_syscall_has_libsym in procoptions then
+      readderef(space);
 end;
 
 

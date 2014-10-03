@@ -1816,6 +1816,7 @@ begin
               is_32bitint(tabstractvarsym(sym).vardef)
              ) then
             begin
+              include(pd.procoptions,po_syscall_has_libsym);
               tcpuprocdef(pd).libsym:=sym;
               if po_syscall_legacy in tprocdef(pd).procoptions then
                 begin
@@ -1850,6 +1851,7 @@ begin
               is_32bitint(tabstractvarsym(sym).vardef)
              ) then
             begin
+              include(pd.procoptions,po_syscall_has_libsym);
               tcpuprocdef(pd).libsym:=sym;
               vs:=cparavarsym.create('$syscalllib',paranr_syscall_basesysv,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para]);
               pd.parast.insert(vs);
@@ -1917,6 +1919,7 @@ begin
               is_32bitint(tabstractvarsym(sym).vardef)
              ) then
             begin
+              include(pd.procoptions,po_syscall_has_libsym);
               tcpuprocdef(pd).libsym:=sym;
               if po_syscall_legacy in tprocdef(pd).procoptions then
                 begin
@@ -1973,6 +1976,7 @@ begin
               is_32bitint(tabstractvarsym(sym).vardef)
              ) then
             begin
+              include(pd.procoptions,po_syscall_has_libsym);
               tcpuprocdef(pd).libsym:=sym;
               vs:=cparavarsym.create('$syscalllib',paranr_syscall_sysvbase,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para]);
               pd.parast.insert(vs);
