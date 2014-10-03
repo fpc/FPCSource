@@ -102,3 +102,39 @@ zipinstall:	fpmake
 	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX)
 zipdistinstall:	fpmake
 	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX) -ie
+
+#####################################################################
+# PPU testing targets
+#####################################################################
+
+PPULIST:=$(wildcard */units/*/*.ppu) $(wildcard units/*/*.ppu)
+PPULOGLIST:=$(subst .ppu,.log-ppu,$(PPULIST))
+RMPPULOGLIST:=$(subst .ppu,.rm-log-ppu,$(PPULIST))
+
+.PHONY : ppulogs cleanppulogs testppudump $(RMPPULOGLIST)
+
+ppulogs : $(PPULOGLIST)
+
+vpath %.ppu $(ALLPPUDIRS)
+vpath %.log-ppu $(ALLPPUDIRS)
+vpath %.rm-log-ppu $(ALLPPUDIRS)
+
+%.log-ppu : %.ppu ../compiler/utils/ppudump$(EXEEXT)
+	..$(PATHSEP)compiler$(PATHSEP)utils$(PATHSEP)ppudump -VA -M $< > $@
+
+%.rm-log-ppu : %.ppu ../compiler/utils/ppudump$(EXEEXT)
+	-$(RMPROG) $<
+
+
+../compiler/utils/ppudump$(EXEEXT):
+	$(MAKE) -C $(COMPILERDIR)/utils ppudump$(EXEEXT)
+
+ppuinfo :
+	echo PPU list is "$(PPULIST)"
+	echo PPULOG list is "$(PPULOGLIST)"
+
+cleanppulogs : $(RMPPULOGLIST)
+
+testppudump :
+        $(MAKE) cleanppulogs ppulogs
+
