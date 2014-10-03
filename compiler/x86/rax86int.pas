@@ -65,7 +65,7 @@ Unit Rax86int;
          procedure BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string; needvmtofs: boolean);
          procedure BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
          function BuildConstExpression:aint;
-         function BuildRefConstExpression:aint;
+         function BuildRefConstExpression(startingminus:boolean=false):aint;
          procedure BuildReference(oper : tx86operand);
          procedure BuildOperand(oper: tx86operand;istypecast:boolean);
          procedure BuildConstantOperand(oper: tx86operand);
@@ -1141,13 +1141,13 @@ Unit Rax86int;
       end;
 
 
-    Function tx86intreader.BuildRefConstExpression:aint;
+    Function tx86intreader.BuildRefConstExpression(startingminus:boolean):aint;
       var
         l : aint;
         hs : string;
         hssymtyp : TAsmsymtype;
       begin
-        BuildConstSymbolExpression(false,true,false,l,hs,hssymtyp);
+        BuildConstSymbolExpression(false,true,startingminus,l,hs,hssymtyp);
         if hs<>'' then
          Message(asmr_e_relocatable_symbol_not_allowed);
         BuildRefConstExpression:=l;
@@ -1190,7 +1190,8 @@ Unit Rax86int;
                    (SearchIConstant(actasmpattern,l) or
                     SearchRecordType(actasmpattern)) then
                  begin
-                   l:=BuildRefConstExpression;
+                   l:=BuildRefConstExpression(negative);
+                   negative:=false;   { "l" was negated if necessary }
                    GotPlus:=(prevasmtoken=AS_PLUS);
                    GotStar:=(prevasmtoken=AS_STAR);
                    case oper.opr.typ of
@@ -1198,23 +1199,15 @@ Unit Rax86int;
                        begin
                          if GotStar then
                            Message(asmr_e_invalid_reference_syntax);
-                         if negative then
-                           Dec(oper.opr.localsymofs,l)
-                         else
-                           Inc(oper.opr.localsymofs,l);
+                         Inc(oper.opr.localsymofs,l);
                        end;
                      OPR_REFERENCE :
                        begin
                          if GotStar then
                           oper.opr.ref.scalefactor:=l
                          else
-                          begin
-                            if negative then
-                              Dec(oper.opr.ref.offset,l)
-                            else
-                              Inc(oper.opr.ref.offset,l);
-                          end;
-                        end;
+                           Inc(oper.opr.ref.offset,l);
+                       end;
                    end;
                  end
                 else
