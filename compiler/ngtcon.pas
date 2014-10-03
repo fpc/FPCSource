@@ -859,7 +859,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             begin
               current_asmdata.getdatalabel(ll);
               list.concat(Tai_const.Create_sym(ll));
-              current_asmdata.asmlists[al_typedconsts].concat(tai_align.create(const_align(sizeof(pint))));
+              new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,ll.name,const_align(sizeof(pint)));
               current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(ll));
               if (node.nodetype in [stringconstn,ordconstn]) then
                 begin
