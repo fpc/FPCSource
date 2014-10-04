@@ -1905,6 +1905,7 @@ Var
   UnexpectedDigits: Integer;                  { Number Of unexpected Digits that }
                                               { have To be inserted before the   }
                                               { First placeholder.               }
+  UnexpectedDigitsStart: Integer;             { Location in Digits where first unexpected Digit is located }
   DigitExponent: Integer;                     { Exponent Of First digit In       }
                                               { Digits Array.                    }
 
@@ -2296,7 +2297,7 @@ Var
                       Buf[0] := Digits[N];
                       Inc(Buf);
                     end;
-                  If thousand And (Digits[N]<>'-') Then
+                  If thousand And (Not (Digits[N] in [' ','-'])) Then
                     Begin
                     If (DigitExponent Mod 3 = 0) And (DigitExponent>0) Then
                       Begin
@@ -2321,8 +2322,9 @@ Var
                   Inc(Buf);
                   End;
                 End;
+              if Digits[Dig]<>'-' then  
+                Dec(DigitExponent);
               Inc(Dig);
-              Dec(DigitExponent);
               Inc(Fmt);
               End;
             'e', 'E':
