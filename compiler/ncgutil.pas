@@ -1075,13 +1075,13 @@ implementation
                         begin
                           unget_para(paraloc^);
                           gen_alloc_regloc(list,destloc);
-                          cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^,destloc.register,sizeof(aint));
+                          cg.a_load_cgparaloc_anyreg(list,OS_8,paraloc^,destloc.register,sizeof(aint));
                           unget_para(paraloc^.Next^);
-                          cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^.Next^,GetNextReg(destloc.register),sizeof(aint));
+                          cg.a_load_cgparaloc_anyreg(list,OS_8,paraloc^.Next^,GetNextReg(destloc.register),sizeof(aint));
                           unget_para(paraloc^.Next^.Next^);
-                          cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^.Next^.Next^,GetNextReg(GetNextReg(destloc.register)),sizeof(aint));
+                          cg.a_load_cgparaloc_anyreg(list,OS_8,paraloc^.Next^.Next^,GetNextReg(GetNextReg(destloc.register)),sizeof(aint));
                           unget_para(paraloc^.Next^.Next^.Next^);
-                          cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^.Next^.Next^.Next^,GetNextReg(GetNextReg(GetNextReg(destloc.register))),sizeof(aint));
+                          cg.a_load_cgparaloc_anyreg(list,OS_8,paraloc^.Next^.Next^.Next^,GetNextReg(GetNextReg(GetNextReg(destloc.register))),sizeof(aint));
                         end
 {$endif defined(cpu8bitalu)}
                       else
