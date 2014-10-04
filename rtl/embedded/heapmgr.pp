@@ -37,7 +37,7 @@ Unit heapmgr;
 
     procedure InternalFreeMem(Addr: Pointer; Size: ptruint); forward;
 
-    function FindSize(p: pointer): ptruint;
+    function FindSize(p: pointer): ptruint; inline;
       begin
         FindSize := PPtrUInt(p)[-1];
       end;
