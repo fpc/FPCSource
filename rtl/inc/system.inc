@@ -1519,6 +1519,7 @@ begin
 end;
 
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 procedure DoDirSeparators(var ps:RawByteString);
 var
   i : longint;
@@ -1538,7 +1539,10 @@ begin
         p[i-1]:=DirectorySeparator;
       end;
 end;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
+
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
 procedure DoDirSeparators(var ps:UnicodeString);
 var
   i : longint;
@@ -1558,6 +1562,7 @@ begin
         p[i-1]:=DirectorySeparator;
       end;
 end;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
 
 {$endif FPC_HAS_FEATURE_FILEIO}
 
@@ -1642,8 +1647,20 @@ end;
 
 {$endif FPC_HAS_FEATURE_FILEIO}
 
+{ helper for targets supporting no ansistrings, it is used
+  by non-ansistring code }
+function min(v1,v2 : SizeInt) : SizeInt;
+  begin
+    if v1<v2 then
+      result:=v1
+    else
+      result:=v2;
+  end;
+
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
 { Text file }
 {$i text.inc}
+{$endif FPC_HAS_FEATURE_TEXTIO}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 { Untyped file }
