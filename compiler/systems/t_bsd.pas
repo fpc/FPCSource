@@ -695,6 +695,11 @@ begin
     else
      DynLinKStr:=DynLinkStr+' -dynamic'; // one dash!
    end;
+   
+{ Use -nopie on OpenBSD }
+  if (target_info.system in systems_openbsd) then
+    Info.ExtraOptions:=Info.ExtraOptions+' -nopie';
+    
 { Write used files and libraries }
   WriteResponseFile(false);
 
