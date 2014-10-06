@@ -801,7 +801,9 @@ implementation
        current_asmdata.getdatalabel(result.lab);
        startlab:=result.lab;
        result.ofs:=0;
-       begin_anonymous_record('$'+get_dynstring_rec_name(stringtype,false,len),sizeof(pint));
+       { pack the data, so that we don't add unnecessary null bytes after the
+         constant string }
+       begin_anonymous_record('$'+get_dynstring_rec_name(stringtype,false,len),1);
        string_symofs:=get_string_symofs(stringtype,false);
        { encoding }
        emit_tai(tai_const.create_16bit(encoding),u16inttype);
