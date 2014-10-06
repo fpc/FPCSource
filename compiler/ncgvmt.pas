@@ -487,12 +487,22 @@ implementation
       end;
 
 
+    type
+      tvmtasmoutput = record
+        pubmethodstcb: ttai_typedconstbuilder;
+        list: tasmlist;
+        methodnamerec: trecorddef;
+      end;
+      pvmtasmoutput = ^tvmtasmoutput;
+
     procedure TVMTWriter.do_gen_published_methods(p:TObject;arg:pointer);
       var
         i  : longint;
         l  : tasmlabel;
         pd : tprocdef;
-        lists: ^TAsmList absolute arg;
+        lists: pvmtasmoutput absolute arg;
+        tcb  : ttai_typedconstbuilder;
+        namedef : tdef;
       begin
         if (tsym(p).typ<>procsym) then
           exit;
@@ -503,16 +513,31 @@ implementation
                (pd.visibility=vis_published) then
               begin
                 current_asmdata.getlabel(l,alt_data);
-                lists[1].concat(cai_align.Create(const_align(sizeof(pint))));
-                lists[1].concat(Tai_label.Create(l));
-                lists[1].concat(Tai_const.Create_8bit(length(tsym(p).realname)));
-                lists[1].concat(Tai_string.Create(tsym(p).realname));
-
-                lists[0].concat(Tai_const.Create_sym(l));
+                { l: name_of_method }
+                tcb:=ctai_typedconstbuilder.create;
+                namedef:=getarraydef(cansichartype,length(tsym(p).realname)+1);
+                tcb.maybe_begin_aggregate(namedef);
+                tcb.emit_tai(Tai_const.Create_8bit(length(tsym(p).realname)),u8inttype);
+                tcb.emit_tai(Tai_string.Create(tsym(p).realname),getarraydef(cansichartype,length(tsym(p).realname)));
+                tcb.maybe_end_aggregate(namedef);
+                lists^.list.concatList(tcb.get_final_asmlist(l,namedef,sec_rodata_norel,'',sizeof(pint),[tcalo_is_lab]));
+                tcb.free;
+                { the tmethodnamerec }
+                lists^.pubmethodstcb.maybe_begin_aggregate(lists^.methodnamerec);
+                { convert the pointer to the name into a generic pshortstring,
+                  so all entries can share the same recorddef }
+                lists^.pubmethodstcb.queue_init(charpointertype);
+                lists^.pubmethodstcb.queue_emit_asmsym(l,namedef);
                 if po_abstractmethod in pd.procoptions then
-                  lists[0].concat(Tai_const.Create_nil_codeptr)
+                  lists^.pubmethodstcb.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype)
                 else
-                  lists[0].concat(Tai_const.Createname(pd.mangledname,AT_FUNCTION,0));
+                  begin
+                    { convert the procdef in a generic voidcodepointer, same
+                      reason as above }
+                    lists^.pubmethodstcb.queue_init(voidcodepointertype);
+                    lists^.pubmethodstcb.queue_emit_proc(pd);
+                  end;
+                lists^.pubmethodstcb.maybe_end_aggregate(lists^.methodnamerec);
               end;
            end;
       end;
@@ -523,21 +548,45 @@ implementation
       var
          l : tasmlabel;
          count : longint;
-         lists : array[0..1] of TAsmList;
+         lists : tvmtasmoutput;
+         pubmethodsdef: trecorddef;
+         pubmethodsarraydef: tarraydef;
       begin
          count:=0;
          _class.symtable.SymList.ForEachCall(@do_count_published_methods,@count);
          if count>0 then
            begin
-              lists[0]:=list;
-              lists[1]:=TAsmList.Create;
+              lists.list:=list;
+              { in the list of the published methods (from objpas.inc):
+                  tmethodnamerec = packed record
+                     name : pshortstring;
+                     addr : codepointer;
+                  end;
+              }
+              lists.methodnamerec:=getrecorddef('fpc_intern_tmethodnamerec',[getpointerdef(cshortstringtype),voidcodepointertype],1);
+              { from objpas.inc:
+                  tmethodnametable = packed record
+                    count : dword;
+                    entries : packed array[0..0] of tmethodnamerec;
+                  end;
+               }
+              lists.pubmethodstcb:=ctai_typedconstbuilder.create;
               current_asmdata.getlabel(l,alt_data);
-              list.concat(cai_align.create(const_align(sizeof(pint))));
-              list.concat(Tai_label.Create(l));
-              list.concat(Tai_const.Create_32bit(count));
+              gettabledef('fpc_intern_tmethodnametable_',u32inttype,lists.methodnamerec,count,1,pubmethodsdef,pubmethodsarraydef);
+              { begin tmethodnametable }
+              lists.pubmethodstcb.maybe_begin_aggregate(pubmethodsdef);
+              { emit count field }
+              lists.pubmethodstcb.emit_tai(Tai_const.Create_32bit(count),u32inttype);
+              { begin entries field (array) }
+              lists.pubmethodstcb.maybe_begin_aggregate(pubmethodsarraydef);
+              { add all entries elements }
               _class.symtable.SymList.ForEachCall(@do_gen_published_methods,@lists);
-              list.concatlist(lists[1]);
-              lists[1].Free;
+              { end entries field (array) }
+              lists.pubmethodstcb.maybe_end_aggregate(pubmethodsarraydef);
+              { end methodnametable }
+              lists.pubmethodstcb.maybe_end_aggregate(pubmethodsdef);
+              list.concatlist(lists.pubmethodstcb.get_final_asmlist(l,pubmethodsdef,sec_rodata,'',sizeof(pint),[tcalo_is_lab]));
+              lists.pubmethodstcb.free;
               genpublishedmethodstable:=l;
            end
          else
@@ -738,7 +787,7 @@ implementation
             arrdef:=tarraydef(trecordsymtable(recdef.symtable).findfieldbyoffset(countdef.size).vardef);
             exit
           end;
-        recdef:=crecorddef.create_global_internal('$'+basename+tostr(count),0);
+        recdef:=crecorddef.create_global_internal('$'+basename+tostr(count),packrecords);
         fields:=tfplist.create;
         fields.add(countdef);
         if count>0 then
