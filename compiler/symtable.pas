@@ -102,6 +102,9 @@ interface
           procedure alignrecord(fieldoffset:asizeint;varalign:shortint);
           procedure addfield(sym:tfieldvarsym;vis:tvisibility);
           procedure addfieldlist(list: tfpobjectlist; maybereorder: boolean);
+          { returns the field closest to this offset (may not be exact because
+            of padding; internalerrors for variant records, assumes fields are
+            ordered by increasing offset) }
           function findfieldbyoffset(offset:asizeint): tfieldvarsym;
           procedure addalignmentpadding;
           procedure insertdef(def:TDefEntry);override;
@@ -1244,11 +1247,15 @@ implementation
         i: longint;
         sym: tsym;
       begin
+        { there could be multiple fields in case of a variant record }
+        if (defowner.typ=recorddef) and
+           trecorddef(defowner).isunion then
+          internalerror(2014090403);
         for i:=0 to SymList.count-1 do
           begin
             sym:=tsym(symlist[i]);
             if (sym.typ=fieldvarsym) and
-               (tfieldvarsym(sym).fieldoffset=offset) then
+               (tfieldvarsym(sym).fieldoffset>=offset) then
               begin
                 result:=tfieldvarsym(sym);
                 exit;
