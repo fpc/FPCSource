@@ -230,6 +230,8 @@ type
      function emit_shortstring_const(const str: shortstring): tdef;
      { emit a guid constant }
      procedure emit_guid_const(const guid: tguid);
+     { emit an ordinal constant }
+     procedure emit_ord_const(value: int64; def: tdef);
 
      { begin a potential aggregate type. Must be called for any type
        that consists of multiple tai constant data entries, or that
@@ -1048,6 +1050,23 @@ implementation
          emit_tai(Tai_const.Create_8bit(guid.D4[i]),u8inttype);
        maybe_end_aggregate(tfieldvarsym(rec_tguid.symtable.symlist[3]).vardef);
        maybe_end_aggregate(rec_tguid);
+     end;
+
+
+   procedure ttai_typedconstbuilder.emit_ord_const(value: int64; def: tdef);
+     begin
+       case def.size of
+         1:
+           emit_tai(Tai_const.Create_8bit(byte(value)),def);
+         2:
+           emit_tai(Tai_const.Create_16bit(word(value)),def);
+         4:
+           emit_tai(Tai_const.Create_32bit(longint(value)),def);
+         8:
+           emit_tai(Tai_const.Create_64bit(value),def);
+         else
+           internalerror(2014100501);
+       end;
      end;
 
 
