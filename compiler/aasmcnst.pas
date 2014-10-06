@@ -88,6 +88,8 @@ type
      constructor create(_adetyp: ttypedconstkind; _fdef: tdef);
      function getenumerator: tadeenumerator;
      procedure addvalue(val: tai_abstracttypedconst);
+     function valuecount: longint;
+     procedure insertvaluebeforepos(val: tai_abstracttypedconst; pos: longint);
      procedure finish;
      destructor destroy; override;
    end;
@@ -141,7 +143,11 @@ type
      property curindex: longint read fcurindex write fcurindex;
      property nextindex: longint read fnextindex write fnextindex;
     public
-     constructor create(_def: tdef; _typ: ttypedconstkind);
+     constructor create(_def: tdef; _typ: ttypedconstkind); virtual;
+     { calculated padding bytes for alignment if needed, and add the def of the
+       next field in case we are constructing an anonymous record }
+     function prepare_next_field(nextfielddef: tdef): asizeint;
+
      property def: tdef read fdef;
      property typ: ttypedconstkind read ftyp;
      property curfield: tfieldvarsym read fcurfield write fcurfield;
@@ -158,15 +164,8 @@ type
     { class type to use when creating new aggregate information instances }
     protected class var
      caggregateinformation: taggregateinformationclass;
-    public
-     { set the default value for caggregateinformation (= taggregateinformation) }
-     class constructor classcreate;
-
     private
      function getcurragginfo: taggregateinformation;
-     { add padding bytes for alignment if needed, and add the def of the next
-       field in case we are constructing an anonymous record }
-     procedure prepare_next_field(nextfielddef: tdef);
      procedure set_next_field(AValue: tfieldvarsym);
     protected
      { temporary list in which all data is collected }
@@ -192,6 +191,10 @@ type
        bytes etc (by calling this one) }
      procedure do_emit_tai(p: tai; def: tdef); virtual;
 
+     { calls prepare_next_field() and adds the padding bytes in the current
+       location }
+     procedure pad_next_field(nextfielddef: tdef);
+
      { easy access to the top level aggregate information instance }
      property curagginfo: taggregateinformation read getcurragginfo;
     public
@@ -208,6 +211,14 @@ type
 
     protected
      function emit_string_const_common(list: TAsmList; stringtype: tstringtype; len: asizeint; encoding: tstringencoding; out startlab: tasmlabel):tasmlabofs;
+     procedure begin_aggregate_internal(def: tdef; anonymous: boolean); virtual;
+     procedure end_aggregate_internal(def: tdef; anonymous: boolean); virtual;
+     { when building an anonymous record, we cannot immediately insert the
+       alignment before it in case it's nested, since we only know the required
+       alignment once all fields have been inserted -> mark the location before
+       the anonymous record, and insert the alignment once it's finished }
+     procedure mark_anon_aggregate_alignment; virtual; abstract;
+     procedure insert_marked_aggregate_alignment(def: tdef); virtual; abstract;
     public
      class function get_dynstring_rec_name(typ: tstringtype; winlike: boolean; len: asizeint): string;
      { class functions and an extra list parameter, because emitting the data
@@ -220,10 +231,10 @@ type
        that consists of multiple tai constant data entries, or that
        represents an aggregate at the Pascal level (a record, a non-dynamic
        array, ... }
-     procedure maybe_begin_aggregate(def: tdef); virtual;
+     procedure maybe_begin_aggregate(def: tdef);
      { end a potential aggregate type. Must be paired with every
        maybe_begin_aggregate }
-     procedure maybe_end_aggregate(def: tdef); virtual;
+     procedure maybe_end_aggregate(def: tdef);
      { similar as above, but in case
         a) it's definitely a record
         b) the def of the record should be automatically constructed based on
@@ -284,6 +295,22 @@ type
    end;
    ttai_typedconstbuilderclass = class of ttai_typedconstbuilder;
 
+   tlowlevelaggregateinformation = class(taggregateinformation)
+    protected
+     fanonrecmarker: tai;
+    public
+     property anonrecmarker: tai read fanonrecmarker write fanonrecmarker;
+   end;
+
+   ttai_lowleveltypedconstbuilder = class(ttai_typedconstbuilder)
+    protected
+     procedure mark_anon_aggregate_alignment; override;
+     procedure insert_marked_aggregate_alignment(def: tdef); override;
+    public
+     { set the default value for caggregateinformation (= tlowlevelaggregateinformation) }
+     class constructor classcreate;
+   end;
+
    var
      ctai_typedconstbuilder: ttai_typedconstbuilderclass;
 
@@ -328,6 +355,45 @@ implementation
         ftyp:=_typ;
         fcurindex:=-1;
         fnextindex:=-1;
+      end;
+
+
+    function taggregateinformation.prepare_next_field(nextfielddef: tdef): asizeint;
+      var
+        currentoffset,nextoffset: asizeint;
+        i: longint;
+      begin
+        { get the next field and its offset, and make that next field the current
+          one }
+        if assigned(nextfield) then
+          begin
+            nextoffset:=nextfield.fieldoffset;
+            currentoffset:=curoffset;
+            curfield:=nextfield;
+          end
+        else
+          begin
+            { must set nextfield for unions and objects, as we cannot
+              automatically detect the "next" field in that case }
+            if ((def.typ=recorddef) and
+                trecorddef(def).isunion) or
+               is_object(def) then
+              internalerror(2014091202);
+            { if we are constructing this record as data gets emitted, add a field
+              for this data }
+            if anonrecord then
+              trecorddef(def).add_field_by_def(nextfielddef);
+            { find next field }
+            i:=curindex;
+            repeat
+              inc(i);
+            until tsym(tabstractrecorddef(def).symtable.symlist[i]).typ=fieldvarsym;
+            nextoffset:=fieldoffset[i];
+            currentoffset:=curoffset;
+            curindex:=i;
+          end;
+        { need padding? }
+        result:=nextoffset-currentoffset;
       end;
 
 
@@ -490,6 +556,18 @@ implementation
      end;
 
 
+   function tai_aggregatetypedconst.valuecount: longint;
+     begin
+       result:=fvalues.count;
+     end;
+
+
+   procedure tai_aggregatetypedconst.insertvaluebeforepos(val: tai_abstracttypedconst; pos: longint);
+     begin
+       fvalues.insert(pos,val);
+     end;
+
+
    procedure tai_aggregatetypedconst.finish;
      begin
        if fisstring then
@@ -537,57 +615,16 @@ implementation
      end;
 
 
-   procedure ttai_typedconstbuilder.prepare_next_field(nextfielddef: tdef);
+   procedure ttai_typedconstbuilder.pad_next_field(nextfielddef: tdef);
      var
-       nextoffset: asizeint;
-       curoffset: asizeint;
-       info: taggregateinformation;
-       i: longint;
+       fillbytes: asizeint;
      begin
-       info:=curagginfo;
-       if not assigned(info) then
-         internalerror(2014091002);
-       { current offset in the data }
-       curoffset:=info.curoffset;
-       { get the next field and its offset, and make that next field the current
-         one }
-       if assigned(info.nextfield) then
-         begin
-           nextoffset:=info.nextfield.fieldoffset;
-           info.curfield:=info.nextfield;
-         end
-       else
-         begin
-           { must set nextfield for unions and objects, as we cannot
-             automatically detect the "next" field in that case }
-           if ((info.def.typ=recorddef) and
-               trecorddef(info.def).isunion) or
-              is_object(info.def) then
-             internalerror(2014091202);
-           { if we are constructing this record as data gets emitted, add a field
-             for this data }
-           if info.anonrecord then
-             trecorddef(info.def).add_field_by_def(nextfielddef);
-           { find next field }
-           i:=info.curindex;
-           repeat
-             inc(i);
-           until tsym(tabstractrecorddef(info.def).symtable.symlist[i]).typ=fieldvarsym;
-           nextoffset:=info.fieldoffset[i];
-           info.curindex:=i;
-         end;
-       { need padding? }
-       while curoffset<nextoffset do
+       fillbytes:=curagginfo.prepare_next_field(nextfielddef);
+       while fillbytes>0 do
          begin
            do_emit_tai(tai_const.create_8bit(0),u8inttype);
-           inc(curoffset);
+           dec(fillbytes);
          end;
-     end;
-
-
-   class constructor ttai_typedconstbuilder.classcreate;
-     begin
-       caggregateinformation:=taggregateinformation;
      end;
 
 
@@ -741,7 +778,7 @@ implementation
                is_object(info.def)) and
               { may add support for these later }
               not is_packed_record_or_object(info.def) then
-             prepare_next_field(def);
+             pad_next_field(def);
          end;
        { emit the data }
        do_emit_tai(p,def);
@@ -805,6 +842,70 @@ implementation
        { sanity check }
        if result.ofs<>string_symofs then
          internalerror(2012051701);
+     end;
+
+
+   procedure ttai_typedconstbuilder.begin_aggregate_internal(def: tdef; anonymous: boolean);
+     var
+       info: taggregateinformation;
+       tck: ttypedconstkind;
+     begin
+       tck:=aggregate_kind(def);
+       if tck=tck_simple then
+         exit;
+       if not assigned(faggregateinformation) then
+         faggregateinformation:=tfpobjectlist.create
+       { if we're starting an anonymous record, we can't align it yet because
+         the alignment depends on the fields that will be added -> we'll do
+         it at the end }
+       else if not anonymous then
+         begin
+           { add padding if necessary, and update the current field/offset }
+           info:=curagginfo;
+           if is_record(curagginfo.def) or
+              is_object(curagginfo.def) then
+             pad_next_field(def);
+         end
+       { if this is the outer record, no padding is required; the alignment
+         has to be specified explicitly in that case via get_final_asmlist() }
+       else if assigned(curagginfo) and
+               (curagginfo.def.typ=recorddef) then
+         { mark where we'll have to insert the padding bytes at the end }
+         mark_anon_aggregate_alignment;
+       info:=caggregateinformation.create(def,aggregate_kind(def));
+       faggregateinformation.add(info);
+     end;
+
+
+   procedure ttai_typedconstbuilder.end_aggregate_internal(def: tdef; anonymous: boolean);
+     var
+       info: taggregateinformation;
+       fillbytes: asizeint;
+       tck: ttypedconstkind;
+     begin
+       tck:=aggregate_kind(def);
+       if tck=tck_simple then
+         exit;
+       info:=curagginfo;
+       if not assigned(info) then
+         internalerror(2014091002);
+       if def<>info.def then
+         internalerror(2014091205);
+       { add tail padding if necessary }
+       if (is_record(def) or
+           is_object(def)) and
+          not is_packed_record_or_object(def) then
+         begin
+           fillbytes:=def.size-info.curoffset;
+           while fillbytes>0 do
+             begin
+               do_emit_tai(Tai_const.Create_8bit(0),u8inttype);
+               dec(fillbytes)
+             end;
+         end;
+       { pop and free the information }
+       faggregateinformation.count:=faggregateinformation.count-1;
+       info.free;
      end;
 
 
@@ -908,57 +1009,14 @@ implementation
 
 
    procedure ttai_typedconstbuilder.maybe_begin_aggregate(def: tdef);
-     var
-       info: taggregateinformation;
-       tck: ttypedconstkind;
      begin
-       tck:=aggregate_kind(def);
-       if tck=tck_simple then
-         exit;
-       if not assigned(faggregateinformation) then
-         faggregateinformation:=tfpobjectlist.create
-       else
-         begin
-           { add padding if necessary, and update the current field/offset }
-           info:=curagginfo;
-           if is_record(curagginfo.def) or
-              is_object(curagginfo.def) then
-             prepare_next_field(def);
-         end;
-       info:=caggregateinformation.create(def,aggregate_kind(def));
-       faggregateinformation.add(info);
+       begin_aggregate_internal(def,false);
      end;
 
 
    procedure ttai_typedconstbuilder.maybe_end_aggregate(def: tdef);
-     var
-       info: taggregateinformation;
-       fillbytes: asizeint;
-       tck: ttypedconstkind;
      begin
-       tck:=aggregate_kind(def);
-       if tck=tck_simple then
-         exit;
-       info:=curagginfo;
-       if not assigned(info) then
-         internalerror(2014091002);
-       if def<>info.def then
-         internalerror(2014091205);
-       { add tail padding if necessary }
-       if (is_record(def) or
-           is_object(def)) and
-          not is_packed_record_or_object(def) then
-         begin
-           fillbytes:=def.size-info.curoffset;
-           while fillbytes>0 do
-             begin
-               do_emit_tai(Tai_const.Create_8bit(0),u8inttype);
-               dec(fillbytes)
-             end;
-         end;
-       { pop and free the information }
-       faggregateinformation.count:=faggregateinformation.count-1;
-       info.free;
+       end_aggregate_internal(def,false);
      end;
 
 
@@ -990,7 +1048,7 @@ implementation
        { create skeleton def }
        anonrecorddef:=crecorddef.create_global_internal(optionalname,packrecords);
        { generic aggregate housekeeping }
-       maybe_begin_aggregate(anonrecorddef);
+       begin_aggregate_internal(anonrecorddef,true);
        { mark as anonymous record }
        curagginfo.anonrecord:=true;
        { in case a descendent wants to do something with the anonrecorddef too }
@@ -1001,18 +1059,26 @@ implementation
    function ttai_typedconstbuilder.end_anonymous_record: trecorddef;
      var
        info: taggregateinformation;
+       anonrecord: boolean;
      begin
        info:=curagginfo;
        if not assigned(info) or
           (info.def.typ<>recorddef) then
          internalerror(2014080201);
        result:=trecorddef(info.def);
+       { make a copy, as we need it after info has been freed by
+         maybe_end_aggregate(result) }
+       anonrecord:=info.anonrecord;
        { finalise the record skeleton (all fields have been added already by
          emit_tai()) -- anonrecord may not be set in case we reused an earlier
          constructed def }
-       if info.anonrecord then
+       if anonrecord then
          trecordsymtable(result.symtable).addalignmentpadding;
-       maybe_end_aggregate(result);
+       end_aggregate_internal(result,true);
+       if anonrecord and
+          assigned(curagginfo) and
+          (curagginfo.def.typ=recorddef) then
+         insert_marked_aggregate_alignment(result);
      end;
 
 
@@ -1122,7 +1188,48 @@ implementation
      end;
 
 
+{****************************************************************************
+                           tai_abstracttypedconst
+ ****************************************************************************}
+
+   class constructor ttai_lowleveltypedconstbuilder.classcreate;
+     begin
+       caggregateinformation:=tlowlevelaggregateinformation;
+     end;
+
+
+   procedure ttai_lowleveltypedconstbuilder.mark_anon_aggregate_alignment;
+     var
+       marker: tai_marker;
+     begin
+       marker:=tai_marker.Create(mark_position);
+       fasmlist.concat(marker);
+       tlowlevelaggregateinformation(curagginfo).anonrecmarker:=marker;
+     end;
+
+
+   procedure ttai_lowleveltypedconstbuilder.insert_marked_aggregate_alignment(def: tdef);
+     var
+       info: tlowlevelaggregateinformation;
+       fillbytes: asizeint;
+     begin
+       info:=tlowlevelaggregateinformation(curagginfo);
+       if not assigned(info.anonrecmarker) then
+         internalerror(2014091401);
+       fillbytes:=info.prepare_next_field(def);
+       while fillbytes>0 do
+         begin
+           fasmlist.insertafter(tai_const.create_8bit(0),info.anonrecmarker);
+           dec(fillbytes);
+         end;
+       fasmlist.remove(info.anonrecmarker);
+       info.anonrecmarker.free;
+       info.anonrecmarker:=nil;
+     end;
+
+
+
 begin
-  ctai_typedconstbuilder:=ttai_typedconstbuilder;
+  ctai_typedconstbuilder:=ttai_lowleveltypedconstbuilder;
 end.
 

@@ -35,8 +35,12 @@ interface
     tllvmaggregateinformation = class(taggregateinformation)
      private
       faggai: tai_aggregatetypedconst;
+      fanonrecalignpos: longint;
      public
+      constructor create(_def: tdef; _typ: ttypedconstkind); override;
+
       property aggai: tai_aggregatetypedconst read faggai write faggai;
+      property anonrecalignpos: longint read fanonrecalignpos write fanonrecalignpos;
     end;
 
     tllvmtai_typedconstbuilder = class(ttai_typedconstbuilder)
@@ -60,12 +64,14 @@ interface
       procedure update_queued_tai(resdef: tdef; outerai, innerai: tai; newindex: longint);
       function wrap_with_type(p: tai; def: tdef): tai;
       procedure do_emit_tai(p: tai; def: tdef); override;
+      procedure mark_anon_aggregate_alignment; override;
+      procedure insert_marked_aggregate_alignment(def: tdef); override;
+      procedure begin_aggregate_internal(def: tdef; anonymous: boolean); override;
+      procedure end_aggregate_internal(def: tdef; anonymous: boolean); override;
      public
       constructor create; override;
       destructor destroy; override;
       procedure emit_tai_procvar2procdef(p: tai; pvdef: tprocvardef); override;
-      procedure maybe_begin_aggregate(def: tdef); override;
-      procedure maybe_end_aggregate(def: tdef); override;
       procedure queue_init(todef: tdef); override;
       procedure queue_vecn(def: tdef; const index: tconstexprint); override;
       procedure queue_subscriptn(def: tabstractrecorddef; vs: tfieldvarsym); override;
@@ -89,6 +95,15 @@ implementation
     aasmdata,
     cpubase,llvmbase,
     symbase,symtable,llvmdef,defutil;
+
+  { tllvmaggregateinformation }
+
+   constructor tllvmaggregateinformation.create(_def: tdef; _typ: ttypedconstkind);
+     begin
+       inherited;
+       fanonrecalignpos:=-1;
+     end;
+
 
   class constructor tllvmtai_typedconstbuilder.classcreate;
     begin
@@ -199,6 +214,32 @@ implementation
     end;
 
 
+  procedure tllvmtai_typedconstbuilder.mark_anon_aggregate_alignment;
+    var
+      info: tllvmaggregateinformation;
+    begin
+      info:=tllvmaggregateinformation(curagginfo);
+      info.anonrecalignpos:=info.aggai.valuecount;
+    end;
+
+
+  procedure tllvmtai_typedconstbuilder.insert_marked_aggregate_alignment(def: tdef);
+    var
+      info: tllvmaggregateinformation;
+      fillbytes: asizeint;
+    begin
+      info:=tllvmaggregateinformation(curagginfo);
+      if info.anonrecalignpos=-1 then
+        internalerror(2014091501);
+      fillbytes:=info.prepare_next_field(def);
+      while fillbytes>0 do
+        begin
+          info.aggai.insertvaluebeforepos(tai_simpletypedconst.create(tck_simple,u8inttype,tai_const.create_8bit(0)),info.anonrecalignpos);
+          dec(fillbytes);
+        end;
+    end;
+
+
   procedure tllvmtai_typedconstbuilder.emit_tai_procvar2procdef(p: tai; pvdef: tprocvardef);
     begin
       if not pvdef.is_addressonly then
@@ -207,7 +248,7 @@ implementation
     end;
 
 
-  procedure tllvmtai_typedconstbuilder.maybe_begin_aggregate(def: tdef);
+  procedure tllvmtai_typedconstbuilder.begin_aggregate_internal(def: tdef; anonymous: boolean);
     var
       agg: tai_aggregatetypedconst;
       tck: ttypedconstkind;
@@ -235,7 +276,7 @@ implementation
     end;
 
 
-  procedure tllvmtai_typedconstbuilder.maybe_end_aggregate(def: tdef);
+  procedure tllvmtai_typedconstbuilder.end_aggregate_internal(def: tdef; anonymous: boolean);
     var
       info: tllvmaggregateinformation;
     begin
