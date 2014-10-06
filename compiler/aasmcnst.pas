@@ -228,6 +228,8 @@ type
      class function emit_unicodestring_const(list: TAsmList; data: pointer; encoding: tstringencoding; winlike: boolean):tasmlabofs;
      { emit a shortstring constant, and return its def }
      function emit_shortstring_const(const str: shortstring): tdef;
+     { emit a guid constant }
+     procedure emit_guid_const(const guid: tguid);
 
      { begin a potential aggregate type. Must be called for any type
        that consists of multiple tai constant data entries, or that
@@ -1024,6 +1026,28 @@ implementation
        if str<>'' then
          emit_tai(Tai_string.Create(str),getarraydef(cansichartype,length(str)));
        maybe_end_aggregate(result);
+     end;
+
+
+   procedure ttai_typedconstbuilder.emit_guid_const(const guid: tguid);
+     var
+       i: longint;
+     begin
+       maybe_begin_aggregate(rec_tguid);
+       { variant record -> must specify which fields get initialised }
+       next_field:=tfieldvarsym(rec_tguid.symtable.symlist[0]);
+       emit_tai(Tai_const.Create_32bit(longint(guid.D1)),u32inttype);
+       next_field:=tfieldvarsym(rec_tguid.symtable.symlist[1]);
+       emit_tai(Tai_const.Create_16bit(guid.D2),u16inttype);
+       next_field:=tfieldvarsym(rec_tguid.symtable.symlist[2]);
+       emit_tai(Tai_const.Create_16bit(guid.D3),u16inttype);
+       next_field:=tfieldvarsym(rec_tguid.symtable.symlist[3]);
+       { the array }
+       maybe_begin_aggregate(tfieldvarsym(rec_tguid.symtable.symlist[3]).vardef);
+       for i:=Low(guid.D4) to High(guid.D4) do
+         emit_tai(Tai_const.Create_8bit(guid.D4[i]),u8inttype);
+       maybe_end_aggregate(tfieldvarsym(rec_tguid.symtable.symlist[3]).vardef);
+       maybe_end_aggregate(rec_tguid);
      end;
 
 

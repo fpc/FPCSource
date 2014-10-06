@@ -1415,25 +1415,10 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         startoffset: aint;
 
       procedure handle_stringconstn;
-        var
-          i       : longint;
         begin
           hs:=strpas(tstringconstnode(n).value_str);
           if string2guid(hs,tmpguid) then
-            begin
-              ftcb.maybe_begin_aggregate(rec_tguid);
-              { variant record -> must specify which fields get initialised }
-              ftcb.next_field:=tfieldvarsym(rec_tguid.symtable.symlist[0]);
-              ftcb.emit_tai(Tai_const.Create_32bit(longint(tmpguid.D1)),u32inttype);
-              ftcb.next_field:=tfieldvarsym(rec_tguid.symtable.symlist[1]);
-              ftcb.emit_tai(Tai_const.Create_16bit(tmpguid.D2),u16inttype);
-              ftcb.next_field:=tfieldvarsym(rec_tguid.symtable.symlist[2]);
-              ftcb.emit_tai(Tai_const.Create_16bit(tmpguid.D3),u16inttype);
-              ftcb.next_field:=tfieldvarsym(rec_tguid.symtable.symlist[3]);
-              for i:=Low(tmpguid.D4) to High(tmpguid.D4) do
-                ftcb.emit_tai(Tai_const.Create_8bit(tmpguid.D4[i]),u8inttype);
-              ftcb.maybe_end_aggregate(rec_tguid);
-            end
+            ftcb.emit_guid_const(tmpguid)
           else
             Message(parser_e_improper_guid_syntax);
         end;
@@ -1452,21 +1437,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               begin
                 inserttypeconv(n,rec_tguid);
                 if n.nodetype=guidconstn then
-                  begin
-                    ftcb.maybe_begin_aggregate(rec_tguid);
-                    tmpguid:=tguidconstnode(n).value;
-                    { variant record -> must specify which fields get initialised }
-                    ftcb.next_field:=tfieldvarsym(rec_tguid.symtable.symlist[0]);
-                    ftcb.emit_tai(Tai_const.Create_32bit(longint(tmpguid.D1)),u32inttype);
-                    ftcb.next_field:=tfieldvarsym(rec_tguid.symtable.symlist[1]);
-                    ftcb.emit_tai(Tai_const.Create_16bit(tmpguid.D2),u16inttype);
-                    ftcb.next_field:=tfieldvarsym(rec_tguid.symtable.symlist[2]);
-                    ftcb.emit_tai(Tai_const.Create_16bit(tmpguid.D3),u16inttype);
-                    ftcb.next_field:=tfieldvarsym(rec_tguid.symtable.symlist[3]);
-                    for i:=Low(tmpguid.D4) to High(tmpguid.D4) do
-                      ftcb.emit_tai(Tai_const.Create_8bit(tmpguid.D4[i]),u8inttype);
-                    ftcb.maybe_end_aggregate(rec_tguid);
-                  end
+                  ftcb.emit_guid_const(tguidconstnode(n).value)
                 else
                   Message(parser_e_illegal_expression);
               end;
