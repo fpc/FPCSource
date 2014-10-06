@@ -269,7 +269,7 @@ implementation
          winlikewidestring: boolean;
          elementdef: tdef;
          strpointerdef: tdef;
-         datatcb: ttai_lowleveltypedconstbuilder;
+         datatcb: ttai_typedconstbuilder;
          datadef: tdef;
 
       const

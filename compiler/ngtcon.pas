@@ -82,7 +82,7 @@ interface
         function parse_single_packed_const(def: tdef; var bp: tbitpackedval): boolean;
         procedure flush_packed_value(var bp: tbitpackedval);
        protected
-        ftcb: ttai_lowleveltypedconstbuilder;
+        ftcb: ttai_typedconstbuilder;
 
         function get_final_asmlist: tasmlist;
 
@@ -798,7 +798,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         ll        : tasmlabel;
         varalign  : shortint;
         datadef   : tdef;
-        datatcb   : ttai_lowleveltypedconstbuilder;
+        datatcb   : ttai_typedconstbuilder;
       begin
         { remove equal typecasts for pointer/nil addresses }
         if (node.nodetype=typeconvn) then

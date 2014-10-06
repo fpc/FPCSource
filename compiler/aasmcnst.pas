@@ -154,7 +154,7 @@ type
 
    { Warning: never directly create a ttai_typedconstbuilder instance,
      instead create a cai_typedconstbuilder (this class can be overridden) }
-   ttai_lowleveltypedconstbuilder = class abstract
+   ttai_typedconstbuilder = class abstract
     { class type to use when creating new aggregate information instances }
     protected class var
      caggregateinformation: taggregateinformationclass;
@@ -282,10 +282,10 @@ type
        overridden versions) }
      class function get_string_header_size(typ: tstringtype; winlikewidestring: boolean): pint;
    end;
-   ttai_lowleveltypedconstbuilderclass = class of ttai_lowleveltypedconstbuilder;
+   ttai_typedconstbuilderclass = class of ttai_typedconstbuilder;
 
    var
-     ctai_typedconstbuilder: ttai_lowleveltypedconstbuilderclass;
+     ctai_typedconstbuilder: ttai_typedconstbuilderclass;
 
 implementation
 
@@ -513,10 +513,10 @@ implementation
 
 
  {*****************************************************************************
-                              ttai_lowleveltypedconstbuilder
+                              ttai_typedconstbuilder
  *****************************************************************************}
 
-   function ttai_lowleveltypedconstbuilder.getcurragginfo: taggregateinformation;
+   function ttai_typedconstbuilder.getcurragginfo: taggregateinformation;
      begin
        if assigned(faggregateinformation) and
           (faggregateinformation.count>0) then
@@ -526,7 +526,7 @@ implementation
      end;
 
 
-   procedure ttai_lowleveltypedconstbuilder.set_next_field(AValue: tfieldvarsym);
+   procedure ttai_typedconstbuilder.set_next_field(AValue: tfieldvarsym);
      var
        info: taggregateinformation;
      begin
@@ -537,7 +537,7 @@ implementation
      end;
 
 
-   procedure ttai_lowleveltypedconstbuilder.prepare_next_field(nextfielddef: tdef);
+   procedure ttai_typedconstbuilder.prepare_next_field(nextfielddef: tdef);
      var
        nextoffset: asizeint;
        curoffset: asizeint;
@@ -585,13 +585,13 @@ implementation
      end;
 
 
-   class constructor ttai_lowleveltypedconstbuilder.classcreate;
+   class constructor ttai_typedconstbuilder.classcreate;
      begin
        caggregateinformation:=taggregateinformation;
      end;
 
 
-   function ttai_lowleveltypedconstbuilder.aggregate_kind(def: tdef): ttypedconstkind;
+   function ttai_typedconstbuilder.aggregate_kind(def: tdef): ttypedconstkind;
      begin
        if (def.typ in [recorddef,filedef,variantdef]) or
           is_object(def) or
@@ -609,7 +609,7 @@ implementation
      end;
 
 
-   procedure ttai_lowleveltypedconstbuilder.finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
+   procedure ttai_typedconstbuilder.finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
      var
        prelist: tasmlist;
      begin
@@ -639,14 +639,14 @@ implementation
      end;
 
 
-   procedure ttai_lowleveltypedconstbuilder.do_emit_tai(p: tai; def: tdef);
+   procedure ttai_typedconstbuilder.do_emit_tai(p: tai; def: tdef);
      begin
        { by default we don't care about the type }
        fasmlist.concat(p);
      end;
 
 
-   function ttai_lowleveltypedconstbuilder.get_final_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: longint; const options: ttcasmlistoptions): tasmlist;
+   function ttai_typedconstbuilder.get_final_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: longint; const options: ttcasmlistoptions): tasmlist;
      begin
        if not fasmlist_finalized then
          begin
@@ -657,7 +657,7 @@ implementation
      end;
 
 
-   class function ttai_lowleveltypedconstbuilder.get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint;
+   class function ttai_typedconstbuilder.get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint;
      begin
        { darwin's linker does not support negative offsets }
        if not(target_info.system in systems_darwin) then
@@ -667,7 +667,7 @@ implementation
      end;
 
 
-   class function ttai_lowleveltypedconstbuilder.get_string_header_size(typ: tstringtype; winlikewidestring: boolean): pint;
+   class function ttai_typedconstbuilder.get_string_header_size(typ: tstringtype; winlikewidestring: boolean): pint;
      const
        ansistring_header_size =
          { encoding }
@@ -700,7 +700,7 @@ implementation
      end;
 
 
-   constructor ttai_lowleveltypedconstbuilder.create;
+   constructor ttai_typedconstbuilder.create;
      begin
        inherited create;
        fasmlist:=tasmlist.create_without_marker;
@@ -709,7 +709,7 @@ implementation
      end;
 
 
-   destructor ttai_lowleveltypedconstbuilder.destroy;
+   destructor ttai_typedconstbuilder.destroy;
      begin
        { the queue should have been flushed if it was used }
        if fqueue_offset<>low(fqueue_offset) then
@@ -720,7 +720,7 @@ implementation
      end;
 
 
-   procedure ttai_lowleveltypedconstbuilder.emit_tai(p: tai; def: tdef);
+   procedure ttai_typedconstbuilder.emit_tai(p: tai; def: tdef);
      var
        kind: ttypedconstkind;
        info: taggregateinformation;
@@ -748,14 +748,14 @@ implementation
      end;
 
 
-   procedure ttai_lowleveltypedconstbuilder.emit_tai_procvar2procdef(p: tai; pvdef: tprocvardef);
+   procedure ttai_typedconstbuilder.emit_tai_procvar2procdef(p: tai; pvdef: tprocvardef);
      begin
        { nothing special by default, since we don't care about the type }
        emit_tai(p,pvdef);
      end;
 
 
-   function ttai_lowleveltypedconstbuilder.emit_string_const_common(list: TAsmList; stringtype: tstringtype; len: asizeint; encoding: tstringencoding; out startlab: tasmlabel): tasmlabofs;
+   function ttai_typedconstbuilder.emit_string_const_common(list: TAsmList; stringtype: tstringtype; len: asizeint; encoding: tstringencoding; out startlab: tasmlabel): tasmlabofs;
      var
        string_symofs: asizeint;
        charptrdef: tdef;
@@ -808,7 +808,7 @@ implementation
      end;
 
 
-   class function ttai_lowleveltypedconstbuilder.get_dynstring_rec_name(typ: tstringtype; winlike: boolean; len: asizeint): string;
+   class function ttai_typedconstbuilder.get_dynstring_rec_name(typ: tstringtype; winlike: boolean; len: asizeint): string;
      begin
        case typ of
          st_ansistring:
@@ -827,13 +827,13 @@ implementation
      end;
 
 
-   class function ttai_lowleveltypedconstbuilder.emit_ansistring_const(list: TAsmList; data: pchar; len: asizeint; encoding: tstringencoding; newsection: boolean): tasmlabofs;
+   class function ttai_typedconstbuilder.emit_ansistring_const(list: TAsmList; data: pchar; len: asizeint; encoding: tstringencoding; newsection: boolean): tasmlabofs;
      var
        s: PChar;
        startlab: tasmlabel;
        ansistrrecdef: trecorddef;
        datadef: tdef;
-       datatcb: ttai_lowleveltypedconstbuilder;
+       datatcb: ttai_typedconstbuilder;
        options: ttcasmlistoptions;
      begin
        datatcb:=self.create;
@@ -856,14 +856,14 @@ implementation
      end;
 
 
-   class function ttai_lowleveltypedconstbuilder.emit_unicodestring_const(list: TAsmList; data: pointer; encoding: tstringencoding; winlike: boolean):tasmlabofs;
+   class function ttai_typedconstbuilder.emit_unicodestring_const(list: TAsmList; data: pointer; encoding: tstringencoding; winlike: boolean):tasmlabofs;
      var
        i, strlength: longint;
        string_symofs: asizeint;
        startlab: tasmlabel;
        datadef: tdef;
        uniwidestrrecdef: trecorddef;
-       datatcb: ttai_lowleveltypedconstbuilder;
+       datatcb: ttai_typedconstbuilder;
      begin
        datatcb:=self.create;
        strlength:=getlengthwidestring(pcompilerwidestring(data));
@@ -907,7 +907,7 @@ implementation
      end;
 
 
-   procedure ttai_lowleveltypedconstbuilder.maybe_begin_aggregate(def: tdef);
+   procedure ttai_typedconstbuilder.maybe_begin_aggregate(def: tdef);
      var
        info: taggregateinformation;
        tck: ttypedconstkind;
@@ -930,7 +930,7 @@ implementation
      end;
 
 
-   procedure ttai_lowleveltypedconstbuilder.maybe_end_aggregate(def: tdef);
+   procedure ttai_typedconstbuilder.maybe_end_aggregate(def: tdef);
      var
        info: taggregateinformation;
        fillbytes: asizeint;
@@ -962,7 +962,7 @@ implementation
      end;
 
 
-   function ttai_lowleveltypedconstbuilder.begin_anonymous_record(const optionalname: string; packrecords: shortint): trecorddef;
+   function ttai_typedconstbuilder.begin_anonymous_record(const optionalname: string; packrecords: shortint): trecorddef;
      var
        anonrecorddef: trecorddef;
        srsym: tsym;
@@ -998,7 +998,7 @@ implementation
      end;
 
 
-   function ttai_lowleveltypedconstbuilder.end_anonymous_record: trecorddef;
+   function ttai_typedconstbuilder.end_anonymous_record: trecorddef;
      var
        info: taggregateinformation;
      begin
@@ -1016,7 +1016,7 @@ implementation
      end;
 
 
-   procedure ttai_lowleveltypedconstbuilder.queue_init(todef: tdef);
+   procedure ttai_typedconstbuilder.queue_init(todef: tdef);
      begin
        { nested call to init? }
        if fqueue_offset<>low(fqueue_offset) then
@@ -1025,7 +1025,7 @@ implementation
      end;
 
 
-   procedure ttai_lowleveltypedconstbuilder.queue_vecn(def: tdef; const index: tconstexprint);
+   procedure ttai_typedconstbuilder.queue_vecn(def: tdef; const index: tconstexprint);
      var
        elelen,
        vecbase: asizeint;
@@ -1060,31 +1060,31 @@ implementation
      end;
 
 
-   procedure ttai_lowleveltypedconstbuilder.queue_subscriptn(def: tabstractrecorddef; vs: tfieldvarsym);
+   procedure ttai_typedconstbuilder.queue_subscriptn(def: tabstractrecorddef; vs: tfieldvarsym);
      begin
        inc(fqueue_offset,vs.fieldoffset);
      end;
 
 
-   procedure ttai_lowleveltypedconstbuilder.queue_typeconvn(fromdef, todef: tdef);
+   procedure ttai_typedconstbuilder.queue_typeconvn(fromdef, todef: tdef);
      begin
        { do nothing }
      end;
 
-   procedure ttai_lowleveltypedconstbuilder.queue_addrn(fromdef, todef: tdef);
+   procedure ttai_typedconstbuilder.queue_addrn(fromdef, todef: tdef);
      begin
        { do nothing }
      end;
 
 
-   procedure ttai_lowleveltypedconstbuilder.queue_emit_proc(pd: tprocdef);
+   procedure ttai_typedconstbuilder.queue_emit_proc(pd: tprocdef);
      begin
        emit_tai(Tai_const.Createname(pd.mangledname,fqueue_offset),pd.getcopyas(procvardef,pc_address_only));
        fqueue_offset:=low(fqueue_offset);
      end;
 
 
-   procedure ttai_lowleveltypedconstbuilder.queue_emit_staticvar(vs: tstaticvarsym);
+   procedure ttai_typedconstbuilder.queue_emit_staticvar(vs: tstaticvarsym);
      begin
        { getpointerdef because we are emitting a pointer to the staticvarsym
          data, not the data itself }
@@ -1093,14 +1093,14 @@ implementation
      end;
 
 
-   procedure ttai_lowleveltypedconstbuilder.queue_emit_label(l: tlabelsym);
+   procedure ttai_typedconstbuilder.queue_emit_label(l: tlabelsym);
      begin
        emit_tai(Tai_const.Createname(l.mangledname,fqueue_offset),voidcodepointertype);
        fqueue_offset:=low(fqueue_offset);
      end;
 
 
-   procedure ttai_lowleveltypedconstbuilder.queue_emit_const(cs: tconstsym);
+   procedure ttai_typedconstbuilder.queue_emit_const(cs: tconstsym);
      begin
        if cs.consttyp<>constresourcestring then
          internalerror(2014062102);
@@ -1112,7 +1112,7 @@ implementation
      end;
 
 
-   procedure ttai_lowleveltypedconstbuilder.queue_emit_asmsym(sym: tasmsymbol; def: tdef);
+   procedure ttai_typedconstbuilder.queue_emit_asmsym(sym: tasmsymbol; def: tdef);
      begin
        { getpointerdef, because "sym" represents the address of whatever the
          data is }
@@ -1123,6 +1123,6 @@ implementation
 
 
 begin
-  ctai_typedconstbuilder:=ttai_lowleveltypedconstbuilder;
+  ctai_typedconstbuilder:=ttai_typedconstbuilder;
 end.
 

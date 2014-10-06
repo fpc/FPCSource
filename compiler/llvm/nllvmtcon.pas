@@ -39,7 +39,7 @@ interface
       property aggai: tai_aggregatetypedconst read faggai write faggai;
     end;
 
-    tllvmtai_typedconstbuilder = class(ttai_lowleveltypedconstbuilder)
+    tllvmtai_typedconstbuilder = class(ttai_typedconstbuilder)
      protected type
       public
        { set the default value for caggregateinformation (= tllvmaggregateinformation) }
