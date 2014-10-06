@@ -3952,6 +3952,7 @@ implementation
     constructor trecorddef.create_global_internal(n: string; packrecords: shortint);
       var
         oldsymtablestack: tsymtablestack;
+        ts: ttypesym;
         definedname: boolean;
       begin
         { construct name }
@@ -3967,19 +3968,26 @@ implementation
         symtable.defowner:=self;
         isunion:=false;
         inherited create(n,recorddef);
+        { if we specified a name, then we'll probably want to look up the
+          type again by name too -> create typesym }
+        if definedname then
+          begin
+            ts:=ctypesym.create(n,self);
+            { avoid hints about unused types (these may only be used for
+              typed constant data) }
+            ts.increfcount;
+          end;
         if assigned(current_module.localsymtable) then
           begin
             current_module.localsymtable.insertdef(self);
-            { if we specified a name, then we'll probably wan't to look up the
-              type again by name too }
             if definedname then
-              current_module.localsymtable.insert(ctypesym.create(n,self));
+              current_module.localsymtable.insert(ts);
           end
         else
           begin
             current_module.globalsymtable.insertdef(self);
             if definedname then
-              current_module.globalsymtable.insert(ctypesym.create(n,self));
+              current_module.globalsymtable.insert(ts);
           end;
         symtablestack:=oldsymtablestack;
       end;
