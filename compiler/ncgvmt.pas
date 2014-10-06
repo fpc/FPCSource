@@ -26,7 +26,7 @@ unit ncgvmt;
 interface
 
     uses
-      aasmdata,aasmbase,
+      aasmdata,aasmbase,aasmcnst,
       symbase,symdef;
 
     type
@@ -98,7 +98,7 @@ implementation
     uses
       cutils,cclasses,
       globtype,globals,verbose,constexp,
-      systems,
+      systems,fmodule,
       symconst,symtype,symsym,symtable,defutil,
       aasmtai,
       wpobase,
@@ -808,10 +808,16 @@ implementation
 {$endif WITHDMT}
          interfacetable : tasmlabel;
          templist : TAsmList;
+         tcb: ttai_typedconstbuilder;
+         classnamedef: tdef;
       begin
 {$ifdef WITHDMT}
          dmtlabel:=gendmt;
 {$endif WITHDMT}
+         { this code gets executed after the current module's symtable has
+           already been removed from the symtablestack -> add it again, so that
+           newly created defs here end up in the right unit }
+         symtablestack.push(current_module.localsymtable);
          templist:=TAsmList.Create;
          strmessagetable:=nil;
          interfacetable:=nil;
@@ -826,11 +832,15 @@ implementation
           begin
             { write class name }
             current_asmdata.getlabel(classnamelabel,alt_data);
-            templist.concat(cai_align.create(const_align(sizeof(pint))));
-            templist.concat(Tai_label.Create(classnamelabel));
+            tcb:=ctai_typedconstbuilder.create;
             hs:=_class.RttiName;
-            templist.concat(Tai_const.Create_8bit(length(hs)));
-            templist.concat(Tai_string.Create(hs));
+            classnamedef:=cstringdef.createshort(length(hs));
+            tcb.maybe_begin_aggregate(classnamedef);
+            tcb.emit_tai(Tai_const.Create_8bit(length(hs)),u8inttype);
+            tcb.emit_tai(Tai_string.Create(hs),getarraydef(cansichartype,length(hs)));
+            tcb.maybe_end_aggregate(classnamedef);
+            templist.concatlist(tcb.get_final_asmlist(classnamelabel,classnamedef,sec_rodata_norel,'',sizeof(pint),[tcalo_is_lab]));
+            tcb.free;
 
             { interface table }
             if _class.ImplementedInterfaces.count>0 then
@@ -933,6 +943,7 @@ implementation
          if is_class(_class) then
            current_asmdata.asmlists[al_globals].concatlist(templist);
         templist.Free;
+        symtablestack.pop(current_module.localsymtable);
       end;
 
 
