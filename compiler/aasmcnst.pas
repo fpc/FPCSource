@@ -644,6 +644,7 @@ implementation
        strlength:=getlengthwidestring(pcompilerwidestring(data));
        if winlike then
          begin
+           datatcb.begin_anonymous_record;
            current_asmdata.getdatalabel(result.lab);
            datatcb.emit_tai(Tai_const.Create_32bit(strlength*cwidechartype.size),s32inttype);
            { can we optimise by placing the string constant label at the
