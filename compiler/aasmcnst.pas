@@ -1207,7 +1207,7 @@ implementation
 
    procedure ttai_typedconstbuilder.queue_emit_proc(pd: tprocdef);
      begin
-       emit_tai(Tai_const.Createname(pd.mangledname,fqueue_offset),pd.getcopyas(procvardef,pc_address_only));
+       emit_tai(Tai_const.Createname(pd.mangledname,AT_FUNCTION,fqueue_offset),pd.getcopyas(procvardef,pc_address_only));
        fqueue_offset:=low(fqueue_offset);
      end;
 
