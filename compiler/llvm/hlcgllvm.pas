@@ -91,6 +91,9 @@ uses
       procedure g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef); override;
       procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;var ovloc : tlocation); override;
 
+      procedure g_ptrtypecast_reg(list: TAsmList; fromdef, todef: tpointerdef; reg: tregister); override;
+      procedure g_ptrtypecast_ref(list: TAsmList; fromdef, todef: tpointerdef; var ref: treference); override;
+
       procedure a_loadmm_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; reg: tregister; shuffle: pmmshuffle); override;
       procedure a_loadmm_reg_ref(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const ref: treference; shuffle: pmmshuffle); override;
       procedure a_loadmm_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister; shuffle: pmmshuffle); override;
@@ -1097,6 +1100,23 @@ implementation
     begin
       { todo }
       internalerror(2012111108);
+    end;
+
+
+  procedure thlcgllvm.g_ptrtypecast_reg(list: TAsmList; fromdef, todef: tpointerdef; reg: tregister);
+    begin
+      { will insert a bitcast if necessary }
+      a_load_reg_reg(list,fromdef,todef,reg,reg);
+    end;
+
+
+  procedure thlcgllvm.g_ptrtypecast_ref(list: TAsmList; fromdef, todef: tpointerdef; var ref: treference);
+    var
+      hreg: tregister;
+    begin
+      hreg:=getaddresregister(list,todef);
+      a_loadaddr_ref_reg(list,fromdef.pointeddef,todef,ref,hreg);
+      reference_reset_base(ref,todef,hreg,0,ref.alignment);
     end;
 
 

@@ -531,6 +531,14 @@ unit hlcgobj;
             for targets without pointers. }
           procedure g_reference_loc(list: TAsmList; def: tdef; const fromloc: tlocation; out toloc: tlocation); virtual;
 
+          { typecasts the pointer in reg to a new pointer. By default it does
+            nothing, only required for type-aware platforms like LLVM }
+          procedure g_ptrtypecast_reg(list: TAsmList; fromdef, todef: tpointerdef; reg: tregister); virtual;
+          { same but for a treference (considers the reference itself, not the
+            value stored at that place in memory). Replaces ref with a new
+            reference if necessary }
+          procedure g_ptrtypecast_ref(list: TAsmList; fromdef, todef: tpointerdef; var ref: treference); virtual;
+
 
           { routines migrated from ncgutil }
 
@@ -3788,6 +3796,16 @@ implementation
         else
           internalerror(2012012701);
       end;
+    end;
+
+  procedure thlcgobj.g_ptrtypecast_reg(list: TAsmList; fromdef, todef: tpointerdef; reg: tregister);
+    begin
+      { nothing to do }
+    end;
+
+  procedure thlcgobj.g_ptrtypecast_ref(list: TAsmList; fromdef, todef: tpointerdef; var ref: treference);
+    begin
+      { nothing to do }
     end;
 
   procedure thlcgobj.location_force_reg(list: TAsmList; var l: tlocation; src_size, dst_size: tdef; maybeconst: boolean);
