@@ -790,7 +790,11 @@ implementation
              hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,codeprocdef,codeprocdef,srcreg,result)
            end
          else
-           hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,codeprocdef,codeprocdef,right.location,result);
+           begin
+             hlcg.location_force_mem(current_asmdata.CurrAsmList,right.location,procdefinition);
+             hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,getpointerdef(procdefinition),getpointerdef(codeprocdef),right.location.reference);
+             hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,codeprocdef,codeprocdef,right.location.reference,result);
+           end;
        end;
 
 
