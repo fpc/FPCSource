@@ -299,6 +299,7 @@ interface
           isunion       : boolean;
           constructor create(const n:string; p:TSymtable);virtual;
           constructor create_global_internal(n: string; packrecords: shortint); virtual;
+          procedure add_field_by_def(def: tdef);
           procedure add_fields_from_deflist(fieldtypes: tfplist);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
@@ -3982,17 +3983,22 @@ implementation
       end;
 
 
+    procedure trecorddef.add_field_by_def(def: tdef);
+      var
+        sym: tfieldvarsym;
+      begin
+        sym:=cfieldvarsym.create('$f'+tostr(trecordsymtable(symtable).symlist.count),vs_value,def,[]);
+        symtable.insert(sym);
+        trecordsymtable(symtable).addfield(sym,vis_hidden);
+      end;
+
+
     procedure trecorddef.add_fields_from_deflist(fieldtypes: tfplist);
       var
         i: longint;
-        sym: tfieldvarsym;
       begin
         for i:=0 to fieldtypes.count-1 do
-          begin
-            sym:=cfieldvarsym.create('$f'+tostr(i),vs_value,tdef(fieldtypes[i]),[]);
-            symtable.insert(sym);
-            trecordsymtable(symtable).addfield(sym,vis_hidden);
-          end;
+          add_field_by_def(tdef(fieldtypes[i]));
       end;
 
 
