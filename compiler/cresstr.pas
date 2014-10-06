@@ -37,7 +37,7 @@ uses
 {$endif}
    cclasses,widestr,
    cutils,globtype,globals,systems,
-   symconst,symtype,symdef,symsym,
+   symbase,symconst,symtype,symdef,symsym,
    verbose,fmodule,ppu,
    aasmbase,aasmtai,aasmdata,aasmcnst,
    aasmcpu;
@@ -295,6 +295,10 @@ uses
       var
         resstrs : Tresourcestrings;
       begin
+        { needed for the typed constant defs that get generated/looked up }
+        if assigned(current_module.globalsymtable) then
+          symtablestack.push(current_module.globalsymtable);
+        symtablestack.push(current_module.localsymtable);
         resstrs:=Tresourcestrings.Create;
         resstrs.RegisterResourceStrings;
         if not resstrs.List.Empty then
@@ -304,6 +308,9 @@ uses
             resstrs.WriteRSJFile;
           end;
         resstrs.Free;
+        symtablestack.pop(current_module.localsymtable);
+        if assigned(current_module.globalsymtable) then
+          symtablestack.pop(current_module.globalsymtable);
       end;
 
 end.
