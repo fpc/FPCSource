@@ -71,7 +71,7 @@ interface
       class procedure trash_large(var stat: tstatementnode; trashn, sizen: tnode; trashintval: int64); virtual;
       { insert a single bss sym, called by insert bssdata (factored out
         non-common part for llvm) }
-      class procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint); virtual;
+      class procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint); virtual;
 
       { initialization of iso styled program parameters }
       class procedure initialize_textrec(p : TObject; statn : pointer);
@@ -514,7 +514,7 @@ implementation
     end;
 
 
-  class procedure tnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint);
+  class procedure tnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint);
     begin
       if sym.globalasmsym then
         begin
@@ -584,7 +584,7 @@ implementation
         new_section(list,sec_user,sym.section,varalign)
       else
         new_section(list,sectype,lower(sym.mangledname),varalign);
-      insertbsssym(list,sym,l);
+      insertbsssym(list,sym,l,varalign);
       current_filepos:=storefilepos;
     end;
 

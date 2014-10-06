@@ -34,7 +34,7 @@ interface
   type
     tllvmnodeutils = class(tnodeutils)
      strict protected
-      class procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint); override;
+      class procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint); override;
      public
       class procedure InsertInitFinalTable; override;
       class procedure InsertWideInitsTablesTable; override;
@@ -52,7 +52,7 @@ implementation
       aasmbase,aasmtai,cpubase,llvmbase,aasmllvm,
       symbase,symtable,defutil;
 
-  class procedure tllvmnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint);
+  class procedure tllvmnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint);
     var
       asmsym: tasmsymbol;
     begin
