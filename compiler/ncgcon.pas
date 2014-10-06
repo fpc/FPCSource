@@ -376,7 +376,7 @@ implementation
                           datatcb.emit_tai(Tai_string.Create_pchar(pc,l+1),datadef);
                           datatcb.maybe_end_aggregate(datadef);
                           current_asmdata.asmlists[al_typedconsts].concatList(
-                            datatcb.get_final_asmlist(lastlabel.lab,datadef,sec_rodata_norel,lastlabel.lab.name,const_align(sizeof(pint)),true)
+                            datatcb.get_final_asmlist(lastlabel.lab,datadef,sec_rodata_norel,lastlabel.lab.name,const_align(sizeof(pint)),[tcalo_is_lab,tcalo_new_section])
                           );
                           datatcb.free;
                         end;
@@ -398,7 +398,7 @@ implementation
                           datatcb.emit_tai(Tai_string.Create_pchar(pc,len+1),datadef);
                           datatcb.maybe_end_aggregate(datadef);
                           current_asmdata.asmlists[al_typedconsts].concatList(
-                            datatcb.get_final_asmlist(lastlabel.lab,datadef,sec_rodata_norel,lastlabel.lab.name,const_align(sizeof(pint)),true)
+                            datatcb.get_final_asmlist(lastlabel.lab,datadef,sec_rodata_norel,lastlabel.lab.name,const_align(sizeof(pint)),[tcalo_is_lab,tcalo_new_section])
                           );
                           datatcb.free;
                         end;

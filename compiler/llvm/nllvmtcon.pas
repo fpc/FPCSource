@@ -43,7 +43,7 @@ interface
       flast_added_tai: tai;
       fqueued_tai_opidx: longint;
 
-      procedure finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; lab: boolean); override;
+      procedure finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); override;
       { outerai: the ai that should become fqueued_tai in case it's still nil,
           or that should be filled in the fqueued_tai_opidx of the current
           fqueued_tai if it's not nil
@@ -87,7 +87,7 @@ implementation
     cpubase,llvmbase,
     symbase,symtable,llvmdef,defutil;
 
-  procedure tllvmtai_typedconstbuilder.finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; lab: boolean);
+  procedure tllvmtai_typedconstbuilder.finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
     var
       newasmlist: tasmlist;
     begin

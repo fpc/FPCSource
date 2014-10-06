@@ -875,7 +875,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   IncompatibleTypes(node.resultdef, def);
                   datadef:=getarraydef(cansichartype,1);
                 end;
-              current_asmdata.asmlists[al_const].concatlist(datatcb.get_final_asmlist(ll,datadef,sec_rodata,ll.name,varalign,true));
+              current_asmdata.asmlists[al_const].concatlist(datatcb.get_final_asmlist(ll,datadef,sec_rodata,ll.name,varalign,[tcalo_is_lab,tcalo_new_section]));
               datatcb.free;
               { we now emit the address of the first element of the array
                 containing the string data }
@@ -913,7 +913,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      datatcb.emit_tai(Tai_const.Create_16bit(0),cwidechartype);
                      datatcb.maybe_end_aggregate(datadef);
                      { concat add the string data to the al_const asmlist }
-                     current_asmdata.asmlists[al_const].concatlist(datatcb.get_final_asmlist(ll,datadef,sec_rodata,ll.name,const_align(sizeof(pint)),true));
+                     current_asmdata.asmlists[al_const].concatlist(datatcb.get_final_asmlist(ll,datadef,sec_rodata,ll.name,const_align(sizeof(pint)),[tcalo_is_lab,tcalo_new_section]));
                      datatcb.free;
                      { we now emit the address of the first element of the array
                        containing the string data }
@@ -1136,7 +1136,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               sec:=sec_data;
             secname:=asmsym.Name;
           end;
-        result:=ftcb.get_final_asmlist(asmsym,fsym.vardef,sec,secname,fsym.vardef.alignment,false);
+        result:=ftcb.get_final_asmlist(asmsym,fsym.vardef,sec,secname,fsym.vardef.alignment,[tcalo_new_section]);
         if addstabx then
           begin
             { see same code in ncgutil.insertbssdata }

@@ -98,6 +98,15 @@ type
       ofs: asizeint;
     end;
 
+   { flags for the finalisation of the typed const builder asmlist }
+   ttcasmlistoption = (
+     { the tasmsymbol is a tasmlabel }
+     tcalo_is_lab,
+     { start a new section }
+     tcalo_new_section
+   );
+   ttcasmlistoptions = set of ttcasmlistoption;
+
    { Warning: never directly create a ttai_typedconstbuilder instance,
      instead create a cai_typedconstbuilder (this class can be overridden) }
    ttai_lowleveltypedconstbuilder = class abstract
@@ -115,7 +124,7 @@ type
        platform }
      function aggregate_kind(def: tdef): ttypedconstkind; virtual;
      { finalize the asmlist: add the necessary symbols etc }
-     procedure finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; lab: boolean); virtual;
+     procedure finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); virtual;
     public
      constructor create; virtual;
      destructor destroy; override;
@@ -186,7 +195,7 @@ type
        This asmlist will be freed when the builder is destroyed, so add its
        contents to another list first. This property should only be accessed
        once all data has been added. }
-     function get_final_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: longint; lab: boolean): tasmlist;
+     function get_final_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: longint; const options: ttcasmlistoptions): tasmlist;
 
      { returns the offset of the string data relative to ansi/unicode/widestring
        constant labels. On most platforms, this is 0 (with the header at a
@@ -413,19 +422,19 @@ implementation
      end;
 
 
-   procedure ttai_lowleveltypedconstbuilder.finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; lab: boolean);
+   procedure ttai_lowleveltypedconstbuilder.finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
      var
        prelist: tasmlist;
      begin
        prelist:=tasmlist.create_without_marker;
        { only now add items based on the symbolname, because it may be
          modified by the "section" specifier in case of a typed constant }
-       if section<>sec_none then
+       if tcalo_new_section in options then
          begin
            maybe_new_object_file(prelist);
            new_section(prelist,section,secname,const_align(alignment));
          end;
-       if not lab then
+       if not(tcalo_is_lab in options) then
          if sym.bind=AB_GLOBAL then
            prelist.concat(tai_symbol.Create_Global(sym,0))
          else
@@ -441,11 +450,11 @@ implementation
      end;
 
 
-   function ttai_lowleveltypedconstbuilder.get_final_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: longint; lab: boolean): tasmlist;
+   function ttai_lowleveltypedconstbuilder.get_final_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: longint; const options: ttcasmlistoptions): tasmlist;
      begin
        if not fasmlist_finalized then
          begin
-           finalize_asmlist(sym,def,section,secname,alignment,lab);
+           finalize_asmlist(sym,def,section,secname,alignment,options);
            fasmlist_finalized:=true;
          end;
        result:=fasmlist;
@@ -605,10 +614,10 @@ implementation
      var
        s: PChar;
        startlab: tasmlabel;
-       sectype: TAsmSectiontype;
        ansistrrecdef: trecorddef;
        datadef: tdef;
        datatcb: ttai_lowleveltypedconstbuilder;
+       options: ttcasmlistoptions;
      begin
        datatcb:=self.create;
        result:=datatcb.emit_string_const_common(list,st_ansistring,len,encoding,startlab);
@@ -622,11 +631,10 @@ implementation
        datatcb.emit_tai(tai_string.create_pchar(s,len+1),datadef);
        datatcb.maybe_end_aggregate(datadef);
        ansistrrecdef:=datatcb.end_anonymous_record;
+       options:=[tcalo_is_lab];
        if NewSection then
-         sectype:=sec_rodata_norel
-       else
-         sectype:=sec_none;
-       list.concatlist(datatcb.get_final_asmlist(startlab,ansistrrecdef,sectype,startlab.name,const_align(sizeof(pint)),true));
+         include(options,tcalo_new_section);
+       list.concatlist(datatcb.get_final_asmlist(startlab,ansistrrecdef,sec_rodata_norel,startlab.name,const_align(sizeof(pint)),options));
        datatcb.free;
      end;
 
@@ -677,7 +685,7 @@ implementation
        else
          { code generation for other sizes must be written }
          internalerror(200904271);
-       list.concatlist(datatcb.get_final_asmlist(startlab,uniwidestrrecdef,sec_rodata_norel,startlab.name,const_align(sizeof(pint)),true));
+       list.concatlist(datatcb.get_final_asmlist(startlab,uniwidestrrecdef,sec_rodata_norel,startlab.name,const_align(sizeof(pint)),[tcalo_is_lab,tcalo_new_section]));
        datatcb.free;
      end;
 
