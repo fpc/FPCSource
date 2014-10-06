@@ -871,27 +871,35 @@ implementation
   { Write interface identifiers to the data section }
   procedure TVMTWriter.writeinterfaceids(list: TAsmList);
     var
-      i : longint;
       s : string;
+      tcb : ttai_typedconstbuilder;
+      def : tdef;
     begin
       if assigned(_class.iidguid) then
         begin
           s:=make_mangledname('IID',_class.owner,_class.objname^);
-          maybe_new_object_file(list);
-          new_section(list,sec_rodata_norel,s,const_align(sizeof(pint)));
-          list.concat(Tai_symbol.Createname_global(s,AT_DATA,0));
-          list.concat(Tai_const.Create_32bit(longint(_class.iidguid^.D1)));
-          list.concat(Tai_const.Create_16bit(_class.iidguid^.D2));
-          list.concat(Tai_const.Create_16bit(_class.iidguid^.D3));
-          for i:=Low(_class.iidguid^.D4) to High(_class.iidguid^.D4) do
-            list.concat(Tai_const.Create_8bit(_class.iidguid^.D4[i]));
+          tcb:=ctai_typedconstbuilder.create;
+          tcb.emit_guid_const(_class.iidguid^);
+          list.concatlist(tcb.get_final_asmlist(
+            current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA),
+            rec_tguid,
+            sec_rodata_norel,
+            s,
+            const_align(sizeof(pint)),
+            [tcalo_new_section]));
+          tcb.free;
         end;
-      maybe_new_object_file(list);
       s:=make_mangledname('IIDSTR',_class.owner,_class.objname^);
-      new_section(list,sec_rodata_norel,s,sizeof(pint));
-      list.concat(Tai_symbol.Createname_global(s,AT_DATA,0));
-      list.concat(Tai_const.Create_8bit(length(_class.iidstr^)));
-      list.concat(Tai_string.Create(_class.iidstr^));
+      tcb:=ctai_typedconstbuilder.create;
+      def:=tcb.emit_shortstring_const(_class.iidstr^);
+      list.concatlist(tcb.get_final_asmlist(
+        current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA),
+        def,
+        sec_rodata_norel,
+        s,
+        sizeof(pint),
+        [tcalo_new_section]));
+      tcb.free;
     end;
 
 
