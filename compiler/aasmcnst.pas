@@ -230,6 +230,8 @@ type
      function emit_shortstring_const(const str: shortstring): tdef;
      { emit a guid constant }
      procedure emit_guid_const(const guid: tguid);
+     { emit a procdef constant }
+     procedure emit_procdef_const(pd: tprocdef);
      { emit an ordinal constant }
      procedure emit_ord_const(value: int64; def: tdef);
 
@@ -1052,6 +1054,11 @@ implementation
        maybe_end_aggregate(rec_tguid);
      end;
 
+   procedure ttai_typedconstbuilder.emit_procdef_const(pd: tprocdef);
+     begin
+       emit_tai(Tai_const.Createname(pd.mangledname,AT_FUNCTION,0),pd.getcopyas(procvardef,pc_address_only));
+     end;
+
 
    procedure ttai_typedconstbuilder.emit_ord_const(value: int64; def: tdef);
      begin
@@ -1207,7 +1214,9 @@ implementation
 
    procedure ttai_typedconstbuilder.queue_emit_proc(pd: tprocdef);
      begin
-       emit_tai(Tai_const.Createname(pd.mangledname,AT_FUNCTION,fqueue_offset),pd.getcopyas(procvardef,pc_address_only));
+       if fqueue_offset<>0 then
+         internalerror(2014092101);
+       emit_procdef_const(pd);
        fqueue_offset:=low(fqueue_offset);
      end;
 
