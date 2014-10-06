@@ -27,7 +27,7 @@ interface
 
     uses
       aasmdata,aasmbase,aasmcnst,
-      symbase,symdef;
+      symbase,symtype,symdef;
 
     type
       pprocdeftree = ^tprocdeftree;
@@ -42,6 +42,7 @@ interface
         _Class : tobjectdef;
         { message tables }
         root : pprocdeftree;
+
         procedure disposeprocdeftree(p : pprocdeftree);
         procedure insertmsgint(p:TObject;arg:pointer);
         procedure insertmsgstr(p:TObject;arg:pointer);
@@ -50,7 +51,7 @@ interface
         function RedirectToEmpty(procdef: tprocdef): boolean;
         procedure writenames(list : TAsmList;p : pprocdeftree);
         procedure writeintentry(list : TAsmList;p : pprocdeftree);
-        procedure writestrentry(list : TAsmList;p : pprocdeftree);
+        procedure writestrentry(tcb: ttai_typedconstbuilder; p: pprocdeftree; entrydef: tdef);
 {$ifdef WITHDMT}
         { dmt }
         procedure insertdmtentry(p:TObject;arg:pointer);
@@ -67,6 +68,14 @@ interface
         procedure intf_create_vtbl(rawdata: TAsmList;AImplIntf:TImplementedInterface);
         procedure intf_gen_intf_ref(rawdata: TAsmList;AImplIntf:TImplementedInterface);
         function  intf_write_table(list : TAsmList):TAsmLabel;
+        { get a table def of the form
+            record
+              count: countdef;
+              elements: array[0..count-1] of elementdef
+            end;
+          Returns both the outer record and the inner arraydef
+        }
+        procedure gettabledef(const basename: string; countdef, elementdef: tdef; count: longint; packrecords: shortint; out recdef: trecorddef; out arrdef: tarraydef);
         { generates the message tables for a class }
         function  genstrmsgtab(list : TAsmList) : tasmlabel;
         function  genintmsgtab(list : TAsmList) : tasmlabel;
@@ -99,7 +108,7 @@ implementation
       cutils,cclasses,
       globtype,globals,verbose,constexp,
       systems,fmodule,
-      symconst,symtype,symsym,symtable,defutil,
+      symconst,symsym,symtable,defutil,
       aasmtai,
       wpobase,
       nobj,
@@ -223,64 +232,87 @@ implementation
       var
         ca : pchar;
         len : byte;
+        tcb : ttai_typedconstbuilder;
       begin
          current_asmdata.getdatalabel(p^.nl);
          if assigned(p^.l) then
            writenames(list,p^.l);
-         list.concat(cai_align.create(const_align(sizeof(pint))));
-         list.concat(Tai_label.Create(p^.nl));
+         tcb:=ctai_typedconstbuilder.create;
          len:=length(p^.data.messageinf.str^);
-         list.concat(tai_const.create_8bit(len));
+         tcb.maybe_begin_aggregate(getarraydef(cansichartype,len+1));
+         tcb.emit_tai(tai_const.create_8bit(len),cansichartype);
          getmem(ca,len+1);
          move(p^.data.messageinf.str^[1],ca^,len);
          ca[len]:=#0;
-         list.concat(Tai_string.Create_pchar(ca,len));
+         tcb.emit_tai(Tai_string.Create_pchar(ca,len),getarraydef(cansichartype,len));
+         tcb.maybe_end_aggregate(getarraydef(cansichartype,len+1));
+         list.concatList(tcb.get_final_asmlist(p^.nl,getarraydef(cansichartype,len+1),sec_rodata_norel,'',sizeof(pint),[tcalo_is_lab]));
+         tcb.free;
          if assigned(p^.r) then
            writenames(list,p^.r);
       end;
 
-    procedure TVMTWriter.writestrentry(list : TAsmList;p : pprocdeftree);
-
+    procedure TVMTWriter.writestrentry(tcb: ttai_typedconstbuilder; p: pprocdeftree; entrydef: tdef);
       begin
          if assigned(p^.l) then
-           writestrentry(list,p^.l);
+           writestrentry(tcb,p^.l,entrydef);
 
          { write name label }
-         list.concat(cai_align.create(const_align(sizeof(pint))));
-         list.concat(Tai_const.Create_sym(p^.nl));
-         list.concat(cai_align.create(const_align(sizeof(pint))));
-         list.concat(Tai_const.Createname(p^.data.mangledname,AT_FUNCTION,0));
+         tcb.maybe_begin_aggregate(entrydef);
+         tcb.emit_tai(Tai_const.Create_sym(p^.nl),getpointerdef(getarraydef(cansichartype,length(p^.data.messageinf.str^)+1)));
+         tcb.queue_init(voidcodepointertype);
+         tcb.queue_emit_proc(p^.data);
+         tcb.maybe_end_aggregate(entrydef);
 
          if assigned(p^.r) then
-           writestrentry(list,p^.r);
+           writestrentry(tcb,p^.r,entrydef);
      end;
 
 
     function TVMTWriter.genstrmsgtab(list : TAsmList) : tasmlabel;
       var
          count : longint;
+         tcb: ttai_typedconstbuilder;
+         msgstrtabdef: trecorddef;
+         msgstrentry: tdef;
+         msgarraydef: tarraydef;
       begin
          root:=nil;
          count:=0;
          { insert all message handlers into a tree, sorted by name }
          _class.symtable.SymList.ForEachCall(@insertmsgstr,@count);
 
+         tcb:=ctai_typedconstbuilder.create;
          { write all names }
          if assigned(root) then
            writenames(list,root);
 
          { now start writing of the message string table }
          current_asmdata.getlabel(result,alt_data);
-         list.concat(cai_align.create(const_align(sizeof(pint))));
-         list.concat(Tai_label.Create(result));
-         list.concat(cai_align.create(const_align(sizeof(longint))));
-         list.concat(Tai_const.Create_32bit(count));
-         list.concat(cai_align.create(const_align(sizeof(pint))));
+         {
+           TStringMessageTable = record
+              count : longint;
+              msgstrtable : array[0..0] of tmsgstrtable;
+           end;
+
+           Instead of 0 as the upper bound, use the actual upper bound
+         }
+         msgstrentry:=search_system_type('TMSGSTRTABLE').typedef;
+         gettabledef('fpc_intern_TStringMessageTable_',s32inttype,msgstrentry,count,0,msgstrtabdef,msgarraydef);
+         { outer record (TStringMessageTable) }
+         tcb.maybe_begin_aggregate(msgstrtabdef);
+         tcb.emit_tai(Tai_const.Create_32bit(count),s32inttype);
          if assigned(root) then
            begin
-              writestrentry(list,root);
+              { array of TMsgStrTable }
+              tcb.maybe_begin_aggregate(msgarraydef);
+              writestrentry(tcb,root,msgstrentry);
+              tcb.maybe_end_aggregate(msgarraydef);
               disposeprocdeftree(root);
            end;
+         tcb.maybe_end_aggregate(msgstrtabdef);
+         list.concatList(tcb.get_final_asmlist(result,msgstrtabdef,sec_rodata,'',sizeof(pint),[tcalo_is_lab]));
+         tcb.free;
       end;
 
 
@@ -663,6 +695,38 @@ implementation
             if ImplIntf.VtblImplIntf=ImplIntf then
               intf_create_vtbl(list,ImplIntf);
           end;
+      end;
+
+
+    procedure TVMTWriter.gettabledef(const basename: string; countdef, elementdef: tdef; count: longint; packrecords: shortint; out recdef: trecorddef; out arrdef: tarraydef);
+      var
+        fields: tfplist;
+        name: TIDString;
+        srsym: tsym;
+        srsymtable: tsymtable;
+      begin
+        { already created a message string table with this number of elements
+          in this unit -> reuse the def }
+        name:=basename+tostr(count);
+        if searchsym_type(name,srsym,srsymtable) then
+          begin
+            recdef:=trecorddef(ttypesym(srsym).typedef);
+            arrdef:=tarraydef(trecordsymtable(recdef.symtable).findfieldbyoffset(countdef.size).vardef);
+            exit
+          end;
+        recdef:=crecorddef.create_global_internal('$'+basename+tostr(count),0);
+        fields:=tfplist.create;
+        fields.add(countdef);
+        if count>0 then
+          begin
+            arrdef:=carraydef.create(0,count-1,ptruinttype);
+            arrdef.elementdef:=elementdef;
+            fields.add(arrdef);
+          end
+        else
+          arrdef:=nil;
+        recdef.add_fields_from_deflist(fields);
+        fields.free;
       end;
 
 
