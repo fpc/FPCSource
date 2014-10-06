@@ -50,7 +50,7 @@ interface
         procedure insertstr(p : pprocdeftree;var at : pprocdeftree;var count:longint);
         function RedirectToEmpty(procdef: tprocdef): boolean;
         procedure writenames(list : TAsmList;p : pprocdeftree);
-        procedure writeintentry(list : TAsmList;p : pprocdeftree);
+        procedure writeintentry(tcb: ttai_typedconstbuilder; p: pprocdeftree; entrydef: tdef);
         procedure writestrentry(tcb: ttai_typedconstbuilder; p: pprocdeftree; entrydef: tdef);
 {$ifdef WITHDMT}
         { dmt }
@@ -76,6 +76,7 @@ interface
           Returns both the outer record and the inner arraydef
         }
         procedure gettabledef(const basename: string; countdef, elementdef: tdef; count: longint; packrecords: shortint; out recdef: trecorddef; out arrdef: tarraydef);
+        function getrecorddef(const name: string; const fields: array of tdef; packrecords: shortint): trecorddef;
         { generates the message tables for a class }
         function  genstrmsgtab(list : TAsmList) : tasmlabel;
         function  genintmsgtab(list : TAsmList) : tasmlabel;
@@ -316,19 +317,20 @@ implementation
       end;
 
 
-    procedure TVMTWriter.writeintentry(list : TAsmList;p : pprocdeftree);
+    procedure TVMTWriter.writeintentry(tcb: ttai_typedconstbuilder; p: pprocdeftree; entrydef: tdef);
       begin
          if assigned(p^.l) then
-           writeintentry(list,p^.l);
+           writeintentry(tcb,p^.l,entrydef);
 
-         { write name label }
-         list.concat(cai_align.create(const_align(sizeof(longint))));
-         list.concat(Tai_const.Create_32bit(p^.data.messageinf.i));
-         list.concat(cai_align.create(const_align(sizeof(pint))));
-         list.concat(Tai_const.Createname(p^.data.mangledname,AT_FUNCTION,0));
+         tcb.maybe_begin_aggregate(entrydef);
+         { write integer dispatch number }
+         tcb.emit_tai(Tai_const.Create_32bit(p^.data.messageinf.i),u32inttype);
+         tcb.queue_init(voidcodepointertype);
+         tcb.queue_emit_proc(p^.data);
+         tcb.maybe_end_aggregate(entrydef);
 
          if assigned(p^.r) then
-           writeintentry(list,p^.r);
+           writeintentry(tcb,p^.r,entrydef);
       end;
 
 
@@ -336,6 +338,10 @@ implementation
       var
          r : tasmlabel;
          count : longint;
+         tcb: ttai_typedconstbuilder;
+         msgintdef: trecorddef;
+         msginttabledef: trecorddef;
+         msgintarrdef: tarraydef;
       begin
          root:=nil;
          count:=0;
@@ -343,18 +349,36 @@ implementation
          _class.symtable.SymList.ForEachCall(@insertmsgint,@count);
 
          { now start writing of the message string table }
+
+         { from objpas.inc:
+             TMsgIntTable = record
+                index : dword;
+                method : codepointer;
+             end;
+         }
+         msginttabledef:=getrecorddef('fpc_intern_msgint_table',[u32inttype,voidcodepointertype],0);
+         { from objpas.inc:
+             TMsgInt = record
+                count : longint;
+                msgs : array[0..0] of TMsgIntTable;
+             end;
+         }
          current_asmdata.getlabel(r,alt_data);
-         list.concat(cai_align.create(const_align(sizeof(pint))));
-         list.concat(Tai_label.Create(r));
+         tcb:=ctai_typedconstbuilder.create;
          genintmsgtab:=r;
-         list.concat(cai_align.create(const_align(sizeof(longint))));
-         list.concat(Tai_const.Create_32bit(count));
-         list.concat(cai_align.create(const_align(sizeof(pint))));
+         gettabledef('fpc_msgint_table_entries_',s32inttype,msginttabledef,count,0,msgintdef,msgintarrdef);
+         tcb.maybe_begin_aggregate(msgintdef);
+         tcb.emit_tai(Tai_const.Create_32bit(count),s32inttype);
          if assigned(root) then
            begin
-              writeintentry(list,root);
+              tcb.maybe_begin_aggregate(msgintarrdef);
+              writeintentry(tcb,root,msginttabledef);
+              tcb.maybe_end_aggregate(msgintarrdef);
               disposeprocdeftree(root);
            end;
+         tcb.maybe_end_aggregate(msgintdef);
+         list.concatList(tcb.get_final_asmlist(result,msgintdef,sec_rodata,'',sizeof(pint),[tcalo_is_lab]));
+         tcb.free;
       end;
 
 {$ifdef WITHDMT}
@@ -727,6 +751,27 @@ implementation
           arrdef:=nil;
         recdef.add_fields_from_deflist(fields);
         fields.free;
+      end;
+
+
+    function TVMTWriter.getrecorddef(const name: string; const fields: array of tdef; packrecords: shortint): trecorddef;
+      var
+        fieldlist: tfplist;
+        srsym: tsym;
+        srsymtable: tsymtable;
+        i: longint;
+      begin
+        if searchsym_type(name,srsym,srsymtable) then
+          begin
+            result:=trecorddef(ttypesym(srsym).typedef);
+            exit
+          end;
+        fieldlist:=tfplist.create;
+        for i:=low(fields) to high(fields) do
+          fieldlist.add(fields[i]);
+        result:=crecorddef.create_global_internal('$'+name,packrecords);
+        result.add_fields_from_deflist(fieldlist);
+        fieldlist.free;
       end;
 
 
