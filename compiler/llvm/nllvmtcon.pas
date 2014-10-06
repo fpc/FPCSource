@@ -101,6 +101,7 @@ implementation
       fasmlist:=newasmlist;
     end;
 
+
   procedure tllvmtai_typedconstbuilder.update_queued_tai(resdef: tdef; outerai, innerai: tai; newindex: longint);
     begin
       { the outer tai must always be a typed constant (possibly a wrapper
