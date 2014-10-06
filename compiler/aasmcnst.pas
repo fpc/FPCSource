@@ -210,7 +210,7 @@ type
      procedure emit_tai_procvar2procdef(p: tai; pvdef: tprocvardef); virtual;
 
     protected
-     function emit_string_const_common(list: TAsmList; stringtype: tstringtype; len: asizeint; encoding: tstringencoding; out startlab: tasmlabel):tasmlabofs;
+     function emit_string_const_common(stringtype: tstringtype; len: asizeint; encoding: tstringencoding; out startlab: tasmlabel):tasmlabofs;
      procedure begin_aggregate_internal(def: tdef; anonymous: boolean); virtual;
      procedure end_aggregate_internal(def: tdef; anonymous: boolean); virtual;
      { when building an anonymous record, we cannot immediately insert the
@@ -798,7 +798,7 @@ implementation
      end;
 
 
-   function ttai_typedconstbuilder.emit_string_const_common(list: TAsmList; stringtype: tstringtype; len: asizeint; encoding: tstringencoding; out startlab: tasmlabel): tasmlabofs;
+   function ttai_typedconstbuilder.emit_string_const_common(stringtype: tstringtype; len: asizeint; encoding: tstringencoding; out startlab: tasmlabel): tasmlabofs;
      var
        string_symofs: asizeint;
        charptrdef: tdef;
@@ -946,7 +946,7 @@ implementation
        options: ttcasmlistoptions;
      begin
        datatcb:=self.create;
-       result:=datatcb.emit_string_const_common(list,st_ansistring,len,encoding,startlab);
+       result:=datatcb.emit_string_const_common(st_ansistring,len,encoding,startlab);
 
        getmem(s,len+1);
        move(data^,s^,len);
@@ -995,7 +995,7 @@ implementation
          end
        else
          begin
-           result:=datatcb.emit_string_const_common(list,st_unicodestring,strlength,encoding,startlab);
+           result:=datatcb.emit_string_const_common(st_unicodestring,strlength,encoding,startlab);
          end;
        if cwidechartype.size = 2 then
          begin
