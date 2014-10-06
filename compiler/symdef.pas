@@ -3977,7 +3977,7 @@ implementation
           begin
             current_module.globalsymtable.insertdef(self);
             if definedname then
-              current_module.localsymtable.insert(ctypesym.create(n,self));
+              current_module.globalsymtable.insert(ctypesym.create(n,self));
           end;
         symtablestack:=oldsymtablestack;
       end;
