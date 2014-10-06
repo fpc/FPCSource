@@ -620,45 +620,18 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
       begin
         case def.ordtype of
            pasbool8,
-           bool8bit :
-             begin
-                if is_constboolnode(node) then
-                  begin
-                    testrange(def,tordconstnode(node).value,false,false);
-                    ftcb.emit_tai(Tai_const.Create_8bit(byte(tordconstnode(node).value.svalue)),def)
-                  end
-                else
-                  do_error;
-             end;
+           bool8bit,
            pasbool16,
-           bool16bit :
-             begin
-                if is_constboolnode(node) then
-                  begin
-                    testrange(def,tordconstnode(node).value,false,false);
-                    ftcb.emit_tai(Tai_const.Create_16bit(word(tordconstnode(node).value.svalue)),def)
-                  end
-                else
-                  do_error;
-             end;
+           bool16bit,
            pasbool32,
-           bool32bit :
-             begin
-                if is_constboolnode(node) then
-                  begin
-                    testrange(def,tordconstnode(node).value,false,false);
-                    ftcb.emit_tai(Tai_const.Create_32bit(longint(tordconstnode(node).value.svalue)),def)
-                  end
-                else
-                  do_error;
-             end;
+           bool32bit,
            pasbool64,
-           bool64bit :
+           bool64bit:
              begin
                 if is_constboolnode(node) then
                   begin
                     testrange(def,tordconstnode(node).value,false,false);
-                    ftcb.emit_tai(Tai_const.Create_64bit(int64(tordconstnode(node).value.svalue)),def)
+                    ftcb.emit_ord_const(tordconstnode(node).value.svalue,def)
                   end
                 else
                   do_error;
@@ -671,7 +644,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   ((m_delphi in current_settings.modeswitches) and
                    is_constwidecharnode(node) and
                    (tordconstnode(node).value <= 255)) then
-                  ftcb.emit_tai(Tai_const.Create_8bit(byte(tordconstnode(node).value.svalue)),def)
+                  ftcb.emit_ord_const(byte(tordconstnode(node).value.svalue),def)
                 else
                   do_error;
              end;
@@ -680,7 +653,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 if is_constcharnode(node) then
                   inserttypeconv(node,cwidechartype);
                 if is_constwidecharnode(node) then
-                  ftcb.emit_tai(Tai_const.Create_16bit(word(tordconstnode(node).value.svalue)),def)
+                  ftcb.emit_ord_const(word(tordconstnode(node).value.svalue),def)
                 else
                   do_error;
              end;
@@ -692,16 +665,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 if is_constintnode(node) then
                   begin
                     testrange(def,tordconstnode(node).value,false,false);
-                    case def.size of
-                      1 :
-                        ftcb.emit_tai(Tai_const.Create_8bit(byte(tordconstnode(node).value.svalue)),def);
-                      2 :
-                        ftcb.emit_tai(Tai_const.Create_16bit(word(tordconstnode(node).value.svalue)),def);
-                      4 :
-                        ftcb.emit_tai(Tai_const.Create_32bit(longint(tordconstnode(node).value.svalue)),def);
-                      8 :
-                        ftcb.emit_tai(Tai_const.Create_64bit(tordconstnode(node).value.svalue),def);
-                    end;
+                    ftcb.emit_ord_const(tordconstnode(node).value.svalue,def);
                   end
                 else
                   do_error;
@@ -718,7 +682,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                     intvalue:=0;
                     IncompatibleTypes(node.resultdef, def);
                   end;
-               ftcb.emit_tai(Tai_const.Create_64bit(intvalue),def);
+               ftcb.emit_ord_const(intvalue,def);
              end;
            else
              internalerror(200611052);
