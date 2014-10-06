@@ -434,7 +434,7 @@ implementation
         begin
           asmsym:=current_asmdata.RefAsmSymbol(tprocdef(pd).mangledname);
           if not asmsym.declared then
-            current_asmdata.AsmLists[al_imports].Concat(taillvmdecl.create(asmsym, pd, nil, sec_code));
+            current_asmdata.AsmLists[al_imports].Concat(taillvmdecl.create(asmsym,pd,nil,sec_code,pd.alignment));
         end;
       a_call_common(list,pd,paras,forceresdef,res,calldef,hlretdef,llvmretdef,callparas);
       list.concat(taillvm.call_size_name_paras(res,calldef,current_asmdata.RefAsmSymbol(pd.mangledname),callparas));
@@ -1016,7 +1016,7 @@ implementation
             list.concat(taillvmalias.create(asmsym,item.str,current_procinfo.procdef,llv_default,lll_default));
           item:=TCmdStrListItem(item.next);
         end;
-      list.concat(taillvmdecl.create(asmsym,current_procinfo.procdef,nil,sec_code));
+      list.concat(taillvmdecl.create(asmsym,current_procinfo.procdef,nil,sec_code,current_procinfo.procdef.alignment));
     end;
 
 

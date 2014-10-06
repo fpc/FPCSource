@@ -918,7 +918,7 @@ implementation
                     end;
                   { alignment }
                   asmwrite(', align ');
-                  asmwriteln(tostr(taillvmdecl(hp).def.alignment));
+                  asmwriteln(tostr(taillvmdecl(hp).alignment));
                 end;
             end;
           ait_llvmalias:

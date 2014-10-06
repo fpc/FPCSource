@@ -152,9 +152,10 @@ interface
       namesym: tasmsymbol;
       def: tdef;
       sec: TAsmSectiontype;
+      alignment: shortint;
       tls: boolean;
-      constructor create(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype);
-      constructor createtls(_namesym: tasmsymbol; _def: tdef);
+      constructor create(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
+      constructor createtls(_namesym: tasmsymbol; _def: tdef; _alignment: shortint);
       destructor destroy; override;
     end;
 
@@ -180,7 +181,7 @@ uses
 
     { taillvmprocdecl }
 
-    constructor taillvmdecl.create(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype);
+    constructor taillvmdecl.create(_namesym: tasmsymbol; _def: tdef; _initdata: tasmlist; _sec: tasmsectiontype; _alignment: shortint);
       begin
         inherited create;
         typ:=ait_llvmdecl;
@@ -188,13 +189,14 @@ uses
         def:=_def;
         initdata:=_initdata;
         sec:=_sec;
+        alignment:=_alignment;
         _namesym.declared:=true;
       end;
 
 
-    constructor taillvmdecl.createtls(_namesym: tasmsymbol; _def: tdef);
+    constructor taillvmdecl.createtls(_namesym: tasmsymbol; _def: tdef; _alignment: shortint);
       begin
-        create(_namesym,_def,nil,sec_data);
+        create(_namesym,_def,nil,sec_data,_alignment);
         tls:=true;
       end;
 
@@ -238,7 +240,7 @@ uses
               internalerror(2014020701);
             def:=tpointerdef(def).pointeddef;
           end;
-        current_asmdata.AsmLists[al_imports].concat(taillvmdecl.create(ref.symbol,def,nil,sec_none));
+        current_asmdata.AsmLists[al_imports].concat(taillvmdecl.create(ref.symbol,def,nil,sec_none,def.alignment));
       end;
 
 
