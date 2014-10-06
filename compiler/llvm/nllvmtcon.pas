@@ -32,12 +32,19 @@ interface
     ngtcon;
 
   type
-    tllvmtai_typedconstbuilder = class(ttai_lowleveltypedconstbuilder)
-     protected
-      { aggregates (from outer to inner nested) that have been encountered,
-        if any }
-      faggregates: tfplist;
+    tllvmaggregateinformation = class(taggregateinformation)
+     private
+      faggai: tai_aggregatetypedconst;
+     public
+      property aggai: tai_aggregatetypedconst read faggai write faggai;
+    end;
 
+    tllvmtai_typedconstbuilder = class(ttai_lowleveltypedconstbuilder)
+     protected type
+      public
+       { set the default value for caggregateinformation (= tllvmaggregateinformation) }
+       class constructor classcreate;
+     protected
       fqueued_def: tdef;
       fqueued_tai,
       flast_added_tai: tai;
@@ -51,18 +58,14 @@ interface
           newindex indicates which operand is empty and can be filled with the
           next queued tai }
       procedure update_queued_tai(resdef: tdef; outerai, innerai: tai; newindex: longint);
-      procedure emit_tai_intern(p: tai; def: tdef);
       function wrap_with_type(p: tai; def: tdef): tai;
-      procedure begin_aggregate_intern(tck: ttypedconstkind; def: tdef);
+      procedure do_emit_tai(p: tai; def: tdef); override;
      public
       constructor create; override;
       destructor destroy; override;
-      procedure emit_tai(p: tai; def: tdef); override;
       procedure emit_tai_procvar2procdef(p: tai; pvdef: tprocvardef); override;
       procedure maybe_begin_aggregate(def: tdef); override;
       procedure maybe_end_aggregate(def: tdef); override;
-      procedure begin_anonymous_record(const optionalname: string; packrecords: shortint); override;
-      function end_anonymous_record: trecorddef; override;
       procedure queue_init(todef: tdef); override;
       procedure queue_vecn(def: tdef; const index: tconstexprint); override;
       procedure queue_subscriptn(def: tabstractrecorddef; vs: tfieldvarsym); override;
@@ -86,6 +89,12 @@ implementation
     aasmdata,
     cpubase,llvmbase,
     symbase,symtable,llvmdef,defutil;
+
+  class constructor tllvmtai_typedconstbuilder.classcreate;
+    begin
+      caggregateinformation:=tllvmaggregateinformation;
+    end;
+
 
   procedure tllvmtai_typedconstbuilder.finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions);
     var
@@ -132,11 +141,30 @@ implementation
     end;
 
 
-  procedure tllvmtai_typedconstbuilder.emit_tai_intern(p: tai; def: tdef);
+  function tllvmtai_typedconstbuilder.wrap_with_type(p: tai; def: tdef): tai;
+    begin
+      result:=tai_simpletypedconst.create(tck_simple,def,p);
+    end;
+
+
+  constructor tllvmtai_typedconstbuilder.create;
+    begin
+      inherited create;
+    end;
+
+
+  destructor tllvmtai_typedconstbuilder.destroy;
+    begin
+      inherited destroy;
+    end;
+
+
+  procedure tllvmtai_typedconstbuilder.do_emit_tai(p: tai; def: tdef);
     var
       ai: tai;
       stc: tai_abstracttypedconst;
       kind: ttypedconstkind;
+      info: tllvmaggregateinformation;
     begin
       if assigned(fqueued_tai) then
         begin
@@ -154,64 +182,20 @@ implementation
         end
       else
         stc:=tai_simpletypedconst.create(tck_simple,def,p);
+      info:=tllvmaggregateinformation(curagginfo);
       { these elements can be aggregates themselves, e.g. a shortstring can
         be emitted as a series of bytes and string data arrays }
       kind:=aggregate_kind(def);
-      if (kind<>tck_simple) and
-         (not assigned(faggregates) or
-          (faggregates.count=0) or
-          (tai_aggregatetypedconst(faggregates[faggregates.count-1]).adetyp<>kind)) then
-        internalerror(2014052906);
-      if assigned(faggregates) and
-         (faggregates.count>0) then
-        tai_aggregatetypedconst(faggregates[faggregates.count-1]).addvalue(stc)
+      if (kind<>tck_simple) then
+        begin
+          if not assigned(info) or
+             (info.aggai.adetyp<>kind) then
+           internalerror(2014052906);
+        end;
+      if assigned(info) then
+        info.aggai.addvalue(stc)
       else
-        inherited emit_tai(stc,def);
-    end;
-
-
-  function tllvmtai_typedconstbuilder.wrap_with_type(p: tai; def: tdef): tai;
-    begin
-      result:=tai_simpletypedconst.create(tck_simple,def,p);
-    end;
-
-
-  procedure tllvmtai_typedconstbuilder.begin_aggregate_intern(tck: ttypedconstkind; def: tdef);
-    var
-      agg: tai_aggregatetypedconst;
-    begin
-      if not assigned(faggregates) then
-        faggregates:=tfplist.create;
-      agg:=tai_aggregatetypedconst.create(tck,def);
-      { nested aggregate -> add to parent }
-      if faggregates.count>0 then
-        tai_aggregatetypedconst(faggregates[faggregates.count-1]).addvalue(agg)
-      { otherwise add to asmlist }
-      else
-        fasmlist.concat(agg);
-      { new top level aggregate, future data will be added to it }
-      faggregates.add(agg);
-    end;
-
-
-  constructor tllvmtai_typedconstbuilder.create;
-    begin
-      inherited create;
-      { constructed as needed }
-      faggregates:=nil;
-    end;
-
-
-  destructor tllvmtai_typedconstbuilder.destroy;
-    begin
-      faggregates.free;
-      inherited destroy;
-    end;
-
-
-  procedure tllvmtai_typedconstbuilder.emit_tai(p: tai; def: tdef);
-    begin
-      emit_tai_intern(p,def);
+        inherited do_emit_tai(stc,def);
     end;
 
 
@@ -219,67 +203,50 @@ implementation
     begin
       if not pvdef.is_addressonly then
         pvdef:=tprocvardef(pvdef.getcopyas(procvardef,pc_address_only));
-      emit_tai_intern(p,pvdef);
+      emit_tai(p,pvdef);
     end;
 
 
   procedure tllvmtai_typedconstbuilder.maybe_begin_aggregate(def: tdef);
     var
+      agg: tai_aggregatetypedconst;
       tck: ttypedconstkind;
+      curagg: tllvmaggregateinformation;
     begin
       tck:=aggregate_kind(def);
       if tck<>tck_simple then
-        begin_aggregate_intern(tck,def);
-      inherited;
+        begin
+          { create new typed const aggregate }
+          agg:=tai_aggregatetypedconst.create(tck,def);
+          { either add to the current typed const aggregate (if nested), or
+            emit to the asmlist (if top level) }
+          curagg:=tllvmaggregateinformation(curagginfo);
+          if assigned(curagg) then
+            curagg.aggai.addvalue(agg)
+          else
+            fasmlist.concat(agg);
+          { create aggregate information for this new aggregate }
+          inherited;
+          { set new current typed const aggregate }
+          tllvmaggregateinformation(curagginfo).aggai:=agg
+        end
+      else
+       inherited;
     end;
 
 
   procedure tllvmtai_typedconstbuilder.maybe_end_aggregate(def: tdef);
+    var
+      info: tllvmaggregateinformation;
     begin
       if aggregate_kind(def)<>tck_simple then
         begin
-          if not assigned(faggregates) or
-             (faggregates.count=0) then
+          info:=tllvmaggregateinformation(curagginfo);
+          if not assigned(info) then
             internalerror(2014060101);
-          tai_aggregatetypedconst(faggregates[faggregates.count-1]).finish;
-          { already added to the asmlist if necessary }
-          faggregates.count:=faggregates.count-1;
+          info.aggai.finish;
         end;
       inherited;
-    end;
-
-
-  procedure tllvmtai_typedconstbuilder.begin_anonymous_record(const optionalname: string; packrecords: shortint);
-    var
-      recorddef: trecorddef;
-    begin
-      inherited;
-      recorddef:=crecorddef.create_global_internal(optionalname,packrecords);
-      begin_aggregate_intern(tck_record,recorddef);
-    end;
-
-
-  function tllvmtai_typedconstbuilder.end_anonymous_record: trecorddef;
-    var
-      agg: tai_aggregatetypedconst;
-      ele: tai_abstracttypedconst;
-      defs: tfplist;
-    begin
-      result:=inherited;
-      if assigned(result) then
-        exit;
-      if not assigned(faggregates) or
-         (faggregates.count=0) or
-         (tai_aggregatetypedconst(faggregates[faggregates.count-1]).def.typ<>recorddef) then
-        internalerror(2014080201);
-      agg:=tai_aggregatetypedconst(faggregates[faggregates.count-1]);
-      defs:=tfplist.create;
-      for ele in agg do
-        defs.add(ele.def);
-      result:=trecorddef(agg.def);
-      result.add_fields_from_deflist(defs);
-      { already added to the asmlist if necessary }
-      faggregates.count:=faggregates.count-1;
     end;
 
 

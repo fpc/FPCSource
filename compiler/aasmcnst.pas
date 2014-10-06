@@ -107,15 +107,76 @@ type
    );
    ttcasmlistoptions = set of ttcasmlistoption;
 
+
+   { information about aggregates we are parsing }
+   taggregateinformation = class
+    private
+     function getcuroffset: asizeint;
+     function getfieldoffset(l: longint): asizeint;
+    protected
+     { type of the aggregate }
+     fdef: tdef;
+     { type of the aggregate }
+     ftyp: ttypedconstkind;
+     { symtable entry of the previously emitted field in case of a
+       record/object (nil if none emitted yet), used to insert alignment bytes
+       if necessary for variant records and objects }
+     fcurfield,
+     { field corresponding to the data that will be emitted next in case of a
+       record/object (nil if not set), used to handle variant records and
+       objects }
+     fnextfield: tfieldvarsym;
+     { similar as the fcurfield/fnextfield above, but instead of fieldvarsyms
+       these are indices in the symlist of a recorddef that correspond to
+       fieldvarsyms. These are used only for non-variant records, simply
+       traversing the fields in order. We could use the above method here as
+       well, but to find the next field we'd always have to use
+       symlist.indexof(fcurfield), which would be quite slow. These have -1 as
+       value if they're not set }
+     fcurindex,
+     fnextindex: longint;
+     { anonymous record that is being built as we add constant data }
+     fanonrecord: boolean;
+
+     property curindex: longint read fcurindex write fcurindex;
+     property nextindex: longint read fnextindex write fnextindex;
+    public
+     constructor create(_def: tdef; _typ: ttypedconstkind);
+     property def: tdef read fdef;
+     property typ: ttypedconstkind read ftyp;
+     property curfield: tfieldvarsym read fcurfield write fcurfield;
+     property nextfield: tfieldvarsym read fnextfield write fnextfield;
+     property fieldoffset[l: longint]: asizeint read getfieldoffset;
+     property curoffset: asizeint read getcuroffset;
+     property anonrecord: boolean read fanonrecord write fanonrecord;
+   end;
+   taggregateinformationclass = class of taggregateinformation;
+
    { Warning: never directly create a ttai_typedconstbuilder instance,
      instead create a cai_typedconstbuilder (this class can be overridden) }
    ttai_lowleveltypedconstbuilder = class abstract
+    { class type to use when creating new aggregate information instances }
+    protected class var
+     caggregateinformation: taggregateinformationclass;
+    public
+     { set the default value for caggregateinformation (= taggregateinformation) }
+     class constructor classcreate;
+
+    private
+     function getcurragginfo: taggregateinformation;
+     { add padding bytes for alignment if needed, and add the def of the next
+       field in case we are constructing an anonymous record }
+     procedure prepare_next_field(nextfielddef: tdef);
+     procedure set_next_field(AValue: tfieldvarsym);
     protected
      { temporary list in which all data is collected }
      fasmlist: tasmlist;
      { while queueing elements of a compound expression, this is the current
        offset in the top-level array/record }
      fqueue_offset: asizeint;
+
+     { array of caggregateinformation instances }
+     faggregateinformation: tfpobjectlist;
 
      { ensure that finalize_asmlist is called only once }
      fasmlist_finalized: boolean;
@@ -125,6 +186,14 @@ type
      function aggregate_kind(def: tdef): ttypedconstkind; virtual;
      { finalize the asmlist: add the necessary symbols etc }
      procedure finalize_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: shortint; const options: ttcasmlistoptions); virtual;
+
+     { called by the public emit_tai() routines to actually add the typed
+       constant data; the public ones also take care of adding extra padding
+       bytes etc (by calling this one) }
+     procedure do_emit_tai(p: tai; def: tdef); virtual;
+
+     { easy access to the top level aggregate information instance }
+     property curagginfo: taggregateinformation read getcurragginfo;
     public
      constructor create; virtual;
      destructor destroy; override;
@@ -160,7 +229,7 @@ type
         b) the def of the record should be automatically constructed based on
            the types of the emitted fields
      }
-     procedure begin_anonymous_record(const optionalname: string; packrecords: shortint); virtual;
+     function begin_anonymous_record(const optionalname: string; packrecords: shortint): trecorddef; virtual;
      function end_anonymous_record: trecorddef; virtual;
 
      { The next group of routines are for constructing complex expressions.
@@ -202,6 +271,12 @@ type
        negative offset), but on some platforms such negative offsets are not
        supported this is equal to the header size }
      class function get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint; virtual;
+
+     { set the fieldvarsym whose data we will emit next; needed
+       in case of variant records, so we know which part of the variant gets
+       initialised. Also in case of objects, because the fieldvarsyms are spread
+       over the symtables of the entire inheritance tree }
+     property next_field: tfieldvarsym write set_next_field;
     protected
      { this one always return the actual offset, called by the above (and
        overridden versions) }
@@ -216,7 +291,44 @@ implementation
 
    uses
      verbose,globals,systems,widestr,
-     symtable,defutil;
+     symbase,symtable,defutil;
+
+{****************************************************************************
+                       taggregateinformation
+ ****************************************************************************}
+
+    function taggregateinformation.getcuroffset: asizeint;
+      var
+        field: tfieldvarsym;
+      begin
+        if assigned(curfield) then
+          result:=curfield.fieldoffset+curfield.vardef.size
+        else if curindex<>-1 then
+          begin
+            field:=tfieldvarsym(tabstractrecorddef(def).symtable.symlist[curindex]);
+            result:=field.fieldoffset+field.vardef.size
+          end
+        else
+          result:=0
+      end;
+
+
+    function taggregateinformation.getfieldoffset(l: longint): asizeint;
+      var
+        field: tfieldvarsym;
+      begin
+        field:=tfieldvarsym(tabstractrecorddef(def).symtable.symlist[l]);
+        result:=field.fieldoffset;
+      end;
+
+
+    constructor taggregateinformation.create(_def: tdef; _typ: ttypedconstkind);
+      begin
+        fdef:=_def;
+        ftyp:=_typ;
+        fcurindex:=-1;
+        fnextindex:=-1;
+      end;
 
 
 {****************************************************************************
@@ -404,6 +516,81 @@ implementation
                               ttai_lowleveltypedconstbuilder
  *****************************************************************************}
 
+   function ttai_lowleveltypedconstbuilder.getcurragginfo: taggregateinformation;
+     begin
+       if assigned(faggregateinformation) and
+          (faggregateinformation.count>0) then
+         result:=taggregateinformation(faggregateinformation[faggregateinformation.count-1])
+       else
+         result:=nil;
+     end;
+
+
+   procedure ttai_lowleveltypedconstbuilder.set_next_field(AValue: tfieldvarsym);
+     var
+       info: taggregateinformation;
+     begin
+       info:=curagginfo;
+       if not assigned(info) then
+         internalerror(2014091206);
+       info.nextfield:=AValue;
+     end;
+
+
+   procedure ttai_lowleveltypedconstbuilder.prepare_next_field(nextfielddef: tdef);
+     var
+       nextoffset: asizeint;
+       curoffset: asizeint;
+       info: taggregateinformation;
+       i: longint;
+     begin
+       info:=curagginfo;
+       if not assigned(info) then
+         internalerror(2014091002);
+       { current offset in the data }
+       curoffset:=info.curoffset;
+       { get the next field and its offset, and make that next field the current
+         one }
+       if assigned(info.nextfield) then
+         begin
+           nextoffset:=info.nextfield.fieldoffset;
+           info.curfield:=info.nextfield;
+         end
+       else
+         begin
+           { must set nextfield for unions and objects, as we cannot
+             automatically detect the "next" field in that case }
+           if ((info.def.typ=recorddef) and
+               trecorddef(info.def).isunion) or
+              is_object(info.def) then
+             internalerror(2014091202);
+           { if we are constructing this record as data gets emitted, add a field
+             for this data }
+           if info.anonrecord then
+             trecorddef(info.def).add_field_by_def(nextfielddef);
+           { find next field }
+           i:=info.curindex;
+           repeat
+             inc(i);
+           until tsym(tabstractrecorddef(info.def).symtable.symlist[i]).typ=fieldvarsym;
+           nextoffset:=info.fieldoffset[i];
+           info.curindex:=i;
+         end;
+       { need padding? }
+       while curoffset<nextoffset do
+         begin
+           do_emit_tai(tai_const.create_8bit(0),u8inttype);
+           inc(curoffset);
+         end;
+     end;
+
+
+   class constructor ttai_lowleveltypedconstbuilder.classcreate;
+     begin
+       caggregateinformation:=taggregateinformation;
+     end;
+
+
    function ttai_lowleveltypedconstbuilder.aggregate_kind(def: tdef): ttypedconstkind;
      begin
        if (def.typ in [recorddef,filedef,variantdef]) or
@@ -449,6 +636,13 @@ implementation
        fasmlist.concat(tai_symbol_end.Createname(sym.name));
        { free the temporary list }
        prelist.free;
+     end;
+
+
+   procedure ttai_lowleveltypedconstbuilder.do_emit_tai(p: tai; def: tdef);
+     begin
+       { by default we don't care about the type }
+       fasmlist.concat(p);
      end;
 
 
@@ -520,16 +714,37 @@ implementation
        { the queue should have been flushed if it was used }
        if fqueue_offset<>low(fqueue_offset) then
          internalerror(2014062901);
+       faggregateinformation.free;
        fasmlist.free;
        inherited destroy;
      end;
 
 
    procedure ttai_lowleveltypedconstbuilder.emit_tai(p: tai; def: tdef);
+     var
+       kind: ttypedconstkind;
+       info: taggregateinformation;
      begin
-       { by default, we ignore the def info since we don't care about it at the
-         the assembler level }
-       fasmlist.concat(p);
+       { these elements can be aggregates themselves, e.g. a shortstring can
+         be emitted as a series of bytes and char arrays }
+       kind:=aggregate_kind(def);
+       info:=curagginfo;
+       if (kind<>tck_simple) and
+          (not assigned(info) or
+           (info.typ<>kind)) then
+         internalerror(2014091001);
+       { if we're emitting a record, handle the padding bytes, and in case of
+         an anonymous record also add the next field }
+       if assigned(info) then
+         begin
+           if ((info.def.typ=recorddef) or
+               is_object(info.def)) and
+              { may add support for these later }
+              not is_packed_record_or_object(info.def) then
+             prepare_next_field(def);
+         end;
+       { emit the data }
+       do_emit_tai(p,def);
      end;
 
 
@@ -693,27 +908,111 @@ implementation
 
 
    procedure ttai_lowleveltypedconstbuilder.maybe_begin_aggregate(def: tdef);
+     var
+       info: taggregateinformation;
+       tck: ttypedconstkind;
      begin
-       { do nothing }
+       tck:=aggregate_kind(def);
+       if tck=tck_simple then
+         exit;
+       if not assigned(faggregateinformation) then
+         faggregateinformation:=tfpobjectlist.create
+       else
+         begin
+           { add padding if necessary, and update the current field/offset }
+           info:=curagginfo;
+           if is_record(curagginfo.def) or
+              is_object(curagginfo.def) then
+             prepare_next_field(def);
+         end;
+       info:=caggregateinformation.create(def,aggregate_kind(def));
+       faggregateinformation.add(info);
      end;
 
 
    procedure ttai_lowleveltypedconstbuilder.maybe_end_aggregate(def: tdef);
+     var
+       info: taggregateinformation;
+       fillbytes: asizeint;
+       tck: ttypedconstkind;
      begin
-       { do nothing }
+       tck:=aggregate_kind(def);
+       if tck=tck_simple then
+         exit;
+       info:=curagginfo;
+       if not assigned(info) then
+         internalerror(2014091002);
+       if def<>info.def then
+         internalerror(2014091205);
+       { add tail padding if necessary }
+       if (is_record(def) or
+           is_object(def)) and
+          not is_packed_record_or_object(def) then
+         begin
+           fillbytes:=def.size-info.curoffset;
+           while fillbytes>0 do
+             begin
+               do_emit_tai(Tai_const.Create_8bit(0),u8inttype);
+               dec(fillbytes)
+             end;
+         end;
+       { pop and free the information }
+       faggregateinformation.count:=faggregateinformation.count-1;
+       info.free;
      end;
 
 
-   procedure ttai_lowleveltypedconstbuilder.begin_anonymous_record(const optionalname: string; packrecords: shortint);
+   function ttai_lowleveltypedconstbuilder.begin_anonymous_record(const optionalname: string; packrecords: shortint): trecorddef;
+     var
+       anonrecorddef: trecorddef;
+       srsym: tsym;
+       srsymtable: tsymtable;
+       found: boolean;
      begin
-       { do nothing }
+       { if the name is specified, we create a typesym with that name in order
+         to ensure we can find it again later with that name -> reuse here as
+         well if possible (and that also avoids duplicate type name issues) }
+       if optionalname<>'' then
+         begin
+           if optionalname[1]='$' then
+             found:=searchsym_type(copy(optionalname,2,length(optionalname)),srsym,srsymtable)
+           else
+             found:=searchsym_type(optionalname,srsym,srsymtable);
+           if found then
+             begin
+               if ttypesym(srsym).typedef.typ<>recorddef then
+                 internalerror(2014091207);
+               result:=trecorddef(ttypesym(srsym).typedef);
+               maybe_begin_aggregate(result);
+               exit;
+             end;
+         end;
+       { create skeleton def }
+       anonrecorddef:=crecorddef.create_global_internal(optionalname,packrecords);
+       { generic aggregate housekeeping }
+       maybe_begin_aggregate(anonrecorddef);
+       { mark as anonymous record }
+       curagginfo.anonrecord:=true;
+       { in case a descendent wants to do something with the anonrecorddef too }
+       result:=anonrecorddef;
      end;
 
 
    function ttai_lowleveltypedconstbuilder.end_anonymous_record: trecorddef;
+     var
+       info: taggregateinformation;
      begin
-       { do nothing }
-       result:=nil;
+       info:=curagginfo;
+       if not assigned(info) or
+          (info.def.typ<>recorddef) then
+         internalerror(2014080201);
+       result:=trecorddef(info.def);
+       { finalise the record skeleton (all fields have been added already by
+         emit_tai()) -- anonrecord may not be set in case we reused an earlier
+         constructed def }
+       if info.anonrecord then
+         trecordsymtable(result.symtable).addalignmentpadding;
+       maybe_end_aggregate(result);
      end;
 
 

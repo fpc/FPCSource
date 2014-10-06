@@ -1422,9 +1422,14 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           if string2guid(hs,tmpguid) then
             begin
               ftcb.maybe_begin_aggregate(rec_tguid);
+              { variant record -> must specify which fields get initialised }
+              ftcb.next_field:=tfieldvarsym(rec_tguid.symtable.symlist[0]);
               ftcb.emit_tai(Tai_const.Create_32bit(longint(tmpguid.D1)),u32inttype);
+              ftcb.next_field:=tfieldvarsym(rec_tguid.symtable.symlist[1]);
               ftcb.emit_tai(Tai_const.Create_16bit(tmpguid.D2),u16inttype);
+              ftcb.next_field:=tfieldvarsym(rec_tguid.symtable.symlist[2]);
               ftcb.emit_tai(Tai_const.Create_16bit(tmpguid.D3),u16inttype);
+              ftcb.next_field:=tfieldvarsym(rec_tguid.symtable.symlist[3]);
               for i:=Low(tmpguid.D4) to High(tmpguid.D4) do
                 ftcb.emit_tai(Tai_const.Create_8bit(tmpguid.D4[i]),u8inttype);
               ftcb.maybe_end_aggregate(rec_tguid);
@@ -1450,9 +1455,14 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   begin
                     ftcb.maybe_begin_aggregate(rec_tguid);
                     tmpguid:=tguidconstnode(n).value;
+                    { variant record -> must specify which fields get initialised }
+                    ftcb.next_field:=tfieldvarsym(rec_tguid.symtable.symlist[0]);
                     ftcb.emit_tai(Tai_const.Create_32bit(longint(tmpguid.D1)),u32inttype);
+                    ftcb.next_field:=tfieldvarsym(rec_tguid.symtable.symlist[1]);
                     ftcb.emit_tai(Tai_const.Create_16bit(tmpguid.D2),u16inttype);
+                    ftcb.next_field:=tfieldvarsym(rec_tguid.symtable.symlist[2]);
                     ftcb.emit_tai(Tai_const.Create_16bit(tmpguid.D3),u16inttype);
+                    ftcb.next_field:=tfieldvarsym(rec_tguid.symtable.symlist[3]);
                     for i:=Low(tmpguid.D4) to High(tmpguid.D4) do
                       ftcb.emit_tai(Tai_const.Create_8bit(tmpguid.D4[i]),u8inttype);
                     ftcb.maybe_end_aggregate(rec_tguid);
@@ -1557,7 +1567,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 if tfieldvarsym(srsym).fieldoffset>recoffset then
                   begin
                     if not(is_packed) then
-                      fillbytes:=tfieldvarsym(srsym).fieldoffset-recoffset
+                      fillbytes:=0
                     else
                       begin
                         flush_packed_value(bp);
@@ -1578,6 +1588,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                    inc(recoffset,tfieldvarsym(srsym).vardef.packedbitsize);
 
                 { read the data }
+                ftcb.next_field:=tfieldvarsym(srsym);
                 if not(is_packed) or
                    { only orddefs and enumdefs are bitpacked, as in gcc/gpc }
                    not(tfieldvarsym(srsym).vardef.typ in [orddef,enumdef]) then
@@ -1624,7 +1635,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         if not error then
           begin
             if not(is_packed) then
-              fillbytes:=def.size-recoffset
+              fillbytes:=0
             else
               begin
                 flush_packed_value(bp);
@@ -1731,19 +1742,13 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      (oo_has_vmt in def.objectoptions) and
                      (def.vmt_offset<fieldoffset) then
                     begin
-                      for i:=1 to def.vmt_offset-objoffset do
-                        ftcb.emit_tai(tai_const.create_8bit(0),u8inttype);
-                      // TODO VMT type proper tdef?
-                      ftcb.emit_tai(tai_const.createname(def.vmt_mangledname,AT_DATA,0),voidpointertype);
-                      { this is more general }
-                      objoffset:=def.vmt_offset + sizeof(pint);
+                      ftcb.next_field:=tfieldvarsym(def.vmt_field);
+                      ftcb.emit_tai(tai_const.createname(def.vmt_mangledname,AT_DATA,0),tfieldvarsym(def.vmt_field).vardef);
+                      objoffset:=def.vmt_offset+tfieldvarsym(def.vmt_field).vardef.size;
                       vmtwritten:=true;
                     end;
 
-                  { if needed fill }
-                  if fieldoffset>objoffset then
-                    for i:=1 to fieldoffset-objoffset do
-                      ftcb.emit_tai(Tai_const.Create_8bit(0),u8inttype);
+                  ftcb.next_field:=tfieldvarsym(srsym);
 
                   { new position }
                   objoffset:=fieldoffset+vardef.size;
@@ -1768,8 +1773,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             { this is more general }
             objoffset:=def.vmt_offset + sizeof(pint);
           end;
-        for i:=1 to def.size-objoffset do
-          ftcb.emit_tai(Tai_const.Create_8bit(0),u8inttype);
         ftcb.maybe_end_aggregate(def);
         consume(_RKLAMMER);
       end;
