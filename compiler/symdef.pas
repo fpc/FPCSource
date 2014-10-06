@@ -381,7 +381,8 @@ interface
           { and no vmt field for objects without virtuals }
           vmtentries     : TFPList;
           vmcallstaticinfo : pmvcallstaticinfo;
-          vmt_offset     : longint;
+          vmt_field       : tsym;
+          vmt_fieldderef  : tderef;
           iidguid        : pguid;
           iidstr         : pshortstring;
           { store implemented interfaces defs and name mappings }
@@ -431,6 +432,7 @@ interface
           function  vmt_mangledname : TSymStr;
           procedure check_forwards; override;
           procedure insertvmt;
+          function  vmt_offset: asizeint;
           procedure set_parent(c : tobjectdef);
           function find_destructor: tprocdef;
           function implements_any_interfaces: boolean;
@@ -5877,7 +5879,6 @@ implementation
         symtable:=tObjectSymtable.create(self,n,current_settings.packrecords);
         { create space for vmt !! }
         vmtentries:=TFPList.Create;
-        vmt_offset:=0;
         set_parent(c);
         if objecttype in [odt_interfacecorba,odt_interfacecom,odt_dispinterface] then
           prepareguid;
@@ -5909,7 +5910,7 @@ implementation
          tObjectSymtable(symtable).paddingsize:=ppufile.getword;
          tObjectSymtable(symtable).fieldalignment:=shortint(ppufile.getbyte);
          tObjectSymtable(symtable).recordalignment:=shortint(ppufile.getbyte);
-         vmt_offset:=ppufile.getlongint;
+         ppufile.getderef(vmt_fieldderef);
          ppufile.getderef(childofderef);
 
          { load guid }
@@ -6063,7 +6064,7 @@ implementation
         tobjectdef(result).extendeddef:=extendeddef;
         if assigned(tcinitcode) then
           tobjectdef(result).tcinitcode:=tcinitcode.getcopy;
-        tobjectdef(result).vmt_offset:=vmt_offset;
+        tobjectdef(result).vmt_field:=vmt_field;
         if assigned(iidguid) then
           begin
             new(tobjectdef(result).iidguid);
@@ -6111,7 +6112,7 @@ implementation
          ppufile.putword(tObjectSymtable(symtable).paddingsize);
          ppufile.putbyte(byte(tObjectSymtable(symtable).fieldalignment));
          ppufile.putbyte(byte(tObjectSymtable(symtable).recordalignment));
-         ppufile.putlongint(vmt_offset);
+         ppufile.putderef(vmt_fieldderef);
          ppufile.putderef(childofderef);
          if objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
            begin
@@ -6175,6 +6176,7 @@ implementation
          vmtentry : pvmtentry;
       begin
          inherited buildderef;
+         vmt_fieldderef.build(vmt_field);
          childofderef.build(childof);
          if df_copied_def in defoptions then
            cloneddefderef.build(symtable.defowner)
@@ -6204,6 +6206,7 @@ implementation
          vmtentry : pvmtentry;
       begin
          inherited deref;
+         vmt_field:=tsym(vmt_fieldderef.resolve);
          childof:=tobjectdef(childofderef.resolve);
          if df_copied_def in defoptions then
            begin
@@ -6363,7 +6366,7 @@ implementation
             { if parent has a vmt field then the offset is the same for the child PM }
             if (oo_has_vmt in c.objectoptions) or is_class(self) then
               begin
-                vmt_offset:=c.vmt_offset;
+                vmt_field:=c.vmt_field;
                 include(objectoptions,oo_has_vmt);
               end;
           end;
@@ -6371,8 +6374,6 @@ implementation
 
 
    procedure tobjectdef.insertvmt;
-     var
-       vs: tfieldvarsym;
      begin
         if objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_javaclass,odt_interfacejava] then
           exit;
@@ -6389,18 +6390,24 @@ implementation
                  tObjectSymtable(symtable).datasize:=align(tObjectSymtable(symtable).datasize,sizeof(pint));
                  tObjectSymtable(symtable).alignrecord(tObjectSymtable(symtable).datasize,sizeof(pint));
                end;
-             vs:=cfieldvarsym.create('_vptr$'+objname^,vs_value,voidpointertype,[]);
-             hidesym(vs);
-             tObjectSymtable(symtable).insert(vs);
-             tObjectSymtable(symtable).addfield(vs,vis_hidden);
-             if (tObjectSymtable(symtable).usefieldalignment<>bit_alignment) then
-               vmt_offset:=vs.fieldoffset
-             else
-               vmt_offset:=vs.fieldoffset div 8;
+             vmt_field:=cfieldvarsym.create('_vptr$'+objname^,vs_value,voidpointertype,[]);
+             hidesym(vmt_field);
+             tObjectSymtable(symtable).insert(vmt_field);
+             tObjectSymtable(symtable).addfield(tfieldvarsym(vmt_field),vis_hidden);
              include(objectoptions,oo_has_vmt);
           end;
      end;
 
+
+   function tobjectdef.vmt_offset: asizeint;
+     begin
+        if objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_javaclass,odt_interfacejava] then
+          result:=0
+        else if (tObjectSymtable(symtable).usefieldalignment<>bit_alignment) then
+          result:=tfieldvarsym(vmt_field).fieldoffset
+        else
+          result:=tfieldvarsym(vmt_field).fieldoffset div 8;
+     end;
 
 
    procedure tobjectdef.check_forwards;
