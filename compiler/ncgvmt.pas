@@ -515,11 +515,8 @@ implementation
                 current_asmdata.getlabel(l,alt_data);
                 { l: name_of_method }
                 tcb:=ctai_typedconstbuilder.create;
-                namedef:=getarraydef(cansichartype,length(tsym(p).realname)+1);
-                tcb.maybe_begin_aggregate(namedef);
-                tcb.emit_tai(Tai_const.Create_8bit(length(tsym(p).realname)),u8inttype);
-                tcb.emit_tai(Tai_string.Create(tsym(p).realname),getarraydef(cansichartype,length(tsym(p).realname)));
-                tcb.maybe_end_aggregate(namedef);
+
+                namedef:=tcb.emit_shortstring_const(tsym(p).realname);
                 lists^.list.concatList(tcb.get_final_asmlist(l,namedef,sec_rodata_norel,'',sizeof(pint),[tcalo_is_lab]));
                 tcb.free;
                 { the tmethodnamerec }
@@ -992,11 +989,7 @@ implementation
             current_asmdata.getlabel(classnamelabel,alt_data);
             tcb:=ctai_typedconstbuilder.create;
             hs:=_class.RttiName;
-            classnamedef:=cstringdef.createshort(length(hs));
-            tcb.maybe_begin_aggregate(classnamedef);
-            tcb.emit_tai(Tai_const.Create_8bit(length(hs)),u8inttype);
-            tcb.emit_tai(Tai_string.Create(hs),getarraydef(cansichartype,length(hs)));
-            tcb.maybe_end_aggregate(classnamedef);
+            classnamedef:=tcb.emit_shortstring_const(_class.RttiName);
             templist.concatlist(tcb.get_final_asmlist(classnamelabel,classnamedef,sec_rodata_norel,'',sizeof(pint),[tcalo_is_lab]));
             tcb.free;
 

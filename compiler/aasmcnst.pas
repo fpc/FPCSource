@@ -226,6 +226,8 @@ type
        will be created/destroyed internally by these methods) }
      class function emit_ansistring_const(list: TAsmList; data: pchar; len: asizeint; encoding: tstringencoding; newsection: boolean): tasmlabofs;
      class function emit_unicodestring_const(list: TAsmList; data: pointer; encoding: tstringencoding; winlike: boolean):tasmlabofs;
+     { emit a shortstring constant, and return its def }
+     function emit_shortstring_const(const str: shortstring): tdef;
 
      { begin a potential aggregate type. Must be called for any type
        that consists of multiple tai constant data entries, or that
@@ -1007,6 +1009,21 @@ implementation
          internalerror(200904271);
        list.concatlist(datatcb.get_final_asmlist(startlab,uniwidestrrecdef,sec_rodata_norel,startlab.name,const_align(sizeof(pint)),[tcalo_is_lab,tcalo_new_section]));
        datatcb.free;
+     end;
+
+
+   function ttai_typedconstbuilder.emit_shortstring_const(const str: shortstring): tdef;
+     begin
+       { we use an arraydef instead of a shortstringdef, because we don't have
+         functionality in place yet to reuse shortstringdefs of the same length
+         and neither the lowlevel nor the llvm typedconst builder cares about
+         this difference }
+       result:=getarraydef(cansichartype,length(str)+1);
+       maybe_begin_aggregate(result);
+       emit_tai(Tai_const.Create_8bit(length(str)),u8inttype);
+       if str<>'' then
+         emit_tai(Tai_string.Create(str),getarraydef(cansichartype,length(str)));
+       maybe_end_aggregate(result);
      end;
 
 
