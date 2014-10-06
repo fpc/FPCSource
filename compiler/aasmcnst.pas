@@ -433,7 +433,9 @@ implementation
          begin
            maybe_new_object_file(prelist);
            new_section(prelist,section,secname,const_align(alignment));
-         end;
+         end
+       else
+         prelist.concat(cai_align.Create(const_align(alignment)));
        if not(tcalo_is_lab in options) then
          if sym.bind=AB_GLOBAL then
            prelist.concat(tai_symbol.Create_Global(sym,0))
