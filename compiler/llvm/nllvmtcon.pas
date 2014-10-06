@@ -61,8 +61,8 @@ interface
       procedure emit_tai_procvar2procdef(p: tai; pvdef: tprocvardef); override;
       procedure maybe_begin_aggregate(def: tdef); override;
       procedure maybe_end_aggregate(def: tdef); override;
-      procedure begin_anonymous_record; override;
-      function end_anonymous_record(const optionalname: string; packrecords: shortint): trecorddef; override;
+      procedure begin_anonymous_record(const optionalname: string; packrecords: shortint); override;
+      function end_anonymous_record: trecorddef; override;
       procedure queue_init(todef: tdef); override;
       procedure queue_vecn(def: tdef; const index: tconstexprint); override;
       procedure queue_subscriptn(def: tabstractrecorddef; vs: tfieldvarsym); override;
@@ -248,14 +248,17 @@ implementation
     end;
 
 
-  procedure tllvmtai_typedconstbuilder.begin_anonymous_record;
+  procedure tllvmtai_typedconstbuilder.begin_anonymous_record(const optionalname: string; packrecords: shortint);
+    var
+      recorddef: trecorddef;
     begin
       inherited;
-      begin_aggregate_intern(tck_record,nil);
+      recorddef:=crecorddef.create_global_internal(optionalname,packrecords);
+      begin_aggregate_intern(tck_record,recorddef);
     end;
 
 
-  function tllvmtai_typedconstbuilder.end_anonymous_record(const optionalname: string; packrecords: shortint): trecorddef;
+  function tllvmtai_typedconstbuilder.end_anonymous_record: trecorddef;
     var
       agg: tai_aggregatetypedconst;
       ele: tai_abstracttypedconst;
@@ -265,17 +268,17 @@ implementation
       if assigned(result) then
         exit;
       if not assigned(faggregates) or
-         (faggregates.count=0) then
+         (faggregates.count=0) or
+         (tai_aggregatetypedconst(faggregates[faggregates.count-1]).def.typ<>recorddef) then
         internalerror(2014080201);
       agg:=tai_aggregatetypedconst(faggregates[faggregates.count-1]);
       defs:=tfplist.create;
       for ele in agg do
         defs.add(ele.def);
-      result:=crecorddef.create_global_from_deflist(optionalname,defs,packrecords);
-      agg.def:=result;
+      result:=trecorddef(agg.def);
+      result.add_fields_from_deflist(defs);
       { already added to the asmlist if necessary }
       faggregates.count:=faggregates.count-1;
-      inherited;
     end;
 
 

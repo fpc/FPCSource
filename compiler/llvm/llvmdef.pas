@@ -674,7 +674,10 @@ implementation
           internalerror(2014012002);
         res:=current_module.llvmdefs.FindOrAdd(@typename[1],length(typename));
         if not assigned(res^.Data) then
-          res^.Data:=crecorddef.create_global_from_deflist(typename,fieldtypes,packrecords);
+          begin
+            res^.Data:=crecorddef.create_global_internal(typename,packrecords);
+            trecorddef(res^.Data).add_fields_from_deflist(fieldtypes);
+          end;
         result:=trecorddef(res^.Data);
       end;
 

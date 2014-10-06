@@ -298,7 +298,8 @@ interface
           variantrecdesc : pvariantrecdesc;
           isunion       : boolean;
           constructor create(const n:string; p:TSymtable);virtual;
-          constructor create_global_from_deflist(n: string; fieldtypes: tfplist; packrecords: shortint); virtual;
+          constructor create_global_internal(n: string; packrecords: shortint); virtual;
+          procedure add_fields_from_deflist(fieldtypes: tfplist);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           function getcopy : tstoreddef;override;
@@ -3945,11 +3946,8 @@ implementation
       end;
 
 
-    constructor trecorddef.create_global_from_deflist(n: string; fieldtypes: tfplist; packrecords: shortint);
+    constructor trecorddef.create_global_internal(n: string; packrecords: shortint);
       var
-        i: longint;
-        hdef: tdef;
-        sym: tfieldvarsym;
         oldsymtablestack: tsymtablestack;
         definedname: boolean;
       begin
@@ -3965,12 +3963,6 @@ implementation
         symtable:=trecordsymtable.create(n,packrecords);
         symtable.defowner:=self;
         isunion:=false;
-        for i:=0 to fieldtypes.count-1 do
-          begin
-            sym:=cfieldvarsym.create('$f'+tostr(i),vs_value,tdef(fieldtypes[i]),[]);
-            symtable.insert(sym);
-            trecordsymtable(symtable).addfield(sym,vis_hidden);
-          end;
         inherited create(n,recorddef);
         if assigned(current_module.localsymtable) then
           begin
@@ -3987,6 +3979,20 @@ implementation
               current_module.localsymtable.insert(ctypesym.create(n,self));
           end;
         symtablestack:=oldsymtablestack;
+      end;
+
+
+    procedure trecorddef.add_fields_from_deflist(fieldtypes: tfplist);
+      var
+        i: longint;
+        sym: tfieldvarsym;
+      begin
+        for i:=0 to fieldtypes.count-1 do
+          begin
+            sym:=cfieldvarsym.create('$f'+tostr(i),vs_value,tdef(fieldtypes[i]),[]);
+            symtable.insert(sym);
+            trecordsymtable(symtable).addfield(sym,vis_hidden);
+          end;
       end;
 
 

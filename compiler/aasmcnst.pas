@@ -151,8 +151,8 @@ type
         b) the def of the record should be automatically constructed based on
            the types of the emitted fields
      }
-     procedure begin_anonymous_record; virtual;
-     function end_anonymous_record(const optionalname: string; packrecords: shortint): trecorddef; virtual;
+     procedure begin_anonymous_record(const optionalname: string; packrecords: shortint); virtual;
+     function end_anonymous_record: trecorddef; virtual;
 
      { The next group of routines are for constructing complex expressions.
        While parsing a typed constant these operators are encountered from
@@ -538,7 +538,7 @@ implementation
        current_asmdata.getdatalabel(result.lab);
        startlab:=result.lab;
        result.ofs:=0;
-       begin_anonymous_record;
+       begin_anonymous_record('$'+get_dynstring_rec_name(stringtype,false,len),sizeof(pint));
        string_symofs:=get_string_symofs(stringtype,false);
        { encoding }
        emit_tai(tai_const.create_16bit(encoding),u16inttype);
@@ -621,7 +621,7 @@ implementation
        datatcb.maybe_begin_aggregate(datadef);
        datatcb.emit_tai(tai_string.create_pchar(s,len+1),datadef);
        datatcb.maybe_end_aggregate(datadef);
-       ansistrrecdef:=datatcb.end_anonymous_record('$'+get_dynstring_rec_name(st_ansistring,false,len),sizeof(pint));
+       ansistrrecdef:=datatcb.end_anonymous_record;
        if NewSection then
          sectype:=sec_rodata_norel
        else
@@ -644,7 +644,7 @@ implementation
        strlength:=getlengthwidestring(pcompilerwidestring(data));
        if winlike then
          begin
-           datatcb.begin_anonymous_record;
+           datatcb.begin_anonymous_record('$'+get_dynstring_rec_name(st_widestring,true,strlength),sizeof(pint));
            current_asmdata.getdatalabel(result.lab);
            datatcb.emit_tai(Tai_const.Create_32bit(strlength*cwidechartype.size),s32inttype);
            { can we optimise by placing the string constant label at the
@@ -672,7 +672,7 @@ implementation
            { ending #0 }
            datatcb.emit_tai(Tai_const.Create_16bit(0),cwidechartype);
            datatcb.maybe_end_aggregate(datadef);
-           uniwidestrrecdef:=datatcb.end_anonymous_record('$'+get_dynstring_rec_name(st_widestring,winlike,strlength),sizeof(pint));
+           uniwidestrrecdef:=datatcb.end_anonymous_record;
          end
        else
          { code generation for other sizes must be written }
@@ -693,13 +693,14 @@ implementation
        { do nothing }
      end;
 
-   procedure ttai_lowleveltypedconstbuilder.begin_anonymous_record;
+
+   procedure ttai_lowleveltypedconstbuilder.begin_anonymous_record(const optionalname: string; packrecords: shortint);
      begin
        { do nothing }
      end;
 
 
-   function ttai_lowleveltypedconstbuilder.end_anonymous_record(const optionalname: string; packrecords: shortint): trecorddef;
+   function ttai_lowleveltypedconstbuilder.end_anonymous_record: trecorddef;
      begin
        { do nothing }
        result:=nil;
