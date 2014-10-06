@@ -1621,16 +1621,19 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
            ) then
           Message1(parser_w_skipped_fields_after,sorg);
 
-        if not(is_packed) then
-          fillbytes:=def.size-recoffset
-        else
+        if not error then
           begin
-            flush_packed_value(bp);
-            recoffset:=align(recoffset,8);
-            fillbytes:=def.size-(recoffset div 8);
+            if not(is_packed) then
+              fillbytes:=def.size-recoffset
+            else
+              begin
+                flush_packed_value(bp);
+                recoffset:=align(recoffset,8);
+                fillbytes:=def.size-(recoffset div 8);
+              end;
+            for i:=1 to fillbytes do
+              ftcb.emit_tai(Tai_const.Create_8bit(0),u8inttype);
           end;
-        for i:=1 to fillbytes do
-          ftcb.emit_tai(Tai_const.Create_8bit(0),u8inttype);
 
         ftcb.maybe_end_aggregate(def);
         consume(_RKLAMMER);
