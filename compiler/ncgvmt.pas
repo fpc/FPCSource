@@ -600,6 +600,11 @@ implementation
         classindex,
         fieldcount : longint;
         classtablelist : TFPList;
+        tcb: ttai_typedconstbuilder;
+        packrecords: longint;
+        classdef: tobjectdef;
+        classtabledef,
+        fieldtabledef: trecorddef;
       begin
         classtablelist:=TFPList.Create;
         { retrieve field info fields }
@@ -624,39 +629,81 @@ implementation
             current_asmdata.getlabel(fieldtable,alt_data);
             current_asmdata.getlabel(classtable,alt_data);
 
-            list.concat(cai_align.create(const_align(sizeof(pint))));
-            { write fields }
-            list.concat(Tai_label.Create(fieldtable));
-            list.concat(Tai_const.Create_16bit(fieldcount));
             if (tf_requires_proper_alignment in target_info.flags) then
-              list.concat(cai_align.Create(sizeof(TConstPtrUInt)));
-            list.concat(Tai_const.Create_sym(classtable));
+              packrecords:=0
+            else
+              packrecords:=1;
+
+            { generate the class table }
+            tcb:=ctai_typedconstbuilder.create;
+            tcb.begin_anonymous_record('$fpc_intern_classtable_'+tostr(classtablelist.Count-1),packrecords);
+            tcb.emit_tai(Tai_const.Create_16bit(classtablelist.count),u16inttype);
+            for i:=0 to classtablelist.Count-1 do
+              begin
+                classdef:=tobjectdef(classtablelist[i]);
+                { type of the field }
+                tcb.queue_init(voidpointertype);
+                { reference to the vmt }
+                tcb.queue_emit_asmsym(
+                  current_asmdata.RefAsmSymbol(classdef.vmt_mangledname,AT_DATA),
+                  tfieldvarsym(classdef.vmt_field).vardef);
+              end;
+            classtabledef:=tcb.end_anonymous_record;
+            list.concatlist(tcb.get_final_asmlist(classtable,classtabledef,sec_rodata,'',sizeof(pint),[tcalo_is_lab]));
+            tcb.free;
+
+            { write fields }
+            {
+              TFieldTable =
+             $ifndef FPC_REQUIRES_PROPER_ALIGNMENT
+              packed
+             $endif FPC_REQUIRES_PROPER_ALIGNMENT
+              record
+                FieldCount: Word;
+                ClassTable: Pointer;
+                Fields: array[0..0] of TFieldInfo
+              end;
+            }
+            tcb:=ctai_typedconstbuilder.create;
+            { can't easily specify a name here for reuse of the constructed def,
+              since it's full of variable length shortstrings (-> all of those
+              lengths and their order would have to incorporated in the name,
+              plus there would be very little chance that it could actually be
+              reused }
+            tcb.begin_anonymous_record('',packrecords);
+            tcb.emit_tai(Tai_const.Create_16bit(fieldcount),u16inttype);
+            tcb.emit_tai(Tai_const.Create_sym(classtable),getpointerdef(classtabledef));
             for i:=0 to _class.symtable.SymList.Count-1 do
               begin
                 sym:=tsym(_class.symtable.SymList[i]);
                 if (sym.typ=fieldvarsym) and
                   (sym.visibility=vis_published) then
                   begin
-                    if (tf_requires_proper_alignment in target_info.flags) then
-                      list.concat(cai_align.Create(sizeof(pint)));
-                    list.concat(Tai_const.Create_pint(tfieldvarsym(sym).fieldoffset));
+                    {
+                      TFieldInfo =
+                     $ifndef FPC_REQUIRES_PROPER_ALIGNMENT
+                      packed
+                     $endif FPC_REQUIRES_PROPER_ALIGNMENT
+                      record
+                        FieldOffset: PtrUInt;
+                        ClassTypeIndex: Word;
+                        Name: ShortString;
+                      end;
+                    }
+                    tcb.begin_anonymous_record('$fpc_intern_fieldinfo_'+tostr(length(tfieldvarsym(sym).realname)),packrecords);
+                    tcb.emit_tai(Tai_const.Create_pint(tfieldvarsym(sym).fieldoffset),ptruinttype);
                     classindex:=classtablelist.IndexOf(tfieldvarsym(sym).vardef);
                     if classindex=-1 then
                       internalerror(200611033);
-                    list.concat(Tai_const.Create_16bit(classindex+1));
-                    list.concat(Tai_const.Create_8bit(length(tfieldvarsym(sym).realname)));
-                    list.concat(Tai_string.Create(tfieldvarsym(sym).realname));
+                    tcb.emit_tai(Tai_const.Create_16bit(classindex+1),u16inttype);
+                    tcb.emit_shortstring_const(tfieldvarsym(sym).realname);
+                    tcb.end_anonymous_record;
                   end;
               end;
+            fieldtabledef:=tcb.end_anonymous_record;
+            list.concatlist(tcb.get_final_asmlist(fieldtable,fieldtabledef,sec_rodata,'',sizeof(pint),[tcalo_is_lab]));
+            tcb.free;
 
-            { generate the class table }
-            list.concat(cai_align.create(const_align(sizeof(pint))));
-            list.concat(Tai_label.Create(classtable));
-            list.concat(Tai_const.Create_16bit(classtablelist.count));
-            if (tf_requires_proper_alignment in target_info.flags) then
-              list.concat(cai_align.Create(sizeof(TConstPtrUInt)));
-            for i:=0 to classtablelist.Count-1 do
-              list.concat(Tai_const.Createname(tobjectdef(classtablelist[i]).vmt_mangledname,AT_DATA,0));
             result:=fieldtable;
           end
         else
