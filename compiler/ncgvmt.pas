@@ -66,7 +66,7 @@ interface
         { interface tables }
         function  intf_get_vtbl_name(AImplIntf:TImplementedInterface): string;
         procedure intf_create_vtbl(rawdata: TAsmList;AImplIntf:TImplementedInterface);
-        procedure intf_gen_intf_ref(rawdata: TAsmList;AImplIntf:TImplementedInterface);
+        procedure intf_gen_intf_ref(tcb: ttai_typedconstbuilder; AImplIntf: TImplementedInterface; interfaceentrydef, interfaceentrytypedef: tdef);
         function  intf_write_table(list : TAsmList):TAsmLabel;
         { get a table def of the form
             record
@@ -748,44 +748,47 @@ implementation
       end;
 
 
-    procedure TVMTWriter.intf_gen_intf_ref(rawdata: TAsmList;AImplIntf:TImplementedInterface);
+    procedure TVMTWriter.intf_gen_intf_ref(tcb: ttai_typedconstbuilder; AImplIntf: TImplementedInterface; interfaceentrydef, interfaceentrytypedef: tdef);
       var
         pd: tprocdef;
       begin
+        tcb.maybe_begin_aggregate(interfaceentrydef);
         { GUID (or nil for Corba interfaces) }
         if AImplIntf.IntfDef.objecttype in [odt_interfacecom] then
-          rawdata.concat(Tai_const.CreateName(
-            make_mangledname('IID',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^),AT_DATA,0))
+          tcb.emit_tai(Tai_const.CreateName(
+            make_mangledname('IID',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^),AT_DATA,0),getpointerdef(rec_tguid))
         else
-          rawdata.concat(Tai_const.Create_nil_dataptr);
+          tcb.emit_tai(Tai_const.Create_nil_dataptr,getpointerdef(rec_tguid));
 
         { VTable }
-        rawdata.concat(Tai_const.Createname(intf_get_vtbl_name(AImplIntf.VtblImplIntf),AT_DATA,0));
+        tcb.queue_init(voidpointertype);
+        tcb.queue_emit_asmsym(current_asmdata.RefAsmSymbol(intf_get_vtbl_name(AImplIntf.VtblImplIntf),AT_DATA),AImplIntf.VtblImplIntf.IntfDef);
         { IOffset field }
         case AImplIntf.VtblImplIntf.IType of
           etFieldValue, etFieldValueClass,
           etStandard:
-            rawdata.concat(Tai_const.Create_pint(AImplIntf.VtblImplIntf.IOffset));
+            tcb.emit_tai(Tai_const.Create_pint(AImplIntf.VtblImplIntf.IOffset),ptruinttype);
           etStaticMethodResult, etStaticMethodClass:
-            rawdata.concat(Tai_const.Createname(
-              tprocdef(tpropertysym(AImplIntf.ImplementsGetter).propaccesslist[palt_read].procdef).mangledname,
-              AT_FUNCTION,
-              0
-            ));
+            begin
+              pd:=tprocdef(tpropertysym(AImplIntf.ImplementsGetter).propaccesslist[palt_read].procdef);
+              tcb.queue_init(ptruinttype);
+              tcb.queue_emit_proc(pd);
+            end;
           etVirtualMethodResult, etVirtualMethodClass:
             begin
-              pd := tprocdef(tpropertysym(AImplIntf.ImplementsGetter).propaccesslist[palt_read].procdef);
-              rawdata.concat(Tai_const.Create_pint(tobjectdef(pd.struct).vmtmethodoffset(pd.extnumber)));
+              pd:=tprocdef(tpropertysym(AImplIntf.ImplementsGetter).propaccesslist[palt_read].procdef);
+              tcb.emit_tai(Tai_const.Create_pint(tobjectdef(pd.struct).vmtmethodoffset(pd.extnumber)),ptruinttype);
             end;
           else
             internalerror(200802162);
         end;
 
         { IIDStr }
-        rawdata.concat(Tai_const.CreateName(
-          make_mangledname('IIDSTR',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^),AT_DATA,0));
+        tcb.emit_tai(Tai_const.CreateName(
+          make_mangledname('IIDSTR',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^),AT_DATA,0),getpointerdef(getarraydef(cansichartype,length(AImplIntf.IntfDef.iidstr^)+1)));
         { IType }
-        rawdata.concat(Tai_const.Create_pint(aint(AImplIntf.VtblImplIntf.IType)));
+        tcb.emit_ord_const(aint(AImplIntf.VtblImplIntf.IType),interfaceentrytypedef);
+        tcb.maybe_end_aggregate(interfaceentrydef);
       end;
 
 
@@ -793,17 +796,29 @@ implementation
       var
         i        : longint;
         ImplIntf : TImplementedInterface;
+        tcb      : ttai_typedconstbuilder;
+        tabledef : tdef;
+        interfaceentrydef : tdef;
+        interfaceentrytypedef: tdef;
+        interfacearray: tdef;
       begin
         current_asmdata.getlabel(result,alt_data);
-        list.concat(cai_align.create(const_align(sizeof(pint))));
-        list.concat(Tai_label.Create(result));
-        list.concat(Tai_const.Create_pint(_class.ImplementedInterfaces.count));
+        tcb:=ctai_typedconstbuilder.create;
+        tcb.begin_anonymous_record('',0);
+        tcb.emit_tai(Tai_const.Create_pint(_class.ImplementedInterfaces.count),search_system_type('SIZEUINT').typedef);
+        interfaceentrydef:=search_system_type('TINTERFACEENTRY').typedef;
+        interfaceentrytypedef:=search_system_type('TINTERFACEENTRYTYPE').typedef;
+        interfacearray:=getarraydef(interfaceentrydef,_class.ImplementedInterfaces.count);
+        tcb.maybe_begin_aggregate(interfacearray);
         { Write vtbl references }
         for i:=0 to _class.ImplementedInterfaces.count-1 do
           begin
             ImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[i]);
-            intf_gen_intf_ref(list,ImplIntf);
+            intf_gen_intf_ref(tcb,ImplIntf,interfaceentrydef,interfaceentrytypedef);
           end;
+        tcb.maybe_end_aggregate(interfacearray);
+        tabledef:=tcb.end_anonymous_record;
+        list.concatlist(tcb.get_final_asmlist(result,tabledef,sec_rodata,'',tabledef.alignment,[tcalo_is_lab]));
 
         { Write vtbls }
         for i:=0 to _class.ImplementedInterfaces.count-1 do
@@ -812,6 +827,7 @@ implementation
             if ImplIntf.VtblImplIntf=ImplIntf then
               intf_create_vtbl(list,ImplIntf);
           end;
+        tcb.free;
       end;
 
 
