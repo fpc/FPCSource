@@ -83,6 +83,16 @@ begin
   end;
 end;
 
+procedure CheckSequence_AllowEquals(P1, P2: Pointer);
+begin
+  if ((LongInt(Seg(P1^)) shl 4) + Ofs(P1^)) >
+     ((LongInt(Seg(P2^)) shl 4) + Ofs(P2^)) then
+  begin
+    Writeln('Pointer sequence broken: ', PtrStr(P1) , '>', PtrStr(P2), ' (should be <=)');
+    Halt(1);
+  end;
+end;
+
 procedure CheckOverlap(P1, P1Size, P2: Pointer);
 begin
   if (((LongInt(Seg(P1^)) shl 4) + Ofs(P1^)) +
@@ -123,6 +133,8 @@ begin
   Writeln('HeapEnd = ', PtrStr(HeapEnd));
   Writeln('HeapPtr = ', PtrStr(HeapPtr));
   Writeln('FreeList = ', PtrStr(FreeList));
+  CheckSequence_AllowEquals(HeapOrg, FreeList);
+  CheckSequence_AllowEquals(HeapPtr, HeapEnd);
   WalkFreeList;
 end;
 
