@@ -283,14 +283,14 @@ begin
       Dec(I);
   If SysSetVideoMode then
     begin
-    If (I<SysVideoModeCount-1) then
-      DoSetVideoMode(I)
-    else
-      SetVideo8x8;
-    ScreenWidth:=SysVMD[I].Col;
-    ScreenHeight:=SysVMD[I].Row;
-    ScreenColor:=SysVMD[I].Color;
-    DoCustomMouse(false);
+      If (I<SysVideoModeCount-1) then
+        DoSetVideoMode(I)
+      else
+        SetVideo8x8;
+      ScreenWidth:=SysVMD[I].Col;
+      ScreenHeight:=SysVMD[I].Row;
+      ScreenColor:=SysVMD[I].Color;
+      DoCustomMouse(false);
     end;
 end;
 
