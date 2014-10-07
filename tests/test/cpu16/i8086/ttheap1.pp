@@ -133,6 +133,10 @@ begin
   Writeln('HeapEnd = ', PtrStr(HeapEnd));
   Writeln('HeapPtr = ', PtrStr(HeapPtr));
   Writeln('FreeList = ', PtrStr(FreeList));
+  CheckNormalization(HeapOrg);
+  CheckAlignment(HeapOrg);
+  CheckNormalization(HeapEnd);
+  CheckAlignment(HeapEnd);
   CheckSequence_AllowEquals(HeapOrg, FreeList);
   CheckSequence_AllowEquals(HeapPtr, HeapEnd);
   WalkFreeList;
