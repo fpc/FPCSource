@@ -260,8 +260,8 @@
     function SysTinyReAllocMem(var p: pointer; size: ptruint):pointer;
       var
         oldsize, OldAllocSize, NewAllocSize: ptruint;
-        after_block, before_block: PTinyHeapBlock;
-        after_block_size: PtrUInt;
+        after_block, before_block, before_before_block: PTinyHeapBlock;
+        after_block_size, before_block_size: PtrUInt;
         new_after_block: PTinyHeapBlock;
       begin
 {$ifdef DEBUG_TINY_HEAP}
@@ -306,8 +306,10 @@
                   before and after our memory block. }
                 after_block := FreeList;
                 before_block := nil;
+                before_before_block := nil;
                 while (after_block<>HeapPtr) and (TTinyHeapPointerArithmeticType(after_block) < TTinyHeapPointerArithmeticType(p)) do
                   begin
+                    before_before_block := before_block;
                     before_block := after_block;
                     after_block := after_block^.Next;
                   end;
@@ -358,18 +360,60 @@
                 else
                   begin
                     { is before_block immediately before our block? }
-                    //if assigned(before_block) and (Pointer(TTinyHeapPointerArithmeticType(before_block)+DecodeTinyHeapFreeBlockSize(before_block^.Size))=Pointer(TTinyHeapPointerArithmeticType(p)-SizeOf(TTinyHeapMemBlockSize))) then
-                    //  ;
+                    if assigned(before_block) and (Pointer(TTinyHeapPointerArithmeticType(before_block)+DecodeTinyHeapFreeBlockSize(before_block^.Size))=Pointer(TTinyHeapPointerArithmeticType(p)-SizeOf(TTinyHeapMemBlockSize))) then
+                      before_block_size := DecodeTinyHeapFreeBlockSize(before_block^.Size)
+                    else
+                      before_block_size := 0;
 
-                    result := AllocMem(size);
-                    if result <> nil then
+                    { if there's enough space, we can slide our current block back and reclaim before_block }
+                    if (before_block_size<NewAllocSize) and ((before_block_size+OldAllocSize+after_block_size)>=NewAllocSize) and
+                       { todo: implement this also for after_block_size>0 }
+                       (after_block_size>0) then
                       begin
-                        if oldsize > size then
-                          oldsize := size;
-                        move(pbyte(p)^, pbyte(result)^, oldsize);
+                        if (before_block_size+OldAllocSize+after_block_size)=NewAllocSize then
+                          begin
+                            if after_block=HeapPtr then
+                              begin
+                                HeapPtr := HeapEnd;
+                                if assigned(before_before_block) then
+                                  before_before_block^.Next := HeapPtr
+                                else
+                                  FreeList := HeapPtr;
+                              end
+                            else
+                              if assigned(before_before_block) then
+                                before_before_block^.Next := after_block^.Next
+                              else
+                                FreeList := after_block^.Next;
+                          end;
+                        Result := Pointer(TTinyHeapPointerArithmeticType(before_block)+SizeOf(TTinyHeapMemBlockSize));
+                        Move(p^, Result^, oldsize);
+                        PTinyHeapMemBlockSize(before_block)^ := size;
+                        if (before_block_size+OldAllocSize+after_block_size)>NewAllocSize then
+                          begin
+                            new_after_block := PTinyHeapBlock(TTinyHeapPointerArithmeticType(before_block)+NewAllocSize);
+                            new_after_block^.Next:=after_block^.Next;
+                            new_after_block^.Size:=EncodeTinyHeapFreeBlockSize(before_block_size+after_block_size-(NewAllocSize-OldAllocSize));
+                            if assigned(before_before_block) then
+                              before_before_block^.Next := new_after_block
+                            else
+                              FreeList := new_after_block;
+                          end;
+                        FillChar((TTinyHeapPointerArithmeticType(Result)+oldsize)^, size-oldsize, 0);
+                        p := Result;
+                      end
+                    else
+                      begin
+                        result := AllocMem(size);
+                        if result <> nil then
+                          begin
+                            if oldsize > size then
+                              oldsize := size;
+                            move(pbyte(p)^, pbyte(result)^, oldsize);
+                          end;
+                        SysTinyFreeMem(p);
+                        p := result;
                       end;
-                    SysTinyFreeMem(p);
-                    p := result;
                   end;
               end;
           end;
