@@ -437,7 +437,11 @@ begin
             memopsize := 0;
             case operands[i].opr.typ of
                   OPR_LOCAL: memopsize := operands[i].opr.localvarsize * 8;
-              OPR_REFERENCE: memopsize := operands[i].opr.varsize * 8;
+              OPR_REFERENCE:
+                  if operands[i].opr.ref.refaddr = addr_pic then
+                    memopsize := sizeof(pint) * 8
+                  else
+                    memopsize := operands[i].opr.varsize * 8;
             end;
 
             if memopsize = 0 then memopsize := topsize2memsize[tx86operand(operands[i]).opsize];
