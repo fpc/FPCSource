@@ -26,8 +26,8 @@ unit options;
 interface
 
 uses
-  cfileutl,
-  globtype,globals,verbose,systems,cpuinfo,comprsrc;
+  cfileutl,cclasses,
+  globtype,globals,verbose,systems,cpuinfo, comprsrc;
 
 Type
   TOption=class
@@ -47,8 +47,10 @@ Type
     ParaUnitPath,
     ParaObjectPath,
     ParaLibraryPath,
-    ParaFrameworkPath : TSearchPathList;
+    ParaFrameworkPath,
+    parapackagepath : TSearchPathList;
     ParaAlignment   : TAlignmentInfo;
+    parapackages : tfphashobjectlist;
     Constructor Create;
     Destructor Destroy;override;
     procedure WriteLogo;
@@ -92,6 +94,7 @@ uses
   symtable,scanner,rabase,
   symconst,
   dirparse,
+  fpkg,
   i_bsd;
 
 const
@@ -1241,6 +1244,20 @@ begin
                        ParaObjectPath.AddPath(More,false)
                      else
                        ObjectSearchPath.AddPath(More,true);
+                   end;
+                 'P' :
+                   begin
+                     if ispara then
+                       parapackages.add(more,nil)
+                     else
+                       addpackage(packagelist,more);
+                   end;
+                 'p' :
+                   begin
+                     if ispara then
+                       parapackagepath.AddPath(More,false)
+                     else
+                       packagesearchpath.AddPath(More,true);
                    end;
                  'r' :
                    Msgfilename:=More;
@@ -2791,6 +2808,8 @@ begin
   ParaUnitPath:=TSearchPathList.Create;
   ParaLibraryPath:=TSearchPathList.Create;
   ParaFrameworkPath:=TSearchPathList.Create;
+  parapackagepath:=TSearchPathList.Create;
+  parapackages:=TFPHashObjectList.Create;
   FillChar(ParaAlignment,sizeof(ParaAlignment),0);
   MacVersionSet:=false;
 end;
@@ -2804,6 +2823,8 @@ begin
   ParaUnitPath.Free;
   ParaLibraryPath.Free;
   ParaFrameworkPath.Free;
+  parapackagepath.Free;
+  ParaPackages.Free;
 end;
 
 
@@ -2877,6 +2898,7 @@ procedure read_arguments(cmd:TCmdStr);
 var
   env: ansistring;
   i : tfeature;
+  j : longint;
   abi : tabi;
 {$if defined(cpucapabilities)}
   cpuflag : tcpuflags;
@@ -3270,6 +3292,9 @@ begin
   IncludeSearchPath.AddList(option.ParaIncludePath,true);
   LibrarySearchPath.AddList(option.ParaLibraryPath,true);
   FrameworkSearchPath.AddList(option.ParaFrameworkPath,true);
+  packagesearchpath.addlist(option.parapackagepath,true);
+  for j:=0 to option.parapackages.count-1 do
+    addpackage(packagelist,option.parapackages.NameOfIndex(j));
 
   { add unit environment and exepath to the unit search path }
   if inputfilepath<>'' then

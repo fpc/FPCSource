@@ -177,6 +177,7 @@ compiler/finput.pas svneol=native#text/plain
 compiler/fmodule.pas svneol=native#text/plain
 compiler/fpccrc.pas svneol=native#text/plain
 compiler/fpcdefs.inc svneol=native#text/plain
+compiler/fpkg.pas svneol=native#text/pascal
 compiler/fppu.pas svneol=native#text/plain
 compiler/gendef.pas svneol=native#text/plain
 compiler/generic/cpuinfo.pas svneol=native#text/plain
