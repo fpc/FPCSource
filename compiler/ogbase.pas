@@ -683,14 +683,14 @@ implementation
 
     procedure TObjSymbol.SetAddress(apass:byte;aobjsec:TObjSection;abind:TAsmsymbind;atyp:Tasmsymtype);
       begin
-        if not(abind in [AB_GLOBAL,AB_LOCAL,AB_COMMON,AB_IMPORT]) then
+        if not(abind in [AB_GLOBAL,AB_LOCAL,AB_COMMON,AB_IMPORT,AB_PRIVATE_EXTERN]) then
           internalerror(200603016);
         if not assigned(aobjsec) then
           internalerror(200603017);
         if (bind in [AB_EXTERNAL,AB_LAZY]) or
           { Put all COMMON to GLOBAL in step 3 of
             TExeOutput.ResolveSymbols }
-           ((abind=AB_GLOBAL) and (bind=AB_COMMON)) then
+           ((abind in [AB_GLOBAL,AB_PRIVATE_EXTERN]) and (bind=AB_COMMON)) then
           begin
             { Do not change the AB_TYPE of common symbols yet }
             { This will be done in FixupSymbols }
