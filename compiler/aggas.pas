@@ -1236,7 +1236,7 @@ implementation
              begin
                if (tai_label(hp).labsym.is_used) then
                 begin
-                  if (tai_label(hp).labsym.bind=AB_PRIVATE_EXTERN) then
+                  if (tai_label(hp).labsym.bind=AB_PRIVATE_EXTERN) and not (target_info.system in systems_windows) then
                     begin
                       AsmWrite(#9'.private_extern ');
                       AsmWriteln(tai_label(hp).labsym.name);
@@ -1259,7 +1259,7 @@ implementation
 
            ait_symbol :
              begin
-               if (tai_symbol(hp).sym.bind=AB_PRIVATE_EXTERN) then
+               if (tai_symbol(hp).sym.bind=AB_PRIVATE_EXTERN) and not (target_info.system in systems_windows) then
                  begin
                    AsmWrite(#9'.private_extern ');
                    if replaceforbidden then
