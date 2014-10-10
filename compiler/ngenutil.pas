@@ -576,7 +576,7 @@ implementation
       { add indirect symbol }
       if (vo_has_section in sym.varoptions) or (sectype<>sec_rodata) then
         new_section(list,sec_rodata,lower(sym.mangledname),const_align(sym.vardef.alignment));
-      labind:=current_asmdata.DefineAsmSymbol(sym.mangledname+indirect_suffix,AB_GLOBAL,AT_DATA);
+      labind:=current_asmdata.DefineAsmSymbol(sym.mangledname+indirect_suffix,AB_PRIVATE_EXTERN,AT_DATA);
       list.concat(Tai_symbol.Create_Global(labind,0));
       list.concat(Tai_const.Createname(sym.mangledname,AT_DATA,0));
       list.concat(tai_symbol_end.Create(labind));
