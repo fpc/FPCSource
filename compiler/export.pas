@@ -53,9 +53,12 @@ type
    texportlib=class
    private
       notsupmsg : boolean;
+      fignoreduplicates : boolean;
       finitname,
       ffininame  : string;
       procedure NotSupported;
+   protected
+      procedure duplicatesymbol(const s:string);
    public
       constructor Create;virtual;
       destructor Destroy;override;
@@ -68,6 +71,7 @@ type
       
       property initname: string read finitname;
       property fininame: string read ffininame;
+      property ignoreduplicates : boolean read fignoreduplicates write fignoreduplicates;
    end;
 
    TExportLibClass=class of TExportLib;
@@ -188,6 +192,7 @@ end;
 constructor texportlib.Create;
 begin
   notsupmsg:=false;
+  fignoreduplicates:=false;
 end;
 
 
@@ -204,6 +209,15 @@ begin
      Message(exec_e_dll_not_supported);
      notsupmsg:=true;
    end;
+end;
+
+
+procedure texportlib.duplicatesymbol(const s: string);
+begin
+  { only generate an error if the caller is not aware that it could generate
+    duplicates (e.g. exporting from a package) }
+  if not ignoreduplicates then
+    Message1(parser_e_export_name_double,s);
 end;
 
 
