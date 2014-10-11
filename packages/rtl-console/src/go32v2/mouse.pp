@@ -724,7 +724,6 @@ end;
 procedure DoCustomMouse(b : boolean);
 
   begin
-     HideMouse;
      lockmouse;
      oldmousex:=-1;
      oldmousey:=-1;
