@@ -24,7 +24,6 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="--suite=TTestParser.TestErrors"/>
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
@@ -80,11 +79,6 @@
         <UseAnsiStrings Value="False"/>
       </SyntaxOptions>
     </Parsing>
-    <Linking>
-      <Debugging>
-        <UseHeaptrc Value="True"/>
-      </Debugging>
-    </Linking>
     <Other>
       <CompilerMessages>
         <UseMsgFile Value="True"/>
@@ -92,4 +86,14 @@
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="2">
+      <Item1>
+        <Name Value="EConvertError"/>
+      </Item1>
+      <Item2>
+        <Name Value="EJSON"/>
+      </Item2>
+    </Exceptions>
+  </Debugging>
 </CONFIG>
