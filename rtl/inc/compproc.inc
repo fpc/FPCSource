@@ -631,6 +631,9 @@ function fpc_class_as_corbaintf(const S: pointer; const iid: Shortstring): Point
 {$ifdef FPC_HAS_FEATURE_VARIANTS}
 procedure fpc_dispatch_by_id(Result: Pointer; const Dispatch: pointer;DispDesc: Pointer; Params: Pointer); compilerproc;
 {$endif FPC_HAS_FEATURE_VARIANTS}
+procedure fpc_refcountclass_decr_ref(var o: pointer; offset: longint); compilerproc;
+procedure fpc_refcountclass_incr_ref(o: pointer; offset: longint); compilerproc;
+procedure fpc_refcountclass_assign(var D: pointer; const S: pointer; offset: longint); compilerproc;
 {$endif FPC_HAS_FEATURE_CLASSES}
 
 

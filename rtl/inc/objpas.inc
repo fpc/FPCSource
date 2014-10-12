@@ -268,6 +268,60 @@
       end;
 
 
+    { reference counted class helpers }
+    procedure fpc_refcountclass_decr_ref(var o: pointer; offset: longint);[public,alias: 'FPC_REFCOUNTCLASS_DECR_REF']; compilerproc;
+      var
+        offsetfield: PLongInt;
+        enabledestroy: Boolean;
+      begin
+        //Writeln('fpc_refcountclass_decr_ref: ', hexstr(o), ' ', offset);
+        enabledestroy := offset >= 0;
+        if not enabledestroy then
+          offset := -offset;
+        offsetfield := PLongInt(PByte(o) + offset);
+        if assigned(o) and (offsetfield^ > 0) then
+          begin
+            //Writeln('Decrement from ', offsetfield^, ' at ', hexstr(offsetfield));
+            InterlockedDecrement(offsetfield^);
+            if (offsetfield^ = 0) and enabledestroy then
+              begin
+                //Writeln('Calling destructor');
+                { to avoid further refcount changes }
+                offsetfield^ := -1;
+                TObject(o).Destroy;
+                o:=nil;
+              end;
+          end;
+      end;
+
+    { local declaration for refcountclass_decr_ref for local access }
+    procedure refcountclass_decr_ref(var o: pointer; offset: longint); [external name 'FPC_REFCOUNTCLASS_DECR_REF'];
+
+
+    procedure fpc_refcountclass_incr_ref(o: pointer; offset: longint);[public,alias: 'FPC_REFCOUNTCLASS_INCR_REF']; compilerproc;
+      begin
+        //Writeln('fpc_refcountclass_incr_ref: ', hexstr(o), ' ', offset);
+         if assigned(o) and (PLongInt(PByte(o) + offset)^ >= 0) then
+           begin
+             //Writeln('Increment from ', PLongInt(PByte(o) + offset)^, ' at ', hexstr(PByte(o) + offset));
+             InterlockedIncrement(PLongInt(PByte(o) + offset)^);
+           end;
+      end;
+
+    { local declaration of refcountclass_incr_ref for local access }
+    procedure refcountclass_incr_ref(o: pointer; offset: longint); [external name 'FPC_REFCOUNTCLASS_INCR_REF'];
+
+    procedure fpc_refcountclass_assign(var D: pointer; const S: pointer; offset: longint);[public,alias: 'FPC_REFCOUNTCLASS_ASSIGN']; compilerproc;
+      begin
+        //Writeln('fpc_refcountclass_assign: ', hexstr(d), ' ', hexstr(s), ' ', offset);
+        refcountclass_incr_ref(S,offset);
+        refcountclass_decr_ref(D,offset);
+        D:=S;
+      end;
+
+    procedure refcountclass_assign(var D: pointer; const s: pointer; offset: longint); [external name 'FPC_REFCOUNTCLASS_ASSIGN'];
+
+
 {****************************************************************************
                                TOBJECT
 ****************************************************************************}
