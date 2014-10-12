@@ -563,6 +563,7 @@ interface
           exp_funcretloc : tregister;   { explicit funcretloc for AmigaOS }
 {$endif}
           funcretloc : array[tcallercallee] of TCGPara;
+          retisweak : boolean;
           has_paraloc_info : tcallercallee; { paraloc info is available }
           { number of user visible parameters }
           maxparacount,
@@ -4286,6 +4287,7 @@ implementation
          proctypeoption:=tproctypeoption(ppufile.getbyte);
          proccalloption:=tproccalloption(ppufile.getbyte);
          ppufile.getnormalset(procoptions);
+         retisweak:=boolean(ppufile.getbyte);
 
          funcretloc[callerside].init;
          if po_explicitparaloc in procoptions then
@@ -4311,6 +4313,7 @@ implementation
          ppufile.putbyte(ord(proctypeoption));
          ppufile.putbyte(ord(proccalloption));
          ppufile.putnormalset(procoptions);
+         ppufile.putbyte(ord(retisweak));
          ppufile.do_interface_crc:=oldintfcrc;
 
          if (po_explicitparaloc in procoptions) then

@@ -459,6 +459,14 @@ implementation
                        end;
                     end;
                   end;
+                if is_class(hdef) and
+                    (oo_is_reference_counted in tobjectdef(hdef).objectoptions) and
+                    try_to_consume(_WEAK) then
+                  begin
+                    if sc.count>1 then
+                      Message1(parser_e_directive_only_one_var,arraytokeninfo[_WEAK].str);
+                    include(tabstractvarsym(sc[0]).varoptions,vo_is_weakref);
+                  end;
                 if (target_info.system in [system_powerpc_morphos,system_m68k_amiga]) then
                   begin
                     if (idtoken=_LOCATION) then
@@ -1162,6 +1170,10 @@ implementation
                       if try_to_consume(_COLON) then
                        begin
                          read_returndef(pd);
+                         if is_class(pd.returndef) and
+                             (oo_is_reference_counted in tobjectdef(pd.returndef).objectoptions) and
+                             try_to_consume(_WEAK) then
+                           pd.retisweak:=true;
                          if (target_info.system in [system_m68k_amiga]) then
                           begin
                            if (idtoken=_LOCATION) then
@@ -1307,6 +1319,10 @@ implementation
                   else
                    begin
                      read_returndef(pd);
+                     if is_class(pd.returndef) and
+                         (oo_is_reference_counted in tobjectdef(pd.returndef).objectoptions) and
+                         try_to_consume(_WEAK) then
+                       pd.retisweak:=true;
                      { check that class operators have either return type of structure or }
                      { at least one argument of that type                                 }
                      if (po_classmethod in pd.procoptions) and

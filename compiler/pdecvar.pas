@@ -1103,6 +1103,17 @@ implementation
         end;
 {$endif}
 
+
+        procedure read_weak(sc:tfpobjectlist);
+          var
+            vs : tabstractvarsym;
+          begin
+            if sc.count>1 then
+              Message1(parser_e_directive_only_one_var,arraytokeninfo[_WEAK].str);
+            vs:=tabstractvarsym(sc[0]);
+            include(vs.varoptions,vo_is_weakref);
+          end;
+
         procedure read_absolute(sc : TFPObjectList);
         var
           vs     : tabstractvarsym;
@@ -1338,6 +1349,13 @@ implementation
                begin
                  read_absolute(sc);
                  allowdefaultvalue:=false;
+               end;
+
+             if is_class(hdef) and
+                 (oo_is_reference_counted in tobjectdef(hdef).objectoptions) and
+                 try_to_consume(_WEAK) then
+               begin
+                 read_weak(sc);
                end;
 
              { Check for EXTERNAL etc directives before a semicolon }
@@ -1601,6 +1619,16 @@ implementation
                  is_first_type:=false;
                end;
 {$endif powerpc or powerpc64}
+
+             if is_class(hdef)
+                 and (oo_is_reference_counted in tobjectdef(hdef).objectoptions)
+                 and try_to_consume(_WEAK) then
+               begin
+                 if sc.count>1 then
+                   Message1(parser_e_directive_only_one_var,arraytokeninfo[_WEAK].str);
+                 vs:=tabstractvarsym(sc[0]);
+                 include(vs.varoptions,vo_is_weakref);
+               end;
 
              { types that use init/final are not allowed in variant parts, but
                classes are allowed }
