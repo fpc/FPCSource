@@ -431,6 +431,7 @@ interface
           procedure set_parent(c : tobjectdef);
           function find_destructor: tprocdef;
           function implements_any_interfaces: boolean;
+          function refcount_field:tsym;
           { dispinterface support }
           function get_next_dispid: longint;
           { enumerator support }
@@ -6366,6 +6367,22 @@ implementation
         result := (ImplementedInterfaces.Count > 0) or
           (assigned(childof) and childof.implements_any_interfaces);
       end;
+
+
+     function tobjectdef.refcount_field:tsym;
+       var
+         srsymtable : tsymtable;
+       begin
+         if not (oo_is_reference_counted in objectoptions) then
+           result:=nil
+         else
+           begin
+             { search without the '$' prefix! }
+             if not searchsym_in_class(self,self,'refcount',result,srsymtable,[]) then
+               result:=nil;
+           end;
+       end;
+
 
     function tobjectdef.size : asizeint;
       begin
