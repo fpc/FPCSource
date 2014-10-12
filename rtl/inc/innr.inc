@@ -89,6 +89,7 @@ const
    fpc_in_unbox_x_y         = 78; { manage platforms: extract from class instance }
    fpc_in_popcnt_x          = 79;
    fpc_in_aligned_x         = 80;
+   fpc_in_setstring_x_y_z   = 81;
 
 { Internal constant functions }
    fpc_in_const_sqr        = 100;

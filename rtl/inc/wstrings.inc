@@ -723,7 +723,7 @@ begin
 end;
 
 
-Procedure SetString (Out S : WideString; Buf : PWideChar; Len : SizeInt);
+Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_widestr_pwidechar{$else}SetString{$endif}(Out S : WideString; Buf : PWideChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
 begin
   SetLength(S,Len);
   If (Buf<>Nil) and (Len>0) then
@@ -731,7 +731,7 @@ begin
 end;
 
 
-Procedure SetString (Out S : WideString; Buf : PChar; Len : SizeInt);
+Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_widestr_pansichar{$else}SetString{$endif}(Out S : WideString; Buf : PChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
 begin
   If (Buf<>Nil) and (Len>0) then
     widestringmanager.Ansi2WideMoveProc(Buf,DefaultSystemCodePage,S,Len)

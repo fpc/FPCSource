@@ -1351,7 +1351,7 @@ end;
 
 {$ifndef FPC_HAS_SETSTRING_UNICODESTR_PUNICODECHAR}
 {$define FPC_HAS_SETSTRING_UNICODESTR_PUNICODECHAR}
-Procedure SetString (Out S : UnicodeString; Buf : PUnicodeChar; Len : SizeInt);
+Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_unicodestr_pwidechar{$else}SetString{$endif}(Out S : UnicodeString; Buf : PUnicodeChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
 begin
   SetLength(S,Len);
   If (Buf<>Nil) and (Len>0) then
@@ -1362,7 +1362,7 @@ end;
 
 {$ifndef FPC_HAS_SETSTRING_UNICODESTR_PCHAR}
 {$define FPC_HAS_SETSTRING_UNICODESTR_PCHAR}
-Procedure SetString (Out S : UnicodeString; Buf : PChar; Len : SizeInt);
+Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_unicodestr_pansichar{$else}SetString{$endif}(Out S : UnicodeString; Buf : PChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
 begin
   If (Buf<>Nil) and (Len>0) then
     widestringmanager.Ansi2UnicodeMoveProc(Buf,DefaultSystemCodePage,S,Len)

@@ -1404,20 +1404,36 @@ end;
 {$endif FPC_HAS_ANSISTR_OF_CHAR}
 
 
-Procedure SetString(Out S : AnsiString; Buf : PAnsiChar; Len : SizeInt); inline;
+{$ifdef FPC_HAS_CPSTRING}
+Procedure fpc_setstring_ansistr_pansichar(out S : RawByteString; Buf : PAnsiChar; Len : SizeInt; cp: TSystemCodePage); rtlproc; compilerproc;
+{$else}
+Procedure SetString(out S : AnsiString; Buf : PAnsiChar; Len : SizeInt);
+{$endif}
 begin
   SetLength(S,Len);
+{$ifdef FPC_HAS_CPSTRING}
+  SetCodePage(S,cp,false);
+{$endif}
   If (Buf<>Nil) then
     fpc_pchar_ansistr_intern_charmove(Buf,0,S,0,Len);
 end;
 
 
-Procedure SetString(Out S : AnsiString; Buf : PWideChar; Len : SizeInt);
+{$ifdef FPC_HAS_CPSTRING}
+Procedure fpc_setstring_ansistr_pwidechar(out S : RawByteString; Buf : PWideChar; Len : SizeInt; cp: TSystemCodePage); rtlproc; compilerproc;
+{$else}
+Procedure SetString(out S : AnsiString; Buf : PWideChar; Len : SizeInt);
+{$endif}
 begin
   if (Buf<>nil) and (Len>0) then
-    widestringmanager.Wide2AnsiMoveProc(Buf,RawByteString(S),DefaultSystemCodePage,Len)
+    widestringmanager.Wide2AnsiMoveProc(Buf,S,{$ifdef FPC_HAS_CPSTRING}cp{$else}DefaultSystemCodePage{$endif},Len)
   else
-    SetLength(S, Len);
+    begin
+      SetLength(S, Len);
+{$ifdef FPC_HAS_CPSTRING}
+      SetCodePage(S,cp,false);
+{$endif}
+    end;
 end;
 
 
