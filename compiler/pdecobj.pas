@@ -496,6 +496,10 @@ implementation
                   else
                   if try_to_consume(_SEALED) then
                     include(current_structdef.objectoptions,oo_is_sealed)
+                  else
+                  if (current_objectdef.objecttype=odt_class) and
+                      try_to_consume(_REFCOUNTED) then
+                    include(current_structdef.objectoptions,oo_is_reference_counted)
                   else if (current_objectdef.objecttype=odt_javaclass) and
                           (token=_ID) and
                           (idtoken=_EXTERNAL) then
@@ -640,6 +644,8 @@ implementation
                          childof:=nil;
                        end;
                 end;
+                if oo_is_reference_counted in childof.objectoptions then
+                  include(current_objectdef.objectoptions,oo_is_reference_counted);
               end;
             hasparentdefined:=true;
           end;
@@ -1495,6 +1501,17 @@ implementation
               end
             else
               olddef:=nil;
+
+            if (oo_is_reference_counted in current_objectdef.objectoptions) and
+                (
+                  not assigned(current_objectdef.childof) or
+                  not (oo_is_reference_counted in current_objectdef.childof.objectoptions)
+                ) then
+              begin
+                fsym:=cfieldvarsym.create('$refcount',vs_value,s32inttype,[]);
+                current_objectdef.symtable.insert(fsym);
+                tobjectsymtable(current_objectdef.symtable).addfield(fsym,vis_private);
+              end;
 
             { parse and insert object members }
             parse_object_members;
