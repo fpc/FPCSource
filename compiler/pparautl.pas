@@ -77,6 +77,8 @@ implementation
              paranr:=paranr_result;
            { Generate result variable accessing function result }
            vs:=cparavarsym.create('$result',paranr,vs_var,pd.returndef,[vo_is_funcret,vo_is_hidden_para]);
+           if pd.retisweak then
+             include(vs.varoptions,vo_is_weakref);
            pd.parast.insert(vs);
            { Store this symbol as funcretsym for procedures }
            if pd.typ=procdef then
@@ -258,6 +260,8 @@ implementation
                not paramanager.ret_in_param(pd.returndef,pd) then
             begin
               vs:=clocalvarsym.create('$result',vs_value,pd.returndef,[vo_is_funcret]);
+              if pd.retisweak then
+                include(vs.varoptions,vo_is_weakref);
               pd.localst.insert(vs);
               pd.funcretsym:=vs;
             end;
