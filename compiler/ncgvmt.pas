@@ -808,6 +808,7 @@ implementation
 {$endif WITHDMT}
          interfacetable : tasmlabel;
          templist : TAsmList;
+         offsetsym : tfieldvarsym;
       begin
 {$ifdef WITHDMT}
          dmtlabel:=gendmt;
@@ -915,6 +916,15 @@ implementation
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(strmessagetable))
             else
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_nil_dataptr);
+            if oo_is_reference_counted in _class.objectoptions then
+              begin
+                offsetsym:=tfieldvarsym(_class.refcount_field);
+                if not assigned(offsetsym) or (offsetsym.typ<>fieldvarsym) then
+                  internalerror(2014101201);
+                current_asmdata.asmlists[al_globals].concat(Tai_const.Create(aitconst_ptr,offsetsym.fieldoffset));
+              end
+            else
+              current_asmdata.asmlists[al_globals].concat(Tai_const.Create(aitconst_ptr,0));
           end;
          { write virtual methods }
          writevirtualmethods(current_asmdata.asmlists[al_globals]);

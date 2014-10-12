@@ -6407,8 +6407,8 @@ implementation
         { for offset of methods for classes, see rtl/inc/objpash.inc }
         case objecttype of
         odt_class:
-          { the +2*sizeof(pint) is size and -size }
-          vmtmethodoffset:=index*voidcodepointertype.size+10*voidpointertype.size+2*sizeof(pint);
+          { the +3*sizeof(pint) is size, -size and refcount offset }
+          vmtmethodoffset:=index*voidcodepointertype.size+10*voidpointertype.size+3*sizeof(pint);
         odt_helper,
         odt_objcclass,
         odt_objcprotocol:
@@ -6420,11 +6420,11 @@ implementation
           { invalid }
           vmtmethodoffset:=-1;
         else
-          { the +2*sizeof(pint) is size and -size }
+          { the +3*sizeof(pint) is size, -size and refcount offset }
 {$ifdef WITHDMT}
-          vmtmethodoffset:=index*voidcodepointertype.size+2*voidpointertype.size+2*sizeof(pint);
+          vmtmethodoffset:=index*voidcodepointertype.size+2*voidpointertype.size+3*sizeof(pint);
 {$else WITHDMT}
-          vmtmethodoffset:=index*voidcodepointertype.size+1*voidpointertype.size+2*sizeof(pint);
+          vmtmethodoffset:=index*voidcodepointertype.size+1*voidpointertype.size+3*sizeof(pint);
 {$endif WITHDMT}
         end;
       end;
