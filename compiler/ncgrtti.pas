@@ -146,6 +146,7 @@ implementation
         fieldcnt: longint;
         lastai: TLinkedListItem;
         st: tsymtable;
+        offset : asizeint;
       begin
         fieldcnt:=0;
         { Count will be inserted at this location. It cannot be nil as we've just
@@ -178,6 +179,8 @@ implementation
               begin
                 write_rtti_reference(tfieldvarsym(sym).vardef,rt);
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(tfieldvarsym(sym).fieldoffset));
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(ord(vo_is_weakref in tfieldvarsym(sym).varoptions)));
+                maybe_write_align;
                 inc(fieldcnt);
               end;
           end;
@@ -854,9 +857,24 @@ implementation
         procedure objectdef_rtti(def:tobjectdef);
 
           procedure objectdef_rtti_fields(def:tobjectdef);
+          var
+            offsetsym : tfieldvarsym;
           begin
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(def.size));
             fields_write_rtti_data(def,rt);
+            if def.objecttype=odt_class then
+              begin
+                maybe_write_align;
+                if oo_is_reference_counted in def.objectoptions then
+                  begin
+                    offsetsym:=tfieldvarsym(def.refcount_field);
+                    if not assigned(offsetsym) or (offsetsym.typ<>fieldvarsym) then
+                      internalerror(2014101203);
+                    current_asmdata.asmlists[al_rtti].concat(Tai_const.Create(aitconst_ptr,offsetsym.fieldoffset));
+                  end
+                else
+                  current_asmdata.asmlists[al_rtti].concat(Tai_const.Create(aitconst_ptr,0));
+              end;
           end;
 
           procedure objectdef_rtti_interface_init(def:tobjectdef);

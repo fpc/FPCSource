@@ -35,6 +35,7 @@ type
     Offset: Longint;
     {$else}
     Offset: SizeInt;
+    IsWeak: Boolean;
     {$endif}
   end;
 
@@ -82,7 +83,7 @@ function RTTISize(typeInfo: Pointer): SizeInt;
 begin
   case PByte(typeinfo)^ of
     tkAString,tkWString,tkUString,
-    tkInterface,tkDynarray:
+    tkInterface,tkDynarray,tkClass:
       result:=sizeof(Pointer);
 {$ifdef FPC_HAS_FEATURE_VARIANTS}
     tkVariant:
@@ -97,6 +98,16 @@ begin
   end;
 end;
 
+function RTTIRefCountOffset(TypeInfo: Pointer): SizeInt;
+var
+  info: PRecordInfo;
+  refcount: PSizeInt;
+begin
+  info:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
+  refcount:=PSizeInt(Pointer(info)+SizeOf(TRecordInfo)+info^.Count*SizeOf(TRecordElement));
+  Result:=refcount^;
+end;
+
 { if you modify this procedure, fpc_copy must be probably modified as well }
 procedure RecordRTTI(Data,TypeInfo:Pointer;rttiproc:TRTTIProc);
 var
@@ -109,7 +120,8 @@ begin
   { Process elements }
   for i:=1 to count Do
     begin
-      rttiproc(Data+PRecordElement(typeInfo)^.Offset,PRecordElement(typeInfo)^.TypeInfo);
+      if not PRecordElement(typeInfo)^.IsWeak then
+        rttiproc(Data+PRecordElement(typeInfo)^.Offset,PRecordElement(typeInfo)^.TypeInfo);
       Inc(PRecordElement(typeInfo));
     end;
 end;
@@ -148,6 +160,9 @@ end;
 Procedure fpc_Initialize (Data,TypeInfo : pointer);[Public,Alias : 'FPC_INITIALIZE'];  compilerproc;
 begin
   case PByte(TypeInfo)^ of
+{$ifdef FPC_HAS_FEATURE_CLASSES}
+    tkClass,
+{$endif FPC_HAS_FEATURE_CLASSES}
 {$ifdef FPC_HAS_FEATURE_DYNARRAYS}
     tkDynArray,
 {$endif FPC_HAS_FEATURE_DYNARRAYS}
@@ -175,6 +190,8 @@ end;
 
 
 Procedure fpc_finalize (Data,TypeInfo: Pointer);[Public,Alias : 'FPC_FINALIZE'];  compilerproc;
+var
+  offset: SizeInt;
 begin
   case PByte(TypeInfo)^ of
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
@@ -198,6 +215,13 @@ begin
       recordrtti(data,typeinfo,@int_finalize);
     tkInterface:
       Intf_Decr_Ref(PPointer(Data)^);
+{$ifdef FPC_HAS_FEATURE_CLASSES}
+    tkClass: begin
+      offset:=RTTIRefCountOffset(TypeInfo);
+      if offset>0 then
+        RefCountClass_Decr_Ref(PPointer(Data)^,offset);
+    end;
+{$endif FPC_HAS_FEATURE_CLASSES}
 {$ifdef FPC_HAS_FEATURE_DYNARRAYS}
     tkDynArray:
       fpc_dynarray_clear(PPointer(Data)^,TypeInfo);
@@ -211,6 +235,8 @@ end;
 
 
 Procedure fpc_Addref (Data,TypeInfo : Pointer); [Public,alias : 'FPC_ADDREF'];  compilerproc;
+var
+  offset: SizeInt;
 begin
   case PByte(TypeInfo)^ of
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
@@ -238,6 +264,13 @@ begin
 {$endif FPC_HAS_FEATURE_DYNARRAYS}
     tkInterface:
       Intf_Incr_Ref(PPointer(Data)^);
+{$ifdef FPC_HAS_FEATURE_CLASSES}
+    tkClass: begin
+      offset:=RTTIRefCountOffset(TypeInfo);
+      if offset>0 then
+        RefCountClass_Incr_Ref(PPointer(Data)^,offset);
+    end;
+{$endif FPC_HAS_FEATURE_CLASSES}
 {$ifdef FPC_HAS_FEATURE_VARIANTS}
     tkVariant:
       variant_addref(pvardata(Data)^);
@@ -258,6 +291,7 @@ var
   offset,
   i: SizeInt;
   info: pointer;
+  isweak: Boolean;
 begin
   result:=sizeof(pointer);
   case PByte(TypeInfo)^ of
@@ -265,6 +299,13 @@ begin
     tkAstring:
       fpc_AnsiStr_Assign(PPointer(Dest)^,PPointer(Src)^);
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
+{$ifdef FPC_HAS_FEATURE_CLASSES}
+    tkClass: begin
+      offset:=RTTIRefCountOffset(TypeInfo);
+      if offset>0 then
+        RefCountClass_Assign(PPointer(Dest)^,PPointer(Src)^,offset);
+    end;
+{$endif FPC_HAS_FEATURE_CLASSES}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
   {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
     tkWstring:
@@ -314,10 +355,17 @@ begin
           begin
             Info:=PRecordElement(Temp)^.TypeInfo;
             Offset:=PRecordElement(Temp)^.Offset;
+            IsWeak:=PRecordElement(Temp)^.IsWeak;
             Inc(PRecordElement(Temp));
             if Offset>expectedoffset then
               move((Src+expectedoffset)^,(Dest+expectedoffset)^,Offset-expectedoffset);
-            copiedsize:=fpc_Copy_internal(Src+Offset,Dest+Offset,Info);
+            if isweak and (PByte(TypeInfo)^=tkClass) then
+              begin
+                move((Src+offset)^,(Dest+offset)^,SizeOf(Pointer));
+                copiedsize:=SizeOf(Pointer);
+              end
+            else
+              copiedsize:=fpc_Copy_internal(Src+Offset,Dest+Offset,Info);
             expectedoffset:=Offset+copiedsize;
           end;
         { elements remaining? }
