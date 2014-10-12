@@ -986,6 +986,46 @@
           result:=ClassName;
         end;
 
+      procedure TObject.IncRef;
+        var
+          offset: LongInt;
+        begin
+          offset := RefCountOffset;
+          if offset > 0 then
+            refcountclass_incr_ref(Pointer(Self), offset);
+        end;
+
+      procedure TObject.DecRef;
+        var
+          offset: LongInt;
+        begin
+          offset := RefCountOffset;
+          if offset > 0 then
+            refcountclass_decr_ref(Pointer(Self), offset);
+        end;
+
+      function TObject.RefCount: LongInt;
+        var
+          offset: LongInt;
+        begin
+          offset := RefCountOffset;
+          if offset > 0 then
+            Result := PLongInt(Pointer(Self) + offset)^
+          else
+            Result := -1;
+        end;
+
+      function TObject.IsRefCounted: Boolean;
+        begin
+          Result := PVmt(Self.ClassType)^.vRefCountOfs > 0;
+        end;
+
+      function TObject.RefCountOffset: LongInt;
+        begin
+          Result := PVmt(Self.ClassType)^.vRefCountOfs;
+        end;
+
+
 {****************************************************************************
                                TINTERFACEDOBJECT
 ****************************************************************************}

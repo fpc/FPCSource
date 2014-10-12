@@ -241,6 +241,14 @@
           function Equals(Obj: TObject) : boolean;virtual;
           function GetHashCode: PtrInt;virtual;
           function ToString: ansistring;virtual;
+
+          { methods for reference counting }
+          procedure IncRef;inline;
+          procedure DecRef;inline;
+          function RefCount: LongInt;inline;
+          function IsRefCounted: Boolean;inline;
+       private
+          function RefCountOffset: LongInt;inline;
        end;
 
        IUnknown = interface
