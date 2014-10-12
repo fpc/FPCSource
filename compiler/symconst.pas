@@ -459,7 +459,8 @@ type
     oo_has_class_constructor, { the object/class has a class constructor }
     oo_has_class_destructor,  { the object/class has a class destructor  }
     oo_is_enum_class,     { the class represents an enum (JVM) }
-    oo_has_new_destructor { the object/class declares a destructor (apart from potentially inherting one from the parent) }
+    oo_has_new_destructor,{ the object/class declares a destructor (apart from potentially inherting one from the parent) }
+    oo_is_reference_counted { the class is reference counted (only for Delphi-style classes) }
   );
   tobjectoptions=set of tobjectoption;
 
@@ -522,7 +523,8 @@ type
     vo_force_finalize,
     { this is an internal variable that is used for Default() intrinsic in code
       sections }
-    vo_is_default_var
+    vo_is_default_var,
+    vo_is_weakref
   );
   tvaroptions=set of tvaroption;
 
