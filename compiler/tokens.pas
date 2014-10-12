@@ -146,6 +146,7 @@ type
     _UNIT,
     _UNIV,
     _USES,
+    _WEAK,
     _WITH,
     _ALIAS,
     _ARRAY,
@@ -272,6 +273,7 @@ type
     _LOGICALXOR,
     _OLDFPCCALL,
     _OPENSTRING,
+    _REFCOUNTED,
     _RIGHTSHIFT,
     _SPECIALIZE,
     _CONSTRUCTOR,
@@ -464,6 +466,7 @@ const
       (str:'UNIT'          ;special:false;keyword:alllanguagemodes-[m_iso];op:NOTOKEN),
       (str:'UNIV'          ;special:false;keyword:[m_mac];op:NOTOKEN),
       (str:'USES'          ;special:false;keyword:alllanguagemodes-[m_iso];op:NOTOKEN),
+      (str:'WEAK'          ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'WITH'          ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
       (str:'ALIAS'         ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'ARRAY'         ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
@@ -590,6 +593,7 @@ const
       (str:'LOGICALXOR'    ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
       (str:'OLDFPCCALL'    ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'OPENSTRING'    ;special:false;keyword:[m_none];op:NOTOKEN),
+      (str:'REFCOUNTED'    ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'RIGHTSHIFT'    ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
       (str:'SPECIALIZE'    ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'CONSTRUCTOR'   ;special:false;keyword:alllanguagemodes-[m_iso];op:NOTOKEN),
