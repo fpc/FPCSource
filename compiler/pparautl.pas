@@ -147,6 +147,7 @@ implementation
         vsp      : tvarspez;
         aliasvs  : tabsolutevarsym;
         sl       : tpropaccesslist;
+        vopts    : tvaroptions;
       begin
         if (pd.typ=procdef) and
            is_objc_class_or_protocol(tprocdef(pd).struct) and
@@ -175,7 +176,7 @@ implementation
            pd.is_methodpointer then
           begin
             { Generate self variable }
-            vs:=cparavarsym.create('$self',paranr_self,vs_value,voidpointertype,[vo_is_self,vo_is_hidden_para]);
+            vs:=cparavarsym.create('$self',paranr_self,vs_value,voidpointertype,[vo_is_self,vo_is_hidden_para,vo_is_weakref]);
             pd.parast.insert(vs);
           end
         else
@@ -218,6 +219,7 @@ implementation
                   to use the generic voidpointer to be compatible with
                   methodpointers }
                 vsp:=vs_value;
+                vopts:=[vo_is_self,vo_is_hidden_para];
                 if (po_staticmethod in pd.procoptions) or
                    (po_classmethod in pd.procoptions) then
                   hdef:=cclassrefdef.create(selfdef)
@@ -225,9 +227,11 @@ implementation
                   begin
                     if is_object(selfdef) or (selfdef.typ<>objectdef) then
                       vsp:=vs_var;
+                    if is_class(selfdef) then
+                      include(vopts,vo_is_weakref);
                     hdef:=selfdef;
                   end;
-                vs:=cparavarsym.create('$self',paranr_self,vsp,hdef,[vo_is_self,vo_is_hidden_para]);
+                vs:=cparavarsym.create('$self',paranr_self,vsp,hdef,vopts);
                 pd.parast.insert(vs);
 
                 current_tokenpos:=storepos;
