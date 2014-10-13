@@ -358,7 +358,8 @@ end;
 
 procedure mkdirtree(const s:string);
 var
-  hs : string;
+  SErr, hs : string;
+  Err: longint;
 begin
   if s='' then
     exit;
@@ -371,11 +372,16 @@ begin
       { Try parent first }
       mkdirtree(SplitPath(hs));
       { make this dir }
-      Verbose(V_Debug,'Making Directory '+s);
+      Verbose(V_Debug,'Making directory '+s);
       {$I-}
-       mkdir(s);
+       MkDir (HS);
       {$I+}
-      ioresult;
+      Err := IOResult;
+      if Err <> 0 then
+       begin
+        Str (Err, SErr);
+        Verbose (V_Error, 'Directory creation failed ' + SErr);
+       end;
     end;
 end;
 
