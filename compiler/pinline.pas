@@ -521,6 +521,7 @@ implementation
         consume(_LKLAMMER);
         paras:=parse_paras(false,false,_RKLAMMER);
         consume(_RKLAMMER);
+        procname:='';
         if assigned(paras) and
            assigned(tcallparanode(paras).right) and
            assigned(tcallparanode(tcallparanode(paras).right).right) then
@@ -547,14 +548,16 @@ implementation
                   else
                     procname:=procname+'_pansichar';
               end;
-          end
-        { default version (for error message) in case of missing parameters }
-        else if m_default_unicodestring in current_settings.modeswitches then
-          procname:='fpc_setstring_unicodestr_pwidechar'
-        else if m_default_ansistring in current_settings.modeswitches then
-          procname:='fpc_setstring_ansistr_pansichar'
-        else
-          procname:='fpc_setstring_shortstr';
+          end;
+        { default version (for error message) in case of missing or wrong
+          parameters }
+        if procname='' then
+          if m_default_unicodestring in current_settings.modeswitches then
+            procname:='fpc_setstring_unicodestr_pwidechar'
+          else if m_default_ansistring in current_settings.modeswitches then
+            procname:='fpc_setstring_ansistr_pansichar'
+          else
+            procname:='fpc_setstring_shortstr';
         result:=ccallnode.createintern(procname,paras)
       end;
 
