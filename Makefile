@@ -2770,7 +2770,7 @@ ifndef CROSSCOMPILE
 ifneq ($(FPC_VERSION),$(REQUIREDVERSION))
 ifneq ($(FPC_VERSION),$(REQUIREDVERSION2))
 ifndef OVERRIDEVERSIONCHECK
-	$(error The only supported starting compiler version is $(REQUIREDVERSION). You are trying to build with $(FPC_VERSION). If you are absolutely sure that the current compiler is built from the exact same version/revision, you can try to use OVERRIDEVERSIONCHECK=1 to override )
+	$(error The only supported starting compiler version is $(REQUIREDVERSION). You are trying to build with $(FPC_VERSION).
 else
 	@$(ECHO) You have overriden the starting compiler versioncheck while using starting compiler version $(FPC_VERSION). This situation is not supported and strange things and errors may happen. Remove OVERRIDEVERSIONCHECK=1 to fix this. 
 endif
