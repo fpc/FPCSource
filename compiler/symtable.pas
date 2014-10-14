@@ -1374,9 +1374,9 @@ implementation
             if tfieldvarsym(sym).fieldoffset=0 then
               include(tfieldvarsym(sym).varoptions,vo_is_first_field);
 
-            { add to this record symtable }
+            { add to this record symtable, checking for duplicate names }
 //            unionst.SymList.List.List^[i].Data:=nil;
-            sym.ChangeOwner(self);
+            insert(sym);
             varalign:=tfieldvarsym(sym).vardef.alignment;
             if varalign=0 then
               varalign:=size_2_align(tfieldvarsym(sym).getsize);
