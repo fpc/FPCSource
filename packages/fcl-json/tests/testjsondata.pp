@@ -1054,7 +1054,7 @@ begin
   inherited SetUp;
   SetDefaultInstanceTypes;
   TJSONData.CompressedJSON:=False;
-  TJSONObject.UnquotedElementNames:=False;
+  TJSONObject.UnquotedMemberNames:=False;
 end;
 
 Procedure TTestJSON.TestItemCount(J: TJSONData; Expected: Integer);
@@ -2994,10 +2994,10 @@ begin
     TestJSONType(J[2],jtNumber);
     TestJSON(J,'[0, 1, 2]');
     AssertEquals('FormatJSON, single line',J.AsJSON,J.FormatJSON([foSingleLineArray],1));
-    AssertEquals('FormatJSON, single line','['+sLinebreak+'  0,'+sLinebreak+'  1,'+sLinebreak+'  2'+sLinebreak+']',J.FormatJSON());
-    AssertEquals('FormatJSON, single line','['+sLinebreak+#9'0,'+sLinebreak+#9'1,'+sLinebreak+#9'2'+sLinebreak+']',J.FormatJSON([foUseTabChar],1));
+    AssertEquals('FormatJSON, default','['+sLinebreak+'  0,'+sLinebreak+'  1,'+sLinebreak+'  2'+sLinebreak+']',J.FormatJSON());
+    AssertEquals('FormatJSON, use tab','['+sLinebreak+#9'0,'+sLinebreak+#9'1,'+sLinebreak+#9'2'+sLinebreak+']',J.FormatJSON([foUseTabChar],1));
     J.Add(TJSONObject.Create(['x',1,'y',2]));
-    AssertEquals('FormatJSON, single line','['+sLinebreak+#9'0,'+sLinebreak+#9'1,'+sLinebreak+#9'2,'+sLinebreak+#9'{'+sLineBreak+#9#9'"x" : 1,'+sLineBreak+#9#9'"y" : 2'+sLinebreak+#9'}'+sLineBreak+']',J.FormatJSON([foUseTabChar],1));
+    AssertEquals('FormatJSON, use tab indentsize 1','['+sLinebreak+#9'0,'+sLinebreak+#9'1,'+sLinebreak+#9'2,'+sLinebreak+#9'{'+sLineBreak+#9#9'"x" : 1,'+sLineBreak+#9#9'"y" : 2'+sLinebreak+#9'}'+sLineBreak+']',J.FormatJSON([foUseTabChar],1));
   finally
     J.Free
   end;
@@ -3440,6 +3440,8 @@ begin
   try
     TestJSON(O,'{ "x" : 1, "y" : 2 }');
     AssertEquals('Format equals JSON',O.AsJSON,O.FormatJSON([foSingleLineObject]));
+    AssertEquals('Format using SkipWhiteSpace','{"x":1,"y":2}',O.FormatJSON([foSingleLineObject,foSkipWhiteSpace]));
+    AssertEquals('Format using SkipWhiteSpace,unquotednames','{x:1,y:2}',O.FormatJSON([foSingleLineObject,foSkipWhiteSpace,foDoNotQuoteMembers]));
     AssertEquals('Format 1','{'+sLineBreak+'  "x" : 1,'+sLineBreak+'  "y" : 2'+sLineBreak+'}',O.FormatJSON([]));
     AssertEquals('Format 1','{'+sLineBreak+'  x : 1,'+sLineBreak+'  y : 2'+sLineBreak+'}',O.FormatJSON([foDoNotQuoteMembers]));
     AssertEquals('Format 1','{'+sLineBreak+#9'x : 1,'+sLineBreak+#9'y : 2'+sLineBreak+'}',O.FormatJSON([foUseTabChar,foDoNotQuoteMembers],1));
@@ -3517,7 +3519,7 @@ Var
   J : TJSONObject;
 
 begin
-  TJSONObject.UnquotedElementNames:=True;
+  TJSONObject.UnquotedMemberNames:=True;
   J:=TJSONObject.Create([A,S]);
   try
     TestJSONType(J,jtObject);
@@ -3562,7 +3564,7 @@ Var
   J : TJSONObject;
 
 begin
-  TJSONObject.UnquotedElementNames:=True;
+  TJSONObject.UnQuotedMemberNames:=True;
   J:=TJSONObject.Create([A,Pchar(S)]);
   try
     TestJSONType(J,jtObject);
@@ -3639,7 +3641,7 @@ Var
 
 begin
   TJSONData.CompressedJSON:=True;
-  TJSONObject.UnquotedElementNames:=True;
+  TJSONObject.UnQuotedMemberNames:=True;
   J:=TJSONObject.Create([A,S,B,T]);
   try
     TestJSONType(J,jtObject);
@@ -3683,7 +3685,7 @@ Var
   J : TJSONObject;
 
 begin
-  TJSONObject.UnquotedElementNames:=True;
+  TJSONObject.UnQuotedMemberNames:=True;
   J:=TJSONObject.Create([A,S]);
   try
     TestJSONType(J,jtObject);
@@ -3728,7 +3730,7 @@ Var
   r : String;
 
 begin
-  TJSONObject.UnquotedElementNames:=True;
+  TJSONObject.UnQuotedMemberNames:=True;
   J:=TJSONObject.Create([A,S]);
   try
     TestJSONType(J,jtObject);
@@ -3771,7 +3773,7 @@ Var
   J : TJSONObject;
 
 begin
-  TJSONObject.UnquotedElementNames:=True;
+  TJSONObject.UnQuotedMemberNames:=True;
   J:=TJSONObject.Create([A,S]);
   try
     TestJSONType(J,jtObject);
@@ -3813,7 +3815,7 @@ Var
   J : TJSONObject;
 
 begin
-  TJSONObject.UnquotedElementNames:=True;
+  TJSONObject.UnQuotedMemberNames:=True;
   J:=TJSONObject.Create([A,S]);
   try
     TestJSONType(J,jtObject);
@@ -3852,7 +3854,7 @@ Var
   J : TJSONObject;
 
 begin
-  TJSONObject.UnquotedElementNames:=True;
+  TJSONObject.UnQuotedMemberNames:=True;
   J:=TJSONObject.Create([A,TJSONObject.Create]);
   try
     TestItemCount(J,1);
@@ -3893,7 +3895,7 @@ Var
   J : TJSONObject;
 
 begin
-  TJSONObject.UnquotedElementNames:=True;
+  TJSONObject.UnQuotedMemberNames:=True;
   J:=TJSONObject.Create([A,TJSONString.Create(S)]);
   try
     TestItemCount(J,1);

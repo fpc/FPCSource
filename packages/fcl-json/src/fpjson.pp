@@ -36,14 +36,17 @@ type
   TFormatOption = (foSingleLineArray,   // Array without CR/LF : all on one line
                    foSingleLineObject,  // Object without CR/LF : all on one line
                    foDoNotQuoteMembers, // Do not quote object member names.
-                   foUseTabchar);       // Use tab characters instead of spaces.
+                   foUseTabchar,        // Use tab characters instead of spaces.
+                   foSkipWhiteSpace);   // Do not use whitespace at all
   TFormatOptions = set of TFormatOption;
 
 Const
   DefaultIndentSize = 2;
   DefaultFormat     = [];
   AsJSONFormat      = [foSingleLineArray,foSingleLineObject]; // These options make FormatJSON behave as AsJSON
-  
+  AsCompressedJSON  = [foSingleLineArray,foSingleLineObject,foskipWhiteSpace]; // These options make FormatJSON behave as AsJSON with TJSONData.CompressedJSON=True
+  AsCompactJSON     = [foSingleLineArray,foSingleLineObject,foskipWhiteSpace,foDoNotQuoteMembers]; // These options make FormatJSON behave as AsJSON with TJSONData.CompressedJSON=True and TJSONObject.UnquotedMemberNames=True
+
 Type
   TJSONData = Class;
 
@@ -68,6 +71,8 @@ Type
   
   TJSONData = class(TObject)
   private
+    Const
+      ElementSeps  : Array[Boolean] of TJSONStringType = (', ',',');
     Class Var FCompressedJSON : Boolean;
     Class Var FElementSep : TJSONStringType;
     class procedure DetermineElementSeparators;
@@ -103,6 +108,7 @@ Type
   public
     Constructor Create; virtual;
     Procedure Clear;  virtual; Abstract;
+    Procedure DumpJSON(S : TStream);
     // Get enumerator
     function GetEnumerator: TBaseJSONEnumerator; virtual;
     Function FindPath(Const APath : TJSONStringType) : TJSONdata;
@@ -442,7 +448,13 @@ Type
 
   TJSONObject = class(TJSONData)
   private
-    Class var FUnquotedElementNames: Boolean;
+    Const
+      ElementStart   : Array[Boolean] of TJSONStringType = ('"','');
+      SpacedQuoted   : Array[Boolean] of TJSONStringType = ('" : ',' : ');
+      UnSpacedQuoted : Array[Boolean] of TJSONStringType = ('":',':');
+      ObjStartSeps   : Array[Boolean] of TJSONStringType = ('{ ','{');
+      ObjEndSeps     : Array[Boolean] of TJSONStringType = (' }','}');
+    Class var FUnquotedMemberNames: Boolean;
     Class var FObjStartSep,FObjEndSep,FElementEnd,FElementStart : TJSONStringType;
     Class procedure DetermineElementQuotes;
   Private
@@ -469,8 +481,8 @@ Type
     procedure SetObjects(const AName : String; const AValue: TJSONObject);
     procedure SetQWords(AName : String; AValue: QWord);
     procedure SetStrings(const AName : String; const AValue: TJSONStringType);
-    class function GetUnquotedElementNames: Boolean; static;
-    class procedure SetUnquotedElementNames(AValue: Boolean); static;
+    class function GetUnquotedMemberNames: Boolean; static;
+    class procedure SetUnquotedMemberNames(AValue: Boolean); static;
   protected
     Function DoFindPath(Const APath : TJSONStringType; Out NotFound : TJSONStringType) : TJSONdata; override;
     Procedure Converterror(From : Boolean);
@@ -498,7 +510,7 @@ Type
     Constructor Create(const Elements : Array of Const); overload;
     destructor Destroy; override;
     class function JSONType: TJSONType; override;
-    Class Property UnquotedElementNames : Boolean Read GetUnquotedElementNames Write SetUnquotedElementNames;
+    Class Property UnquotedMemberNames : Boolean Read GetUnquotedMemberNames Write SetUnquotedMemberNames;
     Function Clone : TJSONData; override;
     function GetEnumerator: TBaseJSONEnumerator; override;
     // Examine
@@ -1011,6 +1023,52 @@ begin
   Clear;
 end;
 
+procedure TJSONData.DumpJSON(S: TStream);
+
+  Procedure W(T : String);
+
+  begin
+    if (T<>'') then
+      S.WriteBuffer(T[1],Length(T)*SizeOf(Char));
+  end;
+
+Var
+  I,C : Integer;
+  O : TJSONObject;
+
+begin
+  Case JSONType of
+    jtObject :
+      begin
+      O:=TJSONObject(Self);
+      W('{');
+      For I:=0 to O.Count-1 do
+        begin
+        if (I>0) then
+          W(',');
+        W('"');
+        W(StringToJSONString(O.Names[i]));
+        W('":');
+        O.Items[I].DumpJSON(S);
+        end;
+      W('}');
+      end;
+    jtArray :
+      begin
+      W('[');
+      For I:=0 to Count-1 do
+        begin
+        if (I>0) then
+          W(',');
+        Items[I].DumpJSON(S);
+        end;
+      W(']');
+      end
+  else
+    W(AsJSON)
+  end;
+end;
+
 class function TJSONData.GetCompressedJSON: Boolean; static;
 begin
   Result:=FCompressedJSON;
@@ -1018,8 +1076,6 @@ end;
 
 class procedure TJSONData.DetermineElementSeparators;
 
-Const
-  ElementSeps  : Array[Boolean] of TJSONStringType = (', ',',');
 
 begin
   FElementSep:=ElementSeps[FCompressedJSON];
@@ -1963,25 +2019,31 @@ function TJSONArray.DoFormatJSON(Options: TFormatOptions; CurrentIndent,
 
 Var
   I : Integer;
+  MultiLine : Boolean;
+  SkipWhiteSpace : Boolean;
+  Ind : String;
   
 begin
   Result:='[';
-  if not (foSingleLineArray in Options) then
+  MultiLine:=Not (foSingleLineArray in Options);
+  SkipWhiteSpace:=foSkipWhiteSpace in Options;
+  Ind:=IndentString(Options, CurrentIndent+Indent);
+  if MultiLine then
     Result:=Result+sLineBreak;
   For I:=0 to Count-1 do
     begin
-    if not (foSingleLineArray in Options) then
-      Result:=Result+IndentString(Options, CurrentIndent+Indent);
+    if MultiLine then
+      Result:=Result+Ind;
     Result:=Result+Items[i].DoFormatJSON(Options,CurrentIndent+Indent,Indent);
     If (I<Count-1) then
-      if (foSingleLineArray in Options) then
-        Result:=Result+', '
+      if MultiLine then
+        Result:=Result+','
       else
-        Result:=Result+',';
-    if not (foSingleLineArray in Options) then
+        Result:=Result+ElementSeps[SkipWhiteSpace];
+    if MultiLine then
       Result:=Result+sLineBreak
     end;
- if not (foSingleLineArray in Options) then
+  if MultiLine then
     Result:=Result+IndentString(Options, CurrentIndent);
   Result:=Result+']';
 end;
@@ -2337,9 +2399,9 @@ begin
   Result:=Getelements(Aname).JSONType;
 end;
 
-class function TJSONObject.GetUnquotedElementNames: Boolean; static;
+class function TJSONObject.GetUnquotedMemberNames: Boolean; static;
 begin
-  Result:=FUnquotedElementNames;
+  Result:=FUnquotedMemberNames;
 end;
 
 procedure TJSONObject.SetArrays(const AName : String; const AValue: TJSONArray);
@@ -2404,28 +2466,21 @@ end;
 
 class procedure TJSONObject.DetermineElementQuotes;
 
-Const
-  ElementStart   : Array[Boolean] of TJSONStringType = ('"','');
-  SpacedQuoted   : Array[Boolean] of TJSONStringType = ('" : ',' : ');
-  UnSpacedQuoted : Array[Boolean] of TJSONStringType = ('":',':');
-  ObjStartSeps   : Array[Boolean] of TJSONStringType = ('{ ','{');
-  ObjEndSeps     : Array[Boolean] of TJSONStringType = (' }','}');
-
 begin
   FObjStartSep:=ObjStartSeps[TJSONData.FCompressedJSON];
   FObjEndSep:=ObjEndSeps[TJSONData.FCompressedJSON];
   if TJSONData.FCompressedJSON then
-    FElementEnd:=UnSpacedQuoted[FUnquotedElementNames]
+    FElementEnd:=UnSpacedQuoted[FUnquotedMemberNames]
   else
-    FElementEnd:=SpacedQuoted[FUnquotedElementNames];
-  FElementStart:=ElementStart[FUnquotedElementNames]
+    FElementEnd:=SpacedQuoted[FUnquotedMemberNames];
+  FElementStart:=ElementStart[FUnquotedMemberNames]
 end;
 
-class procedure TJSONObject.SetUnquotedElementNames(AValue: Boolean); static;
+class procedure TJSONObject.SetUnquotedMemberNames(AValue: Boolean); static;
 
 begin
-  if FUnquotedElementNames=AValue then exit;
-  FUnquotedElementNames:=AValue;
+  if FUnquotedMemberNames=AValue then exit;
+  FUnquotedMemberNames:=AValue;
   DetermineElementQuotes;
 end;
 
@@ -2664,33 +2719,42 @@ function TJSONObject.DoFormatJSON(Options: TFormatOptions; CurrentIndent,
 Var
   i : Integer;
   S : TJSONStringType;
-
-
+  MultiLine,UseQuotes, SkipWhiteSpace : Boolean;
+  NSep,Sep,Ind : String;
 begin
   Result:='';
-  CurrentIndent:=CurrentIndent+Indent;  
+  UseQuotes:=Not (foDoNotQuoteMembers in options);
+  MultiLine:=Not (foSingleLineObject in Options);
+  SkipWhiteSpace:=foSkipWhiteSpace in Options;
+  CurrentIndent:=CurrentIndent+Indent;
+  Ind:=IndentString(Options, CurrentIndent);
+  If SkipWhiteSpace then
+    NSep:=':'
+  else
+    NSep:=' : ';
+  If MultiLine then
+    Sep:=','+SLineBreak+Ind
+  else if SkipWhiteSpace then
+    Sep:=','
+  else
+    Sep:=', ';
   For I:=0 to Count-1 do
     begin
-    If (Result<>'') then
-      begin
-      If (foSingleLineObject in Options) then
-        Result:=Result+', '
-      else
-        Result:=Result+','+SLineBreak;
-      end;
-    If not (foSingleLineObject in Options) then    
-      Result:=Result+IndentString(Options,CurrentIndent);
+    If (I>0) then
+      Result:=Result+Sep
+    else If MultiLine then
+      Result:=Result+Ind;
     S:=StringToJSONString(Names[i]);
-    If not (foDoNotQuoteMembers in options) then
+    If UseQuotes then
       S:='"'+S+'"';
-    Result:=Result+S+' : '+Items[I].DoFormatJSON(Options,CurrentIndent,Indent);
+    Result:=Result+S+NSep+Items[I].DoFormatJSON(Options,CurrentIndent,Indent);
     end;
   If (Result<>'') then
     begin
-    if (foSingleLineObject in Options) then
-      Result:='{ '+Result+' }'
-    else  
+    if MultiLine then
       Result:='{'+sLineBreak+Result+sLineBreak+indentString(options,CurrentIndent-Indent)+'}'
+    else
+      Result:=ObjStartSeps[SkipWhiteSpace]+Result+ObjEndSeps[SkipWhiteSpace]
     end
   else
     Result:='{}';
