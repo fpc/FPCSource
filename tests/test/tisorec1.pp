@@ -6,7 +6,7 @@ type
       1 : (s : array[0..255] of char);
       2 : (n : integer);
       3 : (w : word; case j : integer of
-        1 : (s : array[0..255] of char);
+        1 : (t : array[0..255] of char);
         2 : (a : integer);
         );
   end;
