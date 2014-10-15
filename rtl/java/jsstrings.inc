@@ -363,7 +363,7 @@ Function int_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; out Code
 
 
 {$define FPC_HAS_SETSTRING_SHORTSTR}
-Procedure SetString (Out S : Shortstring; Buf : PChar; Len : SizeInt);
+Procedure fpc_setstring_shortstr(Out S : Shortstring; Buf : PChar; Len : SizeInt); compilerproc;
 begin
   If Len > High(S) then
     Len := High(S);
