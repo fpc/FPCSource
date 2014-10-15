@@ -415,7 +415,7 @@
 {$endif}
            vtString        : (VString: PShortString);
            vtPointer       : (VPointer: Pointer);
-           vtPChar         : (VPChar: PChar);
+           vtPChar         : (VPChar: PAnsiChar);
            vtObject        : (VObject: TObject);
            vtClass         : (VClass: TClass);
            vtPWideChar     : (VPWideChar: PWideChar);
