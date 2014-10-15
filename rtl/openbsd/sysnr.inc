@@ -316,6 +316,12 @@ Const
 (* 329 *)    syscall_nr___set_tcb = 329;
 (* 330 *)    syscall_nr___get_tcb = 330;
 
+
+{$if not declared (cint) }
+type
+  cint = longint;
+{$endif}
+
 { Aliases }
 var
   syscall_nr_waitpid : cint = syscall_nr_wait4;  // 7, added: ease of notation purposes
