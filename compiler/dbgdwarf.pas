@@ -3327,6 +3327,7 @@ implementation
         currfileinfo,
         lastfileinfo : tfileposinfo;
         currfuncname : pshortstring;
+        currstatement: boolean;
         currsectype  : TAsmSectiontype;
         hp, hpend : tai;
         infile : tinputfile;
@@ -3345,6 +3346,7 @@ implementation
         currfuncname:=nil;
         currsectype:=sec_code;
         hp:=Tai(list.first);
+        currstatement:=true;
         prevcolumn := 0;
         prevline := 1;
         prevfileidx := 1;
@@ -3376,8 +3378,7 @@ implementation
             end;
 
             if (currsectype=sec_code) and
-               (hp.typ=ait_instruction) and
-               (nolineinfolevel=0) then
+               (hp.typ=ait_instruction) then
               begin
                 currfileinfo:=tailineinfo(hp).fileinfo;
                 { file changed ? (must be before line info) }
@@ -3408,8 +3409,12 @@ implementation
                       end;
                   end;
 
+                { Set the line-nr to 0 if the code does not corresponds to a particular line  }
+                if nolineinfolevel>0 then
+                  currfileinfo.line := 0;
+
                 { line changed ? }
-                if (lastfileinfo.line<>currfileinfo.line) and (currfileinfo.line<>0) then
+                if (lastfileinfo.line<>currfileinfo.line) and ((currfileinfo.line<>0) or (nolineinfolevel>0)) then
                   begin
                     { set address }
                     current_asmdata.getlabel(currlabel, alt_dbgline);
@@ -3440,6 +3445,19 @@ implementation
                         asmline.concat(tai_const.create_8bit(DW_LNS_set_column));
                         asmline.concat(tai_const.create_uleb128bit(currfileinfo.column));
                         prevcolumn := currfileinfo.column;
+                      end;
+
+                    { set statement }
+                    if (currfileinfo.line=0) and currstatement then
+                      begin
+                        currstatement := false;
+                        asmline.concat(tai_const.create_8bit(DW_LNS_negate_stmt));
+                      end;
+
+                    if not currstatement and (currfileinfo.line>0) then
+                      begin
+                        currstatement := true;
+                        asmline.concat(tai_const.create_8bit(DW_LNS_negate_stmt));
                       end;
 
                     { set line }
