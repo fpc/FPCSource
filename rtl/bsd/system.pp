@@ -79,6 +79,10 @@ Implementation
 
 {$I system.inc}
 
+{$ifdef FPC_HAS_SETSYSNR_INC}
+{$I setsysnr.inc}
+{$endif FPC_HAS_SETSYSNR_INC}
+
 {*****************************************************************************
                        Misc. System Dependent Functions
 *****************************************************************************}
@@ -301,7 +305,7 @@ begin
   argv:= argvparam;
   envp:= envpparam;
 {$ifdef cpui386}
-  Set8087CW(Default8087CW);  
+  Set8087CW(Default8087CW);
 {$endif cpui386}
   pascalmain;  {run the pascal main program}
 end;
@@ -327,6 +331,11 @@ Begin
   IsConsole := TRUE;
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := Sptr - StackLength;
+{$ifdef FPC_HAS_SETSYSNR_INC}
+  { This procedure is needed for openbsd system which re-uses
+    the same syscall numbers depending on OS version }
+  SetSyscallNumbers;
+{$endif FPC_HAS_SETSYSNR_INC}
   { Set up signals handlers (may be needed by init code to test cpu features) }
   InstallSignals;
 
