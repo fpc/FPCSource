@@ -8943,6 +8943,7 @@ rtl/openbsd/pmutext.inc svneol=native#text/plain
 rtl/openbsd/pthread.inc svneol=native#text/plain
 rtl/openbsd/ptypes.inc svneol=native#text/plain
 rtl/openbsd/rtldefs.inc svneol=native#text/plain
+rtl/openbsd/setsysnr.inc svneol=native#text/plain
 rtl/openbsd/signal.inc svneol=native#text/plain
 rtl/openbsd/syscalls.inc svneol=native#text/plain
 rtl/openbsd/sysconst.inc svneol=native#text/plain
