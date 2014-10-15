@@ -310,3 +310,7 @@ ppcjvm -O2 -g -B -Sa tprop6a -CTautosetterprefix=Set -CTautogetterprefix=Get
 if %errorlevel% neq 0 exit /b %errorlevel%
 java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tprop6a
 if %errorlevel% neq 0 exit /b %errorlevel%
+ppcjvm -O2 -g -B  -CTinitlocals tsetstring
+if %errorlevel% neq 0 exit /b %errorlevel%
+java -Dfile.encoding=UTF-8 -cp ..\..\..\rtl\units\jvm-java;. tsetstring
+if %errorlevel% neq 0 exit /b %errorlevel%
