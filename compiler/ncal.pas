@@ -3977,7 +3977,7 @@ implementation
                       (assigned(aktassignmentnode) and
                        (aktassignmentnode.right=self) and
                        (nf_assign_done_in_right in aktassignmentnode.flags) and
-                       aktassignmentnode.left.isequal(para.left)))) or
+                       actualtargetnode(@aktassignmentnode.left)^.isequal(actualtargetnode(@para.left)^)))) or
                     { the compiler expects that it can take the address of parameters passed by reference in
                       the case of const so we can't replace the node simply by a constant node
                       When playing with this code, ensure that
