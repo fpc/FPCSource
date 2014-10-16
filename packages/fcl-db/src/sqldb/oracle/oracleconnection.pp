@@ -384,11 +384,10 @@ begin
 end;
 
 procedure TOracleConnection.DoInternalConnect;
-
 var
   ConnectString : string;
   TempServiceContext : POCISvcCtx;
-
+  IsConnected : boolean;
 begin
 {$IfDef LinkDynamically}
   InitialiseOCI;
@@ -397,42 +396,78 @@ begin
   inherited DoInternalConnect;
   //todo: get rid of FUserMem, as it isn't used
   FUserMem := nil;
+  IsConnected := false;
 
-  // Create environment handle
-  if OCIEnvCreate(FOciEnvironment,oci_default,nil,nil,nil,nil,0,FUserMem) <> OCI_SUCCESS then
-    DatabaseError(SErrEnvCreateFailed,self);
-  // Create error handle
-  if OciHandleAlloc(FOciEnvironment,FOciError,OCI_HTYPE_ERROR,0,FUserMem) <> OCI_SUCCESS then
-    DatabaseError(SErrHandleAllocFailed,self);
-  // Create Server handle
-  if OciHandleAlloc(FOciEnvironment,FOciServer,OCI_HTYPE_SERVER,0,FUserMem) <> OCI_SUCCESS then
-    DatabaseError(SErrHandleAllocFailed,self);
-  // Initialize Server handle
-  if hostname='' then connectstring := databasename
-  else connectstring := '//'+hostname+'/'+databasename;
-  if OCIServerAttach(FOciServer,FOciError,@(ConnectString[1]),Length(ConnectString),OCI_DEFAULT) <> OCI_SUCCESS then
-    HandleError();
+  try
+    // Create environment handle
+    if OCIEnvCreate(FOciEnvironment,OCI_DEFAULT,nil,nil,nil,nil,0,FUserMem) <> OCI_SUCCESS then
+      DatabaseError(SErrEnvCreateFailed,self);
+    // Create error handle
+    if OciHandleAlloc(FOciEnvironment,FOciError,OCI_HTYPE_ERROR,0,FUserMem) <> OCI_SUCCESS then
+      DatabaseError(SErrHandleAllocFailed,self);
+    // Create server handle
+    if OciHandleAlloc(FOciEnvironment,FOciServer,OCI_HTYPE_SERVER,0,FUserMem) <> OCI_SUCCESS then
+      DatabaseError(SErrHandleAllocFailed,self);
 
-  // Create temporary service-context handle for user authentication
-  if OciHandleAlloc(FOciEnvironment,TempServiceContext,OCI_HTYPE_SVCCTX,0,FUserMem) <> OCI_SUCCESS then
-    DatabaseError(SErrHandleAllocFailed,self);
+    // Initialize server handle
+    if hostname='' then
+      connectstring := databasename
+    else
+      connectstring := '//'+hostname+'/'+databasename;
+    if OCIServerAttach(FOciServer,FOciError,@(ConnectString[1]),Length(ConnectString),OCI_DEFAULT) <> OCI_SUCCESS then
+      HandleError();
 
-  // Create user-session handle
-  if OciHandleAlloc(FOciEnvironment,FOciUserSession,OCI_HTYPE_SESSION,0,FUserMem) <> OCI_SUCCESS then
-    DatabaseError(SErrHandleAllocFailed,self);
-  // Set the server-handle in the service-context handle
-  if OCIAttrSet(TempServiceContext,OCI_HTYPE_SVCCTX,FOciServer,0,OCI_ATTR_SERVER,FOciError) <> OCI_SUCCESS then
-    HandleError();
-  // Set username and password in the user-session handle
-  if OCIAttrSet(FOciUserSession,OCI_HTYPE_SESSION,@(Self.UserName[1]),Length(Self.UserName),OCI_ATTR_USERNAME,FOciError) <> OCI_SUCCESS then
-    HandleError();
-  if OCIAttrSet(FOciUserSession,OCI_HTYPE_SESSION,@(Self.Password[1]),Length(Self.Password),OCI_ATTR_PASSWORD,FOciError) <> OCI_SUCCESS then
-    HandleError();
-  // Authenticate
-  if OCISessionBegin(TempServiceContext,FOciError,FOcIUserSession,OCI_CRED_RDBMS,OCI_DEFAULT) <> OCI_SUCCESS then
-    HandleError();
-  // Free temporary service-context handle
-  OCIHandleFree(TempServiceContext,OCI_HTYPE_SVCCTX);
+    try
+      // Create temporary service-context handle for user authentication
+      if OciHandleAlloc(FOciEnvironment,TempServiceContext,OCI_HTYPE_SVCCTX,0,FUserMem) <> OCI_SUCCESS then
+        DatabaseError(SErrHandleAllocFailed,self);
+
+      try
+        // Create user-session handle
+        if OciHandleAlloc(FOciEnvironment,FOciUserSession,OCI_HTYPE_SESSION,0,FUserMem) <> OCI_SUCCESS then
+          DatabaseError(SErrHandleAllocFailed,self);
+        try
+          // Set the server-handle in the service-context handle
+          if OCIAttrSet(TempServiceContext,OCI_HTYPE_SVCCTX,FOciServer,0,OCI_ATTR_SERVER,FOciError) <> OCI_SUCCESS then
+            HandleError();
+          // Set username and password in the user-session handle
+          if OCIAttrSet(FOciUserSession,OCI_HTYPE_SESSION,@(Self.UserName[1]),Length(Self.UserName),OCI_ATTR_USERNAME,FOciError) <> OCI_SUCCESS then
+            HandleError();
+          if OCIAttrSet(FOciUserSession,OCI_HTYPE_SESSION,@(Self.Password[1]),Length(Self.Password),OCI_ATTR_PASSWORD,FOciError) <> OCI_SUCCESS then
+            HandleError();
+          // Authenticate
+          if OCISessionBegin(TempServiceContext,FOciError,FOcIUserSession,OCI_CRED_RDBMS,OCI_DEFAULT) <> OCI_SUCCESS then
+            HandleError();
+          IsConnected := true;
+        finally
+          if not IsConnected then
+          begin
+            OCIHandleFree(FOciUserSession,OCI_HTYPE_SESSION);
+            FOciUserSession := nil;
+          end;
+        end;
+      finally
+        // Free temporary service-context handle
+        OCIHandleFree(TempServiceContext,OCI_HTYPE_SVCCTX);
+      end;
+    finally
+      if not IsConnected then
+        OCIServerDetach(FOciServer,FOciError,OCI_DEFAULT);
+    end;
+  finally
+    if not IsConnected then
+    begin
+      if assigned(FOciServer) then
+      OCIHandleFree(FOciServer,OCI_HTYPE_SERVER);
+      if assigned(FOciError) then
+        OCIHandleFree(FOciError,OCI_HTYPE_ERROR);
+      if assigned(FOciEnvironment) then
+        OCIHandleFree(FOciEnvironment,OCI_HTYPE_ENV);
+      FOciEnvironment := nil;
+      FOciError := nil;
+      FOciServer := nil;
+    end;
+  end;
 end;
 
 procedure TOracleConnection.DoInternalDisconnect;
@@ -441,36 +476,56 @@ var
 begin
   inherited DoInternalDisconnect;
 
-  // Create temporary service-context handle for user-disconnect
-  if OciHandleAlloc(FOciEnvironment,TempServiceContext,OCI_HTYPE_SVCCTX,0,FUserMem) <> OCI_SUCCESS then
-    DatabaseError(SErrHandleAllocFailed,self);
+  if assigned(FOciEnvironment) then
+  begin
+    if assigned(FOciError) then
+    begin
+      if assigned(FOciServer) then
+      begin
+        if assigned(FOciUserSession) then
+        begin
+          try
+            // Create temporary service-context handle for user-disconnect
+            if OciHandleAlloc(FOciEnvironment,TempServiceContext,OCI_HTYPE_SVCCTX,0,FUserMem) <> OCI_SUCCESS then
+              DatabaseError(SErrHandleAllocFailed,self);
 
-  // Set the server handle in the service-context handle
-  if OCIAttrSet(TempServiceContext,OCI_HTYPE_SVCCTX,FOciServer,0,OCI_ATTR_SERVER,FOciError) <> OCI_SUCCESS then
-    HandleError();
-  // Set the user session handle in the service-context handle
-  if OCIAttrSet(TempServiceContext,OCI_HTYPE_SVCCTX,FOciUserSession,0,OCI_ATTR_SESSION,FOciError) <> OCI_SUCCESS then
-    HandleError();
-  // Disconnect uses-session handle
-  if OCISessionEnd(TempServiceContext,FOciError,FOcIUserSession,OCI_DEFAULT) <> OCI_SUCCESS then
-    HandleError();
-  // Free user-session handle
-  OCIHandleFree(FOciUserSession,OCI_HTYPE_SESSION);
-  // Free temporary service-context handle
-  OCIHandleFree(TempServiceContext,OCI_HTYPE_SVCCTX);
+            // Set the server handle in the service-context handle
+            if OCIAttrSet(TempServiceContext,OCI_HTYPE_SVCCTX,FOciServer,0,OCI_ATTR_SERVER,FOciError) <> OCI_SUCCESS then
+              HandleError();
+            // Set the user session handle in the service-context handle
+            if OCIAttrSet(TempServiceContext,OCI_HTYPE_SVCCTX,FOciUserSession,0,OCI_ATTR_SESSION,FOciError) <> OCI_SUCCESS then
+              HandleError();
+            // Disconnect uses-session handle
+            if OCISessionEnd(TempServiceContext,FOciError,FOcIUserSession,OCI_DEFAULT) <> OCI_SUCCESS then
+              HandleError();
+          finally
+            // Free user-session handle
+            OCIHandleFree(FOciUserSession,OCI_HTYPE_SESSION);
+            // Free temporary service-context handle
+            OCIHandleFree(TempServiceContext,OCI_HTYPE_SVCCTX);
+            FOciUserSession := nil;
+          end;
+        end;
 
-  // Disconnect server handle
-  if OCIServerDetach(FOciServer,FOciError,OCI_DEFAULT) <> OCI_SUCCESS then
-    HandleError();
-
-  // Free connection handles
-  OCIHandleFree(FOciServer,OCI_HTYPE_SERVER);
-  OCIHandleFree(FOciError,OCI_HTYPE_ERROR);
-  OCIHandleFree(FOciEnvironment,OCI_HTYPE_ENV);
+        try
+          // Disconnect server handle
+          if OCIServerDetach(FOciServer,FOciError,OCI_DEFAULT) <> OCI_SUCCESS then
+            HandleError();
+        finally
+          // Free connection handles
+          OCIHandleFree(FOciServer,OCI_HTYPE_SERVER);
+          FOciServer := nil;
+        end;
+      end;
+      OCIHandleFree(FOciError,OCI_HTYPE_ERROR);
+      FOciError := nil;
+    end;
+    OCIHandleFree(FOciEnvironment,OCI_HTYPE_ENV);
+    FOciEnvironment := nil;
+  end;
 {$IfDef LinkDynamically}
   ReleaseOCI;
 {$EndIf}
-
 end;
 
 function TOracleConnection.AllocateCursorHandle: TSQLCursor;
