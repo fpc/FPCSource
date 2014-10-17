@@ -2091,7 +2091,8 @@ type
                  hp:=tmodule(loaded_units.first);
                  while assigned(hp) do
                   begin
-                    linker.AddModuleFiles(hp);
+                    if hp.flags and uf_in_library=0 then
+                      linker.AddModuleFiles(hp);
                     hp2:=tmodule(hp.next);
                     if (hp<>current_module) and
                        (not needsymbolinfo) then
