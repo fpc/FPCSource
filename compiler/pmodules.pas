@@ -1504,17 +1504,7 @@ type
          uu:=tused_unit(usedunits.first);
          while assigned(uu) do
            begin
-             uu.u.globalsymtable.symlist.ForEachCall(@insert_export,uu.u.globalsymtable);
-             { check localsymtable for exports too to get public symbols }
-             uu.u.localsymtable.symlist.ForEachCall(@insert_export,uu.u.localsymtable);
-
-             { create special exports }
-             if (uu.u.flags and uf_init)<>0 then
-               procexport(make_mangledname('INIT$',uu.u.globalsymtable,''));
-             if (uu.u.flags and uf_finalize)<>0 then
-               procexport(make_mangledname('FINALIZE$',uu.u.globalsymtable,''));
-             if (uu.u.flags and uf_threadvars)=uf_threadvars then
-               varexport(make_mangledname('THREADVARLIST',uu.u.globalsymtable,''));
+             export_unit(uu.u);
 
              uu:=tused_unit(uu.next);
            end;

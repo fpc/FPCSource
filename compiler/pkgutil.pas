@@ -26,11 +26,12 @@ unit pkgutil;
 
 interface
 
+  uses
+    fmodule;
+
   procedure createimportlibfromexports;
   Function RewritePPU(const PPUFn,PPLFn:String):Boolean;
-  procedure insert_export(sym : TObject;arg:pointer);
-  procedure procexport(const s : string);
-  procedure varexport(const s : string);
+  procedure export_unit(u:tmodule);
 
 implementation
 
@@ -40,7 +41,7 @@ implementation
     cutils,cclasses,
     verbose,
     symtype,symconst,symsym,symdef,symbase,
-    ppu,entfile,fmodule,
+    ppu,entfile,
     export;
 
   procedure procexport(const s : string);
@@ -112,6 +113,21 @@ implementation
       end;
     end;
 
+
+  procedure export_unit(u: tmodule);
+    begin
+      u.globalsymtable.symlist.ForEachCall(@insert_export,u.globalsymtable);
+      { check localsymtable for exports too to get public symbols }
+      u.localsymtable.symlist.ForEachCall(@insert_export,u.localsymtable);
+
+      { create special exports }
+      if (u.flags and uf_init)<>0 then
+        procexport(make_mangledname('INIT$',u.globalsymtable,''));
+      if (u.flags and uf_finalize)<>0 then
+        procexport(make_mangledname('FINALIZE$',u.globalsymtable,''));
+      if (u.flags and uf_threadvars)=uf_threadvars then
+        varexport(make_mangledname('THREADVARLIST',u.globalsymtable,''));
+    end;
 
   Function RewritePPU(const PPUFn,PPLFn:String):Boolean;
     Var
