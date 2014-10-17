@@ -40,7 +40,7 @@ implementation
     globtype,systems,
     cutils,cclasses,
     verbose,
-    symtype,symconst,symsym,symdef,symbase,
+    symtype,symconst,symsym,symdef,symbase,symtable,
     ppu,entfile,
     export;
 
@@ -66,44 +66,100 @@ implementation
     end;
 
 
-  procedure insert_export(sym : TObject;arg:pointer);
+  procedure exportprocsym(sym:tprocsym;symtable:tsymtable);
     var
       i : longint;
       item : TCmdStrListItem;
     begin
+      for i:=0 to tprocsym(sym).ProcdefList.Count-1 do
+        begin
+          if not(tprocdef(tprocsym(sym).ProcdefList[i]).proccalloption in [pocall_internproc]) and
+            ((tprocdef(tprocsym(sym).ProcdefList[i]).procoptions*[po_external])=[]) and
+            ((symtable.symtabletype in [globalsymtable,recordsymtable,objectsymtable]) or
+             ((symtable.symtabletype=staticsymtable) and (po_public in tprocdef(tprocsym(sym).ProcdefList[i]).procoptions))
+            ) then
+            begin
+              exportallprocdefnames(tprocsym(sym),tprocdef(tprocsym(sym).ProcdefList[i]),[]);
+            end;
+        end;
+    end;
+
+
+  procedure exportabstractrecordsymproc(sym:tobject;arg:pointer);
+    var
+      def : tabstractrecorddef;
+    begin
+      case tsym(sym).typ of
+        typesym:
+          begin
+            case ttypesym(sym).typedef.typ of
+              objectdef,
+              recorddef:
+                begin
+                  def:=tabstractrecorddef(ttypesym(sym).typedef);
+                  def.symtable.symlist.foreachcall(@exportabstractrecordsymproc,def.symtable);
+                end;
+            end;
+          end;
+        procsym:
+          begin
+            { don't export methods of interfaces }
+            if is_interface(tdef(tabstractrecordsymtable(arg).defowner)) then
+              exit;
+            exportprocsym(tprocsym(sym),tsymtable(arg));
+          end;
+        staticvarsym:
+          begin
+            varexport(tsym(sym).mangledname);
+          end;
+      end;
+    end;
+
+
+  procedure insert_export(sym : TObject;arg:pointer);
+    var
+      i : longint;
+      item : TCmdStrListItem;
+      def : tabstractrecorddef;
+      hp : texported_item;
+      publiconly : boolean;
+    begin
+      publiconly:=tsymtable(arg).symtabletype=staticsymtable;
       case TSym(sym).typ of
         { ignore: }
         unitsym,
         syssym,
         constsym,
-        enumsym,
-        typesym:
+        namespacesym,
+        propertysym,
+        enumsym:
           ;
+        typesym:
+          begin
+            case ttypesym(sym).typedef.typ of
+              recorddef,
+              objectdef:
+                begin
+                  def:=tabstractrecorddef(ttypesym(sym).typedef);
+                  def.symtable.SymList.ForEachCall(@exportabstractrecordsymproc,def.symtable);
+                  if (def.typ=objectdef) and (oo_has_vmt in tobjectdef(def).objectoptions) then
+                    begin
+                      hp:=texported_item.create;
+                      hp.name:=stringdup(tobjectdef(def).vmt_mangledname);
+                      hp.options:=hp.options+[eo_name];
+                      exportlib.exportvar(hp);
+                    end;
+                end;
+            end;
+          end;
         procsym:
           begin
-            for i:=0 to tprocsym(sym).ProcdefList.Count-1 do
-              begin
-                if not(tprocdef(tprocsym(sym).ProcdefList[i]).proccalloption in [pocall_internproc]) and
-                  ((tprocdef(tprocsym(sym).ProcdefList[i]).procoptions*[po_external])=[]) and
-                  ((tsymtable(arg).symtabletype=globalsymtable) or
-                   ((tsymtable(arg).symtabletype=staticsymtable) and (po_public in tprocdef(tprocsym(sym).ProcdefList[i]).procoptions))
-                  ) then
-                  begin
-                    procexport(tprocdef(tprocsym(sym).ProcdefList[i]).mangledname);
-                    { walk through all aliases }
-                    item:=TCmdStrListItem(tprocdef(tprocsym(sym).ProcdefList[i]).aliasnames.first);
-                    while assigned(item) do
-                      begin
-                        { avoid duplicate entries, sometimes aliasnames contains the mangledname }
-                        if item.str<>tprocdef(tprocsym(sym).ProcdefList[i]).mangledname then
-                          procexport(item.str);
-                        item:=TCmdStrListItem(item.next);
-                      end;
-                  end;
-              end;
+            exportprocsym(tprocsym(sym),tsymtable(arg));
           end;
         staticvarsym:
           begin
+            if publiconly and not (vo_is_public in tstaticvarsym(sym).varoptions) then
+              exit;
             varexport(tsym(sym).mangledname);
           end;
         else
