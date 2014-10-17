@@ -1774,6 +1774,10 @@ type
              setupglobalswitches;
            end;
 
+         { load all packages, so we know whether a unit is contained inside a
+           package or not }
+         load_packages;
+
          { global switches are read, so further changes aren't allowed }
          current_module.in_global:=false;
 

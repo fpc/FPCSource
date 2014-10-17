@@ -32,6 +32,7 @@ interface
   procedure createimportlibfromexports;
   Function RewritePPU(const PPUFn,PPLFn:String):Boolean;
   procedure export_unit(u:tmodule);
+  procedure load_packages;
 
 implementation
 
@@ -39,9 +40,9 @@ implementation
     sysutils,
     globtype,systems,
     cutils,cclasses,
-    verbose,
+    globals,verbose,
     symtype,symconst,symsym,symdef,symbase,symtable,
-    ppu,entfile,
+    ppu,entfile,fpcp,fpkg,
     export;
 
   procedure procexport(const s : string);
@@ -381,6 +382,27 @@ implementation
          if ioresult<>0 then;
        end;
       Result:=True;
+    end;
+
+
+  procedure load_packages;
+    var
+      i : longint;
+      pcp: tpcppackage;
+      entry : ppackageentry;
+    begin
+      if not (tf_supports_packages in target_info.flags) then
+        exit;
+      for i:=0 to packagelist.count-1 do
+        begin
+          entry:=ppackageentry(packagelist[i]);
+          if assigned(entry^.package) then
+            internalerror(2013053104);
+          Comment(V_Info,'Loading package: '+entry^.realpkgname);
+          pcp:=tpcppackage.create(entry^.realpkgname);
+          pcp.loadpcp;
+          entry^.package:=pcp;
+        end;
     end;
 
 
