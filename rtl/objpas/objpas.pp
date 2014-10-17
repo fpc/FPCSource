@@ -309,6 +309,11 @@ Type
        TableEnd   : PResourceStringRecord;
      end;
    end;
+   PResourceStringTableList = ^TResourceStringTableList;
+
+{$ifdef win32}
+  {$define FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$endif}
 
 { Support for string constants initialized with resourcestrings }
 {$ifdef FPC_HAS_RESSTRINITS}
@@ -322,18 +327,24 @@ Type
      Count: {$ifdef VER2_6}longint{$else}sizeint{$endif};
      Tables: packed array[1..{$ifdef cpu16}8191{$else cpu16}32767{$endif cpu16}] of PResStrInitEntry;
    end;
+   PResStrInitTable = ^TResStrInitTable;
 
 var
-  ResStrInitTable : TResStrInitTable; external name 'FPC_RESSTRINITTABLES';
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+  ResStrInitTable : PResStrInitTable; external name '_FPC_ResStrInitTables';
+{$else}
+  ResStrInitTableVar : TResStrInitTable; external name 'FPC_RESSTRINITTABLES';
+  ResStrInitTable : PResStrInitTable = @ResStrInitTableVar;
+{$endif}
 
 procedure UpdateResourceStringRefs;
 var
   i: integer;
   ptable: PResStrInitEntry;
 begin
-  for i:=1 to ResStrInitTable.Count do
+  for i:=1 to ResStrInitTable^.Count do
     begin
-      ptable:=ResStrInitTable.Tables[i];
+      ptable:=ResStrInitTable^.Tables[i];
       while Assigned(ptable^.Addr) do
         begin
           AnsiString(ptable^.Addr^):=ptable^.Data^.CurrentValue;
@@ -343,8 +354,13 @@ begin
 end;
 {$endif FPC_HAS_RESSTRINITS}
 
-Var
-  ResourceStringTable : TResourceStringTableList; External Name 'FPC_RESOURCESTRINGTABLES';
+var
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+  ResourceStringTable : PResourceStringTableList; external name '_FPC_ResourceStringTables';
+{$else}
+  ResourceStringTableVar : TResourceStringTableList; External Name 'FPC_RESOURCESTRINGTABLES';
+  ResourceStringTable : PResourceStringTableList = @ResourceStringTable;
+{$endif}
 
 Procedure SetResourceStrings (SetFunction :  TResourceIterator;arg:pointer);
 Var
@@ -352,7 +368,7 @@ Var
   i      : integer;
   s      : AnsiString;
 begin
-  With ResourceStringTable do
+  With ResourceStringTable^ do
     begin
       For i:=0 to Count-1 do
         begin
@@ -381,7 +397,7 @@ Var
   s,
   UpUnitName : AnsiString;
 begin
-  With ResourceStringTable do
+  With ResourceStringTable^ do
     begin
       UpUnitName:=UpCase(UnitName);
       For i:=0 to Count-1 do
@@ -413,7 +429,7 @@ Var
   ResStr : PResourceStringRecord;
   i      : integer;
 begin
-  With ResourceStringTable do
+  With ResourceStringTable^ do
     begin
       For i:=0 to Count-1 do
         begin
@@ -435,7 +451,7 @@ Var
   ResStr : PResourceStringRecord;
   i      : integer;
 begin
-  With ResourceStringTable do
+  With ResourceStringTable^ do
     begin
       For i:=0 to Count-1 do
         begin
@@ -473,8 +489,13 @@ Type
      Tables : Array[Word] of PResourceStringTable;
      end;
 
-Var
-  ResourceStringTable : TResourceTablelist; External Name 'FPC_RESOURCESTRINGTABLES';
+var
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+  ResourceStringTable : PResourceTableList; external name '_FPC_ResourceStringTables';
+{$else}
+  ResourceStringTableVar : TResourceTablelist; External Name 'FPC_RESOURCESTRINGTABLES';
+  ResourceStringTable : PResourceTableList = @ResourceStringTableVar;
+{$endif}
 
 Function GetResourceString(Const TheTable: TResourceStringTable;Index : longint) : AnsiString;[Public,Alias : 'FPC_GETRESOURCESTRING'];
 begin
@@ -490,7 +511,7 @@ Procedure SetResourceStrings (SetFunction :  TResourceIterator;arg:pointer);
 Var I,J : longint;
 
 begin
-  With ResourceStringTable do
+  With ResourceStringTable^ do
     For I:=0 to Count-1 do
       With Tables[I]^ do
          For J:=0 to Count-1 do
@@ -510,7 +531,7 @@ Procedure ResetResourceTables;
 Var I,J : longint;
 
 begin
-  With ResourceStringTable do
+  With ResourceStringTable^ do
   For I:=0 to Count-1 do
     With Tables[I]^ do
         For J:=0 to Count-1 do
@@ -523,7 +544,7 @@ Procedure FinalizeResourceTables;
 Var I,J : longint;
 
 begin
-  With ResourceStringTable do
+  With ResourceStringTable^ do
   For I:=0 to Count-1 do
     With Tables[I]^ do
         For J:=0 to Count-1 do
@@ -534,18 +555,18 @@ end;
 Function ResourceStringTableCount : Longint;
 
 begin
-  Result:=ResourceStringTable.Count;
+  Result:=ResourceStringTable^.Count;
 end;
 
 Function CheckTableIndex (Index: longint) : Boolean;
 begin
-  Result:=(Index<ResourceStringTable.Count) and (Index>=0)
+  Result:=(Index<ResourceStringTable^.Count) and (Index>=0)
 end;
 
 Function CheckStringIndex (TableIndex,Index: longint) : Boolean;
 begin
-  Result:=(TableIndex<ResourceStringTable.Count) and (TableIndex>=0) and
-          (Index<ResourceStringTable.Tables[TableIndex]^.Count) and (Index>=0)
+  Result:=(TableIndex<ResourceStringTable^.Count) and (TableIndex>=0) and
+          (Index<ResourceStringTable^.Tables[TableIndex]^.Count) and (Index>=0)
 end;
 
 Function ResourceStringCount(TableIndex : longint) : longint;
@@ -554,7 +575,7 @@ begin
   If not CheckTableIndex(TableIndex) then
      Result:=-1
   else
-    Result:=ResourceStringTable.Tables[TableIndex]^.Count;
+    Result:=ResourceStringTable^.Tables[TableIndex]^.Count;
 end;
 
 Function GetResourceStringName(TableIndex,StringIndex : Longint) : Ansistring;
@@ -563,7 +584,7 @@ begin
   If not CheckStringIndex(Tableindex,StringIndex) then
     Result:=''
   else
-    result:=ResourceStringTable.Tables[TableIndex]^.ResRec[StringIndex].Name;
+    result:=ResourceStringTable^.Tables[TableIndex]^.ResRec[StringIndex].Name;
 end;
 
 Function GetResourceStringHash(TableIndex,StringIndex : Longint) : Longint;
@@ -572,7 +593,7 @@ begin
   If not CheckStringIndex(Tableindex,StringIndex) then
     Result:=0
   else
-    result:=ResourceStringTable.Tables[TableIndex]^.ResRec[StringIndex].HashValue;
+    result:=ResourceStringTable^.Tables[TableIndex]^.ResRec[StringIndex].HashValue;
 end;
 
 Function GetResourceStringDefaultValue(TableIndex,StringIndex : Longint) : AnsiString;
@@ -581,7 +602,7 @@ begin
   If not CheckStringIndex(Tableindex,StringIndex) then
     Result:=''
   else
-    result:=ResourceStringTable.Tables[TableIndex]^.ResRec[StringIndex].DefaultValue;
+    result:=ResourceStringTable^.Tables[TableIndex]^.ResRec[StringIndex].DefaultValue;
 end;
 
 Function GetResourceStringCurrentValue(TableIndex,StringIndex : Longint) : AnsiString;
@@ -590,7 +611,7 @@ begin
   If not CheckStringIndex(Tableindex,StringIndex) then
     Result:=''
   else
-    result:=ResourceStringTable.Tables[TableIndex]^.ResRec[StringIndex].CurrentValue;
+    result:=ResourceStringTable^.Tables[TableIndex]^.ResRec[StringIndex].CurrentValue;
 end;
 
 Function SetResourceStringValue(TableIndex,StringIndex : longint; Value : Ansistring) : Boolean;
@@ -598,7 +619,7 @@ Function SetResourceStringValue(TableIndex,StringIndex : longint; Value : Ansist
 begin
   Result:=CheckStringIndex(Tableindex,StringIndex);
   If Result then
-   ResourceStringTable.Tables[TableIndex]^.ResRec[StringIndex].CurrentValue:=Value;
+   ResourceStringTable^.Tables[TableIndex]^.ResRec[StringIndex].CurrentValue:=Value;
 end;
 
 {$endif RESSTRSECTIONS}

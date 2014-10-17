@@ -557,6 +557,11 @@ type
   TEntryInformation = record
     InitFinalTable : Pointer;
     ThreadvarTablesTable : Pointer;
+    ResourceStringTables : Pointer;
+    ResStrInitTables : Pointer;
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    WideInitTables : Pointer;
+{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
     asm_exit : Procedure;stdcall;
     PascalMain : Procedure;stdcall;
     valgrind_used : boolean;

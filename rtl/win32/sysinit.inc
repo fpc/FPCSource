@@ -19,6 +19,9 @@
 
       InitFinalTable : record end; external name 'INITFINAL';
       ThreadvarTablesTable : record end; external name 'FPC_THREADVARTABLES';
+      WideInitTables : record end; external name 'FPC_WIDEINITTABLES';
+      ResStrInitTables : record end; external name 'FPC_RESSTRINITTABLES';
+      ResourceStringTables : record end; external name 'FPC_RESOURCESTRINGTABLES';
       valgrind_used : boolean;external name '__fpc_valgrind';
 
 {$if defined(FPC_USE_TLS_DIRECTORY) or defined(FPC_SECTION_THREADVARS)}
@@ -48,6 +51,11 @@
       SysInitEntryInformation : TEntryInformation = (
         InitFinalTable : @InitFinalTable;
         ThreadvarTablesTable : @ThreadvarTablesTable;
+        ResourceStringTables : @ResourceStringTables;
+        ResStrInitTables : @ResStrInitTables;
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+        WideInitTables : @WideInitTables;
+{$endif}
         asm_exit : @asm_exit;
         PascalMain : @PascalMain;
         valgrind_used : false;
@@ -59,6 +67,11 @@
         { valgind_used is the only thng that can change at startup
         EntryInformation.InitFinalTable:=@InitFinalTable;
         EntryInformation.ThreadvarTablesTable:=@ThreadvarTablesTable;
+        ResourceStringTables:=@ResourceStringTables;
+        ResStrInitTables:=@ResStrInitTables;
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+        WideInitTables:=@WideInitTables;
+{$endif}
         EntryInformation.asm_exit:=@asm_exit;
         EntryInformation.PascalMain:=@PascalMain;}
         SysInitEntryInformation.valgrind_used:=valgrind_used;

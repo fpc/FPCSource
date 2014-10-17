@@ -110,16 +110,19 @@ implementation
 
 var
   SysInstance : Longint;public name '_FPC_SysInstance';
-  InitFinalTable : record end; external name 'INITFINAL';
-  ThreadvarTablesTable : record end; external name 'FPC_THREADVARTABLES';
-  procedure PascalMain;stdcall;external name 'PASCALMAIN';
-  procedure asm_exit;stdcall;external name 'asm_exit';
+  FPCResStrInitTables : Pointer;public name '_FPC_ResStrInitTables';
+  FPCResourceStringTables : Pointer;public name '_FPC_ResourceStringTables';
 const
   EntryInformation : TEntryInformation = (
-    InitFinalTable : @InitFinalTable;
-    ThreadvarTablesTable : @ThreadvarTablesTable;
-    asm_exit : @asm_exit;
-    PascalMain : @PascalMain;
+    InitFinalTable : nil;
+    ThreadvarTablesTable : nil;
+    ResourceStringTables : nil;
+    ResStrInitTables : nil;
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    WideInitTables : nil;
+{$endif}
+    asm_exit : nil;
+    PascalMain : nil;
     valgrind_used : false;
     );
 
@@ -197,6 +200,9 @@ procedure Exe_entry(const info : TEntryInformation);[public,alias:'_FPC_EXE_Entr
     xframe: TEXCEPTION_FRAME;
   begin
      EntryInformation:=info;
+     FPCResStrInitTables:=info.ResStrInitTables;
+     FPCResourceStringTables:=info.ResourceStringTables;
+     WStrInitTablesTable:=info.WideInitTables;
      IsLibrary:=false;
      { install the handlers for exe only ?
        or should we install them for DLL also ? (PM) }
