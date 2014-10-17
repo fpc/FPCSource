@@ -179,13 +179,18 @@ implementation
       { check localsymtable for exports too to get public symbols }
       u.localsymtable.symlist.ForEachCall(@insert_export,u.localsymtable);
 
-      { create special exports }
-      if (u.flags and uf_init)<>0 then
-        procexport(make_mangledname('INIT$',u.globalsymtable,''));
-      if (u.flags and uf_finalize)<>0 then
-        procexport(make_mangledname('FINALIZE$',u.globalsymtable,''));
-      if (u.flags and uf_threadvars)=uf_threadvars then
-        varexport(make_mangledname('THREADVARLIST',u.globalsymtable,''));
+      { export assembler symbols }
+      for i:=0 to u.globalasmsyms.count-1 do
+        with tasmsymbol(u.globalasmsyms[i]) do
+          if bind in [AB_GLOBAL] then
+            case typ of
+              AT_FUNCTION:
+                procexport(name);
+              AT_DATA:
+                varexport(name);
+              else
+                Writeln('Ignoring asm symbol ',typ);
+            end;
     end;
 
   Function RewritePPU(const PPUFn,PPLFn:String):Boolean;
