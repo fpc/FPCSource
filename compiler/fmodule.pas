@@ -153,6 +153,9 @@ interface
         scanner       : TObject;  { scanner object used }
         procinfo      : TObject;  { current procedure being compiled }
         asmdata       : TObject;  { Assembler data }
+        globalasmsyms : TFPHashObjectList; { contains the assembler symbols which can potentially be exported for e.g. packages;
+                                             it's filled either by loading from a ppu or after parsing the unit has finished }
+        unitimportsyms: tfpobjectlist;
         asmprefix     : pshortstring;  { prefix for the smartlink asmfiles }
         debuginfo     : TObject;
         loaded_from   : tmodule;
@@ -225,6 +228,7 @@ interface
         function  resolve_unit(id:longint):tmodule;
         procedure allunitsused;
         procedure end_of_parsing;virtual;
+        procedure extractexportasmsyms;
         procedure setmodulename(const s:string);
         procedure AddExternalImport(const libname,symname,symmangledname:string;OrdNr: longint;isvar:boolean;ImportByOrdinalOnly:boolean);
         property ImportLibraryList : TFPHashObjectList read FImportLibraryList;
@@ -510,6 +514,21 @@ implementation
                                   TMODULE
  ****************************************************************************}
 
+    procedure tmodule.extractexportasmsyms;
+      var
+        symold,symnew : tasmsymbol;
+        i : longint;
+        n : string;
+      begin
+        for i:=0 to tasmdata(asmdata).AsmSymbolDict.Count-1 do
+          begin
+            symold:=tasmsymbol(tasmdata(asmdata).asmsymboldict[i]);
+            n:=symold.name;
+            if (symold.classtype=tasmsymbol) and (symold.bind in [AB_GLOBAL,AB_EXTERNAL,AB_WEAK_EXTERNAL]) then
+              symnew:=tasmsymbol.create(globalasmsyms,symold.name,symold.bind,symold.typ);
+          end;
+      end;
+
     constructor tmodule.create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
       var
         n:string;
@@ -602,6 +621,8 @@ implementation
         _exports:=TLinkedList.Create;
         dllscannerinputlist:=TFPHashList.Create;
         asmdata:=casmdata.create(modulename);
+        globalasmsyms:=tfphashobjectlist.create(true);
+        unitimportsyms:=tfpobjectlist.create(false);
         InitDebugInfo(self,false);
       end;
 
@@ -661,6 +682,8 @@ implementation
         linkothersharedlibs.Free;
         linkotherframeworks.Free;
         stringdispose(mainname);
+        globalasmsyms.free;
+        unitimportsyms.free;
         FImportLibraryList.Free;
         extendeddefs.Free;
         genericdummysyms.free;
@@ -751,6 +774,10 @@ implementation
         wpoinfo:=nil;
         checkforwarddefs.free;
         checkforwarddefs:=TFPObjectList.Create(false);
+        globalasmsyms.free;
+        globalasmsyms:=tfphashobjectlist.create(true);
+        unitimportsyms.free;
+        unitimportsyms:=tfpobjectlist.create(false);
         derefdata.free;
         derefdata:=TDynamicArray.Create(1024);
         if assigned(unitmap) then

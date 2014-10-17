@@ -66,6 +66,7 @@ interface
           procedure reload_flagged_units;
           procedure end_of_parsing;override;
        private
+          unitimportsymsderefs : tfplist;
          { Each time a unit's defs are (re)created, its defsgeneration is
            set to the value of a global counter, and the global counter is
            increased. We only reresolve its dependent units' defs in case
@@ -80,12 +81,17 @@ interface
           procedure load_usedunits;
           procedure printcomments;
           procedure queuecomment(const s:TMsgStr;v,w:longint);
+          procedure buildderefunitimportsyms;
+          procedure derefunitimportsyms;
+          procedure readunitimportsyms;
+          procedure writeunitimportsyms;
           procedure writesourcefiles;
           procedure writeusedunit(intf:boolean);
           procedure writelinkcontainer(var p:tlinkcontainer;id:byte;strippath:boolean);
           procedure writederefmap;
           procedure writederefdata;
           procedure writeImportSymbols;
+          procedure writeasmsymbols;
           procedure writeResources;
           procedure readsourcefiles;
           procedure readloadunit;
@@ -94,6 +100,7 @@ interface
           procedure readderefdata;
           procedure readImportSymbols;
           procedure readResources;
+          procedure readasmsymbols;
           procedure readwpofile;
 {$IFDEF MACRO_DIFF_HINT}
           procedure writeusedmacro(p:TNamedIndexItem;arg:pointer);
@@ -132,6 +139,7 @@ var
         inherited create(LoadedFrom,amodulename,afilename,_is_unit);
         ppufile:=nil;
         sourcefn:=afilename;
+        unitimportsymsderefs:=tfplist.create;
       end;
 
 
@@ -142,6 +150,8 @@ var
         ppufile:=nil;
         comments.free;
         comments:=nil;
+        unitimportsymsderefs.free;
+        unitimportsymsderefs:=nil;
         inherited Destroy;
       end;
 
@@ -677,6 +687,22 @@ var
         ppufile.writeentry(ibImportSymbols);
       end;
 
+    procedure tppumodule.writeasmsymbols;
+      var
+        sym : tasmsymbol;
+        i : longint;
+      begin
+        ppufile.putlongint(globalasmsyms.count);
+        for i:=0 to globalasmsyms.count-1 do
+          begin
+            sym:=tasmsymbol(globalasmsyms[i]);
+            ppufile.putstring(sym.name);
+            ppufile.putbyte(ord(sym.bind));
+            ppufile.putbyte(ord(sym.typ));
+          end;
+        ppufile.writeentry(ibasmsymbols);
+      end;
+
 
     procedure tppumodule.writeResources;
       var
@@ -691,6 +717,63 @@ var
         ppufile.writeentry(ibresources);
       end;
 
+
+    procedure tppumodule.buildderefunitimportsyms;
+      var
+        deref : pderef;
+        i : longint;
+      begin
+        for i:=0 to unitimportsyms.count-1 do
+          begin
+            new(deref);
+            deref^.build(unitimportsyms[i]);
+            unitimportsymsderefs.add(deref);
+          end;
+      end;
+
+
+    procedure tppumodule.derefunitimportsyms;
+      var
+        i : longint;
+        sym : tsym;
+      begin
+        { since this list can get quite large we clear it immediately after we derefd it }
+        for i:=0 to unitimportsymsderefs.count-1 do
+          begin
+            sym:=tsym(pderef(unitimportsymsderefs[i])^.resolve);
+            unitimportsyms.add(sym);
+            dispose(pderef(unitimportsymsderefs[i]));
+          end;
+        unitimportsymsderefs.clear;
+      end;
+
+
+    procedure tppumodule.readunitimportsyms;
+      var
+        c,i : longint;
+        deref : pderef;
+      begin
+        c:=ppufile.getlongint;
+        writeln('loading: unit ', modulename^, ' has ', c, ' imported symbols');
+        for i:=0 to c-1 do
+          begin
+            new(deref);
+            ppufile.getderef(deref^);
+            unitimportsymsderefs.add(deref);
+          end;
+      end;
+
+
+    procedure tppumodule.writeunitimportsyms;
+      var
+        i : longint;
+      begin
+        writeln('writing: unit ', modulename^, ' has ', unitimportsymsderefs.Count, ' imported symbols');
+        ppufile.putlongint(unitimportsymsderefs.count);
+        for i:=0 to unitimportsymsderefs.count-1 do
+          ppufile.putderef(pderef(unitimportsymsderefs[i])^);
+        ppufile.writeentry(ibunitimportsyms);
+      end;
 
 {$IFDEF MACRO_DIFF_HINT}
 
@@ -963,6 +1046,25 @@ var
       end;
 
 
+    procedure tppumodule.readasmsymbols;
+      var
+        cnt : longint;
+        s : string;
+        bind : tasmsymbind;
+        typ : tasmsymtype;
+      begin
+        cnt:=ppufile.getlongint;
+        writeln('loading: unit ', modulename^, ' has ', cnt, ' imported asm symbols');
+        while not ppufile.endofentry and not ppufile.error do
+          begin
+            s:=ppufile.getstring;
+            bind:=tasmsymbind(ppufile.getbyte);
+            typ:=tasmsymtype(ppufile.getbyte);
+            tasmsymbol.create(globalasmsyms,s,bind,typ);
+          end;
+      end;
+
+
     procedure tppumodule.readwpofile;
       var
         orgwpofilename: string;
@@ -1077,8 +1179,9 @@ var
              ibloadunit :
                readloadunit;
              ibasmsymbols :
-{ TODO: Remove ibasmsymbols}
-               ;
+               readasmsymbols;
+             ibunitimportsyms :
+               readunitimportsyms;
              ibendimplementation :
                break;
            else
@@ -1197,6 +1300,7 @@ var
            end;
          tunitwpoinfo(wpoinfo).buildderef;
          tunitwpoinfo(wpoinfo).buildderefimpl;
+         buildderefunitimportsyms;
          writederefmap;
          writederefdata;
 
@@ -1222,6 +1326,12 @@ var
 
          { write implementation uses }
          writeusedunit(false);
+
+         { write global assembler symbols }
+         writeasmsymbols;
+
+         { write all symbols imported from another unit }
+         writeunitimportsyms;
 
          { end of implementation }
          ppufile.writeentry(ibendimplementation);
@@ -1473,6 +1583,8 @@ var
         tstoredsymtable(globalsymtable).derefimpl;
         if assigned(localsymtable) then
           tstoredsymtable(localsymtable).derefimpl;
+
+        derefunitimportsyms;
 
          { read whole program optimisation-related information }
          wpoinfo:=tunitwpoinfo.ppuload(ppufile);

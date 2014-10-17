@@ -113,6 +113,7 @@ interface
     ibcreatedobjtypes = 83;
     ibwpofile         = 84;
     ibmoduleoptions   = 85;
+    ibunitimportsyms  = 86;
 
     ibmainname            = 90;
     ibsymtableoptions     = 91;

@@ -1216,7 +1216,12 @@ type
          store_crc:=current_module.crc;
 {$endif EXTDEBUG}
          if (Errorcount=0) then
-           tppumodule(current_module).writeppu;
+           begin
+             { ensure that all asm symbols that can potentially be exported are
+               available in the ppu }
+             current_module.extractexportasmsyms;
+             tppumodule(current_module).writeppu;
+           end;
 
          if not(cs_compilesystem in current_settings.moduleswitches) then
            begin

@@ -2116,13 +2116,20 @@ implementation
          owner:=sym.owner;
          while owner.symtabletype in [objectsymtable,recordsymtable,enumsymtable] do
            owner:=tdef(owner.defowner).owner;
-         if assigned(current_module) and
-            (owner.symtabletype=globalsymtable) then
-             begin
-               if tglobalsymtable(owner).moduleid>=current_module.unitmapsize then
-                 internalerror(200501152);
-               inc(current_module.unitmap[tglobalsymtable(owner).moduleid].refs);
-             end;
+         if assigned(current_module) then
+           begin
+             if (owner.symtabletype=globalsymtable) then
+               begin
+                 if tglobalsymtable(owner).moduleid>=current_module.unitmapsize then
+                   internalerror(200501152);
+                 inc(current_module.unitmap[tglobalsymtable(owner).moduleid].refs);
+               end;
+             if (owner.symtabletype=globalsymtable) and (current_module.globalsymtable<>owner) then
+               begin
+                 if current_module.unitimportsyms.indexof(sym)<0 then
+                   current_module.unitimportsyms.add(sym);
+               end;
+           end;
        end;
 
 
