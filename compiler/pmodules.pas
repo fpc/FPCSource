@@ -1406,7 +1406,7 @@ type
                begin
                  if token=_ID then
                    begin
-                     module_name:=pattern;
+                     module_name:=orgpattern;
                      consume(_ID);
                      while token=_POINT do
                        begin
@@ -1500,6 +1500,8 @@ type
               loaded_units.remove(hp2);
           end;
 
+         exportlib.ignoreduplicates:=true;
+
          { force exports }
          uu:=tused_unit(usedunits.first);
          while assigned(uu) do
@@ -1522,9 +1524,7 @@ type
 
          exportlib.generatelib;
 
-         { write all our exports to the import library,
-           needs to be done after exportlib.generatelib; }
-         createimportlibfromexports;
+         exportlib.ignoreduplicates:=false;
 
          { generate imports }
          if current_module.ImportLibraryList.Count>0 then
