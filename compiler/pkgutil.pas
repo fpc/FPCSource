@@ -174,6 +174,8 @@ implementation
 
 
   procedure export_unit(u: tmodule);
+    var
+      i : longint;
     begin
       u.globalsymtable.symlist.ForEachCall(@insert_export,u.globalsymtable);
       { check localsymtable for exports too to get public symbols }
