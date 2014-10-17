@@ -109,7 +109,7 @@ implementation
       scanner,systems,procinfo,fmodule,
       aasmbase,aasmdata,aasmtai,
       symbase,symtable,defutil,
-      nadd,ncal,ncnv,ncon,nflw,ninl,nld,nmem,nobj,nutils,
+      nadd,ncal,ncnv,ncon,nflw,ninl,nld,nmem,nobj,nutils,ncgutil,
       ppu,
       pass_1;
 
@@ -622,6 +622,7 @@ implementation
       hp : tused_unit;
       unitinits : TAsmList;
       count : longint;
+      name : tsymstr;
 
       procedure write_struct_inits(u: tmodule);
         var
@@ -638,17 +639,54 @@ implementation
           begin
             pd := tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_constructor);
             if assigned(pd) then
-              unitinits.concat(Tai_const.Createname(pd.mangledname,AT_FUNCTION,0))
+              begin
+                unitinits.concat(Tai_const.Createname(pd.mangledname,AT_FUNCTION,0));
+                if u<>current_module then
+                  u.unitimportsyms.add(pd.procsym);
+              end
             else
               unitinits.concat(Tai_const.Create_nil_codeptr);
             pd := tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_destructor);
             if assigned(pd) then
-              unitinits.concat(Tai_const.Createname(pd.mangledname,AT_FUNCTION,0))
+              begin
+                unitinits.concat(Tai_const.Createname(pd.mangledname,AT_FUNCTION,0));
+                if u<>current_module then
+                  u.unitimportsyms.add(pd.procsym);
+              end
             else
               unitinits.concat(Tai_const.Create_nil_codeptr);
             inc(count);
           end;
           structlist.free;
+        end;
+
+      procedure add_initfinal_import(name:tsymstr;symtable:tsymtable);
+        var
+          found : boolean;
+          i,j : longint;
+          sym : tsymentry;
+          pd : tprocdef;
+        begin
+          found:=false;
+          for i:=0 to symtable.SymList.count-1 do
+            begin
+              sym:=tsymentry(symtable.symlist[i]);
+              if sym.typ<>procsym then
+                continue;
+              for j:=0 to tprocsym(sym).procdeflist.count-1 do
+                begin
+                  pd:=tprocdef(tprocsym(sym).procdeflist[j]);
+                  if has_alias_name(pd,name) then
+                    begin
+                      current_module.unitimportsyms.add(sym);
+                      found:=true;
+                      break;
+                    end;
+                end;
+            end;
+          if not found then
+            internalerror(2014101003);
+          current_module.unitimportsyms.add(sym);
         end;
 
     begin
@@ -664,11 +702,19 @@ implementation
          if (hp.u.flags and (uf_init or uf_finalize))<>0 then
            begin
              if (hp.u.flags and uf_init)<>0 then
-               unitinits.concat(Tai_const.Createname(make_mangledname('INIT$',hp.u.globalsymtable,''),AT_FUNCTION,0))
+               begin
+                 name:=make_mangledname('INIT$',hp.u.globalsymtable,'');
+                 unitinits.concat(Tai_const.Createname(name,AT_FUNCTION,0));
+                 add_initfinal_import(name,hp.u.localsymtable);
+               end
              else
                unitinits.concat(Tai_const.Create_nil_codeptr);
              if (hp.u.flags and uf_finalize)<>0 then
-               unitinits.concat(Tai_const.Createname(make_mangledname('FINALIZE$',hp.u.globalsymtable,''),AT_FUNCTION,0))
+               begin
+                 name:=make_mangledname('FINALIZE$',hp.u.globalsymtable,'');
+                 unitinits.concat(Tai_const.Createname(name,AT_FUNCTION,0));
+                 add_initfinal_import(name,hp.u.localsymtable);
+               end
              else
                unitinits.concat(Tai_const.Create_nil_codeptr);
              inc(count);
