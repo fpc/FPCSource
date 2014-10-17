@@ -2008,10 +2008,6 @@ type
          { if an Objective-C module, generate rtti and module info }
          MaybeGenerateObjectiveCImageInfo(nil,current_module.localsymtable);
 
-         { generate imports }
-         if current_module.ImportLibraryList.Count>0 then
-           importlib.generatelib;
-
          { generate debuginfo }
          if (cs_debuginfo in current_settings.moduleswitches) then
            current_debuginfo.inserttypeinfo;
@@ -2045,6 +2041,14 @@ type
 
          { create callframe info }
          create_dwarf_frame;
+
+         { create import libraries for all packages }
+         if packagelist.count>0 then
+           createimportlibfromexternals(nil);
+
+         { generate imports }
+         if current_module.ImportLibraryList.Count>0 then
+           importlib.generatelib;
 
          { insert own objectfile }
          insertobjectfile;

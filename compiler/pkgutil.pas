@@ -27,9 +27,9 @@ unit pkgutil;
 interface
 
   uses
-    fmodule;
+    fmodule,fpkg;
 
-  procedure createimportlibfromexports;
+  procedure createimportlibfromexternals(pkg:tpackage);
   Function RewritePPU(const PPUFn,PPLFn:String):Boolean;
   procedure export_unit(u:tmodule);
   procedure load_packages;
@@ -41,8 +41,10 @@ implementation
     globtype,systems,
     cutils,cclasses,
     globals,verbose,
+    aasmbase,aasmdata,aasmtai,
     symtype,symconst,symsym,symdef,symbase,symtable,
-    ppu,entfile,fpcp,fpkg,
+    ppu,entfile,fpcp,
+    ncgutil,
     export;
 
   procedure procexport(const s : string);
@@ -406,16 +408,291 @@ implementation
     end;
 
 
-  procedure createimportlibfromexports;
+  procedure createimportlibfromexternals(pkg:tpackage);
+    type
+      tcacheentry=record
+        pkg:tpackage;
+        sym:tasmsymbol;
+      end;
+      pcacheentry=^tcacheentry;
     var
-      hp : texported_item;
-    begin
-      hp:=texported_item(current_module._exports.first);
-      while assigned(hp) do
+      cache : tfphashlist;
+      alreadyloaded : tfpobjectlist;
+
+
+      function findpackagewithsym(sym:tasmsymbol):tcacheentry;
+        var
+          i,j : longint;
+          pkgentry : ppackageentry;
+          unitentry : pcontainedunit;
         begin
-          current_module.AddExternalImport(current_module.realmodulename^,hp.name^,hp.name^,hp.index,hp.is_var,false);
-          hp:=texported_item(hp.next);
+          for i:=0 to packagelist.count-1 do
+            begin
+              pkgentry:=ppackageentry(packagelist[i]);
+              for j:=0 to pkgentry^.package.containedmodules.count-1 do
+                begin
+                  unitentry:=pcontainedunit(pkgentry^.package.containedmodules[j]);
+                  if not assigned(unitentry^.module) then
+                    { the unit is not loaded }
+                    continue;
+                  result.sym:=tasmsymbol(tmodule(unitentry^.module).globalasmsyms.find(sym.name));
+                  if assigned(result.sym) then
+                    begin
+                      { only accept global symbols of the used unit }
+                      if result.sym.bind<>ab_global then
+                        begin
+                          result.sym:=nil;
+                          result.pkg:=nil;
+                        end
+                      else
+                        result.pkg:=pkgentry^.package;
+                      exit;
+                    end;
+                end;
+            end;
+          result.sym:=nil;
+          result.pkg:=nil;
         end;
+
+      procedure processasmsyms(symlist:tfphashobjectlist);
+        var
+          i,j,k : longint;
+          sym : tasmsymbol;
+          cacheentry : pcacheentry;
+          list : TAsmList;
+          labind : tasmsymbol;
+          psym : tsymentry;
+          pd : tprocdef;
+          found : boolean;
+        begin
+          for i:=0 to symlist.count-1 do
+            begin
+              sym:=tasmsymbol(symlist[i]);
+              if sym.bind<>ab_external then
+                continue;
+
+              { did we already import the symbol? }
+              cacheentry:=pcacheentry(cache.find(sym.name));
+              if assigned(cacheentry) then
+                continue;
+
+              { was the symbol already imported in the previous pass? }
+              found:=false;
+              for j:=0 to alreadyloaded.count-1 do
+                begin
+                  psym:=tsymentry(alreadyloaded[j]);
+                  case psym.typ of
+                    procsym:
+                      for k:=0 to tprocsym(psym).procdeflist.count-1 do
+                        begin
+                          pd:=tprocdef(tprocsym(psym).procdeflist[k]);
+                          if has_alias_name(pd,sym.name) then
+                            begin
+                              found:=true;
+                              break;
+                            end;
+                        end;
+                    staticvarsym:
+                      if tstaticvarsym(psym).mangledname=sym.name then
+                        found:=true;
+                    else
+                      internalerror(2014101005);
+                  end;
+                  if found then
+                    break;
+                end;
+              if found then begin
+                writeln('asm symbol ', sym.name, ' is already imported');
+                { add a dummy entry }
+                new(cacheentry);
+                cacheentry^.pkg:=nil;
+                cacheentry^.sym:=sym;
+                cache.add(sym.name,cacheentry);
+                continue;
+              end;
+
+              new(cacheentry);
+              cacheentry^:=findpackagewithsym(sym);
+              cache.add(sym.name,cacheentry);
+
+              { use cacheentry^.sym instead of sym, because for the later typ
+                is always at_none in case of an external symbol }
+              if assigned(cacheentry^.pkg) then
+                begin
+                  current_module.addexternalimport(cacheentry^.pkg.pplfilename,sym.name,sym.name,0,cacheentry^.sym.typ=at_data,false);
+                  { also add an $indirect symbol if it is a variable }
+                  if cacheentry^.sym.typ=AT_DATA then
+                    begin
+                      list:=current_asmdata.AsmLists[al_globals];
+                      new_section(list,sec_rodata,lower(sym.name),const_align(4));
+                      labind:=current_asmdata.DefineAsmSymbol(sym.name+indirect_suffix,AB_PRIVATE_EXTERN,AT_DATA);
+                      list.concat(Tai_symbol.Create_Global(labind,0));
+                      list.concat(Tai_const.Createname(sym.name,AT_DATA,0));
+                      list.concat(tai_symbol_end.Create(labind));
+                    end;
+                end;
+            end;
+        end;
+
+
+      procedure import_proc_symbol(pd:tprocdef;pkg:tpackage);
+        var
+          item : TCmdStrListItem;
+        begin
+          item := TCmdStrListItem(pd.aliasnames.first);
+          while assigned(item) do
+            begin
+              current_module.addexternalimport(pkg.pplfilename,item.str,item.str,0,false,false);
+              item := TCmdStrListItem(item.next);
+            end;
+         end;
+
+
+      procedure processimportedsyms(syms:tfpobjectlist);
+        var
+          i,j,k,l : longint;
+          pkgentry : ppackageentry;
+          sym : TSymEntry;
+          srsymtable : tsymtable;
+          module : tmodule;
+          unitentry : pcontainedunit;
+          name : tsymstr;
+          labind : tasmsymbol;
+          pd : tprocdef;
+          list : tasmlist;
+        begin
+          writeln('unit has ', syms.count, ' imported symbols');
+          for i:=0 to syms.count-1 do
+            begin
+              sym:=tsymentry(syms[i]);
+              if not (sym.typ in [staticvarsym,procsym]) then
+                continue;
+              if alreadyloaded.indexof(sym)>=0 then
+                begin
+                  writeln('symbol ', sym.name, ' already imported');
+                  continue;
+                end;
+              { determine the unit of the symbol }
+              srsymtable:=sym.owner;
+              while not (srsymtable.symtabletype in [staticsymtable,globalsymtable]) do
+                srsymtable:=srsymtable.defowner.owner;
+              module:=tmodule(loaded_units.first);
+              while assigned(module) do
+                begin
+                  if (module.globalsymtable=srsymtable) or (module.localsymtable=srsymtable) then
+                    break;
+                  module:=tmodule(module.next);
+                end;
+              if not assigned(module) then
+                internalerror(2014101001);
+              if (uf_in_library and module.flags)=0 then
+                { unit is not part of a package, so no need to handle it }
+                continue;
+              writeln('found symbol ', sym.name, ' in package unit ', module.modulename^);
+              { loaded by a package? }
+              for j:=0 to packagelist.count-1 do
+                begin
+                  pkgentry:=ppackageentry(packagelist[j]);
+                  for k:=0 to pkgentry^.package.containedmodules.count-1 do
+                    begin
+                      unitentry:=pcontainedunit(pkgentry^.package.containedmodules[k]);
+                      if unitentry^.module=module then
+                        begin
+                          writeln('symbol ', sym.name, ' is part of package ', pkgentry^.package.packagename^);
+                          case sym.typ of
+                            staticvarsym:
+                              begin
+                                name:=tstaticvarsym(sym).mangledname;
+                                current_module.addexternalimport(pkgentry^.package.pplfilename,name,name+indirect_suffix,0,true,false);
+                              end;
+                            procsym:
+                              begin
+                                for l:=0 to tprocsym(sym).procdeflist.count-1 do
+                                  begin
+                                    pd:=tprocdef(tprocsym(sym).procdeflist[l]);
+                                    import_proc_symbol(pd,pkgentry^.package);
+                                  end;
+                              end;
+                            else
+                              internalerror(2014101001);
+                          end;
+                          alreadyloaded.add(sym);
+                        end;
+                    end;
+                end;
+            end;
+        end;
+
+    var
+      unitentry : pcontainedunit;
+      i : longint;
+      sym : tasmsymbol;
+      module : tmodule;
+    begin
+      cache:=tfphashlist.create;
+      { check each external asm symbol of each unit of the package whether it is
+        contained in the unit of a loaded package (and thus an import entry
+        is needed) }
+      if assigned(pkg) then
+        begin
+          { ToDo }
+          { we were called from a package file }
+          (*for i:=0 to pkg.containedmodules.count-1 do
+            begin
+              unitentry:=pcontainedunit(pkg.containedmodules[i]);
+              processasmsyms(tmodule(unitentry^.module).globalasmsyms);
+            end;
+          { also process the package's module }
+          processasmsyms(tasmdata(current_module.asmdata).asmsymboldict);*)
+        end
+      else
+        begin
+          alreadyloaded:=tfpobjectlist.create(false);
+          { we were called from a program/library }
+
+          { first pass to find all symbols that were not loaded by asm name }
+          module:=tmodule(loaded_units.first);
+          while assigned(module) do
+            begin
+              writeln('processing imported symbols of unit ', module.modulename^);
+              //if not assigned(module.package) then
+              if (uf_in_library and module.flags)=0 then
+                begin
+                  processimportedsyms(module.unitimportsyms);
+                  { this unit is not part of a package }
+                  (*if module=current_module then
+                    { this is the main file, which does not fill globalasmsyms }
+                    processasmsyms(tasmdata(module.asmdata).asmsymboldict)
+                  else
+                    { this is an ordinary unit }
+                    processasmsyms(module.globalasmsyms);*)
+                end
+              else
+                writeln(module.modulename^, ' is a package unit; ignoring');
+              module:=tmodule(module.next);
+            end;
+
+          { second pass to find all symbols that were loaded by asm name }
+          module:=tmodule(loaded_units.first);
+          while assigned(module) do
+            begin
+              if (uf_in_library and module.flags)=0 then
+                begin
+                  writeln('processing assembler symbols of unit ', module.modulename^);
+                  if module=current_module then
+                    { this is the main file, which does not fill globalasmsyms }
+                    processasmsyms(tasmdata(module.asmdata).asmsymboldict)
+                  else
+                    { this is an ordinary unit }
+                    processasmsyms(module.globalasmsyms);
+                end;
+              module:=tmodule(module.next);
+            end;
+
+          alreadyloaded.free;
+        end;
+      for i:=0 to cache.count-1 do
+        dispose(pcacheentry(cache[i]));
     end;
 
 end.
