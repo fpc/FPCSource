@@ -532,7 +532,7 @@ implementation
                     begin
                       list:=current_asmdata.AsmLists[al_globals];
                       new_section(list,sec_rodata,lower(sym.name),const_align(4));
-                      labind:=current_asmdata.DefineAsmSymbol(sym.name+indirect_suffix,AB_PRIVATE_EXTERN,AT_DATA);
+                      labind:=current_asmdata.DefineAsmSymbol(sym.name+indirect_suffix,AB_GLOBAL,AT_DATA);
                       list.concat(Tai_symbol.Create_Global(labind,0));
                       list.concat(Tai_const.Createname(sym.name,AT_DATA,0));
                       list.concat(tai_symbol_end.Create(labind));
