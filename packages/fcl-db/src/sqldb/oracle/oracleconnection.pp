@@ -1248,6 +1248,10 @@ constructor TOracleConnection.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FConnOptions := FConnOptions + [sqEscapeRepeat];
+  FOciEnvironment := nil;
+  FOciError := nil;
+  FOciServer := nil;
+  FOciUserSession := nil;
   FUserMem := nil;
 end;
 
