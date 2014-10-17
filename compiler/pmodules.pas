@@ -1580,7 +1580,7 @@ type
              uu:=tused_unit(usedunits.first);
              while assigned(uu) do
                begin
-                 RewritePPU(uu.u.ppufilename,uu.u.ppufilename);
+                 RewritePPU(uu.u.ppufilename,changefileext(uu.u.ppufilename,'.ppl.ppu'));
                  uu:=tused_unit(uu.next);
                end;
 
