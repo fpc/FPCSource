@@ -497,6 +497,7 @@ compiler/parser.pas svneol=native#text/plain
 compiler/pass_1.pas svneol=native#text/plain
 compiler/pass_2.pas svneol=native#text/plain
 compiler/pbase.pas svneol=native#text/plain
+compiler/pcp.pas svneol=native#text/pascal
 compiler/pdecl.pas svneol=native#text/plain
 compiler/pdecobj.pas svneol=native#text/plain
 compiler/pdecsub.pas svneol=native#text/plain
