@@ -41,7 +41,7 @@ implementation
        aasmtai,aasmdata,aasmcpu,aasmbase,
        cgbase,cgobj,ngenutil,
        nbas,nutils,ncgutil,
-       link,assemble,import,export,gendef,entfile,ppu,comprsrc,dbgbase,
+       link,assemble,import,export,gendef,entfile,ppu,comprsrc,dbgbase,fpcp,
        cresstr,procinfo,
        pexports,
        objcgutl,
@@ -1314,6 +1314,7 @@ type
       var
         main_file : tinputfile;
         hp,hp2    : tmodule;
+        pkg : tpcppackage;
         {finalize_procinfo,
         init_procinfo,
         main_procinfo : tcgprocinfo;}
@@ -1563,6 +1564,18 @@ type
 
          if (not current_module.is_unit) then
            begin
+             { add all contained units to the package }
+             { TODO : handle implicitly imported units }
+             pkg:=tpcppackage.create(module_name);
+             uu:=tused_unit(current_module.used_units.first);
+             while assigned(uu) do
+               begin
+                 pkg.addunit(uu.u);
+                 uu:=tused_unit(uu.next);
+               end;
+
+             pkg.initmoduleinfo(current_module);
+
              { finally rewrite all units included into the package }
              uu:=tused_unit(usedunits.first);
              while assigned(uu) do
@@ -1579,6 +1592,10 @@ type
                  { write .def file }
                  if (cs_link_deffile in current_settings.globalswitches) then
                    deffile.writefile;
+
+                 { generate the pcp file }
+                 pkg.savepcp;
+
                  { insert all .o files from all loaded units and
                    unload the units, we don't need them anymore.
                    Keep the current_module because that is still needed }
@@ -1605,6 +1622,8 @@ type
                 Message1(unit_f_errors_in_unit,tostr(Errorcount));
                 status.skip_error:=true;
               end;
+
+             pkg.free;
           end;
       end;
 
