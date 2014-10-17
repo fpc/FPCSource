@@ -2583,7 +2583,8 @@ implementation
         def_to   : tdef;
         currpt,
         pt       : tcallparanode;
-        eq       : tequaltype;
+        eq,
+        mineq    : tequaltype;
         convtype : tconverttype;
         pdtemp,
         pdoper   : tprocdef;
@@ -2763,6 +2764,30 @@ implementation
                    eq:=compare_defs_ext(n.resultdef,def_to,n.nodetype,convtype,pdoper,cdoptions);
                    n.free;
                  end
+              else if (def_to.typ=arraydef) and
+                      is_class_or_interface_or_dispinterface_or_objc_or_java(tarraydef(def_to).elementdef) and
+                      is_array_constructor(currpt.left.resultdef) and
+                      assigned(tarrayconstructornode(currpt.left).left) then
+                begin
+                  { ensure that [nil] can be converted to "array of tobject",
+                    because if we just try to convert "array of pointer" to
+                    "array of tobject", we get type conversion errors in
+                    non-Delphi modes }
+                  n:=currpt.left;
+                  mineq:=te_exact;
+                  repeat
+                    if tarrayconstructornode(n).left.nodetype=arrayconstructorrangen then
+                      eq:=te_incompatible
+                    else
+                      eq:=compare_defs_ext(tarrayconstructornode(n).left.resultdef,tarraydef(def_to).elementdef,tarrayconstructornode(n).left.nodetype,convtype,pdoper,cdoptions);
+                    if eq=te_incompatible then
+                      break;
+                    if eq<mineq then
+                      mineq:=eq;
+                    n:=tarrayconstructornode(n).right;
+                  until not assigned(n);
+                  eq:=mineq;
+                end
               else
               { generic type comparision }
                begin
