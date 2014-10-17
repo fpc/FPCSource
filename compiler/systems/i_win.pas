@@ -39,7 +39,7 @@ unit i_win;
                             tf_winlikewidestring,tf_no_pic_supported,
                             tf_no_generic_stackcheck,tf_has_winlike_resources,
                             tf_dwarf_only_local_labels,
-                            tf_safecall_exceptions,tf_no_backquote_support];
+                            tf_safecall_exceptions,tf_no_backquote_support,tf_supports_packages];
             cpu          : cpu_i386;
             unit_env     : 'WIN32UNITS';
             extradefines : 'MSWINDOWS;WINDOWS';
