@@ -26,11 +26,11 @@ unit pkgutil;
 
 interface
 
-procedure createimportlibfromexports;
-Function RewritePPU(const PPUFn,PPLFn:String):Boolean;
-procedure insert_export(sym : TObject;arg:pointer);
-procedure procexport(const s : string);
-procedure varexport(const s : string);
+  procedure createimportlibfromexports;
+  Function RewritePPU(const PPUFn,PPLFn:String):Boolean;
+  procedure insert_export(sym : TObject;arg:pointer);
+  procedure procexport(const s : string);
+  procedure varexport(const s : string);
 
 implementation
 
