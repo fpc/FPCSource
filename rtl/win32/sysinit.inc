@@ -20,7 +20,9 @@
       InitFinalTable : record end; external name 'INITFINAL';
       ThreadvarTablesTable : record end; external name 'FPC_THREADVARTABLES';
       WideInitTables : record end; external name 'FPC_WIDEINITTABLES';
+{$ifdef FPC_HAS_RESSTRINITS}
       ResStrInitTables : record end; external name 'FPC_RESSTRINITTABLES';
+{$endif}
       ResourceStringTables : record end; external name 'FPC_RESOURCESTRINGTABLES';
       valgrind_used : boolean;external name '__fpc_valgrind';
 
@@ -52,7 +54,11 @@
         InitFinalTable : @InitFinalTable;
         ThreadvarTablesTable : @ThreadvarTablesTable;
         ResourceStringTables : @ResourceStringTables;
+{$ifdef FPC_HAS_RESSTRINITS}
         ResStrInitTables : @ResStrInitTables;
+{$else}
+        ResStrInitTables : nil;
+{$endif}
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
         WideInitTables : @WideInitTables;
 {$endif}
