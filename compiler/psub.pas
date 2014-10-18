@@ -278,8 +278,7 @@ implementation
         { occurs                                                            }
         if (tsym(p).typ=localvarsym) and
            (tlocalvarsym(p).refs>0) and
-           is_managed_type(tlocalvarsym(p).vardef) and
-           not (vo_is_weakref in tlocalvarsym(p).varoptions) then
+           is_managed_type(tlocalvarsym(p).vardef) then
           begin
             include(current_procinfo.flags,pi_needs_implicit_finally);
             if is_rtti_managed_type(tlocalvarsym(p).vardef) and
