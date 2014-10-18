@@ -6443,9 +6443,10 @@ implementation
         hp : tobjectdef;
       begin
          case objecttype of
-            odt_helper,
-            odt_class :
+            odt_helper:
               needs_inittable:=false;
+            odt_class:
+              needs_inittable:=oo_is_reference_counted in objectoptions;
             odt_dispinterface,
             odt_interfacecom:
               needs_inittable:=true;
