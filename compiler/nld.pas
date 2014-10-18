@@ -754,12 +754,30 @@ implementation
 
 
     function tassignmentnode.pass_1 : tnode;
+
+      function is_weak_var(node:tnode):boolean;
+        var
+          actnode : tnode;
+        begin
+          result:=true;
+          actnode:=actualtargetnode(@node)^;
+          if (actnode.nodetype=loadn) and
+              (tloadnode(actnode).symtableentry.typ in [localvarsym,staticvarsym,paravarsym]) and
+              (vo_is_weakref in tabstractvarsym(tloadnode(actnode).symtableentry).varoptions) then
+            exit;
+          if (actnode.nodetype=subscriptn) and
+              (vo_is_weakref in tsubscriptnode(actnode).vs.varoptions) then
+            exit;
+          result:=false;
+        end;
+
       var
-        hp: tnode;
+        hp : tnode;
         oldassignmentnode : tassignmentnode;
         hdef: tdef;
         hs: string;
         needrtti: boolean;
+        offsetsym : tfieldvarsym;
       begin
          result:=nil;
          expectloc:=LOC_VOID;
@@ -790,6 +808,7 @@ implementation
            include(current_procinfo.flags,pi_do_call);
 
          needrtti:=false;
+         offsetsym:=nil;
 
         if (is_shortstring(left.resultdef)) then
           begin
@@ -817,6 +836,7 @@ implementation
             (left.resultdef.typ in [arraydef,objectdef,recorddef]) and
             not is_interfacecom_or_dispinterface(left.resultdef) and
             not is_dynamic_array(left.resultdef) and
+            not is_class(left.resultdef) and
             not(target_info.system in systems_garbage_collected_managed_types) then
          begin
            hp:=ccallparanode.create(caddrnode.create_internal(
@@ -869,6 +889,15 @@ implementation
                 hs:='fpc_dynarray_assign';
                 needrtti:=true;
               end
+            else if is_class(left.resultdef) and (oo_is_reference_counted in tobjectdef(left.resultdef).objectoptions) then
+              begin
+                if is_weak_var(left) or is_weak_var(right) then
+                  exit;
+                hs:='fpc_refcountclass_assign';
+                offsetsym:=tfieldvarsym(tobjectdef(left.resultdef).refcount_field);
+                if not assigned(offsetsym) or (offsetsym.typ<>fieldvarsym) then
+                  internalerror(2014092205);
+              end
             else
               exit;
           end
@@ -898,7 +927,12 @@ implementation
           hp:=ccallparanode.create(
             caddrnode.create_internal(
               crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal)),
-            hp);
+            hp)
+        else
+          if assigned(offsetsym) then
+            hp:=ccallparanode.create(
+                  cordconstnode.create(offsetsym.fieldoffset,s32inttype,false),
+                  hp);
         result:=ccallnode.createintern(hs,hp);
         firstpass(result);
         left:=nil;

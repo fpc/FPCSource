@@ -3054,9 +3054,11 @@ implementation
       incrfunc : string;
       cgpara1,cgpara2 : TCGPara;
       pd : tprocdef;
+      offsetsym : tfieldvarsym;
     begin
        cgpara1.init;
        cgpara2.init;
+       offsetsym:=nil;
        if is_interfacecom_or_dispinterface(t) then
          incrfunc:='fpc_intf_incr_ref'
        else if is_ansistring(t) then
@@ -3067,6 +3069,13 @@ implementation
          incrfunc:='fpc_unicodestr_incr_ref'
        else if is_dynamic_array(t) then
          incrfunc:='fpc_dynarray_incr_ref'
+       else if is_class(t) and (oo_is_reference_counted in tobjectdef(t).objectoptions) then
+         begin
+           incrfunc:='fpc_refcountclass_incr_ref';
+           offsetsym:=tfieldvarsym(tobjectdef(t).refcount_field);
+           if not assigned(offsetsym) or (offsetsym.typ<>fieldvarsym) then
+             internalerror(2014092201);
+         end
        else
         incrfunc:='';
        { call the special incr function or the generic addref }
@@ -3082,6 +3091,12 @@ implementation
             { these functions get the pointer by value }
             a_load_ref_cgpara(list,t,ref,cgpara1);
           paramanager.freecgpara(list,cgpara1);
+          if assigned(offsetsym) then
+            begin
+              paramanager.getintparaloc(pd,2,cgpara2);
+              a_load_const_cgpara(list,s32inttype,offsetsym.fieldoffset,cgpara2);
+              paramanager.freecgpara(list,cgpara2);
+            end;
           g_call_system_proc(list,pd,nil);
         end
        else
@@ -3164,7 +3179,9 @@ implementation
        cgpara1,cgpara2 : TCGPara;
        pd : tprocdef;
        decrfunc : string;
+       offsetsym : tfieldvarsym;
     begin
+      offsetsym:=nil;
       if is_interfacecom_or_dispinterface(t) then
         decrfunc:='fpc_intf_decr_ref'
       else if is_ansistring(t) then
@@ -3175,6 +3192,13 @@ implementation
         decrfunc:='fpc_unicodestr_decr_ref'
       else if t.typ=variantdef then
         decrfunc:='fpc_variant_clear'
+      else if is_class(t) and (oo_is_reference_counted in tobjectdef(t).objectoptions) then
+        begin
+          decrfunc:='fpc_refcountclass_decr_ref';
+          offsetsym:=tfieldvarsym(tobjectdef(t).refcount_field);
+          if not assigned(offsetsym) or (offsetsym.typ<>fieldvarsym) then
+            internalerror(2014092203);
+        end
       else
         begin
           cgpara1.init;
@@ -3209,11 +3233,19 @@ implementation
         end;
       pd:=search_system_proc(decrfunc);
       cgpara1.init;
+      cgpara1.init;
       paramanager.getintparaloc(pd,1,cgpara1);
       a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
       paramanager.freecgpara(list,cgpara1);
+      if assigned(offsetsym) then
+        begin
+          paramanager.getintparaloc(pd,2,cgpara2);
+          a_load_const_cgpara(list,s32inttype,offsetsym.fieldoffset,cgpara2);
+          paramanager.freecgpara(list,cgpara2);
+        end;
       g_call_system_proc(list,pd,nil);
       cgpara1.done;
+      cgpara2.done;
     end;
 
   procedure thlcgobj.g_array_rtti_helper(list: TAsmList; t: tdef; const ref: treference; const highloc: tlocation; const name: string);

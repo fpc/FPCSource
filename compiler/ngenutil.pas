@@ -212,11 +212,14 @@ implementation
   class function tnodeutils.finalize_data_node(p:tnode):tnode;
     var
       hs : string;
+      offsetsym : tfieldvarsym;
+      paranode : tcallparanode;
     begin
       if not assigned(p.resultdef) then
         typecheckpass(p);
       { 'decr_ref' suffix is somewhat misleading, all these helpers
         set the passed pointer to nil now }
+      offsetsym:=nil;
       if is_ansistring(p.resultdef) then
         hs:='fpc_ansistr_decr_ref'
       else if is_widestring(p.resultdef) then
@@ -225,13 +228,26 @@ implementation
         hs:='fpc_unicodestr_decr_ref'
       else if is_interfacecom_or_dispinterface(p.resultdef) then
         hs:='fpc_intf_decr_ref'
+      else if is_class(p.resultdef) and (oo_is_reference_counted in tobjectdef(p.resultdef).objectoptions) then
+        begin
+          hs:='fpc_refcountclass_decr_ref';
+          offsetsym:=tfieldvarsym(tobjectdef(p.resultdef).refcount_field);
+          if not assigned(offsetsym) or (offsetsym.typ<>fieldvarsym) then
+            internalerror(2014092202);
+        end
       else
         hs:='';
       if hs<>'' then
-        result:=ccallnode.createintern(hs,
-           ccallparanode.create(
-             ctypeconvnode.create_internal(p,voidpointertype),
-             nil))
+        begin
+          paranode:=ccallparanode.create(
+               ctypeconvnode.create_internal(p,voidpointertype),
+               nil);
+          if assigned(offsetsym) then
+            paranode:=ccallparanode.create(
+                        cordconstnode.create(offsetsym.fieldoffset,s32inttype,false),
+                        paranode);
+          result:=ccallnode.createintern(hs,paranode);
+        end
       else if p.resultdef.typ=variantdef then
         begin
           result:=ccallnode.createintern('fpc_variant_clear',
