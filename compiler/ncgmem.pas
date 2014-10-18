@@ -334,6 +334,7 @@ implementation
          if is_implicit_pointer_object_type(left.resultdef) then
            begin
              if (not is_managed_type(left.resultdef)) or
+                 is_class(left.resultdef) or
                 (target_info.system in systems_garbage_collected_managed_types) then
                begin
                  { the contents of a class are aligned to a sizeof(pointer) }
