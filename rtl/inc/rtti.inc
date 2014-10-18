@@ -120,7 +120,9 @@ begin
   { Process elements }
   for i:=1 to count Do
     begin
+{$ifndef VER2_6}
       if not PRecordElement(typeInfo)^.IsWeak then
+{$endif}
         rttiproc(Data+PRecordElement(typeInfo)^.Offset,PRecordElement(typeInfo)^.TypeInfo);
       Inc(PRecordElement(typeInfo));
     end;
@@ -355,7 +357,11 @@ begin
           begin
             Info:=PRecordElement(Temp)^.TypeInfo;
             Offset:=PRecordElement(Temp)^.Offset;
+            {$ifdef VER2_6}
+            IsWeak:=False;
+            {$else}
             IsWeak:=PRecordElement(Temp)^.IsWeak;
+            {$endif}
             Inc(PRecordElement(Temp));
             if Offset>expectedoffset then
               move((Src+expectedoffset)^,(Dest+expectedoffset)^,Offset-expectedoffset);
