@@ -2176,7 +2176,12 @@ implementation
     function tparavarsym.needs_finalization:boolean;
       begin
         result:=(varspez=vs_value) and
-          (is_managed_type(vardef) or
+          (
+            (
+              is_managed_type(vardef) and
+              not (vo_is_weakref in varoptions)
+            )
+            or
             (
               (not (tabstractprocdef(owner.defowner).proccalloption in cdecl_pocalls)) and
               (not paramanager.use_stackalloc) and

@@ -4547,7 +4547,8 @@ implementation
       if not(tsym(p).typ=paravarsym) then
         exit;
       list:=TAsmList(arg);
-      if is_managed_type(tparavarsym(p).vardef) then
+      if is_managed_type(tparavarsym(p).vardef) and
+          not (vo_is_weakref in tparavarsym(p).varoptions) then
        begin
          if (tparavarsym(p).varspez=vs_value) then
           begin
@@ -4608,7 +4609,8 @@ implementation
                  { variants are already handled by the call to fpc_variant_copy_overwrite if
                    they are passed by reference }
                  if not((tparavarsym(p).vardef.typ=variantdef) and
-                   paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
+                   paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) and
+                     not (vo_is_weakref in tparavarsym(p).varoptions) then
                    begin
                      location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
                      if is_open_array(tparavarsym(p).vardef) then
