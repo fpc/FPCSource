@@ -3137,7 +3137,8 @@ implementation
           is_widestring(t) or
           is_unicodestring(t) or
           is_interfacecom_or_dispinterface(t) or
-          is_dynamic_array(t) then
+          is_dynamic_array(t) or
+          (is_class(t) and (oo_is_reference_counted in tobjectdef(t).objectoptions)) then
          a_load_const_ref(list,t,0,ref)
        else if t.typ=variantdef then
          begin
