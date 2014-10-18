@@ -278,7 +278,8 @@ implementation
         { occurs                                                            }
         if (tsym(p).typ=localvarsym) and
            (tlocalvarsym(p).refs>0) and
-           is_managed_type(tlocalvarsym(p).vardef) then
+           is_managed_type(tlocalvarsym(p).vardef) and
+           not (vo_is_weakref in tlocalvarsym(p).varoptions) then
           begin
             include(current_procinfo.flags,pi_needs_implicit_finally);
             if is_rtti_managed_type(tlocalvarsym(p).vardef) and
@@ -427,6 +428,9 @@ implementation
         call         : tcallnode;
         newstatement : tstatementnode;
         def          : tabstractrecorddef;
+        elsenode     : tnode;
+        offsetsym    : tfieldvarsym;
+        paranode     : tcallparanode;
       begin
         result:=internalstatements(newstatement);
 
@@ -528,12 +532,35 @@ implementation
                   calling fail instead of exit is useless because
                   there is nothing to dispose (PFV) }
                 if is_class_or_object(current_structdef) then
-                  addstatement(newstatement,cifnode.create(
-                    caddnode.create(equaln,
-                        load_self_pointer_node,
-                        cnilnode.create),
-                    cexitnode.create(nil),
-                    nil));
+                  begin
+                    if is_class(current_structdef) and (oo_is_reference_counted in tobjectdef(current_structdef).objectoptions) then
+                      begin
+                        { if the instance was successfully created we need to
+                          force the reference count to 1 }
+                        offsetsym:=tfieldvarsym(tobjectdef(current_structdef).refcount_field);
+                        if not assigned(offsetsym) or (offsetsym.typ<>fieldvarsym) then
+                          internalerror(2014092301);
+                        elsenode:=cifnode.create(
+                          caddnode.create_internal(equaln,
+                              ctypeconvnode.create_internal(
+                                  load_vmt_pointer_node,
+                                  voidpointertype),
+                              cpointerconstnode.create(1,voidpointertype)),
+                          cassignmentnode.create(
+                            csubscriptnode.create(offsetsym,load_self_node),
+                            cordconstnode.create(1,s32inttype,false)
+                          ),
+                          nil);
+                      end
+                    else
+                      elsenode:=nil;
+                    addstatement(newstatement,cifnode.create(
+                      caddnode.create(equaln,
+                          load_self_pointer_node,
+                          cnilnode.create),
+                      cexitnode.create(nil),
+                      elsenode));
+                  end;
               end;
 
             { maybe call BeforeDestruction for classes }
@@ -690,11 +717,15 @@ implementation
     procedure tcgprocinfo.maybe_add_constructor_wrapper(var tocode: tnode; withexceptblock: boolean);
       var
         oldlocalswitches: tlocalswitches;
+        offsetsym : tfieldvarsym;
         srsym: tsym;
+        thenblock,
         afterconstructionblock,
         exceptblock,
         newblock: tblocknode;
+        thenstatement,
         newstatement: tstatementnode;
+        thennode : tnode;
         pd: tprocdef;
       begin
         if assigned(procdef.struct) and
@@ -732,6 +763,24 @@ implementation
                         final_used:=true;
                       end;
 
+                    thennode:=ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[]);
+                    if oo_is_reference_counted in procdef.struct.objectoptions then
+                      begin
+                        thenblock:=internalstatements(thenstatement);
+                        addstatement(thenstatement,thennode);
+                        offsetsym:=tfieldvarsym(tobjectdef(current_structdef).refcount_field);
+                        if not assigned(offsetsym) or (offsetsym.typ<>fieldvarsym) then
+                          internalerror(2014092301);
+                        addstatement(thenstatement,ccallnode.createintern('fpc_refcountclass_decr_ref',
+                                 ccallparanode.create(
+                                      { tell the helper to not call Destroy }
+                                      cordconstnode.create(-offsetsym.fieldoffset,s32inttype,false),
+                                      ccallparanode.create(
+                             ctypeconvnode.create_internal(load_self_pointer_node,voidpointertype),
+                             nil))));
+                        thennode:=thenblock;
+                      end;
+
                     { Self can be nil when fail is called }
                     { if self<>nil and vmt<>nil then afterconstruction }
                     addstatement(newstatement,cifnode.create(
@@ -742,7 +791,7 @@ implementation
                         caddnode.create(unequaln,
                           load_vmt_pointer_node,
                           cnilnode.create)),
-                        ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[]),
+                        thennode,
                         nil));
                     tocode:=afterconstructionblock;
                   end
@@ -763,15 +812,17 @@ implementation
                     exceptblock:=internalstatements(newstatement);
                     { first free the instance if non-nil }
                     if assigned(pd) then
-                      { if vmt<>0 then call destructor }
-                      addstatement(newstatement,
-                        cifnode.create(
-                          caddnode.create(unequaln,
-                            load_vmt_pointer_node,
-                            cnilnode.create),
-                          { cnf_create_failed -> don't call BeforeDestruction }
-                          ccallnode.create(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node,[cnf_create_failed]),
-                          nil))
+                      begin
+                        { if vmt<>0 then call destructor }
+                        addstatement(newstatement,
+                          cifnode.create(
+                            caddnode.create(unequaln,
+                              load_vmt_pointer_node,
+                              cnilnode.create),
+                            { cnf_create_failed -> don't call BeforeDestruction }
+                            ccallnode.create(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node,[cnf_create_failed]),
+                            nil));
+                      end
                     else
                       { object without destructor, call 'fail' helper }
                       addstatement(newstatement,
