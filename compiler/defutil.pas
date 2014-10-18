@@ -640,6 +640,7 @@ implementation
       begin
         result:=def.needs_inittable and not (
           is_interfacecom_or_dispinterface(def) or
+          is_class(def) or
           (def.typ=variantdef) or
           (
             (def.typ=stringdef) and
