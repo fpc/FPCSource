@@ -110,7 +110,9 @@
          vAutoTable: Pointer;
          vIntfTable: PInterfaceTable;
          vMsgStrPtr: pstringmessagetable;
+         {$ifndef VER2_6}
          vRefCountOfs: SizeInt;
+         {$endif}
          vDestroy: CodePointer;
          vNewInstance: CodePointer;
          vFreeInstance: CodePointer;
