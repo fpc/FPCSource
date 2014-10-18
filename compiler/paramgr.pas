@@ -597,7 +597,11 @@ implementation
                  is_objectpascal_helper(tdef(pd.owner.defowner))
                )
              )
-           ) or is_managed_type(def) then
+           ) or
+           (
+             is_managed_type(def) and
+             not is_class(def)
+           ) then
           begin
             retinparam:=true;
             exit(true);
