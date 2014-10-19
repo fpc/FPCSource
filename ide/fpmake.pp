@@ -201,30 +201,30 @@ begin
     T.Directory:='compiler';
     T.Install:=false;
 
-    P.InstallFiles.Add('fp.ans','$(BININSTALLDIR)');
-    P.InstallFiles.Add('gplprog.pt','$(BININSTALLDIR)');
-    P.InstallFiles.Add('gplunit.pt','$(BININSTALLDIR)');
-    P.InstallFiles.Add('program.pt','$(BININSTALLDIR)');
-    P.InstallFiles.Add('unit.pt','$(BININSTALLDIR)');
-    P.InstallFiles.Add('cvsco.tdf','$(BININSTALLDIR)');
-    P.InstallFiles.Add('cvsdiff.tdf','$(BININSTALLDIR)');
-    P.InstallFiles.Add('cvsup.tdf','$(BININSTALLDIR)');
-    P.InstallFiles.Add('grep.tdf','$(BININSTALLDIR)');
-    P.InstallFiles.Add('tpgrep.tdf','$(BININSTALLDIR)');
-    P.InstallFiles.Add('fp32.ico', [win32, win64], '$(BININSTALLDIR)');
+    P.InstallFiles.Add('fp.ans','$(bininstalldir)');
+    P.InstallFiles.Add('gplprog.pt','$(bininstalldir)');
+    P.InstallFiles.Add('gplunit.pt','$(bininstalldir)');
+    P.InstallFiles.Add('program.pt','$(bininstalldir)');
+    P.InstallFiles.Add('unit.pt','$(bininstalldir)');
+    P.InstallFiles.Add('cvsco.tdf','$(bininstalldir)');
+    P.InstallFiles.Add('cvsdiff.tdf','$(bininstalldir)');
+    P.InstallFiles.Add('cvsup.tdf','$(bininstalldir)');
+    P.InstallFiles.Add('grep.tdf','$(bininstalldir)');
+    P.InstallFiles.Add('tpgrep.tdf','$(bininstalldir)');
+    P.InstallFiles.Add('fp32.ico', [win32, win64], '$(bininstalldir)');
 
     P.Sources.AddDoc('readme.ide');
 
-    P.CleanFiles.Add('$(UNITSOUTPUTDIR)ppheap.ppu');
-    P.CleanFiles.Add('$(UNITSOUTPUTDIR)compiler.ppu');
-    P.CleanFiles.Add('$(UNITSOUTPUTDIR)comphook.ppu');
-    P.CleanFiles.Add('$(UNITSOUTPUTDIR)cpuinfo.ppu');
-    P.CleanFiles.Add('$(UNITSOUTPUTDIR)browcol.ppu');
-    P.CleanFiles.Add('$(UNITSOUTPUTDIR)ppheap.o');
-    P.CleanFiles.Add('$(UNITSOUTPUTDIR)compiler.o');
-    P.CleanFiles.Add('$(UNITSOUTPUTDIR)comphook.o');
-    P.CleanFiles.Add('$(UNITSOUTPUTDIR)cpuinfo.o');
-    P.CleanFiles.Add('$(UNITSOUTPUTDIR)browcol.o');
+    P.CleanFiles.Add('$(unitsoutputdir)ppheap.ppu');
+    P.CleanFiles.Add('$(unitsoutputdir)compiler.ppu');
+    P.CleanFiles.Add('$(unitsoutputdir)comphook.ppu');
+    P.CleanFiles.Add('$(unitsoutputdir)cpuinfo.ppu');
+    P.CleanFiles.Add('$(unitsoutputdir)browcol.ppu');
+    P.CleanFiles.Add('$(unitsoutputdir)ppheap.o');
+    P.CleanFiles.Add('$(unitsoutputdir)compiler.o');
+    P.CleanFiles.Add('$(unitsoutputdir)comphook.o');
+    P.CleanFiles.Add('$(unitsoutputdir)cpuinfo.o');
+    P.CleanFiles.Add('$(unitsoutputdir)browcol.o');
 
     P.BeforeCompileProc:=@ide_check_gdb_availability;
     end;
