@@ -215,16 +215,16 @@ begin
 
     P.Sources.AddDoc('readme.ide');
 
-    P.CleanFiles.Add('$(unitsoutputdir)ppheap.ppu');
-    P.CleanFiles.Add('$(unitsoutputdir)compiler.ppu');
-    P.CleanFiles.Add('$(unitsoutputdir)comphook.ppu');
-    P.CleanFiles.Add('$(unitsoutputdir)cpuinfo.ppu');
-    P.CleanFiles.Add('$(unitsoutputdir)browcol.ppu');
-    P.CleanFiles.Add('$(unitsoutputdir)ppheap.o');
-    P.CleanFiles.Add('$(unitsoutputdir)compiler.o');
-    P.CleanFiles.Add('$(unitsoutputdir)comphook.o');
-    P.CleanFiles.Add('$(unitsoutputdir)cpuinfo.o');
-    P.CleanFiles.Add('$(unitsoutputdir)browcol.o');
+    P.CleanFiles.Add('$(UNITSOUTPUTDIR)ppheap.ppu');
+    P.CleanFiles.Add('$(UNITSOUTPUTDIR)compiler.ppu');
+    P.CleanFiles.Add('$(UNITSOUTPUTDIR)comphook.ppu');
+    P.CleanFiles.Add('$(UNITSOUTPUTDIR)cpuinfo.ppu');
+    P.CleanFiles.Add('$(UNITSOUTPUTDIR)browcol.ppu');
+    P.CleanFiles.Add('$(UNITSOUTPUTDIR)ppheap.o');
+    P.CleanFiles.Add('$(UNITSOUTPUTDIR)compiler.o');
+    P.CleanFiles.Add('$(UNITSOUTPUTDIR)comphook.o');
+    P.CleanFiles.Add('$(UNITSOUTPUTDIR)cpuinfo.o');
+    P.CleanFiles.Add('$(UNITSOUTPUTDIR)browcol.o');
 
     P.BeforeCompileProc:=@ide_check_gdb_availability;
     end;
