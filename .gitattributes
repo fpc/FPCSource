@@ -1209,6 +1209,7 @@ packages/cdrom/src/wnaspi32.pp svneol=native#text/plain
 packages/chm/Makefile svneol=native#text/plain
 packages/chm/Makefile.fpc svneol=native#text/plain
 packages/chm/Makefile.fpc.fpcmake svneol=native#text/plain
+packages/chm/examples/chmsearch.lpr svneol=native#text/plain
 packages/chm/fpmake.pp svneol=native#text/plain
 packages/chm/src/chmbase.pas svneol=native#text/plain
 packages/chm/src/chmcmd.lpi svneol=native#text/plain
