@@ -2111,6 +2111,19 @@ begin
     Result:=CPUToString(CPU)+'-'+OSToString(OS);
 end;
 
+function MakeZipSuffix(CPU : TCPU;OS: TOS) : String;
+
+begin
+  case OS of
+    go32v2: result := 'dos';
+    watcom: result := 'wat';
+    os2:    result := 'os2';
+    emx:    result := 'emx';
+  else
+    result := '.' + MakeTargetString(CPU, OS);
+  end;
+end;
+
 Procedure StringToCPUOS(const S : String; Var CPU : TCPU; Var OS: TOS);
 
 Var
@@ -6970,7 +6983,7 @@ procedure TBuildEngine.ZipInstall(Packages: TPackages);
           P:=Packages.PackageItems[i];
           If PackageOK(P) then
             begin
-              FZipper.FileName := Defaults.ZipPrefix + P.Name + '.' + MakeTargetString(Defaults.CPU,Defaults.OS) +'.zip';
+              FZipper.FileName := Defaults.ZipPrefix + P.Name + MakeZipSuffix(Defaults.CPU,Defaults.OS) +'.zip';
               Install(P);
               FZipper.ZipAllFiles;
               FZipper.Clear;
@@ -6996,7 +7009,7 @@ procedure TBuildEngine.ZipInstall(Packages: TPackages);
         P:=Packages.PackageItems[i];
         If PackageOK(P) then
           begin
-            S := TGZFileStream.create(Defaults.ZipPrefix + P.Name + '.' + MakeTargetString(Defaults.CPU,Defaults.OS) +'.tar.gz', gzopenwrite);
+            S := TGZFileStream.create(Defaults.ZipPrefix + P.Name + '.' + MakeZipSuffix(Defaults.CPU,Defaults.OS) +'.tar.gz', gzopenwrite);
             try
               FTarWriter := TTarWriter.Create(S);
               FTarWriter.Permissions := [tpReadByOwner, tpWriteByOwner, tpReadByGroup, tpReadByOther];
