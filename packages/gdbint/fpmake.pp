@@ -111,7 +111,7 @@ begin
           L.values[Installer.BuildEngine.AddPathPrefix(P,'src')+DirectorySeparator+'gdbver_nogdb.inc'] := IncludeTrailingPathDelimiter(P.Directory) +'src'+DirectorySeparator+'gdbver.inc'
         else
           L.values[Installer.BuildEngine.AddPathPrefix(P,'src')+DirectorySeparator+'gdbver_nogdb.inc'] := 'src'+DirectorySeparator+'gdbver.inc';
-        Installer.BuildEngine.cmdcopyfiles(L, Installer.BuildEngine.StartDir);
+        Installer.BuildEngine.cmdcopyfiles(L, Installer.BuildEngine.StartDir, nil);
       finally
         L.Free;
       end;

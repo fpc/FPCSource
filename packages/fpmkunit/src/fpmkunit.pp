@@ -1075,7 +1075,7 @@ Type
 
     // Public Copy/delete/Move/Archive/Mkdir Commands.
     Procedure ExecuteCommand(const Cmd,Args : String; const Env: TStrings = nil; IgnoreError : Boolean = False); virtual;
-    Procedure CmdCopyFiles(List : TStrings; Const DestDir : String);
+    procedure CmdCopyFiles(List: TStrings; const DestDir: String; APackage: TPackage);
     Procedure CmdCreateDir(const DestDir : String);
     Procedure CmdMoveFiles(List : TStrings; Const DestDir : String);
     Procedure CmdDeleteFiles(List : TStrings);
@@ -4955,16 +4955,21 @@ begin
 end;
 
 
-procedure TBuildEngine.CmdCopyFiles(List: TStrings; Const DestDir: String);
+procedure TBuildEngine.CmdCopyFiles(List: TStrings; Const DestDir: String; APackage : TPackage);
 
 Var
   Args : String;
   I : Integer;
   DestFileName : String;
+  SourceDir : string;
 begin
   // When the files should be written to an archive, add them
   if assigned(FZipper) then
     begin
+      if assigned(APackage) and (APackage.Directory<>'') then
+        SourceDir:=IncludeTrailingPathDelimiter(APackage.Directory)
+      else
+        SourceDir:='';
       For I:=0 to List.Count-1 do
         if List.Names[i]<>'' then
           begin
@@ -4972,10 +4977,10 @@ begin
               DestFileName:=DestDir+list.ValueFromIndex[i]
             else
               DestFileName:=list.ValueFromIndex[i];
-            FZipper.Entries.AddFileEntry(List.names[i], DestFileName);
+            FZipper.Entries.AddFileEntry(SourceDir+List.names[i], DestFileName);
           end
         else
-          FZipper.Entries.AddFileEntry(List[i], DestDir+ExtractFileName(List[i]));
+          FZipper.Entries.AddFileEntry(SourceDir+List[i], DestDir+ExtractFileName(List[i]));
       Exit;
     end;
   {$ifdef HAS_TAR_SUPPORT}
@@ -6452,7 +6457,7 @@ begin
     if (List.Count>0) then
       begin
         Result:=True;
-        CmdCopyFiles(List,Dest);
+        CmdCopyFiles(List,Dest,APackage);
       end;
   Finally
     List.Free;
@@ -6466,7 +6471,7 @@ begin
   List:=TStringList.Create;
   Try
     List.add(IncludeTrailingPathDelimiter(APackage.GetUnitConfigOutputDir(Defaults.CPU,Defaults.OS))+UnitConfigFile);
-    CmdCopyFiles(List,Dest);
+    CmdCopyFiles(List,Dest,APackage);
   Finally
     List.Free;
   end;
@@ -6483,7 +6488,7 @@ begin
     if (List.Count>0) then
       begin
         Result:=True;
-        CmdCopyFiles(List,Dest);
+        CmdCopyFiles(List,Dest,APackage);
       end;
   Finally
     List.Free;
