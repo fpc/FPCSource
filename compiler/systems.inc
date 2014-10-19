@@ -273,7 +273,8 @@
 
        tscripttype = (script_none
             ,script_dos,script_unix,script_amiga,
-            script_mpw
+            script_mpw,
+            script_fpcres
        );
 
        tabi = (abi_default

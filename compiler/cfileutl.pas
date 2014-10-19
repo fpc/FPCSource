@@ -124,6 +124,7 @@ interface
     function  GetShortName(const n:TCmdStr):TCmdStr;
     function maybequoted(const s:string):string;
     function maybequoted(const s:ansistring):ansistring;
+    function maybequoted_for_script(const s:ansistring; quote_script: tscripttype):ansistring;
 
     procedure InitFileUtils;
     procedure DoneFileUtils;
