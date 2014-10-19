@@ -7009,7 +7009,7 @@ procedure TBuildEngine.ZipInstall(Packages: TPackages);
         P:=Packages.PackageItems[i];
         If PackageOK(P) then
           begin
-            S := TGZFileStream.create(Defaults.ZipPrefix + P.Name + '.' + MakeZipSuffix(Defaults.CPU,Defaults.OS) +'.tar.gz', gzopenwrite);
+            S := TGZFileStream.create(Defaults.ZipPrefix + P.Name + MakeZipSuffix(Defaults.CPU,Defaults.OS) +'.tar.gz', gzopenwrite);
             try
               FTarWriter := TTarWriter.Create(S);
               FTarWriter.Permissions := [tpReadByOwner, tpWriteByOwner, tpReadByGroup, tpReadByOther];
