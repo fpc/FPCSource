@@ -710,6 +710,7 @@ Type
     FFlags: TStrings;
     FFPDocFormat: TFPDocFormats;
     FIsFPMakeAddIn: boolean;
+    FSeparateArchive: boolean;
     FSupportBuildModes: TBuildModes;
     FUnitPath,
     FObjectPath,
@@ -802,6 +803,7 @@ Type
     Property SupportBuildModes: TBuildModes read FSupportBuildModes write FSupportBuildModes;
     Property BuildMode: TBuildMode read FBuildMode;
     Property Flags: TStrings read FFlags;
+    Property SeparateArchive: boolean read FSeparateArchive write FSeparateArchive;
     // Compiler options.
     Property OSes : TOSes Read FOSes Write FOSes;
     Property CPUs : TCPUs Read FCPUs Write FCPUs;
@@ -3092,6 +3094,7 @@ begin
   FOSes:=AllOSes;
   FInstalledChecksum:=$ffffffff;
   FFlags := TStringList.Create;
+  FSeparateArchive:=true;
   // Implicit dependency on RTL
   FDependencies.Add('rtl');
   FSupportBuildModes:=[bmBuildUnit, bmOneByOne];
@@ -6971,81 +6974,93 @@ end;
 
 procedure TBuildEngine.ZipInstall(Packages: TPackages);
 
-  procedure CreateZipFile;
+{$ifdef unix}
+  {$ifdef HAS_TAR_SUPPORT}
+    {$define CreateTarFile}
+  {$endif HAS_TAR_SUPPORT}
+{$endif unix}
+
+{$ifdef CreateTarFile}
   var
-    I : Integer;
-    P : TPackage;
+    S : TGZFileStream;
+
+  procedure InitArchive(AFileName: string);
   begin
-    FZipper := TZipper.Create;
+    S := TGZFileStream.create(AFileName +'.tar.gz', gzopenwrite);
     try
-      For I:=0 to Packages.Count-1 do
-        begin
-          P:=Packages.PackageItems[i];
-          If PackageOK(P) then
-            begin
-              FZipper.FileName := Defaults.ZipPrefix + P.Name + MakeZipSuffix(Defaults.CPU,Defaults.OS) +'.zip';
-              Install(P);
-              FZipper.ZipAllFiles;
-              FZipper.Clear;
-              log(vlWarning, SWarnInstallationPackagecomplete, [P.Name, Defaults.Target]);
-            end
-          else
-            log(vlWarning,SWarnSkipPackageTarget,[P.Name, Defaults.Target]);
-        end;
-    finally
-      FZipper.Free;
+      FTarWriter := TTarWriter.Create(S);
+      FTarWriter.Permissions := [tpReadByOwner, tpWriteByOwner, tpReadByGroup, tpReadByOther];
+      FTarWriter.UserName := 'root';
+      FTarWriter.GroupName := 'root';
+    except
+      S.Free;
     end;
   end;
 
-  {$ifdef HAS_TAR_SUPPORT}
-  procedure CreateTarFile;
-  var
-    I : Integer;
-    P : TPackage;
-    S : TGZFileStream;
-  begin;
-    For I:=0 to Packages.Count-1 do
-      begin
-        P:=Packages.PackageItems[i];
-        If PackageOK(P) then
-          begin
-            S := TGZFileStream.create(Defaults.ZipPrefix + P.Name + MakeZipSuffix(Defaults.CPU,Defaults.OS) +'.tar.gz', gzopenwrite);
-            try
-              FTarWriter := TTarWriter.Create(S);
-              FTarWriter.Permissions := [tpReadByOwner, tpWriteByOwner, tpReadByGroup, tpReadByOther];
-              FTarWriter.UserName := 'root';
-              FTarWriter.GroupName := 'root';
-              try
-                Install(P);
-                log(vlWarning, SWarnInstallationPackagecomplete, [P.Name, Defaults.Target]);
-              finally
-                FTarWriter.Free;
-              end;
-            finally
-              S.Free;
-            end;
-          end
-        else
-          log(vlWarning,SWarnSkipPackageTarget,[P.Name, Defaults.Target]);
-      end;
+  procedure FinishArchive;
+  begin
+    FreeAndNil(FTarWriter);
+    S.Free;
   end;
-  {$endif HAS_TAR_SUPPORT}
+
+{$else}
+
+  procedure InitArchive(AFileName: string);
+  begin
+    FZipper := TZipper.Create;
+    FZipper.FileName := AFileName + '.zip';
+  end;
+
+  procedure FinishArchive;
+  begin
+    try
+      FZipper.ZipAllFiles;
+      FZipper.Clear;
+    finally
+      FreeAndNil(FZipper);
+    end;
+  end;
+
+{$endif}
+
+var
+  I : Integer;
+  P : TPackage;
+  IsArchiveInitialized : boolean;
 
 begin
   If Assigned(BeforeInstall) then
     BeforeInstall(Self);
 
+  IsArchiveInitialized:=false;
   Defaults.IntSetBaseInstallDir('lib/fpc/' + Defaults.FCompilerVersion+ '/');
 
-  {$ifdef unix}
-  {$ifdef HAS_TAR_SUPPORT}
-  CreateTarFile;
-  {$else HAS_TAR_SUPPORT}
-  CreateZipFile;
-  {$endif HAS_TAR_SUPPORT}
-  {$else unix}
-  CreateZipFile;
-  {$endif unix}
+  try
+    For I:=0 to Packages.Count-1 do
+      begin
+        P:=Packages.PackageItems[i];
+        If PackageOK(P) then
+          begin
+            if IsArchiveInitialized and P.SeparateArchive then
+              begin
+                FinishArchive;
+                IsArchiveInitialized:=false;
+              end;
+            if not IsArchiveInitialized then
+              begin
+                InitArchive(Defaults.ZipPrefix + P.Name + MakeZipSuffix(Defaults.CPU,Defaults.OS));
+                IsArchiveInitialized:=true;
+              end;
+            Install(P);
+            log(vlWarning, SWarnInstallationPackagecomplete, [P.Name, Defaults.Target]);
+          end
+        else
+          log(vlWarning,SWarnSkipPackageTarget,[P.Name, Defaults.Target]);
+      end;
+  finally
+    if IsArchiveInitialized then
+      FinishArchive;
+  end;
 
   If Assigned(AfterInstall) then
     AfterInstall(Self);

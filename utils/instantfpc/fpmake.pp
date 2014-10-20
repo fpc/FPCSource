@@ -25,6 +25,7 @@ begin
 
     P.Directory:=ADirectory;
     P.Version:='2.7.1';
+    P.SeparateArchive:=false;
 
     P.Dependencies.Add('fcl-process');
     P.Options.Add('-S2h');

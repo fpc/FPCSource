@@ -25,6 +25,7 @@ begin
 
     P.Directory:=ADirectory;
     P.Version:='2.7.1';
+    P.SeparateArchive:=false;
 
     P.OSes:=[win32,win64,wince,haiku,linux,freebsd,openbsd,netbsd,darwin,iphonesim,solaris,os2,emx,aix,aros];
 

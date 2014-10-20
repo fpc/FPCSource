@@ -24,6 +24,7 @@ begin
     P.Description := 'A compiler generator for Turbo Pascal and compatibles.';
     P.NeedLibC:= false;
 
+    P.SeparateArchive:=false;
     P.Directory:=ADirectory;
     P.Version:='2.7.1';
 

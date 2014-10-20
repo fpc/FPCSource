@@ -25,6 +25,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
+    P.SeparateArchive:=false;
     P.Dependencies.Add('rtl');
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');

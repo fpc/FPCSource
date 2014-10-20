@@ -47,8 +47,6 @@ Var
   T : TTarget;
 
 begin
-{$include fpmake_add.inc}
-
   With Installer do
     begin
     P:=AddPackage('utils');
@@ -87,6 +85,8 @@ begin
     P.Targets.AddUnit('usubst.pp').install:=false;
     P.Targets.AddUnit('ptopu.pp').install:=false;
     end;
+
+  {$include fpmake_add.inc}
 end;
 
 {$ifdef NO_PARENT}

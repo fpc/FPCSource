@@ -24,6 +24,7 @@ begin
                      'scripts numerical constants and replaces these constants to its values '+
                      'in resource script.';
     P.NeedLibC:= false;
+    P.SeparateArchive:=false;
 
     P.Directory:=ADirectory;
     P.Version:='2.7.1';
