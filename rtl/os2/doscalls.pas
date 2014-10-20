@@ -1011,7 +1011,7 @@ function DosMove(const OldFile,NewFile:string):cardinal;
 
 const   dcExisting=1;           {Overwrite existing files.}
         dcAppend=2;             {Append to existing file.}
-        dcFailAs=4;             {?? Info wanted!}
+        dcFailEAs=4;            {Discard EAs if not supported by target FS}
 
 {Copy a file.
  OldFile    = source file
