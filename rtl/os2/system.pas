@@ -142,7 +142,7 @@ const
   Sys_DosOpenL: TDosOpenL = @DummyDosOpenL;
   Sys_DosSetFilePtrL: TDosSetFilePtrL = @DummyDosSetFilePtrL;
   Sys_DosSetFileSizeL: TDosSetFileSizeL = @DummyDosSetFileSizeL;
-
+  DosCallsHandle: THandle = THandle (-1);
 
 implementation
 
@@ -1085,7 +1085,6 @@ var TIB: PThreadInfoBlock;
     RC: cardinal;
     ErrStr: string;
     P: pointer;
-    DosCallsHandle: THandle;
     DW: cardinal;
 
 const
