@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=prt0 prt1
 units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
-      ports os2def doscalls moncalls kbdcalls moucalls viocalls \
+      ports os2def doscalls doscall2 moncalls kbdcalls moucalls viocalls \
       pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi \
       dos \
       sysutils classes fgl math typinfo \
@@ -117,6 +117,8 @@ moucalls$(PPUEXT) : $(OS2INC)/moucalls.pas $(SYSTEMUNIT)$(PPUEXT)
 moncalls$(PPUEXT) : $(OS2INC)/moncalls.pas strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 os2def$(PPUEXT) : $(OS2INC)/os2def.pas $(SYSTEMUNIT)$(PPUEXT)
+
+doscall2$(PPUEXT) : $(OS2INC)/doscall2.pas doscalls$(PPUEXT) os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 pmwin$(PPUEXT) : $(OS2INC)/pmwin.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 

@@ -8970,6 +8970,7 @@ rtl/os2/Makefile svneol=native#text/plain
 rtl/os2/Makefile.fpc svneol=native#text/plain
 rtl/os2/classes.pp svneol=native#text/plain
 rtl/os2/dos.pas svneol=native#text/plain
+rtl/os2/doscall2.pas svneol=native#text/plain
 rtl/os2/doscalls.pas svneol=native#text/plain
 rtl/os2/dynlibs.inc svneol=native#text/plain
 rtl/os2/exe.pas svneol=native#text/plain
