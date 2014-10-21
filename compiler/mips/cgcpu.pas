@@ -197,16 +197,9 @@ begin
 
       { PIC global symbol }
       ref.symbol:=nil;
-      if (ref.offset=0) then
-        exit;
-
       if (ref.offset>=simm16lo) and
         (ref.offset<=simm16hi-sizeof(pint)) then
-        begin
-          list.concat(taicpu.op_reg_reg_const(A_ADDIU,ref.base,ref.base,ref.offset));
-          ref.offset:=0;
-          exit;
-        end;
+        exit;
       { fallthrough to the case of large offset }
     end;
 

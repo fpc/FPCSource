@@ -37,8 +37,6 @@ unit aoptcpu;
         function RegModifiedByInstruction(Reg: TRegister; p1: tai): boolean; override;
         function GetNextInstructionUsingReg(Current: tai;
           var Next: tai; reg: TRegister): Boolean;
-        function RegUsedAfterInstruction(reg: Tregister; p: tai;
-          var AllUsedRegs: TAllUsedRegs): Boolean;
         function TryRemoveMov(var p: tai; opcode: TAsmOp): boolean;
         function TryRemoveMovToRefIndex(var p: tai; next: taicpu): boolean;
         function TryRemoveMovBeforeStore(var p: tai; next: taicpu; const storeops: TAsmOpSet): boolean;
@@ -49,7 +47,7 @@ unit aoptcpu;
   Implementation
 
      uses
-       globals,aasmbase,cpuinfo,verbose;
+       cutils,globals,aasmbase,cpuinfo,verbose;
 
 
   function MatchInstruction(const instr: tai; const op: TAsmOp): boolean;
@@ -210,21 +208,6 @@ unit aoptcpu;
     end;
 
 
-  function TCpuAsmOptimizer.RegUsedAfterInstruction(reg: Tregister; p: tai;
-    var AllUsedRegs: TAllUsedRegs): Boolean;
-    begin
-      AllUsedRegs[getregtype(reg)].Update(tai(p.Next),true);
-      RegUsedAfterInstruction :=
-        AllUsedRegs[getregtype(reg)].IsUsed(reg) and
-        not(regLoadedWithNewValue(reg,p)) and
-        (
-          not(GetNextInstruction(p,p)) or
-          instructionLoadsFromReg(reg,p) or
-          not(regLoadedWithNewValue(reg,p))
-        );
-    end;
-
-
   function TCpuAsmOptimizer.TryRemoveMov(var p: tai; opcode: TAsmOp): boolean;
     var
       next,hp1: tai;
@@ -281,6 +264,25 @@ unit aoptcpu;
               asml.remove(next);
               next.free;
               result:=true;
+            end
+          else       // no dealloc found
+            begin
+              { try to optimize the typical call sequence
+                lw  $reg, (whatever)
+                <alloc volatile registers>
+                move $t9,$reg
+                jalr $t9      }
+              if (opcode=A_MOVE) and
+                 (taicpu(next).oper[0]^.reg=NR_R25) and
+                 GetNextInstruction(next,hp1) and
+                 MatchInstruction(hp1,A_JALR) and
+                 MatchOperand(taicpu(hp1).oper[0]^,NR_R25) then
+                begin
+                  taicpu(p).loadreg(0,taicpu(next).oper[0]^.reg);
+                  asml.remove(next);
+                  next.free;
+                  result:=true;
+                end;
             end;
         end;
     end;
@@ -322,7 +324,6 @@ unit aoptcpu;
   function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
     var
       next,next2: tai;
-      TmpUsedRegs: TAllUsedRegs;
     begin
       result:=false;
       case p.typ of
@@ -443,18 +444,13 @@ unit aoptcpu;
                     ((taicpu(p).oper[2]^.val=255) and MatchInstruction(next,A_SB)) or
                     ((taicpu(p).oper[2]^.val=65535) and MatchInstruction(next,A_SH)) and
                     (taicpu(next).oper[0]^.typ=top_reg) and
-                    (taicpu(next).oper[0]^.reg=taicpu(p).oper[0]^.reg) then
+                    (taicpu(next).oper[0]^.reg=taicpu(p).oper[0]^.reg) and
+                    assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(next.next))) then
                     begin
-                      CopyUsedRegs(TmpUsedRegs);
-                      UpdateUsedRegs(TmpUsedRegs, tai(p.next));
-                      if not RegUsedAfterInstruction(taicpu(p).oper[0]^.reg,next,TmpUsedRegs) then
-                        begin
-                          taicpu(next).loadreg(0,taicpu(p).oper[1]^.reg);
-                          asml.remove(p);
-                          p.free;
-                          p:=next;
-                        end;
-                      ReleaseUsedRegs(TmpUsedRegs);
+                      taicpu(next).loadreg(0,taicpu(p).oper[1]^.reg);
+                      asml.remove(p);
+                      p.free;
+                      p:=next;
                     end
                   else
                     TryRemoveMov(p,A_MOVE);
@@ -566,9 +562,49 @@ unit aoptcpu;
                     end;
                 end;
 
+              A_ADDIU:
+                begin
+                  { ADDIU  Rx,Ry,const;    load/store  Rz,(Rx); dealloc Rx  ==> load/store Rz,const(Ry)
+                    ADDIU  Rx,Ry,%lo(sym); load/store  Rz,(Rx); dealloc Rx  ==> load/store Rz,%lo(sym)(Ry)
+                    ADDIU  Rx,Ry,const;    load Rx,(Rx)                     ==> load Rx,const(Ry)
+                    ADDIU  Rx,Ry,%lo(sym); load Rx,(Rx)                     ==> load Rx,%lo(sym)(Ry)    }
+                  if GetNextInstructionUsingReg(p,next,taicpu(p).oper[0]^.reg) and
+                    (next.typ=ait_instruction) and
+                    (taicpu(next).opcode in [A_LB,A_LBU,A_LH,A_LHU,A_LW,A_SB,A_SH,A_SW]) and
+                    (taicpu(p).oper[0]^.reg=taicpu(next).oper[1]^.ref^.base) and
+                    (taicpu(next).oper[1]^.ref^.offset=0) and
+                    (taicpu(next).oper[1]^.ref^.symbol=nil) and
+                    (
+                      Assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(next.next))) or
+                      (
+                        (taicpu(p).oper[0]^.reg=taicpu(next).oper[0]^.reg) and
+                        (taicpu(next).opcode in [A_LB,A_LBU,A_LH,A_LHU,A_LW])
+                      )
+                    )  and
+                    (not RegModifiedBetween(taicpu(p).oper[1]^.reg,p,next)) then
+                    begin
+                      case taicpu(p).oper[2]^.typ of
+                        top_const:
+                          taicpu(next).oper[1]^.ref^.offset:=taicpu(p).oper[2]^.val;
+
+                        top_ref:
+                          taicpu(next).oper[1]^.ref^:=taicpu(p).oper[2]^.ref^;
+                      else
+                        InternalError(2014100401);
+                      end;
+                      taicpu(next).oper[1]^.ref^.base:=taicpu(p).oper[1]^.reg;
+                      asml.remove(p);
+                      p.free;
+                      p:=next;
+                      result:=true;
+                    end
+                  else
+                    result:=TryRemoveMov(p,A_MOVE);
+                end;
+
               A_LB,A_LBU,A_LH,A_LHU,A_LW,
               A_ADD,A_ADDU,
-              A_ADDI,A_ADDIU,
+              A_ADDI,
               A_SUB,A_SUBU,
               A_SRA,A_SRAV,
               A_SRLV,
