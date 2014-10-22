@@ -284,7 +284,6 @@ implementation
  {$ELSE OS2}
   {$I dbf_wnix.inc}
  {$ENDIF OS2}
-{$endif}
 
 procedure DateTimeToSystemTime(const DateTime: System.TDateTime; var SystemTime: TSystemTime);
 begin
@@ -312,5 +311,7 @@ procedure GetLocalTime(var lpSystemTime: TSystemTime);
 begin
   DateTimeToSystemTime(NOW, lpSystemTime);
 end;
+
+{$endif}
 
 end.
