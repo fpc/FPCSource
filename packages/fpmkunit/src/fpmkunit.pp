@@ -67,6 +67,12 @@ Interface
   {$define HAS_TAR_SUPPORT}
 {$endif NO_TAR_SUPPORT}
 
+{$ifdef unix}
+  {$ifdef HAS_TAR_SUPPORT}
+    {$define CREATE_TAR_FILE}
+  {$endif HAS_TAR_SUPPORT}
+{$endif unix}
+
 uses
 {$ifdef UNIX}
   BaseUnix,
@@ -1002,6 +1008,7 @@ Type
   end;
 
   { TBuildEngine }
+  TCopyFileProc = procedure(const APackage: TPackage; Const ASourceFileName, ADestFileName : String) of object;
 
   TBuildEngine = Class(TComponent)
   private
@@ -1029,6 +1036,8 @@ Type
     FBeforeCompile: TNotifyEvent;
     FBeforeInstall: TNotifyEvent;
     FBeforeManifest: TNotifyEvent;
+    FOnCopyFile: TCopyFileProc;
+    FOnFinishCopy: TNotifyEvent;
 
     FCachedlibcPath: string;
     FGeneralCriticalSection: TRTLCriticalSection;
@@ -1037,7 +1046,10 @@ Type
 {$endif HAS_UNIT_ZIPPER}
 {$ifdef HAS_TAR_SUPPORT}
     FTarWriter: TTarWriter;
+    FGZFileStream: TGZFileStream;
 {$endif HAS_TAR_SUPPORT}
+    procedure AddFileToArchive(const APackage: TPackage; Const ASourceFileName, ADestFileName : String);
+    procedure FinishArchive(Sender: TObject);
   Protected
     Procedure Error(const Msg : String);
     Procedure Error(const Fmt : String; const Args : Array of const);
@@ -1113,7 +1125,7 @@ Type
     Procedure Compile(APackage : TPackage);
     Procedure MaybeCompile(APackage:TPackage);
     Function ReadyToCompile(APackage:TPackage) : Boolean;
-    Procedure Install(APackage : TPackage);
+    Procedure Install(APackage : TPackage; AnArchiveFiles: boolean);
     Procedure Archive(APackage : TPackage);
     Procedure Manifest(APackage : TPackage);
     Procedure Clean(APackage : TPackage; AllTargets: boolean);
@@ -4712,6 +4724,66 @@ begin
   inherited Destroy;
 end;
 
+procedure TBuildEngine.AddFileToArchive(const APackage: TPackage; const ASourceFileName, ADestFileName: String);
+var
+  SourceDir: string;
+begin
+{$ifdef CREATE_TAR_FILE}
+  {$ifdef HAS_TAR_SUPPORT}
+  if not assigned(FTarWriter) then
+    begin
+      FGZFileStream := TGZFileStream.create(Defaults.ZipPrefix + APackage.Name + MakeZipSuffix(Defaults.CPU,Defaults.OS) +'.tar.gz', gzopenwrite);
+      try
+        FTarWriter := TTarWriter.Create(FGZFileStream);
+        FTarWriter.Permissions := [tpReadByOwner, tpWriteByOwner, tpReadByGroup, tpReadByOther];
+        FTarWriter.UserName := 'root';
+        FTarWriter.GroupName := 'root';
+      except
+        FGZFileStream.Free;
+      end;
+    end;
+  FTarWriter.AddFile(ASourceFileName, ADestFileName);
+  {$endif HAS_TAR_SUPPORT}
+{$else CREATE_TAR_FILE}
+  {$ifdef HAS_UNIT_ZIPPER}
+  if not assigned(FZipper) then
+    begin
+      FZipper := TZipper.Create;
+      FZipper.FileName := Defaults.ZipPrefix + APackage.Name + MakeZipSuffix(Defaults.CPU,Defaults.OS) + '.zip';
+    end;
+
+  if assigned(APackage) and (APackage.Directory<>'') then
+    SourceDir:=IncludeTrailingPathDelimiter(APackage.Directory)
+  else
+    SourceDir:='';
+
+  FZipper.Entries.AddFileEntry(SourceDir + ASourceFileName, ADestFileName);
+  {$endif HAS_UNIT_ZIPPER}
+{$ENDIF CREATE_TAR_FILE}
+end;
+
+procedure TBuildEngine.FinishArchive(Sender: TObject);
+begin
+  {$ifdef HAS_TAR_SUPPORT}
+  if assigned(FTarWriter) then
+    begin
+      FreeAndNil(FTarWriter);
+      FGZFileStream.Free;
+    end;
+  {$endif HAS_TAR_SUPPORT}
+  {$ifdef HAS_UNIT_ZIPPER}
+  if assigned(FZipper) then
+    begin
+      try
+        FZipper.ZipAllFiles;
+        FZipper.Clear;
+      finally
+        FreeAndNil(FZipper);
+      end;
+    end;
+  {$endif HAS_UNIT_ZIPPER}
+end;
+
 
 procedure TBuildEngine.Error(const Msg: String);
 begin
@@ -4977,30 +5049,9 @@ Var
   Args : String;
   I : Integer;
   DestFileName : String;
-  SourceDir : string;
 begin
   // When the files should be written to an archive, add them
-  if assigned(FZipper) then
-    begin
-      if assigned(APackage) and (APackage.Directory<>'') then
-        SourceDir:=IncludeTrailingPathDelimiter(APackage.Directory)
-      else
-        SourceDir:='';
-      For I:=0 to List.Count-1 do
-        if List.Names[i]<>'' then
-          begin
-            if IsRelativePath(list.ValueFromIndex[i]) then
-              DestFileName:=DestDir+list.ValueFromIndex[i]
-            else
-              DestFileName:=list.ValueFromIndex[i];
-            FZipper.Entries.AddFileEntry(SourceDir+List.names[i], DestFileName);
-          end
-        else
-          FZipper.Entries.AddFileEntry(SourceDir+List[i], DestDir+ExtractFileName(List[i]));
-      Exit;
-    end;
-  {$ifdef HAS_TAR_SUPPORT}
-  if assigned(FTarWriter) then
+  if assigned(FOnCopyFile) then
     begin
       For I:=0 to List.Count-1 do
         if List.Names[i]<>'' then
@@ -5009,13 +5060,12 @@ begin
               DestFileName:=DestDir+list.ValueFromIndex[i]
             else
               DestFileName:=list.ValueFromIndex[i];
-            FTarWriter.AddFile(List.names[i], DestFileName);
+            FOnCopyFile(APackage, List.names[i], DestFileName);
           end
         else
-          FTarWriter.AddFile(List[i], DestDir+ExtractFileName(List[i]));
+          FOnCopyFile(APackage, List[i], DestDir+ExtractFileName(List[i]));
       Exit;
     end;
-  {$endif HAS_TAR_SUPPORT}
 
   // Copy the files to their new location on disk
   CmdCreateDir(DestDir);
@@ -6532,7 +6582,7 @@ begin
 end;
 
 
-procedure TBuildEngine.Install(APackage: TPackage);
+procedure TBuildEngine.Install(APackage: TPackage; AnArchiveFiles: boolean);
 Var
   UC,D : String;
   B : Boolean;
@@ -6541,8 +6591,15 @@ begin
     MaybeCompile(APackage);
   try
     Log(vlCommand,SInfoInstallingPackage,[APackage.Name]);
+    if AnArchiveFiles and APackage.SeparateArchive then
+      FinishArchive(APackage);
     If (APackage.Directory<>'') then
       EnterDir(APackage.Directory);
+    if AnArchiveFiles then
+      begin
+        FOnCopyFile:=@AddFileToArchive;
+        FOnFinishCopy:=@FinishArchive;
+      end;
     DoBeforeInstall(APackage);
     // units
     B:=false;
@@ -6581,6 +6638,11 @@ begin
     // Done.
     APackage.FTargetState:=tsInstalled;
     DoAfterInstall(APackage);
+    if AnArchiveFiles then
+      begin
+      FOnCopyFile:=nil;
+      FOnFinishCopy:=nil;
+      end;
   Finally
     If (APackage.Directory<>'') then
       EnterDir('');
@@ -6962,7 +7024,7 @@ begin
       P:=Packages.PackageItems[i];
       If PackageOK(P) then
         begin
-          Install(P);
+          Install(P, False);
           log(vlWarning, SWarnInstallationPackagecomplete, [P.Name, Defaults.Target]);
         end
       else
@@ -6974,65 +7036,14 @@ end;
 
 procedure TBuildEngine.ZipInstall(Packages: TPackages);
 
-{$ifdef unix}
-  {$ifdef HAS_TAR_SUPPORT}
-    {$define CreateTarFile}
-  {$endif HAS_TAR_SUPPORT}
-{$endif unix}
-
-{$ifdef CreateTarFile}
-  var
-    S : TGZFileStream;
-
-  procedure InitArchive(AFileName: string);
-  begin
-    S := TGZFileStream.create(AFileName +'.tar.gz', gzopenwrite);
-    try
-      FTarWriter := TTarWriter.Create(S);
-      FTarWriter.Permissions := [tpReadByOwner, tpWriteByOwner, tpReadByGroup, tpReadByOther];
-      FTarWriter.UserName := 'root';
-      FTarWriter.GroupName := 'root';
-    except
-      S.Free;
-    end;
-  end;
-
-  procedure FinishArchive;
-  begin
-    FreeAndNil(FTarWriter);
-    S.Free;
-  end;
-
-{$else}
-
-  procedure InitArchive(AFileName: string);
-  begin
-    FZipper := TZipper.Create;
-    FZipper.FileName := AFileName + '.zip';
-  end;
-
-  procedure FinishArchive;
-  begin
-    try
-      FZipper.ZipAllFiles;
-      FZipper.Clear;
-    finally
-      FreeAndNil(FZipper);
-    end;
-  end;
-
-{$endif}
-
 var
   I : Integer;
   P : TPackage;
-  IsArchiveInitialized : boolean;
 
 begin
   If Assigned(BeforeInstall) then
     BeforeInstall(Self);
 
-  IsArchiveInitialized:=false;
   Defaults.IntSetBaseInstallDir('lib/fpc/' + Defaults.FCompilerVersion+ '/');
 
   try
@@ -7041,25 +7052,14 @@ begin
         P:=Packages.PackageItems[i];
         If PackageOK(P) then
           begin
-            if IsArchiveInitialized and P.SeparateArchive then
-              begin
-                FinishArchive;
-                IsArchiveInitialized:=false;
-              end;
-            if not IsArchiveInitialized then
-              begin
-                InitArchive(Defaults.ZipPrefix + P.Name + MakeZipSuffix(Defaults.CPU,Defaults.OS));
-                IsArchiveInitialized:=true;
-              end;
-            Install(P);
+            Install(P, True);
             log(vlWarning, SWarnInstallationPackagecomplete, [P.Name, Defaults.Target]);
           end
         else
           log(vlWarning,SWarnSkipPackageTarget,[P.Name, Defaults.Target]);
       end;
   finally
-    if IsArchiveInitialized then
-      FinishArchive;
+    FinishArchive(P);
   end;
 
   If Assigned(AfterInstall) then
