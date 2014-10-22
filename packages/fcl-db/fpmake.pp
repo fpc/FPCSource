@@ -12,7 +12,7 @@ const
   DatadictOSes        = [aix,beos,darwin,haiku,linux,freebsd,win32,win64,wince,android];
   SqldbConnectionOSes = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,solaris,win32,win64,wince,android];
   SqliteOSes          = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,solaris,win32,win64,wince,android];
-  DBaseOSes           = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,solaris,win32,win64,wince,android];
+  DBaseOSes           = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,netbsd,openbsd,solaris,win32,win64,wince,android,os2];
   MSSQLOSes           = [beos,haiku,linux,freebsd,netbsd,openbsd,solaris,win32,win64,android];
   SqldbWithoutOracleOSes   = [win64];
 
