@@ -4727,6 +4727,7 @@ end;
 procedure TBuildEngine.AddFileToArchive(const APackage: TPackage; const ASourceFileName, ADestFileName: String);
 var
   SourceDir: string;
+  FileStat: stat;
 begin
 {$ifdef CREATE_TAR_FILE}
   {$ifdef HAS_TAR_SUPPORT}
@@ -4742,6 +4743,20 @@ begin
         FGZFileStream.Free;
       end;
     end;
+{$ifdef unix}
+  if (FpStat(ASourceFileName, FileStat) = 0) and (FileStat.st_mode and S_IXUSR = S_IXUSR) then
+    begin
+    FTarWriter.Permissions := FTarWriter.Permissions + [tpExecuteByGroup];
+    FTarWriter.Permissions := FTarWriter.Permissions + [tpExecuteByOwner];
+    FTarWriter.Permissions := FTarWriter.Permissions + [tpExecuteByOther];
+    end
+  else
+    begin
+    FTarWriter.Permissions := FTarWriter.Permissions - [tpExecuteByGroup];
+    FTarWriter.Permissions := FTarWriter.Permissions - [tpExecuteByOwner];
+    FTarWriter.Permissions := FTarWriter.Permissions - [tpExecuteByOther];
+    end;
+{$endif unix}
   FTarWriter.AddFile(ASourceFileName, ADestFileName);
   {$endif HAS_TAR_SUPPORT}
 {$else CREATE_TAR_FILE}
