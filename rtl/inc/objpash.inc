@@ -245,12 +245,12 @@
           function ToString: ansistring;virtual;
 
           { methods for reference counting }
-          procedure IncRef;inline;
-          procedure DecRef;inline;
-          function RefCount: LongInt;inline;
-          function IsRefCounted: Boolean;inline;
+          procedure ARCIncRef;inline;
+          procedure ARCDecRef;inline;
+          function ARCRefCount: LongInt;inline;
+          function ARCIsRefCounted: Boolean;inline;
        private
-          function RefCountOffset: LongInt;inline;
+          function ARCRefCountOffset: LongInt;inline;
        end;
 
        IUnknown = interface

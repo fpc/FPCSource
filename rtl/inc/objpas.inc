@@ -986,36 +986,36 @@
           result:=ClassName;
         end;
 
-      procedure TObject.IncRef;
+      procedure TObject.ARCIncRef;
         var
           offset: LongInt;
         begin
-          offset := RefCountOffset;
+          offset := ARCRefCountOffset;
           if offset > 0 then
             refcountclass_incr_ref(Pointer(Self), offset);
         end;
 
-      procedure TObject.DecRef;
+      procedure TObject.ARCDecRef;
         var
           offset: LongInt;
         begin
-          offset := RefCountOffset;
+          offset := ARCRefCountOffset;
           if offset > 0 then
             refcountclass_decr_ref(Pointer(Self), offset);
         end;
 
-      function TObject.RefCount: LongInt;
+      function TObject.ARCRefCount: LongInt;
         var
           offset: LongInt;
         begin
-          offset := RefCountOffset;
+          offset := ARCRefCountOffset;
           if offset > 0 then
             Result := PLongInt(Pointer(Self) + offset)^
           else
             Result := -1;
         end;
 
-      function TObject.IsRefCounted: Boolean;
+      function TObject.ARCIsRefCounted: Boolean;
         begin
           {$ifdef VER2_6}
           Result := False;
@@ -1024,7 +1024,7 @@
           {$endif}
         end;
 
-      function TObject.RefCountOffset: LongInt;
+      function TObject.ARCRefCountOffset: LongInt;
         begin
           {$ifdef VER2_6}
           Result := 0;
