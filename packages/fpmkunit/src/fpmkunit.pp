@@ -4727,7 +4727,9 @@ end;
 procedure TBuildEngine.AddFileToArchive(const APackage: TPackage; const ASourceFileName, ADestFileName: String);
 var
   SourceDir: string;
+{$ifdef UNIX}
   FileStat: stat;
+{$endif UNIX}
 begin
 {$ifdef CREATE_TAR_FILE}
   {$ifdef HAS_TAR_SUPPORT}
