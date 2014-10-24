@@ -359,7 +359,7 @@ var
   ResourceStringTable : PResourceStringTableList; external name '_FPC_ResourceStringTables';
 {$else}
   ResourceStringTableVar : TResourceStringTableList; External Name 'FPC_RESOURCESTRINGTABLES';
-  ResourceStringTable : PResourceStringTableList = @ResourceStringTable;
+  ResourceStringTable : PResourceStringTableList = @ResourceStringTableVar;
 {$endif}
 
 Procedure SetResourceStrings (SetFunction :  TResourceIterator;arg:pointer);
@@ -635,6 +635,7 @@ end;
 Initialization
 {  ResetResourceTables;}
 finalization
+  Writeln('ObjPas Finalize');
   FinalizeResourceTables;
 {$endif FPC_HAS_FEATURE_RESOURCES}
 end.
