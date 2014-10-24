@@ -579,9 +579,12 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 label_remote_dir = 'Remote ~d~irectory';
                 label_remote_config = 'Remote config ~o~ptions';
                 label_remote_ident = 'Remote ~i~dent';
-                label_remote_command = 'Remote ~c~ommand';
-                label_remote_scp = 'Scp executable';
-                label_remote_ssh = 'Ssh executable';
+                label_remote_send_command = 'Remote ~S~end command';
+                label_remote_exec_command = 'Remote ~E~xec command';
+                label_remote_ssh_exec_command = 'Remote Ss~h~ exec command';
+                label_remote_copy = 'Remote copy executable';
+                label_remote_shell = 'Remote shell executable';
+                label_remote_gdbserver = 'Remote gdbserver executable';
 
                 {Directories dialog.}
                 dialog_directories = 'Directories';
