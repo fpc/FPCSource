@@ -49,6 +49,11 @@ const
      FPBaseName = 'fpi386';
   {$endif cpu68k}
 {$endif i386}
+{$ifdef SUPPORT_REMOTE}
+    {$define USE_SPECIAL_BASENAME}
+    { this uses PPC_TARGET env. variable from Makefile }
+     FPBaseName = 'fp_'+{$i %PPC_TARGET%};
+{$endif SUPPORT_REMOTE}
 {$ifndef USE_SPECIAL_BASENAME}
      FPBaseName = 'fp';
 {$endif not USE_SPECIAL_BASENAME}
