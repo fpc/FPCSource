@@ -338,7 +338,7 @@
 
         begin
            // the call via self avoids a warning
-           if self<>nil then
+           if (self<>nil) and not ARCIsRefCounted then
              self.destroy;
         end;
 
