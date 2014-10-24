@@ -14,46 +14,26 @@
  **********************************************************************}
 
 {$ifdef SUPPORT_REMOTE}
-function GetRemoteString : string;
-var
-  St : string;
-begin
-  St:=RemoteSendCommand;
-  If RemoteConfig<>'' then
-    ReplaceStrI(St,'$CONFIG','-F '+RemoteConfig)
-  else
-    ReplaceStrI(St,'$CONFIG','');
-  If RemoteIdent<>'' then
-    ReplaceStrI(St,'$IDENT','-i '+RemoteIdent)
-  else
-    ReplaceStrI(St,'$IDENT','');
-  ReplaceStrI(St,'$LOCALFILE',GDBFileName(ExeFile));
-  ReplaceStrI(St,'$REMOTEDIR',RemoteDir);
-  ReplaceStrI(St,'$REMOTEMACHINE',RemoteMachine);
-  GetRemoteString:=st;
-end;
-
 procedure TIDEApp.TransferRemote;
 var
-  S,SendCommand : string;
+  DoSendCommand : string;
   Executed : boolean;
 begin
-  SendCommand:=GetRemoteString;
-  if SendCommand<>'' then
+  DoSendCommand:=TransformRemoteString(RemoteSendCommand);
+  if DoSendCommand<>'' then
     begin
-      s:='scp'+exeext;
-      if LocateExeFile(s) then
-        Executed:=DoExecute(s,SendCommand,'','','',exNormal)
-      else
-        Executed:=DoExecute('scp',SendCommand,'','','',exNormal);
+      Executed:=DoExecute(DoSendCommand,'','','send___.out','send___.err',exNormal);
       if Executed then
         begin
          if (DosError<>0) or (DosExitCode<>0) then
-          ErrorBox(#3'Execution of'#13#3+s+' '+SendCommand+#13#3+
+          ErrorBox(#3'Execution of'#13#3+DoSendCommand+#13#3+
             'returned ('+inttostr(DosError)+','+inttostr(DosExitCode)+')',nil);
+         ProcessMessageFile('send___.out');
+         ProcessMessageFile('send___.err');
+         UpdateToolMessages;
         end
       else
-        ErrorBox(#3'Unable to execute'#13#3+s+' '+SendCommand,nil);
+        ErrorBox(#3'Unable to execute'#13#3+DoSendCommand,nil);
 
     end
   else
