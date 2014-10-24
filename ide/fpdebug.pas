@@ -54,7 +54,10 @@ type
      TBreakNumber : longint;
      FPCBreakErrorNumber : longint;
 {$ifdef SUPPORT_REMOTE}
-     isRemoteDebugging:boolean;
+     isRemoteDebugging,
+     isFirstRemote,
+     isConnectedToRemote,
+     usessh :boolean;
 {$endif SUPPORT_REMOTE}
     constructor Init;
     procedure SetExe(const exefn:string);
@@ -330,6 +333,9 @@ procedure RegisterFPDebugViews;
 
 procedure UpdateDebugViews;
 
+{$ifdef SUPPORT_REMOTE}
+function TransformRemoteString(st : string) : string;
+{$endif SUPPORT_REMOTE}
 
 implementation
 
@@ -339,7 +345,7 @@ uses
 {$ifdef DOS}
   fpusrscr,
 {$endif DOS}
-
+  fpredir,
   App,Strings,
   FVConsts,
   MsgBox,
@@ -350,7 +356,7 @@ uses
   termio,
 {$endif Unix}
   Systems,Globals,
-  FPRegs,
+  FPRegs,FPTools,
   FPVars,FPUtils,FPConst,FPSwitch,
   FPIntf,FPCompil,FPIde,FPHelp,
   Validate,WUtils,Wconsts;
@@ -615,7 +621,8 @@ procedure UpdateDebugViews;
 
   begin
 {$ifdef SUPPORT_REMOTE}
-     if isRemoteDebugging then
+     if assigned(Debugger) and
+        Debugger^.isRemoteDebugging then
        PushStatus(msg_getting_info_on+RemoteMachine);
 {$endif SUPPORT_REMOTE}
      DeskTop^.Lock;
@@ -633,7 +640,8 @@ procedure UpdateDebugViews;
        VectorWindow^.Update;
      DeskTop^.UnLock;
 {$ifdef SUPPORT_REMOTE}
-     if isRemoteDebugging then
+     if assigned(Debugger) and
+        Debugger^.isRemoteDebugging then
        PopStatus;
 {$endif SUPPORT_REMOTE}
   end;
@@ -652,6 +660,9 @@ begin
   switch_to_user:=true;
   GetDir(0,OrigPwd);
   Command('set print object off');
+{$ifdef SUPPORT_REMOTE}
+  isFirstRemote:=true;
+{$endif SUPPORT_REMOTE}
 end;
 
 procedure TDebugController.SetExe(const exefn:string);
@@ -815,18 +826,22 @@ const
   TargetProtocol = 'palmos';
 {$else}
 const
-  TargetProtocol = 'remote';
+  TargetProtocol = 'extended-remote';
 {$endif PALMOSGDB}
 
 {$ifdef SUPPORT_REMOTE}
 var
   S,ErrorStr : string;
+  ErrorVal : longint;
 {$endif SUPPORT_REMOTE}
 begin
   ResetBreakpointsValues;
 {$ifdef SUPPORT_REMOTE}
   NoSwitch:=true;
   isRemoteDebugging:=false;
+  if TargetProtocol<>'extended-remote' then
+    isConnectedToRemote:=false;
+  usessh:=true;
 {$ifndef CROSSGDB}
   If (RemoteMachine<>'') and (RemotePort<>'') then
 {$else CROSSGDB}
@@ -834,7 +849,38 @@ begin
 {$endif CROSSGDB}
     begin
       isRemoteDebugging:=true;
-      S:=RemoteMachine;
+      if UseSsh and not isConnectedToRemote then
+        begin
+          s:=TransformRemoteString(RemoteSshExecCommand);
+          PushStatus(S);
+{$ifdef Unix}
+          error:=0;
+          { return without waiting for the function to end }
+          s:= s+' &';
+          If fpsystem(s)=-1 Then
+           ErrorVal:=fpgeterrno;
+{$else}
+          IDEApp.DoExecute(GetEnv('COMSPEC'),'/C '+s,'','ssh__.out','ssh___.err',exNormal);
+          ErrorVal:=DosError;
+{$endif}
+          PopStatus;
+          // if errorval <> 0 then
+          // AdvMessageBoxRect(var R: TRect; const Msg: String; Params: Pointer; AOptions: longint): Word;
+          AddToolMessage('',#3'Start'#13#3+s+#13#3'returned '+
+            IntToStr(Errorval),0,0);
+
+        end
+      else if not UseSsh then
+        begin
+          s:=TransformRemoteString(RemoteExecCommand);
+          MessageBox(#3'Start in remote'#13#3+s,nil,mfOKbutton);
+        end;
+      if usessh then
+        { we use ssh port redirection }
+        S:='localhost'
+        //S:=TransformRemoteString('$REMOTEMACHINE')
+      else
+        S:=RemoteMachine;
       If pos('@',S)>0 then
         S:=copy(S,pos('@',S)+1,High(S));
       If RemotePort<>'' then
@@ -845,16 +891,19 @@ begin
         S:='localhost:2000';
 {$endif PALMOSGDB}
       PushStatus(msg_connectingto+S);
-      Command('target '+TargetProtocol+' '+S);
+      AddToolMessage('',msg_connectingto+S,0,0);
+      UpdateToolMessages;
+      if not isConnectedToRemote then
+        Command('target '+TargetProtocol+' '+S);
       if Error then
         begin
            ErrorStr:=strpas(GetError);
            ErrorBox(#3'Error in "target '+TargetProtocol+'"'#13#3+ErrorStr,nil);
            PopStatus;
            exit;
-        end;
-      s:=IDEApp.GetRemoteExecString;
-      MessageBox(#3'Start in remote'#13#3+s,nil,mfOKbutton);
+        end
+      else
+        isConnectedToRemote:=true;
       PopStatus;
     end
   else
@@ -910,17 +959,24 @@ begin
     GDBWindow^.Editor^.Lock;
 {$ifdef SUPPORT_REMOTE}
   if isRemoteDebugging then
-  begin
-    inc(init_count);
-    { pass the stop in start code }
-    Command('continue');
-  end else
+    begin
+      inc(init_count);
+      { pass the stop in start code }
+      if isFirstRemote then
+        Command('continue')
+      else
+        Command ('start');
+      isFirstRemote:=false;
+    end
+  else
 {$endif SUPPORT_REMOTE}
-  { Set cwd for debuggee }
-  SetDir(GetRunDir);
-  inherited Run;
-  { Restore cwd for IDE }
-  SetDir(StartupDir);
+    begin
+      { Set cwd for debuggee }
+      SetDir(GetRunDir);
+      inherited Run;
+      { Restore cwd for IDE }
+      SetDir(StartupDir);
+    end;
   DebuggerScreen;
   If assigned(GDBWindow) then
     GDBWindow^.Editor^.UnLock;
@@ -1093,6 +1149,15 @@ procedure TDebugController.Reset;
 var
   old_reset : boolean;
 begin
+{$ifdef SUPPORT_REMOTE}
+  if isConnectedToRemote then
+    begin
+      Command('monitor exit');
+      Command('disconnect');
+      isConnectedToRemote:=false;
+      isFirstRemote:=true;
+    end;
+{$endif SUPPORT_REMOTE}
   inherited Reset;
   { we need to free the executable
     if we want to recompile it }
@@ -3617,6 +3682,48 @@ end;
       Dispose(FLB,done);
       inherited done;
     end;
+
+
+
+{$ifdef SUPPORT_REMOTE}
+{****************************************************************************
+                         TransformRemoteString
+****************************************************************************}
+function TransformRemoteString(st : string) : string;
+begin
+  If RemoteConfig<>'' then
+    ReplaceStrI(St,'$CONFIG','-F '+RemoteConfig)
+  else
+    ReplaceStrI(St,'$CONFIG','');
+  If RemoteIdent<>'' then
+    ReplaceStrI(St,'$IDENT','-i '+RemoteIdent)
+  else
+    ReplaceStrI(St,'$IDENT','');
+  If RemotePuttySession<>'' then
+    ReplaceStrI(St,'$PUTTYSESSION','-load '+RemotePuttySession)
+  else
+    ReplaceStrI(St,'$PUTTYSESSION','');
+  ReplaceStrI(St,'$LOCALFILENAME',NameAndExtOf(ExeFile));
+  ReplaceStrI(St,'$LOCALFILE',ExeFile);
+  ReplaceStrI(St,'$REMOTEDIR',RemoteDir);
+  ReplaceStrI(St,'$REMOTEPORT',RemotePort);
+  ReplaceStrI(St,'$REMOTEMACHINE',RemoteMachine);
+  ReplaceStrI(St,'$REMOTEGDBSERVER',maybequoted(remotegdbserver));
+  ReplaceStrI(St,'$REMOTECOPY',maybequoted(RemoteCopy));
+  ReplaceStrI(St,'$REMOTESHELL',maybequoted(RemoteShell));
+  { avoid infinite recursion here !!! }
+  if Pos('$REMOTEEXECCOMMAND',UpcaseSTr(St))>0 then
+    ReplaceStrI(St,'$REMOTEEXECCOMMAND',TransformRemoteString(RemoteExecCommand));
+{$ifdef WINDOWS}
+  ReplaceStrI(St,'$START','start "Shell to remote"');
+  ReplaceStrI(St,'$DOITINBACKGROUND','');
+{$else}
+  ReplaceStrI(St,'$START','');
+  ReplaceStrI(St,'$DOITINBACKGROUND',' &');
+{$endif}
+  TransformRemoteString:=st;
+end;
+{$endif SUPPORT_REMOTE}
 
 {****************************************************************************
                          Init/Final
