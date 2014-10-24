@@ -163,6 +163,7 @@ implementation
           begin
             write_rtti_reference(tobjectdef(def).childof,rt);
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(0));
+            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(0));
             inc(fieldcnt);
           end;
         st:=def.symtable;
