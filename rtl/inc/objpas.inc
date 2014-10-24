@@ -1017,12 +1017,20 @@
 
       function TObject.IsRefCounted: Boolean;
         begin
+          {$ifdef VER2_6}
+          Result := False;
+          {$else}
           Result := PVmt(Self.ClassType)^.vRefCountOfs > 0;
+          {$endif}
         end;
 
       function TObject.RefCountOffset: LongInt;
         begin
+          {$ifdef VER2_6}
+          Result := 0;
+          {$else}
           Result := PVmt(Self.ClassType)^.vRefCountOfs;
+          {$endif}
         end;
 
 
