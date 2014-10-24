@@ -6420,11 +6420,11 @@ implementation
           { invalid }
           vmtmethodoffset:=-1;
         else
-          { the +3*sizeof(pint) is size, -size and refcount offset }
+          { the +2*sizeof(pint) is size, -size and refcount offset }
 {$ifdef WITHDMT}
-          vmtmethodoffset:=index*voidcodepointertype.size+2*voidpointertype.size+3*sizeof(pint);
+          vmtmethodoffset:=index*voidcodepointertype.size+2*voidpointertype.size+2*sizeof(pint);
 {$else WITHDMT}
-          vmtmethodoffset:=index*voidcodepointertype.size+1*voidpointertype.size+3*sizeof(pint);
+          vmtmethodoffset:=index*voidcodepointertype.size+1*voidpointertype.size+2*sizeof(pint);
 {$endif WITHDMT}
         end;
       end;
