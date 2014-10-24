@@ -1570,7 +1570,7 @@ type
            begin
              { add all contained units to the package }
              { TODO : handle implicitly imported units }
-             pkg:=tpcppackage.create(module_name);
+             pkg:=tpcppackage.create(current_module.modulename^);
              uu:=tused_unit(current_module.used_units.first);
              while assigned(uu) do
                begin
