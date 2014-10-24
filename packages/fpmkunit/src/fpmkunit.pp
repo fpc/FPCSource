@@ -4735,14 +4735,21 @@ begin
   {$ifdef HAS_TAR_SUPPORT}
   if not assigned(FTarWriter) then
     begin
-      FGZFileStream := TGZFileStream.create(Defaults.ZipPrefix + APackage.Name + MakeZipSuffix(Defaults.CPU,Defaults.OS) +'.tar.gz', gzopenwrite);
+      If (APackage.Directory<>'') then
+        EnterDir('');
       try
-        FTarWriter := TTarWriter.Create(FGZFileStream);
-        FTarWriter.Permissions := [tpReadByOwner, tpWriteByOwner, tpReadByGroup, tpReadByOther];
-        FTarWriter.UserName := 'root';
-        FTarWriter.GroupName := 'root';
-      except
-        FGZFileStream.Free;
+        FGZFileStream := TGZFileStream.create(Defaults.ZipPrefix + APackage.Name + MakeZipSuffix(Defaults.CPU,Defaults.OS) +'.tar.gz', gzopenwrite);
+        try
+          FTarWriter := TTarWriter.Create(FGZFileStream);
+          FTarWriter.Permissions := [tpReadByOwner, tpWriteByOwner, tpReadByGroup, tpReadByOther];
+          FTarWriter.UserName := 'root';
+          FTarWriter.GroupName := 'root';
+        except
+          FGZFileStream.Free;
+        end;
+      finally
+        If (APackage.Directory<>'') then
+          EnterDir(APackage.Directory);
       end;
     end;
 {$ifdef unix}
@@ -8016,3 +8023,4 @@ Finalization
   FreeAndNil(GlobalDictionary);
   FreeAndNil(Defaults);
 end.
+
