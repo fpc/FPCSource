@@ -3234,7 +3234,7 @@ implementation
         end;
       pd:=search_system_proc(decrfunc);
       cgpara1.init;
-      cgpara1.init;
+      cgpara2.init;
       paramanager.getintparaloc(pd,1,cgpara1);
       a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
       paramanager.freecgpara(list,cgpara1);
