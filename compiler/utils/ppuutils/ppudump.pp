@@ -1861,7 +1861,8 @@ const
      (mask:vo_volatile;        str:'Volatile'),
      (mask:vo_has_section;     str:'HasSection'),
      (mask:vo_force_finalize;  str:'ForceFinalize'),
-     (mask:vo_is_default_var;  str:'DefaultIntrinsicVar')
+     (mask:vo_is_default_var;  str:'DefaultIntrinsicVar'),
+     (mask:vo_is_weakref;      str:'WeakRef')
   );
 var
   i : longint;
@@ -1939,7 +1940,8 @@ const
      (mask:oo_has_class_constructor; str:'HasClassConstructor'),
      (mask:oo_has_class_destructor; str:'HasClassDestructor'),
      (mask:oo_is_enum_class;      str:'JvmEnumClass'),
-     (mask:oo_has_new_destructor; str:'HasNewDestructor')
+     (mask:oo_has_new_destructor; str:'HasNewDestructor'),
+     (mask:oo_is_reference_counted;str:'IsReferenceCounted')
   );
 var
   i      : longint;
