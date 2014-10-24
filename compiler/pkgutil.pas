@@ -100,6 +100,9 @@ implementation
               recorddef:
                 begin
                   def:=tabstractrecorddef(ttypesym(sym).typedef);
+                  { don't export generics or their nested types }
+                  if df_generic in def.defoptions then
+                    exit;
                   def.symtable.symlist.foreachcall(@exportabstractrecordsymproc,def.symtable);
                 end;
             end;
