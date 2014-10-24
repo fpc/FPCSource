@@ -99,13 +99,19 @@ begin
 end;
 
 function RTTIRefCountOffset(TypeInfo: Pointer): SizeInt;
+{$ifndef VER2_6}
 var
   info: PRecordInfo;
   refcount: PSizeInt;
+{$endif}
 begin
+{$ifdef VER2_6}
+  Result:=0;
+{$else}
   info:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
   refcount:=PSizeInt(Pointer(info)+SizeOf(TRecordInfo)+info^.Count*SizeOf(TRecordElement));
   Result:=refcount^;
+{$endif}
 end;
 
 { if you modify this procedure, fpc_copy must be probably modified as well }
