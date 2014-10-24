@@ -56,6 +56,7 @@ Var
 procedure InitRedir;
 function ExecuteRedir (Const ProgName, ComLine, RedirStdIn, RedirStdOut, RedirStdErr : String) : boolean;
 procedure DosExecute(ProgName, ComLine : String);
+function MaybeQuoted(const s:string):string;
 
 function  ChangeRedirOut(Const Redir : String; AppendToFile : Boolean) : Boolean;
 procedure RestoreRedirOut;
