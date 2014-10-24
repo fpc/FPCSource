@@ -192,7 +192,11 @@ implementation
               AT_FUNCTION:
                 procexport(name);
               AT_DATA:
-                varexport(name);
+                begin
+                  if pos(name,indirect_suffix)=length(name)-length(indirect_suffix)+1 then
+                    continue;
+                  varexport(name);
+                end;
               else
                 Writeln('Ignoring asm symbol ',typ);
             end;
@@ -430,7 +434,7 @@ implementation
       alreadyloaded : tfpobjectlist;
 
 
-      function findpackagewithsym(sym:tasmsymbol):tcacheentry;
+      function findpackagewithsym(symname:tsymstr):tcacheentry;
         var
           i,j : longint;
           pkgentry : ppackageentry;
@@ -445,7 +449,7 @@ implementation
                   if not assigned(unitentry^.module) then
                     { the unit is not loaded }
                     continue;
-                  result.sym:=tasmsymbol(tmodule(unitentry^.module).globalasmsyms.find(sym.name));
+                  result.sym:=tasmsymbol(tmodule(unitentry^.module).globalasmsyms.find(symname));
                   if assigned(result.sym) then
                     begin
                       { only accept global symbols of the used unit }
@@ -474,15 +478,24 @@ implementation
           psym : tsymentry;
           pd : tprocdef;
           found : boolean;
+          symname : TSymStr;
+          suffixidx : longint;
         begin
+          writeln('available assembler symbols: ', symlist.count);
           for i:=0 to symlist.count-1 do
             begin
               sym:=tasmsymbol(symlist[i]);
               if sym.bind<>ab_external then
                 continue;
 
+              { remove the indirect suffix }
+              symname:=sym.name;
+              suffixidx:=pos(indirect_suffix,symname);
+              if suffixidx=length(symname)-length(indirect_suffix)+1 then
+                symname:=copy(symname,1,suffixidx-1);
+
               { did we already import the symbol? }
-              cacheentry:=pcacheentry(cache.find(sym.name));
+              cacheentry:=pcacheentry(cache.find(symname));
               if assigned(cacheentry) then
                 continue;
 
@@ -496,14 +509,14 @@ implementation
                       for k:=0 to tprocsym(psym).procdeflist.count-1 do
                         begin
                           pd:=tprocdef(tprocsym(psym).procdeflist[k]);
-                          if has_alias_name(pd,sym.name) then
+                          if has_alias_name(pd,symname) then
                             begin
                               found:=true;
                               break;
                             end;
                         end;
                     staticvarsym:
-                      if tstaticvarsym(psym).mangledname=sym.name then
+                      if tstaticvarsym(psym).mangledname=symname then
                         found:=true;
                     else
                       internalerror(2014101005);
@@ -512,32 +525,32 @@ implementation
                     break;
                 end;
               if found then begin
-                writeln('asm symbol ', sym.name, ' is already imported');
+                writeln('asm symbol ', symname, ' is already imported');
                 { add a dummy entry }
                 new(cacheentry);
                 cacheentry^.pkg:=nil;
                 cacheentry^.sym:=sym;
-                cache.add(sym.name,cacheentry);
+                cache.add(symname,cacheentry);
                 continue;
               end;
 
               new(cacheentry);
-              cacheentry^:=findpackagewithsym(sym);
-              cache.add(sym.name,cacheentry);
+              cacheentry^:=findpackagewithsym(symname);
+              cache.add(symname,cacheentry);
 
               { use cacheentry^.sym instead of sym, because for the later typ
                 is always at_none in case of an external symbol }
               if assigned(cacheentry^.pkg) then
                 begin
-                  current_module.addexternalimport(cacheentry^.pkg.pplfilename,sym.name,sym.name,0,cacheentry^.sym.typ=at_data,false);
+                  current_module.addexternalimport(cacheentry^.pkg.pplfilename,symname,symname,0,cacheentry^.sym.typ=at_data,false);
                   { also add an $indirect symbol if it is a variable }
                   if cacheentry^.sym.typ=AT_DATA then
                     begin
                       list:=current_asmdata.AsmLists[al_globals];
-                      new_section(list,sec_rodata,lower(sym.name),const_align(4));
-                      labind:=current_asmdata.DefineAsmSymbol(sym.name+indirect_suffix,AB_GLOBAL,AT_DATA);
+                      new_section(list,sec_rodata,lower(symname),const_align(4));
+                      labind:=current_asmdata.DefineAsmSymbol(symname+indirect_suffix,AB_GLOBAL,AT_DATA);
                       list.concat(Tai_symbol.Create_Global(labind,0));
-                      list.concat(Tai_const.Createname(sym.name,AT_DATA,0));
+                      list.concat(Tai_const.Createname(symname,AT_DATA,0));
                       list.concat(tai_symbol_end.Create(labind));
                     end;
                 end;
