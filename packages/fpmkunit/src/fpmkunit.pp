@@ -4314,13 +4314,14 @@ end;
 
 procedure TCustomInstaller.AnalyzeOptions;
 
-  Function CheckOption(Index : Integer;const Short,Long : String; AddToOptionString: boolean = true): Boolean;
+  Function CheckOption(Index : Integer;const Short,Long : String; AddToOptionString: boolean = false): Boolean;
   var
     O : String;
   begin
     O:=Paramstr(Index);
     Result:=(O='-'+short) or (O='--'+long) or (copy(O,1,Length(Long)+3)=('--'+long+'='));
-    if AddToOptionString and Result then FFPMakeOptionsString := FFPMakeOptionsString+' '+O;
+    if AddToOptionString and Result then
+      FFPMakeOptionsString := FFPMakeOptionsString+' '+O;
   end;
 
   Function CheckBuildOptionSetValue(Index: Integer): boolean;
@@ -4373,7 +4374,7 @@ procedure TCustomInstaller.AnalyzeOptions;
     Result:=(O='-'+short) or (O=long);
   end;
 
-  Function OptionArg(Var Index : Integer) : String;
+  Function OptionArg(Var Index : Integer; AddToOptionString: boolean = false) : String;
   Var
     P : Integer;
   begin
@@ -4383,6 +4384,8 @@ procedure TCustomInstaller.AnalyzeOptions;
         begin
         Inc(Index);
         Result:=Paramstr(Index);
+        if AddToOptionString then
+          FFPMakeOptionsString := FFPMakeOptionsString+' '+Result;
         end
       else
         Error(SErrNeedArgument,[Index,ParamStr(Index)]);
@@ -4428,9 +4431,9 @@ begin
   While (I<ParamCount) do
     begin
     Inc(I);
-    if CheckOption(I,'v','verbose',false) then
+    if CheckOption(I,'v','verbose') then
       FLogLevels:=AllMessages
-    else if CheckOption(I,'d','debug',false) then
+    else if CheckOption(I,'d','debug') then
       FLogLevels:=AllMessages+[vlDebug]
     else if CheckCommand(I,'m','compile') then
       FRunMode:=rmCompile
@@ -4480,9 +4483,9 @@ begin
       Defaults.LocalUnitDir:=OptionArg(I)
     else if CheckOption(I,'UG','globalunitdir') then
       Defaults.GlobalUnitDir:=OptionArg(I)
-    else if CheckOption(I,'o','options') then
+    else if CheckOption(I,'o','options', true) then
       begin
-        OptString := OptionArg(I);
+        OptString := OptionArg(I, true);
         while OptString <> '' do
           Defaults.Options.Add(SplitSpaces(OptString));
       end
@@ -4496,7 +4499,7 @@ begin
       Defaults.SkipCrossPrograms:=true
     else if CheckOption(I,'bu','buildunit') then
       Defaults.BuildMode:=bmBuildUnit
-    else if CheckOption(I,'io','ignoreinvalidoption') then
+    else if CheckOption(I,'io','ignoreinvalidoption', true) then
       Defaults.IgnoreInvalidOptions:=true
     else if CheckOption(I,'d','doc-folder') then
       Defaults.FPDocOutputDir:=OptionArg(I)
@@ -4504,7 +4507,7 @@ begin
       begin
       if not assigned(CustomFpMakeCommandlineValues) then
         CustomFpMakeCommandlineValues := TStringList.Create;
-      CustomFpMakeCommandlineValues.Values[CustOptName]:=OptionArg(I)
+      CustomFpMakeCommandlineValues.Values[CustOptName]:=OptionArg(I, true)
       end
     else if (not CheckBuildOptionSetValue(I)) and (not Defaults.IgnoreInvalidOptions) then
       begin
