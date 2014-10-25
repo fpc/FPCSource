@@ -330,10 +330,6 @@ unit cgcpu;
         hreg : tregister;
         r : longint;
       begin
-        { Release PIC register }
-        if cs_create_pic in current_settings.moduleswitches then
-          list.concat(tai_regalloc.dealloc(NR_PIC_OFFSET_REG,nil));
-
         { Prevent return address from a possible call from ending up in the epilogue }
         { (restoring registers happens before epilogue, providing necessary padding) }
         if (current_procinfo.flags*[pi_has_unwind_info,pi_do_call,pi_has_saved_regs])=[pi_has_unwind_info,pi_do_call] then
