@@ -876,6 +876,7 @@ Type
     FCompiler: String;
     FCopy: String;
     FFPDocOutputDir: String;
+    FFPUnitSourcePath: String;
     FIgnoreInvalidOptions: Boolean;
     FInstallExamples: Boolean;
     FMkDir: String;
@@ -907,6 +908,7 @@ Type
     function GetBuildOS: TOS;
     function GetBuildString: String;
     function GetFPDocOutputDir: String;
+    function GetFPUnitSourcePath: String;
     function GetLocalUnitDir: String;
     function GetGlobalUnitDir: String;
     function GetBaseInstallDir: String;
@@ -977,6 +979,7 @@ Type
     Property DocInstallDir : String Read GetDocInstallDir Write FDocInstallDir;
     Property ExamplesInstallDir : String Read GetExamplesInstallDir Write FExamplesInstallDir;
     Property FPDocOutputDir : String Read GetFPDocOutputDir Write FFPDocOutputDir;
+    Property FPUnitSourcePath: String read GetFPUnitSourcePath Write FFPUnitSourcePath;
     // Command tools. If not set, internal commands  will be used.
     Property Compiler : String Read GetCompiler Write FCompiler; // Compiler. Defaults to fpc
     Property Copy : String Read FCopy Write FCopy;             // copy $(FILES) to $(DEST)
@@ -1607,6 +1610,7 @@ ResourceString
   SHelpSkipCrossProgs = 'Skip programs when cross-compiling/installing';
   SHelpIgnoreInvOpt   = 'Ignore further invalid options.';
   sHelpFpdocOutputDir = 'Use indicated directory as fpdoc output folder.';
+  sHelpFPUnitSrcPath  = 'Sourcepath to replace in fpunits.cfg on installation.';
   sHelpThreads        = 'Enable the indicated amount of worker threads.';
   sHelpUseEnvironment = 'Use environment to pass options to compiler.';
   SHelpUseBuildUnit   = 'Compile package in Build-unit mode.';
@@ -3801,6 +3805,14 @@ begin
     Result:=FixPath('.'+PathDelim+'docs', True);
 end;
 
+function TCustomDefaults.GetFPUnitSourcePath: String;
+begin
+  If (FFPUnitSourcePath='') or (FFPUnitSourcePath='0') then
+    result := FFPUnitSourcePath
+  else
+    Result:=FixPath(FFPUnitSourcePath, True);
+end;
+
 function TCustomDefaults.GetBuildCPU: TCpu;
 begin
   result := StringToCPU({$I %FPCTARGETCPU%});
@@ -4503,6 +4515,8 @@ begin
       Defaults.IgnoreInvalidOptions:=true
     else if CheckOption(I,'d','doc-folder') then
       Defaults.FPDocOutputDir:=OptionArg(I)
+    else if CheckOption(I,'fsp','fpunitsrcpath') then
+      Defaults.FPUnitSourcePath:=OptionArg(I)
     else if assigned(CustomFpmakeCommandlineOptions) and CheckCustomOption(I,CustOptName) then
       begin
       if not assigned(CustomFpMakeCommandlineValues) then
@@ -4580,6 +4594,7 @@ begin
   LogArgOption('o','options',SHelpOptions);
   LogArgOption('io','ignoreinvalidoption',SHelpIgnoreInvOpt);
   LogArgOption('d', 'doc-folder', sHelpFpdocOutputDir);
+  LogArgOption('fsp', 'fpunitsrcpath', sHelpFPUnitSrcPath);
   LogArgOption('zp', 'zipprefix', sHelpZipPrefix);
 {$ifndef NO_THREADING}
   LogArgOption('T', 'threads', sHelpThreads);
@@ -6560,10 +6575,27 @@ end;
 procedure TBuildEngine.InstallUnitConfigFile(APAckage: TPackage; const Dest: String);
 Var
   List : TStringList;
+  ConfigFileName: String;
+  ConfigFileContent: TStrings;
 begin
+  ConfigFileName:=IncludeTrailingPathDelimiter(APackage.GetUnitConfigOutputDir(Defaults.CPU,Defaults.OS))+UnitConfigFile;
   List:=TStringList.Create;
   Try
-    List.add(IncludeTrailingPathDelimiter(APackage.GetUnitConfigOutputDir(Defaults.CPU,Defaults.OS))+UnitConfigFile);
+    if Defaults.FPUnitSourcePath<>'' then
+      begin
+        ConfigFileContent := TStringList.Create;
+        try
+          ConfigFileContent.LoadFromFile(ConfigFileName);
+          if Defaults.FPUnitSourcePath='0' then
+            ConfigFileContent.Delete(ConfigFileContent.IndexOfName(KeySourcePath))
+          else
+            ConfigFileContent.Values[KeySourcePath] := Defaults.FPUnitSourcePath;
+          ConfigFileContent.SaveToFile(ConfigFileName);
+        finally
+          ConfigFileContent.Free;
+        end;
+      end;
+    List.add(ConfigFileName);
     CmdCopyFiles(List,Dest,APackage);
   Finally
     List.Free;
