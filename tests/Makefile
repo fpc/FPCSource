@@ -2411,7 +2411,7 @@ ifdef inOS2
 	$(ECHOREDIR) dbdigest.cfg>> $(TEST_OUTPUTDIR)/tar.lst
 else
 ifeq ($(TEST_USE_LONGLOG),)
-	$(TEST_OUTPUTDIR) && find . -name '*.log' -o -name '*.elg' > tar.lst
+	cd $(TEST_OUTPUTDIR) && find . -name '*.log' -o -name '*.elg' > tar.lst
 else
 	$(ECHOREDIR) "longlog" > $(TEST_OUTPUTDIR)/tar.lst
 endif
