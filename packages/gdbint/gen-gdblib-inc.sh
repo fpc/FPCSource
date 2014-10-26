@@ -188,7 +188,7 @@ cat > gdb_get_stdin.c <<EOF
 FILE * gdb_get_stdin (void);
 
 FILE *
-gdb_get_stdin ()
+gdb_get_stdin (void)
 {
   return stdin;
 }
