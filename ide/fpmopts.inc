@@ -678,6 +678,7 @@ begin
       R2.Move(0,-1);
       Insert(New(PLabel, Init(R2,label_remote_copy, IL10)));
       R2.Move(0,3);
+      { Remote gdbserver }
       New(IL11, Init(R2, 255));
       IL11^.Data^:=RemoteGdbServer;
       Insert(IL11);
@@ -696,7 +697,7 @@ begin
     RemoteExecCommand:=IL7^.Data^;
     RemoteSshExecCommand:=IL8^.Data^;
     RemoteShell:=IL9^.Data^;
-    RemoteCopy:=IL9^.Data^;
+    RemoteCopy:=IL10^.Data^;
     RemoteGdbServer:=IL11^.Data^;
   end;
   Dispose(D, Done);
