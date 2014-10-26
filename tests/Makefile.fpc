@@ -508,8 +508,7 @@ $(MAKEINC): $(GPARMAKE) $(TEST_OUTPUTDIR)
 # used subdirectory. Note also that the index must be increasing for each
 # new call with a gap insuring that all the previous files have lower index
 # even if CHUNKSIZE is equal to 1.
-	$(Q)$(GPARMAKE) $(MAKEINC) test 1 $(CHUNKSIZE) $(sort $(wildcard $(addsuffix /t*.pp,test)))
-	$(Q)$(GPARMAKE) $(MAKEINC) test 5000 $(CHUNKSIZE) $(sort $(wildcard $(addsuffix /t*.pp,$(addprefix /,$(TESTSUBDIRS)))))
+	$(Q)$(GPARMAKE) $(MAKEINC) test 1 $(CHUNKSIZE) $(sort $(wildcard $(addsuffix /t*.pp,$(TESTDIRS))))
 	$(Q)$(GPARMAKE) -a $(MAKEINC) tbs 10000 $(CHUNKSIZE) $(sort $(wildcard tbs/t*.pp))
 	$(Q)$(GPARMAKE) -a $(MAKEINC) tbf 15000 $(CHUNKSIZE) $(sort $(wildcard tbf/t*.pp))
 	$(Q)$(GPARMAKE) -a $(MAKEINC) webtbs 20000 $(CHUNKSIZE) $(sort $(wildcard webtbs/t*.pp))
