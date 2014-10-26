@@ -2257,7 +2257,7 @@ begin
         end;
     end;
   if AIsDir and (Result <> '') then
-    Result := IncludeTrailingPathDelimiter(Result);;
+    Result := IncludeTrailingPathDelimiter(Result);
 end;
 
 function IsRelativePath(const APath: String): boolean;
@@ -3968,7 +3968,7 @@ begin
   FNoFPCCfg:=False;
   FCPU:=cpuNone;
   FOS:=osNone;
-  FUnitInstallDir:='$(BaseInstallDir)units/$(target)/$(packagename)';
+  FUnitInstallDir:='$(baseinstalldir)units/$(target)/$(packagename)';
   FBuildMode:=bmOneByOne;
   FThreadsAmount:=-1;
 end;
@@ -4237,7 +4237,7 @@ begin
   FPackageVariants := TFPList.Create;
   GlobalDictionary:=DictionaryClass.Create(Nil);
   AnalyzeOptions;
-  GlobalDictionary.AddVariable('BaseInstallDir',Defaults.BaseInstallDir);
+  GlobalDictionary.AddVariable('baseinstalldir',Defaults.BaseInstallDir);
   GlobalDictionary.AddVariable('bininstalldir',Defaults.BinInstallDir);
   GlobalDictionary.AddVariable('Target',Defaults.Target);
   GlobalDictionary.AddVariable('BuildString',Defaults.BuildString);
@@ -7103,7 +7103,10 @@ begin
   If Assigned(BeforeInstall) then
     BeforeInstall(Self);
 
-  Defaults.IntSetBaseInstallDir('lib/fpc/' + Defaults.FCompilerVersion+ '/');
+  if Defaults.UnixPaths then
+    Defaults.IntSetBaseInstallDir('lib/fpc/' + Defaults.FCompilerVersion+ '/')
+  else
+    Defaults.IntSetBaseInstallDir('');
 
   try
     For I:=0 to Packages.Count-1 do
