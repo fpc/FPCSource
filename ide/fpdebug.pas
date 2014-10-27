@@ -662,6 +662,10 @@ begin
   Command('set print object off');
 {$ifdef SUPPORT_REMOTE}
   isFirstRemote:=true;
+{$ifdef FPC_ARMEL32}
+  { GDB needs advice on exact file type }
+  Command('set gnutarget elf32-littlearm');
+{$endif FPC_ARMEL32}
 {$endif SUPPORT_REMOTE}
 end;
 
