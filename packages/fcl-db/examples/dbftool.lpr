@@ -1,6 +1,8 @@
 program dbftool;
 
-{ Reads and exports DBF files. Can create a demo DBF file to test with.
+{
+Reads and exports DBF files.
+Can create a set of 2 demo DBF files to test with.
 
 Demonstrates creating DBF tables, filling it with data,
 and exporting datasets.
@@ -36,7 +38,10 @@ type
 
   TDBFTool = class(TCustomApplication)
   private
+    // Exports recordset to specified format
     procedure ExportDBF(var MyDbf: TDbf; ExportFormat: string);
+    // Executable name without path
+    function GetExeName: string;
   protected
     procedure DoRun; override;
   public
@@ -45,14 +50,15 @@ type
     procedure WriteHelp; virtual;
   end;
 
+  // Creates 2 demonstration DBFs in Directory
+  // with dbase compatibility level TableLevel
   procedure CreateDemoDBFs(Directory: string; TableLevel: integer);
-  // Creates 2 demonstration DBFs in Directory with dbase compatibility level
-  // TableLevel
+  // Data structure and data adapted from Firebird employee sample database
+  // Useful to integrate with SQLDB tutorials on Lazarus wiki
   var
     NewDBF: TDBF;
     i: integer;
   begin
-
     NewDBF := TDBF.Create(nil);
     try
       if Directory = '' then
@@ -66,7 +72,7 @@ type
 
       NewDBF.TableName := 'customer.dbf';
       writeln('Creating ', NewDBF.TableName, ' with table level ', NewDBF.TableLevel);
-      if TableLevel >= 30 then
+      if TableLevel >= 30 {Visual FoxPro} then
       begin
         NewDBF.FieldDefs.Add('CUST_NO', ftAutoInc);
       end
@@ -90,7 +96,7 @@ type
             NewDBF.FieldByName('CITY').AsString := 'San Diego';
             NewDBF.FieldByName('COUNTRY').AsString := 'USA';
           end;
-          2:
+          2: //Let's try a duplicate row
           begin
             NewDBF.FieldByName('CUSTOMER').AsString := 'Michael Design';
             NewDBF.FieldByName('CITY').AsString := 'San Diego';
@@ -135,7 +141,7 @@ type
 
       NewDBF.TableName := 'employee.dbf';
       writeln('Creating ', NewDBF.TableName, ' with table level ', NewDBF.TableLevel);
-      if TableLevel >= 30 then
+      if TableLevel >= 30 {Visual FoxPro} then
       begin
         NewDBF.FieldDefs.Add('EMP_NO', ftAutoInc);
       end
@@ -216,31 +222,30 @@ type
     end;
   end;
 
-  procedure GetDBFList(Results: TStringList);
   // Gets list of all .dbf files in a directory and its subdirectories.
+  procedure GetDBFList(Results: TStringList);
   var
     r: TSearchRec;
   begin
     results.Clear;
-    if FindFirst('*.dbf', faAnyFile -
+    if FindFirst('*.dbf', faAnyFile - faDirectory -
 {$WARNINGS OFF}
       faVolumeID - faSymLink
 {$WARNINGS ON}
       , r) = 0 then
     begin
       repeat
-        if (r.Attr and faDirectory) <> faDirectory then
-        begin
-          results.add(expandfilename(r.Name));
-        end;
+      begin
+        results.add(expandfilename(r.Name));
+      end;
       until (FindNext(r) <> 0);
       findclose(r);
     end;
   end;
 
+  // Convert binary field contents to strings with hexadecimal representation.
+  // Useful for displaying binary field contents.
   function BinFieldToHex(BinarySource: TField): string;
-    // Convert binary field contents to strings with hexadecimal representation.
-    // Useful for displaying binary field contents.
   var
     HexValue: PChar;
   begin
@@ -261,8 +266,8 @@ type
     end;
   end;
 
+  // Writes contents of available records to screen
   procedure PrintRecords(DBf: TDBf);
-  // Prints contents of available records to screen
   var
     i: integer;
     RecordCount: integer;
@@ -291,7 +296,6 @@ type
   { TDBFTool }
 
   procedure TDBFTool.ExportDBF(var MyDbf: TDbf; ExportFormat: string);
-  // Exports recordset to specified format
   var
     ExportSettings: TCustomExportFormatSettings;
     Exporter: TCustomFileExporter;
@@ -326,7 +330,7 @@ type
           //todo: delimiter?
           Exporter.FileName := MyDBF.FilePathFull + ChangeFileExt(MyDBF.TableName, '.csv');
         end;
-        'CSV', 'CSVRFC4180', 'CSVLIBRE', 'CSVLIBREOFFICE':
+        'CSV', 'CSVRFC4180', 'CSVLIBRE', 'CSVLIBREOFFICE', 'CSVOPENOFFICE':
         begin
           Exporter := TCSVExporter.Create(nil);
           ExportSettings := TCSVFormatSettings.Create(true);
@@ -417,6 +421,11 @@ type
     end;
   end;
 
+  function TDBFTool.GetExeName: string;
+  begin
+    result := ExtractFileName(ExeName);
+  end;
+
   procedure TDBFTool.DoRun;
   var
     DBFs: TStringList;
@@ -472,15 +481,17 @@ type
         GetDBFList(DBFs);
 
       if DBFs.Count = 0 then
-        writeln('Could not find any dbf files');
+      begin
+        writeln('Could not find any dbf files.');
+        writeln('Use ' + GetExeName + ' --createdemo to create some test DBF files.');
+      end;
 
       for FileNo := 0 to DBFs.Count - 1 do
       begin
         if not (fileexists(DBFs[FileNo])) then
         begin
-          // for some reason, fpc trunk suddenly returns the directory as well...
-          //writeln('Sorry, file ',DBFs[FileNo],' does not exist.');
-          break;
+          writeln('Sorry, file ',DBFs[FileNo],' does not exist. Ignoring it.');
+          continue;
         end;
         MyDbf := TDbf.Create(nil);
         try
@@ -539,11 +550,11 @@ type
 
   procedure TDBFTool.WriteHelp;
   begin
-    writeln('Usage: ', ExeName, ' -h');
+    writeln('Usage: ', GetExeName, ' -h');
     writeln(' --createdemo          create demo database');
     writeln(' --tablelevel=<n>      optional: desired tablelevel for demo db');
     writeln('  3                    DBase III');
-    writeln('  4                    DBase IV');
+    writeln('  4                    DBase IV (default if no tablelevel given)');
     writeln('  7                    Visual DBase 7');
     writeln(' 25                    FoxPro 2.x');
     writeln(' 30                    Visual FoxPro');
