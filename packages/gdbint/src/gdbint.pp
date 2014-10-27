@@ -59,6 +59,29 @@ interface
 
 {$undef GDB_VERSION_RECOGNIZED}
 
+{ 7.9.x }
+{$ifdef GDB_V709}
+  {$info using gdb 7.9.x}
+  {$define GDB_VERSION_RECOGNIZED}
+  {$define GDB_VER_GE_709}
+{$endif}
+
+{$ifdef GDB_VER_GE_709}
+  {$define GDB_VER_GE_708}
+{$endif}
+
+{ 7.8.x }
+{$ifdef GDB_V708}
+  {$info using gdb 7.8.x}
+  {$define GDB_VERSION_RECOGNIZED}
+  {$define GDB_VER_GE_708}
+{$endif}
+
+{$ifdef GDB_VER_GE_708}
+  {$define USE_CATCH_EXCEPTIONS}
+  {$define GDB_VER_GE_707}
+{$endif}
+
 { 7.7.x }
 {$ifdef GDB_V707}
   {$info using gdb 7.7.x}
@@ -78,6 +101,7 @@ interface
 {$endif}
 
 {$ifdef GDB_VER_GE_706}
+  {$define GDB_UI_FILE_HAS_FSEEK}
   {$define GDB_VER_GE_705}
 {$endif}
 
@@ -710,6 +734,9 @@ type
   {$ifdef GDB_V6}
   ui_file_read_ftype = function (stream : pui_file; buffer : pchar; len : longint):longint;cdecl;
   {$endif}
+  {$ifdef GDB_UI_FILE_HAS_FSEEK}
+  ui_file_fseek_ftype = function (stream : pui_file; offset : longint{clong}; whence : longint {cint}) : longint{cint};cdecl;
+  {$endif GDB_UI_FILE_HAS_FSEEK}
 
   ui_file = record
       magic : plongint;
@@ -726,6 +753,9 @@ type
       to_isatty : ui_file_isatty_ftype;
       to_rewind : ui_file_rewind_ftype;
       to_put    : ui_file_put_ftype;
+     {$ifdef GDB_UI_FILE_HAS_FSEEK}
+     to_fseek   : ui_file_fseek_ftype;
+     {$endif GDB_UI_FILE_HAS_FSEEK}
       to_data   : pointer;
     end;
 
@@ -901,6 +931,8 @@ var
 var
   cli_uiout : ui_out;cvar;external;
   current_uiout : ui_out;cvar;external;
+  { out local copy for catch_exceptions call }
+  our_uiout : ui_out;
 {$endif GDB_NO_UIOUT}
 function cli_out_new (stream : pui_file):ui_out;cdecl;external;
 {$endif GDB_V6}
@@ -1217,6 +1249,8 @@ type
           explicit_line : longint;
           { New field added in GDB 7.5 version }
           probe : pointer;{struct probe *probe; }
+          { New field added in GDB 7.8? version }
+          objfile : pointer; { struct objfile * }
        end;
 
      symtabs_and_lines = record
@@ -2879,6 +2913,16 @@ end;
 var
    top_level_val : longint;
 
+{$ifdef USE_CATCH_EXCEPTIONS}
+function catch_exceptions(uiout : ui_out; func : pointer; command : pchar; mask : longint) : longint;cdecl;external;
+
+function gdbint_execute_command(uiout : ui_out; command : pchar) : longint;cdecl;
+begin
+  gdbint_execute_command:=1;
+  execute_command(command,1);
+  gdbint_execute_command:=0;
+end;
+{$else not USE_CATCH_EXCEPTIONS}
 function catch_command_errors(func : pointer; command : pchar; from_tty,mask : longint) : longint;cdecl;external;
 
 function gdbint_execute_command(command : pchar; from_tty : longint) : longint;cdecl;
@@ -2887,6 +2931,7 @@ begin
   execute_command(command,from_tty);
   gdbint_execute_command:=0;
 end;
+{$endif not USE_CATCH_EXCEPTIONS}
 
 {$ifdef cpui386}
 type
@@ -2988,8 +3033,12 @@ begin
    begin
      quit_return:=error_return;
      mask:=longint($ffffffff);
+{$ifdef USE_CATCH_EXCEPTIONS}
+     catch_exceptions(our_uiout, @gdbint_execute_command,@command,mask);
+{$else i.e. not USE_CATCH_EXCEPTIONS}
      catch_command_errors(@gdbint_execute_command,@command,
        1,mask);
+{$endif not def USE_CATCH_EXCEPTIONS}
 {$ifdef go32v2}
      reload_fs;
 {$endif go32v2}
@@ -3429,6 +3478,7 @@ begin
 {$ifdef GDB_NO_UIOUT}
   cli_uiout := cli_out_new (gdb_stdout);
   current_uiout:=cli_uiout;
+  our_uiout:=cli_uiout;
 {$endif GDB_NO_UIOUT}
 {$endif GDB_NEEDS_INTERPRETER_SETUP}
 {$ifdef supportexceptions}
