@@ -602,7 +602,7 @@ begin
         TrLen := SQLLen;
       end;
     SQL_TYPE_DATE :
-      TrType := ftDate;
+        TrType := ftDate;
     SQL_TYPE_TIME :
         TrType := ftTime;
     SQL_TIMESTAMP :
@@ -615,9 +615,9 @@ begin
     SQL_BLOB :
       begin
         if SQLSubType = isc_blob_text then
-           TrType := ftMemo
+          TrType := ftMemo
         else
-           TrType := ftBlob;
+          TrType := ftBlob;
         TrLen := SQLLen;
       end;
     SQL_SHORT :
