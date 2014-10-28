@@ -520,7 +520,7 @@ uses
 
     type
 
-{       BinCompat Mode?
+{$ifdef AROS_FLAVOUR_BINCOMPAT}
          tMUI_EventHandlerNode = record
             ehn_Node : tMinNode;
             ehn_Reserved : BYTE;
@@ -529,15 +529,17 @@ uses
             ehn_Object : PObject_;
             ehn_Class : PIClass;
             ehn_Events : LongWord;
-         end;}
+         end;
+{$else}         
        tMUI_EventHandlerNode = record
-            ehn_Node : tMinNode;
+            ehn_Node : TNode;
             ehn_Flags : WORD;
             ehn_Object : PObject_;
             ehn_Class : PIClass;
             ehn_Events : LongWord;
             ehn_Priority : BYTE;            
          end;
+{$endif}         
        pMUI_EventHandlerNode = ^tMUI_EventHandlerNode;
     { flags for ehn_Flags  }
 
@@ -3614,37 +3616,37 @@ end;
 
 function OBJ_App(obj : APTR) : PObject_;       (* valid between MUIM_Setup/Cleanup *)
 begin
-    OBJ_App := pMUI_GlobalInfo(obj)^.mgi_ApplicationObject;
+    OBJ_App := MUIGlobalInfo(obj)^.mgi_ApplicationObject;
 end;
 
 function OBJ_Win(obj : APTR) : PObject_;       (* valid between MUIM_Setup/Cleanup *)
 begin
-    OBJ_Win := PMUI_RenderInfo(obj)^.mri_WindowObject;
+    OBJ_Win := MUIRenderInfo(obj)^.mri_WindowObject;
 end;
 
 function OBJ_Dri(obj : APTR) : pDrawInfo;          (* valid between MUIM_Setup/Cleanup *)
 begin
-    OBJ_Dri := PMUI_RenderInfo(obj)^.mri_DrawInfo;
+    OBJ_Dri := MUIRenderInfo(obj)^.mri_DrawInfo;
 end;
 
 function OBJ_Screen(obj : APTR) : pScreen;         (* valid between MUIM_Setup/Cleanup *)
 begin
-    OBJ_Screen := PMUI_RenderInfo(obj)^.mri_Screen;
+    OBJ_Screen := MUIRenderInfo(obj)^.mri_Screen;
 end;
 
 function OBJ_Pens(obj : APTR) : pWord;      (* valid between MUIM_Setup/Cleanup *)
 begin
-    OBJ_Pens := PMUI_RenderInfo(obj)^.mri_Pens;
+    OBJ_Pens := MUIRenderInfo(obj)^.mri_Pens;
 end;
 
 function OBJ_Window(obj : APTR) : pWindow;         (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_Window := PMUI_RenderInfo(obj)^.mri_Window;
+    OBJ_Window := MUIRenderInfo(obj)^.mri_Window;
 end;
 
 function OBJ_Rp(obj : APTR) : pRastPort;           (* valid between MUIM_Show/Hide *)
 begin
-    OBJ_Rp := PMUI_RenderInfo(obj)^.mri_RastPort;
+    OBJ_Rp := MUIRenderInfo(obj)^.mri_RastPort;
 end;
 
 function OBJ_Left(obj : APTR) : smallint;           (* valid during MUIM_Draw *)
