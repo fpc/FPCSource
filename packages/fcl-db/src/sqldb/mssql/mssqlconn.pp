@@ -208,6 +208,7 @@ begin
   DBErrorStr:=DBErrorStr+LineEnding+dberrstr;
   DBErrorNo :=dberr;
   Result    :=INT_CANCEL;
+  // for server messages with severity greater than 10 error handler is also called
 end;
 
 function DBMsgHandler(dbproc: PDBPROCESS; msgno: DBINT; msgstate, severity:INT; msgtext, srvname, procname:PChar; line:DBUSMALLINT):INT; cdecl;
@@ -295,13 +296,15 @@ end;
 function TMSSQLConnection.CheckError(const Ret: RETCODE): RETCODE;
 var E: EMSSQLDatabaseError;
 begin
-  if Ret=FAIL then
+  if (Ret=FAIL) or (DBErrorStr<>'') then
   begin
     if DBErrorStr = '' then
       case DBErrorNo of
         SYBEFCON: DBErrorStr:='SQL Server connection failed!';
       end;
     E:=EMSSQLDatabaseError.CreateFmt('Error %d : %s'+LineEnding+'%s', [DBErrorNo, DBErrorStr, DBMsgStr], Self, DBErrorNo, '');
+    // try clear all pending results to allow ROLLBACK and prevent error 10038 "Results pending"
+    if assigned(FDBProc) then dbcancel(FDBProc);
     DBErrorStr:='';
     DBMsgStr:='';
     raise E;
