@@ -2349,14 +2349,14 @@ else
 endif
 distinstall:	fpmake
 ifdef UNIXHier
-	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) $(FPMAKE_INSTALL_OPT) -ie
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) $(FPMAKE_INSTALL_OPT) -ie -fsp 0
 else
-	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR) $(FPMAKE_INSTALL_OPT) -ie
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR) $(FPMAKE_INSTALL_OPT) -ie -fsp 0
 endif
 zipinstall:	fpmake
 	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX)
 zipdistinstall:	fpmake
-	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX) -ie
+	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX) -ie -fsp 0
 PPULIST:=$(wildcard */units/*/*.ppu) $(wildcard units/*/*.ppu)
 PPULOGLIST:=$(subst .ppu,.log-ppu,$(PPULIST))
 RMPPULOGLIST:=$(subst .ppu,.rm-log-ppu,$(PPULIST))
