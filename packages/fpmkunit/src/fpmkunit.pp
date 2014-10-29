@@ -6666,7 +6666,7 @@ begin
     GlobalDictionary.AddVariable('unitinstalldir',Defaults.UnitInstallDir);
     GlobalDictionary.AddVariable('packageunitinstalldir',APackage.GetPackageUnitInstallDir(Defaults.CPU,Defaults.OS));
 
-    D:=IncludeTrailingPathDelimiter(Defaults.BaseInstallDir);
+    D:=FixPath(Defaults.Prefix);
     // This is to install the TPackage.Installfiles, which are not related to any
     // target
     if InstallPackageFiles(APackage,[],D) then
