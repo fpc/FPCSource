@@ -158,7 +158,6 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
 
-    P.Dependencies.Add('rtl');
     P.Dependencies.Add('rtl-extra');
     P.Dependencies.Add('fv');
     P.Dependencies.Add('chm');
