@@ -110,6 +110,20 @@ const
 (* Are file sizes > 2 GB (64-bit) supported on the current system? *)
   FSApi64: boolean = false;
 
+(* Support for tracking I/O errors returned by OS/2 API calls - emulation *)
+(* of GetLastError / fpGetError functionality used e.g. in Sysutils.      *)
+type
+ TOSErrorWatch = procedure (Error: cardinal);
+
+procedure NoErrorTracking (Error: cardinal);
+
+(* This shall be invoked whenever a non-zero error is returned by OS/2 APIs *)
+(* used in the RTL. Direct OS/2 API calls in user programs are not covered! *)
+const
+ OSErrorWatch: TOSErrorWatch = @NoErrorTracking;
+
+
+procedure SetOSErrorTracking (P: pointer);
 
 procedure SetDefaultOS2FileType (FType: ShortString);
 
@@ -174,12 +188,15 @@ function Is_Prefetch (P: pointer): boolean;
     InstrLo, InstrHi, OpCode: byte;
     I: longint;
     MemSize, MemAttrs: cardinal;
+    RC: cardinal;
   begin
     Is_Prefetch := false;
 
     MemSize := SizeOf (A);
-    if (DosQueryMem (P, MemSize, MemAttrs) = 0) and
-            (MemAttrs and (mfPag_Free or mfPag_Commit) <> 0)
+    RC := DosQueryMem (P, MemSize, MemAttrs);
+    if RC <> 0 then
+     OSErrorWatch (RC)
+    else if (MemAttrs and (mfPag_Free or mfPag_Commit) <> 0)
                                                and (MemSize >= SizeOf (A)) then
      Move (P^, A [0], SizeOf (A))
     else
@@ -289,6 +306,7 @@ var
  Res: cardinal;
  Err: byte;
  Must_Reset_FPU: boolean;
+ RC: cardinal;
 {$IFDEF SYSTEMEXCEPTIONDEBUG}
  CurSS: cardinal;
  B: byte;
@@ -382,7 +400,9 @@ begin
 {$ENDIF SYSTEMEXCEPTIONDEBUG}
           Report^.Exception_Num := 0;
           Res := Xcpt_Continue_Execution;
-          DosAcknowledgeSignalException (Report^.Parameters [0]);
+          RC := DosAcknowledgeSignalException (Report^.Parameters [0]);
+          if RC <> 0 then
+           OSErrorWatch (RC);
          end
         else
          Err := 217;
@@ -443,7 +463,9 @@ begin
 {$ENDIF SYSTEMEXCEPTIONDEBUG}
      Report^.Exception_Num := 0;
      Res := Xcpt_Continue_Execution;
-     DosAcknowledgeSignalException (Report^.Parameters [0]);
+     RC := DosAcknowledgeSignalException (Report^.Parameters [0]);
+     if RC <> 0 then
+      OSErrorWatch (RC);
     end
    else
     Err := 217;
@@ -504,6 +526,7 @@ var
 procedure Install_Exception_Handler;
 var
  T: cardinal;
+ RC: cardinal;
 begin
 {$ifdef SYSTEMEXCEPTIONDEBUG}
 (* ThreadInfoBlock is located at FS:[0], the first      *)
@@ -524,9 +547,15 @@ begin
  DosSetExceptionHandler (ExcptReg^);
  if IsConsole then
   begin
-   DosSetSignalExceptionFocus (1, T);
-   DosAcknowledgeSignalException (Xcpt_Signal_Intr);
-   DosAcknowledgeSignalException (Xcpt_Signal_Break);
+   RC := DosSetSignalExceptionFocus (1, T);
+   if RC <> 0 then
+    OSErrorWatch (RC);
+   RC := DosAcknowledgeSignalException (Xcpt_Signal_Intr);
+   if RC <> 0 then
+    OSErrorWatch (RC);
+   RC := DosAcknowledgeSignalException (Xcpt_Signal_Break);
+   if RC <> 0 then
+    OSErrorWatch (RC);
   end;
 {$ifdef SYSTEMEXCEPTIONDEBUG}
  asm
@@ -538,8 +567,10 @@ begin
 end;
 
 procedure Remove_Exception_Handlers;
+var
+  RC: cardinal;
 begin
-  DosUnsetExceptionHandler (ExcptReg^);
+  RC := DosUnsetExceptionHandler (ExcptReg^);
 end;
 {$ENDIF OS2EXCEPTIONS}
 
@@ -686,6 +717,10 @@ begin
 end;
 
 procedure SysInitStdIO;
+(*
+var
+  RC: cardinal;
+*)
 begin
   { Setup stdin, stdout and stderr, for GUI apps redirect stderr,stdout to be
     displayed in a messagebox }
@@ -695,21 +730,36 @@ begin
   StdErrorHandle := longint(GetStdHandle(cardinal(STD_ERROR_HANDLE)));
 
   if not IsConsole then
-    begin
-      if (DosLoadModule (nil, 0, 'PMWIN', PMWinHandle) = 0) and
-       (DosQueryProcAddr (PMWinHandle, 789, nil, pointer (WinMessageBox)) = 0)
-                                                                           and
-       (DosQueryProcAddr (PMWinHandle, 763, nil, pointer (WinInitialize)) = 0)
-                                                                           and
-       (DosQueryProcAddr (PMWinHandle, 716, nil, pointer (WinCreateMsgQueue))
-                                                                           = 0)
-        then
-          begin
+   begin
+    RC := DosLoadModule (nil, 0, 'PMWIN', PMWinHandle);
+    if RC <> 0 then
+     OSErrorWatch (RC)
+    else
+     begin
+      RC := DosQueryProcAddr (PMWinHandle, 789, nil, pointer (WinMessageBox));
+      if RC <> 0 then
+       OSErrorWatch (RC)
+      else
+       begin
+        RC := DosQueryProcAddr (PMWinHandle, 763, nil, pointer (WinInitialize));
+        if RC <> 0 then
+         OSErrorWatch (RC)
+        else
+         begin
+          RC := DosQueryProcAddr (PMWinHandle, 716, nil, pointer (WinCreateMsgQueue));
+          if RC <> 0 then
+           OSErrorWatch (RC)
+          else
+           begin
             WinInitialize (0);
             WinCreateMsgQueue (0, 0);
-          end
-        else
-          HandleError (2);
+           end
+         end
+       end
+     end;
+    if RC <> 0 then
+     HandleError (2);
+
      AssignError (StdErr);
      AssignError (StdOut);
      Assign (Output, '');
@@ -824,6 +874,21 @@ begin
 end;
 
 
+(* The default handler does not store the OS/2 API error codes. *)
+procedure NoErrorTracking (Error: cardinal);
+begin
+end;
+
+
+procedure SetOSErrorTracking (P: pointer);
+begin
+ if P = nil then
+  OSErrorWatch := @NoErrorTracking
+ else
+  OSErrorWatch := TOSErrorWatch (P);
+end;
+
+
 procedure InitEnvironment;
 var env_count : longint;
     dos_env,cp : pchar;
@@ -870,6 +935,7 @@ var
   pc,arg  : pchar;
   quote   : char;
   argvlen : PtrInt;
+  RC: cardinal;
 
   procedure allocarg(idx,len: PtrInt);
     var
@@ -896,7 +962,8 @@ begin
   ArgLen := StrLen (PChar (PIB^.Cmd));
   Inc (ArgLen);
 
-  if DosQueryModuleName (PIB^.Handle, MaxPathLen, CmdLine) = 0 then
+  RC := DosQueryModuleName (PIB^.Handle, MaxPathLen, CmdLine);
+  if RC = 0 then
    ArgVLen := Succ (StrLen (CmdLine))
   else
 (* Error occurred - use program name from command line as fallback. *)
@@ -1070,10 +1137,17 @@ end;
 function GetFileHandleCount: longint;
 var L1: longint;
     L2: cardinal;
+    RC: cardinal;
 begin
     L1 := 0; (* Don't change the amount, just check. *)
-    if DosSetRelMaxFH (L1, L2) <> 0 then GetFileHandleCount := 50
-                                                 else GetFileHandleCount := L2;
+    RC := DosSetRelMaxFH (L1, L2);
+    if RC <> 0 then
+     begin
+      GetFileHandleCount := 50;
+      OSErrorWatch (RC);
+     end
+    else
+     GetFileHandleCount := L2;
 end;
 
 function CheckInitialStkLen (StkLen: SizeUInt): SizeUInt;
@@ -1086,6 +1160,8 @@ var TIB: PThreadInfoBlock;
     ErrStr: string;
     P: pointer;
     DW: cardinal;
+    CPArr: TCPArray;
+    ReturnedSize: cardinal;
 
 const
     DosCallsName: array [0..8] of char = 'DOSCALLS'#0;
@@ -1094,29 +1170,9 @@ const
  {$I sysucode.inc}
 {$ENDIF OS2UNICODE}
 
-{*var}
-{* ST: pointer;}
-{*}
 begin
 {$IFDEF OS2EXCEPTIONS}
-(*    asm
-      { allocate space for exception registration record }
-     pushl $0
-     pushl $0}
-{*     pushl %fs:(0)}
-        { movl  %esp,%fs:(0)
-          but don't insert it as it doesn't
-          point to anything yet
-          this will be used in signals unit }
-     movl %esp,%eax
-     movl %eax,ExcptReg
-     pushl %ebp
-     movl %esp,%eax
-{*     movl %eax,st*}
-     movl %eax,StackTop
-    end;
-{*    StackTop:=st;}
-*)    asm
+    asm
      xorl %eax,%eax
      movw %ss,%ax
      movl %eax,_SS
@@ -1166,24 +1222,28 @@ begin
        from the high memory region before changing value of this variable. *)
     InitHeap;
 
-    if DosQueryModuleHandle (@DosCallsName [0], DosCallsHandle) = 0 then
-      begin
-        if DosQueryProcAddr (DosCallsHandle, OrdDosOpenL, nil, P) = 0 then
-          begin
-            Sys_DosOpenL := TDosOpenL (P);
-            if DosQueryProcAddr (DosCallsHandle, OrdDosSetFilePtrL, nil, P) = 0
-                                                                           then
-              begin
-                Sys_DosSetFilePtrL := TDosSetFilePtrL (P);
-                if DosQueryProcAddr (DosCallsHandle, OrdDosSetFileSizeL, nil,
-                                                                    P) = 0 then
-                  begin
-                    Sys_DosSetFileSizeL := TDosSetFileSizeL (P);
-                    FSApi64 := true;
-                  end;
-              end;
-          end;
-      end;
+    RC := DosQueryModuleHandle (@DosCallsName [0], DosCallsHandle);
+    if RC = 0 then
+     begin
+      RC := DosQueryProcAddr (DosCallsHandle, OrdDosOpenL, nil, P);
+      if RC = 0 then
+       begin
+        Sys_DosOpenL := TDosOpenL (P);
+        RC := DosQueryProcAddr (DosCallsHandle, OrdDosSetFilePtrL, nil, P);
+        if RC = 0 then
+         begin
+          Sys_DosSetFilePtrL := TDosSetFilePtrL (P);
+          RC := DosQueryProcAddr (DosCallsHandle, OrdDosSetFileSizeL, nil, P);
+          if RC = 0 then
+           begin
+            Sys_DosSetFileSizeL := TDosSetFileSizeL (P);
+            FSApi64 := true;
+           end;
+         end;
+       end;
+     end;
+    if RC <> 0 then
+     OSErrorWatch (RC);
 
     { ... and exceptions }
     SysInitExceptions;
@@ -1220,4 +1280,15 @@ begin
   WriteLn (StdErr, 'Old exception ', HexStr (OldExceptAddr, 8),
    ', new exception ', HexStr (NewExceptAddr, 8), ', _SS = ', HexStr (_SS, 8));
 {$endif SYSTEMEXCEPTIONDEBUG}
+
+  RC := DosQueryCP (SizeOf (CPArr), @CPArr, ReturnedSize);
+  if RC <> 0 then
+   OSErrorWatch (RC)
+  else if (ReturnedSize >= 4) then
+   begin
+    DefaultSystemCodePage := CPArr [0];
+    DefaultRTLFileSystemCodePage := DefaultSystemCodePage;
+    DefaultFileSystemCodePage := DefaultSystemCodePage;
+    DefaultUnicodeCodePage := CP_UTF16;
+   end;
 end.

@@ -54,7 +54,7 @@ type
 var
   ProcessID: SizeUInt;
 
-function GetProcessID:SizeUInt;
+function GetProcessID: SizeUInt;
 begin
  GetProcessID := ProcessID;
 end;
@@ -420,3 +420,11 @@ external 'DOSCALLS' index 306;
 function DosQuerySysInfo (First, Last: cardinal; var Buf; BufSize: cardinal):
                                                                cardinal; cdecl;
 external 'DOSCALLS' index 348;
+
+type
+ TCPArray = array [0..2] of cardinal;
+ PCPArray = ^TCPArray;
+
+function DosQueryCP (Size: cardinal; CodePages: PCPArray;
+                                       var ActSize: cardinal): cardinal; cdecl;
+external 'DOSCALLS' index 291;

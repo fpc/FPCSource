@@ -54,7 +54,10 @@ begin
  if DynLibErrNo = 0 then
   Result := Handle
  else
-  Result := NilHandle;
+  begin
+   Result := NilHandle;
+   OSErrorWatch (DynLibErrNo);
+  end;
 end;
 
 function GetProcedureAddress (Lib: TLibHandle; const ProcName: AnsiString): pointer;
@@ -66,7 +69,10 @@ begin
  if DynLibErrNo = 0 then
   Result := P
  else
-  Result := nil;
+  begin
+   Result := nil;
+   OSErrorWatch (DynLibErrNo);
+  end;
 end;
 
 function GetProcedureAddress (Lib: TLibHandle; Ordinal: TOrdinalEntry): pointer;
@@ -78,7 +84,10 @@ begin
  if DynLibErrNo = 0 then
   Result := P
  else
-  Result := nil;
+  begin
+   Result := nil;
+   OSErrorWatch (DynLibErrNo);
+  end;
 end;
 
 function UnloadLibrary (Lib: TLibHandle): boolean;
@@ -86,6 +95,8 @@ begin
  DynLibErrPath [0] := #0;
  DynLibErrNo := DosFreeModule (Lib);
  Result := DynLibErrNo = 0;
+ if DynLibErrNo <> 0 then
+  OSErrorWatch (DynLibErrNo);
 end;
 
 function GetDynLibsError: longint;
@@ -102,22 +113,26 @@ var
  RetMsgSize: cardinal;
  RC: cardinal;
 begin
- if DynLibErrNo = 0 then
-  GetDynLibsErrorStr := ''
- else
+ GetDynLibsErrorStr := '';
+ if DynLibErrNo <> 0 then
   begin
+   Result := '';
    VarArr [1] := @DynLibErrPath [0];
    RC := DosGetMessage (@VarArr, 1, @OutBuf [0], SizeOf (OutBuf),
                                      DynLibErrNo, @SysMsgFile [0], RetMsgSize);
    if RC = 0 then
-    Result := StrPas (@OutBuf [0])
+    begin
+     SetLength (Result, RetMsgSize);
+     Move (OutBuf [0], Result [1], RetMsgSize);
+    end
    else
     begin
      Str (DynLibErrNo, Result);
      Result := 'Error ' + Result;
+     if DynLibErrPath [0] <> #0 then
+      Result := StrPas (@DynLibErrPath [0]) + ' - ' + Result;
+     OSErrorWatch (RC);
     end;
-   if DynLibErrPath [0] <> #0 then
-    Result := StrPas (@DynLibErrPath [0]) + ' - ' + Result;
   end;
 end;
 

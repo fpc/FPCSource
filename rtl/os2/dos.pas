@@ -113,6 +113,8 @@ begin
   P:=Path;
   D:=DirList;
   DosError := DosSearchPath (dsIgnoreNetErrs, PChar(D), PChar(P), @A, 255);
+  if DosError <> 0 then
+   OSErrorWatch (DosError);
   fsearch := StrPas (@A);
 end;
 
@@ -124,12 +126,16 @@ begin
   DosError := DosQueryFileInfo (FileRec (F).Handle, ilStandard, @FStat,
                                                                SizeOf (FStat));
   if DosError=0 then
-  begin
+   begin
     Time := FStat.TimeLastWrite + longint (FStat.DateLastWrite) shl 16;
     if Time = 0 then
       Time := FStat.TimeCreation + longint (FStat.DateCreation) shl 16;
-  end else
+   end
+  else
+   begin
     Time:=0;
+    OSErrorWatch (DosError);
+   end;
 end;
 
 
@@ -140,14 +146,18 @@ begin
   RC := DosQueryFileInfo (FileRec (F).Handle, ilStandard, @FStat,
                                                                SizeOf (FStat));
   if RC = 0 then
-  begin
+   begin
     FStat.DateLastAccess := Hi (Time);
     FStat.DateLastWrite := Hi (Time);
     FStat.TimeLastAccess := Lo (Time);
     FStat.TimeLastWrite := Lo (Time);
     RC := DosSetFileInfo (FileRec (F).Handle, ilStandard, @FStat,
                                                                SizeOf (FStat));
-  end;
+    if RC <> 0 then
+     OSErrorWatch (RC);
+   end
+  else
+   OSErrorWatch (RC);
   DosError := integer (RC);
 end;
 
@@ -170,7 +180,10 @@ begin
       LastExecRes := Res;
      end
     else
-     LastExecRes.ExitCode := RC shl 16;
+     begin
+      LastExecRes.ExitCode := RC shl 16;
+      OSErrorWatch (RC);
+     end;
    end;
   if LastExecRes.ExitCode > high (word) then
     DosExitCode := high (word)
@@ -186,7 +199,7 @@ var
   ArgSize: word;
   ObjName: string;
   Res: TResultCodes;
-  RC: cardinal;
+  RC, RC2: cardinal;
   ExecAppType: cardinal;
   HQ: THandle;
   SPID, STID, SCtr, QName: string;
@@ -239,22 +252,28 @@ begin
     Args^ [ArgSize] := 0;
    end;
 
-  if (DosQueryAppType (PChar (Args), ExecAppType) = 0) and
-                               (ApplicationType and 3 = ExecAppType and 3) then
+  RC := DosQueryAppType (PChar (Args), ExecAppType);
+  if RC <> 0 then
+   OSErrorWatch (RC)
+  else
+   if (ApplicationType and 3 = ExecAppType and 3) then
 (* DosExecPgm should work... *)
-   begin
-    DSS := false;
-    Res.ExitCode := $FFFFFFFF;
-    RC := DosExecPgm (ObjName, cardinal (ExecFlags), Args, nil, Res, Path);
-    if RC = 0 then
-     begin
-      LastExecFlags := ExecFlags;
-      LastExecRes := Res;
-      LastDosErrorModuleName := '';
-     end
-    else
-     if (RC = 190) or (RC = 191) then
-      DSS := true;
+    begin
+     DSS := false;
+     Res.ExitCode := $FFFFFFFF;
+     RC := DosExecPgm (ObjName, cardinal (ExecFlags), Args, nil, Res, Path);
+     if RC = 0 then
+      begin
+       LastExecFlags := ExecFlags;
+       LastExecRes := Res;
+       LastDosErrorModuleName := '';
+      end
+     else
+      begin
+       if (RC = 190) or (RC = 191) then
+        DSS := true;
+       OSErrorWatch (RC);
+      end;
    end
   else
    DSS := true;
@@ -273,6 +292,8 @@ begin
        LastExecFlags := ExecFlags;
        SD.TermQ := @QName [1];
        RC := DosCreateQueue (HQ, quFIFO or quConvert_Address, @QName [1]);
+       if RC <> 0 then
+        OSErrorWatch (RC);
       end;
      deAsync,
      deAsyncResult:
@@ -318,24 +339,40 @@ begin
       SD.ObjectBuffer := @ObjName [1];
       SD.ObjectBuffLen := SizeOf (ObjName) - 1;
       RC := DosStartSession (SD, SID, PID);
+      if RC <> 0 then
+       OSErrorWatch (RC);
       if (RC = 0) or (RC = 457) then
        begin
         LastExecRes.PID := PID;
         if ExecFlags = deSync then
          begin
           RC := DosReadQueue (HQ, RD, CISize, PCI, 0, 0, Prio, 0);
+          if RC <> 0 then
+           OSErrorWatch (RC);
           if (RC = 0) and (PCI^.SessionID = SID) then
            begin
             LastExecRes.ExitCode := PCI^.Return;
-            DosCloseQueue (HQ);
-            DosFreeMem (PCI);
+            RC2 := DosCloseQueue (HQ);
+            if RC2 <> 0 then
+             OSErrorWatch (RC2);
+            RC2 := DosFreeMem (PCI);
+            if RC2 <> 0 then
+             OSErrorWatch (RC2);
            end
           else
-           DosCloseQueue (HQ);
+           begin
+            RC2 := DosCloseQueue (HQ);
+            if RC2 <> 0 then
+             OSErrorWatch (RC2);
+           end;
          end;
        end
       else if ExecFlags = deSync then
-       DosCloseQueue (HQ);
+       begin
+        RC2 := DosCloseQueue (HQ);
+        if RC2 <> 0 then
+         OSErrorWatch (RC2);
+       end;
      end;
    end;
   if RC <> 0 then
@@ -383,12 +420,15 @@ end;
 procedure SetDate (Year, Month, Day: word);
 var
   DT: TDateTime;
+  RC: cardinal;
 begin
   DosGetDateTime (DT);
   DT.Year := Year;
   DT.Month := byte (Month);
   DT.Day := byte (Day);
-  DosSetDateTime (DT);
+  RC := DosSetDateTime (DT);
+  if RC <> 0 then
+   OSErrorWatch (RC);
 end;
 
 
@@ -407,6 +447,7 @@ end;
 procedure SetTime (Hour, Minute, Second, Sec100: word);
 var
   DT: TDateTime;
+  RC: cardinal;
 begin
   DosGetDateTime (DT);
   DT.Hour := byte (Hour);
@@ -414,6 +455,8 @@ begin
   DT.Second := byte (Second);
   DT.Sec100 := byte (Sec100);
   DosSetDateTime (DT);
+  if RC <> 0 then
+   OSErrorWatch (RC);
 end;
 
 function DiskFree (Drive: byte): int64;
@@ -426,7 +469,10 @@ begin
       DiskFree := int64 (FI.Free_Clusters) *
          int64 (FI.Sectors_Per_Cluster) * int64 (FI.Bytes_Per_Sector)
   else
-      DiskFree := -1;
+   begin
+    DiskFree := -1;
+    OSErrorWatch (RC);
+   end;
 end;
 
 
@@ -439,7 +485,10 @@ begin
       DiskSize := int64 (FI.Total_Clusters) *
          int64 (FI.Sectors_Per_Cluster) * int64 (FI.Bytes_Per_Sector)
   else
-      DiskSize := -1;
+   begin
+    DiskSize := -1;
+    OSErrorWatch (RC);
+   end;
 end;
 
 
@@ -474,7 +523,10 @@ begin
   DosError := integer (DosFindFirst (Path, F.Handle,
                      Attr and FindResvdMask, F.FStat, SizeOf (F.FStat^),
                                                            Count, ilStandard));
-  if (DosError = 0) and (Count = 0) then DosError := 18;
+  if DosError <> 0 then
+   OSErrorWatch (DosError)
+  else if Count = 0 then
+   DosError := 18;
   DosSearchRec2SearchRec (F);
 end;
 
@@ -488,14 +540,22 @@ begin
     Count := 1;
     DosError := integer (DosFindNext (F.Handle, F.FStat, SizeOf (F.FStat^),
                                                                        Count));
-    if (DosError = 0) and (Count = 0) then DosError := 18;
+    if DosError <> 0 then
+     OSErrorWatch (DosError)
+    else if Count = 0 then
+     DosError := 18;
     DosSearchRec2SearchRec (F);
 end;
 
 
 procedure FindClose (var F: SearchRec);
 begin
-  if F.Handle <> THandle ($FFFFFFFF) then DosError := DosFindClose (F.Handle);
+  if F.Handle <> THandle ($FFFFFFFF) then
+   begin
+    DosError := integer (DosFindClose (F.Handle));
+    if DosError <> 0 then
+     OSErrorWatch (DosError);
+   end;
   Dispose (F.FStat);
 end;
 
@@ -607,7 +667,9 @@ begin
   RC := DosQueryPathInfo (P, ilStandard, @PathInfo, SizeOf (PathInfo));
   DosError := integer (RC);
   if RC = 0 then
-    Attr := PathInfo.AttrFile;
+    Attr := PathInfo.AttrFile
+  else
+   OSErrorWatch (RC);
 end;
 
 
@@ -628,11 +690,15 @@ begin
 {$endif FPC_ANSI_TEXTFILEREC}
   RC := DosQueryPathInfo (P, ilStandard, @PathInfo, SizeOf (PathInfo));
   if RC = 0 then
-  begin
+   begin
     PathInfo.AttrFile := Attr;
     RC := DosSetPathInfo (P, ilStandard, @PathInfo, SizeOf (PathInfo),
                                                         doWriteThru);
-  end;
+    if RC <> 0 then
+     OSErrorWatch (RC);
+   end
+  else
+   OSErrorWatch (RC);
   DosError := integer (RC);
 end;
 

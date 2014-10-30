@@ -195,15 +195,21 @@ end;
 
 
 procedure SysAllocateThreadVars;
+var
+ RC: cardinal;
 begin
  { we've to allocate the memory from the OS }
  { because the FPC heap management uses     }
  { exceptions which use threadvars but      }
  { these aren't allocated yet ...           }
  { allocate room on the heap for the thread vars }
- if DosAllocMem (DataIndex^, ThreadVarBlockSize, pag_Read or pag_Write
-                                                       or pag_Commit) <> 0 then
-  HandleError (8);
+ RC := DosAllocMem (DataIndex^, ThreadVarBlockSize, pag_Read or pag_Write
+                                                       or pag_Commit);
+ if RC <> 0 then
+  begin
+   OSErrorWatch (RC);
+   HandleError (8);
+  end;
 { The Windows API apparently provides a way to fill the allocated memory with }
 { zeros; we probably need to do it ourselves for compatibility. }
  FillChar (DataIndex^^, 0, ThreadVarBlockSize);
@@ -240,12 +246,16 @@ end;
 
 
 procedure SysFiniMultithreading;
+var
+ RC: cardinal;
 begin
   if IsMultiThread then
    begin
-    if DosFreeThreadLocalMemory (DataIndex) <> 0 then
+    RC := DosFreeThreadLocalMemory (DataIndex);
+    if RC <> 0 then
      begin
 {??? What to do if releasing fails?}
+      OSErrorWatch (RC);
      end;
     DataIndex := nil;
    end;
@@ -253,9 +263,13 @@ end;
 
 
 procedure SysReleaseThreadVars;
+var
+ RC: cardinal;
 begin
-  DosFreeMem (DataIndex^);
-  DataIndex^ := nil;
+ RC := DosFreeMem (DataIndex^);
+ if RC <> 0 then
+  OSErrorWatch (RC);
+ DataIndex^ := nil;
 end;
 
 
@@ -334,6 +348,7 @@ function SysBeginThread (SA: pointer; StackSize : PtrUInt;
                          CreationFlags: cardinal; var ThreadId: TThreadID): DWord;
 var
   TI: PThreadInfo;
+  RC: cardinal;
 begin
 { WriteLn is not a good idea before thread initialization...
   $ifdef DEBUG_MT
@@ -351,8 +366,9 @@ begin
 {$ifdef DEBUG_MT}
   WriteLn ('Starting new thread');
 {$endif DEBUG_MT}
-  if DosCreateThread (cardinal (ThreadID), @ThreadMain, TI,
-                                             CreationFlags, StackSize) = 0 then
+  RC := DosCreateThread (cardinal (ThreadID), @ThreadMain, TI,
+                                                     CreationFlags, StackSize);
+  if RC = 0 then
    SysBeginThread := ThreadID
   else
    begin
@@ -361,6 +377,7 @@ begin
     WriteLn ('Thread creation failed');
 {$ENDIF DEBUG_MT}
     Dispose (TI);
+    OSErrorWatch (RC);
    end;
 end;
 
@@ -379,40 +396,62 @@ end;
 
 
 function SysSuspendThread (ThreadHandle: dword): dword;
+var
+  RC: cardinal;
 begin
 {$WARNING Check expected return value}
-  SysSuspendThread := DosSuspendThread (ThreadHandle);
+  RC := DosSuspendThread (ThreadHandle);
+  SysSuspendThread := RC;
+  if RC <> 0 then
+   OSErrorWatch (RC);
 end;
 
 
 function SysResumeThread (ThreadHandle: dword): dword;
+var
+  RC: cardinal;
 begin
 {$WARNING Check expected return value}
-  SysResumeThread := DosResumeThread (ThreadHandle);
+  RC := DosResumeThread (ThreadHandle);
+  SysResumeThread := RC;
+  if RC <> 0 then
+   OSErrorWatch (RC);
 end;
 
 
 function SysKillThread (ThreadHandle: dword): dword;
+var
+  RC: cardinal;
 begin
-  SysKillThread := DosKillThread (ThreadHandle);
+  RC := DosKillThread (ThreadHandle);
+  SysKillThread := RC;
+  if RC <> 0 then
+   OSErrorWatch (RC);
 end;
 
+{$PUSH}
+{$WARNINGS OFF}
 function SysCloseThread (ThreadHandle: TThreadID): dword;
 begin
 { Probably not relevant under OS/2? }
 //      SysCloseThread:=CloseHandle(threadHandle);
 end;
+{$POP}
 
 function SysWaitForThreadTerminate (ThreadHandle: dword;
                                                     TimeoutMs: longint): dword;
 var
-  RC: cardinal;
+  RC, RC2: cardinal;
 const
 { Wait at most 100 ms before next check for thread termination }
   WaitTime = 100;
 begin
   if TimeoutMs = 0 then
-   RC := DosWaitThread (ThreadHandle, dcWW_Wait)
+   begin
+    RC := DosWaitThread (ThreadHandle, dcWW_Wait);
+    if RC <> 0 then
+     OSErrorWatch (RC);
+   end
   else
    repeat
     RC := DosWaitThread (ThreadHandle, dcWW_NoWait);
@@ -423,10 +462,14 @@ begin
       else
        begin
         DosSleep (TimeoutMs);
-        DosWaitThread (ThreadHandle, dcWW_NoWait);
+        RC2 := DosWaitThread (ThreadHandle, dcWW_NoWait);
+        if RC2 <> 0 then
+         OSErrorWatch (RC2);
        end;
       Dec (TimeoutMs, WaitTime);
-     end;
+     end
+    else if RC <> 0 then
+     OSErrorWatch (RC);
    until (RC <> 294) or (TimeoutMs <= 0);
   SysWaitForThreadTerminate := RC;
 end;
@@ -451,7 +494,9 @@ begin
   else
    begin
     RC := DosQuerySysState (qs_Process, 0, ProcessID, 0, PPtrRec^, BufSize);
-    if (RC = 0) and (PPtrRec^.PProcRec <> nil)
+    if RC <> 0 then
+     OSErrorWatch (RC)
+    else if (PPtrRec^.PProcRec <> nil)
                                   and (PPtrRec^.PProcRec^.PThrdRec <> nil) then
      begin
       BufEnd := PtrUInt (PPtrRec) + BufSize;
@@ -480,6 +525,7 @@ function SysThreadSetPriority (ThreadHandle: dword; Prio: longint): boolean;
 var
   Delta: longint;
   Priority: cardinal;
+  RC: cardinal;
 begin
   Priority := GetOS2ThreadPriority (ThreadHandle);
   if Priority > High (word) then
@@ -491,8 +537,10 @@ begin
      Delta := - TPrio (Priority).PrioLevel
     else if Delta + TPrio (Priority).PrioLevel > 31 then
      Delta := 31 - TPrio (Priority).PrioLevel;
-    SysThreadSetPriority :=
-               DosSetPriority (dpThread, dpSameClass, Delta, ThreadHandle) = 0;
+    RC := DosSetPriority (dpThread, dpSameClass, Delta, ThreadHandle);
+    if RC <> 0 then
+     OSErrorWatch (RC);
+    SysThreadSetPriority := RC = 0;
    end;
 end;
 
@@ -529,25 +577,43 @@ end;
 *****************************************************************************}
 
 procedure SysInitCriticalSection (var CS);
+var
+  RC: cardinal;
 begin
-  if DosCreateMutExSem (nil, THandle (CS), 0, 0) <> 0 then
-   FPC_ThreadError;
+  RC := DosCreateMutExSem (nil, THandle (CS), 0, 0);
+  if RC <> 0 then
+   begin
+    OSErrorWatch (RC);
+    FPC_ThreadError;
+   end;
 end;
 
 procedure SysDoneCriticalSection (var CS);
+var
+  RC: cardinal;
 begin
 (* Trying to release first since this might apparently be the expected  *)
 (* behaviour in Delphi according to comment in the Unix implementation. *)
   repeat
   until DosReleaseMutExSem (THandle (CS)) <> 0;
-  if DosCloseMutExSem (THandle (CS)) <> 0 then
-   FPC_ThreadError;
+  RC := DosCloseMutExSem (THandle (CS));
+  if RC <> 0 then
+   begin
+    OSErrorWatch (RC);
+    FPC_ThreadError;
+   end;
 end;
 
 procedure SysEnterCriticalSection (var CS);
+var
+  RC: cardinal;
 begin
-  if DosRequestMutExSem (THandle (CS), cardinal (-1)) <> 0 then
-   FPC_ThreadError;
+  RC := DosRequestMutExSem (THandle (CS), cardinal (-1));
+  if RC <> 0 then
+   begin
+    OSErrorWatch (RC);
+    FPC_ThreadError;
+   end;
 end;
 
 function SysTryEnterCriticalSection (var CS): longint;
@@ -559,9 +625,15 @@ begin
 end;
 
 procedure SysLeaveCriticalSection (var CS);
+var
+  RC: cardinal;
 begin
-  if DosReleaseMutExSem (THandle (CS)) <> 0 then
-   FPC_ThreadError;
+  RC := DosReleaseMutExSem (THandle (CS));
+  if RC <> 0 then
+   begin
+    OSErrorWatch (RC);
+    FPC_ThreadError;
+   end;
 end;
 
 
@@ -607,18 +679,23 @@ begin
   if RC <> 0 then
    begin
     Dispose (PLocalEventRec (Result));
+    OSErrorWatch (RC);
     FPC_ThreadError;
    end;
 end;
 
 
 procedure SysBasicEventDestroy (State: PEventState);
+var
+  RC: cardinal;
 begin
   if State = nil then
    FPC_ThreadError
   else
    begin
-    DosCloseEventSem (PLocalEventRec (State)^.FHandle);
+    RC := DosCloseEventSem (PLocalEventRec (State)^.FHandle);
+    if RC <> 0 then
+     OSErrorWatch (RC);
     Dispose (PLocalEventRec (State));
    end;
 end;
@@ -627,22 +704,33 @@ end;
 procedure SysBasicEventResetEvent (State: PEventState);
 var
   PostCount: cardinal;
+  RC: cardinal;
 begin
   if State = nil then
    FPC_ThreadError
   else
+   begin
 (* In case of later addition of error checking:    *)
 (* RC 300 = Error_Already_Reset which would be OK. *)
-   DosResetEventSem (PLocalEventRec (State)^.FHandle, PostCount);
+    RC := DosResetEventSem (PLocalEventRec (State)^.FHandle, PostCount);
+    if (RC <> 0) and (RC <> 300) then
+     OSErrorWatch (RC);
+   end;
 end;
 
 
 procedure SysBasicEventSetEvent (State: PEventState);
+var
+  RC: cardinal;
 begin
   if State = nil then
    FPC_ThreadError
   else
-   DosPostEventSem (PLocalEventRec (State)^.FHandle);
+   begin
+    RC := DosPostEventSem (PLocalEventRec (State)^.FHandle);
+    if RC <> 0 then
+     OSErrorWatch (RC);
+   end;
 end;
 
 
@@ -661,6 +749,7 @@ begin
     else
      begin
       Result := wrError;
+      OSErrorWatch (RC);
       PLocalEventRec (State)^.FLastError := RC;
      end;
     end;
@@ -669,41 +758,64 @@ end;
 
 
 function SysRTLEventCreate: PRTLEvent;
+var
+  RC: cardinal;
 begin
   Result := PRTLEvent (-1);
-  DosCreateEventSem (nil, THandle (Result), dce_AutoReset, 0);
+  RC := DosCreateEventSem (nil, THandle (Result), dce_AutoReset, 0);
+  if RC <> 0 then
+   OSErrorWatch (RC);
 end;
 
 
 procedure SysRTLEventDestroy (AEvent: PRTLEvent);
+var
+  RC: cardinal;
 begin
-  DosCloseEventSem (THandle (AEvent));
+  RC := DosCloseEventSem (THandle (AEvent));
+  if RC <> 0 then
+   OSErrorWatch (RC);
 end;
 
 
 procedure SysRTLEventSetEvent (AEvent: PRTLEvent);
+var
+  RC: cardinal;
 begin
-  DosPostEventSem (THandle (AEvent));
+  RC := DosPostEventSem (THandle (AEvent));
+  if RC <> 0 then
+   OSErrorWatch (RC);
 end;
 
 
 procedure SysRTLEventWaitFor (AEvent: PRTLEvent);
+var
+  RC: cardinal;
 begin
-  DosWaitEventSem (THandle (AEvent), cardinal (-1));
+  RC := DosWaitEventSem (THandle (AEvent), cardinal (-1));
+  if RC <> 0 then
+   OSErrorWatch (RC);
 end;
 
 
 procedure SysRTLEventWaitForTimeout (AEvent: PRTLEvent; Timeout: longint);
+var
+  RC: cardinal;
 begin
-  DosWaitEventSem (THandle (AEvent), Timeout);
+  RC := DosWaitEventSem (THandle (AEvent), Timeout);
+  if RC <> 0 then
+   OSErrorWatch (RC);
 end;
 
 
 procedure SysRTLEventResetEvent (AEvent: PRTLEvent);
 var
   PostCount: cardinal;
+  RC: cardinal;
 begin
-  DosResetEventSem (THandle (AEvent), PostCount);
+  RC := DosResetEventSem (THandle (AEvent), PostCount);
+  if RC <> 0 then
+   OSErrorWatch (RC);
 end;
 
 
@@ -713,11 +825,15 @@ const
   svNumProcessors = 26;
 var
   ProcNum: cardinal;
+  RC: cardinal;
 begin
   GetCPUCount := 1;
-  if DosQuerySysInfo (svNumProcessors, svNumProcessors, ProcNum,
-                                                     SizeOf (ProcNum)) = 0 then
-   GetCPUCount := ProcNum;
+  RC := DosQuerySysInfo (svNumProcessors, svNumProcessors, ProcNum,
+                                                             SizeOf (ProcNum));
+  if RC = 0 then
+   GetCPUCount := ProcNum
+  else
+   OSErrorWatch (RC);
 end;
 
 
