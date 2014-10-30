@@ -113,8 +113,9 @@ var
  RetMsgSize: cardinal;
  RC: cardinal;
 begin
- GetDynLibsErrorStr := '';
- if DynLibErrNo <> 0 then
+ if DynLibErrNo = 0 then
+  GetDynLibsErrorStr := ''
+ else
   begin
    Result := '';
    VarArr [1] := @DynLibErrPath [0];
