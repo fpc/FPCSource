@@ -1282,7 +1282,7 @@ begin
 {$endif SYSTEMEXCEPTIONDEBUG}
 
   RC := DosQueryCP (SizeOf (CPArr), @CPArr, ReturnedSize);
-  if RC <> 0 then
+  if (RC <> 0) and (RC <> 473) then
    OSErrorWatch (RC)
   else if (ReturnedSize >= 4) then
    begin
@@ -1290,5 +1290,7 @@ begin
     DefaultRTLFileSystemCodePage := DefaultSystemCodePage;
     DefaultFileSystemCodePage := DefaultSystemCodePage;
     DefaultUnicodeCodePage := CP_UTF16;
-   end;
+   end
+  else
+   OSErrorWatch (RC);
 end.
