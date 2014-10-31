@@ -145,6 +145,13 @@ if [ "${1#libdir=}" != "$1" ]; then
   echo "libdir is set to \"$libdir\""
   opt_handled=1
 fi
+
+if [ "${1//=/ }" != "$1" ]; then
+  # Some variable set explicitly
+  echo "Evaluating $1"
+  export $1
+  opt_handled=1
+fi
 }
 
 # Try to handle all command line options
