@@ -2123,7 +2123,7 @@ end;
 Function MakeTargetString(CPU : TCPU;OS: TOS) : String;
 
 begin
-  if OS in AllLimit83fsOses then
+  if Defaults.BuildOS in AllLimit83fsOses then
     Result := OSToString(OS)
   else
     Result:=CPUToString(CPU)+'-'+OSToString(OS);
@@ -6408,7 +6408,7 @@ begin
     if APackage.BuildMode=bmBuildUnit then
       begin
         APackage.FBUTargets := TTargets.Create(TTarget);
-        if Defaults.OS in AllLimit83fsOses then
+        if Defaults.BuildOS in AllLimit83fsOses then
           BUName := 'BUnit.pp'
         else
           BUName := 'BuildUnit_'+StringReplace(APackage.Name,'-','_',[rfReplaceAll])+'.pp';
