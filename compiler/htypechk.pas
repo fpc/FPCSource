@@ -2780,10 +2780,10 @@ implementation
                       eq:=te_incompatible
                     else
                       eq:=compare_defs_ext(tarrayconstructornode(n).left.resultdef,tarraydef(def_to).elementdef,tarrayconstructornode(n).left.nodetype,convtype,pdoper,cdoptions);
-                    if eq=te_incompatible then
-                      break;
                     if eq<mineq then
                       mineq:=eq;
+                    if eq=te_incompatible then
+                      break;
                     n:=tarrayconstructornode(n).right;
                   until not assigned(n);
                   eq:=mineq;
