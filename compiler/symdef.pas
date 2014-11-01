@@ -1777,7 +1777,7 @@ implementation
           end;
         if assigned(typesym) and
            (owner.symtabletype in [staticsymtable,globalsymtable]) then
-          result:=make_mangledname(prefix,owner,typesym.name)
+          result:=make_mangledname(prefix,typesym.owner,typesym.name)
         else
           result:=make_mangledname(prefix,findunitsymtable(owner),'DEF'+tostr(DefId))
       end;
