@@ -44,8 +44,13 @@
        vmtAutoTable            = vmtParent+sizeof(pointer)*7;
        vmtIntfTable            = vmtParent+sizeof(pointer)*8;
        vmtMsgStrPtr            = vmtParent+sizeof(pointer)*9;
+       vmtRefCountOfs          = vmtParent+sizeof(pointer)*10;
        { methods }
+       {$ifdef ver2_6}
        vmtMethodStart          = vmtParent+sizeof(pointer)*10;
+       {$else}
+       vmtMethodStart          = vmtParent+sizeof(pointer)*11;
+       {$endif}
        vmtDestroy              = vmtMethodStart;
        vmtNewInstance          = vmtMethodStart+sizeof(codepointer);
        vmtFreeInstance         = vmtMethodStart+sizeof(codepointer)*2;
