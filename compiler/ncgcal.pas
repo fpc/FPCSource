@@ -247,6 +247,7 @@ implementation
          href    : treference;
          otlabel,
          oflabel : tasmlabel;
+         pushaddr: boolean;
       begin
          if not(assigned(parasym)) then
            internalerror(200304242);
@@ -304,7 +305,7 @@ implementation
                begin
                  { don't push a node that already generated a pointer type
                    by address for implicit hidden parameters }
-                 if (vo_is_funcret in parasym.varoptions) or
+                 pushaddr:=(vo_is_funcret in parasym.varoptions) or
                    { pass "this" in C++ classes explicitly as pointer
                      because push_addr_param might not be true for them }
                    (is_cppclass(parasym.vardef) and (vo_is_self in parasym.varoptions)) or
@@ -322,7 +323,9 @@ implementation
                         )
                       ) and
                      paramanager.push_addr_param(parasym.varspez,parasym.vardef,
-                         aktcallnode.procdefinition.proccalloption)) then
+                         aktcallnode.procdefinition.proccalloption));
+
+                 if pushaddr then
                    push_addr_para
                  else
                    push_value_para;
@@ -1023,6 +1026,7 @@ implementation
                 correct parameter register }
               if assigned(left) then
                 begin
+                  reorder_parameters;
                   pushparas;
                   { free the resources allocated for the parameters }
                   freeparas;
