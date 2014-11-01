@@ -1510,7 +1510,7 @@ implementation
               begin
                 fsym:=cfieldvarsym.create('$refcount',vs_value,s32inttype,[]);
                 current_objectdef.symtable.insert(fsym);
-                tobjectsymtable(current_objectdef.symtable).addfield(fsym,vis_private);
+                tobjectsymtable(current_objectdef.symtable).addfield(fsym,vis_public);
               end;
 
             { parse and insert object members }
