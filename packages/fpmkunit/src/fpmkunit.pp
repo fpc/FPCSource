@@ -917,6 +917,7 @@ Type
     function GetDocInstallDir: String;
     function GetExamplesInstallDir: String;
     function GetOptions: TStrings;
+    function GetPrefix: String;
     function GetUnitInstallDir: String;
     procedure SetLocalUnitDir(const AValue: String);
     procedure SetGlobalUnitDir(const AValue: String);
@@ -971,7 +972,7 @@ Type
     // paths etc.
     Property LocalUnitDir : String Read GetLocalUnitDir Write SetLocalUnitDir;
     Property GlobalUnitDir : String Read GetGlobalUnitDir Write SetGlobalUnitDir;
-    Property Prefix : String Read FPrefix Write SetPrefix;
+    Property Prefix : String Read GetPrefix Write SetPrefix;
     Property ZipPrefix : String Read FZipPrefix Write SetZipPrefix;
     Property BaseInstallDir : String Read GetBaseInstallDir Write SetBaseInstallDir;
     Property UnitInstallDir : String Read GetUnitInstallDir Write SetUnitInstallDir;
@@ -1023,9 +1024,6 @@ Type
     FVerbose : boolean;
     FProgressMax : integer;
     FProgressCount : integer;
-{$ifdef HAS_UNIT_ZIPPER}
-    FZipFile: TZipper;
-{$endif HAS_UNIT_ZIPPER}
     FExternalPackages : TPackages;
     // Events
     FOnLog: TLogEvent;
@@ -2137,6 +2135,13 @@ begin
     watcom: result := 'wat';
     os2:    result := 'os2';
     emx:    result := 'emx';
+    osNone:
+      begin
+        if Defaults.BuildOS in AllLimit83fsOses then
+          result := 'src'
+        else
+          result := '.source'
+      end
   else
     result := '.' + MakeTargetString(CPU, OS);
   end;
@@ -3786,6 +3791,16 @@ begin
 end;
 
 
+function TCustomDefaults.GetPrefix: String;
+begin
+  // Use ExpandFileName to support ~/ expansion
+  if FPrefix<>'' then
+    Result:=IncludeTrailingPathDelimiter(ExpandFileName(FPrefix))
+  else
+    Result:='';
+end;
+
+
 function TCustomDefaults.GetUnitInstallDir: String;
 begin
   result := FixPath(GlobalDictionary.ReplaceStrings(FUnitInstallDir), False);
@@ -3892,11 +3907,7 @@ end;
 procedure TCustomDefaults.SetPrefix(const AValue: String);
 begin
   if FPrefix=AValue then exit;
-  // Use ExpandFileName to support ~/ expansion
-  if AValue<>'' then
-    FPrefix:=IncludeTrailingPathDelimiter(ExpandFileName(AValue))
-  else
-    FPrefix:='';
+  FPrefix:=AValue;
   GlobalDictionary.AddVariable('prefix',Prefix);
   GlobalDictionary.AddVariable('bininstalldir',BinInstallDir);
   BaseInstallDir:='';
@@ -5386,6 +5397,8 @@ procedure TBuildEngine.AddPackageMacrosToDictionary(const APackage: TPackage; AD
 begin
   APackage.Dictionary.AddVariable('UNITSOUTPUTDIR',AddPathPrefix(APackage,APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS)));
   APackage.Dictionary.AddVariable('BINOUTPUTDIR',AddPathPrefix(APackage,APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS)));
+  APackage.Dictionary.AddVariable('PACKAGEVERSION',APackage.Version);
+  APackage.Dictionary.AddVariable('PACKAGEDIRECTORY',APackage.Directory);
 end;
 
 Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;DoChangeDir:boolean=true; WarnIfNotFound:boolean=true);
@@ -6736,13 +6749,17 @@ Var
   i: integer;
   ICPU : TCPU;
   IOS  : TOS;
+{$ifdef HAS_UNIT_ZIPPER}
+  ZipFile: TZipper;
+{$endif HAS_UNIT_ZIPPER}
 begin
-  A:=FStartDir+ APackage.FileName + ZipExt;
+  A:=Defaults.ZipPrefix + APackage.FileName + MakeZipSuffix(cpuNone, osNone) + ZipExt;
   Log(vlInfo,SInfoArchivingPackage,[APackage.Name,A]);
   try
     If (APackage.Directory<>'') then
       EnterDir(APackage.Directory);
     DoBeforeArchive(Apackage);
+    AddPackageMacrosToDictionary(APackage, APackage.Dictionary);
     L:=TStringList.Create;
     L.Sorted:=true;
     L.Duplicates:=dupIgnore;
@@ -6770,19 +6787,26 @@ begin
 {$ifdef HAS_UNIT_ZIPPER}
       if not Assigned(ArchiveFilesProc) then
         begin
-          FZipFile := TZipper.Create;
-          FZipFile.ZipFiles(A, L);
+          ZipFile := TZipper.Create;
+          try
+            ZipFile.FileName:=A;
+            A := APackage.Dictionary.ReplaceStrings(Defaults.FPrefix);
+            if A <> '' then
+              A:=IncludeTrailingPathDelimiter(A);
+            for i := 0 to L.Count-1 do
+              begin
+                ZipFile.Entries.AddFileEntry(L[i], A+L[i]);
+              end;
+            ZipFile.ZipAllFiles;
+          finally
+            ZipFile.Free;
+          end;
         end
       else
 {$endif HAS_UNIT_ZIPPER}
         CmdArchiveFiles(L,A);
     Finally
       L.Free;
-
-{$ifdef HAS_UNIT_ZIPPER}
-      if not Assigned(ArchiveFilesProc) then
-        FreeAndNil(FZipFile);
-{$endif HAS_UNIT_ZIPPER}
     end;
     DoAfterArchive(Apackage);
   Finally
