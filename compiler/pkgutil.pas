@@ -478,7 +478,7 @@ implementation
           psym : tsymentry;
           pd : tprocdef;
           found : boolean;
-          symname : TSymStr;
+          impname,symname : TSymStr;
           suffixidx : longint;
         begin
           writeln('available assembler symbols: ', symlist.count);
@@ -542,17 +542,11 @@ implementation
                 is always at_none in case of an external symbol }
               if assigned(cacheentry^.pkg) then
                 begin
-                  current_module.addexternalimport(cacheentry^.pkg.pplfilename,symname,symname,0,cacheentry^.sym.typ=at_data,false);
-                  { also add an $indirect symbol if it is a variable }
+                  impname:=symname;
                   if cacheentry^.sym.typ=AT_DATA then
-                    begin
-                      list:=current_asmdata.AsmLists[al_globals];
-                      new_section(list,sec_rodata,lower(symname),const_align(4));
-                      labind:=current_asmdata.DefineAsmSymbol(symname+indirect_suffix,AB_GLOBAL,AT_DATA);
-                      list.concat(Tai_symbol.Create_Global(labind,0));
-                      list.concat(Tai_const.Createname(symname,AT_DATA,0));
-                      list.concat(tai_symbol_end.Create(labind));
-                    end;
+                    { import as the $indirect symbol if it as a variable }
+                    impname:=symname+indirect_suffix;
+                  current_module.addexternalimport(cacheentry^.pkg.pplfilename,symname,impname,0,cacheentry^.sym.typ=at_data,false);
                 end;
             end;
         end;
