@@ -1611,7 +1611,6 @@ type
     // see tthread.inc, ThreadFunc and TThread.Resume
     FSem: Pointer;
     FInitialSuspended: boolean;
-    FSuspendedExternal: boolean;
     FSuspendedInternal: longbool;
     FThreadReaped: boolean;
 {$endif}

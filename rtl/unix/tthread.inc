@@ -153,7 +153,6 @@ begin
     raise EThread.create('Semaphore init failed (possibly too many concurrent threads)');
   WRITE_DEBUG('thread ', ptruint(self), ' created semaphore ', ptruint(FSem));
   FSuspended := CreateSuspended;
-  FSuspendedExternal := false;
   FThreadReaped := false;
   FInitialSuspended := CreateSuspended;
   FFatalException := nil;
@@ -228,8 +227,6 @@ begin
   else
     begin
       Raise EThread.create('Suspending one thread from inside another one is unsupported (because it is unsafe and deadlock prone) by *nix and posix operating systems');
-//      FSuspendedExternal := true;
-//      SuspendThread(FHandle);
     end;
 end;
 
@@ -241,7 +238,7 @@ begin
       WRITE_DEBUG('resuming thread after TThread construction',ptruint(self));
       SemaphorePost(FSem);
     end
-  else if (not FSuspendedExternal) then
+  else
     begin
       if FSuspended and
          { don't compare with ord(true) or ord(longbool(true)), }
@@ -252,12 +249,6 @@ begin
           SemaphorePost(FSem);
         end
     end
-  else
-    begin
-      raise EThread.create('External suspending is not supported under *nix/posix, so trying to resume from from an external suspension should never happen');
-//      FSuspendedExternal := false;
-//      ResumeThread(FHandle);
-    end;
 end;
 
 
