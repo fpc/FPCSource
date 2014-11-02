@@ -298,9 +298,17 @@ interface
                 begin
                   { FPC_EMPTYCHAR is a widechar -> 2 bytes }
                   reference_reset(hr,2);
-                  hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR');
                   location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
-                  hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,hr,location.register);
+                  if tf_supports_packages in target_info.flags then
+                    begin
+                      hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR'+indirect_suffix);
+                      hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,hr,location.register);
+                    end
+                  else
+                    begin
+                      hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR');
+                      hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,hr,location.register);
+                    end;
                 end
                else
                 begin
@@ -675,8 +683,16 @@ interface
          hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,0,location.register,l1);
          { FPC_EMPTYCHAR is a widechar -> 2 bytes }
          reference_reset(hr,2);
-         hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR');
-         hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,hr,location.register);
+         if tf_supports_packages in target_info.flags then
+           begin
+             hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR'+indirect_suffix);
+             hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,hr,location.register);
+           end
+         else
+           begin
+             hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR');
+             hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,hr,location.register);
+           end;
          hlcg.a_label(current_asmdata.CurrAsmList,l1);
       end;
 
