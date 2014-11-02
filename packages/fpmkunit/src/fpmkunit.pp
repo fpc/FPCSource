@@ -3362,7 +3362,7 @@ begin
   If (FFileName<>'') then
     Result:=FFileName
   else
-    if not FVersion.Empty then
+    if not FVersion.Empty and not (Defaults.BuildOS in AllLimit83fsOses) then
       Result := Name + '-' + FVersion.AsString
     else
       Result := Name;
