@@ -2172,11 +2172,10 @@ examples:
 shared:
 sourceinstall:
 exampleinstall:
-zipsourceinstall:
 zipexampleinstall:
 info: fpc_info
 makefiles: fpc_makefiles
-.PHONY: units examples shared sourceinstall exampleinstall zipsourceinstall zipexampleinstall info makefiles
+.PHONY: units examples shared sourceinstall exampleinstall zipexampleinstall info makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
@@ -2250,3 +2249,9 @@ zipinstall:	fpmake
 	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX)
 zipdistinstall:	fpmake
 	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX) -ie -fsp 0
+zipsourceinstall:	fpmake
+ifdef UNIXHier
+	$(LOCALFPMAKE) archive $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX) --prefix=share/src/fpc-\$$\(PACKAGEVERSION\)/$(INSTALL_FPCSUBDIR)/\$$\(PACKAGEDIRECTORY\)
+else
+	$(LOCALFPMAKE) archive $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX) --prefix=source\\$(INSTALL_FPCSUBDIR)\\\$$\(PACKAGEDIRECTORY\)
+endif
