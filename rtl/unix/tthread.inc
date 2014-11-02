@@ -29,9 +29,9 @@
   control. Therefore, I didn't implement .Suspend() if its called from
   outside the threads execution flow (except on Linux _without_ NPTL).
 
-  The implementation for .suspend uses a semaphore, which is initialized
+  The implementation for .suspend uses an RTLEvent, which is initialized
   at thread creation. If the thread tries to suspend itself, we simply
-  let it wait on the semaphore until it is unblocked by someone else
+  let it wait on the Event until it is unblocked by someone else
   who calls .Resume.
 
 
@@ -82,8 +82,8 @@ begin
     WRITE_DEBUG('AfterConstruction should have been called for ',ptruint(lthread));
     if LThread.FInitialSuspended then
       begin
-        WRITE_DEBUG('thread ', ptruint(LThread), ' waiting for semaphore ', ptruint(LThread.FSem));
-        SemaphoreWait(LThread.FSem);
+        WRITE_DEBUG('thread ', ptruint(LThread), ' waiting for RTLEvent ', ptruint(LThread.FSuspendEvent));
+        RtlEventWaitFor(LThread.FSuspendEvent);
         if not(LThread.FTerminated) then
           begin
             if not LThread.FSuspended then
@@ -103,7 +103,7 @@ begin
        begin
          LThread.FSuspendedInternal := true;
          WRITE_DEBUG('waiting for SuspendedInternal - ', LThread.ClassName);
-         SemaphoreWait(LThread.FSem);
+         RtlEventWaitFor(LThread.FSuspendEvent);
          CurrentThreadVar := LThread;
          WRITE_DEBUG('going into LThread.Execute - ', LThread.ClassName);
          LThread.Execute;
@@ -148,10 +148,8 @@ end;
 procedure TThread.SysCreate(CreateSuspended: Boolean;
                             const StackSize: SizeUInt);
 begin
-  FSem := SemaphoreInit();
-  if FSem = pointer(-1) then
-    raise EThread.create('Semaphore init failed (possibly too many concurrent threads)');
-  WRITE_DEBUG('thread ', ptruint(self), ' created semaphore ', ptruint(FSem));
+  FSuspendEvent := RtlEventCreate;
+  WRITE_DEBUG('thread ', ptruint(self), ' created RTLEvent ', ptruint(FSuspendEvent));
   FSuspended := CreateSuspended;
   FThreadReaped := false;
   FInitialSuspended := CreateSuspended;
@@ -167,13 +165,13 @@ end;
 
 procedure TThread.SysDestroy;
 begin
-  if (FSem = nil) then
+  if not assigned(FSuspendEvent) then
     { exception in constructor }
     exit;
   if (FHandle = TThreadID(0)) then
   { another exception in constructor }
     begin
-      SemaphoreDestroy(FSem);
+      RtlEventDestroy(FSuspendEvent);
       exit;
     end;
   if (FThreadID = GetCurrentThreadID) then
@@ -199,7 +197,7 @@ begin
           WaitFor;
         end;
     end;
-  SemaphoreDestroy(FSem);
+  RtlEventDestroy(FSuspendEvent);
   FFatalException.Free;
   FFatalException := nil;
   { threadvars have been released by cthreads.ThreadMain -> DoneThread, or  }
@@ -222,7 +220,7 @@ begin
     begin
       if not FSuspended and
          (InterLockedExchange(longint(FSuspended),longint(longbool(true))) = longint(longbool(false))) then
-        SemaphoreWait(FSem)
+        RtlEventWaitFor(FSuspendEvent)
     end
   else
     begin
@@ -236,7 +234,7 @@ begin
   if FSuspendedInternal and (InterLockedExchange(longint(FSuspendedInternal),ord(false)) = longint(longbool(true))) then
     begin
       WRITE_DEBUG('resuming thread after TThread construction',ptruint(self));
-      SemaphorePost(FSem);
+      RtlEventSetEvent(FSuspendEvent);
     end
   else
     begin
@@ -246,7 +244,7 @@ begin
          (InterLockedExchange(longint(FSuspended),longint(false)) <> longint(longbool(false))) then
         begin
           WRITE_DEBUG('resuming ',ptruint(self));
-          SemaphorePost(FSem);
+          RtlEventSetEvent(FSuspendEvent);
         end
     end
 end;

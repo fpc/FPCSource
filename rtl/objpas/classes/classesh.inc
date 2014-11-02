@@ -1609,7 +1609,7 @@ type
 {$ifdef Unix}
   private
     // see tthread.inc, ThreadFunc and TThread.Resume
-    FSem: Pointer;
+    FSuspendEvent: PRTLEvent;
     FInitialSuspended: boolean;
     FSuspendedInternal: longbool;
     FThreadReaped: boolean;
