@@ -193,7 +193,7 @@ implementation
                 procexport(name);
               AT_DATA:
                 begin
-                  if pos(name,indirect_suffix)=length(name)-length(indirect_suffix)+1 then
+                  if pos(indirect_suffix,name)=length(name)-length(indirect_suffix)+1 then
                     continue;
                   varexport(name);
                 end;
