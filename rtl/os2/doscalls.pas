@@ -1,9 +1,14 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2002 by the Free Pascal development team.
+    Copyright (c) 1999-2014 by the Free Pascal development team.
 
-    Basic OS/2 constants, types and functions
-    implemented (mostly) in DOSCALL1.DLL.
+    Basic OS/2 constants, types and functions implemented (mostly)
+    in DOSCALL1.DLL. Only functions available in all 32-bit OS/2
+    versions (i.e. starting with OS/2 2.0) are included here
+    to make sure that programs using this unit could still run on
+    these old versions. Certain functions supported in later versions
+    which could be emulated on older versions are provided in unit
+    DosCall2 (using dynamic loading of the respective entry points).
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -2351,11 +2356,16 @@ function DosQueryCollate(Size:longint;var Country:TCountryCode;
 function DosQueryCollate (Size: cardinal; var Country: TCountryCode;
                       Buf:PByteArray; var TableLen: cardinal): cardinal; cdecl;
 
-{Get the current codepage. The PWordArray is filled with the current code
- page followed by alternative codepages.}
-function DosQueryCP(Size:longint;CodePages:PWordArray;
+{Get the current codepage. The return buffer (CodePages) is filled with the
+ current code page followed by the list of prepared codepages as specified in
+ CONFIG.SYS - all of them returned as DWORDs, typically not more than 3 should
+ be necessary. Return value of 473 indicates that not all values fit into the
+ provided space.}
+function DosQueryCP(Size:longint; PCodePages: PWordArray;
                                           var ActSize:longint):cardinal; cdecl;
-function DosQueryCP (Size: cardinal; CodePages: PWordArray;
+function DosQueryCP(Size: cardinal; PCodePages: PWordArray;
+                                         var ActSize:cardinal):cardinal; cdecl;
+function DosQueryCP (Size: cardinal; var CodePages;
                                        var ActSize: cardinal): cardinal; cdecl;
 
 {Change the codepage, but only for the current process.}
@@ -2720,7 +2730,7 @@ function DosGetMessage(Table:PInsertTable;TableSize:longint;Buf:PChar;
                        var MsgSize:longint):cardinal;
 function DosGetMessage (Table: PInsertTable; TableSize: cardinal; Buf: PChar;
                         BufSize, MsgNumber: cardinal; FileName: PChar;
-                        var MsgSize: cardinal): cardinal;
+                        var MsgSize: cardinal): cardinal; cdecl;
 {And a variant using strings and open arrays.
 function DosGetMessage(const Table:array of PString;var Buf:string;
                        BufSize,MsgNumber:longint;const FileName:PChar):cardinal;}
@@ -3206,6 +3216,16 @@ procedure DosFlatToSel; cdecl;
 
 {typecast result to TFarPtr}
 function FlatToSel (APtr: pointer): cardinal;
+
+{Allocate Count dwords in a memory block unique in each thread. A maximum
+ of 8 dwords can be allocated at a time, the total size of the thread local
+ memory area is 128 bytes; FPC 1.1+ uses one dword from this for internal
+ multi-threading support, leaving 124 bytes to programmers.}
+function DosAllocThreadLocalMemory (Count: cardinal; var P: pointer): cardinal;
+                                                                         cdecl;
+
+{Deallocate a previously allocated space in the thread local memory area.}
+function DosFreeThreadLocalMemory (P: pointer): cardinal; cdecl;
 
 const
 { Values for DosQueryRASInfo Index parameter }
@@ -3882,6 +3902,63 @@ function DosQuerySysState (EntityList, EntityLevel, PID, TID: cardinal;
 function DosQuerySysState (EntityList, EntityLevel, PID, TID: cardinal;
                           PDataBuf: pointer; cbBuf: cardinal): cardinal; cdecl;
 
+
+{
+ Creates a private Read/Write alias or an LDT code segment alias to part
+ of an existing memory object. The alias object is accessible only to the
+ process that created it. The original object must be accessible to the caller
+ of DosAliasMem.
+
+ An alias is removed by calling DosFreeMem with the alias address.
+
+ Although it is possible to create a Read/Write alias to a code segment
+ to allow code modification, this is not recommended. On Pentium processors,
+ and later, pipe-lining techniques used by the processor might allow
+ the processor not to be aware of the modified code, if appropriate
+ pipe-line serialization is not performed by the programmer. For further
+ information see the processor documentation.
+
+ Possible return values:
+     0 No_Error
+     8 Error_Not_Enough_Memory
+    87 Error_Invalid_Parameter
+    95 Error_Interrupt
+ 32798 Error_Crosses_Object_Boundary
+
+pMem   = Pointer to the memory to be aliased. It must be on a page boundary
+         (i.e. aligned to 4 kB), but may specify an address within a memory
+         object.
+Size   = Specifies size in bytes for the memory to alias. The entire range
+         must lie within a single memory object and must be committed
+         if OBJ_SELMAPALL is specified.
+Alias  = Pointer where the address of the aliased memory is returned.
+         The corresponding LDT selector is not explicitly returned but may be
+         calculated by using the Compatibility Mapping Algorithm
+         ((Alias shr 13) or 7).
+Flags  = Combination of the following values:
+            obj_SelMapAll = $800 (Create a Read/Write 32 bit alias
+                                  to the address specified. The entire range
+                                  must be committed, start on page boundary
+                                  and be within the extent of a single memory
+                                  object. An LDT selector is created to map
+                                  the entire range specified. If obj_SelMapAll
+                                  is not specified, then size is rounded up
+                                  to a 4K multiple and the alias created
+                                  inherits the permissions from the pages
+                                  of the original object.)
+            obj_Tile      =  $40  (Obj_Tile may be specified, but currently
+                                   this is enforced whether or not specified.
+                                   This forces LDT selectors to be based
+                                   on 64K boundaries.)
+            sel_Code      =    1  (Marks the LDT alias selector(s)
+                                   Read-Executable code selectors.)
+            sel_Use32     =    2  (Used with obj_SelMapAll, otherwise ignored.
+                                   Marks the first alias LDT selector
+                                   as a 32 bit selector by setting the BIG/C32
+                                   bit.)
+}
+function DosAliasMem (pMem: pointer; Size: cardinal; var Alias: pointer;
+                                             Flags: cardinal): cardinal; cdecl;
 
 
 {***************************************************************************}
@@ -5188,11 +5265,15 @@ function DosQueryCollate (Size: cardinal; var Country: TCountryCode;
                      Buf: PByteArray; var TableLen: cardinal): cardinal; cdecl;
 external 'NLS' index 8;
 
-function DosQueryCP(Size:longint;CodePages:PWordArray;
+function DosQueryCP(Size:longint; PCodePages:PWordArray;
                                           var ActSize:longint):cardinal; cdecl;
 external 'DOSCALLS' index 291;
 
-function DosQueryCP (Size: cardinal; CodePages: PWordArray;
+function DosQueryCP (Size: cardinal; PCodePages: PWordArray;
+                                       var ActSize: cardinal): cardinal; cdecl;
+external 'DOSCALLS' index 291;
+
+function DosQueryCP (Size: cardinal; var CodePages;
                                        var ActSize: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 291;
 
@@ -5365,18 +5446,8 @@ function DosTrueGetMessage (MsgSeg: pointer; Table: PInsertTable;
                             var MsgSize: cardinal): cardinal; cdecl;
 external 'MSG' index 6;
 
-function DosTrueGetMessage (MsgSeg: pointer; Table: PInsertTable;
-                            TableSize: longint; Buf: PChar;
-                            BufSize, MsgNumber: longint; FileName: PChar;
-                            var MsgSize: longint): cardinal; cdecl;
-external 'MSG' index 6;
-
 function DosIQueryMessageCP (var Buf; BufSize: cardinal; FileName: PChar;
                      var InfoSize: cardinal; MesSeg: pointer): cardinal; cdecl;
-external 'MSG' index 8;
-
-function DosIQueryMessageCP (var Buf; BufSize: longint; FileName: PChar;
-                      var InfoSize: longint; MesSeg: pointer): cardinal; cdecl;
 external 'MSG' index 8;
 
 procedure MagicHeaderEnd; assembler; forward;
@@ -5394,18 +5465,21 @@ end;
 
 function DosGetMessage (Table: PInsertTable; TableSize: cardinal; Buf: PChar;
                         BufSize, MsgNumber: cardinal; FileName: PChar;
-                        var MsgSize: cardinal): cardinal;
-begin
-    DosGetMessage := DosTrueGetMessage(@MagicHeaderStart,Table,TableSize,
-                                 Buf,BufSize,MsgNumber,FileName,MsgSize);
+                        var MsgSize: cardinal): cardinal; cdecl; assembler;
+                                                                  nostackframe;
+asm
+  pop eax
+  push offset MagicHeaderStart
+  push eax
+  jmp DosTrueGetMessage
 end;
 
 function DosGetMessage (Table: PInsertTable; TableSize:longint;Buf:PChar;
-                       BufSize,MsgNumber:longint;FileName:PChar;
-                       var MsgSize:longint):cardinal;
+                        BufSize,MsgNumber:longint;FileName:PChar;
+                        var MsgSize:longint):cardinal;
 begin
-    DosGetMessage := DosTrueGetMessage(@MagicHeaderStart,Table,TableSize,
-                                 Buf,BufSize,MsgNumber,FileName,MsgSize);
+  DosGetMessage := DosGetMessage (Table, cardinal (TableSize), Buf,
+       cardinal (BufSize), cardinal (MsgNumber), FileName, cardinal (MsgSize));
 end;
 
 function DosQueryMessageCP (var Buf; BufSize: cardinal; FileName: PChar;
@@ -5418,8 +5492,8 @@ end;
 function DosQueryMessageCP(var Buf;BufSize:longint;FileName:PChar;
                             var InfoSize:longint):cardinal;
 begin
-    DosQueryMessageCP := DosIQueryMessageCP(Buf, BufSize, FileName, InfoSize,
-                                                            @MagicHeaderStart);
+    DosQueryMessageCP := DosIQueryMessageCP(Buf, cardinal (BufSize), FileName,
+                                       cardinal (InfoSize), @MagicHeaderStart);
 end;
 
 procedure MagicHeaderEnd; assembler;
@@ -5733,6 +5807,13 @@ function FlatToSel (APtr: pointer): cardinal; assembler;
   pop ebx
  end;
 
+function DosAllocThreadLocalMemory (Count: cardinal; var P: pointer): cardinal;
+                                                                         cdecl;
+external 'DOSCALLS' index 454;
+
+function DosFreeThreadLocalMemory (P: pointer): cardinal; cdecl;
+external 'DOSCALLS' index 455;
+
 function DosQueryRASInfo (Index: cardinal; var PBuffer: pointer): cardinal;
                                           cdecl; external 'DOSCALLS' index 112;
 
@@ -5798,86 +5879,6 @@ external 'DOSCALLS' index 580;
 function DosQueryHeaderInfo ...; cdecl;
 external 'DOSCALLS' index 582;
 
-WSeB/eCS APIs:
- Creates a private Read/Write alias or an LDT code segment alias to part
- of an existing memory object. The alias object is accessible only to the
- process that created it. The original object must be accessible to the caller
- of DosAliasMem.
-
- An alias is removed by calling DosFreeMem with the alias address.
-
- Although it is possible to create a Read/Write alias to a code segment
- to allow code modification, this is not recommended. On Pentium processors,
- and later, pipe-lining techniques used by the processor might allow
- the processor not to be aware of the modified code, if appropriate
- pipe-line serialization is not performed by the programmer. For further
- information see the processor documentation.
-
- Possible return values:
-     0 No_Error
-     8 Error_Not_Enough_Memory
-    87 Error_Invalid_Parameter
-    95 Error_Interrupt
- 32798 Error_Crosses_Object_Boundary
-
-pMem   = Pointer to the memory to be aliased. It must be on a page boundary
-         (i.e. aligned to 4 kB), but may specify an address within a memory
-         object.
-Size   = Specifies size in bytes for the memory to alias. The entire range
-         must lie within a single memory object and must be committed
-         if OBJ_SELMAPALL is specified.
-Alias  = Pointer where the address of the aliased memory is returned.
-         The corresponding LDT selector is not explicitly returned but may be
-         calculated by using the Compatibility Mapping Algorithm
-         ((Alias shr 13) or 7).
-Flags  = Combination of the following values:
-            obj_SelMapAll = $800 (Create a Read/Write 32 bit alias
-                                  to the address specified. The entire range
-                                  must be committed, start on page boundary
-                                  and be within the extent of a single memory
-                                  object. An LDT selector is created to map
-                                  the entire range specified. If obj_SelMapAll
-                                  is not specified, then size is rounded up
-                                  to a 4K multiple and the alias created
-                                  inherits the permissions from the pages
-                                  of the original object.)
-            obj_Tile      =  $40  (Obj_Tile may be specified, but currently
-                                   this is enforced whether or not specified.
-                                   This forces LDT selectors to be based
-                                   on 64K boundaries.)
-            sel_Code      =    1  (Marks the LDT alias selector(s)
-                                   Read-Executable code selectors.)
-            sel_Use32     =    2  (Used with obj_SelMapAll, otherwise ignored.
-                                   Marks the first alias LDT selector
-                                   as a 32 bit selector by setting the BIG/C32
-                                   bit.)
-functionDosAliasMem (pMem: pointer; Size: cardinal; var Alias: pointer; Flags: cardinal): cardinal; cdecl;
-external 'DOSCALLS' index 298;
-
- DosCancelLockRequestL cancels an outstanding DosSetFileLocksL request.
- If two threads in a process are waiting on a lock file range, and another
- thread issues DosCancelLockRequestL for that lock file range, then both
- waiting threads are released.
- Not all file-system drivers (FSDs) can cancel an outstanding lock request.
- Local Area Network (LAN) servers cannot cancel an outstanding lock request
- if they use a version of the operating system prior to OS/2 Version 2.00.
-
-Possible return values:
-     0 No_Error
-     6 Error_Invalid_Handle
-    87 Error_Invalid_Parameter
-   173 Error_Cancel_Violation
-
-hFile    = File handle used in the DosSetFileLocksL function
-           that is to be cancelled.
-pflLockL = Address of the structure describing the lock request to cancel.
-
-function DosCancelLockRequestL (hFile: THandle; pflLock: PFileLockL): cardinal; cdecl;
-external 'DOSCALLS' index ???;
-
-function DosCancelLockRequestL (hFile: THandle; const Lock: TFileLockL): cardinal; cdecl;
-external 'DOSCALLS' index ???;
-
 DosCreateThread2
 DosDumpProcess
 DosForceSystemDump
@@ -5920,11 +5921,12 @@ function DosQuerySysState (EntityList, EntityLevel, PID, TID: cardinal;
                           PDataBuf: pointer; cbBuf: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 368;
 
+function DosAliasMem (pMem: pointer; Size: cardinal; var Alias: pointer;
+                                             Flags: cardinal): cardinal; cdecl;
+external 'DOSCALLS' index 298;
+
 (*
 DosQueryThreadAffinity
-DosSetFileLocksL
-DosSetFilePtrL = DOSCALLS.988
-DosSetFileSizeL = DOSCALLS.989
 DosSetThreadAffinity
 Dos16SysTrace
 DosVerifyPidTid
