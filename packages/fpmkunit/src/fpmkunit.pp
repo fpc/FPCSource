@@ -6597,6 +6597,7 @@ Var
   List : TStringList;
   ConfigFileName: String;
   ConfigFileContent: TStrings;
+  Index: integer;
 begin
   ConfigFileName:=IncludeTrailingPathDelimiter(APackage.GetUnitConfigOutputDir(Defaults.CPU,Defaults.OS))+UnitConfigFile;
   List:=TStringList.Create;
@@ -6607,7 +6608,11 @@ begin
         try
           ConfigFileContent.LoadFromFile(ConfigFileName);
           if Defaults.FPUnitSourcePath='0' then
-            ConfigFileContent.Delete(ConfigFileContent.IndexOfName(KeySourcePath))
+            begin
+              Index := ConfigFileContent.IndexOfName(KeySourcePath);
+              if Index > -1 then
+                ConfigFileContent.Delete(Index)
+            end
           else
             ConfigFileContent.Values[KeySourcePath] := Defaults.FPUnitSourcePath;
           ConfigFileContent.SaveToFile(ConfigFileName);
