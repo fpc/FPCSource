@@ -1241,8 +1241,27 @@ begin
            end;
          end;
        end;
-     end;
-    if RC <> 0 then
+      if RC <> 0 then
+       OSErrorWatch (RC);
+      RC := DosQueryProcAddr (DosCallsHandle, OrdDosAllocThreadLocalMemory,
+                                                                       nil, P);
+      if RC = 0 then
+       begin
+        DosAllocThreadLocalMemory := TDosAllocThreadLocalMemory (P);
+        RC := DosQueryProcAddr (DosCallsHandle, OrdDosAllocThreadLocalMemory,
+                                                                       nil, P);
+        if RC = 0 then
+         begin
+          DosFreeThreadLocalMemory := TDosFreeThreadLocalMemory (P);
+          TLSAPISupported := true;
+         end
+        else
+         OSErrorWatch (RC);
+       end
+      else
+       OSErrorWatch (RC);
+     end
+    else
      OSErrorWatch (RC);
 
     { ... and exceptions }

@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2002-2011 by Tomas Hajny,
+    Copyright (c) 2002-2014 by Tomas Hajny,
     member of the Free Pascal development team.
 
     OS/2 threading support implementation
@@ -17,6 +17,9 @@
 {*****************************************************************************
                            Local Api imports
 *****************************************************************************}
+
+var
+  OS2ThreadManager: TThreadManager;
 
 const
  pag_Read = 1;
@@ -98,12 +101,27 @@ type
     PFSRec: pointer;
   end;
 
+  TDosAllocThreadLocalMemory = function (Count: cardinal; var P: pointer):
+                                                               cardinal; cdecl;
+
+  TDosFreeThreadLocalMemory = function (P: pointer): cardinal; cdecl;
+
+
+const
+  DosAllocThreadLocalMemory: TDosAllocThreadLocalMemory = nil;
+  DosFreeThreadLocalMemory: TDosFreeThreadLocalMemory = nil;
+  OrdDosAllocThreadLocalMemory = 454;
+  OrdDosFreeThreadLocalMemory = 455;
+  TLSAPISupported: boolean = false;
+
 { import the necessary stuff from the OS }
+(*
 function DosAllocThreadLocalMemory (Count: cardinal; var P: pointer): cardinal;
                                           cdecl; external 'DOSCALLS' index 454;
 
 function DosFreeThreadLocalMemory (P: pointer): cardinal; cdecl;
                                                  external 'DOSCALLS' index 455;
+*)
 
 function DosCreateThread (var TID: cardinal; Address: pointer;
 (* TThreadFunc *)
@@ -177,15 +195,23 @@ function DosQuerySysState (EntityList, EntityLevel, PID, TID: cardinal;
 *****************************************************************************}
 
 const
- ThreadVarBlockSize: dword = 0;
+  ThreadVarBlockSize: dword = 0;
 
 
 const
 (* Pointer to an allocated dword space within the local thread *)
 (* memory area. Pointer to the real memory block allocated for *)
 (* thread vars in this block is then stored in this dword.     *)
- DataIndex: PPointer = nil;
+  DataIndex: PPointer = nil;
 
+
+type
+(* If Thread Local Memory Area (TLMA) and the respective API functions are *)
+(* not available (OS/2 version 2.x) then handle the memory using array     *)
+(* of pointers indexed by Thread ID - pointer to this array is then stored *)
+(* in DataIndex (typecasted using the following types).                    *)
+  TTLSPointers = array [0..4095] of pointer;
+  PTLSPointers = ^TTLSPointers;
 
 procedure SysInitThreadvar (var Offset: dword; Size: dword);
 begin
@@ -203,8 +229,20 @@ begin
  { exceptions which use threadvars but      }
  { these aren't allocated yet ...           }
  { allocate room on the heap for the thread vars }
- RC := DosAllocMem (DataIndex^, ThreadVarBlockSize, pag_Read or pag_Write
-                                                       or pag_Commit);
+ if TLSAPISupported then
+  RC := DosAllocMem (DataIndex^, ThreadVarBlockSize, pag_Read or pag_Write
+                                                                 or pag_Commit)
+ else
+  begin
+   if PTLSPointers (DataIndex)^ [ThreadID] <> nil then
+    begin
+     RC := DosFreeMem (PTLSPointers (DataIndex)^ [ThreadID]);
+     if RC <> 0 then
+      OSErrorWatch (RC);
+    end;
+   RC := DosAllocMem (PTLSPointers (DataIndex)^ [ThreadID], ThreadVarBlockSize,
+                                          pag_Read or pag_Write or pag_Commit);
+  end;
  if RC <> 0 then
   begin
    OSErrorWatch (RC);
@@ -215,22 +253,35 @@ begin
  FillChar (DataIndex^^, 0, ThreadVarBlockSize);
 end;
 
-
 function SysRelocateThreadVar (Offset: dword): pointer;
 begin
 { DataIndex itself not checked for not being nil - expected that this should }
 { not be necessary because the equivalent check (i.e. TlsKey not being set)  }
-{ is note performed by the Windows implementation.                           }
+{ is not performed by the Windows implementation.                            }
+  if PTLSPointers (DataIndex)^ [ThreadID] = nil then
+   begin
+    SysAllocateThreadVars;
+    InitThread ($1000000);
+   end;
+  SysRelocateThreadVar := PTLSPointers (DataIndex)^ [ThreadID] + Offset;
+end;
+
+function OS2RelocateThreadVar (Offset: dword): pointer;
+begin
+{ DataIndex itself not checked for not being nil - expected that this should }
+{ not be necessary because the equivalent check (i.e. TlsKey not being set)  }
+{ is not performed by the Windows implementation.                            }
   if DataIndex^ = nil then
    begin
     SysAllocateThreadVars;
     InitThread ($1000000);
    end;
-  SysRelocateThreadVar := DataIndex^ + Offset;
+  OS2RelocateThreadVar := DataIndex^ + Offset;
 end;
 
-
 procedure SysInitMultithreading;
+var
+  RC: cardinal;
 begin
   { do not check IsMultiThread, as program could have altered it, out of Delphi habit }
 
@@ -238,8 +289,30 @@ begin
   if DataIndex = nil then
    begin
     { We're still running in single thread mode, setup the TLS }
-    if DosAllocThreadLocalMemory (1, DataIndex) <> 0 then RunError (8);
-    InitThreadVars (@SysRelocateThreadvar);
+    RC := DosAllocThreadLocalMemory (1, DataIndex);
+    if RC = 0 then
+     begin
+(* Avoid the need for checking TLSAPISupported on every call *)
+(* to RelocateThreadVar - ensure using the right version.    *)
+      OS2ThreadManager.RelocateThreadVar := @OS2RelocateThreadVar;
+      CurrentTM.RelocateThreadVar := @OS2RelocateThreadVar;
+      InitThreadVars (@OS2RelocateThreadvar);
+     end
+    else
+     begin
+      OSErrorWatch (RC);
+(* We can still try using the internal solution for older OS/2 versions... *)
+      TLSAPISupported := false;
+      RC := DosAllocMem (DataIndex, SizeOf (TTLSPointers),
+                                          pag_Read or pag_Write or pag_Commit);
+      if RC = 0 then
+       InitThreadVars (@SysRelocateThreadvar)
+      else
+       begin
+        OSErrorWatch (RC);
+        RunError (8);
+       end;
+     end;
     IsMultiThread := true;
    end;
 end;
@@ -251,7 +324,10 @@ var
 begin
   if IsMultiThread then
    begin
-    RC := DosFreeThreadLocalMemory (DataIndex);
+    if TLSAPISupported then
+     RC := DosFreeThreadLocalMemory (DataIndex)
+    else
+     RC := DosFreeMem (DataIndex);
     if RC <> 0 then
      begin
 {??? What to do if releasing fails?}
@@ -265,11 +341,23 @@ end;
 procedure SysReleaseThreadVars;
 var
  RC: cardinal;
+(* TID serves for storing ThreadID before freeing the memory allocated *)
+(* to threadvars to avoid accessing a threadvar ThreadID afterwards.   *)
+ TID: cardinal;
 begin
- RC := DosFreeMem (DataIndex^);
+ if TLSAPISupported then
+  begin
+   RC := DosFreeMem (DataIndex^);
+   DataIndex^ := nil;
+  end
+ else
+  begin
+   TID := ThreadID;
+   RC := DosFreeMem (PTLSPointers (DataIndex)^ [TID]);
+   PTLSPointers (DataIndex)^ [TID] := nil;
+  end;
  if RC <> 0 then
   OSErrorWatch (RC);
- DataIndex^ := nil;
 end;
 
 
@@ -835,10 +923,6 @@ begin
   else
    OSErrorWatch (RC);
 end;
-
-
-var
-  OS2ThreadManager: TThreadManager;
 
 
 procedure InitSystemThreads;
