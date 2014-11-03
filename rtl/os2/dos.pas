@@ -211,9 +211,7 @@ var
   Prio: byte;
   DSS: boolean;
   SR: SearchRec;
-
-const
-  MaxArgsSize = 3072; (* Amount of memory reserved for arguments in bytes. *)
+  MaxArgsSize: word; (* Amount of memory reserved for arguments in bytes. *)
 
 begin
 {  LastDosExitCode := Exec (Path, ExecRunFlags (ExecFlags), efDefault, ComLine);}
@@ -226,6 +224,7 @@ begin
   else
    QName := Path;
   FindClose (SR);
+  MaxArgsSize := Length (ComLine) + Length (QName) + 256; (* More than enough *)
   if ComLine = '' then
    begin
     Args0 := nil;

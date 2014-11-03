@@ -750,9 +750,9 @@ var
  ObjName: shortstring;
  RC: cardinal;
  ExecAppType: cardinal;
+ MaxArgsSize: word; (* Amount of memory reserved for arguments in bytes. *)
 
 const
- MaxArgsSize = 3072; (* Amount of memory reserved for arguments in bytes. *)
  ObjBufSize = 512;
 
 function StartSession: cardinal;
@@ -845,6 +845,7 @@ begin
    if (ApplicationType and 3 = ExecAppType and 3) then
 (* DosExecPgm should work... *)
     begin
+     MaxArgsSize := Length (ComLine) + Length (Path) + 256; (* More than enough *)
      if ComLine = '' then
       begin
        Args0 := nil;
