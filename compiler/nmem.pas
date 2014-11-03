@@ -573,7 +573,7 @@ implementation
         else
           begin
             hp:=left;
-            while assigned(hp) and (hp.nodetype in [typeconvn,vecn,derefn,subscriptn]) do
+            while assigned(hp) and (hp.nodetype in [typeconvn,derefn,subscriptn]) do
               hp:=tunarynode(hp).left;
             if not assigned(hp) then
               internalerror(200412042);
