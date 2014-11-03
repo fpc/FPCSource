@@ -563,6 +563,7 @@ Implementation
       TmpUsedRegs: TAllUsedRegs;
       tempop: tasmop;
       oldreg: tregister;
+      dealloc: tai_regalloc;
 
     function IsPowerOf2(const value: DWord): boolean; inline;
       begin
@@ -1249,6 +1250,13 @@ Implementation
 
                         if taicpu(hp1).oper[1]^.ref^.index = taicpu(p).oper[0]^.reg then
                           taicpu(hp1).oper[1]^.ref^.index := taicpu(p).oper[1]^.reg;
+
+                        dealloc:=FindRegDeAlloc(taicpu(p).oper[1]^.reg, taicpu(p.Next));
+                        if Assigned(dealloc) then
+                          begin
+                            asml.remove(dealloc);
+                            asml.InsertAfter(dealloc,hp1);
+                          end;
 
                         GetNextInstruction(p, hp1);
                         asml.remove(p);
