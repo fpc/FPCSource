@@ -2307,15 +2307,15 @@ ifndef BUILDFULLNATIVE
 FPMAKE_OPT+=-sp
 endif
 .NOTPARALLEL:
-fpmake: fpmake.pp
+fpmake$(SRCEXEEXT): fpmake.pp
 	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) $(FPCMAKEOPT) $(OPT)
-all:	fpmake
+all:	fpmake$(SRCEXEEXT)
 	$(LOCALFPMAKE) compile $(FPMAKE_OPT)
-smart:	fpmake
+smart:	fpmake$(SRCEXEEXT)
 	$(LOCALFPMAKE) compile $(FPMAKE_OPT) -o -XX -o -CX
-release:	fpmake
+release:	fpmake$(SRCEXEEXT)
 	$(LOCALFPMAKE) compile $(FPMAKE_OPT) -o -dRELEASE
-debug:	fpmake
+debug:	fpmake$(SRCEXEEXT)
 	$(LOCALFPMAKE) compile $(FPMAKE_OPT) -o -dDEBUG
 ifeq ($(FPMAKE_BIN_CLEAN),)
 clean:
@@ -2340,23 +2340,23 @@ endif
 	-$(DEL) fpmake.dbg
 endif
 cleanall: distclean
-install:	fpmake
+install:	fpmake$(SRCEXEEXT)
 ifdef UNIXHier
 	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) $(FPMAKE_INSTALL_OPT)
 else
 	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR) $(FPMAKE_INSTALL_OPT)
 endif
-distinstall:	fpmake
+distinstall:	fpmake$(SRCEXEEXT)
 ifdef UNIXHier
 	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) $(FPMAKE_INSTALL_OPT) -ie -fsp 0
 else
 	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR) $(FPMAKE_INSTALL_OPT) -ie -fsp 0
 endif
-zipinstall:	fpmake
+zipinstall:	fpmake$(SRCEXEEXT)
 	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX)
-zipdistinstall:	fpmake
+zipdistinstall:	fpmake$(SRCEXEEXT)
 	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX) -ie -fsp 0
-zipsourceinstall:	fpmake
+zipsourceinstall:	fpmake$(SRCEXEEXT)
 ifdef UNIXHier
 	$(LOCALFPMAKE) archive $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX) --prefix=share/src/fpc-\$$\(PACKAGEVERSION\)/$(INSTALL_FPCSUBDIR)/\$$\(PACKAGEDIRECTORY\)
 else
