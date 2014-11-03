@@ -1736,11 +1736,6 @@ var
       until ConsoleOutput.Position >= BytesRead;
 
       ConsoleOutput.Position := BuffPos;
-    end
-    else
-    begin
-      // no data, wait 100 ms
-      Sleep(100);
     end;
 
     Result := n;
@@ -1759,7 +1754,19 @@ begin
 
     P.Execute;
     while P.Running do
-      ReadFromStream(false);
+      begin
+        // Only call ReadFromStream if Data from corresponding stream
+        // is already available, otherwise, on  linux, the read call
+        // is blocking, and thus it is not possible to be sure to handle
+        // big data amounts bboth on output and stderr pipes. PM.
+        if P.Output.NumBytesAvailable > 0 then
+          ReadFromStream(false)
+        else if P.StdErr.NumBytesAvailable > 0 then
+          ReadFromStream(true)
+        else
+      // no data, wait 100 ms
+          Sleep(100);
+      end;
 
     // read last part
     repeat
