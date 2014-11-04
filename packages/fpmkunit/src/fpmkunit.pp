@@ -3771,11 +3771,12 @@ function TCustomDefaults.GetDocInstallDir: String;
 begin
   If (FDocInstallDir<>'') then
     Result:=FDocInstallDir
+  else if Defaults.BuildOS=freebsd then
+    result := Prefix+PathDelim+'share'+PathDelim+'doc'+PathDelim+'$(PackageName)'
+  else If UnixPaths then
+    Result:=Prefix+'share'+PathDelim+'doc'+PathDelim+'fpc-$(PackageName)-$(PACKAGEVERSION)'
   else
-    If UnixPaths then
-      Result:=Prefix+'share'+PathDelim+'doc'
-    else
-      Result:=BaseInstallDir+'docs';
+    Result:=BaseInstallDir+'docs'+PathDelim+'$(PackageName)';
 end;
 
 
@@ -3783,11 +3784,12 @@ function TCustomDefaults.GetExamplesInstallDir: String;
 begin
   If (FExamplesInstallDir<>'') then
     Result:=FExamplesInstallDir
+  else if Defaults.BuildOS=freebsd then
+    result := Prefix+PathDelim+'share'+PathDelim+'examples'+PathDelim+'$(PackageName)'
+  else If UnixPaths then
+    Result:=Prefix+'share'+PathDelim+'doc'+PathDelim+'fpc-$(PackageName)-$(PACKAGEVERSION)'+PathDelim+'examples'
   else
-    If UnixPaths then
-      Result:=Prefix+'share'+PathDelim+'doc'
-    else
-      Result:=BaseInstallDir+'examples';
+    Result:=BaseInstallDir+'examples'+PathDelim+'$(PackageName)';
 end;
 
 function TCustomDefaults.GetOptions: TStrings;
@@ -3810,7 +3812,7 @@ end;
 
 function TCustomDefaults.GetUnitInstallDir: String;
 begin
-  result := FixPath(GlobalDictionary.ReplaceStrings(FUnitInstallDir), False);
+  result := FUnitInstallDir;
 end;
 
 
@@ -3945,7 +3947,7 @@ end;
 procedure TCustomDefaults.SetUnitInstallDir(const AValue: String);
 begin
   if AValue<>'' then
-    FUnitInstallDir:=IncludeTrailingPathDelimiter(AValue)
+    FUnitInstallDir:=AValue
   else
     FUnitInstallDir:='';
 end;
@@ -5406,6 +5408,7 @@ begin
   APackage.Dictionary.AddVariable('BINOUTPUTDIR',AddPathPrefix(APackage,APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS)));
   APackage.Dictionary.AddVariable('PACKAGEVERSION',APackage.Version);
   APackage.Dictionary.AddVariable('PACKAGEDIRECTORY',APackage.Directory);
+  APackage.Dictionary.AddVariable('PackageName',APackage.Name);
 end;
 
 Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;DoChangeDir:boolean=true; WarnIfNotFound:boolean=true);
@@ -6687,8 +6690,8 @@ begin
     DoBeforeInstall(APackage);
     // units
     B:=false;
-    GlobalDictionary.AddVariable('PackageName',APackage.Name);
-    GlobalDictionary.AddVariable('unitinstalldir',Defaults.UnitInstallDir);
+    AddPackageMacrosToDictionary(APackage, APackage.Dictionary);
+    GlobalDictionary.AddVariable('unitinstalldir', FixPath(APackage.Dictionary.ReplaceStrings(Defaults.UnitInstallDir), False));
     GlobalDictionary.AddVariable('packageunitinstalldir',APackage.GetPackageUnitInstallDir(Defaults.CPU,Defaults.OS));
 
     D:=FixPath(Defaults.Prefix);
@@ -6696,14 +6699,14 @@ begin
     // target
     if InstallPackageFiles(APackage,[],D) then
       B:=true;
-    D:=IncludeTrailingPathDelimiter(Defaults.UnitInstallDir)+APackage.GetPackageUnitInstallDir(Defaults.CPU,Defaults.OS);
+    D:=FixPath(APackage.Dictionary.ReplaceStrings(Defaults.UnitInstallDir), True)+APackage.GetPackageUnitInstallDir(Defaults.CPU,Defaults.OS);
     if InstallPackageFiles(APackage,[ttUnit, ttImplicitUnit],D) then
       B:=true;
     // By default do not install the examples. Maybe add an option for this later
     //if InstallPackageFiles(APAckage,ttExampleUnit,D) then
     //  B:=true;
     // Unit (dependency) configuration if there were units installed
-    D:=IncludeTrailingPathDelimiter(Defaults.UnitInstallDir);
+    D:=FixPath(APackage.Dictionary.ReplaceStrings(Defaults.UnitInstallDir), True);
     if B then
       InstallUnitConfigFile(APackage,D);
     // Programs
@@ -6711,12 +6714,12 @@ begin
     InstallPackageFiles(APAckage,[ttProgram],D);
     //InstallPackageFiles(APAckage,ttExampleProgram,D);
     // Documentation
-    D:=IncludeTrailingPathDelimiter(Defaults.DocInstallDir)+'fpc-'+APackage.FileName+PathDelim;
+    D:=FixPath(APackage.Dictionary.ReplaceStrings(Defaults.DocInstallDir), True);
     InstallPackageSourceFiles(APackage,[stDoc],[],D);
     // Examples
     if Defaults.InstallExamples then
       begin
-        D:=IncludeTrailingPathDelimiter(Defaults.ExamplesInstallDir)+'fpc-'+APackage.FileName+PathDelim+'examples'+PathDelim;
+        D:=FixPath(APackage.Dictionary.ReplaceStrings(Defaults.ExamplesInstallDir), True);
         InstallPackageSourceFiles(APackage,[stExample],[ttExampleProgram,ttExampleUnit],D);
       end;
     // Done.
