@@ -305,6 +305,8 @@ begin
       with T.Dependencies do
         begin
           AddInclude('dbf_common.inc');
+          AddInclude('dbf_wnix.inc', AllOSes-AllWindowsOSes-[os2]);
+          AddInclude('dbf_wos2.inc', [os2]);
         end;
     T:=P.Targets.AddUnit('fpcgcreatedbf.pp', DatadictOSes);
       with T.Dependencies do
