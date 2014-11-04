@@ -1036,6 +1036,18 @@ unit cpupara;
                       end;
                       inc(mmretregidx);
                     end;
+                  X86_64_X87_CLASS:
+                    begin
+                      { must be followed by X86_64_X87UP_CLASS and that must be
+                        the last class }
+                      if (i<>(numclasses-2)) or
+                         (classes[i+1].typ<>X86_64_X87UP_CLASS) then
+                        internalerror(2014110401);
+                      paraloc^.loc:=LOC_FPUREGISTER;
+                      paraloc^.register:=NR_FPU_RESULT_REG;
+                      paraloc^.size:=OS_F80;
+                      break;
+                    end;
                   X86_64_NO_CLASS:
                     begin
                       { empty record/array }
