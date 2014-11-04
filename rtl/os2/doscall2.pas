@@ -2,10 +2,12 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2014 by the Free Pascal development team.
 
-    Additional 64-bit OS/2 API functions for file handling
-    implemented in DOSCALL1.DLL - functions supported in WSeB/MCP/eCS
-    or their fake (simulated) implementation for lower OS/2
-    versions (real availability checked during initialization).
+    Additional OS/2 API functions for file handling (64-bit functions
+    available in WSeB/MCP/eCS and protected access to exclusively
+    locked files available in OS/2 2.1+) implemented in DOSCALL1.DLL.
+    Availability of individual functions is checked dynamically during
+    initialization and fake (simulated) functions are used if running
+    under a lower OS/2 version.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -23,7 +25,7 @@ interface
 {***************************************************************************}
 
 uses
-  DosCalls;
+  DosCalls, Strings;
 
 type
   TFileLockL = record
@@ -37,6 +39,108 @@ type
       lRange: int64);
   end;
   PFileLockL = ^TFileLockL;
+
+function DosOpenL (FileName: PChar; var Handle: THandle;
+                        var Action: cardinal; InitSize: int64;
+                        Attrib, OpenFlags, FileMode: cardinal;
+                                                 EA: pointer): cardinal; cdecl;
+
+function DosSetFilePtrL (Handle: THandle; Pos: int64; Method: cardinal;
+                                        var PosActual: int64): cardinal; cdecl;
+
+function DosSetFileSizeL (Handle: THandle; Size: int64): cardinal; cdecl;
+
+function DosProtectOpen (FileName: PChar; var Handle: longint;
+                         var Action: longint; InitSize, Attrib,
+                         OpenFlags, OpenMode: longint; ea: PEAOp2;
+                              var FileHandleLockID: cardinal): cardinal; cdecl;
+
+function DosProtectOpen (const FileName: string; var Handle: longint;
+                         var Action: longint; InitSize, Attrib,
+                         OpenFlags, OpenMode: longint; ea: PEAOp2;
+                                     var FileHandleLockID: cardinal): cardinal;
+
+function DosProtectOpen (const FileName: string; var Handle: THandle;
+                         var Action: cardinal; InitSize, Attrib,
+                         OpenFlags, OpenMode: cardinal; ea: PEAOp2;
+                                     var FileHandleLockID: cardinal): cardinal;
+
+function DosProtectRead (Handle: longint; var Buffer; Count: longint;
+           var ActCount: longint; FileHandleLockID: cardinal): cardinal; cdecl;
+
+function DosProtectWrite (Handle: longint; const Buffer; Count: longint;
+                          var ActCount: longint;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+
+function DosProtectSetFilePtr (Handle: longint; Pos, Method: longint;
+                               var PosActual: longint;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+
+function DosProtectSetFilePtr (Handle: THandle; Pos: longint;
+                                         FileHandleLockID: cardinal): cardinal;
+
+function DosProtectGetFilePtr (Handle: longint;
+                 var PosActual: longint; FileHandleLockID: cardinal): cardinal;
+
+function DosProtectGetFilePtr (Handle: THandle;
+                var PosActual: cardinal; FileHandleLockID: cardinal): cardinal;
+
+function DosProtectEnumAttribute (Handle: THandle; Entry: cardinal; var Buf;
+                                  BufSize: cardinal; var Count: cardinal;
+                                  InfoLevel: cardinal;
+                                         FileHandleLockID: cardinal): cardinal;
+
+function DosProtectEnumAttribute (const FileName: string; Entry: cardinal;
+                                  var Buf; BufSize: cardinal;
+                                  var Count: cardinal; InfoLevel: cardinal;
+                                         FileHandleLockID: cardinal): cardinal;
+
+function DosProtectOpen (FileName: PChar; var Handle: THandle;
+                              var Action: cardinal; InitSize, Attrib,
+                              OpenFlags, OpenMode: cardinal; ea: PEAOp2;
+                              var FileHandleLockID: cardinal): cardinal; cdecl;
+
+function DosProtectClose (Handle: THandle;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+
+function DosProtectRead (Handle: THandle; var Buffer; Count: cardinal;
+          var ActCount: cardinal; FileHandleLockID: cardinal): cardinal; cdecl;
+
+function DosProtectWrite (Handle: THandle; const Buffer; Count: cardinal;
+                          var ActCount: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+
+function DosProtectSetFilePtr (Handle: THandle; Pos: longint;
+                               Method: cardinal; var PosActual: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+
+function DosProtectSetFileSize (Handle: THandle; Size: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+
+function DosProtectQueryFHState (Handle: THandle; var FileMode: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+
+function DosProtectSetFHState (Handle: THandle; FileMode: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+
+function DosProtectQueryFileInfo (Handle: THandle; InfoLevel: cardinal;
+                            AFileStatus: PFileStatus; FileStatusLen: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+
+function DosProtectSetFileInfo (Handle: THandle; InfoLevel: cardinal;
+                            AFileStatus: PFileStatus; FileStatusLen: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+
+function DosProtectEnumAttribute (RefType: cardinal; AFile: pointer;
+                                  Entry: cardinal; var Buf; BufSize: cardinal;
+                                  var Count: cardinal; InfoLevel: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+
+function DosProtectSetFileLocks (Handle: THandle;
+                                      var Unlock, Lock: TFileLock;
+                                      Timeout, Flags: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+
 
 (*
  DosCancelLockRequestL cancels an outstanding DosSetFileLocksL request.
@@ -57,10 +161,7 @@ Possible results:
           that is to be cancelled.
  Lock   = Specification of the lock request to be cancelled.
 *)
-type
-  TDosCancelLockRequestL = function (Handle: THandle; var Lock: TFileLockL):
-                                                               cardinal; cdecl;
-function DummyDosCancelLockRequestL (Handle: THandle;
+function DosCancelLockRequestL (Handle: THandle;
                                         var Lock: TFileLockL): cardinal; cdecl;
 
 (*
@@ -194,29 +295,19 @@ another process is denied until the file range is unlocked. If both unlocking
 and locking are specified by DosProtectSetFileLocksL, the unlocking operation
 is performed first, then locking is done.
 *)
-type
-  TDosProtectSetFileLocksL = function (Handle: THandle; var Unlock: TFileLockL;
-                   var Lock: TFileLockL; Timeout: cardinal; Flags: cardinal;
-                                  FileHandleLockID: cardinal): cardinal; cdecl;
-
-function DummyDosProtectSetFileLocksL (Handle: THandle; var Unlock: TFileLockL;
+function DosProtectSetFileLocksL (Handle: THandle; var Unlock: TFileLockL;
                    var Lock: TFileLockL; Timeout: cardinal; Flags: cardinal;
                                   FileHandleLockID: cardinal): cardinal; cdecl;
 
 (*
 DosSetFileLocksL locks and unlocks a range of an open file. 
 
-Parameters 
-
+Parameters:
  Handle = file handle
-
  Unlock = record containing the offset and length of a range to be unlocked
-
- Lock = record containing the offset and length of a range to be locked 
-
+ Lock = record containing the offset and length of a range to be locked
  Timeout = the maximum time that the process is to wait for the requested locks
            (in milliseconds)
-
  Flags = bit mask specifying action to be taken.
      Bits 31..2 are reserved.
      Bit 1 (Atomic) means request for atomic locking - if the bit is set
@@ -235,48 +326,70 @@ Parameters
         any other file range with exclusive access.
 
 Possible return codes:
-0 NO_ERROR 
-1 ERROR_INVALID_FUNCTION 
-6 ERROR_INVALID_HANDLE 
-33 ERROR_LOCK_VIOLATION 
-36 ERROR_SHARING_BUFFER_EXCEEDED 
-87 ERROR_INVALID_PARAMETER 
-95 ERROR_INTERRUPT 
+  0 NO_ERROR 
+  1 ERROR_INVALID_FUNCTION 
+  6 ERROR_INVALID_HANDLE 
+ 33 ERROR_LOCK_VIOLATION 
+ 36 ERROR_SHARING_BUFFER_EXCEEDED 
+ 87 ERROR_INVALID_PARAMETER 
+ 95 ERROR_INTERRUPT 
 174 ERROR_ATOMIC_LOCK_NOT_SUPPORTED 
 175 ERROR_READ_LOCKS_NOT_SUPPORTED 
 
 Remarks:
+DosSetFileLocksL allows a process to lock and unlock a range in a file. The
+time during which a file range is locked should be short.
 
-DosSetFileLocksL allows a process to lock and unlock a range in a file. The time during which a file range is locked should be short. 
+If the lock and unlock ranges are both zero, ERROR_LOCK_VIOLATION is returned
+to the caller.
 
-If the lock and unlock ranges are both zero, ERROR_LOCK_VIOLATION is returned to the caller. 
+If you only want to lock a file range, set the unlock file offset and the
+unlock range length to zero.
 
-If you only want to lock a file range, set the unlock file offset and the unlock range length to zero. 
+If you only want to unlock a file range, set the lock file offset and the lock
+range length to zero.
 
-If you only want to unlock a file range, set the lock file offset and the lock range length to zero. 
+When the Atomic bit of flags is set to 0, and DosSetFileLocksL specifies a lock
+operation and an unlock operation, the unlock operation occurs first, and then
+the lock operation is performed. If an error occurs during the unlock
+operation, an error code is returned and the lock operation is not performed.
+If an error occurs during the lock operation, an error code is returned and the
+unlock remains in effect if it was successful.
 
-When the Atomic bit of flags is set to 0, and DosSetFileLocksL specifies a lock operation and an unlock operation, the unlock operation occurs first, and then the lock operation is performed. If an error occurs during the unlock operation, an error code is returned and the lock operation is not performed. If an error occurs during the lock operation, an error code is returned and the unlock remains in effect if it was successful. 
+The lock operation is atomic when all of these conditions are met:
+- The Atomic bit is set to 1 in flags
+- The unlock range is the same as the lock range
+- The process has shared access to the file range, and has requested exclusive
+  access to it; or the process has exclusive access to the file range, and has
+  requested shared access to it.
 
-The lock operation is atomic when all of these conditions are met   
+Some file system drivers (FSDs) may not support atomic lock operations.
+Versions of the operating system prior to OS/2 Version 2.00 do not support
+atomic lock operations. If the application receives the error code
+ERROR_ATOMIC_LOCK_NOT_SUPPORTED, the application should unlock the file range
+and then lock it using a non-atomic operation (with the atomic bit set to 0 in
+flags). The application should also refresh its internal buffers before making
+any changes to the file.
 
- The Atomic bit is set to 1 in flags 
+If you issue DosClose to close a file with locks still in effect, the locks are
+released in no defined sequence.
 
- The unlock range is the same as the lock range 
+If you end a process with a file open, and you have locks in effect in that
+file, the file is closed and the locks are released in no defined sequence.
 
- The process has shared access to the file range, and has requested exclusive access to it; or the process has exclusive access to the file range, and has requested shared access to it. 
+The locked range can be anywhere in the logical file. Locking beyond the end of
+the file is not an error. A file range to be locked exclusively must first be
+cleared of any locked file subranges or overlapping locked file ranges.
 
-Some file system drivers (FSDs) may not support atomic lock operations. Versions of the operating system prior to OS/2 Version 2.00 do not support atomic lock operations. If the application receives the error code ERROR_ATOMIC_LOCK_NOT_SUPPORTED, the application should unlock the file range and then lock it using a non-atomic operation (with the atomic bit set to 0 in flags). The application should also refresh its internal buffers before making any changes to the file. 
+If you repeat DosSetFileLocksL for the same file handle and file range, then
+you duplicate access to the file range. Access to locked file ranges is not
+duplicated across DosExecPgm. The proper method of using locks is to attempt to
+lock the file range, and to examine the return value.
 
-If you issue DosClose to close a file with locks still in effect, the locks are released in no defined sequence. 
-
-If you end a process with a file open, and you have locks in effect in that file, the file is closed and the locks are released in no defined sequence. 
-
-The locked range can be anywhere in the logical file. Locking beyond the end of the file is not an error. A file range to be locked exclusively must first be cleared of any locked file subranges or overlapping locked file ranges. 
-
-If you repeat DosSetFileLocksL for the same file handle and file range, then you duplicate access to the file range. Access to locked file ranges is not duplicated across DosExecPgm. The proper method of using locks is to attempt to lock the file range, and to examine the return value. 
-
-The following table shows the level of access granted when the accessed file range is locked with an exclusive lock or a shared lock.  Owner  refers to a process that owns the lock.  Non-owner  refers to a process that does not own the lock. 
-
+The following table shows the level of access granted when the accessed file
+range is locked with an exclusive lock or a shared lock.  Owner  refers to
+a process that owns the lock.  Non-owner  refers to a process that does not own
+the lock.
 
  Action       Exclusive Lock             Shared Lock
 ===================================================================
@@ -292,29 +405,34 @@ The following table shows the level of access granted when the accessed file ran
  write        error code after time-out. error code after time-out.
 -------------------------------------------------------------------
 
-If only locking is specified, DosSetFileLocksL locks the specified file range using pflLock. If the lock operation cannot be accomplished, an error is returned, and the file range is not locked. 
+If only locking is specified, DosSetFileLocksL locks the specified file range
+using Lock. If the lock operation cannot be accomplished, an error is
+returned, and the file range is not locked.
 
-After the lock request is processed, a file range can be unlocked using the Unlock parameter of another DosSetFileLocksL request. If unlocking cannot be accomplished, an error is returned. 
+After the lock request is processed, a file range can be unlocked using the
+Unlock parameter of another DosSetFileLocksL request. If unlocking cannot be
+accomplished, an error is returned.
 
-Instead of denying read/write access to an entire file by specifying access and sharing modes with DosOpenL requests, a process attempts to lock only the range needed for read/write access and examines the error code returned. 
+Instead of denying read/write access to an entire file by specifying access and
+sharing modes with DosOpenL requests, a process attempts to lock only the range
+needed for read/write access and examines the error code returned.
 
-Once a specified file range is locked exclusively, read and write access by another process is denied until the file range is unlocked. If both unlocking and locking are specified by DosSetFileLocksL, the unlocking operation is performed first, then locking is done.
+Once a specified file range is locked exclusively, read and write access by
+another process is denied until the file range is unlocked. If both unlocking
+and locking are specified by DosSetFileLocksL, the unlocking operation is
+performed first, then locking is done.
 *)
-type
-  TDosSetFileLocksL = function (Handle: THandle; var Unlock: TFileLockL;
+function DosSetFileLocksL (Handle: THandle; var Unlock: TFileLockL;
     var Lock: TFileLockL; Timeout: cardinal; Flags: cardinal): cardinal; cdecl;
-function DummyDosSetFileLocksL (Handle: THandle; var Unlock: TFileLockL;
- var Lock: TFileLockL; Timeout: cardinal; Flags: cardinal): cardinal; cdecl;
 
 (*
-DosProtectOpenL opens a new file, an existing file, or a replacement for an existing file and returns a protected file handle. An open file can have extended attributes. 
+DosProtectOpenL opens a new file, an existing file, or a replacement for an
+existing file and returns a protected file handle. An open file can have
+extended attributes.
 
 Parameters:
-
  FileName = ASCIIZ path name of the file or device to be opened.
-
  Handle = handle for the file is returned here.
-
  Action = value that specifies the action taken by DosProtectOpenL is returned
           here; if DosProtectOpenL fails, this value has no meaning, otherwise,
           it is one of the following values:
@@ -322,210 +440,202 @@ Parameters:
    2 FILE_CREATED - file was created.
    3 FILE_TRUNCATED - file existed and was changed to a given size (file was
                       replaced).
-
  InitSize = new logical size of the file (end of data, EOD), in bytes; this
             parameter is significant only when creating a new file or replacing
             an existing one. Otherwise, it is ignored. It is an error to create
             or replace a file with a nonzero length if the OpenMode
             Access-Mode flag is set to read-only.
-
  Attrib = file attributes; this parameter contains the following bit fields:
+      Bits Description 
 
-Bits Description 
-
-31..6 - reserved, must be 0.
-5 FILE_ARCHIVED (0x00000020) - file has been archived.
-4 FILE_DIRECTORY (0x00000010) - file is a subdirectory.
-3 - reserved, must be 0.
-2 FILE_SYSTEM (0x00000004) - file is a system file.
-1 FILE_HIDDEN (0x00000002) - file is hidden and does not appear in a directory
-                             listing.
-0 FILE_READONLY (0x00000001) - file can be read from, but not written to.
-0 FILE_NORMAL (0x00000000) - file can be read from or written to.
+     31..6 - reserved, must be 0.
+         5 FILE_ARCHIVED (0x00000020) - file has been archived.
+         4 FILE_DIRECTORY (0x00000010) - file is a subdirectory.
+         3 - reserved, must be 0.
+         2 FILE_SYSTEM (0x00000004) - file is a system file.
+         1 FILE_HIDDEN (0x00000002) - file is hidden and does not appear in
+                                      a directory listing.
+         0 FILE_READONLY (0x00000001) - file can be read from, but not written
+                                        to.
+         0 FILE_NORMAL (0x00000000) - file can be read from or written to.
 
 File attributes apply only if the file is created. These bits may be set
 individually or in combination. For example, an attribute value of 0x00000021
 (bits 5 and 0 set to 1) indicates a read-only file that has been archived.
 
+ OpenFlags = the action to be taken depending on whether the file exists or
+             does not exist. This parameter contains the following bit fields:
+     Bits Description 
+    31..8 - reserved, must be 0.
+     7..4 - the following flags apply if the file does not exist:
+        0000 OPEN_ACTION_FAIL_IF_NEW 
+             Open an existing file; fail if the file does not exist. 
+        0001 OPEN_ACTION_CREATE_IF_NEW 
+             Create the file if the file does not exist. 
+     3..0 The following flags apply if the file does not exist:
+        0000 OPEN_ACTION_FAIL_IF_EXISTS 
+             Open the file; fail if the file already exists. 
+        0001 OPEN_ACTION_OPEN_IF_EXISTS 
+             Open the file if it already exists. 
+        0010 OPEN_ACTION_REPLACE_IF_EXISTS 
+             Replace the file if it already exists. 
 
- OpenFlags = the action to be taken depending on whether the file exists or does not exist. 
+ OpenMode = the mode of the open function. This parameter contains the
+            following bit fields:
+      Bits Description 
+        31 - reserved, must be zero. 
+        30 OPEN_FLAGS_PROTECTED_HANDLE (0x40000000) - protected file handle flag.
+             0 - unprotected Handle
+             1 - protected Handle
+  Protected handle requires the FileHandleLockID to be specified on subsequent
+  DosProtectxxxx calls.
 
-This parameter contains the following bit fields   
+  Unprotected handle requires the FileHandleLockID value to be specified as
+  zero on subsequent DosProtectxxxx calls. An unprotected handle may be used
+  with the unprotected calls such as DosRead and DosWrite.
 
-Bits Description 
-31..8 - reserved, must be 0.
-
-7..4 - the following flags apply if the file does not exist:
-
-0000 OPEN_ACTION_FAIL_IF_NEW 
-Open an existing file; fail if the file does not exist. 
-
-0001 OPEN_ACTION_CREATE_IF_NEW 
-Create the file if the file does not exist. 
-
-3..0 The following flags apply if the file does not exist:
-
-0000 OPEN_ACTION_FAIL_IF_EXISTS 
-Open the file; fail if the file already exists. 
-
-0001 OPEN_ACTION_OPEN_IF_EXISTS 
-Open the file if it already exists. 
-
-0010 OPEN_ACTION_REPLACE_IF_EXISTS 
-Replace the file if it already exists. 
-
-
- OpenMode = the mode of the open function.
-
-This parameter contains the following bit fields   
-
-Bits Description 
-
-31 - reserved, must be zero. 
-
-30 OPEN_FLAGS_PROTECTED_HANDLE (0x40000000) - protected file handle flag.
-  0 - unprotected Handle
-  1 - protected Handle
-
-Protected handle requires the FileHandleLockID to be specified on subsequent
-DosProtectxxxx calls.
-
-Unprotected handle requires the FileHandleLockID value to be specified as zero
-on subsequent DosProtectxxxx calls. An unprotected handle may be used with the
-unprotected calls such as DosRead and DosWrite.
-
-29 OPEN_SHARE_DENYLEGACY (0x10000000)
-Deny read/write access by the DosOpen command
-  0 - allow read/write access by the DosOpen command.
-  1 - deny read/write access by the DosOpen command.
-
-  A file opened by DosOpenL will not be allowed to grow larger than 2GB while that same file is open via a legacy DosOpen call. Setting this bit to 1 will prevent access by the obsolete DosOpen API and ensure that no error will occur when growing the file.
-
-28..16 - reserved, must be zero.
-
-15 OPEN_FLAGS_DASD (0x00008000)
-Direct Open flag   
-  0 - FileName represents a file to be opened normally. 
-  1 - FileName is drive (such as C or A), and represents a mounted disk or diskette volume to be opened for direct access.
-
-14 OPEN_FLAGS_WRITE_THROUGH (0x00004000) 
-Write-Through flag   
-  0 - writes to the file may go through the file-system driver's cache; the file-system driver writes the sectors when the cache is full or the file is closed.
-  1 - writes to the file may go through the file-system driver's cache, but the sectors are written (the actual file I/O operation is completed) before a synchronous write call returns. This state of the file defines it as a synchronous file. For synchronous files, this bit must be set, because the data must be written to the medium for synchronous write operations.
-
+        29 OPEN_SHARE_DENYLEGACY (0x10000000)
+           Deny read/write access by the DosOpen command:
+             0 - allow read/write access by the DosOpen command.
+             1 - deny read/write access by the DosOpen command.
+  A file opened by DosOpenL will not be allowed to grow larger than 2GB while
+  that same file is open via a legacy DosOpen call. Setting this bit to 1 will
+  prevent access by the obsolete DosOpen API and ensure that no error will
+  occur when growing the file.
+    28..16 - reserved, must be zero.
+        15 OPEN_FLAGS_DASD (0x00008000)
+           Direct Open flag:
+             0 - FileName represents a file to be opened normally. 
+             1 - FileName is drive (such as C or A), and represents a mounted
+                 disk or diskette volume to be opened for direct access.
+        14 OPEN_FLAGS_WRITE_THROUGH (0x00004000) 
+           Write-Through flag:
+             0 - writes to the file may go through the file-system driver's
+                 cache; the file-system driver writes the sectors when the
+                 cache is full or the file is closed.
+             1 - writes to the file may go through the file-system driver's
+                 cache, but the sectors are written (the actual file I/O
+                 operation is completed) before a synchronous write call
+                 returns. This state of the file defines it as a synchronous
+                 file. For synchronous files, this bit must be set, because the
+                 data must be written to the medium for synchronous write
+                 operations.
   This bit flag is not inherited by child processes. 
-
-13 OPEN_FLAGS_FAIL_ON_ERROR (0x00002000) 
-Fail-Errors flag. Media I O errors are handled as follows   
-  0 - reported through the system critical-error handler.
-  1 - reported directly to the caller by way of a return code.
-
-  Media I/O errors generated through Category 08h Logical Disk Control IOCtl Commands always get reported directly to the caller by way of return code. The Fail-Errors function applies only to non-IOCtl handle-based file I/O calls.
+       13 OPEN_FLAGS_FAIL_ON_ERROR (0x00002000) 
+          Fail-Errors flag. Media I/O errors are handled as follows:
+            0 - reported through the system critical-error handler.
+            1 - reported directly to the caller by way of a return code.
+  Media I/O errors generated through Category 08h Logical Disk Control IOCtl
+  Commands always get reported directly to the caller by way of return code.
+  The Fail-Errors function applies only to non-IOCtl handle-based file I/O
+  calls.
 
   This flag bit is not inherited by child processes. 
 
-12 OPEN_FLAGS_NO_CACHE (0x00001000) 
-No-Cache/Cache flag   
- 0 - the file-system driver should place data from I/O operations into its cache.
- 1 - I/O operations to the file need not be done through the file-system driver's cache.
-
-  The setting of this bit determines whether file-system drivers should place data into the cache. Like the write-through bit, this is a per-handle bit, and is not inherited by child processes. 
-
-11 - reserved; must be 0.
-
-10..8 - the locality of reference flags contain information about how the application is to get access to the file. The values are as follows:
-
-000 OPEN_FLAGS_NO_LOCALITY (0x00000000)
-No locality known.
-
-001 OPEN_FLAGS_SEQUENTIAL (0x00000100)
-Mainly sequential access.
-
-010 OPEN_FLAGS_RANDOM (0x00000200)
-Mainly random access.
-
-011 OPEN_FLAGS_RANDOMSEQUENTIAL (0x00000300)
-Random with some locality.
-
-7 OPEN_FLAGS_NOINHERIT (0x00000080)
-Inheritance flag
-
-  0 - file handle is inherited by a process created from a call to DosExecPgm.
-  1 - file handle is private to the current process.
-
+       12 OPEN_FLAGS_NO_CACHE (0x00001000) 
+          No-Cache/Cache flag:
+            0 - the file-system driver should place data from I/O operations
+                into its cache.
+            1 - I/O operations to the file need not be done through the
+                file-system driver's cache.
+  The setting of this bit determines whether file-system drivers should place
+  data into the cache. Like the write-through bit, this is a per-handle bit,
+  and is not inherited by child processes. 
+       11 - reserved; must be 0.
+    10..8 - the locality of reference flags contain information about how the
+            application is to get access to the file. The values are as
+            follows:
+          000 OPEN_FLAGS_NO_LOCALITY (0x00000000)
+              No locality known.
+          001 OPEN_FLAGS_SEQUENTIAL (0x00000100)
+              Mainly sequential access.
+          010 OPEN_FLAGS_RANDOM (0x00000200)
+              Mainly random access.
+          011 OPEN_FLAGS_RANDOMSEQUENTIAL (0x00000300)
+              Random with some locality.
+        7 OPEN_FLAGS_NOINHERIT (0x00000080)
+          Inheritance flag:
+            0 - file handle is inherited by a process created from a call to
+                DosExecPgm.
+            1 - file handle is private to the current process.
   This bit is not inherited by child processes. 
+    6..4 Sharing Mode flags; this field defines any restrictions to file
+         access placed by the caller on other processes. The values are as
+         follows:
+         001 OPEN_SHARE_DENYREADWRITE (0x00000010)
+             Deny read write access.
+         010 OPEN_SHARE_DENYWRITE (0x00000020)
+             Deny write access.
+         011 OPEN_SHARE_DENYREAD (0x00000030)
+             Deny read access.
+         100 OPEN_SHARE_DENYNONE (0x00000040)
+             Deny neither read nor write access (deny none).
+         Any other value is invalid. 
+       3 Reserved; must be 0. 
+    2..0 Access-Mode flags. This field defines the file access required by the
+         caller. The values are as follows:
+         000 OPEN_ACCESS_READONLY (0x00000000)
+         Read-only access
+         001 OPEN_ACCESS_WRITEONLY (0x00000001)
+         Write-only access
+         010 OPEN_ACCESS_READWRITE (0x00000002)
+         Read/write access.
+         Any other value is invalid, as are any other combinations.   
 
-6..4 Sharing Mode flags; this field defines any restrictions to file access placed by the caller on other processes. The values are as follows:
+File sharing requires the cooperation of sharing processes. This cooperation is
+communicated through sharing and access modes. Any sharing restrictions placed
+on a file opened by a process are removed when the process closes the file with
+a DosClose request.
 
-001 OPEN_SHARE_DENYREADWRITE (0x00000010)
-Deny read write access.
+Sharing Mode:
+Specifies the type of file access that other processes may have. For example,
+if other processes can continue to read the file while your process is
+operating on it, specify Deny Write. The sharing mode prevents other processes
+from writing to the file but still allows them to read it.
 
-010 OPEN_SHARE_DENYWRITE (0x00000020)
-Deny write access.
+Access Mode:
+Specifies the type of file access (access mode) needed by your process. For
+example, if your process requires read/write access, and another process has
+already opened the file with a sharing mode of Deny None, your DosProtectOpenL
+request succeeds. However, if the file is open with a sharing mode of Deny
+Write, the process is denied access.
 
-011 OPEN_SHARE_DENYREAD (0x00000030)
-Deny read access.
+If the file is inherited by a child process, all sharing and access
+restrictions also are inherited.
 
-100 OPEN_SHARE_DENYNONE (0x00000040)
-Deny neither read nor write access (deny none).
+If an open file handle is duplicated by a call to DosDupHandle, all sharing and
+access restrictions also are duplicated.
 
-Any other value is invalid. 
+ EA = pointer to an extended attribute buffer. The address of the
+      extended-attribute buffer, which contains an EAOP2 structure. The
+      fpFEA2List field in the EAOP2 structure points to a data area where the
+      relevant FEA2 list is to be found. The fpGEA2List and oError fields are
+      ignored.
+Output fpGEA2List and fpFEA2List are unchanged. The area that fpFEA2List points
+to is unchanged. If an error occurred during the set, oError is the offset of
+the FEA2 entry where the error occurred. The return code from DosProtectOpenL
+is the error code for that error condition. If no error occurred, oError is
+undefined.
 
-3 Reserved; must be 0. 
+ EA is nil, then no extended attributes are defined for the file. If extended
+ attributes are not to be defined or modified, the pointer EA must be set to
+ nil.
 
-2 0 Access-Mode flags. This field defines the file access required by the caller. The values are as follows   
-
-000 OPEN_ACCESS_READONLY (0x00000000) 
-
-Read-only access 
-
-001 OPEN_ACCESS_WRITEONLY (0x00000001) 
-
-Write-only access 
-
-010 OPEN_ACCESS_READWRITE (0x00000002) 
-
-Read/write access. 
-
-
-Any other value is invalid, as are any other combinations.   
-
-File sharing requires the cooperation of sharing processes. This cooperation is communicated through sharing and access modes. Any sharing restrictions placed on a file opened by a process are removed when the process closes the file with a DosClose request. 
-
-Sharing Mode 
-Specifies the type of file access that other processes may have. For example, if other processes can continue to read the file while your process is operating on it, specify Deny Write. The sharing mode prevents other processes from writing to the file but still allows them to read it. 
-
-Access Mode 
-Specifies the type of file access (access mode) needed by your process. For example, if your process requires read/write access, and another process has already opened the file with a sharing mode of Deny None, your DosProtectOpenL request succeeds. However, if the file is open with a sharing mode of Deny Write, the process is denied access. 
-
-If the file is inherited by a child process, all sharing and access restrictions also are inherited. 
-
-If an open file handle is duplicated by a call to DosDupHandle, all sharing and access restrictions also are duplicated. 
-
- EA = pointer to an extended attribute buffer.
-
-Input The address of the extended-attribute buffer, which contains an EAOP2 structure. The fpFEA2List field in the EAOP2 structure points to a data area where the relevant FEA2 list is to be found. The fpGEA2List and oError fields are ignored.
-
-Output fpGEA2List and fpFEA2List are unchanged. The area that fpFEA2List points to is unchanged. If an error occurred during the set, oError is the offset of the FEA2 entry where the error occurred. The return code from DosProtectOpenL is the error code for that error condition. If no error occurred, oError is undefined.
-
-
- EA is nil, then no extended attributes are defined for the file. If extended attributes are not to be defined or modified, the pointer peaop2 must be set to zero. 
-
- FileHandleLockID = 32-bit lockid for the file handle is returned here
+ FileHandleLockID = 32-bit LockID for the file handle is returned here.
 
 Possible return codes:
-0 NO_ERROR
-2 ERROR_FILE_NOT_FOUND
-3 ERROR_PATH_NOT_FOUND
-4 ERROR_TOO_MANY_OPEN_FILES
-5 ERROR_ACCESS_DENIED
-12 ERROR_INVALID_ACCESS
-26 ERROR_NOT_DOS_DISK
-32 ERROR_SHARING_VIOLATION
-36 ERROR_SHARING_BUFFER_EXCEEDED
-82 ERROR_CANNOT_MAKE
-87 ERROR_INVALID_PARAMETER
-99 ERROR_DEVICE_IN_USE
+  0 NO_ERROR
+  2 ERROR_FILE_NOT_FOUND
+  3 ERROR_PATH_NOT_FOUND
+  4 ERROR_TOO_MANY_OPEN_FILES
+  5 ERROR_ACCESS_DENIED
+ 12 ERROR_INVALID_ACCESS
+ 26 ERROR_NOT_DOS_DISK
+ 32 ERROR_SHARING_VIOLATION
+ 36 ERROR_SHARING_BUFFER_EXCEEDED
+ 82 ERROR_CANNOT_MAKE
+ 87 ERROR_INVALID_PARAMETER
+ 99 ERROR_DEVICE_IN_USE
 108 ERROR_DRIVE_LOCKED
 110 ERROR_OPEN_FAILED
 112 ERROR_DISK_FULL
@@ -533,37 +643,59 @@ Possible return codes:
 231 ERROR_PIPE_BUSY
 
 Remarks:
+A successful DosProtectOpenL request returns a handle and a 32-bit LockID for
+accessing the file. The read/write pointer is set at the first byte of the
+file. The position of the pointer can be changed with DosProtectSetFilePtrL or
+by read and write operations on the file.
 
-A successful DosProtectOpenL request returns a handle and a 32-bit lockid for accessing the file. The read/write pointer is set at the first byte of the file. The position of the pointer can be changed with DosProtectSetFilePtrL or by read and write operations on the file. 
+The file s date and time can be queried with DosProtectQueryFileInfo. They are
+set with DosProtectSetFileInfo.
 
-The file s date and time can be queried with DosProtectQueryFileInfo. They are set with DosProtectSetFileInfo. 
+The read-only attribute of a file can be set with the ATTRIB command.
 
-The read-only attribute of a file can be set with the ATTRIB command. 
+ulAttribute cannot be set to Volume Label. To set volume-label information,
+issue DosProtectSetFileInfo with a logical drive number. Volume labels cannot
+be opened.
 
-ulAttribute cannot be set to Volume Label. To set volume-label information, issue DosProtectSetFileInfo with a logical drive number.  Volume labels cannot be opened. 
+InitSize affects the size of the file only when the file is new or is
+a replacement. If an existing file is opened, cbFile is ignored. To change the
+size of the existing file, issue DosProtectSetFileSizeL.
 
-cbFile affects the size of the file only when the file is new or is a replacement. If an existing file is opened, cbFile is ignored. To change the size of the existing file, issue DosProtectSetFileSizeL. 
+The value in InitSize is a recommended size. If the full size cannot be
+allocated, the open request may still succeed. The file system makes
+a reasonable attempt to allocate the new size in an area that is as nearly
+contiguous as possible on the medium. When the file size is extended, the
+values of the new bytes are undefined.
 
-The value in cbFile is a recommended size. If the full size cannot be allocated, the open request may still succeed.  The file system makes a reasonable attempt to allocate the new size in an area that is as nearly contiguous as possible on the medium. When the file size is extended, the values of the new bytes are undefined. 
+The Direct Open bit provides direct access to an entire disk or diskette
+volume, independent of the file system. This mode of opening the volume that is
+currently on the drive returns a handle to the calling function; the handle
+represents the logical volume as a single file. The calling function specifies
+this handle with a DosDevIOCtl Category 8, DSK_LOCKDRIVE request to prevent
+other processes from accessing the logical volume. When you are finished using
+the logical volume, issue a DosDevIOCtl Category 8, DSK_UNLOCKDRIVE request to
+allow other processes to access the logical volume.
 
-The Direct Open bit provides direct access to an entire disk or diskette volume, independent of the file system. This mode of opening the volume that is currently on the drive returns a handle to the calling function; the handle represents the logical volume as a single file. The calling function specifies this handle with a DosDevIOCtl Category 8, DSK_LOCKDRIVE request to prevent other processes from accessing the logical volume. When you are finished using the logical volume, issue a DosDevIOCtl Category 8, DSK_UNLOCKDRIVE request to allow other processes to access the logical volume. 
+The file-handle state bits can be set by DosProtectOpenL and
+DosProtectSetFHState. An application can query the file-handle state bits, as
+well as the rest of the Open Mode field, by issuing DosProtectQueryFHState.
 
-The file-handle state bits can be set by DosProtectOpenL and DosProtectSetFHState. An application can query the file-handle state bits, as well as the rest of the Open Mode field, by issuing DosProtectQueryFHState. 
+You can use an TEAOP2 structure to set extended attributes in EA when creating
+a file, replacing an existing file, or truncating an existing file. No extended
+attributes are set when an existing file is just opened.
 
-You can use an EAOP2 structure to set extended attributes in peaop2 when creating a file, replacing an existing file, or truncating an existing file. No extended attributes are set when an existing file is just opened. 
+A replacement operation is logically equivalent to atomically deleting and
+re-creating the file. This means that any extended attributes associated with
+the file also are deleted before the file is re-created.
 
-A replacement operation is logically equivalent to atomically deleting and re-creating the file. This means that any extended attributes associated with the file also are deleted before the file is re-created. 
+The FileHandleLockID returned is required on each of the DosProtectxxx
+functions. An incorrect pfhFileHandleLockID on subsequent DosProtectxxx calls
+results in an ERROR_ACCESS_DENIED return code.
 
-The pfhFileHandleLockID returned is required on each of the DosProtectxxx functions. An incorrect pfhFileHandleLockID on subsequent DosProtectxxx calls results in an ERROR_ACCESS_DENIED return code. 
-
-The DosProtectxxx functions can be used with a NULL filehandle lockid, if the subject filehandle was obtained from DosOpen.
+The DosProtectxxx functions can be used with a NULL filehandle LockID, if the
+subject filehandle was obtained from DosOpen.
 *)
-type
-  TDosProtectOpenL = function (FileName: PChar; var Handle: THandle;
-                         var Action: cardinal; InitSize: int64; Attrib,
-                         OpenFlags, OpenMode: cardinal; EA: PEAOp2;
-                              var FileHandleLockID: cardinal): cardinal; cdecl;
-function DummyDosProtectOpenL (FileName: PChar; var Handle: THandle;
+function DosProtectOpenL (FileName: PChar; var Handle: THandle;
                          var Action: cardinal; InitSize: int64; Attrib,
                          OpenFlags, OpenMode: cardinal; EA: PEAOp2;
                               var FileHandleLockID: cardinal): cardinal; cdecl;
@@ -611,11 +743,7 @@ the file.
 
 DosProtectSetFilePtrL cannot be used for a character device or pipe.
 *)
-type
-  TDosProtectSetFilePtrL = function (Handle: THandle; Pos: int64;
-          Method: cardinal;
-            var PosActual: int64; FileHandleLockID: cardinal): cardinal; cdecl;
-function DummyDosProtectSetFilePtrL (Handle: THandle; Pos: int64;
+function DosProtectSetFilePtrL (Handle: THandle; Pos: int64;
                               Method: cardinal; var PosActual: int64; 
                                   FileHandleLockID: cardinal): cardinal; cdecl;
 (*
@@ -648,24 +776,9 @@ being extended, the file system tries to allocate additional bytes in
 a contiguous (or nearly contiguous) space on the medium. The values of the new
 bytes are undefined.
 *)
-type
-  TDosProtectSetFileSizeL = function (Handle: THandle; Size: int64;
-                                  FileHandleLockID: cardinal): cardinal; cdecl;
-function DummyDosProtectSetFileSizeL (Handle: THandle; Size: int64;
+function DosProtectSetFileSizeL (Handle: THandle; Size: int64;
                                   FileHandleLockID: cardinal): cardinal; cdecl;
 
-
-const
-  Sys_DosCancelLockRequestL: TDosCancelLockRequestL =
-                                                   @DummyDosCancelLockRequestL;
-  Sys_DosSetFileLocksL: TDosSetFileLocksL = @DummyDosSetFileLocksL;
-  Sys_DosProtectSetFileLocksL: TDosProtectSetFileLocksL =
-                                                 @DummyDosProtectSetFileLocksL;
-  Sys_DosProtectOpenL: TDosProtectOpenL = @DummyDosProtectOpenL;
-  Sys_DosProtectSetFilePtrL: TDosProtectSetFilePtrL =
-                                                   @DummyDosProtectSetFilePtrL;
-  Sys_DosProtectSetFileSizeL: TDosProtectSetFileSizeL =
-                                                  @DummyDosProtectSetFileSizeL;
 
 
 {***************************************************************************}
@@ -674,152 +787,6 @@ implementation
 
 uses
   OS2Def;
-
-(*
- DosCreateThread2
-*)
-
-(*
-DosDumpProcess initiates a process dump from a specified process. This may be used as part of an error handling routine to gather information about an error that may be analyzed later using the OS/2 System Dump Formatter. Configuration of Process Dump may be done using the PDUMPSYS, PDUMPUSR, and PROCDUMP commands. 
-
-
-APIRET APIENTRY DosDumpProcess (ULONG Flag, ULONG Drive, PID Pid) 
-
-Parameters 
-
-flag (ULONG)   input 
-Flags specify the function to be performed   
-
-DDP_DISABLEPROCDUMP 0x00000000L Disable process dumps. 
-
-DDP_ENABLEPROCDUMP 0x00000001L Enable process dumps. 
-
-DDP_PERFORMPROCDUMP 0x00000002L Perform process dump. 
-
-drive (ULONG)   input 
-The ASCII character for the drive on which process dump files are to be created. This is required only with the DDP_ENABLEPROCDUMP. 
-
-Note:  Use the PROCDUMP command to customize fully the drive and path. 
-
-pid (PID)   input 
-The process to be dumped. 0L specified the current process; otherwise a valid process ID must be specified. 
-
-Note:  Use the PDUMPUSR command to specify what information will be dumped. Use the PROCDUMP command to customize options per process and in particular to specify whether child or parent process will be dumped. This parameter is actioned only with DDP_PERFORMPROCDUMP. 
-
-Returns 
-
-ulrc (APIRET)   returns 
-Return Code. 
-
-DosDumpProcess returns the following value   
-
-87 ERROR_INVALID_PARAMETER
-
-Remarks 
-
-For maximum flexibility the use of DosDumpProcess should be limited to the DDP_PERFORMPROCDUMP function. This allows you to specify whether Process Dump should be enabled through the use of the PROCDUMP command. You may customize Process Dump completely through use of the PDUMPUSR, PDUMPSYS, AND PROCDUMP commands. For further information, see PROCDUMP.DOC in the OS2\SYSTEM\RAS directory. DDP_ENABLEPROCDUMP and DDP_DISABLEPROCDUMP are provided for backwards compatibility only. 
-
- DosDumpProcess
-*)
-
-(*
- DosForceSystemDump
-
-function DosGetProcessorStatus (...): cardinal; cdecl;
-external 'DOSCALLS' index 447;
-
-function DosQueryPageUsage (...): cardinal; cdecl;
-external 'DOSCALLS' index 358;
-*)
-(*
-DosSetProcessorStatus = DOSCALLS.448
-DosCreateSpinLock     = DOSCALLS.449
-DosAcquireSpinLock    = DOSCALLS.450
-DosReleaseSpinLock    = DOSCALLS.451
-DosFreeSpinLock       = DOSCALLS.452
- DosListIO
- DosListIOL
- DosPerfSystemCall
- DosQueryABIOSSuport
-function DosQueryMemState (...): cardinal; cdecl;
-external 'DOSCALLS' index 307;
-
-___ function Dos16QueryModFromCS (...): ...
-external 'DOSCALLS' index 359;
-
- DosQueryModFromEIP
-*)
-(*
- The following API calls are made available through unit System:
-
- DosOpenL = DOSCALLS.981
- DosSetFilePtrL = DOSCALLS.988
- DosSetFileSizeL = DOSCALLS.989
-*)
-(* Todo:
-WSeB/eCS APIs:
- Creates a private Read/Write alias or an LDT code segment alias to part
- of an existing memory object. The alias object is accessible only to the
- process that created it. The original object must be accessible to the caller
- of DosAliasMem.
-
- An alias is removed by calling DosFreeMem with the alias address.
-
- Although it is possible to create a Read/Write alias to a code segment
- to allow code modification, this is not recommended. On Pentium processors,
- and later, pipe-lining techniques used by the processor might allow
- the processor not to be aware of the modified code, if appropriate
- pipe-line serialization is not performed by the programmer. For further
- information see the processor documentation.
-
- Possible return values:
-     0 No_Error
-     8 Error_Not_Enough_Memory
-    87 Error_Invalid_Parameter
-    95 Error_Interrupt
- 32798 Error_Crosses_Object_Boundary
-
-pMem   = Pointer to the memory to be aliased. It must be on a page boundary
-         (i.e. aligned to 4 kB), but may specify an address within a memory
-         object.
-Size   = Specifies size in bytes for the memory to alias. The entire range
-         must lie within a single memory object and must be committed
-         if OBJ_SELMAPALL is specified.
-Alias  = Pointer where the address of the aliased memory is returned.
-         The corresponding LDT selector is not explicitly returned but may be
-         calculated by using the Compatibility Mapping Algorithm
-         ((Alias shr 13) or 7).
-Flags  = Combination of the following values:
-            obj_SelMapAll = $800 (Create a Read/Write 32 bit alias
-                                  to the address specified. The entire range
-                                  must be committed, start on page boundary
-                                  and be within the extent of a single memory
-                                  object. An LDT selector is created to map
-                                  the entire range specified. If obj_SelMapAll
-                                  is not specified, then size is rounded up
-                                  to a 4K multiple and the alias created
-                                  inherits the permissions from the pages
-                                  of the original object.)
-            obj_Tile      =  $40  (Obj_Tile may be specified, but currently
-                                   this is enforced whether or not specified.
-                                   This forces LDT selectors to be based
-                                   on 64K boundaries.)
-            sel_Code      =    1  (Marks the LDT alias selector(s)
-                                   Read-Executable code selectors.)
-            sel_Use32     =    2  (Used with obj_SelMapAll, otherwise ignored.
-                                   Marks the first alias LDT selector
-                                   as a 32 bit selector by setting the BIG/C32
-                                   bit.)
-function DosAliasMem (pMem: pointer; Size: cardinal; var Alias: pointer; Flags: cardinal): cardinal; cdecl;
-external 'DOSCALLS' index 298;
-*)
-
-(*
- DosQueryThreadAffinity
- DosSetThreadAffinity
- Dos16SysTrace
- DosVerifyPidTid
-*)
 
 
 function DummyDosCancelLockRequestL (Handle: THandle; var Lock: TFileLockL): cardinal; cdecl;
@@ -924,30 +891,624 @@ begin
 end;
 
 
+function DummyDosProtectSetFileLocks (Handle: THandle;
+                                      var Unlock, Lock: TFileLock;
+                                      Timeout, Flags: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+begin
+  if FileHandleLockID <> 0 then
+   DummyDosProtectSetFileLocks := Error_Invalid_Parameter
+  else
+   DummyDosProtectSetFileLocks := DosSetFileLocks (Handle, Unlock, Lock,
+                                                               Timeout, Flags);
+end;
+
+
+function DummyDosProtectOpen (FileName: PChar; var Handle: THandle;
+                              var Action: cardinal; InitSize, Attrib,
+                              OpenFlags, OpenMode: cardinal; ea: PEAOp2;
+                              var FileHandleLockID: cardinal): cardinal; cdecl;
+begin
+  DummyDosProtectOpen := DosOpen (FileName, Handle, Action, InitSize, Attrib,
+                                                      OpenFlags, OpenMode, EA);
+  FileHandleLockID := 0;
+end;
+
+
+function DummyDosProtectClose (Handle: THandle;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+begin
+  DummyDosProtectClose := DosClose (Handle);
+end;
+
+
+function DummyDosProtectRead (Handle: THandle; var Buffer; Count: cardinal;
+          var ActCount: cardinal; FileHandleLockID: cardinal): cardinal; cdecl;
+begin
+  DummyDosProtectRead := DosRead (Handle, Buffer, Count, ActCount);
+end;
+
+
+function DummyDosProtectWrite (Handle: THandle; const Buffer; Count: cardinal;
+                                var ActCount: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+begin
+  DummyDosProtectWrite := DosWrite (Handle, Buffer, Count, ActCount);
+end;
+
+
+function DummyDosProtectSetFilePtr (Handle: THandle; Pos: longint;
+                                    Method: cardinal; var PosActual: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+begin
+  DummyDosProtectSetFilePtr := DosSetFilePtr (Handle, Pos, Method, PosActual);
+end;
+
+
+function DummyDosProtectSetFileSize (Handle: THandle; Size: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+begin
+  DummyDosProtectSetFileSize := DosSetFileSize (Handle, Size);
+end;
+
+
+function DummyDosProtectQueryFHState (Handle: THandle; var FileMode: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+begin
+  DummyDosProtectQueryFHState := DosQueryFHState (Handle, FileMode);
+end;
+
+
+function DummyDosProtectSetFHState (Handle: THandle; FileMode: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+begin
+  DummyDosProtectSetFHState := DosSetFHState (Handle, FileMode);
+end;
+
+
+function DummyDosProtectQueryFileInfo (Handle: THandle; InfoLevel: cardinal;
+                            AFileStatus: PFileStatus; FileStatusLen: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+begin
+  DummyDosProtectQueryFileInfo := DosQueryFileInfo (Handle, InfoLevel,
+                                                   AFileStatus, FileStatusLen);
+end;
+
+
+function DummyDosProtectSetFileInfo (Handle: THandle; InfoLevel: cardinal;
+                            AFileStatus: PFileStatus; FileStatusLen: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+begin
+  DummyDosProtectSetFileInfo := DosSetFileInfo (Handle, InfoLevel,
+                                                   AFileStatus, FileStatusLen);
+end;
+
+
+function DummyDosProtectEnumAttribute (RefType: cardinal; AFile: pointer;
+                                  Entry: cardinal; var Buf; BufSize: cardinal;
+                                     var Count: cardinal; InfoLevel: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+begin
+  DummyDosProtectEnumAttribute := DosEnumAttribute (RefType, AFile, Entry,
+                                               Buf, BufSize, Count, InfoLevel);
+end;
+
+
+
+type
+  TDosProtectOpen = function (FileName: PChar; var Handle: THandle;
+                              var Action: cardinal; InitSize, Attrib,
+                              OpenFlags, OpenMode: cardinal; ea: PEAOp2;
+                              var FileHandleLockID: cardinal): cardinal; cdecl;
+
+  TDosProtectClose = function (Handle: THandle;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+
+  TDosProtectRead = function (Handle: THandle; var Buffer; Count: cardinal;
+          var ActCount: cardinal; FileHandleLockID: cardinal): cardinal; cdecl;
+
+  TDosProtectWrite = function (Handle: THandle; const Buffer; Count: cardinal;
+                               var ActCount: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+
+  TDosProtectSetFilePtr = function (Handle: THandle; Pos: longint;
+                                    Method: cardinal; var PosActual: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+
+  TDosProtectSetFileSize = function (Handle: THandle; Size: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+
+  TDosProtectQueryFHState = function (Handle: THandle; var FileMode: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+
+  TDosProtectSetFHState = function (Handle: THandle; FileMode: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+
+  TDosProtectQueryFileInfo = function (Handle: THandle; InfoLevel: cardinal;
+                            AFileStatus: PFileStatus; FileStatusLen: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+
+  TDosProtectSetFileInfo = function (Handle: THandle; InfoLevel: cardinal;
+                            AFileStatus: PFileStatus; FileStatusLen: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+
+  TDosProtectEnumAttribute = function (RefType: cardinal; AFile: pointer;
+                                  Entry: cardinal; var Buf; BufSize: cardinal;
+                                  var Count: cardinal; InfoLevel: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+
+  TDosProtectSetFileLocks = function (Handle: THandle;
+                                      var Unlock, Lock: TFileLock;
+                                      Timeout, Flags: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+
+  TDosCancelLockRequestL = function (Handle: THandle; var Lock: TFileLockL):
+                                                               cardinal; cdecl;
+
+  TDosProtectSetFileLocksL = function (Handle: THandle; var Unlock: TFileLockL;
+                   var Lock: TFileLockL; Timeout: cardinal; Flags: cardinal;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+
+  TDosSetFileLocksL = function (Handle: THandle; var Unlock: TFileLockL;
+    var Lock: TFileLockL; Timeout: cardinal; Flags: cardinal): cardinal; cdecl;
+
+  TDosProtectOpenL = function (FileName: PChar; var Handle: THandle;
+                         var Action: cardinal; InitSize: int64; Attrib,
+                         OpenFlags, OpenMode: cardinal; EA: PEAOp2;
+                              var FileHandleLockID: cardinal): cardinal; cdecl;
+
+  TDosProtectSetFilePtrL = function (Handle: THandle; Pos: int64;
+          Method: cardinal;
+            var PosActual: int64; FileHandleLockID: cardinal): cardinal; cdecl;
+
+  TDosProtectSetFileSizeL = function (Handle: THandle; Size: int64;
+                                  FileHandleLockID: cardinal): cardinal; cdecl;
+
+
+const
+  Sys_DosCancelLockRequestL: TDosCancelLockRequestL =
+                                                   @DummyDosCancelLockRequestL;
+  Sys_DosSetFileLocksL: TDosSetFileLocksL = @DummyDosSetFileLocksL;
+  Sys_DosProtectSetFileLocksL: TDosProtectSetFileLocksL =
+                                                 @DummyDosProtectSetFileLocksL;
+  Sys_DosProtectOpenL: TDosProtectOpenL = @DummyDosProtectOpenL;
+  Sys_DosProtectSetFilePtrL: TDosProtectSetFilePtrL =
+                                                   @DummyDosProtectSetFilePtrL;
+  Sys_DosProtectSetFileSizeL: TDosProtectSetFileSizeL =
+                                                  @DummyDosProtectSetFileSizeL;
+  Sys_DosProtectOpen: TDosProtectOpen = @DummyDosProtectOpen;
+  Sys_DosProtectClose: TDosProtectClose = @DummyDosProtectClose;
+  Sys_DosProtectRead: TDosProtectRead = @DummyDosProtectRead;
+  Sys_DosProtectWrite: TDosProtectWrite = @DummyDosProtectWrite;
+  Sys_DosProtectSetFilePtr: TDosProtectSetFilePtr = @DummyDosProtectSetFilePtr;
+  Sys_DosProtectSetFileSize: TDosProtectSetFileSize =
+                                                   @DummyDosProtectSetFileSize;
+  Sys_DosProtectQueryFHState: TDosProtectQueryFHState =
+                                                  @DummyDosProtectQueryFHState;
+  Sys_DosProtectSetFHState: TDosProtectSetFHState = @DummyDosProtectSetFHState;
+  Sys_DosProtectQueryFileInfo: TDosProtectQueryFileInfo =
+                                                 @DummyDosProtectQueryFileInfo;
+  Sys_DosProtectSetFileInfo: TDosProtectSetFileInfo =
+                                                   @DummyDosProtectSetFileInfo;
+  Sys_DosProtectEnumAttribute: TDosProtectEnumAttribute =
+                                                 @DummyDosProtectEnumAttribute;
+  Sys_DosProtectSetFileLocks: TDosProtectSetFileLocks =
+                                                  @DummyDosProtectSetFileLocks;
+
+
+function DosOpenL (FileName: PChar; var Handle: THandle;
+                        var Action: cardinal; InitSize: int64;
+                        Attrib, OpenFlags, FileMode: cardinal;
+                                         EA: pointer): cardinal; cdecl; inline;
+begin
+  DosOpenL := Sys_DosOpenL (FileName, Handle, Action, InitSize, Attrib,
+                                                      OpenFlags, FileMode, EA);
+end;
+
+
+function DosSetFilePtrL (Handle: THandle; Pos: int64; Method: cardinal;
+                                var PosActual: int64): cardinal; cdecl; inline;
+begin
+  DosSetFilePtrL := Sys_DosSetFilePtrL (Handle, Pos, Method, PosActual);
+end;
+
+
+function DosSetFileSizeL (Handle: THandle; Size: int64): cardinal; cdecl;
+                                                                        inline;
+begin
+  DosSetFileSizeL := Sys_DosSetFileSizeL (Handle, Size);
+end;
+
+
+function DosProtectOpen (FileName: PChar; var Handle: THandle;
+                              var Action: cardinal; InitSize, Attrib,
+                              OpenFlags, OpenMode: cardinal; EA: PEAOp2;
+                      var FileHandleLockID: cardinal): cardinal; cdecl; inline;
+begin
+  DosProtectOpen := Sys_DosProtectOpen (FileName, Handle, Action, InitSize,
+                            Attrib, OpenFlags, OpenMode, EA, FileHandleLockID);
+end;
+
+
+function DosProtectClose (Handle: THandle;
+                          FileHandleLockID: cardinal): cardinal; cdecl; inline;
+begin
+  DosProtectClose := Sys_DosProtectClose (Handle, FileHandleLockID);
+end;
+
+
+function DosProtectRead (Handle: THandle; var Buffer; Count: cardinal;
+  var ActCount: cardinal; FileHandleLockID: cardinal): cardinal; cdecl; inline;
+begin
+  DosProtectRead := Sys_DosProtectRead (Handle, Buffer, Count, ActCount,
+                                                             FileHandleLockID);
+end;
+
+
+function DosProtectWrite (Handle: THandle; const Buffer; Count: cardinal;
+                          var ActCount: cardinal;
+                          FileHandleLockID: cardinal): cardinal; cdecl; inline;
+begin
+  DosProtectWrite := Sys_DosProtectWrite (Handle, Buffer, Count, ActCount,
+                                                             FileHandleLockID);
+end;
+
+
+function DosProtectSetFilePtr (Handle: THandle; Pos: longint;
+                               Method: cardinal; var PosActual: cardinal;
+                          FileHandleLockID: cardinal): cardinal; cdecl; inline;
+begin
+  DosProtectSetFilePtr := Sys_DosProtectSetFilePtr (Handle, Pos, Method,
+                                                  PosActual, FileHandleLockID);
+end;
+
+
+function DosProtectSetFileSize (Handle: THandle; Size: cardinal;
+                          FileHandleLockID: cardinal): cardinal; cdecl; inline;
+begin
+  DosProtectSetFileSize := Sys_DosProtectSetFileSize (Handle, Size,
+                                                             FileHandleLockID);
+end;
+
+
+function DosProtectQueryFHState (Handle: THandle; var FileMode: cardinal;
+                          FileHandleLockID: cardinal): cardinal; cdecl; inline;
+begin
+  DosProtectQueryFHState := Sys_DosProtectQueryFHState (Handle, FileMode,
+                                                             FileHandleLockID);
+end;
+
+
+function DosProtectSetFHState (Handle: THandle; FileMode: cardinal;
+                          FileHandleLockID: cardinal): cardinal; cdecl; inline;
+begin
+  DosProtectSetFHState := Sys_DosProtectSetFHState (Handle, FileMode,
+                                                             FileHandleLockID);
+end;
+
+
+function DosProtectQueryFileInfo (Handle: THandle; InfoLevel: cardinal;
+                            AFileStatus: PFileStatus; FileStatusLen: cardinal;
+                          FileHandleLockID: cardinal): cardinal; cdecl; inline;
+begin
+  DosProtectQueryFileInfo := Sys_DosProtectQueryFileInfo (Handle, InfoLevel,
+                                 AFileStatus, FileStatusLen, FileHandleLockID);
+end;
+
+
+function DosProtectSetFileInfo (Handle: THandle; InfoLevel: cardinal;
+                            AFileStatus: PFileStatus; FileStatusLen: cardinal;
+                          FileHandleLockID: cardinal): cardinal; cdecl; inline;
+begin
+  DosProtectSetFileInfo := Sys_DosProtectSetFileInfo (Handle, InfoLevel,
+                                 AFileStatus, FileStatusLen, FileHandleLockID);
+end;
+
+
+function DosProtectEnumAttribute (RefType: cardinal; AFile: pointer;
+                                  Entry: cardinal; var Buf; BufSize: cardinal;
+                                  var Count: cardinal; InfoLevel: cardinal;
+                          FileHandleLockID: cardinal): cardinal; cdecl; inline;
+begin
+  DosProtectEnumAttribute := Sys_DosProtectEnumAttribute (RefType, AFile,
+                      Entry, Buf, BufSize, Count, InfoLevel, FileHandleLockID);
+end;
+
+
+function DosProtectSetFileLocks (Handle: THandle;
+                                 var Unlock, Lock: TFileLock;
+                                 Timeout, Flags: cardinal;
+                          FileHandleLockID: cardinal): cardinal; cdecl; inline;
+begin
+  DosProtectSetFileLocks := Sys_DosProtectSetFileLocks (Handle, Unlock, Lock,
+                                             Timeout, Flags, FileHandleLockID);
+end;
+
+
+function DosProtectOpen (FileName: PChar; var Handle: longint;
+                         var Action: longint; InitSize, Attrib,
+                         OpenFlags, OpenMode: longint; ea: PEAOp2;
+                      var FileHandleLockID: cardinal): cardinal; cdecl; inline;
+begin
+  DosProtectOpen := Sys_DosProtectOpen (FileName, THandle (Handle),
+            cardinal (Action), cardinal (InitSize), cardinal (Attrib),
+              cardinal (OpenFlags), cardinal (OpenMode), EA, FileHandleLockID);
+end;
+
+
+function DosProtectOpen (const FileName: string; var Handle: longint;
+                         var Action: longint; InitSize, Attrib,
+                         OpenFlags, OpenMode: longint; ea: PEAOp2;
+                                     var FileHandleLockID: cardinal): cardinal;
 var
- P: pointer;
+  T: array [0..255] of char;
+begin
+  StrPCopy (@T, FileName);
+  DosProtectOpen := Sys_DosProtectOpen (@T, THandle (Handle),
+         cardinal (Action), cardinal (InitSize), cardinal (Attrib),
+              cardinal (OpenFlags), cardinal (OpenMode), EA, FileHandleLockID);
+end;
+
+
+function DosProtectOpen (const FileName: string; var Handle: THandle;
+                         var Action: cardinal; InitSize, Attrib,
+                         OpenFlags, OpenMode: cardinal; ea: PEAOp2;
+                               var FileHandleLockID: cardinal): cardinal;
+var
+  T: array [0..255] of char;
+begin
+  StrPCopy (@T, FileName);
+  DosProtectOpen := Sys_DosProtectOpen (@T, Handle, Action, InitSize, Attrib,
+                                    OpenFlags, OpenMode, EA, FileHandleLockID);
+end;
+
+
+function DosProtectRead (Handle: longint; var Buffer; Count: longint;
+   var ActCount: longint; FileHandleLockID: cardinal): cardinal; cdecl; inline;
+begin
+  DosProtectRead := Sys_DosProtectRead (THandle (Handle), Buffer,
+                      cardinal (Count), cardinal (ActCount), FileHandleLockID);
+end;
+
+
+function DosProtectWrite (Handle: longint; const Buffer; Count: longint;
+                          var ActCount: longint;
+                          FileHandleLockID: cardinal): cardinal; cdecl; inline;
+begin
+  DosProtectWrite := Sys_DosProtectWrite (THandle (Handle), Buffer,
+                      cardinal (Count), cardinal (ActCount), FileHandleLockID);
+end;
+
+
+function DosProtectSetFilePtr (Handle: longint; Pos, Method: longint;
+                               var PosActual: longint;
+                          FileHandleLockID: cardinal): cardinal; cdecl; inline;
+begin
+  DosProtectSetFilePtr := Sys_DosProtectSetFilePtr (THandle (Handle),
+    cardinal (Pos), cardinal (Method), cardinal (PosActual), FileHandleLockID);
+end;
+
+
+function DosProtectSetFilePtr (Handle: THandle; Pos: longint;
+                                         FileHandleLockID: cardinal): cardinal;
+var
+  PosActual: cardinal;
+begin
+  DosProtectSetFilePtr := DosProtectSetFilePtr (Handle, Pos, 0, PosActual,
+                                                             FileHandleLockID);
+end;
+
+
+function DosProtectGetFilePtr (Handle: longint;
+                 var PosActual: longint; FileHandleLockID: cardinal): cardinal;
+begin
+  DosProtectGetFilePtr := DosProtectSetFilePtr (THandle (Handle), 0, 1,
+                                       cardinal (PosActual), FileHandleLockID);
+end;
+
+
+function DosProtectGetFilePtr (Handle: THandle;
+                var PosActual: cardinal; FileHandleLockID: cardinal): cardinal;
+begin
+  DosProtectGetFilePtr := DosProtectSetFilePtr (Handle, 0, 1, PosActual,
+                                                             FileHandleLockID);
+end;
+
+
+function DosProtectEnumAttribute (Handle: THandle; Entry: cardinal; var Buf;
+                                  BufSize: cardinal; var Count: cardinal;
+                                  InfoLevel: cardinal;
+                                         FileHandleLockID: cardinal): cardinal;
+begin
+    DosProtectEnumAttribute := DosProtectEnumAttribute (0, @Handle, Entry, Buf,
+                                  BufSize, Count, InfoLevel, FileHandleLockID);
+end;
+
+
+function DosProtectEnumAttribute (const FileName: string; Entry: cardinal;
+                                  var Buf; BufSize: cardinal;
+                                  var Count: cardinal; InfoLevel: cardinal;
+                                         FileHandleLockID: cardinal): cardinal;
+var
+  T: array [0..255] of char;
+begin
+  StrPCopy (@T, FileName);
+  DosProtectEnumAttribute := DosProtectEnumAttribute (1, @T, Entry, Buf,
+                                  BufSize, Count, InfoLevel, FileHandleLockID);
+end;
+
+
+function DosCancelLockRequestL (Handle: THandle;
+                                var Lock: TFileLockL): cardinal; cdecl; inline;
+begin
+  DosCancelLockRequestL := Sys_DosCancelLockRequestL (Handle, Lock);
+end;
+
+
+function DosProtectSetFileLocksL (Handle: THandle; var Unlock: TFileLockL;
+                   var Lock: TFileLockL; Timeout: cardinal; Flags: cardinal;
+                          FileHandleLockID: cardinal): cardinal; cdecl; inline;
+begin
+  DosProtectSetFileLocksL := Sys_DosProtectSetFileLocksL (Handle, Unlock, Lock,
+                                             Timeout, Flags, FileHandleLockID);
+end;
+
+
+function DosSetFileLocksL (Handle: THandle; var Unlock: TFileLockL;
+    var Lock: TFileLockL; Timeout: cardinal; Flags: cardinal): cardinal; cdecl;
+                                                                        inline;
+begin
+  DosSetFileLocksL := Sys_DosSetFileLocksL (Handle, Unlock, Lock, Timeout,
+                                                                        Flags);
+end;
+
+
+function DosProtectOpenL (FileName: PChar; var Handle: THandle;
+                         var Action: cardinal; InitSize: int64; Attrib,
+                         OpenFlags, OpenMode: cardinal; EA: PEAOp2;
+                      var FileHandleLockID: cardinal): cardinal; cdecl; inline;
+begin
+  DosProtectOpenL := Sys_DosProtectOpenL (FileName, Handle, Action, InitSize,
+                            Attrib, OpenFlags, OpenMode, EA, FileHandleLockID);
+end;
+
+
+function DosProtectSetFilePtrL (Handle: THandle; Pos: int64;
+                              Method: cardinal; var PosActual: int64; 
+                          FileHandleLockID: cardinal): cardinal; cdecl; inline;
+begin
+  DosProtectSetFilePtrL := Sys_DosProtectSetFilePtrL (Handle, Pos, Method,
+                                                  PosActual, FileHandleLockID);
+end;
+
+
+function DosProtectSetFileSizeL (Handle: THandle; Size: int64;
+                          FileHandleLockID: cardinal): cardinal; cdecl; inline;
+begin
+  DosProtectSetFileSizeL := Sys_DosProtectSetFileSizeL (Handle, Size,
+                                                             FileHandleLockID);
+end;
+
+
+(*
+Todo:
+
+function DosGetProcessorStatus (...): cardinal; cdecl;
+external 'DOSCALLS' index 447;       - may be simulated on non-SMP
+
+DosSetProcessorStatus = DOSCALLS.448 - may be ignored on non-SMP
+DosCreateSpinLock     = DOSCALLS.449 - may be simulated using semaphores on non-SMP
+DosAcquireSpinLock    = DOSCALLS.450 - may be simulated using semaphores on non-SMP
+DosReleaseSpinLock    = DOSCALLS.451 - may be simulated using semaphores on non-SMP
+DosFreeSpinLock       = DOSCALLS.452 - may be simulated using semaphores on non-SMP
+
+ DosQueryModFromEIP - may be simulated by returning empty value if not available
+
+___ function Dos16QueryModFromCS (...): ...
+external 'DOSCALLS' index 359;
+
+
+ DosQueryThreadAffinity - may be simulated on non-SMP
+ DosSetThreadAffinity - may be ignored on non-SMP
+ DosVerifyPidTid - may be implemented by analyzing information returned by DosQuerySysState
+
+ DosQueryExtLibPath - may be simulated by providing empty result if not available
+ DosSetExtLibPath - may be simulated by returning ERROR_NOT_ENOUGH_MEMORY if not available
+
+  Dos32AcquireSpinLock              | DOSCALLS | SMP   | SMP
+  Dos32FreeSpinLock                 | DOSCALLS | SMP   | SMP
+  Dos32GetProcessorStatus           | DOSCALLS | SMP   | SMP
+  Dos32ReleaseSpinLock              | DOSCALLS | SMP   | SMP
+  Dos32SetProcessorStatus           | DOSCALLS | SMP   | SMP
+  Dos32TestPSD                      | DOSCALLS | SMP   | SMP
+
+  Dos32QueryThreadAffinity          | DOSCALLS | PROC  | 2.45
+  Dos32QueryThreadContext           | DOSCALLS | XCPT  | 2.40
+  Dos32SetThreadAffinity            | DOSCALLS | PROC  | 2.45
+
+  Dos32AllocThreadLocalMemory       | DOSCALLS | PROC  | 2.30
+  Dos32FreeThreadLocalMemory        | DOSCALLS | PROC  | 2.30
+  Dos32ListIO                       | DOSCALLS | FILE  | 2.45
+  Dos32ProtectClose                 | DOSCALLS | FILE  | 2.10
+  Dos32ProtectEnumAttribute         | DOSCALLS | FILE  | 2.10
+  Dos32ProtectOpen                  | DOSCALLS | FILE  | 2.10
+  Dos32ProtectQueryFHState          | DOSCALLS | FILE  | 2.10
+  Dos32ProtectQueryFileInfo         | DOSCALLS | FILE  | 2.10
+  Dos32ProtectRead                  | DOSCALLS | FILE  | 2.10
+  Dos32ProtectSetFHState            | DOSCALLS | FILE  | 2.10
+  Dos32ProtectSetFileInfo           | DOSCALLS | FILE  | 2.10
+  Dos32ProtectSetFileLocks          | DOSCALLS | FILE  | 2.10
+  Dos32ProtectSetFilePtr            | DOSCALLS | FILE  | 2.10
+  Dos32ProtectSetFileSize           | DOSCALLS | FILE  | 2.10
+  Dos32ProtectWrite                 | DOSCALLS | FILE  | 2.10
+  Dos32QueryABIOSSupport            | DOSCALLS | MOD   | 2.10
+  Dos32QueryModFromEIP              | DOSCALLS | MOD   | 2.10
+  Dos32SuppressPopUps               | DOSCALLS | MISC  | 2.10
+  Dos32VerifyPidTid                 | DOSCALLS | MISC  | 2.30
+*)
+
+
+var
+  P: pointer;
 
 begin
- if FSApi64 then
- (* DosCallsHandle successfully initialized during initialization of unit *)
- (* System and basic 64-bit functions were loaded successfully.           *)
-  begin
-   if DosQueryProcAddr (DosCallsHandle, Ord_Dos32CancelLockRequestL, nil, P)
+  if FSApi64 then
+  (* DosCallsHandle successfully initialized during initialization of unit *)
+  (* System and basic 64-bit functions were loaded successfully.           *)
+   begin
+    if DosQueryProcAddr (DosCallsHandle, Ord_Dos32CancelLockRequestL, nil, P)
                                                                        = 0 then
-    Sys_DosCancelLockRequestL := TDosCancelLockRequestL (P);
-   if DosQueryProcAddr (DosCallsHandle, Ord_Dos32ProtectSetFileLocksL, nil, P)
+     Sys_DosCancelLockRequestL := TDosCancelLockRequestL (P);
+    if DosQueryProcAddr (DosCallsHandle, Ord_Dos32ProtectSetFileLocksL, nil, P)
                                                                        = 0 then
-    Sys_DosProtectSetFileLocksL := TDosProtectSetFileLocksL (P);
-   if DosQueryProcAddr (DosCallsHandle, Ord_Dos32SetFileLocksL, nil, P)
+     Sys_DosProtectSetFileLocksL := TDosProtectSetFileLocksL (P);
+    if DosQueryProcAddr (DosCallsHandle, Ord_Dos32SetFileLocksL, nil, P)
                                                                        = 0 then
-    Sys_DosSetFileLocksL := TDosSetFileLocksL (P);
-   if DosQueryProcAddr (DosCallsHandle, Ord_Dos32ProtectOpenL, nil, P) = 0 then
-    Sys_DosProtectOpenL := TDosProtectOpenL (P);
-   if DosQueryProcAddr (DosCallsHandle, Ord_Dos32ProtectSetFilePtrL, nil, P)
+     Sys_DosSetFileLocksL := TDosSetFileLocksL (P);
+    if DosQueryProcAddr (DosCallsHandle, Ord_Dos32ProtectOpenL, nil, P) = 0
+                                                                           then
+     Sys_DosProtectOpenL := TDosProtectOpenL (P);
+    if DosQueryProcAddr (DosCallsHandle, Ord_Dos32ProtectSetFilePtrL, nil, P)
                                                                        = 0 then
-    Sys_DosProtectSetFilePtrL := TDosProtectSetFilePtrL (P);
-   if DosQueryProcAddr (DosCallsHandle, Ord_Dos32ProtectSetFileSizeL, nil, P)
+     Sys_DosProtectSetFilePtrL := TDosProtectSetFilePtrL (P);
+    if DosQueryProcAddr (DosCallsHandle, Ord_Dos32ProtectSetFileSizeL, nil, P)
                                                                        = 0 then
-    Sys_DosProtectSetFileSizeL := TDosProtectSetFileSizeL (P);
-  end;
+     Sys_DosProtectSetFileSizeL := TDosProtectSetFileSizeL (P);
+   end;
+  if DosQueryProcAddr (DosCallsHandle, Ord_Dos32ProtectOpen, nil, P) = 0 then
+   begin
+    Sys_DosProtectOpen := TDosProtectOpen (P);
+    if DosQueryProcAddr (DosCallsHandle, Ord_Dos32ProtectClose, nil, P) = 0
+                                                                           then
+     Sys_DosProtectClose := TDosProtectClose (P);
+    if DosQueryProcAddr (DosCallsHandle, Ord_Dos32ProtectRead, nil, P) = 0 then
+     Sys_DosProtectRead := TDosProtectRead (P);
+    if DosQueryProcAddr (DosCallsHandle, Ord_Dos32ProtectWrite, nil, P) = 0
+                                                                           then
+     Sys_DosProtectWrite := TDosProtectWrite (P);
+    if DosQueryProcAddr (DosCallsHandle, Ord_Dos32ProtectSetFilePtr, nil,
+                                                                    P) = 0 then
+     Sys_DosProtectSetFilePtr := TDosProtectSetFilePtr (P);
+    if DosQueryProcAddr (DosCallsHandle, Ord_Dos32ProtectSetFileSize, nil,
+                                                                    P) = 0 then
+     Sys_DosProtectSetFileSize := TDosProtectSetFileSize (P);
+    if DosQueryProcAddr (DosCallsHandle, Ord_Dos32ProtectQueryFHState, nil,
+                                                                    P) = 0 then
+     Sys_DosProtectQueryFHState := TDosProtectQueryFHState (P);
+    if DosQueryProcAddr (DosCallsHandle, Ord_Dos32ProtectSetFHState, nil,
+                                                                    P) = 0 then
+     Sys_DosProtectSetFHState := TDosProtectSetFHState (P);
+    if DosQueryProcAddr (DosCallsHandle, Ord_Dos32ProtectQueryFileInfo, nil,
+                                                                    P) = 0 then
+     Sys_DosProtectQueryFileInfo := TDosProtectQueryFileInfo (P);
+    if DosQueryProcAddr (DosCallsHandle, Ord_Dos32ProtectSetFileInfo, nil,
+                                                                    P) = 0 then
+     Sys_DosProtectSetFileInfo := TDosProtectSetFileInfo (P);
+    if DosQueryProcAddr (DosCallsHandle, Ord_Dos32ProtectEnumAttribute, nil,
+                                                                    P) = 0 then
+     Sys_DosProtectEnumAttribute := TDosProtectEnumAttribute (P);
+    if DosQueryProcAddr (DosCallsHandle, Ord_Dos32ProtectSetFileLocks, nil,
+                                                                    P) = 0 then
+     Sys_DosProtectSetFileLocks := TDosProtectSetFileLocks (P);
+   end;
 end.
