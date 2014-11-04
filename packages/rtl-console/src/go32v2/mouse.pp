@@ -58,6 +58,16 @@ const
   CallCounter  : longint = 0;
 {$endif DEBUG}
   drawmousecursor : boolean = false;
+
+  { CustomMouse_HideCount holds the hide count for the custom drawn mouse
+    cursor. Normally, when the mouse cursor is drawn by the int 33h mouse
+    driver (and not by this unit), the driver internally maintains a 'hide
+    counter', so that if you call HideMouse multiple times, you need to call
+    ShowMouse the same number of times. When the mouse cursor is customly
+    drawn by this unit, we use this variable in order to maintain the same
+    behaviour. }
+  CustomMouse_HideCount: longint = 1;
+
   { position where the mouse was drawn the last time }
   oldmousex : longint = -1;
   oldmousey : longint = -1;
@@ -568,7 +578,9 @@ begin
    if drawmousecursor then
      begin
         lockmouse;
-        if not(mouseisvisible) then
+        if CustomMouse_HideCount>0 then
+          Dec(CustomMouse_HideCount);
+        if (CustomMouse_HideCount=0) and not(mouseisvisible) then
           begin
              oldmousex:=getmousex-1;
              oldmousey:=getmousey-1;
@@ -598,6 +610,7 @@ begin
    if drawmousecursor then
      begin
         lockmouse;
+        Inc(CustomMouse_HideCount);
         if mouseisvisible then
           begin
              mouseisvisible:=false;
@@ -725,6 +738,7 @@ procedure DoCustomMouse(b : boolean);
 
   begin
      lockmouse;
+     CustomMouse_HideCount:=1;
      oldmousex:=-1;
      oldmousey:=-1;
      SetMouseXRange(0,(screenwidth-1)*8);
