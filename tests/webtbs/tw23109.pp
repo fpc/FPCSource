@@ -2,7 +2,7 @@
 { %opt=-Cg -vew }
 
 var
-  global: boolean;
+  global: boolean; public;
 begin
   asm
     movq global@GOTPCREL(%rip), %rax
