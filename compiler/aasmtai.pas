@@ -2187,7 +2187,10 @@ implementation
          typ:=ait_stab;
          stabtype:=_stabtype;
          getmem(str,length(s)+1);
-         move(s[1],str^,length(s)+1);
+         if length(s)>0 then
+           move(s[1],str^,length(s)+1)
+         else
+           str^:=#0;
       end;
 
     destructor tai_stab.destroy;
