@@ -76,7 +76,7 @@ begin
   TVarData(v).VType:=SampleVariant.VarType;
   v.AnyField := 100;
   if v.AnyField=100 then
-    writeln('ok') else
-    writeln('ERROR: v.AnyField=',v.AnyField);
-  readln;
+    Halt(0) 
+  else
+    halt(1);
 end.
