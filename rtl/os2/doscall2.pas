@@ -2,12 +2,17 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2014 by the Free Pascal development team.
 
-    Additional OS/2 API functions for file handling (64-bit functions
-    available in WSeB/MCP/eCS and protected access to exclusively
-    locked files available in OS/2 2.1+) implemented in DOSCALL1.DLL.
+    Additional OS/2 API functions implemented in DOSCALL1.DLL:
+    - File handling (64-bit functions available in WSeB/MCP/eCS and
+      protected access to file handles as available in OS/2 2.1+)
+    - Certain SMP related functions for querying and setting status
+      of processors and thread and system affinity (available
+      in SMP-ready versions of OS/2 kernels)
+    - Support for working with extended LIBPATH (available in
+      OS/2 Warp 4.0 and higher).
     Availability of individual functions is checked dynamically during
     initialization and fake (simulated) functions are used if running
-    under a lower OS/2 version.
+    under an OS/2 version not providing the respective functionality.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -27,6 +32,19 @@ interface
 uses
   DosCalls, Strings;
 
+const
+(* Status in DosGet/SetProcessorStatus *)
+  PROC_OFFLINE = 0; (* Processor is offline *)
+  PROC_ONLINE = 1;  (* Processor is online *)
+(* Scope in DosQueryThreadAffinity *)
+  AFNTY_THREAD = 0; (* Return the current threads processor affinity mask. *)
+  AFNTY_SYSTEM = 1; (* Return the system's current capable processor affinity
+                       mask. *)
+(* Flags in DosQuery/SetExtLibPath *)
+  BEGIN_LIBPATH = 1; (* The new path is searched before the LIBPATH. *)
+  END_LIBPATH = 2;   (* The new path is searched after the LIBPATH. *)
+
+
 type
   TFileLockL = record
    case boolean of
@@ -39,6 +57,12 @@ type
       lRange: int64);
   end;
   PFileLockL = ^TFileLockL;
+
+  TMPAffinity = record
+   Mask: array [0..1] of cardinal;
+  end;
+  PMPAffinity = ^TMPAffinity;
+
 
 function DosOpenL (FileName: PChar; var Handle: THandle;
                         var Action: cardinal; InitSize: int64;
@@ -168,16 +192,11 @@ function DosCancelLockRequestL (Handle: THandle;
 DosProtectSetFileLocksL locks and unlocks a range of an open file. 
 
 Parameters:
-
  Handle = file handle
-
  Unlock = record containing the offset and length of a range to be unlocked
-
  Lock = record containing the offset and length of a range to be locked 
-
  Timeout = the maximum time that the process is to wait for the requested locks
            (in milliseconds)
-
  Flags = bit mask specifying action to be taken.
      Bits 31..2 are reserved.
      Bit 1 (Atomic) means request for atomic locking - if the bit is set
@@ -706,30 +725,24 @@ DosProtectSetFilePtrL moves the read or write pointer according to the type
 of move specified.
 
 Parameters:
-
  Handle = the handle returned by a previous DosOpenL function.
-
  Pos = The signed distance (offset) to move, in bytes.
-
  Method = The method of moving - location in the file at which the read/write
           pointer starts before adding the Pos offset. The values and their
           meanings are as shown in the following list:
-
     0 FILE_BEGIN - move the pointer from the beginning of the file. 
     1 FILE_CURRENT - move the pointer from the current location of the
                      read/write pointer.
     2 FILE_END - move the pointer from the end of the file; use this method
                  to determine a file's size.
-
  PosActual = address of the new pointer location.
-
  FileHandleLockID = The filehandle lockid returned by a previous
                     DosProtectOpenL. 
 
 Possible return codes:
-0 NO_ERROR
-1 ERROR_INVALID_FUNCTION
-6 ERROR_INVALID_HANDLE
+  0 NO_ERROR
+  1 ERROR_INVALID_FUNCTION
+  6 ERROR_INVALID_HANDLE
 132 ERROR_SEEK_ON_DEVICE
 131 ERROR_NEGATIVE_SEEK
 130 ERROR_DIRECT_ACCESS_HANDLE
@@ -750,20 +763,17 @@ function DosProtectSetFilePtrL (Handle: THandle; Pos: int64;
 DosProtectSetFileSizeL changes the size of a file.
 
 Parameters:
-
  Handle = handle of the file whose size to be changed.
-
  Size = new size, in bytes, of the file.
-
  FileHandleLockID = the filehandle lockid obtained from DosProtectOpenL.
 
 Possible return codes:
-0 NO_ERROR
-5 ERROR_ACCESS_DENIED
-6 ERROR_INVALID_HANDLE
-26 ERROR_NOT_DOS_DISK
-33 ERROR_LOCK_VIOLATION
-87 ERROR_INVALID_PARAMETER
+  0 NO_ERROR
+  5 ERROR_ACCESS_DENIED
+  6 ERROR_INVALID_HANDLE
+ 26 ERROR_NOT_DOS_DISK
+ 33 ERROR_LOCK_VIOLATION
+ 87 ERROR_INVALID_PARAMETER
 112 ERROR_DISK_FULL
 
 Remarks:
@@ -778,6 +788,159 @@ bytes are undefined.
 *)
 function DosProtectSetFileSizeL (Handle: THandle; Size: int64;
                                   FileHandleLockID: cardinal): cardinal; cdecl;
+
+(*
+DosGetProcessorStatus allows checking status of individual processors
+in a SMP machine.
+
+Parameters:
+ProcID = Procesor ID numbered 1 through n, where there are n processors in
+         total.
+Status = Returned processor status defined as follows:
+  PROC_OFFLINE 0x00000000 Processor is offline 
+  PROC_ONLINE 0x00000001 Processor is online 
+
+Possible return codes:
+ 0 NO_ERROR
+87 ERROR_INVALID_PARAMETER
+*)
+function DosGetProcessorStatus (ProcID: cardinal;
+                                        var Status: cardinal): cardinal; cdecl;
+
+
+(*
+DosSetProcessorStatus sets the ONLINE or OFFLINE status of a processor on
+an SMP system. The processor status may be queried using DosGetProcessorStatus.
+ONLINE status implies the processor is available for running work. OFFLINE
+status implies the processor is not available for running work. The processor
+that executes DosSetProcessorStatus must be ONLINE.
+
+Parameters:
+ProcID = Processor ID numbered from 1 through n, where there are n processors
+         in total.
+Status = Requested processor status defined as follows:
+  PROC_OFFLINE 0x00000000 Processor is offline. 
+  PROC_ONLINE 0x00000001 Processor is online. 
+
+Possible return codes:
+ 0 NO_ERROR 
+87 ERROR_INVALID_PARAMETER
+*)
+function DosSetProcessorStatus (ProcID: cardinal;
+                                            Status: cardinal): cardinal; cdecl;
+
+(*
+DosQueryThreadAffinity allows a thread to inquire for the current thread's
+processor affinity mask and the system's capable processor affinity mask.
+
+Parameters:
+Scope = Scope of the query defined by one of the following values:
+  AFNTY_THREAD Return the current threads processor affinity mask. 
+  AFNTY_SYSTEM Return the system's current capable processor affinity mask. 
+AffinityMask = Affinity mask is returned here; processors 0..31 are in Mask [0]
+               and processors 32..63 are in Mask [1].
+
+Possible return codes:
+13 ERROR_INVALID_DATA 
+87 ERROR_INVALID_PARAMETER
+*)
+function DosQueryThreadAffinity (Scope: cardinal;
+                               var AffinityMask: TMPAffinity): cardinal; cdecl;
+
+(*
+DosQueryExtLibPath returns the current path to be searched before or after the
+system LIBPATH when locating DLLs.
+
+Parameters:
+ExtLIBPATH = Buffer for receiving the extended LIBPATH string.
+
+???
+If the buffer pointed to by this parameter is not large enough to hold
+the extended LIBPATH or an extended LIBPATH is not currently defined, this
+parameter returns a pointer to a NULL string.
+??? How is it detected if the size is not passed???
+
+Flags - flag indicating when the new path is searched - possible values:
+  BEGIN_LIBPATH - The new path is searched before the LIBPATH.
+  END_LIBPATH - The new path is searched after the LIBPATH.
+
+Possible return codes:
+  0 NO_ERROR 
+ 87 ERROR_INVALID_PARAMETER 
+122 ERROR_INSUFFICIENT_BUFER
+*)
+function DosQueryExtLibPath (ExtLibPath: PChar; Flags: cardinal): cardinal;
+                                                                         cdecl;
+
+(*
+DosSetExtLibPath defines the current path to be searched before or after the
+system LIBPATH when locating DLLs.
+
+Parameters:
+ExtLIBPATH = New extended LIBPATH string. Maximum size is 1024 bytes.
+             A pointer to a NULL string removes the extended LIBPATH.
+Flags = When the new path is searched - possible values:
+  BEGIN_LIBPATH (1) - the new path is searched before the LIBPATH.
+  END_LIBPATH (2) - the new path is searched after the LIBPATH.
+
+The LIBPATH string is an environment variable found in the CONFIG.SYS file
+consisting of a set of paths. If a fully-qualified path is not specified when
+a module is loaded, the system searches these paths to find the DLL.
+
+There are two extended LIBPATH strings, BeginLIBPATH and EndLIBPATH.
+BeginLIBPATH is searched before the system LIBPATH, and EndLIBPATH is searched
+after both BeginLIBPATH and the system LIBPATH. These extended LIBPATHs can be
+set either from the command line using the "SET" command, or by calling
+DosSetExtLIBPATH. When DosSetExtLIBPATH is called, all modifications become
+specific to that process. Initial settings can be set for all processes in the
+system by setting the values in CONFIG.SYS using the "set" command.
+
+Note: The extended LIBPATHs are not true environment variables, and do not
+appear when querying the environment.
+
+Every process inherits the settings of BeginLIBPATH and EndLIBPATH from the
+process that starts it. If the extended library paths are initialized in
+CONFIG.SYS, those extended library paths become the initial settings for new
+processes. If a process changes BeginLIBPATH or EndLIBPATH and starts a new
+process, the new child process inherits the changed contents. Child processes
+that inherit their parent's extended LIBPATHs maintain their own copy.
+Modifications made by the parent after the child has been created have no
+effect on the children.
+
+This function permits the use of two symbols within the path string:
+%BeginLIBPATH% and %EndLIBPATH%. These symbols are replaced with the current
+string settings for the extended library paths.
+
+The LIBPATHs strings are only searched when the specified DLL is not currently
+loaded. The only way to guarantee that the DLL being used is the correct
+version is to set the fully-qualified path in DosLoadModule. When a request is
+made to load a module and a path is not specified, the system searches the
+paths in the LIBPATH string and uses the first instance of the specified DLL it
+finds. If the new paths are added to the search strings, the system does not
+check those directories to see if a different version exists. Consequently, if
+two processes started from different directories use the same DLL, but
+different versions of that DLL exist in both directories, the version of the
+DLL loaded by the first process is the one used by both processes. The only way
+to prevent this from occurring is to specify the path to the DLL when
+DosLoadModule is called.
+
+Consequently, if one process sets its BeginLIBPATH to C:\PROCESS1\DLL and loads
+the DLL MYAPP.DLL from that directory, and then a second process sets its
+BeginLIBPATH to C:\PROCESS2\DLL and there is for a different version of
+MYAPP.DLL in C:\PROCESS2\DLL, the second process will link to the DLL from
+C:\PROCESS1\DLL since it was already loaded.
+
+Both BeginLIBPATH and EndLIBPATH can be set from the command line using the SET
+command.
+
+Possible return codes:
+0 NO_ERROR 
+8 ERROR_NOT_ENOUGH_MEMORY 
+87 ERROR_INVALID_PARAMETER 
+161 ERROR_BAD_PATHNAME 
+*)
+function DosSetExtLibPath (ExtLibPath: PChar; Flags: cardinal): cardinal;
+                                                                         cdecl;
 
 
 
@@ -994,6 +1157,59 @@ begin
 end;
 
 
+function DummyDosGetProcessorStatus (ProcID: cardinal;
+                                        var Status: cardinal): cardinal; cdecl;
+begin
+  if ProcID = 1 then
+   begin
+    Status := 1;
+    DummyDosGetProcessorStatus := No_Error;
+   end
+  else
+   DummyDosGetProcessorStatus := Error_Invalid_Parameter;
+end;
+
+
+function DummyDosSetProcessorStatus (ProcID: cardinal;
+                                            Status: cardinal): cardinal; cdecl;
+begin
+  DummyDosSetProcessorStatus := Error_Invalid_Parameter;
+end;
+
+
+function DummyDosQueryThreadAffinity (Scope: cardinal;
+                               var AffinityMask: TMPAffinity): cardinal; cdecl;
+begin
+  DummyDosQueryThreadAffinity := Error_Invalid_Function;
+end;
+
+
+function DummyDosSetThreadAffinity (PAffinityMask: PMPAffinity): cardinal; cdecl;
+begin
+  DummyDosSetThreadAffinity := Error_Invalid_Function;
+end;
+
+
+function DummyDosQueryExtLibPath (ExtLibPath: PChar;
+                                             Flags: cardinal): cardinal; cdecl;
+begin
+  if ExtLibPath <> nil then
+   begin
+    ExtLibPath := #0;
+    DummyDosQueryExtLibPath := No_Error;
+   end
+  else
+   DummyDosQueryExtLibPath := Error_Invalid_Parameter;
+end;
+
+
+function DummyDosSetExtLibPath (ExtLibPath: PChar; Flags: cardinal): cardinal;
+                                                                 cdecl; inline;
+begin
+  DummyDosSetExtLibPath := Error_Not_Enough_Memory;
+end;
+
+
 
 type
   TDosProtectOpen = function (FileName: PChar; var Handle: THandle;
@@ -1064,6 +1280,25 @@ type
   TDosProtectSetFileSizeL = function (Handle: THandle; Size: int64;
                                   FileHandleLockID: cardinal): cardinal; cdecl;
 
+  TDosGetProcessorStatus = function (ProcID: cardinal;
+                                        var Status: cardinal): cardinal; cdecl;
+
+  TDosSetProcessorStatus = function (ProcID: cardinal;
+                                            Status: cardinal): cardinal; cdecl;
+
+  TDosQueryThreadAffinity = function (Scope: cardinal;
+                               var AffinityMask: TMPAffinity): cardinal; cdecl;
+
+  TDosSetThreadAffinity = function (PAffinityMask: PMPAffinity): cardinal;
+                                                                         cdecl;
+
+  TDosQueryExtLibPath = function (ExtLibPath: PChar;
+                                             Flags: cardinal): cardinal; cdecl;
+
+  TDosSetExtLibPath = function (ExtLibPath: PChar; Flags: cardinal): cardinal;
+                                                                         cdecl;
+
+
 
 const
   Sys_DosCancelLockRequestL: TDosCancelLockRequestL =
@@ -1094,6 +1329,16 @@ const
                                                  @DummyDosProtectEnumAttribute;
   Sys_DosProtectSetFileLocks: TDosProtectSetFileLocks =
                                                   @DummyDosProtectSetFileLocks;
+  Sys_DosGetProcessorStatus: TDosGetProcessorStatus =
+                                                   @DummyDosGetProcessorStatus;
+  Sys_DosSetProcessorStatus: TDosSetProcessorStatus =
+                                                   @DummyDosSetProcessorStatus;
+  Sys_DosQueryThreadAffinity: TDosQueryThreadAffinity =
+                                                  @DummyDosQueryThreadAffinity;
+  Sys_DosSetThreadAffinity: TDosSetThreadAffinity = @DummyDosSetThreadAffinity;
+  Sys_DosQueryExtLibPath: TDosQueryExtLibPath = @DummyDosQueryExtLibPath;
+  Sys_DosSetExtLibPath: TDosSetExtLibPath = @DummyDosSetExtLibPath;
+
 
 
 function DosOpenL (FileName: PChar; var Handle: THandle;
@@ -1390,62 +1635,46 @@ begin
 end;
 
 
-(*
-Todo:
-
-function DosGetProcessorStatus (...): cardinal; cdecl;
-external 'DOSCALLS' index 447;       - may be simulated on non-SMP
-
-DosSetProcessorStatus = DOSCALLS.448 - may be ignored on non-SMP
-DosCreateSpinLock     = DOSCALLS.449 - may be simulated using semaphores on non-SMP
-DosAcquireSpinLock    = DOSCALLS.450 - may be simulated using semaphores on non-SMP
-DosReleaseSpinLock    = DOSCALLS.451 - may be simulated using semaphores on non-SMP
-DosFreeSpinLock       = DOSCALLS.452 - may be simulated using semaphores on non-SMP
-
- DosQueryModFromEIP - may be simulated by returning empty value if not available
-
-___ function Dos16QueryModFromCS (...): ...
-external 'DOSCALLS' index 359;
+function DosGetProcessorStatus (ProcID: cardinal;
+                                var Status: cardinal): cardinal; cdecl; inline;
+begin
+  DosGetProcessorStatus := Sys_DosGetProcessorStatus (ProcID, Status);
+end;
 
 
- DosQueryThreadAffinity - may be simulated on non-SMP
- DosSetThreadAffinity - may be ignored on non-SMP
- DosVerifyPidTid - may be implemented by analyzing information returned by DosQuerySysState
+function DosSetProcessorStatus (ProcID: cardinal;
+                                    Status: cardinal): cardinal; cdecl; inline;
+begin
+  DosSetProcessorStatus := Sys_DosSetProcessorStatus (ProcID, Status);
+end;
 
- DosQueryExtLibPath - may be simulated by providing empty result if not available
- DosSetExtLibPath - may be simulated by returning ERROR_NOT_ENOUGH_MEMORY if not available
 
-  Dos32AcquireSpinLock              | DOSCALLS | SMP   | SMP
-  Dos32FreeSpinLock                 | DOSCALLS | SMP   | SMP
-  Dos32GetProcessorStatus           | DOSCALLS | SMP   | SMP
-  Dos32ReleaseSpinLock              | DOSCALLS | SMP   | SMP
-  Dos32SetProcessorStatus           | DOSCALLS | SMP   | SMP
-  Dos32TestPSD                      | DOSCALLS | SMP   | SMP
+function DosQueryThreadAffinity (Scope: cardinal;
+                       var AffinityMask: TMPAffinity): cardinal; cdecl; inline;
+begin
+  DosQueryThreadAffinity := Sys_DosQueryThreadAffinity (Scope, AffinityMask);
+end;
 
-  Dos32QueryThreadAffinity          | DOSCALLS | PROC  | 2.45
-  Dos32QueryThreadContext           | DOSCALLS | XCPT  | 2.40
-  Dos32SetThreadAffinity            | DOSCALLS | PROC  | 2.45
 
-  Dos32AllocThreadLocalMemory       | DOSCALLS | PROC  | 2.30
-  Dos32FreeThreadLocalMemory        | DOSCALLS | PROC  | 2.30
-  Dos32ListIO                       | DOSCALLS | FILE  | 2.45
-  Dos32ProtectClose                 | DOSCALLS | FILE  | 2.10
-  Dos32ProtectEnumAttribute         | DOSCALLS | FILE  | 2.10
-  Dos32ProtectOpen                  | DOSCALLS | FILE  | 2.10
-  Dos32ProtectQueryFHState          | DOSCALLS | FILE  | 2.10
-  Dos32ProtectQueryFileInfo         | DOSCALLS | FILE  | 2.10
-  Dos32ProtectRead                  | DOSCALLS | FILE  | 2.10
-  Dos32ProtectSetFHState            | DOSCALLS | FILE  | 2.10
-  Dos32ProtectSetFileInfo           | DOSCALLS | FILE  | 2.10
-  Dos32ProtectSetFileLocks          | DOSCALLS | FILE  | 2.10
-  Dos32ProtectSetFilePtr            | DOSCALLS | FILE  | 2.10
-  Dos32ProtectSetFileSize           | DOSCALLS | FILE  | 2.10
-  Dos32ProtectWrite                 | DOSCALLS | FILE  | 2.10
-  Dos32QueryABIOSSupport            | DOSCALLS | MOD   | 2.10
-  Dos32QueryModFromEIP              | DOSCALLS | MOD   | 2.10
-  Dos32SuppressPopUps               | DOSCALLS | MISC  | 2.10
-  Dos32VerifyPidTid                 | DOSCALLS | MISC  | 2.30
-*)
+function DosSetThreadAffinity (PAffinityMask: PMPAffinity): cardinal; cdecl;
+                                                                        inline;
+begin
+  DosSetThreadAffinity := Sys_DosSetThreadAffinity (PAffinityMask);
+end;
+
+
+function DosQueryExtLibPath (ExtLibPath: PChar; Flags: cardinal): cardinal;
+                                                                 cdecl; inline;
+begin
+  DosQueryExtLibPath := Sys_DosQueryExtLibPath (ExtLibPath, Flags);
+end;
+
+
+function DosSetExtLibPath (ExtLibPath: PChar; Flags: cardinal): cardinal;
+                                                                 cdecl; inline;
+begin
+  DosSetExtLibPath := Sys_DosSetExtLibPath (ExtLibPath, Flags);
+end;
 
 
 var
@@ -1475,6 +1704,10 @@ begin
                                                                        = 0 then
      Sys_DosProtectSetFileSizeL := TDosProtectSetFileSizeL (P);
    end;
+
+  if DosCallsHandle = THandle (-1) then
+   Exit;
+
   if DosQueryProcAddr (DosCallsHandle, Ord_Dos32ProtectOpen, nil, P) = 0 then
    begin
     Sys_DosProtectOpen := TDosProtectOpen (P);
@@ -1511,4 +1744,73 @@ begin
                                                                     P) = 0 then
      Sys_DosProtectSetFileLocks := TDosProtectSetFileLocks (P);
    end;
+
+   if DosQueryProcAddr (DosCallsHandle, Ord_Dos32GetProcessorStatus, nil,
+                                                                    P) = 0 then
+    Sys_DosGetProcessorStatus := TDosGetProcessorStatus (P);
+   if DosQueryProcAddr (DosCallsHandle, Ord_Dos32SetProcessorStatus, nil,
+                                                                    P) = 0 then
+    Sys_DosSetProcessorStatus := TDosSetProcessorStatus (P);
+   if DosQueryProcAddr (DosCallsHandle, Ord_Dos32QueryThreadAffinity, nil,
+                                                                    P) = 0 then
+    Sys_DosQueryThreadAffinity := TDosQueryThreadAffinity (P);
+   if DosQueryProcAddr (DosCallsHandle, Ord_Dos32SetThreadAffinity, nil,
+                                                                    P) = 0 then
+    Sys_DosSetThreadAffinity := TDosSetThreadAffinity (P);
+   if DosQueryProcAddr (DosCallsHandle, Ord_Dos32QueryExtLibPath, nil,
+                                                                    P) = 0 then
+    Sys_DosQueryExtLibPath := TDosQueryExtLibPath (P);
+   if DosQueryProcAddr (DosCallsHandle, Ord_Dos32SetExtLibPath, nil,
+                                                                    P) = 0 then
+    Sys_DosSetExtLibPath := TDosSetExtLibPath (P);
 end.
+
+(*
+Todo:
+DosCreateSpinLock     = DOSCALLS.449 - might be simulated using semaphores on non-SMP
+DosAcquireSpinLock    = DOSCALLS.450 - might be simulated using semaphores on non-SMP
+DosReleaseSpinLock    = DOSCALLS.451 - might be simulated using semaphores on non-SMP
+DosFreeSpinLock       = DOSCALLS.452 - might be simulated using semaphores on non-SMP
+
+ DosQueryModFromEIP - may be simulated by returning empty value if not available or possibly by using data returned by DosQuerySysState (if they are equal across different OS/2 versions?)
+
+___ function Dos16QueryModFromCS (...): ...
+external 'DOSCALLS' index 359;
+
+
+ DosVerifyPidTid - may be implemented by analyzing information returned by DosQuerySysState
+
+x DosQueryExtLibPath - may be simulated by providing empty result if not available
+x DosSetExtLibPath - may be simulated by returning ERROR_NOT_ENOUGH_MEMORY if not available
+
+  Dos32AcquireSpinLock              | DOSCALLS | SMP   | SMP
+  Dos32FreeSpinLock                 | DOSCALLS | SMP   | SMP
+x  Dos32GetProcessorStatus           | DOSCALLS | SMP   | SMP
+  Dos32ReleaseSpinLock              | DOSCALLS | SMP   | SMP
+x  Dos32SetProcessorStatus           | DOSCALLS | SMP   | SMP
+  Dos32TestPSD                      | DOSCALLS | SMP   | SMP
+
+x  Dos32QueryThreadAffinity          | DOSCALLS | PROC  | 2.45
+  Dos32QueryThreadContext           | DOSCALLS | XCPT  | 2.40
+x  Dos32SetThreadAffinity            | DOSCALLS | PROC  | 2.45
+
+  Dos32AllocThreadLocalMemory       | DOSCALLS | PROC  | 2.30
+  Dos32FreeThreadLocalMemory        | DOSCALLS | PROC  | 2.30
+  Dos32ListIO                       | DOSCALLS | FILE  | 2.45
+x  Dos32ProtectClose                 | DOSCALLS | FILE  | 2.10
+x  Dos32ProtectEnumAttribute         | DOSCALLS | FILE  | 2.10
+x  Dos32ProtectOpen                  | DOSCALLS | FILE  | 2.10
+x  Dos32ProtectQueryFHState          | DOSCALLS | FILE  | 2.10
+x  Dos32ProtectQueryFileInfo         | DOSCALLS | FILE  | 2.10
+x  Dos32ProtectRead                  | DOSCALLS | FILE  | 2.10
+x  Dos32ProtectSetFHState            | DOSCALLS | FILE  | 2.10
+x  Dos32ProtectSetFileInfo           | DOSCALLS | FILE  | 2.10
+x  Dos32ProtectSetFileLocks          | DOSCALLS | FILE  | 2.10
+x  Dos32ProtectSetFilePtr            | DOSCALLS | FILE  | 2.10
+x  Dos32ProtectSetFileSize           | DOSCALLS | FILE  | 2.10
+x  Dos32ProtectWrite                 | DOSCALLS | FILE  | 2.10
+  Dos32QueryABIOSSupport            | DOSCALLS | MOD   | 2.10
+  Dos32QueryModFromEIP              | DOSCALLS | MOD   | 2.10
+  Dos32SuppressPopUps               | DOSCALLS | MISC  | 2.10
+  Dos32VerifyPidTid                 | DOSCALLS | MISC  | 2.30
+*)
