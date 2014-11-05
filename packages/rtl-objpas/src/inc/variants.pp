@@ -173,7 +173,7 @@ type
     function LeftPromotion(const V: TVarData; const Operation: TVarOp; out RequiredVarType: TVarType): Boolean; virtual;
     function RightPromotion(const V: TVarData; const Operation: TVarOp; out RequiredVarType: TVarType): Boolean; virtual;
     function OlePromotion(const V: TVarData; out RequiredVarType: TVarType): Boolean; virtual;
-    procedure DispInvoke(Dest: PVarData; const Source: TVarData; CallDesc: PCallDesc; Params: Pointer); virtual;
+    procedure DispInvoke(Dest: PVarData; var Source: TVarData; CallDesc: PCallDesc; Params: Pointer); virtual;
     procedure VarDataInit(var Dest: TVarData);
     procedure VarDataClear(var Dest: TVarData);
     procedure VarDataCopy(var Dest: TVarData; const Source: TVarData);
@@ -219,13 +219,13 @@ type
       const Arguments: TVarDataArray): Boolean;
     function GetProperty(var Dest: TVarData; const V: TVarData;
       const Name: string): Boolean;
-    function SetProperty(const V: TVarData; const Name: string;
+    function SetProperty(var V: TVarData; const Name: string;
       const Value: TVarData): Boolean;
   end;
 
   TInvokeableVariantType = class(TCustomVariantType, IVarInvokeable)
   protected
-    procedure DispInvoke(Dest: PVarData; const Source: TVarData;
+    procedure DispInvoke(Dest: PVarData; var Source: TVarData;
       CallDesc: PCallDesc; Params: Pointer); override;
   public
     { IVarInvokeable }
@@ -235,7 +235,7 @@ type
       const Arguments: TVarDataArray): Boolean; virtual;
     function GetProperty(var Dest: TVarData; const V: TVarData;
       const Name: string): Boolean; virtual;
-    function SetProperty(const V: TVarData; const Name: string;
+    function SetProperty(var V: TVarData; const Name: string;
       const Value: TVarData): Boolean; virtual;
   end;
 
@@ -251,7 +251,7 @@ type
   public
     function GetProperty(var Dest: TVarData; const V: TVarData;
       const Name: string): Boolean; override;
-    function SetProperty(const V: TVarData; const Name: string;
+    function SetProperty(var V: TVarData; const Name: string;
       const Value: TVarData): Boolean; override;
   end;
 
@@ -2523,7 +2523,7 @@ begin
 end;
 
 
-procedure sysdispinvoke(Dest : PVarData; const Source : TVarData;calldesc : pcalldesc;params : Pointer);cdecl;
+procedure sysdispinvoke(Dest : PVarData; var source : TVarData;calldesc : pcalldesc;params : Pointer);cdecl;
 var
   temp  : TVarData;
   tempp : ^TVarData;
@@ -3726,7 +3726,7 @@ begin
 end;
 
 
-procedure TCustomVariantType.DispInvoke(Dest: PVarData; const Source: TVarData; CallDesc: PCallDesc; Params: Pointer);
+procedure TCustomVariantType.DispInvoke(Dest: PVarData; var Source: TVarData; CallDesc: PCallDesc; Params: Pointer);
 
 begin
   RaiseDispError;
@@ -3992,7 +3992,7 @@ end;
     TInvokeableVariantType implementation
   ---------------------------------------------------------------------}
 
-procedure TInvokeableVariantType.DispInvoke(Dest: PVarData; const Source: TVarData;
+procedure TInvokeableVariantType.DispInvoke(Dest: PVarData; var Source: TVarData;
   CallDesc: PCallDesc; Params: Pointer);
 var
   method_name: ansistring;
@@ -4123,7 +4123,7 @@ function TInvokeableVariantType.GetProperty(var Dest: TVarData; const V: TVarDat
   end;
 
 
-function TInvokeableVariantType.SetProperty(const V: TVarData; const Name: string; const Value: TVarData): Boolean;
+function TInvokeableVariantType.SetProperty(var V: TVarData; const Name: string; const Value: TVarData): Boolean;
   begin
     result := False;
   end;
@@ -4140,7 +4140,7 @@ function TPublishableVariantType.GetProperty(var Dest: TVarData; const V: TVarDa
   end;
 
 
-function TPublishableVariantType.SetProperty(const V: TVarData; const Name: string; const Value: TVarData): Boolean;
+function TPublishableVariantType.SetProperty(var V: TVarData; const Name: string; const Value: TVarData): Boolean;
   begin
     Result:=true;
     SetPropValue(getinstance(v),name,Variant(value));
