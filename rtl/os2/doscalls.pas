@@ -703,7 +703,7 @@ const       doFail          =  0;
       OPEN_ACTION_FAIL_IF_NEW        =doFail;    { ---- ---- 0000 ---- }
       OPEN_ACTION_CREATE_IF_NEW      =DoCreate;  { ---- ---- 0001 ---- }
 
-{Usefull constants for openmode parameter.}
+{Useful constants for openmode parameter.}
 
 const       doRead          =     0;
             doWrite         =     1;
@@ -721,7 +721,7 @@ const       doRead          =     0;
             doDASD          = 32768;
 
 
-   { DosOpen/DosSetFHandState flags }
+   { Dos(Protect)Open(L)/Dos(Protect)SetFHState flags }
       OPEN_ACCESS_READONLY           =doRead;       { ---- ---- ---- -000 }
       OPEN_ACCESS_WRITEONLY          =doWrite;      { ---- ---- ---- -001 }
       OPEN_ACCESS_READWRITE          =doReadWrite;  { ---- ---- ---- -010 }
@@ -741,6 +741,7 @@ const       doRead          =     0;
       OPEN_FLAGS_DASD                =doDASD;       { 1--- ---- ---- ---- }
 
       OPEN_FLAGS_NONSPOOLED          =$00040000;
+      OPEN_SHARE_DENYLEGACY          =$10000000;
       OPEN_FLAGS_PROTECTED_HANDLE    =$40000000;
 
 
@@ -794,6 +795,10 @@ The bits in the filemode parameter have the following meanings:
                                     before write operation functions return.
  Bit 15:    DASD flag.          0 = Open a file or device.
                                 1 = Open a drive as file.
+ Bit 29:    32-bit access flag. 0 = Allow opening the file using DosOpen.
+                                1 = Avoid file to be open using DosOpen as well.
+ Bit 30:    Protection flag.    0 = File handle is not protected.
+                                1 = File handle is protected.
 
 When the DASD flag is set, the whole drive is read as a single file. The
 file starts with 512 bytes of bootsector, then 512 bytes of the second sector etc.
