@@ -31,29 +31,35 @@ const
      CompilerStatusUpdateDelay = 0.1; { in secs }
 
 {$undef USE_SPECIAL_BASENAME}
-{$ifdef m68k}
-  {$ifdef cpui386}
-    {$define USE_SPECIAL_BASENAME}
-     FPBaseName = 'fpm68k';
-  {$endif cpui386}
-{$endif m68k}
-{$ifdef powerpc}
-  {$ifdef cpui386}
-    {$define USE_SPECIAL_BASENAME}
-     FPBaseName = 'fpppc';
-  {$endif powerpc}
-{$endif m68k}
-{$ifdef i386}
-  {$ifdef cpu68k}
-    {$define USE_SPECIAL_BASENAME}
-     FPBaseName = 'fpi386';
-  {$endif cpu68k}
-{$endif i386}
-{$ifdef SUPPORT_REMOTE}
-    {$define USE_SPECIAL_BASENAME}
-    { this uses PPC_TARGET env. variable from Makefile }
-     FPBaseName = 'fp_'+{$i %PPC_TARGET%};
-{$endif SUPPORT_REMOTE}
+{$ifdef USE_FPBASENAME}
+  { FPBaseName set through environment variable FPBASENAME }
+  FPBaseName = {$i %FPBASENAME%};
+  {$define USE_SPECIAL_BASENAME}
+{$else}
+  {$ifdef m68k}
+    {$ifdef cpui386}
+      {$define USE_SPECIAL_BASENAME}
+       FPBaseName = 'fpm68k';
+    {$endif cpui386}
+  {$endif m68k}
+  {$ifdef powerpc}
+    {$ifdef cpui386}
+      {$define USE_SPECIAL_BASENAME}
+       FPBaseName = 'fpppc';
+    {$endif powerpc}
+  {$endif m68k}
+  {$ifdef i386}
+    {$ifdef cpu68k}
+      {$define USE_SPECIAL_BASENAME}
+       FPBaseName = 'fpi386';
+    {$endif cpu68k}
+  {$endif i386}
+  {$ifdef SUPPORT_REMOTE}
+      {$define USE_SPECIAL_BASENAME}
+      { this uses PPC_TARGET env. variable from Makefile }
+       FPBaseName = 'fp_'+{$i %PPC_TARGET%};
+  {$endif SUPPORT_REMOTE}
+{$endif not USE_FPBASENAME}
 {$ifndef USE_SPECIAL_BASENAME}
      FPBaseName = 'fp';
 {$endif not USE_SPECIAL_BASENAME}
