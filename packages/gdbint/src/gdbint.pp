@@ -79,6 +79,7 @@ interface
 
 {$ifdef GDB_VER_GE_708}
   {$define USE_CATCH_EXCEPTIONS}
+  {$define USE_LOCAL_SET_GDB_DATA_DIRECTORY}
   {$define GDB_VER_GE_707}
 {$endif}
 
@@ -251,7 +252,7 @@ interface
   {$define GDB_USES_BP_LOCATION}
   {$define GDB_NEEDS_NO_ERROR_INIT}
   {$define GDB_USES_EXPAT_LIB}
-  {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
+  {Official 6.6 release doesn't have GDB_HAS_DEBUG_FILE_DIRECTORY}
 {$endif def GDB_V606}
 
 { 6.5.x }
@@ -3539,6 +3540,15 @@ var
 var
   debug_file_directory : pchar; cvar; external;
 {$endif GDB_HAS_DEBUG_FILE_DIRECTORY}
+
+{$ifdef USE_LOCAL_SET_GDB_DATA_DIRECTORY}
+{ Avoid loading of main.o object by providing a
+  stripped down version of relocate_gdb_directory function }
+procedure set_gdb_data_directory(path : pchar); cdecl; public;
+begin
+  gdb_datadir:=path;
+end;
+{$endif USE_LOCAL_SET_GDB_DATA_DIRECTORY}
 
 begin
 {$ifdef GDB_HAS_SYSROOT}
