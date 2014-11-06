@@ -174,9 +174,9 @@ scan_n_ignored_switch=02008_N_Ignored compiler switch "$1"
 scan_w_illegal_switch=02009_W_Illegal compiler switch "$1"
 % You included a compiler switch (i.e. \var{\{\$... \}}) which the compiler
 % does not recognise.
-scan_w_switch_is_global=02010_W_Misplaced global compiler switch
-% The compiler switch is misplaced, and should be located at
-% the start of the unit or program.
+scan_w_switch_is_global=02010_W_Misplaced global compiler switch, ignored
+% The compiler switch is misplaced. It must be located at
+% the start of the compilation unit, before the uses clause or any declaration.
 scan_e_illegal_char_const=02011_E_Illegal char constant
 % This happens when you specify a character with its ASCII code, as in
 % \var{\#96}, but the number is either illegal, or out of range.
