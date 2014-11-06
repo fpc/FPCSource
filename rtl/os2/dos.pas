@@ -453,7 +453,7 @@ begin
   DT.Minute := byte (Minute);
   DT.Second := byte (Second);
   DT.Sec100 := byte (Sec100);
-  DosSetDateTime (DT);
+  RC := DosSetDateTime (DT);
   if RC <> 0 then
    OSErrorWatch (RC);
 end;
