@@ -120,7 +120,7 @@ begin
        addinclude('ipccall.inc',[Linux]);
 //       addinclude('ipccdecl.inc',IPCcdeclOSes); // not used?
      end;
-    T:=P.Targets.AddUnit('unix/clocale.pp',CLocaleOSes);
+    T:=P.Targets.AddUnit('src/unix/clocale.pp',CLocaleOSes);
     with T.Dependencies do
      begin
        addinclude('clocale.inc',clocaleincOSes);
