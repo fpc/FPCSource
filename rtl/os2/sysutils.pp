@@ -44,6 +44,9 @@ type
 (* Necessary here due to a different definition of TDateTime in DosCalls. *)
   TDateTime = System.TDateTime;
 
+threadvar
+  LastOSError: cardinal;
+
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
 {$DEFINE FPC_FEXPAND_GETENV_PCHAR}
@@ -939,9 +942,6 @@ begin
   GetTickCount64 := T div (QWord (Freq2) div 1000);
 {$NOTE GetTickCount64 takes 20 microseconds on 1GHz CPU, GetTickCount not measurable}
 end;
-
-threadvar
-  LastOSError: cardinal;
 
 const
   OrigOSErrorWatch: TOSErrorWatch = nil;
