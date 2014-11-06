@@ -4773,21 +4773,14 @@ begin
   {$ifdef HAS_TAR_SUPPORT}
   if not assigned(FTarWriter) then
     begin
-      If (APackage.Directory<>'') then
-        EnterDir('');
+      FGZFileStream := TGZFileStream.create(Defaults.ZipPrefix + APackage.Name + MakeZipSuffix(Defaults.CPU,Defaults.OS) +'.tar.gz', gzopenwrite);
       try
-        FGZFileStream := TGZFileStream.create(Defaults.ZipPrefix + APackage.Name + MakeZipSuffix(Defaults.CPU,Defaults.OS) +'.tar.gz', gzopenwrite);
-        try
-          FTarWriter := TTarWriter.Create(FGZFileStream);
-          FTarWriter.Permissions := [tpReadByOwner, tpWriteByOwner, tpReadByGroup, tpReadByOther];
-          FTarWriter.UserName := 'root';
-          FTarWriter.GroupName := 'root';
-        except
-          FGZFileStream.Free;
-        end;
-      finally
-        If (APackage.Directory<>'') then
-          EnterDir(APackage.Directory);
+        FTarWriter := TTarWriter.Create(FGZFileStream);
+        FTarWriter.Permissions := [tpReadByOwner, tpWriteByOwner, tpReadByGroup, tpReadByOther];
+        FTarWriter.UserName := 'root';
+        FTarWriter.GroupName := 'root';
+      except
+        FGZFileStream.Free;
       end;
     end;
 {$ifdef unix}
@@ -5122,10 +5115,10 @@ begin
               DestFileName:=DestDir+list.ValueFromIndex[i]
             else
               DestFileName:=list.ValueFromIndex[i];
-            FOnCopyFile(APackage, List.names[i], DestFileName);
+            FOnCopyFile(APackage, AddPathPrefix(APackage, List.Names[i]), DestFileName);
           end
         else
-          FOnCopyFile(APackage, List[i], DestDir+ExtractFileName(List[i]));
+          FOnCopyFile(APackage, AddPathPrefix(APackage, List[i]), DestDir+ExtractFileName(List[i]));
       Exit;
     end;
 
@@ -5133,7 +5126,7 @@ begin
   CmdCreateDir(DestDir);
   If (Defaults.Copy<>'') then
     begin
-      Args:=FileListToString(List,'');
+      Args:=FileListToString(List, IncludeTrailingPathDelimiter(GPathPrefix));
       Args:=Args+' '+DestDir;
       ExecuteCommand(Defaults.Copy,Args);
     end
@@ -5146,10 +5139,10 @@ begin
           else
             DestFileName:=list.ValueFromIndex[i];
           CmdCreateDir(ExtractFilePath(DestFileName));
-          SysCopyFile(List.names[i],DestFileName)
+          SysCopyFile(AddPathPrefix(APackage, List.Names[i]),DestFileName)
         end
       else
-        SysCopyFile(List[i],DestDir);
+        SysCopyFile(AddPathPrefix(APackage, List[i]), DestDir);
 end;
 
 
@@ -6609,7 +6602,7 @@ begin
       begin
         ConfigFileContent := TStringList.Create;
         try
-          ConfigFileContent.LoadFromFile(ConfigFileName);
+          ConfigFileContent.LoadFromFile(AddPathPrefix(APAckage, ConfigFileName));
           if Defaults.FPUnitSourcePath='0' then
             begin
               Index := ConfigFileContent.IndexOfName(KeySourcePath);
@@ -6618,7 +6611,7 @@ begin
             end
           else
             ConfigFileContent.Values[KeySourcePath] := Defaults.FPUnitSourcePath;
-          ConfigFileContent.SaveToFile(ConfigFileName);
+          ConfigFileContent.SaveToFile(AddPathPrefix(APAckage, ConfigFileName));
         finally
           ConfigFileContent.Free;
         end;
@@ -6676,12 +6669,12 @@ Var
 begin
   If (Apackage.State<>tsCompiled) then
     MaybeCompile(APackage);
+  Log(vlCommand,SInfoInstallingPackage,[APackage.Name]);
+  if AnArchiveFiles and APackage.SeparateArchive then
+    FinishArchive(APackage);
   try
-    Log(vlCommand,SInfoInstallingPackage,[APackage.Name]);
-    if AnArchiveFiles and APackage.SeparateArchive then
-      FinishArchive(APackage);
     If (APackage.Directory<>'') then
-      EnterDir(APackage.Directory);
+      GPathPrefix := APackage.Directory;
     if AnArchiveFiles then
       begin
         FOnCopyFile:=@AddFileToArchive;
@@ -6732,7 +6725,7 @@ begin
       end;
   Finally
     If (APackage.Directory<>'') then
-      EnterDir('');
+      GPathPrefix := '';
   end;
 end;
 
@@ -6772,7 +6765,7 @@ begin
   Log(vlInfo,SInfoArchivingPackage,[APackage.Name,A]);
   try
     If (APackage.Directory<>'') then
-      EnterDir(APackage.Directory);
+      GPathPrefix := APackage.Directory;
     DoBeforeArchive(Apackage);
     AddPackageMacrosToDictionary(APackage, APackage.Dictionary);
     L:=TStringList.Create;
@@ -6826,7 +6819,7 @@ begin
     DoAfterArchive(Apackage);
   Finally
     If (APackage.Directory<>'') then
-      EnterDir('');
+      GPathPrefix := '';
   end;
 end;
 
@@ -7543,7 +7536,7 @@ begin
   If ResourceStrings then
     begin
       // choose between 2 possible resource files
-      if FileExists(APrefixU + RSJFileName) then
+      if FileExists(Installer.BuildEngine.AddPathPrefix(nil, APrefixU + RSJFileName)) then
         List.Add(APrefixU + RSJFileName)
       else
         List.Add(APrefixU + RSTFileName);
