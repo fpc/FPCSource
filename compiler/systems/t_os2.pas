@@ -533,7 +533,11 @@ begin
         Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
 *)
         Replace(cmdstr,'$RES',outputexedir+Info.ResName);
-        Replace(cmdstr,'$OPT ',Info.ExtraOptions);
+        if (Info.ExtraOptions <> '') and
+                   (Info.ExtraOptions [Length (Info.ExtraOptions)] <> ' ') then
+         Replace(cmdstr,'$OPT',Info.ExtraOptions)
+        else
+         Replace(cmdstr,'$OPT ',Info.ExtraOptions);
         Replace(cmdstr,'$RSRC ',RsrcStr);
         Replace(cmdstr,'$OUT',maybequoted(OutName));
         Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
