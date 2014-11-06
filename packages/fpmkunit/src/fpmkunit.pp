@@ -5942,8 +5942,8 @@ begin
         end;
     end;
 
-  // Check main source
-  If not Result then
+  // Check main source, only if the TargetSourceFileName is found
+  If not Result and (ATarget.TargetSourceFileName<>'') then
     begin
       TFN := AddPathPrefix(APackage,ATarget.TargetSourceFileName);
       if FileExists(TFN) then
