@@ -28,7 +28,7 @@ Const
   DLL_THREAD_DETACH = 3;
 
 var
-   TlsKey : dword; external name '_FPC_TlsKey';
+   TlsKey : dword {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}absolute TlsKeyVar;{$else}; external name '_FPC_TlsKey';{$endif}
 
 type
   TTlsDirectory=packed record

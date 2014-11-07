@@ -565,6 +565,9 @@ type
     asm_exit : Procedure;stdcall;
     PascalMain : Procedure;stdcall;
     valgrind_used : boolean;
+{$ifdef HAS_ENTRYINFORMATION_PLATFORM}
+    platform: TPlatformEntryInformation;
+{$endif HAS_ENTRYINFORMATION_PLATFORM}
   end;
 
 

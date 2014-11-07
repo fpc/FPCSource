@@ -91,10 +91,27 @@ var
                              Threadvar support
 *****************************************************************************}
 
+    {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+    function GetTLSKey: DWord; inline;
+      begin
+        Result:=EntryInformation.Platform.TLSKeyAddr^;
+      end;
+
+    procedure SetTLSKey(value : DWord); inline;
+      begin
+        EntryInformation.Platform.TLSKeyAddr^:=value;
+      end;
+    {$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+
     var
       // public names are used by heaptrc unit
       threadvarblocksize : dword; public name '_FPC_TlsSize';
+      {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+      property TLSKey : DWord read GetTLSKey write SetTLSKey;
+      {$else}
       TLSKey : DWord = $ffffffff; public name '_FPC_TlsKey';
+      {$endif}
+
 
     var
       MainThreadIdWin32 : DWORD;

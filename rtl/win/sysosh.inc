@@ -86,6 +86,14 @@ type
     hStdError : THandle;
   end;
 
+  {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+  {$define HAS_ENTRYINFORMATION_PLATFORM}
+  TPlatformEntryInformation = record
+    TlsKeyAddr: PDWord;
+    SysInstanceAddr: PLongInt;
+  end;
+  {$endif}
+
 { package stuff }
 type
   PLibModule = ^TLibModule;

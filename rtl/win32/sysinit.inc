@@ -15,7 +15,8 @@
  **********************************************************************}
 
    var
-      SysInstance : Longint;external name '_FPC_SysInstance';
+      SysInstance : Longint; public name '_FPC_SysInstance'; //external name '_FPC_SysInstance';
+      TlsKeyVar: DWord = $ffffffff; public name '_FPC_TlsKey';
 
       InitFinalTable : record end; external name 'INITFINAL';
       ThreadvarTablesTable : record end; external name 'FPC_THREADVARTABLES';
@@ -65,6 +66,10 @@
         asm_exit : @asm_exit;
         PascalMain : @PascalMain;
         valgrind_used : false;
+        Platform: (
+            TlsKeyAddr : @TlsKeyVar;
+            SysInstanceAddr : @SysInstance;
+          );
         );
 
 

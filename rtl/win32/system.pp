@@ -109,7 +109,7 @@ Const
 implementation
 
 var
-  SysInstance : Longint;public name '_FPC_SysInstance';
+  //SysInstance : Longint;public name '_FPC_SysInstance';
   FPCResStrInitTables : Pointer;public name '_FPC_ResStrInitTables';
   FPCResourceStringTables : Pointer;public name '_FPC_ResourceStringTables';
 const
@@ -124,6 +124,10 @@ const
     asm_exit : nil;
     PascalMain : nil;
     valgrind_used : false;
+    Platform : (
+        TlsKeyAddr : nil;
+        SysInstanceAddr : nil;
+      );
     );
 
 {$ifdef FPC_USE_WIN32_SEH}
@@ -659,9 +663,9 @@ begin
   GetStartupInfo(@startupinfo);
   { some misc Win32 stuff }
   if not IsLibrary then
-    SysInstance:=getmodulehandle(nil);
+    EntryInformation.Platform.SysInstanceAddr^:=getmodulehandle(nil);
 
-  MainInstance:=SysInstance;
+  MainInstance:=EntryInformation.Platform.SysInstanceAddr^;
 
   { pass dummy value }
   StackLength := CheckInitialStkLen($1000000);
