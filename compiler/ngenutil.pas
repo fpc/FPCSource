@@ -765,7 +765,7 @@ implementation
        begin
          If (hp.u.flags and uf_threadvars)=uf_threadvars then
           begin
-            ltvTables.concat(Tai_const.Createname(make_mangledname('THREADVARLIST',hp.u.globalsymtable,''),0));
+            ltvTables.concat(Tai_const.Createname(make_mangledname('THREADVARLIST',hp.u.globalsymtable,'')+indirect_suffix,0));
             inc(count);
           end;
          hp:=tused_unit(hp.next);
@@ -773,7 +773,7 @@ implementation
       { Add program threadvars, if any }
       If (current_module.flags and uf_threadvars)=uf_threadvars then
        begin
-         ltvTables.concat(Tai_const.Createname(make_mangledname('THREADVARLIST',current_module.localsymtable,''),0));
+         ltvTables.concat(Tai_const.Createname(make_mangledname('THREADVARLIST',current_module.localsymtable,'')+indirect_suffix,0));
          inc(count);
        end;
       { Insert TableCount at start }
@@ -809,6 +809,7 @@ implementation
     var
       s : string;
       ltvTable : TAsmList;
+      labind : tasmsymbol;
     begin
        if (tf_section_threadvars in target_info.flags) then
          exit;
@@ -828,6 +829,11 @@ implementation
           current_asmdata.asmlists[al_globals].concatlist(ltvTable);
           current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname(s));
           current_module.flags:=current_module.flags or uf_threadvars;
+          { indirect symbol }
+          labind:=current_asmdata.DefineAsmSymbol(s+indirect_suffix,AB_GLOBAL,AT_DATA);
+          current_asmdata.asmlists[al_globals].concat(Tai_symbol.Create_Global(labind,0));
+          current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(s,AT_DATA,0));
+          current_asmdata.asmlists[al_globals].concat(tai_symbol_end.Create(labind));
         end;
        ltvTable.Free;
     end;
