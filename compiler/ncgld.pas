@@ -254,7 +254,8 @@ implementation
 
     procedure tcgloadnode.pass_generate_code;
       var
-        hregister : tregister;
+        hregister,
+        hregister2 : tregister;
         vs   : tabstractnormalvarsym;
         gvs  : tstaticvarsym;
         pd   : tprocdef;
@@ -326,11 +327,22 @@ implementation
                             paraloc1.init;
                             pd:=search_system_proc('fpc_tls_add');
                             paramanager.getintparaloc(pd,1,paraloc1);
-                            if not(vo_is_weak_external in gvs.varoptions) then
-                              reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),0,sizeof(pint))
+                            if tf_supports_packages in target_info.flags then
+                              begin
+                                if not(vo_is_weak_external in gvs.varoptions) then
+                                  reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname+indirect_suffix),0,sizeof(pint))
+                                else
+                                  reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname+indirect_suffix),0,sizeof(pint));
+                                cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,OS_ADDR,href,paraloc1);
+                              end
                             else
-                              reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,sizeof(pint));
-                            cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,href,paraloc1);
+                              begin
+                                if not(vo_is_weak_external in gvs.varoptions) then
+                                  reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),0,sizeof(pint))
+                                else
+                                  reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,sizeof(pint));
+                                cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,href,paraloc1);
+                              end;
                             paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                             paraloc1.done;
 
@@ -343,10 +355,25 @@ implementation
                         else
                           begin
                             if gvs.localloc.loc=LOC_INVALID then
-                              if not(vo_is_weak_external in gvs.varoptions) then
-                                reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
-                              else
-                                reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
+                              begin
+                                if tf_supports_packages in target_info.flags then
+                                  begin
+                                    hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                                    if not(vo_is_weak_external in gvs.varoptions) then
+                                      reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname+indirect_suffix),0,location.reference.alignment)
+                                    else
+                                      reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname+indirect_suffix),0,location.reference.alignment);
+                                    cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
+                                    location.reference.base:=hregister;
+                                  end
+                                else
+                                  begin
+                                    if not(vo_is_weak_external in gvs.varoptions) then
+                                      reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
+                                    else
+                                      reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
+                                  end;
+                              end
                             else
                               location:=gvs.localloc;
 {$ifdef i386}
@@ -378,14 +405,35 @@ implementation
                         paraloc1.init;
                         paramanager.getintparaloc(tprocvardef(pvd),1,paraloc1);
                         hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,pvd);
-                        reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE'),0,pvd.size);
+                        if tf_supports_packages in target_info.flags then
+                          begin
+                            reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE'+indirect_suffix),0,voidpointertype.size);
+                            hregister2:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
+                            hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,href,hregister2);
+                            reference_reset_base(href,hregister2,0,pvd.size);
+                          end
+                        else
+                          reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE'),0,pvd.size);
                         hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,pvd,pvd,href,hregister);
                         hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,pvd,OC_EQ,0,hregister,norelocatelab);
                         { don't save the allocated register else the result will be destroyed later }
-                        if not(vo_is_weak_external in gvs.varoptions) then
-                          reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),0,sizeof(pint))
+                        if tf_supports_packages in target_info.flags then
+                          begin
+                            if not(vo_is_weak_external in gvs.varoptions) then
+                              reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname+indirect_suffix),0,sizeof(pint))
+                            else
+                              reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname+indirect_suffix),0,sizeof(pint));
+                            hregister2:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
+                            hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,href,hregister2);
+                            reference_reset_base(href,hregister2,0,sizeof(pint));
+                          end
                         else
-                          reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,sizeof(pint));
+                          begin
+                            if not(vo_is_weak_external in gvs.varoptions) then
+                              reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),0,sizeof(pint))
+                            else
+                              reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,sizeof(pint));
+                          end;
                         cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
                         paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                         paraloc1.done;
@@ -402,11 +450,25 @@ implementation
                           layout of a threadvar is (4 bytes pointer):
                             0 - Threadvar index
                             4 - Threadvar value in single threading }
-                        if not(vo_is_weak_external in gvs.varoptions) then
-                          reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),sizeof(pint),sizeof(pint))
+                        if tf_supports_packages in target_info.flags then
+                          begin
+                            if not(vo_is_weak_external in gvs.varoptions) then
+                              reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname+indirect_suffix),0,sizeof(pint))
+                            else
+                              reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname+indirect_suffix),0,sizeof(pint));
+                            hregister2:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
+                            hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,href,hregister2);
+                            reference_reset_base(href,hregister2,sizeof(pint),sizeof(pint));
+                            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,voidpointertype,href,hregister);
+                          end
                         else
-                          reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),sizeof(pint),sizeof(pint));
-                        hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,voidpointertype,href,hregister);
+                          begin
+                            if not(vo_is_weak_external in gvs.varoptions) then
+                              reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),sizeof(pint),sizeof(pint))
+                            else
+                              reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),sizeof(pint),sizeof(pint));
+                            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,voidpointertype,href,hregister);
+                          end;
                         cg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
                         hlcg.reference_reset_base(location.reference,voidpointertype,hregister,0,location.reference.alignment);
                       end;

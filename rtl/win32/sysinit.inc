@@ -89,5 +89,6 @@
       end;
 
 {$define FPC_INSSIDE_SYSINIT}
+{$define FPC_HAS_INDIRECT_MAIN_INFORMATION}
 {$include systlsdir.inc}
 

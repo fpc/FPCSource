@@ -41,6 +41,8 @@ type
 
 function TlsGetValue(dwTlsIndex : DWord) : pointer; stdcall;
   external 'kernel32' name 'TlsGetValue';
+function TlsAlloc : DWord; stdcall;
+  external 'kernel32' name 'TlsAlloc';
 
 procedure InitSystemThreads; external name '_FPC_InitSystemThreads';
 procedure SysAllocateThreadVars; external name '_FPC_SysAllocateThreadVars';
@@ -67,6 +69,9 @@ procedure Exec_Tls_callback(Handle : pointer; reason : Dword; Reserved : pointer
          and the EntryInformation is a constant which sholud prevent troubles }
        DLL_PROCESS_ATTACH:
          begin
+           {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+           TlsKey:=TlsAlloc;
+           {$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
            InitHeap;
            InitSystemThreads;
          end;

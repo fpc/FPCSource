@@ -94,12 +94,17 @@ var
     {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
     function GetTLSKey: DWord; inline;
       begin
-        Result:=EntryInformation.Platform.TLSKeyAddr^;
+        if not Assigned(EntryInformation.Platform.TLSKeyAddr) then
+          { this is the case during application startup, as the tlsentry is called first }
+          Result:=$ffffffff
+        else
+          Result:=EntryInformation.Platform.TLSKeyAddr^;
       end;
 
     procedure SetTLSKey(value : DWord); inline;
       begin
-        EntryInformation.Platform.TLSKeyAddr^:=value;
+        if Assigned(EntryInformation.Platform.TLSKeyAddr) then
+          EntryInformation.Platform.TLSKeyAddr^:=value;
       end;
     {$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
 
