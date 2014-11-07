@@ -314,6 +314,8 @@
 
       var
         emptyintf: ptruint; public name 'FPC_EMPTYINTF';
+      const
+        emptyintfptr: pinterfacetable = {$ifdef ver2_6}@emptyintf{$else}pinterfacetable(1){$endif};
 
       procedure InitInterfacePointers(objclass: tclass;instance : pointer);
 
@@ -324,7 +326,7 @@
           Res: pinterfaceentry;
         begin
           ovmt := PVmt(objclass);
-          while assigned(ovmt) and (ovmt^.vIntfTable <> @emptyintf) do
+          while assigned(ovmt) and (ovmt^.vIntfTable <> emptyintfptr) do
             begin
               intftable:=ovmt^.vIntfTable;
               if assigned(intftable) then
@@ -351,7 +353,7 @@
            { insert VMT pointer into the new created memory area }
            { (in class methods self contains the VMT!)           }
            ppointer(instance)^:=pointer(self);
-           if PVmt(self)^.vIntfTable <> @emptyintf then
+           if PVmt(self)^.vIntfTable <> emptyintfptr then
              InitInterfacePointers(self,instance);
            InitInstance:=TObject(Instance);
         end;
@@ -862,7 +864,7 @@
           ovmt: PVmt;
         begin
           ovmt := PVmt(Self);
-          while Assigned(ovmt) and (ovmt^.vIntfTable <> @emptyintf) do
+          while Assigned(ovmt) and (ovmt^.vIntfTable <> emptyintfptr) do
           begin
             intftable:=ovmt^.vIntfTable;
             if assigned(intftable) then
@@ -886,7 +888,7 @@
           ovmt: PVmt;
         begin
           ovmt := PVmt(Self);
-          while Assigned(ovmt) and (ovmt^.vIntfTable <> @emptyintf) do
+          while Assigned(ovmt) and (ovmt^.vIntfTable <> emptyintfptr) do
           begin
             intftable:=ovmt^.vIntfTable;
             if assigned(intftable) then

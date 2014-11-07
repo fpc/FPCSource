@@ -909,7 +909,7 @@ implementation
             else if _class.implements_any_interfaces then
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_nil_dataptr)
             else
-              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(current_asmdata.RefAsmSymbol('FPC_EMPTYINTF',AT_DATA)));
+              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(1){Tai_const.Create_sym(current_asmdata.RefAsmSymbol('FPC_EMPTYINTF',AT_DATA))});
             { table for string messages }
             if (oo_has_msgstr in _class.objectoptions) then
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(strmessagetable))
