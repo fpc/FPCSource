@@ -1184,7 +1184,8 @@ begin
 end;
 
 
-function DummyDosSetThreadAffinity (PAffinityMask: PMPAffinity): cardinal; cdecl;
+function DummyDosSetThreadAffinity (var AffinityMask: TMPAffinity): cardinal;
+                                                                         cdecl;
 begin
   DummyDosSetThreadAffinity := Error_Invalid_Function;
 end;
@@ -1289,7 +1290,7 @@ type
   TDosQueryThreadAffinity = function (Scope: cardinal;
                                var AffinityMask: TMPAffinity): cardinal; cdecl;
 
-  TDosSetThreadAffinity = function (PAffinityMask: PMPAffinity): cardinal;
+  TDosSetThreadAffinity = function (var AffinityMask: TMPAffinity): cardinal;
                                                                          cdecl;
 
   TDosQueryExtLibPath = function (ExtLibPath: PChar;
@@ -1656,10 +1657,10 @@ begin
 end;
 
 
-function DosSetThreadAffinity (PAffinityMask: PMPAffinity): cardinal; cdecl;
+function DosSetThreadAffinity (var AffinityMask: TMPAffinity): cardinal; cdecl;
                                                                         inline;
 begin
-  DosSetThreadAffinity := Sys_DosSetThreadAffinity (PAffinityMask);
+  DosSetThreadAffinity := Sys_DosSetThreadAffinity (AffinityMask);
 end;
 
 
