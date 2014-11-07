@@ -7520,7 +7520,7 @@ end;
 
 procedure TTarget.GetInstallFiles(List: TStrings; const APrefixU, APrefixB: String; ACPU: TCPU; AOS : TOS);
 begin
-  If Not (TargetType in [ttProgram,ttExampleProgram]) and FileExists(APrefixU + ObjectFileName) then
+  If Not (TargetType in [ttProgram,ttExampleProgram]) and FileExists(Installer.BuildEngine.AddPathPrefix(nil,APrefixU + ObjectFileName)) then
     // The compiler does not create an objectfile for all programs.
     List.Add(APrefixU + ObjectFileName);
   If (TargetType in [ttUnit,ttImplicitUnit,ttExampleUnit]) then
