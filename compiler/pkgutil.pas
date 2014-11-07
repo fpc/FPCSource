@@ -481,7 +481,6 @@ implementation
           impname,symname : TSymStr;
           suffixidx : longint;
         begin
-          writeln('available assembler symbols: ', symlist.count);
           for i:=0 to symlist.count-1 do
             begin
               sym:=tasmsymbol(symlist[i]);
@@ -578,7 +577,6 @@ implementation
           pd : tprocdef;
           list : tasmlist;
         begin
-          writeln('unit has ', syms.count, ' imported symbols');
           for i:=0 to syms.count-1 do
             begin
               sym:=tsymentry(syms[i]);

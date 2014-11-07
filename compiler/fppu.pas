@@ -1135,7 +1135,6 @@ var
         typ : tasmsymtype;
       begin
         cnt:=ppufile.getlongint;
-        writeln('loading: unit ', modulename^, ' has ', cnt, ' imported asm symbols');
         while not ppufile.endofentry and not ppufile.error do
           begin
             s:=ppufile.getstring;
