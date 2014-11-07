@@ -635,7 +635,6 @@ end;
 Initialization
 {  ResetResourceTables;}
 finalization
-  Writeln('ObjPas Finalize');
   FinalizeResourceTables;
 {$endif FPC_HAS_FEATURE_RESOURCES}
 end.
