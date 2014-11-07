@@ -320,11 +320,11 @@ implementation
 
       if not search_package_file then
         begin
-          Comment(V_Error,'Package not found: '+realpackagename^);
+          Message1(package_f_cant_find_pcp,realpackagename^);
           exit;
         end
       else
-        Comment(V_Info,'Package found: '+realpackagename^);
+        Message1(package_u_pcp_found,realpackagename^);
 
       if not assigned(pcpfile) then
         internalerror(2013053101);

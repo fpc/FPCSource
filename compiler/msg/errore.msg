@@ -26,6 +26,7 @@
 #   general_  general info
 #   exec_     calls to assembler, external linker, binder
 #   link_     internal linker
+#   package_  package handling
 #
 # <type> the type of the message it should normally used for
 #   f_   fatal error
@@ -3338,6 +3339,26 @@ wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program opti
 % The compiler is unable to create the file specified using the -FW parameter to store the whole program optimisation information.
 %\end{description}
 # EndOfTeX
+
+
+#
+# Package loading and handling
+#
+# 13002 is the last used one
+#
+# BeginOfTeX
+% \section{Unit loading messages.}
+% This section lists all messages that can occur when the compiler is
+% loading a package from disk into memory, saving a package from memory
+% to disk or when parsing packages in general. Many of these messages are
+% informational messages.
+% \begin{description}
+package_f_cant_find_pcp=13001_F_Can't find package $1
+% You tried to use a package of which the PCP file isn't found by the
+% compiler. Check your configuration file for the package paths.
+package_u_pcp_found=13002_U_PCP file for package $1 found
+% The PCP file for the specified package was found.
+% \end{description}
 
 
 #

@@ -991,13 +991,15 @@ const
   wpo_error_executing_symbol_prog=12017;
   wpo_symbol_live_info_needs_smart_linking=12018;
   wpo_cant_create_feedback_file=12019;
+  package_f_cant_find_pcp=13001;
+  package_u_pcp_found=13002;
   option_logo=11023;
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 72083;
+  MsgTxtSize = 72151;
 
   MsgIdxMax : array[1..20] of longint=(
     26,99,340,123,89,57,126,27,202,64,
-    58,20,1,1,1,1,1,1,1,1
+    58,20,3,1,1,1,1,1,1,1
   );
