@@ -4804,11 +4804,6 @@ begin
       FZipper.FileName := Defaults.ZipPrefix + APackage.Name + MakeZipSuffix(Defaults.CPU,Defaults.OS) + '.zip';
     end;
 
-  if assigned(APackage) and (APackage.Directory<>'') then
-    SourceDir:=IncludeTrailingPathDelimiter(APackage.Directory)
-  else
-    SourceDir:='';
-
   FZipper.Entries.AddFileEntry(SourceDir + ASourceFileName, ADestFileName);
   {$endif HAS_UNIT_ZIPPER}
 {$ENDIF CREATE_TAR_FILE}
