@@ -180,10 +180,10 @@ scan_w_switch_is_global=02010_W_Misplaced global compiler switch, ignored
 scan_e_illegal_char_const=02011_E_Illegal char constant
 % This happens when you specify a character with its ASCII code, as in
 % \var{\#96}, but the number is either illegal, or out of range.
-scan_f_cannot_open_input=02012_F_Can not open file "$1"
+scan_f_cannot_open_input=02012_F_Cannot open file "$1"
 % \fpc cannot find the program or unit source file you specified on the
 % command line.
-scan_f_cannot_open_includefile=02013_F_Can not open include file "$1"
+scan_f_cannot_open_includefile=02013_F_Cannot open include file "$1"
 % \fpc cannot find the source file you specified in a \var{\{\$include ..\}}
 % statement.
 scan_e_illegal_pack_records=02015_E_Illegal record alignment specifier "$1"
@@ -802,7 +802,7 @@ parser_e_function_already_declared_public_forward=03120_E_Function is already de
 % You will get this error if a function is defined as \var{forward} twice.
 % Or if it occurs in the \var{interface} section, and again as a \var{forward}
 % declaration in the \var{implementation} section.
-parser_e_not_external_and_export=03121_E_Can not use both EXPORT and EXTERNAL
+parser_e_not_external_and_export=03121_E_Cannot use both EXPORT and EXTERNAL
 % These two procedure directives are mutually exclusive.
 parser_h_not_supported_for_inline=03123_H_"$1" not yet supported inside inline procedure/function
 % Inline procedures don't support this declaration.
@@ -927,7 +927,7 @@ parser_e_dlltool_unit_var_problem2=03161_E_Compile without -WD option
 parser_f_need_objfpc_or_delphi_mode=03162_F_You need ObjFpc (-S2) or Delphi (-Sd) mode to compile this module
 % You need to use \var{\{\$MODE OBJFPC\}} or \var{\{\$MODE DELPHI\}} to compile this file.
 % Or use the corresponding command line switch, either \var{-Mobjfpc} or \var{-MDelphi.}
-parser_e_no_export_with_index_for_target=03163_E_Can not export with index under $1
+parser_e_no_export_with_index_for_target=03163_E_Cannot export with index under $1
 % Exporting of functions or procedures with a specified index is not
 % supported on this target.
 parser_e_no_export_of_variables_for_target=03164_E_Exporting of variables is not supported under $1
@@ -964,7 +964,7 @@ parser_e_no_access_specifier_in_interfaces=03172_E_Access specifiers cannot be u
 parser_e_no_vars_in_interfaces=03173_E_An interface, helper or Objective-C protocol or category cannot contain fields
 % Declarations of fields are not allowed in interfaces, helpers and Objective-C protocols and categories.
 % An interface/helper/protocol/category can contain only methods and properties with method read/write specifiers.
-parser_e_no_local_proc_external=03174_E_Can not declare local procedure as EXTERNAL
+parser_e_no_local_proc_external=03174_E_Cannot declare local procedure as EXTERNAL
 % Declaring local procedures as external is not possible. Local procedures
 % get hidden parameters that will make the chance of errors very high.
 parser_w_skipped_fields_before=03175_W_Some fields coming before "$1" were not initialized
@@ -1102,7 +1102,7 @@ parser_e_illegal_assignment_to_count_var=03208_E_Illegal assignment to for-loop 
 % loop variables inside the loop (Except in Delphi and TP modes). Use a while or
 % repeat loop instead if you need to do something like that, since those
 % constructs were built for that.
-parser_e_no_local_var_external=03209_E_Can not declare local variable as EXTERNAL
+parser_e_no_local_var_external=03209_E_Cannot declare local variable as EXTERNAL
 % Declaring local variables as external is not allowed. Only global variables can reference
 % external variables.
 parser_e_proc_already_external=03210_E_Procedure is already declared EXTERNAL
