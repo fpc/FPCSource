@@ -99,7 +99,10 @@ begin
     T:=P.Targets.AddUnit('stdconvs.pp',StdConvsOSes);
     T.ResourceStrings:=true;
     with T.Dependencies do
-      AddUnit('convutils');
+     begin
+      AddUnit('convutils',ConvUtilsOSes);
+      AddUnit('convutil',ConvUtilOSes);
+     end;
 
     T:=P.Targets.AddUnit('fmtbcd.pp',FmtBCDOSes);
     with T.Dependencies do
