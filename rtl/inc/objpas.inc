@@ -872,7 +872,11 @@
               for i:=0 to intftable^.EntryCount-1 do
               begin
                 result:=@intftable^.Entries[i];
+                {$ifndef ver2_6}
+                if assigned(Result^.iid) and assigned(Result^.iid^) and IsGUIDEqual(Result^.iid^^,iid) then
+                {$else}
                 if assigned(Result^.iid) and IsGUIDEqual(Result^.iid^,iid) then
+                {$endif}
                   Exit;
               end;
             end;
@@ -896,7 +900,11 @@
               for i:=0 to intftable^.EntryCount-1 do
               begin
                 result:=@intftable^.Entries[i];
+                {$ifndef ver2_6}
+                if assigned(result^.iidstr) and assigned(result^.iidstr^) and (result^.iidstr^^ = iidstr) then
+                {$else}
                 if assigned(result^.iidstr) and (result^.iidstr^ = iidstr) then
+                {$endif}
                   Exit;
               end;
             end;

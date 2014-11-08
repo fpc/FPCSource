@@ -606,7 +606,7 @@ implementation
         { GUID (or nil for Corba interfaces) }
         if AImplIntf.IntfDef.objecttype in [odt_interfacecom] then
           rawdata.concat(Tai_const.CreateName(
-            make_mangledname('IID',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^),AT_DATA,0))
+            make_mangledname('IID',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^)+indirect_suffix,AT_DATA,0))
         else
           rawdata.concat(Tai_const.Create_nil_dataptr);
 
@@ -634,7 +634,7 @@ implementation
 
         { IIDStr }
         rawdata.concat(Tai_const.CreateName(
-          make_mangledname('IIDSTR',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^),AT_DATA,0));
+          make_mangledname('IIDSTR',AImplIntf.IntfDef.owner,AImplIntf.IntfDef.objname^)+indirect_suffix,AT_DATA,0));
         { IType }
         rawdata.concat(Tai_const.Create_pint(aint(AImplIntf.VtblImplIntf.IType)));
       end;
@@ -683,6 +683,10 @@ implementation
           list.concat(Tai_const.Create_16bit(_class.iidguid^.D3));
           for i:=Low(_class.iidguid^.D4) to High(_class.iidguid^.D4) do
             list.concat(Tai_const.Create_8bit(_class.iidguid^.D4[i]));
+          { write indirect IID symbol }
+          list.concat(Tai_symbol.Createname_global(s+indirect_suffix,AT_DATA,0));
+          list.concat(Tai_const.Createname(s,AT_DATA,0));
+          list.concat(Tai_symbol_end.Createname(s+indirect_suffix));
         end;
       maybe_new_object_file(list);
       s:=make_mangledname('IIDSTR',_class.owner,_class.objname^);
@@ -690,6 +694,10 @@ implementation
       list.concat(Tai_symbol.Createname_global(s,AT_DATA,0));
       list.concat(Tai_const.Create_8bit(length(_class.iidstr^)));
       list.concat(Tai_string.Create(_class.iidstr^));
+      { write indirect IIDSTR symbol }
+      list.concat(Tai_symbol.Createname_global(s+indirect_suffix,AT_DATA,0));
+      list.concat(Tai_const.Createname(s,AT_DATA,0));
+      list.concat(Tai_symbol_end.Createname(s+indirect_suffix));
     end;
 
 

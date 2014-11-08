@@ -171,10 +171,10 @@
 
        pinterfaceentry = ^tinterfaceentry;
        tinterfaceentry = record
-         IID         : pguid; { if assigned(IID) then Com else Corba}
+         IID         : {$ifndef ver2_6}^{$endif}pguid; { if assigned(IID) then Com else Corba}
          VTable      : Pointer;
          IOffset     : sizeuint;
-         IIDStr      : pshortstring; { never nil. Com: upper(GuidToString(IID^)) }
+         IIDStr      : {$ifndef ver2_6}^{$endif}pshortstring; { never nil. Com: upper(GuidToString(IID^)) }
          case boolean of
 {$ifdef ENDIAN_BIG}
            true      : ({$IFDEF CPU64}__pad: longint;{$ENDIF}IType : tinterfaceentrytype);
