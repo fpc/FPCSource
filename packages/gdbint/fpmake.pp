@@ -177,9 +177,10 @@ begin
         begin
           AddInclude('gdbver.inc');
         end;
-    P.ExamplePath.add('tests');
+    P.ExamplePath.add('examples');
     P.Targets.AddExampleProgram('testgdb.pp');
-    P.Targets.AddExampleProgram('simify.pp');
+    P.Targets.AddExampleProgram('symify.pp');
+    P.Targets.AddExampleUnit('mingw.pas');
     end;
 end;
 
