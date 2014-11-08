@@ -72,9 +72,6 @@ begin
     P.Targets.AddUnit('yacclr0.pas').install:=false;
     P.Targets.AddUnit('yacctabl.pas').install:=false;
 
-    P.Sources.AddSrc('fpcmake.ini');
-    P.Sources.AddSrc('fpcmake.inc');
-
      if (OSToString(defaults.OS)=lowercase({$I %FPCTARGETOS%})) and
        (CPUToString(defaults.CPU)=lowercase({$I %FPCTARGETCPU%})) then
       begin
