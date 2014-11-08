@@ -23,7 +23,6 @@ begin
     P.Description := 'Tool to remove (delete) file(s) with optional retries';
     P.NeedLibC:= false;
 
-    P.SeparateArchive:=false;
     P.Directory:=ADirectory;
     P.Version:='2.7.1';
 

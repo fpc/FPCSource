@@ -28,7 +28,6 @@ begin
 
     P.Directory:=ADirectory;
     P.Version:='2.7.1';
-    P.SeparateArchive:=false;
 
     P.OSes:=[win32,win64];
 

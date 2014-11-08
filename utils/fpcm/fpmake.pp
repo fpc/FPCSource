@@ -221,7 +221,6 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
-    P.SeparateArchive:=false;
 
     P.Dependencies.Add('fcl-base');
 

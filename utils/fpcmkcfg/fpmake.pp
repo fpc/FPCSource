@@ -26,7 +26,6 @@ begin
 
     P.Directory:=ADirectory;
     P.Version:='2.7.1';
-    P.SeparateArchive:=false;
 
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fpmkunit');

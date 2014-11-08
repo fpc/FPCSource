@@ -32,7 +32,6 @@ begin
     P.Dependencies.Add('chm');
     P.Dependencies.Add('univint',[darwin,iphonesim]);
 
-    P.SeparateArchive:=false;
     P.Directory:=ADirectory;
     P.Version:='2.7.1';
 

@@ -23,7 +23,6 @@ begin
     P.Email := '';
     P.NeedLibC:= false;
 
-    P.SeparateArchive:=false;
     P.Directory:=ADirectory;
     P.Version:='2.7.1';
     P.Dependencies.Add('fcl-passrc');

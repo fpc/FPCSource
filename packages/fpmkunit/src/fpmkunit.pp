@@ -716,7 +716,6 @@ Type
     FFlags: TStrings;
     FFPDocFormat: TFPDocFormats;
     FIsFPMakeAddIn: boolean;
-    FSeparateArchive: boolean;
     FSupportBuildModes: TBuildModes;
     FUnitPath,
     FObjectPath,
@@ -809,7 +808,6 @@ Type
     Property SupportBuildModes: TBuildModes read FSupportBuildModes write FSupportBuildModes;
     Property BuildMode: TBuildMode read FBuildMode;
     Property Flags: TStrings read FFlags;
-    Property SeparateArchive: boolean read FSeparateArchive write FSeparateArchive;
     // Compiler options.
     Property OSes : TOSes Read FOSes Write FOSes;
     Property CPUs : TCPUs Read FCPUs Write FCPUs;
@@ -3122,7 +3120,6 @@ begin
   FOSes:=AllOSes;
   FInstalledChecksum:=$ffffffff;
   FFlags := TStringList.Create;
-  FSeparateArchive:=true;
   // Implicit dependency on RTL
   FDependencies.Add('rtl');
   FSupportBuildModes:=[bmBuildUnit, bmOneByOne];
@@ -6670,7 +6667,7 @@ begin
   If (Apackage.State<>tsCompiled) then
     MaybeCompile(APackage);
   Log(vlCommand,SInfoInstallingPackage,[APackage.Name]);
-  if AnArchiveFiles and APackage.SeparateArchive then
+  if AnArchiveFiles then
     FinishArchive(APackage);
   try
     If (APackage.Directory<>'') then

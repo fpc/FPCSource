@@ -25,7 +25,6 @@ begin
     P.NeedLibC:= false;
 
     P.OSes:=[go32v2];
-    P.SeparateArchive:=false;
 
     P.Directory:=ADirectory;
     P.Version:='2.7.1';
