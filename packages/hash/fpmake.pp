@@ -32,14 +32,14 @@ begin
     T:=P.Targets.AddUnit('src/crc.pas');
     T:=P.Targets.AddUnit('src/ntlm.pas');
     T:=P.Targets.AddUnit('src/uuid.pas');
-    T:=P.Targets.AddUnit('src/hmac.pas');
+    T:=P.Targets.AddUnit('src/hmac.pp');
     T:=P.Targets.AddUnit('src/unixcrypt.pas');
       T.OSes:=[Linux];
     T:=P.Targets.AddExampleunit('examples/mdtest.pas');
     T:=P.Targets.AddExampleunit('examples/crctest.pas');
     T:=P.Targets.AddExampleunit('examples/sha1test.pp');
-    T:=P.Targets.AddExampleunit('examples/hmd5.pas');
-    T:=P.Targets.AddExampleunit('examples/hsha1.pas');
+    T:=P.Targets.AddExampleunit('examples/hmd5.pp');
+    T:=P.Targets.AddExampleunit('examples/hsha1.pp');
     T:=P.Targets.AddExampleunit('examples/md5performancetest.pas');
     T:=P.Targets.AddExampleunit('examples/sha1performancetest.pas');
     // md5.ref
