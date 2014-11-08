@@ -46,6 +46,7 @@ begin
           AddInclude('apr_file_info.inc');
           AddInclude('apr_strings.inc');
           AddInclude('apr_version.inc');
+          AddInclude('apr_mmap.inc');
         end;
     T:=P.Targets.AddUnit('httpd24.pas');
       with T.Dependencies do
@@ -58,12 +59,13 @@ begin
           AddInclude('ap_regex.inc');
           AddInclude('http_config.inc');
           AddInclude('http_core.inc');
+          AddInclude('ap_expr.inc');
           AddInclude('util_filter.inc');
           AddInclude('util_script.inc');
           AddInclude('http_log.inc');
           AddInclude('http_protocol.inc');
-          AddInclude('aprutil/apr_buckets.inc');
-          AddInclude('aprutil/apr_uri.inc');
+          AddInclude('src/aprutil/apr_buckets.inc');
+          AddInclude('src/aprutil/apr_uri.inc');
           AddUnit('apr24');
         end;
     P.ExamplePath.Add('examples');
