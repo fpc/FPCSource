@@ -14,7 +14,7 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('importtl');
+    P:=AddPackage('utils-importtl');
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';

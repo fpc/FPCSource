@@ -208,7 +208,7 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('fpcm');
+    P:=AddPackage('utils-fpcm');
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';

@@ -17,7 +17,7 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('fppkg-util');
+    P:=AddPackage('utils-fppkg');
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';

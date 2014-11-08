@@ -14,7 +14,7 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('dxegen');
+    P:=AddPackage('utils-dxegen');
 
     P.Author := 'Charles Sandmann and others';
     P.License := 'LGPL with modification';

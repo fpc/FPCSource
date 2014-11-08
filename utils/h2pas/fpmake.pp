@@ -14,7 +14,7 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('h2pas');
+    P:=AddPackage('utils-h2pas');
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';

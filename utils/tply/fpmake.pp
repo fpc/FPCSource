@@ -15,7 +15,7 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('lexyacc');
+    P:=AddPackage('utils-lexyacc');
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';

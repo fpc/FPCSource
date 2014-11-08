@@ -14,7 +14,7 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('fpcres');
+    P:=AddPackage('utils-fpcres');
 
     P.Author := 'Giulio Bernardi';
     P.License := 'LGPL with modification';

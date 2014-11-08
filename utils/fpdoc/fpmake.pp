@@ -16,7 +16,7 @@ begin
   AddCustomFpmakeCommandlineOption('bin2obj', 'Use indicated bin2obj executable.');
   With Installer do
     begin
-    P:=AddPackage('fpdoc');
+    P:=AddPackage('utils-fpdoc');
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';

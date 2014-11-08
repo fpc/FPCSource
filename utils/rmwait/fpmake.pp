@@ -14,7 +14,7 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('rmwait');
+    P:=AddPackage('utils-rmwait');
 
     P.Author := 'Tomas Hajny';
     P.License := 'LGPL with modification';

@@ -14,7 +14,7 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('unicode');
+    P:=AddPackage('utils-unicode');
 
     P.Author := 'Inoussa OUEDRAOGO';
     P.License := 'LGPL with modification';

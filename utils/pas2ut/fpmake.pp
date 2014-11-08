@@ -14,7 +14,7 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('pas2ut');
+    P:=AddPackage('utils-pas2ut');
 
     P.Author := 'Free Pascal Team';
     P.License := 'LGPL with modification';

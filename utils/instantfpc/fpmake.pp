@@ -14,7 +14,7 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('instantfpc');
+    P:=AddPackage('utils-instantfpc');
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';

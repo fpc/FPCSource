@@ -14,7 +14,7 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('fpcreslipo');
+    P:=AddPackage('utils-fpcreslipo');
 
     P.Author := 'Giulio Bernardi';
     P.License := 'LGPL with modification';
