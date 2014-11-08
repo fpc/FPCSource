@@ -62,7 +62,7 @@ begin
       AddInclude('xmlschemas.inc');
       AddInclude('hash.inc');
       AddInclude('nanohttp.inc');
-      AddInclude('parser.inc');
+      AddInclude('libxmlparser.inc');
       AddInclude('tree.inc');
       AddInclude('dict.inc');
       AddInclude('xlink.inc');
