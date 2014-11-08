@@ -5198,7 +5198,7 @@ begin
     SysArchiveFiles(List,ArchiveFile)
   else
     begin
-      S:=FileListToString(List,'');
+      S:=FileListToString(List,IncludeTrailingPathDelimiter(GPathPrefix));
       SplitCommand(Defaults.Archive,C,O);
       If (O='') then
         O:=ArchiveFile+' '+S
@@ -6803,7 +6803,7 @@ begin
               A:=IncludeTrailingPathDelimiter(A);
             for i := 0 to L.Count-1 do
               begin
-                ZipFile.Entries.AddFileEntry(L[i], A+L[i]);
+                ZipFile.Entries.AddFileEntry(AddPathPrefix(APackage, L[i]), A+L[i]);
               end;
             ZipFile.ZipAllFiles;
           finally
