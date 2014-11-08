@@ -173,7 +173,7 @@ begin
   TQRecC (FLock.Offset).C1 := dwFileOffsetLow;
   TQRecC (FLock.Range).C2 := nNumberOfBytesToLockHigh;
   TQRecC (FLock.Range).C1 := nNumberOfBytesToLockLow;
-  RC := Sys_DosSetFileLocksL (hFile, FLock, FUnlock, 50, 0);
+  RC := DosSetFileLocksL (hFile, FLock, FUnlock, 50, 0);
   if RC <> 0 then
    begin
     LastErr := RC;
@@ -194,7 +194,7 @@ begin
   TQRecC (FUnlock.Offset).C1 := dwFileOffsetLow;
   TQRecC (FUnlock.Range).C2 := nNumberOfBytesToUnlockHigh;
   TQRecC (FUnlock.Range).C1 := nNumberOfBytesToUnlockLow;
-  RC := Sys_DosSetFileLocksL (hFile, FLock, FUnlock, 50, 0);
+  RC := DosSetFileLocksL (hFile, FLock, FUnlock, 50, 0);
   if RC <> 0 then
    begin
     LastErr := RC;
