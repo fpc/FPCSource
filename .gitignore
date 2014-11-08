@@ -1819,15 +1819,6 @@ packages/gdbint/src/Package.fpc
 packages/gdbint/src/build-stamp.*
 packages/gdbint/src/fpcmade.*
 packages/gdbint/src/units
-packages/gdbint/tests/*.bak
-packages/gdbint/tests/*.exe
-packages/gdbint/tests/*.o
-packages/gdbint/tests/*.ppu
-packages/gdbint/tests/*.s
-packages/gdbint/tests/Package.fpc
-packages/gdbint/tests/build-stamp.*
-packages/gdbint/tests/fpcmade.*
-packages/gdbint/tests/units
 packages/gdbint/units
 packages/gdbm/*.bak
 packages/gdbm/*.exe
