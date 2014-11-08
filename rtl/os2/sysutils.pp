@@ -753,7 +753,8 @@ var
  ObjName: shortstring;
  RC: cardinal;
  ExecAppType: cardinal;
- MaxArgsSize: word; (* Amount of memory reserved for arguments in bytes. *)
+ MaxArgsSize: PtrUInt; (* Amount of memory reserved for arguments in bytes. *)
+ MaxArgsSizeInc: word;
 
 const
  ObjBufSize = 512;
@@ -849,6 +850,8 @@ begin
 (* DosExecPgm should work... *)
     begin
      MaxArgsSize := Length (ComLine) + Length (Path) + 256; (* More than enough *)
+     if MaxArgsSize > high (word) then
+      Exit;
      if ComLine = '' then
       begin
        Args0 := nil;
@@ -860,8 +863,16 @@ begin
        Args := Args0;
 (* Work around a bug in OS/2 - argument to DosExecPgm *)
 (* should not cross 64K boundary. *)
-       if ((PtrUInt (Args) + 1024) and $FFFF) < 1024 then
-        Inc (pointer (Args), 1024);
+       while ((PtrUInt (Args) + MaxArgsSize) and $FFFF) < MaxArgsSize do
+        begin
+         MaxArgsSizeInc := MaxArgsSize -
+                                    ((PtrUInt (Args) + MaxArgsSize) and $FFFF);
+         Inc (MaxArgsSize, MaxArgsSizeInc);
+         if MaxArgsSize > high (word) then
+          Exit;
+         ReallocMem (Args0, MaxArgsSize);
+         Inc (pointer (Args), MaxArgsSizeInc);
+        end;
        ArgSize := 0;
        Move (Path [1], Args^ [ArgSize], Length (Path));
        Inc (ArgSize, Length (Path));

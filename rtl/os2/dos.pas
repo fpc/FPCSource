@@ -202,7 +202,7 @@ var
   RC, RC2: cardinal;
   ExecAppType: cardinal;
   HQ: THandle;
-  SPID, STID, SCtr, QName: string;
+  SPID, STID, QName: string;
   SID, PID: cardinal;
   SD: TStartData;
   RD: TRequestData;
@@ -211,7 +211,8 @@ var
   Prio: byte;
   DSS: boolean;
   SR: SearchRec;
-  MaxArgsSize: word; (* Amount of memory reserved for arguments in bytes. *)
+  MaxArgsSize: PtrUInt; (* Amount of memory reserved for arguments in bytes. *)
+  MaxArgsSizeInc: word;
 
 begin
 {  LastDosExitCode := Exec (Path, ExecRunFlags (ExecFlags), efDefault, ComLine);}
@@ -225,6 +226,11 @@ begin
    QName := Path;
   FindClose (SR);
   MaxArgsSize := Length (ComLine) + Length (QName) + 256; (* More than enough *)
+  if MaxArgsSize > high (word) then
+   begin
+    DosError := 8; (* Not quite, but "not enough memory" is close enough *)
+    Exit;
+   end;
   if ComLine = '' then
    begin
     Args0 := nil;
@@ -236,8 +242,19 @@ begin
     Args := Args0;
 (* Work around a bug in OS/2 - argument to DosExecPgm *)
 (* should not cross a 64K boundary. *)
-    if ((PtrUInt (Args) + 1024) and $FFFF) < 1024 then
-     Inc (pointer (Args), 1024);
+    while ((PtrUInt (Args) + MaxArgsSize) and $FFFF) < MaxArgsSize do
+     begin
+      MaxArgsSizeInc := MaxArgsSize -
+                                    ((PtrUInt (Args) + MaxArgsSize) and $FFFF);
+      Inc (MaxArgsSize, MaxArgsSizeInc);
+      if MaxArgsSize > high (word) then
+       begin
+        DosError := 8; (* Not quite, but "not enough memory" is close enough *)
+        Exit;
+       end;
+      ReallocMem (Args0, MaxArgsSize);
+      Inc (pointer (Args), MaxArgsSizeInc);
+     end;
     ArgSize := 0;
     Move (QName [1], Args^ [ArgSize], Length (QName));
     Inc (ArgSize, Length (QName));
