@@ -33,6 +33,7 @@ interface
   Function RewritePPU(const PPUFn,PPLFn:String):Boolean;
   procedure export_unit(u:tmodule);
   procedure load_packages;
+  procedure add_package(const name:string;ignoreduplicates:boolean);
 
 implementation
 
@@ -419,6 +420,27 @@ implementation
           pcp.loadpcp;
           entry^.package:=pcp;
         end;
+    end;
+
+
+  procedure add_package(const name:string;ignoreduplicates:boolean);
+    var
+      entry : ppackageentry;
+      i : longint;
+    begin
+      for i:=0 to packagelist.count-1 do
+        begin
+          if packagelist.nameofindex(i)=name then
+            begin
+              if not ignoreduplicates then
+                Message1(package_e_duplicate_package,name);
+              exit;
+            end;
+        end;
+      new(entry);
+      entry^.package:=nil;
+      entry^.realpkgname:=name;
+      packagelist.add(name,entry);
     end;
 
 

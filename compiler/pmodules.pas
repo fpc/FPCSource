@@ -1380,6 +1380,7 @@ type
          current_module.setmodulename(module_name);
          current_module.ispackage:=true;
          exportlib.preparelib(module_name);
+         pkg:=tpcppackage.create(module_name);
 
          if tf_library_needs_pic in target_info.flags then
            include(current_settings.moduleswitches,cs_create_pic);
@@ -1402,10 +1403,41 @@ type
          { of the program                                             }
          current_module.localsymtable:=tstaticsymtable.create(current_module.modulename^,current_module.moduleid);
 
-         {Load the units used by the program we compile.}
-         if token=_REQUIRES then
+         { ensure that no packages are picked up from the options }
+         packagelist.clear;
+
+         {Read the packages used by the package we compile.}
+         if (token=_ID) and (idtoken=_REQUIRES) then
            begin
+             { consume _REQUIRES word }
+             consume(_ID);
+             while true do
+               begin
+                 if token=_ID then
+                   begin
+                     module_name:=orgpattern;
+                     consume(_ID);
+                     while token=_POINT do
+                       begin
+                         consume(_POINT);
+                         module_name:=module_name+'.'+orgpattern;
+                         consume(_ID);
+                       end;
+                     add_package(module_name,false);
+                   end
+                 else
+                   consume(_ID);
+                 if token=_COMMA then
+                   consume(_COMMA)
+                 else
+                   break;
+               end;
+             consume(_SEMICOLON);
            end;
+
+         { now load all packages, so that we can determine whether a unit is
+           already provided by one of the loaded packages }
+         load_packages;
 
          {Load the units used by the program we compile.}
          if (token=_ID) and (idtoken=_CONTAINS) then
@@ -1495,6 +1527,7 @@ type
            begin
              Message1(unit_f_errors_in_unit,tostr(Errorcount));
              status.skip_error:=true;
+             pkg.free;
              exit;
            end;
 
@@ -1564,6 +1597,7 @@ type
           begin
             Message1(unit_f_errors_in_unit,tostr(Errorcount));
             status.skip_error:=true;
+            pkg.free;
             exit;
           end;
 
@@ -1571,7 +1605,6 @@ type
            begin
              { add all contained units to the package }
              { TODO : handle implicitly imported units }
-             pkg:=tpcppackage.create(current_module.modulename^);
              uu:=tused_unit(current_module.used_units.first);
              while assigned(uu) do
                begin
