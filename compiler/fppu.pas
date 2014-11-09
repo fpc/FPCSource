@@ -554,6 +554,7 @@ var
                 filename:=pkgunit^.ppufile;
                 if not SearchPathList(unitsearchpath) then
                   exit;
+                package:=pkg^.package;
 
                 { now load the unit and all used units }
                 load_interface;
