@@ -90,7 +90,7 @@ unit cpubase;
 
       { MM Super register first and last }
       first_mm_supreg    = RS_S0;
-      first_mm_imreg     = $30;
+      first_mm_imreg     = $40;
 
 { TODO: Calculate bsstart}
       regnumber_count_bsstart = 64;

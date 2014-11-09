@@ -24,7 +24,6 @@
 { Allow duplicate allocations, can be used to get the .s file written }
 { $define ALLOWDUPREG}
 
-
 unit rgobj;
 
   interface
@@ -128,6 +127,9 @@ unit rgobj;
       by cpu-specific implementations.
 
       --------------------------------------------------------------------}
+
+       { trgobj }
+
        trgobj=class
         preserved_by_proc : tcpuregisterset;
         used_in_proc : tcpuregisterset;
@@ -138,6 +140,9 @@ unit rgobj;
                            Afirst_imaginary:Tsuperregister;
                            Apreserved_by_proc:Tcpuregisterset);
         destructor destroy;override;
+
+        procedure define_class(asubclass:TSubRegister;const Aregs:array of TSuperRegister);
+        procedure define_alias(aregister:TSuperRegister;const Aregs:array of TSuperRegister);
 
         { Allocate a register. An internalerror will be generated if there is
          no more free registers which can be allocated.}
@@ -171,6 +176,8 @@ unit rgobj;
         { can be overridden to add cpu specific interferences }
         procedure add_cpu_interferences(p : tai);virtual;
         procedure add_constraints(reg:Tregister);virtual;
+        procedure add_class_constraints(reg:Tregister);
+        procedure add_alias_constraints(reg:Tregister);
         function  getregisterinline(list:TAsmList;const subregconstraints:Tsubregisterset):Tregister;
         procedure ungetregisterinline(list:TAsmList;r:Tregister);
         function  get_spill_subreg(r : tregister) : tsubregister;virtual;
@@ -192,6 +199,13 @@ unit rgobj;
         usable_registers_cnt : word;
         usable_registers  : array[0..maxcpuregister] of tsuperregister;
         usable_register_set : tcpuregisterset;
+
+        alias_registers_cnt : word;
+        alias_register_def  : array[0..maxcpuregister] of tsuperregister;
+        alias_registers     : array[0..maxcpuregister] of tsuperregisterset;
+
+        reg_class           : array[TSubRegister] of tsuperregisterset;
+
         ibitmap           : Tinterferencebitmap;
         spillednodes,
         simplifyworklist,
@@ -217,6 +231,7 @@ unit rgobj;
         procedure colour_registers;
         procedure insert_regalloc_info(list:TAsmList;u:tsuperregister);
         procedure generate_interference_graph(list:TAsmList;headertai:tai);
+        function squeeze(n_class, S_class: TSubRegister): longint;
         { translates the registers in the given assembler list }
         procedure translate_registers(list:TAsmList);
         function  spill_registers(list:TAsmList;headertai:tai):boolean;virtual;
@@ -248,6 +263,8 @@ unit rgobj;
         procedure writegraph(loopidx:longint);
 {$endif EXTDEBUG}
         procedure combine(u,v:Tsuperregister);
+
+        function reg_count(subreg:TSubRegister):integer;
         { set v as an alias for u }
         procedure set_alias(u,v:Tsuperregister);
         function  get_alias(n:Tsuperregister):Tsuperregister;
@@ -437,25 +454,45 @@ unit rgobj;
       backwards_was_first.free;
     end;
 
-    procedure Trgobj.dispose_reginfo;
+    procedure trgobj.define_class(asubclass: TSubRegister; const Aregs: array of TSuperRegister);
+      var
+        reg: TSuperRegister;
+      begin
+        supregset_reset(reg_class[asubclass],false,first_imaginary);
 
-    var i:cardinal;
+        for reg in aregs do
+          supregset_include(reg_class[asubclass],reg);
+      end;
 
-    begin
-      if reginfo<>nil then
-        begin
-          for i:=0 to maxreg-1 do
-            with reginfo[i] do
-              begin
-                if adjlist<>nil then
-                  dispose(adjlist,done);
-                if movelist<>nil then
-                  dispose(movelist);
-              end;
-          freemem(reginfo);
-          reginfo:=nil;
-        end;
-    end;
+    procedure trgobj.define_alias(aregister: TSuperRegister; const Aregs: array of TSuperRegister);
+      var
+        reg: TSuperRegister;
+      begin
+        alias_register_def[aregister]:=aregister;
+        supregset_reset(alias_registers[aregister],false,first_imaginary);
+        for reg in aregs do
+          supregset_include(alias_registers[aregister],reg);
+        inc(alias_registers_cnt);
+      end;
+
+    procedure trgobj.dispose_reginfo;
+      var
+        i:cardinal;
+      begin
+        if reginfo<>nil then
+          begin
+            for i:=0 to maxreg-1 do
+              with reginfo[i] do
+                begin
+                  if adjlist<>nil then
+                    dispose(adjlist,done);
+                  if movelist<>nil then
+                    dispose(movelist);
+                end;
+            freemem(reginfo);
+            reginfo:=nil;
+          end;
+      end;
 
     function trgobj.getnewreg(subreg:tsubregister):tsuperregister;
       var
@@ -595,9 +632,37 @@ unit rgobj;
 
 
     procedure trgobj.add_constraints(reg:Tregister);
+      begin
+      end;
 
-    begin
-    end;
+
+    procedure trgobj.add_class_constraints(reg: Tregister);
+      var
+        supreg: TSuperRegister;
+        subreg: TSubRegister;
+      begin
+        {subreg:=getsubreg(reg);
+        for supreg:=0 to first_imaginary-1 do
+          if not supregset_in(reg_class[subreg],supreg) then
+            add_edge(supreg,getsupreg(reg));}
+      end;
+
+
+    procedure trgobj.add_alias_constraints(reg: Tregister);
+      var
+        r,supreg: TSuperRegister;
+        subreg: TSubRegister;
+      begin
+        add_class_constraints(reg);
+
+        subreg:=getsubreg(reg);
+
+        {for supreg:=0 to first_imaginary-1 do
+          if supregset_in(reg_class[subreg],supreg) then
+            for r:=0 to first_imaginary-1 do
+              if supregset_in(alias_registers[supreg],r) then
+                add_edge(supreg,r);}
+      end;
 
 
     procedure trgobj.add_edge(u,v:Tsuperregister);
@@ -803,7 +868,7 @@ unit rgobj;
       end;
 
 
-    procedure trgobj.add_move_instruction(instr:Taicpu);
+  procedure trgobj.add_move_instruction(instr:Taicpu);
 
     {This procedure notifies a certain as a move instruction so the
      register allocator can try to eliminate it.}
@@ -838,7 +903,7 @@ unit rgobj;
       i.y:=dsupreg;
     end;
 
-    function trgobj.move_related(n:Tsuperregister):boolean;
+  function trgobj.move_related(n:Tsuperregister):boolean;
 
     var i:cardinal;
 
@@ -855,7 +920,7 @@ unit rgobj;
                 end;
     end;
 
-    procedure Trgobj.sort_simplify_worklist;
+  procedure trgobj.sort_simplify_worklist;
 
     {Sorts the simplifyworklist by the number of interferences the
      registers in it cause. This allows simplify to execute in
@@ -900,9 +965,37 @@ unit rgobj;
         end;
     end;
 
-    procedure trgobj.make_work_list;
+
+  function trgobj.squeeze(n_class,S_class:TSubRegister):longint;
+    var
+      r,r2:tsuperregister;
+      rs:tsuperregisterset;
+      t:integer;
+    begin
+      result:=0;
+
+      rs:=reg_class[n_class];
+
+      for r:=0 to usable_registers_cnt-1 do
+        if supregset_in(reg_class[S_class],r) then
+          begin
+            t:=0;
+            for r2:=0 to usable_registers_cnt-1 do
+              if supregset_in(alias_registers[r],r2) then
+                supregset_exclude(rs,r2);
+
+            for r2:=0 to usable_registers_cnt-1 do
+              if supregset_in(rs,r2) then
+                inc(t);
+
+            result:=max(result,t);
+          end;
+    end;
+
+  procedure trgobj.make_work_list;
 
     var n:cardinal;
+      i: Integer;
 
     begin
       {If we have 7 cpu registers, and the degree of a node is 7, we cannot
@@ -913,8 +1006,16 @@ unit rgobj;
             if adjlist=nil then
               degree:=0
             else
-              degree:=adjlist^.length;
-            if degree>=usable_registers_cnt then
+              begin
+                //degree:=adjlist^.length;
+                degree:=0;
+                for i:=0 to adjlist^.length-1 do
+                  begin
+                    degree:=max(degree,
+                      squeeze(reginfo[n].subreg,reginfo[adjlist^.buf^[i]].subreg));
+                  end;
+              end;
+            if degree>=reg_count(reginfo[n].subreg) then
               spillworklist.add(n)
             else if move_related(n) then
               freezeworklist.add(n)
@@ -957,7 +1058,7 @@ unit rgobj;
           end;
     end;
 
-    procedure Trgobj.decrement_degree(m:Tsuperregister);
+  procedure trgobj.decrement_degree(m: Tsuperregister);
 
     var adj : Psuperregisterworklist;
         n : tsuperregister;
@@ -966,11 +1067,22 @@ unit rgobj;
     begin
       with reginfo[m] do
         begin
-          d:=degree;
+          {d:=degree;
           if d=0 then
             internalerror(200312151);
-          dec(degree);
-          if d=usable_registers_cnt then
+          dec(degree);}
+
+          //degree:=0;
+
+          if assigned(adjlist) then
+            for i:=0 to adjlist^.length-1 do
+              begin
+                degree:=max(degree,
+                  squeeze(reginfo[m].subreg,reginfo[adjlist^.buf^[i]].subreg));
+              end;
+          d:=degree;
+
+          if d=reg_count(subreg) then
             begin
               {Enable moves for m.}
               enable_moves(m);
@@ -1035,7 +1147,7 @@ unit rgobj;
       begin
         if (u>=first_imaginary) and
            (not move_related(u)) and
-           (reginfo[u].degree<usable_registers_cnt) then
+           (reginfo[u].degree<reg_count(reginfo[u].subreg)) then
           begin
             if not freezeworklist.delete(u) then
               internalerror(200308161); {must be found}
@@ -1054,7 +1166,7 @@ unit rgobj;
         ok:=(t<first_imaginary) or
             // disabled for now, see issue #22405
             // ((r<first_imaginary) and (r in usable_register_set)) or
-            (reginfo[t].degree<usable_registers_cnt) or
+            (reginfo[t].degree<reg_count(reginfo[t].subreg)) or
             ibitmap[r,t];
       end;
 
@@ -1080,7 +1192,7 @@ unit rgobj;
         end;
     end;
 
-    function trgobj.conservative(u,v:Tsuperregister):boolean;
+  function trgobj.conservative(u,v:Tsuperregister):boolean;
 
     var adj : Psuperregisterworklist;
         done : Tsuperregisterset; {To prevent that we count nodes twice.}
@@ -1100,7 +1212,7 @@ unit rgobj;
                 if flags*[ri_coalesced,ri_selected]=[] then
                   begin
                     supregset_include(done,n);
-                    if reginfo[n].degree>=usable_registers_cnt then
+                    if reginfo[n].degree>=reg_count(reginfo[n].subreg) then
                       inc(k);
                   end;
               end;
@@ -1111,11 +1223,11 @@ unit rgobj;
           begin
             n:=adj^.buf^[i-1];
             if not supregset_in(done,n) and
-               (reginfo[n].degree>=usable_registers_cnt) and
+               (reginfo[n].degree>=reg_count(reginfo[n].subreg)) and
                (reginfo[u].flags*[ri_coalesced,ri_selected]=[]) then
               inc(k);
           end;
-      conservative:=(k<usable_registers_cnt);
+      conservative:=(k<max(reg_count(reginfo[u].subreg),reg_count(reginfo[v].subreg)));
     end;
 
     procedure trgobj.set_alias(u,v:Tsuperregister);
@@ -1241,12 +1353,24 @@ unit rgobj;
                     end;
                 end;
           end;
-      if (reginfo[u].degree>=usable_registers_cnt) and freezeworklist.delete(u) then
+      if (reginfo[u].degree>=reg_count(reginfo[u].subreg)) and freezeworklist.delete(u) then
         spillworklist.add(u);
     end;
 
 
-    procedure trgobj.coalesce;
+  function trgobj.reg_count(subreg: TSubRegister): integer;
+    var
+      r:TSuperRegister;
+    begin
+      result:=0;
+
+      for r:=0 to first_imaginary-1 do
+        if supregset_in(reg_class[subreg],r) then
+          inc(result);
+    end;
+
+
+  procedure trgobj.coalesce;
 
     var m:Tmoveins;
         x,y,u,v:cardinal;
@@ -1331,7 +1455,7 @@ unit rgobj;
                 frozen_moves.insert(m);
 
                 if (v>=first_imaginary) and not(move_related(v)) and
-                   (reginfo[v].degree<usable_registers_cnt) then
+                   (reginfo[v].degree<reg_count(reginfo[v].subreg)) then
                   begin
                     freezeworklist.delete(v);
                     simplifyworklist.add(v);
@@ -1405,6 +1529,7 @@ unit rgobj;
         adj_colours:set of 0..255;
         found : boolean;
         tmpr: tregister;
+        r: Integer;
     begin
       spillednodes.clear;
       {Reset colours}
@@ -1426,7 +1551,13 @@ unit rgobj;
               begin
                 a:=get_alias(adj^.buf^[j]);
                 if supregset_in(colourednodes,a) and (reginfo[a].colour<=255) then
-                  include(adj_colours,reginfo[a].colour);
+                  begin
+                    include(adj_colours,reginfo[a].colour);
+
+                    for r:=0 to usable_registers_cnt-1 do
+                      if supregset_in(alias_registers[reginfo[a].colour],r) then
+                        Include(adj_colours,r);
+                  end;
               end;
           { FIXME: temp variable r is needed here to avoid Internal error 20060521 }
           {        while compiling the compiler. }
@@ -1439,14 +1570,15 @@ unit rgobj;
           for k:=0 to usable_registers_cnt-1 do
             begin
               c:=usable_registers[k];
-               if not(c in adj_colours) then
-                 begin
-                   reginfo[n].colour:=c;
-                   found:=true;
-                   supregset_include(colourednodes,n);
-                   include(used_in_proc,c);
-                   break;
-                 end;
+              if supregset_in(reg_class[reginfo[n].subreg],c) and
+                 not(c in adj_colours) then
+                begin
+                  reginfo[n].colour:=c;
+                  found:=true;
+                  supregset_include(colourednodes,n);
+                  include(used_in_proc,c);
+                  break;
+                end;
             end;
           if not found then
             spillednodes.add(n);
@@ -1555,11 +1687,15 @@ unit rgobj;
         result:=newreg(regtype,p,subreg);
         add_edges_used(p);
         add_constraints(result);
+        add_alias_constraints(result);
         { also add constraints for other sizes used for this register }
         if subreg<>low(tsubregister) then
           for subreg:=pred(subreg) downto low(tsubregister) do
             if subreg in subregconstraints then
-              add_constraints(newreg(regtype,getsupreg(result),subreg));
+              begin
+                add_constraints(newreg(regtype,getsupreg(result),subreg));
+                add_alias_constraints(newreg(regtype,getsupreg(result),subreg));
+              end;
       end;
 
 
@@ -1643,6 +1779,7 @@ unit rgobj;
 {$if defined(EXTDEBUG) or defined(DEBUG_REGISTERLIFE)}
         i : integer;
 {$endif defined(EXTDEBUG) or defined(DEBUG_REGISTERLIFE)}
+        r,
         supreg : tsuperregister;
       begin
         { All allocations are available. Now we can generate the
@@ -1686,6 +1823,7 @@ unit rgobj;
                       end;
                       { constraints needs always to be updated }
                       add_constraints(reg);
+                      add_alias_constraints(reg);
                     end;
                 end;
             add_cpu_interferences(p);
@@ -1709,13 +1847,13 @@ unit rgobj;
     procedure trgobj.translate_register(var reg : tregister);
       begin
         if (getregtype(reg)=regtype) then
-          setsupreg(reg,reginfo[getsupreg(reg)].colour)
-        else
-          internalerror(200602021);
+          setsupreg(reg,reginfo[getsupreg(reg)].colour);
+        //else
+          //internalerror(200602021);
       end;
 
 
-    procedure Trgobj.translate_registers(list:TAsmList);
+    procedure trgobj.translate_registers(list: TAsmList);
       var
         hp,p,q:Tai;
         i:shortint;
@@ -1750,7 +1888,7 @@ unit rgobj;
                           end
                         else
                           begin
-                            setsupreg(reg,reginfo[getsupreg(reg)].colour);
+                            translate_register(reg);
                             {
                               Remove sequences of release and
                               allocation of the same register like. Other combinations
@@ -1783,10 +1921,10 @@ unit rgobj;
                     begin
                       if (cs_asm_source in current_settings.globalswitches) then
                         begin
-                          setsupreg(tai_varloc(p).newlocation,reginfo[getsupreg(tai_varloc(p).newlocation)].colour);
+                          translate_register(tai_varloc(p).newlocation);
                           if tai_varloc(p).newlocationhi<>NR_NO then
                             begin
-                              setsupreg(tai_varloc(p).newlocationhi,reginfo[getsupreg(tai_varloc(p).newlocationhi)].colour);
+                              translate_register(tai_varloc(p).newlocationhi);
                                 hp:=Tai_comment.Create(strpnew('Var '+tai_varloc(p).varsym.realname+' located in register '+
                                   std_regname(tai_varloc(p).newlocationhi)+':'+std_regname(tai_varloc(p).newlocation)));
                             end
@@ -1816,51 +1954,19 @@ unit rgobj;
                       with oper[i]^ do
                         case typ of
                           Top_reg:
-                             if (getregtype(reg)=regtype) then
-                               begin
-                                 u:=getsupreg(reg);
-{$ifdef EXTDEBUG}
-                                 if (u>=maxreginfo) then
-                                   internalerror(2012101903);
-{$endif}
-                                 setsupreg(reg,reginfo[u].colour);
-                               end;
+                             translate_register(reg);
                           Top_ref:
                             begin
                               if regtype in [R_INTREGISTER,R_ADDRESSREGISTER] then
                                 with ref^ do
                                   begin
-                                    if (base<>NR_NO) and
-                                       (getregtype(base)=regtype) then
-                                      begin
-                                        u:=getsupreg(base);
-{$ifdef EXTDEBUG}
-                                        if (u>=maxreginfo) then
-                                          internalerror(2012101904);
-{$endif}
-                                        setsupreg(base,reginfo[u].colour);
-                                      end;
-                                    if (index<>NR_NO) and
-                                       (getregtype(index)=regtype) then
-                                      begin
-                                        u:=getsupreg(index);
-{$ifdef EXTDEBUG}
-                                        if (u>=maxreginfo) then
-                                          internalerror(2012101905);
-{$endif}
-                                        setsupreg(index,reginfo[u].colour);
-                                      end;
+                                    if (base<>NR_NO) then
+                                      translate_register(base);
+                                    if (index<>NR_NO) then
+                                      translate_register(index);
 {$if defined(x86)}
-                                    if (segment<>NR_NO) and
-                                       (getregtype(segment)=regtype) then
-                                      begin
-                                        u:=getsupreg(segment);
-{$ifdef EXTDEBUG}
-                                        if (u>=maxreginfo) then
-                                          internalerror(2013052401);
-{$endif}
-                                        setsupreg(segment,reginfo[u].colour);
-                                      end;
+                                    if (segment<>NR_NO) then
+                                      translate_register(segment);
 {$endif defined(x86)}
                                   end;
                             end;
@@ -1868,12 +1974,8 @@ unit rgobj;
                           Top_shifterop:
                             begin
                               if regtype=R_INTREGISTER then
-                                begin
-                                  so:=shifterop;
-                                  if (so^.rs<>NR_NO) and
-                                     (getregtype(so^.rs)=regtype) then
-                                    setsupreg(so^.rs,reginfo[getsupreg(so^.rs)].colour);
-                                end;
+                                if (shifterop^.rs<>NR_NO) then
+                                  translate_register(shifterop^.rs);
                             end;
 {$endif arm}
                         end;
@@ -2012,7 +2114,7 @@ unit rgobj;
       end;
 
 
-    procedure Trgobj.do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
+        procedure trgobj.do_spill_written(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister);
       var
         ins:Taicpu;
       begin

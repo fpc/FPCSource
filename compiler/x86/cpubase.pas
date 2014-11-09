@@ -87,22 +87,35 @@ uses
       RS_R15        = $0f;      {R15}
       { create aliases to allow code sharing between x86-64 and i386 }
       RS_EAX        = RS_RAX;
-      RS_EBX        = RS_RBX;
       RS_ECX        = RS_RCX;
       RS_EDX        = RS_RDX;
+      RS_EBX        = RS_RBX;
       RS_ESI        = RS_RSI;
       RS_EDI        = RS_RDI;
       RS_EBP        = RS_RBP;
       RS_ESP        = RS_RSP;
       { create aliases to allow code sharing between i386 and i8086 }
       RS_AX        = RS_RAX;
-      RS_BX        = RS_RBX;
       RS_CX        = RS_RCX;
       RS_DX        = RS_RDX;
+      RS_BX        = RS_RBX;
       RS_SI        = RS_RSI;
       RS_DI        = RS_RDI;
       RS_BP        = RS_RBP;
       RS_SP        = RS_RSP;
+      { 8-bit aliases }
+      RS_AL        = RS_RAX;
+      RS_AH        = RS_RAX;
+      RS_CL        = RS_RCX;
+      RS_CH        = RS_RCX;
+      RS_DL        = RS_RDX;
+      RS_DH        = RS_RDX;
+      RS_BL        = RS_RBX;
+      RS_BH        = RS_RBX;
+      RS_SIL       = RS_RSI;
+      RS_DIL       = RS_RDI;
+      RS_BPL       = RS_RBP;
+      RS_SPL       = RS_RSP;
 
       { Number of first imaginary register }
       first_int_imreg     = $10;

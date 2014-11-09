@@ -93,8 +93,50 @@ unit cgcpu;
             rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI,RS_EBP],first_int_imreg,[])
           else
             rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP]);
+
+        rg[R_INTREGISTER].define_class(R_SUBD,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI,RS_EBP]);
+        rg[R_INTREGISTER].define_class(R_SUBW,[RS_AX,RS_DX,RS_CX,RS_BX,RS_DI,RS_SI,RS_BP]);
+        rg[R_INTREGISTER].define_class(R_SUBL,[RS_AL,RS_DL,RS_CL,RS_BL]);
+        rg[R_INTREGISTER].define_class(R_SUBH,[RS_AH,RS_DH,RS_CH,RS_BH]);
+
+        rg[R_INTREGISTER].define_alias(RS_EAX,[RS_AX,RS_AL,RS_AH]);
+        rg[R_INTREGISTER].define_alias(RS_EDX,[RS_DX,RS_DL,RS_DH]);
+        rg[R_INTREGISTER].define_alias(RS_ECX,[RS_CX,RS_CL,RS_CH]);
+        rg[R_INTREGISTER].define_alias(RS_EBX,[RS_BX,RS_BL,RS_BH]);
+
+        rg[R_INTREGISTER].define_alias(RS_AX,[RS_EAX,RS_AL,RS_AH]);
+        rg[R_INTREGISTER].define_alias(RS_DX,[RS_EDX,RS_DL,RS_DH]);
+        rg[R_INTREGISTER].define_alias(RS_CX,[RS_ECX,RS_CL,RS_CH]);
+        rg[R_INTREGISTER].define_alias(RS_BX,[RS_EBX,RS_BL,RS_BH]);
+
+        rg[R_INTREGISTER].define_alias(RS_AL,[RS_EAX,RS_AX,RS_AH]);
+        rg[R_INTREGISTER].define_alias(RS_DL,[RS_EDX,RS_DX,RS_DH]);
+        rg[R_INTREGISTER].define_alias(RS_CL,[RS_ECX,RS_CX,RS_CH]);
+        rg[R_INTREGISTER].define_alias(RS_BL,[RS_EBX,RS_BX,RS_BH]);
+
+        rg[R_INTREGISTER].define_alias(RS_AH,[RS_EAX,RS_AL,RS_AX]);
+        rg[R_INTREGISTER].define_alias(RS_DH,[RS_EDX,RS_DL,RS_DX]);
+        rg[R_INTREGISTER].define_alias(RS_CH,[RS_ECX,RS_CL,RS_CX]);
+        rg[R_INTREGISTER].define_alias(RS_BH,[RS_EBX,RS_BL,RS_BX]);
+
+        rg[R_INTREGISTER].define_alias(RS_EDI,[RS_DI]);
+        rg[R_INTREGISTER].define_alias(RS_DI,[RS_EDI]);
+
+        rg[R_INTREGISTER].define_alias(RS_ESI,[RS_SI]);
+        rg[R_INTREGISTER].define_alias(RS_SI,[RS_ESI]);
+
+        rg[R_INTREGISTER].define_alias(RS_ESP,[RS_SP]);
+        rg[R_INTREGISTER].define_alias(RS_SP,[RS_ESP]);
+
+        rg[R_INTREGISTER].define_alias(RS_EBP,[RS_BP]);
+        rg[R_INTREGISTER].define_alias(RS_BP,[RS_EBP]);
+
         rg[R_MMXREGISTER]:=trgcpu.create(R_MMXREGISTER,R_SUBNONE,[RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5,RS_XMM6,RS_XMM7],first_mm_imreg,[]);
+        rg[R_MMXREGISTER].define_class(R_SUBNONE,[RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5,RS_XMM6,RS_XMM7]);
+
         rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBWHOLE,[RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5,RS_XMM6,RS_XMM7],first_mm_imreg,[]);
+        rg[R_MMREGISTER].define_class(R_SUBWHOLE,[RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5,RS_XMM6,RS_XMM7]);
+
         rgfpu:=Trgx86fpu.create;
       end;
 

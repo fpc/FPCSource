@@ -267,6 +267,8 @@ unit cgcpu;
 
 
     procedure tarmcgarm.init_register_allocators;
+      var
+        r: tsuperregister;
       begin
         inherited init_register_allocators;
         { currently, we always save R14, so we can use it }
@@ -288,8 +290,14 @@ unit cgcpu;
           rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
               [RS_R0,RS_R1,RS_R2,RS_R3,RS_R9,RS_R12,RS_R4,RS_R5,RS_R6,RS_R8,
                RS_R10,RS_R11,RS_R14],first_int_imreg,[]);
+
+        rg[R_INTREGISTER].define_class(R_SUBWHOLE,[RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,RS_R9,RS_R10,RS_R11,RS_R12,RS_R13,RS_R14,RS_R15]);
+
         rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
             [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7],first_fpu_imreg,[]);
+
+        rg[R_FPUREGISTER].define_class(R_SUBNONE,[RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7]);
+
         { The register allocator currently cannot deal with multiple
           non-overlapping subregs per register, so we can only use
           half the single precision registers for now (as sub registers of the
@@ -297,12 +305,32 @@ unit cgcpu;
         if current_settings.fputype=fpu_vfpv3 then
           rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFD,
               [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7,
+               RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15,
                RS_D16,RS_D17,RS_D18,RS_D19,RS_D20,RS_D21,RS_D22,RS_D23,RS_D24,RS_D25,RS_D26,RS_D27,RS_D28,RS_D29,RS_D30,RS_D31,
-               RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15
+               RS_S0,RS_S1,RS_S2,RS_S3,RS_S4,RS_S5,RS_S6,RS_S7,
+               RS_S8,RS_S9,RS_S10,RS_S11,RS_S12,RS_S13,RS_S14,RS_S15,
+               RS_S16,RS_S17,RS_S18,RS_S19,RS_S20,RS_S21,RS_S22,RS_S23,
+               RS_S24,RS_S25,RS_S26,RS_S27,RS_S28,RS_S29,RS_S30,RS_S31
               ],first_mm_imreg,[])
         else
           rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFD,
               [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7,RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15],first_mm_imreg,[]);
+
+        rg[R_MMREGISTER].define_class(R_SUBFD,[RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7,
+                                               RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15,
+                                               RS_D16,RS_D17,RS_D18,RS_D19,RS_D20,RS_D21,RS_D22,RS_D23,
+                                               RS_D24,RS_D25,RS_D26,RS_D27,RS_D28,RS_D29,RS_D30,RS_D31]);
+
+        for r:=RS_D0 to RS_D15 do
+          rg[R_MMREGISTER].define_alias(r,[RS_S0+(r-RS_D0)*2,RS_S1+(r-RS_D0)*2]);
+
+        rg[R_MMREGISTER].define_class(R_SUBFS,[RS_S0,RS_S1,RS_S2,RS_S3,RS_S4,RS_S5,RS_S6,RS_S7,
+                                               RS_S8,RS_S9,RS_S10,RS_S11,RS_S12,RS_S13,RS_S14,RS_S15,
+                                               RS_S16,RS_S17,RS_S18,RS_S19,RS_S20,RS_S21,RS_S22,RS_S23,
+                                               RS_S24,RS_S25,RS_S26,RS_S27,RS_S28,RS_S29,RS_S30,RS_S31]);
+
+        for r:=RS_S0 to RS_S15 do
+          rg[R_MMREGISTER].define_alias(r,[RS_D0+((r-RS_S0) div 2)]);
       end;
 
 

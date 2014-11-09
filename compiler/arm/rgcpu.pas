@@ -338,19 +338,7 @@ unit rgcpu;
 
 
     procedure trgcpu.add_constraints(reg:tregister);
-      var
-        supreg,i : Tsuperregister;
       begin
-        case getsubreg(reg) of
-          { Let 32bit floats conflict with all double precision regs > 15
-            (since these don't have 32 bit equivalents) }
-          R_SUBFS:
-            begin
-              supreg:=getsupreg(reg);
-              for i:=RS_D16 to RS_D31 do
-                add_edge(supreg,i);
-            end;
-        end;
       end;
 
 
