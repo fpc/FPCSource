@@ -29,7 +29,7 @@ interface
   uses
     fmodule,fpkg;
 
-  procedure createimportlibfromexternals(pkg:tpackage);
+  procedure createimportlibfromexternals;
   Function RewritePPU(const PPUFn,PPLFn:String):Boolean;
   procedure export_unit(u:tmodule);
   procedure load_packages;
@@ -444,7 +444,7 @@ implementation
     end;
 
 
-  procedure createimportlibfromexternals(pkg:tpackage);
+  procedure createimportlibfromexternals;
     type
       tcacheentry=record
         pkg:tpackage;
@@ -670,64 +670,48 @@ implementation
       { check each external asm symbol of each unit of the package whether it is
         contained in the unit of a loaded package (and thus an import entry
         is needed) }
-      if assigned(pkg) then
-        begin
-          { ToDo }
-          { we were called from a package file }
-          (*for i:=0 to pkg.containedmodules.count-1 do
-            begin
-              unitentry:=pcontainedunit(pkg.containedmodules[i]);
-              processasmsyms(tmodule(unitentry^.module).globalasmsyms);
-            end;
-          { also process the package's module }
-          processasmsyms(tasmdata(current_module.asmdata).asmsymboldict);*)
-        end
-      else
-        begin
-          alreadyloaded:=tfpobjectlist.create(false);
-          { we were called from a program/library }
+      alreadyloaded:=tfpobjectlist.create(false);
+      { we were called from a program/library }
 
-          { first pass to find all symbols that were not loaded by asm name }
-          module:=tmodule(loaded_units.first);
-          while assigned(module) do
+      { first pass to find all symbols that were not loaded by asm name }
+      module:=tmodule(loaded_units.first);
+      while assigned(module) do
+        begin
+          writeln('processing imported symbols of unit ', module.modulename^);
+          if not assigned(module.package) then
             begin
-              writeln('processing imported symbols of unit ', module.modulename^);
-              //if not assigned(module.package) then
-              if (uf_in_library and module.flags)=0 then
-                begin
-                  processimportedsyms(module.unitimportsyms);
-                  { this unit is not part of a package }
-                  (*if module=current_module then
-                    { this is the main file, which does not fill globalasmsyms }
-                    processasmsyms(tasmdata(module.asmdata).asmsymboldict)
-                  else
-                    { this is an ordinary unit }
-                    processasmsyms(module.globalasmsyms);*)
-                end
+              processimportedsyms(module.unitimportsyms);
+              { this unit is not part of a package }
+              (*if module=current_module then
+                { this is the main file, which does not fill globalasmsyms }
+                processasmsyms(tasmdata(module.asmdata).asmsymboldict)
               else
-                writeln(module.modulename^, ' is a package unit; ignoring');
-              module:=tmodule(module.next);
-            end;
-
-          { second pass to find all symbols that were loaded by asm name }
-          module:=tmodule(loaded_units.first);
-          while assigned(module) do
-            begin
-              if (uf_in_library and module.flags)=0 then
-                begin
-                  writeln('processing assembler symbols of unit ', module.modulename^);
-                  if module=current_module then
-                    { this is the main file, which does not fill globalasmsyms }
-                    processasmsyms(tasmdata(module.asmdata).asmsymboldict)
-                  else
-                    { this is an ordinary unit }
-                    processasmsyms(module.globalasmsyms);
-                end;
-              module:=tmodule(module.next);
-            end;
-
-          alreadyloaded.free;
+                { this is an ordinary unit }
+                processasmsyms(module.globalasmsyms);*)
+            end
+          else
+            writeln(module.modulename^, ' is a package unit; ignoring');
+          module:=tmodule(module.next);
         end;
+
+      { second pass to find all symbols that were loaded by asm name }
+      module:=tmodule(loaded_units.first);
+      while assigned(module) do
+        begin
+          if not assigned(module.package) then
+            begin
+              writeln('processing assembler symbols of unit ', module.modulename^);
+              if module=current_module then
+                { this is the main file, which does not fill globalasmsyms }
+                processasmsyms(tasmdata(module.asmdata).asmsymboldict)
+              else
+                { this is an ordinary unit }
+                processasmsyms(module.globalasmsyms);
+            end;
+          module:=tmodule(module.next);
+        end;
+
+      alreadyloaded.free;
       for i:=0 to cache.count-1 do
         dispose(pcacheentry(cache[i]));
     end;

@@ -1570,6 +1570,10 @@ type
 
          exportlib.ignoreduplicates:=false;
 
+         { create import libraries for all packages }
+         if packagelist.count>0 then
+           createimportlibfromexternals;
+
          { generate imports }
          if current_module.ImportLibraryList.Count>0 then
            importlib.generatelib;
@@ -2086,7 +2090,7 @@ type
 
          { create import libraries for all packages }
          if packagelist.count>0 then
-           createimportlibfromexternals(nil);
+           createimportlibfromexternals;
 
          { generate imports }
          if current_module.ImportLibraryList.Count>0 then
