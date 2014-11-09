@@ -14,6 +14,7 @@ units=$(SYSTEMUNIT) uuchar fpintres ctypes objpas macpas iso7185 strings \
       typinfo types fgl classes \
       math \
       charset cpall getopts \
+      unicodedata  unicodenumtable character \
       cmem sharemem
 #    initc  signals \
 #    crt graph \
