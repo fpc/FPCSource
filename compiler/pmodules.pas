@@ -35,13 +35,13 @@ implementation
        SysUtils,
        globtype,version,systems,tokens,
        cutils,cfileutl,cclasses,comphook,
-       globals,verbose,fmodule,finput,fppu,globstat,
+       globals,verbose,fmodule,finput,fppu,globstat,fpcp,fpkg,
        symconst,symbase,symtype,symdef,symsym,symtable,symcreat,
        wpoinfo,
        aasmtai,aasmdata,aasmcpu,aasmbase,
        cgbase,cgobj,ngenutil,
        nbas,nutils,ncgutil,
-       link,assemble,import,export,gendef,entfile,ppu,comprsrc,dbgbase,fpcp,
+       link,assemble,import,export,gendef,entfile,ppu,comprsrc,dbgbase,
        cresstr,procinfo,
        pexports,
        objcgutl,
@@ -170,7 +170,7 @@ implementation
         CheckResourcesUsed:=found;
       end;
 
-    procedure AddUnit(const s:string);
+    function AddUnit(const s:string):tmodule;
       var
         hp : tppumodule;
         unitsym : tunitsym;
@@ -190,6 +190,7 @@ implementation
         tabstractunitsymtable(current_module.localsymtable).insertunit(unitsym);
         { add to used units }
         current_module.addusedunit(hp,false,unitsym);
+        result:=hp;
       end;
 
 
@@ -1456,7 +1457,12 @@ type
                          module_name:=module_name+'.'+orgpattern;
                          consume(_ID);
                        end;
-                     AddUnit(module_name);
+                     hp:=AddUnit(module_name);
+                     if (hp.modulename^='SYSTEM') and not assigned(systemunit) then
+                       begin
+                         systemunit:=tglobalsymtable(hp.globalsymtable);
+                         load_intern_types;
+                       end;
                    end
                  else
                    consume(_ID);
@@ -1549,6 +1555,11 @@ type
          uu:=tused_unit(usedunits.first);
          while assigned(uu) do
            begin
+             if not assigned(systemunit) and (uu.u.modulename^='SYSTEM') then
+               begin
+                 systemunit:=tglobalsymtable(uu.u.globalsymtable);
+                 load_intern_types;
+               end;
              if not assigned(uu.u.package) then
                export_unit(uu.u);
 
