@@ -52,7 +52,7 @@ Type
     Constructor Create;
     Destructor Destroy;override;
     procedure WriteLogo;
-    procedure WriteInfo;
+    procedure WriteInfo (More: string);
     procedure WriteHelpPages;
     procedure WriteQuickInfo;
     procedure IllegalPara(const opt:TCmdStr);
@@ -182,185 +182,291 @@ begin
 end;
 
 
-procedure Toption.WriteInfo;
+procedure Toption.WriteInfo (More: string);
 var
   p : pchar;
   hs,hs1,s : TCmdStr;
-  target : tsystem;
-  cpu : tcputype;
-  fpu : tfputype;
-  opt : toptimizerswitch;
-  wpopt: twpoptimizerswitch;
-  abi : tabi;
-  asmmode : tasmmode;
-{$if defined(arm) or defined(avr) or defined(mipsel)}
-  controllertype : tcontrollertype;
-{$endif defined(arm) or defined(avr) or defined(mipsel)}
-begin
-  p:=MessagePchar(option_info);
-  while assigned(p) do
-   begin
-     s:=GetMsgLine(p);
-     { list OS Targets }
-     if pos('$OSTARGETS',s)>0 then
-      begin
-        for target:=low(tsystem) to high(tsystem) do
-         if assigned(targetinfos[target]) then
-          begin
-            hs:=s;
-            hs1:=targetinfos[target]^.name;
-            if tf_under_development in targetinfos[target]^.flags then
-             hs1:=hs1+' (under development)';
-            Replace(hs,'$OSTARGETS',hs1);
-            Comment(V_Normal,hs);
-          end;
-      end
-     else if pos('$INSTRUCTIONSETS',s)>0 then
-      begin
-        hs1:='';
-        for cpu:=low(tcputype) to high(tcputype) do
-          begin
-            if length(hs1+cputypestr[cpu])>70 then
-              begin
-                hs:=s;
-                Replace(hs,'$INSTRUCTIONSETS',hs1);
-                Comment(V_Normal,hs);
-                hs1:=''
-              end
-            else
-              if hs1<>'' then
-                hs1:=hs1+',';
-            if cputypestr[cpu]<>'' then
-              hs1:=hs1+cputypestr[cpu];
-          end;
+  J: longint;
+
+  procedure ListOSTargets (OrigString: string);
+  var
+    target : tsystem;
+  begin
+    for target:=low(tsystem) to high(tsystem) do
+    if assigned(targetinfos[target]) then
+     begin
+      hs1:=targetinfos[target]^.shortname;
+      if OrigString = '' then
+       WriteLn (hs1)
+      else
+       begin
+        hs := OrigString;
+        hs1:=hs1 + ': ' + targetinfos[target]^.name;
+        if tf_under_development in targetinfos[target]^.flags then
+         hs1:=hs1+' {*}';
+        Replace(hs,'$OSTARGETS',hs1);
+        Comment(V_Normal,hs);
+       end;
+     end;
+  end;
+
+  procedure ListCPUInstructionSets (OrigString: string);
+  var
+    cpu : tcputype;
+  begin
+    hs1:='';
+    for cpu:=low(tcputype) to high(tcputype) do
+     begin
+      if (OrigString = '') then
+       begin
+        if CPUTypeStr [CPU] <> '' then
+         WriteLn (CPUTypeStr [CPU]);
+       end
+      else
+       begin
+        if length(hs1+cputypestr[cpu])>70 then
+         begin
+          hs:=OrigString;
+          Replace(hs,'$INSTRUCTIONSETS',hs1);
+          Comment(V_Normal,hs);
+          hs1:=''
+         end
+        else if hs1<>'' then
+         hs1:=hs1+',';
+        if cputypestr[cpu]<>'' then
+         hs1:=hs1+cputypestr[cpu];
+       end;
+     end;
+    if (OrigString <> '') and (hs1 <> '') then
+     begin
+      hs:=OrigString;
+      Replace(hs,'$INSTRUCTIONSETS',hs1);
+      Comment(V_Normal,hs);
+      hs1:=''
+     end;
+  end;
+
+  procedure ListFPUInstructionSets (OrigString: string);
+  var
+    fpu : tfputype;
+  begin
+    hs1:='';
+    for fpu:=low(tfputype) to high(tfputype) do
+     begin
+      if (OrigString = '') then
+       begin
+        if FPUTypeStr [FPU] <> '' then
+         WriteLn (FPUTypeStr [FPU]);
+       end
+      else
+       begin
+        if length(hs1+fputypestr[fpu])>70 then
+         begin
+          hs:=OrigString;
+          Replace(hs,'$FPUINSTRUCTIONSETS',hs1);
+          Comment(V_Normal,hs);
+          hs1:=''
+         end
+        else if hs1<>'' then
+         hs1:=hs1+',';
+        if fputypestr[fpu]<>'' then
+         hs1:=hs1+fputypestr[fpu];
+       end;
+     end;
+    if (OrigString <> '') and (hs1 <> '') then
+     begin
+      hs:=OrigString;
+      Replace(hs,'$FPUINSTRUCTIONSETS',hs1);
+      Comment(V_Normal,hs);
+      hs1:=''
+     end;
+  end;
+
+  procedure ListABITargets (OrigString: string);
+  var
+    abi : tabi;
+  begin
+    for abi:=low(abi) to high(abi) do
+     begin
+      if not abiinfo[abi].supported then
+       continue;
+      hs1:=abiinfo[abi].name;
+      if hs1<>'' then
+       begin
+        if OrigString = '' then
+         WriteLn (HS1)
+        else
+         begin
+          hs:=OrigString;
+          Replace(hs,'$ABITARGETS',hs1);
+          Comment(V_Normal,hs);
+         end;
+       end;
+     end;
+  end;
+
+  procedure ListOptimizations (OrigString: string);
+  var
+    opt : toptimizerswitch;
+  begin
+    for opt:=low(toptimizerswitch) to high(toptimizerswitch) do
+     begin
+      if opt in supported_optimizerswitches then
+       begin
+        hs1:=OptimizerSwitchStr[opt];
         if hs1<>'' then
-          begin
-            hs:=s;
-            Replace(hs,'$INSTRUCTIONSETS',hs1);
-            Comment(V_Normal,hs);
-            hs1:=''
-          end;
-      end
-     else if pos('$FPUINSTRUCTIONSETS',s)>0 then
-      begin
-        hs1:='';
-        for fpu:=low(tfputype) to high(tfputype) do
-          begin
-            if length(hs1+fputypestr[fpu])>70 then
-              begin
-                hs:=s;
-                Replace(hs,'$FPUINSTRUCTIONSETS',hs1);
-                Comment(V_Normal,hs);
-                hs1:=''
-              end
-            else
-              if hs1<>'' then
-                hs1:=hs1+',';
-            if fputypestr[fpu]<>'' then
-              hs1:=hs1+fputypestr[fpu];
-          end;
-        if hs1<>'' then
-          begin
-            hs:=s;
-            Replace(hs,'$FPUINSTRUCTIONSETS',hs1);
-            Comment(V_Normal,hs);
-            hs1:=''
-          end;
-      end
-     else if pos('$ABITARGETS',s)>0 then
-      begin
-        for abi:=low(abi) to high(abi) do
-          begin
-            if not abiinfo[abi].supported then
-              continue;
-            hs:=s;
-            hs1:=abiinfo[abi].name;
-            if hs1<>'' then
-              begin
-                Replace(hs,'$ABITARGETS',hs1);
-                Comment(V_Normal,hs);
-              end;
-          end;
-      end
-     else if pos('$OPTIMIZATIONS',s)>0 then
-      begin
-        for opt:=low(toptimizerswitch) to high(toptimizerswitch) do
-          begin
-            if opt in supported_optimizerswitches then
-              begin
-                hs:=s;
-                hs1:=OptimizerSwitchStr[opt];
-                if hs1<>'' then
-                  begin
-                    Replace(hs,'$OPTIMIZATIONS',hs1);
-                    Comment(V_Normal,hs);
-                  end;
-              end;
-          end;
-      end
-     else if pos('$WPOPTIMIZATIONS',s)>0 then
-      begin
-        for wpopt:=low(twpoptimizerswitch) to high(twpoptimizerswitch) do
-          begin
-{           currently all whole program optimizations are platform-independent
-            if opt in supported_wpoptimizerswitches then
-}
-              begin
-                hs:=s;
-                hs1:=WPOptimizerSwitchStr[wpopt];
-                if hs1<>'' then
-                  begin
-                    Replace(hs,'$WPOPTIMIZATIONS',hs1);
-                    Comment(V_Normal,hs);
-                  end;
-              end;
-          end
-      end
-     else if pos('$ASMMODES',s)>0 then
-      begin
-        for asmmode:=low(tasmmode) to high(tasmmode) do
-         if assigned(asmmodeinfos[asmmode]) then
+         begin
+          if OrigString = '' then
+           WriteLn (hs1)
+          else
            begin
-             hs:=s;
-             hs1:=asmmodeinfos[asmmode]^.idtxt;
-             if hs1<>'' then
-               begin
-                 Replace(hs,'$ASMMODES',hs1);
-                 Comment(V_Normal,hs);
-               end;
-           end;
-      end
-     else if pos('$CONTROLLERTYPES',s)>0 then
-      begin
-        {$if defined(arm) or defined(avr) or defined(mipsel)}
-        hs1:='';
-        for controllertype:=low(tcontrollertype) to high(tcontrollertype) do
-          begin
-            if length(hs1+embedded_controllers[controllertype].ControllerTypeStr)>70 then
-              begin
-                hs:=s;
-                Replace(hs,'$CONTROLLERTYPES',hs1);
-                Comment(V_Normal,hs);
-                hs1:=''
-              end
-            else
-              if hs1<>'' then
-                hs1:=hs1+',';
-            if embedded_controllers[controllertype].ControllerTypeStr<>'' then
-              hs1:=hs1+embedded_controllers[controllertype].ControllerTypeStr;
-          end;
-        if hs1<>'' then
-          begin
-            hs:=s;
-            Replace(hs,'$CONTROLLERTYPES',hs1);
+            hs:=OrigString;
+            Replace(hs,'$OPTIMIZATIONS',hs1);
             Comment(V_Normal,hs);
-            hs1:=''
-          end;
-        {$else defined(arm) or defined(avr) or defined(mipsel)}
-        {$endif defined(arm) or defined(avr) or defined(mipsel)}
-      end
-     else
-      Comment(V_Normal,s);
+           end;
+         end;
+       end;
+     end;
+  end;
+
+  procedure ListWPOptimizations (OrigString: string);
+  var
+    wpopt: twpoptimizerswitch;
+  begin
+    for wpopt:=low(twpoptimizerswitch) to high(twpoptimizerswitch) do
+     begin
+{     currently all whole program optimizations are platform-independent
+      if opt in supported_wpoptimizerswitches then
+}
+       begin
+        hs1:=WPOptimizerSwitchStr[wpopt];
+        if hs1<>'' then
+         begin
+          if OrigString = '' then
+           WriteLn (hs1)
+          else
+           begin
+            hs:=OrigString;
+            Replace(hs,'$WPOPTIMIZATIONS',hs1);
+            Comment(V_Normal,hs);
+           end;
+         end;
+       end;
+     end;
+  end;
+
+  procedure ListAsmModes (OrigString: string);
+  var
+    asmmode : tasmmode;
+  begin
+    for asmmode:=low(tasmmode) to high(tasmmode) do
+    if assigned(asmmodeinfos[asmmode]) then
+     begin
+      hs1:=asmmodeinfos[asmmode]^.idtxt;
+      if hs1<>'' then
+       begin
+        if OrigString = '' then
+         WriteLn (hs1)
+        else
+         begin
+          hs:=OrigString;
+          Replace(hs,'$ASMMODES',hs1);
+          Comment(V_Normal,hs);
+         end;
+       end;
+     end;
+  end;
+
+  procedure ListControllerTypes (OrigString: string);
+  {$if defined(arm) or defined(avr) or defined(mipsel)}
+  var
+    controllertype : tcontrollertype;
+  {$endif defined(arm) or defined(avr) or defined(mipsel)}
+  begin
+    {$if defined(arm) or defined(avr) or defined(mipsel)}
+    hs1:='';
+    for controllertype:=low(tcontrollertype) to high(tcontrollertype) do
+     begin
+      if (OrigString = '') then
+       begin
+        if Embedded_Controllers [ControllerType].ControllerTypeStr <> '' then
+         WriteLn (Embedded_Controllers [ControllerType].ControllerTypeStr);
+       end
+      else
+       begin
+        if length(hs1+embedded_controllers[controllertype].ControllerTypeStr)>70 then
+         begin
+          hs:=OrigString;
+          Replace(hs,'$CONTROLLERTYPES',hs1);
+          Comment(V_Normal,hs);
+          hs1:=''
+         end
+        else if hs1<>'' then
+         hs1:=hs1+',';
+        if embedded_controllers[controllertype].ControllerTypeStr<>'' then
+         hs1:=hs1+embedded_controllers[controllertype].ControllerTypeStr;
+       end;
+     end;
+    if (OrigString <> '') and (hs1<>'') then
+     begin
+      hs:=OrigString;
+      Replace(hs,'$CONTROLLERTYPES',hs1);
+      Comment(V_Normal,hs);
+      hs1:=''
+     end;
+    {$else defined(arm) or defined(avr) or defined(mipsel)}
+    {$endif defined(arm) or defined(avr) or defined(mipsel)}
+  end;
+
+begin
+  if More = '' then
+   begin
+    p:=MessagePchar(option_info);
+    while assigned(p) do
+     begin
+      s:=GetMsgLine(p);
+      { list OS Targets }
+      if pos('$OSTARGETS',s)>0 then
+       ListOSTargets (S)
+      else if pos('$INSTRUCTIONSETS',s)>0 then
+       ListCPUInstructionSets (S)
+      else if pos('$FPUINSTRUCTIONSETS',s)>0 then
+       ListFPUInstructionSets (S)
+      else if pos('$ABITARGETS',s)>0 then
+       ListABITargets (S)
+      else if pos('$OPTIMIZATIONS',s)>0 then
+       ListOptimizations (S)
+      else if pos('$WPOPTIMIZATIONS',s)>0 then
+       ListWPOptimizations (S)
+      else if pos('$ASMMODES',s)>0 then
+       ListAsmModes (S)
+      else if pos('$CONTROLLERTYPES',s)>0 then
+       ListControllerTypes (S)
+      else
+       Comment(V_Normal,s);
+     end;
+   end
+  else
+   begin
+    J := 1;
+    while J <= Length (More) do
+     begin
+      if J > 1 then
+       WriteLn;  (* Put empty line between multiple sections *)
+      case More [J] of
+       'a': ListABITargets ('');
+       'c': ListCPUInstructionSets ('');
+       'f': ListFPUInstructionSets ('');
+       'i': ListAsmModes ('');
+       'o': ListOptimizations ('');
+       't': ListOSTargets ('');
+       'u': ListControllerTypes ('');
+       'w': ListWPOptimizations ('');
+      else
+       IllegalPara ('-i' + More);
+      end;
+      Inc (J);
+     end;
    end;
   StopOptions(0);
 end;
@@ -427,6 +533,12 @@ begin
 {$endif}
 {$ifdef arm}
       'A',
+{$endif}
+{$ifdef mipsel}
+      'm',
+{$endif}
+{$ifdef mips}
+      'M',
 {$endif}
 {$ifdef powerpc}
       'P',
@@ -1389,8 +1501,9 @@ begin
 
            'i' :
              begin
-               if More='' then
-                 WriteInfo
+               if (More='') or
+                    (More [1] in ['a', 'c', 'f', 'i', 'o', 't', 'u', 'w']) then
+                 WriteInfo (More)
                else
                  QuickInfo:=QuickInfo+More;
              end;

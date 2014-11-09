@@ -3354,7 +3354,7 @@ Free Pascal Compiler version $FPCVERSION
 Compiler Date      : $FPCDATE
 Compiler CPU Target: $FPCCPU
 
-Supported targets:
+Supported targets (targets marked with '{*}' are under development):
   $OSTARGETS
 
 Supported CPU instruction sets:
@@ -3404,10 +3404,14 @@ new features, etc.):
 #    A = ARM
 #    e = in extended debug mode only
 #    F = help for the 'fpc' binary (independent of the target compiler)
-#    P = PowerPC targets
-#    S = Sparc targets
-#    V = Virtual machine targets
+#    I = VIS
 #    J = JVM
+#    M = MIPS (MIPSEB) targets
+#    m = MIPSEL targets
+#    P = PowerPC targets
+#    p = PowerPC64 targets
+#    S = Sparc targets
+#    V = AVR
 # The second character also indicates who will display this line,
 # (if the above character was TRUE) the current possibilities are :
 #    * = everyone
@@ -3469,12 +3473,12 @@ S*2Aas_Assemble using GNU AS
 **1B_Build all modules
 **1C<x>_Code generation options:
 **2C3_Turn on ieee error checking for constants
-**2Ca<x>_Select ABI, see fpc -i for possible values
+**2Ca<x>_Select ABI, see fpc -i or fpc -ia for possible values
 **2Cb_Generate code for a big-endian variant of the target architecture
 **2Cc<x>_Set default calling convention to <x>
 **2CD_Create also dynamic library (not supported)
 **2Ce_Compilation with emulated floating point opcodes
-**2Cf<x>_Select fpu instruction set to use, see fpc -i for possible values
+**2Cf<x>_Select fpu instruction set to use, see fpc -i or fpc -if for possible values
 **2CF<x>_Minimal floating point constant precision (default, 32, 64)
 **2Cg_Generate PIC code
 **2Ch<n>_<n> bytes heap (between 1023 and 67107840)
@@ -3484,7 +3488,7 @@ A*2CI<x>_Select instruction set on ARM: ARM or THUMB
 P*2CN_Generate nil-pointer checks (AIX-only)
 **2Co_Check overflow of integer operations
 **2CO_Check for possible overflow of integer operations
-**2Cp<x>_Select instruction set, see fpc -i for possible values
+**2Cp<x>_Select instruction set, see fpc -i or fpc -ic for possible values
 **2CP<x>=<y>_ packing settings
 **3CPPACKSET=<y>_ <y> set allocation: 0, 1 or DEFAULT or NORMAL, 2, 4 and 8
 **2Cr_Range checking
@@ -3559,12 +3563,20 @@ J*2Cv_Var/out parameter copy-out checking
 *g2gw4_Generate DWARFv4 debug information (experimental)
 **1i_Information
 **2iD_Return compiler date
-**2iV_Return short compiler version
-**2iW_Return full compiler version
 **2iSO_Return compiler OS
 **2iSP_Return compiler host processor
 **2iTO_Return target OS
 **2iTP_Return target processor
+**2iV_Return short compiler version
+**2iW_Return full compiler version
+**2ia_Return list of supported ABI targets
+**2ic_Return list of supported CPU instruction sets
+**2if_Return list of supported FPU instruction sets
+**2ii_Return list of supported inline assembler modes
+**2io_Return list of supported optimizations
+**2it_Return list of supported targets
+**2iu_Return list of supported microcontroller types
+**2iw_Return list of supported whole program optimizations
 **1I<x>_Add <x> to include path
 **1k<x>_Pass <x> to the linker
 **1l_Write logo
@@ -3583,16 +3595,16 @@ J*2Cv_Var/out parameter copy-out checking
 **2O3_Level 3 optimizations (-O2 + slow optimizations)
 **2O4_Level 4 optimizations (-O3 + optimizations which might have unexpected side effects)
 **2Oa<x>=<y>_Set alignment
-**2Oo[NO]<x>_Enable or disable optimizations, see fpc -i for possible values
-**2Op<x>_Set target cpu for optimizing, see fpc -i for possible values
-**2OW<x>_Generate whole-program optimization feedback for optimization <x>, see fpc -i for possible values
-**2Ow<x>_Perform whole-program optimization <x>, see fpc -i for possible values
+**2Oo[NO]<x>_Enable or disable optimizations, see fpc -i or fpc -io for possible values
+**2Op<x>_Set target cpu for optimizing, see fpc -i or fpc -ic for possible values
+**2OW<x>_Generate whole-program optimization feedback for optimization <x>, see fpc -i or fpc -iw for possible values
+**2Ow<x>_Perform whole-program optimization <x>, see fpc -i or fpc -iw for possible values
 **2Os_Optimize for size rather than speed
 **1pg_Generate profile code for gprof (defines FPC_PROFILE)
 F*1P<x>_Target CPU / compiler related options:
 F*2PB_Show default compiler binary
 F*2PP_Show default target cpu
-F*2P<x>_Set target CPU (arm,i386,m68k,mips,mipsel,powerpc,powerpc64,sparc,x86_64)
+F*2P<x>_Set target CPU (arm,avr,i386,jvm,m68k,mips,mipsel,powerpc,powerpc64,sparc,x86_64)
 **1R<x>_Assembler reading style:
 **2Rdefault_Use default assembler for target
 3*2Ratt_Read AT&T style assembler
@@ -3625,11 +3637,15 @@ F*2P<x>_Set target CPU (arm,i386,m68k,mips,mipsel,powerpc,powerpc64,sparc,x86_64
 **2st_Generate script to link on target
 **2sr_Skip register allocation phase (use with -alr)
 **1T<x>_Target operating system:
+3*2Tandroid_Android
 3*2Taros_AROS
+3*2Tbeos_BeOS
 3*2Tdarwin_Darwin/Mac OS X
+3*2Tembedded_Embedded
 3*2Temx_OS/2 via EMX (including EMX/RSX extender)
 3*2Tfreebsd_FreeBSD
 3*2Tgo32v2_Version 2 of DJ Delorie DOS extender
+3*2Thaiku_Haiku
 3*2Tiphonesim_ iPhoneSimulator from iOS SDK 3.2+ (older versions: -Tdarwin)
 3*2Tlinux_Linux
 3*2Tnativent_Native NT API (experimental)
@@ -3646,22 +3662,45 @@ F*2P<x>_Set target CPU (arm,i386,m68k,mips,mipsel,powerpc,powerpc64,sparc,x86_64
 3*2Twin32_Windows 32 Bit
 3*2Twince_Windows CE
 4*2Tdarwin_Darwin/Mac OS X
+4*2Tfreebsd_FreeBSD
 4*2Tlinux_Linux
+4*2Tnetbsd_NetBSD
+4*2Topenbsd_OpenBSD
+4*2Tsolaris_Solaris
 4*2Twin64_Win64 (64 bit Windows systems)
 6*2Tamiga_Commodore Amiga
 6*2Tatari_Atari ST/STe/TT
 6*2Tlinux_Linux
 6*2Tpalmos_PalmOS
+8*2Tmsdos_MS-DOS (and compatible)
+A*2Tandroid_Android
 A*2Tdarwin_Darwin/iPhoneOS/iOS
+A*2Tembedded_Embedded
+A*2Tgba_Game Boy Advance
 A*2Tlinux_Linux
+A*2Tnds_Nintendo DS
+A*2Tsymbian_Symbian
 A*2Twince_Windows CE
+J*2Tandroid_Android
+J*2Tjava_Java
+m*2Tembedded_Embedded
+M*2Tandroid_Android
+M*2Tembedded_Embedded
+M*2Tlinux_Linux
+P*2Taix_AIX
 P*2Tamiga_AmigaOS
 P*2Tdarwin_Darwin/Mac OS X
 P*2Tlinux_Linux
 P*2Tmacos_Mac OS (classic)
 P*2Tmorphos_MorphOS
+P*2Tnetbsd_NetBSD
+P*2Twii_Wii
+p*2Taix_AIX
+p*2Tdarwin_Darwin/Mac OS X
+p*2Tlinux_Linux
 S*2Tsolaris_Solaris
 S*2Tlinux_Linux
+V*2Tembedded_Embedded
 **1u<x>_Undefines the symbol <x>
 **1U_Unit options:
 **2Un_Do not check where the unit name matches the file name
@@ -3734,8 +3773,9 @@ P*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)
 3*2WN_Do not generate relocation code, needed for debugging (Windows)
 4*2WN_Do not generate relocation code, needed for debugging (Windows)
 A*2WN_Do not generate relocation code, needed for debugging (Windows)
-A*2Wpxxxx_Specify the controller type, see fpc -i for possible values
-V*2Wpxxxx_Specify the controller type, see fpc -i for possible values
+A*2Wpxxxx_Specify the controller type, see fpc -i or fpc -iu for possible values
+m*2Wpxxxx_Specify the controller type, see fpc -i or fpc -iu for possible values
+V*2Wpxxxx_Specify the controller type, see fpc -i or fpc -iu for possible values
 3*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (iphonesim)
 A*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (Darwin)
 3*2WR_Generate relocation code (Windows)
