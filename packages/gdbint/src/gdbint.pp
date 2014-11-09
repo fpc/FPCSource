@@ -656,6 +656,11 @@ interface
   {$LINKLIB gcc}
 {$endif beos}
 
+{$ifdef aix}
+  { AIX linker requires more precise external/public separation }
+  {$define NEED_EXTERNAL_CVAR}
+  {$undef NotImplemented}
+{$endif aix}
 
 {$ifdef go32v2}
   {$define supportexceptions}
@@ -1707,7 +1712,8 @@ var
 { external variables }
   error_return : jmp_buf;cvar;public;
   quit_return  : jmp_buf;cvar;public;
-  deprecated_query_hook : pointer;cvar;public;
+  deprecated_query_hook : pointer;cvar;
+{$ifdef NEDD_EXTERNAL_CVAR}external;{$else}public;{$endif}
 
   {$ifndef GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
     {$ifdef GDB_HAS_DEPRECATED_CBPH}
