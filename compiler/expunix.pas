@@ -142,6 +142,7 @@ begin
   while assigned(hp2) do
    begin
      if (not hp2.is_var) and
+        assigned(hp2.sym) and
         (hp2.sym.typ=procsym) then
       begin
         { the manglednames can already be the same when the procedure
