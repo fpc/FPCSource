@@ -1516,7 +1516,8 @@ type
          uu:=tused_unit(usedunits.first);
          while assigned(uu) do
            begin
-             export_unit(uu.u);
+             if not assigned(uu.u.package) then
+               export_unit(uu.u);
 
              uu:=tused_unit(uu.next);
            end;
@@ -1574,7 +1575,8 @@ type
              uu:=tused_unit(current_module.used_units.first);
              while assigned(uu) do
                begin
-                 pkg.addunit(uu.u);
+                 if not assigned(uu.u.package) then
+                   pkg.addunit(uu.u);
                  uu:=tused_unit(uu.next);
                end;
 
@@ -1584,7 +1586,8 @@ type
              uu:=tused_unit(usedunits.first);
              while assigned(uu) do
                begin
-                 RewritePPU(uu.u.ppufilename,changefileext(uu.u.ppufilename,'.ppl.ppu'));
+                 if not assigned(uu.u.package) then
+                   RewritePPU(uu.u.ppufilename,changefileext(uu.u.ppufilename,'.ppl.ppu'));
                  uu:=tused_unit(uu.next);
                end;
 
@@ -1606,8 +1609,10 @@ type
                  hp:=tmodule(loaded_units.first);
                  while assigned(hp) do
                   begin
-                    { the package itself contains no code so far }
-                    linker.AddModuleFiles(hp);
+                    { only link in those units which should become part of this
+                      package }
+                    if not assigned(hp.package) then
+                      linker.AddModuleFiles(hp);
                     hp2:=tmodule(hp.next);
                     if (hp<>current_module) and
                        (not needsymbolinfo) then
