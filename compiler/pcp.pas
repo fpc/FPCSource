@@ -29,7 +29,7 @@ interface
     cstreams,entfile;
 
   const
-    CurrentPCPVersion=1;
+    CurrentPCPVersion=2;
 
   { unit flags }
     //uf_init                = $000001; { unit has initialization section }
