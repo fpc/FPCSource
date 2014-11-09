@@ -136,6 +136,9 @@ begin
   undef_system_macro('FPC_LINK_DYNAMIC');
   init_settings.globalswitches:=init_settings.globalswitches+[cs_link_static];
   init_settings.globalswitches:=init_settings.globalswitches-[cs_link_shared,cs_link_smart];
+{$ifdef AIX}
+  init_settings.globalswitches:=init_settings.globalswitches+[cs_link_native];
+{$endif}
 end;
 
 
