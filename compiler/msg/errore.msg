@@ -3344,7 +3344,7 @@ wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program opti
 #
 # Package loading and handling
 #
-# 13002 is the last used one
+# 13003 is the last used one
 #
 # BeginOfTeX
 % \section{Unit loading messages.}
@@ -3358,6 +3358,9 @@ package_f_cant_find_pcp=13001_F_Can't find package $1
 % compiler. Check your configuration file for the package paths.
 package_u_pcp_found=13002_U_PCP file for package $1 found
 % The PCP file for the specified package was found.
+package_e_duplicate_package=13003_E_Duplicate package $1
+% The package was already specified as required package and may not be specified
+% a second time.
 % \end{description}
 
 
