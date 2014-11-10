@@ -124,6 +124,13 @@ const
     );
 
 {$ifndef MIPSEL}
+type
+   tcontrollertype =
+     (ct_none
+     );
+
+
+Const
    { Is there support for dealing with multiple microcontrollers available }
    { for this platform? }
    ControllerSupport = false;
@@ -136,12 +143,6 @@ const
    (
       (controllertypestr:''; controllerunitstr:''; flashbase:0; flashsize:0; srambase:0; sramsize:0));
    {$POP}
-
-type
-   tcontrollertype =
-     (ct_none
-     );
-
 {$ELSE MIPSEL}
    { Is there support for dealing with multiple microcontrollers available }
    { for this platform? }
