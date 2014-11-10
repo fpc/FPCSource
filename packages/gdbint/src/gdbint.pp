@@ -1713,7 +1713,7 @@ var
   error_return : jmp_buf;cvar;public;
   quit_return  : jmp_buf;cvar;public;
   deprecated_query_hook : pointer;cvar;
-{$ifdef NEDD_EXTERNAL_CVAR}external;{$else}public;{$endif}
+{$ifdef NEED_EXTERNAL_CVAR}external;{$else}public;{$endif}
 
   {$ifndef GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
     {$ifdef GDB_HAS_DEPRECATED_CBPH}
