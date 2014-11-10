@@ -16,6 +16,9 @@ Unit CPUInfo;
 
 Interface
 
+uses
+   globtype;
+
 Type
    { Architecture word - Native unsigned type }
    AWord  = Longword;
@@ -41,7 +44,15 @@ Type
    { possible supported processors for this target }
    tcputype = (cpu_none);
 
+   tcontrollertype =
+     (ct_none
+     );
+
+
 Const
+   { Is there support for dealing with multiple microcontrollers available }
+   { for this platform? }
+   ControllerSupport = false;
    {# Size of native extended floating point type }
    extended_size = 8;
    {# Size of a pointer                           }
@@ -50,6 +61,15 @@ Const
    mmreg_size = 8;
    { target cpu string (used by compiler options) }
    target_cpu_string = 'vis';
+
+   { We know that there are fields after sramsize
+     but we don't care about this warning }
+   {$PUSH}
+    {$WARN 3177 OFF}
+   embedded_controllers : array [tcontrollertype] of tcontrollerdatatype =
+   (
+      (controllertypestr:''; controllerunitstr:''; flashbase:0; flashsize:0; srambase:0; sramsize:0));
+   {$POP}
 
 Implementation
 

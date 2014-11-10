@@ -123,7 +123,30 @@ const
       { cpu_pic32mx }  [CPUMIPS_HAS_CMOV,CPUMIPS_HAS_ISA32R2]
     );
 
-{$ifdef MIPSEL}
+{$ifndef MIPSEL}
+   { Is there support for dealing with multiple microcontrollers available }
+   { for this platform? }
+   ControllerSupport = false;
+
+   { We know that there are fields after sramsize
+     but we don't care about this warning }
+   {$PUSH}
+    {$WARN 3177 OFF}
+   embedded_controllers : array [tcontrollertype] of tcontrollerdatatype =
+   (
+      (controllertypestr:''; controllerunitstr:''; flashbase:0; flashsize:0; srambase:0; sramsize:0));
+   {$POP}
+
+type
+   tcontrollertype =
+     (ct_none
+     );
+
+{$ELSE MIPSEL}
+   { Is there support for dealing with multiple microcontrollers available }
+   { for this platform? }
+   ControllerSupport = true;
+
 type
    tcontrollertype =
      (ct_none,

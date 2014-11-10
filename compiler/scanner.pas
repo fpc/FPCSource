@@ -2943,9 +2943,18 @@ type
             minfpconstprec:=tfloattype(tokenreadenum(sizeof(tfloattype)));
 
             disabledircache:=boolean(tokenreadbyte);
-{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
-            controllertype:=tcontrollertype(tokenreadenum(sizeof(tcontrollertype)));
-{$endif defined(ARM) or defined(AVR) or DEFINED(MIPSEL)}
+{ TH: Since the field was conditional originally, it was not stored in PPUs.  }
+{ While adding ControllerSupport constant, I decided not to store ct_none     }
+{ on targets not supporting controllers, but this might be changed here and   }
+{ in tokenwritesettings in the future to unify the PPU structure and handling }
+{ of this field in the compiler.                                              }
+{$PUSH}
+ {$WARN 6018 OFF} (* Unreachable code due to compile time evaluation *)
+            if ControllerSupport then
+             controllertype:=tcontrollertype(tokenreadenum(sizeof(tcontrollertype)))
+            else
+             ControllerType:=ct_none;
+{$POP}
            endpos:=replaytokenbuf.pos;
            if endpos-startpos<>expected_size then
              Comment(V_Error,'Wrong size of Settings read-in');
@@ -3012,9 +3021,12 @@ type
             tokenwriteenum(minfpconstprec,sizeof(tfloattype));
 
             recordtokenbuf.write(byte(disabledircache),1);
-{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
-            tokenwriteenum(controllertype,sizeof(tcontrollertype));
-{$endif defined(ARM) or defined(AVR) or defined(MIPSEL)}
+{ TH: See note about controllertype field in tokenreadsettings. }
+{$PUSH}
+ {$WARN 6018 OFF} (* Unreachable code due to compile time evaluation *)
+            if ControllerSupport then
+              tokenwriteenum(controllertype,sizeof(tcontrollertype));
+{$POP}
            endpos:=recordtokenbuf.pos;
            size:=endpos-startpos;
            recordtokenbuf.seek(sizepos);

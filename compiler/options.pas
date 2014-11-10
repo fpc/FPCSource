@@ -381,44 +381,46 @@ var
   end;
 
   procedure ListControllerTypes (OrigString: string);
-  {$if defined(arm) or defined(avr) or defined(mipsel)}
   var
     controllertype : tcontrollertype;
-  {$endif defined(arm) or defined(avr) or defined(mipsel)}
   begin
-    {$if defined(arm) or defined(avr) or defined(mipsel)}
-    hs1:='';
-    for controllertype:=low(tcontrollertype) to high(tcontrollertype) do
+{$PUSH}
+ {$WARN 6018 OFF} (* Unreachable code due to compile time evaluation *)
+    if (ControllerSupport) then
      begin
-      if (OrigString = '') then
+      hs1:='';
+      for controllertype:=low(tcontrollertype) to high(tcontrollertype) do
        begin
-        if Embedded_Controllers [ControllerType].ControllerTypeStr <> '' then
-         WriteLn (Embedded_Controllers [ControllerType].ControllerTypeStr);
-       end
-      else
-       begin
-        if length(hs1+embedded_controllers[controllertype].ControllerTypeStr)>70 then
+        if (OrigString = '') then
          begin
-          hs:=OrigString;
-          Replace(hs,'$CONTROLLERTYPES',hs1);
-          Comment(V_Normal,hs);
-          hs1:=''
+          if Embedded_Controllers [ControllerType].ControllerTypeStr <> '' then
+           WriteLn (Embedded_Controllers [ControllerType].ControllerTypeStr);
          end
-        else if hs1<>'' then
-         hs1:=hs1+',';
-        if embedded_controllers[controllertype].ControllerTypeStr<>'' then
-         hs1:=hs1+embedded_controllers[controllertype].ControllerTypeStr;
+        else
+         begin
+          if length(hs1+embedded_controllers[controllertype].ControllerTypeStr)
+                                                                       >70 then
+           begin
+            hs:=OrigString;
+            Replace(hs,'$CONTROLLERTYPES',hs1);
+            Comment(V_Normal,hs);
+            hs1:=''
+           end
+          else if hs1<>'' then
+           hs1:=hs1+',';
+          if embedded_controllers[controllertype].ControllerTypeStr<>'' then
+           hs1:=hs1+embedded_controllers[controllertype].ControllerTypeStr;
+         end;
+       end;
+      if (OrigString <> '') and (hs1<>'') then
+       begin
+        hs:=OrigString;
+        Replace(hs,'$CONTROLLERTYPES',hs1);
+        Comment(V_Normal,hs);
+        hs1:=''
        end;
      end;
-    if (OrigString <> '') and (hs1<>'') then
-     begin
-      hs:=OrigString;
-      Replace(hs,'$CONTROLLERTYPES',hs1);
-      Comment(V_Normal,hs);
-      hs1:=''
-     end;
-    {$else defined(arm) or defined(avr) or defined(mipsel)}
-    {$endif defined(arm) or defined(avr) or defined(mipsel)}
+{$POP}
   end;
 
 begin
@@ -540,7 +542,7 @@ begin
 {$ifdef mipsel}
       'm',
 {$endif}
-{$ifdef mips}
+{$ifdef mipseb}
       'M',
 {$endif}
 {$ifdef powerpc}
@@ -2079,8 +2081,8 @@ begin
                       end;
                     'p':
                       begin
-{$if defined(arm) or defined(avr) or defined(mipsel)}
-                        if (target_info.system in systems_embedded) then
+                        if (target_info.system in systems_embedded) and
+                                                         ControllerSupport then
                           begin
                             s:=upper(copy(more,j+1,length(more)-j));
                             if not(SetControllerType(s,init_settings.controllertype)) then
@@ -2088,7 +2090,6 @@ begin
                             break;
                           end
                         else
-{$endif defined(arm) or defined(avr) or defined(mipsel)}
                           IllegalPara(opt);
                       end;
                     'P':

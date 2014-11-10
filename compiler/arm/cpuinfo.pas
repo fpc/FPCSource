@@ -338,8 +338,10 @@ Type
       ct_thumb2bare
      );
 
-
 Const
+   { Is there support for dealing with multiple microcontrollers available }
+   { for this platform? }
+   ControllerSupport = true;
    {# Size of native extended floating point type }
    extended_size = 12;
    {# Size of a multimedia register               }

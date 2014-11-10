@@ -163,9 +163,8 @@ interface
 {$endif defined(ARM)}
 
         { CPU targets with microcontroller support can add a controller specific unit }
-{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
          controllertype   : tcontrollertype;
-{$endif defined(ARM) or defined(AVR) or defined(MIPSEL)}
+
          { WARNING: this pointer cannot be written as such in record token }
          pmessage : pmessagestaterecord;
        end;
@@ -411,7 +410,7 @@ interface
 {$endif i8086}
         maxfpuregisters : 0;
 
-{ Note: GENERIC_CPU is sued together with generic subdirectory to
+{ Note: GENERIC_CPU is used together with generic subdirectory to
   be able to compile some of the units without any real CPU.
   This is used to generate a CPU independant PPUDUMP utility. PM }
 {$ifdef GENERIC_CPU}
@@ -502,9 +501,7 @@ interface
 {$if defined(ARM)}
         instructionset : is_arm;
 {$endif defined(ARM)}
-{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
         controllertype : ct_none;
-{$endif defined(ARM) or defined(AVR) or defined(MIPSEL)}
         pmessage : nil;
       );
 
@@ -536,9 +533,7 @@ interface
     function Setoptimizecputype(const s:string;var a:tcputype):boolean;
     function Setcputype(const s:string;var a:tsettings):boolean;
     function SetFpuType(const s:string;var a:tfputype):boolean;
-{$if defined(arm) or defined(avr) or defined(mipsel)}
     function SetControllerType(const s:string;var a:tcontrollertype):boolean;
-{$endif defined(arm) or defined(avr) or defined(mipsel)}
     function IncludeFeature(const s : string) : boolean;
     function SetMinFPConstPrec(const s: string; var a: tfloattype) : boolean;
 
@@ -1177,23 +1172,34 @@ implementation
       end;
 
 
-{$if defined(arm) or defined(avr) or defined(mipsel)}
     function SetControllerType(const s:string;var a:tcontrollertype):boolean;
       var
         t  : tcontrollertype;
         hs : string;
       begin
-        result:=false;
-        hs:=Upper(s);
-        for t:=low(tcontrollertype) to high(tcontrollertype) do
-          if embedded_controllers[t].controllertypestr=hs then
-            begin
-              a:=t;
-              result:=true;
-              break;
-            end;
+{ The following check allows to reduce amount of code for platforms  }
+{ not supporting microcontrollers due to evaluation at compile time. }
+{$PUSH}
+ {$WARN 6018 OFF} (* Unreachable code due to compile time evaluation *)
+        if ControllerSupport then
+         begin
+          result:=false;
+          hs:=Upper(s);
+          for t:=low(tcontrollertype) to high(tcontrollertype) do
+            if embedded_controllers[t].controllertypestr=hs then
+              begin
+                a:=t;
+                result:=true;
+                break;
+              end;
+         end
+        else
+         begin
+          a := ct_none;
+          Result := true;
+         end;
+{$POP}
       end;
-{$endif defined(arm) or defined(avr) or defined(mipsel)}
 
 
     function IncludeFeature(const s : string) : boolean;
