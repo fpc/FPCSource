@@ -155,7 +155,7 @@ begin
   FInitialSuspended := CreateSuspended;
   FFatalException := nil;
   FSuspendedInternal := not CreateSuspended;
-  WRITE_DEBUG('creating thread, self = ',longint(self));
+  WRITE_DEBUG('creating thread, self = ',ptruint(self));
   FHandle:= BeginThread(@ThreadFunc, Pointer(Self), FThreadID, StackSize);
   if FHandle = TThreadID(0) then
     raise EThread.create('Failed to create new thread');
