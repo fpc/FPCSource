@@ -171,7 +171,11 @@ struct statfs12 {
    pmbstate_t = ^mbstate_t;
   
    pthread_t            = pointer;
-   pthread_attr_t       = pointer;
+   pthread_attr_t       = record
+     pta_magic : cuint;
+     pta_flags : cint;
+     pta_private : pointer;
+   end;
    pthread_mutex_t      = {$i pmutext.inc}
    pthread_mutexattr_t = record
      ptma_magic : cint;
