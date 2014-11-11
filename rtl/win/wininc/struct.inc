@@ -2223,7 +2223,7 @@ Const
         case byte of
           0: (LowPart : DWORD;
               HighPart : DWORD);
-          1: (QuadPart : LONGLONG);
+          1: (QuadPart : ULONGLONG);
        end;
      PULARGE_INTEGER = ^ULARGE_INTEGER;
      _ULARGE_INTEGER = ULARGE_INTEGER;
