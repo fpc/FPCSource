@@ -61,6 +61,7 @@ type
     i: integer;
   begin
     // Get current working directory (need not be application directory):
+    CurDir := '';
     GetDir(0,CurDir);
 
     NewDBF := TDBF.Create(nil);
@@ -228,7 +229,7 @@ type
     end;
   end;
 
-  // Gets list of all .dbf files in a directory and its subdirectories.
+  // Gets list of all .dbf files in current directory and its subdirectories.
   procedure GetDBFList(Results: TStringList);
   var
     r: TSearchRec;
