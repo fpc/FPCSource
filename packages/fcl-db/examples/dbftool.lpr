@@ -2,7 +2,7 @@ program dbftool;
 
 {
 Reads and exports DBF files.
-Can create a set of 2 demo DBF files to test with.
+Can create a set of 2 demo DBF files in current directory to test with.
 
 Demonstrates creating DBF tables, filling it with data,
 and exporting datasets.
@@ -53,16 +53,22 @@ type
   // Creates 2 demonstration DBFs in Directory
   // with dbase compatibility level TableLevel
   procedure CreateDemoDBFs(Directory: string; TableLevel: integer);
-  // Data structure and data adapted from Firebird employee sample database
-  // Useful to integrate with SQLDB tutorials on Lazarus wiki
+  // Data structure and data adapted from Firebird employee sample database that
+  // are also used in the SQLDB tutorials on Lazarus wiki/demo directory.
   var
+    CurDir: string; //current directory
     NewDBF: TDBF;
     i: integer;
   begin
+    // Get current working directory (need not be application directory):
+    GetDir(0,CurDir);
+
     NewDBF := TDBF.Create(nil);
     try
       if Directory = '' then
-        NewDBF.FilePath := '' { application directory}
+      begin
+        NewDBF.FilePathFull := ExpandFileName(CurDir);
+      end
       else
         NewDBF.FilePathFull := ExpandFileName(Directory) {full absolute path};
       if TableLevel <= 0 then
@@ -71,7 +77,7 @@ type
         NewDBF.TableLevel := TableLevel;
 
       NewDBF.TableName := 'customer.dbf';
-      writeln('Creating ', NewDBF.TableName, ' with table level ', NewDBF.TableLevel);
+      writeln('Creating ', NewDBF.TableName, ' with table level ', NewDBF.TableLevel);			
       if TableLevel >= 30 {Visual FoxPro} then
       begin
         NewDBF.FieldDefs.Add('CUST_NO', ftAutoInc);
@@ -131,7 +137,7 @@ type
     NewDBF := TDBF.Create(nil);
     try
       if Directory = '' then
-        NewDBF.FilePath := '' {application directory}
+        NewDBF.FilePathFull := ExpandFileName(CurDir)
       else
         NewDBF.FilePathFull := ExpandFileName(Directory) {full absolute path};
       if TableLevel <= 0 then
@@ -228,7 +234,7 @@ type
     r: TSearchRec;
   begin
     results.Clear;
-    if FindFirst('*.dbf', faAnyFile - faDirectory -
+    if FindFirst('*', faAnyFile - faDirectory -
 {$WARNINGS OFF}
       faVolumeID - faSymLink
 {$WARNINGS ON}
@@ -236,7 +242,11 @@ type
     begin
       repeat
       begin
-        results.add(expandfilename(r.Name));
+        // Cater for both case-sensitive and case-insensitive filesystems
+        // ignore any directories
+        if ((r.Attr and faDirectory) <> faDirectory) and
+          (LowerCase(ExtractFileExt(r.Name))='.dbf') then
+          results.add(expandfilename(r.Name));
       end;
       until (FindNext(r) <> 0);
       findclose(r);
@@ -550,18 +560,21 @@ type
 
   procedure TDBFTool.WriteHelp;
   begin
-    writeln('Usage: ', GetExeName, ' -h');
-    writeln(' --createdemo          create demo database');
-    writeln(' --tablelevel=<n>      optional: desired tablelevel for demo db');
+    writeln('Read/print all dbfs in current directory');
+    writeln('Usage info: ', GetExeName, ' -h');
+    writeln('');
+    writeln('--createdemo          create demo database in current directory');
+    writeln('--tablelevel=<n>      optional: desired tablelevel for demo db');
     writeln('  3                    DBase III');
     writeln('  4                    DBase IV (default if no tablelevel given)');
     writeln('  7                    Visual DBase 7');
     writeln(' 25                    FoxPro 2.x');
     writeln(' 30                    Visual FoxPro');
-    writeln(' --exportformat=<text> export dbfs to format. Format can be:');
+    writeln('--exportformat=<text> export dbfs to format. Format can be:');
     writeln(' access                Microsoft Access XML');
     writeln(' adonet                ADO.Net dataset XML');
-    writeln(' csvexcel              Excel/Creativyst format CSV text file (with locale dependent output)');
+    writeln(' csvexcel              Excel/Creativyst format CSV text file ');
+    writeln('                       (with locale dependent output)');
     writeln(' csvRFC4180            LibreOffice/RFC4180 format CSV text file');
     writeln(' dataset               Delphi dataset XML');
     writeln(' excel                 Microsoft Excel XML');
