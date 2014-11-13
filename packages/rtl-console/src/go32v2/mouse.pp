@@ -597,7 +597,6 @@ begin
              popl    %ebp
      .LShowMouseExit:
      end;
-  MouseIsVisible := true;
 end;
 
 
@@ -628,7 +627,6 @@ begin
              popl    %ebp
      .LHideMouseExit:
      end;
-  MouseIsVisible := false;
 end;
 
 
