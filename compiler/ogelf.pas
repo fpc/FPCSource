@@ -1334,6 +1334,8 @@ implementation
         FReader.Seek(secrec.relocpos);
         if secrec.sec=nil then
           InternalError(2012060203);
+        if (secrec.relentsize=3*sizeof(pint)) then
+          with secrec.sec do SecOptions:=SecOptions+[oso_rela_relocs];
         for i:=0 to secrec.relocs-1 do
           begin
             FReader.Read(rel,secrec.relentsize);

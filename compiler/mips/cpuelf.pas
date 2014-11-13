@@ -207,6 +207,8 @@ implementation
           result:=R_MIPS_NONE;
         RELOC_ABSOLUTE:
           result:=R_MIPS_32;
+        RELOC_GOTOFF:               {For case jumptables only }
+          result:=R_MIPS_GPREL32;
       else
         result:=0;
         InternalError(2012110602);
@@ -809,7 +811,7 @@ implementation
           else
             reltyp:=objreloc.ftype;
 
-          if ElfTarget.relocs_use_addend then
+          if (oso_rela_relocs in objsec.SecOptions) then
             address:=objreloc.orgsize
           else
             begin
