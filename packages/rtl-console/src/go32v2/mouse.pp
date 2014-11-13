@@ -21,10 +21,6 @@ interface
 { tells the mouse unit to draw the mouse cursor itself }
 procedure DoCustomMouse(b : boolean);
 
-const
-  MouseIsVisible: boolean = false;
-
-
 implementation
 
 uses
@@ -51,6 +47,7 @@ var
   ActionRegs    : TRealRegs;external name '___v2prt0_rmcb_regs';
   v2prt0_ds_alias : word;external name '___v2prt0_ds_alias';
 const
+  MouseIsVisible: boolean = false;
   MousePresent : boolean = false;
   First_try    : boolean = true;
 {$ifdef DEBUG}
