@@ -685,6 +685,31 @@ implementation
              exit;
           end;
 
+        { replace .../const by a multiplication, but only if fastmath is enabled,
+          do this after constant folding to avoid unnecessary precision loss if
+          an slash expresion would be first converted into a multiplication and later
+          folded }
+        if (nodetype=slashn) and
+          { do not mess with currency types }
+          (not(is_currency(right.resultdef))) and
+          (cs_opt_fastmath in current_settings.optimizerswitches) then
+          case rt of
+            ordconstn:
+              begin
+                nodetype:=muln;
+                t:=crealconstnode.create(1/tordconstnode(right).value,resultdef);
+                right.free;
+                right:=t;
+                exit;
+              end;
+            realconstn:
+              begin
+                nodetype:=muln;
+                trealconstnode(right).value_real:=1.0/trealconstnode(right).value_real;
+                exit;
+              end;
+          end;
+
         { first, we handle widestrings, so we can check later for }
         { stringconstn only                                       }
 
