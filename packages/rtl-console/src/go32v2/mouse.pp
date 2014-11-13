@@ -101,6 +101,10 @@ asm
         movw    %dx,mousewherey
         shrw    $3,%cx
         shrw    $3,%dx
+        cmpw    $40,ScreenWidth
+        jne     .Lmorethan40cols
+        shrw    $1,%cx
+.Lmorethan40cols:
         { should we draw the mouse cursor? }
         cmpb    $0,drawmousecursor
         je      .Lmouse_nocursor
@@ -643,6 +647,10 @@ asm
         popl    %ebp
         movzwl  %cx,%eax
         shrl    $3,%eax
+        cmpw    $40,ScreenWidth
+        jne     .Lmorethan40cols
+        shrl    $1,%eax
+.Lmorethan40cols:
         incl    %eax
         jmp .Lexit
 .LGetMouseXError:
@@ -738,7 +746,10 @@ procedure DoCustomMouse(b : boolean);
      CustomMouse_HideCount:=1;
      oldmousex:=-1;
      oldmousey:=-1;
-     SetMouseXRange(0,(screenwidth-1)*8);
+     if ScreenWidth=40 then
+       SetMouseXRange(0,(screenwidth-1)*16)
+     else
+       SetMouseXRange(0,(screenwidth-1)*8);
      SetMouseYRange(0,(screenheight-1)*8);
      if b then
        begin
