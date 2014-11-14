@@ -483,7 +483,9 @@ begin
       GetMem(VIDEBuffer,IDEVideoInfo.ScreenSize);
       VIDEBufferSize:=IDEVideoInfo.ScreenSize;
     end;
+  HideMouse;
   DosmemGet(VSeg,SOfs,VIDEBuffer^,IDEVideoInfo.ScreenSize);
+  ShowMouse;
 end;
 
 procedure TDosScreen.SaveConsoleScreen;
