@@ -44,6 +44,30 @@ const
   BEGIN_LIBPATH = 1; (* The new path is searched before the LIBPATH. *)
   END_LIBPATH = 2;   (* The new path is searched after the LIBPATH. *)
 
+(* Constants for DosSuppressPopups *)
+  SPU_DisableSuppression = 0;
+  SPU_EnableSuppression = 1;
+
+(* Constants for DosDumpProcess *)
+  DDP_DisableProcDump = 0;
+  DDP_EnableProcDump = 1;
+  DDP_PerformProcDump = 2;
+
+(* Constants for DosPerfSysCall *)
+  Cmd_KI_Enable = $60;
+  Cmd_KI_RdCnt = $63;
+  Cmd_SoftTrace_Log = $14;
+
+(* Constants for DosQueryABIOSSupport *)
+  HW_Cfg_MCA = 1;
+  HW_Cfg_EISA = 2;
+  HW_Cfg_ABIOS_Supported = 4;
+  HW_Cfg_ABIOS_Present = 8;
+  HW_Cfg_PCI = 16;
+  HW_Cfg_OEM_ABIOS = 32;
+  HW_Cfg_IBM_ABIOS = 0;
+  HW_Cfg_Pentium_CPU = 64;
+
 
 type
   TFileLockL = record
@@ -62,6 +86,18 @@ type
    Mask: array [0..1] of cardinal;
   end;
   PMPAffinity = ^TMPAffinity;
+
+  TCPUUtil = record
+   TotalLow,
+   TotalHigh,
+   IdleLow,
+   IdleHigh,
+   BusyLow,
+   BusyHigh,
+   IntrLow,
+   IntrHigh: cardinal;
+  end;
+  PCPUUtil = ^TCPUUtil;
 
 
 function DosOpenL (FileName: PChar; var Handle: THandle;
@@ -942,6 +978,126 @@ Possible return codes:
 function DosSetExtLibPath (ExtLibPath: PChar; Flags: cardinal): cardinal;
                                                                          cdecl;
 
+(*
+DosQueryModFromEIP queries a module handle and name from a given flat address.
+It takes a flat 32 bit address as a parameter and returns information about the
+module (a protected mode application currently executing) owning the storage.
+
+Parameters:
+HMod = Address of a location in which the module handle is returned.
+ObjNum = Address of a cardinal where the module object number corresponding to
+         the Address is returned. The object number is zero based.
+BuffLen = Length of the user supplied buffer pointed to by Buff.
+Buff = Address of a user supplied buffer in which the module name is returned.
+Offset = Address where the offset to the object corresponding to the Address is
+         returned. The offset is zero based.
+Address = Input address to be queried.
+
+Possible return codes:
+  0 NO_ERROR 
+ 87 ERROR_INVALID_PARAMETER 
+487 ERROR_INVALID_ADDRESS
+*)
+function DosQueryModFromEIP (var HMod: THandle; var ObjNum: cardinal;
+                         BuffLen: cardinal; Buff: PChar; var Offset: cardinal;
+                                            Address: PtrUInt): cardinal; cdecl;
+
+
+function DosDumpProcess (Flags: cardinal; Drive: cardinal;
+                                               PID: cardinal): cardinal; cdecl;
+
+
+function DosSuppressPopups (Flags: cardinal;
+                                             Drive: cardinal): cardinal; cdecl;
+
+
+(*
+DosPerfSysCall retrieves system performance information and performs software
+tracing.
+
+Parameters:
+Command = Command to be performed; the following commands are accepted:
+  CMD_KI_RDCNT ($63) - reads CPU utilization information in both uniprocessor
+                       and symmetric multi-processor (SMP) environments by
+                       taking a snapshot of the time stamp counters. To
+                       determine CPU utilization, the application must compute
+                       the difference between two time stamp snapshots using 64
+                       bit aritimetic.
+  CMD_SOFTTRACE_LOG ($14) - records software trace information.
+Parm1 (CPUUtil) = Command-specific. In case of CMD_KI_RDCNT, pointer to
+                  TCPUUtil record. In case of CMD_SOFTTRACE_LOG, major code for
+                  the trace entry in the range of 0 to 255. Major codes 184
+                  ($B8) and 185 ($B9) have been reserved for IBM customer use.
+                  Major code 1 is reserved for exclusive use by IBM.
+Parm2 = Command-specific. In case of CMD_KI_RdCnt, it must be 0. In case of
+        CMD_SOFTTRACE_LOG, minor code for the trace entry in the range of
+        0 to 255.
+Parm3 (HookData) = Command-specific. In case of CMD_KI_RdCnt, it must be 0. In
+                   case of CMD_SOFTTRACE_LOG, pointer to a HOOKDATA data
+                   structure (see example code).
+
+Possible return codes:
+0 NO_ERROR 
+1 ERROR_INVALID_FUNCTION
+
+Remarks:
+DosPerfSysCall is a general purpose performance function. This function accepts
+four parameters. The first parameter is the command requested. The other three
+parameters are command specific.
+
+Some functions of DosPerfSysCall may have a dependency on Intel Pentium or
+Pentium-Pro (or higher) support. If a function cannot be provided because OS/2
+is not running on a processor with the required features, a return code will
+indicate an attempt to use an unsupported function.
+
+Example code (C):
+  int main (int argc, char *argv[])
+  {
+     APIRET     rc;
+     BYTE       HookBuffer [256];
+     HOOKDATA   Hookdata = {0,HookBuffer};
+     ULONG      ulMajor, ulMinor;
+     *((PULONG)  HookBuffer[0]) = 1;
+     *((PULONG)  HookBuffer[4]) = 2;
+     *((PULONG)  HookBuffer[8]) = 3;
+     strcpy((PSZ  HookBuffer[12], "Test of 3 ULONG values and a string.")
+     HookData.ulLength = 12 + strlen((PSZ HookBuffer[12]) + 1;
+
+     ulMajor = 0x00b8 
+     ulMinor = 0x0001
+
+     rc = DosPerfSystCall(CMD_SOFTTRACE_LOG, ulMajor, ulMinor, (ULONG)  HookData);
+     if (rc != NO_ERROR) {
+       fprintf (stderr, "CMD_SOFTTRACE_LOG failed   rc = %u\n", rc);
+       return 1;
+       }
+
+     return NO_ERROR;
+  }
+*)
+function DosPerfSysCall (Command, Parm1, Parm2,
+                                             Parm3: cardinal): cardinal; cdecl;
+function DosPerfSysCall (Command, Parm1, Parm2: cardinal;
+                                                var HookData): cardinal; cdecl;
+function DosPerfSysCall (Command: cardinal; var CpuUtil: TCPUUtil; Parm2,
+                                             Parm3: cardinal): cardinal; cdecl;
+
+
+function DosQueryThreadContext (TID: cardinal; Level: cardinal;
+                           var ContextRecord: TContextRecord): cardinal; cdecl;
+
+
+(*
+DosQueryABIOSSupport returns flags that indicate various basic hardware
+configurations.
+
+Parameters:
+Reserved = Must be set to 0, no other value is defined.
+
+The result of this function contains combination of flags (HW_Cfg_* constants)
+signalizing the underlying hardware configuration.
+*)
+function DosQueryABIOSSupport (Reserved: cardinal): cardinal; cdecl;
 
 
 {***************************************************************************}
@@ -1205,9 +1361,56 @@ end;
 
 
 function DummyDosSetExtLibPath (ExtLibPath: PChar; Flags: cardinal): cardinal;
-                                                                 cdecl; inline;
+                                                                         cdecl;
 begin
   DummyDosSetExtLibPath := Error_Not_Enough_Memory;
+end;
+
+
+function DummyDosQueryModFromEIP (var HMod: THandle; var ObjNum: cardinal;
+                         BuffLen: cardinal; Buff: PChar; var Offset: cardinal;
+                                            Address: PtrUInt): cardinal; cdecl;
+begin
+  DummyDosQueryModFromEIP := Error_Invalid_Parameter;
+  HMod := THandle (-1);
+  ObjNum := 0;
+  if Buff <> nil then
+   Buff^ := #0;
+  Offset := 0;
+end;
+
+
+function DummyDosDumpProcess (Flags: cardinal; Drive: cardinal;
+                                               PID: cardinal): cardinal; cdecl;
+begin
+  DummyDosDumpProcess := Error_Invalid_Function;
+end;
+
+
+function DummyDosSuppressPopups (Flags: cardinal;
+                                             Drive: cardinal): cardinal; cdecl;
+begin
+  DummyDosSuppressPopups := Error_Invalid_Function;
+end;
+
+
+function DummyDosPerfSysCall (Command, Parm1, Parm2,
+                                             Parm3: cardinal): cardinal; cdecl;
+begin
+  DummyDosPerfSysCall := Error_Invalid_Function;
+end;
+
+
+function DummyDosQueryThreadContext (TID: cardinal; Level: cardinal;
+                           var ContextRecord: TContextRecord): cardinal; cdecl;
+begin
+  DummyDosQueryThreadContext := Error_Invalid_Function;
+end;
+
+
+function DummyDosQueryABIOSSupport (Reserved: cardinal): cardinal; cdecl;
+begin
+  DummyDosQueryABIOSSupport := 0;
 end;
 
 
@@ -1299,6 +1502,24 @@ type
   TDosSetExtLibPath = function (ExtLibPath: PChar; Flags: cardinal): cardinal;
                                                                          cdecl;
 
+  TDosQueryModFromEIP = function (var HMod: THandle; var ObjNum: cardinal;
+                         BuffLen: cardinal; Buff: PChar; var Offset: cardinal;
+                                            Address: PtrUInt): cardinal; cdecl;
+
+  TDosDumpProcess = function (Flags: cardinal; Drive: cardinal;
+                                               PID: cardinal): cardinal; cdecl;
+
+  TDosSuppressPopups = function (Flags: cardinal;
+                                             Drive: cardinal): cardinal; cdecl;
+
+  TDosPerfSysCall = function (Command, Parm1, Parm2,
+                                             Parm3: cardinal): cardinal; cdecl;
+
+  TDosQueryThreadContext = function (TID: cardinal; Level: cardinal;
+                           var ContextRecord: TContextRecord): cardinal; cdecl;
+
+  TDosQueryABIOSSupport = function (Reserved: cardinal): cardinal; cdecl;
+
 
 
 const
@@ -1339,6 +1560,13 @@ const
   Sys_DosSetThreadAffinity: TDosSetThreadAffinity = @DummyDosSetThreadAffinity;
   Sys_DosQueryExtLibPath: TDosQueryExtLibPath = @DummyDosQueryExtLibPath;
   Sys_DosSetExtLibPath: TDosSetExtLibPath = @DummyDosSetExtLibPath;
+  Sys_DosQueryModFromEIP: TDosQueryModFromEIP = @DummyDosQueryModFromEIP;
+  Sys_DosDumpProcess: TDosDumpProcess = @DummyDosDumpProcess;
+  Sys_DosSuppressPopups: TDosSuppressPopups = @DummyDosSuppressPopups;
+  Sys_DosPerfSysCall: TDosPerfSysCall = @DummyDosPerfSysCall;
+  Sys_DosQueryThreadContext: TDosQueryThreadContext =
+                                                   @DummyDosQueryThreadContext;
+  Sys_DosQueryABIOSSupport: TDosQueryABIOSSupport = @DummyDosQueryABIOSSupport;
 
 
 
@@ -1678,6 +1906,66 @@ begin
 end;
 
 
+function DosQueryModFromEIP (var HMod: THandle; var ObjNum: cardinal;
+                         BuffLen: cardinal; Buff: PChar; var Offset: cardinal;
+                                    Address: PtrUInt): cardinal; cdecl; inline;
+begin
+  DosQueryModFromEIP := Sys_DosQueryModFromEIP (HMod, ObjNum, BuffLen, Buff,
+                                                              Offset, Address);
+end;
+
+
+function DosDumpProcess (Flags: cardinal; Drive: cardinal;
+                                       PID: cardinal): cardinal; cdecl; inline;
+begin
+  DosDumpProcess := Sys_DosDumpProcess (Flags, Drive, PID);
+end;
+
+
+function DosSuppressPopups (Flags: cardinal;
+                                     Drive: cardinal): cardinal; cdecl; inline;
+begin
+  DosSuppressPopups := Sys_DosSuppressPopups (Flags, Drive);
+end;
+
+
+function DosPerfSysCall (Command, Parm1, Parm2,
+                                     Parm3: cardinal): cardinal; cdecl; inline;
+begin
+  DosPerfSysCall := Sys_DosPerfSysCall (Command, Parm1, Parm2, Parm3);
+end;
+
+
+function DosPerfSysCall (Command, Parm1, Parm2: cardinal;
+                                                var HookData): cardinal; cdecl;
+begin
+  DosPerfSysCall := Sys_DosPerfSysCall (Command, Parm1, Parm2,
+                                                           PtrUInt (HookData));
+end;
+
+
+function DosPerfSysCall (Command: cardinal; var CpuUtil: TCPUUtil; Parm2,
+                                             Parm3: cardinal): cardinal; cdecl;
+begin
+  DosPerfSysCall := Sys_DosPerfSysCall (Command, PtrUInt (@CPUUtil), Parm2,
+                                                                        Parm3);
+end;
+
+
+function DosQueryThreadContext (TID: cardinal; Level: cardinal;
+                   var ContextRecord: TContextRecord): cardinal; cdecl; inline;
+begin
+  DosQueryThreadContext := Sys_DosQueryThreadContext (TID, Level,
+                                                                ContextRecord);
+end;
+
+
+function DosQueryABIOSSupport (Reserved: cardinal): cardinal; cdecl; inline;
+begin
+  DosQueryABIOSSupport := Sys_DosQueryABIOSSupport (Reserved);
+end;
+
+
 var
   P: pointer;
 
@@ -1764,6 +2052,22 @@ begin
    if DosQueryProcAddr (DosCallsHandle, Ord_Dos32SetExtLibPath, nil,
                                                                     P) = 0 then
     Sys_DosSetExtLibPath := TDosSetExtLibPath (P);
+   if DosQueryProcAddr (DosCallsHandle, Ord_Dos32QueryModFromEIP, nil,
+                                                                    P) = 0 then
+    Sys_DosQueryModFromEIP := TDosQueryModFromEIP (P);
+   if DosQueryProcAddr (DosCallsHandle, Ord_Dos32DumpProcess, nil, P) = 0 then
+    Sys_DosDumpProcess := TDosDumpProcess (P);
+   if DosQueryProcAddr (DosCallsHandle, Ord_Dos32SuppressPopups, nil,
+                                                                    P) = 0 then
+    Sys_DosSuppressPopups := TDosSuppressPopups (P);
+   if DosQueryProcAddr (DosCallsHandle, Ord_Dos32PerfSysCall, nil, P) = 0 then
+    Sys_DosPerfSysCall := TDosPerfSysCall (P);
+   if DosQueryProcAddr (DosCallsHandle, Ord_Dos32QueryThreadContext, nil,
+                                                                    P) = 0 then
+    Sys_DosQueryThreadContext := TDosQueryThreadContext (P);
+   if DosQueryProcAddr (DosCallsHandle, Ord_Dos32QueryABIOSSupport, nil,
+                                                                    P) = 0 then
+    Sys_DosQueryABIOSSupport := TDosQueryABIOSSupport (P);
 end.
 
 (*
@@ -1792,7 +2096,7 @@ x  Dos32SetProcessorStatus           | DOSCALLS | SMP   | SMP
   Dos32TestPSD                      | DOSCALLS | SMP   | SMP
 
 x  Dos32QueryThreadAffinity          | DOSCALLS | PROC  | 2.45
-  Dos32QueryThreadContext           | DOSCALLS | XCPT  | 2.40
+(x)  Dos32QueryThreadContext           | DOSCALLS | XCPT  | 2.40
 x  Dos32SetThreadAffinity            | DOSCALLS | PROC  | 2.45
 
   Dos32AllocThreadLocalMemory       | DOSCALLS | PROC  | 2.30
@@ -1811,7 +2115,7 @@ x  Dos32ProtectSetFilePtr            | DOSCALLS | FILE  | 2.10
 x  Dos32ProtectSetFileSize           | DOSCALLS | FILE  | 2.10
 x  Dos32ProtectWrite                 | DOSCALLS | FILE  | 2.10
   Dos32QueryABIOSSupport            | DOSCALLS | MOD   | 2.10
-  Dos32QueryModFromEIP              | DOSCALLS | MOD   | 2.10
-  Dos32SuppressPopUps               | DOSCALLS | MISC  | 2.10
+(x)  Dos32QueryModFromEIP              | DOSCALLS | MOD   | 2.10
+(x)  Dos32SuppressPopUps               | DOSCALLS | MISC  | 2.10
   Dos32VerifyPidTid                 | DOSCALLS | MISC  | 2.30
 *)
