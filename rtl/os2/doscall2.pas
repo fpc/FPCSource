@@ -68,6 +68,14 @@ const
   HW_Cfg_IBM_ABIOS = 0;
   HW_Cfg_Pentium_CPU = 64;
 
+(* Constants for DosQueryThreadContext - Level *)
+  Context_Control = 1; { Control registers: SS:ESP, CS:EIP, EFLAGS and EBP }
+  Context_Integer = 2; { EAX, EBX, ECX, EDX, ESI and EDI }
+  Context_Segments = 4; { Segment registers:  DS, ES, FS, and GS }
+  Context_Floating_Point = 8; { Numeric coprocessor state }
+  Context_Full = 15; { All of the above }
+
+
 
 type
   TFileLockL = record
@@ -1003,12 +1011,88 @@ function DosQueryModFromEIP (var HMod: THandle; var ObjNum: cardinal;
                                             Address: PtrUInt): cardinal; cdecl;
 
 
-function DosDumpProcess (Flags: cardinal; Drive: cardinal;
+(*
+DosDumpProcess initiates a process dump from a specified process. This may be used as part of an error handling routine to gather information about an error that may be analyzed later using the OS/2 System Dump Formatter. Configuration of Process Dump may be done using the PDUMPSYS, PDUMPUSR, and PROCDUMP commands. 
+
+Parameters:
+Flag = Function to be performed (one of DDP_* constants).
+  DDP_DISABLEPROCDUMP (0) - disable process dumps
+  DDP_ENABLEPROCDUMP  (1) - enable process dumps
+  DDP_PERFORMPROCDUMP (2) - perform process dump (if the user enabled it using
+                            the PROCDUMP command; ERROR_INVALID_PARAMETER is
+                            returned otherwise)
+Drive = The ASCII character for the drive on which process dump files are
+        to be created, or 0 to use the drive originally specified by the user
+        using the PROCDUMP command. This is required only with the
+        DDP_ENABLEPROCDUMP (PROCDUMP command allows customizing fully the drive
+        and path).
+PID = The process to be dumped. 0 specifies the current process; otherwise
+      a valid process ID must be specified. This parameter is actioned only
+      with DDP_PERFORMPROCDUMP.
+
+Possible return Codes.
+ 0 NO_ERROR
+87 ERROR_INVALID PARAMETER
+
+Remarks:
+Use the PDUMPUSR command to specify what information will be dumped.
+
+Use the PROCDUMP command to customize options per process and in particular
+to specify whether child or parent process will be dumped.
+
+For maximum flexibility the use of DosDumpProcess should be limited
+to the DDP_PERFORMPROCDUMP function. This allows you to specify whether
+Process Dump should be enabled through the use of the PROCDUMP command.
+You may customize Process Dump completely through use of the PDUMPUSR,
+PDUMPSYS, AND PROCDUMP commands. For further information, see PROCDUMP.DOC
+in the OS2\SYSTEM\RAS directory. DDP_ENABLEPROCDUMP and DDP_DISABLEPROCDUMP
+are provided for backwards compatibility only.
+*)
+function DosDumpProcess (Flag: cardinal; Drive: char;
                                                PID: cardinal): cardinal; cdecl;
 
 
-function DosSuppressPopups (Flags: cardinal;
-                                             Drive: cardinal): cardinal; cdecl;
+(*
+Suppress application trap popups and log them to the file POPUPLOG.OS2.
+
+Parameters:
+Flag = Flag indicating whether pop-up suppression should be enabled
+       or disabled (one of SPU_* constants - 0 or 1).
+Drive = The drive letter for the log file (used only when pop-up suppression is
+        enabled).
+
+Remarks:
+When pop-ups are suppressed through DosSuppressPopUps, the system does not
+display trap screens on the user's terminal. The user will not be required
+to respond to the abort, retry, continue message. Instead, the system displays
+message SYS3571 and logs the name of the process to the POPUPLOG.OS2 log file
+in the root directory of the specified drive. The system will also log
+the message inserts in the log file.
+
+If the log file does not exist, the system will create it. If the log file
+exists, the system appends to it. If the system cannot open the file (for
+example, because the drive does not exist), the system will not log the pop-up
+information.
+
+When pop-up suppression is enabled, the system overrides any settings
+established by DosError on a per-process basis.
+
+This API overrides the potential initial setting (e.g. 'SUPPRESSPOPUPS=c')
+in CONFIG.SYS.
+
+The drive letter for the log file may also be specified on the
+DosSuppressPopUps API.
+
+If an invalid flag (a flag other than SPU_ENABLESUPPRESSION
+or SPU_DISABLESUPPRESSION) or an invalid drive (a drive other than an upper- or
+lowercase letter) is specified on DosSuppressPopUps, the system returns error
+code ERROR_INVALID_PARAMETER. Otherwise, the system returns NO_ERROR.
+
+Possible error codes:
+ 0 NO_ERROR
+87 ERROR_INVALID_PARAMETER
+*)
+function DosSuppressPopups (Flag: cardinal; Drive: char): cardinal; cdecl;
 
 
 (*
@@ -1083,8 +1167,31 @@ function DosPerfSysCall (Command: cardinal; var CpuUtil: TCPUUtil; Parm2,
                                              Parm3: cardinal): cardinal; cdecl;
 
 
+(*
+Query context of a suspended thread.
+
+Parameters:
+TID = Thread ID
+Level = Desired level of information
+Context = Thread context record
+
+DosQueryThreadContext returns the context record of a suspended thread.
+A thread may be suspended by using DosSuspendThread or DosEnterCritSec.
+If DosSuspendThread is used, the caller must allow some time for OS/2 to
+suspend the thread before querying its context.
+
+Note: Values from the thread context should be used only when the state
+of the target thread is known.
+
+Possible return codes:
+  0 NO_ERROR
+ 87 ERROR_INVALID_PARAMETER
+ 90 ERROR_NOT_FROZEN
+115 ERROR_PROTECTION_VIOLATION
+309 ERROR_INVALID_THREADID
+*)
 function DosQueryThreadContext (TID: cardinal; Level: cardinal;
-                           var ContextRecord: TContextRecord): cardinal; cdecl;
+                                 var Context: TContextRecord): cardinal; cdecl;
 
 
 (*
@@ -1380,15 +1487,14 @@ begin
 end;
 
 
-function DummyDosDumpProcess (Flags: cardinal; Drive: cardinal;
+function DummyDosDumpProcess (Flag: cardinal; Drive: cardinal;
                                                PID: cardinal): cardinal; cdecl;
 begin
   DummyDosDumpProcess := Error_Invalid_Function;
 end;
 
 
-function DummyDosSuppressPopups (Flags: cardinal;
-                                             Drive: cardinal): cardinal; cdecl;
+function DummyDosSuppressPopups (Flag: cardinal; Drive: char): cardinal; cdecl;
 begin
   DummyDosSuppressPopups := Error_Invalid_Function;
 end;
@@ -1402,7 +1508,7 @@ end;
 
 
 function DummyDosQueryThreadContext (TID: cardinal; Level: cardinal;
-                           var ContextRecord: TContextRecord): cardinal; cdecl;
+                                 var Context: TContextRecord): cardinal; cdecl;
 begin
   DummyDosQueryThreadContext := Error_Invalid_Function;
 end;
@@ -1506,17 +1612,16 @@ type
                          BuffLen: cardinal; Buff: PChar; var Offset: cardinal;
                                             Address: PtrUInt): cardinal; cdecl;
 
-  TDosDumpProcess = function (Flags: cardinal; Drive: cardinal;
+  TDosDumpProcess = function (Flag: cardinal; Drive: cardinal;
                                                PID: cardinal): cardinal; cdecl;
 
-  TDosSuppressPopups = function (Flags: cardinal;
-                                             Drive: cardinal): cardinal; cdecl;
+  TDosSuppressPopups = function (Flag: cardinal; Drive: char): cardinal; cdecl;
 
   TDosPerfSysCall = function (Command, Parm1, Parm2,
                                              Parm3: cardinal): cardinal; cdecl;
 
   TDosQueryThreadContext = function (TID: cardinal; Level: cardinal;
-                           var ContextRecord: TContextRecord): cardinal; cdecl;
+                                 var Context: TContextRecord): cardinal; cdecl;
 
   TDosQueryABIOSSupport = function (Reserved: cardinal): cardinal; cdecl;
 
@@ -1915,17 +2020,17 @@ begin
 end;
 
 
-function DosDumpProcess (Flags: cardinal; Drive: cardinal;
+function DosDumpProcess (Flag: cardinal; Drive: char;
                                        PID: cardinal): cardinal; cdecl; inline;
 begin
-  DosDumpProcess := Sys_DosDumpProcess (Flags, Drive, PID);
+  DosDumpProcess := Sys_DosDumpProcess (Flag, cardinal (Drive), PID);
 end;
 
 
-function DosSuppressPopups (Flags: cardinal;
-                                     Drive: cardinal): cardinal; cdecl; inline;
+function DosSuppressPopups (Flag: cardinal;
+                                         Drive: char): cardinal; cdecl; inline;
 begin
-  DosSuppressPopups := Sys_DosSuppressPopups (Flags, Drive);
+  DosSuppressPopups := Sys_DosSuppressPopups (Flag, Drive);
 end;
 
 
@@ -1953,10 +2058,9 @@ end;
 
 
 function DosQueryThreadContext (TID: cardinal; Level: cardinal;
-                   var ContextRecord: TContextRecord): cardinal; cdecl; inline;
+                         var Context: TContextRecord): cardinal; cdecl; inline;
 begin
-  DosQueryThreadContext := Sys_DosQueryThreadContext (TID, Level,
-                                                                ContextRecord);
+  DosQueryThreadContext := Sys_DosQueryThreadContext (TID, Level, Context);
 end;
 
 
