@@ -509,7 +509,9 @@ begin
      (ConsoleVideoInfo.Mode=$13) or
      (ConsoleVideoInfo.Mode=$12) or
      (ConsoleVideoInfo.Mode=$10) or
-     (ConsoleVideoInfo.Mode=$E) then
+     (ConsoleVideoInfo.Mode=$E) or
+     (ConsoleVideoInfo.Mode=$6) or
+     (ConsoleVideoInfo.Mode=$4) then
     begin
       if VesaSetMode(ConsoleVideoInfo.Mode or $8000) then
         begin
@@ -521,11 +523,32 @@ begin
             end
           else
             begin
-              GraphDriver:=Graph.VGA;
               case ConsoleVideoInfo.Mode of
-               $E : GraphMode:=VGALo;
-               $10 : GraphMode:=VGAMed;
-               $12 : GraphMode:=VGAHi;
+               $4 : begin
+                      GraphDriver:=Graph.CGA;
+                      case (Mem[$40:$66] shr 4) and 3 of
+                        0: GraphMode:=CGAC2;
+                        1: GraphMode:=CGAC0;
+                        2: GraphMode:=CGAC3;
+                        3: GraphMode:=CGAC1;
+                      end;
+                    end;
+               $6 : begin
+                      GraphDriver:=Graph.CGA;
+                      GraphMode:=CGAHi;
+                    end;
+               $E : begin
+                      GraphDriver:=Graph.VGA;
+                      GraphMode:=VGALo;
+                    end;
+               $10 : begin
+                       GraphDriver:=Graph.VGA;
+                       GraphMode:=VGAMed;
+                     end;
+               $12 : begin
+                       GraphDriver:=Graph.VGA;
+                       GraphMode:=VGAHi;
+                     end;
                $13 : begin
                        GraphDriver:=Graph.LowRes;
                        GraphMode:=0;
