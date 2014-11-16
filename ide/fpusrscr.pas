@@ -601,51 +601,27 @@ var
   VSeg,SOfs: word;
 {$ifdef USE_GRAPH_SWITCH}
   restored : boolean;
-  GraphDriver,GraphMode : integer;
 {$endif USE_GRAPH_SWITCH}
 begin
-  SetVideoMode(ConsoleVideoInfo);
 {$ifdef USE_GRAPH_SWITCH}
   restored:=false;
   if assigned(GraphBuffer) then
     begin
-      if VesaSetMode(ConsoleVideoInfo.Mode) then
+      Graph.InitGraph(ConsoleGraphDriver,ConsoleGraphMode,'');
+      if graphresult=grOk then
         begin
-          if ConsoleVideoInfo.Mode>=$100 then
-            begin
-              GraphDriver:=Graph.Vesa;
-              GraphMode:=ConsoleVideoInfo.Mode and $fff;
-            end
-          else
-            begin
-              GraphDriver:=Graph.VGA;
-              case ConsoleVideoInfo.Mode of
-               $E : GraphMode:=VGALo;
-               $10 : GraphMode:=VGAMed;
-               $12 : GraphMode:=VGAHi;
-               $13 : begin
-                       GraphDriver:=Graph.LowRes;
-                       GraphMode:=0;
-                     end;
-              end;
-            end;
-          if (ConsoleGraphDriver<>GraphDriver) or
-             (ConsoleGraphMode<>GraphMode) then
-            Graph.InitGraph(GraphDriver,GraphMode,'');
-          if graphresult=grOk then
-            begin
-              PutImage(0,0,GraphBuffer^,CopyPut);
-              FreeMem(GraphBuffer,GraphImageSize);
-              GraphBuffer:=nil;
-              GraphImageSize:=0;
-              restored:=true;
-            end;
+          PutImage(0,0,GraphBuffer^,CopyPut);
+          FreeMem(GraphBuffer,GraphImageSize);
+          GraphBuffer:=nil;
+          GraphImageSize:=0;
+          restored:=true;
         end;
     end;
   { mode < $100 so use standard Save code }
   if not restored then
 {$endif USE_GRAPH_SWITCH}
     begin
+      SetVideoMode(ConsoleVideoInfo);
       if ConsoleVideoInfo.Mode=7 then
         VSeg:=SegB000
       else
