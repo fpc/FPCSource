@@ -31,11 +31,9 @@
   {$define SignalIsCdecl}
   {$define FSCaseInsensitive}
   {$define HasSysMsgUnit}
-  {$ifdef DEBUG}
-    {$ifndef NOVESA}
-      {$define USE_GRAPH_SWITCH}
-    {$endif not NOVESA}
-  {$endif DEBUG}
+  {$ifndef NOVESA}
+    {$define USE_GRAPH_SWITCH}
+  {$endif not NOVESA}
 {$endif}
 
 {$ifdef Linux}
