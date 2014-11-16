@@ -30,6 +30,9 @@ Interface
 
 Type
    bestreal = extended;
+{$if FPC_FULLVERSION>20700}
+   bestrealrec = TExtended80Rec;
+{$endif FPC_FULLVERSION>20700}
    ts32real = single;
    ts64real = double;
    ts80real = extended;

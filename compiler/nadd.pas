@@ -684,23 +684,41 @@ implementation
              result:=t;
              exit;
           end;
+{$if FPC_FULLVERSION>20700}
+        { bestrealrec is 2.7.1+ only }
 
-        { replace .../const by a multiplication, but only if fastmath is enabled,
+        { replace .../const by a multiplication, but only if fastmath is enabled or
+          the division is done by a power of 2, do not mess with special floating point values like Inf etc.
+
           do this after constant folding to avoid unnecessary precision loss if
           an slash expresion would be first converted into a multiplication and later
           folded }
         if (nodetype=slashn) and
           { do not mess with currency types }
           (not(is_currency(right.resultdef))) and
-          (cs_opt_fastmath in current_settings.optimizerswitches) then
+          (((cs_opt_fastmath in current_settings.optimizerswitches) and (rt=ordconstn)) or
+           ((cs_opt_fastmath in current_settings.optimizerswitches) and (rt=realconstn) and
+            (bestrealrec(trealconstnode(right).value_real).SpecialType in [fsPositive,fsNegative])
+           ) or
+           ((rt=realconstn) and
+            (bestrealrec(trealconstnode(right).value_real).SpecialType in [fsPositive,fsNegative]) and
+            { mantissa returns the mantissa/fraction without the hidden 1, so power of two means only the hidden
+              bit is set => mantissa must be 0 }
+            (bestrealrec(trealconstnode(right).value_real).Mantissa=0)
+           )
+          ) then
           case rt of
             ordconstn:
               begin
-                nodetype:=muln;
-                t:=crealconstnode.create(1/tordconstnode(right).value,resultdef);
-                right.free;
-                right:=t;
-                exit;
+                { the normal code handles div/0 }
+                if (tordconstnode(right).value<>0) then
+                  begin
+                    nodetype:=muln;
+                    t:=crealconstnode.create(1/tordconstnode(right).value,resultdef);
+                    right.free;
+                    right:=t;
+                    exit;
+                  end;
               end;
             realconstn:
               begin
@@ -709,6 +727,7 @@ implementation
                 exit;
               end;
           end;
+{$endif FPC_FULLVERSION>20700}
 
         { first, we handle widestrings, so we can check later for }
         { stringconstn only                                       }

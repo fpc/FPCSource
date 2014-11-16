@@ -21,6 +21,9 @@ Interface
 
 Type
    bestreal = double;
+{$if FPC_FULLVERSION>20700}
+   bestrealrec = TDoubleRec;
+{$endif FPC_FULLVERSION>20700}
    ts32real = single;
    ts64real = double;
    ts80real = type double;

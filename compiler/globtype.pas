@@ -110,12 +110,12 @@ interface
 {$endif i8086}
 
        { Use a variant record to be sure that the array if aligned correctly }
-       tdoublerec=record
+       tcompdoublerec=record
          case byte of
            0 : (bytes:array[0..7] of byte);
            1 : (value:double);
        end;
-       textendedrec=record
+       tcompextendedrec=record
          case byte of
            0 : (bytes:array[0..9] of byte);
            1 : (value:extended);
