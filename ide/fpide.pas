@@ -1482,7 +1482,6 @@ begin
 
   if Assigned(UserScreen) then
     UserScreen^.SwitchBackToIDEScreen;
-  Video.SetCursorType(crHidden);
 {$ifdef Windows}
   { This message was sent when the VideoBuffer was smaller
     than was the IdeApp thought => writes to random memory and random crashes... PM }
