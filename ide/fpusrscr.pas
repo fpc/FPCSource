@@ -513,73 +513,70 @@ begin
      (ConsoleVideoInfo.Mode=$6) or
      (ConsoleVideoInfo.Mode=$4) then
     begin
-      if VesaSetMode(ConsoleVideoInfo.Mode or $8000) then
+      Graph.DontClearGraphMemory:=true;
+      if ConsoleVideoInfo.Mode>=$100 then
         begin
-          Graph.DontClearGraphMemory:=true;
-          if ConsoleVideoInfo.Mode>=$100 then
-            begin
-              GraphDriver:=Graph.Vesa;
-              GraphMode:=ConsoleVideoInfo.Mode and $fff;
-            end
-          else
-            begin
-              case ConsoleVideoInfo.Mode of
-               $4 : begin
-                      GraphDriver:=Graph.CGA;
-                      case (Mem[$40:$66] shr 4) and 3 of
-                        0: GraphMode:=CGAC2;
-                        1: GraphMode:=CGAC0;
-                        2: GraphMode:=CGAC3;
-                        3: GraphMode:=CGAC1;
-                      end;
-                    end;
-               $6 : begin
-                      GraphDriver:=Graph.CGA;
-                      GraphMode:=CGAHi;
-                    end;
-               $E : begin
-                      GraphDriver:=Graph.VGA;
-                      GraphMode:=VGALo;
-                    end;
-               $10 : begin
-                       GraphDriver:=Graph.VGA;
-                       GraphMode:=VGAMed;
-                     end;
-               $12 : begin
-                       GraphDriver:=Graph.VGA;
-                       GraphMode:=VGAHi;
-                     end;
-               $13 : begin
-                       GraphDriver:=Graph.LowRes;
-                       GraphMode:=0;
-                     end;
-              end;
-            end;
-          Graph.InitGraph(GraphDriver,GraphMode,'');
-          if graphresult=grOk then
-            begin
-              ConsoleGraphDriver:=GraphDriver;
-              GraphDriverName:=GetDriverName;
-              GraphModeName:=GetModeName(GraphMode);
-              ConsoleGraphMode:=GraphMode;
-              Graph.DontClearGraphMemory:=false;
-              GraphXres:=Graph.GetmaxX;
-              GraphYres:=Graph.GetmaxY;
-              GraphImageSize:=ImageSize(0,0,GraphXres,GraphYres);
-              GetMem(GraphBuffer,GraphImageSize);
-              FillChar(GraphBuffer^,GraphImageSize,#0);
-              GetImage(0,0,GraphXres,GraphYres,GraphBuffer^);
-              ConsoleVideoInfo.Rows:=GraphYres div 8;
-              ConsoleVideoInfo.Cols:=GraphXres div 8;
-              {FreeBuffer;}
-              saved:=true;
-            end
-{$ifdef DEBUG}
-          else
-            Writeln(stderr,'Error in InitGraph ',Graphdriver, ' ',Graphmode)
-{$endif DEBUG}
-            ;
+          GraphDriver:=Graph.Vesa;
+          GraphMode:=ConsoleVideoInfo.Mode and $fff;
+        end
+      else
+        begin
+          case ConsoleVideoInfo.Mode of
+           $4 : begin
+                  GraphDriver:=Graph.CGA;
+                  case (Mem[$40:$66] shr 4) and 3 of
+                    0: GraphMode:=CGAC2;
+                    1: GraphMode:=CGAC0;
+                    2: GraphMode:=CGAC3;
+                    3: GraphMode:=CGAC1;
+                  end;
+                end;
+           $6 : begin
+                  GraphDriver:=Graph.CGA;
+                  GraphMode:=CGAHi;
+                end;
+           $E : begin
+                  GraphDriver:=Graph.VGA;
+                  GraphMode:=VGALo;
+                end;
+           $10 : begin
+                   GraphDriver:=Graph.VGA;
+                   GraphMode:=VGAMed;
+                 end;
+           $12 : begin
+                   GraphDriver:=Graph.VGA;
+                   GraphMode:=VGAHi;
+                 end;
+           $13 : begin
+                   GraphDriver:=Graph.LowRes;
+                   GraphMode:=0;
+                 end;
+          end;
         end;
+      Graph.InitGraph(GraphDriver,GraphMode,'');
+      if graphresult=grOk then
+        begin
+          ConsoleGraphDriver:=GraphDriver;
+          GraphDriverName:=GetDriverName;
+          GraphModeName:=GetModeName(GraphMode);
+          ConsoleGraphMode:=GraphMode;
+          Graph.DontClearGraphMemory:=false;
+          GraphXres:=Graph.GetmaxX;
+          GraphYres:=Graph.GetmaxY;
+          GraphImageSize:=ImageSize(0,0,GraphXres,GraphYres);
+          GetMem(GraphBuffer,GraphImageSize);
+          FillChar(GraphBuffer^,GraphImageSize,#0);
+          GetImage(0,0,GraphXres,GraphYres,GraphBuffer^);
+          ConsoleVideoInfo.Rows:=GraphYres div 8;
+          ConsoleVideoInfo.Cols:=GraphXres div 8;
+          {FreeBuffer;}
+          saved:=true;
+        end
+{$ifdef DEBUG}
+      else
+        Writeln(stderr,'Error in InitGraph ',Graphdriver, ' ',Graphmode)
+{$endif DEBUG}
+        ;
     end;
   { mode < $100 so use standard Save code }
   if not saved then
