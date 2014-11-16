@@ -20,6 +20,7 @@
 
 {$I-,Q-,H-,R-,V-}
 {$mode objfpc}
+{$modeswitch advancedrecords}
 
 { At least 2.4.0 is required }
 {$if defined(VER1) or defined(VER2_0) or defined(VER2_2) }

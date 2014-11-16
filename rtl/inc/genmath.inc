@@ -1927,3 +1927,310 @@ function FPower10(val: Extended; Power: Longint): Extended;
       end;
   end;
 {$endif SUPPORT_EXTENDED}
+
+{$ifdef SUPPORT_EXTENDED}
+function TExtended80Rec.Mantissa : QWord;
+  begin
+    Result:=Frac and $7fffffffffffffff;
+  end;
+
+
+function TExtended80Rec.Fraction : Extended;
+  begin
+    Result:=system.frac(Value);
+  end;
+
+
+function TExtended80Rec.Exponent : Longint;
+  begin
+    Result:=Exp-16383;
+  end;
+
+
+function TExtended80Rec.GetExp : QWord;
+  begin
+    Result:=_Exp and $7fff;
+  end;
+
+
+procedure TExtended80Rec.SetExp(e : QWord);
+  begin
+    _Exp:=(_Exp and $8000) or (e and $7fff);
+  end;
+
+
+function TExtended80Rec.GetSign : Boolean;
+  begin
+    Result:=(_Exp and $8000)<>0;
+  end;
+
+
+procedure TExtended80Rec.SetSign(s : Boolean);
+  begin
+    _Exp:=(_Exp and $7ffff) or (ord(s) shl 15);
+  end;
+
+{
+  Based on information taken from http://en.wikipedia.org/wiki/Extended_precision#x86_Extended_Precision_Format
+}
+function TExtended80Rec.SpecialType : TFloatSpecial;
+  const
+    Denormal : array[boolean] of TFloatSpecial = (fsDenormal,fsNDenormal);
+  begin
+    case Exp of
+      0:
+        begin
+          if Mantissa=0 then
+            begin
+              if Sign then
+                Result:=fsNZero
+              else
+                Result:=fsZero
+            end
+          else
+            Result:=Denormal[Sign];
+        end;
+      $7fff:
+        case (Frac shr 62) and 3 of
+          0,1:
+            Result:=fsInvalidOp;
+          2:
+            begin
+              if (Frac and $3fffffffffffffff)=0 then
+                begin
+                  if Sign then
+                    Result:=fsNInf
+                  else
+                    Result:=fsInf;
+                end
+              else
+                Result:=fsNaN;
+            end;
+          3:
+            Result:=fsNaN;
+        end
+      else
+        begin
+          if (Frac and $8000000000000000)=0 then
+            Result:=fsInvalidOp
+          else
+            begin
+              if Sign then
+                Result:=fsNegative
+              else
+                Result:=fsPositive;
+            end;
+        end;
+      end;
+  end;
+
+{
+procedure TExtended80Rec.BuildUp(const _Sign : Boolean; const _Mantissa : QWord; const Exponent : Longint);
+  begin
+  end;
+}
+{$endif SUPPORT_EXTENDED}
+
+
+{$ifdef SUPPORT_DOUBLE}
+function TDoubleRec.Mantissa : QWord;
+  begin
+    Result:=Data and $fffffffffffff;
+  end;
+
+
+function TDoubleRec.Fraction : ValReal;
+  begin
+    Result:=system.frac(Value);
+  end;
+
+
+function TDoubleRec.Exponent : Longint;
+  begin
+    Result:=Exp-1023;
+  end;
+
+
+function TDoubleRec.GetExp : QWord;
+  begin
+    Result:=(Data and $7ff0000000000000) shr 52;
+  end;
+
+
+procedure TDoubleRec.SetExp(e : QWord);
+  begin
+    Data:=(Data and $800fffffffffffff) or ((e and $7ff) shl 52);
+  end;
+
+
+function TDoubleRec.GetSign : Boolean;
+  begin
+    Result:=(Data and $8000000000000000)<>0;
+  end;
+
+
+procedure TDoubleRec.SetSign(s : Boolean);
+  begin
+    Data:=(Data and $7fffffffffffffff) or (QWord(ord(s)) shl 63);
+  end;
+
+
+function TDoubleRec.GetFrac : QWord;
+  begin
+    Result:=$10000000000000 or Mantissa;
+  end;
+
+
+procedure TDoubleRec.SetFrac(e : QWord);
+  begin
+    Data:=(Data and $7ff0000000000000) or (e and $fffffffffffff);
+  end;
+
+{
+  Based on information taken from http://en.wikipedia.org/wiki/Double_precision#x86_Extended_Precision_Format
+}
+function TDoubleRec.SpecialType : TFloatSpecial;
+  const
+    Denormal : array[boolean] of TFloatSpecial = (fsDenormal,fsNDenormal);
+  begin
+    case Exp of
+      0:
+        begin
+          if Mantissa=0 then
+            begin
+              if Sign then
+                Result:=fsNZero
+              else
+                Result:=fsZero
+            end
+          else
+            Result:=Denormal[Sign];
+        end;
+      $7ff:
+        if Mantissa=0 then
+          begin
+            if Sign then
+              Result:=fsNInf
+            else
+              Result:=fsInf;
+          end
+        else
+          Result:=fsNaN;
+      else
+        begin
+          if Sign then
+            Result:=fsNegative
+          else
+            Result:=fsPositive;
+        end;
+      end;
+  end;
+
+{
+procedure TDoubleRec.BuildUp(const _Sign : Boolean; const _Mantissa : QWord; const Exponent : Longint);
+  begin
+  end;
+}
+{$endif SUPPORT_DOUBLE}
+
+
+{$ifdef SUPPORT_SINGLE}
+function TSingleRec.Mantissa : QWord;
+  begin
+    Result:=Data and $7fffff;
+  end;
+
+
+function TSingleRec.Fraction : ValReal;
+  begin
+    Result:=system.frac(Value);
+  end;
+
+
+function TSingleRec.Exponent : Longint;
+  begin
+    Result:=Exp-127;
+  end;
+
+
+function TSingleRec.GetExp : QWord;
+  begin
+    Result:=(Data and $7f800000) shr 23;
+  end;
+
+
+procedure TSingleRec.SetExp(e : QWord);
+  begin
+    Data:=(Data and $807fffff) or ((e and $ff) shl 23);
+  end;
+
+
+function TSingleRec.GetSign : Boolean;
+  begin
+    Result:=(Data and $80000000)<>0;
+  end;
+
+
+procedure TSingleRec.SetSign(s : Boolean);
+  begin
+    Data:=(Data and $7fffffff) or (ord(s) shl 31);
+  end;
+
+
+function TSingleRec.GetFrac : QWord;
+  begin
+    Result:=$8000000 or Mantissa;
+  end;
+
+
+procedure TSingleRec.SetFrac(e : QWord);
+  begin
+    Data:=(Data and $ff800000) or (e and $7fffff);
+  end;
+
+{
+  Based on information taken from http://en.wikipedia.org/wiki/Single_precision#x86_Extended_Precision_Format
+}
+function TSingleRec.SpecialType : TFloatSpecial;
+  const
+    Denormal : array[boolean] of TFloatSpecial = (fsDenormal,fsNDenormal);
+  begin
+    case Exp of
+      0:
+        begin
+          if Mantissa=0 then
+            begin
+              if Sign then
+                Result:=fsNZero
+              else
+                Result:=fsZero
+            end
+          else
+            Result:=Denormal[Sign];
+        end;
+      $ff:
+        if Mantissa=0 then
+          begin
+            if Sign then
+              Result:=fsNInf
+            else
+              Result:=fsInf;
+          end
+        else
+          Result:=fsNaN;
+      else
+        begin
+          if Sign then
+            Result:=fsNegative
+          else
+            Result:=fsPositive;
+        end;
+      end;
+  end;
+
+{
+procedure TSingleRec.BuildUp(const _Sign : Boolean; const _Mantissa : QWord; const Exponent : Longint);
+  begin
+  end;
+}
+{$endif SUPPORT_SINGLE}
