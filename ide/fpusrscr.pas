@@ -184,7 +184,7 @@ type
       GraphModeName : string;
       GraphXres,GraphYres : longint;
       GraphBuffer : pointer;
-      ConsoleGraphDriver, ConsoleGraphMode : word;
+      ConsoleGraphDriver, ConsoleGraphMode : smallint;
 {$endif USE_GRAPH_SWITCH}
       function    GetLineStartOfs(Line: integer): word;
       procedure   GetBuffer(Size: word);
