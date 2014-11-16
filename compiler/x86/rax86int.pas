@@ -1973,6 +1973,7 @@ Unit Rax86int;
         operandnum : longint;
         is_far_const:boolean;
         i:byte;
+        tmp: toperand;
       begin
         PrefixOp:=A_None;
         OverrideOp:=A_None;
@@ -1982,7 +1983,6 @@ Unit Rax86int;
           if is_prefix(actopcode) then
             with instr do
               begin
-                OpOrder:=op_intel;
                 PrefixOp:=ActOpcode;
                 opcode:=ActOpcode;
                 condition:=ActCondition;
@@ -1994,7 +1994,6 @@ Unit Rax86int;
            if is_override(actopcode) then
              with instr do
                begin
-                 OpOrder:=op_intel;
                  OverrideOp:=ActOpcode;
                  opcode:=ActOpcode;
                  condition:=ActCondition;
@@ -2018,7 +2017,6 @@ Unit Rax86int;
         { Fill the instr object with the current state }
         with instr do
           begin
-            OpOrder:=op_intel;
             Opcode:=ActOpcode;
             condition:=ActCondition;
             opsize:=ActOpsize;
@@ -2045,15 +2043,13 @@ Unit Rax86int;
 {$endif x86_64}
         ;
         { We are reading operands, so opcode will be an AS_ID }
-        operandnum:=1;
+        { process operands backwards to get them in AT&T order }
+        operandnum:=max_operands;
         is_far_const:=false;
         Consume(AS_OPCODE);
         { Zero operand opcode ?  }
         if actasmtoken in [AS_SEPARATOR,AS_END] then
-         begin
-           operandnum:=0;
-           exit;
-         end;
+          exit;
         { Read Operands }
         repeat
           case actasmtoken of
@@ -2065,10 +2061,13 @@ Unit Rax86int;
             { Operand delimiter }
             AS_COMMA :
               begin
-                if operandnum > Max_Operands then
+                { should have something before the comma }
+                if instr.operands[operandnum].opr.typ=OPR_NONE then
+                  Message(asmr_e_syntax_error);
+                if operandnum <= 1 then
                   Message(asmr_e_too_many_operands)
                 else
-                  Inc(operandnum);
+                  Dec(operandnum);
                 Consume(AS_COMMA);
               end;
 
@@ -2076,10 +2075,10 @@ Unit Rax86int;
             AS_COLON:
               begin
                 is_far_const:=true;
-                if operandnum>1 then
+                if operandnum<max_operands then
                   message(asmr_e_too_many_operands)
                 else
-                  inc(operandnum);
+                  dec(operandnum);
                 consume(AS_COLON);
               end;
 
@@ -2109,6 +2108,15 @@ Unit Rax86int;
               BuildOperand(instr.Operands[operandnum] as tx86operand,false);
           end; { end case }
         until false;
+
+        { shift operands to start from 1, exchange to make sure they are destroyed correctly }
+        for i:=operandnum to max_operands do
+          begin
+            tmp:=instr.operands[i+1-operandnum];
+            instr.operands[i+1-operandnum]:=instr.operands[i];
+            instr.operands[i]:=tmp;
+          end;
+        operandnum:=(max_operands+1)-operandnum;
         instr.ops:=operandnum;
         { Check operands }
         for i:=1 to operandnum do
@@ -2296,9 +2304,6 @@ Unit Rax86int;
               BuildOpcode(instr);
               with instr do
                 begin
-                  { We need AT&T style operands }
-                  Swapoperands;
-                  { Must be done with args in ATT order }
                   CheckNonCommutativeOpcodes;
                   AddReferenceSizes;
                   SetInstructionOpsize;

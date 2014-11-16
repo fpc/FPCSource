@@ -34,13 +34,6 @@ Const
   RPNMax = 10;             { I think you only need 4, but just to be safe }
   OpMax  = 25;
 
-{$if max_operands = 2}
-  {$define MAX_OPER_2}
-{$endif}
-{$if max_operands = 3}
-  {$define MAX_OPER_3}
-{$endif}
-
 Function SearchLabel(const s: string; var hl: tasmlabel;emit:boolean): boolean;
 
 
@@ -110,7 +103,6 @@ type
       and concats it to the passed list. The newly created item is returned if the
       instruction was valid, otherwise nil is returned }
     function ConcatInstruction(p:TAsmList) : tai;virtual;
-    Procedure Swapoperands;
   end;
 
   {---------------------------------------------------------------------}
@@ -1028,44 +1020,6 @@ Begin
   for i:=1 to max_operands do
    Operands[i].free;
 end;
-
-
-  Procedure TInstruction.Swapoperands;
-    Var
-      p : toperand;
-    Begin
-      case ops of
-        0,1:
-          ;
-        2 : begin
-              { 0,1 -> 1,0 }
-              p:=Operands[1];
-              Operands[1]:=Operands[2];
-              Operands[2]:=p;
-            end;
-{$ifndef MAX_OPER_2}
-        3 : begin
-              { 0,1,2 -> 2,1,0 }
-              p:=Operands[1];
-              Operands[1]:=Operands[3];
-              Operands[3]:=p;
-            end;
-{$ifndef MAX_OPER_3}
-        4 : begin
-              { 0,1,2,3 -> 3,2,1,0 }
-              p:=Operands[1];
-              Operands[1]:=Operands[4];
-              Operands[4]:=p;
-              p:=Operands[2];
-              Operands[2]:=Operands[3];
-              Operands[3]:=p;
-            end;
-{$endif}
-{$endif}
-        else
-          internalerror(201108142);
-      end;
-    end;
 
 
   function TInstruction.ConcatInstruction(p:TAsmList) : tai;
