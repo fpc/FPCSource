@@ -184,6 +184,7 @@ type
       GraphModeName : string;
       GraphXres,GraphYres : longint;
       GraphBuffer : pointer;
+      GraphCGABkColor: Integer;
       ConsoleGraphDriver, ConsoleGraphMode : smallint;
 {$endif USE_GRAPH_SWITCH}
       function    GetLineStartOfs(Line: integer): word;
@@ -530,6 +531,7 @@ begin
                     2: GraphMode:=CGAC3;
                     3: GraphMode:=CGAC1;
                   end;
+                  GraphCGABkColor:=Mem[$40:$66] and $0F;
                 end;
            $6 : begin
                   GraphDriver:=Graph.CGA;
@@ -607,6 +609,10 @@ begin
       Graph.InitGraph(ConsoleGraphDriver,ConsoleGraphMode,'');
       if graphresult=grOk then
         begin
+          if (ConsoleGraphDriver=CGA) and
+             (ConsoleGraphMode>=CGAC0) and
+             (ConsoleGraphMode<=CGAC3) then
+            SetBkColor(GraphCGABkColor);
           PutImage(0,0,GraphBuffer^,CopyPut);
           FreeMem(GraphBuffer,GraphImageSize);
           GraphBuffer:=nil;
