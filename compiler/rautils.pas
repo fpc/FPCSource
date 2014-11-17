@@ -897,14 +897,20 @@ Begin
       end;
     procsym :
       begin
-        if opr.typ<>OPR_NONE then
-          Message(asmr_e_invalid_operand_type);
         if Tprocsym(sym).ProcdefList.Count>1 then
           Message(asmr_w_calling_overload_func);
-        l:=opr.ref.offset;
-        opr.typ:=OPR_SYMBOL;
-        opr.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname);
-        opr.symofs:=l;
+        case opr.typ of
+          OPR_REFERENCE:
+            opr.ref.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname);
+          OPR_NONE:
+            begin
+              opr.typ:=OPR_SYMBOL;
+              opr.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname);
+              opr.symofs:=0;
+            end;
+        else
+          Message(asmr_e_invalid_operand_type);
+        end;
         hasvar:=true;
         SetupVar:=TRUE;
         Exit;

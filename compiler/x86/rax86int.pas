@@ -1420,6 +1420,11 @@ Unit Rax86int;
                     begin
                       if (oper.opr.localindexreg<>NR_NO) then
                         Message(asmr_e_multiple_index);
+{$ifdef x86_64}
+                      { Locals/parameters cannot be accessed RIP-relative. Need a dedicated error message here? }
+                      if (hreg=NR_RIP) then
+                        Message(asmr_e_no_local_or_para_allowed);
+{$endif x86_64}
                       oper.opr.localindexreg:=hreg;
                       if scale<>0 then
                         begin
