@@ -9,7 +9,7 @@ unit TestSQLDB;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry,
+  Classes, sqldb, SysUtils, fpcunit, testregistry,
   db;
 
 type
@@ -25,10 +25,20 @@ type
   { TTestTSQLQuery }
 
   TTestTSQLQuery = class(TSQLDBTestCase)
+    procedure DoAfterPost(DataSet: TDataSet);
   private
+    FMyQ: TSQLQuery;
+    Procedure Allow;
+    Procedure SetQueryOPtions;
+    Procedure TrySetPacketRecords;
   published
     procedure TestMasterDetail;
     procedure TestUpdateServerIndexDefs;
+    Procedure TestDisconnected;
+    Procedure TestDisconnectedPacketRecords;
+    Procedure TestCheckSettingsOnlyWhenInactive;
+    Procedure TestAutoApplyUpdatesPost;
+    Procedure TestAutoApplyUpdatesDelete;
   end;
 
   { TTestTSQLConnection }
@@ -50,10 +60,20 @@ type
 
 implementation
 
-uses sqldbtoolsunit, toolsunit, sqldb;
+uses sqldbtoolsunit, toolsunit;
 
 
 { TTestTSQLQuery }
+
+procedure TTestTSQLQuery.DoAfterPost(DataSet: TDataSet);
+begin
+  AssertTrue('Have modifications in after post',FMyq.UpdateStatus=usModified)
+end;
+
+Procedure TTestTSQLQuery.Allow;
+begin
+
+end;
 
 procedure TTestTSQLQuery.TestMasterDetail;
 var MasterQuery, DetailQuery: TSQLQuery;
@@ -139,6 +159,168 @@ begin
       CommitDDL;
     end;
   end;
+end;
+
+Procedure TTestTSQLQuery.TestDisconnected;
+var Q: TSQLQuery;
+    I, J : Integer;
+begin
+  // Test that for a disconnected SQL query, calling commit does not close the dataset.
+  // Test also that an edit still works.
+  with TSQLDBConnector(DBConnector) do
+    begin
+    try
+      ExecuteDirect('DROP table testdiscon');
+    except
+      // Ignore
+    end;
+    ExecuteDirect('create table testdiscon (id integer not null, a varchar(10), constraint pk_testdiscon primary key(id))');
+    Transaction.COmmit;
+    for I:=1 to 20 do
+      ExecuteDirect(Format('INSERT INTO testdiscon values (%d,''%.6d'')',[i,i]));
+    Transaction.COmmit;
+    Q := TSQLDBConnector(DBConnector).Query;
+    Q.SQL.Text:='select * from testdiscon';
+    Q.QueryOptions:=[sqoDisconnected];
+    AssertEquals('PacketRecords forced to -1',-1,Q.PacketRecords);
+    Q.Open;
+    AssertEquals('Got all records',20,Q.RecordCount);
+    Q.SQLTransaction.Commit;
+    AssertTrue('Still open after transaction',Q.Active);
+    // Now check editing
+    Q.Locate('id',20,[]);
+    Q.Edit;
+    Q.FieldByName('a').AsString:='abc';
+    Q.Post;
+    AssertTrue('Have updates pending',Q.UpdateStatus=usModified);
+    Q.ApplyUpdates;
+    AssertTrue('Have no more updates pending',Q.UpdateStatus=usUnmodified);
+    Q.Close;
+    Q.SQL.Text:='select * from testdiscon where (id=20) and (a=''abc'')';
+    Q.Open;
+    AssertTrue('Have modified data record in database',not (Q.EOF AND Q.BOF));
+    end;
+
+end;
+
+Procedure TTestTSQLQuery.TrySetPacketRecords;
+
+begin
+  FMyQ.PacketRecords:=10;
+end;
+
+Procedure TTestTSQLQuery.TestDisconnectedPacketRecords;
+begin
+  with TSQLDBConnector(DBConnector) do
+    begin
+    FMyQ := TSQLDBConnector(DBConnector).Query;
+    FMyQ.QueryOptions:=[sqoDisconnected];
+    AssertException('Cannot set packetrecords when sqoDisconnected is active',EDatabaseError,@TrySetPacketRecords);
+    end;
+end;
+
+Procedure TTestTSQLQuery.SetQueryOPtions;
+
+begin
+  FMyQ.QueryOptions:=[sqoDisconnected];
+end;
+
+Procedure TTestTSQLQuery.TestCheckSettingsOnlyWhenInactive;
+begin
+  // Check that we can only set QueryOptions when the query is inactive.
+  with TSQLDBConnector(DBConnector) do
+    begin
+    try
+      ExecuteDirect('DROP table testdiscon');
+    except
+      // Ignore
+    end;
+    ExecuteDirect('create table testdiscon (id integer not null, a varchar(10), constraint pk_testdiscon primary key(id))');
+    Transaction.COmmit;
+     ExecuteDirect(Format('INSERT INTO testdiscon values (%d,''%.6d'')',[1,1]));
+    Transaction.COmmit;
+    FMyQ := TSQLDBConnector(DBConnector).Query;
+    FMyQ.SQL.Text:='select * from testdiscon';
+    FMyQ := TSQLDBConnector(DBConnector).Query;
+    FMyQ.OPen;
+    AssertException('Cannot set packetrecords when sqoDisconnected is active',EDatabaseError,@SetQueryOptions);
+    end;
+end;
+
+Procedure TTestTSQLQuery.TestAutoApplyUpdatesPost;
+var Q: TSQLQuery;
+    I, J : Integer;
+begin
+  // Test that if sqoAutoApplyUpdates is in QueryOptions, then POST automatically does an ApplyUpdates
+  // Test also that POST afterpost event is backwards compatible.
+  with TSQLDBConnector(DBConnector) do
+    begin
+    try
+      ExecuteDirect('DROP table testdiscon');
+    except
+      // Ignore
+    end;
+    ExecuteDirect('create table testdiscon (id integer not null, a varchar(10), constraint pk_testdiscon primary key(id))');
+    Transaction.COmmit;
+    for I:=1 to 2 do
+      ExecuteDirect(Format('INSERT INTO testdiscon values (%d,''%.6d'')',[i,i]));
+    Transaction.COmmit;
+    Q := TSQLDBConnector(DBConnector).Query;
+    FMyQ:=Q; // so th event handler can reach it.
+    Q.SQL.Text:='select * from testdiscon';
+    Q.QueryOptions:=[  sqoAutoApplyUpdates];
+    // We must test that in AfterPost, the modification is still there, for backwards compatibilty
+    Q.AfterPost:=@DoAfterPost;
+    Q.Open;
+    AssertEquals('Got all records',2,Q.RecordCount);
+    // Now check editing
+    Q.Locate('id',2,[]);
+    Q.Edit;
+    Q.FieldByName('a').AsString:='abc';
+    Q.Post;
+    AssertTrue('Have no more updates pending',Q.UpdateStatus=usUnmodified);
+    Q.Close;
+    Q.SQL.Text:='select * from testdiscon where (id=2) and (a=''abc'')';
+    Q.Open;
+    AssertTrue('Have modified data record in database',not (Q.EOF AND Q.BOF));
+    end;
+
+end;
+
+Procedure TTestTSQLQuery.TestAutoApplyUpdatesDelete;
+var Q: TSQLQuery;
+    I, J : Integer;
+begin
+  // Test that if sqoAutoApplyUpdates is in QueryOptions, then Delete automatically does an ApplyUpdates
+  with TSQLDBConnector(DBConnector) do
+    begin
+    try
+      ExecuteDirect('DROP table testdiscon');
+    except
+      // Ignore
+    end;
+    ExecuteDirect('create table testdiscon (id integer not null, a varchar(10), constraint pk_testdiscon primary key(id))');
+    Transaction.COmmit;
+    for I:=1 to 2 do
+      ExecuteDirect(Format('INSERT INTO testdiscon values (%d,''%.6d'')',[i,i]));
+    Transaction.COmmit;
+    Q := TSQLDBConnector(DBConnector).Query;
+    FMyQ:=Q; // so th event handler can reach it.
+    Q.SQL.Text:='select * from testdiscon';
+    Q.QueryOptions:=[  sqoAutoApplyUpdates];
+    // We must test that in AfterPost, the modification is still there, for backwards compatibilty
+    Q.AfterPost:=@DoAfterPost;
+    Q.Open;
+    AssertEquals('Got all records',2,Q.RecordCount);
+    // Now check editing
+    Q.Locate('id',2,[]);
+    Q.Delete;
+    AssertTrue('Have no more updates pending',Q.UpdateStatus=usUnmodified);
+    Q.Close;
+    Q.SQL.Text:='select * from testdiscon where (id=2)';
+    Q.Open;
+    AssertTrue('Data record is deleted in database', (Q.EOF AND Q.BOF));
+    end;
 end;
 
 { TTestTSQLConnection }

@@ -379,15 +379,27 @@ begin
     DatabaseError(SErrNoDatabaseAvailable,Self)
 end;
 
+Function TDBTransaction.AllowClose(DS : TDBDataset) : Boolean;
+
+begin
+  Result:=Assigned(DS);
+end;
+
 procedure TDBTransaction.CloseDataSets;
 
-Var I : longint;
+Var
+  I : longint;
+  DS : TDBDataset;
 
 begin
   If Assigned(FDatasets) then
     begin
     For I:=FDatasets.Count-1 downto 0 do
-      TDBDataset(FDatasets[i]).Close;
+      begin
+      DS:=TDBDataset(FDatasets[i]);
+      If AllowClose(DS) then
+        DS.Close;
+      end;
     end;
 end;
 

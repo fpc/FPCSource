@@ -112,6 +112,7 @@ Resourcestring
   SErrNoFieldsDefined      = 'Can not create a dataset when there are no fielddefinitions or fields defined';
   SErrApplyUpdBeforeRefresh= 'Must apply updates before refreshing data';
   SErrNoDataset            = 'Missing (compatible) underlying dataset, can not open';
+  SErrDisconnectedPacketRecords = 'For disconnected TSQLQuery instances, packetrecords must be -1';
 
 Implementation
 

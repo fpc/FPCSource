@@ -504,7 +504,6 @@ type
     procedure SetIndexFieldNames(const AValue: String);
     procedure SetIndexName(AValue: String);
     procedure SetMaxIndexesCount(const AValue: Integer);
-    procedure SetPacketRecords(aValue : integer);
     procedure SetBufUniDirectional(const AValue: boolean);
     // indexes handling
     procedure InitDefaultIndexes;
@@ -513,6 +512,7 @@ type
     procedure RemoveRecordFromIndexes(const ABookmark : TBufBookmark);
   protected
     // abstract & virtual methods of TDataset
+    procedure SetPacketRecords(aValue : integer); virtual;
     procedure UpdateIndexDefs; override;
     procedure SetRecNo(Value: Longint); override;
     function  GetRecNo: Longint; override;

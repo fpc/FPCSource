@@ -1607,7 +1607,7 @@ type
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; virtual;
     procedure CursorPosChanged;
     procedure DataConvert(aField: TField; aSource, aDest: Pointer; aToNative: Boolean); virtual;
-    procedure Delete;
+    procedure Delete; virtual;
     procedure DisableControls;
     procedure Edit;
     procedure EnableControls;
@@ -1878,6 +1878,7 @@ type
     procedure RemoveDataSets;
     procedure SetActive(Value : boolean);
   Protected
+    Function AllowClose(DS: TDBDataset): Boolean; virtual;
     Procedure SetDatabase (Value : TDatabase); virtual;
     procedure CloseTrans;
     procedure openTrans;
