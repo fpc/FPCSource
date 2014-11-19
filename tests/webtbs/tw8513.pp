@@ -14,6 +14,7 @@ end;
 var
   Item: TMyType;
   ItemAsByte: byte absolute Item;
+  ItemAsWord: word absolute Item;
 
   r: tr;
   b: byte absolute r.b;
@@ -39,6 +40,9 @@ begin
 {$endif}
   if (itemasbyte <> $de) then
     halt(1);
+
+  if (itemasword <> $dead) then
+    halt(3);
 
   r.a := $de;
   r.b := $ad;
