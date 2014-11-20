@@ -20,6 +20,8 @@ Begin
   repeat
     res:=Fpclose(cint(Handle));
   until (res<>-1) or (geterrno<>ESysEINTR);
+  if res<>0 then
+    Errno2Inoutres;
 End;
 
 Procedure Do_Erase(p: pchar; pchangeable: boolean);

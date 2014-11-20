@@ -28,7 +28,8 @@ procedure do_close(h : thandle);
 begin
   if do_isdevice(h) then
    exit;
-  CloseHandle(h);
+  if CloseHandle(h)=0 then
+    Errno2InOutRes(GetLastError);
 end;
 
 
