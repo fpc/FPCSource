@@ -7511,24 +7511,27 @@ end;
 
 
 procedure TTarget.GetInstallFiles(List: TStrings; const APrefixU, APrefixB: String; ACPU: TCPU; AOS : TOS);
+var
+  UnitsDir : string;
 begin
-  If Not (TargetType in [ttProgram,ttExampleProgram]) and FileExists(Installer.BuildEngine.AddPathPrefix(nil,APrefixU + ObjectFileName)) then
+  UnitsDir := Installer.BuildEngine.AddPathPrefix(nil, APrefixU);
+  If Not (TargetType in [ttProgram,ttExampleProgram]) and FileExists(UnitsDir + ObjectFileName) then
     // The compiler does not create an objectfile for all programs.
     List.Add(APrefixU + ObjectFileName);
   If (TargetType in [ttUnit,ttImplicitUnit,ttExampleUnit]) then
     begin
-    List.Add(APrefixU + UnitFileName);
-    if (AOS in AllSmartLinkLibraryOSes) and FileExists(APrefixU + GetUnitLibFileName(AOS)) then
-      List.Add(APrefixU + GetUnitLibFileName(AOS));
-    if (AOS in AllImportLibraryOSes) and FileExists(APrefixU + GetImportLibFilename(AOS)) then
-      List.Add(APrefixU + GetImportLibFilename(AOS));
+      List.Add(APrefixU + UnitFileName);
+      if (AOS in AllSmartLinkLibraryOSes) and FileExists(UnitsDir + GetUnitLibFileName(AOS)) then
+        List.Add(APrefixU + GetUnitLibFileName(AOS));
+      if (AOS in AllImportLibraryOSes) and FileExists(UnitsDir + GetImportLibFilename(AOS)) then
+        List.Add(APrefixU + GetImportLibFilename(AOS));
     end
   else If (TargetType in [ttProgram,ttExampleProgram]) then
     List.Add(APrefixB + GetProgramFileName(AOS));
   If ResourceStrings then
     begin
       // choose between 2 possible resource files
-      if FileExists(Installer.BuildEngine.AddPathPrefix(nil, APrefixU + RSJFileName)) then
+      if FileExists(UnitsDir + RSJFileName) then
         List.Add(APrefixU + RSJFileName)
       else
         List.Add(APrefixU + RSTFileName);
