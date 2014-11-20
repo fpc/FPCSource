@@ -336,6 +336,8 @@ implementation
         pvardatadef : tdef;
         useresult: boolean;
         restype: byte;
+        selftemp: ttempcreatenode;
+        selfpara: tnode;
 
         names : ansistring;
         variantdispatch : boolean;
@@ -369,7 +371,7 @@ implementation
           if is_interfacecom_or_dispinterface(sourcedef) then
             begin
               { distinct IDispatch and IUnknown interfaces }
-              if def_is_related(tobjectdef(sourcedef),tobjectdef(search_system_type('IDISPATCH').typedef)) then
+              if def_is_related(tobjectdef(sourcedef),interface_idispatch) then
                 result:=vardispatch
               else
                 result:=varunknown;
@@ -382,6 +384,8 @@ implementation
         variantdispatch:=selfnode.resultdef.typ=variantdef;
         result:=internalstatements(statements);
         result_data:=nil;
+        selftemp:=nil;
+        selfpara:=nil;
 
         useresult := assigned(resultdef) and not is_void(resultdef);
         if useresult then
@@ -527,13 +531,27 @@ implementation
             { actual call }
             vardatadef:=trecorddef(search_system_type('TVARDATA').typedef);
 
+            { the Variant should behave similar to hidden 'self' parameter of objects/records,
+              see issues #26773 and #27044 }
+            if not valid_for_var(selfnode,false) then
+              begin
+                selftemp:=ctempcreatenode.create(selfnode.resultdef,selfnode.resultdef.size,tt_persistent,false);
+                addstatement(statements,selftemp);
+                addstatement(statements,cassignmentnode.create(ctemprefnode.create(selftemp),selfnode));
+                selfpara:=ctemprefnode.create(selftemp);
+              end
+            else
+              selfpara:=selfnode;
+
             addstatement(statements,ccallnode.createintern('fpc_dispinvoke_variant',
               { parameters are passed always reverted, i.e. the last comes first }
               ccallparanode.create(caddrnode.create(ctemprefnode.create(params)),
               ccallparanode.create(caddrnode.create(calldescnode),
-              ccallparanode.create(ctypeconvnode.create_internal(selfnode,vardatadef),
+              ccallparanode.create(ctypeconvnode.create_internal(selfpara,vardatadef),
               ccallparanode.create(ctypeconvnode.create_internal(resultvalue,pvardatadef),nil)))))
             );
+            if assigned(selftemp) then
+              addstatement(statements,ctempdeletenode.create(selftemp));
           end
         else
           begin
