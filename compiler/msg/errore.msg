@@ -3557,7 +3557,7 @@ J*2Cv_Var/out parameter copy-out checking
 *g3godwarfmethodclassprefix_ Prefix method names in DWARF with class name
 *g2gp_Preserve case in stabs symbol names
 *g2gs_Generate Stabs debug information
-*g2gt_Trash local variables (to detect uninitialized uses)
+*g2gt_Trash local variables (to detect uninitialized uses; multiple 't' changes the trashing value)
 *g2gv_Generates programs traceable with Valgrind
 *g2gw_Generate DWARFv2 debug information (same as -gw2)
 *g2gw2_Generate DWARFv2 debug information
