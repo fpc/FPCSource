@@ -237,7 +237,9 @@ interface
        paralinkoptions   : TCmdStr;
        paradynamiclinker : string;
        paraprintnodetree : byte;
+{$ifdef PREPROCWRITE}
        parapreprocess    : boolean;
+{$endif PREPROCWRITE}
        printnodefile     : text;
 
        {  typical cross compiling params}

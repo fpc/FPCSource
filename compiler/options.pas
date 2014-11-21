@@ -1642,8 +1642,10 @@ begin
            'l' :
              ParaLogo:=not UnSetBool(more,0,opt,true);
 
+{$ifdef PREPROCWRITE}
            'm' :
              parapreprocess:=not UnSetBool(more,0,opt,true);
+{$endif PREPROCWRITE}
 
            'M' :
              begin
