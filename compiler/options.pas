@@ -188,13 +188,58 @@ end;
 procedure Toption.WriteInfo (More: string);
 var
   p : pchar;
-  hs,hs1,s : TCmdStr;
+  hs,hs1,hs3,s : TCmdStr;
   J: longint;
+const
+  NewLineStr = '$\n';
+  OSTargetsPlaceholder = '$OSTARGETS';
+  CPUListPlaceholder = '$INSTRUCTIONSETS';
+  FPUListPlaceholder = '$FPUINSTRUCTIONSETS';
+  ABIListPlaceholder = '$ABITARGETS';
+  OptListPlaceholder = '$OPTIMIZATIONS';
+  WPOListPlaceholder = '$WPOPTIMIZATIONS';
+  AsmModeListPlaceholder = '$ASMMODES';
+  ControllerListPlaceholder = '$CONTROLLERTYPES';
+  FeatureListPlaceholder = '$FEATURELIST';
 
-  procedure ListOSTargets (OrigString: string);
+  procedure SplitLine (var OrigString: TCmdStr; const Placeholder: TCmdStr;
+                                                 var RemainderString: TCmdStr);
+  var
+    I, L: longint;
+    HS2: TCmdStr;
+  begin
+    RemainderString := '';
+    if OrigString = '' then
+     Exit;
+    repeat
+     I := Pos (NewLineStr, OrigString);
+     if I > 0 then
+      begin
+       HS2 := Copy (OrigString, 1, Pred (I));
+{ Stop if this line contains the placeholder for list replacement }
+       if Pos (Placeholder, HS2) > 0 then
+        begin
+         RemainderString := Copy (OrigString, I + Length (NewLineStr),
+                                Length (OrigString) - I - Length (NewLineStr));
+{ Special case - NewLineStr at the end of the line }
+         if RemainderString = '' then
+          RemainderString := NewLineStr;
+         OrigString := HS2;
+         Exit;
+        end;
+       Comment (V_Normal, HS2);
+       Delete (OrigString, 1, Pred (I) + Length (NewLineStr));
+      end;
+    until I = 0;
+    if (OrigString <> '') and (Pos (Placeholder, OrigString) = 0) then
+     Comment (V_Normal, OrigString);
+  end;
+
+  procedure ListOSTargets (OrigString: TCmdStr);
   var
     target : tsystem;
   begin
+    SplitLine (OrigString, OSTargetsPlaceholder, HS3);
     for target:=low(tsystem) to high(tsystem) do
     if assigned(targetinfos[target]) then
      begin
@@ -207,16 +252,19 @@ var
         hs1:=hs1 + ': ' + targetinfos[target]^.name;
         if tf_under_development in targetinfos[target]^.flags then
          hs1:=hs1+' {*}';
-        Replace(hs,'$OSTARGETS',hs1);
+        Replace(hs,OSTargetsPlaceholder,hs1);
         Comment(V_Normal,hs);
        end;
      end;
+    OrigString := HS3;
+    SplitLine (OrigString, OSTargetsPlaceholder, HS3);
   end;
 
-  procedure ListCPUInstructionSets (OrigString: string);
+  procedure ListCPUInstructionSets (OrigString: TCmdStr);
   var
     cpu : tcputype;
   begin
+    SplitLine (OrigString, CPUListPlaceholder, HS3);
     hs1:='';
     for cpu:=low(tcputype) to high(tcputype) do
      begin
@@ -230,7 +278,7 @@ var
         if length(hs1+cputypestr[cpu])>70 then
          begin
           hs:=OrigString;
-          Replace(hs,'$INSTRUCTIONSETS',hs1);
+          Replace(hs,CPUListPlaceholder,hs1);
           Comment(V_Normal,hs);
           hs1:=''
          end
@@ -243,16 +291,19 @@ var
     if (OrigString <> '') and (hs1 <> '') then
      begin
       hs:=OrigString;
-      Replace(hs,'$INSTRUCTIONSETS',hs1);
+      Replace(hs,CPUListPlaceholder,hs1);
       Comment(V_Normal,hs);
       hs1:=''
      end;
+    OrigString := HS3;
+    SplitLine (OrigString, CPUListPlaceholder, HS3);
   end;
 
-  procedure ListFPUInstructionSets (OrigString: string);
+  procedure ListFPUInstructionSets (OrigString: TCmdStr);
   var
     fpu : tfputype;
   begin
+    SplitLine (OrigString, FPUListPlaceholder, HS3);
     hs1:='';
     for fpu:=low(tfputype) to high(tfputype) do
      begin
@@ -266,7 +317,7 @@ var
         if length(hs1+fputypestr[fpu])>70 then
          begin
           hs:=OrigString;
-          Replace(hs,'$FPUINSTRUCTIONSETS',hs1);
+          Replace(hs,FPUListPlaceholder,hs1);
           Comment(V_Normal,hs);
           hs1:=''
          end
@@ -279,16 +330,19 @@ var
     if (OrigString <> '') and (hs1 <> '') then
      begin
       hs:=OrigString;
-      Replace(hs,'$FPUINSTRUCTIONSETS',hs1);
+      Replace(hs,FPUListPlaceholder,hs1);
       Comment(V_Normal,hs);
       hs1:=''
      end;
+    OrigString := HS3;
+    SplitLine (OrigString, FPUListPlaceholder, HS3);
   end;
 
-  procedure ListABITargets (OrigString: string);
+  procedure ListABITargets (OrigString: TCmdStr);
   var
     abi : tabi;
   begin
+    SplitLine (OrigString, ABIListPlaceholder, HS3);
     for abi:=low(abi) to high(abi) do
      begin
       if not abiinfo[abi].supported then
@@ -301,17 +355,20 @@ var
         else
          begin
           hs:=OrigString;
-          Replace(hs,'$ABITARGETS',hs1);
+          Replace(hs,ABIListPlaceholder,hs1);
           Comment(V_Normal,hs);
          end;
        end;
      end;
+    OrigString := HS3;
+    SplitLine (OrigString, ABIListPlaceholder, HS3);
   end;
 
-  procedure ListOptimizations (OrigString: string);
+  procedure ListOptimizations (OrigString: TCmdStr);
   var
     opt : toptimizerswitch;
   begin
+    SplitLine (OrigString, OptListPlaceholder, HS3);
     for opt:=low(toptimizerswitch) to high(toptimizerswitch) do
      begin
       if opt in supported_optimizerswitches then
@@ -324,18 +381,21 @@ var
           else
            begin
             hs:=OrigString;
-            Replace(hs,'$OPTIMIZATIONS',hs1);
+            Replace(hs,OptListPlaceholder,hs1);
             Comment(V_Normal,hs);
            end;
          end;
        end;
      end;
+    OrigString := HS3;
+    SplitLine (OrigString, OptListPlaceholder, HS3);
   end;
 
-  procedure ListWPOptimizations (OrigString: string);
+  procedure ListWPOptimizations (OrigString: TCmdStr);
   var
     wpopt: twpoptimizerswitch;
   begin
+    SplitLine (OrigString, WPOListPlaceholder, HS3);
     for wpopt:=low(twpoptimizerswitch) to high(twpoptimizerswitch) do
      begin
 {     currently all whole program optimizations are platform-independent
@@ -350,18 +410,21 @@ var
           else
            begin
             hs:=OrigString;
-            Replace(hs,'$WPOPTIMIZATIONS',hs1);
+            Replace(hs,WPOListPlaceholder,hs1);
             Comment(V_Normal,hs);
            end;
          end;
        end;
      end;
+    OrigString := HS3;
+    SplitLine (OrigString, WPOListPlaceholder, HS3);
   end;
 
-  procedure ListAsmModes (OrigString: string);
+  procedure ListAsmModes (OrigString: TCmdStr);
   var
     asmmode : tasmmode;
   begin
+    SplitLine (OrigString, AsmModeListPlaceholder, HS3);
     for asmmode:=low(tasmmode) to high(tasmmode) do
     if assigned(asmmodeinfos[asmmode]) then
      begin
@@ -373,14 +436,16 @@ var
         else
          begin
           hs:=OrigString;
-          Replace(hs,'$ASMMODES',hs1);
+          Replace(hs,AsmModeListPlaceholder,hs1);
           Comment(V_Normal,hs);
          end;
        end;
      end;
+    OrigString := HS3;
+    SplitLine (OrigString, AsmModeListPlaceholder, HS3);
   end;
 
-  procedure ListControllerTypes (OrigString: string);
+  procedure ListControllerTypes (OrigString: TCmdStr);
   var
     controllertype : tcontrollertype;
   begin
@@ -388,6 +453,7 @@ var
  {$WARN 6018 OFF} (* Unreachable code due to compile time evaluation *)
     if (ControllerSupport) then
      begin
+      SplitLine (OrigString, ControllerListPlaceholder, HS3);
       hs1:='';
       for controllertype:=low(tcontrollertype) to high(tcontrollertype) do
        begin
@@ -402,7 +468,7 @@ var
                                                                        >70 then
            begin
             hs:=OrigString;
-            Replace(hs,'$CONTROLLERTYPES',hs1);
+            Replace(hs,ControllerListPlaceholder,hs1);
             Comment(V_Normal,hs);
             hs1:=''
            end
@@ -415,12 +481,53 @@ var
       if (OrigString <> '') and (hs1<>'') then
        begin
         hs:=OrigString;
-        Replace(hs,'$CONTROLLERTYPES',hs1);
+        Replace(hs,ControllerListPlaceholder,hs1);
         Comment(V_Normal,hs);
         hs1:=''
        end;
+      OrigString := HS3;
+      SplitLine (OrigString, ControllerListPlaceholder, HS3);
      end;
 {$POP}
+  end;
+
+  procedure ListFeatures (OrigString: TCmdStr);
+  var
+    Feature: TFeature;
+  begin
+    SplitLine (OrigString, FeatureListPlaceholder, HS3);
+    HS1 := '';
+    for Feature := Low (TFeature) to High (TFeature) do
+     begin
+      if (OrigString = '') then
+       begin
+        if FeatureStr [Feature] <> '' then
+         WriteLn (FeatureStr [Feature]);
+       end
+      else
+       begin
+        if Length (HS1 + FeatureStr [Feature]) > 70 then
+         begin
+          HS := OrigString;
+          Replace (HS, FeatureListPlaceholder, HS1);
+          Comment (V_Normal, HS);
+          HS1 := ''
+         end
+        else if HS1 <> '' then
+         HS1 := HS1 + ',';
+        if FeatureStr [Feature] <> '' then
+         HS1 := HS1 + FeatureStr [Feature];
+       end;
+     end;
+    if (OrigString <> '') and (HS1 <> '') then
+     begin
+      HS := OrigString;
+      Replace (HS, FeatureListPlaceholder, HS1);
+      Comment (V_Normal, HS);
+      HS1 := ''
+     end;
+    OrigString := HS3;
+    SplitLine (OrigString, FeatureListPlaceholder, HS3);
   end;
 
 begin
@@ -430,23 +537,25 @@ begin
     while assigned(p) do
      begin
       s:=GetMsgLine(p);
-      { list OS Targets }
-      if pos('$OSTARGETS',s)>0 then
+      { list permitted values for certain options }
+      if pos(OSTargetsPlaceholder,s)>0 then
        ListOSTargets (S)
-      else if pos('$INSTRUCTIONSETS',s)>0 then
+      else if pos(CPUListPlaceholder,s)>0 then
        ListCPUInstructionSets (S)
-      else if pos('$FPUINSTRUCTIONSETS',s)>0 then
+      else if pos(FPUListPlaceholder,s)>0 then
        ListFPUInstructionSets (S)
-      else if pos('$ABITARGETS',s)>0 then
+      else if pos(ABIListPlaceholder,s)>0 then
        ListABITargets (S)
-      else if pos('$OPTIMIZATIONS',s)>0 then
+      else if pos(OptListPlaceholder,s)>0 then
        ListOptimizations (S)
-      else if pos('$WPOPTIMIZATIONS',s)>0 then
+      else if pos(WPOListPlaceholder,s)>0 then
        ListWPOptimizations (S)
-      else if pos('$ASMMODES',s)>0 then
+      else if pos(AsmModeListPlaceholder,s)>0 then
        ListAsmModes (S)
-      else if pos('$CONTROLLERTYPES',s)>0 then
+      else if pos(ControllerListPlaceholder,s)>0 then
        ListControllerTypes (S)
+      else if pos(FeatureListPlaceholder,s)>0 then
+       ListFeatures (S)
       else
        Comment(V_Normal,s);
      end;
@@ -464,6 +573,7 @@ begin
        'f': ListFPUInstructionSets ('');
        'i': ListAsmModes ('');
        'o': ListOptimizations ('');
+       'r': ListFeatures ('');
        't': ListOSTargets ('');
        'u': ListControllerTypes ('');
        'w': ListWPOptimizations ('');
@@ -1507,7 +1617,7 @@ begin
            'i' :
              begin
                if (More='') or
-                    (More [1] in ['a', 'c', 'f', 'i', 'o', 't', 'u', 'w']) then
+                    (More [1] in ['a', 'c', 'f', 'i', 'o', 'r', 't', 'u', 'w']) then
                  WriteInfo (More)
                else
                  QuickInfo:=QuickInfo+More;

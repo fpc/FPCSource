@@ -3351,8 +3351,8 @@ Copyright (c) 1993-2014 by Florian Klaempfl and others
 option_info=11024_[
 Free Pascal Compiler version $FPCVERSION
 
-Compiler Date      : $FPCDATE
-Compiler CPU Target: $FPCCPU
+Compiler date      : $FPCDATE
+Compiler CPU target: $FPCCPU
 
 Supported targets (targets marked with '{*}' are under development):
   $OSTARGETS
@@ -3366,6 +3366,9 @@ Supported FPU instruction sets:
 Supported inline assembler modes:
   $ASMMODES
 
+Recognized compiler and RTL features:
+  $FEATURELIST
+
 Supported ABI targets:
   $ABITARGETS
 
@@ -3376,9 +3379,7 @@ Supported Whole Program Optimizations:
   All
   $WPOPTIMIZATIONS
 
-Supported Microcontroller types:
-  $CONTROLLERTYPES
-
+Supported Microcontroller types:$\n  $CONTROLLERTYPES$\n
 This program comes under the GNU General Public Licence
 For more information read COPYING.v2
 
@@ -3421,7 +3422,8 @@ new features, etc.):
 #  The third character represents the indentation level.
 #
 option_help_pages=11025_[
-**0*_Put + after a boolean switch option to enable it, - to disable it
+F*0*_Only options valid for the default or selected platform are listed.
+**0*_Put + after a boolean switch option to enable it, - to disable it.
 **1@<x>_Read compiler options from <x> in addition to the default fpc.cfg
 **1a_The compiler does not delete the generated assembler file
 **2al_List sourcecode lines in assembler file
@@ -3473,12 +3475,12 @@ S*2Aas_Assemble using GNU AS
 **1B_Build all modules
 **1C<x>_Code generation options:
 **2C3_Turn on ieee error checking for constants
-**2Ca<x>_Select ABI, see fpc -i or fpc -ia for possible values
+**2Ca<x>_Select ABI; see fpc -i or fpc -ia for possible values
 **2Cb_Generate code for a big-endian variant of the target architecture
 **2Cc<x>_Set default calling convention to <x>
 **2CD_Create also dynamic library (not supported)
 **2Ce_Compilation with emulated floating point opcodes
-**2Cf<x>_Select fpu instruction set to use, see fpc -i or fpc -if for possible values
+**2Cf<x>_Select fpu instruction set to use; see fpc -i or fpc -if for possible values
 **2CF<x>_Minimal floating point constant precision (default, 32, 64)
 **2Cg_Generate PIC code
 **2Ch<n>_<n> bytes heap (between 1023 and 67107840)
@@ -3488,7 +3490,7 @@ A*2CI<x>_Select instruction set on ARM: ARM or THUMB
 P*2CN_Generate nil-pointer checks (AIX-only)
 **2Co_Check overflow of integer operations
 **2CO_Check for possible overflow of integer operations
-**2Cp<x>_Select instruction set, see fpc -i or fpc -ic for possible values
+**2Cp<x>_Select instruction set; see fpc -i or fpc -ic for possible values
 **2CP<x>=<y>_ packing settings
 **3CPPACKSET=<y>_ <y> set allocation: 0, 1 or DEFAULT or NORMAL, 2, 4 and 8
 **2Cr_Range checking
@@ -3574,6 +3576,7 @@ J*2Cv_Var/out parameter copy-out checking
 **2if_Return list of supported FPU instruction sets
 **2ii_Return list of supported inline assembler modes
 **2io_Return list of supported optimizations
+**2ir_Return list of recognized compiler and RTL features
 **2it_Return list of supported targets
 **2iu_Return list of supported microcontroller types
 **2iw_Return list of supported whole program optimizations
@@ -3595,10 +3598,10 @@ J*2Cv_Var/out parameter copy-out checking
 **2O3_Level 3 optimizations (-O2 + slow optimizations)
 **2O4_Level 4 optimizations (-O3 + optimizations which might have unexpected side effects)
 **2Oa<x>=<y>_Set alignment
-**2Oo[NO]<x>_Enable or disable optimizations, see fpc -i or fpc -io for possible values
-**2Op<x>_Set target cpu for optimizing, see fpc -i or fpc -ic for possible values
-**2OW<x>_Generate whole-program optimization feedback for optimization <x>, see fpc -i or fpc -iw for possible values
-**2Ow<x>_Perform whole-program optimization <x>, see fpc -i or fpc -iw for possible values
+**2Oo[NO]<x>_Enable or disable optimizations; see fpc -i or fpc -io for possible values
+**2Op<x>_Set target cpu for optimizing; see fpc -i or fpc -ic for possible values
+**2OW<x>_Generate whole-program optimization feedback for optimization <x>; see fpc -i or fpc -iw for possible values
+**2Ow<x>_Perform whole-program optimization <x>; see fpc -i or fpc -iw for possible values
 **2Os_Optimize for size rather than speed
 **1pg_Generate profile code for gprof (defines FPC_PROFILE)
 F*1P<x>_Target CPU / compiler related options:
@@ -3620,6 +3623,7 @@ F*2P<x>_Set target CPU (arm,avr,i386,jvm,m68k,mips,mipsel,powerpc,powerpc64,spar
 **3*_w : Compiler also halts after warnings
 **3*_n : Compiler also halts after notes
 **3*_h : Compiler also halts after hints
+**2Sf_Enable certain features in compiler and RTL; see fpc -i or fpc -ir for possible values)
 **2Sg_Enable LABEL and GOTO (default in -Mtp and -Mdelphi)
 **2Sh_Use reference counted strings (ansistring by default) instead of shortstrings
 **2Si_Turn on inlining of procedures/functions declared as "inline"
@@ -3630,6 +3634,7 @@ F*2P<x>_Set target CPU (arm,avr,i386,jvm,m68k,mips,mipsel,powerpc,powerpc64,spar
 **2Sm_Support macros like C (global)
 **2So_Same as -Mtp
 **2Ss_Constructor name must be init (destructor must be done)
+**2Sv_Support vector processing (use CPU vector extensions if available)
 **2Sx_Enable exception keywords (default in Delphi/ObjFPC modes)
 **2Sy_@<pointer> returns a typed pointer, same as $T+
 **1s_Do not call assembler and linker
@@ -3773,9 +3778,9 @@ P*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)
 3*2WN_Do not generate relocation code, needed for debugging (Windows)
 4*2WN_Do not generate relocation code, needed for debugging (Windows)
 A*2WN_Do not generate relocation code, needed for debugging (Windows)
-A*2Wpxxxx_Specify the controller type, see fpc -i or fpc -iu for possible values
-m*2Wpxxxx_Specify the controller type, see fpc -i or fpc -iu for possible values
-V*2Wpxxxx_Specify the controller type, see fpc -i or fpc -iu for possible values
+A*2Wpxxxx_Specify the controller type; see fpc -i or fpc -iu for possible values
+m*2Wpxxxx_Specify the controller type; see fpc -i or fpc -iu for possible values
+V*2Wpxxxx_Specify the controller type; see fpc -i or fpc -iu for possible values
 3*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (iphonesim)
 A*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (Darwin)
 3*2WR_Generate relocation code (Windows)
@@ -3790,11 +3795,16 @@ P*2WT_Specify MPW tool type application (Classic Mac OS)
 **2Xc_Pass --shared/-dynamic to the linker (BeOS, Darwin, FreeBSD, Linux)
 **2Xd_Do not search default library path (sometimes required for cross-compiling when not using -XR)
 **2Xe_Use external linker
+**2Xf_Substitute pthread library name for linking (BSD)
 **2Xg_Create debuginfo in a separate file and add a debuglink section to executable
 **2XD_Try to link units dynamically      (defines FPC_LINK_DYNAMIC)
 **2Xi_Use internal linker
+**2XLA_Define library substitutions for linking
+**2XLO_Define order of library linking
+**2XLD_Exclude default order of standard libraries
 **2Xm_Generate link map
 **2XM<x>_Set the name of the 'main' program routine (default is 'main')
+**2Xn_Use target system native linker instead of GNU ld (Solaris, AIX)
 F*2Xp<x>_First search for the compiler binary in the directory <x>
 **2XP<x>_Prepend the binutils names with the prefix <x>
 **2Xr<x>_Set the linker's rlink-path to <x> (needed for cross compile, see the ld manual for more information) (BeOS, Linux)
@@ -3802,6 +3812,7 @@ F*2Xp<x>_First search for the compiler binary in the directory <x>
 **2Xs_Strip all symbols from executable
 **2XS_Try to link units statically (default, defines FPC_LINK_STATIC)
 **2Xt_Link with static libraries (-static is passed to linker)
+**2Xv_Generate table for Virtual Entry calls
 **2XX_Try to smartlink units             (defines FPC_LINK_SMART)
 **1*_
 **1?_Show this help
