@@ -1769,7 +1769,6 @@ initialization
   ProcessID := GetCurrentProcessID;
   { threading }
   InitSystemThreads;
-  initvariantmanager;
   DispCallByIDProc:=@DoDispCallByIDError;
 
 finalization

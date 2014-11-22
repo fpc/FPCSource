@@ -462,5 +462,4 @@ begin
   { Arguments }
   GenerateArgs;
   InitSystemThreads;
-  initvariantmanager;
 end.

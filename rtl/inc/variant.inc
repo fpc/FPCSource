@@ -1093,9 +1093,6 @@ begin
   VariantManager:=VarMgr;
 end;
 
-procedure initvariantmanager;
-  begin
-  end;
 
 Function Pos (c : Char; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin

@@ -680,6 +680,5 @@ begin
   { Reset IO Error }
   InOutRes:=0;
   ProcessID := GetCurrentProcessID;
-  initvariantmanager;
   DispCallByIDProc:=@DoDispCallByIDError;
 end.

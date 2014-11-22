@@ -1289,7 +1289,6 @@ begin
     DefaultFileType := '';
 
     InitSystemThreads;
-    InitVariantManager;
 
 {$IFDEF EXTDUMPGROW}
 {    Int_HeapSize := high (cardinal);}

@@ -688,5 +688,4 @@ Begin
   InitDPMIExcp;
   InstallDefaultHandlers;
 {$endif  EXCEPTIONS_IN_SYSTEM}
-  initvariantmanager;
 End.

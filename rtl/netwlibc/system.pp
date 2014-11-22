@@ -552,5 +552,4 @@ Begin
   IsConsole := TRUE;
   ExitCode  := 0;
   InitSystemThreads;
-  initvariantmanager;
 End.

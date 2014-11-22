@@ -559,7 +559,6 @@ begin
   InOutRes:=0;
   errno:=0;
   InitSystemThreads;
-  initvariantmanager;
 
   if StandAlone = 0 then
     begin

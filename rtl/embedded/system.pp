@@ -248,10 +248,6 @@ begin
   InitSystemThreads;
 {$endif FPC_HAS_FEATURE_THREADING}
 
-{$ifdef FPC_HAS_FEATURE_VARIANTS}
-  initvariantmanager;
-{$endif FPC_HAS_FEATURE_VARIANTS}
-
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 //  initunicodestringmanager;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
