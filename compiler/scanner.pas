@@ -1912,21 +1912,38 @@ type
                     { first look for a macros/int/float }
                     result:=preproc_substitutedtoken(storedpattern,eval);
                     if eval and (result.consttyp=conststring) then
-                      if searchsym(storedpattern,srsym,srsymtable) then
+                      begin
+                        if searchsym(storedpattern,srsym,srsymtable) then
+                          begin
+                            try_consume_nestedsym(srsym,srsymtable);
+                            if assigned(srsym) then
+                              case srsym.typ of
+                                constsym:
+                                  begin
+                                    result.free;
+                                    result:=texprvalue.create_const(tconstsym(srsym));
+                                  end;
+                                enumsym:
+                                  begin
+                                    result.free;
+                                    result:=texprvalue.create_int(tenumsym(srsym).value);
+                                  end;
+                              end;
+                          end
+                        end
+                      { skip id(<expr>) if expression must not be evaluated }
+                      else if not(eval) and (result.consttyp=conststring) then
                         begin
-                          try_consume_nestedsym(srsym,srsymtable);
-                          if assigned(srsym) then
-                            case srsym.typ of
-                              constsym:
-                                begin
-                                  result.free;
-                                  result:=texprvalue.create_const(tconstsym(srsym));
-                                end;
-                              enumsym:
-                                begin
-                                  result.free;
-                                  result:=texprvalue.create_int(tenumsym(srsym).value);
-                                end;
+                          if current_scanner.preproc_token =_LKLAMMER then
+                            begin
+                              preproc_consume(_LKLAMMER);
+                              current_scanner.skipspace;
+
+                              result:=preproc_factor(false);
+                              if current_scanner.preproc_token =_RKLAMMER then
+                                preproc_consume(_RKLAMMER)
+                              else
+                                Message(scan_e_error_in_preproc_expr);
                             end;
                         end;
                   end
