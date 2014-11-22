@@ -534,13 +534,21 @@ end;
 function TFPReaderPNG.ColorGrayAlpha16 (CD:TColorData) : TFPColor;
 var c : word;
 begin
+  {$ifdef FPC_LITTLE_ENDIAN}
+  c := CD and $FFFF;
+  {$else}
   c := (CD shr 16) and $FFFF;
+  {$endif}
   with result do
     begin
     red := c;
     green := c;
     blue := c;
+  {$ifdef FPC_LITTLE_ENDIAN}
+    alpha := (CD shr 16) and $FFFF;
+  {$else}
     alpha := CD and $FFFF;
+  {$endif}
     end;
 end;
 
