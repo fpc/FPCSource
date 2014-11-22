@@ -90,6 +90,7 @@ type
     procedure TestVarBytesParamQuery;
     procedure TestBooleanParamQuery;
     procedure TestBlobParamQuery;
+    Procedure TestFmtBCDQueryPrecision; // Bug 27077
 
     procedure TestSetBlobAsMemoParam;
     procedure TestSetBlobAsBlobParam;
@@ -1545,6 +1546,30 @@ end;
 procedure TTestFieldTypes.TestBlobParamQuery;
 begin
   TestXXParamQuery(ftBlob, FieldtypeDefinitions[ftBlob], testBlobValuesCount);
+end;
+
+Procedure TTestFieldTypes.TestFmtBCDQueryPrecision;
+
+begin
+  if not(SQLServerType in [ssFirebird]) then
+    Ignore(STestNotApplicable);
+  TSQLDBConnector(DBConnector).TryDropIfExist('FPDEV2');
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID INT, FIELD1 NUMERIC (9,5))');
+  TSQLDBConnector(DBConnector).CommitDDL;
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    sql.clear;
+    sql.append('insert into FPDEV2 (ID,FIELD1) values (:id,:field1)');
+    Params.ParamByName('id').AsInteger := 1;
+    Params.ParamByName('field1').AsFMTBCD :=DoubleToBCD(1234.56781) ;
+    ExecSQL;
+    sql.clear;
+    sql.append('select * from FPDEV2 where (id=1) and (field1=1234.56781)');
+    Open;
+    AssertTrue('Expected IsNull', Not (EOF and BOF));
+    close;
+    end;
+  TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
 end;
 
 procedure TTestFieldTypes.TestStringParamQuery;

@@ -1000,7 +1000,7 @@ begin
             if VSQLVar^.sqlscale = 0 then
               i := AParams[ParNr].AsInteger
             else
-              i := Round(AParams[ParNr].AsCurrency * IntPower10(-VSQLVar^.sqlscale));
+              i := Round(BCDToDouble(AParams[ParNr].AsFMTBCD) * IntPower10(-VSQLVar^.sqlscale)); //*any number of digits
             Move(i, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
           end;
         SQL_SHORT, SQL_BOOLEAN_INTERBASE :
