@@ -412,7 +412,7 @@ resourcestring Sneed_dict     = 'need dictionary';
                Sversion_error = 'incompatible version';
 
 const
-  z_verbose = 1;
+  z_verbose : longint = 1;
 
 {$IFDEF ZLIB_DEBUG}
 procedure z_error (m : string);
