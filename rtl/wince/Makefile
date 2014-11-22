@@ -2493,6 +2493,8 @@ fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp unicodedata$(PPUEXT) charset
 	$(COMPILER) $(OBJPASDIR)/fpwidestring.pp
 unicodedata$(PPUEXT): $(OBJPASDIR)/unicodedata.pas
 	$(COMPILER) $(OBJPASDIR)/unicodedata.pas
+unicodenumtable$(PPUEXT): $(OBJPASDIR)/unicodenumtable.pas
+	$(COMPILER) $(OBJPASDIR)/unicodenumtable.pas
 character$(PPUEXT): $(OBJPASDIR)/character.pas
 	$(COMPILER) $(OBJPASDIR)/character.pas
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
