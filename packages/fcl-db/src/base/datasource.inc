@@ -36,7 +36,7 @@ Var
   B : Boolean;
 
 begin
-  B:=Assigned(DataSource) and (DataSource.State<>dsInactive);
+  B:=Assigned(DataSource) and Not (DataSource.State in [dsInactive,dsOpening]);
   If B<>FActive then
     begin
     FActive:=B;
