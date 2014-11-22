@@ -27,6 +27,9 @@ type
   TConnOption = (sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeSlash, sqEscapeRepeat, sqImplicitTransaction);
   TConnOptions= set of TConnOption;
 
+  TConnectionOption = (coExplicitConnect);
+  TConnectionOptions = Set of TConnectionOption;
+
   TConnInfoType=(citAll=-1, citServerType, citServerVersion, citServerVersionString, citClientName, citClientVersion);
   TStatementType = (stUnknown, stSelect, stInsert, stUpdate, stDelete,
     stDDL, stGetSegment, stPutSegment, stExecProcedure,
@@ -148,6 +151,7 @@ type
   TSQLConnection = class (TDatabase)
   private
     FFieldNameQuoteChars : TQuoteChars;
+    FOptions: TConnectionOptions;
     FPassword            : string;
     FTransaction         : TSQLTransaction;
     FUserName            : string;
@@ -159,6 +163,7 @@ type
     FOnLog: TDBLogNotifyEvent;
     FInternalTransaction : TSQLTransaction;
     function GetPort: cardinal;
+    procedure SetOptions(AValue: TConnectionOptions);
     procedure SetPort(const AValue: cardinal);
   protected
     FConnOptions         : TConnOptions;
@@ -204,12 +209,15 @@ type
     function GetTransactionHandle(trans : TSQLHandle): pointer; virtual; abstract;
     function Commit(trans : TSQLHandle) : boolean; virtual; abstract;
     function RollBack(trans : TSQLHandle) : boolean; virtual; abstract;
+    function StartImplicitTransaction(trans : TSQLHandle; aParams : string) : boolean; virtual;
     function StartdbTransaction(trans : TSQLHandle; aParams : string) : boolean; virtual; abstract;
     procedure CommitRetaining(trans : TSQLHandle); virtual; abstract;
     procedure RollBackRetaining(trans : TSQLHandle); virtual; abstract;
 
     procedure UpdateIndexDefs(IndexDefs : TIndexDefs; TableName : string); virtual;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; virtual;
+
+    Procedure MaybeConnect;
 
     Property Statements : TFPList Read FStatements;
     property Port: cardinal read GetPort write SetPort;
@@ -239,6 +247,7 @@ type
     property HostName : string Read FHostName Write FHostName;
     Property OnLog : TDBLogNotifyEvent Read FOnLog Write FOnLog;
     Property LogEvents : TDBEventTypes Read FLogEvents Write FLogEvents Default LogAllEvents;
+    Property Options : TConnectionOptions Read FOptions Write SetOptions;
     property Connected;
     Property Role :  String read FRole write FRole;
     property DatabaseName;
@@ -252,16 +261,21 @@ type
 
   TCommitRollbackAction = (caNone, caCommit, caCommitRetaining, caRollback,
     caRollbackRetaining);
+  TTransactionOption = (toUseImplicit, toExplicitStart);
+  TTransactionOptions = Set of TTransactionOption;
 
   TSQLTransaction = class (TDBTransaction)
   private
+    FOptions: TTransactionOptions;
     FTrans               : TSQLHandle;
     FAction              : TCommitRollbackAction;
     FParams              : TStringList;
     function GetSQLConnection: TSQLConnection;
+    procedure SetOptions(AValue: TTransactionOptions);
     procedure SetParams(const AValue: TStringList);
     procedure SetSQLConnection(AValue: TSQLConnection);
   protected
+    Procedure MaybeStartTransaction;
     Function AllowClose(DS: TDBDataset): Boolean; override;
     function GetHandle : Pointer; virtual;
     Procedure SetDatabase (Value : TDatabase); override;
@@ -282,6 +296,7 @@ type
     property Action : TCommitRollbackAction read FAction write FAction Default caRollBack;
     property Database;
     property Params : TStringList read FParams write SetParams;
+    Property Options : TTransactionOptions Read FOptions Write SetOptions;
   end;
 
 
@@ -987,10 +1002,9 @@ begin
     DatabaseError(SErrDatabasenAssigned);
   if not assigned(Transaction) then
     DatabaseError(SErrTransactionnSet);
-  if not Database.Connected then
-    Database.Open;
+  Database.MaybeConnect;
   if not Transaction.Active then
-    Transaction.StartTransaction;
+    Transaction.MaybeStartTransaction;
   try
     DoPrepare;
   except
@@ -1145,7 +1159,8 @@ begin
     DatabaseError(SErrTransactionnSet);
 
   if not Connected then Open;
-  if not ATransaction.Active then ATransaction.StartTransaction;
+  if not (ATransaction.Active or (toUseImplicit in ATransaction.Options)) then
+    ATransaction.MaybeStartTransaction;
 
   try
     SQL := TrimRight(SQL);
@@ -1169,6 +1184,12 @@ end;
 function TSQLConnection.GetPort: cardinal;
 begin
   result := StrToIntDef(Params.Values['Port'],0);
+end;
+
+procedure TSQLConnection.SetOptions(AValue: TConnectionOptions);
+begin
+  if FOptions=AValue then Exit;
+  FOptions:=AValue;
 end;
 
 
@@ -1657,6 +1678,12 @@ begin
   // empty
 end;
 
+function TSQLConnection.StartImplicitTransaction(trans: TSQLHandle;
+  aParams: string): boolean;
+begin
+  // Do nothing
+end;
+
 function TSQLConnection.GetSchemaInfoSQL( SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string;
 
 begin
@@ -1665,6 +1692,16 @@ begin
     stSchemata  : Result := 'SELECT * FROM INFORMATION_SCHEMA.SCHEMATA';
     else DatabaseError(SMetadataUnavailable);
   end;
+end;
+
+Procedure TSQLConnection.MaybeConnect;
+begin
+  If Not Connected then
+    begin
+    If (coExplicitConnect in Options) then
+      DatabaseErrorFmt(SErrImplicitConnect,[Name]);
+    Connected:=True;
+    end;
 end;
 
 procedure TSQLConnection.CreateDB;
@@ -1689,7 +1726,10 @@ begin
       Commit;
     caNone,
     caRollback, caRollbackRetaining :
-      RollBack;
+      if not (toUseImplicit in Options) then
+        RollBack
+      else
+        CloseTrans;
   end;
 end;
 
@@ -1703,9 +1743,27 @@ begin
   Result:=Database as TSQLConnection;
 end;
 
+procedure TSQLTransaction.SetOptions(AValue: TTransactionOptions);
+begin
+  if FOptions=AValue then Exit;
+  if (toUseImplicit in Avalue) and Assigned(SQLConnection) And Not (sqImplicitTransaction in SQLConnection.ConnOptions) then
+    DatabaseErrorFmt(SErrNoImplicitTransaction,[SQLConnection.ClassName]);
+  FOptions:=AValue;
+end;
+
 procedure TSQLTransaction.SetSQLConnection(AValue: TSQLConnection);
 begin
   Database:=AValue;
+end;
+
+Procedure TSQLTransaction.MaybeStartTransaction;
+begin
+  if not Active then
+    begin
+    if (toExplicitStart in Options) then
+      DatabaseErrorFmt(SErrImplictTransactionStart,[Database.Name,Name]);
+    StartTransaction;
+    end;
 end;
 
 function TSQLTransaction.GetHandle: Pointer;
@@ -1723,12 +1781,12 @@ end;
 
 procedure TSQLTransaction.Commit;
 begin
-  if Active then
+  if Active  then
     begin
     CloseDataSets;
     If LogEvent(detCommit) then
       Log(detCommit,SCommitting);
-    if SQLConnection.Commit(FTrans) then
+    if (toUseImplicit in Options) or SQLConnection.Commit(FTrans) then
       begin
       CloseTrans;
       FreeAndNil(FTrans);
@@ -1750,6 +1808,8 @@ procedure TSQLTransaction.Rollback;
 begin
   if Active then
     begin
+    if (toUseImplicit in Options) then
+      DatabaseError(SErrImplicitNoRollBack);
     CloseDataSets;
     If LogEvent(detRollback) then
       Log(detRollback,SRollingBack);
@@ -1765,6 +1825,8 @@ procedure TSQLTransaction.RollbackRetaining;
 begin
   if Active then
     begin
+    if (toUseImplicit in Options) then
+      DatabaseError(SErrImplicitNoRollBack);
     If LogEvent(detRollback) then
       Log(detRollback,SRollBackRetaining);
     SQLConnection.RollBackRetaining(FTrans);
@@ -1784,11 +1846,20 @@ begin
   if Db = nil then
     DatabaseError(SErrDatabasenAssigned);
 
-  if not Db.Connected then
-    Db.Open;
+  Db.MaybeConnect;
+
   if not assigned(FTrans) then FTrans := Db.AllocateTransactionHandle;
 
-  if Db.StartdbTransaction(FTrans,FParams.CommaText) then OpenTrans;
+  if (toUseImplicit in Options) then
+    begin
+    if Db.StartImplicitTransaction(FTrans,FParams.CommaText) then
+      OpenTrans
+    end
+  else
+    begin
+    if Db.StartdbTransaction(FTrans,FParams.CommaText) then
+      OpenTrans
+    end;
 end;
 
 constructor TSQLTransaction.Create(AOwner : TComponent);
@@ -1806,17 +1877,21 @@ begin
   inherited Destroy;
 end;
 
-procedure TSQLTransaction.SetDatabase(Value: TDatabase);
+Procedure TSQLTransaction.SetDatabase(Value: TDatabase);
 
 begin
   If Value<>Database then
     begin
-    if assigned(value) and not (Value is TSQLConnection) then
+    if Assigned(Value) and not (Value is TSQLConnection) then
       DatabaseErrorFmt(SErrNotASQLConnection,[value.Name],self);
     CheckInactive;
+    if (toUseImplicit in Options) and Assigned(Value) and Not (sqImplicitTransaction in TSQLConnection(Value).ConnOptions) then
+           DatabaseErrorFmt(SErrNoImplicitTransaction,[Value.ClassName]);
     If Assigned(Database) then
+      begin
       with SQLConnection do
         if Transaction = self then Transaction := nil;
+      end;
     inherited SetDatabase(Value);
     If Assigned(Database) and not (csLoading in ComponentState) then
       If (SQLConnection.Transaction=Nil) then
@@ -1824,12 +1899,12 @@ begin
     end;
 end;
 
-function TSQLTransaction.LogEvent(EventType: TDBEventType): Boolean;
+Function TSQLTransaction.LogEvent(EventType: TDBEventType): Boolean;
 begin
   Result:=Assigned(Database) and SQLConnection.LogEvent(EventType);
 end;
 
-procedure TSQLTransaction.Log(EventType: TDBEventType; const Msg: String);
+Procedure TSQLTransaction.Log(EventType: TDBEventType; Const Msg: String);
 
 Var
   M : String;

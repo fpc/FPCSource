@@ -116,6 +116,7 @@ type
     function RollBack(trans : TSQLHandle) : boolean; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     procedure CommitRetaining(trans : TSQLHandle); override;
+    function StartImplicitTransaction(trans : TSQLHandle; AParams : string) : boolean; override;
     function StartdbTransaction(trans : TSQLHandle; AParams : string) : boolean; override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); override;
@@ -263,7 +264,7 @@ constructor TPQConnection.Create(AOwner : TComponent);
 
 begin
   inherited;
-  FConnOptions := FConnOptions + [sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeRepeat, sqEscapeSlash];
+  FConnOptions := FConnOptions + [sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeRepeat, sqEscapeSlash, sqImplicitTransaction];
   FieldNameQuoteChars:=DoubleQuotes;
   VerboseErrors:=True;
   FConnectionPool:=TThreadlist.Create;
@@ -322,7 +323,8 @@ begin
 {$EndIf}
 end;
 
-procedure TPQConnection.GetExtendedFieldInfo(cursor: TPQCursor; Bindings: TFieldBindings);
+Procedure TPQConnection.GetExtendedFieldInfo(cursor: TPQCursor;
+  Bindings: TFieldBindings);
 
 Var
   tt,tc,Tn,S : String;
@@ -376,7 +378,7 @@ begin
     P.SQLDBData:=TPQCursor(C).GetFieldBinding(F.FieldDef);
 end;
 
-function TPQConnection.ErrorOnUnknownType: Boolean;
+Function TPQConnection.ErrorOnUnknownType: Boolean;
 begin
   Result:=False;
 end;
@@ -463,9 +465,8 @@ begin
   result := true;
 end;
 
-function TPQConnection.StartdbTransaction(trans : TSQLHandle; AParams : string) : boolean;
+function TPQConnection.StartImplicitTransaction(trans : TSQLHandle; AParams : string) : boolean;
 var
-  res : PPGresult;
   tr  : TPQTrans;
   i   : Integer;
   t : TPQTranConnection;
@@ -511,11 +512,6 @@ begin
     if CharSet <> '' then
       PQsetClientEncoding(tr.PGConn, pchar(CharSet));
     end;
-
-  res := PQexec(tr.PGConn, 'BEGIN');
-  CheckResultError(res,tr.PGConn,sErrTransactionFailed);
-
-  PQclear(res);
   result := true;
 end;
 
@@ -549,6 +545,24 @@ begin
   CheckResultError(res,tr.PGConn,sErrTransactionFailed);
 
   PQclear(res);
+end;
+
+function TPQConnection.StartDBTransaction(trans: TSQLHandle;
+  AParams: string): boolean;
+
+Var
+  res : PPGresult;
+  tr  : TPQTrans;
+
+begin
+  Result:=StartImplicitTransaction(trans, AParams);
+  if Result then
+    begin
+    tr := trans as TPQTrans;
+    res := PQexec(tr.PGConn, 'BEGIN');
+    CheckResultError(res,tr.PGConn,sErrTransactionFailed);
+    PQclear(res);
+    end;
 end;
 
 
@@ -648,9 +662,21 @@ var
   MESSAGE_DETAIL: string;
   MESSAGE_HINT: string;
   STATEMENT_POSITION: string;
+  P : Pchar;
+  haveError : Boolean;
+
 begin
-  if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
+  HaveError:=False;
+  if (Res=Nil) then
     begin
+    HaveError:=True;
+    P:=PQerrorMessage(conn);
+    If Assigned(p) then
+      ErrMsg:=StrPas(P);
+    end
+  else if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
+    begin
+    HaveError:=True;
     SEVERITY:=PQresultErrorField(res,ord('S'));
     SQLSTATE:=PQresultErrorField(res,ord('C'));
     MESSAGE_PRIMARY:=PQresultErrorField(res,ord('M'));
@@ -667,6 +693,9 @@ begin
       MaybeAdd(sErr,'Hint',MESSAGE_HINT);
       MaybeAdd(sErr,'Character',STATEMENT_POSITION);
       end;
+    end;
+  if HaveError then
+    begin
     if (Self.Name='') then CompName := Self.ClassName else CompName := Self.Name;
     E:=EPQDatabaseError.CreateFmt('%s : %s  (PostgreSQL: %s)', [CompName, ErrMsg, sErr]);
     E.SEVERITY:=SEVERITY;
@@ -675,7 +704,6 @@ begin
     E.MESSAGE_DETAIL:=MESSAGE_DETAIL;
     E.MESSAGE_HINT:=MESSAGE_HINT;
     E.STATEMENT_POSITION:=STATEMENT_POSITION;
-
     PQclear(res);
     res:=nil;
     if assigned(conn) then
@@ -688,7 +716,7 @@ begin
 end;
 
 function TPQConnection.TranslateFldType(res: PPGresult; Tuple: integer; out
-  Size: integer; out ATypeOID: oid): TFieldType;
+  Size: integer; Out ATypeOID: oid): TFieldType;
 
 const
   VARHDRSZ=sizeof(longint);
@@ -769,18 +797,18 @@ begin
   end;
 end;
 
-function TPQConnection.AllocateCursorHandle: TSQLCursor;
+Function TPQConnection.AllocateCursorHandle: TSQLCursor;
 
 begin
   result := TPQCursor.create;
 end;
 
-procedure TPQConnection.DeAllocateCursorHandle(var cursor: TSQLCursor);
+Procedure TPQConnection.DeAllocateCursorHandle(var cursor: TSQLCursor);
 begin
   FreeAndNil(cursor);
 end;
 
-function TPQConnection.AllocateTransactionHandle: TSQLHandle;
+Function TPQConnection.AllocateTransactionHandle: TSQLHandle;
 
 begin
   result := TPQTrans.create;
@@ -838,6 +866,7 @@ var
   i : integer;
   P : TParam;
   PQ : TSQLDBParam;
+  r          : PPGresult;
 
 begin
   with (cursor as TPQCursor) do

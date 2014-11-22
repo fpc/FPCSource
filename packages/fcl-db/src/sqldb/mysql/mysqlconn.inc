@@ -1122,7 +1122,7 @@ constructor TConnectionName.Create(AOwner: TComponent);
 const SingleBackQoutes: TQuoteChars = ('`','`');
 begin
   inherited Create(AOwner);
-  FConnOptions := FConnOptions + [sqEscapeRepeat] + [sqEscapeSlash];
+  FConnOptions := FConnOptions + [sqEscapeRepeat, sqEscapeSlash, sqImplicitTransaction];
   FieldNameQuoteChars:=SingleBackQoutes;
   FMySQL := Nil;
 end;

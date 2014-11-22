@@ -10,24 +10,27 @@ interface
 
 uses
   Classes, sqldb, SysUtils, fpcunit, testregistry,
-  db;
+  sqldbtoolsunit,toolsunit, db;
 
 type
 
   { TSQLDBTestCase }
 
   TSQLDBTestCase = class(TTestCase)
+  private
+    function GetDBC: TSQLDBConnector;
     protected
       procedure SetUp; override;
       procedure TearDown; override;
+      Property SQLDBConnector : TSQLDBConnector Read GetDBC;
   end;
 
   { TTestTSQLQuery }
 
   TTestTSQLQuery = class(TSQLDBTestCase)
-    procedure DoAfterPost(DataSet: TDataSet);
   private
     FMyQ: TSQLQuery;
+    procedure DoAfterPost(DataSet: TDataSet);
     Procedure Allow;
     Procedure SetQueryOPtions;
     Procedure TrySetPacketRecords;
@@ -45,8 +48,16 @@ type
 
   TTestTSQLConnection = class(TSQLDBTestCase)
   private
+    procedure SetImplicit;
+    procedure TestImplicitTransaction;
+    procedure TestImplicitTransaction2;
+    procedure TestImplicitTransactionNotAssignable;
+    procedure TestImplicitTransactionOK;
+    procedure TryOpen;
   published
-    procedure ReplaceMe;
+    procedure TestUseImplicitTransaction;
+    procedure TestUseExplicitTransaction;
+    procedure TestExplicitConnect;
   end;
 
   { TTestTSQLScript }
@@ -60,7 +71,6 @@ type
 
 implementation
 
-uses sqldbtoolsunit, toolsunit;
 
 
 { TTestTSQLQuery }
@@ -79,7 +89,7 @@ procedure TTestTSQLQuery.TestMasterDetail;
 var MasterQuery, DetailQuery: TSQLQuery;
     MasterSource: TDataSource;
 begin
-  with TSQLDBConnector(DBConnector) do
+  with SQLDBConnector do
   try
     MasterQuery := GetNDataset(10) as TSQLQuery;
     MasterSource := TDatasource.Create(nil);
@@ -107,7 +117,7 @@ begin
   // For ODBC Firebird/Interbase we must define primary key as named constraint and
   //  in ODBC driver must be set: "quoted identifiers" and "sensitive identifier"
   // See also: TTestFieldTypes.TestUpdateIndexDefs
-  with TSQLDBConnector(DBConnector) do
+  with SQLDBConnector do
   begin
     // SQLite ignores case-sensitivity of quoted table names
     // MS SQL Server case-sensitivity of identifiers depends on the case-sensitivity of default collation of the database
@@ -130,7 +140,7 @@ begin
   end;
 
   try
-    Q := TSQLDBConnector(DBConnector).Query;
+    Q := SQLDBConnector.Query;
     Q.SQL.Text:='select * from '+name1;
     Q.Prepare;
     Q.ServerIndexDefs.Update;
@@ -151,7 +161,7 @@ begin
     CheckTrue(Q.ServerIndexDefs[0].Options=[ixPrimary,ixUnique], '3.3');
   finally
     Q.UnPrepare;
-    with TSQLDBConnector(DBConnector) do
+    with SQLDBConnector do
     begin
       ExecuteDirect('DROP TABLE '+name1);
       ExecuteDirect('DROP TABLE '+name2);
@@ -167,7 +177,7 @@ var Q: TSQLQuery;
 begin
   // Test that for a disconnected SQL query, calling commit does not close the dataset.
   // Test also that an edit still works.
-  with TSQLDBConnector(DBConnector) do
+  with SQLDBConnector do
     begin
     try
       ExecuteDirect('DROP table testdiscon');
@@ -179,7 +189,7 @@ begin
     for I:=1 to 20 do
       ExecuteDirect(Format('INSERT INTO testdiscon values (%d,''%.6d'')',[i,i]));
     Transaction.COmmit;
-    Q := TSQLDBConnector(DBConnector).Query;
+    Q := SQLDBConnector.Query;
     Q.SQL.Text:='select * from testdiscon';
     Q.QueryOptions:=[sqoDisconnected];
     AssertEquals('PacketRecords forced to -1',-1,Q.PacketRecords);
@@ -211,9 +221,9 @@ end;
 
 Procedure TTestTSQLQuery.TestDisconnectedPacketRecords;
 begin
-  with TSQLDBConnector(DBConnector) do
+  with SQLDBConnector do
     begin
-    FMyQ := TSQLDBConnector(DBConnector).Query;
+    FMyQ := SQLDBConnector.Query;
     FMyQ.QueryOptions:=[sqoDisconnected];
     AssertException('Cannot set packetrecords when sqoDisconnected is active',EDatabaseError,@TrySetPacketRecords);
     end;
@@ -228,7 +238,7 @@ end;
 Procedure TTestTSQLQuery.TestCheckSettingsOnlyWhenInactive;
 begin
   // Check that we can only set QueryOptions when the query is inactive.
-  with TSQLDBConnector(DBConnector) do
+  with SQLDBConnector do
     begin
     try
       ExecuteDirect('DROP table testdiscon');
@@ -239,9 +249,9 @@ begin
     Transaction.COmmit;
      ExecuteDirect(Format('INSERT INTO testdiscon values (%d,''%.6d'')',[1,1]));
     Transaction.COmmit;
-    FMyQ := TSQLDBConnector(DBConnector).Query;
+    FMyQ := SQLDBConnector.Query;
     FMyQ.SQL.Text:='select * from testdiscon';
-    FMyQ := TSQLDBConnector(DBConnector).Query;
+    FMyQ := SQLDBConnector.Query;
     FMyQ.OPen;
     AssertException('Cannot set packetrecords when sqoDisconnected is active',EDatabaseError,@SetQueryOptions);
     end;
@@ -253,7 +263,7 @@ var Q: TSQLQuery;
 begin
   // Test that if sqoAutoApplyUpdates is in QueryOptions, then POST automatically does an ApplyUpdates
   // Test also that POST afterpost event is backwards compatible.
-  with TSQLDBConnector(DBConnector) do
+  with SQLDBConnector do
     begin
     try
       ExecuteDirect('DROP table testdiscon');
@@ -265,7 +275,7 @@ begin
     for I:=1 to 2 do
       ExecuteDirect(Format('INSERT INTO testdiscon values (%d,''%.6d'')',[i,i]));
     Transaction.COmmit;
-    Q := TSQLDBConnector(DBConnector).Query;
+    Q := SQLDBConnector.Query;
     FMyQ:=Q; // so th event handler can reach it.
     Q.SQL.Text:='select * from testdiscon';
     Q.QueryOptions:=[  sqoAutoApplyUpdates];
@@ -292,7 +302,7 @@ var Q: TSQLQuery;
     I, J : Integer;
 begin
   // Test that if sqoAutoApplyUpdates is in QueryOptions, then Delete automatically does an ApplyUpdates
-  with TSQLDBConnector(DBConnector) do
+  with SQLDBConnector do
     begin
     try
       ExecuteDirect('DROP table testdiscon');
@@ -304,7 +314,7 @@ begin
     for I:=1 to 2 do
       ExecuteDirect(Format('INSERT INTO testdiscon values (%d,''%.6d'')',[i,i]));
     Transaction.COmmit;
-    Q := TSQLDBConnector(DBConnector).Query;
+    Q := SQLDBConnector.Query;
     FMyQ:=Q; // so th event handler can reach it.
     Q.SQL.Text:='select * from testdiscon';
     Q.QueryOptions:=[  sqoAutoApplyUpdates];
@@ -323,11 +333,127 @@ begin
     end;
 end;
 
+
 { TTestTSQLConnection }
 
-procedure TTestTSQLConnection.ReplaceMe;
+procedure TTestTSQLConnection.TestImplicitTransaction;
+
+Var
+  T : TSQLTransaction;
+
 begin
-  // replace this procedure with any test for TSQLConnection
+  T:=TSQLTransaction.Create(Nil);
+  try
+    T.Options:=[toUseImplicit];
+    T.DataBase:=SQLDBConnector.Connection;
+  finally
+    T.Free;
+  end;
+end;
+
+procedure TTestTSQLConnection.TestImplicitTransaction2;
+
+Var
+  T : TSQLTransaction;
+
+begin
+  T:=TSQLTransaction.Create(Nil);
+  try
+    T.Options:=[toUseImplicit];
+    SQLDBConnector.Connection.Transaction:=T;
+  finally
+    T.Free;
+  end;
+end;
+
+procedure TTestTSQLConnection.SetImplicit;
+
+begin
+  SQLDBConnector.Transaction.Options:=[toUseImplicit];
+end;
+
+procedure TTestTSQLConnection.TestImplicitTransactionNotAssignable;
+
+begin
+  AssertException('Cannot set toUseImplicit option if database does not allow it',EDatabaseError,@SetImplicit);
+  AssertException('Cannot assign database to transaction with toUseImplicit, if database does not allow it',EDatabaseError,@TestImplicitTransaction);
+  AssertException('Cannot assign transaction with toUseImplicit to database, if database does not allow it',EDatabaseError,@TestImplicitTransaction2);
+end;
+
+procedure TTestTSQLConnection.TestImplicitTransactionOK;
+
+
+var
+  Q : TSQLQuery;
+  T : TSQLTransaction;
+  I, J : Integer;
+begin
+  with SQLDBConnector do
+    begin
+    try
+      TryDropIfExist('testdiscon');
+    except
+      // Ignore
+    end;
+    ExecuteDirect('create table testdiscon (id integer not null, a varchar(10), constraint pk_testdiscon primary key(id))');
+    if Transaction.Active then
+      Transaction.Commit;
+    end;
+  SetImplicit;
+  Q:=SQLDBConnector.Query;
+  for I:=1 to 2 do
+    begin
+    Q.SQL.Text:=Format('INSERT INTO testdiscon values (%d,''%.6d'');',[i,i]);
+    Q.Prepare;
+    Q.ExecSQL;
+    // We do not commit anything explicitly.
+    end;
+  Q:=Nil;
+  T:=Nil;
+  try
+    T:=TSQLTransaction.Create(Nil);
+    Q:=TSQLQuery.Create(Nil);
+    Q.Transaction:=T;
+    Q.Database:=SQLDBConnector.Connection;
+    T.Database:=SQLDBConnector.Connection;
+    Q.SQL.text:='SELECT COUNT(*) from testdiscon';
+    Q.Open;
+    AssertEquals('Records have been committed to database',2,Q.Fields[0].AsInteger);
+  finally
+    Q.Free;
+    T.Free;
+  end;
+end;
+
+procedure TTestTSQLConnection.TestUseImplicitTransaction;
+begin
+  if (sqImplicitTransaction in SQLDBConnector.Connection.ConnOptions) then
+    TestImplicitTransactionOK
+  else
+    TestImplicitTransactionNotAssignable;
+end;
+
+procedure TTestTSQLConnection.TryOpen;
+
+begin
+  SQLDBConnector.Query.Open;
+end;
+
+procedure TTestTSQLConnection.TestUseExplicitTransaction;
+begin
+  SQLDBConnector.Transaction.Active:=False;
+  SQLDBConnector.Transaction.Options:=[toExplicitStart];
+  SQLDBConnector.Query.SQL.Text:='select * from FPDEV';
+  AssertException('toExplicitStart raises exception on implicit start',EDatabaseError,@TryOpen)
+end;
+
+procedure TTestTSQLConnection.TestExplicitConnect;
+begin
+  SQLDBConnector.Transaction.Active:=False;
+  SQLDBConnector.Connection.Options:=[coExplicitConnect];
+  SQLDBConnector.Connection.Connected:=False;
+  SQLDBConnector.Query.SQL.Text:='select * from FPDEV';
+  AssertException('toExplicitStart raises exception on implicit start',EDatabaseError,@TryOpen)
 end;
 
 { TTestTSQLScript }
@@ -339,21 +465,21 @@ begin
   try
     with Ascript do
       begin
-      DataBase := TSQLDBConnector(DBConnector).Connection;
-      Transaction := TSQLDBConnector(DBConnector).Transaction;
+      DataBase := SQLDBConnector.Connection;
+      Transaction := SQLDBConnector.Transaction;
       Script.Clear;
       Script.Append('create table FPDEV_A (id int);');
       Script.Append('create table FPDEV_B (id int);');
       ExecuteScript;
       // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-      TSQLDBConnector(DBConnector).CommitDDL;
+      SQLDBConnector.CommitDDL;
       end;
   finally
     AScript.Free;
-    TSQLDBConnector(DBConnector).ExecuteDirect('drop table FPDEV_A');
-    TSQLDBConnector(DBConnector).ExecuteDirect('drop table FPDEV_B');
+    SQLDBConnector.ExecuteDirect('drop table FPDEV_A');
+    SQLDBConnector.ExecuteDirect('drop table FPDEV_B');
     // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-    TSQLDBConnector(DBConnector).CommitDDL;
+    SQLDBConnector.CommitDDL;
   end;
 end;
 
@@ -368,8 +494,8 @@ begin
   try
     with Ascript do
       begin
-      DataBase := TSQLDBConnector(DBConnector).Connection;
-      Transaction := TSQLDBConnector(DBConnector).Transaction;
+      DataBase := SQLDBConnector.Connection;
+      Transaction := SQLDBConnector.Transaction;
       Script.Clear;
       UseSetTerm := true;
       // Example procedure that selects table names
@@ -392,13 +518,13 @@ begin
         );
       ExecuteScript;
       // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-      TSQLDBConnector(DBConnector).CommitDDL;
+      SQLDBConnector.CommitDDL;
       end;
   finally
     AScript.Free;
-    TSQLDBConnector(DBConnector).ExecuteDirect('DROP PROCEDURE FPDEV_TESTCOLON');
+    SQLDBConnector.ExecuteDirect('DROP PROCEDURE FPDEV_TESTCOLON');
     // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-    TSQLDBConnector(DBConnector).CommitDDL;
+    SQLDBConnector.CommitDDL;
   end;
 end;
 
@@ -416,8 +542,8 @@ begin
   try
     with Ascript do
       begin
-      DataBase := TSQLDBConnector(DBConnector).Connection;
-      Transaction := TSQLDBConnector(DBConnector).Transaction;
+      DataBase := SQLDBConnector.Connection;
+      Transaction := SQLDBConnector.Transaction;
       Script.Clear;
       UseCommit:=true;
       // Example procedure that selects table names
@@ -427,9 +553,9 @@ begin
       Script.Append('COMMIT;');
       ExecuteScript;
       // This line should not run, as the commit above should have taken care of it:
-      //TSQLDBConnector(DBConnector).CommitDDL;
+      //SQLDBConnector.CommitDDL;
       // Test whether second line of script executed, just to be sure
-      CheckQuery:=TSQLDBConnector(DBConnector).Query;
+      CheckQuery:=SQLDBConnector.Query;
       CheckQuery.SQL.Text:='SELECT logmessage FROM fpdev_scriptusecommit ';
       CheckQuery.Open;
       CheckEquals(TestValue, CheckQuery.Fields[0].AsString, 'Insert script line should have inserted '+TestValue);
@@ -437,12 +563,17 @@ begin
       end;
   finally
     AScript.Free;
-    TSQLDBConnector(DBConnector).ExecuteDirect('DROP TABLE fpdev_scriptusecommit');
-    TSQLDBConnector(DBConnector).Transaction.Commit;
+    SQLDBConnector.ExecuteDirect('DROP TABLE fpdev_scriptusecommit');
+    SQLDBConnector.Transaction.Commit;
   end;
 end;
 
 { TSQLDBTestCase }
+
+function TSQLDBTestCase.GetDBC: TSQLDBConnector;
+begin
+  Result:=DBConnector as TSQLDBConnector;
+end;
 
 procedure TSQLDBTestCase.SetUp;
 begin
@@ -455,8 +586,9 @@ procedure TSQLDBTestCase.TearDown;
 begin
   DBConnector.StopTest(TestName);
   if assigned(DBConnector) then
-    with TSQLDBConnector(DBConnector) do
-      Transaction.Rollback;
+    with SQLDBConnector do
+      if Assigned(Transaction) and not (toUseImplicit in Transaction.Options) then
+        Transaction.Rollback;
   FreeDBConnector;
   inherited TearDown;
 end;
