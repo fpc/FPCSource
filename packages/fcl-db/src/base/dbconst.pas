@@ -117,6 +117,7 @@ Resourcestring
   SErrNoImplicitTransaction   = 'Connection %s does not allow implicit transactions.';
   SErrImplictTransactionStart = 'Error: attempt to implicitly start a transaction on Connection "%s", transaction "%s".';
   SErrImplicitConnect         = 'Error: attempt to implicitly activate connection "%s".';
+  SErrFailedToUpdateRecord    = '%q: Failed to apply record updates: %d rows updated.';
 
 Implementation
 

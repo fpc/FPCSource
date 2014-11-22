@@ -27,7 +27,7 @@ type
   TConnOption = (sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeSlash, sqEscapeRepeat, sqImplicitTransaction);
   TConnOptions= set of TConnOption;
 
-  TConnectionOption = (coExplicitConnect);
+  TConnectionOption = (coExplicitConnect,coCheckRowsAffected);
   TConnectionOptions = Set of TConnectionOption;
 
   TConnInfoType=(citAll=-1, citServerType, citServerVersion, citServerVersionString, citClientName, citClientVersion);
@@ -1671,6 +1671,8 @@ begin
     ApplyFieldUpdate(Query.Cursor,P as TSQLDBParam,Fld,B);
     end;
   Qry.execute;
+  if (coCheckRowsAffected in Options) and (Qry.RowsAffected<>1) then
+    DatabaseErrorFmt(SErrFailedToUpdateRecord,[Qry.RowsAffected],Query);
 end;
 
 procedure TSQLConnection.FreeFldBuffers(cursor: TSQLCursor);

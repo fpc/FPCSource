@@ -32,8 +32,11 @@ type
     FMyQ: TSQLQuery;
     procedure DoAfterPost(DataSet: TDataSet);
     Procedure Allow;
+    Procedure DoApplyUpdates;
     Procedure SetQueryOPtions;
     Procedure TrySetPacketRecords;
+  Protected
+    Procedure setup; override;
   published
     procedure TestMasterDetail;
     procedure TestUpdateServerIndexDefs;
@@ -42,6 +45,7 @@ type
     Procedure TestCheckSettingsOnlyWhenInactive;
     Procedure TestAutoApplyUpdatesPost;
     Procedure TestAutoApplyUpdatesDelete;
+    Procedure TestCheckRowsAffected;
   end;
 
   { TTestTSQLConnection }
@@ -219,6 +223,12 @@ begin
   FMyQ.PacketRecords:=10;
 end;
 
+Procedure TTestTSQLQuery.setup;
+begin
+  inherited setup;
+  SQLDBConnector.Connection.Options:=[];
+end;
+
 Procedure TTestTSQLQuery.TestDisconnectedPacketRecords;
 begin
   with SQLDBConnector do
@@ -298,6 +308,7 @@ begin
 end;
 
 Procedure TTestTSQLQuery.TestAutoApplyUpdatesDelete;
+
 var Q: TSQLQuery;
     I, J : Integer;
 begin
@@ -330,6 +341,42 @@ begin
     Q.SQL.Text:='select * from testdiscon where (id=2)';
     Q.Open;
     AssertTrue('Data record is deleted in database', (Q.EOF AND Q.BOF));
+    end;
+end;
+
+Procedure TTestTSQLQuery.DoApplyUpdates;
+
+begin
+  FMyQ.ApplyUpdates();
+end;
+
+Procedure TTestTSQLQuery.TestCheckRowsAffected;
+var Q: TSQLQuery;
+    I, J : Integer;
+begin
+  // Test that if sqoAutoApplyUpdates is in QueryOptions, then Delete automatically does an ApplyUpdates
+  with SQLDBConnector do
+    begin
+    try
+      ExecuteDirect('DROP table testdiscon');
+    except
+      // Ignore
+    end;
+    ExecuteDirect('create table testdiscon (id integer not null, a varchar(10), constraint pk_testdiscon primary key(id))');
+    Transaction.COmmit;
+    for I:=1 to 2 do
+      ExecuteDirect(Format('INSERT INTO testdiscon values (%d,''%.6d'')',[i,i]));
+    Transaction.COmmit;
+    SQLDBConnector.Connection.Options:=[coCheckRowsAffected];
+    Q := SQLDBConnector.Query;
+    Q.SQL.Text:='select * from testdiscon';
+    Q.DeleteSQL.Text:='delete from testdiscon';
+    Q.Open;
+    AssertEquals('Got all records',2,Q.RecordCount);
+    // Now check editing
+    Q.Delete;
+    FMyQ:=Q;
+    AssertException('Rowsaffected > 1 raises exception',EUpdateError,@DoApplyUpdates);
     end;
 end;
 
