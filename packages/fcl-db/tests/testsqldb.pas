@@ -46,6 +46,7 @@ type
     Procedure TestAutoApplyUpdatesPost;
     Procedure TestAutoApplyUpdatesDelete;
     Procedure TestCheckRowsAffected;
+    Procedure TestAutoCOmmit;
   end;
 
   { TTestTSQLConnection }
@@ -183,11 +184,7 @@ begin
   // Test also that an edit still works.
   with SQLDBConnector do
     begin
-    try
-      ExecuteDirect('DROP table testdiscon');
-    except
-      // Ignore
-    end;
+    TryDropIfExist('testdiscon');
     ExecuteDirect('create table testdiscon (id integer not null, a varchar(10), constraint pk_testdiscon primary key(id))');
     Transaction.COmmit;
     for I:=1 to 20 do
@@ -250,11 +247,7 @@ begin
   // Check that we can only set QueryOptions when the query is inactive.
   with SQLDBConnector do
     begin
-    try
-      ExecuteDirect('DROP table testdiscon');
-    except
-      // Ignore
-    end;
+    TryDropIfExist('testdiscon');
     ExecuteDirect('create table testdiscon (id integer not null, a varchar(10), constraint pk_testdiscon primary key(id))');
     Transaction.COmmit;
      ExecuteDirect(Format('INSERT INTO testdiscon values (%d,''%.6d'')',[1,1]));
@@ -275,11 +268,7 @@ begin
   // Test also that POST afterpost event is backwards compatible.
   with SQLDBConnector do
     begin
-    try
-      ExecuteDirect('DROP table testdiscon');
-    except
-      // Ignore
-    end;
+    TryDropIfExist('testdiscon');
     ExecuteDirect('create table testdiscon (id integer not null, a varchar(10), constraint pk_testdiscon primary key(id))');
     Transaction.COmmit;
     for I:=1 to 2 do
@@ -315,11 +304,7 @@ begin
   // Test that if sqoAutoApplyUpdates is in QueryOptions, then Delete automatically does an ApplyUpdates
   with SQLDBConnector do
     begin
-    try
-      ExecuteDirect('DROP table testdiscon');
-    except
-      // Ignore
-    end;
+    TryDropIfExist('testdiscon');
     ExecuteDirect('create table testdiscon (id integer not null, a varchar(10), constraint pk_testdiscon primary key(id))');
     Transaction.COmmit;
     for I:=1 to 2 do
@@ -357,11 +342,7 @@ begin
   // Test that if sqoAutoApplyUpdates is in QueryOptions, then Delete automatically does an ApplyUpdates
   with SQLDBConnector do
     begin
-    try
-      ExecuteDirect('DROP table testdiscon');
-    except
-      // Ignore
-    end;
+    TryDropIfExist('testdiscon');
     ExecuteDirect('create table testdiscon (id integer not null, a varchar(10), constraint pk_testdiscon primary key(id))');
     Transaction.COmmit;
     for I:=1 to 2 do
@@ -378,6 +359,45 @@ begin
     FMyQ:=Q;
     AssertException('Rowsaffected > 1 raises exception',EUpdateError,@DoApplyUpdates);
     end;
+end;
+
+Procedure TTestTSQLQuery.TestAutoCOmmit;
+var
+  Q: TSQLQuery;
+  T : TSQLTransaction;
+  I, J : Integer;
+begin
+  with SQLDBConnector do
+    begin
+    TryDropIfExist('testdiscon');
+    ExecuteDirect('create table testdiscon (id integer not null, a varchar(10), constraint pk_testdiscon primary key(id))');
+    if Transaction.Active then
+      Transaction.Commit;
+    end;
+  Q:=SQLDBConnector.Query;
+  Q.QueryOptions:=[sqoAutoCommit];
+  for I:=1 to 2 do
+    begin
+    Q.SQL.Text:=Format('INSERT INTO testdiscon values (%d,''%.6d'');',[i,i]);
+    Q.Prepare;
+    Q.ExecSQL;
+    // We do not commit anything explicitly.
+    end;
+  Q:=Nil;
+  T:=Nil;
+  try
+    T:=TSQLTransaction.Create(Nil);
+    Q:=TSQLQuery.Create(Nil);
+    Q.Transaction:=T;
+    Q.Database:=SQLDBConnector.Connection;
+    T.Database:=SQLDBConnector.Connection;
+    Q.SQL.text:='SELECT COUNT(*) from testdiscon';
+    Q.Open;
+    AssertEquals('Records have been committed to database',2,Q.Fields[0].AsInteger);
+  finally
+    Q.Free;
+    T.Free;
+  end;
 end;
 
 
@@ -437,11 +457,7 @@ var
 begin
   with SQLDBConnector do
     begin
-    try
-      TryDropIfExist('testdiscon');
-    except
-      // Ignore
-    end;
+    TryDropIfExist('testdiscon');
     ExecuteDirect('create table testdiscon (id integer not null, a varchar(10), constraint pk_testdiscon primary key(id))');
     if Transaction.Active then
       Transaction.Commit;

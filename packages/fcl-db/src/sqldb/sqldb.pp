@@ -60,7 +60,7 @@ type
   TDBEventTypes = set of TDBEventType;
   TDBLogNotifyEvent = Procedure (Sender : TSQLConnection; EventType : TDBEventType; Const Msg : String) of object;
 
-  TSQLQueryOption = (sqoDisconnected, sqoAutoApplyUpdates);
+  TSQLQueryOption = (sqoDisconnected, sqoAutoApplyUpdates, sqoAutoCommit);
   TSQLQueryOptions = Set of TSQLQueryOption;
 
   TSQLHandle = Class(TObject)
@@ -317,6 +317,7 @@ type
     FTransaction: TSQLTransaction;
     FParseSQL: Boolean;
     FDataLink : TDataLink;
+    FRowsAffected : TRowsCount;
     procedure SetDatabase(AValue: TSQLConnection);
     procedure SetParams(AValue: TParams);
     procedure SetSQL(AValue: TStrings);
@@ -463,6 +464,7 @@ type
   public
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
+    Procedure ApplyUpdates(MaxErrors: Integer); override; overload;
     procedure Prepare; virtual;
     procedure UnPrepare; virtual;
     procedure ExecSQL; virtual;
@@ -869,6 +871,7 @@ end;
 
 Procedure TCustomSQLStatement.DoExecute;
 begin
+  FRowsAffected:=-1;
   If (FParams.Count>0) and Assigned(DataSource) then
     CopyParamsFromMaster(False);
   If LogEvent(detExecute) then
@@ -1074,10 +1077,12 @@ end;
 
 function TCustomSQLStatement.RowsAffected: TRowsCount;
 begin
-  Result := -1;
-  if not Assigned(Database) then
-    Exit;
-  Result:=Database.RowsAffected(FCursor);
+  if FRowsAffected=-1 then
+    begin
+    if Assigned(Database) then
+      FRowsAffected:=Database.RowsAffected(FCursor);
+    end;
+  Result:=FRowsAffected;
 end;
 
 { TSQLConnection }
@@ -2067,6 +2072,17 @@ begin
   inherited Destroy;
 end;
 
+Procedure TCustomSQLQuery.ApplyUpdates(MaxErrors: Integer);
+begin
+  inherited ApplyUpdates(MaxErrors);
+  If sqoAutoCommit in QueryOptions then
+    begin
+    // Retrieve rows affected for last update.
+    FStatement.RowsAffected;
+    SQLTransaction.Commit;
+    end;
+end;
+
 function TCustomSQLQuery.ParamByName(Const AParamName: String): TParam;
 
 begin
@@ -2401,6 +2417,12 @@ begin
   try
     Prepare;
     Execute;
+    If sqoAutoCommit in QueryOptions then
+      begin
+      // Retrieve rows affected
+      FStatement.RowsAffected;
+      SQLTransaction.Commit;
+      end;
   finally
     // Cursor has to be assigned, or else the prepare went wrong before PrepareStatment was
     //   called, so UnPrepareStatement shoudn't be called either
