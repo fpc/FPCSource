@@ -3719,7 +3719,7 @@ V*2Tembedded_Embedded
 **2*_i : Show general info           d : Show debug info
 **2*_l : Show linenumbers            r : Rhide/GCC compatibility mode
 **2*_s : Show time stamps            q : Show message numbers
-**2*_a : Show everything             x : Executable info (Win32 only)
+**2*_a : Show everything             x : Show info about invoked tools
 **2*_b : Write file names messages   p : Write tree.log with parse tree
 **2*_    with full path              v : Write fpcdebug.txt with
 **2*_                                    lots of debugging info
