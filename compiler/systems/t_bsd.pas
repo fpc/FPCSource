@@ -697,7 +697,8 @@ begin
    end;
    
 { Use -nopie on OpenBSD }
-  if (target_info.system in systems_openbsd) then
+  if (target_info.system in systems_openbsd) and
+     (target_info.system <> system_x86_64_openbsd) then
     Info.ExtraOptions:=Info.ExtraOptions+' -nopie';
     
 { Write used files and libraries }
