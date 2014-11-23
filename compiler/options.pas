@@ -2914,11 +2914,11 @@ begin
       undef_system_macro('FPC_SECTION_THREADVARS');
 
   { Code generation flags }
-  if def and
-     (tf_pic_default in target_info.flags) then
-    include(init_settings.moduleswitches,cs_create_pic)
-  else
-    exclude(init_settings.moduleswitches,cs_create_pic);
+  if (tf_pic_default in target_info.flags) then
+    if def then
+      include(init_settings.moduleswitches,cs_create_pic)
+    else
+      exclude(init_settings.moduleswitches,cs_create_pic);
 
   { Resources support }
   if (tf_has_winlike_resources in target_info.flags) then
