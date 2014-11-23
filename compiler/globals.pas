@@ -41,7 +41,6 @@ interface
 {$ELSE}
       fksysutl,
 {$ENDIF}
-
       { comphook pulls in sysutils anyways }
       cutils,cclasses,cfileutl,
       cpuinfo,
@@ -835,6 +834,8 @@ implementation
            Replace(s,'$FPCTARGET',target_os_string)
          else
            Replace(s,'$FPCTARGET',target_full_string);
+         Replace(s,'$SUBARCH',lower(cputypestr[init_settings.cputype]));
+         Replace(s,'$FPCABI',lower(abiinfo[target_info.abi].name));
 {$ifdef mswindows}
          ReplaceSpecialFolder('$LOCAL_APPDATA',CSIDL_LOCAL_APPDATA);
          ReplaceSpecialFolder('$APPDATA',CSIDL_APPDATA);
