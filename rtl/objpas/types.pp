@@ -21,6 +21,11 @@ unit types;
        Windows;
 {$endif Windows}
 
+{$ifdef mswindows}
+const
+  RT_RCDATA = Windows.RT_RCDATA deprecated 'Use Windows.RT_RCDATA instead';
+{$endif mswindows}
+
 type
   DWORD = LongWord;
 
