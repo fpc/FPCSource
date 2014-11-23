@@ -228,7 +228,10 @@ Begin
      until (FileRec(f).Handle<>-1) or (geterrno<>ESysEINTR);
    end;
   If Filerec(f).Handle<0 Then
-   Errno2Inoutres
+   begin
+     Errno2Inoutres;
+     FileRec(f).mode:=fmclosed;
+   end
   else
    InOutRes:=0;
 End;

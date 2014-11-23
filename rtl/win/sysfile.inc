@@ -313,6 +313,7 @@ begin
   if (filerec(f).handle=0) or (filerec(f).handle=UnusedHandle) then
     begin
       Errno2InoutRes(GetLastError);
+      FileRec(f).mode:=fmclosed;
     end;
   if oldp<>p then
     freemem(p);

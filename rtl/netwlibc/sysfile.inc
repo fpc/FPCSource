@@ -296,7 +296,10 @@ Begin
       FileRec(f).Handle := open(p,oflags,438);
     end;
   if (___errno^ <> 0) or (longint(FileRec(f).Handle) < 0) then
-    Errno2Inoutres
+    begin
+      Errno2Inoutres;
+      FileRec(f).mode:=fmclosed;
+    end
   else
     InOutRes := 0;
 end;
@@ -382,7 +385,10 @@ Begin
       FileRec(f).Handle := _open(p,oflags,438);
     end;}
   if FileRec(f).Handle = 0 then
-    Errno2Inoutres
+    begin
+      Errno2Inoutres;
+      FileRec(f).mode:=fmclosed;
+    end
   else
     InOutRes := 0;
 End;

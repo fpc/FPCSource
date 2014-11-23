@@ -327,7 +327,9 @@ begin
       FileRec(F).Mode := fmOutput;
     end;
 
-  end;
+  end
+  else
+    FileRec(f).mode:=fmclosed;
 
   if oldp<>p then
     freemem(p);

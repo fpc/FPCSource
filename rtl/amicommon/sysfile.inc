@@ -89,7 +89,7 @@ begin
     l^.next:=p;
   end
 {$IFDEF ASYS_FPC_FILEDEBUG}
-  else 
+  else
     RawDoFmt('FPC_FILE_DEBUG: Error! Trying add filehandle a filehandle twice: $%lx !'+#10,@h,pointer(1),nil);
 {$ENDIF}
   ;
@@ -112,14 +112,14 @@ begin
   while (p^.next<>nil) and (not inList) do
     if p^.next^.handle=h then inList:=True
                          else p:=p^.next;
-  
+
   if inList then begin
     tmpList:=p^.next^.next;
     dispose(p^.next);
     p^.next:=tmpList;
   end
 {$IFDEF ASYS_FPC_FILEDEBUG}
-  else 
+  else
     RawDoFmt('FPC_FILE_DEBUG: Error! Trying to remove not existing filehandle: $%lx !'+#10,@h,pointer(1),nil);
 {$ENDIF}
   ;
@@ -132,7 +132,7 @@ function CheckInList(var l: PFileList; h: LongInt): pointer; alias: 'CHECKINLIST
 var
   p      : PFileList;
   inList : Pointer;
-  
+
 begin
   inList:=nil;
   if l=nil then begin
@@ -240,7 +240,7 @@ begin
   do_filepos:=-1;
   if CheckInList(ASYS_fileList,handle)<>nil then begin
 
-    { Seeking zero from OFFSET_CURRENT to find out where we are }    
+    { Seeking zero from OFFSET_CURRENT to find out where we are }
     dosResult:=dosSeek(handle,0,OFFSET_CURRENT);
     if dosResult<0 then begin
       dosError2InOut(IoErr);
@@ -255,7 +255,7 @@ begin
   checkCTRLC;
   if CheckInList(ASYS_fileList,handle)<>nil then begin
 
-    { Seeking from OFFSET_BEGINNING }  
+    { Seeking from OFFSET_BEGINNING }
     if dosSeek(handle,pos,OFFSET_BEGINNING)<0 then
       dosError2InOut(IoErr);
   end;
@@ -363,7 +363,10 @@ begin
 
   handle:=Open(@tmpStr,openflags);
   if handle=0 then begin
-    dosError2InOut(IoErr);
+    begin
+      dosError2InOut(IoErr);
+      FileRec(f).mode:=fmclosed;
+    end
   end else begin
     AddToList(ASYS_fileList,handle);
     filerec(f).handle:=handle;

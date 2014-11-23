@@ -418,6 +418,7 @@ begin
   if res < 0 then begin
     errno := res;
     Errno2InoutRes;
+    FileRec(f).mode:=fmclosed;
   end;
   if oldp<>p then
     freemem(p);
