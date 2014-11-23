@@ -1327,10 +1327,16 @@ Begin
         { Delete leading spaces }
         while Result[1] = ' ' do
           System.Delete(Result, 1, 1);
-        if Result[1] = '-' then
-          Result[3] := DS
-        else
-          Result[2] := DS;
+
+        { not Nan etc.? }
+        if Pos('.', Result)<>0 then
+          begin
+            if Result[1] = '-' then
+              Result[3] := DS
+            else
+              Result[2] := DS;
+          end;
+
         P:=Pos('E',Result);
         if P <> 0 then
           begin
