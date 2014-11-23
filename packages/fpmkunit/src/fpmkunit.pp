@@ -229,10 +229,10 @@ Const
   ExeExt  = '.exe';
   DbgExt  = '.dbg';
   ZipExt  = '.zip';
+  FpmkExt = '.fpm';
 
   FPMakePPFile = 'fpmake.pp';
   ManifestFile = 'manifest.xml';
-  UnitConfigFile = 'fpunits.cfg';
 
   DirNotFound = '<dirnotfound>';
 
@@ -749,6 +749,7 @@ Type
     FPackageUnitInstallDir: String;
     // Cached directory of installed packages
     FUnitDir : String;
+    FUnitConfigFileName : String;
     // Used by buildunits
     FBUTargets: TTargets;
     FBUTarget: TTarget;
@@ -775,7 +776,7 @@ Type
     destructor destroy; override;
     Function HaveOptions : Boolean;
     Function  GetUnitsOutputDir(ACPU:TCPU; AOS : TOS):String;
-    Function  GetUnitConfigOutputDir(ACPU:TCPU; AOS : TOS):String;
+    Function  GetUnitConfigOutputFilename(ACPU:TCPU; AOS : TOS):String;
     Procedure InheritPackageVariantsFromDependency(ADependencyPackage: TPackage);
     Function  GetPackageVariantsByName(AName: string): TPackageVariants;
     Procedure SetUnitsOutputDir(AValue: string);
@@ -829,6 +830,7 @@ Type
     Property Targets : TTargets Read FTargets;
     Property Sources : TSources Read FSources;
     Property UnitDir : String Read FUnitDir Write FUnitDir;
+    Property UnitConfigFileName: String read FUnitConfigFileName write FUnitConfigFileName;
     // events
     Property BeforeCompile : TNotifyEvent Read FBeforeCompile Write FBeforeCompile;
     Property BeforeCompileProc : TNotifyProcEvent Read FBeforeCompileProc write FBeforeCompileProc;
@@ -889,6 +891,7 @@ Type
     FGlobalUnitDir,
     FBaseInstallDir,
     FUnitInstallDir,
+    FUnitConfigFilesInstallDir,
     FBinInstallDir,
     FDocInstallDir,
     FExamplesInstallDir : String;
@@ -917,6 +920,7 @@ Type
     function GetOptions: TStrings;
     function GetPrefix: String;
     function GetUnitInstallDir: String;
+    function GetUnitConfigFilesInstallDir: String;
     procedure SetLocalUnitDir(const AValue: String);
     procedure SetGlobalUnitDir(const AValue: String);
     procedure IntSetBaseInstallDir(const AValue: String);
@@ -927,6 +931,7 @@ Type
     procedure SetPrefix(const AValue: String);
     procedure SetTarget(const AValue: String);
     procedure SetUnitInstallDir(const AValue: String);
+    procedure SetUnitConfigFilesInstallDir(const AValue: String);
     procedure SetZipPrefix(AValue: String);
   Protected
     procedure RecalcTarget;
@@ -974,6 +979,7 @@ Type
     Property ZipPrefix : String Read FZipPrefix Write SetZipPrefix;
     Property BaseInstallDir : String Read GetBaseInstallDir Write SetBaseInstallDir;
     Property UnitInstallDir : String Read GetUnitInstallDir Write SetUnitInstallDir;
+    Property UnitConfigFilesInstallDir : String Read GetUnitConfigFilesInstallDir Write SetUnitConfigFilesInstallDir;
     Property BinInstallDir : String Read GetBinInstallDir Write FBinInstallDir;
     Property DocInstallDir : String Read GetDocInstallDir Write FDocInstallDir;
     Property ExamplesInstallDir : String Read GetExamplesInstallDir Write FExamplesInstallDir;
@@ -1067,6 +1073,8 @@ Type
     Function GetCompiler : String;
     Function InstallPackageFiles(APAckage : TPackage; tt : TTargetTypes; Const Dest : String):Boolean;
     Procedure InstallUnitConfigFile(APAckage : TPackage; Const Dest : String);
+    function GetUnitConfigFilesInstallDir(ABaseDir: string): String;
+
     Function InstallPackageSourceFiles(APAckage : TPackage; stt : TSourceTypes; ttt : TTargetTypes; Const Dest : String):Boolean;
     Function FileNewer(const Src,Dest : String) : Boolean;
     Procedure LogSearchPath(APackage: TPackage;const ASearchPathName:string;Path:TConditionalStrings; ACPU:TCPU;AOS:TOS);
@@ -1076,6 +1084,7 @@ Type
     procedure AddPackageMacrosToDictionary(const APackage: TPackage; ADictionary: TDictionary);
     //package commands
     function  GetUnitDir(APackage:TPackage):String;
+    procedure ResolvePackagePaths(APackage:TPackage);
     procedure AddDependencyPaths(L: TStrings; DependencyType: TDependencyType; ATarget: TTarget);
     procedure AddDependencyUnitPaths(L:TStrings;APackage: TPackage);
   Public
@@ -3170,9 +3179,9 @@ begin
   result:=FixPath(Dictionary.Substitute(FUnitsOutputDir,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]), False);
 end;
 
-function TPackage.GetUnitConfigOutputDir(ACPU: TCPU; AOS: TOS): String;
+function TPackage.GetUnitConfigOutputFilename(ACPU: TCPU; AOS: TOS): String;
 begin
-  result:=FixPath(Dictionary.Substitute('units'+PathDelim+'$(target)'+PathDelim,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]), False);
+  result:=FixPath(Dictionary.Substitute(Name+'-$(target)'+FpmkExt,['CPU',CPUToString(ACPU),'OS',OSToString(AOS),'target',MakeTargetString(ACPU,AOS)]), False);
 end;
 
 procedure TPackage.InheritPackageVariantsFromDependency(ADependencyPackage: TPackage);
@@ -3813,6 +3822,12 @@ begin
 end;
 
 
+function TCustomDefaults.GetUnitConfigFilesInstallDir: String;
+begin
+  result := FUnitConfigFilesInstallDir;
+end;
+
+
 function TCustomDefaults.GetLocalUnitDir: String;
 begin
   Result:=FLocalUnitDir;
@@ -3949,6 +3964,13 @@ begin
     FUnitInstallDir:='';
 end;
 
+
+procedure TCustomDefaults.SetUnitConfigFilesInstallDir(const AValue: String);
+begin
+  FUnitConfigFilesInstallDir:=AValue;
+end;
+
+
 procedure TCustomDefaults.SetZipPrefix(AValue: String);
 begin
   if FZipPrefix=AValue then Exit;
@@ -3986,6 +4008,7 @@ begin
   FCPU:=cpuNone;
   FOS:=osNone;
   FUnitInstallDir:='$(baseinstalldir)units/$(target)/$(packagename)';
+  FUnitConfigFilesInstallDir:='fpmkinst/$(target)';
   FBuildMode:=bmOneByOne;
   FThreadsAmount:=-1;
 end;
@@ -5543,7 +5566,54 @@ begin
 end;
 
 
-function TBuildEngine.GetUnitDir(APackage:TPackage):String;
+procedure TBuildEngine.ResolvePackagePaths(APackage:TPackage);
+
+  procedure ResolveUnitConfigFilenameForBasePath(ABasePath: string);
+  var
+    IsPackageSourceLocation: boolean;
+    ASubDir: string;
+    AnUnitConfigFilename: string;
+    PackageBaseDir: string;
+  begin
+    if APackage.State=tsNotFound then
+      // When the state is tsNotFound, the package is not part of this fpmake, and only the package-name is known.
+      // In this case search for the package-name.
+      // This is not right for packages where the package-name and directory name of the source-files are
+      // not the same. We don't have a better option, though.
+      ASubDir:=APackage.Name
+    else
+      ASubDir:=APackage.Directory;
+
+    IsPackageSourceLocation:=FileExists(IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(ABasePath)+ASubDir)+FPMakePPFile);
+    if IsPackageSourceLocation then
+      begin
+        PackageBaseDir:=IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(ABasePath)+ASubDir);
+        AnUnitConfigFileName:=PackageBaseDir+APackage.GetUnitConfigOutputFilename(Defaults.CPU,Defaults.OS);
+        PackageBaseDir:=IncludeTrailingPathDelimiter(PackageBaseDir+APackage.GetPackageUnitInstallDir(defaults.CPU, Defaults.OS))+APackage.GetUnitsOutputDir(defaults.CPU, Defaults.OS);
+      end
+    else
+      begin
+        PackageBaseDir:=IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(ABasePath));
+        AnUnitConfigFileName:=IncludeTrailingPathDelimiter(GetUnitConfigFilesInstallDir(ABasePath))+APackage.Name+FpmkExt;
+        PackageBaseDir:=IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(ABasePath)+APackage.GetUnitsOutputDir(Defaults.CPU, Defaults.OS))+APackage.Name;
+      end;
+
+    if (PackageBaseDir<>'') and SysDirectoryExists(PackageBaseDir) then
+      begin
+        APackage.UnitDir:=PackageBaseDir;
+        if IsPackageSourceLocation then
+          // Set the state to tsNoCompile and not tsCompiled. Because packages
+          // in the tsCompiled state trigger a rebuild of packages that depend
+          // on it.
+          APackage.FTargetState:=tsNoCompile
+        else if not (APackage.FTargetState in [tsCompiled, tsNoCompile]) then
+          APackage.FTargetState:=tsInstalled;
+        AnUnitConfigFilename:=APackage.Dictionary.ReplaceStrings(AnUnitConfigFilename);
+        if FileExists(AnUnitConfigFilename) then
+          APackage.UnitConfigFileName:=AnUnitConfigFilename;
+      end;
+  end;
+
 begin
   if APackage.UnitDir='' then
     begin
@@ -5553,48 +5623,23 @@ begin
       //  - LocalUnitDir
       //  - GlobalUnitDir
       if (APackage.State in [tsCompiled, tsNoCompile, tsInstalled]) then
-        begin
-          APackage.UnitDir:=IncludeTrailingPathDelimiter(FStartDir)+IncludeTrailingPathDelimiter(APackage.Directory)+APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS);
-        end;
+        ResolveUnitConfigFilenameForBasePath(FStartDir);
       if (APackage.UnitDir='') and
          (Defaults.LocalUnitDir<>'') then
-        begin
-          APackage.UnitDir:=IncludeTrailingPathDelimiter(Defaults.LocalUnitDir)+APackage.Name+PathDelim+APackage.GetPackageUnitInstallDir(defaults.CPU, Defaults.OS);
-          if not SysDirectoryExists(APackage.UnitDir) then
-            APackage.UnitDir:='';
-        end;
-      if APackage.UnitDir='' then
-        begin
-          APackage.UnitDir:=IncludeTrailingPathDelimiter(Defaults.GlobalUnitDir)+APackage.Name+PathDelim+APackage.GetPackageUnitInstallDir(defaults.CPU, Defaults.OS);
-          if not SysDirectoryExists(APackage.UnitDir) then
-            APackage.UnitDir:=DirNotFound;
-        end;
+        ResolveUnitConfigFilenameForBasePath(Defaults.LocalUnitDir);
+      if (APackage.UnitDir='') and
+         (Defaults.GlobalUnitDir<>'') then
+        ResolveUnitConfigFilenameForBasePath(Defaults.GlobalUnitDir);
 
-      if (APackage.UnitDir<>DirNotFound) then
-        begin
-          if FileExists(IncludeTrailingPathDelimiter(APackage.UnitDir)+FPMakePPFile) then
-            begin
-              // The package is not installed, but the source-path is detected.
-              // It is an external package so it is impossible to compile it, so
-              // assume that it has been compiled earlier.
-              APackage.UnitDir := IncludeTrailingPathDelimiter(APackage.UnitDir) + APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS);
-              // If the unit-directory does not exist, you know for sure that
-              // the package is not compiled
-              if not SysDirectoryExists(APackage.UnitDir) then
-                APackage.UnitDir:=DirNotFound
-              else
-                // Set the state to tsNoCompile and not tsCompiled. Because packages
-                // in the tsCompiled state trigger a rebuild of packages that depend
-                // on it.
-                APackage.FTargetState:=tsNoCompile;
-            end
-          else if not (APackage.FTargetState in [tsCompiled, tsNoCompile]) then
-            begin
-              APackage.FTargetState:=tsInstalled;
-            end;
-        end;
+      if (APackage.UnitDir='') then
+        APackage.UnitDir:=DirNotFound;
     end;
+end;
 
+
+function TBuildEngine.GetUnitDir(APackage:TPackage):String;
+begin
+  ResolvePackagePaths(APackage);
   // Special error marker to prevent searches in case of error
   if APackage.UnitDir=DirNotFound then
     Result:=''
@@ -6185,8 +6230,8 @@ begin
     begin
       Log(vldebug, SDbgExternalDependency, [APackageName,S]);
       // Load unit config if it exists
-      F:=IncludeTrailingPathDelimiter(S)+UnitConfigFile;
-      if FileExists(F) then
+      F:=result.UnitConfigFileName;
+      if (F<>'') then
         begin
           Log(vlDebug, Format(SDbgLoading, [F]));
           Result.LoadUnitConfigFromFile(F);
@@ -6469,7 +6514,7 @@ begin
 
     if RegenerateUnitconfigFile then
       begin
-        UC:=IncludeTrailingPathDelimiter(AddPathPrefix(APackage,APackage.GetUnitConfigOutputDir(Defaults.CPU,Defaults.OS)))+UnitConfigFile;
+        UC:=AddPathPrefix(APackage, APackage.GetUnitConfigOutputFilename(Defaults.CPU,Defaults.OS));
         Log(vlInfo, Format(SDbgGenerating, [UC]));
         APackage.SaveUnitConfigToFile(UC,Defaults.CPU,Defaults.OS);
       end;
@@ -6580,6 +6625,11 @@ begin
   end;
 end;
 
+function TBuildEngine.GetUnitConfigFilesInstallDir(ABaseDir: string): String;
+begin
+  result := IncludeTrailingPathDelimiter(ABaseDir)+Defaults.UnitConfigFilesInstallDir;
+end;
+
 procedure TBuildEngine.InstallUnitConfigFile(APAckage: TPackage; const Dest: String);
 Var
   List : TStringList;
@@ -6587,7 +6637,7 @@ Var
   ConfigFileContent: TStrings;
   Index: integer;
 begin
-  ConfigFileName:=IncludeTrailingPathDelimiter(APackage.GetUnitConfigOutputDir(Defaults.CPU,Defaults.OS))+UnitConfigFile;
+  ConfigFileName:=APackage.GetUnitConfigOutputFilename(Defaults.CPU,Defaults.OS);
   List:=TStringList.Create;
   Try
     if Defaults.FPUnitSourcePath<>'' then
@@ -6608,7 +6658,7 @@ begin
           ConfigFileContent.Free;
         end;
       end;
-    List.add(ConfigFileName);
+    List.Values[ConfigFileName] := APAckage.Name + FpmkExt;
     CmdCopyFiles(List,Dest,APackage);
   Finally
     List.Free;
@@ -6691,7 +6741,7 @@ begin
     //if InstallPackageFiles(APAckage,ttExampleUnit,D) then
     //  B:=true;
     // Unit (dependency) configuration if there were units installed
-    D:=FixPath(APackage.Dictionary.ReplaceStrings(Defaults.UnitInstallDir), True);
+    D:=FixPath(APackage.Dictionary.ReplaceStrings(GetUnitConfigFilesInstallDir(Defaults.BaseInstallDir)), True);
     if B then
       InstallUnitConfigFile(APackage,D);
     // Programs
@@ -6891,7 +6941,7 @@ Var
 begin
   List:=TStringList.Create;
   try
-    List.Add(APackage.GetUnitsOutputDir(ACPU,AOS) + PathDelim + UnitConfigFile);
+    List.Add(APackage.GetUnitConfigOutputFilename(Defaults.CPU,Defaults.OS));
     APackage.GetCleanFiles(List,ACPU,AOS);
     if (List.Count>0) then
       begin

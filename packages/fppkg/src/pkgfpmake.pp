@@ -324,8 +324,8 @@ begin
           CondAddOption('--prefix',CompilerOptions.LocalPrefix);
           CondAddOption('--baseinstalldir',CompilerOptions.LocalInstallDir);
         end;
-      CondAddOption('--localunitdir',CompilerOptions.LocalUnitDir);
-      CondAddOption('--globalunitdir',CompilerOptions.GlobalUnitDir);
+      CondAddOption('--localunitdir',CompilerOptions.LocalInstallDir);
+      CondAddOption('--globalunitdir',CompilerOptions.GlobalInstallDir);
       if GlobalOptions.CustomFPMakeOptions<>'' then
         begin
         AddOption('--ignoreinvalidoption');
