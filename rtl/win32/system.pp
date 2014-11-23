@@ -671,7 +671,6 @@ begin
   SysInitExceptions;
   { setup fastmove stuff }
   fpc_cpucodeinit;
-  initwidestringmanager;
   initunicodestringmanager;
   InitWin32Widestrings;
   SysInitStdIO;

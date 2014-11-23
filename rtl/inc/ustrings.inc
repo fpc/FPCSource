@@ -2286,19 +2286,22 @@ function StringCodePage(const S: UnicodeString): TSystemCodePage; overload;
 
 
 {$warnings off}
-function GenericUnicodeCase(const s : UnicodeString) : UnicodeString;
+function StubUnicodeCase(const s : UnicodeString) : UnicodeString;
   begin
     unimplementedunicodestring;
   end;
 
-
-function CompareUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
+function StubCompareUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
   begin
     unimplementedunicodestring;
   end;
 
+function StubWideCase(const s: WideString): WideString;
+  begin
+    unimplementedunicodestring;
+  end;
 
-function CompareTextUnicodeString(const s1, s2 : UnicodeString): PtrInt;
+function StubCompareWideString(const s1, s2 : WideString) : PtrInt;
   begin
     unimplementedunicodestring;
   end;
@@ -2307,24 +2310,23 @@ function CompareTextUnicodeString(const s1, s2 : UnicodeString): PtrInt;
 procedure initunicodestringmanager;
   begin
 {$ifndef HAS_WIDESTRINGMANAGER}
+{$ifdef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    widestringmanager.Ansi2WideMoveProc:=@defaultAnsi2UnicodeMove;
+{$else FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    widestringmanager.Ansi2WideMoveProc:=@DefaultAnsi2WideMove;
+{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    widestringmanager.Wide2AnsiMoveProc:=@DefaultUnicode2AnsiMove;
+    widestringmanager.UpperWideStringProc:=@StubWideCase;
+    widestringmanager.LowerWideStringProc:=@StubWideCase;
     widestringmanager.Unicode2AnsiMoveProc:=@DefaultUnicode2AnsiMove;
     widestringmanager.Ansi2UnicodeMoveProc:=@DefaultAnsi2UnicodeMove;
-    widestringmanager.UpperUnicodeStringProc:=@GenericUnicodeCase;
-    widestringmanager.LowerUnicodeStringProc:=@GenericUnicodeCase;
+    widestringmanager.UpperUnicodeStringProc:=@StubUnicodeCase;
+    widestringmanager.LowerUnicodeStringProc:=@StubUnicodeCase;
 {$endif HAS_WIDESTRINGMANAGER}
-    widestringmanager.CompareUnicodeStringProc:=@CompareUnicodeString;
-    widestringmanager.CompareTextUnicodeStringProc:=@CompareTextUnicodeString;
-
-{$ifdef FPC_WIDESTRING_EQUAL_UNICODESTRING}
-{$ifndef HAS_WIDESTRINGMANAGER}
-    widestringmanager.Wide2AnsiMoveProc:=@defaultUnicode2AnsiMove;
-    widestringmanager.Ansi2WideMoveProc:=@defaultAnsi2UnicodeMove;
-    widestringmanager.UpperWideStringProc:=@GenericUnicodeCase;
-    widestringmanager.LowerWideStringProc:=@GenericUnicodeCase;
-{$endif HAS_WIDESTRINGMANAGER}
-    widestringmanager.CompareWideStringProc:=@CompareUnicodeString;
-    widestringmanager.CompareTextWideStringProc:=@CompareTextUnicodeString;
-{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    widestringmanager.CompareWideStringProc:=@StubCompareWideString;
+    widestringmanager.CompareTextWideStringProc:=@StubCompareWideString;
+    widestringmanager.CompareUnicodeStringProc:=@StubCompareUnicodeString;
+    widestringmanager.CompareTextUnicodeStringProc:=@StubCompareUnicodeString;
     widestringmanager.CharLengthPCharProc:=@DefaultCharLengthPChar;
     widestringmanager.CodePointLengthProc:=@DefaultCodePointLength;
     widestringmanager.GetStandardCodePageProc:=@DefaultGetStandardCodePage;

@@ -942,38 +942,4 @@ function UTF8Encode(const s : WideString) : RawByteString;
       end;
   end;
 
-procedure unimplementedunicodestring; forward;
 
-{$warnings off}
-function GenericWideCase(const s : WideString) : WideString;
-  begin
-    unimplementedunicodestring;
-  end;
-
-
-function CompareWideString(const s1, s2 : WideString) : PtrInt;
-  begin
-    unimplementedunicodestring;
-  end;
-
-
-function CompareTextWideString(const s1, s2 : WideString): PtrInt;
-  begin
-    unimplementedunicodestring;
-  end;
-
-{$warnings on}
-
-
-procedure initwidestringmanager;
-  begin
-    fillchar(widestringmanager,sizeof(widestringmanager),0);
-{$ifndef HAS_WIDESTRINGMANAGER}
-    widestringmanager.Wide2AnsiMoveProc:=@DefaultUnicode2AnsiMove;
-    widestringmanager.Ansi2WideMoveProc:=@DefaultAnsi2WideMove;
-    widestringmanager.UpperWideStringProc:=@GenericWideCase;
-    widestringmanager.LowerWideStringProc:=@GenericWideCase;
-{$endif HAS_WIDESTRINGMANAGER}
-    widestringmanager.CompareWideStringProc:=@CompareWideString;
-    widestringmanager.CompareTextWideStringProc:=@CompareTextWideString;
-  end;

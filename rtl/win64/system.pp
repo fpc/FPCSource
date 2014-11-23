@@ -605,7 +605,6 @@ begin
     InitSystemThreads;
   end;
   SysInitExceptions;
-  initwidestringmanager;
   initunicodestringmanager;
   InitWin32Widestrings;
   SysInitStdIO;
