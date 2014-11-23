@@ -1328,14 +1328,12 @@ Begin
         while Result[1] = ' ' do
           System.Delete(Result, 1, 1);
 
-        { not Nan etc.? }
-        if Pos('.', Result)<>0 then
-          begin
-            if Result[1] = '-' then
-              Result[3] := DS
-            else
-              Result[2] := DS;
-          end;
+        if (Result[1]='-') and
+          { not Nan etc.? }
+          (Result[3]='.') then
+          Result[3] := DS
+        else if Result[2]='.' then
+          Result[2] := DS;
 
         P:=Pos('E',Result);
         if P <> 0 then
