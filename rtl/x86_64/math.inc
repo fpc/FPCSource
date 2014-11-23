@@ -12,7 +12,30 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{-------------------------------------------------------------------------
+ Using functions from AMath/DAMath libraries, which are covered by the
+ following license:
 
+ (C) Copyright 2009-2013 Wolfgang Ehrhardt
+
+ This software is provided 'as-is', without any express or implied warranty.
+ In no event will the authors be held liable for any damages arising from
+ the use of this software.
+
+ Permission is granted to anyone to use this software for any purpose,
+ including commercial applications, and to alter it and redistribute it
+ freely, subject to the following restrictions:
+
+ 1. The origin of this software must not be misrepresented; you must not
+    claim that you wrote the original software. If you use this software in
+    a product, an acknowledgment in the product documentation would be
+    appreciated but is not required.
+
+ 2. Altered source versions must be plainly marked as such, and must not be
+    misrepresented as being the original software.
+
+ 3. This notice may not be removed or altered from any source distribution.
+----------------------------------------------------------------------------}
 
 {$push}
 {$codealign constmin=16}
@@ -147,25 +170,66 @@ const
 
     {$ifndef FPC_SYSTEM_HAS_EXP}
     {$define FPC_SYSTEM_HAS_EXP}
+    { exp function adapted from AMath library (C) Copyright 2009-2013 Wolfgang Ehrhardt
+      * translated into AT&T syntax
+      + PIC support
+      * return +Inf/0 for +Inf/-Inf input, instead of NaN }
     function fpc_exp_real(d : ValReal) : ValReal;assembler;compilerproc;
-       var
-         oldcw,newcw: word;
-       asm
-            // comes from DJ GPP
+      const
+        ln2hi: double=6.9314718036912382E-001;
+        ln2lo: double=1.9082149292705877E-010;
+        large: single=24576.0;
+        two:   single=2.0;
+        half:  single=0.5;
+      asm
             fldt        d
             fldl2e
-            fmulp       %st,%st(1)
-            fstcw       oldcw
-            fstcw       newcw
-            andw        $0xf3ff,newcw
-            orw         $0x0400,newcw
-            fldcw       newcw
-            fld         %st(0)
+            fmul        %st(1),%st        { z = d * log2(e) }
             frndint
-            fldcw       oldcw
-            fxch        %st(1)
-            fsub        %st(1),%st
+          { Calculate frac(z) using modular arithmetic to avoid precision loss }
+            fldl        ln2hi(%rip)
+            fmul        %st(1),%st
+            fsubrp      %st,%st(2)
+            fldl        ln2lo(%rip)
+            fmul        %st(1),%st
+            fsubrp      %st,%st(2)
+            fxch        %st(1)            { (d-int(z)*ln2_hi)-int(z)*ln2_lo }
+            fldl2e
+            fmulp       %st,%st(1)        { frac(z) }
+
+          { Above calculation can yield |frac(z)|>1, particularly when rounding mode
+            is not "round to nearest". f2xm1 is undefined in that case, so it's
+            necessary to check }
+            fld         %st
+            fabs
+            fld1
+            fcompp
+            fstsw       %ax
+            sahf
+            jp          .L3               { NaN }
+            jae         .L1               { |frac(z)| <= 1, good }
+
+            fld         %st(1)
+            fabs
+            fcomps      large(%rip)
+            fstsw       %ax
+            sahf
+            jb          .L0               { int(z) < 24576 }
+   .L3:
+            fstp        %st               { pop frac(z) and load 0 }
+            fldz
+            jmp         .L1
+   .L0:
+            { Calculate 2**frac(z)-1 as N*(N+2), where N=2**(frac(z)/2)-1 }
+            fmuls       half(%rip)
             f2xm1
+            fld         %st
+            fadds       two(%rip)
+            fmulp       %st,%st(1)
+            jmp         .L2
+   .L1:
+            f2xm1
+   .L2:
             fld1
             faddp       %st,%st(1)
             fscale
