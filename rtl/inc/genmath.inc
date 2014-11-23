@@ -2173,7 +2173,7 @@ function TSingleRec.GetSign : Boolean;
 
 procedure TSingleRec.SetSign(s : Boolean);
   begin
-    Data:=(Data and $7fffffff) or (ord(s) shl 31);
+    Data:=(Data and $7fffffff) or (DWord(ord(s)) shl 31);
   end;
 
 
