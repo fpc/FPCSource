@@ -642,7 +642,7 @@ begin
       ssFirebird:
         begin
         // This only works with Firebird 2+
-        FConnection.ExecuteDirect('execute block as begin if (exists (select 1 from rdb$relations where rdb$relation_name=''' + ATableName + ''')) '+
+        FConnection.ExecuteDirect('execute block as begin if (exists (select 1 from rdb$relations where upper(rdb$relation_name)=''' + UpperCase(ATableName) + ''')) '+
           'then execute statement ''drop table ' + ATableName + ';'';end');
         FTransaction.CommitRetaining;
         end;
