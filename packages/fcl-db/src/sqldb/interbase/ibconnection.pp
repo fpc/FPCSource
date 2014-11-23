@@ -26,9 +26,9 @@ type
     ServerVersionString : string;  //Complete version string, including name, platform
   end;
 
-  EIBDatabaseError = class(EDatabaseError)
-    public
-      GDSErrorCode : Longint;
+  EIBDatabaseError = class(ESQLDatabaseError)
+  public
+    property GDSErrorCode: integer read FErrorCode Write FErrorCode;
   end;
 
   { TIBCursor }

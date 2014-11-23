@@ -140,7 +140,7 @@ type
 
   EMSSQLDatabaseError = class(ESQLDatabaseError)
     public
-      property DBErrorCode: integer read ErrorCode; deprecated 'Please use ErrorCode instead of DBErrorCode'; // Feb 2014
+      property DBErrorCode: integer read FErrorCode; deprecated 'Please use ErrorCode instead of DBErrorCode'; // Feb 2014
   end;
 
   { TMSSQLConnectionDef }

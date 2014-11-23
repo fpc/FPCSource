@@ -2393,7 +2393,7 @@ begin
               if Response = rrApply then dec(r);
               end
             else if Response = rrAbort then
-              Raise EUpdateError.Create(SOnUpdateError,E.Message,0,0,Exception(AcquireExceptionObject));
+              Raise EUpdateError.Create(SOnUpdateError,E.Message,E.ErrorCode,0,Exception(AcquireExceptionObject));
             end
           else
             raise;

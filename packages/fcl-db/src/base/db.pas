@@ -78,11 +78,18 @@ type
 
 { Exception classes }
 
-  EDatabaseError = class(Exception);
+  { EDatabaseError }
+
+  EDatabaseError = class(Exception)
+  Protected
+    FErrorCode: integer;
+  Public
+    Property ErrorCode: integer Read FErrorCode;
+  end;
+
   EUpdateError   = class(EDatabaseError)
   private
     FContext           : String;
-    FErrorCode         : integer;
     FOriginalException : Exception;
     FPreviousError     : Integer;
   public
@@ -90,7 +97,6 @@ type
       ErrCode, PrevError : integer; E: Exception);
     Destructor Destroy; override;
     property Context : String read FContext;
-    property ErrorCode : integer read FErrorcode;
     property OriginalException : Exception read FOriginalException;
     property PreviousError : Integer read FPreviousError;
   end;

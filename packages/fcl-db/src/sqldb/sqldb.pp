@@ -80,11 +80,13 @@ type
   { ESQLDatabaseError}
 
   ESQLDatabaseError = class(EDatabaseError)
+    Private
+      Function GetNamePrefix (comp : TComponent; Fmt: String) :String;
     public
-      ErrorCode: integer;
       SQLState : string;
       constructor CreateFmt(const Fmt: string; const Args: array of const;
                             Comp : TComponent; AErrorCode: integer; ASQLState: string); overload;
+      constructor Create(AMessage: string; Comp : TComponent; AErrorCode: integer; ASQLState: string); overload;
   end;
 
   { TSQLDBFieldDef }
@@ -741,20 +743,36 @@ end;
 
 { ESQLDatabaseError }
 
-constructor ESQLDatabaseError.CreateFmt(const Fmt: string; const Args: array of const;
-  Comp: TComponent; AErrorCode: integer; ASQLState: string);
-const CompNameFmt='%s : %s';
-var Msg: string;
+Function ESQLDatabaseError.GetNamePrefix(comp: TComponent; Fmt: String): String;
+
+const
+   CompNameFmt='%s : %s';
+
 begin
   if not assigned(Comp) then
-    Msg := Fmt
+    Result := Fmt
   else if Comp.Name = '' then
-    Msg := Format(CompNameFmt, [Comp.ClassName,Fmt])
+    Result := Format(CompNameFmt, [Comp.ClassName,Fmt])
   else
-    Msg := Format(CompNameFmt, [Comp.Name,Fmt]);
+    Result := Format(CompNameFmt, [Comp.Name,Fmt]);
+end;
 
+constructor ESQLDatabaseError.CreateFmt(const Fmt: string; const Args: array of const;
+  Comp: TComponent; AErrorCode: integer; ASQLState: string);
+var Msg: string;
+begin
+  Msg:=GetNamePrefix(Comp,Fmt);
   inherited CreateFmt(Msg, Args);
-  ErrorCode := AErrorCode;
+  FErrorCode := AErrorCode;
+  SQLState  := ASQLState;
+end;
+
+constructor ESQLDatabaseError.Create(AMessage: string; Comp: TComponent;
+  AErrorCode: integer; ASQLState: string);
+begin
+  AMessage:=GetNamePrefix(Comp,AMessage);
+  inherited Create(AMessage);
+  FErrorCode := AErrorCode;
   SQLState  := ASQLState;
 end;
 

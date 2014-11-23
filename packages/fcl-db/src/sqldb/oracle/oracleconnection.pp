@@ -31,7 +31,7 @@ const
 type
   EOraDatabaseError = class(ESQLDatabaseError)
     public
-      property ORAErrorCode: integer read ErrorCode; deprecated 'Please use ErrorCode instead of ORAErrorCode'; // June 2014
+      property ORAErrorCode: integer read FErrorCode; deprecated 'Please use ErrorCode instead of ORAErrorCode'; // June 2014
   end;
 
   TOracleTrans = Class(TSQLHandle)
@@ -332,19 +332,13 @@ end;
 
 procedure TOracleConnection.HandleError;
 
-var errcode : sb4;
-    buf     : array[0..1023] of char;
-    E       : EOraDatabaseError;
+var
+  errcode : sb4;
+  buf     : array[0..1023] of char;
+
 begin
   OCIErrorGet(FOciError,1,nil,errcode,@buf[0],1024,OCI_HTYPE_ERROR);
-
-  if (Self.Name <> '') then
-    E := EOraDatabaseError.CreateFmt('%s : %s',[Self.Name,pchar(buf)])
-  else
-    E := EOraDatabaseError.Create(pchar(buf));
-
-  E.ErrorCode := errcode;
-  Raise E;
+  Raise EOraDatabaseError.Create(pchar(buf),Self,ErrCode,'');;
 end;
 
 procedure TOracleConnection.GetParameters(cursor: TSQLCursor; ATransaction : TSQLTransaction; AParams: TParams);
