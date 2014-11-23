@@ -175,6 +175,9 @@ Const
 (* 158 *)    syscall_nr_ofstatfs = 158; (* from 2.6 to 2.9 release *)
 (* 161 *)    syscall_nr_getfh = 161;
 (* 165 *)    syscall_nr_sysarch = 165;
+(* 169 *)    syscall_nr_semsys = 169; (* old compat_10, but required for ipcbsd.inc rtl-extra compilation *)
+(* 170 *)    syscall_nr_msgsys = 170; (* old compat_10, but required for ipcbsd.inc rtl-extra compilation *)
+(* 171 *)    syscall_nr_shmsys = 171; (* old compat_10, but required for ipcbsd.inc rtl-extra compilation *)
 (* 173 *)    syscall_nr_pread = 173;
 (* 174 *)    syscall_nr_pwrite = 174;
 (* 175 *)    syscall_nr_ntp_gettime = 175;
@@ -317,44 +320,43 @@ Const
 (* 330 *)    syscall_nr___get_tcb = 330;
 
 
-{$if not declared (cint) }
-type
-  cint = longint;
-{$endif}
-
 { Aliases }
 var
-  syscall_nr_waitpid : cint = syscall_nr_wait4;  // 7, added: ease of notation purposes
-  syscall_nr_setitimer : cint = syscall_nr_setitimer_20;
-  syscall_nr_getitimer : cint = syscall_nr_getitimer_20;
-  syscall_nr_select : cint = syscall_nr_select_20;
-  syscall_nr_gettimeofday : cint = syscall_nr_gettimeofday_20;
-  syscall_nr_settimeofday : cint = syscall_nr_settimeofday_20;
-  syscall_nr_clock_gettime : cint = syscall_nr_clock_gettime_20;
-  syscall_nr_clock_settime : cint = syscall_nr_clock_settime_20;
-  syscall_nr_clock_getres : cint = syscall_nr_clock_getres_20;
-  syscall_nr_getrusage : cint = syscall_nr_getrusage_20;
-  syscall_nr_utimes : cint = syscall_nr_utimes_20;
-  syscall_nr_futimes : cint = syscall_nr_futimes_20;
-  syscall_nr_statfs : cint = syscall_nr_statfs_26;
-  syscall_nr_fstatfs : cint = syscall_nr_fstatfs_26;
-  syscall_nr_stat : cint = syscall_nr_stat_36;
-  syscall_nr_fstat : cint = syscall_nr_fstat_36;
-  syscall_nr_lstat : cint = syscall_nr_lstat_36;
-  syscall_nr_fhstat : cint = syscall_nr_fhstat_36;
-  syscall_nr_fstatat : cint = syscall_nr_fstatat_50;
-  syscall_nr_fhstatfs : cint = syscall_nr_fhstatfs_20;
-  syscall_nr_nanosleep : cint = syscall_nr_nanosleep_20;
-  syscall_nr_kevent : cint = syscall_nr_kevent_29;
-  syscall_nr_pipe : cint = syscall_nr_pipe_26;
-  syscall_nr_sigaltstack : cint = syscall_nr_sigaltstack_35;
-  syscall_nr___tfork : cint = -1;
-  syscall_nr_msgctl : cint = syscall_nr_msgctl_36;
-  syscall_nr_semop : cint = syscall_nr_semop_36;
-  syscall_nr___semctl : cint = syscall_nr___semctl_36;
-  syscall_nr_shmctl : cint = syscall_nr_shmctl_36;
-  syscall_nr_shmget : cint = syscall_nr_shmget_36;
+  syscall_nr_waitpid : longint = syscall_nr_wait4;  // 7, added: ease of notation purposes
+  
+  syscall_nr_setitimer : longint = syscall_nr_setitimer_20;
+  syscall_nr_getitimer : longint = syscall_nr_getitimer_20;
+  syscall_nr_select : longint = syscall_nr_select_20;
+  syscall_nr_gettimeofday : longint = syscall_nr_gettimeofday_20;
+  syscall_nr_settimeofday : longint = syscall_nr_settimeofday_20;
+  syscall_nr_clock_gettime : longint = syscall_nr_clock_gettime_20;
+  syscall_nr_clock_settime : longint = syscall_nr_clock_settime_20;
+  syscall_nr_clock_getres : longint = syscall_nr_clock_getres_20;
+  syscall_nr_getrusage : longint = syscall_nr_getrusage_20;
+  syscall_nr_utimes : longint = syscall_nr_utimes_20;
+  syscall_nr_futimes : longint = syscall_nr_futimes_20;
+  syscall_nr_statfs : longint = syscall_nr_statfs_26;
+  syscall_nr_fstatfs : longint = syscall_nr_fstatfs_26;
+  syscall_nr_stat : longint = syscall_nr_stat_36;
+  syscall_nr_fstat : longint = syscall_nr_fstat_36;
+  syscall_nr_lstat : longint = syscall_nr_lstat_36;
+  syscall_nr_fhstat : longint = syscall_nr_fhstat_36;
+  syscall_nr_fstatat : longint = syscall_nr_fstatat_50;
+  syscall_nr_fhstatfs : longint = syscall_nr_fhstatfs_20;
+  syscall_nr_nanosleep : longint = syscall_nr_nanosleep_20;
+  syscall_nr_kevent : longint = syscall_nr_kevent_29;
+  syscall_nr_pipe : longint = syscall_nr_pipe_26;
+  syscall_nr_sigaltstack : longint = syscall_nr_sigaltstack_35;
+  syscall_nr___tfork : longint = -1;
+  syscall_nr_msgctl : longint = syscall_nr_msgctl_36;
+  syscall_nr_semop : longint = syscall_nr_semop_36;
+  syscall_nr___semctl : longint = syscall_nr___semctl_36;
+  syscall_nr_shmctl : longint = syscall_nr_shmctl_36;
+  syscall_nr_shmget : longint = syscall_nr_shmget_36;
+  syscall_nr_getdirentries : longint = syscall_nr_getdirentries_20;
 { The variables above need to be changed at startup }
 
 {$define FPC_HAS_SETSYSNR_INC}
+{$define FPC_USE_GETDIRENTRIES_SYSCALL}
+{$define FPC_USE_GETDIRENTRIES_I49_SYSCALL}
 

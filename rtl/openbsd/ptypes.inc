@@ -233,3 +233,60 @@ const
    Prio_Process = 0;
    Prio_PGrp    = 1;
    Prio_User    = 2;
+
+{ OpenBSD 5.5 specific variants  }
+
+{ file characteristics services }
+type
+   stat_55    = record { the types are real}
+        st_mode       : mode_t;            // inode protection mode
+        st_dev        : dev_t;             // inode's device
+        st_ino        : ino_t;             // inode's number
+        st_nlink      : nlink_t;           // number of hard links
+        st_uid        : uid_t;             // user ID of the file's owner
+        st_gid        : gid_t;             // group ID of the file's group
+        st_rdev       : dev_t;             // device type
+        st_atime      : time_t;            // time of last access
+        st_atimensec  : clong;             // nsec of last access
+        st_mtime      : time_t;            // time of last data modification
+        st_mtimensec  : clong;             // nsec of last data modification
+        st_ctime      : time_t;            // time of last file status change
+        st_ctimensec  : clong;             // nsec of last file status change
+        st_size       : off_t;             // file size, in bytes
+        st_blocks     : cint64;            // blocks allocated for file
+        st_blksize    : cuint32;           // optimal blocksize for I/O
+        st_flags      : cuint32;           // user defined flags for file
+        st_gen        : cuint32;           // file generation number
+        st_birthtime  : time_t;            // File creation time
+        st_birthtimensec : clong;          // nsec of file creation time
+        st_qspare     : array[0..1] Of cint64;
+   end;
+   TStat_55 = stat_55;
+   pStat_55 = ^stat_55;
+
+  { directory services }
+   dirent_55  = record
+        d_fileno      : ino_t;                       
+	d_off         : off_t;
+        d_reclen      : cuint16;                        // length of this record
+        d_type        : cuint8;                         // file type, see below
+        d_namlen      : cuint8;                         // length of string in d_name
+	d_padding     : array[1..4] of cuint8;
+        d_name        : array[0..(255 + 1)-1] of char;  // name must be no longer than this
+   end;
+   TDirent_55 = dirent_55;
+   pDirent_55 = ^dirent_55;
+
+   dir_55     = record
+        dd_fd     : cint;         // file descriptor associated with directory
+        dd_loc    : clong;        // offset in current buffer
+        dd_size   : clong;        // amount of data returned by getdirentries
+        dd_buf    : pchar;        // data buffer
+        dd_len    : cint;         // size of data buffer
+	dd_curpos : off_t;
+	dd_lock   : pointer;
+	dd_rewind : clong;
+   end;
+   TDir_55    = dir_55;
+   pDir_55    = ^dir_55;
+

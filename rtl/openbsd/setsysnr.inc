@@ -1,4 +1,23 @@
 
+{$ifdef FPC_COMPILING_SYSCALL_UNIT}
+
+{ these variables are used inside osysc.inc file
+  but needed here also if compiling syscall unit. }
+{$i errno.inc}
+{$i ptypes.inc}
+
+{$endif FPC_COMPILING_SYSCALL_UNIT}
+
+{$ifndef FPC_IS_SYSTEM}
+var
+  use_openbsd_getdirentries_49 : boolean = false;
+  use_getdirentries_syscall : boolean = true;
+
+function geterrno:longint; external name 'FPC_SYS_GETERRNO';
+procedure seterrno(err:longint); external name 'FPC_SYS_SETERRNO';
+
+{$endif FPC_IS_SYSTEM}
+
 procedure SetSyscallNumbers;
 
 Var
@@ -103,6 +122,16 @@ Begin
   else if version > 5001 then
     syscall_nr___tfork := syscall_nr___tfork_52;
 
-
+  if version >= 5005 then
+    begin
+      { FIXME: what should we do here? }
+      syscall_nr_getdirentries := -1;
+      use_getdirentries_syscall:=false;
+    end
+  else if version >= 4009 then
+    begin
+      syscall_nr_getdirentries := syscall_nr_getdirentries_49;
+      use_openbsd_getdirentries_49:=true;
+    end;
 
 end;
