@@ -157,7 +157,8 @@ baseunix$(PPUEXT) : errno.inc ptypes.inc $(UNIXINC)/ctypes.inc \
   signal.inc $(UNIXINC)/bunxh.inc \
   $(BSDINC)/bunxsysc.inc $(BSDPROCINC)/syscallh.inc sysnr.inc \
   $(BSDINC)/ostypes.inc $(BSDINC)/osmacro.inc $(UNIXINC)/gensigset.inc \
-  $(UNIXINC)/genfuncs.inc sysctl$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+  $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) -Fu../unix -Fu../bsd ../unix/baseunix.pp
 
 
 unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
@@ -259,9 +260,12 @@ errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 
-sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT) syscall$(PPUEXT) unixtype$(PPUEXT)
+syscall$(PPUEXT) : $(UNIXINC)/syscall.pp baseunix$(PPUEXT)
 
-syscall$(PPUEXT) : $(UNIXINC)/syscall.pp
+# sysctl needs to also compile baseunix and syscall units, which
+# are respectively located in ../
+sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT) syscall$(PPUEXT) unixtype$(PPUEXT)
+	$(COMPILER) -Fu$(UNIXINC) -Fu$(BSDINC) $(BSDINC)/sysctl.pp
 
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
