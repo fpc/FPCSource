@@ -164,7 +164,8 @@ begin
     P.BeforeCompileProc:=@BeforeCompile_gdbint;
     P.AfterCompileProc:=@AfterCompile_gdbint;
 
-    //p.Targets.AddProgram('src'+PathDelim+'gdbver.pp');
+    T := p.Targets.AddProgram('src'+PathDelim+'gdbver.pp');
+    T.Install := false;
     //
     // NOTE: the gdbver.inc dependancies gives warnings because the makefile.fpc
     // does a "cp src/gdbver_nogdb.inc src/gdbver.inc" to create it
