@@ -719,17 +719,17 @@ begin
   if assigned(FTransaction) then
     begin
     try
-      if not (toUseImplicit in Transaction.Options) then
+      if not (stoUseImplicit in Transaction.Options) then
         begin
         if Ftransaction.Active then
           Ftransaction.Rollback;
         Ftransaction.StartTransaction;
         end;
       TryDropIfExist('FPDEV2');
-      if not (toUseImplicit in Transaction.Options) then
+      if not (stoUseImplicit in Transaction.Options) then
         Ftransaction.Commit;
     Except
-      if Ftransaction.Active and not (toUseImplicit in Transaction.Options) then
+      if Ftransaction.Active and not (stoUseImplicit in Transaction.Options) then
         Ftransaction.Rollback;
     end; // try
     end;

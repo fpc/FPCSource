@@ -46,7 +46,7 @@ type
     Procedure TestAutoApplyUpdatesPost;
     Procedure TestAutoApplyUpdatesDelete;
     Procedure TestCheckRowsAffected;
-    Procedure TestAutoCOmmit;
+    Procedure TestAutoCommit;
   end;
 
   { TTestTSQLConnection }
@@ -192,7 +192,7 @@ begin
     Transaction.COmmit;
     Q := SQLDBConnector.Query;
     Q.SQL.Text:='select * from testdiscon';
-    Q.QueryOptions:=[sqoDisconnected];
+    Q.Options:=[sqoKeepOpenOnCommit];
     AssertEquals('PacketRecords forced to -1',-1,Q.PacketRecords);
     Q.Open;
     AssertEquals('Got all records',20,Q.RecordCount);
@@ -231,15 +231,15 @@ begin
   with SQLDBConnector do
     begin
     FMyQ := SQLDBConnector.Query;
-    FMyQ.QueryOptions:=[sqoDisconnected];
-    AssertException('Cannot set packetrecords when sqoDisconnected is active',EDatabaseError,@TrySetPacketRecords);
+    FMyQ.Options:=[sqoKeepOpenOnCommit];
+    AssertException('Cannot set PacketRecords when sqoKeepOpenOnCommit is active',EDatabaseError,@TrySetPacketRecords);
     end;
 end;
 
-Procedure TTestTSQLQuery.SetQueryOPtions;
+Procedure TTestTSQLQuery.SetQueryOptions;
 
 begin
-  FMyQ.QueryOptions:=[sqoDisconnected];
+  FMyQ.Options:=[sqoKeepOpenOnCommit];
 end;
 
 Procedure TTestTSQLQuery.TestCheckSettingsOnlyWhenInactive;
@@ -277,7 +277,7 @@ begin
     Q := SQLDBConnector.Query;
     FMyQ:=Q; // so th event handler can reach it.
     Q.SQL.Text:='select * from testdiscon';
-    Q.QueryOptions:=[  sqoAutoApplyUpdates];
+    Q.Options:=[sqoAutoApplyUpdates];
     // We must test that in AfterPost, the modification is still there, for backwards compatibilty
     Q.AfterPost:=@DoAfterPost;
     Q.Open;
@@ -313,7 +313,7 @@ begin
     Q := SQLDBConnector.Query;
     FMyQ:=Q; // so th event handler can reach it.
     Q.SQL.Text:='select * from testdiscon';
-    Q.QueryOptions:=[  sqoAutoApplyUpdates];
+    Q.Options:=[sqoAutoApplyUpdates];
     // We must test that in AfterPost, the modification is still there, for backwards compatibilty
     Q.AfterPost:=@DoAfterPost;
     Q.Open;
@@ -348,7 +348,7 @@ begin
     for I:=1 to 2 do
       ExecuteDirect(Format('INSERT INTO testdiscon values (%d,''%.6d'')',[i,i]));
     Transaction.COmmit;
-    SQLDBConnector.Connection.Options:=[coCheckRowsAffected];
+    SQLDBConnector.Connection.Options:=[scoApplyUpdatesChecksRowsAffected];
     Q := SQLDBConnector.Query;
     Q.SQL.Text:='select * from testdiscon';
     Q.DeleteSQL.Text:='delete from testdiscon';
@@ -361,7 +361,7 @@ begin
     end;
 end;
 
-Procedure TTestTSQLQuery.TestAutoCOmmit;
+Procedure TTestTSQLQuery.TestAutoCommit;
 var
   Q: TSQLQuery;
   T : TSQLTransaction;
@@ -375,7 +375,7 @@ begin
       Transaction.Commit;
     end;
   Q:=SQLDBConnector.Query;
-  Q.QueryOptions:=[sqoAutoCommit];
+  Q.Options:=[sqoAutoCommit];
   for I:=1 to 2 do
     begin
     Q.SQL.Text:=Format('INSERT INTO testdiscon values (%d,''%.6d'');',[i,i]);
@@ -411,7 +411,7 @@ Var
 begin
   T:=TSQLTransaction.Create(Nil);
   try
-    T.Options:=[toUseImplicit];
+    T.Options:=[stoUseImplicit];
     T.DataBase:=SQLDBConnector.Connection;
   finally
     T.Free;
@@ -426,7 +426,7 @@ Var
 begin
   T:=TSQLTransaction.Create(Nil);
   try
-    T.Options:=[toUseImplicit];
+    T.Options:=[stoUseImplicit];
     SQLDBConnector.Connection.Transaction:=T;
   finally
     T.Free;
@@ -436,7 +436,7 @@ end;
 procedure TTestTSQLConnection.SetImplicit;
 
 begin
-  SQLDBConnector.Transaction.Options:=[toUseImplicit];
+  SQLDBConnector.Transaction.Options:=[stoUseImplicit];
 end;
 
 procedure TTestTSQLConnection.TestImplicitTransactionNotAssignable;
@@ -505,7 +505,7 @@ end;
 procedure TTestTSQLConnection.TestUseExplicitTransaction;
 begin
   SQLDBConnector.Transaction.Active:=False;
-  SQLDBConnector.Transaction.Options:=[toExplicitStart];
+  SQLDBConnector.Transaction.Options:=[stoExplicitStart];
   SQLDBConnector.Query.SQL.Text:='select * from FPDEV';
   AssertException('toExplicitStart raises exception on implicit start',EDatabaseError,@TryOpen)
 end;
@@ -513,7 +513,7 @@ end;
 procedure TTestTSQLConnection.TestExplicitConnect;
 begin
   SQLDBConnector.Transaction.Active:=False;
-  SQLDBConnector.Connection.Options:=[coExplicitConnect];
+  SQLDBConnector.Connection.Options:=[scoExplicitConnect];
   SQLDBConnector.Connection.Connected:=False;
   SQLDBConnector.Query.SQL.Text:='select * from FPDEV';
   AssertException('toExplicitStart raises exception on implicit start',EDatabaseError,@TryOpen)
@@ -650,7 +650,7 @@ begin
   DBConnector.StopTest(TestName);
   if assigned(DBConnector) then
     with SQLDBConnector do
-      if Assigned(Transaction) and not (toUseImplicit in Transaction.Options) then
+      if Assigned(Transaction) and not (stoUseImplicit in Transaction.Options) then
         Transaction.Rollback;
   FreeDBConnector;
   inherited TearDown;

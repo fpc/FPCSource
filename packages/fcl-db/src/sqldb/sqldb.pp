@@ -24,13 +24,7 @@ uses SysUtils, Classes, DB, bufdataset, sqlscript;
 
 type
   TSchemaType = (stNoSchema, stTables, stSysTables, stProcedures, stColumns, stProcedureParams, stIndexes, stPackages, stSchemata);
-  TConnOption = (sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeSlash, sqEscapeRepeat, sqImplicitTransaction);
-  TConnOptions= set of TConnOption;
 
-  TConnectionOption = (coExplicitConnect,coCheckRowsAffected);
-  TConnectionOptions = Set of TConnectionOption;
-
-  TConnInfoType=(citAll=-1, citServerType, citServerVersion, citServerVersionString, citClientName, citClientVersion);
   TStatementType = (stUnknown, stSelect, stInsert, stUpdate, stDelete,
     stDDL, stGetSegment, stPutSegment, stExecProcedure,
     stStartTrans, stCommit, stRollback, stSelectForUpd);
@@ -47,7 +41,6 @@ type
   end;
 
 
-type
   TSQLConnection = class;
   TSQLTransaction = class;
   TCustomSQLQuery = class;
@@ -59,9 +52,6 @@ type
   TDBEventType = (detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack);
   TDBEventTypes = set of TDBEventType;
   TDBLogNotifyEvent = Procedure (Sender : TSQLConnection; EventType : TDBEventType; Const Msg : String) of object;
-
-  TSQLQueryOption = (sqoDisconnected, sqoAutoApplyUpdates, sqoAutoCommit);
-  TSQLQueryOptions = Set of TSQLQueryOption;
 
   TSQLHandle = Class(TObject)
   end;
@@ -150,10 +140,18 @@ type
 
   { TSQLConnection }
 
+  TConnOption = (sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeSlash, sqEscapeRepeat, sqImplicitTransaction);
+  TConnOptions= set of TConnOption;
+
+  TSQLConnectionOption = (scoExplicitConnect, scoApplyUpdatesChecksRowsAffected);
+  TSQLConnectionOptions = Set of TSQLConnectionOption;
+
+  TConnInfoType=(citAll=-1, citServerType, citServerVersion, citServerVersionString, citClientName, citClientVersion);
+
   TSQLConnection = class (TDatabase)
   private
     FFieldNameQuoteChars : TQuoteChars;
-    FOptions: TConnectionOptions;
+    FOptions             : TSQLConnectionOptions;
     FPassword            : string;
     FTransaction         : TSQLTransaction;
     FUserName            : string;
@@ -165,7 +163,7 @@ type
     FOnLog: TDBLogNotifyEvent;
     FInternalTransaction : TSQLTransaction;
     function GetPort: cardinal;
-    procedure SetOptions(AValue: TConnectionOptions);
+    procedure SetOptions(AValue: TSQLConnectionOptions);
     procedure SetPort(const AValue: cardinal);
   protected
     FConnOptions         : TConnOptions;
@@ -249,9 +247,9 @@ type
     property HostName : string Read FHostName Write FHostName;
     Property OnLog : TDBLogNotifyEvent Read FOnLog Write FOnLog;
     Property LogEvents : TDBEventTypes Read FLogEvents Write FLogEvents Default LogAllEvents;
-    Property Options : TConnectionOptions Read FOptions Write SetOptions;
-    property Connected;
+    Property Options : TSQLConnectionOptions Read FOptions Write SetOptions;
     Property Role :  String read FRole write FRole;
+    property Connected;
     property DatabaseName;
     property KeepConnection;
     property LoginPrompt;
@@ -263,17 +261,18 @@ type
 
   TCommitRollbackAction = (caNone, caCommit, caCommitRetaining, caRollback,
     caRollbackRetaining);
-  TTransactionOption = (toUseImplicit, toExplicitStart);
-  TTransactionOptions = Set of TTransactionOption;
+
+  TSQLTransactionOption = (stoUseImplicit, stoExplicitStart);
+  TSQLTransactionOptions = Set of TSQLTransactionOption;
 
   TSQLTransaction = class (TDBTransaction)
   private
-    FOptions: TTransactionOptions;
+    FOptions             : TSQLTransactionOptions;
     FTrans               : TSQLHandle;
     FAction              : TCommitRollbackAction;
     FParams              : TStringList;
     function GetSQLConnection: TSQLConnection;
-    procedure SetOptions(AValue: TTransactionOptions);
+    procedure SetOptions(AValue: TSQLTransactionOptions);
     procedure SetParams(const AValue: TStringList);
     procedure SetSQLConnection(AValue: TSQLConnection);
   protected
@@ -298,7 +297,7 @@ type
     property Action : TCommitRollbackAction read FAction write FAction Default caRollBack;
     property Database;
     property Params : TStringList read FParams write SetParams;
-    Property Options : TTransactionOptions Read FOptions Write SetOptions;
+    Property Options : TSQLTransactionOptions Read FOptions Write SetOptions;
   end;
 
 
@@ -375,9 +374,12 @@ type
 
   { TCustomSQLQuery }
 
+  TSQLQueryOption = (sqoKeepOpenOnCommit, sqoAutoApplyUpdates, sqoAutoCommit);
+  TSQLQueryOptions = Set of TSQLQueryOption;
+
   TCustomSQLQuery = class (TCustomBufDataset)
   private
-    FQueryOptions: TSQLQueryOptions;
+    FOptions             : TSQLQueryOptions;
     FSchemaType          : TSchemaType;
     FUpdateable          : boolean;
     FTableName           : string;
@@ -412,8 +414,8 @@ type
     function GetSQLConnection: TSQLConnection;
     function GetSQLTransaction: TSQLTransaction;
     function GetStatementType : TStatementType;
+    procedure SetOptions(AValue: TSQLQueryOptions);
     procedure SetParamCheck(AValue: Boolean);
-    procedure SetQueryOptions(AValue: TSQLQueryOptions);
     procedure SetSQLConnection(AValue: TSQLConnection);
     procedure SetSQLTransaction(AValue: TSQLTransaction);
     procedure SetUpdateSQL(const AValue: TStringlist);
@@ -504,15 +506,15 @@ type
     property OnNewRecord;
     property OnPostError;
     property AutoCalcFields;
+    // protected
     property Database;
-  // protected
-    Property QueryOptions : TSQLQueryOptions Read FQueryOptions Write SetQueryOptions;
-    property SchemaType : TSchemaType read FSchemaType default stNoSchema;
     property Transaction;
+    property SchemaType : TSchemaType read FSchemaType default stNoSchema;
     property SQL : TStringlist read GetSQL write SetSQL;
     property UpdateSQL : TStringlist read FUpdateSQL write SetUpdateSQL;
     property InsertSQL : TStringlist read FInsertSQL write SetInsertSQL;
     property DeleteSQL : TStringlist read FDeleteSQL write SetDeleteSQL;
+    Property Options : TSQLQueryOptions Read FOptions Write SetOptions;
     property Params : TParams read GetParams Write SetParams;
     Property ParamCheck : Boolean Read GetParamCheck Write SetParamCheck default true;
     property ParseSQL : Boolean read GetParseSQL write SetParseSQL default true;
@@ -562,7 +564,6 @@ type
     Property OnPostError;
 
     //    property SchemaInfo default stNoSchema;
-    Property QueryOptions;
     property Database;
     property Transaction;
     property ReadOnly;
@@ -571,6 +572,7 @@ type
     property InsertSQL;
     property DeleteSQL;
     property IndexDefs;
+    Property Options;
     property Params;
     Property ParamCheck;
     property ParseSQL;
@@ -1182,7 +1184,7 @@ begin
     DatabaseError(SErrTransactionnSet);
 
   if not Connected then Open;
-  if not (ATransaction.Active or (toUseImplicit in ATransaction.Options)) then
+  if not (ATransaction.Active or (stoUseImplicit in ATransaction.Options)) then
     ATransaction.MaybeStartTransaction;
 
   try
@@ -1209,7 +1211,7 @@ begin
   result := StrToIntDef(Params.Values['Port'],0);
 end;
 
-procedure TSQLConnection.SetOptions(AValue: TConnectionOptions);
+procedure TSQLConnection.SetOptions(AValue: TSQLConnectionOptions);
 begin
   if FOptions=AValue then Exit;
   FOptions:=AValue;
@@ -1687,15 +1689,15 @@ begin
     begin
     P:=Qry.Params[x];
     S:=p.name;
-    B:=Sametext(leftstr(S,4),'OLD_');
+    B:=SameText(leftstr(S,4),'OLD_');
     if B then
       Delete(S,1,4);
     Fld:=Query.FieldByName(S);
     ApplyFieldUpdate(Query.Cursor,P as TSQLDBParam,Fld,B);
     end;
-  Qry.execute;
-  if (coCheckRowsAffected in Options) and (Qry.RowsAffected<>1) then
-    DatabaseErrorFmt(SErrFailedToUpdateRecord,[Qry.RowsAffected],Query);
+  Qry.Execute;
+  if (scoApplyUpdatesChecksRowsAffected in Options) and (Qry.RowsAffected<>1) then
+    DatabaseErrorFmt(SErrFailedToUpdateRecord, [Qry.RowsAffected], Query);
 end;
 
 procedure TSQLConnection.FreeFldBuffers(cursor: TSQLCursor);
@@ -1723,7 +1725,7 @@ Procedure TSQLConnection.MaybeConnect;
 begin
   If Not Connected then
     begin
-    If (coExplicitConnect in Options) then
+    If (scoExplicitConnect in Options) then
       DatabaseErrorFmt(SErrImplicitConnect,[Name]);
     Connected:=True;
     end;
@@ -1751,7 +1753,7 @@ begin
       Commit;
     caNone,
     caRollback, caRollbackRetaining :
-      if not (toUseImplicit in Options) then
+      if not (stoUseImplicit in Options) then
         RollBack
       else
         CloseTrans;
@@ -1768,11 +1770,11 @@ begin
   Result:=Database as TSQLConnection;
 end;
 
-procedure TSQLTransaction.SetOptions(AValue: TTransactionOptions);
+procedure TSQLTransaction.SetOptions(AValue: TSQLTransactionOptions);
 begin
   if FOptions=AValue then Exit;
-  if (toUseImplicit in Avalue) and Assigned(SQLConnection) And Not (sqImplicitTransaction in SQLConnection.ConnOptions) then
-    DatabaseErrorFmt(SErrNoImplicitTransaction,[SQLConnection.ClassName]);
+  if (stoUseImplicit in Avalue) and Assigned(SQLConnection) And Not (sqImplicitTransaction in SQLConnection.ConnOptions) then
+    DatabaseErrorFmt(SErrNoImplicitTransaction, [SQLConnection.ClassName]);
   FOptions:=AValue;
 end;
 
@@ -1785,8 +1787,8 @@ Procedure TSQLTransaction.MaybeStartTransaction;
 begin
   if not Active then
     begin
-    if (toExplicitStart in Options) then
-      DatabaseErrorFmt(SErrImplictTransactionStart,[Database.Name,Name]);
+    if (stoExplicitStart in Options) then
+      DatabaseErrorFmt(SErrImplictTransactionStart, [Database.Name,Name]);
     StartTransaction;
     end;
 end;
@@ -1799,7 +1801,7 @@ end;
 Function TSQLTransaction.AllowClose(DS: TDBDataset): Boolean;
 begin
   if (DS is TSQLQuery) then
-    Result:=not (sqoDisconnected in TSQLQuery(DS).QueryOptions)
+    Result:=not (sqoKeepOpenOnCommit in TSQLQuery(DS).Options)
   else
     Result:=Inherited AllowClose(DS);
 end;
@@ -1811,7 +1813,7 @@ begin
     CloseDataSets;
     If LogEvent(detCommit) then
       Log(detCommit,SCommitting);
-    if (toUseImplicit in Options) or SQLConnection.Commit(FTrans) then
+    if (stoUseImplicit in Options) or SQLConnection.Commit(FTrans) then
       begin
       CloseTrans;
       FreeAndNil(FTrans);
@@ -1833,7 +1835,7 @@ procedure TSQLTransaction.Rollback;
 begin
   if Active then
     begin
-    if (toUseImplicit in Options) then
+    if (stoUseImplicit in Options) then
       DatabaseError(SErrImplicitNoRollBack);
     CloseDataSets;
     If LogEvent(detRollback) then
@@ -1850,7 +1852,7 @@ procedure TSQLTransaction.RollbackRetaining;
 begin
   if Active then
     begin
-    if (toUseImplicit in Options) then
+    if (stoUseImplicit in Options) then
       DatabaseError(SErrImplicitNoRollBack);
     If LogEvent(detRollback) then
       Log(detRollback,SRollBackRetaining);
@@ -1875,7 +1877,7 @@ begin
 
   if not assigned(FTrans) then FTrans := Db.AllocateTransactionHandle;
 
-  if (toUseImplicit in Options) then
+  if (stoUseImplicit in Options) then
     begin
     if Db.StartImplicitTransaction(FTrans,FParams.CommaText) then
       OpenTrans
@@ -1910,7 +1912,7 @@ begin
     if Assigned(Value) and not (Value is TSQLConnection) then
       DatabaseErrorFmt(SErrNotASQLConnection,[value.Name],self);
     CheckInactive;
-    if (toUseImplicit in Options) and Assigned(Value) and Not (sqImplicitTransaction in TSQLConnection(Value).ConnOptions) then
+    if (stoUseImplicit in Options) and Assigned(Value) and Not (sqImplicitTransaction in TSQLConnection(Value).ConnOptions) then
            DatabaseErrorFmt(SErrNoImplicitTransaction,[Value.ClassName]);
     If Assigned(Database) then
       begin
@@ -2075,7 +2077,7 @@ end;
 Procedure TCustomSQLQuery.ApplyUpdates(MaxErrors: Integer);
 begin
   inherited ApplyUpdates(MaxErrors);
-  If sqoAutoCommit in QueryOptions then
+  If sqoAutoCommit in Options then
     begin
     // Retrieve rows affected for last update.
     FStatement.RowsAffected;
@@ -2258,7 +2260,7 @@ end;
 procedure TCustomSQLQuery.SetPacketRecords(aValue: integer);
 begin
   if (AValue=PacketRecords) then exit;
-  if (AValue<>-1) and (sqoDisconnected in QueryOptions) then
+  if (AValue<>-1) and (sqoKeepOpenOnCommit in Options) then
     DatabaseError(SErrDisconnectedPacketRecords);
   Inherited SetPacketRecords(aValue);
 end;
@@ -2417,7 +2419,7 @@ begin
   try
     Prepare;
     Execute;
-    If sqoAutoCommit in QueryOptions then
+    If sqoAutoCommit in Options then
       begin
       // Retrieve rows affected
       FStatement.RowsAffected;
@@ -2434,14 +2436,14 @@ end;
 Procedure TCustomSQLQuery.Post;
 begin
   inherited Post;
-  If (sqoAutoApplyUpdates in QueryOptions) then
+  If (sqoAutoApplyUpdates in Options) then
     ApplyUpdates;
 end;
 
 Procedure TCustomSQLQuery.Delete;
 begin
   inherited Delete;
-  If (sqoAutoApplyUpdates in QueryOptions) then
+  If (sqoAutoApplyUpdates in Options) then
     ApplyUpdates;
 end;
 
@@ -2572,12 +2574,12 @@ begin
   FStatement.ParamCheck:=AValue;
 end;
 
-procedure TCustomSQLQuery.SetQueryOptions(AValue: TSQLQueryOptions);
+procedure TCustomSQLQuery.SetOptions(AValue: TSQLQueryOptions);
 begin
-  if FQueryOptions=AValue then Exit;
+  if FOptions=AValue then Exit;
   CheckInactive;
-  FQueryOptions:=AValue;
-  if sqoDisconnected in FQueryOptions then
+  FOptions:=AValue;
+  if sqoKeepOpenOnCommit in FOptions then
     PacketRecords:=-1;
 end;
 
