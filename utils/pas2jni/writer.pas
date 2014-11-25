@@ -793,10 +793,16 @@ begin
           s:='__objvar.';
         end;
         s:=s + Variable.Name;
-        if Variable.IndexType <> nil then begin
+        if Variable.Count > 0 then begin
           ASSERT(Count >= 1);
-          i:=1;
-          s:=Format('%s[%s]', [s, JniToPasType(TVarDef(Items[0]).VarType, Items[0].Name, False)]);
+          i:=Variable.Count;
+          ss:='';
+          for j:=0 to Variable.Count - 1 do begin
+            if ss <> '' then
+              ss:=ss + ', ';
+            ss:=ss + JniToPasType(TVarDef(Items[j]).VarType, Items[j].Name, False);
+          end;
+          s:=Format('%s[%s]', [s, ss]);
         end
         else
           i:=0;
@@ -899,8 +905,10 @@ end;
 procedure TWriter.WriteVar(d: TVarDef; AParent: TDef);
 var
   pd: TProcDef;
+  vd: TVarDef;
   t: TTypeDef;
   s: string;
+  i: integer;
 begin
   if not d.IsUsed then
     exit;
@@ -914,7 +922,7 @@ begin
         s:='';
     end;
     s:=Trim(s + ' ' + d.Name);
-    if d.IndexType <> nil then
+    if d.Count > 0 then
       s:=s + '[]';
     Fjs.WriteLn(Format('// %s: %s', [s, d.VarType.Name]));
   end;
@@ -927,13 +935,16 @@ begin
       pd.ProcType:=ptFunction;
       pd.Name:='get' + d.Name;
       pd.ReturnType:=d.VarType;
-      if d.IndexType <> nil then
-        with TVarDef.Create(pd, dtParam) do begin
-          Name:='_Index';
-          AliasName:='Index';
-          VarType:=d.IndexType;
-          VarOpt:=[voRead];
+      if d.DefType = dtProp then begin
+        for i:=0 to d.Count - 1 do begin
+          vd:=TVarDef(d.Items[i]);
+          with TVarDef.Create(pd, dtParam) do begin
+            Name:=vd.Name;
+            VarType:=vd.VarType;
+            VarOpt:=[voRead];
+          end;
         end;
+      end;
       WriteProc(pd, d, AParent);
     finally
       pd.Free;
@@ -947,16 +958,33 @@ begin
       pd.Parent:=d.Parent;
       pd.ProcType:=ptProcedure;
       pd.Name:='set' + d.Name;
-      if d.IndexType <> nil then
-        with TVarDef.Create(pd, dtParam) do begin
-          Name:='_Index';
-          AliasName:='Index';
-          VarType:=d.IndexType;
-          VarOpt:=[voRead];
+
+      s:='Value';
+      if d.DefType = dtProp then begin
+        for i:=0 to d.Count - 1 do begin
+          vd:=TVarDef(d.Items[i]);
+          with TVarDef.Create(pd, dtParam) do begin
+            Name:=vd.Name;
+            VarType:=vd.VarType;
+            VarOpt:=[voRead];
+          end;
         end;
+
+        // Check if the name of value parameter is unique
+        i:=0;
+        while i < d.Count do begin
+          if AnsiCompareText(s, d.Items[i].Name) = 0 then begin
+            i:=0;
+            s:='_' + s;
+            continue;
+          end;
+          Inc(i);
+        end;
+      end;
+
       with TVarDef.Create(pd, dtParam) do begin
-        Name:='_Value';
-        AliasName:='Value';
+        Name:='_' + s;
+        AliasName:=s;
         VarType:=d.VarType;
         VarOpt:=[voRead];
       end;

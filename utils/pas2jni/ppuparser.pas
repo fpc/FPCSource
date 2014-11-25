@@ -520,9 +520,7 @@ var
               if it.Get('Setter', TJSONObject(nil)) <> nil then
                 VarOpt:=VarOpt + [voWrite];
 
-              arr:=it.Get('Params', TJSONArray(nil));
-              if (arr <> nil) and (arr.Count = 1) then
-                IndexType:=_GetRef(arr.Objects[0].Objects['VarType']);
+              _ReadDefs(d, it, 'Params');
             end;
           dtEnum:
             _ReadDefs(d, it, 'Elements');
