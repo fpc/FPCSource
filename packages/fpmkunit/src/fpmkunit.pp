@@ -2045,6 +2045,7 @@ var
 begin
   { can't use SetToString, there are more than 32 OSes }
   First:=true;
+  Result:='';
   for i in OSes do
     begin
       if not First then
@@ -2054,7 +2055,7 @@ begin
       Str(i,Tmp);
       Result:=Result+Tmp;
     end;
-  Result:=LowerCase(Tmp);
+  Result:=LowerCase(Result);
 end;
 
 Function CPUToString(CPU: TCPU) : String;
@@ -2615,18 +2616,18 @@ end;
 
 function TConditionalDestStrings.Add(const Value: String; ADestPath: String): TConditionalDestString;
 begin
-  Add(Value, AllCPUs, AllOSes, ADestPath);
+  Result:=Add(Value, AllCPUs, AllOSes, ADestPath);
 end;
 
 function TConditionalDestStrings.Add(const Value: String; const OSes: TOSes; ADestPath: String): TConditionalDestString;
 begin
-  Add(Value, AllCPUs, OSes, ADestPath);
+  Result:=Add(Value, AllCPUs, OSes, ADestPath);
 end;
 
 {$ifdef cpu_only_overloads}
 Function TConditionalDestStrings.Add(Const Value : String;const CPUs:TCPUs; ADestPath: String) : TConditionalDestString;inline;
 begin
-  Add(Value, CPUs, AllOSes, ADestPath);
+  Result:=Add(Value, CPUs, AllOSes, ADestPath);
 end;
 {$endif cpu_only_overloads}
 
@@ -2637,6 +2638,7 @@ var
 begin
   ACondString := inherited Add(Value,CPUs,OSes) as TConditionalDestString;
   ACondString.DestPath:=ADestPath;
+  Result:=ACondString;
 end;
 
 { TPackageDictionary }
@@ -4783,9 +4785,8 @@ begin
 end;
 
 procedure TBuildEngine.AddFileToArchive(const APackage: TPackage; const ASourceFileName, ADestFileName: String);
-var
-  SourceDir: string;
 {$ifdef UNIX}
+var
   FileStat: stat;
 {$endif UNIX}
 begin
@@ -4827,7 +4828,7 @@ begin
       FZipper.FileName := Defaults.ZipPrefix + APackage.Name + MakeZipSuffix(Defaults.CPU,Defaults.OS) + '.zip';
     end;
 
-  FZipper.Entries.AddFileEntry(SourceDir + ASourceFileName, ADestFileName);
+  FZipper.Entries.AddFileEntry(ASourceFileName, ADestFileName);
   {$endif HAS_UNIT_ZIPPER}
 {$ENDIF CREATE_TAR_FILE}
 end;
@@ -6729,7 +6730,7 @@ begin
     GlobalDictionary.AddVariable('unitinstalldir', FixPath(APackage.Dictionary.ReplaceStrings(Defaults.UnitInstallDir), False));
     GlobalDictionary.AddVariable('packageunitinstalldir',APackage.GetPackageUnitInstallDir(Defaults.CPU,Defaults.OS));
 
-    D:=FixPath(Defaults.Prefix);
+    D:=FixPath(Defaults.Prefix,true);
     // This is to install the TPackage.Installfiles, which are not related to any
     // target
     if InstallPackageFiles(APackage,[],D) then
