@@ -424,7 +424,7 @@ var
         else
           continue;
 
-        if CurObjName = '' then begin
+        if (CurObjName = '') and (d.DefType <> dtEnum) then begin
           d.Free;
           continue;
         end;
@@ -530,6 +530,8 @@ var
               Base:=it.Integers['Base'];
               ElMax:=it.Integers['Max'];
               ElType:=TTypeDef(_GetRef(it.Objects['ElType'], TTypeDef));
+              if (ElType <> nil) and (ElType.Name = '') then
+                ElType.Name:=CurObjName + 'El';
             end;
           dtConst:
             with TConstDef(d) do begin
