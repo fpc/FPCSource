@@ -72,7 +72,9 @@ begin
         begin
           P.Options.Add('-dUSE_GDBLIBINC');
           P.Options.Add('-Fi'+GdbLibDir);
+          P.Options.Add('-Fl'+GdbLibDir);
           // No need to use gdbver in this case
+          p.Targets.Delete(GdbVerTarget.Index);
           Installer.BuildEngine.Log(vlCommand,'Using gdblib.inc include file')
         end
      // When we're cross-compiling, running the gdbver executable to detect the
