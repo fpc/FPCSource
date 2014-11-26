@@ -16,7 +16,7 @@ var
   P : TPackage;
   GdbLibDir, GdbLibFile: string;
   GdbLibFound: boolean;
-  GdbVerTarget: TTarget;
+  GdbintTarget, GdbVerTarget: TTarget;
 begin
   P := Sender as TPackage;
   // Search for a libgdb file.
@@ -60,6 +60,7 @@ begin
     end;
 
   GdbVerTarget:=TTarget(p.Targets.ItemByName('gdbver'));
+  GdbintTarget:=TTarget(p.Targets.ItemByName('gdbint'));
 
   if GdbLibFound then
     Installer.BuildEngine.Log(vlCommand,'File libgdb.a found ('+GdbLibFile+')')
@@ -94,6 +95,8 @@ begin
         AddProgramExtension('gdbver',Defaults.BuildOS),'-o ' +
         Installer.BuildEngine.AddPathPrefix(p,'src'+PathDelim+'gdbver.inc'));
 
+      with GdbintTarget.Dependencies do
+        AddInclude('gdbver.inc');
       // Pass -dUSE_MINGW_GDB to the compiler when a MinGW gdb is used
       if FileExists(GdbLibDir+PathDelim+MinGWGdbLibName) then
         begin
@@ -119,6 +122,8 @@ begin
         else
           L.values['src'+DirectorySeparator+'gdbver_nogdb.inc'] := 'src'+DirectorySeparator+'gdbver.inc';
         Installer.BuildEngine.cmdcopyfiles(L, Installer.BuildEngine.StartDir, nil);
+        with GdbintTarget.Dependencies do
+          AddInclude('gdbver.inc');
       finally
         L.Free;
       end;
@@ -181,10 +186,6 @@ begin
           AddUnit('gdbint');
         end;
     T:=P.Targets.AddUnit('gdbint.pp');
-      with T.Dependencies do
-        begin
-          AddInclude('gdbver.inc');
-        end;
     P.ExamplePath.add('examples');
     P.Targets.AddExampleProgram('testgdb.pp');
     P.Targets.AddExampleProgram('symify.pp');
