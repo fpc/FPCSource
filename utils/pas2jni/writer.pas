@@ -1256,14 +1256,22 @@ procedure TWriter.WriteUnit(u: TUnitDef);
     i: integer;
     d: TDef;
     s: string;
+    excl: boolean;
   begin
     for i:=0 to u.Count - 1 do begin
       d:=u[i];
       if d.DefType = dtClass then begin
         s:=u.Name + '.' + d.Name;
-        if (TClassDef(d).AncestorClass = AAncestorClass) or
-           ( (AAncestorClass = nil) and (DoCheckItem(u.Name + '.' + d.Name) = crExclude) )
-        then begin
+        if AAncestorClass = nil then begin
+          excl:=DoCheckItem(s) = crExclude;
+          if not excl then
+            with TClassDef(d).AncestorClass do
+              excl:=DoCheckItem(Parent.Name + '.' + Name) = crExclude;
+        end
+        else
+          excl:=TClassDef(d).AncestorClass = AAncestorClass;
+
+        if excl then begin
           d.SetNotUsed;
           ExcludeList.Add(s);
           _ExcludeClasses(TClassDef(d));
