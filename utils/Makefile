@@ -336,6 +336,7 @@ FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
 endif
 FPMAKE_BIN_CLEAN=$(wildcard ./fpmake$(SRCEXEEXT))
 LOCALFPMAKE=./fpmake$(SRCEXEEXT)
+SUB_FPMAKE_SRCS=$(wildcard */fpmake.pp)
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=utils
 ifdef REQUIRE_UNITSDIR
@@ -2307,7 +2308,7 @@ ifndef BUILDFULLNATIVE
 FPMAKE_OPT+=-sp
 endif
 .NOTPARALLEL:
-fpmake$(SRCEXEEXT): fpmake.pp
+fpmake$(SRCEXEEXT): fpmake.pp $(SUB_FPMAKE_SRCS) fpmake_add.inc fpmake_proc.inc
 	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) $(FPCMAKEOPT) $(OPT)
 all:	fpmake$(SRCEXEEXT)
 	$(LOCALFPMAKE) compile $(FPMAKE_OPT)
