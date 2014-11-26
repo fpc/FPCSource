@@ -2404,7 +2404,12 @@ implementation
                     if (vo_is_thread_var in sym.varoptions) then
                       begin
 { TODO: !!! FIXME: dwarf for thread vars !!!}
-                        blocksize:=0;
+{ This is only a minimal change to at least be able to get a value
+  in only one thread is present PM 2014-11-21, like for stabs format }
+                        templist.concat(tai_const.create_8bit(ord(DW_OP_addr)));
+                        templist.concat(tai_const.Create_type_name(aitconst_ptr,sym.mangledname,
+                          offset+sizeof(pint)));
+                        blocksize:=1+sizeof(puint);
                       end
                     else
                       begin
