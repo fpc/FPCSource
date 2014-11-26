@@ -351,6 +351,7 @@ endif
 ifdef UNITDIR_FPMAKE_FPMKUNIT
 override COMPILER_FPMAKE_UNITDIR=$(UNITDIR_FPMAKE_FPMKUNIT)
 endif
+SUB_FPMAKE_SRCS=$(wildcard */fpmake.pp)
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=packages
 ifdef REQUIRE_UNITSDIR
@@ -1640,7 +1641,7 @@ endif
 .NOTPARALLEL:
 fpmkunit_clean_bootstrap:
 	$(MAKE) -C fpmkunit clean_bootstrap
-fpmake$(SRCEXEEXT): fpmake.pp
+fpmake$(SRCEXEEXT): fpmake.pp $(SUB_FPMAKE_SRCS) fpmake_add.inc fpmake_proc.inc
 	$(MAKE) -C fpmkunit bootstrap
 	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) $(FPCMAKEOPT) $(OPT)
 all:	fpmake$(SRCEXEEXT)
