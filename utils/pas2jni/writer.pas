@@ -1250,6 +1250,28 @@ begin
 end;
 
 procedure TWriter.WriteUnit(u: TUnitDef);
+
+  procedure _ExcludeClasses(AAncestorClass: TClassDef);
+  var
+    i: integer;
+    d: TDef;
+    s: string;
+  begin
+    for i:=0 to u.Count - 1 do begin
+      d:=u[i];
+      if d.DefType = dtClass then begin
+        s:=u.Name + '.' + d.Name;
+        if (TClassDef(d).AncestorClass = AAncestorClass) or
+           ( (AAncestorClass = nil) and (DoCheckItem(u.Name + '.' + d.Name) = crExclude) )
+        then begin
+          d.SetNotUsed;
+          ExcludeList.Add(s);
+          _ExcludeClasses(TClassDef(d));
+        end;
+      end;
+    end;
+  end;
+
 var
   d: TDef;
   i: integer;
@@ -1261,6 +1283,9 @@ begin
 
   if not u.IsUsed then
     exit;
+
+  if AnsiCompareText(u.Name, 'system') <> 0 then
+    _ExcludeClasses(nil);
 
   for i:=0 to High(u.UsedUnits) do
     WriteUnit(u.UsedUnits[i]);

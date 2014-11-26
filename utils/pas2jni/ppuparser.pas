@@ -308,9 +308,6 @@ var
         if jt = 'obj' then begin
           if it.Strings['ObjType'] <> 'class' then
             continue;
-          // Exclude class?
-          if FOnCheckItem(AUnitName + '.' + CurObjName) = crExclude then
-            continue;
           d:=TClassDef.Create(CurDef, dtClass);
         end
         else
@@ -446,11 +443,6 @@ var
           dtClass:
             with TClassDef(d) do begin
               AncestorClass:=TClassDef(_GetRef(it.Get('Ancestor', TJSONObject(nil)), TClassDef));
-              if (AncestorClass <> nil) and (AncestorClass.DefType = dtNone) then begin
-                // Ancestor class has been excluded
-                FreeAndNil(d);
-                continue;
-              end;
               _ReadDefs(d, it, 'Fields');
             end;
           dtRecord:
