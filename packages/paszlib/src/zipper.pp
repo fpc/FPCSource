@@ -55,9 +55,9 @@ Type
      // after central directory header
      Header_ID              :  Word;
      //e.g. $0001 (ZIP64_HEADER_ID) Zip64 extended information extra field
-     //$0009 OS/2: extended attributes
-     //$000a NTFS: (Win32 really)
-     //$000d UNIX: uid, gid etc
+     //     $0009 OS/2: extended attributes
+     //     $000a NTFS: (Win32 really)
+     //     $000d UNIX: uid, gid etc
      Data_Size              :  Word; //size of following field data
      //... field data should follow...
    end;
@@ -1526,6 +1526,7 @@ Var
   Zip64ECDL : Zip64_End_of_Central_Dir_Locator_type;
 Begin
   ACount := 0;
+  MinReqdVersion:=0;
   CenDirPos := FOutStream.Position;
   FOutStream.Seek(0,soBeginning);             { Rewind output file }
   HdrPos := FOutStream.Position;
