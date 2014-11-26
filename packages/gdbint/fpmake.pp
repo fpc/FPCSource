@@ -59,6 +59,7 @@ begin
         end;
     end;
 
+  GdbVerTarget:=TTarget(p.Targets.ItemByName('gdbver'));
 
   if GdbLibFound then
     Installer.BuildEngine.Log(vlCommand,'File libgdb.a found ('+GdbLibFile+')')
@@ -85,7 +86,6 @@ begin
       P.Options.Add('-Fl'+GdbLibDir);
       Installer.BuildEngine.CreateOutputDir(p);
       Installer.BuildEngine.Log(vlCommand,'GDB-lib found, compiling and running gdbver to obtain GDB-version');
-      GdbVerTarget:=TTarget(p.Targets.ItemByName('gdbver'));
       Installer.BuildEngine.Compile(P,GdbVerTarget);
       Installer.BuildEngine.ExecuteCommand(Installer.BuildEngine.AddPathPrefix(p,p.
         GetBinOutputDir(Defaults.CPU, Defaults.OS))+PathDelim+
@@ -106,6 +106,9 @@ begin
     end
   else
     begin
+      // No suitable gdb found
+      // No need to compile gdbver.
+      p.Targets.Delete(GdbVerTarget.Index);
       // use gdb_nogdb.inc
       L := TStringList.Create;
       try
