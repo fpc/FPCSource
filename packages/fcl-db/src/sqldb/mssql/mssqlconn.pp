@@ -140,7 +140,7 @@ type
 
   EMSSQLDatabaseError = class(ESQLDatabaseError)
     public
-      property DBErrorCode: integer read FErrorCode; deprecated 'Please use ErrorCode instead of DBErrorCode'; // Feb 2014
+      property DBErrorCode: integer read ErrorCode; deprecated 'Please use ErrorCode instead of DBErrorCode'; // Feb 2014
   end;
 
   { TMSSQLConnectionDef }
@@ -298,13 +298,13 @@ var E: EMSSQLDatabaseError;
 begin
   if (Ret=FAIL) or (DBErrorStr<>'') then
   begin
+    // try clear all pending results to allow ROLLBACK and prevent error 10038 "Results pending"
+    if assigned(FDBProc) then dbcancel(FDBProc);
     if DBErrorStr = '' then
       case DBErrorNo of
         SYBEFCON: DBErrorStr:='SQL Server connection failed!';
       end;
     E:=EMSSQLDatabaseError.CreateFmt('Error %d : %s'+LineEnding+'%s', [DBErrorNo, DBErrorStr, DBMsgStr], Self, DBErrorNo, '');
-    // try clear all pending results to allow ROLLBACK and prevent error 10038 "Results pending"
-    if assigned(FDBProc) then dbcancel(FDBProc);
     DBErrorStr:='';
     DBMsgStr:='';
     raise E;

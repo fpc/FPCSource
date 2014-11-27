@@ -27,8 +27,8 @@ type
   end;
 
   EIBDatabaseError = class(ESQLDatabaseError)
-  public
-    property GDSErrorCode: integer read FErrorCode Write FErrorCode;
+    public
+      property GDSErrorCode: integer read ErrorCode; deprecated 'Please use ErrorCode instead of GDSErrorCode'; // Nov 2014
   end;
 
   { TIBCursor }
@@ -152,20 +152,26 @@ const
 
 procedure TIBConnection.CheckError(ProcName : string; Status : PISC_STATUS);
 var
-  buf : array [0..1023] of char;
-  Msg : string;
-  E   : EIBDatabaseError;
   Err : longint;
-  
+  Msg : string;
+  Buf : array [0..1023] of char;
+  E   : EIBDatabaseError;
+
 begin
   if ((Status[0] = 1) and (Status[1] <> 0)) then
   begin
     Err := Status[1];
-    msg := '';
+    Msg := '';
     while isc_interprete(Buf, @Status) > 0 do
-      Msg := Msg + LineEnding +' -' + StrPas(Buf);
-    E := EIBDatabaseError.CreateFmt('%s : %s : %s',[self.Name,ProcName,Msg]);
-    E.GDSErrorCode := Err;
+      Msg := Msg + LineEnding + ' -' + StrPas(Buf);
+    E := EIBDatabaseError.CreateFmt('%s : %s', [ProcName,Msg], Self, Err, '');
+{$IFDEF LinkDynamically}
+    if assigned(fb_sqlstate) then // >= Firebird 2.5
+    begin
+      fb_sqlstate(Buf, Status);
+      E.SQLState := StrPas(Buf);
+    end;
+{$ENDIF}
     Raise E;
   end;
 end;

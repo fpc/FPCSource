@@ -2355,7 +2355,7 @@ var r            : Integer;
     FailedCount  : integer;
     Response     : TResolverResponse;
     StoreCurrRec : TBufBookmark;
-    AUpdateErr   : EUpdateError;
+    AUpdateError : EUpdateError;
 
 begin
   CheckBrowseMode;
@@ -2382,18 +2382,23 @@ begin
           on E: EDatabaseError do
             begin
             Inc(FailedCount);
-            if FailedCount > word(MaxErrors) then Response := rrAbort
-            else Response := rrSkip;
+            if FailedCount > word(MaxErrors) then
+              Response := rrAbort
+            else
+              Response := rrSkip;
             if assigned(FOnUpdateError) then
               begin
-              AUpdateErr := PSGetUpdateException(Exception(AcquireExceptionObject), nil);
-              FOnUpdateError(Self,Self,AUpdateErr,FUpdateBuffer[r].UpdateKind,Response);
-              AUpdateErr.Free;
+              AUpdateError := PSGetUpdateException(Exception(AcquireExceptionObject), nil);
+              FOnUpdateError(Self, Self, AUpdateError, FUpdateBuffer[r].UpdateKind, Response);
+              AUpdateError.Free;
               if Response in [rrApply, rrIgnore] then dec(FailedCount);
               if Response = rrApply then dec(r);
               end
             else if Response = rrAbort then
-              Raise EUpdateError.Create(SOnUpdateError,E.Message,E.ErrorCode,0,Exception(AcquireExceptionObject));
+              begin
+              AUpdateError := PSGetUpdateException(Exception(AcquireExceptionObject), nil);
+              raise AUpdateError;
+              end;
             end
           else
             raise;
