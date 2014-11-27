@@ -332,13 +332,14 @@ end;
 
 procedure TOracleConnection.HandleError;
 
-var errcode : sb4;
+var
+    errcode : sb4;
     buf     : array[0..1023] of char;
-    E       : EOraDatabaseError;
+
 begin
   OCIErrorGet(FOciError,1,nil,errcode,@buf[0],1024,OCI_HTYPE_ERROR);
 
-  raise EOraDatabaseError.CreateFmt('%s', [pchar(buf)], Self, errcode, '')
+  raise EOraDatabaseError.CreateFmt(pchar(buf), [], Self, errcode, '')
 end;
 
 procedure TOracleConnection.GetParameters(cursor: TSQLCursor; ATransaction : TSQLTransaction; AParams: TParams);
