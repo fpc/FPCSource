@@ -152,27 +152,25 @@ const
 
 procedure TIBConnection.CheckError(ProcName : string; Status : PISC_STATUS);
 var
-  Err : longint;
-  Msg : string;
+  ErrorCode : longint;
+  Msg, SQLState : string;
   Buf : array [0..1023] of char;
-  E   : EIBDatabaseError;
 
 begin
   if ((Status[0] = 1) and (Status[1] <> 0)) then
   begin
-    Err := Status[1];
-    Msg := '';
-    while isc_interprete(Buf, @Status) > 0 do
-      Msg := Msg + LineEnding + ' -' + StrPas(Buf);
-    E := EIBDatabaseError.CreateFmt('%s : %s', [ProcName,Msg], Self, Err, '');
+    ErrorCode := Status[1];
 {$IFDEF LinkDynamically}
     if assigned(fb_sqlstate) then // >= Firebird 2.5
     begin
       fb_sqlstate(Buf, Status);
-      E.SQLState := StrPas(Buf);
+      SQLState := StrPas(Buf);
     end;
 {$ENDIF}
-    Raise E;
+    Msg := '';
+    while isc_interprete(Buf, @Status) > 0 do
+      Msg := Msg + LineEnding + ' -' + StrPas(Buf);
+    raise EIBDatabaseError.CreateFmt('%s : %s', [ProcName,Msg], Self, ErrorCode, SQLState);
   end;
 end;
 
