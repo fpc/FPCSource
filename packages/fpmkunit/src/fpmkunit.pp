@@ -2136,7 +2136,8 @@ end;
 Function MakeTargetString(CPU : TCPU;OS: TOS) : String;
 
 begin
-  if Defaults.BuildOS in AllLimit83fsOses then
+  if (Defaults.BuildOS in AllLimit83fsOses) or
+     (OS in AllLimit83fsOses) then
     Result := OSToString(OS)
   else
     Result:=CPUToString(CPU)+'-'+OSToString(OS);
@@ -2152,7 +2153,8 @@ begin
     emx:    result := 'emx';
     osNone:
       begin
-        if Defaults.BuildOS in AllLimit83fsOses then
+        if (Defaults.BuildOS in AllLimit83fsOses) or
+           (OS in AllLimit83fsOses) then
           result := 'src'
         else
           result := '.source'
@@ -3377,7 +3379,8 @@ begin
   If (FFileName<>'') then
     Result:=FFileName
   else
-    if not FVersion.Empty and not (Defaults.BuildOS in AllLimit83fsOses) then
+    if not FVersion.Empty and not
+      ((Defaults.OS in AllLimit83fsOses) or (Defaults.BuildOS in AllLimit83fsOses)) then
       Result := Name + '-' + FVersion.AsString
     else
       Result := Name;
@@ -6462,7 +6465,8 @@ begin
     if APackage.BuildMode=bmBuildUnit then
       begin
         APackage.FBUTargets := TTargets.Create(TTarget);
-        if Defaults.BuildOS in AllLimit83fsOses then
+        if (Defaults.BuildOS in AllLimit83fsOses) or
+           (Defaults.OS in AllLimit83fsOses) then
           BUName := 'BUnit.pp'
         else
           BUName := 'BuildUnit_'+StringReplace(APackage.Name,'-','_',[rfReplaceAll])+'.pp';
