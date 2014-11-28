@@ -1321,7 +1321,8 @@ uses
       if assigned(hmodule.globalsymtable) then
         symtablestack.push(hmodule.globalsymtable);
       { push the localsymtable if needed }
-      if (hmodule<>current_module) or not current_module.in_interface then
+      if ((hmodule<>current_module) or not current_module.in_interface)
+          and assigned(hmodule.localsymtable) then
         symtablestack.push(hmodule.localsymtable);
     end;
 
