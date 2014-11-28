@@ -203,17 +203,11 @@ end;
 
 procedure TFBAdmin.IBRaiseError(GDSErrorCode: Longint; const msg: string;
   const args: array of const);
-var
-  E:EIBDatabaseError;
 begin
-  FErrorMsg:=format(msg,args);
+  FErrorMsg:=Format(msg,args);
   FErrorCode:=GDSErrorCode;
   if FUseExceptions then
-    begin
-    E := EIBDatabaseError.Create(FErrorMsg);
-    E.GDSErrorCode := GDSErrorCode;
-    Raise E;
-    end;
+    raise EIBDatabaseError.CreateFmt(msg,args,nil,GDSErrorCode,'');
 end;
 
 function TFBAdmin.IBSPBParamSerialize(isccode: byte; value: string): string;
@@ -391,7 +385,6 @@ end;
 
 function TFBAdmin.Connect: boolean;
 var
-  E:EIBDatabaseError;
   Service:string;
   spb:string;
 begin
@@ -400,11 +393,7 @@ begin
   result:=InitialiseIBase60<>0;
   {$EndIf}
   if FSvcHandle<>FB_API_NULLHANDLE then
-    begin
-    E := EIBDatabaseError.CreateFmt(SErrConnected,[self.Name]);
-    E.GDSErrorCode := 0;
-    Raise E;
-    end;
+    raise EIBDatabaseError.CreateFmt(SErrConnected,[Self.Name],nil,0,'');
   Service:='service_mgr';
   case FProtocol of
     IBSPTCPIP:if FPort=3050 then
