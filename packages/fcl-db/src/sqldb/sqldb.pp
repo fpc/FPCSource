@@ -920,6 +920,7 @@ begin
   FParams:=CreateParams;
   FParamCheck:=True;
   FParseSQL:=True;
+  FRowsAffected:=-1;
 end;
 
 destructor TCustomSQLStatement.Destroy;
@@ -2271,7 +2272,7 @@ end;
 
 function TCustomSQLQuery.RowsAffected: TRowsCount;
 begin
-  Result:=Fstatement.RowsAffected;
+  Result:=FStatement.RowsAffected;
 end;
 
 function TCustomSQLQuery.LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
