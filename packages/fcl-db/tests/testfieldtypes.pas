@@ -90,7 +90,7 @@ type
     procedure TestVarBytesParamQuery;
     procedure TestBooleanParamQuery;
     procedure TestBlobParamQuery;
-    Procedure TestFmtBCDQueryPrecision; // Bug 27077
+    Procedure TestFmtBCDParamQuery2; // Bug 27077
 
     procedure TestSetBlobAsMemoParam;
     procedure TestSetBlobAsBlobParam;
@@ -1548,28 +1548,26 @@ begin
   TestXXParamQuery(ftBlob, FieldtypeDefinitions[ftBlob], testBlobValuesCount);
 end;
 
-Procedure TTestFieldTypes.TestFmtBCDQueryPrecision;
-
+Procedure TTestFieldTypes.TestFmtBCDParamQuery2;
 begin
-  if not(SQLServerType in [ssFirebird]) then
-    Ignore(STestNotApplicable);
-  TSQLDBConnector(DBConnector).TryDropIfExist('FPDEV2');
-  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID INT, FIELD1 NUMERIC (9,5))');
-  TSQLDBConnector(DBConnector).CommitDDL;
-  with TSQLDBConnector(DBConnector).Query do
+  // This test tests FmtBCD params with smaller precision, which fits into INT32
+  // TestFmtBCDParamQuery tests FmtBCD params with bigger precision, which fits into INT64
+  with TSQLDBConnector(DBConnector) do
     begin
-    sql.clear;
-    sql.append('insert into FPDEV2 (ID,FIELD1) values (:id,:field1)');
-    Params.ParamByName('id').AsInteger := 1;
-    Params.ParamByName('field1').AsFMTBCD :=DoubleToBCD(1234.56781) ;
-    ExecSQL;
-    sql.clear;
-    sql.append('select * from FPDEV2 where (id=1) and (field1=1234.56781)');
-    Open;
-    AssertTrue('Expected IsNull', Not (EOF and BOF));
-    close;
+    Connection.ExecuteDirect('create table FPDEV2 (ID INT, FIELD1 NUMERIC (9,5))');
+    CommitDDL;
+    with Query do
+      begin
+      SQL.Text:='insert into FPDEV2 (ID,FIELD1) values (:id,:field1)';
+      ParamByName('id').AsInteger := 1;
+      ParamByName('field1').AsFMTBCD := DoubleToBCD(1234.56781);
+      ExecSQL;
+      SQL.Text:='select * from FPDEV2 where (id=1) and (field1=1234.56781)';
+      Open;
+      AssertEquals(1234.56781, Fields[1].AsFloat);
+      Close;
+      end;
     end;
-  TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
 end;
 
 procedure TTestFieldTypes.TestStringParamQuery;
