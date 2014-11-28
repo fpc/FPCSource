@@ -652,16 +652,15 @@ begin
         // which leads to the rollback not referring to the right transaction=>SQL error
         // Use SQL92 ISO standard INFORMATION_SCHEMA:
         FConnection.ExecuteDirect(
-          'if exists (select * from INFORMATION_SCHEMA.TABLES where TABLE_TYPE=''BASE TABLE'' AND TABLE_NAME=''' + ATableName + ''') '+
-          'begin '+
-          'drop table ' + ATableName + ' '+
-          'end');
+          'if exists (select * from INFORMATION_SCHEMA.TABLES where TABLE_TYPE=''BASE TABLE'' AND TABLE_NAME=''' + ATableName + ''')'+
+          ' drop table ' + ATableName );
         end;
       ssMySQL:
         begin
         FConnection.ExecuteDirect('drop table if exists ' + ATableName);
         end;
-      ssPostgresql:
+      ssPostgreSQL,
+      ssSQLite:
         begin
         FConnection.ExecuteDirect('drop table if exists ' + ATableName);
         FTransaction.CommitRetaining;
