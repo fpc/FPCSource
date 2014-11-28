@@ -308,30 +308,33 @@ begin
     end
   else
     begin
-      AddOption('--nofpccfg');
-      AddOption('--compiler='+CompilerOptions.Compiler);
-      AddOption('--cpu='+CPUToString(CompilerOptions.CompilerCPU));
-      AddOption('--os='+OSToString(CompilerOptions.CompilerOS));
       if CompilerOptions.HasOptions then
         AddOption('--options='+CompilerOptions.Options.DelimitedText);
-      if IsSuperUser or GlobalOptions.InstallGlobal then
-        begin
-          CondAddOption('--prefix',CompilerOptions.GlobalPrefix);
-          CondAddOption('--baseinstalldir',CompilerOptions.GlobalInstallDir);
-        end
-      else
-        begin
-          CondAddOption('--prefix',CompilerOptions.LocalPrefix);
-          CondAddOption('--baseinstalldir',CompilerOptions.LocalInstallDir);
-        end;
-      CondAddOption('--localunitdir',CompilerOptions.LocalInstallDir);
-      CondAddOption('--globalunitdir',CompilerOptions.GlobalInstallDir);
+
       if GlobalOptions.CustomFPMakeOptions<>'' then
         begin
         AddOption('--ignoreinvalidoption');
         AddOption(GlobalOptions.CustomFPMakeOptions);
         end;
     end;
+
+  AddOption('--nofpccfg');
+  AddOption('--compiler='+CompilerOptions.Compiler);
+  AddOption('--cpu='+CPUToString(CompilerOptions.CompilerCPU));
+  AddOption('--os='+OSToString(CompilerOptions.CompilerOS));
+  if IsSuperUser or GlobalOptions.InstallGlobal then
+    begin
+      CondAddOption('--prefix',CompilerOptions.GlobalPrefix);
+      CondAddOption('--baseinstalldir',CompilerOptions.GlobalInstallDir);
+    end
+  else
+    begin
+      CondAddOption('--prefix',CompilerOptions.LocalPrefix);
+      CondAddOption('--baseinstalldir',CompilerOptions.LocalInstallDir);
+    end;
+  CondAddOption('--localunitdir',CompilerOptions.LocalInstallDir);
+  CondAddOption('--globalunitdir',CompilerOptions.GlobalInstallDir);
+
   { Run FPMake }
   FPMakeBin:='fpmake'+ExeExt;
   SetCurrentDir(PackageBuildPath(P));
