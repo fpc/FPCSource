@@ -1716,7 +1716,7 @@ implementation
           extdef : tdef;
         begin
           result:=false;
-          if (token=_ID) and (block_type in [bt_body,bt_general,bt_except]) then
+          if (token=_ID) and (block_type in [bt_body,bt_general,bt_except,bt_const]) then
             begin
               if not assigned(def) then
                 if node.nodetype=addrn then
