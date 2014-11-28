@@ -757,7 +757,11 @@ begin
   else
     Msg := Format(CompNameFmt, [Comp.Name,Fmt]);
 
-  inherited CreateFmt(Msg, Args);
+  if Length(Args) = 0 then
+    inherited Create(Msg)
+  else
+    inherited CreateFmt(Msg, Args);
+
   ErrorCode := AErrorCode;
   SQLState  := ASQLState;
 end;
