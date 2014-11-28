@@ -13,6 +13,7 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('bzip2');
+    P.ShortName:='bz2';
 
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;

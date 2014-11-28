@@ -25,6 +25,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('fcl-db');
+    P.ShortName:='fcld';
 
     P.Author := '<various>';
     P.License := 'LGPL with modification, ';

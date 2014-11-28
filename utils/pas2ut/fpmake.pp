@@ -15,6 +15,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-pas2ut');
+    P.ShortName:='p2ut';
 
     P.Author := 'Free Pascal Team';
     P.License := 'LGPL with modification';

@@ -15,6 +15,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-importtl');
+    P.ShortName:='importttl';
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';

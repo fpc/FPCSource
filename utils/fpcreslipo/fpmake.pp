@@ -15,6 +15,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-fpcreslipo');
+    P.ShortName:='fpcreslipo';
 
     P.Author := 'Giulio Bernardi';
     P.License := 'LGPL with modification';

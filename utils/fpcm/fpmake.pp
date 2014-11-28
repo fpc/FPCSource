@@ -209,6 +209,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-fpcm');
+    P.ShortName:='fpcm';
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';

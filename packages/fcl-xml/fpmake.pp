@@ -14,6 +14,7 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('fcl-xml');
+    P.ShortName:='fclx';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}

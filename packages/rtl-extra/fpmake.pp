@@ -43,6 +43,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('rtl-extra');
+    P.ShortName:='rtle';
     P.Directory:=ADirectory;
     P.Version:='2.7.1';
     P.Author := 'FPC core team';

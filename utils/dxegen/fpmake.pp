@@ -15,6 +15,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-dxegen');
+    P.ShortName:='dxeg';
 
     P.Author := 'Charles Sandmann and others';
     P.License := 'LGPL with modification';

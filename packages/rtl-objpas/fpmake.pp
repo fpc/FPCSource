@@ -36,6 +36,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('rtl-objpas');
+    P.ShortName:='rtlo';
     P.Directory:=ADirectory;
     P.Version:='2.7.1';
     P.Author := 'FPC core team';

@@ -15,6 +15,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-pas2fpm');
+    p.ShortName:='p2fm';
 
     P.Author := 'Free Pascal Team';
     P.License := 'LGPL with modification';

@@ -15,6 +15,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-instantfpc');
+    P.ShortName:='instantfpc';
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';

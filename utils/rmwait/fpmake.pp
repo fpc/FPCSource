@@ -15,6 +15,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-rmwait');
+    p.ShortName:='rmw';
 
     P.Author := 'Tomas Hajny';
     P.License := 'LGPL with modification';

@@ -15,6 +15,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-pas2jni');
+    P.ShortName:='p2jn';
 
     P.Author := 'Yury Sidorov';
     P.License := 'LGPL with modification';

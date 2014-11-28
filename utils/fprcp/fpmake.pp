@@ -15,6 +15,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-fprcp');
+    P.ShortName:='fprcp';
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';

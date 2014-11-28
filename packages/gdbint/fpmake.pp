@@ -154,6 +154,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('gdbint');
+    P.ShortName:='gdb';
     P.Directory:=ADirectory;
     P.Version:='2.7.1';
     P.Author := 'Library : Cygnus, header: Peter Vreman';

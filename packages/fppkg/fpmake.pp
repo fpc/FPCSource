@@ -23,6 +23,7 @@ begin
     begin
 
     P:=AddPackage('fppkg');
+    P.ShortName:='fppk';
     P.Directory:=ADirectory;
 
     P.Version:='2.7.1';

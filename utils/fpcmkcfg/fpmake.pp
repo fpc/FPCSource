@@ -16,6 +16,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-fpcmkcfg');
+    P.ShortName:='fcmk';
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';

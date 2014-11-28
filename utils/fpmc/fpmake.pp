@@ -17,6 +17,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-fpmc');
+    P.ShortName:='fpmc';
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';

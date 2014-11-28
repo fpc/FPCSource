@@ -734,6 +734,7 @@ Type
     FDirectory: String;
     FOptions: TStrings;
     FFileName: String;
+    FShortName: String;
     FAuthor: String;
     FLicense: String;
     FHomepageURL: String;
@@ -763,6 +764,7 @@ Type
     Function GetDescription : string;
     function GetDictionary: TDictionary;
     Function GetFileName : string;
+    Function GetShortName : string;
     function GetOptions: TStrings;
     Function GetVersion : string;
     procedure SetOptions(const AValue: TStrings);
@@ -796,6 +798,7 @@ Type
     procedure SaveUnitConfigToFile(Const AFileName: String;ACPU:TCPU;AOS:TOS);
     Property Version : String Read GetVersion Write SetVersion;
     Property FileName : String Read GetFileName Write FFileName;
+    Property ShortName : String Read GetShortName Write FShortName;
     Property HomepageURL : String Read FHomepageURL Write FHomepageURL;
     Property DownloadURL : String Read FDownloadURL Write FDownloadURL;
     Property Email : String Read FEmail Write FEmail;
@@ -3383,8 +3386,18 @@ begin
       ((Defaults.OS in AllLimit83fsOses) or (Defaults.BuildOS in AllLimit83fsOses)) then
       Result := Name + '-' + FVersion.AsString
     else
-      Result := Name;
+      Result := ShortName;
 end;
+
+
+Function TPackage.GetShortName : string;
+begin
+  if FShortName<>'' then
+    result := FShortName
+  else
+    result := Name;
+end;
+
 
 function TPackage.GetOptions: TStrings;
 begin
@@ -4788,6 +4801,17 @@ begin
 end;
 
 procedure TBuildEngine.AddFileToArchive(const APackage: TPackage; const ASourceFileName, ADestFileName: String);
+
+  function GetArchiveName: string;
+  begin
+    result := Defaults.ZipPrefix;
+    if Defaults.BuildOS in AllLimit83fsOses then
+      result := result + APackage.ShortName
+    else
+      result := result + APackage.Name;
+    result := result + MakeZipSuffix(Defaults.CPU, Defaults.OS);
+  end;
+
 {$ifdef UNIX}
 var
   FileStat: stat;
@@ -4797,7 +4821,7 @@ begin
   {$ifdef HAS_TAR_SUPPORT}
   if not assigned(FTarWriter) then
     begin
-      FGZFileStream := TGZFileStream.create(Defaults.ZipPrefix + APackage.Name + MakeZipSuffix(Defaults.CPU,Defaults.OS) +'.tar.gz', gzopenwrite);
+      FGZFileStream := TGZFileStream.create(GetArchiveName +'.tar.gz', gzopenwrite);
       try
         FTarWriter := TTarWriter.Create(FGZFileStream);
         FTarWriter.Permissions := [tpReadByOwner, tpWriteByOwner, tpReadByGroup, tpReadByOther];
@@ -4828,7 +4852,7 @@ begin
   if not assigned(FZipper) then
     begin
       FZipper := TZipper.Create;
-      FZipper.FileName := Defaults.ZipPrefix + APackage.Name + MakeZipSuffix(Defaults.CPU,Defaults.OS) + '.zip';
+      FZipper.FileName := GetArchiveName + '.zip';
     end;
 
   FZipper.Entries.AddFileEntry(ASourceFileName, ADestFileName);

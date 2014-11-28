@@ -16,6 +16,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-lexyacc');
+    P.ShortName:='tply';
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';

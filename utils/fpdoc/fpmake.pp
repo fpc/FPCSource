@@ -17,6 +17,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-fpdoc');
+    P.ShortName:='fpdoc';
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';

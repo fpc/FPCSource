@@ -12,6 +12,7 @@ begin
     begin
 {$endif ALLPACKAGES}
     P:=AddPackage('symbolic');
+    P.ShortName:='symb';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}

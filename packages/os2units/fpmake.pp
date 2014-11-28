@@ -12,6 +12,7 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('os2units');
+    P.ShortName:='os2';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}

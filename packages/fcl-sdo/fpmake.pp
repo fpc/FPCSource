@@ -12,6 +12,7 @@ begin
     begin
 {$endif ALLPACKAGES}
     P:=AddPackage('fcl-sdo');
+    P.ShortName:='fcsd';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
