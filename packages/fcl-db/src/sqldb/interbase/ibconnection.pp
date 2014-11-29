@@ -999,14 +999,6 @@ begin
       VSQLVar^.SQLInd^ := 0;
 
       case (VSQLVar^.sqltype and not 1) of
-        SQL_LONG :
-          begin
-            if VSQLVar^.sqlscale = 0 then
-              i := AParams[ParNr].AsInteger
-            else
-              i := Round(AParams[ParNr].AsFloat * IntPower10(-VSQLVar^.sqlscale)); //*any number of digits
-            Move(i, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
-          end;
         SQL_SHORT, SQL_BOOLEAN_INTERBASE :
           begin
             if VSQLVar^.sqlscale = 0 then
@@ -1016,6 +1008,26 @@ begin
             i := si;
             Move(i, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
           end;
+        SQL_LONG :
+          begin
+            if VSQLVar^.sqlscale = 0 then
+              i := AParams[ParNr].AsInteger
+            else
+              i := Round(AParams[ParNr].AsFloat * IntPower10(-VSQLVar^.sqlscale)); //*any number of digits
+            Move(i, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
+          end;
+        SQL_INT64:
+          begin
+            if VSQLVar^.sqlscale = 0 then
+              li := AParams[ParNr].AsLargeInt
+            else if AParams[ParNr].DataType = ftFMTBcd then
+              li := AParams[ParNr].AsFMTBCD * IntPower10(-VSQLVar^.sqlscale)
+            else
+              li := Round(AParams[ParNr].AsCurrency * IntPower10(-VSQLVar^.sqlscale));
+            Move(li, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
+          end;
+        SQL_DOUBLE, SQL_FLOAT:
+          SetFloat(VSQLVar^.SQLData, AParams[ParNr].AsFloat, VSQLVar^.SQLLen);
         SQL_BLOB :
           SetBlobParam;
         SQL_VARYING, SQL_TEXT :
@@ -1056,18 +1068,6 @@ begin
           end;
         SQL_TYPE_DATE, SQL_TYPE_TIME, SQL_TIMESTAMP :
           SetDateTime(VSQLVar^.SQLData, AParams[ParNr].AsDateTime, VSQLVar^.SQLType);
-        SQL_INT64:
-          begin
-            if VSQLVar^.sqlscale = 0 then
-              li := AParams[ParNr].AsLargeInt
-            else if AParams[ParNr].DataType = ftFMTBcd then
-              li := AParams[ParNr].AsFMTBCD * IntPower10(-VSQLVar^.sqlscale)
-            else
-              li := Round(AParams[ParNr].AsCurrency * IntPower10(-VSQLVar^.sqlscale));
-            Move(li, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
-          end;
-        SQL_DOUBLE, SQL_FLOAT:
-          SetFloat(VSQLVar^.SQLData, AParams[ParNr].AsFloat, VSQLVar^.SQLLen);
         SQL_BOOLEAN_FIREBIRD:
           PByte(VSQLVar^.SQLData)^ := Byte(AParams[ParNr].AsBoolean);
       else
