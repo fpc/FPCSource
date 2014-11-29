@@ -199,8 +199,7 @@ const
     FileHandleCount: cardinal = 20;
 
 function Increase_File_Handle_Count: boolean;
-var Err: word;
-    L1: longint;
+var L1: longint;
     L2: cardinal;
     RC: cardinal;
 begin
