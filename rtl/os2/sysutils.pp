@@ -977,8 +977,7 @@ Initialization
   InitInternational;    { Initialize internationalization settings }
   OnBeep:=@SysBeep;
   LastOSError := 0;
-  OrigOSErrorWatch := OSErrorWatch;
-  SetOSErrorTracking (@TrackLastOSError);
+  OrigOSErrorWatch := TOSErrorWatch (SetOSErrorTracking (@TrackLastOSError));
 Finalization
   DoneExceptions;
 end.
