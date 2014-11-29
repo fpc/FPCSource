@@ -9004,6 +9004,7 @@ rtl/os2/sysos2.pas svneol=native#text/plain
 rtl/os2/sysosh.inc svneol=native#text/plain
 rtl/os2/system.pas svneol=native#text/plain
 rtl/os2/systhrd.inc svneol=native#text/plain
+rtl/os2/sysucode.inc svneol=native#text/plain
 rtl/os2/sysutils.pp svneol=native#text/plain
 rtl/os2/tests/atx.pas svneol=native#text/plain
 rtl/os2/tests/basicpm.pas svneol=native#text/plain

@@ -79,7 +79,7 @@ procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
                             external 'DOSCALLS' index 312;
 
 function DosLoadModule (ObjName: PChar; ObjLen: cardinal; DLLName: PChar;
-                                        var Handle: cardinal): cardinal; cdecl;
+                                         var Handle: THandle): cardinal; cdecl;
 external 'DOSCALLS' index 318;
 
 function DosQueryModuleHandle (DLLName: PChar; var Handle: THandle): cardinal;
@@ -428,3 +428,6 @@ type
 function DosQueryCP (Size: cardinal; CodePages: PCPArray;
                                        var ActSize: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 291;
+
+function DosSetProcessCP (CP: cardinal): cardinal; cdecl;
+external 'DOSCALLS' index 289;

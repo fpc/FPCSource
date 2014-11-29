@@ -27,6 +27,7 @@ interface
 {$endif SYSTEMDEBUG}
 
 {$DEFINE OS2EXCEPTIONS}
+{$DEFINE OS2UNICODE}
 {$define DISABLE_NO_THREAD_MANAGER}
 {$DEFINE HAS_GETCPUCOUNT}
 
@@ -51,23 +52,29 @@ const
   RealMaxPathLen: word = MaxPathLen;
 (* Default value only - real value queried from the system on startup. *)
 
-type    Tos=(osDOS,osOS2,osDPMI);
+type
+  TOS = (osDOS, osOS2, osDPMI); (* For compatibility with target EMX *)
+  TUConvObject = pointer;
 
-const   OS_Mode: Tos = osOS2;
-        First_Meg: pointer = nil;
+const
+  OS_Mode: TOS = osOS2; (* For compatibility with target EMX *)
+  First_Meg: pointer = nil; (* For compatibility with target EMX *)
 
-const   UnusedHandle=-1;
-        StdInputHandle=0;
-        StdOutputHandle=1;
-        StdErrorHandle=2;
+  UnusedHandle=-1;
+  StdInputHandle=0;
+  StdOutputHandle=1;
+  StdErrorHandle=2;
 
-        LFNSupport: boolean = true;
-        FileNameCaseSensitive: boolean = false;
-        FileNameCasePreserving: boolean = true;
-        CtrlZMarksEOF: boolean = true; (* #26 is considered as end of file *)
+  LFNSupport: boolean = true;
+  FileNameCaseSensitive: boolean = false;
+  FileNameCasePreserving: boolean = true;
+  CtrlZMarksEOF: boolean = true; (* #26 is considered as end of file *)
+  RTLUsesWinCP: boolean = true; (* UnicodeString manager shall treat *)
+(* codepage numbers passed to RTL functions as those used under MS Windows *)
+(* and translates them to their OS/2 equivalents if necessary.             *)
 
-        sLineBreak = LineEnding;
-        DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
+  sLineBreak = LineEnding;
+  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
 
 var
 { C-compatible arguments and environment }
@@ -90,40 +97,61 @@ var
   ApplicationType: cardinal;
 
 const
- HeapAllocFlags: cardinal = $53; (* Compatible to VP/2 *)
- (* mfPag_Commit or mfObj_Tile or mfPag_Write or mfPag_Read *)
+  HeapAllocFlags: cardinal = $53; (* Compatible to VP/2 *)
+  (* mfPag_Commit or mfObj_Tile or mfPag_Write or mfPag_Read *)
 
 function ReadUseHighMem: boolean;
 
 procedure WriteUseHighMem (B: boolean);
 
-(* Is allocation of memory above 512 MB address limit allowed? Initialized *)
-(* during initialization of system unit according to capabilities of the   *)
-(* underlying OS/2 version, can be overridden by user - heap is allocated  *)
-(* for all threads, so the setting isn't declared as a threadvar and       *)
-(* should be only changed at the beginning of the main thread if needed.   *)
+(* Is allocation of memory above 512 MB address limit allowed? Even if use   *)
+(* of high memory is supported by the underlying OS/2 version, just a subset *)
+(* of OS/2 API functions can work with memory buffers located in high        *)
+(* memory. Since FPC RTL allocates heap using memory pools received from     *)
+(* the operating system and thus memory allocation from the operating system *)
+(* may happen at a different time than allocation of memory from FPC heap,   *)
+(* use of high memory shall be enabled only if the given program is ensured  *)
+(* not to use any OS/2 API function beyond the limited set supporting it any *)
+(* time between enabling this feature and program termination.               *)
 property
   UseHighMem: boolean read ReadUseHighMem write WriteUseHighMem;
 (* UseHighMem is provided for compatibility with 2.0.x. *)
 
+
+{$IFDEF OS2UNICODE}
+function OS2CPtoRtlCP (CP: cardinal; ReqFlags: byte;
+                                  var UConvObj: TUConvObject): TSystemCodepage;
+
+function RtlCPtoOS2CP (RtlCP: TSystemCodepage; ReqFlags: byte;
+                                         var UConvObj: TUConvObject): cardinal;
+
+function OS2CPtoRtlCP (CP: cardinal; ReqFlags: byte): TSystemCodepage;
+
+function RtlCPtoOS2CP (RtlCP: TSystemCodepage; ReqFlags: byte): cardinal;
+
+function RtlChangeCP (CP: TSystemCodePage): longint;
+{$ENDIF OS2UNICODE}
+
+
 const
 (* Are file sizes > 2 GB (64-bit) supported on the current system? *)
   FSApi64: boolean = false;
+  UniAPI: boolean = false;
 
 (* Support for tracking I/O errors returned by OS/2 API calls - emulation *)
 (* of GetLastError / fpGetError functionality used e.g. in Sysutils.      *)
 type
- TOSErrorWatch = procedure (Error: cardinal);
+  TOSErrorWatch = procedure (Error: cardinal);
 
 procedure NoErrorTracking (Error: cardinal);
 
 (* This shall be invoked whenever a non-zero error is returned by OS/2 APIs *)
 (* used in the RTL. Direct OS/2 API calls in user programs are not covered! *)
 const
- OSErrorWatch: TOSErrorWatch = @NoErrorTracking;
+  OSErrorWatch: TOSErrorWatch = @NoErrorTracking;
 
 
-procedure SetOSErrorTracking (P: pointer);
+function SetOSErrorTracking (P: pointer): pointer;
 
 procedure SetDefaultOS2FileType (FType: ShortString);
 
@@ -141,22 +169,44 @@ type
   TDosSetFileSizeL = function (Handle: THandle; Size: int64): cardinal; cdecl;
 
 
-function DummyDosOpenL (FileName: PChar; var Handle: THandle;
-                        var Action: cardinal; InitSize: int64;
-                        Attrib, OpenFlags, FileMode: cardinal;
-                                                 EA: pointer): cardinal; cdecl;
+  TUniCreateUConvObject = function (const CpName: PWideChar;
+                               var UConv_Object: TUConvObject): longint; cdecl;
 
-function DummyDosSetFilePtrL (Handle: THandle; Pos: int64; Method: cardinal;
-                                        var PosActual: int64): cardinal; cdecl;
+  TUniFreeUConvObject = function (UConv_Object: TUConvObject): longint; cdecl;
 
-function DummyDosSetFileSizeL (Handle: THandle; Size: int64): cardinal; cdecl;
+  TUniMapCpToUcsCp = function (const Codepage: cardinal;
+                   CodepageName: PWideChar; const N: cardinal): longint; cdecl;
+
+  TUniUConvFromUcs = function (UConv_Object: TUConvObject;
+       var UcsBuf: PWideChar; var UniCharsLeft: longint; var OutBuf: PChar;
+         var OutBytesLeft: longint; var NonIdentical: longint): longint; cdecl;
+
+  TUniUConvToUcs = function (UConv_Object: TUConvObject; var InBuf: PChar;
+   var InBytesLeft: longint; var UcsBuf: PWideChar; var UniCharsLeft: longint;
+                                    var NonIdentical: longint): longint; cdecl;
+
 
 
 const
-  Sys_DosOpenL: TDosOpenL = @DummyDosOpenL;
-  Sys_DosSetFilePtrL: TDosSetFilePtrL = @DummyDosSetFilePtrL;
-  Sys_DosSetFileSizeL: TDosSetFileSizeL = @DummyDosSetFileSizeL;
   DosCallsHandle: THandle = THandle (-1);
+{$IFDEF OS2UNICODE}
+  UConvHandle: THandle = THandle (-1);
+  LibUniHandle: THandle = THandle (-1);
+{$ENDIF OS2UNICODE}
+
+
+var
+  Sys_DosOpenL: TDosOpenL;
+  Sys_DosSetFilePtrL: TDosSetFilePtrL;
+  Sys_DosSetFileSizeL: TDosSetFileSizeL;
+{$IFDEF OS2UNICODE}
+  Sys_UniCreateUConvObject: TUniCreateUConvObject;
+  Sys_UniFreeUConvObject: TUniFreeUConvObject;
+  Sys_UniMapCpToUcsCp: TUniMapCpToUcsCp;
+  Sys_UniUConvFromUcs: TUniUConvFromUcs;
+  Sys_UniUConvToUcs: TUniUConvToUcs;
+{$ENDIF OS2UNICODE}
+
 
 implementation
 
@@ -571,6 +621,7 @@ var
   RC: cardinal;
 begin
   RC := DosUnsetExceptionHandler (ExcptReg^);
+  OSErrorWatch (RC);
 end;
 {$ENDIF OS2EXCEPTIONS}
 
@@ -880,8 +931,9 @@ begin
 end;
 
 
-procedure SetOSErrorTracking (P: pointer);
+function SetOSErrorTracking (P: pointer): pointer;
 begin
+ SetOSErrorTracking := OSErrorWatch;
  if P = nil then
   OSErrorWatch := @NoErrorTracking
  else
@@ -891,7 +943,7 @@ end;
 
 procedure InitEnvironment;
 var env_count : longint;
-    dos_env,cp : pchar;
+    cp : pchar;
 begin
   env_count:=0;
   cp:=environment;
@@ -938,12 +990,12 @@ var
   RC: cardinal;
 
   procedure allocarg(idx,len: PtrInt);
-    var
-      oldargvlen : PtrInt;
+{    var
+      oldargvlen : PtrInt;}
     begin
       if idx>=argvlen then
        begin
-         oldargvlen:=argvlen;
+{         oldargvlen:=argvlen;}
          argvlen:=(idx+8) and (not 7);
          sysreallocmem(argv,argvlen*sizeof(pointer));
 {         fillchar(argv[oldargvlen],(argvlen-oldargvlen)*sizeof(pointer),0);}
@@ -1222,6 +1274,9 @@ begin
        from the high memory region before changing value of this variable. *)
     InitHeap;
 
+    Sys_DosOpenL := @DummyDosOpenL;
+    Sys_DosSetFilePtrL := @DummyDosSetFilePtrL;
+    Sys_DosSetFileSizeL := @DummyDosSetFileSizeL;
     RC := DosQueryModuleHandle (@DosCallsName [0], DosCallsHandle);
     if RC = 0 then
      begin
@@ -1269,9 +1324,31 @@ begin
     fpc_cpucodeinit;
 
     InitUnicodeStringManager;
-{$ifdef OS2UCODE}
-    InitOS2WideStrings;
-{$endif OS2UCODE}
+
+{$IFDEF OS2UNICODE}
+    InitOS2WideStringManager;
+{$ENDIF OS2UNICODE}
+
+    RC := DosQueryCP (SizeOf (CPArr), @CPArr, ReturnedSize);
+    if (RC <> 0) and (RC <> 473) then
+     begin
+      OSErrorWatch (RC);
+      CPArr [0] := 850;
+     end
+    else if (ReturnedSize < 4) then
+     CPArr [0] := 850;
+{$IFDEF OS2UNICODE}
+    DefaultSystemCodePage := OS2CPtoRtlCP (CPArr [0], cpxMappingOnly,
+                                                            DefCpRec.UConvObj);
+    DefCpRec.OS2CP := CPArr [0];
+    DefCpRec.WinCP := DefaultSystemCodePage;
+    Sys_UniCreateUconvObject (@WNull, DefCpRec.UConvObj);
+{$ELSE OS2UNICODE}
+    DefaultSystemCodePage := CPArr [0];
+{$ENDIF OS2UNICODE}
+    DefaultRTLFileSystemCodePage := DefaultSystemCodePage;
+    DefaultFileSystemCodePage := DefaultSystemCodePage;
+    DefaultUnicodeCodePage := CP_UTF16;
 
     { ... and I/O }
     SysInitStdIO;
@@ -1298,17 +1375,4 @@ begin
   WriteLn (StdErr, 'Old exception ', HexStr (OldExceptAddr, 8),
    ', new exception ', HexStr (NewExceptAddr, 8), ', _SS = ', HexStr (_SS, 8));
 {$endif SYSTEMEXCEPTIONDEBUG}
-
-  RC := DosQueryCP (SizeOf (CPArr), @CPArr, ReturnedSize);
-  if (RC <> 0) and (RC <> 473) then
-   OSErrorWatch (RC)
-  else if (ReturnedSize >= 4) then
-   begin
-    DefaultSystemCodePage := CPArr [0];
-    DefaultRTLFileSystemCodePage := DefaultSystemCodePage;
-    DefaultFileSystemCodePage := DefaultSystemCodePage;
-    DefaultUnicodeCodePage := CP_UTF16;
-   end
-  else
-   OSErrorWatch (RC);
 end.
