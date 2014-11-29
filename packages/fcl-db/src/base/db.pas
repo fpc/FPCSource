@@ -61,7 +61,7 @@ type
   TUpdateMode = (upWhereAll, upWhereChanged, upWhereKeyOnly);
   TResolverResponse = (rrSkip, rrAbort, rrMerge, rrApply, rrIgnore);
 
-  TProviderFlag = (pfInUpdate, pfInWhere, pfInKey, pfHidden);
+  TProviderFlag = (pfInUpdate, pfInWhere, pfInKey, pfHidden, pfRefreshOnInsert,pfRefreshOnUpdate);
   TProviderFlags = set of TProviderFlag;
 
 { Forward declarations }
@@ -1232,6 +1232,19 @@ type
   end;
   TParamClass = Class of TParam;
 
+  { TParamsEnumerator }
+
+  TParamsEnumerator = class
+  private
+    FPosition: Integer;
+    FParams: TParams;
+    function GetCurrent: TParam;
+  public
+    constructor Create(AParams: TParams);
+    function MoveNext: Boolean;
+    property Current: TParam read GetCurrent;
+  end;
+
 { TParams }
 
   TParams = class(TCollection)
@@ -1256,6 +1269,7 @@ type
     Function  FindParam(const Value: string): TParam;
     Procedure GetParamList(List: TList; const ParamNames: string);
     Function  IsEqual(Value: TParams): Boolean;
+    Function GetEnumerator: TParamsEnumerator;
     Function  ParamByName(const Value: string): TParam;
     Function  ParseSQL(SQL: String; DoCreate: Boolean): String; overload;
     Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle): String; overload;
@@ -2215,6 +2229,7 @@ begin
   if (i<=FieldsLength) and (Fields[i]=';') then Inc(i);
   Pos:=i;
 end;
+
 
 { EUpdateError }
 constructor EUpdateError.Create(NativeError, Context : String;

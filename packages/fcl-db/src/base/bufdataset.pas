@@ -512,6 +512,7 @@ type
     procedure RemoveRecordFromIndexes(const ABookmark : TBufBookmark);
   protected
     // abstract & virtual methods of TDataset
+    procedure ActiveBufferToRecord;
     procedure SetPacketRecords(aValue : integer); virtual;
     procedure UpdateIndexDefs; override;
     procedure SetRecNo(Value: Longint); override;
@@ -2540,13 +2541,18 @@ begin
       FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := nil;
       end;
     end;
-
-  move(ActiveBuffer^,FCurrentIndex.CurrentBuffer^,FRecordSize);
+  ActiveBufferToRecord;
 
   // new data are now in current record so reorder current record if needed
   for i := 1 to FIndexesCount-1 do
     if (i<>1) or (FIndexes[i]=FCurrentIndex) then
       FIndexes[i].OrderCurrentRecord;
+end;
+
+procedure TCustomBufDataset.ActiveBufferToRecord;
+
+begin
+  move(ActiveBuffer^,FCurrentIndex.CurrentBuffer^,FRecordSize);
 end;
 
 procedure TCustomBufDataset.CalcRecordSize;

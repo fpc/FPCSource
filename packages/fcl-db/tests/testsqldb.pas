@@ -47,6 +47,13 @@ type
     Procedure TestAutoApplyUpdatesDelete;
     Procedure TestCheckRowsAffected;
     Procedure TestAutoCommit;
+    Procedure TestRefreshSQL;
+    Procedure TestGeneratedRefreshSQL;
+    Procedure TestGeneratedRefreshSQL1Field;
+    Procedure TestGeneratedRefreshSQLNoKey;
+    Procedure TestRefreshSQLMultipleRecords;
+    Procedure TestRefreshSQLNoRecords;
+    Procedure TestFetchAutoInc;
   end;
 
   { TTestTSQLConnection }
@@ -236,7 +243,7 @@ begin
     end;
 end;
 
-Procedure TTestTSQLQuery.SetQueryOptions;
+Procedure TTestTSQLQuery.SetQueryOPtions;
 
 begin
   FMyQ.Options:=[sqoKeepOpenOnCommit];
@@ -398,6 +405,202 @@ begin
     Q.Free;
     T.Free;
   end;
+end;
+
+Procedure TTestTSQLQuery.TestRefreshSQL;
+var
+  Q: TSQLQuery;
+  T : TSQLTransaction;
+  I, J : Integer;
+begin
+  with SQLDBConnector do
+    begin
+    TryDropIfExist('testdefval');
+    ExecuteDirect('create table testdefval (id integer not null, a varchar(10) default ''abcde'', constraint pk_testdefval primary key(id))');
+    if Transaction.Active then
+      Transaction.Commit;
+    end;
+  Q:=SQLDBConnector.Query;
+  Q.SQL.Text:='select * from testdefval';
+  Q.InsertSQL.Text:='insert into testdefval (id) values (:id)';
+  Q.RefreshSQL.Text:='SELECT a FROM testdefval WHERE (id=:id)';
+  Q.Open;
+  Q.Insert;
+  Q.FieldByName('id').AsInteger:=1;
+  Q.Post;
+  AssertTrue('field value has not been fetched after post',Q.FieldByName('a').IsNull);
+  Q.ApplyUpdates(0);
+  AssertEquals('Still on correc field',1,Q.FieldByName('id').AsInteger);
+  AssertEquals('field value has been fetched from the database ','abcde',Q.FieldByName('a').AsString);
+end;
+
+Procedure TTestTSQLQuery.TestGeneratedRefreshSQL;
+
+var
+  Q: TSQLQuery;
+  T : TSQLTransaction;
+  I, J : Integer;
+
+begin
+  with SQLDBConnector do
+    begin
+    TryDropIfExist('testdefval');
+    ExecuteDirect('create table testdefval (id integer not null, a varchar(10) default ''abcde'', b varchar(5) default ''fgh'', constraint pk_testdefval primary key(id))');
+    if Transaction.Active then
+      Transaction.Commit;
+    end;
+  Q:=SQLDBConnector.Query;
+  Q.SQL.Text:='select * from testdefval';
+  Q.InsertSQL.Text:='insert into testdefval (id) values (:id)';
+  Q.Open;
+  With Q.FieldByName('id') do
+    ProviderFlags:=ProviderFlags+[pfInKey];
+  With Q.FieldByName('a') do
+    ProviderFlags:=ProviderFlags+[pfRefreshOnInsert,pfRefreshOnUpdate];
+  With Q.FieldByName('b') do
+    ProviderFlags:=ProviderFlags+[pfRefreshOnInsert,pfRefreshOnUpdate];
+  Q.Insert;
+  Q.FieldByName('id').AsInteger:=1;
+  Q.Post;
+  AssertTrue('field value has not been fetched after post',Q.FieldByName('a').IsNull);
+  Q.ApplyUpdates(0);
+  AssertEquals('Still on correc field',1,Q.FieldByName('id').AsInteger);
+  AssertEquals('field value has been fetched from the database ','abcde',Q.FieldByName('a').AsString);
+  AssertEquals('field value has been fetched from the database ','fgh',Q.FieldByName('b').AsString);
+end;
+
+Procedure TTestTSQLQuery.TestGeneratedRefreshSQL1Field;
+var
+  Q: TSQLQuery;
+  T : TSQLTransaction;
+  I, J : Integer;
+
+begin
+  with SQLDBConnector do
+    begin
+    TryDropIfExist('testdefval');
+    ExecuteDirect('create table testdefval (id integer not null, a varchar(10) default ''abcde'', b varchar(5) default ''fgh'', constraint pk_testdefval primary key(id))');
+    if Transaction.Active then
+      Transaction.Commit;
+    end;
+  Q:=SQLDBConnector.Query;
+  Q.SQL.Text:='select * from testdefval';
+  Q.InsertSQL.Text:='insert into testdefval (id) values (:id)';
+  Q.Open;
+  With Q.FieldByName('id') do
+    ProviderFlags:=ProviderFlags+[pfInKey];
+  With Q.FieldByName('a') do
+    ProviderFlags:=ProviderFlags+[pfRefreshOnInsert,pfRefreshOnUpdate];
+  Q.Insert;
+  Q.FieldByName('id').AsInteger:=1;
+  Q.Post;
+  AssertTrue('field value has not been fetched after post',Q.FieldByName('a').IsNull);
+  Q.ApplyUpdates(0);
+  AssertEquals('Still on correc field',1,Q.FieldByName('id').AsInteger);
+  AssertEquals('field value a has been fetched from the database ','abcde',Q.FieldByName('a').AsString);
+  AssertEquals('field value b has NOT been fetched from the database ','',Q.FieldByName('b').AsString);
+end;
+
+Procedure TTestTSQLQuery.TestGeneratedRefreshSQLNoKey;
+begin
+  with SQLDBConnector do
+    begin
+    TryDropIfExist('testdefval');
+    ExecuteDirect('create table testdefval (id integer not null, a varchar(10) default ''abcde'', b varchar(5) default ''fgh'', constraint pk_testdefval primary key(id))');
+    if Transaction.Active then
+      Transaction.Commit;
+    end;
+  FMyQ:=SQLDBConnector.Query;
+  FMyQ.SQL.Text:='select * from testdefval';
+  FMyQ.InsertSQL.Text:='insert into testdefval (id) values (:id)';
+  FMyQ.Open;
+  With FMyQ.FieldByName('id') do
+    ProviderFlags:=ProviderFlags-[pfInKey];
+  With FMyQ.FieldByName('a') do
+    ProviderFlags:=ProviderFlags+[pfRefreshOnInsert,pfRefreshOnUpdate];
+  FMyQ.Insert;
+  FMyQ.FieldByName('id').AsInteger:=1;
+  FMyQ.Post;
+  AssertException('Cannot refresh without primary key',EUpdateError,@DoApplyUpdates);
+end;
+
+Procedure TTestTSQLQuery.TestRefreshSQLMultipleRecords;
+
+begin
+  with SQLDBConnector do
+    begin
+    TryDropIfExist('testdefval');
+    ExecuteDirect('create table testdefval (id integer not null, a varchar(10) default ''abcde'', b varchar(5) default ''fgh'', constraint pk_testdefval primary key(id))');
+    if Transaction.Active then
+      Transaction.Commit;
+    ExecuteDirect('insert into testdefval (id) values (123)');
+    if Transaction.Active then
+      Transaction.Commit;
+    end;
+  FMyQ:=SQLDBConnector.Query;
+  FMyQ.SQL.Text:='select * from testdefval';
+  FMyQ.InsertSQL.Text:='insert into testdefval (id) values (:id)';
+  FMyQ.RefreshSQL.Text:='select * from testdefval';
+  FMyQ.Open;
+  With FMyQ.FieldByName('id') do
+    ProviderFlags:=ProviderFlags+[pfInKey];
+  With FMyQ.FieldByName('a') do
+    ProviderFlags:=ProviderFlags+[pfRefreshOnInsert,pfRefreshOnUpdate];
+  FMyQ.Insert;
+  FMyQ.FieldByName('id').AsInteger:=1;
+  FMyQ.Post;
+  AssertException('Multiple records returned by RefreshSQL gives an error',EUpdateError,@DoApplyUpdates);
+end;
+
+Procedure TTestTSQLQuery.TestRefreshSQLNoRecords;
+begin
+  with SQLDBConnector do
+    begin
+    TryDropIfExist('testdefval');
+    ExecuteDirect('create table testdefval (id integer not null, a varchar(10) default ''abcde'', b varchar(5) default ''fgh'', constraint pk_testdefval primary key(id))');
+    if Transaction.Active then
+      Transaction.Commit;
+    ExecuteDirect('insert into testdefval (id) values (123)');
+    if Transaction.Active then
+      Transaction.Commit;
+    end;
+  FMyQ:=SQLDBConnector.Query;
+  FMyQ.SQL.Text:='select * from testdefval';
+  FMyQ.InsertSQL.Text:='insert into testdefval (id) values (:id)';
+  FMyQ.RefreshSQL.Text:='select * from testdefval where 1=2';
+  FMyQ.Open;
+  With FMyQ.FieldByName('id') do
+    ProviderFlags:=ProviderFlags+[pfInKey];
+  With FMyQ.FieldByName('a') do
+    ProviderFlags:=ProviderFlags+[pfRefreshOnInsert,pfRefreshOnUpdate];
+  FMyQ.Insert;
+  FMyQ.FieldByName('id').AsInteger:=1;
+  FMyQ.Post;
+  AssertException('Multiple records returned by RefreshSQL gives an error',EUpdateError,@DoApplyUpdates);
+end;
+
+Procedure TTestTSQLQuery.TestFetchAutoInc;
+begin
+  with SQLDBConnector do
+    begin
+    if not (sqLastInsertID in Connection.ConnOptions) then
+      Ignore(STestNotApplicable);
+    TryDropIfExist('testautoinc');
+    // Syntax may vary. This works for MySQL.
+    ExecuteDirect('create table testautoinc (id integer auto_increment, a varchar(5), constraint PK_AUTOINC primary key(id))');
+    CommitDDL;
+    end;
+  FMyQ:=SQLDBConnector.Query;
+  FMyQ.SQL.Text:='select * from testautoinc';
+  FMyQ.Open;
+  FMyQ.Insert;
+  FMyQ.FieldByName('a').AsString:='b';
+  FMyQ.Post;
+  AssertTrue('ID field null after post',FMyQ.FieldByname('id').IsNull);
+  FMyQ.ApplyUpdates(0);
+  AssertTrue('ID field no longer null after applyupdates',Not FMyQ.FieldByname('id').IsNull);
+  // Should be 1 after the table was created, but this is not guaranteed... So we just test positive values.
+  AssertTrue('ID field has positive value',FMyQ.FieldByname('id').AsLargeInt>0);
 end;
 
 

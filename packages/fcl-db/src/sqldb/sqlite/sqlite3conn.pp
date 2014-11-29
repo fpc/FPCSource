@@ -55,6 +55,7 @@ type
     foptions: TSQLiteOptions;
     procedure setoptions(const avalue: tsqliteoptions);
   protected
+    function GetLastInsertIDForField(Query : TCustomSQLQuery; AField : TField): Boolean; override;
     function stringsquery(const asql: string): TArrayStringArray;
     procedure checkerror(const aerror: integer);
     
@@ -334,12 +335,12 @@ begin
   ABlobBuf^.BlobBuffer^.Size := int1;
 end;
 
-function TSQLite3Connection.AllocateTransactionHandle: TSQLHandle;
+Function TSQLite3Connection.AllocateTransactionHandle: TSQLHandle;
 begin
  result:= tsqlhandle.create;
 end;
 
-function TSQLite3Connection.AllocateCursorHandle: TSQLCursor;
+Function TSQLite3Connection.AllocateCursorHandle: TSQLCursor;
 
 Var
   Res : TSQLite3Cursor;
@@ -350,7 +351,7 @@ begin
   Result:=Res;
 end;
 
-procedure TSQLite3Connection.DeAllocateCursorHandle(var cursor: TSQLCursor);
+Procedure TSQLite3Connection.DeAllocateCursorHandle(var cursor: TSQLCursor);
 begin
   freeandnil(cursor);
 end;
@@ -499,7 +500,8 @@ begin
     end;
 end;
 
-procedure TSQLite3Connection.Execute(cursor: TSQLCursor; atransaction: tsqltransaction; AParams: TParams);
+procedure TSQLite3Connection.Execute(cursor: TSQLCursor;
+  atransaction: tSQLtransaction; AParams: TParams);
 var
  SC : TSQLite3Cursor;
             
@@ -886,7 +888,7 @@ end;
 constructor TSQLite3Connection.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FConnOptions := FConnOptions + [sqEscapeRepeat] + [sqEscapeSlash];
+  FConnOptions := FConnOptions + [sqEscapeRepeat,sqEscapeSlash,sqLastInsertID];
   FieldNameQuoteChars:=DoubleQuotes;
 end;
 
@@ -948,7 +950,7 @@ begin
   IXFields.Free;
 end;
 
-function TSQLite3Connection.getinsertid: int64;
+function TSQLite3Connection.GetInsertID: int64;
 begin
  result:= sqlite3_last_insert_rowid(fhandle);
 end;
@@ -1002,7 +1004,7 @@ begin
   CheckError(sqlite3_create_collation(fhandle, PChar(CollationName), eTextRep, Arg, Compare));
 end;
 
-procedure TSQLite3Connection.LoadExtension(LibraryFile: String);
+procedure TSQLite3Connection.LoadExtension(LibraryFile: string);
 var
   LoadResult: integer;
 begin
@@ -1034,6 +1036,14 @@ begin
    checkdisconnected;
    foptions:= avalue;
    end;
+end;
+
+function TSQLite3Connection.GetLastInsertIDForField(Query: TCustomSQLQuery;
+  AField: TField): Boolean;
+begin
+ Result:=inherited GetLastInsertIDForField(Query, AField);
+ if Result then
+   AField.AsLargeInt:=GetInsertID;
 end;
 
 { TSQLite3ConnectionDef }

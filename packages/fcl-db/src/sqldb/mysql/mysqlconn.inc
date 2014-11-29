@@ -99,6 +99,7 @@ Type
     procedure ExecuteDirectMySQL(const query : string);
     function EscapeString(const Str : string) : string;
   protected
+    function GetLastInsertIDForField(Query : TCustomSQLQuery; AField : TField): Boolean; override;
     function StrToStatementType(s : string) : TStatementType; override;
     Procedure ConnectToServer; virtual;
     Procedure SelectDatabase; virtual;
@@ -329,7 +330,7 @@ begin
   Result := mysql_stat(FMYSQL);
 end;
 
-function TConnectionName.GetInsertID: Int64;
+Function TConnectionName.GetInsertID: int64;
 begin
   CheckConnected;
   Result:=mysql_insert_id(GetHandle);
@@ -404,14 +405,14 @@ begin
 end;
 
 
-procedure TConnectionName.ConnectToServer;
+Procedure TConnectionName.ConnectToServer;
 begin
   ConnectMySQL(FMySQL);
   FServerInfo := strpas(mysql_get_server_info(FMYSQL));
   FHostInfo := strpas(mysql_get_host_info(FMYSQL));
 end;
 
-procedure TConnectionName.SelectDatabase;
+Procedure TConnectionName.SelectDatabase;
 begin
   if mysql_select_db(FMySQL,pchar(DatabaseName))<>0 then
     MySQLError(FMySQL,SErrDatabaseSelectFailed,Self);
@@ -463,6 +464,14 @@ begin
   SetLength(result,Len);
 end;
 
+function TConnectionName.GetLastInsertIDForField(Query: TCustomSQLQuery;
+  AField: TField): Boolean;
+begin
+  Result:=inherited GetLastInsertIDForField(Query, AField);
+  if Result then
+    AField.AsLargeInt:=GetInsertID;
+end;
+
 procedure TConnectionName.DoInternalConnect;
 var
   FullVersion: string;
@@ -493,7 +502,7 @@ begin
   Result:=FMySQL;
 end;
 
-function TConnectionName.AllocateCursorHandle: TSQLCursor;
+Function TConnectionName.AllocateCursorHandle: TSQLCursor;
 begin
   {$IFDEF mysql56}
     Result:=TMySQL56Cursor.Create;
@@ -524,7 +533,7 @@ begin
   FreeAndNil(cursor);
 end;
 
-function TConnectionName.AllocateTransactionHandle: TSQLHandle;
+Function TConnectionName.AllocateTransactionHandle: TSQLHandle;
 begin
 //  Result:=TTransactionName.Create;
   Result := nil;
@@ -1122,7 +1131,7 @@ constructor TConnectionName.Create(AOwner: TComponent);
 const SingleBackQoutes: TQuoteChars = ('`','`');
 begin
   inherited Create(AOwner);
-  FConnOptions := FConnOptions + [sqEscapeRepeat, sqEscapeSlash, sqImplicitTransaction];
+  FConnOptions := FConnOptions + [sqEscapeRepeat, sqEscapeSlash, sqImplicitTransaction, sqLastInsertID];
   FieldNameQuoteChars:=SingleBackQoutes;
   FMySQL := Nil;
 end;

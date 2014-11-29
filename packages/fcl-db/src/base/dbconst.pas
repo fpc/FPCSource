@@ -117,7 +117,10 @@ Resourcestring
   SErrNoImplicitTransaction   = 'Connection %s does not allow implicit transactions.';
   SErrImplictTransactionStart = 'Error: attempt to implicitly start a transaction on Connection "%s", transaction "%s".';
   SErrImplicitConnect         = 'Error: attempt to implicitly activate connection "%s".';
-  SErrFailedToUpdateRecord    = '%q: Failed to apply record updates: %d rows updated.';
+  SErrFailedToUpdateRecord    = 'Failed to apply record updates: %d rows updated.';
+  SErrRefreshNotSingleton     = 'Refresh SQL resulted in multiple records: %d.';
+  SErrRefreshEmptyResult      = 'Refresh SQL resulted in empty result set.';
+  SErrNoKeyFieldForRefreshClause = 'No key field found to construct refresh SQL WHERE clause';
 
 Implementation
 
