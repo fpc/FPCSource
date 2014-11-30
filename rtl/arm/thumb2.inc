@@ -584,7 +584,7 @@ begin
   asm
     mov r1,sp
     bic r0,r1,#7
-    ldrd r0,[r0]
+    ldrd r0,r1,[r0]
   end;
   in_edsp_test:=false;
   if cpu_has_edsp then

@@ -962,7 +962,7 @@ begin
   in_edsp_test:=true;
   asm
     bic r0,sp,#7
-    ldrd r0,[r0]
+    ldrd r0,r1,[r0]
   end;
   in_edsp_test:=false;
   if cpu_has_edsp then
