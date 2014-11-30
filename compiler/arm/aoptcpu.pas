@@ -662,7 +662,7 @@ Implementation
                       str reg1,ref
                       str reg2,ref
                       into
-                      strd reg1,ref
+                      strd reg1,reg2,ref
                     }
                     else if (GenerateARMCode or GenerateThumb2Code) and
                        (CPUARM_HAS_EDSP in cpu_capabilities[current_settings.cputype]) and
@@ -683,6 +683,9 @@ Implementation
                       begin
                         DebugMsg('Peephole StrStr2Strd done', p);
                         taicpu(p).oppostfix:=PF_D;
+                        taicpu(p).loadref(2,taicpu(p).oper[1]^.ref^);
+                        taicpu(p).loadreg(1, taicpu(hp1).oper[0]^.reg);
+                        taicpu(p).ops:=3;
                         asml.remove(hp1);
                         hp1.free;
                         result:=true;
@@ -729,7 +732,7 @@ Implementation
                           end
                         {
                            ...
-                           ldrd reg1,ref
+                           ldrd reg1,reg1+1,ref
                         }
                         else if (GenerateARMCode or GenerateThumb2Code) and
                           (CPUARM_HAS_EDSP in cpu_capabilities[current_settings.cputype]) and
@@ -747,6 +750,9 @@ Implementation
                           AlignedToQWord(taicpu(p).oper[1]^.ref^) then
                           begin
                             DebugMsg('Peephole LdrLdr2Ldrd done', p);
+                            taicpu(p).loadref(2,taicpu(p).oper[1]^.ref^);
+                            taicpu(p).loadreg(1, taicpu(hp1).oper[0]^.reg);
+                            taicpu(p).ops:=3;
                             taicpu(p).oppostfix:=PF_D;
                             asml.remove(hp1);
                             hp1.free;
