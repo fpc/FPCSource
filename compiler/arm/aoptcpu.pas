@@ -341,7 +341,14 @@ Implementation
         if Result and
            (Next.typ=ait_instruction) and
            (taicpu(Next).opcode in [A_LDR, A_STR]) and
-           RefsEqual(taicpu(Next).oper[1]^.ref^,ref) then
+           (
+            ((taicpu(Next).ops = 2) and
+             (taicpu(Next).oper[1]^.typ = top_ref) and
+             RefsEqual(taicpu(Next).oper[1]^.ref^,ref)) or
+            ((taicpu(Next).ops = 3) and { LDRD/STRD }
+             (taicpu(Next).oper[2]^.typ = top_ref) and
+             RefsEqual(taicpu(Next).oper[2]^.ref^,ref))
+           ) then
             {We've found an instruction LDR or STR with the same reference}
             exit;
       until not(Result) or
@@ -507,7 +514,8 @@ Implementation
       hp1 : tai;
     begin
       Result:=false;
-      if (p.oper[1]^.ref^.addressmode=AM_OFFSET) and
+      if (p.oper[1]^.typ = top_ref) and
+        (p.oper[1]^.ref^.addressmode=AM_OFFSET) and
         (p.oper[1]^.ref^.index=NR_NO) and
         (p.oper[1]^.ref^.offset=0) and
         GetNextInstructionUsingReg(p, hp1, p.oper[1]^.ref^.base) and
@@ -633,11 +641,13 @@ Implementation
                       str reg1,ref
                       mov reg2,reg1
                     }
-                    if (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
+                    if (taicpu(p).oper[1]^.typ = top_ref) and
+                       (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
                        (taicpu(p).oppostfix=PF_None) and
                        (taicpu(p).condition=C_None) and
                        GetNextInstructionUsingRef(p,hp1,taicpu(p).oper[1]^.ref^) and
                        MatchInstruction(hp1, A_LDR, [taicpu(p).condition], [PF_None]) and
+                       (taicpu(hp1).oper[1]^.typ=top_ref) and
                        (taicpu(hp1).oper[1]^.ref^.addressmode=AM_OFFSET) and
                        not(RegModifiedBetween(taicpu(p).oper[0]^.reg, p, hp1)) and
                        ((taicpu(hp1).oper[1]^.ref^.index=NR_NO) or not (RegModifiedBetween(taicpu(hp1).oper[1]^.ref^.index, p, hp1))) and
@@ -699,7 +709,8 @@ Implementation
                       ldr reg2,ref
                       into ...
                     }
-                    if (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
+                    if (taicpu(p).oper[1]^.typ = top_ref) and
+                       (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
                        GetNextInstruction(p,hp1) and
                        { ldrd is not allowed here }
                        MatchInstruction(hp1, A_LDR, [taicpu(p).condition, C_None], [taicpu(p).oppostfix,PF_None]-[PF_D]) then
@@ -1235,6 +1246,7 @@ Implementation
                        (taicpu(p).oppostfix = PF_NONE) and
                        GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
                        MatchInstruction(hp1, [A_LDR, A_STR], [taicpu(p).condition], []) and
+                       (taicpu(hp1).oper[1]^.typ = top_ref) and
                        { We can change the base register only when the instruction uses AM_OFFSET }
                        ((taicpu(hp1).oper[1]^.ref^.index = taicpu(p).oper[0]^.reg) or
                          ((taicpu(hp1).oper[1]^.ref^.addressmode = AM_OFFSET) and
@@ -1659,6 +1671,7 @@ Implementation
                         while GetNextInstructionUsingReg(hp1, hp1, taicpu(p).oper[0]^.reg) and
                           { we cannot check NR_DEFAULTFLAGS for modification yet so don't allow a condition }
                           MatchInstruction(hp1, [A_LDR, A_STR], [C_None], []) and
+                          (taicpu(hp1).oper[1]^.typ = top_ref) and
                           (taicpu(hp1).oper[1]^.ref^.base=taicpu(p).oper[0]^.reg) and
                           { don't optimize if the register is stored/overwritten }
                           (taicpu(hp1).oper[0]^.reg<>taicpu(p).oper[1]^.reg) and
@@ -2453,6 +2466,7 @@ Implementation
                ) or
                { try to prove that the memory accesses don't overlapp }
                ((taicpu(p).opcode in [A_STRB,A_STRH,A_STR]) and
+                (taicpu(p).oper[1]^.typ = top_ref) and
                 (taicpu(p).oper[1]^.ref^.base=taicpu(hp1).oper[1]^.ref^.base) and
                 (taicpu(p).oppostfix=PF_None) and
                 (taicpu(hp1).oppostfix=PF_None) and
