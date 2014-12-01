@@ -18,11 +18,11 @@ type
 
   TSQLDBTestCase = class(TTestCase)
   private
-    function GetDBC: TSQLDBConnector;
+    function GetSQLDBConnector: TSQLDBConnector;
     protected
       procedure SetUp; override;
       procedure TearDown; override;
-      Property SQLDBConnector : TSQLDBConnector Read GetDBC;
+      Property SQLDBConnector : TSQLDBConnector Read GetSQLDBConnector;
   end;
 
   { TTestTSQLQuery }
@@ -33,10 +33,10 @@ type
     procedure DoAfterPost(DataSet: TDataSet);
     Procedure Allow;
     Procedure DoApplyUpdates;
-    Procedure SetQueryOPtions;
+    Procedure SetQueryOptions;
     Procedure TrySetPacketRecords;
   Protected
-    Procedure setup; override;
+    Procedure Setup; override;
   published
     procedure TestMasterDetail;
     procedure TestUpdateServerIndexDefs;
@@ -227,9 +227,9 @@ begin
   FMyQ.PacketRecords:=10;
 end;
 
-Procedure TTestTSQLQuery.setup;
+Procedure TTestTSQLQuery.Setup;
 begin
-  inherited setup;
+  inherited Setup;
   SQLDBConnector.Connection.Options:=[];
 end;
 
@@ -243,7 +243,7 @@ begin
     end;
 end;
 
-Procedure TTestTSQLQuery.SetQueryOPtions;
+Procedure TTestTSQLQuery.SetQueryOptions;
 
 begin
   FMyQ.Options:=[sqoKeepOpenOnCommit];
@@ -374,6 +374,7 @@ var
   T : TSQLTransaction;
   I, J : Integer;
 begin
+  if SQLConnType in [mssql,odbc] then Ignore(STestNotApplicable);
   with SQLDBConnector do
     begin
     TryDropIfExist('testdiscon');
@@ -836,7 +837,7 @@ end;
 
 { TSQLDBTestCase }
 
-function TSQLDBTestCase.GetDBC: TSQLDBConnector;
+function TSQLDBTestCase.GetSQLDBConnector: TSQLDBConnector;
 begin
   Result:=DBConnector as TSQLDBConnector;
 end;
@@ -853,7 +854,7 @@ begin
   DBConnector.StopTest(TestName);
   if assigned(DBConnector) then
     with SQLDBConnector do
-      if Assigned(Transaction) and not (stoUseImplicit in Transaction.Options) then
+      if Assigned(Transaction) and Transaction.Active and not (stoUseImplicit in Transaction.Options) then
         Transaction.Rollback;
   FreeDBConnector;
   inherited TearDown;
