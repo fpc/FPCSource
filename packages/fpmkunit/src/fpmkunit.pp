@@ -6657,7 +6657,7 @@ end;
 
 function TBuildEngine.GetUnitConfigFilesInstallDir(ABaseDir: string): String;
 begin
-  result := IncludeTrailingPathDelimiter(ABaseDir)+Defaults.UnitConfigFilesInstallDir;
+  result := FixPath(ABaseDir)+Defaults.UnitConfigFilesInstallDir;
 end;
 
 procedure TBuildEngine.InstallUnitConfigFile(APAckage: TPackage; const Dest: String);
