@@ -55,21 +55,16 @@ type
     foptions: TSQLiteOptions;
     procedure setoptions(const avalue: tsqliteoptions);
   protected
-    function GetLastInsertIDForField(Query : TCustomSQLQuery; AField : TField): Boolean; override;
-    function stringsquery(const asql: string): TArrayStringArray;
-    procedure checkerror(const aerror: integer);
-    
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
     function GetHandle : pointer; override;
  
     Function AllocateCursorHandle : TSQLCursor; override;
-                        //aowner used as blob cache
     Procedure DeAllocateCursorHandle(var cursor : TSQLCursor); override;
     Function AllocateTransactionHandle : TSQLHandle; override;
  
-    procedure PrepareStatement(cursor: TSQLCursor; ATransaction : TSQLTransaction; 
-                          buf: string; AParams : TParams); override;
+    function StrToStatementType(s : string) : TStatementType; override;
+    procedure PrepareStatement(cursor: TSQLCursor; ATransaction : TSQLTransaction; buf: string; AParams : TParams); override;
     procedure Execute(cursor: TSQLCursor;atransaction:tSQLtransaction; AParams : TParams); override;
     function Fetch(cursor : TSQLCursor) : boolean; override;
     procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs); override;
@@ -77,20 +72,23 @@ type
  
     procedure FreeFldBuffers(cursor : TSQLCursor); override;
     function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; override;
-           //if bufsize < 0 -> buffer was too small, should be -bufsize
+    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
+
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
     function StartdbTransaction(trans : TSQLHandle; aParams : string) : boolean; override;
     procedure CommitRetaining(trans : TSQLHandle); override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
-    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
-    // New methods
-    procedure execsql(const asql: string);
+
     procedure UpdateIndexDefs(IndexDefs : TIndexDefs; TableName : string); override;
-    function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
-    function StrToStatementType(s : string) : TStatementType; override;
+    function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
+    function RefreshLastInsertID(Query : TCustomSQLQuery; Field : TField): Boolean; override;
+    // New methods
+    procedure checkerror(const aerror: integer);
+    function stringsquery(const asql: string): TArrayStringArray;
+    procedure execsql(const asql: string);
   public
     constructor Create(AOwner : TComponent); override;
     procedure GetFieldNames(const TableName : string; List :  TStrings); override;
@@ -299,6 +297,13 @@ end;
 
 { TSQLite3Connection }
 
+constructor TSQLite3Connection.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FConnOptions := FConnOptions + [sqEscapeRepeat,sqEscapeSlash,sqLastInsertID];
+  FieldNameQuoteChars:=DoubleQuotes;
+end;
+
 procedure TSQLite3Connection.LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); 
 
 var
@@ -354,6 +359,13 @@ end;
 Procedure TSQLite3Connection.DeAllocateCursorHandle(var cursor: TSQLCursor);
 begin
   freeandnil(cursor);
+end;
+
+function TSQLite3Connection.StrToStatementType(s: string): TStatementType;
+begin
+  S:=Lowercase(s);
+  if s = 'pragma' then exit(stSelect);
+  result := inherited StrToStatementType(s);
 end;
 
 procedure TSQLite3Connection.PrepareStatement(cursor: TSQLCursor;
@@ -857,14 +869,6 @@ begin
   checkerror(sqlite3_exec(fhandle,pchar(asql),@execscallback,@result,nil));
 end;
 
-function TSQLite3Connection.RowsAffected(cursor: TSQLCursor): TRowsCount;
-begin
-  if assigned(cursor) then
-    Result := (cursor as TSQLite3Cursor).RowsAffected
-  else
-    Result := -1;
-end;
-
 function TSQLite3Connection.GetSchemaInfoSQL(SchemaType: TSchemaType;
   SchemaObjectName, SchemaPattern: string): string;
   
@@ -876,20 +880,6 @@ begin
   else
     DatabaseError(SMetadataUnavailable)
   end; {case}
-end;
-
-function TSQLite3Connection.StrToStatementType(s: string): TStatementType;
-begin
-  S:=Lowercase(s);
-  if s = 'pragma' then exit(stSelect);
-  result := inherited StrToStatementType(s);
-end;
-
-constructor TSQLite3Connection.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-  FConnOptions := FConnOptions + [sqEscapeRepeat,sqEscapeSlash,sqLastInsertID];
-  FieldNameQuoteChars:=DoubleQuotes;
 end;
 
 procedure TSQLite3Connection.UpdateIndexDefs(IndexDefs: TIndexDefs; TableName: string);
@@ -948,6 +938,20 @@ begin
 
   PKFields.Free;
   IXFields.Free;
+end;
+
+function TSQLite3Connection.RowsAffected(cursor: TSQLCursor): TRowsCount;
+begin
+  if assigned(cursor) then
+    Result := (cursor as TSQLite3Cursor).RowsAffected
+  else
+    Result := -1;
+end;
+
+function TSQLite3Connection.RefreshLastInsertID(Query: TCustomSQLQuery; Field: TField): Boolean;
+begin
+  Field.AsLargeInt:=GetInsertID;
+  Result:=True;
 end;
 
 function TSQLite3Connection.GetInsertID: int64;
@@ -1038,13 +1042,6 @@ begin
    end;
 end;
 
-function TSQLite3Connection.GetLastInsertIDForField(Query: TCustomSQLQuery;
-  AField: TField): Boolean;
-begin
- Result:=inherited GetLastInsertIDForField(Query, AField);
- if Result then
-   AField.AsLargeInt:=GetInsertID;
-end;
 
 { TSQLite3ConnectionDef }
 
