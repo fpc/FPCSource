@@ -40,8 +40,8 @@ type
   published
     procedure TestMasterDetail;
     procedure TestUpdateServerIndexDefs;
-    Procedure TestDisconnected;
-    Procedure TestDisconnectedPacketRecords;
+    Procedure TestKeepOpenOnCommit;
+    Procedure TestKeepOpenOnCommitPacketRecords;
     Procedure TestCheckSettingsOnlyWhenInactive;
     Procedure TestAutoApplyUpdatesPost;
     Procedure TestAutoApplyUpdatesDelete;
@@ -183,20 +183,20 @@ begin
   end;
 end;
 
-Procedure TTestTSQLQuery.TestDisconnected;
+Procedure TTestTSQLQuery.TestKeepOpenOnCommit;
 var Q: TSQLQuery;
     I, J : Integer;
 begin
-  // Test that for a disconnected SQL query, calling commit does not close the dataset.
+  // Test that for a SQL query with Options=sqoKeepOpenOnCommit, calling commit does not close the dataset.
   // Test also that an edit still works.
   with SQLDBConnector do
     begin
     TryDropIfExist('testdiscon');
     ExecuteDirect('create table testdiscon (id integer not null, a varchar(10), constraint pk_testdiscon primary key(id))');
-    Transaction.COmmit;
+    Transaction.Commit;
     for I:=1 to 20 do
       ExecuteDirect(Format('INSERT INTO testdiscon values (%d,''%.6d'')',[i,i]));
-    Transaction.COmmit;
+    Transaction.Commit;
     Q := SQLDBConnector.Query;
     Q.SQL.Text:='select * from testdiscon';
     Q.Options:=[sqoKeepOpenOnCommit];
@@ -218,11 +218,9 @@ begin
     Q.Open;
     AssertTrue('Have modified data record in database',not (Q.EOF AND Q.BOF));
     end;
-
 end;
 
 Procedure TTestTSQLQuery.TrySetPacketRecords;
-
 begin
   FMyQ.PacketRecords:=10;
 end;
@@ -233,7 +231,7 @@ begin
   SQLDBConnector.Connection.Options:=[];
 end;
 
-Procedure TTestTSQLQuery.TestDisconnectedPacketRecords;
+Procedure TTestTSQLQuery.TestKeepOpenOnCommitPacketRecords;
 begin
   with SQLDBConnector do
     begin
@@ -244,7 +242,6 @@ begin
 end;
 
 Procedure TTestTSQLQuery.SetQueryOptions;
-
 begin
   FMyQ.Options:=[sqoKeepOpenOnCommit];
 end;
@@ -370,42 +367,33 @@ end;
 
 Procedure TTestTSQLQuery.TestAutoCommit;
 var
-  Q: TSQLQuery;
-  T : TSQLTransaction;
   I, J : Integer;
 begin
-  if SQLConnType in [mssql,odbc] then Ignore(STestNotApplicable);
   with SQLDBConnector do
     begin
     TryDropIfExist('testdiscon');
     ExecuteDirect('create table testdiscon (id integer not null, a varchar(10), constraint pk_testdiscon primary key(id))');
     if Transaction.Active then
       Transaction.Commit;
+
+    Query.Options:=[sqoAutoCommit];
+    for I:=1 to 2 do
+      begin
+      Query.SQL.Text:=Format('INSERT INTO testdiscon values (%d,''%.6d'');',[i,i]);
+      Query.Prepare;
+      Query.ExecSQL;
+      // We do not commit anything explicitly.
+      end;
+
+    AssertFalse('Transaction is still active after expected auto commit', Transaction.Active);
+
+    Connection.Close;
+    Connection.Open;
+
+    Query.SQL.Text:='SELECT COUNT(*) from testdiscon';
+    Query.Open;
+    AssertEquals('Records haven''t been committed to database', 2, Query.Fields[0].AsInteger);
     end;
-  Q:=SQLDBConnector.Query;
-  Q.Options:=[sqoAutoCommit];
-  for I:=1 to 2 do
-    begin
-    Q.SQL.Text:=Format('INSERT INTO testdiscon values (%d,''%.6d'');',[i,i]);
-    Q.Prepare;
-    Q.ExecSQL;
-    // We do not commit anything explicitly.
-    end;
-  Q:=Nil;
-  T:=Nil;
-  try
-    T:=TSQLTransaction.Create(Nil);
-    Q:=TSQLQuery.Create(Nil);
-    Q.Transaction:=T;
-    Q.Database:=SQLDBConnector.Connection;
-    T.Database:=SQLDBConnector.Connection;
-    Q.SQL.text:='SELECT COUNT(*) from testdiscon';
-    Q.Open;
-    AssertEquals('Records have been committed to database',2,Q.Fields[0].AsInteger);
-  finally
-    Q.Free;
-    T.Free;
-  end;
 end;
 
 Procedure TTestTSQLQuery.TestRefreshSQL;
