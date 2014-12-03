@@ -9,7 +9,6 @@ program dbtestframework;
 uses
   SysUtils,
   fpcunit,  testreport, testregistry,
-  ibase60dyn,
   DigestTestReport,
   toolsunit,
 // List of supported database connectors
@@ -64,7 +63,6 @@ Var
   Application : TTestRunner;  
   
 begin
-  ibase60dyn.InitialiseIBase60('libfbclient.so.2.5.2');
   InitialiseDBConnector;
   Try
     Application:=TTestRunner.Create(nil);
