@@ -172,15 +172,15 @@ type
     // One day, this may be factored out to a TSQLResolver class.
     // The following allow construction of update queries. They can be adapted as needed by descendents to fit the DB engine.
     procedure AddFieldToUpdateWherePart(var sql_where: string; UpdateMode : TUpdateMode; F: TField); virtual;
-    function ConstructRefreshSQL(Query: TCustomSQLQuery; UpdateKind : TUpdateKind): string; virtual;
-    function ConstructDeleteSQL(Query: TCustomSQLQuery): string; virtual;
     function ConstructInsertSQL(Query: TCustomSQLQuery): string; virtual;
     function ConstructUpdateSQL(Query: TCustomSQLQuery): string; virtual;
+    function ConstructDeleteSQL(Query: TCustomSQLQuery): string; virtual;
+    function ConstructRefreshSQL(Query: TCustomSQLQuery; UpdateKind : TUpdateKind): string; virtual;
     function InitialiseUpdateStatement(Query: TCustomSQLQuery; var qry: TCustomSQLStatement): TCustomSQLStatement;
     procedure ApplyFieldUpdate(C : TSQLCursor; P: TSQLDBParam; F: TField; UseOldValue: Boolean); virtual;
     // This is the call that updates a record, it used to be in TSQLQuery.
-    function GetLastInsertIDForField(Query : TCustomSQLQuery; AField : TField): Boolean; virtual;
     procedure ApplyRecUpdate(Query : TCustomSQLQuery; UpdateKind : TUpdateKind); virtual;
+    function RefreshLastInsertID(Query : TCustomSQLQuery; Field : TField): Boolean; virtual;
     procedure GetDBInfo(const ASchemaType : TSchemaType; const ASchemaObjectName, AReturnField : string; AList: TStrings);
     procedure SetTransaction(Value : TSQLTransaction); virtual;
     procedure DoInternalConnect; override;
@@ -384,10 +384,10 @@ type
     FUpdateable          : boolean;
     FTableName           : string;
     FStatement           : TCustomSQLStatement;
-    FRefreshSQL,
-    FUpdateSQL,
     FInsertSQL,
-    FDeleteSQL           : TStringList;
+    FUpdateSQL,
+    FDeleteSQL,
+    FRefreshSQL          : TStringList;
     FIsEOF               : boolean;
     FLoadingFieldDefs    : boolean;
     FUpdateMode          : TUpdateMode;
@@ -403,30 +403,30 @@ type
     FSchemaObjectName    : string;
     FSchemaPattern       : string;
 
+    FInsertQry,
     FUpdateQry,
-    FDeleteQry,
-    FInsertQry           : TCustomSQLStatement;
+    FDeleteQry           : TCustomSQLStatement;
     procedure FreeFldBuffers;
     function GetParamCheck: Boolean;
     function GetParams: TParams;
     function GetParseSQL: Boolean;
     function GetServerIndexDefs: TServerIndexDefs;
-    function GetSQL: TStringlist;
+    function GetSQL: TStringList;
     function GetSQLConnection: TSQLConnection;
     function GetSQLTransaction: TSQLTransaction;
     function GetStatementType : TStatementType;
-    Function NeedLastinsertID: TField;
+    Function NeedLastInsertID: TField;
     procedure SetOptions(AValue: TSQLQueryOptions);
     procedure SetParamCheck(AValue: Boolean);
-    procedure SetRefreshSQL(AValue: TStringlist);
     procedure SetSQLConnection(AValue: TSQLConnection);
     procedure SetSQLTransaction(AValue: TSQLTransaction);
-    procedure SetUpdateSQL(const AValue: TStringlist);
-    procedure SetDeleteSQL(const AValue: TStringlist);
-    procedure SetInsertSQL(const AValue: TStringlist);
+    procedure SetInsertSQL(const AValue: TStringList);
+    procedure SetUpdateSQL(const AValue: TStringList);
+    procedure SetDeleteSQL(const AValue: TStringList);
+    procedure SetRefreshSQL(const AValue: TStringList);
     procedure SetParams(AValue: TParams);
     procedure SetParseSQL(AValue : Boolean);
-    procedure SetSQL(const AValue: TStringlist);
+    procedure SetSQL(const AValue: TStringList);
     procedure SetUsePrimaryKeyAsKey(AValue : Boolean);
     procedure SetUpdateMode(AValue : TUpdateMode);
     procedure OnChangeModifySQL(Sender : TObject);
@@ -434,10 +434,9 @@ type
     procedure ApplyFilter;
     Function AddFilter(SQLstr : string) : string;
   protected
-    Function UpdateLastInsertIDField(F: TField): Boolean; virtual;
+    Function RefreshLastInsertID(Field: TField): Boolean; virtual;
     Function NeedRefreshRecord (UpdateKind: TUpdateKind): Boolean; virtual;
     Function RefreshRecord (UpdateKind: TUpdateKind) : Boolean; virtual;
-    procedure SetPacketRecords(aValue : integer); override;
     Function Cursor : TSQLCursor;
     Function LogEvent(EventType : TDBEventType) : Boolean;
     Procedure Log(EventType : TDBEventType; Const Msg : String); virtual;
@@ -446,6 +445,7 @@ type
     function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; override;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); override;
     procedure ApplyRecUpdate(UpdateKind : TUpdateKind); override;
+    procedure SetPacketRecords(aValue : integer); override;
     // abstract & virtual methods of TDataset
     procedure UpdateServerIndexDefs; virtual;
     procedure SetDatabase(Value : TDatabase); override;
@@ -476,14 +476,15 @@ type
     procedure Prepare; virtual;
     procedure UnPrepare; virtual;
     procedure ExecSQL; virtual;
-    Procedure Post; override;
-    Procedure Delete; override;
     procedure SetSchemaInfo( ASchemaType : TSchemaType; ASchemaObjectName, ASchemaPattern : string); virtual;
     function RowsAffected: TRowsCount; virtual;
     function ParamByName(Const AParamName : String) : TParam;
     Property Prepared : boolean read IsPrepared;
     Property SQLConnection : TSQLConnection Read GetSQLConnection Write SetSQLConnection;
     Property SQLTransaction: TSQLTransaction Read GetSQLTransaction Write SetSQLTransaction;
+    // overriden TDataSet methods
+    Procedure Post; override;
+    Procedure Delete; override;
   protected
     // redeclared TDataSet properties
     property Active;
@@ -517,10 +518,10 @@ type
     property Transaction;
     property SchemaType : TSchemaType read FSchemaType default stNoSchema;
     property SQL : TStringlist read GetSQL write SetSQL;
-    property UpdateSQL : TStringlist read FUpdateSQL write SetUpdateSQL;
-    property InsertSQL : TStringlist read FInsertSQL write SetInsertSQL;
-    property DeleteSQL : TStringlist read FDeleteSQL write SetDeleteSQL;
-    property RefreshSQL : TStringlist read FRefreshSQL write SetRefreshSQL;
+    property InsertSQL : TStringList read FInsertSQL write SetInsertSQL;
+    property UpdateSQL : TStringList read FUpdateSQL write SetUpdateSQL;
+    property DeleteSQL : TStringList read FDeleteSQL write SetDeleteSQL;
+    property RefreshSQL : TStringList read FRefreshSQL write SetRefreshSQL;
     Property Options : TSQLQueryOptions Read FOptions Write SetOptions;
     property Params : TParams read GetParams Write SetParams;
     Property ParamCheck : Boolean Read GetParamCheck Write SetParamCheck default true;
@@ -575,10 +576,10 @@ type
     property Transaction;
     property ReadOnly;
     property SQL;
-    property UpdateSQL;
     property InsertSQL;
-    property RefreshSQL;
+    property UpdateSQL;
     property DeleteSQL;
+    property RefreshSQL;
     property IndexDefs;
     Property Options;
     property Params;
@@ -727,8 +728,8 @@ implementation
 uses dbconst, strutils;
 
 Const
-  // Flags to check which fields must be refreshed. Index is false for update, true for insert
-  RefreshFlags : Array [Boolean] of TProviderFlag = (pfRefreshOnUpdate,pfRefreshOnUpdate);
+  // Flags to check which fields must be refreshed.
+  RefreshFlags : Array [ukModify..ukInsert] of TProviderFlag = (pfRefreshOnUpdate,pfRefreshOnInsert);
 
 
 function TimeIntervalToString(Time: TDateTime): string;
@@ -1559,6 +1560,7 @@ begin
   Result:=qry;
 end;
 
+
 procedure TSQLConnection.AddFieldToUpdateWherePart(var sql_where : string;UpdateMode : TUpdateMode; F : TField);
 
 begin
@@ -1577,67 +1579,6 @@ begin
      end;
 end;
 
-function TSQLConnection.ConstructRefreshSQL(Query: TCustomSQLQuery;
-  UpdateKind: TUpdateKind): string;
-
-Var
-  F : TField;
-  PF : TProviderFlag;
-  Where : String;
-
-begin
-  Where:='';
-  Result:=Query.RefreshSQL.Text;
-  if (Result='') then
-    begin
-    PF:=RefreshFlags[UpdateKind=ukInsert];
-    For F in Query.Fields do
-      begin
-      if PF in F.ProviderFlags then
-        begin
-        if (Result<>'') then
-          Result:=Result+', ';
-        if (F.Origin<>'') and (F.Origin<>F.FieldName) then
-          Result:=Result+F.Origin+' as '+F.FieldName
-        else
-          Result:=Result+FieldNameQuoteChars[0]+F.FieldName+FieldNameQuoteChars[1]
-        end;
-      if pfInkey in F.ProviderFlags then
-        begin
-        if (Where<>'') then
-          Where:=Where+' AND ';
-        Where:=Where+'('+FieldNameQuoteChars[0]+F.FieldName+FieldNameQuoteChars[0]+' = :'+F.FieldName+')';
-        end;
-      end;
-    if (Where='') then
-      DatabaseError(SErrNoKeyFieldForRefreshClause,Query);
-    Result:='SELECT '+Result+' FROM '+Query.FTableName+' WHERE '+Where;
-    end;
-
-end;
-
-function TSQLConnection.ConstructUpdateSQL(Query: TCustomSQLQuery): string;
-
-var x : integer;
-    F : TField;
-    sql_set    : string;
-    sql_where  : string;
-
-begin
-  sql_set := '';
-  sql_where := '';
-  for x := 0 to Query.Fields.Count -1 do
-    begin
-    F:=Query.Fields[x];
-    AddFieldToUpdateWherePart(sql_where,Query.UpdateMode,F);
-    if (pfInUpdate in F.ProviderFlags) and (not F.ReadOnly) then
-      sql_set := sql_set +FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1] +'=:"' + F.FieldName + '",';
-    end;
-  if length(sql_set) = 0 then DatabaseErrorFmt(sNoUpdateFields,['update'],self);
-  setlength(sql_set,length(sql_set)-1);
-  if length(sql_where) = 0 then DatabaseErrorFmt(sNoWhereFields,['update'],self);
-  result := 'update ' + Query.FTableName + ' set ' + sql_set + ' where ' + sql_where;
-end;
 
 function TSQLConnection.ConstructInsertSQL(Query : TCustomSQLQuery) : string;
 
@@ -1667,6 +1608,30 @@ begin
 end;
 
 
+function TSQLConnection.ConstructUpdateSQL(Query: TCustomSQLQuery): string;
+
+var x : integer;
+    F : TField;
+    sql_set    : string;
+    sql_where  : string;
+
+begin
+  sql_set := '';
+  sql_where := '';
+  for x := 0 to Query.Fields.Count -1 do
+    begin
+    F:=Query.Fields[x];
+    AddFieldToUpdateWherePart(sql_where,Query.UpdateMode,F);
+    if (pfInUpdate in F.ProviderFlags) and (not F.ReadOnly) then
+      sql_set := sql_set +FieldNameQuoteChars[0] + F.FieldName + FieldNameQuoteChars[1] +'=:"' + F.FieldName + '",';
+    end;
+  if length(sql_set) = 0 then DatabaseErrorFmt(sNoUpdateFields,['update'],self);
+  setlength(sql_set,length(sql_set)-1);
+  if length(sql_where) = 0 then DatabaseErrorFmt(sNoWhereFields,['update'],self);
+  result := 'update ' + Query.FTableName + ' set ' + sql_set + ' where ' + sql_where;
+end;
+
+
 function TSQLConnection.ConstructDeleteSQL(Query : TCustomSQLQuery) :  string;
 
 var
@@ -1682,6 +1647,43 @@ begin
   result := 'delete from ' + Query.FTableName + ' where ' + sql_where;
 end;
 
+function TSQLConnection.ConstructRefreshSQL(Query: TCustomSQLQuery; UpdateKind: TUpdateKind): string;
+
+Var
+  F : TField;
+  PF : TProviderFlag;
+  Where : String;
+
+begin
+  Where:='';
+  Result:=Query.RefreshSQL.Text;
+  if (Result='') then
+    begin
+    PF:=RefreshFlags[UpdateKind];
+    For F in Query.Fields do
+      begin
+      if PF in F.ProviderFlags then
+        begin
+        if (Result<>'') then
+          Result:=Result+', ';
+        if (F.Origin<>'') and (F.Origin<>F.FieldName) then
+          Result:=Result+F.Origin+' AS '+F.FieldName
+        else
+          Result:=Result+FieldNameQuoteChars[0]+F.FieldName+FieldNameQuoteChars[1]
+        end;
+      if pfInkey in F.ProviderFlags then
+        begin
+        if (Where<>'') then
+          Where:=Where+' AND ';
+        Where:=Where+'('+FieldNameQuoteChars[0]+F.FieldName+FieldNameQuoteChars[0]+' = :'+F.FieldName+')';
+        end;
+      end;
+    if (Where='') then
+      DatabaseError(SErrNoKeyFieldForRefreshClause,Query);
+    Result:='SELECT '+Result+' FROM '+Query.FTableName+' WHERE '+Where;
+    end;
+end;
+
 procedure TSQLConnection.ApplyFieldUpdate(C : TSQLCursor; P : TSQLDBParam;F : TField; UseOldValue : Boolean);
 
 begin
@@ -1690,11 +1692,6 @@ begin
   else
     P.AssignFieldValue(F,F.Value);
   P.FFieldDef:=F.FieldDef;
-end;
-
-function TSQLConnection.GetLastInsertIDForField(Query: TCustomSQLQuery; AField: TField): Boolean;
-begin
-  Result:=sqLastInsertID in ConnOptions;
 end;
 
 procedure TSQLConnection.ApplyRecUpdate(Query: TCustomSQLQuery; UpdateKind: TUpdateKind);
@@ -1743,6 +1740,11 @@ begin
   Qry.Execute;
   if (scoApplyUpdatesChecksRowsAffected in Options) and (Qry.RowsAffected<>1) then
     DatabaseErrorFmt(SErrFailedToUpdateRecord, [Qry.RowsAffected], Query);
+end;
+
+function TSQLConnection.RefreshLastInsertID(Query: TCustomSQLQuery; Field: TField): Boolean;
+begin
+  Result:=False;
 end;
 
 procedure TSQLConnection.FreeFldBuffers(cursor: TSQLCursor);
@@ -2205,17 +2207,17 @@ Function TCustomSQLQuery.NeedRefreshRecord(UpdateKind: TUpdateKind): Boolean;
 
 
 Var
-  F : TProviderFlag;
+  PF : TProviderFlag;
   I : Integer;
 begin
   Result:=(FRefreshSQL.Count<>0);
   if Not Result then
     begin
-    F:=RefreshFlags[UpdateKind=ukInsert];
+    PF:=RefreshFlags[UpdateKind];
     I:=0;
     While (Not Result) and (I<Fields.Count) do
       begin
-      Result:=F in Fields[i].ProviderFlags;
+      Result:=PF in Fields[i].ProviderFlags;
       Inc(I);
       end;
     end;
@@ -2228,7 +2230,6 @@ Var
   P : TParam;
   F,FD : TField;
   N : String;
-  S : TDatasetState;
 
 begin
   Result:=False;
@@ -2373,14 +2374,6 @@ end;
 function TCustomSQLQuery.GetSQLTransaction: TSQLTransaction;
 begin
   Result:=Transaction as TSQLTransaction;
-end;
-
-procedure TCustomSQLQuery.SetPacketRecords(aValue: integer);
-begin
-  if (AValue=PacketRecords) then exit;
-  if (AValue<>-1) and (sqoKeepOpenOnCommit in Options) then
-    DatabaseError(SErrDisconnectedPacketRecords);
-  Inherited SetPacketRecords(aValue);
 end;
 
 Function TCustomSQLQuery.Cursor: TSQLCursor;
@@ -2586,11 +2579,6 @@ begin
   FStatement.SQL.Assign(AValue);
 end;
 
-procedure TCustomSQLQuery.SetUpdateSQL(const AValue: TStringlist);
-begin
-  FUpdateSQL.Assign(AValue);
-end;
-
 procedure TCustomSQLQuery.SetUsePrimaryKeyAsKey(AValue : Boolean);
 
 begin
@@ -2610,7 +2598,7 @@ begin
     SQLConnection.UpdateIndexDefs(ServerIndexDefs,FTableName);
 end;
 
-Function TCustomSQLQuery.NeedLastinsertID : TField;
+Function TCustomSQLQuery.NeedLastInsertID : TField;
 
 Var
   I : Integer;
@@ -2630,43 +2618,53 @@ begin
     end
 end;
 
-Function TCustomSQLQuery.UpdateLastInsertIDField(F : TField) : Boolean;
+Function TCustomSQLQuery.RefreshLastInsertID(Field : TField) : Boolean;
 
 begin
-  Result:=SQLConnection.GetLastInsertIDForField(Self,F);
+  Result:=SQLConnection.RefreshLastInsertID(Self, Field);
 end;
 
 procedure TCustomSQLQuery.ApplyRecUpdate(UpdateKind: TUpdateKind);
 
 Var
-  DoRefresh,RecordRefreshed : Boolean;
+  DoRefresh, RecordRefreshed : Boolean;
   LastIDField : TField;
-  S : TDatasetState;
+  S : TDataSetState;
 
 begin
   // Moved to connection: the SQLConnection always has more information about types etc.
   // than SQLQuery itself.
-  SQLConnection.ApplyRecupdate(Self,UpdateKind);
-  if (UpdateKind=ukInsert) then
-    LastIDField:=NeedLastInsertID;
+  SQLConnection.ApplyRecUpdate(Self,UpdateKind);
+
+  if UpdateKind=ukInsert then
+    LastIDField:=NeedLastInsertID
+  else
+    LastIDField:=nil;
   DoRefresh:=(UpdateKind in [ukModify,ukInsert]) and NeedRefreshRecord(UpdateKind);
-  if ((LastIDField<>Nil) or DoRefresh) then
+  if assigned(LastIDField) or DoRefresh then
     begin
-    S:=State;
+    S:=SetTempState(dsNewValue);
     try
       RecordRefreshed:=False;
-      SetState(dsNewValue);
-      if LastIDField<>Nil then
-        RecordRefreshed:=UpdateLastInsertIDField(LastIDField);
+      if assigned(LastIDField) then
+        RecordRefreshed:=RefreshLastInsertID(LastIDField);
       if DoRefresh then
         RecordRefreshed:=RefreshRecord(UpdateKind) or RecordRefreshed;
     finally
-      SetState(S);
+      RestoreState(S);
     end;
     if RecordRefreshed then
       // Active buffer is updated, move to record.
       ActiveBufferToRecord;
     end;
+end;
+
+procedure TCustomSQLQuery.SetPacketRecords(aValue: integer);
+begin
+  if (AValue=PacketRecords) then exit;
+  if (AValue<>-1) and (sqoKeepOpenOnCommit in Options) then
+    DatabaseError(SErrDisconnectedPacketRecords);
+  Inherited SetPacketRecords(aValue);
 end;
 
 
@@ -2752,12 +2750,6 @@ begin
     PacketRecords:=-1;
 end;
 
-procedure TCustomSQLQuery.SetRefreshSQL(AValue: TStringlist);
-begin
-  if FRefreshSQL=AValue then Exit;
-  FRefreshSQL.Assign(AValue);
-end;
-
 procedure TCustomSQLQuery.SetSQLConnection(AValue: TSQLConnection);
 begin
   Database:=AValue;
@@ -2768,15 +2760,26 @@ begin
   Transaction:=AValue;
 end;
 
-procedure TCustomSQLQuery.SetDeleteSQL(const AValue: TStringlist);
+procedure TCustomSQLQuery.SetInsertSQL(const AValue: TStringList);
+begin
+  FInsertSQL.Assign(AValue);
+end;
+
+procedure TCustomSQLQuery.SetUpdateSQL(const AValue: TStringList);
+begin
+  FUpdateSQL.Assign(AValue);
+end;
+
+procedure TCustomSQLQuery.SetDeleteSQL(const AValue: TStringList);
 begin
   FDeleteSQL.Assign(AValue);
 end;
 
-procedure TCustomSQLQuery.SetInsertSQL(const AValue: TStringlist);
+procedure TCustomSQLQuery.SetRefreshSQL(const AValue: TStringList);
 begin
-  FInsertSQL.Assign(AValue);
+  FRefreshSQL.Assign(AValue);
 end;
+
 
 procedure TCustomSQLQuery.SetParams(AValue: TParams);
 begin

@@ -512,7 +512,6 @@ type
     procedure RemoveRecordFromIndexes(const ABookmark : TBufBookmark);
   protected
     // abstract & virtual methods of TDataset
-    procedure ActiveBufferToRecord;
     procedure SetPacketRecords(aValue : integer); virtual;
     procedure UpdateIndexDefs; override;
     procedure SetRecNo(Value: Longint); override;
@@ -559,6 +558,7 @@ type
     procedure SetReadOnly(AValue: Boolean); virtual;
     function IsReadFromPacket : Boolean;
     function getnextpacket : integer;
+    procedure ActiveBufferToRecord;
     // abstracts, must be overidden by descendents
     function Fetch : boolean; virtual;
     function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual;

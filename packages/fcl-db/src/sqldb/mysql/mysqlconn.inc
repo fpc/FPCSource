@@ -99,12 +99,11 @@ Type
     procedure ExecuteDirectMySQL(const query : string);
     function EscapeString(const Str : string) : string;
   protected
-    function GetLastInsertIDForField(Query : TCustomSQLQuery; AField : TField): Boolean; override;
-    function StrToStatementType(s : string) : TStatementType; override;
     Procedure ConnectToServer; virtual;
     Procedure SelectDatabase; virtual;
     function MySQLDataType(AField: PMYSQL_FIELD; var NewType: TFieldType; var NewSize: Integer): Boolean;
     function MySQLWriteData(AField: PMYSQL_FIELD; FieldDef: TFieldDef; Source, Dest: PChar; Len: integer; out CreateBlob : boolean): Boolean;
+
     // SQLConnection methods
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
@@ -117,6 +116,7 @@ Type
     Procedure DeAllocateCursorHandle(var cursor : TSQLCursor); override;
     Function AllocateTransactionHandle : TSQLHandle; override;
 
+    function StrToStatementType(s : string) : TStatementType; override;
     procedure PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLTransaction;buf : string; AParams : TParams); override;
     procedure UnPrepareStatement(cursor:TSQLCursor); override;
     procedure FreeFldBuffers(cursor : TSQLCursor); override;
@@ -134,6 +134,7 @@ Type
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
     procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); override;
     function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
+    function RefreshLastInsertID(Query : TCustomSQLQuery; Field : TField): Boolean; override;
   Public
     constructor Create(AOwner : TComponent); override;
     procedure GetFieldNames(const TableName : string; List :  TStrings); override;
@@ -462,14 +463,6 @@ begin
   SetLength(result,length(str)*2+1);
   Len := mysql_real_escape_string(FMySQL,pchar(Result),pchar(Str),length(Str));
   SetLength(result,Len);
-end;
-
-function TConnectionName.GetLastInsertIDForField(Query: TCustomSQLQuery;
-  AField: TField): Boolean;
-begin
-  Result:=inherited GetLastInsertIDForField(Query, AField);
-  if Result then
-    AField.AsLargeInt:=GetInsertID;
 end;
 
 procedure TConnectionName.DoInternalConnect;
@@ -1125,6 +1118,12 @@ begin
     Result := (cursor as TCursorName).RowsAffected
   else
     Result := -1;
+end;
+
+function TConnectionName.RefreshLastInsertID(Query: TCustomSQLQuery; Field: TField): Boolean;
+begin
+  Field.AsLargeInt:=GetInsertID;
+  Result := True;
 end;
 
 constructor TConnectionName.Create(AOwner: TComponent);
