@@ -91,6 +91,11 @@ Type
 
 
 implementation
+{$ifdef EXTDEBUG}
+  uses
+    dbugintf;
+{$endif}
+
 { TCustomExtDirectDispatcher }
 Const
   DefaultNameSpace = 'FPWeb';
@@ -286,11 +291,6 @@ begin
     A.Free;
   end;
 end;
-
-
-{$ifdef extdebug}
-uses dbugintf;
-{$endif}
 
 end.
 
