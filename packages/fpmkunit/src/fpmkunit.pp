@@ -5432,11 +5432,16 @@ end;
 procedure TBuildEngine.GetDirectoriesFromFilelist(const AFileList, ADirectoryList: TStringList);
 var
   i: integer;
+  s: string;
 begin
   ADirectoryList.Sorted:=true;
   ADirectoryList.Duplicates:=dupIgnore;
   for i := 0 to AFileList.Count-1 do
-    ADirectoryList.Add(ExtractFileDir(AFileList.Strings[i]));
+    begin
+      s := ExtractFileDir(AFileList.Strings[i]);
+      if s <> '' then
+        ADirectoryList.Add(s);
+    end;
 end;
 
 procedure TBuildEngine.AddPackageMacrosToDictionary(const APackage: TPackage; ADictionary: TDictionary);
