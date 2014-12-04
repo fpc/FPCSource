@@ -5,7 +5,7 @@ unit pkgcommands;
 interface
 
 uses
-  Classes, SysUtils,pkghandler;
+  Classes, SysUtils, pkghandler, fpmkunit;
 
 implementation
 
@@ -279,9 +279,64 @@ end;
 
 
 procedure TCommandInstall.Execute;
+
 var
-  UFN,S : String;
+  S : String;
   P   : TFPPackage;
+
+  function GetUnitConfigFilename: string;
+  begin
+    if P.RecompileBroken then
+      begin
+        // If the package is recompiled, the installation-location is dependent on where
+        // the package was installed originally.
+        if P.InstalledLocally then
+          Result:=CompilerOptions.LocalUnitDir
+        else
+          Result:=CompilerOptions.GlobalUnitDir;
+        // Setting RecompileBroken to false is in a strict sense not needed. But it is better
+        // to clean this temporary flag, to avoid problems with changes in the future
+        P.RecompileBroken := false;
+        AvailableRepository.FindPackage(P.Name).RecompileBroken:=false;
+      end
+    else
+      begin
+        if (IsSuperUser or GlobalOptions.InstallGlobal) then
+          Result:=CompilerOptions.GlobalUnitDir
+        else
+          Result:=CompilerOptions.LocalUnitDir;
+      end;
+    Result:=IncludeTrailingPathDelimiter(Result)+S+PathDelim+UnitConfigFileName;
+  end;
+
+  function GetFpmFilename: string;
+  begin
+    if P.RecompileBroken then
+      begin
+        // If the package is recompiled, the installation-location is dependent on where
+        // the package was installed originally.
+        if P.InstalledLocally then
+          Result:=CompilerOptions.LocalInstallDir
+        else
+          Result:=CompilerOptions.GlobalInstallDir;
+        // Setting RecompileBroken to false is in a strict sense not needed. But it is better
+        // to clean this temporary flag, to avoid problems with changes in the future
+        P.RecompileBroken := false;
+        AvailableRepository.FindPackage(P.Name).RecompileBroken:=false;
+      end
+    else
+      begin
+        if (IsSuperUser or GlobalOptions.InstallGlobal) then
+          Result:=CompilerOptions.GlobalInstallDir
+        else
+          Result:=CompilerOptions.LocalInstallDir;
+      end;
+    Result:=IncludeTrailingPathDelimiter(Result)+'fpmkinst'+PathDelim+CompilerOptions.CompilerTarget+PathDelim+s+FpmkExt;
+  end;
+
+
+var
+  UFN : String;
 begin
   if PackageName<>'' then
     begin
@@ -301,27 +356,13 @@ begin
       P:=InstalledRepository.FindPackage(S);
       if not assigned(P) then
         P:=InstalledRepository.AddPackage(S);
-      if P.RecompileBroken then
-        begin
-          // If the package is recompiled, the installation-location is dependent on where
-          // the package was installed originally.
-          if P.InstalledLocally then
-            UFN:=CompilerOptions.LocalUnitDir
-          else
-            UFN:=CompilerOptions.GlobalUnitDir;
-          // Setting RecompileBroken to false is in a strict sense not needed. But it is better
-          // to clean this temporary flag, to avoid problems with changes in the future
-          P.RecompileBroken := false;
-          AvailableRepository.FindPackage(P.Name).RecompileBroken:=false;
-        end
-      else
-        begin
-          if (IsSuperUser or GlobalOptions.InstallGlobal) then
-            UFN:=CompilerOptions.GlobalUnitDir
-          else
-            UFN:=CompilerOptions.LocalUnitDir;
-        end;
-      UFN:=IncludeTrailingPathDelimiter(UFN)+S+PathDelim+UnitConfigFileName;
+
+      UFN:=GetFpmFilename;
+      // If there is no fpm-file, search for an (obsolete, pre-2.7.x)
+      // fpunits.cfg-file
+      if not FileExists(ufn) then
+        UFN:=GetUnitConfigFilename;
+
       P.LoadUnitConfigFromFile(UFN);
       if P.IsFPMakeAddIn then
         AddFPMakeAddIn(P);
