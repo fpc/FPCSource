@@ -265,16 +265,48 @@ procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boole
     FindClose(SR);
   end;
 
+  function CheckInstallDir(AInstallDir:string; const Local: boolean):boolean;
+  var
+    SR : TSearchRec;
+    P  : TFPPackage;
+    UF : String;
+  begin
+    Result:=false;
+    AInstallDir:=IncludeTrailingPathDelimiter(AInstallDir)+'fpmkinst'+PathDelim+ACompilerOptions.CompilerTarget+PathDelim;
+    if FindFirst(IncludeTrailingPathDelimiter(AInstallDir)+PathDelim+'*'+FpmkExt,faDirectory,SR)=0 then
+      begin
+        log(llDebug,SLogFindInstalledPackages,[AInstallDir]);
+        repeat
+          if ((SR.Attr and faDirectory)=0) then
+            begin
+              // Try new .fpm-file
+              UF:=AInstallDir+SR.Name;
+              P:=AddInstalledPackage(ChangeFileExt(SR.Name,''),UF,Local);
+              P.LoadUnitConfigFromFile(UF);
+              if P.IsFPMakeAddIn then
+                AddFPMakeAddIn(P);
+            end;
+        until FindNext(SR)<>0;
+      end;
+    FindClose(SR);
+  end;
+
 begin
   if assigned(InstalledRepository) then
     InstalledRepository.Free;
   InstalledRepository:=GetDefaultRepositoryClass.Create(nil);
   // First scan the global directory
   // The local directory will overwrite the versions
-  if ACompilerOptions.GlobalUnitDir<>'' then
-    CheckUnitDir(ACompilerOptions.GlobalUnitDir, False);
-  if ACompilerOptions.LocalUnitDir<>'' then
+  if ACompilerOptions.GlobalInstallDir<>'' then
+    begin
+      CheckUnitDir(ACompilerOptions.GlobalUnitDir, False);
+      CheckInstallDir(ACompilerOptions.GlobalInstallDir, False);
+    end;
+  if ACompilerOptions.LocalInstallDir<>'' then
+    begin
     CheckUnitDir(ACompilerOptions.LocalUnitDir, True);
+    CheckInstallDir(ACompilerOptions.LocalInstallDir, True);
+    end;
 end;
 
 
