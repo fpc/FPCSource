@@ -124,6 +124,24 @@ begin
   WriteLn('Passed!');
 end;
 
+procedure test_already_closed_close;
+begin
+  Write('closing already closed file...(IOResult=103 expected) ');
+  Close(F);
+  test(IOResult, 103);
+  WriteLn('Passed!');
+end;
+
+procedure test_not_yet_open_close(name : string);
+begin
+  Write('closing assigned only file...(IOResult=103 expected) ');
+  Assign(F,name);
+  test(IOResult,0);
+  Close(F);
+  test(IOResult, 103);
+  WriteLn('Passed!');
+end;
+
 
 procedure test_rename(oldname, newname : shortstring);
 begin
@@ -150,6 +168,7 @@ Begin
   {------------------------ create and play with a new file --------------------------}
   FillChar(readData,DATA_SIZE,0);
 
+  test_not_yet_open_close(FILE_NAME);
   test_do_open(FILE_NAME, MODE_REWRITE);
   test_do_write(DATA, DATA_SIZE);
   test_do_filesize(DATA_SIZE);
@@ -174,6 +193,7 @@ Begin
    RunError(255);
 *)
   test_do_close;
+  test_already_closed_close;
   {------------------------ create and play with an old file --------------------------}
   FillChar(readData,DATA_SIZE,0);
   test_do_open(FILE_NAME2, MODE_REWRITE);
