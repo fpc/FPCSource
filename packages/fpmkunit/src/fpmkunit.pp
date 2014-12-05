@@ -8108,7 +8108,23 @@ var
 Function Installer(InstallerClass: TInstallerClass): TCustomInstaller;
 begin
   If Not Assigned(DefInstaller) then
-    DefInstaller:=InstallerClass.Create(Nil);
+    begin
+      try
+        DefInstaller:=InstallerClass.Create(Nil);
+      except
+        On E : Exception do
+          begin
+            if IsConsole then
+              begin
+                WriteLn(SErrInstaller);
+                WriteLn(E.Message);
+                halt(1);
+              end
+            else
+              raise;
+          end;
+      end;
+    end;
   Result:=DefInstaller;
 end;
 
