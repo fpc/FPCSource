@@ -1526,6 +1526,7 @@ ResourceString
   SWarngccNotFound        = 'Could not find libgcc';
   SWarngcclibpath         = 'Warning: Unable to determine the libgcc path.';
   SWarnNoFCLProcessSupport= 'No FCL-Process support';
+  SWarnRetryRemDirectory     = 'Failed to remove directory "%s". Retry after a short delay';
 
   SInfoPackageAlreadyProcessed = 'Package %s is already processed';
   SInfoCompilingTarget    = 'Compiling target %s';
@@ -5049,6 +5050,7 @@ procedure TBuildEngine.SysDeleteTree(Const ADirectoryName: String);
     searchRec: TSearchRec;
     SearchResult: longint;
     s: string;
+    i: integer;
   begin
     result := true;
     SearchResult := FindFirst(IncludeTrailingPathDelimiter(ADirectoryName)+AllFilesMask, faAnyFile+faSymLink, searchRec);
@@ -5073,9 +5075,21 @@ procedure TBuildEngine.SysDeleteTree(Const ADirectoryName: String);
     finally
       FindClose(searchRec);
     end;
-    if not RemoveDir(ADirectoryName) then
-      result := false
-    else
+
+    // There were reports of RemoveDir failing due to locking-problems. To solve
+    // these the RemoveDir is tried three times, with a delay of 5 seconds. See
+    // bug 21868
+    i := 2;
+    result := RemoveDir(ADirectoryName+'te');
+    while not result and (i>0) do
+      begin
+        log(vlWarning, SWarnRetryRemDirectory, [ADirectoryName]);
+        sleep(5000);
+        dec(i);
+        result := RemoveDir(ADirectoryName+'fd');
+      end;
+
+    if result then
       log(vldebug, SDbgRemovedDirectory, [ADirectoryName]);
   end;
 
