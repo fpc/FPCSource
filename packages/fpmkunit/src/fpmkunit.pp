@@ -6958,6 +6958,10 @@ begin
               begin
                 if OSCPUSupported[AOS,ACPU] then
                   begin
+                    // First perform a normal clean, to be sure that all files
+                    // which are not in the units- or bin-dir are cleaned. (like
+                    // the .fpm file)
+                    Clean(APackage, ACPU, AOS);
                     DirectoryList.Add(ExtractFileDir(APackage.GetUnitsOutputDir(ACPU,AOS)));
                     DirectoryList.Add(ExtractFileDir(APackage.GetBinOutputDir(ACPU,AOS)));
                   end;
@@ -6966,13 +6970,6 @@ begin
         finally
           DirectoryList.Free;
         end;
-{        for ACPU:=low(TCpu) to high(TCpu) do
-          for AOS:=low(TOS) to high(TOS) do
-            begin
-              if FileExists(APackage.GetUnitsOutputDir(ACPU,AOS)) or
-                 FileExists(APackage.GetBinOutputDir(ACPU,AOS)) then
-                Clean(APackage,ACPU,AOS);
-            end;}
       end
     else
       Clean(APackage, Defaults.CPU, Defaults.OS);
@@ -6990,7 +6987,7 @@ Var
 begin
   List:=TStringList.Create;
   try
-    List.Add(APackage.GetUnitConfigOutputFilename(Defaults.CPU,Defaults.OS));
+    List.Add(APackage.GetUnitConfigOutputFilename(ACPU,AOS));
     APackage.GetCleanFiles(List,ACPU,AOS);
     if (List.Count>0) then
       begin
