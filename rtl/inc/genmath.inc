@@ -90,7 +90,9 @@ const
       lossth =  1.073741824e9;
       MAXLOG =  8.8029691931113054295988E1;    { log(2**127)  }
       MINLOG = -8.872283911167299960540E1;     { log(2**-128) }
-
+      H2_54: double = 18014398509481984.0;    {2^54}
+      huge: double = 1e300;
+      one:  double = 1.0;
       zero: double = 0;
 
 {$if not defined(FPC_SYSTEM_HAS_SIN) or not defined(FPC_SYSTEM_HAS_COS)}
@@ -397,9 +399,6 @@ type
     {* ldexp() multiplies x by 2**n.                                    *}
     var
       i: integer;
-    const
-      H2_54: double = 18014398509481984.0;  {2^54}
-      huge: double = 1e300;
     begin
       i := (float64high(x) and $7ff00000) shr 20;
       {if +-INF, NaN, 0 or if e=0 return d}
@@ -1128,9 +1127,7 @@ type
     }
     function fpc_exp_real(d: ValReal):ValReal;compilerproc;
       const
-        one: double = 1.0;
         halF : array[0..1] of double = (0.5,-0.5);
-        huge: double = 1.0e+300;
         twom1000: double = 9.33263618503218878990e-302;     { 2**-1000=0x01700000,0}
         o_threshold: double =  7.09782712893383973096e+02;  { 0x40862E42, 0xFEFA39EF }
         u_threshold: double = -7.45133219101941108420e+02;  { 0xc0874910, 0xD52D3051 }
@@ -1701,9 +1698,6 @@ type
         -3.65315727442169155270e-02,  { 0xBFA2B444, 0x2C6A6C2F }
          1.62858201153657823623e-02   { 0x3F90AD3A, 0xE322DA11 }
       );
-
-      one:  double  = 1.0;
-      huge: double  = 1.0e300;
 
     var
       w,s1,s2,z: double;
