@@ -66,6 +66,7 @@ interface
           function first_trunc_real: tnode; virtual;
           function first_int_real: tnode; virtual;
           function first_abs_long: tnode; virtual;
+          function first_IncDec: tnode; virtual;
           function first_IncludeExclude: tnode; virtual;
           function first_get_frame: tnode; virtual;
           function first_setlength: tnode; virtual;
@@ -3280,11 +3281,8 @@ implementation
 
     function tinlinenode.pass_1 : tnode;
       var
-         hp,hpp,resultnode  : tnode;
+         hp: tnode;
          shiftconst: longint;
-         tempnode: ttempcreatenode;
-         newstatement: tstatementnode;
-         newblock: tblocknode;
 
       begin
          result:=nil;
@@ -3419,99 +3417,7 @@ implementation
           in_inc_x,
           in_dec_x:
             begin
-               expectloc:=LOC_VOID;
-
-               { range/overflow checking doesn't work properly }
-               { with the inc/dec code that's generated (JM)   }
-               if ((current_settings.localswitches * [cs_check_overflow,cs_check_range] <> []) and
-                 { No overflow check for pointer operations, because inc(pointer,-1) will always
-                   trigger an overflow. For uint32 it works because then the operation is done
-                   in 64bit. Range checking is not applicable to pointers either }
-                   (tcallparanode(left).left.resultdef.typ<>pointerdef))
-{$ifdef jvm}
-                   { enums are class instances on the JVM -> special treatment }
-                   or (tcallparanode(left).left.resultdef.typ=enumdef)
-{$endif}
-                  then
-                 { convert to simple add (JM) }
-                 begin
-                   newblock := internalstatements(newstatement);
-                   { extra parameter? }
-                   if assigned(tcallparanode(left).right) then
-                     begin
-                       { Yes, use for add node }
-                       hpp := tcallparanode(tcallparanode(left).right).left;
-                       tcallparanode(tcallparanode(left).right).left := nil;
-                       if assigned(tcallparanode(tcallparanode(left).right).right) then
-                         CGMessage(parser_e_illegal_expression);
-                     end
-                   else
-                     begin
-                       { no, create constant 1 }
-                       hpp := cordconstnode.create(1,tcallparanode(left).left.resultdef,false);
-                     end;
-                   typecheckpass(hpp);
-
-                   { make sure we don't call functions part of the left node twice (and generally }
-                   { optimize the code generation)                                                }
-                   { Storing address is not always an optimization: alignment of left is not known
-                     at this point, so we must assume the worst and use an unaligned pointer.
-                     This results in larger and slower code on alignment-sensitive targets.
-                     Therefore the complexity condition below is questionable, maybe just filtering
-                     out calls with "= NODE_COMPLEXITY_INF" is sufficient.
-                     Value of 3 corresponds to subscript nodes, i.e. record field. }
-                   if node_complexity(tcallparanode(left).left) > 3 then
-                     begin
-                       tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
-                       addstatement(newstatement,tempnode);
-                       addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
-                         caddrnode.create_internal(tcallparanode(left).left.getcopy)));
-                       hp := cderefnode.create(ctemprefnode.create(tempnode));
-                       inserttypeconv_internal(hp,tcallparanode(left).left.resultdef);
-                     end
-                   else
-                     begin
-                       hp := tcallparanode(left).left.getcopy;
-                       tempnode := nil;
-                     end;
-
-                   resultnode := hp.getcopy;
-                   { avoid type errors from the addn/subn }
-                   if not is_integer(resultnode.resultdef) then
-                     begin
-                       inserttypeconv_internal(hp,sinttype);
-                       inserttypeconv_internal(hpp,sinttype);
-                     end;
-
-                   { addition/substraction depending on inc/dec }
-                   if inlinenumber = in_inc_x then
-                     hpp := caddnode.create(addn,hp,hpp)
-                   else
-                     hpp := caddnode.create(subn,hp,hpp);
-                   { assign result of addition }
-                   if not(is_integer(resultnode.resultdef)) then
-                     inserttypeconv(hpp,corddef.create(
-{$ifdef cpu64bitaddr}
-                       s64bit,
-{$else cpu64bitaddr}
-                       s32bit,
-{$endif cpu64bitaddr}
-                       get_min_value(resultnode.resultdef),
-                       get_max_value(resultnode.resultdef)))
-                   else
-                     inserttypeconv(hpp,resultnode.resultdef);
-                   { avoid any possible warnings }
-                   inserttypeconv_internal(hpp,resultnode.resultdef);
-
-                   addstatement(newstatement,cassignmentnode.create(resultnode,hpp));
-                   { deallocate the temp }
-                   if assigned(tempnode) then
-                     addstatement(newstatement,ctempdeletenode.create(tempnode));
-                   { firstpass it }
-                   firstpass(tnode(newblock));
-                   { return new node }
-                   result := newblock;
-                 end;
+              result:=first_IncDec;
             end;
 
          in_include_x_y,
@@ -3851,6 +3757,110 @@ implementation
         expectloc:=LOC_REGISTER;
         result:=nil;
       end;
+
+
+     function tinlinenode.first_IncDec: tnode;
+       var
+         hp,hpp,resultnode  : tnode;
+         tempnode: ttempcreatenode;
+         newstatement: tstatementnode;
+         newblock: tblocknode;
+       begin
+         expectloc:=LOC_VOID;
+         result:=nil;
+
+         { range/overflow checking doesn't work properly }
+         { with the inc/dec code that's generated (JM)   }
+         if ((current_settings.localswitches * [cs_check_overflow,cs_check_range] <> []) and
+           { No overflow check for pointer operations, because inc(pointer,-1) will always
+             trigger an overflow. For uint32 it works because then the operation is done
+             in 64bit. Range checking is not applicable to pointers either }
+             (tcallparanode(left).left.resultdef.typ<>pointerdef))
+{$ifdef jvm}
+             { enums are class instances on the JVM -> special treatment }
+             or (tcallparanode(left).left.resultdef.typ=enumdef)
+{$endif}
+            then
+           { convert to simple add (JM) }
+           begin
+             newblock := internalstatements(newstatement);
+             { extra parameter? }
+             if assigned(tcallparanode(left).right) then
+               begin
+                 { Yes, use for add node }
+                 hpp := tcallparanode(tcallparanode(left).right).left;
+                 tcallparanode(tcallparanode(left).right).left := nil;
+                 if assigned(tcallparanode(tcallparanode(left).right).right) then
+                   CGMessage(parser_e_illegal_expression);
+               end
+             else
+               begin
+                 { no, create constant 1 }
+                 hpp := cordconstnode.create(1,tcallparanode(left).left.resultdef,false);
+               end;
+             typecheckpass(hpp);
+
+             { make sure we don't call functions part of the left node twice (and generally }
+             { optimize the code generation)                                                }
+             { Storing address is not always an optimization: alignment of left is not known
+               at this point, so we must assume the worst and use an unaligned pointer.
+               This results in larger and slower code on alignment-sensitive targets.
+               Therefore the complexity condition below is questionable, maybe just filtering
+               out calls with "= NODE_COMPLEXITY_INF" is sufficient.
+               Value of 3 corresponds to subscript nodes, i.e. record field. }
+             if node_complexity(tcallparanode(left).left) > 3 then
+               begin
+                 tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
+                 addstatement(newstatement,tempnode);
+                 addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
+                   caddrnode.create_internal(tcallparanode(left).left.getcopy)));
+                 hp := cderefnode.create(ctemprefnode.create(tempnode));
+                 inserttypeconv_internal(hp,tcallparanode(left).left.resultdef);
+               end
+             else
+               begin
+                 hp := tcallparanode(left).left.getcopy;
+                 tempnode := nil;
+               end;
+
+             resultnode := hp.getcopy;
+             { avoid type errors from the addn/subn }
+             if not is_integer(resultnode.resultdef) then
+               begin
+                 inserttypeconv_internal(hp,sinttype);
+                 inserttypeconv_internal(hpp,sinttype);
+               end;
+
+             { addition/substraction depending on inc/dec }
+             if inlinenumber = in_inc_x then
+               hpp := caddnode.create(addn,hp,hpp)
+             else
+               hpp := caddnode.create(subn,hp,hpp);
+             { assign result of addition }
+             if not(is_integer(resultnode.resultdef)) then
+               inserttypeconv(hpp,corddef.create(
+{$ifdef cpu64bitaddr}
+                 s64bit,
+{$else cpu64bitaddr}
+                 s32bit,
+{$endif cpu64bitaddr}
+                 get_min_value(resultnode.resultdef),
+                 get_max_value(resultnode.resultdef)))
+             else
+               inserttypeconv(hpp,resultnode.resultdef);
+             { avoid any possible warnings }
+             inserttypeconv_internal(hpp,resultnode.resultdef);
+
+             addstatement(newstatement,cassignmentnode.create(resultnode,hpp));
+             { deallocate the temp }
+             if assigned(tempnode) then
+               addstatement(newstatement,ctempdeletenode.create(tempnode));
+             { firstpass it }
+             firstpass(tnode(newblock));
+             { return new node }
+             result := newblock;
+           end;
+       end;
 
 
      function tinlinenode.first_IncludeExclude: tnode;
