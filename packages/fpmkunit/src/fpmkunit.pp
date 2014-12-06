@@ -5080,13 +5080,13 @@ procedure TBuildEngine.SysDeleteTree(Const ADirectoryName: String);
     // these the RemoveDir is tried three times, with a delay of 5 seconds. See
     // bug 21868
     i := 2;
-    result := RemoveDir(ADirectoryName+'te');
+    result := RemoveDir(ADirectoryName);
     while not result and (i>0) do
       begin
         log(vlWarning, SWarnRetryRemDirectory, [ADirectoryName]);
         sleep(5000);
         dec(i);
-        result := RemoveDir(ADirectoryName+'fd');
+        result := RemoveDir(ADirectoryName);
       end;
 
     if result then
