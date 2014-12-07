@@ -112,7 +112,7 @@ Type
     amiga,atari, solaris, qnx, netware, openbsd,wdosx,
     palmos,macos,darwin,emx,watcom,morphos,netwlibc,
     win64,wince,gba,nds,embedded,symbian,haiku,iphonesim,
-    aix,java,android,nativent,msdos,wii,aros
+    aix,java,android,nativent,msdos,wii,aros,dragonfly
   );
   TOSes = Set of TOS;
 
@@ -163,8 +163,8 @@ Const
 
   AllOSes = [Low(TOS)..High(TOS)];
   AllCPUs = [Low(TCPU)..High(TCPU)];
-  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim,aix,Android];
-  AllBSDOSes      = [FreeBSD,NetBSD,OpenBSD,Darwin,iphonesim];
+  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim,aix,Android,dragonfly];
+  AllBSDOSes      = [FreeBSD,NetBSD,OpenBSD,Darwin,iphonesim,dragonfly];
   AllWindowsOSes  = [Win32,Win64,WinCE];
   AllAmigaLikeOSes = [Amiga,MorphOS,AROS];
   AllLimit83fsOses = [go32v2,os2,emx,watcom,msdos];
@@ -212,6 +212,7 @@ Const
     { msdos }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true ),
     { wii }     ( false, false, false, true , false, false, false, false, false, false, false, false, false, false ),
     { aros }    ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false )
+    { dragonfly}( false, false, false, false, false, true, false, false, false, false, false, false, false, false )
   );
 
   // Useful
@@ -2532,7 +2533,7 @@ function GetDefaultLibGCCDir(CPU : TCPU;OS: TOS; var ErrorMessage: string): stri
 begin
   result := '';
   ErrorMessage:='';
-  if OS in [freebsd, openbsd] then
+  if OS in [freebsd, openbsd, dragonfly] then
     result := '/usr/local/lib'
   else if OS = netbsd then
     result := '/usr/pkg/lib'
@@ -3797,7 +3798,7 @@ function TCustomDefaults.GetDocInstallDir: String;
 begin
   If (FDocInstallDir<>'') then
     Result:=FDocInstallDir
-  else if Defaults.BuildOS=freebsd then
+  else if Defaults.BuildOS=freebsd or Defaults.BuildOS=dragonfly then
     result := Prefix+PathDelim+'share'+PathDelim+'doc'+PathDelim+'$(PackageName)'
   else If UnixPaths then
     Result:=Prefix+'share'+PathDelim+'doc'+PathDelim+'fpc-$(PackageName)-$(PACKAGEVERSION)'
@@ -3810,7 +3811,7 @@ function TCustomDefaults.GetExamplesInstallDir: String;
 begin
   If (FExamplesInstallDir<>'') then
     Result:=FExamplesInstallDir
-  else if Defaults.BuildOS=freebsd then
+  else if Defaults.BuildOS=freebsd or Defaults.BuildOS=dragonfly then
     result := Prefix+PathDelim+'share'+PathDelim+'examples'+PathDelim+'$(PackageName)'
   else If UnixPaths then
     Result:=Prefix+'share'+PathDelim+'doc'+PathDelim+'fpc-$(PackageName)-$(PACKAGEVERSION)'+PathDelim+'examples'

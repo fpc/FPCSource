@@ -14,10 +14,10 @@ Const
  
   // Android has a dummy clocale unit, while it also includes unix dir.
   ClocaleOSes   = UnixLikes -[beos];
-  CLocaleIncOSes= [Aix,freebsd,netbsd,openbsd,solaris,darwin,iphonesim];
+  CLocaleIncOSes= [Aix,freebsd,netbsd,openbsd,solaris,darwin,iphonesim,dragonfly];
 
   IPCOSes       = UnixLikes-[aix,android,beos,haiku,solaris];
-  IPCBSDs       = [FreeBSD,NetBSD,OpenBSD];
+  IPCBSDs       = [FreeBSD,NetBSD,OpenBSD,DragonFly];
 //  IPCcdeclOSes  = [Darwin,iphonesim];
 
   PrinterOSes   = [go32v2,msdos,os2,win32,win64]+unixlikes-[beos,haiku,morphos];
@@ -29,7 +29,7 @@ Const
   WinSock2OSes  = [win32,win64,wince];
   // sockets of  morphos is implemented, but not active
   SocketsOSes   = UnixLikes+[amiga,aros,netware,netwlibc,os2,wince,win32,win64];
-  Socksyscall   = [beos,freebsd,haiku,linux,netbsd,openbsd];
+  Socksyscall   = [beos,freebsd,haiku,linux,netbsd,openbsd,dragonfly];
   Socklibc	= unixlikes-socksyscall;
   gpmOSes	= [Linux,Android];
   AllTargetsextra = ObjectsOSes + UComplexOSes + MatrixOSes+

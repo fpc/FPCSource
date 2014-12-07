@@ -18,7 +18,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
-    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros];
+    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,dragonfly];
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-db');
     P.Dependencies.Add('fcl-xml');

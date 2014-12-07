@@ -17,7 +17,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
-    P.OSes:=[beos,haiku,freebsd,solaris,netbsd,openbsd,linux,os2,emx,aix];
+    P.OSes:=[beos,haiku,freebsd,solaris,netbsd,openbsd,linux,os2,emx,aix,dragonfly];
     // Do not build x11 on iPhone (=arm-darwin)
     if Defaults.CPU<>arm then
       P.OSes := P.OSes + [darwin];

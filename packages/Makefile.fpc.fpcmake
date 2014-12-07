@@ -25,6 +25,10 @@ dirs_freebsd=rtl-console rtl-unicode fv fcl-web fastcgi fcl-async ibase mysql nc
                gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo  bfd aspell svgalib \
                imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 librsvg  httpd22 pxlib numlib \
                users iconvenc gmp fcl-extra libxml
+dirs_dragonfly=rtl-console fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
+               gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo  bfd aspell svgalib \
+               imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 librsvg  httpd22 pxlib numlib \
+               users iconvenc gmp fcl-extra libxml
 dirs_darwin=rtl-console rtl-unicode fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                libpng gdbm tcl syslog libcurl bfd aspell utmp fftw pcap openssl numlib iconvenc gmp fcl-extra univint iosxlocale
 dirs_iphonesim=rtl-console rtl-unicode fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
@@ -154,7 +158,7 @@ iosxlocale_release: univint_release
 iosxlocle_shared: univint_shared
 endif
 
-ifneq ($(findstring $(OS_TARGET),beos haiku freebsd darwin iphonesim solaris netbsd openbsd linux win32 win64 wince),)
+ifneq ($(findstring $(OS_TARGET),beos haiku freebsd darwin iphonesim solaris netbsd openbsd linux win32 win64 wince dragonfly),)
 fppkg_all: fpmkunit_all fcl-base_all fcl-xml_all fcl-process_all fcl-net_all paszlib_all fcl-web_all fpmkunit_all
 fppkg_debug: fpmkunit_debug fcl-base_debug fcl-xml_debug fcl-process_debug fcl-net_debug paszlib_debug fcl-web_debug fpmkunit_debug
 fppkg_smart: fpmkunit_smart fcl-base_smart fcl-xml_smart fcl-process_smart fcl-net_smart paszlib_smart fcl-web_smart fpmkunit_smart
@@ -204,7 +208,7 @@ fcl-registry_smart: fpmkunit_smart fcl-xml_smart
 fcl-registry_release: fpmkunit_release fcl-xml_release
 fcl-registry_shared: fpmkunit_shared fcl-xml_shared
 
-ifeq ($(findstring $(OS_TARGET),linux darwin iphonesim freebsd openbsd netbsd solaris),)
+ifeq ($(findstring $(OS_TARGET),linux darwin iphonesim freebsd openbsd netbsd solaris dragonfly),)
 fcl-net_all: fpmkunit_all fcl-passrc_all fcl-xml_all
 fcl-net_debug: fpmkunit_debug fcl-passrc_debug fcl-xml_debug
 fcl-net_smart: fpmkunit_smart fcl-passrc_smart fcl-xml_smart
@@ -248,7 +252,7 @@ fcl-async_smart: fpmkunit_smart
 fcl-async_release: fpmkunit_release
 fcl-async_shared: fpmkunit_shared
 
-ifneq ($(findstring $(OS_TARGET),linux freebsd openbsd netbsd win32 beos haiku),)
+ifneq ($(findstring $(OS_TARGET),linux freebsd openbsd netbsd win32 beos haiku dragonfly),)
 fcl-db_all: fcl-xml_all fcl-base_all mysql_all ibase_all oracle_all odbc_all postgres_all sqlite_all pxlib_all fcl-json_all fpmkunit_all
 fcl-db_debug: fcl-xml_debug fcl-base_debug mysql_debug ibase_debug oracle_debug odbc_debug postgres_debug sqlite_debug pxlib_debug fcl-json_debug fpmkunit_debug
 fcl-db_smart: fcl-xml_smart fcl-base_smart mysql_smart ibase_smart oracle_smart odbc_smart postgres_smart sqlite_smart pxlib_smart fcl-json_smart fpmkunit_smart
@@ -282,7 +286,7 @@ libpng_smart: zlib_smart fpmkunit_smart
 libpng_release: zlib_release fpmkunit_release
 libpng_shared: zlib_shared fpmkunit_shared
 
-ifneq ($(findstring $(OS_TARGET),linux darwin iphonesim freebsd openbsd netbsd solaris),)
+ifneq ($(findstring $(OS_TARGET),linux darwin iphonesim freebsd openbsd netbsd solaris dragonfly),)
 cairo_all: x11_all fcl-image_all fpmkunit_all
 cairo_debug: x11_debug fcl-image_debug fpmkunit_debug
 cairo_smart: x11_smart fcl-image_smart fpmkunit_smart
@@ -324,7 +328,7 @@ graph_debug: ptc_debug
 graph_release: ptc_release
 endif
 
-ifneq ($(findstring $(OS_TARGET),linux darwin iphonesim freebsd openbsd netbsd solaris),)
+ifneq ($(findstring $(OS_TARGET),linux darwin iphonesim freebsd openbsd netbsd solaris dragonfly),)
 gtk1_all: x11_all opengl_all fpmkunit_all
 gtk1_debug: x11_debug opengl_debug fpmkunit_debug
 gtk1_smart: x11_smart opengl_smart fpmkunit_smart
@@ -370,7 +374,7 @@ libpng_smart: zlib_smart
 libpng_debug: zlib_debug
 libpng_release: zlib_release
 
-ifneq ($(findstring $(OS_TARGET),linux darwin iphonesim freebsd openbsd netbsd solaris),)
+ifneq ($(findstring $(OS_TARGET),linux darwin iphonesim freebsd openbsd netbsd solaris dragonfly),)
 sdl_all: pthreads_all x11_all fpmkunit_all
 sdl_shared: pthreads_shared x11_shared fpmkunit_shared
 sdl_smart: pthreads_smart x11_smart fpmkunit_smart
@@ -458,7 +462,7 @@ librsvg_smart: gtk2_smart fpmkunit_smart
 librsvg_debug: gtk2_debug fpmkunit_debug
 librsvg_release: gtk2_release fpmkunit_release
 
-ifneq ($(findstring $(OS_TARGET),linux freebsd darwin iphonesim beos haiku),)
+ifneq ($(findstring $(OS_TARGET),linux freebsd darwin iphonesim beos haiku dragonfly),)
 fcl-xml_all: iconvenc_all
 fcl-xml_shared: iconvenc_shared
 fcl-xml_smart: iconvenc_smart

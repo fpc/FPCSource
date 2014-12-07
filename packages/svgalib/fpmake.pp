@@ -17,7 +17,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
-    P.OSes := [beos,haiku,linux,freebsd,solaris,netbsd,openbsd];
+    P.OSes := [beos,haiku,linux,freebsd,solaris,netbsd,openbsd,dragonfly];
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('svgalib.pp');

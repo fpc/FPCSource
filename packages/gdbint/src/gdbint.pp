@@ -391,6 +391,41 @@ interface
   {$LINKLIB gcc}
 {$endif linux}
 
+{$ifdef dragonfly}
+{$ifdef NotImplemented}
+  {$linklib kvm}
+  {$undef NotImplemented}
+  {$LINKLIB libgdb.a}
+  {$ifdef GDB_HAS_SIM}
+    {$LINKLIB libsim.a}
+  {$endif GDB_HAS_SIM}
+  {$LINKLIB libbfd.a}
+  {$LINKLIB libreadline.a}
+  {$LINKLIB libopcodes.a}
+  {$LINKLIB libhistory.a}
+  {$LINKLIB libiberty.a}
+  {$LINKLIB libgnu.a}
+  {$LINKLIB ncurses}
+  {$LINKLIB z}
+  {$LINKLIB m}
+  {$LINKLIB iberty}
+  {$ifndef GDB_DISABLE_INTL}
+    {$LINKLIB intl}
+  {$endif ndef GDB_DISABLE_INTL}
+  {$ifdef GDB_USES_LIBDECNUMBER}
+    {$LINKLIB decnumber}
+  {$endif GDB_USES_LIBDECNUMBER}
+  {$ifdef GDB_USES_EXPAT_LIB}
+    {$LINKLIB expat}
+  {$endif GDB_USES_EXPAT_LIB}
+  {$ifdef GDB_USES_LIBPYTHON}
+    {$LINKLIB python}
+  {$endif GDB_USES_LIBPYTHON}
+{$endif NotImplemented}
+  {$LINKLIB c}
+  {$LINKLIB gcc}
+{$endif freebsd}
+
 {$ifdef freebsd}
 {$ifdef NotImplemented}
   {$ifdef FreeBSD5}  //5.4+ ?

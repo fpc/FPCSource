@@ -8,7 +8,7 @@ uses fpmkunit, sysutils;
 procedure add_fppkg(const ADirectory: string);
 
 const
-  TargetsWithWGet = [linux,beos,haiku,freebsd,netbsd,openbsd,darwin,iphonesim,solaris,win32,win64,wince,aix];
+  TargetsWithWGet = [linux,beos,haiku,freebsd,netbsd,openbsd,darwin,iphonesim,solaris,win32,win64,wince,aix,dragonfly];
   TargetsWithfpWeb = TargetsWithWGet;
 
 Var

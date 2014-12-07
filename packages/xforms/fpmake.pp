@@ -18,7 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.7.1';
     P.SourcePath.Add('src');
-    P.OSes := [beos,haiku,freebsd,solaris,netbsd,openbsd,linux,aix];
+    P.OSes := [beos,haiku,freebsd,solaris,netbsd,openbsd,linux,aix,dragonfly];
     // Do not build x11 on iPhone (=arm-darwin)
     if Defaults.CPU<>arm then
       P.OSes := P.OSes + [darwin];

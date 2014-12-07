@@ -22,7 +22,7 @@ begin
     P.Dependencies.Add('openssl',AllOSes - [amiga,aros]);
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-passrc');
-    P.Dependencies.Add('fcl-async',[linux,freebsd,netbsd,openbsd]);
+    P.Dependencies.Add('fcl-async',[linux,freebsd,netbsd,openbsd,dragonfly]);
     P.Dependencies.Add('rtl-extra');
 
     P.Author := 'Sebastian Guenther and Free Pascal development team';
@@ -62,7 +62,7 @@ begin
     T.ResourceStrings := True;
 
     // HTTP Client
-    T:=P.Targets.AddUnit('fpsock.pp',[linux,freebsd,netbsd,openbsd]);
+    T:=P.Targets.AddUnit('fpsock.pp',[linux,freebsd,netbsd,openbsd,dragonfly]);
       with T.Dependencies do
         begin
           AddUnit('resolve');
