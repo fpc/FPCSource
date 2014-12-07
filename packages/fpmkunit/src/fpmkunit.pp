@@ -210,8 +210,8 @@ Const
     { android } ( false, true,  false, false, false, false, true,  false, false, false, false, true,  true , false),
     { nativent }( false, true,  false, false, false, false, false, false, false, false, false, false, false, false),
     { msdos }   ( false, false, false, false, false, false, false, false, false, false, false, false, false, true ),
-    { wii }     ( false, false, false, true , false, false, false, false, false, false, false, false, false, false ),
-    { aros }    ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false )
+    { wii }     ( false, false, false, true , false, false, false, false, false, false, false, false, false, false),
+    { aros }    ( true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
     { dragonfly}( false, false, false, false, false, true, false, false, false, false, false, false, false, false )
   );
 
@@ -3798,7 +3798,7 @@ function TCustomDefaults.GetDocInstallDir: String;
 begin
   If (FDocInstallDir<>'') then
     Result:=FDocInstallDir
-  else if Defaults.BuildOS=freebsd or Defaults.BuildOS=dragonfly then
+  else if (Defaults.BuildOS=freebsd) or (Defaults.BuildOS=dragonfly) then
     result := Prefix+PathDelim+'share'+PathDelim+'doc'+PathDelim+'$(PackageName)'
   else If UnixPaths then
     Result:=Prefix+'share'+PathDelim+'doc'+PathDelim+'fpc-$(PackageName)-$(PACKAGEVERSION)'
@@ -3811,7 +3811,7 @@ function TCustomDefaults.GetExamplesInstallDir: String;
 begin
   If (FExamplesInstallDir<>'') then
     Result:=FExamplesInstallDir
-  else if Defaults.BuildOS=freebsd or Defaults.BuildOS=dragonfly then
+  else if (Defaults.BuildOS=freebsd) or (Defaults.BuildOS=dragonfly) then
     result := Prefix+PathDelim+'share'+PathDelim+'examples'+PathDelim+'$(PackageName)'
   else If UnixPaths then
     Result:=Prefix+'share'+PathDelim+'doc'+PathDelim+'fpc-$(PackageName)-$(PACKAGEVERSION)'+PathDelim+'examples'
