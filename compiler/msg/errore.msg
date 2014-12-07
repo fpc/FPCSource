@@ -704,7 +704,7 @@ parser_e_comparative_operator_return_boolean=03090_E_Comparative operator must r
 parser_e_only_virtual_methods_abstract=03091_E_Only virtual methods can be abstract
 % You are declaring a method as abstract, when it is not declared to be
 % virtual.
-parser_f_unsupported_feature=03092_F_Use of unsupported feature!
+parser_f_unsupported_feature=03092_F_Use of unsupported feature: "$1".
 % You're trying to force the compiler into doing something it cannot do yet.
 parser_e_mix_of_classes_and_objects=03093_E_The mix of different kind of objects (class, object, interface, etc) isn't allowed
 % You cannot derive \var{objects}, \var{classes}, \var{cppclasses} and \var{interfaces} intertwined. E.g.
