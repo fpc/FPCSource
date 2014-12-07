@@ -166,7 +166,8 @@ const
   { 81 }  'Embedded-mipseb',
   { 82 }  'Embedded-mipsel',
   { 83 }  'AROS-i386',
-  { 84 }  'AROS-x86-64'
+  { 84 }  'AROS-x86-64',
+  { 85 }  'DragonFly-x86-64'
   );
 
 const

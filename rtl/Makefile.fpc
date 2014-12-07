@@ -16,6 +16,7 @@ dirs_go32v1=go32v1
 dirs_os2=os2
 dirs_emx=emx
 dirs_freebsd=freebsd
+dirs_dragonfly=dragonfly
 dirs_darwin=darwin
 dirs_iphonesim=darwin
 dirs_beos=beos

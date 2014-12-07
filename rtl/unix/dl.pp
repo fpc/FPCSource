@@ -27,7 +27,7 @@ const
   {$endif}
 {$endif}
 
-{$if defined(linux) or defined(freebsd) or defined(openbsd)}
+{$if defined(linux) or defined(freebsd) or defined(openbsd) or defined(dragonfly)}
   {$define ELF} // ELF symbol versioning.
 {$endif}
 

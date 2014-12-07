@@ -918,6 +918,9 @@ end;
 initialization
   RegisterLinker(ld_bsd,TLinkerBSD);
 {$ifdef x86_64}
+  RegisterImport(system_x86_64_dragonfly,timportlibbsd);
+  RegisterExport(system_x86_64_dragonfly,texportlibbsd);
+  RegisterTarget(system_x86_64_dragonfly_info);
   RegisterImport(system_x86_64_freebsd,timportlibbsd);
   RegisterExport(system_x86_64_freebsd,texportlibbsd);
   RegisterTarget(system_x86_64_freebsd_info);

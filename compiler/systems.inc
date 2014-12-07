@@ -164,7 +164,8 @@
              system_mipseb_embedded,    { 81 }
              system_mipsel_embedded,    { 82 }
              system_i386_aros,          { 83 }
-             system_x86_64_aros         { 84 }
+             system_x86_64_aros,        { 84 }
+             system_x86_64_dragonfly    { 85 }
        );
 
      type

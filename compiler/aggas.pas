@@ -1718,7 +1718,7 @@ implementation
 
       { "no executable stack" marker }
       { TODO: used by OpenBSD/NetBSD as well? }
-      if (target_info.system in (systems_linux + systems_android + systems_freebsd)) and
+      if (target_info.system in (systems_linux + systems_android + systems_freebsd + systems_dragonfly)) and
          not(cs_executable_stack in current_settings.moduleswitches) then
         begin
           AsmWriteLn('.section .note.GNU-stack,"",%progbits');

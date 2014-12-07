@@ -141,6 +141,12 @@ const
 {$elseif defined(aix)}
   CODESET = 49;
   LC_ALL = -1;
+{$elseif defined(dragonfly)}
+  CODESET = 0;
+  LC_ALL = 0;
+  __LC_CTYPE = 0;
+  _NL_CTYPE_CLASS = (__LC_CTYPE shl 16);
+  _NL_CTYPE_CODESET_NAME = (_NL_CTYPE_CLASS)+14;
 {$else not aix}
 {$error lookup the value of CODESET in /usr/include/langinfo.h, and the value of LC_ALL in /usr/include/locale.h for your OS }
 // and while doing it, check if iconv is in libc, and if the symbols are prefixed with iconv_ or libiconv_
