@@ -14,6 +14,7 @@ begin
 
     P:=AddPackage('unzip');
     P.ShortName:='zip';
+    P.Description := 'Support for decompression of ZIP archives - either using a Pascal port of the library from InfoZIP, or interface to using the dynamically linked version of this library.';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
