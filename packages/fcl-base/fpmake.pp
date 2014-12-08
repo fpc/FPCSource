@@ -25,7 +25,7 @@ begin
     P.Author := '<various>';
     P.License := 'LGPL with modification, ';
     P.Email := '';
-    P.Description := 'Base library of Free Component Libraries(FCL), FPC''s OOP library.';
+    P.Description := 'Base library of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
     P.OSes:=AllOSes-[embedded,msdos];
 
