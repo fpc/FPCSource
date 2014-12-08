@@ -14,6 +14,7 @@ begin
 
     P:=AddPackage('pasjpeg');
     P.ShortName:='pjp';
+    P.Description := 'Pascal port of JPEG (.JPG) image format handling library from IJG.';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
