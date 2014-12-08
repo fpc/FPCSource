@@ -104,17 +104,29 @@ end;
 
 function BADDR(bval: LongInt): Pointer; Inline;
 begin
+  {$if defined(AROS) or (not defined(AROS_FLAVOUR_BINCOMPAT))}
+  BADDR := Pointer(bval);
+  {$else}
   BADDR:=Pointer(bval Shl 2);
+  {$endif}
 end;
 
 function BSTR2STRING(s : Pointer): PChar; Inline;
 begin
+  {$if defined(AROS) or (not defined(AROS_FLAVOUR_BINCOMPAT))}
+  BSTR2STRING:=PChar(s);
+  {$else}
   BSTR2STRING:=PChar(BADDR(PtrInt(s)))+1;
+  {$endif}
 end;
 
 function BSTR2STRING(s : LongInt): PChar; Inline;
 begin
+  {$if defined(AROS) or (not defined(AROS_FLAVOUR_BINCOMPAT))}
+  BSTR2STRING:=PChar(s);
+  {$else}
   BSTR2STRING:=PChar(BADDR(s))+1;
+  {$endif}
 end;
 
 function IsLeapYear(Source : Word) : Boolean;
@@ -525,7 +537,7 @@ Function DiskFree(Drive: Byte): int64;
 Var
   MyLock      : LongInt;
   Inf         : pInfoData;
-  Free        : Longint;
+  Free        : Int64;
   myproc      : pProcess;
   OldWinPtr   : Pointer;
 Begin
@@ -539,8 +551,8 @@ Begin
   MyLock := dosLock(devicenames[deviceids[Drive]],SHARED_LOCK);
   If MyLock <> 0 then begin
      if Info(MyLock,Inf) <> 0 then begin
-        Free := (Inf^.id_NumBlocks * Inf^.id_BytesPerBlock) -
-                (Inf^.id_NumBlocksUsed * Inf^.id_BytesPerBlock);
+        Free := (Int64(Inf^.id_NumBlocks) * Inf^.id_BytesPerBlock) -
+                (Int64(Inf^.id_NumBlocksUsed) * Inf^.id_BytesPerBlock);
      end;
      Unlock(MyLock);
   end;
@@ -556,7 +568,7 @@ Function DiskSize(Drive: Byte): int64;
 Var
   MyLock      : LongInt;
   Inf         : pInfoData;
-  Size        : Longint;
+  Size        : Int64;
   myproc      : pProcess;
   OldWinPtr   : Pointer;
 Begin
@@ -570,7 +582,7 @@ Begin
   MyLock := dosLock(devicenames[deviceids[Drive]],SHARED_LOCK);
   If MyLock <> 0 then begin
      if Info(MyLock,Inf) <> 0 then begin
-        Size := (Inf^.id_NumBlocks * Inf^.id_BytesPerBlock);
+        Size := (Int64(Inf^.id_NumBlocks) * Inf^.id_BytesPerBlock);
      end;
      Unlock(MyLock);
   end;
