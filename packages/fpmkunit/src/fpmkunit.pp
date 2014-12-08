@@ -4642,6 +4642,7 @@ begin
   LogOption('ie','installexamples',SHelpInstExamples);
   LogOption('bu','buildunit',SHelpUseBuildUnit);
   LogOption('sp','skipcrossprograms',SHelpSkipCrossProgs);
+  LogOption('io','ignoreinvalidoption',SHelpIgnoreInvOpt);
   LogArgOption('C','cpu',SHelpCPU);
   LogArgOption('O','os',SHelpOS);
   LogArgOption('t','target',SHelpTarget);
@@ -4653,7 +4654,6 @@ begin
   LogArgOption('r','compiler',SHelpCompiler);
   LogArgOption('f','config',SHelpConfig);
   LogArgOption('o','options',SHelpOptions);
-  LogArgOption('io','ignoreinvalidoption',SHelpIgnoreInvOpt);
   LogArgOption('d', 'doc-folder', sHelpFpdocOutputDir);
   LogArgOption('fsp', 'fpunitsrcpath', sHelpFPUnitSrcPath);
   LogArgOption('zp', 'zipprefix', sHelpZipPrefix);
