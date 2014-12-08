@@ -146,7 +146,7 @@ Type
   TLogEvent = Procedure (Level : TVerboseLevel; Const Msg : String) of Object;
   TNotifyProcEvent = procedure(Sender: TObject);
 
-  TRunMode = (rmCompile,rmBuild,rmInstall,rmArchive,rmClean,rmDistClean,rmManifest,rmZipInstall);
+  TRunMode = (rmCompile,rmBuild,rmInstall,rmArchive,rmClean,rmDistClean,rmManifest,rmZipInstall,rmPkgList);
 
   TBuildMode = (bmOneByOne, bmBuildUnit{, bmSkipImplicitUnits});
   TBuildModes = set of TBuildMode;
@@ -234,6 +234,8 @@ Const
 
   FPMakePPFile = 'fpmake.pp';
   ManifestFile = 'manifest.xml';
+  PkgListFileBase = 'pkg-';
+  PkgListFileExt = '.lst';
 
   DirNotFound = '<dirnotfound>';
 
@@ -703,6 +705,8 @@ Type
     FAfterInstallProc: TNotifyProcEvent;
     FAfterManifest: TNotifyEvent;
     FAfterManifestProc: TNotifyProcEvent;
+    FAfterPkgList: TNotifyEvent;
+    FAfterPkgListProc: TNotifyProcEvent;
     FBeforeArchive: TNotifyEvent;
     FBeforeArchiveProc: TNotifyProcEvent;
     FBeforeClean: TNotifyEvent;
@@ -713,6 +717,8 @@ Type
     FBeforeInstallProc: TNotifyProcEvent;
     FBeforeManifest: TNotifyEvent;
     FBeforeManifestProc: TNotifyProcEvent;
+    FBeforePkgList: TNotifyEvent;
+    FBeforePkgListProc: TNotifyProcEvent;
     FBuildMode: TBuildMode;
     FFlags: TStrings;
     FFPDocFormat: TFPDocFormats;
@@ -792,6 +798,7 @@ Type
     Procedure GetArchiveFiles(List : TStrings; ACPU:TCPU; AOS : TOS); virtual;
     Procedure GetArchiveSourceFiles(List : TStrings); virtual;
     Procedure GetManifest(Manifest : TStrings);
+    Procedure ListPackage(PkgList : TStrings);
     Procedure AddPackageVariant(APackageVariant: TPackageVariants);
     procedure ApplyPackageVariantToCompilerOptions(ACompilerOptions: tstrings);
     procedure SetDefaultPackageVariant;
@@ -856,6 +863,10 @@ Type
     Property BeforeManifestProc : TNotifyProcEvent Read FBeforeManifestProc Write FBeforeManifestProc;
     Property AfterManifest : TNotifyEvent Read FAfterManifest Write FAfterManifest;
     Property AfterManifestProc : TNotifyProcEvent Read FAfterManifestProc Write FAfterManifestProc;
+    Property BeforePkgList : TNotifyEvent Read FBeforePkgList Write FBeforePkgList;
+    Property BeforePkgListProc : TNotifyProcEvent Read FBeforePkgListProc Write FBeforePkgListProc;
+    Property AfterPkgList : TNotifyEvent Read FAfterPkgList Write FAfterPkgList;
+    Property AfterPkgListProc : TNotifyProcEvent Read FAfterPkgListProc Write FAfterPkgListProc;
   end;
 
   { TPackages }
@@ -909,6 +920,7 @@ Type
     FNoFPCCfg: Boolean;
     FUseEnvironment: Boolean;
     FZipPrefix: String;
+    FExplicitOSNone: Boolean;
     function GetBuildCPU: TCpu;
     function GetBuildOS: TOS;
     function GetBuildString: String;
@@ -955,6 +967,7 @@ Type
     Property Target : String Read FTarget Write SetTarget;
     Property OS : TOS Read FOS Write SetOS;
     Property CPU : TCPU Read FCPU Write SetCPU;
+    Property ExplicitOSNone: Boolean read FExplicitOSNone Write FExplicitOSNone;
     Property BuildString : String read GetBuildString;
     Property BuildOS : TOS read GetBuildOS;
     Property BuildCPU : TCpu read GetBuildCPU;
@@ -1040,11 +1053,13 @@ Type
     FAfterCompile: TNotifyEvent;
     FAfterInstall: TNotifyEvent;
     FAfterManifest: TNotifyEvent;
+    FAfterPkgList: TNotifyEvent;
     FBeforeArchive: TNotifyEvent;
     FBeforeClean: TNotifyEvent;
     FBeforeCompile: TNotifyEvent;
     FBeforeInstall: TNotifyEvent;
     FBeforeManifest: TNotifyEvent;
+    FBeforePkgList: TNotifyEvent;
     FOnCopyFile: TCopyFileProc;
     FOnFinishCopy: TNotifyEvent;
 
@@ -1140,6 +1155,7 @@ Type
     Procedure Install(APackage : TPackage; AnArchiveFiles: boolean);
     Procedure Archive(APackage : TPackage);
     Procedure Manifest(APackage : TPackage);
+    Procedure PkgList(PkgList: TStrings; APackage : TPackage);
     Procedure Clean(APackage : TPackage; AllTargets: boolean);
     Procedure Clean(APackage : TPackage; ACPU:TCPU; AOS : TOS);
     Procedure CompileDependencies(APackage : TPackage);
@@ -1152,6 +1168,7 @@ Type
     Procedure ZipInstall(Packages : TPackages);
     Procedure Archive(Packages : TPackages);
     procedure Manifest(Packages: TPackages);
+    procedure PkgList(Packages: TPackages);
     Procedure Clean(Packages : TPackages; AllTargets: boolean);
 
     Procedure Log(Level : TVerboseLevel; Msg : String);
@@ -1172,6 +1189,8 @@ Type
     Property AfterArchive : TNotifyEvent Read FAfterArchive Write FAfterArchive;
     Property BeforeManifest : TNotifyEvent Read FBeforeManifest Write FBeforeManifest;
     Property AfterManifest : TNotifyEvent Read FAfterManifest Write FAfterManifest;
+    Property BeforePkgList : TNotifyEvent Read FBeforePkgList Write FBeforePkgList;
+    Property AfterPkgList : TNotifyEvent Read FAfterPkgList Write FAfterPkgList;
     Property OnLog : TLogEvent Read FOnLog Write FOnlog;
   end;
 
@@ -1204,6 +1223,7 @@ Type
     Procedure ZipInstall; virtual;
     Procedure Archive; virtual;
     Procedure Manifest; virtual;
+    Procedure PkgList; virtual;
   Public
     Constructor Create(AOwner : TComponent); virtual;
     Destructor destroy; override;
@@ -1327,6 +1347,13 @@ function GetDefaultLibGCCDir(CPU : TCPU;OS: TOS; var ErrorMessage: string): stri
 Implementation
 
 uses typinfo, rtlconsts;
+
+const
+{$ifdef CREATE_TAR_FILE}
+  ArchiveExtension = '.tar.gz';
+{$else CREATE_TAR_FILE}
+  ArchiveExtension = '.zip';
+{$endif CREATE_TAR_FILE}
 
 {----------------- from strutils ---------------------}
 
@@ -1537,6 +1564,7 @@ ResourceString
   SInfoArchivingPackage   = 'Archiving package %s in "%s"';
   SInfoCleaningPackage    = 'Cleaning package %s';
   SInfoManifestPackage    = 'Creating manifest for package %s';
+  SInfoPkgListPackage    = 'Adding package %s to the package list';
   SInfoCopyingFile        = 'Copying file "%s" to "%s"';
   SInfoDeletedFile        = 'Deleted file "%s"';
   SInfoRemovedDirectory   = 'Removed directory "%s"';
@@ -1563,6 +1591,7 @@ ResourceString
   SDbgExternalDependency    = 'External dependency %s found in "%s"';
   SDbgBuildEngineArchiving  = 'Build engine archiving';
   SDbgBuildEngineGenerateManifests = 'Build engine generating manifests';
+  SDbgBuildEngineGeneratePkgList = 'Build engine generating package list';
   SDbgBuildEngineCleaning   = 'Build engine cleaning';
   SDbgGenerating            = 'Generating "%s"';
   SDbgLoading               = 'Loading "%s"';
@@ -1600,6 +1629,7 @@ ResourceString
   SHelpArchive        = 'Create archive (zip) with all units in the package(s).';
   SHelpHelp           = 'This message.';
   SHelpManifest       = 'Create a manifest suitable for import in repository.';
+  SHelpPkgList        = 'Create list of all packages suitable for FPC installer.';
   SHelpZipInstall     = 'Install all units in the package(s) into an archive.';
   SHelpCmdOptions     = 'Where options is one or more of the following:';
   SHelpCPU            = 'Compile for indicated CPU.';
@@ -2138,17 +2168,23 @@ begin
 end;
 
 
-Function MakeTargetString(CPU : TCPU;OS: TOS) : String;
+Function MakeTargetString(CPU : TCPU;OS: TOS;ALimit83: boolean) : String;
 
 begin
-  if (Defaults.BuildOS in AllLimit83fsOses) or
-     (OS in AllLimit83fsOses) then
+  if ALimit83 then
     Result := OSToString(OS)
   else
     Result:=CPUToString(CPU)+'-'+OSToString(OS);
 end;
 
-function MakeZipSuffix(CPU : TCPU;OS: TOS) : String;
+Function MakeTargetString(CPU : TCPU;OS: TOS) : String;
+
+begin
+  Result := MakeTargetString (CPU, OS,
+           (Defaults.BuildOS in AllLimit83fsOses) or (OS in AllLimit83fsOses));
+end;
+
+function MakeZipSuffix(CPU : TCPU;OS: TOS;ALimit83: boolean) : String;
 
 begin
   case OS of
@@ -2158,15 +2194,21 @@ begin
     emx:    result := 'emx';
     osNone:
       begin
-        if (Defaults.BuildOS in AllLimit83fsOses) or
-           (OS in AllLimit83fsOses) then
+        if ALimit83 then
           result := 'src'
         else
           result := '.source'
       end
   else
-    result := '.' + MakeTargetString(CPU, OS);
+    result := '.' + MakeTargetString(CPU, OS, ALimit83);
   end;
+end;
+
+function MakeZipSuffix(CPU : TCPU;OS: TOS) : String;
+
+begin
+  Result := MakeZipSuffix (CPU, OS,
+           (Defaults.BuildOS in AllLimit83fsOses) or (OS in AllLimit83fsOses));
 end;
 
 Procedure StringToCPUOS(const S : String; Var CPU : TCPU; Var OS: TOS);
@@ -3496,6 +3538,44 @@ begin
     end;
 end;
 
+Procedure TPackage.ListPackage(PkgList : TStrings);
+
+  function GetArchiveName (const APackage: TPackage; ALimit83: boolean): string;
+  begin
+{ Special hack to allow both long and short source files being recognized }
+    if ALimit83 and (Defaults.ZipPrefix = 'units-') then
+      result := 'u'
+    else
+      result := Defaults.ZipPrefix;
+    if ALimit83 then
+      result := result + APackage.ShortName
+    else
+      result := result + APackage.Name;
+    result := result + MakeZipSuffix(Defaults.CPU, Defaults.OS, ALimit83);
+  end;
+
+Var
+  S : String;
+begin
+  if OSes = AllOSes then
+    Exit;
+  if ({(OSes = AllOSes) or }(Defaults.OS = osNone) or
+                                (Defaults.OS in OSes)) and
+     ((Defaults.CPU in CPUs) or (Defaults.CPU = cpuNone)) then
+    begin
+      if Defaults.OS = osNone then
+        PkgList.Add (Format ('# Source %d', [Succ (PkgList.Count div 2)]))
+      else {if OSes <> AllOSes then}
+        PkgList.Add (Format ('# ' + OSToString(Defaults.OS) + ' %d', [Succ (PkgList.Count div 2)]));
+      S := 'package=' + GetArchiveName (Self, false) + ArchiveExtension;
+      if ((ShortName <> Name) or (Defaults.ZipPrefix = 'units-')) and
+             ((Defaults.OS in AllLimit83fsOSes) or (Defaults.OS = osNone)) then
+        S := S + '[' + GetArchiveName (Self, true) + ArchiveExtension + ']';
+      S := S + ',' + Description;
+      PkgList.Add(S);
+    end;
+end;
+
 procedure TPackage.AddPackageVariant(APackageVariant: TPackageVariants);
 begin
   if not assigned(APackageVariant.FMasterPackage) then
@@ -4083,7 +4163,8 @@ var
   infoSL : TStringList;
 {$endif HAS_UNIT_PROCESS}
 begin
-  if (CPU=cpuNone) or (OS=osNone) or (FCompilerVersion='') then
+  if (CPU=cpuNone) or ((OS=osNone) and not ExplicitOSNone) or
+                                                     (FCompilerVersion='') then
     begin
 {$ifdef HAS_UNIT_PROCESS}
       // Detect compiler version/target from -i option
@@ -4096,13 +4177,13 @@ begin
         FCompilerVersion:=infosl[0];
       if CPU=cpuNone then
         CPU:=StringToCPU(infosl[1]);
-      if OS=osNone then
+      if (OS=osNone) and not ExplicitOSNone then
         OS:=StringToOS(infosl[2]);
 {$else HAS_UNIT_PROCESS}
       // Defaults taken from compiler used to build fpmake
       if CPU=cpuNone then
         CPU:=StringToCPU({$I %FPCTARGETCPU%});
-      if OS=osNone then
+      if (OS=osNone) and not ExplicitOSNone then
         OS:=StringToOS({$I %FPCTARGETOS%});
       if FCompilerVersion='' then
         FCompilerVersion:={$I %FPCVERSION%};
@@ -4524,12 +4605,17 @@ begin
       FRunMode:=rmarchive
     else if CheckCommand(I,'M','manifest') then
       FRunMode:=rmManifest
+    else if CheckCommand(I,'l','pkglist') then
+      FRunMode:=rmPkgList
     else if CheckOption(I,'h','help') then
       Usage('',[])
     else if Checkoption(I,'C','cpu') then
       Defaults.CPU:=StringToCPU(OptionArg(I))
     else if Checkoption(I,'O','os') then
-      Defaults.OS:=StringToOS(OptionArg(I))
+      begin
+        Defaults.OS:=StringToOS(OptionArg(I));
+        Defaults.ExplicitOSNone := OptionArg(I) = OSToString(osNone);
+      end
     else if Checkoption(I,'t','target') then
       Defaults.Target:=OptionArg(I)
     else if CheckOption(I,'l','list-commands') then
@@ -4631,6 +4717,7 @@ begin
   LogCmd('archive',SHelpArchive);
   LogCmd('manifest',SHelpManifest);
   LogCmd('zipinstall',SHelpZipInstall);
+  LogCmd('pkglist',SHelpPkgList);
   Log(vlInfo,SHelpCmdOptions);
   LogOption('h','help',SHelpHelp);
   LogOption('l','list-commands',SHelpList);
@@ -4708,6 +4795,12 @@ begin
 end;
 
 
+procedure TCustomInstaller.PkgList;
+begin
+  BuildEngine.PkgList(Packages);
+end;
+
+
 procedure TCustomInstaller.CheckPackages;
 begin
   If (Packages.Count=0) then
@@ -4731,6 +4824,7 @@ begin
       rmClean    : Clean(False);
       rmDistClean: Clean(True);
       rmManifest : Manifest;
+      rmPkgList : PkgList;
     end;
   except
     On E : Exception do
@@ -4824,7 +4918,7 @@ begin
   {$ifdef HAS_TAR_SUPPORT}
   if not assigned(FTarWriter) then
     begin
-      FGZFileStream := TGZFileStream.create(GetArchiveName +'.tar.gz', gzopenwrite);
+      FGZFileStream := TGZFileStream.create(GetArchiveName + ArchiveExtension, gzopenwrite);
       try
         FTarWriter := TTarWriter.Create(FGZFileStream);
         FTarWriter.Permissions := [tpReadByOwner, tpWriteByOwner, tpReadByGroup, tpReadByOther];
@@ -4855,7 +4949,7 @@ begin
   if not assigned(FZipper) then
     begin
       FZipper := TZipper.Create;
-      FZipper.FileName := GetArchiveName + '.zip';
+      FZipper.FileName := GetArchiveName + ArchiveExtension;
     end;
 
   FZipper.Entries.AddFileEntry(ASourceFileName, ADestFileName);
@@ -7046,6 +7140,13 @@ begin
 end;
 
 
+Procedure TBuildEngine.PkgList(PkgList: TStrings; APackage : TPackage);
+begin
+  Log(vlInfo, Format(SInfoPkgListPackage,[APackage.Name]));
+  APackage.ListPackage(PkgList);
+end;
+
+
 procedure TBuildEngine.Compile(Packages: TPackages);
 
   function IsReadyToCompile(APackage:TPackage): boolean;
@@ -7285,6 +7386,44 @@ begin
     AfterManifest(Self);
 end;
 
+
+procedure TBuildEngine.PkgList(Packages: TPackages);
+Var
+  I : Integer;
+  P : TPackage;
+  L : TStrings;
+  PKGL : String;
+begin
+  L:=TStringList.Create;
+  If Assigned(BeforePkgList) then
+    BeforePkgList(Self);
+  Log(vlDebug, SDbgBuildEngineGeneratePkgList);
+{ Consider only the target OS, because the installer would be run there }
+  if Defaults.OS in AllLimit83fsOSes then
+    PKGL := PkgListFileBase + OSToString (Defaults.OS) + PkgListFileExt
+  else if Defaults.OS = osNone then
+    PKGL := PkgListFileBase + 'src' + PkgListFileExt
+  else
+    PKGL := PkgListFileBase + CPUToString (Defaults.CPU) + '-' +
+                                     OSToString (Defaults.OS) + PkgListFileExt;
+
+  Try
+    Log(vlDebug, Format(SDbgGenerating, [PKGL]));
+
+    For I:=0 to Packages.Count-1 do
+      begin
+        P:=Packages.PackageItems[i];
+        PkgList(L, P);
+      end;
+
+    L.SaveToFile(PKGL);
+  Finally
+    L.Free;
+  end;
+
+  If Assigned(AfterPkgList) then
+    AfterPkgList(Self);
+end;
 
 procedure TBuildEngine.Clean(Packages: TPackages; AllTargets: boolean);
 Var
