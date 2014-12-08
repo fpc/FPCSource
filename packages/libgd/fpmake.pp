@@ -14,6 +14,7 @@ begin
 
     P:=AddPackage('libgd');
     P.ShortName:='lgd';
+    P.Description := 'Interface unit for library libgd - image processing';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
