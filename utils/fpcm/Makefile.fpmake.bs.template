@@ -104,7 +104,7 @@ install:	fpmake$(SRCEXEEXT)
 ifdef UNIXHier
 	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) --unitinstalldir=$(INSTALL_UNITDIR)
 else
-	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR) --unitinstalldir=$(INSTALL_UNITDIR)
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR) --baseinstalldir=$(INSTALL_BASEDIR) --unitinstalldir=$(INSTALL_UNITDIR)
 endif
 # distinstall also installs the example-sources and omits the location of the source-
 # files from the fpunits.cfg files.
@@ -112,7 +112,7 @@ distinstall:	fpmake$(SRCEXEEXT)
 ifdef UNIXHier
 	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) --unitinstalldir=$(INSTALL_UNITDIR) -ie -fsp 0
 else
-	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR)  --unitinstalldir=$(INSTALL_UNITDIR) -ie -fsp 0
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR) --baseinstalldir=$(INSTALL_BASEDIR) --unitinstalldir=$(INSTALL_UNITDIR) -ie -fsp 0
 endif
 zipinstall:	fpmake$(SRCEXEEXT)
 	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX)

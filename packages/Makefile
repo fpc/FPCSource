@@ -1678,13 +1678,13 @@ install:	fpmake$(SRCEXEEXT)
 ifdef UNIXHier
 	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) $(FPMAKE_INSTALL_OPT)
 else
-	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR) $(FPMAKE_INSTALL_OPT)
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR) --baseinstalldir=$(INSTALL_BASEDIR) $(FPMAKE_INSTALL_OPT)
 endif
 distinstall:	fpmake$(SRCEXEEXT)
 ifdef UNIXHier
 	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) $(FPMAKE_INSTALL_OPT) -ie -fsp 0
 else
-	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR) $(FPMAKE_INSTALL_OPT) -ie -fsp 0
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR) --baseinstalldir=$(INSTALL_BASEDIR) $(FPMAKE_INSTALL_OPT) -ie -fsp 0
 endif
 zipinstall:	fpmake$(SRCEXEEXT)
 	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX)
