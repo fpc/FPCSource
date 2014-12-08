@@ -23,7 +23,7 @@ begin
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
-    P.Description := 'Asynchonous event management of Free Component Libraries (FCL), FPC''s OOP library.';
+    P.Description := 'Asynchronous event management of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
     P.OSes:=AllUnixOses;
 
