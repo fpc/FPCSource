@@ -11414,6 +11414,7 @@ tests/test/tcpstr8.pp svneol=native#text/pascal
 tests/test/tcpstr9.pp svneol=native#text/pascal
 tests/test/tcpstransistr2shortstring.pp svneol=native#text/plain
 tests/test/tcpstransistr2widechararray.pp svneol=native#text/plain
+tests/test/tcpstransistr2widechararray2.pp svneol=native#text/plain
 tests/test/tcpstransistrcompare.pp svneol=native#text/plain
 tests/test/tcpstransistrcompareequal.pp svneol=native#text/plain
 tests/test/tcpstransistrcopy.pp svneol=native#text/plain
