@@ -13,6 +13,7 @@ begin
 
     P:=AddPackage('os2units');
     P.ShortName:='os2';
+    P.Description := 'Interface units for various libraries included with OS/2 and/or eComStation (multimedia, direct graphics I/O, management of disk partitions / volumes, simple FTP communication library, etc.).';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
