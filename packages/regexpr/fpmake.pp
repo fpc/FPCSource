@@ -14,6 +14,7 @@ begin
 
     P:=AddPackage('regexpr');
     P.ShortName:='reg';
+    P.Description := 'Library for working with regular expressions.';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
