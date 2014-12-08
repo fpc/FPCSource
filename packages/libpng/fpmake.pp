@@ -14,6 +14,7 @@ begin
 
     P:=AddPackage('libpng');
     P.ShortName:='lpng';
+    P.Description := 'Interface unit for libpng - working with PNG image format.';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
