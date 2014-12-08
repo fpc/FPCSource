@@ -14,6 +14,7 @@ begin
 
     P:=AddPackage('openssl');
     P.ShortName:='ossl';
+    P.Description := 'Interface units for OpenSSL libraries supporting SSL-encrypted network communication.';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
