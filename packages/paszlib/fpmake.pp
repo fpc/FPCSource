@@ -15,6 +15,7 @@ begin
 
     P:=AddPackage('paszlib');
     P.ShortName:='pzl';
+    P.Description := 'Pascal port of the ZLIB library - support for deflate compression method using for GZIP, PNG, ZIP, etc.';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
