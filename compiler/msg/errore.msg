@@ -2675,7 +2675,7 @@ asmr_e_wrong_gotpcrel_intel_syntax=07117_E_GOTPCREL references in Intel assemble
 asmr_e_no_gotpcrel_support=07118_E_The current target does not support GOTPCREL relocations
 % Not all targets support position-independent code using a global offset table.
 % Use a different way to access symbols in a position-indepent way in these cases.
-asmr_w_global_access_without_got=07119_W_Exported/global symbols should accessed via the GOT
+asmr_w_global_access_without_got=07119_W_Exported/global symbols should be accessed via the GOT
 % Global symbols (symbols from the unit interface, or defined in a program
 % or library) should be accessed via the GOT when generating position-indepent code.
 asmr_w_check_mem_operand_size=07120_W_Check size of memory operand "$1"
