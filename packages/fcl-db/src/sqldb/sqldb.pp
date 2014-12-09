@@ -2611,7 +2611,7 @@ begin
     While (Result=Nil) and (I<Fields.Count) do
       begin
       Result:=Fields[i];
-      if Result.DataType<>ftAutoInc then
+      if (Result.DataType<>ftAutoInc) or not Result.IsNull then
         Result:=Nil;
       Inc(I);
       end;
