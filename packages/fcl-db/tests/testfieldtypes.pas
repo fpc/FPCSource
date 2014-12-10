@@ -833,7 +833,7 @@ begin
       begin
       datatype:='INTEGER PRIMARY KEY';
       values:='DEFAULT VALUES';
-      fieldtype:=ftInteger;
+      fieldtype:=ftAutoInc;
       updatable:=true;
       end;
     ssPostgreSQL:

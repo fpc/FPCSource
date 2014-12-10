@@ -67,12 +67,12 @@ type
     procedure PrepareStatement(cursor: TSQLCursor; ATransaction : TSQLTransaction; buf: string; AParams : TParams); override;
     procedure Execute(cursor: TSQLCursor;atransaction:tSQLtransaction; AParams : TParams); override;
     function Fetch(cursor : TSQLCursor) : boolean; override;
-    procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs); override;
+    procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TFieldDefs); override;
     procedure UnPrepareStatement(cursor : TSQLCursor); override;
  
     procedure FreeFldBuffers(cursor : TSQLCursor); override;
-    function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; override;
-    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
+    function LoadField(cursor : TSQLCursor; FieldDef : TFieldDef; buffer : pointer; out CreateBlob : boolean) : boolean; override;
+    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
 
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
@@ -193,8 +193,9 @@ begin
     if P.IsNull then
       checkerror(sqlite3_bind_null(fstatement,I))
     else 
-      case P.datatype of
+      case P.DataType of
         ftInteger,
+        ftAutoInc,
         ftBoolean,
         ftSmallint: checkerror(sqlite3_bind_int(fstatement,I,P.AsInteger));
         ftWord:     checkerror(sqlite3_bind_int(fstatement,I,P.AsWord));
@@ -304,7 +305,7 @@ begin
   FieldNameQuoteChars:=DoubleQuotes;
 end;
 
-procedure TSQLite3Connection.LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); 
+procedure TSQLite3Connection.LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction);
 
 var
  int1: integer;
@@ -425,15 +426,30 @@ Const
 }
   );
 
-procedure TSQLite3Connection.AddFieldDefs(cursor: TSQLCursor;
-               FieldDefs: TfieldDefs);
+procedure TSQLite3Connection.AddFieldDefs(cursor: TSQLCursor; FieldDefs: TFieldDefs);
 var
- i     : integer;
- FN,FD : string;
- ft1   : tfieldtype;
+ i, fi : integer;
+ FN, FD, PrimaryKeyFields : string;
+ ft1   : TFieldType;
  size1, size2 : integer;
- fi    : integer;
  st    : psqlite3_stmt;
+
+ function GetPrimaryKeyFields: string;
+ var IndexDefs: TServerIndexDefs;
+     i: integer;
+ begin
+   if FieldDefs.Dataset is TSQLQuery then
+   begin
+     IndexDefs := (FieldDefs.DataSet as TSQLQuery).ServerIndexDefs;
+     for i:=IndexDefs.Count-1 downto 0 do
+       if ixPrimary in IndexDefs[i].Options then
+       begin
+         Result := IndexDefs[i].Fields;
+         Exit;
+       end;
+   end;
+   Result := '';
+ end;
 
  function ExtractPrecisionAndScale(decltype: string; var precision, scale: integer): boolean;
  var p: integer;
@@ -460,6 +476,7 @@ var
  end;
 
 begin
+  PrimaryKeyFields := GetPrimaryKeyFields;
   st:=TSQLite3Cursor(cursor).fstatement;
   for i:= 0 to sqlite3_column_count(st) - 1 do 
     begin
@@ -472,6 +489,10 @@ begin
       ft1:=FieldMap[fi].t;
       break;
       end;
+    // Column declared as INTEGER PRIMARY KEY [AUTOINCREMENT] becomes ROWID for given table
+    // declared data type must be INTEGER (not INT, BIGINT, NUMERIC etc.)
+    if (FD='INTEGER') and SameText(FN, PrimaryKeyFields) then
+      ft1:=ftAutoInc;
     // In case of an empty fieldtype (FD='', which is allowed and used in calculated
     // columns (aggregates) and by pragma-statements) or an unknown fieldtype,
     // use the field's affinity:
@@ -506,9 +527,9 @@ begin
                  else if (size2-size1>MaxBCDPrecision-MaxBCDScale) or (size1>MaxBCDScale) then
                    ft1:=ftFmtBCD;
                end;
-      ftUnknown : DatabaseError('Unknown record type: '+FN);
+      ftUnknown : DatabaseErrorFmt('Unknown or unsupported data type %s of column %s', [FD, FN]);
     end; // Case
-    Fielddefs.Add(FieldDefs.MakeNameUnique(FN),ft1,size1,false,i+1);
+    FieldDefs.Add(FieldDefs.MakeNameUnique(FN),ft1,size1,false,i+1);
     end;
 end;
 
@@ -617,7 +638,7 @@ begin
   Result:=ComposeDateTime(ParseSQLiteDate(DS),ParseSQLiteTime(TS,False));
 end;
 
-function TSQLite3Connection.LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
+function TSQLite3Connection.LoadField(cursor : TSQLCursor; FieldDef : TFieldDef; buffer : pointer; out CreateBlob : boolean) : boolean;
 
 var
  st1: TStorageType;
@@ -636,7 +657,8 @@ begin
   result:= st1 <> stnull;
   if Not result then 
     Exit;
-  case FieldDef.datatype of
+  case FieldDef.DataType of
+    ftAutoInc,
     ftInteger  : pinteger(buffer)^  := sqlite3_column_int(st,fnum);
     ftSmallInt : psmallint(buffer)^ := sqlite3_column_int(st,fnum);
     ftWord     : pword(buffer)^     := sqlite3_column_int(st,fnum);

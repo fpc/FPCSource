@@ -185,7 +185,7 @@ end;
 
 Procedure TTestTSQLQuery.TestKeepOpenOnCommit;
 var Q: TSQLQuery;
-    I, J : Integer;
+    I: Integer;
 begin
   // Test that for a SQL query with Options=sqoKeepOpenOnCommit, calling commit does not close the dataset.
   // Test also that an edit still works.
@@ -216,7 +216,7 @@ begin
     Q.Close;
     Q.SQL.Text:='select * from testdiscon where (id=20) and (a=''abc'')';
     Q.Open;
-    AssertTrue('Have modified data record in database',not (Q.EOF AND Q.BOF));
+    AssertTrue('Have modified data record in database', not (Q.EOF AND Q.BOF));
     end;
 end;
 
@@ -266,7 +266,7 @@ end;
 
 Procedure TTestTSQLQuery.TestAutoApplyUpdatesPost;
 var Q: TSQLQuery;
-    I, J : Integer;
+    I: Integer;
 begin
   // Test that if sqoAutoApplyUpdates is in QueryOptions, then POST automatically does an ApplyUpdates
   // Test also that POST afterpost event is backwards compatible.
@@ -303,7 +303,7 @@ end;
 Procedure TTestTSQLQuery.TestAutoApplyUpdatesDelete;
 
 var Q: TSQLQuery;
-    I, J : Integer;
+    I: Integer;
 begin
   // Test that if sqoAutoApplyUpdates is in QueryOptions, then Delete automatically does an ApplyUpdates
   with SQLDBConnector do
@@ -341,7 +341,7 @@ end;
 
 Procedure TTestTSQLQuery.TestCheckRowsAffected;
 var Q: TSQLQuery;
-    I, J : Integer;
+    I: Integer;
 begin
   // Test that if sqoAutoApplyUpdates is in QueryOptions, then Delete automatically does an ApplyUpdates
   with SQLDBConnector do
@@ -367,7 +367,7 @@ end;
 
 Procedure TTestTSQLQuery.TestAutoCommit;
 var
-  I, J : Integer;
+  I : Integer;
 begin
   with SQLDBConnector do
     begin
@@ -399,8 +399,7 @@ end;
 Procedure TTestTSQLQuery.TestRefreshSQL;
 var
   Q: TSQLQuery;
-  T : TSQLTransaction;
-  I, J : Integer;
+
 begin
   with SQLDBConnector do
     begin
@@ -427,8 +426,6 @@ Procedure TTestTSQLQuery.TestGeneratedRefreshSQL;
 
 var
   Q: TSQLQuery;
-  T : TSQLTransaction;
-  I, J : Integer;
 
 begin
   with SQLDBConnector do
@@ -461,8 +458,6 @@ end;
 Procedure TTestTSQLQuery.TestGeneratedRefreshSQL1Field;
 var
   Q: TSQLQuery;
-  T : TSQLTransaction;
-  I, J : Integer;
 
 begin
   with SQLDBConnector do
@@ -569,27 +564,46 @@ begin
 end;
 
 Procedure TTestTSQLQuery.TestFetchAutoInc;
+var datatype: string;
+    id: largeint;
 begin
   with SQLDBConnector do
     begin
     if not (sqLastInsertID in Connection.ConnOptions) then
       Ignore(STestNotApplicable);
-    TryDropIfExist('testautoinc');
-    // Syntax may vary. This works for MySQL.
-    ExecuteDirect('create table testautoinc (id integer auto_increment, a varchar(5), constraint PK_AUTOINC primary key(id))');
+    case SQLServerType of
+      ssMySQL:
+        datatype := 'integer auto_increment';
+      ssSQLite:
+        datatype := 'integer';
+      else
+        Ignore(STestNotApplicable);
+    end;
+    TryDropIfExist('FPDEV2');
+    ExecuteDirect('create table FPDEV2 (id '+datatype+' primary key, f varchar(5))');
     CommitDDL;
     end;
-  FMyQ:=SQLDBConnector.Query;
-  FMyQ.SQL.Text:='select * from testautoinc';
-  FMyQ.Open;
-  FMyQ.Insert;
-  FMyQ.FieldByName('a').AsString:='b';
-  FMyQ.Post;
-  AssertTrue('ID field null after post',FMyQ.FieldByname('id').IsNull);
-  FMyQ.ApplyUpdates(0);
-  AssertTrue('ID field no longer null after applyupdates',Not FMyQ.FieldByname('id').IsNull);
-  // Should be 1 after the table was created, but this is not guaranteed... So we just test positive values.
-  AssertTrue('ID field has positive value',FMyQ.FieldByname('id').AsLargeInt>0);
+
+  with SQLDBConnector.Query do
+    begin
+    SQL.Text:='select * from FPDEV2';
+    Open;
+    Insert;
+    FieldByName('f').AsString:='a';
+    Post;
+    Append;
+    FieldByName('f').AsString:='b';
+    Post;
+    AssertTrue('ID field is not null after Post', FieldByName('id').IsNull);
+    First;
+    ApplyUpdates(0);
+    AssertTrue('ID field is still null after ApplyUpdates', Not FieldByName('id').IsNull);
+    // Should be 1 after the table was created, but this is not guaranteed... So we just test positive values.
+    id := FieldByName('id').AsLargeInt;
+    AssertTrue('ID field has not positive value', id>0);
+    Next;
+    AssertTrue('Next ID value is not greater than previous', FieldByName('id').AsLargeInt>id);
+    end;
 end;
 
 
@@ -645,7 +659,7 @@ procedure TTestTSQLConnection.TestImplicitTransactionOK;
 var
   Q : TSQLQuery;
   T : TSQLTransaction;
-  I, J : Integer;
+  I : Integer;
 begin
   with SQLDBConnector do
     begin
