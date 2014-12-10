@@ -154,7 +154,10 @@ begin
       else
         CurrentRemoteRepositoryURL:=GlobalOptions.RemoteRepository;
     end;
-  Result:=CurrentRemoteRepositoryURL+AFileName;
+  result := CurrentRemoteRepositoryURL;
+  if result[length(result)]<>'/' then
+    result := result + '/';
+  Result:=Result+CompilerOptions.CompilerVersion+'/'+AFileName;
 end;
 
 
