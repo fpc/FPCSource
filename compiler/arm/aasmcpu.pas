@@ -2398,7 +2398,10 @@ implementation
                 begin
                   currsym:=objdata.symbolref(oper[0]^.ref^.symbol);
                   if (currsym.bind<>AB_LOCAL) and (currsym.objsection<>objdata.CurrObjSec) then
-                    objdata.writereloc(oper[0]^.ref^.offset,0,currsym,RELOC_RELATIVE_24)
+                    begin
+                      objdata.writereloc(oper[0]^.ref^.offset,0,currsym,RELOC_RELATIVE_24);
+                      bytes:=bytes or $fffffe; // TODO: Not sure this is right, but it matches the output of gas
+                    end
                   else
                     bytes:=bytes or (((currsym.offset-insoffset-8) shr 2) and $ffffff);
                 end;
@@ -2794,6 +2797,7 @@ implementation
                 end
               else
                 begin
+                  bytes:=bytes or (1 shl 25);
                   { set U flag }
                   if oper[0]^.ref^.signindex>=0 then
                     bytes:=bytes or (1 shl 23);

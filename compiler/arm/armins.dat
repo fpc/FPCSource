@@ -370,10 +370,10 @@ reg32,reg32,reg32,reg32     \x16\x00\x80\x9         ARM32,ARMv4
 reg32,reg32,memam2        \x19\x0\x0\x0\xD0           ARM32,ARMv4
 
 [PLD]
-memam2                     \x25\xF7\x50\xF0\x0                 ARM32,ARMv5TE
+memam2                     \x25\xF5\x50\xF0\x0                 ARM32,ARMv5TE
 
 [PLDW]
-memam2                     \x25\xF7\x10\xF0\x0                 ARM32,ARMv7
+memam2                     \x25\xF5\x10\xF0\x0                 ARM32,ARMv7
 
 [QADDcc]
 reg32,reg32,reg32          \x1A\x01\x00\x05                    ARM32,ARMv5TE
@@ -523,7 +523,7 @@ reg32,reg32,reg32           \x16\x6\x80\x5                     ARM32,ARMv6
 reg32,reg32,reg32,shifterop \x16\x6\x80\x5                     ARM32,ARMv6
 
 [PLI]
-memam2                     \x25\xF6\x50\xF0\x0                 ARM32,ARMv7
+memam2                     \x25\xF4\x50\xF0\x0                 ARM32,ARMv7
 
 [QADD16cc]
 reg32,reg32,reg32          \x16\x06\x20\xF1                    ARM32,ARMv6

@@ -949,14 +949,14 @@
     opcode  : A_PLD;
     ops     : 1;
     optypes : (ot_memoryam2,ot_none,ot_none,ot_none,ot_none,ot_none);
-    code    : #37#247#80#240#0;
+    code    : #37#245#80#240#0;
     flags   : if_arm32 or if_armv5te
   ),
   (
     opcode  : A_PLDW;
     ops     : 1;
     optypes : (ot_memoryam2,ot_none,ot_none,ot_none,ot_none,ot_none);
-    code    : #37#247#16#240#0;
+    code    : #37#245#16#240#0;
     flags   : if_arm32 or if_armv7
   ),
   (
@@ -1320,7 +1320,7 @@
     opcode  : A_PLI;
     ops     : 1;
     optypes : (ot_memoryam2,ot_none,ot_none,ot_none,ot_none,ot_none);
-    code    : #37#246#80#240#0;
+    code    : #37#244#80#240#0;
     flags   : if_arm32 or if_armv7
   ),
   (
