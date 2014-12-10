@@ -30,7 +30,10 @@ Unit raarmgas;
       cpubase;
 
     type
+      tarmsyntax = (asm_legacy, asm_unified);
+
       tarmattreader = class(tattreader)
+        asmsyntax : tarmsyntax;
         actoppostfix : TOpPostfix;
         actwideformat : boolean;
         function is_asmopcode(const s: string):boolean;override;
@@ -66,12 +69,12 @@ Unit raarmgas;
     function tarmattreader.is_register(const s:string):boolean;
       type
         treg2str = record
-          name : string[2];
+          name : string[3];
           reg : tregister;
         end;
 
       const
-        extraregs : array[0..19] of treg2str = (
+        extraregs : array[0..19+16] of treg2str = (
           (name: 'A1'; reg : NR_R0),
           (name: 'A2'; reg : NR_R1),
           (name: 'A3'; reg : NR_R2),
@@ -91,7 +94,25 @@ Unit raarmgas;
           (name: 'IP'; reg : NR_R12),
           (name: 'SP'; reg : NR_R13),
           (name: 'LR'; reg : NR_R14),
-          (name: 'PC'; reg : NR_R15));
+          (name: 'PC'; reg : NR_R15),
+
+          (name: 'C0'; reg : NR_CR0),
+          (name: 'C1'; reg : NR_CR1),
+          (name: 'C2'; reg : NR_CR2),
+          (name: 'C3'; reg : NR_CR3),
+          (name: 'C4'; reg : NR_CR4),
+          (name: 'C5'; reg : NR_CR5),
+          (name: 'C6'; reg : NR_CR6),
+          (name: 'C7'; reg : NR_CR7),
+          (name: 'C8'; reg : NR_CR8),
+          (name: 'C9'; reg : NR_CR9),
+          (name: 'C10'; reg : NR_CR10),
+          (name: 'C11'; reg : NR_CR11),
+          (name: 'C12'; reg : NR_CR12),
+          (name: 'C13'; reg : NR_CR13),
+          (name: 'C14'; reg : NR_CR14),
+          (name: 'C15'; reg : NR_CR15)
+          );
 
       var
         i : longint;
@@ -101,7 +122,7 @@ Unit raarmgas;
         { reg found?
           possible aliases are always 2 char
         }
-        if result or (length(s)<>2) then
+        if result or (not (length(s) in [2,3])) then
           exit;
         for i:=low(extraregs) to high(extraregs) do
           begin
@@ -241,7 +262,9 @@ Unit raarmgas;
                           do_error;
                         oper.opr.ref.shiftimm := shift;
                         test_end(require_rbracket);
-                      end;
+                      end
+                    else
+                      test_end(require_rbracket);
                    end
                  else
                    begin
@@ -785,6 +808,18 @@ Unit raarmgas;
           end;
 
 
+      function getregsetindex(reg: tregister): integer;
+        begin
+          if getsubreg(reg)=R_SUBFS then
+            begin
+              result:=getsupreg(reg)*2;
+              if result>32 then
+                result:=result-63;
+            end
+          else
+            result:=getsupreg(reg);
+        end;
+
       var
         tempreg : tregister;
         ireg : tsuperregister;
@@ -958,7 +993,7 @@ Unit raarmgas;
                   oper.opr.typ:=OPR_REGISTER;
                   oper.opr.reg:=tempreg;
                 end
-              else if (actasmtoken=AS_NOT) and (actopcode in [A_LDM,A_STM,A_FLDM,A_FSTM]) then
+              else if (actasmtoken=AS_NOT) and (actopcode in [A_LDM,A_STM,A_FLDM,A_FSTM,A_VLDM,A_VSTM]) then
                 begin
                   consume(AS_NOT);
                   oper.opr.typ:=OPR_REFERENCE;
@@ -976,11 +1011,11 @@ Unit raarmgas;
               registerset:=[];
               regtype:=R_INVALIDREGISTER;
               subreg:=R_SUBNONE;
-              while true do
+              while actasmtoken<>AS_RSBRACKET do
                 begin
                   if actasmtoken=AS_REGISTER then
                     begin
-                      include(registerset,getsupreg(actasmregister));
+                      include(registerset,getregsetindex(actasmregister));
                       if regtype<>R_INVALIDREGISTER then
                         begin
                           if (getregtype(actasmregister)<>regtype) or
@@ -997,7 +1032,7 @@ Unit raarmgas;
                       if actasmtoken=AS_MINUS then
                         begin
                           consume(AS_MINUS);
-                          for ireg:=getsupreg(tempreg) to getsupreg(actasmregister) do
+                          for ireg:=getregsetindex(tempreg) to getregsetindex(actasmregister) do
                             include(registerset,ireg);
                           consume(AS_REGISTER);
                         end;
@@ -1137,8 +1172,16 @@ Unit raarmgas;
           case actasmtoken of
             AS_COMMA: { Operand delimiter }
               Begin
-                if ((instr.opcode in [A_MOV, A_MVN, A_CMP, A_CMN, A_TST, A_TEQ]) and (operandnum=2)) or
-                  ((operandnum=3) and not(instr.opcode in [A_UMLAL,A_UMULL,A_SMLAL,A_SMULL,A_MLA,A_MRC,A_MCR,A_MCRR,A_MRRC])) then
+                if ((instr.opcode in [A_MOV,A_MVN,A_CMP,A_CMN,A_TST,A_TEQ,
+                                      A_UXTB,A_UXTH,A_UXTB16,
+                                      A_SXTB,A_SXTH,A_SXTB16]) and
+                    (operandnum=2)) or
+                  ((operandnum=3) and not(instr.opcode in [A_UMLAL,A_UMULL,A_SMLAL,A_SMULL,A_MLA,A_UMAAL,A_MLS,
+                                                           A_SMLABB,A_SMLABT,A_SMLATB,A_SMLATT,A_SMMLA,A_SMMLS,A_SMLAD,A_SMLALD,A_SMLSD,
+                                                           A_SMLALBB,A_SMLALBT,A_SMLALTB,A_SMLALTT,A_SMLSLD,
+                                                           A_MRC,A_MCR,A_MCRR,A_MRRC,A_STREXD,A_STRD,
+                                                           A_VMOV,
+                                                           A_SBFX,A_UBFX,A_BFI])) then
                   begin
                     Consume(AS_COMMA);
                     if not(TryBuildShifterOp(instr.Operands[operandnum+1] as tarmoperand)) then
@@ -1174,25 +1217,34 @@ Unit raarmgas;
 
       const
         { sorted by length so longer postfixes will match first }
-        postfix2strsorted : array[1..31] of string[3] = (
-          'IAD','DBD','FDD','EAD',
-          'IAS','DBS','FDS','EAS',
-          'IAX','DBX','FDX','EAX',
-          'EP','SB','BT','SH',
-          'IA','IB','DA','DB','FD','FA','ED','EA',
-          'B','D','E','P','T','H','S');
+        postfix2strsorted : array[1..70] of string[9] = (
+          '.F32.S32','.F32.U32','.S32.F32','.U32.F32','.F64.S32','.F64.U32','.S32.F64','.U32.F64',
+          '.F32.S16','.F32.U16','.S16.F32','.U16.F32','.F64.S16','.F64.U16','.S16.F64','.U16.F64',
+          '.F32.F64','.F64.F32',
+          '.I16','.I32','.I64','.S16','.S32','.S64','.U16','.U32','.U64','.F32','.F64',
+          'IAD','DBD','FDD','EAD','IAS','DBS','FDS','EAS','IAX','DBX','FDX','EAX',
+          '.16','.32','.64','.I8','.S8','.U8','.P8',
+          'EP','SB','BT','SH','IA','IB','DA','DB','FD','FA','ED','EA',
+          '.8','S','D','E','P','X','R','B','H','T');
 
-        postfixsorted : array[1..31] of TOpPostfix = (
-          PF_IAD,PF_DBD,PF_FDD,PF_EAD,
-          PF_IAS,PF_DBS,PF_FDS,PF_EAS,
-          PF_IAX,PF_DBX,PF_FDX,PF_EAX,
-          PF_EP,PF_SB,PF_BT,PF_SH,
-          PF_IA,PF_IB,PF_DA,PF_DB,PF_FD,PF_FA,PF_ED,PF_EA,
-          PF_B,PF_D,PF_E,PF_P,PF_T,PF_H,PF_S);
+        postfixsorted : array[1..70] of TOpPostfix = (
+          PF_F32S32,PF_F32U32,PF_S32F32,PF_U32F32,PF_F64S32,PF_F64U32,PF_S32F64,PF_U32F64,
+          PF_F32S16,PF_F32U16,PF_S16F32,PF_U16F32,PF_F64S16,PF_F64U16,PF_S16F64,PF_U16F64,
+          PF_F32F64,PF_F64F32,
+          PF_I16,PF_I32,
+          PF_I64,PF_S16,PF_S32,PF_S64,PF_U16,PF_U32,PF_U64,PF_F32,
+          PF_F64,PF_IAD,PF_DBD,PF_FDD,PF_EAD,
+          PF_IAS,PF_DBS,PF_FDS,PF_EAS,PF_IAX,
+          PF_DBX,PF_FDX,PF_EAX,PF_16,PF_32,
+          PF_64,PF_I8,PF_S8,PF_U8,PF_P8,
+          PF_EP,PF_SB,PF_BT,PF_SH,PF_IA,
+          PF_IB,PF_DA,PF_DB,PF_FD,PF_FA,
+          PF_ED,PF_EA,PF_8,PF_S,PF_D,PF_E,
+          PF_P,PF_X,PF_R,PF_B,PF_H,PF_T);
 
       var
-        j  : longint;
-        hs : string;
+        j, j2 : longint;
+        hs,hs2 : string;
         maxlen : longint;
         icond : tasmcond;
       Begin
@@ -1222,59 +1274,106 @@ Unit raarmgas;
           end;
         maxlen:=max(length(hs),5);
         actopcode:=A_NONE;
-        for j:=maxlen downto 1 do
+        j2:=maxlen;
+        hs2:=hs;
+        while j2>1 do
           begin
-            actopcode:=tasmop(PtrUInt(iasmops.Find(copy(hs,1,j))));
-            if actopcode<>A_NONE then
+            hs:=hs2;
+            while j2>=1 do
               begin
-                actasmtoken:=AS_OPCODE;
-                { strip op code }
-                delete(hs,1,j);
-                break;
+                actopcode:=tasmop(PtrUInt(iasmops.Find(copy(hs,1,j2))));
+                if actopcode<>A_NONE then
+                  begin
+                    actasmtoken:=AS_OPCODE;
+                    { strip op code }
+                    delete(hs,1,j2);
+                    dec(j2);
+                    break;
+                  end;
+                dec(j2);
               end;
-          end;
-        if actopcode=A_NONE then
-          exit;
+            if actopcode=A_NONE then
+              exit;
 
-        { search for condition, conditions are always 2 chars }
-        if length(hs)>1 then
-          begin
-            for icond:=low(tasmcond) to high(tasmcond) do
+            if asmsyntax=asm_unified then
               begin
-                if copy(hs,1,2)=uppercond2str[icond] then
+                { check for postfix }
+                if (length(hs)>0) and (actoppostfix=PF_None) then
                   begin
-                    actcondition:=icond;
-                    { strip condition }
+                    for j:=low(postfixsorted) to high(postfixsorted) do
+                      begin
+                        if copy(hs,1,length(postfix2strsorted[j]))=postfix2strsorted[j] then
+                          begin
+                            if not ((length(hs)-length(postfix2strsorted[j])) in [0,2,4]) then
+                              continue;
+
+                            actoppostfix:=postfixsorted[j];
+                            { strip postfix }
+                            delete(hs,1,length(postfix2strsorted[j]));
+                            break;
+                          end;
+                      end;
+                  end;
+                { search for condition, conditions are always 2 chars }
+                if length(hs)>1 then
+                  begin
+                    for icond:=low(tasmcond) to high(tasmcond) do
+                      begin
+                        if copy(hs,1,2)=uppercond2str[icond] then
+                          begin
+                            actcondition:=icond;
+                            { strip condition }
+                            delete(hs,1,2);
+                            break;
+                          end;
+                      end;
+                  end;
+              end
+            else
+              begin
+                { search for condition, conditions are always 2 chars }
+                if length(hs)>1 then
+                  begin
+                    for icond:=low(tasmcond) to high(tasmcond) do
+                      begin
+                        if copy(hs,1,2)=uppercond2str[icond] then
+                          begin
+                            actcondition:=icond;
+                            { strip condition }
+                            delete(hs,1,2);
+                            break;
+                          end;
+                      end;
+                  end;
+                { check for postfix }
+                if (length(hs)>0) and (actoppostfix=PF_None) then
+                  begin
+                    for j:=low(postfixsorted) to high(postfixsorted) do
+                      begin
+                        if copy(hs,1,length(postfix2strsorted[j]))=postfix2strsorted[j] then
+                          begin
+                            actoppostfix:=postfixsorted[j];
+                            { strip postfix }
+                            delete(hs,1,length(postfix2strsorted[j]));
+                            break;
+                          end;
+                      end;
+                  end;
+              end;
+            { check for format postfix }
+            if length(hs)>0 then
+              begin
+                if copy(hs,1,2) = '.W' then
+                  begin
+                    actwideformat:=true;
                     delete(hs,1,2);
-                    break;
                   end;
               end;
+            { if we stripped all postfixes, it's a valid opcode }
+            is_asmopcode:=length(hs)=0;
+            if is_asmopcode = true then
+              break;
           end;
-        { check for postfix }
-        if length(hs)>0 then
-          begin
-            for j:=low(postfixsorted) to high(postfixsorted) do
-              begin
-                if copy(hs,1,length(postfix2strsorted[j]))=postfix2strsorted[j] then
-                  begin
-                    actoppostfix:=postfixsorted[j];
-                    { strip postfix }
-                    delete(hs,1,length(postfix2strsorted[j]));
-                    break;
-                  end;
-              end;
-          end;
-        { check for format postfix }
-        if length(hs)>0 then
-          begin
-            if upcase(copy(hs,1,2)) = '.W' then
-              begin
-                actwideformat:=true;
-                delete(hs,1,2);
-              end;
-          end;
-        { if we stripped all postfixes, it's a valid opcode }
-        is_asmopcode:=length(hs)=0;
       end;
 
 
@@ -1337,6 +1436,8 @@ Unit raarmgas;
         instr.Free;
         actoppostfix:=PF_None;
         actwideformat:=false;
+
+        asmsyntax:=asm_legacy;
       end;
 
 

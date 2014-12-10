@@ -314,7 +314,7 @@ unit agarmgas;
                // writeln(taicpu(hp).fileinfo.line);
 
                { LDM and STM use references as first operand but they are written like a register }
-               if (i=0) and (op in [A_LDM,A_STM,A_FSTM,A_FLDM]) then
+               if (i=0) and (op in [A_LDM,A_STM,A_FSTM,A_FLDM,A_VSTM,A_VLDM]) then
                  begin
                    case taicpu(hp).oper[0]^.typ of
                      top_ref:

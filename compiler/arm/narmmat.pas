@@ -432,11 +432,7 @@ implementation
               location:=left.location;
               if (left.location.loc=LOC_CMMREGISTER) then
                 location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
-              if (location.size=OS_F32) then
-                op:=A_FNEGS
-              else
-                op:=A_FNEGD;
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_VNEG,
                 location.register,left.location.register));
             end;
           fpu_fpv4_s16:

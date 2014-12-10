@@ -68,6 +68,7 @@ interface
 {$endif i386}
 {$ifdef arm}
          RELOC_RELATIVE_24,
+         RELOC_RELATIVE_24_THUMB,
 {$endif arm}
          { Relative relocation }
          RELOC_RELATIVE,

@@ -2353,7 +2353,7 @@ Implementation
     { set of opcode which might or do write to memory }
     { TODO : extend armins.dat to contain r/w info }
     opcode_could_mem_write = [A_B,A_BL,A_BLX,A_BKPT,A_BX,A_STR,A_STRB,A_STRBT,
-                              A_STRH,A_STRT,A_STF,A_SFM,A_STM,A_FSTS,A_FSTD];
+                              A_STRH,A_STRT,A_STF,A_SFM,A_STM,A_FSTS,A_FSTD,A_VSTR,A_VSTM];
 
 
   { adjust the register live information when swapping the two instructions p and hp1,

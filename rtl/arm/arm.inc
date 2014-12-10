@@ -46,7 +46,7 @@ Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }
   asm
-    fmrx r0,fpscr
+    vmrs r0,fpscr
     // set "round to nearest" mode
     and  r0,r0,#0xff3fffff
     // mask "exception happened" and overflow flags
@@ -61,7 +61,7 @@ begin
     // enable invalid operation, div-by-zero and overflow exceptions
     orr  r0,r0,#0x00000700
 {$endif}
-    fmxr fpscr,r0
+    vmsr fpscr,r0
   end;
 end;
 {$endif}

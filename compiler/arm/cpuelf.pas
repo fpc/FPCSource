@@ -325,8 +325,12 @@ implementation
           result:=R_ARM_ABS32;
         RELOC_RELATIVE:
           result:=R_ARM_REL32;
+        RELOC_RELATIVE_24,
+        RELOC_RELATIVE_24_THUMB:
+          result:=R_ARM_CALL;
       else
         result:=0;
+        writeln(objrel.typ);
         InternalError(2012110602);
       end;
     end;
@@ -926,7 +930,23 @@ implementation
         loadsection:       @elf_arm_loadSection;
       );
 
+    as_arm_elf32_info : tasminfo =
+       (
+         id     : as_arm_elf32;
+         idtxt  : 'ELF';
+         asmbin : '';
+         asmcmd : '';
+         supported_targets : [system_arm_embedded,system_arm_darwin,
+                              system_arm_linux,system_arm_gba,
+                              system_arm_nds];
+         flags : [af_outputbinary,af_smartlink_sections,af_supports_dwarf];
+         labelprefix : '.L';
+         comment : '';
+         dollarsign: '$';
+       );
+
 initialization
+  RegisterAssembler(as_arm_elf32_info,TElfAssembler);
   ElfTarget:=elf_target_arm;
   ElfExeOutputClass:=TElfExeOutputARM;
 
