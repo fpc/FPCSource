@@ -70,7 +70,7 @@ $(TARGET_UNITDIRBS):
 	$(MKDIRTREE) $(TARGET_UNITDIRBS)
 # We want to have all units inside the single packages/fpmkunit/units/$target directory
 bootstrap:	$(TARGET_UNITDIRBS)
-        $(FPCFPMAKE) src/fpmkunit.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(UNITDIR_FPMAKE_RTL)) -FU$(TARGET_UNITDIRBS) $(UNIT_ZIPPER) $(UNIT_PROCESS) $(UNIT_LIBTAR) $(OPT)
+        $(FPCFPMAKE) src/fpmkunit.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(UNITDIR_FPMAKE_RTL)) -FU$(TARGET_UNITDIRBS) $(UNIT_ZIPPER) $(FPCMAKEOPT) $(UNIT_PROCESS) $(UNIT_LIBTAR) $(OPT)
 # Old	$(FPCFPMAKE) src/fpmkunit.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) -FU$(TARGET_UNITDIRBS) $(UNIT_ZIPPER) $(UNIT_PROCESS) $(UNIT_LIBTAR) $(OPT)
 clean_bootstrap:
 	-$(DELTREE) units_bs
