@@ -123,3 +123,7 @@ NR_BASEPRI = tregister($0500001F);
 NR_BASEPRI_MAX = tregister($05000020);
 NR_FAULTMASK = tregister($05000021);
 NR_CONTROL = tregister($05000022);
+NR_FPSID = tregister($05000023);
+NR_MVFR1 = tregister($05000024);
+NR_MVFR0 = tregister($05000025);
+NR_FPEXC = tregister($05000026);

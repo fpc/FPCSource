@@ -130,6 +130,10 @@ unit cpubase;
         PF_S,
         { floating point size }
         PF_D,PF_E,PF_P,PF_EP,
+        { exchange }
+        PF_X,
+        { rounding }
+        PF_R,
         { load/store }
         PF_B,PF_SB,PF_BT,PF_H,PF_SH,PF_T,
         { multiple load/store address modes }
@@ -138,10 +142,18 @@ unit cpubase;
         PF_IAD,PF_DBD,PF_FDD,PF_EAD,
         PF_IAS,PF_DBS,PF_FDS,PF_EAS,
         PF_IAX,PF_DBX,PF_FDX,PF_EAX,
-        { FPv4 postfixes }
-        PF_32,PF_64,PF_F32,PF_F64,
-        PF_F32S32,PF_F32U32,
-        PF_S32F32,PF_U32F32
+        { VFP postfixes }
+        PF_8,PF_16,PF_32,PF_64,
+        PF_I8,PF_I16,PF_I32,PF_I64,
+        PF_S8,PF_S16,PF_S32,PF_S64,
+        PF_U8,PF_U16,PF_U32,PF_U64,
+        PF_P8, // polynomial
+        PF_F32,PF_F64,
+        PF_F32F64,PF_F64F32,
+        PF_F32S16,PF_F32U16,PF_S16F32,PF_U16F32,
+        PF_F64S16,PF_F64U16,PF_S16F64,PF_U16F64,
+        PF_F32S32,PF_F32U32,PF_S32F32,PF_U32F32,
+        PF_F64S32,PF_F64U32,PF_S32F64,PF_U32F64
       );
 
       TOpPostfixes = set of TOpPostfix;
@@ -157,14 +169,24 @@ unit cpubase;
       oppostfix2str : array[TOpPostfix] of string[8] = ('',
         's',
         'd','e','p','ep',
+        'x',
+        'r',
         'b','sb','bt','h','sh','t',
         'ia','ib','da','db','fd','fa','ed','ea',
         'iad','dbd','fdd','ead',
         'ias','dbs','fds','eas',
         'iax','dbx','fdx','eax',
-        '.32','.64','.f32','.f64',
-        '.f32.s32','.f32.u32',
-        '.s32.f32','.u32.f32');
+        '.8','.16','.32','.64',
+        '.i8','.i16','.i32','.i64',
+        '.s8','.s16','.s32','.s64',
+        '.u8','.u16','.u32','.u64',
+        '.p8',
+        '.f32','.f64',
+        '.f32.f64','.f64.f32',
+        '.f32.s16','.f32.u16','.s16.f32','.u16.f32',
+        '.f64.s16','.f64.u16','.s16.f64','.u16.f64',
+        '.f32.s32','.f32.u32','.s32.f32','.u32.f32',
+        '.f64.s32','.f64.u32','.s32.f64','.u32.f64');
 
       roundingmode2str : array[TRoundingMode] of string[1] = ('',
         'p','m','z');

@@ -102,14 +102,17 @@ uses
       OT_AM4       = $00040000;
       { co proc. ld/st operations }
       OT_AM5       = $00080000;
-      OT_AMMASK    = $000f0000;
+      { exclusive ld/st operations }
+      OT_AM6       = $00100000;
+      OT_AMMASK    = $001f0000;
       { IT instruction }
-      OT_CONDITION = $00100000;
+      OT_CONDITION = $00200000;
 
       OT_MEMORYAM2 = OT_MEMORY or OT_AM2;
       OT_MEMORYAM3 = OT_MEMORY or OT_AM3;
       OT_MEMORYAM4 = OT_MEMORY or OT_AM4;
       OT_MEMORYAM5 = OT_MEMORY or OT_AM5;
+      OT_MEMORYAM6 = OT_MEMORY or OT_AM6;
 
       OT_FPUREG    = $01000000;  { floating point stack registers  }
       OT_REG_SMASK = $00070000;  { special register operands: these may be treated differently  }
@@ -128,9 +131,32 @@ uses
       IF_NONE   = $00000000;
 
       IF_ARMMASK    = $000F0000;
-      IF_ARM7       = $00070000;
-      IF_FPMASK     = $00F00000;
-      IF_FPA        = $00100000;
+      IF_ARM32      = $00010000;
+      IF_THUMB      = $00020000;
+      IF_THUMB32    = $00040000;
+
+      IF_ARMvMASK   = $0FF00000;
+      IF_ARMv4      = $00100000;
+      IF_ARMv4T     = $00200000;
+      IF_ARMv5      = $00300000;
+      IF_ARMv5T     = $00400000;
+      IF_ARMv5TE    = $00500000;
+      IF_ARMv5TEJ   = $00600000;
+      IF_ARMv6      = $00700000;
+      IF_ARMv6K     = $00800000;
+      IF_ARMv6T2    = $00900000;
+      IF_ARMv6Z     = $00A00000;
+      IF_ARMv6M     = $00B00000;
+      IF_ARMv7      = $00C00000;
+      IF_ARMv7A     = $00D00000;
+      IF_ARMv7R     = $00E00000;
+      IF_ARMv7M     = $00F00000;
+      IF_ARMv7EM    = $01000000;
+
+      IF_FPMASK     = $F0000000;
+      IF_FPA        = $10000000;
+      IF_VFPv2      = $20000000;
+      IF_VFPv3      = $40000000;
 
       { if the instruction can change in a second pass }
       IF_PASS2  = longint($80000000);
@@ -142,7 +168,7 @@ uses
       tinsentry = record
         opcode  : tasmop;
         ops     : byte;
-        optypes : array[0..3] of longint;
+        optypes : array[0..5] of longint;
         code    : array[0..maxinfolen] of char;
         flags   : longint;
       end;
@@ -614,9 +640,10 @@ implementation
         result:=(
                   ((opcode=A_MOV) and (regtype = R_INTREGISTER)) or
                   ((opcode=A_MVF) and (regtype = R_FPUREGISTER)) or
-                  ((opcode in [A_FCPYS, A_FCPYD]) and (regtype = R_MMREGISTER))
+                  ((opcode in [A_FCPYS, A_FCPYD]) and (regtype = R_MMREGISTER)) or
+                  ((opcode in [A_VMOV]) and (regtype = R_MMREGISTER) and (oppostfix in [PF_F32,PF_F64]))
                 ) and
-                (oppostfix in [PF_None,PF_D]) and
+                ((oppostfix in [PF_None,PF_D]) or (opcode = A_VMOV)) and
                 (condition=C_None) and
                 (ops=2) and
                 (oper[0]^.typ=top_reg) and
@@ -626,8 +653,6 @@ implementation
 
 
     function spilling_create_load(const ref:treference;r:tregister):Taicpu;
-      var
-        op: tasmop;
       begin
         case getregtype(r) of
           R_INTREGISTER :
@@ -638,19 +663,7 @@ implementation
             }
             result:=taicpu.op_reg_const_ref(A_LFM,r,1,ref);
           R_MMREGISTER :
-            begin
-              case getsubreg(r) of
-                R_SUBFD:
-                  op:=A_FLDD;
-                R_SUBFS:
-                  op:=A_FLDS;
-                R_SUBNONE:
-                  op:=A_VLDR;
-                else
-                  internalerror(2009112905);
-              end;
-              result:=taicpu.op_reg_ref(op,r,ref);
-            end;
+            result:=taicpu.op_reg_ref(A_VLDR,r,ref);
           else
             internalerror(200401041);
         end;
@@ -658,8 +671,6 @@ implementation
 
 
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
-      var
-        op: tasmop;
       begin
         case getregtype(r) of
           R_INTREGISTER :
@@ -670,19 +681,7 @@ implementation
             }
             result:=taicpu.op_reg_const_ref(A_SFM,r,1,ref);
           R_MMREGISTER :
-            begin
-              case getsubreg(r) of
-                R_SUBFD:
-                  op:=A_FSTD;
-                R_SUBFS:
-                  op:=A_FSTS;
-                R_SUBNONE:
-                  op:=A_VSTR;
-                else
-                  internalerror(2009112904);
-              end;
-              result:=taicpu.op_reg_ref(op,r,ref);
-            end;
+            result:=taicpu.op_reg_ref(A_VSTR,r,ref);
           else
             internalerror(200401041);
         end;
@@ -786,10 +785,21 @@ implementation
       end;
 
 
+    var
+      IF_ArmInsVersion: longword;
+
+
     procedure BuildInsTabCache;
       var
         i : longint;
       begin
+        if GenerateThumb2Code then
+          IF_ArmInsVersion:=IF_THUMB32
+        else if GenerateThumbCode then
+          IF_ArmInsVersion:=IF_THUMB
+        else
+          IF_ArmInsVersion:=IF_ARM32;
+
         new(instabcache);
         FillChar(instabcache^,sizeof(tinstabcache),$ff);
         i:=0;
@@ -1366,6 +1376,48 @@ implementation
           end;
       end;
 
+    procedure fix_invalid_imms(list: TAsmList);
+      var
+        curtai: tai;
+        sh: byte;
+      begin
+        curtai:=tai(list.First);
+        while assigned(curtai) do
+          begin
+            case curtai.typ of
+              ait_instruction:
+                begin
+                  if (taicpu(curtai).opcode in [A_AND,A_BIC]) and
+                     (taicpu(curtai).ops=3) and
+                     (taicpu(curtai).oper[2]^.typ=top_const) and
+                     (not is_shifter_const(taicpu(curtai).oper[2]^.val,sh)) and
+                     is_shifter_const((not taicpu(curtai).oper[2]^.val) and $FFFFFFFF,sh) then
+                    begin
+                      case taicpu(curtai).opcode of
+                        A_AND: taicpu(curtai).opcode:=A_BIC;
+                        A_BIC: taicpu(curtai).opcode:=A_AND;
+                      end;
+                      taicpu(curtai).oper[2]^.val:=(not taicpu(curtai).oper[2]^.val) and $FFFFFFFF;
+                    end
+                  else if (taicpu(curtai).opcode in [A_SUB,A_ADD]) and
+                     (taicpu(curtai).ops=3) and
+                     (taicpu(curtai).oper[2]^.typ=top_const) and
+                     (not is_shifter_const(taicpu(curtai).oper[2]^.val,sh)) and
+                     is_shifter_const(-taicpu(curtai).oper[2]^.val,sh) then
+                    begin
+                      case taicpu(curtai).opcode of
+                        A_ADD: taicpu(curtai).opcode:=A_SUB;
+                        A_SUB: taicpu(curtai).opcode:=A_ADD;
+                      end;
+                      taicpu(curtai).oper[2]^.val:=-taicpu(curtai).oper[2]^.val;
+                    end;
+                end;
+            end;
+
+            curtai:=tai(curtai.Next);
+          end;
+      end;
+
     procedure finalizearmcode(list, listtoinsert: TAsmList);
       begin
         { Do Thumb-2 16bit -> 32bit transformations }
@@ -1374,6 +1426,8 @@ implementation
             ensurethumb2encodings(list);
             foldITInstructions(list);
           end;
+
+        fix_invalid_imms(list);
 
         insertpcrelativedata(list, listtoinsert);
       end;
@@ -1570,6 +1624,9 @@ implementation
                  if (ot and OT_FPUREG)=OT_FPUREG then
                   s:=s+'fpureg'
                else
+                 if (ot and OT_REGF)=OT_REGF then
+                  s:=s+'creg'
+               else
                 if (ot and OT_REGISTER)=OT_REGISTER then
                  begin
                    s:=s+'reg';
@@ -1593,9 +1650,17 @@ implementation
                    s:=s+'mem';
                    addsize:=true;
                    if (ot and OT_AM2)<>0 then
+                     s:=s+' am2 '
+                   else if (ot and OT_AM6)<>0 then
                      s:=s+' am2 ';
                  end
                else
+                 if (ot and OT_SHIFTEROP)=OT_SHIFTEROP then
+                  begin
+                    s:=s+'shifterop';
+                    addsize:=false;
+                  end
+                else
                  s:=s+'???';
                { size }
                if addsize then
@@ -1670,7 +1735,12 @@ implementation
         current_filepos:=fileinfo;
 
         { tranlate LDR+postfix to complete opcode }
-        if (opcode=A_LDR) and (oppostfix<>PF_None) then
+        if (opcode=A_LDR) and (oppostfix=PF_D) then
+          begin
+            opcode:=A_LDRD;
+            oppostfix:=PF_None;
+          end
+        else if (opcode=A_LDR) and (oppostfix<>PF_None) then
           begin
             if (oppostfix in [low(ldr2op)..high(ldr2op)]) then
               opcode:=ldr2op[oppostfix]
@@ -1679,6 +1749,11 @@ implementation
             if opcode=A_None then
               internalerror(2005091004);
             { postfix has been added to opcode }
+            oppostfix:=PF_None;
+          end
+        else if (opcode=A_STR) and (oppostfix=PF_D) then
+          begin
+            opcode:=A_STRD;
             oppostfix:=PF_None;
           end
         else if (opcode=A_STR) and (oppostfix<>PF_None) then
@@ -1766,6 +1841,10 @@ implementation
                       ot:=OT_REG32 or OT_SHIFTEROP;
                     R_FPUREGISTER:
                       ot:=OT_FPUREG;
+                    R_MMREGISTER:
+                      ot:=OT_VREG;
+                    R_SPECIALREGISTER:
+                      ot:=OT_REGF;
                     else
                       internalerror(2005090901);
                   end;
@@ -1797,6 +1876,16 @@ implementation
 
                       { determine possible address modes }
                       if (ref^.base<>NR_NO) and
+                        (opcode in [A_LDREX,A_LDREXB,A_LDREXH,A_LDREXD,
+                                    A_STREX,A_STREXB,A_STREXH,A_STREXD]) and
+                        (
+                          (ref^.addressmode=AM_OFFSET) and
+                          (ref^.index=NR_NO) and
+                          (ref^.shiftmode=SM_None) and
+                          (ref^.offset=0)
+                        ) then
+                        ot:=ot or OT_AM6
+                      else if (ref^.base<>NR_NO) and
                         (
                           (
                             (ref^.index=NR_NO) and
@@ -1811,14 +1900,14 @@ implementation
                           (
                             (ref^.index<>NR_NO) and
                             (ref^.shiftmode<>SM_None) and
-                            (ref^.shiftimm<=31) and
+                            (ref^.shiftimm<=32) and
                             (ref^.offset=0)
                           )
                         ) then
                         ot:=ot or OT_AM2;
 
                       if (ref^.index<>NR_NO) and
-                        (oppostfix in [PF_IA,PF_IB,PF_DA,PF_DB,PF_FD,PF_FA,PF_ED,PF_EA]) and
+                        (oppostfix in [PF_None,PF_IA,PF_IB,PF_DA,PF_DB,PF_FD,PF_FA,PF_ED,PF_EA]) and
                         (
                           (ref^.base=NR_NO) and
                           (ref^.shiftmode=SM_None) and
@@ -1867,8 +1956,13 @@ implementation
                 begin
                   ot:=OT_SHIFTEROP;
                 end;
+              top_conditioncode:
+                begin
+                  ot:=OT_CONDITION;
+                end;
               else
-                internalerror(200402261);
+                begin writeln(typ);
+                internalerror(200402261); end;
             end;
           end;
       end;
@@ -1900,7 +1994,6 @@ implementation
         {siz : array[0..3] of longint;}
       begin
         Matches:=100;
-        writeln(getstring,'---');
 
         { Check the opcode and operands }
         if (p^.opcode<>opcode) or (p^.ops<>ops) then
@@ -1942,7 +2035,7 @@ implementation
         { update condition flags
           or floating point single }
       if (oppostfix=PF_S) and
-        not(p^.code[0] in [#$04]) then
+        not(p^.code[0] in [#$04..#$0B,#$14..#$16,#$29,#$30]) then
         begin
           Matches:=0;
           exit;
@@ -1962,7 +2055,9 @@ implementation
           // ldr,str,ldrb,strb
           #$17,
           // stm,ldm
-          #$26
+          #$26,
+          // vldm/vstm
+          #$44
         ]) then
         begin
           Matches:=0;
@@ -2105,6 +2200,7 @@ implementation
            inc(i);
            insentry:=@instab[i];
          end;
+        if (ops=3) and (opcode=a_sub) then writeln(oppostfix,',',oper[2]^.val);
         Message1(asmw_e_invalid_opcode_and_operands,GetString);
         { No instruction found, set insentry to nil and inssize to -1 }
         insentry:=nil;
@@ -2113,1013 +2209,1435 @@ implementation
 
 
     procedure taicpu.gencode(objdata:TObjData);
+      const
+        CondVal : array[TAsmCond] of byte=(
+         $E, $0, $1, $2, $3, $4, $5, $6, $7, $8, $9, $A,
+         $B, $C, $D, $E, 0);
       var
-        bytes : dword;
+        bytes, rd, rm, rn, d, m, n : dword;
+        bytelen : longint;
+        dp_operation : boolean;
         i_field : byte;
+        currsym : TObjSymbol;
+        offset : longint;
+        refoper : poper;
+        msb : longint;
+        r: byte;
 
       procedure setshifterop(op : byte);
+        var
+          r : byte;
+          imm : dword;
         begin
           case oper[op]^.typ of
             top_const:
               begin
                 i_field:=1;
-                bytes:=bytes or dword(oper[op]^.val and $fff);
+                if oper[op]^.val and $ff=oper[op]^.val then
+                  bytes:=bytes or dword(oper[op]^.val)
+                else
+                  begin
+                    { calc rotate and adjust imm }
+                    r:=0;
+                    imm:=dword(oper[op]^.val);
+                    repeat
+                      imm:=RolDWord(imm, 2);
+                      inc(r)
+                    until (imm and $ff)=imm;
+                    bytes:=bytes or (r shl 8) or imm;
+                  end;
               end;
             top_reg:
               begin
                 i_field:=0;
-                bytes:=bytes or (getsupreg(oper[op]^.reg) shl 16);
+                bytes:=bytes or getsupreg(oper[op]^.reg);
 
                 { does a real shifter op follow? }
-                if (op+1<=op) and (oper[op+1]^.typ=top_shifterop) then
-                  begin
-                  end;
+                if (op+1<opercnt) and (oper[op+1]^.typ=top_shifterop) then
+                  with oper[op+1]^.shifterop^ do
+                    begin
+                      bytes:=bytes or (shiftimm shl 7);
+                      if shiftmode<>SM_RRX then
+                        bytes:=bytes or (ord(shiftmode) - ord(SM_LSL)) shl 5
+                      else
+                        bytes:=bytes or (3 shl 5);
+                      if getregtype(rs) <> R_INVALIDREGISTER then
+                        begin
+                          bytes:=bytes or (1 shl 4);
+                          bytes:=bytes or (getsupreg(rs) shl 8);
+                        end
+                    end;
               end;
           else
             internalerror(2005091103);
           end;
         end;
 
+      function MakeRegList(reglist: tcpuregisterset): word;
+        var
+          i, w: word;
+        begin
+          result:=0;
+          w:=1;
+          for i:=RS_R0 to RS_R15 do
+            begin
+              if i in reglist then
+                result:=result or w;
+              w:=w shl 1
+            end;
+        end;
+
+      function getcoproc(reg: tregister): byte;
+        begin
+          if reg=NR_p15 then
+            result:=15
+          else
+            begin
+              Message1(asmw_e_invalid_opcode_and_operands,'Invalid coprocessor port');
+              result:=0;
+            end;
+        end;
+
+      function getcoprocreg(reg: tregister): byte;
+        begin
+          result:=getsupreg(reg)-getsupreg(NR_CR0);
+        end;
+
+      function getmmreg(reg: tregister): byte;
+        begin
+          case reg of
+            NR_D0: result:=0;
+            NR_D1: result:=1;
+            NR_D2: result:=2;
+            NR_D3: result:=3;
+            NR_D4: result:=4;
+            NR_D5: result:=5;
+            NR_D6: result:=6;
+            NR_D7: result:=7;
+            NR_D8: result:=8;
+            NR_D9: result:=9;
+            NR_D10: result:=10;
+            NR_D11: result:=11;
+            NR_D12: result:=12;
+            NR_D13: result:=13;
+            NR_D14: result:=14;
+            NR_D15: result:=15;
+            NR_D16: result:=16;
+            NR_D17: result:=17;
+            NR_D18: result:=18;
+            NR_D19: result:=19;
+            NR_D20: result:=20;
+            NR_D21: result:=21;
+            NR_D22: result:=22;
+            NR_D23: result:=23;
+            NR_D24: result:=24;
+            NR_D25: result:=25;
+            NR_D26: result:=26;
+            NR_D27: result:=27;
+            NR_D28: result:=28;
+            NR_D29: result:=29;
+            NR_D30: result:=30;
+            NR_D31: result:=31;
+
+            NR_S0: result:=0;
+            NR_S1: result:=1;
+            NR_S2: result:=2;
+            NR_S3: result:=3;
+            NR_S4: result:=4;
+            NR_S5: result:=5;
+            NR_S6: result:=6;
+            NR_S7: result:=7;
+            NR_S8: result:=8;
+            NR_S9: result:=9;
+            NR_S10: result:=10;
+            NR_S11: result:=11;
+            NR_S12: result:=12;
+            NR_S13: result:=13;
+            NR_S14: result:=14;
+            NR_S15: result:=15;
+            NR_S16: result:=16;
+            NR_S17: result:=17;
+            NR_S18: result:=18;
+            NR_S19: result:=19;
+            NR_S20: result:=20;
+            NR_S21: result:=21;
+            NR_S22: result:=22;
+            NR_S23: result:=23;
+            NR_S24: result:=24;
+            NR_S25: result:=25;
+            NR_S26: result:=26;
+            NR_S27: result:=27;
+            NR_S28: result:=28;
+            NR_S29: result:=29;
+            NR_S30: result:=30;
+            NR_S31: result:=31;
+          else
+            result:=0;
+          end;
+        end;
+
       begin
         bytes:=$0;
+        bytelen:=4;
         i_field:=0;
         { evaluate and set condition code }
+        bytes:=bytes or (CondVal[condition] shl 28);
 
         { condition code allowed? }
 
         { setup rest of the instruction }
         case insentry^.code[0] of
-          #$08:
+          #$01: // B/BL
             begin
               { set instruction code }
-              bytes:=bytes or (ord(insentry^.code[1]) shl 26);
-              bytes:=bytes or (ord(insentry^.code[2]) shl 21);
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              { set offset }
+              if oper[0]^.typ=top_const then
+                bytes:=bytes or ((oper[0]^.val shr 2) and $ffffff)
+              else
+                begin
+                  currsym:=objdata.symbolref(oper[0]^.ref^.symbol);
+                  if (currsym.bind<>AB_LOCAL) and (currsym.objsection<>objdata.CurrObjSec) then
+                    objdata.writereloc(oper[0]^.ref^.offset,0,currsym,RELOC_RELATIVE_24)
+                  else
+                    bytes:=bytes or (((currsym.offset-insoffset-8) shr 2) and $ffffff);
+                end;
+            end;
+          #$02:
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              { set code }
+              bytes:=bytes or (oper[0]^.val and $FFFFFF);
+            end;
+          #$03:
+            begin // BLX/BX
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
 
+              bytes:=bytes or getsupreg(oper[0]^.reg);
+            end;
+          #$04..#$07: // SUB
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
               { set destination }
               bytes:=bytes or (getsupreg(oper[0]^.reg) shl 12);
-
+              { set Rn }
+              bytes:=bytes or (getsupreg(oper[1]^.reg) shl 16);
               { create shifter op }
-              setshifterop(1);
-
-              { set i field }
+              setshifterop(2);
+              { set I field }
               bytes:=bytes or (i_field shl 25);
-
-              { set s if necessary }
+              { set S if necessary }
               if oppostfix=PF_S then
                 bytes:=bytes or (1 shl 20);
+            end;
+          #$08,#$0A,#$0B: // MOV
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              { set destination }
+              bytes:=bytes or (getsupreg(oper[0]^.reg) shl 12);
+              { create shifter op }
+              setshifterop(1);
+              { set I field }
+              bytes:=bytes or (i_field shl 25);
+              { set S if necessary }
+              if oppostfix=PF_S then
+                bytes:=bytes or (1 shl 20);
+            end;
+          #$0C,#$0E,#$0F: // CMP
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              { set destination }
+              bytes:=bytes or (getsupreg(oper[0]^.reg) shl 16);
+              { create shifter op }
+              setshifterop(1);
+              { set I field }
+              bytes:=bytes or (i_field shl 25);
+              { always set S bit }
+              bytes:=bytes or (1 shl 20);
+            end;
+          #$14: // MUL/MLA r1,r2,r3
+            begin
+              { set instruction code }
+              bytes:=bytes or ord(insentry^.code[1]) shl 24;
+              bytes:=bytes or ord(insentry^.code[2]) shl 16;
+              bytes:=bytes or ord(insentry^.code[3]);
+              { set regs }
+              bytes:=bytes or getsupreg(oper[0]^.reg) shl 16;
+              bytes:=bytes or getsupreg(oper[1]^.reg);
+              bytes:=bytes or getsupreg(oper[2]^.reg) shl 8;
+            end;
+          #$15: // MUL/MLA r1,r2,r3,r4
+            begin
+              { set instruction code }
+              bytes:=bytes or ord(insentry^.code[1]) shl 24;
+              bytes:=bytes or ord(insentry^.code[2]) shl 16;
+              bytes:=bytes or ord(insentry^.code[3]) shl 4;
+              { set regs }
+              bytes:=bytes or getsupreg(oper[0]^.reg) shl 16;
+              bytes:=bytes or getsupreg(oper[1]^.reg);
+              bytes:=bytes or getsupreg(oper[2]^.reg) shl 8;
+              if ops>3 then
+                bytes:=bytes or getsupreg(oper[3]^.reg) shl 12
+              else
+                bytes:=bytes or ($F shl 12);
+
+              if oppostfix in [PF_R,PF_X] then
+                bytes:=bytes or (1 shl 5);
+            end;
+          #$16: // MULL r1,r2,r3,r4
+            begin
+              { set instruction code }
+              bytes:=bytes or ord(insentry^.code[1]) shl 24;
+              bytes:=bytes or ord(insentry^.code[2]) shl 16;
+              bytes:=bytes or ord(insentry^.code[3]) shl 4;
+              { set regs }
+              bytes:=bytes or getsupreg(oper[0]^.reg) shl 12;
+              bytes:=bytes or getsupreg(oper[1]^.reg) shl 16;
+              bytes:=bytes or getsupreg(oper[2]^.reg);
+              if ops=4 then
+                begin
+                  if oper[3]^.typ=top_shifterop then
+                    begin
+                      if opcode in [A_PKHBT,A_PKHTB] then
+                        begin
+                          if ((opcode=A_PKHTB) and
+                              (oper[3]^.shifterop^.shiftmode <> SM_ASR)) or
+                            ((opcode=A_PKHBT) and
+                             (oper[3]^.shifterop^.shiftmode <> SM_LSL)) or
+                            (oper[3]^.shifterop^.rs<>NR_NO) then
+                            Message1(asmw_e_invalid_opcode_and_operands,GetString);
+
+                          bytes:=bytes or ((oper[3]^.shifterop^.shiftimm and $1F) shl 7);
+                        end
+                      else
+                        begin
+                          if (oper[3]^.shifterop^.shiftmode<>sm_ror) or
+                            (oper[3]^.shifterop^.rs<>NR_NO) or
+                            (not (oper[3]^.shifterop^.shiftimm in [0,8,16,24])) then
+                            Message1(asmw_e_invalid_opcode_and_operands,GetString);
+
+                          bytes:=bytes or (((oper[3]^.shifterop^.shiftimm shr 3) and $3) shl 10);
+                        end;
+                    end
+                  else
+                    bytes:=bytes or getsupreg(oper[3]^.reg) shl 8;
+                end;
+
+              if PF_S=oppostfix then
+                bytes:=bytes or (1 shl 20);
+              if PF_X=oppostfix then
+                bytes:=bytes or (1 shl 5);
+            end;
+          #$17: // LDR/STR
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              { set Rn and Rd }
+              bytes:=bytes or getsupreg(oper[0]^.reg) shl 12;
+              bytes:=bytes or getsupreg(oper[1]^.ref^.base) shl 16;
+              if getregtype(oper[1]^.ref^.index)=R_INVALIDREGISTER then
+                begin
+                  { set offset }
+                  offset:=0;
+                  currsym:=objdata.symbolref(oper[1]^.ref^.symbol);
+                  if assigned(currsym) then
+                    offset:=currsym.offset-insoffset-8;
+                  offset:=offset+oper[1]^.ref^.offset;
+                  if offset>=0 then
+                    begin
+                      { set U flag }
+                      bytes:=bytes or (1 shl 23);
+                      bytes:=bytes or offset
+                    end
+                  else
+                    begin
+                      offset:=-offset;
+                      bytes:=bytes or offset
+                    end;
+                end
+              else
+                begin
+                  { set U flag }
+                  if oper[1]^.ref^.signindex>=0 then
+                    bytes:=bytes or (1 shl 23);
+                  { set I flag }
+                  bytes:=bytes or (1 shl 25);
+                  bytes:=bytes or getsupreg(oper[1]^.ref^.index);
+                  { set shift }
+                  with oper[1]^.ref^ do
+                    if shiftmode<>SM_None then
+                      begin
+                        bytes:=bytes or (shiftimm shl 7);
+                        if shiftmode<>SM_RRX then
+                          bytes:=bytes or (ord(shiftmode) - ord(SM_LSL)) shl 5
+                        else
+                          bytes:=bytes or (3 shl 5);
+                      end
+                end;
+              { set W bit }
+              if oper[1]^.ref^.addressmode=AM_PREINDEXED then
+                bytes:=bytes or (1 shl 21);
+              { set P bit if necessary }
+              if oper[1]^.ref^.addressmode<>AM_POSTINDEXED then
+                bytes:=bytes or (1 shl 24);
+            end;
+          #$18: // LDREX/STREX
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+              { set Rn and Rd }
+              bytes:=bytes or getsupreg(oper[0]^.reg) shl 12;
+              if (ops=3) then
+                begin
+                  if opcode<>A_LDREXD then
+                    bytes:=bytes or getsupreg(oper[1]^.reg);
+
+                  bytes:=bytes or (getsupreg(oper[2]^.ref^.base) shl 16);
+                end
+              else if (ops=4) then // STREXD
+                begin
+                  if opcode<>A_LDREXD then
+                    bytes:=bytes or getsupreg(oper[1]^.reg);
+
+                  bytes:=bytes or (getsupreg(oper[3]^.ref^.base) shl 16);
+                end
+              else
+                bytes:=bytes or (getsupreg(oper[1]^.ref^.base) shl 16);
+            end;
+          #$19: // LDRD/STRD
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+              { set Rn and Rd }
+              bytes:=bytes or getsupreg(oper[0]^.reg) shl 12;
+
+              refoper:=oper[1];
+              if ops=3 then
+                refoper:=oper[2];
+
+              bytes:=bytes or getsupreg(refoper^.ref^.base) shl 16;
+              if getregtype(refoper^.ref^.index)=R_INVALIDREGISTER then
+                begin
+                  bytes:=bytes or (1 shl 22);
+                  { set offset }
+                  offset:=0;
+                  currsym:=objdata.symbolref(refoper^.ref^.symbol);
+                  if assigned(currsym) then
+                    offset:=currsym.offset-insoffset-8;
+                  offset:=offset+refoper^.ref^.offset;
+                  if offset>=0 then
+                    begin
+                      { set U flag }
+                      bytes:=bytes or (1 shl 23);
+                      bytes:=bytes or (offset and $F);
+                      bytes:=bytes or ((offset and $F0) shl 4);
+                    end
+                  else
+                    begin
+                      offset:=-offset;
+                      bytes:=bytes or (offset and $F);
+                      bytes:=bytes or ((offset and $F0) shl 4);
+                    end;
+                end
+              else
+                begin
+                  { set U flag }
+                  if refoper^.ref^.signindex>=0 then
+                    bytes:=bytes or (1 shl 23);
+                  bytes:=bytes or getsupreg(refoper^.ref^.index);
+                end;
+              { set W bit }
+              if refoper^.ref^.addressmode=AM_PREINDEXED then
+                bytes:=bytes or (1 shl 21);
+              { set P bit if necessary }
+              if refoper^.ref^.addressmode<>AM_POSTINDEXED then
+                bytes:=bytes or (1 shl 24);
+            end;
+          #$1A: // QADD/QSUB
+            begin
+              { set instruction code }
+              bytes:=bytes or ord(insentry^.code[1]) shl 24;
+              bytes:=bytes or ord(insentry^.code[2]) shl 16;
+              bytes:=bytes or ord(insentry^.code[3]) shl 4;
+              { set regs }
+              bytes:=bytes or getsupreg(oper[0]^.reg) shl 12;
+              bytes:=bytes or getsupreg(oper[1]^.reg) shl 0;
+              bytes:=bytes or getsupreg(oper[2]^.reg) shl 16;
+            end;
+          #$1B:
+            begin
+              { set instruction code }
+              bytes:=bytes or ord(insentry^.code[1]) shl 24;
+              bytes:=bytes or ord(insentry^.code[2]) shl 16;
+              bytes:=bytes or ord(insentry^.code[3]) shl 4;
+              { set regs }
+              bytes:=bytes or getsupreg(oper[0]^.reg) shl 12;
+              bytes:=bytes or getsupreg(oper[1]^.reg);
+              if ops=3 then
+                begin
+                  if (oper[2]^.shifterop^.shiftmode<>sm_ror) or
+                    (oper[2]^.shifterop^.rs<>NR_NO) or
+                    (not (oper[2]^.shifterop^.shiftimm in [0,8,16,24])) then
+                    Message1(asmw_e_invalid_opcode_and_operands,GetString);
+
+                  bytes:=bytes or (((oper[2]^.shifterop^.shiftimm shr 3) and $3) shl 10);
+                end;
+            end;
+          #$1C: // MCR/MRC
+            begin
+              { set instruction code }
+              bytes:=bytes or ord(insentry^.code[1]) shl 24;
+              bytes:=bytes or ord(insentry^.code[2]) shl 16;
+              bytes:=bytes or ord(insentry^.code[3]) shl 4;
+              { set regs and operands }
+              bytes:=bytes or getcoproc(oper[0]^.reg) shl 8;
+              bytes:=bytes or ((oper[1]^.val and $7) shl 21);
+              bytes:=bytes or getsupreg(oper[2]^.reg) shl 12;
+              bytes:=bytes or getcoprocreg(oper[3]^.reg) shl 16;
+              bytes:=bytes or getcoprocreg(oper[4]^.reg);
+              if ops > 5 then
+                bytes:=bytes or ((oper[5]^.val and $7) shl 5);
+            end;
+          #$1D: // MCRR/MRRC
+            begin
+              { set instruction code }
+              bytes:=bytes or ord(insentry^.code[1]) shl 24;
+              bytes:=bytes or ord(insentry^.code[2]) shl 16;
+              bytes:=bytes or ord(insentry^.code[3]) shl 4;
+              { set regs and operands }
+              bytes:=bytes or getcoproc(oper[0]^.reg) shl 8;
+              bytes:=bytes or ((oper[1]^.val and $7) shl 4);
+              bytes:=bytes or getsupreg(oper[2]^.reg) shl 12;
+              bytes:=bytes or getsupreg(oper[3]^.reg) shl 16;
+              bytes:=bytes or getcoprocreg(oper[4]^.reg);
+            end;
+          #$22: // LDRH/STRH
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 16);
+              bytes:=bytes or ord(insentry^.code[2]);
+              { src/dest register (Rd) }
+              bytes:=bytes or getsupreg(oper[0]^.reg) shl 12;
+              { base register (Rn) }
+              bytes:=bytes or getsupreg(oper[1]^.ref^.base) shl 16;
+              if getregtype(oper[1]^.ref^.index)=R_INVALIDREGISTER then
+                begin
+                  bytes:=bytes or (1 shl 22); // with immediate offset
+                  if oper[1]^.ref^.offset < 0 then
+                    begin
+                      bytes:=bytes or ((-oper[1]^.ref^.offset) and $f0 shl 4);
+                      bytes:=bytes or ((-oper[1]^.ref^.offset) and $f);
+                    end
+                  else
+                    begin
+                      { set U bit }
+                      bytes:=bytes or (1 shl 23);
+                      bytes:=bytes or (oper[1]^.ref^.offset and $f0 shl 4);
+                      bytes:=bytes or (oper[1]^.ref^.offset and $f);
+                    end;
+                end
+              else
+                begin
+                  { set U flag }
+                  bytes:=bytes or (1 shl 23);
+                  bytes:=bytes or getsupreg(oper[1]^.ref^.index);
+                end;
+              { set P bit if necessary }
+              if oper[1]^.ref^.addressmode<>AM_POSTINDEXED then
+                bytes:=bytes or (1 shl 24);
+            end;
+          #$25: // PLD/PLI
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+              { set Rn and Rd }
+              bytes:=bytes or getsupreg(oper[0]^.ref^.base) shl 16;
+              if getregtype(oper[0]^.ref^.index)=R_INVALIDREGISTER then
+                begin
+                  { set offset }
+                  offset:=0;
+                  currsym:=objdata.symbolref(oper[0]^.ref^.symbol);
+                  if assigned(currsym) then
+                    offset:=currsym.offset-insoffset-8;
+                  offset:=offset+oper[0]^.ref^.offset;
+                  if offset>=0 then
+                    begin
+                      { set U flag }
+                      bytes:=bytes or (1 shl 23);
+                      bytes:=bytes or offset
+                    end
+                  else
+                    begin
+                      offset:=-offset;
+                      bytes:=bytes or offset
+                    end;
+                end
+              else
+                begin
+                  { set U flag }
+                  if oper[0]^.ref^.signindex>=0 then
+                    bytes:=bytes or (1 shl 23);
+                  bytes:=bytes or getsupreg(oper[0]^.ref^.index);
+                  { set shift }
+                  with oper[0]^.ref^ do
+                    if shiftmode<>SM_None then
+                      begin
+                        bytes:=bytes or (shiftimm shl 7);
+                        if shiftmode<>SM_RRX then
+                          bytes:=bytes or (ord(shiftmode) - ord(SM_LSL)) shl 5
+                        else
+                          bytes:=bytes or (3 shl 5);
+                      end
+                end;
+            end;
+          #$26: // LDM/STM
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 20);
+
+              if ops>1 then
+                begin
+                  if oper[0]^.typ=top_ref then
+                    begin
+                      { set W bit }
+                      if oper[0]^.ref^.addressmode=AM_PREINDEXED then
+                        bytes:=bytes or (1 shl 21);
+                      { set Rn }
+                      bytes:=bytes or (getsupreg(oper[0]^.ref^.index) shl 16);
+                    end
+                  else { typ=top_reg }
+                    begin
+                      { set Rn }
+                      bytes:=bytes or (getsupreg(oper[0]^.reg) shl 16);
+                    end;
+                  { reglist }
+                  bytes:=bytes or MakeRegList(oper[1]^.regset^);
+                end
+              else
+                begin
+                  { push/pop }
+                  { Set W and Rn to SP }
+                  if opcode=A_PUSH then
+                    bytes:=bytes or (1 shl 21);
+                  bytes:=bytes or ($D shl 16);
+                  { reglist }
+                  bytes:=bytes or MakeRegList(oper[0]^.regset^);
+                end;
+              { set P bit }
+              if (opcode=A_LDM) and (oppostfix in [PF_ED,PF_EA,PF_IB,PF_DB])
+              or (opcode=A_STM) and (oppostfix in [PF_FA,PF_FD,PF_IB,PF_DB])
+              or (opcode=A_PUSH) then
+                bytes:=bytes or (1 shl 24);
+              { set U bit }
+              if (opcode=A_LDM) and (oppostfix in [PF_None,PF_ED,PF_FD,PF_IB,PF_IA])
+              or (opcode=A_STM) and (oppostfix in [PF_None,PF_FA,PF_EA,PF_IB,PF_IA])
+              or (opcode=A_POP) then
+                bytes:=bytes or (1 shl 23);
+            end;
+          #$27: // SWP/SWPB
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 20);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 4);
+              { set regs }
+              bytes:=bytes or (getsupreg(oper[0]^.reg) shl 12);
+              bytes:=bytes or getsupreg(oper[1]^.reg);
+              if ops=3 then
+                bytes:=bytes or (getsupreg(oper[2]^.ref^.base) shl 16);
+            end;
+          #$28: // BX/BLX
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              { set offset }
+              if oper[0]^.typ=top_const then
+                bytes:=bytes or ((oper[0]^.val shr 2) and $ffffff)
+              else
+                begin
+                  currsym:=objdata.symbolref(oper[0]^.ref^.symbol);
+                  if (currsym.bind<>AB_LOCAL) and (currsym.objsection<>objdata.CurrObjSec) then
+                    begin
+                      bytes:=bytes or $fffffe; // TODO: Not sure this is right, but it matches the output of gas
+                      objdata.writereloc(oper[0]^.ref^.offset,0,currsym,RELOC_RELATIVE_24_THUMB);
+                    end
+                  else
+                    begin
+                      offset:=(((currsym.offset-insoffset-8) shr 2) and $ffffff);
+                      bytes:=bytes or ((offset shr 2) and $ffffff);
+                      bytes:=bytes or ((offset shr 1) and $1) shl 24;
+                    end;
+                end;
+            end;
+          #$29: // SUB
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              { set regs }
+              bytes:=bytes or (getsupreg(oper[0]^.reg) shl 12);
+              { set S if necessary }
+              if oppostfix=PF_S then
+                bytes:=bytes or (1 shl 20);
+            end;
+          #$2A:
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+              { set opers }
+              bytes:=bytes or (getsupreg(oper[0]^.reg) shl 12);
+              bytes:=bytes or ((oper[1]^.val and $1F) shl 16);
+              bytes:=bytes or getsupreg(oper[2]^.reg);
+
+              if (ops>3) and
+                (oper[3]^.typ=top_shifterop) and
+                (oper[3]^.shifterop^.rs=NR_NO) then
+                begin
+                  bytes:=bytes or ((oper[3]^.shifterop^.shiftimm and $1F) shl 7);
+                  if oper[3]^.shifterop^.shiftmode=SM_ASR then
+                    bytes:=bytes or (1 shl 6)
+                  else if oper[3]^.shifterop^.shiftmode<>SM_LSL then
+                    Message1(asmw_e_invalid_opcode_and_operands,GetString);
+                end;
+            end;
+          #$2B: // SETEND
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+              { set endian specifier }
+              bytes:=bytes or ((oper[0]^.val and 1) shl 9);
+            end;
+          #$2C: // MOVW
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              { set destination }
+              bytes:=bytes or (getsupreg(oper[0]^.reg) shl 12);
+              { set imm }
+              bytes:=bytes or (oper[1]^.val and $FFF);
+              bytes:=bytes or ((oper[1]^.val and $F000) shl 4);
+            end;
+          #$2D: // BFX
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+
+              if ops=3 then
+                begin
+                  msb:=(oper[1]^.val+oper[2]^.val-1);
+
+                  { set destination }
+                  bytes:=bytes or (getsupreg(oper[0]^.reg) shl 12);
+                  { set immediates }
+                  bytes:=bytes or ((oper[1]^.val and $1F) shl 7);
+                  bytes:=bytes or ((msb and $1F) shl 16);
+                end
+              else
+                begin
+                  if opcode in [A_BFC,A_BFI] then
+                    msb:=(oper[2]^.val+oper[3]^.val-1)
+                  else
+                    msb:=oper[3]^.val-1;
+
+                  { set destination }
+                  bytes:=bytes or (getsupreg(oper[0]^.reg) shl 12);
+                  bytes:=bytes or getsupreg(oper[1]^.reg);
+                  { set immediates }
+                  bytes:=bytes or ((oper[2]^.val and $1F) shl 7);
+                  bytes:=bytes or ((msb and $1F) shl 16);
+                end;
+            end;
+          #$2E: // Cache stuff
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+              { set code }
+              bytes:=bytes or (oper[0]^.val and $F);
+            end;
+          #$2F: // Nop
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+            end;
+          #$30: // Shifts
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+              { set destination }
+              bytes:=bytes or (getsupreg(oper[0]^.reg) shl 12);
+              bytes:=bytes or getsupreg(oper[1]^.reg);
+              if ops>2 then
+                begin
+                  { set shift }
+                  if oper[2]^.typ=top_reg then
+                    bytes:=bytes or (getsupreg(oper[2]^.reg) shl 8)
+                  else
+                    bytes:=bytes or ((oper[2]^.val and $1F) shl 7);
+                end;
+              { set S if necessary }
+              if oppostfix=PF_S then
+                bytes:=bytes or (1 shl 20);
+            end;
+          #$31: // BKPT
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 0);
+              { set imm }
+              bytes:=bytes or (oper[0]^.val and $FFF0) shl 4;
+              bytes:=bytes or (oper[0]^.val and $F);
+            end;
+          #$32: // CLZ/REV
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+              { set regs }
+              bytes:=bytes or (getsupreg(oper[0]^.reg) shl 12);
+              bytes:=bytes or getsupreg(oper[1]^.reg);
+            end;
+          #$33:
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              { set regs }
+              bytes:=bytes or (getsupreg(oper[0]^.reg) shl 12);
+
+              if oper[1]^.typ=top_ref then
+                begin
+                  { set offset }
+                  offset:=0;
+                  currsym:=objdata.symbolref(oper[1]^.ref^.symbol);
+                  if assigned(currsym) then
+                    offset:=currsym.offset-insoffset-8;
+                  offset:=offset+oper[1]^.ref^.offset;
+                  if offset>=0 then
+                    begin
+                      { set U flag }
+                      bytes:=bytes or (1 shl 23);
+                      bytes:=bytes or offset
+                    end
+                  else
+                    begin
+                      bytes:=bytes or (1 shl 22);
+                      offset:=-offset;
+                      bytes:=bytes or offset
+                    end;
+                end
+              else
+                begin
+                  if is_shifter_const(oper[1]^.val,r) then
+                    begin
+                      setshifterop(1);
+                      bytes:=bytes or (1 shl 23);
+                    end
+                  else
+                    begin
+                      bytes:=bytes or (1 shl 22);
+                      oper[1]^.val:=-oper[1]^.val;
+                      setshifterop(1);
+                    end;
+                end;
+            end;
+          #$40: // VMOV
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+
+              { set regs }
+              case oppostfix of
+                PF_None:
+                  begin
+                    if ops=4 then
+                      begin
+                        if (getregtype(oper[0]^.reg)=R_MMREGISTER) and
+                           (getregtype(oper[2]^.reg)=R_INTREGISTER) then
+                          begin
+                            Rd:=getmmreg(oper[0]^.reg);
+                            Rm:=getsupreg(oper[2]^.reg);
+                            Rn:=getsupreg(oper[3]^.reg);
+                          end
+                        else if (getregtype(oper[0]^.reg)=R_INTREGISTER) and
+                                (getregtype(oper[2]^.reg)=R_MMREGISTER) then
+                          begin
+                            Rm:=getsupreg(oper[0]^.reg);
+                            Rn:=getsupreg(oper[1]^.reg);
+                            Rd:=getmmreg(oper[2]^.reg);
+                          end
+                        else
+                          message(asmw_e_invalid_opcode_and_operands);
+
+                        bytes:=bytes or (((Rd and $1E) shr 1) shl 0);
+                        bytes:=bytes or ((Rd and $1) shl 5);
+
+                        bytes:=bytes or (Rm shl 12);
+                        bytes:=bytes or (Rn shl 16);
+                      end
+                    else if ops=3 then
+                      begin
+                        if (getregtype(oper[0]^.reg)=R_MMREGISTER) and
+                           (getregtype(oper[1]^.reg)=R_INTREGISTER) then
+                          begin
+                            Rd:=getmmreg(oper[0]^.reg);
+                            Rm:=getsupreg(oper[1]^.reg);
+                            Rn:=getsupreg(oper[2]^.reg);
+                          end
+                        else if (getregtype(oper[0]^.reg)=R_INTREGISTER) and
+                                (getregtype(oper[2]^.reg)=R_MMREGISTER) then
+                          begin
+                            Rm:=getsupreg(oper[0]^.reg);
+                            Rn:=getsupreg(oper[1]^.reg);
+                            Rd:=getmmreg(oper[2]^.reg);
+                          end
+                        else
+                          message(asmw_e_invalid_opcode_and_operands);
+
+                        bytes:=bytes or ((Rd and $F) shl 0);
+                        bytes:=bytes or ((Rd and $10) shl 1);
+
+                        bytes:=bytes or (Rm shl 12);
+                        bytes:=bytes or (Rn shl 16);
+                      end
+                    else if ops=2 then
+                      begin
+                        if (getregtype(oper[0]^.reg)=R_MMREGISTER) and
+                           (getregtype(oper[1]^.reg)=R_INTREGISTER) then
+                          begin
+                            Rd:=getmmreg(oper[0]^.reg);
+                            Rm:=getsupreg(oper[1]^.reg);
+                          end
+                        else if (getregtype(oper[0]^.reg)=R_INTREGISTER) and
+                                (getregtype(oper[1]^.reg)=R_MMREGISTER) then
+                          begin
+                            Rm:=getsupreg(oper[0]^.reg);
+                            Rd:=getmmreg(oper[1]^.reg);
+                          end
+                        else
+                          message(asmw_e_invalid_opcode_and_operands);
+
+                        bytes:=bytes or (((Rd and $1E) shr 1) shl 16);
+                        bytes:=bytes or ((Rd and $1) shl 7);
+
+                        bytes:=bytes or (Rm shl 12);
+                      end;
+                  end;
+                PF_F32:
+                  begin
+                    if (getregtype(oper[0]^.reg)<>R_MMREGISTER) or
+                       (getregtype(oper[1]^.reg)<>R_MMREGISTER) then
+                      Message(asmw_e_invalid_opcode_and_operands);
+
+                    Rd:=getmmreg(oper[0]^.reg);
+                    Rm:=getmmreg(oper[1]^.reg);
+
+                    bytes:=bytes or (((Rd and $1E) shr 1) shl 12);
+                    bytes:=bytes or ((Rd and $1) shl 22);
+
+                    bytes:=bytes or (((Rm and $1E) shr 1) shl 0);
+                    bytes:=bytes or ((Rm and $1) shl 5);
+                  end;
+                PF_F64:
+                  begin
+                    if (getregtype(oper[0]^.reg)<>R_MMREGISTER) or
+                       (getregtype(oper[1]^.reg)<>R_MMREGISTER) then
+                      Message(asmw_e_invalid_opcode_and_operands);
+
+                    Rd:=getmmreg(oper[0]^.reg);
+                    Rm:=getmmreg(oper[1]^.reg);
+
+                    bytes:=bytes or ((Rd and $F) shl 12);
+                    bytes:=bytes or (((Rd and $10) shr 4) shl 22);
+
+                    bytes:=bytes or (Rm and $F);
+                    bytes:=bytes or ((Rm and $10) shl 1);
+                  end;
+              end;
+            end;
+          #$41: // VMRS/VMSR
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+              { set regs }
+              if opcode=A_VMRS then
+                begin
+                  case oper[1]^.reg of
+                    NR_FPSID: Rn:=$0;
+                    NR_FPSCR: Rn:=$1;
+                    NR_MVFR1: Rn:=$6;
+                    NR_MVFR0: Rn:=$7;
+                    NR_FPEXC: Rn:=$8;
+                  else
+                    message(asmw_e_invalid_opcode_and_operands);
+                  end;
+
+                  bytes:=bytes or (Rn shl 16);
+
+                  if oper[0]^.reg=NR_APSR_nzcv then
+                    bytes:=bytes or ($F shl 12)
+                  else
+                    bytes:=bytes or (getsupreg(oper[0]^.reg) shl 12);
+                end
+              else
+                begin
+                  case oper[0]^.reg of
+                    NR_FPSID: Rn:=$0;
+                    NR_FPSCR: Rn:=$1;
+                    NR_FPEXC: Rn:=$8;
+                  else
+                    message(asmw_e_invalid_opcode_and_operands);
+                  end;
+
+                  bytes:=bytes or (Rn shl 16);
+
+                  bytes:=bytes or (getsupreg(oper[1]^.reg) shl 12);
+                end;
+            end;
+          #$42: // VMUL
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+              { set regs }
+              if ops=3 then
+                begin
+                  Rd:=getmmreg(oper[0]^.reg);
+                  Rn:=getmmreg(oper[1]^.reg);
+                  Rm:=getmmreg(oper[2]^.reg);
+                end
+              else if oper[1]^.typ=top_const then
+                begin
+                  Rd:=getmmreg(oper[0]^.reg);
+                  Rn:=0;
+                  Rm:=0;
+                end
+              else
+                begin
+                  Rd:=getmmreg(oper[0]^.reg);
+                  Rn:=0;
+                  Rm:=getmmreg(oper[1]^.reg);
+                end;
+
+              if oppostfix=PF_F32 then
+                begin
+                  D:=rd and $1; Rd:=Rd shr 1;
+                  N:=rn and $1; Rn:=Rn shr 1;
+                  M:=rm and $1; Rm:=Rm shr 1;
+                end
+              else
+                begin
+                  D:=(rd shr 4) and $1; Rd:=Rd and $F;
+                  N:=(rn shr 4) and $1; Rn:=Rn and $F;
+                  M:=(rm shr 4) and $1; Rm:=Rm and $F;
+
+                  bytes:=bytes or (1 shl 8);
+                end;
+
+              bytes:=bytes or (Rd shl 12);
+              bytes:=bytes or (Rn shl 16);
+              bytes:=bytes or (Rm shl 0);
+
+              bytes:=bytes or (D shl 22);
+              bytes:=bytes or (N shl 7);
+              bytes:=bytes or (M shl 5);
+            end;
+          #$43: // VCVT
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+              { set regs }
+              Rd:=getmmreg(oper[0]^.reg);
+              Rm:=getmmreg(oper[1]^.reg);
+
+              if (ops=2) and
+                 (oppostfix in [PF_F32F64,PF_F64F32]) then
+                begin
+                  if oppostfix=PF_F32F64 then
+                    begin
+                      bytes:=bytes or (1 shl 8);
+
+                      D:=rd and $1; Rd:=Rd shr 1;
+                      M:=(rm shr 4) and $1; Rm:=Rm and $F;
+                    end
+                  else
+                    begin
+                      D:=(rd shr 4) and $1; Rd:=Rd and $F;
+                      M:=rm and $1; Rm:=Rm shr 1;
+                    end;
+
+                  bytes:=bytes and $FFF0FFFF;
+                  bytes:=bytes or ($7 shl 16);
+
+                  bytes:=bytes or (Rd shl 12);
+                  bytes:=bytes or (Rm shl 0);
+
+                  bytes:=bytes or (D shl 22);
+                  bytes:=bytes or (M shl 5);
+                end
+              else if ops=2 then
+                begin
+                  case oppostfix of
+                    PF_S32F64,
+                    PF_U32F64,
+                    PF_F64S32,
+                    PF_F64U32:
+                      bytes:=bytes or (1 shl 8);
+                  end;
+
+                  if oppostfix in [PF_S32F32,PF_S32F64,PF_U32F32,PF_U32F64] then
+                    begin
+                      case oppostfix of
+                        PF_S32F64,
+                        PF_S32F32:
+                          bytes:=bytes or (1 shl 16);
+                      end;
+
+                      bytes:=bytes or (1 shl 18);
+
+                      D:=rd and $1; Rd:=Rd shr 1;
+
+                      if oppostfix in [PF_S32F64,PF_U32F64] then
+                        begin
+                          M:=(rm shr 4) and $1; Rm:=Rm and $F;
+                        end
+                      else
+                        begin
+                          M:=rm and $1; Rm:=Rm shr 1;
+                        end;
+                    end
+                  else
+                    begin
+                      case oppostfix of
+                        PF_F64S32,
+                        PF_F32S32:
+                          bytes:=bytes or (1 shl 7);
+                        else
+                          bytes:=bytes and $FFFFFF7F;
+                      end;
+
+                      M:=rm and $1; Rm:=Rm shr 1;
+
+                      if oppostfix in [PF_F64S32,PF_F64U32] then
+                        begin
+                          D:=(rd shr 4) and $1; Rd:=Rd and $F;
+                        end
+                      else
+                        begin
+                          D:=rd and $1; Rd:=Rd shr 1;
+                        end
+                    end;
+
+                  bytes:=bytes or (Rd shl 12);
+                  bytes:=bytes or (Rm shl 0);
+
+                  bytes:=bytes or (D shl 22);
+                  bytes:=bytes or (M shl 5);
+                end
+              else
+                begin
+                  if rd<>rm then
+                    message(asmw_e_invalid_opcode_and_operands);
+
+                  case oppostfix of
+                    PF_S32F32,PF_U32F32,
+                    PF_F32S32,PF_F32U32,
+                    PF_S32F64,PF_U32F64,
+                    PF_F64S32,PF_F64U32:
+                      begin
+                        if not (oper[2]^.val in [1..32]) then
+                          message1(asmw_e_invalid_opcode_and_operands, 'fbits not within 1-32');
+
+                        bytes:=bytes or (1 shl 7);
+                        rn:=32;
+                      end;
+                    PF_S16F64,PF_U16F64,
+                    PF_F64S16,PF_F64U16,
+                    PF_S16F32,PF_U16F32,
+                    PF_F32S16,PF_F32U16:
+                      begin
+                        if not (oper[2]^.val in [0..16]) then
+                          message1(asmw_e_invalid_opcode_and_operands, 'fbits not within 0-16');
+
+                        rn:=16;
+                      end;
+                  else
+                    message(asmw_e_invalid_opcode_and_operands);
+                  end;
+
+                  case oppostfix of
+                    PF_S16F64,PF_U16F64,
+                    PF_S32F64,PF_U32F64,
+                    PF_F64S16,PF_F64U16,
+                    PF_F64S32,PF_F64U32:
+                      begin
+                        bytes:=bytes or (1 shl 8);
+                        D:=(rd shr 4) and $1; Rd:=Rd and $F;
+                      end;
+                  else
+                    begin
+                      D:=rd and $1; Rd:=Rd shr 1;
+                    end;
+                  end;
+
+                  case oppostfix of
+                    PF_U16F64,PF_U16F32,
+                    PF_U32F32,PF_U32F64,
+                    PF_F64U16,PF_F32U16,
+                    PF_F32U32,PF_F64U32:
+                      bytes:=bytes or (1 shl 16);
+                  end;
+
+                  if oppostfix in [PF_S32F32,PF_S32F64,PF_U32F32,PF_U32F64,PF_S16F32,PF_S16F64,PF_U16F32,PF_U16F64] then
+                    bytes:=bytes or (1 shl 18);
+
+                  bytes:=bytes or (Rd shl 12);
+                  bytes:=bytes or (D shl 22);
+
+                  rn:=rn-oper[2]^.val;
+
+                  bytes:=bytes or ((rn and $1) shl 5);
+                  bytes:=bytes or ((rn and $1E) shr 1);
+                end;
+            end;
+          #$44: // VLDM/VSTM/VPUSH/VPOP
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              { set regs }
+              if ops=2 then
+                begin
+                  if oper[0]^.typ=top_ref then
+                    begin
+                      Rn:=getsupreg(oper[0]^.ref^.base);
+
+                      if oper[0]^.ref^.addressmode<>AM_OFFSET then
+                        begin
+                          { set W }
+                          bytes:=bytes or (1 shl 21);
+                        end
+                      else if oppostfix = PF_DB then
+                        message1(asmw_e_invalid_opcode_and_operands, 'Invalid postfix without writeback');
+                    end
+                  else
+                    begin
+                      Rn:=getsupreg(oper[0]^.reg);
+
+                      if oppostfix = PF_DB then
+                        message1(asmw_e_invalid_opcode_and_operands, 'Invalid postfix without writeback');
+                    end;
+
+                  bytes:=bytes or (Rn shl 16);
+
+                  { Set PU bits }
+                  case oppostfix of
+                    PF_None,
+                    PF_IA:
+                      bytes:=bytes or (1 shl 23);
+                    PF_DB:
+                      bytes:=bytes or (2 shl 23);
+                  end;
+
+                  dp_operation:=(oper[1]^.subreg=R_SUBFD);
+                  if oper[1]^.regset^=[] then
+                    message1(asmw_e_invalid_opcode_and_operands, 'Regset cannot be empty');
+
+                  for r:=0 to 31 do
+                    if r in oper[1]^.regset^ then
+                      begin
+                        rd:=r;
+                        break;
+                      end;
+
+                  rn:=32-rd;
+                  for r:=rd+1 to 31 do
+                    if not(r in oper[1]^.regset^) then
+                      begin
+                        rn:=r-rd;
+                        break;
+                      end;
+
+                  if dp_operation then
+                    begin
+                      bytes:=bytes or (1 shl 8);
+
+                      bytes:=bytes or (rn*2);
+
+                      bytes:=bytes or ((rd and $F) shl 12);
+                      bytes:=bytes or (((rd and $10) shr 4) shl 22);
+                    end
+                  else
+                    begin
+                      bytes:=bytes or rn;
+
+                      bytes:=bytes or ((rd and $1) shl 22);
+                      bytes:=bytes or (((rd and $1E) shr 1) shl 12);
+                    end;
+                end
+              else { VPUSH/VPOP }
+                begin
+                  dp_operation:=(oper[0]^.subreg=R_SUBFD);
+                  if oper[0]^.regset^=[] then
+                    message1(asmw_e_invalid_opcode_and_operands, 'Regset cannot be empty');
+
+                  for r:=0 to 31 do
+                    if r in oper[0]^.regset^ then
+                      begin
+                        rd:=r;
+                        break;
+                      end;
+
+                  rn:=32-rd;
+                  for r:=rd+1 to 31 do
+                    if not(r in oper[0]^.regset^) then
+                      begin
+                        rn:=r-rd;
+                        break;
+                      end;
+
+                  if dp_operation then
+                    begin
+                      bytes:=bytes or (1 shl 8);
+
+                      bytes:=bytes or (rn*2);
+
+                      bytes:=bytes or ((rd and $F) shl 12);
+                      bytes:=bytes or (((rd and $10) shr 4) shl 22);
+                    end
+                  else
+                    begin
+                      bytes:=bytes or rn;
+
+                      bytes:=bytes or ((rd and $1) shl 22);
+                      bytes:=bytes or (((rd and $1E) shr 1) shl 12);
+                    end;
+                end;
+            end;
+          #$45: // VLDR/VSTR
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              { set regs }
+              rd:=getmmreg(oper[0]^.reg);
+
+              if getsubreg(oper[0]^.reg)=R_SUBFD then
+                begin
+                  bytes:=bytes or (1 shl 8);
+
+                  bytes:=bytes or ((rd and $F) shl 12);
+                  bytes:=bytes or (((rd and $10) shr 4) shl 22);
+                end
+              else
+                begin
+                  bytes:=bytes or (((rd and $1E) shr 1) shl 12);
+                  bytes:=bytes or ((rd and $1) shl 22);
+                end;
+
+              { set ref }
+              bytes:=bytes or getsupreg(oper[1]^.ref^.base) shl 16;
+              if getregtype(oper[1]^.ref^.index)=R_INVALIDREGISTER then
+                begin
+                  { set offset }
+                  offset:=0;
+                  currsym:=objdata.symbolref(oper[1]^.ref^.symbol);
+                  if assigned(currsym) then
+                    offset:=currsym.offset-insoffset-8;
+                  offset:=offset+oper[1]^.ref^.offset;
+
+                  offset:=offset div 4;
+
+                  if offset>=0 then
+                    begin
+                      { set U flag }
+                      bytes:=bytes or (1 shl 23);
+                      bytes:=bytes or offset
+                    end
+                  else
+                    begin
+                      offset:=-offset;
+                      bytes:=bytes or offset
+                    end;
+                end
+              else
+                message(asmw_e_invalid_opcode_and_operands);
+            end;
+          #$fe: // No written data
+            begin
+              exit;
             end;
           #$ff:
             internalerror(2005091101);
           else
-            internalerror(2005091102);
+            begin
+              writeln(ord(insentry^.code[0]), ' - ', opcode);
+              internalerror(2005091102);
+            end;
         end;
         { we're finished, write code }
-        objdata.writebytes(bytes,sizeof(bytes));
+        objdata.writebytes(bytes,bytelen);
       end;
 
 
-{$ifdef dummy}
-(*
-static void gencode (long segment, long offset, int bits,
-                     insn *ins, char *codes, long insn_end)
-{
-    int has_S_code;             /* S - setflag */
-    int has_B_code;             /* B - setflag */
-    int has_T_code;             /* T - setflag */
-    int has_W_code;             /* ! => W flag */
-    int has_F_code;             /* ^ => S flag */
-    int keep;
-    unsigned char c;
-    unsigned char bytes[4];
-    long          data, size;
-    static int cc_code[] =      /* bit pattern of cc */
-  {                             /* order as enum in  */
-    0x0E, 0x03, 0x02, 0x00,     /* nasm.h            */
-    0x0A, 0x0C, 0x08, 0x0D,
-    0x09, 0x0B, 0x04, 0x01,
-    0x05, 0x07, 0x06,
-  };
-
-
-#ifdef DEBUG
-static char *CC[] =
-  {                                    /* condition code names */
-    "AL", "CC", "CS", "EQ",
-    "GE", "GT", "HI", "LE",
-    "LS", "LT", "MI", "NE",
-    "PL", "VC", "VS", "",
-    "S"
-};
-
-
-    has_S_code = (ins->condition & C_SSETFLAG);
-    has_B_code = (ins->condition & C_BSETFLAG);
-    has_T_code = (ins->condition & C_TSETFLAG);
-    has_W_code = (ins->condition & C_EXSETFLAG);
-    has_F_code = (ins->condition & C_FSETFLAG);
-    ins->condition = (ins->condition & 0x0F);
-
-
-    if (rt_debug)
-      {
-    printf ("gencode: instruction: %s%s", insn_names[ins->opcode],
-            CC[ins->condition & 0x0F]);
-    if (has_S_code)
-      printf ("S");
-    if (has_B_code)
-      printf ("B");
-    if (has_T_code)
-      printf ("T");
-    if (has_W_code)
-      printf ("!");
-    if (has_F_code)
-      printf ("^");
-
-    printf ("\n");
-
-    c = *codes;
-
-    printf ("   (%d)  decode - '0x%02X'\n", ins->operands, c);
-
-
-    bytes[0] = 0xB;
-    bytes[1] = 0xE;
-    bytes[2] = 0xE;
-    bytes[3] = 0xF;
-      }
-
-    // First condition code in upper nibble
-    if (ins->condition < C_NONE)
-      {
-        c = cc_code[ins->condition] << 4;
-      }
-    else
-      {
-        c = cc_code[C_AL] << 4; // is often ALWAYS but not always
-      }
-
-
-    switch (keep = *codes)
-      {
-        case 1:
-          // B, BL
-          ++codes;
-          c |= *codes++;
-          bytes[0] = c;
-
-          if (ins->oprs[0].segment != segment)
-            {
-              // fais une relocation
-              c = 1;
-              data = 0; // Let the linker locate ??
-            }
-          else
-            {
-              c = 0;
-              data = ins->oprs[0].offset - (offset + 8);
-
-              if (data % 4)
-                {
-                  errfunc (ERR_NONFATAL, "offset not aligned on 4 bytes");
-                }
-            }
-
-          if (data >= 0x1000)
-            {
-              errfunc (ERR_NONFATAL, "too long offset");
-            }
-
-          data = data >> 2;
-          bytes[1] = (data >> 16) & 0xFF;
-          bytes[2] = (data >> 8)  & 0xFF;
-          bytes[3] = (data )      & 0xFF;
-
-          if (c == 1)
-            {
-//            out (offset, segment, &bytes[0], OUT_RAWDATA+1, NO_SEG, NO_SEG);
-              out (offset, segment, &bytes[0], OUT_REL3ADR+4, ins->oprs[0].segment, NO_SEG);
-            }
-          else
-            {
-              out (offset, segment, &bytes[0], OUT_RAWDATA+4, NO_SEG, NO_SEG);
-            }
-          return;
-
-        case 2:
-          // SWI
-          ++codes;
-          c |= *codes++;
-          bytes[0] = c;
-          data = ins->oprs[0].offset;
-          bytes[1] = (data >> 16) & 0xFF;
-          bytes[2] = (data >> 8) & 0xFF;
-          bytes[3] = (data) & 0xFF;
-          out (offset, segment, &bytes, OUT_RAWDATA+4, NO_SEG, NO_SEG);
-          return;
-        case 3:
-          // BX
-          ++codes;
-          c |= *codes++;
-          bytes[0] = c;
-          bytes[1] = *codes++;
-          bytes[2] = *codes++;
-          bytes[3] = *codes++;
-          c = regval (&ins->oprs[0],1);
-          if (c == 15)  // PC
-            {
-              errfunc (ERR_WARNING, "'BX' with R15 has undefined behaviour");
-            }
-          else if (c > 15)
-            {
-              errfunc (ERR_NONFATAL, "Illegal register specified for 'BX'");
-            }
-
-          bytes[3] |= (c & 0x0F);
-          out (offset, segment, bytes, OUT_RAWDATA+4, NO_SEG, NO_SEG);
-          return;
-
-        case 4:         // AND Rd,Rn,Rm
-        case 5:         // AND Rd,Rn,Rm,<shift>Rs
-        case 6:         // AND Rd,Rn,Rm,<shift>imm
-        case 7:         // AND Rd,Rn,<shift>imm
-          ++codes;
-#ifdef DEBUG
-          if (rt_debug)
-            {
-              printf ("         decode - '0x%02X'\n", keep);
-              printf ("           code - '0x%02X'\n", (unsigned char) ( *codes));
-            }
-#endif
-          bytes[0] = c | *codes;
-          ++codes;
-
-          bytes[1] = *codes;
-          if (has_S_code)
-            bytes[1] |= 0x10;
-          c = regval (&ins->oprs[1],1);
-          // Rn in low nibble
-          bytes[1] |= c;
-
-          // Rd in high nibble
-          bytes[2] = regval (&ins->oprs[0],1) << 4;
-
-          if (keep != 7)
-            {
-              // Rm in low nibble
-              bytes[3] = regval (&ins->oprs[2],1);
-            }
-
-          // Shifts if any
-          if (keep == 5 || keep == 6)
-            {
-              // Shift in bytes 2 and 3
-              if (keep == 5)
-                {
-                  // Rs
-                  c = regval (&ins->oprs[3],1);
-                  bytes[2] |= c;
-
-                  c = 0x10;             // Set bit 4 in byte[3]
-                }
-              if (keep == 6)
-                {
-                  c = (ins->oprs[3].offset) & 0x1F;
-
-                  // #imm
-                  bytes[2] |= c >> 1;
-                  if (c & 0x01)
-                    {
-                      bytes[3] |= 0x80;
-                    }
-                  c = 0;                // Clr bit 4 in byte[3]
-                }
-              // <shift>
-              c |= shiftval (&ins->oprs[3]) << 5;
-
-              bytes[3] |= c;
-            }
-
-          // reg,reg,imm
-          if (keep == 7)
-            {
-              int shimm;
-
-              shimm = imm_shift (ins->oprs[2].offset);
-
-              if (shimm == -1)
-                {
-                  errfunc (ERR_NONFATAL, "cannot create that constant");
-                }
-              bytes[3] = shimm & 0xFF;
-              bytes[2] |= (shimm & 0xF00) >> 8;
-            }
-
-          out (offset, segment, bytes, OUT_RAWDATA+4, NO_SEG, NO_SEG);
-          return;
-
-        case 8:         // MOV Rd,Rm
-        case 9:         // MOV Rd,Rm,<shift>Rs
-        case 0xA:       // MOV Rd,Rm,<shift>imm
-        case 0xB:       // MOV Rd,<shift>imm
-          ++codes;
-#ifdef DEBUG
-          if (rt_debug)
-            {
-              printf ("         decode - '0x%02X'\n", keep);
-              printf ("           code - '0x%02X'\n", (unsigned char) ( *codes));
-            }
-#endif
-          bytes[0] = c | *codes;
-          ++codes;
-
-          bytes[1] = *codes;
-          if (has_S_code)
-            bytes[1] |= 0x10;
-
-          // Rd in high nibble
-          bytes[2] = regval (&ins->oprs[0],1) << 4;
-
-          if (keep != 0x0B)
-            {
-              // Rm in low nibble
-              bytes[3] = regval (&ins->oprs[1],1);
-            }
-
-          // Shifts if any
-          if (keep == 0x09 || keep == 0x0A)
-            {
-              // Shift in bytes 2 and 3
-              if (keep == 0x09)
-                {
-                  // Rs
-                  c = regval (&ins->oprs[2],1);
-                  bytes[2] |= c;
-
-                  c = 0x10;             // Set bit 4 in byte[3]
-                }
-              if (keep == 0x0A)
-                {
-                  c = (ins->oprs[2].offset) & 0x1F;
-
-                  // #imm
-                  bytes[2] |= c >> 1;
-                  if (c & 0x01)
-                    {
-                      bytes[3] |= 0x80;
-                    }
-                  c = 0;                // Clr bit 4 in byte[3]
-                }
-              // <shift>
-              c |= shiftval (&ins->oprs[2]) << 5;
-
-              bytes[3] |= c;
-            }
-
-          // reg,imm
-          if (keep == 0x0B)
-            {
-              int shimm;
-
-              shimm = imm_shift (ins->oprs[1].offset);
-
-              if (shimm == -1)
-                {
-                  errfunc (ERR_NONFATAL, "cannot create that constant");
-                }
-              bytes[3] = shimm & 0xFF;
-              bytes[2] |= (shimm & 0xF00) >> 8;
-            }
-
-          out (offset, segment, bytes, OUT_RAWDATA+4, NO_SEG, NO_SEG);
-          return;
-
-
-        case 0xC:       // CMP Rn,Rm
-        case 0xD:       // CMP Rn,Rm,<shift>Rs
-        case 0xE:       // CMP Rn,Rm,<shift>imm
-        case 0xF:       // CMP Rn,<shift>imm
-          ++codes;
-
-          bytes[0] = c | *codes++;
-
-          bytes[1] = *codes;
-
-          // Implicit S code
-          bytes[1] |= 0x10;
-
-          c = regval (&ins->oprs[0],1);
-          // Rn in low nibble
-          bytes[1] |= c;
-
-          // No destination
-          bytes[2] = 0;
-
-          if (keep != 0x0B)
-            {
-              // Rm in low nibble
-              bytes[3] = regval (&ins->oprs[1],1);
-            }
-
-          // Shifts if any
-          if (keep == 0x0D || keep == 0x0E)
-            {
-              // Shift in bytes 2 and 3
-              if (keep == 0x0D)
-                {
-                  // Rs
-                  c = regval (&ins->oprs[2],1);
-                  bytes[2] |= c;
-
-                  c = 0x10;             // Set bit 4 in byte[3]
-                }
-              if (keep == 0x0E)
-                {
-                  c = (ins->oprs[2].offset) & 0x1F;
-
-                  // #imm
-                  bytes[2] |= c >> 1;
-                  if (c & 0x01)
-                    {
-                      bytes[3] |= 0x80;
-                    }
-                  c = 0;                // Clr bit 4 in byte[3]
-                }
-              // <shift>
-              c |= shiftval (&ins->oprs[2]) << 5;
-
-              bytes[3] |= c;
-            }
-
-          // reg,imm
-          if (keep == 0x0F)
-            {
-              int shimm;
-
-              shimm = imm_shift (ins->oprs[1].offset);
-
-              if (shimm == -1)
-                {
-                  errfunc (ERR_NONFATAL, "cannot create that constant");
-                }
-              bytes[3] = shimm & 0xFF;
-              bytes[2] |= (shimm & 0xF00) >> 8;
-            }
-
-          out (offset, segment, bytes, OUT_RAWDATA+4, NO_SEG, NO_SEG);
-          return;
-
-        case 0x10:      // MRS Rd,<psr>
-          ++codes;
-
-          bytes[0] = c | *codes++;
-
-          bytes[1] = *codes++;
-
-          // Rd
-          c = regval (&ins->oprs[0],1);
-
-          bytes[2] = c << 4;
-
-          bytes[3] = 0;
-
-          c = ins->oprs[1].basereg;
-
-          if (c == R_CPSR || c == R_SPSR)
-            {
-              if (c == R_SPSR)
-                {
-                  bytes[1] |= 0x40;
-                }
-            }
-          else
-            {
-              errfunc (ERR_NONFATAL, "CPSR or SPSR expected");
-            }
-
-          out (offset, segment, bytes, OUT_RAWDATA+4, NO_SEG, NO_SEG);
-
-          return;
-
-        case 0x11:      // MSR <psr>,Rm
-        case 0x12:      // MSR <psrf>,Rm
-        case 0x13:      // MSR <psrf>,#expression
-          ++codes;
-
-          bytes[0] = c | *codes++;
-
-          bytes[1] = *codes++;
-
-          bytes[2] = *codes;
-
-
-          if (keep == 0x11 || keep == 0x12)
-            {
-              // Rm
-              c = regval (&ins->oprs[1],1);
-
-              bytes[3] = c;
-            }
-          else
-            {
-              int shimm;
-
-              shimm = imm_shift (ins->oprs[1].offset);
-
-              if (shimm == -1)
-                {
-                  errfunc (ERR_NONFATAL, "cannot create that constant");
-                }
-              bytes[3] = shimm & 0xFF;
-              bytes[2] |= (shimm & 0xF00) >> 8;
-            }
-
-          c = ins->oprs[0].basereg;
-
-          if ( keep == 0x11)
-            {
-              if ( c == R_CPSR || c == R_SPSR)
-                {
-                if ( c== R_SPSR)
-                  {
-                    bytes[1] |= 0x40;
-                  }
-                }
-            else
-              {
-                errfunc (ERR_NONFATAL, "CPSR or SPSR expected");
-              }
-            }
-          else
-            {
-              if ( c == R_CPSR_FLG || c == R_SPSR_FLG)
-                {
-                  if ( c== R_SPSR_FLG)
-                    {
-                      bytes[1] |= 0x40;
-                    }
-                }
-              else
-                {
-                  errfunc (ERR_NONFATAL, "CPSR_flg or SPSR_flg expected");
-                }
-            }
-          break;
-
-        case 0x14:      // MUL  Rd,Rm,Rs
-        case 0x15:      // MULA Rd,Rm,Rs,Rn
-          ++codes;
-
-          bytes[0] = c | *codes++;
-
-          bytes[1] = *codes++;
-
-          bytes[3] = *codes;
-
-          // Rd
-          bytes[1] |= regval (&ins->oprs[0],1);
-          if (has_S_code)
-            bytes[1] |= 0x10;
-
-          // Rm
-          bytes[3] |= regval (&ins->oprs[1],1);
-
-          // Rs
-          bytes[2] = regval (&ins->oprs[2],1);
-
-          if (keep == 0x15)
-            {
-              bytes[2] |= regval (&ins->oprs[3],1) << 4;
-            }
-          break;
-
-        case 0x16:      // SMLAL RdHi,RdLo,Rm,Rs
-          ++codes;
-
-          bytes[0] = c | *codes++;
-
-          bytes[1] = *codes++;
-
-          bytes[3] = *codes;
-
-          // RdHi
-          bytes[1] |= regval (&ins->oprs[1],1);
-          if (has_S_code)
-            bytes[1] |= 0x10;
-
-          // RdLo
-          bytes[2] = regval (&ins->oprs[0],1) << 4;
-          // Rm
-          bytes[3] |= regval (&ins->oprs[2],1);
-
-          // Rs
-          bytes[2] |= regval (&ins->oprs[3],1);
-
-          break;
-
-        case 0x17:      // LDR Rd, expression
-          ++codes;
-
-          bytes[0] = c | *codes++;
-
-          bytes[1] = *codes++;
-
-          // Rd
-          bytes[2] = regval (&ins->oprs[0],1) << 4;
-          if (has_B_code)
-            bytes[1] |= 0x40;
-          if (has_T_code)
-            {
-              errfunc (ERR_NONFATAL, "'T' not allowed in pre-index mode");
-            }
-          if (has_W_code)
-            {
-              errfunc (ERR_NONFATAL, "'!' not allowed");
-            }
-
-          // Rn - implicit R15
-          bytes[1] |= 0xF;
-
-          if (ins->oprs[1].segment != segment)
-            {
-              errfunc (ERR_NONFATAL, "label not in same segment");
-            }
-
-          data = ins->oprs[1].offset - (offset + 8);
-
-          if (data < 0)
-            {
-              data = -data;
-            }
-          else
-            {
-              bytes[1] |= 0x80;
-            }
-
-          if (data >= 0x1000)
-            {
-              errfunc (ERR_NONFATAL, "too long offset");
-            }
-
-          bytes[2] |= ((data & 0xF00) >> 8);
-          bytes[3] = data & 0xFF;
-          break;
-
-        case 0x18:      // LDR Rd, [Rn]
-          ++codes;
-
-          bytes[0] = c | *codes++;
-
-          bytes[1] = *codes++;
-
-          // Rd
-          bytes[2] = regval (&ins->oprs[0],1) << 4;
-          if (has_B_code)
-            bytes[1] |= 0x40;
-          if (has_T_code)
-            {
-              bytes[1] |= 0x20;         // write-back
-            }
-          else
-            {
-              bytes[0] |= 0x01;         // implicit pre-index mode
-            }
-
-          if (has_W_code)
-            {
-              bytes[1] |= 0x20;         // write-back
-            }
-
-          // Rn
-          c = regval (&ins->oprs[1],1);
-          bytes[1] |= c;
-
-          if (c == 0x15)                // R15
-            data = -8;
-          else
-            data = 0;
-
-          if (data < 0)
-            {
-              data = -data;
-            }
-          else
-            {
-              bytes[1] |= 0x80;
-            }
-
-          bytes[2] |= ((data & 0xF00) >> 8);
-          bytes[3] = data & 0xFF;
-          break;
-
-        case 0x19:      // LDR Rd, [Rn,#expression]
-        case 0x20:      // LDR Rd, [Rn,Rm]
-        case 0x21:      // LDR Rd, [Rn,Rm,shift]
-          ++codes;
-
-          bytes[0] = c | *codes++;
-
-          bytes[1] = *codes++;
-
-          // Rd
-          bytes[2] = regval (&ins->oprs[0],1) << 4;
-          if (has_B_code)
-            bytes[1] |= 0x40;
-
-          // Rn
-          c = regval (&ins->oprs[1],1);
-          bytes[1] |= c;
-
-          if (ins->oprs[ins->operands-1].bracket)       // FIXME: Bracket on last operand -> pre-index  <--
-            {
-              bytes[0] |= 0x01;         // pre-index mode
-              if (has_W_code)
-                {
-                  bytes[1] |= 0x20;
-                }
-              if (has_T_code)
-                {
-                  errfunc (ERR_NONFATAL, "'T' not allowed in pre-index mode");
-                }
-            }
-          else
-            {
-              if (has_T_code)           // Forced write-back in post-index mode
-                {
-                  bytes[1] |= 0x20;
-                }
-              if (has_W_code)
-                {
-                  errfunc (ERR_NONFATAL, "'!' not allowed in post-index mode");
-                }
-            }
-
-          if (keep == 0x19)
-            {
-              data = ins->oprs[2].offset;
-
-              if (data < 0)
-                {
-                  data = -data;
-                }
-              else
-                {
-                  bytes[1] |= 0x80;
-                }
-
-              if (data >= 0x1000)
-                {
-                  errfunc (ERR_NONFATAL, "too long offset");
-                }
-
-              bytes[2] |= ((data & 0xF00) >> 8);
-              bytes[3] = data & 0xFF;
-            }
-          else
-            {
-              if (ins->oprs[2].minus == 0)
-                {
-                  bytes[1] |= 0x80;
-                }
-              c = regval (&ins->oprs[2],1);
-              bytes[3] = c;
-
-              if (keep == 0x21)
-                {
-                  c = ins->oprs[3].offset;
-                  if (c > 0x1F)
-                    {
-                      errfunc (ERR_NONFATAL, "too large shiftvalue");
-                      c = c & 0x1F;
-                    }
-
-                  bytes[2] |= c >> 1;
-                  if (c & 0x01)
-                    {
-                      bytes[3] |= 0x80;
-                    }
-                  bytes[3] |= shiftval (&ins->oprs[3]) << 5;
-                }
-            }
-
-          break;
-
-        case 0x22:      // LDRH Rd, expression
-          ++codes;
-
-          bytes[0] = c | 0x01;          // Implicit pre-index
-
-          bytes[1] = *codes++;
-
-          // Rd
-          bytes[2] = regval (&ins->oprs[0],1) << 4;
-
-          // Rn - implicit R15
-          bytes[1] |= 0xF;
-
-          if (ins->oprs[1].segment != segment)
-            {
-              errfunc (ERR_NONFATAL, "label not in same segment");
-            }
-
-          data = ins->oprs[1].offset - (offset + 8);
-
-          if (data < 0)
-            {
-              data = -data;
-            }
-          else
-            {
-              bytes[1] |= 0x80;
-            }
-
-          if (data >= 0x100)
-            {
-              errfunc (ERR_NONFATAL, "too long offset");
-            }
-          bytes[3] = *codes++;
-
-          bytes[2] |= ((data & 0xF0) >> 4);
-          bytes[3] |= data & 0xF;
-          break;
-
-        case 0x23:      // LDRH Rd, Rn
-          ++codes;
-
-          bytes[0] = c | 0x01;          // Implicit pre-index
-
-          bytes[1] = *codes++;
-
-          // Rd
-          bytes[2] = regval (&ins->oprs[0],1) << 4;
-
-          // Rn
-          c = regval (&ins->oprs[1],1);
-          bytes[1] |= c;
-
-          if (c == 0x15)                // R15
-            data = -8;
-          else
-            data = 0;
-
-          if (data < 0)
-            {
-              data = -data;
-            }
-          else
-            {
-              bytes[1] |= 0x80;
-            }
-
-          if (data >= 0x100)
-            {
-              errfunc (ERR_NONFATAL, "too long offset");
-            }
-          bytes[3] = *codes++;
-
-          bytes[2] |= ((data & 0xF0) >> 4);
-          bytes[3] |= data & 0xF;
-          break;
-
-        case 0x24:      // LDRH Rd, Rn, expression
-        case 0x25:      // LDRH Rd, Rn, Rm
-          ++codes;
-
-          bytes[0] = c;
-
-          bytes[1] = *codes++;
-
-          // Rd
-          bytes[2] = regval (&ins->oprs[0],1) << 4;
-
-          // Rn
-          c = regval (&ins->oprs[1],1);
-          bytes[1] |= c;
-
-          if (ins->oprs[ins->operands-1].bracket)       // FIXME: Bracket on last operand -> pre-index  <--
-            {
-              bytes[0] |= 0x01;         // pre-index mode
-              if (has_W_code)
-                {
-                  bytes[1] |= 0x20;
-                }
-            }
-          else
-            {
-              if (has_W_code)
-                {
-                  errfunc (ERR_NONFATAL, "'!' not allowed in post-index mode");
-                }
-            }
-
-          bytes[3] = *codes++;
-
-          if (keep == 0x24)
-            {
-              data = ins->oprs[2].offset;
-
-              if (data < 0)
-                {
-                  data = -data;
-                }
-              else
-                {
-                  bytes[1] |= 0x80;
-                }
-
-              if (data >= 0x100)
-                {
-                  errfunc (ERR_NONFATAL, "too long offset");
-                }
-
-              bytes[2] |= ((data & 0xF0) >> 4);
-              bytes[3] |= data & 0xF;
-            }
-          else
-            {
-              if (ins->oprs[2].minus == 0)
-                {
-                  bytes[1] |= 0x80;
-                }
-              c = regval (&ins->oprs[2],1);
-              bytes[3] |= c;
-
-            }
-          break;
-
-        case 0x26:      // LDM/STM Rn, {reg-list}
-          ++codes;
-
-          bytes[0] = c;
-
-          bytes[0] |= ( *codes >> 4) & 0xF;
-          bytes[1] = ( *codes << 4) & 0xF0;
-          ++codes;
-
-          if (has_W_code)
-            {
-              bytes[1] |= 0x20;
-            }
-          if (has_F_code)
-            {
-              bytes[1] |= 0x40;
-            }
-
-          // Rn
-          bytes[1] |= regval (&ins->oprs[0],1);
-
-          data = ins->oprs[1].basereg;
-
-          bytes[2] = ((data >> 8) & 0xFF);
-          bytes[3] = (data & 0xFF);
-
-          break;
-
-        case 0x27:      // SWP Rd, Rm, [Rn]
-          ++codes;
-
-          bytes[0] = c;
-
-          bytes[0] |= *codes++;
-
-          bytes[1] = regval (&ins->oprs[2],1);
-          if (has_B_code)
-            {
-              bytes[1] |= 0x40;
-            }
-          bytes[2] = regval (&ins->oprs[0],1) << 4;
-          bytes[3] = *codes++;
-          bytes[3] |= regval (&ins->oprs[1],1);
-          break;
-
-        default:
-          errfunc (ERR_FATAL, "unknown decoding of instruction");
-
-          bytes[0] = c;
-          // And a fix nibble
-          ++codes;
-          bytes[0] |= *codes++;
-
-         if ( *codes == 0x01)           // An I bit
-           {
-
-           }
-         if ( *codes == 0x02)           // An I bit
-           {
-
-           }
-         ++codes;
-      }
-    out (offset, segment, bytes, OUT_RAWDATA+4, NO_SEG, NO_SEG);
-}
-
-*)
-{$endif dummy}
-
-  constructor tai_thumb_func.create;
-    begin
-      inherited create;
-      typ:=ait_thumb_func;
-    end;
+    constructor tai_thumb_func.create;
+      begin
+        inherited create;
+        typ:=ait_thumb_func;
+      end;
 
 begin
   cai_align:=tai_align;
