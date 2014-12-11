@@ -13,7 +13,7 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('zlib');
-    P.Description := 'Interface units for the ZLIB library - support for deflate compression method using for GZIP, PNG, ZIP, etc.';
+    P.Description := 'Interface units for the ZLIB library - support for deflate compression method used for GZIP, PNG, ZIP, etc.';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
