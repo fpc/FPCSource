@@ -234,7 +234,7 @@ begin
 {$endif HAS_UNIT_PROCESS}
 
     Data2IncBin := AddProgramExtension('data2inc',Defaults.BuildOS);
-    p.Commands.AddCommand(caBeforeCompile, Data2IncBin, '-b -s fpcmake.ini fpcmake.inc fpcmakeini','fpcmake.inc','fpcmake.ini');
+    p.Commands.AddCommand(caBeforeCompile, Data2IncBin, '-b -s ' + P.Directory + 'fpcmake.ini ' + P.Directory + 'fpcmake.inc fpcmakeini','fpcmake.inc','fpcmake.ini');
     T:=P.Targets.AddUnit('fpcmmain.pp');
     T.install:=false;
     T.ResourceStrings:=true;
