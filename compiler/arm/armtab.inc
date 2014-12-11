@@ -158,29 +158,29 @@
     opcode  : A_BLX;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none,ot_none,ot_none,ot_none);
-    code    : #40#250;
-    flags   : if_arm32 or if_armv4
+    code    : #40#10;
+    flags   : if_arm32 or if_armv5t
   ),
   (
     opcode  : A_BLX;
     ops     : 1;
     optypes : (ot_immediate,ot_none,ot_none,ot_none,ot_none,ot_none);
-    code    : #40#250;
-    flags   : if_arm32 or if_armv4
+    code    : #40#10;
+    flags   : if_arm32 or if_armv5t
   ),
   (
     opcode  : A_BLX;
     ops     : 1;
     optypes : (ot_immediateshifter,ot_none,ot_none,ot_none,ot_none,ot_none);
-    code    : #40#250;
-    flags   : if_arm32 or if_armv4
+    code    : #40#10;
+    flags   : if_arm32 or if_armv5t
   ),
   (
     opcode  : A_BLX;
     ops     : 1;
     optypes : (ot_reg32,ot_none,ot_none,ot_none,ot_none,ot_none);
     code    : #3#1#47#255#48;
-    flags   : if_arm32 or if_armv4
+    flags   : if_arm32 or if_armv5t
   ),
   (
     opcode  : A_BKPT;
@@ -201,7 +201,7 @@
     ops     : 1;
     optypes : (ot_reg32,ot_none,ot_none,ot_none,ot_none,ot_none);
     code    : #3#1#47#255#16;
-    flags   : if_arm32 or if_armv4
+    flags   : if_arm32 or if_armv4t
   ),
   (
     opcode  : A_CDP;
