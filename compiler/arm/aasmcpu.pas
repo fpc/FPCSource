@@ -2762,6 +2762,9 @@ implementation
                   bytes:=bytes or (1 shl 23);
                   bytes:=bytes or getsupreg(oper[1]^.ref^.index);
                 end;
+              { set W bit }
+              if oper[1]^.ref^.addressmode=AM_PREINDEXED then
+                bytes:=bytes or (1 shl 21);
               { set P bit if necessary }
               if oper[1]^.ref^.addressmode<>AM_POSTINDEXED then
                 bytes:=bytes or (1 shl 24);
