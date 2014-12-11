@@ -376,11 +376,13 @@ implementation
                                    end;
                                  if found then
                                    begin
-                                     { setup variant selector }
-                                     addstatement(newstatement,cassignmentnode.create(
-                                         csubscriptnode.create(variantselectsymbol,
-                                           cderefnode.create(ctemprefnode.create(temp))),
-                                         p2));
+                                     { if no tag-field is given, do not create an assignment statement for it }
+                                     if assigned(variantselectsymbol) then
+                                       { setup variant selector }
+                                       addstatement(newstatement,cassignmentnode.create(
+                                           csubscriptnode.create(variantselectsymbol,
+                                             cderefnode.create(ctemprefnode.create(temp))),
+                                           p2));
                                    end
                                  else
                                    Message(parser_e_illegal_expression);

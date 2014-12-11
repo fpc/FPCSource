@@ -11801,6 +11801,7 @@ tests/test/tisoread.pp svneol=native#text/pascal
 tests/test/tisorec1.pp svneol=native#text/pascal
 tests/test/tisorec2.pp svneol=native#text/pascal
 tests/test/tisorec3.pp svneol=native#text/pascal
+tests/test/tisorec4.pp svneol=native#text/pascal
 tests/test/tlea1.pp svneol=native#text/plain
 tests/test/tlea2.pp svneol=native#text/plain
 tests/test/tlib1a.pp svneol=native#text/plain
