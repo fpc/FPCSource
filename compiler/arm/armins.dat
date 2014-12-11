@@ -123,17 +123,17 @@ imm                      \x1\x0B                        ARM32,ARMv4
 immshifter               \x1\x0B                        ARM32,ARMv4
 
 [BLX]
-mem32                    \x28\xFA                      ARM32,ARMv4
-imm                      \x28\xFA                      ARM32,ARMv4
-immshifter               \x28\xFA                      ARM32,ARMv4
-reg32                    \3\x01\x2F\xFF\x30            ARM32,ARMv4
+mem32                    \x28\xA                       ARM32,ARMv5T
+imm                      \x28\xA                       ARM32,ARMv5T
+immshifter               \x28\xA                       ARM32,ARMv5T
+reg32                    \3\x01\x2F\xFF\x30            ARM32,ARMv5T
 
 [BKPTcc]
 imm                      \x31\x1\x20\x70               ARM32,ARMv5T
 immshifter               \x31\x1\x20\x70               ARM32,ARMv5T
 
 [BXcc]
-reg32                    \3\x01\x2F\xFF\x10            ARM32,ARMv4
+reg32                    \3\x01\x2F\xFF\x10            ARM32,ARMv4T
 
 [CDP]
 reg8,reg8                \300\1\x10\101                ARM32,ARMv4

@@ -671,7 +671,7 @@ implementation
                   begin
                     if (reltyp=R_ARM_CALL) then
                       { change BL to BLX, dest bit 1 goes to instruction bit 24 }
-                      address:=(address and $FE000000) or (((tmp-curloc) and 2) shl 23) or $10000000
+                      address:=(address and $FE000000) or (((tmp-curloc) and 2) shl 23) or $F0000000
                     else
                       InternalError(2014092001);
                   end;
