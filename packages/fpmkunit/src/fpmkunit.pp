@@ -3557,11 +3557,11 @@ Procedure TPackage.ListPackage(PkgList : TStrings);
 Var
   S : String;
 begin
-  if OSes = AllOSes then
-    Exit;
-  if ({(OSes = AllOSes) or }(Defaults.OS = osNone) or
-                                (Defaults.OS in OSes)) and
-     ((Defaults.CPU in CPUs) or (Defaults.CPU = cpuNone)) then
+{  if OSes = AllOSes then
+    Exit;}
+  if ((OSes = AllOSes) or (Defaults.OS in OSes)) and
+         ((CPUs = AllCPUs) or (Defaults.CPU in CPUs)) or
+                       (Defaults.OS = osNone) and (Defaults.CPU = cpuNone) then
     begin
       if Defaults.OS = osNone then
         PkgList.Add (Format ('# Source %d', [Succ (PkgList.Count div 2)]))
