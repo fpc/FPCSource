@@ -3094,6 +3094,10 @@ implementation
               bytes:=bytes or ord(insentry^.code[4]);
 
               { set regs }
+              Rd:=0;
+              Rn:=0;
+              Rm:=0;
+
               case oppostfix of
                 PF_None:
                   begin
@@ -3219,6 +3223,7 @@ implementation
                     NR_MVFR0: Rn:=$7;
                     NR_FPEXC: Rn:=$8;
                   else
+                    Rn:=0;
                     message(asmw_e_invalid_opcode_and_operands);
                   end;
 
@@ -3236,6 +3241,7 @@ implementation
                     NR_FPSCR: Rn:=$1;
                     NR_FPEXC: Rn:=$8;
                   else
+                    Rn:=0;
                     message(asmw_e_invalid_opcode_and_operands);
                   end;
 
@@ -3417,6 +3423,7 @@ implementation
                         rn:=16;
                       end;
                   else
+                    Rn:=0;
                     message(asmw_e_invalid_opcode_and_operands);
                   end;
 
@@ -3499,6 +3506,7 @@ implementation
                   if oper[1]^.regset^=[] then
                     message1(asmw_e_invalid_opcode_and_operands, 'Regset cannot be empty');
 
+                  rd:=0;
                   for r:=0 to 31 do
                     if r in oper[1]^.regset^ then
                       begin
@@ -3537,6 +3545,7 @@ implementation
                   if oper[0]^.regset^=[] then
                     message1(asmw_e_invalid_opcode_and_operands, 'Regset cannot be empty');
 
+                  rd:=0;
                   for r:=0 to 31 do
                     if r in oper[0]^.regset^ then
                       begin
