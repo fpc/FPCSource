@@ -873,7 +873,7 @@ parser_e_threadvars_only_sg=03147_E_Threadvars can be only static or global
 parser_f_direct_assembler_not_allowed=03148_F_Direct assembler not supported for binary output format
 % You cannot use direct assembler when using a binary writer. Choose an
 % other output format or use another assembler reader.
-parser_w_no_objpas_use_mode=03149_W_Don't load OBJPAS unit manually, use \{\$mode objfpc\} or \{\$mode delphi\} instead
+parser_w_no_objpas_use_mode=03149_W_Don't load OBJPAS unit manually, use {$mode objfpc} or {$mode delphi} instead
 % You are trying to load the \file{ObjPas} unit manually from a \var{uses} clause.
 % This is not a good idea. Use the \var{\{\$MODE OBJFPC\}} or
 % \var{\{\$mode delphi\}} directives which load the unit automatically.
@@ -3100,10 +3100,10 @@ unit_u_indirect_crc_changed=10062_U_Indirect interface (objects/classes) CRC cha
 % indirect CRC calculated for the unit (this is the CRC of all classes/objects/interfaces/$\ldots$
 % in the interfaces of units directly or indirectly used by this unit in the interface) has been changed after the
 % implementation has been parsed.
-% \end{description}
 unit_u_ppu_invalid_memory_model=10063_U_PPU is compiled for another i8086 memory model
 % This unit file was compiled for a different i8086 memory model and
 % cannot be read.
+% \end{description}
 # EndOfTeX
 
 #
@@ -3146,10 +3146,10 @@ option_target_is_already_set=11011_W_Target is already set to: $1
 option_no_shared_lib_under_dos=11012_W_Shared libs not supported on DOS platform, reverting to static
 % If you specify \var{-CD} for the \dos platform, this message is displayed.
 % The compiler supports only static libraries under \dos.
-option_too_many_ifdef=11013_F_In options file $1 at line $2 too many \var{\#IF(N)DEFs} encountered
+option_too_many_ifdef=11013_F_In options file $1 at line $2 too many #IF(N)DEFs encountered
 % The \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
-option_too_many_endif=11014_F_In options file $1 at line $2 unexpected \var{\#ENDIFs} encountered
+option_too_many_endif=11014_F_In options file $1 at line $2 unexpected #ENDIFs encountered
 % The \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
 option_too_less_endif=11015_F_Open conditional at the end of the options file
@@ -3218,7 +3218,7 @@ option_confict_asm_debug=11041_W_Assembler output selected "$1" cannot generate 
 option_ppc386_deprecated=11042_W_Use of ppc386.cfg is deprecated, please use fpc.cfg instead
 % Using ppc386.cfg is still supported for historical reasons, however, for a multiplatform
 % system the naming makes no sense anymore. Please continue to use fpc.cfg instead.
-option_else_without_if=11043_F_In options file $1 at line $2 \var{\#ELSE} directive without \var{\#IF(N)DEF} found
+option_else_without_if=11043_F_In options file $1 at line $2 #ELSE directive without #IF(N)DEF found
 % An \var{\#ELSE} statement was found in the options file without a matching \var{\#IF(N)DEF} statement.
 option_unsupported_target=11044_F_Option "$1" is not, or not yet, supported on the current target platform
 % Not all options are supported or implemented for all target platforms. This message informs you that a chosen
