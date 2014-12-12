@@ -130,14 +130,14 @@
     opcode  : A_BLX;
     ops     : 1;
     optypes : (ot_immediate24,ot_none,ot_none,ot_none,ot_none,ot_none);
-    code    : #40#11;
+    code    : #40#10;
     flags   : if_arm32 or if_armv5t
   ),
   (
     opcode  : A_BLX;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none,ot_none,ot_none,ot_none);
-    code    : #40#11;
+    code    : #40#10;
     flags   : if_arm32 or if_armv5t
   ),
   (
