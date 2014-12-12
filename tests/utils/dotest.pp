@@ -404,7 +404,7 @@ const
   bufsize = 16384;
 var
   f,g : file;
-  oldfilemode : longint;
+  oldfilemode : byte;
   st : string;
   addsize,
   i   : longint;
@@ -435,18 +435,18 @@ begin
    end;
   assign(f,fn1);
   {$I-}
-   reset(f,1);
+  { Try using read only file mode }
+  oldfilemode:=filemode;
+  filemode:=READ_ONLY;
+  reset(f,1);
   {$I+}
   addsize:=0;
+  getmem(buf,bufsize);
   if ioresult<>0 then
    begin
      sleep(1000);
      {$I-}
-      { Retry using read only file mode }
-      oldfilemode:=system.filemode;
-      system.filemode:=READ_ONLY;
       reset(f,1);
-      filemode:=oldfilemode;
      {$I+}
       if ioresult<>0 then
         begin
@@ -456,11 +456,13 @@ begin
           // blocksize is larger than 255, so no check is needed
           move(st[1],buf^,i);
           blockwrite(g,buf^,i);
+          freemem(buf,bufsize);
           close(g);
+          filemode:=oldfilemode;
           exit;
         end;
    end;
-  getmem(buf,bufsize);
+  filemode:=oldfilemode;
   repeat
     blockread(f,buf^,bufsize,i);
     blockwrite(g,buf^,i);
