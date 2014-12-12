@@ -61,6 +61,7 @@ const
   DllExt : string = '.so';
   DllPrefix: string = 'lib';
   DefaultTimeout=60;
+  READ_ONLY = 0;
 
 var
   Config : TConfig;
@@ -403,6 +404,8 @@ const
   bufsize = 16384;
 var
   f,g : file;
+  oldfilemode : longint;
+  st : string;
   addsize,
   i   : longint;
   buf : pointer;
@@ -411,14 +414,7 @@ begin
    Verbose(V_Debug,'Appending '+fn1+' to '+fn2)
   else
    Verbose(V_Debug,'Copying '+fn1+' to '+fn2);
-  assign(f,fn1);
   assign(g,fn2);
-  {$I-}
-   reset(f,1);
-  {$I+}
-  addsize:=0;
-  if ioresult<>0 then
-   Verbose(V_Error,'Can''t open '+fn1);
   if append then
    begin
      {$I-}
@@ -436,6 +432,33 @@ begin
      {$I+}
      if ioresult<>0 then
       Verbose(V_Error,'Can''t open '+fn2+' for output');
+   end;
+  assign(f,fn1);
+  {$I-}
+   reset(f,1);
+  {$I+}
+  addsize:=0;
+  if ioresult<>0 then
+   begin
+     sleep(1000);
+     {$I-}
+      { Retry using read only file mode }
+      oldfilemode:=system.filemode;
+      system.filemode:=READ_ONLY;
+      reset(f,1);
+      filemode:=oldfilemode;
+     {$I+}
+      if ioresult<>0 then
+        begin
+          Verbose(V_Warning,'Can''t open '+fn1);
+          st:='Can''t open '+fn1;
+          i:=length(st);
+          // blocksize is larger than 255, so no check is needed
+          move(st[1],buf^,i);
+          blockwrite(g,buf^,i);
+          close(g);
+          exit;
+        end;
    end;
   getmem(buf,bufsize);
   repeat
