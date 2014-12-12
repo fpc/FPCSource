@@ -126,4 +126,7 @@
 'fpsid',
 'mvfr1',
 'mvfr0',
-'fpexc'
+'fpexc',
+'apsr_nzcvq',
+'apsr_g',
+'apsr_nzcvqg'

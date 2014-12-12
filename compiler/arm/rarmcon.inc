@@ -127,3 +127,6 @@ NR_FPSID = tregister($05000023);
 NR_MVFR1 = tregister($05000024);
 NR_MVFR0 = tregister($05000025);
 NR_FPEXC = tregister($05000026);
+NR_APSR_nzcvq = tregister($05000027);
+NR_APSR_g = tregister($05000028);
+NR_APSR_nzcvqg = tregister($05000029);

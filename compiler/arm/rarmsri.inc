@@ -1,7 +1,10 @@
 { don't edit, this file is generated from armreg.dat }
 0,
 110,
+129,
 92,
+128,
+130,
 120,
 121,
 123,

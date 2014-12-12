@@ -150,3 +150,6 @@ FPSID,$05,$00,$23,fpsid,0,0
 MVFR1,$05,$00,$24,mvfr1,0,0
 MVFR0,$05,$00,$25,mvfr0,0,0
 FPEXC,$05,$00,$26,fpexc,0,0
+APSR_nzcvq,$05,$00,$27,apsr_nzcvq,0,0
+APSR_g,$05,$00,$28,apsr_g,0,0
+APSR_nzcvqg,$05,$00,$29,apsr_nzcvqg,0,0

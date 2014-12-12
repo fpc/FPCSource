@@ -2035,7 +2035,7 @@ implementation
         { update condition flags
           or floating point single }
       if (oppostfix=PF_S) and
-        not(p^.code[0] in [#$04..#$0B,#$14..#$16,#$29,#$30]) then
+        not(p^.code[0] in [#$04..#$0F,#$14..#$16,#$29,#$30]) then
         begin
           Matches:=0;
           exit;
@@ -2228,6 +2228,7 @@ implementation
         var
           r : byte;
           imm : dword;
+          count : integer;
         begin
           case oper[op]^.typ of
             top_const:
@@ -2238,11 +2239,18 @@ implementation
                 else
                   begin
                     { calc rotate and adjust imm }
+                    count:=0;
                     r:=0;
                     imm:=dword(oper[op]^.val);
                     repeat
                       imm:=RolDWord(imm, 2);
-                      inc(r)
+                      inc(r);
+                      inc(count);
+                      if count > 32 then
+                        begin
+                          message1(asmw_e_invalid_opcode_and_operands, 'invalid shifter imm');
+                          exit;
+                        end;
                     until (imm and $ff)=imm;
                     bytes:=bytes or (r shl 8) or imm;
                   end;
@@ -2468,6 +2476,49 @@ implementation
               { always set S bit }
               bytes:=bytes or (1 shl 20);
             end;
+          #$10: // MRS
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              { set destination }
+              bytes:=bytes or (getsupreg(oper[0]^.reg) shl 12);
+
+              case oper[1]^.reg of
+                NR_APSR,NR_CPSR:;
+              else
+                Message(asmw_e_invalid_opcode_and_operands);
+              end;
+            end;
+          #$12,#$13: // MSR
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              { set destination }
+
+              if oper[0]^.typ=top_specialreg then
+                begin
+                  if oper[0]^.specialreg<>NR_CPSR then
+                    Message1(asmw_e_invalid_opcode_and_operands, 'Can only use CPSR in this form');
+
+                  if srF in oper[0]^.specialflags then
+                    bytes:=bytes or (2 shl 18);
+                  if srS in oper[0]^.specialflags then
+                    bytes:=bytes or (1 shl 18);
+                end
+              else
+                case oper[0]^.reg of
+                  NR_APSR_nzcvq: bytes:=bytes or (2 shl 18);
+                  NR_APSR_g: bytes:=bytes or (1 shl 18);
+                  NR_APSR_nzcvqg: bytes:=bytes or (3 shl 18);
+                else
+                  Message1(asmw_e_invalid_opcode_and_operands, 'Invalid combination APSR bits used');
+                end;
+
+              setshifterop(1);
+            end;
           #$14: // MUL/MLA r1,r2,r3
             begin
               { set instruction code }
@@ -2492,7 +2543,7 @@ implementation
               if ops>3 then
                 bytes:=bytes or getsupreg(oper[3]^.reg) shl 12
               else
-                bytes:=bytes or ($F shl 12);
+                bytes:=bytes or ord(insentry^.code[4]) shl 12;
 
               if oppostfix in [PF_R,PF_X] then
                 bytes:=bytes or (1 shl 5);
@@ -2505,8 +2556,18 @@ implementation
               bytes:=bytes or ord(insentry^.code[3]) shl 4;
               { set regs }
               bytes:=bytes or getsupreg(oper[0]^.reg) shl 12;
-              bytes:=bytes or getsupreg(oper[1]^.reg) shl 16;
-              bytes:=bytes or getsupreg(oper[2]^.reg);
+
+              if (ops=3) and (opcode=A_PKHTB) then
+                begin
+                  bytes:=bytes or getsupreg(oper[1]^.reg);
+                  bytes:=bytes or getsupreg(oper[2]^.reg) shl 16;
+                end
+              else
+                begin
+                  bytes:=bytes or getsupreg(oper[1]^.reg) shl 16;
+                  bytes:=bytes or getsupreg(oper[2]^.reg);
+                end;
+
               if ops=4 then
                 begin
                   if oper[3]^.typ=top_shifterop then
@@ -2731,6 +2792,50 @@ implementation
               bytes:=bytes or getsupreg(oper[3]^.reg) shl 16;
               bytes:=bytes or getcoprocreg(oper[4]^.reg);
             end;
+          #$1E: // LDRHT/STRHT
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+              { set Rn and Rd }
+              bytes:=bytes or getsupreg(oper[0]^.reg) shl 12;
+
+              refoper:=oper[1];
+
+              bytes:=bytes or getsupreg(refoper^.ref^.base) shl 16;
+              if getregtype(refoper^.ref^.index)=R_INVALIDREGISTER then
+                begin
+                  bytes:=bytes or (1 shl 22);
+                  { set offset }
+                  offset:=0;
+                  currsym:=objdata.symbolref(refoper^.ref^.symbol);
+                  if assigned(currsym) then
+                    offset:=currsym.offset-insoffset-8;
+                  offset:=offset+refoper^.ref^.offset;
+                  if offset>=0 then
+                    begin
+                      { set U flag }
+                      bytes:=bytes or (1 shl 23);
+                      bytes:=bytes or (offset and $F);
+                      bytes:=bytes or ((offset and $F0) shl 4);
+                    end
+                  else
+                    begin
+                      offset:=-offset;
+                      bytes:=bytes or (offset and $F);
+                      bytes:=bytes or ((offset and $F0) shl 4);
+                    end;
+                end
+              else
+                begin
+                  { set U flag }
+                  if refoper^.ref^.signindex>=0 then
+                    bytes:=bytes or (1 shl 23);
+                  bytes:=bytes or getsupreg(refoper^.ref^.index);
+                end;
+            end;
           #$22: // LDRH/STRH
             begin
               { set instruction code }
@@ -2915,7 +3020,10 @@ implementation
               bytes:=bytes or ord(insentry^.code[4]);
               { set opers }
               bytes:=bytes or (getsupreg(oper[0]^.reg) shl 12);
-              bytes:=bytes or ((oper[1]^.val and $1F) shl 16);
+              if opcode in [A_SSAT, A_SSAT16] then
+                bytes:=bytes or (((oper[1]^.val-1) and $1F) shl 16)
+              else
+                bytes:=bytes or ((oper[1]^.val and $1F) shl 16);
               bytes:=bytes or getsupreg(oper[2]^.reg);
 
               if (ops>3) and
@@ -3201,6 +3309,8 @@ implementation
                     Rd:=getmmreg(oper[0]^.reg);
                     Rm:=getmmreg(oper[1]^.reg);
 
+                    bytes:=bytes or (1 shl 8);
+
                     bytes:=bytes or ((Rd and $F) shl 12);
                     bytes:=bytes or (((Rd and $10) shr 4) shl 22);
 
@@ -3476,7 +3586,7 @@ implementation
                 begin
                   if oper[0]^.typ=top_ref then
                     begin
-                      Rn:=getsupreg(oper[0]^.ref^.base);
+                      Rn:=getsupreg(oper[0]^.ref^.index);
 
                       if oper[0]^.ref^.addressmode<>AM_OFFSET then
                         begin

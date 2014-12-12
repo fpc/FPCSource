@@ -551,7 +551,7 @@ Unit raarmgas;
             else if (actasmpattern='ROR') then
               handlepara(SM_ROR)
             else if (actasmpattern='RRX') then
-              handlepara(SM_ROR)
+              handlepara(SM_RRX)
             else
               result:=false;
           end
@@ -1179,7 +1179,9 @@ Unit raarmgas;
                   ((operandnum=3) and not(instr.opcode in [A_UMLAL,A_UMULL,A_SMLAL,A_SMULL,A_MLA,A_UMAAL,A_MLS,
                                                            A_SMLABB,A_SMLABT,A_SMLATB,A_SMLATT,A_SMMLA,A_SMMLS,A_SMLAD,A_SMLALD,A_SMLSD,
                                                            A_SMLALBB,A_SMLALBT,A_SMLALTB,A_SMLALTT,A_SMLSLD,
-                                                           A_MRC,A_MCR,A_MCRR,A_MRRC,A_STREXD,A_STRD,
+                                                           A_MRC,A_MCR,A_MCRR,A_MRRC,A_MRC2,A_MCR2,A_MCRR2,A_MRRC2,
+                                                           A_STREXD,A_STRD,
+                                                           A_USADA8,
                                                            A_VMOV,
                                                            A_SBFX,A_UBFX,A_BFI])) then
                   begin
@@ -1324,6 +1326,23 @@ Unit raarmgas;
                             actcondition:=icond;
                             { strip condition }
                             delete(hs,1,2);
+                            break;
+                          end;
+                      end;
+                  end;
+                { check for postfix }
+                if (length(hs)>0) and (actoppostfix=PF_None) then
+                  begin
+                    for j:=low(postfixsorted) to high(postfixsorted) do
+                      begin
+                        if copy(hs,1,length(postfix2strsorted[j]))=postfix2strsorted[j] then
+                          begin
+                            if not ((length(hs)-length(postfix2strsorted[j])) = 0) then
+                              continue;
+
+                            actoppostfix:=postfixsorted[j];
+                            { strip postfix }
+                            delete(hs,1,length(postfix2strsorted[j]));
                             break;
                           end;
                       end;

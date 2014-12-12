@@ -98,8 +98,8 @@ reg32,reg32,immshifter      \7\x2\x80                     ARM32,ARMv4
 [ADFcc]
 
 [ADRcc]
-reg32,immshifter            \x33\x2\x0F                   ARM32,ARMv4
-reg32,imm32                 \x33\x2\x0F                   ARM32,ARMv4
+;reg32,immshifter            \x33\x2\x0F                   ARM32,ARMv4
+;reg32,imm32                 \x33\x2\x0F                   ARM32,ARMv4
 reg32,memam2                \x33\x2\x0F                   ARM32,ARMv4
 
 [ANDcc]
@@ -108,9 +108,8 @@ reg32,reg32,reg32,shifterop \x6\x0\x00                    ARM32,ARMv4
 reg32,reg32,immshifter      \x7\x2\x00                    ARM32,ARMv4
 
 [Bcc]
+imm24                       \x1\x0A                       ARM32,ARMv4
 mem32                       \x1\x0A                       ARM32,ARMv4
-imm                         \x1\x0A                       ARM32,ARMv4
-immshifter                  \x1\x0A                       ARM32,ARMv4
 
 [BICcc]
 reg32,reg32,reg32           \x6\x1\xC0                    ARM32,ARMv4
@@ -118,14 +117,12 @@ reg32,reg32,reg32,shifterop \x6\x1\xC0                    ARM32,ARMv4
 reg32,reg32,immshifter      \x7\x3\xC0                    ARM32,ARMv4
 
 [BLcc]
+imm24                    \x1\x0B                        ARM32,ARMv4
 mem32                    \x1\x0B                        ARM32,ARMv4
-imm                      \x1\x0B                        ARM32,ARMv4
-immshifter               \x1\x0B                        ARM32,ARMv4
 
 [BLX]
+imm24                    \x28\xB                       ARM32,ARMv5T
 mem32                    \x28\xB                       ARM32,ARMv5T
-imm                      \x28\xB                       ARM32,ARMv5T
-immshifter               \x28\xB                       ARM32,ARMv5T
 reg32                    \3\x01\x2F\xFF\x30            ARM32,ARMv5T
 
 [BKPTcc]
@@ -240,12 +237,11 @@ reg32,reg32,shifterop  \xA\x1\xA0                       ARM32,ARMv4
 reg32,immshifter       \xB\x1\xA0                       ARM32,ARMv4
 
 [MRScc]
-reg32,reg32         \x10\x01\x0F                        ARM32,ARMv4
+reg32,regf          \x10\x01\x0F                        ARM32,ARMv4
 
 [MSRcc]
-reg32,reg32         \x11\x01\x29\xF0                    ARM32,ARMv4
 regf,reg32          \x12\x01\x28\xF0                    ARM32,ARMv4
-regf,imm            \x13\x03\x28\xF0                    ARM32,ARMv4
+regf,immshifter     \x13\x03\x28\xF0                    ARM32,ARMv4
 
 [MULcc]
 reg32,reg32,reg32      \x14\x00\x00\x90          ARM32,ARMv4
@@ -388,7 +384,7 @@ reg32,reg32,reg32          \x1A\x01\x60\x05                    ARM32,ARMv5TE
 reg32,reg32,reg32          \x1A\x01\x20\x05                    ARM32,ARMv5TE
 
 [SMLABBcc]
-reg32,reg32,reg32,reg32     \x15\x01\x40\x8                     ARM32,ARMv5TE
+reg32,reg32,reg32,reg32     \x15\x01\x00\x8                     ARM32,ARMv5TE
 
 [SMLABTcc]
 reg32,reg32,reg32,reg32     \x15\x01\x00\xC                     ARM32,ARMv5TE
@@ -436,16 +432,16 @@ vreg,memam2             \x45\xD\x10\xA             ARM32,VFPv2
 vreg,memam2             \x45\xD\x0\xA              ARM32,VFPv2
 
 [SMULBBcc]
-reg32,reg32,reg32           \x15\x01\x60\x8                     ARM32,ARMv5TE
+reg32,reg32,reg32           \x15\x01\x60\x8\x0                  ARM32,ARMv5TE
 
 [SMULBTcc]
-reg32,reg32,reg32           \x15\x01\x60\xC                     ARM32,ARMv5TE
+reg32,reg32,reg32           \x15\x01\x60\xC\x0                  ARM32,ARMv5TE
 
 [SMULTBcc]
-reg32,reg32,reg32           \x15\x01\x60\xA                     ARM32,ARMv5TE
+reg32,reg32,reg32           \x15\x01\x60\xA\x0                  ARM32,ARMv5TE
 
 [SMULTTcc]
-reg32,reg32,reg32           \x15\x01\x60\xE                     ARM32,ARMv5TE
+reg32,reg32,reg32           \x15\x01\x60\xE\x0                  ARM32,ARMv5TE
 
 [SMULWBcc]
 reg32,reg32,reg32           \x14\x1\x20\xA0                     ARM32,ARMv5TE
@@ -457,22 +453,22 @@ reg32,reg32,reg32           \x14\x1\x20\xE0                     ARM32,ARMv5TE
 reg32,reg32,memam2        \x19\x0\x0\x0\xF0           ARM32,ARMv4
 
 [LDRHTcc]
-reg32,memam2              \x19\x0\x20\x0\xB0           ARM32,ARMv4
+reg32,memam2              \x19\x0\x30\x0\xB0           ARM32,ARMv4
 
 [STRHTcc]
-reg32,memam2              \x19\x0\x20\x0\xB0           ARM32,ARMv4
+reg32,memam2              \x1E\x0\x20\x0\xB0           ARM32,ARMv4
 
 [LDRSBTcc]
-reg32,memam2              \x19\x0\x30\x0\xD0           ARM32,ARMv4
+reg32,memam2              \x1E\x0\x30\x0\xD0           ARM32,ARMv4
 
 [STRSBTcc]
-reg32,memam2              \x19\x0\x30\x0\xD0           ARM32,ARMv4
+reg32,memam2              \x1E\x0\x30\x0\xD0           ARM32,ARMv4
 
 [LDRSHTcc]
-reg32,memam2              \x19\x0\x30\x0\xF0           ARM32,ARMv4
+reg32,memam2              \x1E\x0\x30\x0\xF0           ARM32,ARMv4
 
 [STRSHTcc]
-reg32,memam2              \x19\x0\x30\x0\xF0           ARM32,ARMv4
+reg32,memam2              \x1E\x0\x30\x0\xF0           ARM32,ARMv4
 
 [FSTDcc]
 
@@ -519,7 +515,7 @@ reg32,reg32,reg32           \x16\x6\x80\x1                     ARM32,ARMv6
 reg32,reg32,reg32,shifterop \x16\x6\x80\x1                     ARM32,ARMv6
 
 [PKHTBcc]
-reg32,reg32,reg32           \x16\x6\x80\x5                     ARM32,ARMv6
+reg32,reg32,reg32           \x16\x6\x80\x1                     ARM32,ARMv6
 reg32,reg32,reg32,shifterop \x16\x6\x80\x5                     ARM32,ARMv6
 
 [PLI]
@@ -539,7 +535,7 @@ reg32,reg32,reg32          \x16\x06\x20\xF7                    ARM32,ARMv6
 reg32,reg32,reg32          \x16\x06\x20\xFF                    ARM32,ARMv6
 
 [RBITcc]
-reg32,reg32                \x32\x6\xBF\xF\x30                  ARM32,ARMv6T2
+reg32,reg32                \x32\x6\xFF\xF\x30                  ARM32,ARMv6T2
 
 [REVcc]
 reg32,reg32                \x32\x6\xBF\xF\x30                  ARM32,ARMv6
@@ -566,7 +562,7 @@ reg32,reg32,immshifter,immshifter \x2D\x7\xA0\x0\x50           ARM32,ARMv6T2
 reg32,reg32,reg32          \x16\x06\x80\xFB                    ARM32,ARMv6
 
 [SETEND]
-imm                        \x2B\xF1\x01\x0\x0                  ARM32,ARMv6
+immshifter                 \x2B\xF1\x01\x0\x0                  ARM32,ARMv6
 
 [SEVcc]
 void                       \x2F\x3\x20\xF0\x4                  ARM32,ARMv6K
@@ -630,13 +626,13 @@ reg32,reg32,reg32,reg32    \x15\x7\x50\x1                      ARM32,ARMv6
 reg32,reg32,reg32,reg32    \x15\x7\x50\xD                      ARM32,ARMv6
 
 [SMMULcc]
-reg32,reg32,reg32          \x15\x7\x50\x1                      ARM32,ARMv6
+reg32,reg32,reg32          \x15\x7\x50\x1\xF                   ARM32,ARMv6
 
 [SMUADcc]
-reg32,reg32,reg32          \x15\x7\x00\x1                      ARM32,ARMv6
+reg32,reg32,reg32          \x15\x7\x00\x1\xF                   ARM32,ARMv6
 
 [SMUSDcc]
-reg32,reg32,reg32          \x15\x7\x00\x5                      ARM32,ARMv6
+reg32,reg32,reg32          \x15\x7\x00\x5\xF                   ARM32,ARMv6
 
 [SRScc]
 
@@ -645,7 +641,7 @@ reg32,immshifter,reg32            \x2A\x6\xA0\x0\x10                  ARM32,ARMv
 reg32,immshifter,reg32,shifterop  \x2A\x6\xA0\x0\x10                  ARM32,ARMv6
 
 [SSAT16cc]
-reg32,immshifter,reg32            \x2A\x6\xA0\x0\x30                  ARM32,ARMv6
+reg32,immshifter,reg32            \x2A\x6\xA0\xF\x30                  ARM32,ARMv6
 
 [SSAXcc]
 reg32,reg32,reg32          \x16\x06\x10\xF5                    ARM32,ARMv6
@@ -753,7 +749,7 @@ reg32,reg32,reg32          \x16\x06\x60\xF7                    ARM32,ARMv6
 reg32,reg32,reg32          \x16\x06\x60\xFF                    ARM32,ARMv6
 
 [USAD8cc]
-reg32,reg32,reg32          \x15\x07\x80\x01                    ARM32,ARMv6
+reg32,reg32,reg32          \x15\x07\x80\x01\xF                 ARM32,ARMv6
 
 [USADA8cc]
 reg32,reg32,reg32,reg32    \x15\x07\x80\x01                    ARM32,ARMv6
@@ -763,10 +759,10 @@ reg32,immshifter,reg32            \x2A\x6\xE0\x0\x10                  ARM32,ARMv
 reg32,immshifter,reg32,shifterop  \x2A\x6\xE0\x0\x10                  ARM32,ARMv6
 
 [USAT16cc]
-reg32,immshifter,reg32            \x2A\x6\xE0\x0\x30                  ARM32,ARMv6
+reg32,immshifter,reg32            \x2A\x6\xE0\xF\x30                  ARM32,ARMv6
 
 [USAXcc]
-reg32,reg32,reg32          \x16\x06\x50\xF6                    ARM32,ARMv6
+reg32,reg32,reg32          \x16\x06\x50\xF5                    ARM32,ARMv6
 
 [USUB16cc]
 reg32,reg32,reg32          \x16\x06\x50\xF7                    ARM32,ARMv6
@@ -905,7 +901,7 @@ void                          \x2F\x3\x20\xF0\x1               ARM32,ARMv6K
 ; Thumb-2
 
 [POP]
-reglist		                  \x26\x80		               ARM32,ARMv4
+reglist		                  \x26\x8B		               ARM32,ARMv4
 
 [PUSH]
 reglist		                  \x26\x80		               ARM32,ARMv4

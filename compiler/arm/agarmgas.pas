@@ -208,7 +208,7 @@ unit agarmgas;
       var
         hs : string;
         first : boolean;
-        r : tsuperregister;
+        r, rs : tsuperregister;
       begin
         case o.typ of
           top_reg:
@@ -230,14 +230,44 @@ unit agarmgas;
             begin
               getopstr:='{';
               first:=true;
-              for r:=RS_R0 to RS_R15 do
-                if r in o.regset^ then
-                  begin
-                    if not(first) then
-                      getopstr:=getopstr+',';
-                    getopstr:=getopstr+gas_regname(newreg(o.regtyp,r,o.subreg));
-                    first:=false;
-                  end;
+              if R_SUBFS=o.subreg then
+                begin
+                  for r:=0 to 31 do // S0 to S31
+                    if r in o.regset^ then
+                      begin
+                        if not(first) then
+                          getopstr:=getopstr+',';
+                        if odd(r) then
+                          rs:=(r shr 1)+RS_S1
+                        else
+                          rs:=(r shr 1)+RS_S0;
+                        getopstr:=getopstr+gas_regname(newreg(o.regtyp,rs,o.subreg));
+                        first:=false;
+                      end;
+                end
+              else if R_SUBFD=o.subreg then
+                begin
+                  for r:=0 to 31 do
+                    if r in o.regset^ then
+                      begin
+                        if not(first) then
+                          getopstr:=getopstr+',';
+                        rs:=r+RS_D0;
+                        getopstr:=getopstr+gas_regname(newreg(o.regtyp,rs,o.subreg));
+                        first:=false;
+                      end;
+                end
+              else
+                begin
+                  for r:=RS_R0 to RS_R15 do
+                    if r in o.regset^ then
+                      begin
+                        if not(first) then
+                          getopstr:=getopstr+',';
+                        getopstr:=getopstr+gas_regname(newreg(o.regtyp,r,o.subreg));
+                        first:=false;
+                      end;
+                end;
               getopstr:=getopstr+'}';
               if o.usermode then
                 getopstr:=getopstr+'^';

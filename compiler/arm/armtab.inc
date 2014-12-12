@@ -52,20 +52,6 @@
   (
     opcode  : A_ADR;
     ops     : 2;
-    optypes : (ot_reg32,ot_immediateshifter,ot_none,ot_none,ot_none,ot_none);
-    code    : #51#2#15;
-    flags   : if_arm32 or if_armv4
-  ),
-  (
-    opcode  : A_ADR;
-    ops     : 2;
-    optypes : (ot_reg32,ot_immediate or ot_bits32,ot_none,ot_none,ot_none,ot_none);
-    code    : #51#2#15;
-    flags   : if_arm32 or if_armv4
-  ),
-  (
-    opcode  : A_ADR;
-    ops     : 2;
     optypes : (ot_reg32,ot_memoryam2,ot_none,ot_none,ot_none,ot_none);
     code    : #51#2#15;
     flags   : if_arm32 or if_armv4
@@ -94,21 +80,14 @@
   (
     opcode  : A_B;
     ops     : 1;
+    optypes : (ot_immediate24,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #1#10;
+    flags   : if_arm32 or if_armv4
+  ),
+  (
+    opcode  : A_B;
+    ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none,ot_none,ot_none,ot_none);
-    code    : #1#10;
-    flags   : if_arm32 or if_armv4
-  ),
-  (
-    opcode  : A_B;
-    ops     : 1;
-    optypes : (ot_immediate,ot_none,ot_none,ot_none,ot_none,ot_none);
-    code    : #1#10;
-    flags   : if_arm32 or if_armv4
-  ),
-  (
-    opcode  : A_B;
-    ops     : 1;
-    optypes : (ot_immediateshifter,ot_none,ot_none,ot_none,ot_none,ot_none);
     code    : #1#10;
     flags   : if_arm32 or if_armv4
   ),
@@ -136,42 +115,28 @@
   (
     opcode  : A_BL;
     ops     : 1;
-    optypes : (ot_memory or ot_bits32,ot_none,ot_none,ot_none,ot_none,ot_none);
+    optypes : (ot_immediate24,ot_none,ot_none,ot_none,ot_none,ot_none);
     code    : #1#11;
     flags   : if_arm32 or if_armv4
   ),
   (
     opcode  : A_BL;
     ops     : 1;
-    optypes : (ot_immediate,ot_none,ot_none,ot_none,ot_none,ot_none);
+    optypes : (ot_memory or ot_bits32,ot_none,ot_none,ot_none,ot_none,ot_none);
     code    : #1#11;
     flags   : if_arm32 or if_armv4
   ),
   (
-    opcode  : A_BL;
+    opcode  : A_BLX;
     ops     : 1;
-    optypes : (ot_immediateshifter,ot_none,ot_none,ot_none,ot_none,ot_none);
-    code    : #1#11;
-    flags   : if_arm32 or if_armv4
+    optypes : (ot_immediate24,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #40#11;
+    flags   : if_arm32 or if_armv5t
   ),
   (
     opcode  : A_BLX;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none,ot_none,ot_none,ot_none);
-    code    : #40#11;
-    flags   : if_arm32 or if_armv5t
-  ),
-  (
-    opcode  : A_BLX;
-    ops     : 1;
-    optypes : (ot_immediate,ot_none,ot_none,ot_none,ot_none,ot_none);
-    code    : #40#11;
-    flags   : if_arm32 or if_armv5t
-  ),
-  (
-    opcode  : A_BLX;
-    ops     : 1;
-    optypes : (ot_immediateshifter,ot_none,ot_none,ot_none,ot_none,ot_none);
     code    : #40#11;
     flags   : if_arm32 or if_armv5t
   ),
@@ -500,15 +465,8 @@
   (
     opcode  : A_MRS;
     ops     : 2;
-    optypes : (ot_reg32,ot_reg32,ot_none,ot_none,ot_none,ot_none);
+    optypes : (ot_reg32,ot_regf,ot_none,ot_none,ot_none,ot_none);
     code    : #16#1#15;
-    flags   : if_arm32 or if_armv4
-  ),
-  (
-    opcode  : A_MSR;
-    ops     : 2;
-    optypes : (ot_reg32,ot_reg32,ot_none,ot_none,ot_none,ot_none);
-    code    : #17#1#41#240;
     flags   : if_arm32 or if_armv4
   ),
   (
@@ -521,7 +479,7 @@
   (
     opcode  : A_MSR;
     ops     : 2;
-    optypes : (ot_regf,ot_immediate,ot_none,ot_none,ot_none,ot_none);
+    optypes : (ot_regf,ot_immediateshifter,ot_none,ot_none,ot_none,ot_none);
     code    : #19#3#40#240;
     flags   : if_arm32 or if_armv4
   ),
@@ -991,7 +949,7 @@
     opcode  : A_SMLABB;
     ops     : 4;
     optypes : (ot_reg32,ot_reg32,ot_reg32,ot_reg32,ot_none,ot_none);
-    code    : #21#1#64#8;
+    code    : #21#1#0#8;
     flags   : if_arm32 or if_armv5te
   ),
   (
@@ -1103,28 +1061,28 @@
     opcode  : A_SMULBB;
     ops     : 3;
     optypes : (ot_reg32,ot_reg32,ot_reg32,ot_none,ot_none,ot_none);
-    code    : #21#1#96#8;
+    code    : #21#1#96#8#0;
     flags   : if_arm32 or if_armv5te
   ),
   (
     opcode  : A_SMULBT;
     ops     : 3;
     optypes : (ot_reg32,ot_reg32,ot_reg32,ot_none,ot_none,ot_none);
-    code    : #21#1#96#12;
+    code    : #21#1#96#12#0;
     flags   : if_arm32 or if_armv5te
   ),
   (
     opcode  : A_SMULTB;
     ops     : 3;
     optypes : (ot_reg32,ot_reg32,ot_reg32,ot_none,ot_none,ot_none);
-    code    : #21#1#96#10;
+    code    : #21#1#96#10#0;
     flags   : if_arm32 or if_armv5te
   ),
   (
     opcode  : A_SMULTT;
     ops     : 3;
     optypes : (ot_reg32,ot_reg32,ot_reg32,ot_none,ot_none,ot_none);
-    code    : #21#1#96#14;
+    code    : #21#1#96#14#0;
     flags   : if_arm32 or if_armv5te
   ),
   (
@@ -1152,42 +1110,42 @@
     opcode  : A_LDRHT;
     ops     : 2;
     optypes : (ot_reg32,ot_memoryam2,ot_none,ot_none,ot_none,ot_none);
-    code    : #25#0#32#0#176;
+    code    : #25#0#48#0#176;
     flags   : if_arm32 or if_armv4
   ),
   (
     opcode  : A_STRHT;
     ops     : 2;
     optypes : (ot_reg32,ot_memoryam2,ot_none,ot_none,ot_none,ot_none);
-    code    : #25#0#32#0#176;
+    code    : #30#0#32#0#176;
     flags   : if_arm32 or if_armv4
   ),
   (
     opcode  : A_LDRSBT;
     ops     : 2;
     optypes : (ot_reg32,ot_memoryam2,ot_none,ot_none,ot_none,ot_none);
-    code    : #25#0#48#0#208;
+    code    : #30#0#48#0#208;
     flags   : if_arm32 or if_armv4
   ),
   (
     opcode  : A_STRSBT;
     ops     : 2;
     optypes : (ot_reg32,ot_memoryam2,ot_none,ot_none,ot_none,ot_none);
-    code    : #25#0#48#0#208;
+    code    : #30#0#48#0#208;
     flags   : if_arm32 or if_armv4
   ),
   (
     opcode  : A_LDRSHT;
     ops     : 2;
     optypes : (ot_reg32,ot_memoryam2,ot_none,ot_none,ot_none,ot_none);
-    code    : #25#0#48#0#240;
+    code    : #30#0#48#0#240;
     flags   : if_arm32 or if_armv4
   ),
   (
     opcode  : A_STRSHT;
     ops     : 2;
     optypes : (ot_reg32,ot_memoryam2,ot_none,ot_none,ot_none,ot_none);
-    code    : #25#0#48#0#240;
+    code    : #30#0#48#0#240;
     flags   : if_arm32 or if_armv4
   ),
   (
@@ -1306,7 +1264,7 @@
     opcode  : A_PKHTB;
     ops     : 3;
     optypes : (ot_reg32,ot_reg32,ot_reg32,ot_none,ot_none,ot_none);
-    code    : #22#6#128#5;
+    code    : #22#6#128#1;
     flags   : if_arm32 or if_armv6
   ),
   (
@@ -1369,7 +1327,7 @@
     opcode  : A_RBIT;
     ops     : 2;
     optypes : (ot_reg32,ot_reg32,ot_none,ot_none,ot_none,ot_none);
-    code    : #50#6#191#15#48;
+    code    : #50#6#255#15#48;
     flags   : if_arm32 or if_armv6t2
   ),
   (
@@ -1431,7 +1389,7 @@
   (
     opcode  : A_SETEND;
     ops     : 1;
-    optypes : (ot_immediate,ot_none,ot_none,ot_none,ot_none,ot_none);
+    optypes : (ot_immediateshifter,ot_none,ot_none,ot_none,ot_none,ot_none);
     code    : #43#241#1#0#0;
     flags   : if_arm32 or if_armv6
   ),
@@ -1600,21 +1558,21 @@
     opcode  : A_SMMUL;
     ops     : 3;
     optypes : (ot_reg32,ot_reg32,ot_reg32,ot_none,ot_none,ot_none);
-    code    : #21#7#80#1;
+    code    : #21#7#80#1#15;
     flags   : if_arm32 or if_armv6
   ),
   (
     opcode  : A_SMUAD;
     ops     : 3;
     optypes : (ot_reg32,ot_reg32,ot_reg32,ot_none,ot_none,ot_none);
-    code    : #21#7#0#1;
+    code    : #21#7#0#1#15;
     flags   : if_arm32 or if_armv6
   ),
   (
     opcode  : A_SMUSD;
     ops     : 3;
     optypes : (ot_reg32,ot_reg32,ot_reg32,ot_none,ot_none,ot_none);
-    code    : #21#7#0#5;
+    code    : #21#7#0#5#15;
     flags   : if_arm32 or if_armv6
   ),
   (
@@ -1635,7 +1593,7 @@
     opcode  : A_SSAT16;
     ops     : 3;
     optypes : (ot_reg32,ot_immediateshifter,ot_reg32,ot_none,ot_none,ot_none);
-    code    : #42#6#160#0#48;
+    code    : #42#6#160#15#48;
     flags   : if_arm32 or if_armv6
   ),
   (
@@ -1943,7 +1901,7 @@
     opcode  : A_USAD8;
     ops     : 3;
     optypes : (ot_reg32,ot_reg32,ot_reg32,ot_none,ot_none,ot_none);
-    code    : #21#7#128#1;
+    code    : #21#7#128#1#15;
     flags   : if_arm32 or if_armv6
   ),
   (
@@ -1971,14 +1929,14 @@
     opcode  : A_USAT16;
     ops     : 3;
     optypes : (ot_reg32,ot_immediateshifter,ot_reg32,ot_none,ot_none,ot_none);
-    code    : #42#6#224#0#48;
+    code    : #42#6#224#15#48;
     flags   : if_arm32 or if_armv6
   ),
   (
     opcode  : A_USAX;
     ops     : 3;
     optypes : (ot_reg32,ot_reg32,ot_reg32,ot_none,ot_none,ot_none);
-    code    : #22#6#80#246;
+    code    : #22#6#80#245;
     flags   : if_arm32 or if_armv6
   ),
   (
@@ -2020,7 +1978,7 @@
     opcode  : A_POP;
     ops     : 1;
     optypes : (ot_reglist,ot_none,ot_none,ot_none,ot_none,ot_none);
-    code    : #38#128;
+    code    : #38#139;
     flags   : if_arm32 or if_armv4
   ),
   (

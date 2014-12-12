@@ -127,3 +127,6 @@ RS_FPSID = $23;
 RS_MVFR1 = $24;
 RS_MVFR0 = $25;
 RS_FPEXC = $26;
+RS_APSR_nzcvq = $27;
+RS_APSR_g = $28;
+RS_APSR_nzcvqg = $29;
