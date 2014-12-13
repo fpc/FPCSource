@@ -907,6 +907,11 @@ implementation
     end;
 
 
+  function elf_arm_encodeflags: longword;
+    begin
+      result:=EF_ARM_EABI_VER5;
+    end;
+
 {*****************************************************************************
                                     Initialize
 *****************************************************************************}
@@ -929,6 +934,7 @@ implementation
         encodereloc:       @elf_arm_encodeReloc;
         loadreloc:         @elf_arm_loadReloc;
         loadsection:       @elf_arm_loadSection;
+        encodeflags:       @elf_arm_encodeflags;
       );
 
     as_arm_elf32_info : tasminfo =
