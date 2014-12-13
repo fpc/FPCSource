@@ -1868,7 +1868,7 @@ implementation
                   ot:=OT_SHIFTEROP;
                 end;
               else
-                internalerror(200402261);
+                internalerror(2004022623);
             end;
           end;
       end;
