@@ -3493,6 +3493,8 @@ P*2CN_Generate nil-pointer checks (AIX-only)
 **2Cp<x>_Select instruction set; see fpc -i or fpc -ic for possible values
 **2CP<x>=<y>_ packing settings
 **3CPPACKSET=<y>_ <y> set allocation: 0, 1 or DEFAULT or NORMAL, 2, 4 and 8
+**3CPPACKENUM=<y>_ <y> enum packing: 0, 1, 2 and 4 or DEFAULT or NORMAL
+**3CPPACKRECORD=<y>_ <y> record packing: 0 or DEFAULT or NORMAL, 1, 2, 4, 8, 16 and 32
 **2Cr_Range checking
 **2CR_Verify object method call validity
 **2Cs<n>_Set stack checking size to <n>
