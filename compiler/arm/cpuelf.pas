@@ -674,6 +674,11 @@ implementation
                       address:=(address and $FE000000) or (((tmp-curloc) and 2) shl 23) or $F0000000
                     else
                       InternalError(2014092001);
+                  end
+                else if (address and $FF000000)=$FA000000 then
+                  begin
+                    { Change BLX to BL }
+                    address:=(address and $EA000000) or $01000000;
                   end;
                 tmp:=tmp-curloc;
                 // TODO: check overflow
