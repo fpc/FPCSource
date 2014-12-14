@@ -49,6 +49,12 @@ type
 
 {$I dosh.inc}
 
+function DeviceByIdx(Idx: Integer): string;
+function AddDisk(Const Path: string): Integer;
+function RefreshDeviceList: Integer;
+function DiskSize(Drive: AnsiString): Int64;
+function DiskFree(Drive: AnsiString): Int64;
+
 implementation
 
 {$DEFINE HAS_GETMSCOUNT}
@@ -104,7 +110,7 @@ end;
 
 function BADDR(bval: LongInt): Pointer; Inline;
 begin
-  {$if defined(AROS) or (not defined(AROS_FLAVOUR_BINCOMPAT))}
+  {$if defined(AROS) and (not defined(AROS_FLAVOUR_BINCOMPAT))}
   BADDR := Pointer(bval);
   {$else}
   BADDR:=Pointer(bval Shl 2);
@@ -113,7 +119,7 @@ end;
 
 function BSTR2STRING(s : Pointer): PChar; Inline;
 begin
-  {$if defined(AROS) or (not defined(AROS_FLAVOUR_BINCOMPAT))}
+  {$if defined(AROS) and (not defined(AROS_FLAVOUR_BINCOMPAT))}
   BSTR2STRING:=PChar(s);
   {$else}
   BSTR2STRING:=PChar(BADDR(PtrInt(s)))+1;
@@ -122,7 +128,7 @@ end;
 
 function BSTR2STRING(s : LongInt): PChar; Inline;
 begin
-  {$if defined(AROS) or (not defined(AROS_FLAVOUR_BINCOMPAT))}
+  {$if defined(AROS) and (not defined(AROS_FLAVOUR_BINCOMPAT))}
   BSTR2STRING:=PChar(s);
   {$else}
   BSTR2STRING:=PChar(BADDR(s))+1;
@@ -507,91 +513,165 @@ end;
                                --- Disk ---
 ******************************************************************************}
 
-{ How to solve the problem with this:       }
-{  We could walk through the device list    }
-{  at startup to determine possible devices }
-
-const
-
-  not_to_use_devs : array[0..12] of string =(
-                   'DF0:',
-                   'DF1:',
-                   'DF2:',
-                   'DF3:',
-                   'PED:',
-                   'PRJ:',
-                   'PIPE:',
-                   'RAM:',
-                   'CON:',
-                   'RAW:',
-                   'SER:',
-                   'PAR:',
-                   'PRT:');
-
+{
+  The Diskfree and Disksize functions need a file on the specified drive, since this
+  is required for the statfs system call.
+  These filenames are set in drivestr[0..26], and have been preset to :
+   0 - ':'      (default drive - hence current dir is ok.)
+   1 - 'DF0:'   (floppy drive 1 - should be adapted to local system )
+   2 - 'DF1:'   (floppy drive 2 - should be adapted to local system )
+   3 - 'SYS:'   (C: equivalent of dos is the SYS: partition)
+   4..26          (can be set by you're own applications)
+  ! Use AddDisk() to Add new drives !
+  They both return -1 when a failure occurs.
+}
 var
-   deviceids : array[1..20] of byte;
-   devicenames : array[1..20] of string[20];
-   numberofdevices : Byte;
+  DeviceList: array[0..26] of string[20];
+  NumDevices: Integer = 0;
+  
+const
+  IllegalDevices: array[0..12] of string =(
+                   'PED:',  
+                   'PRJ:',
+                   'PIPE:',   // Pipes
+                   'XPIPE:',  // Extented Pipe
+                   'CON:',    // Console
+                   'RAW:',    // RAW: Console
+                   'KCON:',   // KingCON Console
+                   'KRAW:',   // KingCON RAW
+                   'SER:',    // serial Ports
+                   'SER0:',
+                   'SER1:',
+                   'PAR:',    // Parallel Porty
+                   'PRT:');   // Printer
 
-Function DiskFree(Drive: Byte): int64;
-Var
-  MyLock      : LongInt;
-  Inf         : pInfoData;
-  Free        : Int64;
-  myproc      : pProcess;
-  OldWinPtr   : Pointer;
-Begin
-  Free := -1;
-  { Here we stop systemrequesters to appear }
-  myproc := pProcess(FindTask(nil));
-  OldWinPtr := myproc^.pr_WindowPtr;
-  myproc^.pr_WindowPtr := Pointer(-1);
-  { End of systemrequesterstop }
-  New(Inf);
-  MyLock := dosLock(devicenames[deviceids[Drive]],SHARED_LOCK);
-  If MyLock <> 0 then begin
-     if Info(MyLock,Inf) <> 0 then begin
-        Free := (Int64(Inf^.id_NumBlocks) * Inf^.id_BytesPerBlock) -
-                (Int64(Inf^.id_NumBlocksUsed) * Inf^.id_BytesPerBlock);
-     end;
-     Unlock(MyLock);
+function IsIllegalDevice(DeviceName: string): Boolean;
+var
+  i: Integer;
+  Str: AnsiString;
+begin
+  IsIllegalDevice := False;
+  Str := UpCase(DeviceName);
+  for i := Low(IllegalDevices) to High(IllegalDevices) do
+  begin
+    if Str = IllegalDevices[i] then
+    begin
+      IsIllegalDevice := True;
+      Exit;
+    end;
   end;
-  Dispose(Inf);
-  { Restore systemrequesters }
-  myproc^.pr_WindowPtr := OldWinPtr;
-  diskfree := Free;
 end;
 
-
-
-Function DiskSize(Drive: Byte): int64;
-Var
-  MyLock      : LongInt;
-  Inf         : pInfoData;
-  Size        : Int64;
-  myproc      : pProcess;
-  OldWinPtr   : Pointer;
-Begin
-  Size := -1;
-  { Here we stop systemrequesters to appear }
-  myproc := pProcess(FindTask(nil));
-  OldWinPtr := myproc^.pr_WindowPtr;
-  myproc^.pr_WindowPtr := Pointer(-1);
-  { End of systemrequesterstop }
-  New(Inf);
-  MyLock := dosLock(devicenames[deviceids[Drive]],SHARED_LOCK);
-  If MyLock <> 0 then begin
-     if Info(MyLock,Inf) <> 0 then begin
-        Size := (Int64(Inf^.id_NumBlocks) * Inf^.id_BytesPerBlock);
-     end;
-     Unlock(MyLock);
-  end;
-  Dispose(Inf);
-  { Restore systemrequesters }
-  myproc^.pr_WindowPtr := OldWinPtr;
-  disksize := Size;
+function DeviceByIdx(Idx: Integer): string;
+begin
+  DeviceByIdx := '';
+  if (Idx < 0) or (Idx >= NumDevices) then
+    Exit;
+  DeviceByIdx := DeviceList[Idx];
 end;
 
+function AddDisk(const Path: string): Integer;
+begin
+  // if hit border, restart at 4
+  if NumDevices > 26 then
+    NumDevices := 4;
+  // set the device
+  DeviceList[NumDevices] := Copy(Path, 1, 20);
+  // return the Index increment for next run
+  AddDisk := NumDevices;
+  Inc(NumDevices);
+end;
+
+function RefreshDeviceList: Integer;
+var
+  List: PDosList;
+  Temp: PChar;
+  Str: string;
+begin
+  NumDevices := 0;
+  AddDisk(':');          // Index 0
+  AddDisk('DF0:');       // Index 1
+  AddDisk('DF1:');       // Index 2
+  AddDisk('SYS:');       // Index 3
+  // Lock the List
+  List := LockDosList(LDF_DEVICES or LDF_READ);
+  // Inspect the List
+  repeat
+    List := NextDosEntry(List, LDF_DEVICES);
+    if List <> nil then
+    begin
+      Temp := BSTR2STRING(List^.dol_Name);
+      Str := strpas(Temp) + ':';
+      if not IsIllegalDevice(str) then
+        AddDisk(Str);
+    end;
+  until List = nil;
+  RefreshDeviceList := NumDevices;
+end;
+
+// New easier DiskSize()
+//
+function DiskSize(Drive: AnsiString): Int64;
+var
+  DirLock: LongInt;
+  Inf: TInfoData;
+  MyProc: PProcess;
+  OldWinPtr: Pointer;
+begin
+  DiskSize := -1;
+  //
+  MyProc := PProcess(FindTask(Nil));
+  OldWinPtr := MyProc^.pr_WindowPtr;
+  MyProc^.pr_WindowPtr := Pointer(-1);
+  //
+  DirLock := Lock(PChar(Drive), SHARED_LOCK);
+  if DirLock <> 0 then
+  begin
+    if Info(DirLock, @Inf) <> 0 then
+      DiskSize := Int64(Inf.id_NumBlocks) * Inf.id_BytesPerBlock;
+    UnLock(DirLock);
+  end;
+end;
+
+function DiskSize(Drive: Byte): Int64;
+begin
+  DiskSize := -1;
+  if (Drive < 0) or (Drive >= NumDevices) then
+    Exit;
+  DiskSize := DiskSize(DeviceList[Drive]);
+end;
+
+// New easier DiskFree()
+//
+function DiskFree(Drive: AnsiString): Int64;
+var
+  DirLock: LongInt;
+  Inf: TInfoData;
+  MyProc: PProcess;
+  OldWinPtr: Pointer;
+begin
+  DiskFree := -1;
+  //
+  MyProc := PProcess(FindTask(Nil));
+  OldWinPtr := MyProc^.pr_WindowPtr;
+  MyProc^.pr_WindowPtr := Pointer(-1);
+  //
+  DirLock := Lock(PChar(Drive), SHARED_LOCK);
+  if DirLock <> 0 then
+  begin
+    if Info(DirLock, @Inf) <> 0 then
+      DiskFree := Int64(Inf.id_NumBlocks - Inf.id_NumBlocksUsed) * Inf.id_BytesPerBlock;
+    UnLock(DirLock);
+  end;
+end;
+
+function DiskFree(Drive: Byte): Int64;
+begin
+  DiskFree := -1;
+  if (Drive < 0) or (Drive >= NumDevices) then
+    Exit;
+  DiskFree := DiskSize(DeviceList[Drive]);
+end;
 
 procedure FindFirst(const Path: PathStr; Attr: Word; Var f: SearchRec);
 var
@@ -1082,61 +1162,8 @@ begin
   end;  
 end;
 
-
-procedure AddDevice(str : String);
-begin
-    inc(numberofdevices);
-    deviceids[numberofdevices] := numberofdevices;
-    devicenames[numberofdevices] := str;
-end;
-
-function MakeDeviceName(str : pchar): string;
-var
-   temp : string[20];
-begin
-   temp := strpas(str);
-   temp := temp + ':';
-   MakeDeviceName := temp;
-end;
-
-function IsInDeviceList(str : string): boolean;
-var
-   i : byte;
-   theresult : boolean;
-begin
-   theresult := false;
-   for i := low(not_to_use_devs) to high(not_to_use_devs) do
-   begin
-       if str = not_to_use_devs[i] then begin
-          theresult := true;
-          break;
-       end;
-   end;
-   IsInDeviceList := theresult;
-end;
-
-procedure ReadInDevices;
-var
-   dl : pDosList;
-   temp : pchar;
-   str  : string[20];
-begin
-   dl := LockDosList(LDF_DEVICES or LDF_READ );
-   repeat
-      dl := NextDosEntry(dl,LDF_DEVICES );
-      if dl <> nil then begin
-         temp := BSTR2STRING(dl^.dol_Name);
-         str := MakeDeviceName(temp);
-         if not IsInDeviceList(str) then
-              AddDevice(str);
-      end;
-   until dl = nil;
-   UnLockDosList(LDF_DEVICES or LDF_READ );
-end;
-
 begin
   DosError:=0;
-  numberofdevices := 0;
   StrOfPaths := '';
-  ReadInDevices;
+  RefreshDeviceList;
 end.
