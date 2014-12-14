@@ -5144,28 +5144,28 @@ end;
 procedure TBuildEngine.SysDeleteTree(Const ADirectoryName: String);
 
   function IntRemoveTree(const ADirectoryName: String) : boolean;
-{$ifdef WINDOWS}
+{$ifdef MSWINDOWS}
   { pulling in shellapi with all it dependent units and packages makes things too
     complicated so just add the constants here }
   const
     FO_DELETE                = $0003;
     FOF_SILENT               = $0004;
     FOF_NOCONFIRMATION       = $0010;
-{$endif WINDOWS}
+{$endif MSWINDOWS}
   var
     i: integer;
-{$ifdef WINDOWS}
+{$ifdef MSWINDOWS}
     SHFileOpStruct: TSHFileOpStruct;
     DirBuf: array[0..MAX_PATH+1] of TCHAR;
-{$else WINDOWS}
+{$else MSWINDOWS}
     searchRec: TSearchRec;
     SearchResult: longint;
     s: string;
-{$endif WINDOWS}
+{$endif MSWINDOWS}
 
   begin
     result := true;
-{$ifdef WINDOWS}
+{$ifdef MSWINDOWS}
     try
       FillChar(SHFileOpStruct, Sizeof(SHFileOpStruct), 0);
       FillChar(DirBuf, Sizeof(DirBuf), 0);
@@ -5180,7 +5180,7 @@ procedure TBuildEngine.SysDeleteTree(Const ADirectoryName: String);
     except
       Result := False;
     end;
-{$else WINDOWS}
+{$else MSWINDOWS}
     SearchResult := FindFirst(IncludeTrailingPathDelimiter(ADirectoryName)+AllFilesMask, faAnyFile+faSymLink, searchRec);
     try
       while SearchResult=0 do
