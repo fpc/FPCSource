@@ -26,7 +26,7 @@ unit htypechk;
 interface
 
     uses
-      cclasses,tokens,cpuinfo,
+      cclasses,cmsgs,tokens,cpuinfo,
       node,globtype,
       symconst,symtype,symdef,symsym,symbase;
 
@@ -177,6 +177,8 @@ interface
     { returns whether the def may be used in the Default() intrinsic; static
       arrays, records and objects are checked recursively }
     function is_valid_for_default(def:tdef):boolean;
+
+    procedure UninitializedVariableMessage(pos : tfileposinfo;warning,local,managed : boolean;name : TMsgStr);
 
 implementation
 
@@ -1092,6 +1094,23 @@ implementation
       end;
 
 
+    procedure UninitializedVariableMessage(pos : tfileposinfo;warning,local,managed : boolean;name : TMsgStr);
+      const
+        msg : array[false..true,false..true,false..true] of dword = (
+            (
+              (sym_h_uninitialized_variable,sym_h_uninitialized_managed_variable),
+              (sym_h_uninitialized_local_variable,sym_h_uninitialized_managed_local_variable)
+            ),
+            (
+              (sym_w_uninitialized_variable,sym_w_uninitialized_managed_variable),
+              (sym_w_uninitialized_local_variable,sym_w_uninitialized_managed_local_variable)
+            )
+          );
+      begin
+        CGMessagePos1(pos,msg[warning,local,managed],name);
+      end;
+
+
     procedure set_varstate(p:tnode;newstate:tvarstate;varstateflags:tvarstateflags);
       const
         vstrans: array[tvarstate,tvarstate] of tvarstate = (
@@ -1197,32 +1216,29 @@ implementation
                                  if (vo_is_funcret in hsym.varoptions) then
                                    begin
                                      if (vsf_use_hints in varstateflags) then
-                                       CGMessagePos(p.fileinfo,sym_h_function_result_uninitialized)
-                                     else
-                                       CGMessagePos(p.fileinfo,sym_w_function_result_uninitialized)
-                                   end
-                                 else
-                                   begin
-                                     if tloadnode(p).symtable.symtabletype=localsymtable then
                                        begin
-                                         { on the JVM, an uninitialized var-parameter
-                                           is just as fatal as a nil pointer dereference }
-                                         if (vsf_use_hints in varstateflags) and
-                                            not(target_info.system in systems_jvm) then
-                                           CGMessagePos1(p.fileinfo,sym_h_uninitialized_local_variable,hsym.realname)
+                                         if is_managed_type(hsym.vardef) then
+                                           CGMessagePos(p.fileinfo,sym_h_managed_function_result_uninitialized)
                                          else
-                                           CGMessagePos1(p.fileinfo,sym_w_uninitialized_local_variable,hsym.realname);
+                                           CGMessagePos(p.fileinfo,sym_h_function_result_uninitialized);
                                        end
                                      else
                                        begin
-                                         { on the JVM, an uninitialized var-parameter
-                                           is just as fatal as a nil pointer dereference }
-                                         if (vsf_use_hints in varstateflags) and
-                                            not(target_info.system in systems_jvm) then
-                                           CGMessagePos1(p.fileinfo,sym_h_uninitialized_variable,hsym.realname)
+                                         if is_managed_type(hsym.vardef) then
+                                           CGMessagePos(p.fileinfo,sym_w_managed_function_result_uninitialized)
                                          else
-                                           CGMessagePos1(p.fileinfo,sym_w_uninitialized_variable,hsym.realname);
+                                          CGMessagePos(p.fileinfo,sym_w_function_result_uninitialized);
                                        end;
+                                   end
+                                 else
+                                   begin
+                                     UninitializedVariableMessage(p.fileinfo,
+                                       { on the JVM, an uninitialized var-parameter
+                                         is just as fatal as a nil pointer dereference }
+                                       not((vsf_use_hints in varstateflags) and not(target_info.system in systems_jvm)),
+                                       tloadnode(p).symtable.symtabletype=localsymtable,
+                                       is_managed_type(tloadnode(p).resultdef),
+                                       hsym.realname);
                                    end;
                                end;
                            end
