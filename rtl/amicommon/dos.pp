@@ -631,6 +631,8 @@ begin
       DiskSize := Int64(Inf.id_NumBlocks) * Inf.id_BytesPerBlock;
     UnLock(DirLock);
   end;
+  if OldWinPtr <> Pointer(-1) then
+    MyProc^.pr_WindowPtr := OldWinPtr;
 end;
 
 function DiskSize(Drive: Byte): Int64;
@@ -663,6 +665,8 @@ begin
       DiskFree := Int64(Inf.id_NumBlocks - Inf.id_NumBlocksUsed) * Inf.id_BytesPerBlock;
     UnLock(DirLock);
   end;
+  if OldWinPtr <> Pointer(-1) then
+    MyProc^.pr_WindowPtr := OldWinPtr;
 end;
 
 function DiskFree(Drive: Byte): Int64;
