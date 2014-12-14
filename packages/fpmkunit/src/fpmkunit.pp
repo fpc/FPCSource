@@ -82,7 +82,7 @@ uses
   cthreads,
 {$endif UNIX}
 {$ifdef WINDOWS}
-  windows, ShellApi,
+  windows,
 {$endif WINDOWS}
 {$endif NO_THREADING}
   SysUtils, Classes
@@ -5144,6 +5144,14 @@ end;
 procedure TBuildEngine.SysDeleteTree(Const ADirectoryName: String);
 
   function IntRemoveTree(const ADirectoryName: String) : boolean;
+{$ifdef WINDOWS}
+  { pulling in shellapi with all it dependent units and packages makes things too
+    complicated so just add the constants here }
+  const
+    FO_DELETE                = $0003;
+    FOF_SILENT               = $0004;
+    FOF_NOCONFIRMATION       = $0010;
+{$endif WINDOWS}
   var
     i: integer;
 {$ifdef WINDOWS}
