@@ -2168,6 +2168,7 @@ function GetFileVersionInfoSizeW(lptstrFilename:LPWSTR; lpdwHandle:LPDWORD):DWOR
 function GetFileVersionInfoSizeW(lptstrFilename:LPWSTR; var dwHandle:DWORD):DWORD; external KernelDLL name 'GetFileVersionInfoSizeW';
 function GetFileVersionInfo(lptstrFilename:LPWSTR; dwHandle:DWORD; dwLen:DWORD; lpData:LPVOID):WINBOOL; external KernelDLL name 'GetFileVersionInfoW';
 function GetFileVersionInfoW(lptstrFilename:LPWSTR; dwHandle:DWORD; dwLen:DWORD; lpData:LPVOID):WINBOOL; external KernelDLL name 'GetFileVersionInfoW';
+function GetIconInfo(hIcon: HICON; piconinfo: pIconInfo): BOOL; external KernelDLL name 'GetIconInfo';
 function GetIdleTime:DWORD; external KernelDLL name 'GetIdleTime'; // index 399
 function GetKeyboardLayout(dwLayout:DWORD):HKL; external KernelDLL name 'GetKeyboardLayout';
 function GetKeyboardLayoutList(nBuff:longint; var lpList:HKL):UINT; external KernelDLL name 'GetKeyboardLayoutList';
