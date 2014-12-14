@@ -802,7 +802,6 @@ BEGIN
     ON EFOpenError DO
       BEGIN
         Writeln(stderr,'LibTar error: unable to open file "',Filename,'" for reading.');
-        S.Free;
         exit;
       END;
   END;
@@ -813,7 +812,7 @@ BEGIN
     AddFile:=true;
   FINALLY
     S.Free
-    END;
+  END;
 END;
 
 
