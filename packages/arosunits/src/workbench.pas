@@ -106,7 +106,7 @@ type
     do_Magic: Word;              // A magic number at the start of the file.
     do_Version: Word;            // A version number, so we can change it.
     do_Gadget: TGadget;          // A copy of in core gadget.
-    do_type: Word;
+    do_type: Byte;
     do_DefaultTool: STRPTR;
     do_Tooltypes: PPChar;
     do_CurrentX: LongInt;
