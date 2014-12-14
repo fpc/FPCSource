@@ -664,6 +664,7 @@ implementation
         encodereloc:       @elf_x86_64_encodeReloc;
         loadreloc:         @elf_x86_64_loadReloc;
         loadsection:       nil;
+        encodeflags:       nil;
       );
 
 

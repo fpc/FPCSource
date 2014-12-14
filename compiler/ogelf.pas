@@ -1274,7 +1274,8 @@ implementation
            header.e_shnum:=nsections;
            header.e_ehsize:=sizeof(telfheader);
            header.e_shentsize:=sizeof(telfsechdr);
-           header.e_flags:=ElfTarget.encodeflags();
+           if assigned(ElfTarget.encodeflags) then
+             header.e_flags:=ElfTarget.encodeflags();
            MaybeSwapHeader(header);
            writer.write(header,sizeof(header));
            writer.writezeros($40-sizeof(header)); { align }
@@ -2046,7 +2047,8 @@ implementation
         header.e_shnum:=ExeSectionList.Count+1;
         header.e_phnum:=segmentlist.count;
         header.e_ehsize:=sizeof(telfheader);
-        header.e_flags:=ElfTarget.encodeflags();
+        if assigned(ElfTarget.encodeflags) then
+          header.e_flags:=ElfTarget.encodeflags();
         if assigned(EntrySym) then
           header.e_entry:=EntrySym.Address;
         header.e_shentsize:=sizeof(telfsechdr);

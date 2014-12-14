@@ -121,8 +121,8 @@ imm24                    \x1\x0B                        ARM32,ARMv4
 mem32                    \x1\x0B                        ARM32,ARMv4
 
 [BLX]
-imm24                    \x28\xA                       ARM32,ARMv5T
-mem32                    \x28\xA                       ARM32,ARMv5T
+imm24                    \x28\xFA                       ARM32,ARMv5T
+mem32                    \x28\xFA                       ARM32,ARMv5T
 reg32                    \3\x01\x2F\xFF\x30            ARM32,ARMv5T
 
 [BKPTcc]

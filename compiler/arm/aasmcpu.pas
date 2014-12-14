@@ -2994,7 +2994,7 @@ implementation
                     end
                   else
                     begin
-                      offset:=(((currsym.offset-insoffset-8) shr 2) and $ffffff);
+                      offset:=((currsym.offset-insoffset-8) and $3fffffe);
                       bytes:=bytes or ((offset shr 2) and $ffffff);
                       bytes:=bytes or ((offset shr 1) and $1) shl 24;
                     end;
