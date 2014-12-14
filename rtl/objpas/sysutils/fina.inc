@@ -402,7 +402,11 @@ begin
   Result:=-1;
   While I<=Length(DirName) do
     begin
-    If CharInSet(DirName[i],AllowDirectorySeparators) and
+    If (CharInSet(DirName[i],AllowDirectorySeparators)
+    {$ifdef HASAMIGA}
+      or (DirName[i] = DriveSeparator)
+    {$endif}
+      ) and
        { avoid error in case last char=pathdelim }
        (length(dirname)>i) then
       begin
