@@ -1394,7 +1394,7 @@ implementation
            not(is_typeparam(left.resultdef)) then
              inserttypeconv(left,pasbool8type);
 
-         result:=internalsimplify(true);
+         result:=internalsimplify(not(nf_internal in flags));
       end;
 
 
