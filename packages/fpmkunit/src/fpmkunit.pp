@@ -81,6 +81,9 @@ uses
 {$ifdef UNIX}
   cthreads,
 {$endif UNIX}
+{$ifdef WINDOWS}
+  windows, ShellApi,
+{$endif WINDOWS}
 {$endif NO_THREADING}
   SysUtils, Classes
 {$ifdef HAS_UNIT_PROCESS}
@@ -1846,7 +1849,7 @@ begin
         SearchResult := FindNext(searchRec);
       end;
   finally
-    FindClose(searchRec);
+    sysutils.FindClose(searchRec);
   end;
 end;
 
@@ -2366,7 +2369,7 @@ procedure SearchFiles(const AFileName: string; Recursive: boolean; var List: TSt
             List.Add(SearchDir + Info.Name);
       until FindNext(Info)<>0;
     end;
-    FindClose(Info);
+    sysutils.FindClose(Info);
   end;
 
 var
@@ -2555,7 +2558,7 @@ function GetDefaultLibGCCDir(CPU : TCPU;OS: TOS; var ErrorMessage: string): stri
       GccExecutable: string;
   begin
     result := '';
-    GccExecutable := ExeSearch(AddProgramExtension('gcc', OS),GetEnvironmentVariable('PATH'));
+    GccExecutable := ExeSearch(AddProgramExtension('gcc', OS),Sysutils.GetEnvironmentVariable('PATH'));
     if FileExists(GccExecutable) then
       begin
 {$ifdef HAS_UNIT_PROCESS}
@@ -4133,7 +4136,7 @@ begin
   If (FN='') then
     begin
     // Environment variable.
-    FN:=GetEnvironmentVariable('FPMAKECFG');
+    FN:=SysUtils.GetEnvironmentVariable('FPMAKECFG');
     If (FN<>'') then
       If not FileExists(FN) then
         FN:='';
@@ -4349,7 +4352,7 @@ begin
         BD:='/usr/lib/fpc/'+FCompilerVersion;
     end;
 {$else unix}
-  BD:=FixPath(GetEnvironmentVariable('FPCDIR'), False);
+  BD:=FixPath(SysUtils.GetEnvironmentVariable('FPCDIR'), False);
   if BD='' then
     begin
       BD:=ExtractFilePath(FCompiler)+'..';
@@ -5119,7 +5122,7 @@ procedure TBuildEngine.SysDeleteFile(Const AFileName : String);
 begin
   if not FileExists(AFileName) then
     Log(vldebug,SDbgFileDoesNotExist,[AFileName])
-  else If Not DeleteFile(AFileName) then
+  else If Not SysUtils.DeleteFile(AFileName) then
     Error(SErrDeletingFile,[AFileName])
   else
     Log(vlInfo,SInfoDeletedFile,[AFileName]);
@@ -5142,12 +5145,34 @@ procedure TBuildEngine.SysDeleteTree(Const ADirectoryName: String);
 
   function IntRemoveTree(const ADirectoryName: String) : boolean;
   var
+    i: integer;
+{$ifdef WINDOWS}
+    SHFileOpStruct: TSHFileOpStruct;
+    DirBuf: array[0..MAX_PATH+1] of TCHAR;
+{$else WINDOWS}
     searchRec: TSearchRec;
     SearchResult: longint;
     s: string;
-    i: integer;
+{$endif WINDOWS}
+
   begin
     result := true;
+{$ifdef WINDOWS}
+    try
+      FillChar(SHFileOpStruct, Sizeof(SHFileOpStruct), 0);
+      FillChar(DirBuf, Sizeof(DirBuf), 0);
+      StrPCopy(DirBuf, ADirectoryName);
+      with SHFileOpStruct do
+      begin
+        pFrom := @DirBuf;
+        wFunc := FO_DELETE;
+        fFlags := FOF_NOCONFIRMATION or FOF_SILENT;
+      end;
+      Result := SHFileOperation(SHFileOpStruct) = 0;
+    except
+      Result := False;
+    end;
+{$else WINDOWS}
     SearchResult := FindFirst(IncludeTrailingPathDelimiter(ADirectoryName)+AllFilesMask, faAnyFile+faSymLink, searchRec);
     try
       while SearchResult=0 do
@@ -5176,6 +5201,8 @@ procedure TBuildEngine.SysDeleteTree(Const ADirectoryName: String);
     // bug 21868
     i := 2;
     result := RemoveDir(ADirectoryName);
+{$endif WINDOWS}
+
     while not result and (i>0) do
       begin
         log(vlWarning, SWarnRetryRemDirectory, [ADirectoryName]);
@@ -5459,7 +5486,7 @@ begin
 
           Cmd:=C.Command;
           If (ExtractFilePath(Cmd)='') then
-            Cmd:=ExeSearch(Cmd,GetEnvironmentvariable('PATH'));
+            Cmd:=ExeSearch(Cmd,SysUtils.GetEnvironmentvariable('PATH'));
 
           If (SourceFile<>'') and (DestFile<>'')  then
             begin
@@ -5990,7 +6017,7 @@ begin
     FCompiler:=Defaults.Compiler;
     If (ExtractFilePath(FCompiler)='') then
       begin
-      S:=ExeSearch(FCompiler,GetEnvironmentVariable('PATH'));
+      S:=ExeSearch(FCompiler,SysUtils.GetEnvironmentVariable('PATH'));
       If (S<>'') then
          FCompiler:=S;
       end;
@@ -6684,7 +6711,7 @@ begin
           end;
 
           //execute fpdoc
-          Cmd:=ExeSearch('fpdoc',GetEnvironmentvariable('PATH'));
+          Cmd:=ExeSearch('fpdoc',SysUtils.GetEnvironmentvariable('PATH'));
           if Cmd = '' then Cmd := 'fpdoc';
           ExecuteProcess(Cmd, sFPDocFormat + cmdOpts);
         end;
