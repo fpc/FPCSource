@@ -17,7 +17,7 @@ units=$(SYSTEMUNIT) uuchar unixtype ctypes strings objpas iso7185 macpas \
       dl dynlibs \
       types sysconst character \
       rtlconsts cthreads \
-      dos unixcp fpwidestring \
+      dos fpwidestring \
       cwstring fpintres $(CPU_UNITS)
 
 implicitunits=exeinfo \
