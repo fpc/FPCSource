@@ -1721,7 +1721,7 @@ var
     //ifdef the MsgNum so it contains the correct message numbers for each compiler version.
     MsgNum : array [TMessages] of integer = (3104, 9015);
 
-    n: longint;
+    n,available: longint;
     BuffPos: longint;
     sLine: string;
     ch: char;
@@ -1729,14 +1729,24 @@ var
     ipos: integer;
     snum: string;
   begin
-    // make sure we have room
-    ConsoleOutput.SetSize(BytesRead + READ_BYTES);
 
     // try reading it
     if ReadFromStdErr then
-      n := P.Stderr.Read((ConsoleOutput.Memory + BytesRead)^, READ_BYTES)
+      begin
+        available:=P.Stderr.NumBytesAvailable;
+        // make sure we have room
+        if (bytesRead + Available > ConsoleOutput.Size) then
+          ConsoleOutput.SetSize(BytesRead + Available);
+        n := P.Stderr.Read((ConsoleOutput.Memory + BytesRead)^, available);
+      end
     else
-      n := P.Output.Read((ConsoleOutput.Memory + BytesRead)^, READ_BYTES);
+      begin
+        available:=P.Output.NumBytesAvailable;
+        // make sure we have room
+        if (bytesRead + Available > ConsoleOutput.Size) then
+          ConsoleOutput.SetSize(BytesRead + Available);
+        n := P.Output.Read((ConsoleOutput.Memory + BytesRead)^, available);
+      end;
     if n > 0 then
     begin
       Inc(BytesRead, n);
