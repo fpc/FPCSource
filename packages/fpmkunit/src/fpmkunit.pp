@@ -970,6 +970,7 @@ Type
     Property Target : String Read FTarget Write SetTarget;
     Property OS : TOS Read FOS Write SetOS;
     Property CPU : TCPU Read FCPU Write SetCPU;
+    Property CompilerVersion : String read FCompilerVersion;
     Property ExplicitOSNone: Boolean read FExplicitOSNone Write FExplicitOSNone;
     Property BuildString : String read GetBuildString;
     Property BuildOS : TOS read GetBuildOS;
@@ -3892,9 +3893,9 @@ begin
   If (FDocInstallDir<>'') then
     Result:=FDocInstallDir
   else if (Defaults.BuildOS=freebsd) or (Defaults.BuildOS=dragonfly) then
-    result := Prefix+PathDelim+'share'+PathDelim+'doc'+PathDelim+'$(PackageName)'
+    Result:=Prefix+'share'+PathDelim+'doc'+PathDelim+'fpc-$(CompilerVersion)'+PathDelim+'$(PackageName)'
   else If UnixPaths then
-    Result:=Prefix+'share'+PathDelim+'doc'+PathDelim+'fpc-$(PackageName)-$(PACKAGEVERSION)'
+    Result:=Prefix+'share'+PathDelim+'doc'+PathDelim+'fpc-$(CompilerVersion)'+PathDelim+'$(PackageName)'
   else
     Result:=BaseInstallDir+'docs'+PathDelim+'$(PackageName)';
 end;
@@ -3905,9 +3906,9 @@ begin
   If (FExamplesInstallDir<>'') then
     Result:=FExamplesInstallDir
   else if (Defaults.BuildOS=freebsd) or (Defaults.BuildOS=dragonfly) then
-    result := Prefix+PathDelim+'share'+PathDelim+'examples'+PathDelim+'$(PackageName)'
+    Result:=Prefix+'share'+PathDelim+'examples'+PathDelim+'fpc-$(CompilerVersion)'+PathDelim+'$(PackageName)'+PathDelim+'examples'
   else If UnixPaths then
-    Result:=Prefix+'share'+PathDelim+'doc'+PathDelim+'fpc-$(PackageName)-$(PACKAGEVERSION)'+PathDelim+'examples'
+    Result:=Prefix+'share'+PathDelim+'doc'+PathDelim+'fpc-$(CompilerVersion)'+PathDelim+'$(PackageName)'+PathDelim+'examples'
   else
     Result:=BaseInstallDir+'examples'+PathDelim+'$(PackageName)';
 end;
@@ -4397,6 +4398,7 @@ begin
   GlobalDictionary.AddVariable('Target',Defaults.Target);
   GlobalDictionary.AddVariable('BuildString',Defaults.BuildString);
   GlobalDictionary.AddVariable('Prefix',Defaults.Prefix);
+  GlobalDictionary.AddVariable('CompilerVersion',Defaults.CompilerVersion);
   CreatePackages;
 end;
 
