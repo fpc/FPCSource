@@ -1752,10 +1752,9 @@ begin
   // empty
 end;
 
-function TSQLConnection.StartImplicitTransaction(trans: TSQLHandle;
-  aParams: string): boolean;
+function TSQLConnection.StartImplicitTransaction(trans: TSQLHandle; aParams: string): boolean;
 begin
-  // Do nothing
+  Result:=False;
 end;
 
 function TSQLConnection.GetSchemaInfoSQL( SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string;
