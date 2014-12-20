@@ -5779,7 +5779,7 @@ procedure TBuildEngine.ResolvePackagePaths(APackage:TPackage);
       begin
         PackageBaseDir:=IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(ABasePath)+ASubDir);
         AnUnitConfigFileName:=PackageBaseDir+APackage.GetUnitConfigOutputFilename(Defaults.CPU,Defaults.OS);
-        PackageBaseDir:=IncludeTrailingPathDelimiter(PackageBaseDir+APackage.GetPackageUnitInstallDir(defaults.CPU, Defaults.OS))+APackage.GetUnitsOutputDir(defaults.CPU, Defaults.OS);
+        PackageBaseDir:=IncludeTrailingPathDelimiter(PackageBaseDir+APackage.GetUnitsOutputDir(defaults.CPU, Defaults.OS));
       end
     else
       begin
