@@ -605,9 +605,14 @@ implementation
       StructList: TFPList absolute arg;
     begin
       if (tdef(p).typ in [objectdef,recorddef]) and
-         not (df_generic in tdef(p).defoptions) and
-         ([oo_has_class_constructor,oo_has_class_destructor] * tabstractrecorddef(p).objectoptions <> []) then
-        StructList.Add(p);
+         not (df_generic in tdef(p).defoptions) then
+        begin
+          { first add the class... }
+          if ([oo_has_class_constructor,oo_has_class_destructor] * tabstractrecorddef(p).objectoptions <> []) then
+            StructList.Add(p);
+          { ... and then also add all subclasses }
+          tabstractrecorddef(p).symtable.deflist.foreachcall(@AddToStructInits,arg);
+        end;
     end;
 
 
