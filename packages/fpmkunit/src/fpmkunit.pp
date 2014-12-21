@@ -436,7 +436,7 @@ Type
     Procedure RemoveItem(const AName : String);
     Function GetValue(AName : String) : String;
     Function GetValue(const AName,Args : String) : String; virtual;
-    Function ReplaceStrings(Const ASource : String) : String; virtual;
+    Function ReplaceStrings(Const ASource : String; Const MaxDepth: Integer = 10) : String; virtual;
     Function Substitute(Const Source : String; Macros : Array of string) : String; virtual;
   end;
 
@@ -8247,7 +8247,7 @@ begin
 end;
 
 
-function TDictionary.ReplaceStrings(Const ASource: String): String;
+function TDictionary.ReplaceStrings(Const ASource: String; Const MaxDepth: Integer = 10): String;
 Var
   S,FN,FV : String;
   P: Integer;
@@ -8271,7 +8271,10 @@ begin
         end
       else
         FV:='';
-      Result:=Result+GetValue(FN,FV);
+      if MaxDepth > 0 then
+        Result:=Result+ReplaceStrings(GetValue(FN,FV), MaxDepth-1)
+      else
+        Result:=Result+GetValue(FN,FV);
       P:=Pos('$(',S);
     end;
   Result:=Result+S;
