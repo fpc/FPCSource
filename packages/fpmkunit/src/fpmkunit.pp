@@ -480,10 +480,14 @@ Type
   private
     FOptions: TStrings;
     FTargets: TTargets;
+    FIncludePath: TConditionalStrings;
+    FSourcePath: TConditionalStrings;
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
     property Options: TStrings read FOptions;
+    Property IncludePath : TConditionalStrings Read FIncludePath;
+    Property SourcePath : TConditionalStrings Read FSourcePath;
     property Targets: TTargets read FTargets;
   end;
 
@@ -2614,12 +2618,16 @@ begin
   inherited Create(ACollection);
   FTargets := TTargets.Create(TTarget);
   FOptions := TStringList.Create;
+  FIncludePath:=TConditionalStrings.Create(TConditionalString);
+  FSourcePath:=TConditionalStrings.Create(TConditionalString);
 end;
 
 destructor TPackageVariant.Destroy;
 begin
   FOptions.Free;
   FTargets.Free;
+  FIncludePath.Free;
+  FSourcePath.Free;
   inherited Destroy;
 end;
 
@@ -3621,6 +3629,8 @@ begin
       PackageVariants.ActivePackageVariantName:= Installer.FPackageVariantSettings.Values[PackageVariants.Name]
     else
       PackageVariants.ActivePackageVariantName:= PackageVariants.DefaultPackageVariantName;
+    IncludePath.AddList(PackageVariants.ActivePackageVariant.IncludePath);
+    SourcePath.AddList(PackageVariants.ActivePackageVariant.SourcePath);
     Dictionary.AddVariable(PackageVariants.Name,PackageVariants.ActivePackageVariantName);
     SetUnitsOutputDir(FUnitsOutputDir+'$('+PackageVariants.name+')');
     SetPackageUnitInstallDir(FPackageUnitInstallDir+'$('+PackageVariants.Name+')');
