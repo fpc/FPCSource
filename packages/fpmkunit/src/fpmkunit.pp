@@ -1168,8 +1168,8 @@ Type
     Procedure Clean(APackage : TPackage; AllTargets: boolean);
     Procedure Clean(APackage : TPackage; ACPU:TCPU; AOS : TOS);
     Procedure CompileDependencies(APackage : TPackage);
-    function CheckDependencies(APackage : TPackage): TCheckDependencyResult;
-    Function  CheckExternalPackage(Const APackageName : String):TPackage;
+    function CheckDependencies(APackage : TPackage; ErrorOnFailure: boolean): TCheckDependencyResult;
+    Function  CheckExternalPackage(Const APackageName : String; ErrorOnFailure: boolean):TPackage;
     procedure CreateOutputDir(APackage: TPackage);
     // Packages commands
     Procedure Compile(Packages : TPackages);
@@ -6409,7 +6409,7 @@ begin
 end;
 
 
-function TBuildEngine.CheckExternalPackage(Const APackageName : String):TPackage;
+function TBuildEngine.CheckExternalPackage(Const APackageName : String; ErrorOnFailure: boolean):TPackage;
 var
   S : String;
   F : String;
@@ -6442,7 +6442,7 @@ begin
       // Check recursive implicit dependencies
       CompileDependencies(Result);
     end
-  else
+  else if ErrorOnFailure then
     Error(SErrDependencyNotFound,[APackageName]);
 end;
 
@@ -6476,7 +6476,7 @@ begin
             end
           else
             begin
-              D.Target:=CheckExternalPackage(D.Value);
+              D.Target:=CheckExternalPackage(D.Value, true);
               P:=TPackage(D.Target);
             end;
           if (D.RequireChecksum<>$ffffffff) and
@@ -6488,7 +6488,7 @@ begin
     end;
 end;
 
-function TBuildEngine.CheckDependencies(APackage: TPackage): TCheckDependencyResult;
+function TBuildEngine.CheckDependencies(APackage: TPackage; ErrorOnFailure: boolean): TCheckDependencyResult;
 Var
   I : Integer;
   P : TPackage;
@@ -6518,7 +6518,7 @@ begin
             end
           else
             begin
-              D.Target:=CheckExternalPackage(D.Value);
+              D.Target:=CheckExternalPackage(D.Value, ErrorOnFailure);
               P:=TPackage(D.Target);
             end;
           if (D.RequireChecksum<>$ffffffff) and
@@ -6789,7 +6789,7 @@ begin
   // dependencies.
   if Defaults.ThreadsAmount=-1 then
     CompileDependencies(APackage)
-  else if CheckDependencies(APackage)=cdNotYetAvailable then
+  else if CheckDependencies(APackage, true)=cdNotYetAvailable then
     begin
       log(vlInfo,'Delaying package '+apackage.name);
       result := False;
@@ -7098,6 +7098,10 @@ begin
   try
     If (APackage.Directory<>'') then
       EnterDir(APackage.Directory);
+    // Check for inherited options (packagevariants) from other packages
+    ResolveDependencies(APackage.Dependencies, (APackage.Collection as TPackages));
+    CheckDependencies(APackage, False);
+    APackage.SetDefaultPackageVariant;
     DoBeforeClean(Apackage);
     AddPackageMacrosToDictionary(APackage, APackage.Dictionary);
     if AllTargets then
