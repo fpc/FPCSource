@@ -834,7 +834,7 @@ implementation
            Replace(s,'$FPCTARGET',target_os_string)
          else
            Replace(s,'$FPCTARGET',target_full_string);
-         Replace(s,'$SUBARCH',lower(cputypestr[init_settings.cputype]));
+         Replace(s,'$FPCSUBARCH',lower(cputypestr[init_settings.cputype]));
          Replace(s,'$FPCABI',lower(abiinfo[target_info.abi].name));
 {$ifdef i8086}
          Replace(s,'$FPCMEMORYMODEL',lower(x86memorymodelstr[init_settings.x86memorymodel]));
