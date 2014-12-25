@@ -483,13 +483,10 @@ function TVariantArrayIterator.AtEnd: Boolean;
 var
   i : sizeint;
 begin
-  result:=true;
+  result:=false;
   for i:=0 to Pred(Dims) do
-    if Coords^[i] < Bounds^[i].LowBound + Bounds^[i].ElementCount then
-      begin
-        result:=false;
-        exit;
-      end;
+    if Coords^[i] >= Bounds^[i].LowBound + Bounds^[i].ElementCount then
+        result:=true;
 end;
 
 {$pop}// {$r-} for TVariantArrayIterator
