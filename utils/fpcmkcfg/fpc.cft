@@ -216,6 +216,13 @@
 # Always strip debuginfo from the executable
 -Xs
 
+# Always use smartlinking on i8086, because the system unit exceeds the 64kb
+# code limit
+#ifdef cpui8086
+-CX
+-XX
+#endif
+
 
 # -------------
 # Miscellaneous
