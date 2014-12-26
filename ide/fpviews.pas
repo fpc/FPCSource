@@ -4241,7 +4241,7 @@ begin
   HelpCtx:=hcAbout;
   GetExtent(R); R.Grow(-3,-2);
   R2.Copy(R); R2.B.Y:=R2.A.Y+1;
-  Insert(New(PStaticText, Init(R2, ^C'FreePascal IDE for '+source_info.name)));
+  Insert(New(PStaticText, Init(R2, ^C'Free Pascal IDE for '+source_info.name)));
   R2.Move(0,1);
   Insert(New(PStaticText, Init(R2, ^C'Target CPU: '+target_cpu_string)));
   R2.Move(0,1);
