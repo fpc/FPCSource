@@ -69,6 +69,7 @@ interface
 {$ifdef arm}
          RELOC_RELATIVE_24,
          RELOC_RELATIVE_24_THUMB,
+         RELOC_RELATIVE_CALL_THUMB,
 {$endif arm}
          { Relative relocation }
          RELOC_RELATIVE,

@@ -30,7 +30,8 @@ uses
   aasmbase,aasmtai,aasmdata,aasmsym,
   ogbase,
   symtype,
-  cpubase,cpuinfo,cgbase,cgutils;
+  cpubase,cpuinfo,cgbase,cgutils,
+  sysutils;
 
     const
       { "mov reg,reg" source operand number }
@@ -74,6 +75,7 @@ uses
       OT_IMM80     = $00002010;
       OT_IMMTINY   = $00002100;
       OT_IMMSHIFTER= $00002200;
+      OT_IMMEDIATEZERO = $10002200;
       OT_IMMEDIATE24 = OT_IMM24;
       OT_SHIFTIMM  = OT_SHIFTEROP or OT_IMMSHIFTER;
       OT_SHIFTIMMEDIATE = OT_SHIFTIMM;
@@ -137,6 +139,7 @@ uses
       IF_ARM32      = $00010000;
       IF_THUMB      = $00020000;
       IF_THUMB32    = $00040000;
+      IF_WIDE       = $00080000;
 
       IF_ARMvMASK   = $0FF00000;
       IF_ARMv4      = $00100000;
@@ -791,21 +794,10 @@ implementation
       end;
 
 
-    var
-      IF_ArmInsVersion: longword;
-
-
     procedure BuildInsTabCache;
       var
         i : longint;
       begin
-        if GenerateThumb2Code then
-          IF_ArmInsVersion:=IF_THUMB32
-        else if GenerateThumbCode then
-          IF_ArmInsVersion:=IF_THUMB
-        else
-          IF_ArmInsVersion:=IF_ARM32;
-
         new(instabcache);
         FillChar(instabcache^,sizeof(tinstabcache),$ff);
         i:=0;
@@ -1973,8 +1965,9 @@ implementation
                             ot:=ot or OT_AM4
                           else
                             ot:=ot or OT_AM3;
-                        end
-                      else if (ref^.base<>NR_NO) and
+                        end;
+
+                      if (ref^.base<>NR_NO) and
                         (opcode in [A_LDREX,A_LDREXB,A_LDREXH,A_LDREXD,
                                     A_STREX,A_STREXB,A_STREXH,A_STREXD]) and
                         (
@@ -2040,7 +2033,11 @@ implementation
               top_const :
                 begin
                   ot:=OT_IMMEDIATE;
-                  if is_shifter_const(val,dummy) then
+                  if (val=0) then
+                    ot:=ot_immediatezero
+                  else if is_shifter_const(val,dummy) then
+                    ot:=OT_IMMSHIFTER
+                  else if GenerateThumb2Code and is_thumb32_imm(val) then
                     ot:=OT_IMMSHIFTER
                   else
                     ot:=OT_IMM32
@@ -2115,6 +2112,13 @@ implementation
             exit;
           end;
 
+        { Check wideformat flag }
+        if ((p^.flags and IF_WIDE)<>0) <> wideformat then
+          begin
+            //matches:=0;
+            //exit;
+          end;
+
         { Check that no spurious colons or TOs are present }
         for i:=0 to p^.ops-1 do
          if (oper[i]^.ot and (not p^.optypes[i]) and (OT_COLON or OT_TO))<>0 then
@@ -2154,7 +2158,7 @@ implementation
         { update condition flags
           or floating point single }
       if (oppostfix=PF_S) and
-        not(p^.code[0] in [#$04..#$0F,#$14..#$16,#$29,#$30]) then
+        not(p^.code[0] in [#$04..#$0F,#$14..#$16,#$29,#$30, #$80..#$82]) then
         begin
           Matches:=0;
           exit;
@@ -2174,7 +2178,7 @@ implementation
           // ldr,str,ldrb,strb
           #$17,
           // stm,ldm
-          #$26,
+          #$26,#$8C,
           // vldm/vstm
           #$44
         ]) then
@@ -2542,6 +2546,73 @@ implementation
           else
             result:=0;
           end;
+        end;
+
+      procedure encodethumbimm(imm: longword);
+        var
+          imm12, tmp: tcgint;
+          shift: integer;
+          found: boolean;
+        begin
+          found:=true;
+          if (imm and $FF) = imm then
+            imm12:=imm
+          else if ((imm shr 16)=(imm and $FFFF)) and
+                  ((imm and $FF00FF00) = 0) then
+            imm12:=(imm and $ff) or ($1 shl 8)
+          else if ((imm shr 16)=(imm and $FFFF)) and
+                  ((imm and $00FF00FF) = 0) then
+            imm12:=((imm shr 8) and $ff) or ($2 shl 8)
+          else if ((imm shr 16)=(imm and $FFFF)) and
+                  (((imm shr 8) and $FF)=(imm and $FF)) then
+            imm12:=(imm and $ff) or ($3 shl 8)
+          else
+            begin
+              found:=false;
+              for shift:=1 to 31 do
+                begin
+                  tmp:=RolDWord(imm,shift);
+                  if ((tmp and $FF)=tmp) and
+                     ((tmp and $80)=$80) then
+                    begin
+                      imm12:=(tmp and $7F) or (shift shl 7);
+                      found:=true;
+                      break;
+                    end;
+                end;
+            end;
+
+          if found then
+            begin
+              bytes:=bytes or (imm12 and $FF);
+              bytes:=bytes or (((imm12 shr 8) and $7) shl 12);
+              bytes:=bytes or (((imm12 shr 11) and $1) shl 26);
+            end
+          else
+            Message1(asmw_e_value_exceeds_bounds, IntToStr(imm));
+        end;
+
+      procedure setthumbshift(op: byte; is_sat: boolean = false);
+        var
+          shift,typ: byte;
+        begin
+          case oper[op]^.shifterop^.shiftmode of
+            SM_LSL: begin typ:=0; shift:=oper[op]^.shifterop^.shiftimm; end;
+            SM_LSR: begin typ:=1; shift:=oper[op]^.shifterop^.shiftimm; if shift=32 then shift:=0; end;
+            SM_ASR: begin typ:=2; shift:=oper[op]^.shifterop^.shiftimm; if shift=32 then shift:=0; end;
+            SM_ROR: begin typ:=3; shift:=oper[op]^.shifterop^.shiftimm; if shift=0 then message(asmw_e_invalid_opcode_and_operands); end;
+            SM_RRX: begin typ:=3; shift:=oper[op]^.shifterop^.shiftimm; shift:=0; end;
+          end;
+
+          if is_sat then
+            begin
+              bytes:=bytes or ((typ and 1) shl 5);
+              bytes:=bytes or ((typ shr 1) shl 21);
+            end
+          else
+            bytes:=bytes or (typ shl 4);
+          bytes:=bytes or (shift and $3) shl 6;
+          bytes:=bytes or ((shift and $1C) shr 2) shl 12;
         end;
 
       begin
@@ -4122,6 +4193,570 @@ implementation
                   end;
               end;
             end;
+          #$80: { Thumb-2: Dataprocessing }
+            begin
+              bytes:=0;
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+
+              if ops=1 then
+                begin
+                  if oper[0]^.typ=top_reg then
+                    bytes:=bytes or (getsupreg(oper[0]^.reg) shl 16)
+                  else if oper[0]^.typ=top_const then
+                    bytes:=bytes or (oper[0]^.val and $F);
+                end
+              else if (ops=2) and
+                 (opcode in [A_CMP,A_CMN,A_TEQ,A_TST]) then
+                begin
+                  bytes:=bytes or (getsupreg(oper[0]^.reg) shl 16);
+
+                  if oper[1]^.typ=top_const then
+                    encodethumbimm(oper[1]^.val)
+                  else if oper[1]^.typ=top_reg then
+                    bytes:=bytes or (getsupreg(oper[1]^.reg) shl 0);
+                end
+              else if (ops=3) and
+                      (opcode in [A_CMP,A_CMN,A_TEQ,A_TST]) then
+                begin
+                  bytes:=bytes or (getsupreg(oper[0]^.reg) shl 16);
+                  bytes:=bytes or (getsupreg(oper[1]^.reg) shl 0);
+
+                  if oper[2]^.typ=top_shifterop then
+                    setthumbshift(2)
+                  else if oper[2]^.typ=top_reg then
+                    bytes:=bytes or (getsupreg(oper[2]^.reg) shl 12);
+                end
+              else if (ops=2) and
+                      (opcode in [A_REV,A_RBIT,A_REV16,A_REVSH,A_CLZ]) then
+                begin
+                  bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
+                  bytes:=bytes or (getsupreg(oper[1]^.reg) shl 16);
+                  bytes:=bytes or (getsupreg(oper[1]^.reg) shl 0);
+                end
+              else if ops=2 then
+                begin
+                  bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
+
+                  if oper[1]^.typ=top_const then
+                    encodethumbimm(oper[1]^.val)
+                  else if oper[1]^.typ=top_reg then
+                    bytes:=bytes or (getsupreg(oper[1]^.reg) shl 0);
+                end
+              else if ops=3 then
+                begin
+                  bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
+                  bytes:=bytes or (getsupreg(oper[1]^.reg) shl 16);
+
+                  if oper[2]^.typ=top_const then
+                    encodethumbimm(oper[2]^.val)
+                  else if oper[2]^.typ=top_reg then
+                    bytes:=bytes or (getsupreg(oper[2]^.reg) shl 0);
+                end
+              else if ops=4 then
+                begin
+                  bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
+                  bytes:=bytes or (getsupreg(oper[1]^.reg) shl 16);
+                  bytes:=bytes or (getsupreg(oper[2]^.reg) shl 0);
+
+                  if oper[3]^.typ=top_shifterop then
+                    setthumbshift(3)
+                  else if oper[3]^.typ=top_reg then
+                    bytes:=bytes or (getsupreg(oper[3]^.reg) shl 12);
+                end;
+
+              if oppostfix=PF_S then
+                bytes:=bytes or (1 shl 20)
+              else if oppostfix=PF_X then
+                bytes:=bytes or (1 shl 4)
+              else if oppostfix=PF_R then
+                bytes:=bytes or (1 shl 4);
+            end;
+          #$81: { Thumb-2: Dataprocessing misc }
+            begin
+              bytes:=0;
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+
+              if ops=3 then
+                begin
+                  bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
+                  bytes:=bytes or (getsupreg(oper[1]^.reg) shl 16);
+
+                  if oper[2]^.typ=top_const then
+                    begin
+                      bytes:=bytes or (oper[2]^.val and $FF);
+                      bytes:=bytes or ((oper[2]^.val and $700) shr 8) shl 12;
+                      bytes:=bytes or ((oper[2]^.val and $800) shr 11) shl 26;
+                    end;
+                end
+              else if ops=2 then
+                begin
+                  bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
+
+                  if oper[1]^.typ=top_const then
+                    begin
+                      offset:=oper[1]^.val;
+                    end
+                  else if oper[1]^.typ=top_ref then
+                    begin
+                      offset:=0;
+                      currsym:=objdata.symbolref(oper[1]^.ref^.symbol);
+                      if assigned(currsym) then
+                        offset:=currsym.offset-insoffset-8;
+                      offset:=offset+oper[1]^.ref^.offset;
+
+                      offset:=offset;
+                    end;
+
+                  bytes:=bytes or  (offset and $FF);
+                  bytes:=bytes or ((offset and $700) shr 8) shl 12;
+                  bytes:=bytes or ((offset and $800) shr 11) shl 26;
+                  bytes:=bytes or ((offset and $F000) shr 12) shl 16;
+                end;
+
+              if oppostfix=PF_S then
+                bytes:=bytes or (1 shl 20);
+            end;
+          #$82: { Thumb-2: Shifts }
+            begin
+              bytes:=0;
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+
+              bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
+              if oper[1]^.typ=top_reg then
+                begin
+                  offset:=2;
+                  bytes:=bytes or (getsupreg(oper[1]^.reg) shl 0);
+                end
+              else
+                offset:=1;
+
+              if oper[offset]^.typ=top_const then
+                begin
+                  bytes:=bytes or (oper[offset]^.val and $3) shl 6;
+                  bytes:=bytes or (oper[offset]^.val and $1C) shl 10;
+                end
+              else if oper[offset]^.typ=top_reg then
+                bytes:=bytes or (getsupreg(oper[offset]^.reg) shl 16);
+
+              if (ops>=(offset+2)) and
+                 (oper[offset+1]^.typ=top_const) then
+                bytes:=bytes or (oper[offset+1]^.val and $1F);
+
+              if oppostfix=PF_S then
+                bytes:=bytes or (1 shl 20);
+            end;
+          #$84: { Thumb-2: Shifts(width-1) }
+            begin
+              bytes:=0;
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+
+              bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
+              if oper[1]^.typ=top_reg then
+                begin
+                  offset:=2;
+                  bytes:=bytes or (getsupreg(oper[1]^.reg) shl 16);
+                end
+              else
+                offset:=1;
+
+              if oper[offset]^.typ=top_const then
+                begin
+                  bytes:=bytes or (oper[offset]^.val and $3) shl 6;
+                  bytes:=bytes or (oper[offset]^.val and $1C) shl 10;
+                end;
+
+              if (ops>=(offset+2)) and
+                 (oper[offset+1]^.typ=top_const) then
+                begin
+                  if opcode in [A_BFI,A_BFC] then
+                    i_field:=oper[offset+1]^.val+oper[offset]^.val-1
+                  else
+                    i_field:=oper[offset+1]^.val-1;
+
+                  bytes:=bytes or (i_field and $1F);
+                end;
+
+              if oppostfix=PF_S then
+                bytes:=bytes or (1 shl 20);
+            end;
+          #$83: { Thumb-2: Saturation }
+            begin
+              bytes:=0;
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+
+              bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
+              bytes:=bytes or (oper[1]^.val and $1F);
+              bytes:=bytes or (getsupreg(oper[2]^.reg) shl 16);
+
+              if ops=4 then
+                setthumbshift(3,true);
+            end;
+          #$85: { Thumb-2: Long multiplications }
+            begin
+              bytes:=0;
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+
+              if ops=4 then
+                begin
+                  bytes:=bytes or (getsupreg(oper[0]^.reg) shl 12);
+                  bytes:=bytes or (getsupreg(oper[1]^.reg) shl 8);
+                  bytes:=bytes or (getsupreg(oper[2]^.reg) shl 16);
+                  bytes:=bytes or (getsupreg(oper[3]^.reg) shl 0);
+                end;
+
+              if oppostfix=PF_S then
+                bytes:=bytes or (1 shl 20)
+              else if oppostfix=PF_X then
+                bytes:=bytes or (1 shl 4);
+            end;
+          #$86: { Thumb-2: Extension ops }
+            begin
+              bytes:=0;
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+
+              if ops=2 then
+                begin
+                  bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
+                  bytes:=bytes or (getsupreg(oper[1]^.reg) shl 0);
+                end
+              else if ops=3 then
+                begin
+                  if oper[2]^.typ=top_shifterop then
+                    begin
+                      bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
+                      bytes:=bytes or (getsupreg(oper[1]^.reg) shl 0);
+                      bytes:=bytes or ((oper[2]^.shifterop^.shiftimm shr 3) shl 4);
+                    end
+                  else
+                    begin
+                      bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
+                      bytes:=bytes or (getsupreg(oper[1]^.reg) shl 16);
+                      bytes:=bytes or (getsupreg(oper[2]^.reg) shl 0);
+                    end;
+                end
+              else if ops=4 then
+                begin
+                  if oper[3]^.typ=top_shifterop then
+                    begin
+                      bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
+                      bytes:=bytes or (getsupreg(oper[1]^.reg) shl 16);
+                      bytes:=bytes or (getsupreg(oper[2]^.reg) shl 0);
+                      bytes:=bytes or ((oper[3]^.shifterop^.shiftimm shr 3) shl 4);
+                    end;
+                end;
+            end;
+          #$87: { Thumb-2: PLD/PLI }
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+              { set Rn and Rd }
+              bytes:=bytes or getsupreg(oper[0]^.ref^.base) shl 16;
+              if getregtype(oper[0]^.ref^.index)=R_INVALIDREGISTER then
+                begin
+                  { set offset }
+                  offset:=0;
+                  currsym:=objdata.symbolref(oper[0]^.ref^.symbol);
+                  if assigned(currsym) then
+                    offset:=currsym.offset-insoffset-8;
+                  offset:=offset+oper[0]^.ref^.offset;
+                  if offset>=0 then
+                    begin
+                      { set U flag }
+                      bytes:=bytes or (1 shl 23);
+                      bytes:=bytes or (offset and $FFF);
+                    end
+                  else
+                    begin
+                      bytes:=bytes or ($3 shl 10);
+
+                      offset:=-offset;
+                      bytes:=bytes or (offset and $FF);
+                    end;
+                end
+              else
+                begin
+                  bytes:=bytes or getsupreg(oper[0]^.ref^.index);
+                  { set shift }
+                  with oper[0]^.ref^ do
+                    if shiftmode=SM_LSL then
+                      bytes:=bytes or (shiftimm shl 4);
+                end;
+            end;
+          #$88: { Thumb-2: LDR/STR }
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or (ord(insentry^.code[4]) shl 0);
+              { set Rn and Rd }
+              bytes:=bytes or getsupreg(oper[0]^.reg) shl 12;
+              bytes:=bytes or getsupreg(oper[1]^.ref^.base) shl 16;
+              if getregtype(oper[1]^.ref^.index)=R_INVALIDREGISTER then
+                begin
+                  { set offset }
+                  offset:=0;
+                  currsym:=objdata.symbolref(oper[1]^.ref^.symbol);
+                  if assigned(currsym) then
+                    offset:=currsym.offset-insoffset-8;
+                  offset:=(offset+oper[1]^.ref^.offset) shr ord(insentry^.code[5]);
+                  if offset>=0 then
+                    begin
+                      if not (opcode in [A_LDRT,A_LDRSBT,A_LDRSHT,A_LDRBT,A_LDRHT]) then
+                        bytes:=bytes or (1 shl 23);
+                      { set U flag }
+                      if (oper[1]^.ref^.addressmode<>AM_OFFSET) then
+                        bytes:=bytes or (1 shl 9);
+                      bytes:=bytes or offset
+                    end
+                  else
+                    begin
+                      bytes:=bytes or (1 shl 11);
+
+                      offset:=-offset;
+                      bytes:=bytes or offset
+                    end;
+                end
+              else
+                begin
+                  { set I flag }
+                  bytes:=bytes or (1 shl 25);
+                  bytes:=bytes or getsupreg(oper[1]^.ref^.index);
+                  { set shift }
+                  with oper[1]^.ref^ do
+                    if shiftmode<>SM_None then
+                      bytes:=bytes or (shiftimm shl 4);
+                end;
+
+              if not (opcode in [A_LDRT,A_LDRSBT,A_LDRSHT,A_LDRBT,A_LDRHT]) then
+                begin
+                  { set W bit }
+                  if oper[1]^.ref^.addressmode<>AM_OFFSET then
+                    bytes:=bytes or (1 shl 8);
+                  { set P bit if necessary }
+                  if oper[1]^.ref^.addressmode<>AM_POSTINDEXED then
+                    bytes:=bytes or (1 shl 10);
+                end;
+            end;
+          #$89: { Thumb-2: LDRD/STRD }
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or (ord(insentry^.code[4]) shl 0);
+              { set Rn and Rd }
+              bytes:=bytes or getsupreg(oper[0]^.reg) shl 12;
+              bytes:=bytes or getsupreg(oper[1]^.reg) shl 8;
+              bytes:=bytes or getsupreg(oper[2]^.ref^.base) shl 16;
+              if getregtype(oper[2]^.ref^.index)=R_INVALIDREGISTER then
+                begin
+                  { set offset }
+                  offset:=0;
+                  currsym:=objdata.symbolref(oper[2]^.ref^.symbol);
+                  if assigned(currsym) then
+                    offset:=currsym.offset-insoffset-8;
+                  offset:=(offset+oper[2]^.ref^.offset) div 4;
+                  if offset>=0 then
+                    begin
+                      { set U flag }
+                      bytes:=bytes or (1 shl 23);
+                      bytes:=bytes or offset
+                    end
+                  else
+                    begin
+                      offset:=-offset;
+                      bytes:=bytes or offset
+                    end;
+                end
+              else
+                begin
+                  message(asmw_e_invalid_opcode_and_operands);
+                end;
+              { set W bit }
+              if oper[2]^.ref^.addressmode<>AM_OFFSET then
+                bytes:=bytes or (1 shl 21);
+              { set P bit if necessary }
+              if oper[2]^.ref^.addressmode<>AM_POSTINDEXED then
+                bytes:=bytes or (1 shl 24);
+            end;
+          #$8A: { Thumb-2: LDREX }
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or (ord(insentry^.code[4]) shl 0);
+              { set Rn and Rd }
+              bytes:=bytes or getsupreg(oper[0]^.reg) shl 12;
+
+              if (ops=2) and (opcode in [A_LDREX]) then
+                begin
+                  bytes:=bytes or getsupreg(oper[1]^.ref^.base) shl 16;
+                  if getregtype(oper[1]^.ref^.index)=R_INVALIDREGISTER then
+                    begin
+                      { set offset }
+                      offset:=0;
+                      currsym:=objdata.symbolref(oper[1]^.ref^.symbol);
+                      if assigned(currsym) then
+                        offset:=currsym.offset-insoffset-8;
+                      offset:=(offset+oper[1]^.ref^.offset) div 4;
+                      if offset>=0 then
+                        begin
+                          bytes:=bytes or offset
+                        end
+                      else
+                        begin
+                          message(asmw_e_invalid_opcode_and_operands);
+                        end;
+                    end
+                  else
+                    begin
+                      message(asmw_e_invalid_opcode_and_operands);
+                    end;
+                end
+              else if (ops=2) then
+                begin
+                  bytes:=bytes or getsupreg(oper[1]^.ref^.base) shl 16;
+                end
+              else
+                begin
+                  bytes:=bytes or getsupreg(oper[1]^.reg) shl 8;
+                  bytes:=bytes or getsupreg(oper[2]^.ref^.base) shl 16;
+                end;
+            end;
+          #$8B: { Thumb-2: STREX }
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or (ord(insentry^.code[4]) shl 0);
+              { set Rn and Rd }
+              if (ops=3) and (opcode in [A_STREX]) then
+                begin
+                  bytes:=bytes or getsupreg(oper[0]^.reg) shl 8;
+                  bytes:=bytes or getsupreg(oper[1]^.reg) shl 12;
+                  bytes:=bytes or getsupreg(oper[2]^.ref^.base) shl 16;
+                  if getregtype(oper[2]^.ref^.index)=R_INVALIDREGISTER then
+                    begin
+                      { set offset }
+                      offset:=0;
+                      currsym:=objdata.symbolref(oper[2]^.ref^.symbol);
+                      if assigned(currsym) then
+                        offset:=currsym.offset-insoffset-8;
+                      offset:=(offset+oper[2]^.ref^.offset) div 4;
+                      if offset>=0 then
+                        begin
+                          bytes:=bytes or offset
+                        end
+                      else
+                        begin
+                          message(asmw_e_invalid_opcode_and_operands);
+                        end;
+                    end
+                  else
+                    begin
+                      message(asmw_e_invalid_opcode_and_operands);
+                    end;
+                end
+              else if (ops=3) then
+                begin
+                  bytes:=bytes or getsupreg(oper[0]^.reg) shl 0;
+                  bytes:=bytes or getsupreg(oper[1]^.reg) shl 12;
+                  bytes:=bytes or getsupreg(oper[2]^.ref^.base) shl 16;
+                end
+              else
+                begin
+                  bytes:=bytes or getsupreg(oper[0]^.reg) shl 0;
+                  bytes:=bytes or getsupreg(oper[1]^.reg) shl 12;
+                  bytes:=bytes or getsupreg(oper[2]^.reg) shl 8;
+                  bytes:=bytes or getsupreg(oper[3]^.ref^.base) shl 16;
+                end;
+            end;
+          #$8C: { Thumb-2: LDM/STM }
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or (ord(insentry^.code[4]) shl 0);
+
+              if oper[0]^.typ=top_reg then
+                bytes:=bytes or (getsupreg(oper[0]^.reg) shl 16)
+              else
+                begin
+                  bytes:=bytes or (getsupreg(oper[0]^.ref^.base) shl 16);
+                  if oper[0]^.ref^.addressmode<>AM_OFFSET then
+                    bytes:=bytes or (1 shl 21);
+                end;
+
+              for r:=0 to 15 do
+                if r in oper[1]^.regset^ then
+                  bytes:=bytes or (1 shl r);
+
+              case oppostfix of
+                PF_None,PF_IA,PF_FD: bytes:=bytes or ($1 shl 23);
+                PF_DB,PF_EA: bytes:=bytes or ($2 shl 23);
+              end;
+            end;
+          #$8D: { Thumb-2: BL/BLX }
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 8);
+              { set offset }
+              if oper[0]^.typ=top_const then
+                offset:=(oper[0]^.val shr 1) and $FFFFFF
+              else
+                begin
+                  currsym:=objdata.symbolref(oper[0]^.ref^.symbol);
+                  if (currsym.bind<>AB_LOCAL) and (currsym.objsection<>objdata.CurrObjSec) then
+                    begin
+                      objdata.writereloc(oper[0]^.ref^.offset,0,currsym,RELOC_RELATIVE_24);
+                      offset:=$FFFFFF
+                    end
+                  else
+                    offset:=((currsym.offset-insoffset-8) shr 1) and $FFFFFF;
+                end;
+
+              bytes:=bytes or ((offset shr 00) and $7FF) shl 0;
+              bytes:=bytes or ((offset shr 11) and $3FF) shl 16;
+              bytes:=bytes or (((offset shr 21) xor (offset shr 23) xor 1) and $1) shl 11;
+              bytes:=bytes or (((offset shr 22) xor (offset shr 23) xor 1) and $1) shl 13;
+              bytes:=bytes or ((offset shr 23) and $1) shl 26;
+            end;
           #$fe: // No written data
             begin
               exit;
@@ -4134,6 +4769,11 @@ implementation
               internalerror(2005091102);
             end;
         end;
+
+        { Todo: Decide whether the code above should take care of writing data in an order that makes senes }
+        if (insentry^.code[0] in [#$80..#$90]) and (bytelen=4) then
+          bytes:=((bytes shr 16) and $FFFF) or ((bytes and $FFFF) shl 16);
+
         { we're finished, write code }
         objdata.writebytes(bytes,bytelen);
       end;

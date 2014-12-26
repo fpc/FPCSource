@@ -329,6 +329,8 @@ implementation
           result:=R_ARM_JUMP24;
         RELOC_RELATIVE_24_THUMB:
           result:=R_ARM_CALL;
+        RELOC_RELATIVE_CALL_THUMB:
+          result:=R_ARM_THM_CALL;
       else
         result:=0;
         writeln(objrel.typ);

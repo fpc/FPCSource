@@ -606,10 +606,20 @@ unit cpubase;
                 ) then
           result:=true
         {Can an 8-bit value be shifted accordingly?}
-        else if is_shifter_const(d,imm) then
-          result:=true
         else
-          result:=false;
+          begin
+            result:=false;
+            for i:=1 to 31 do
+              begin
+                t:=RolDWord(imm,i);
+                if ((t and $FF)=t) and
+                   ((t and $80)=$80) then
+                  begin
+                    result:=true;
+                    exit;
+                  end;
+              end;
+          end;
       end;
     
     function is_continuous_mask(d : aint;var lsb, width: byte) : boolean;
