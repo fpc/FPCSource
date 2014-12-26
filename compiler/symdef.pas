@@ -2116,7 +2116,7 @@ implementation
                sym:=tsym(genericparas[i]);
                if sym.typ<>symconst.typesym then
                  internalerror(2014050904);
-               if sym.owner.defowner=self then
+               if sym.owner.defowner<>self then
                  exit(true);
              end;
            result:=false;
