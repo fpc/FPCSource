@@ -734,7 +734,6 @@ implementation
 //        aiclass[ait_labeled_instruction]:=tai_labeled_instruction;
 {$endif SPARC}
 {$ifdef arm}
-        aiclass[ait_thumb_func]:=tai_thumb_func;
         aiclass[ait_thumb_set]:=tai_thumb_set;
 {$endif arm}
         aiclass[ait_set]:=tai_set;

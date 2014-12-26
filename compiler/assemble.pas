@@ -1214,6 +1214,9 @@ Implementation
                    asd_reference:
                      { ignore for now, but should be added}
                      ;
+                   asd_thumb_func:
+                     { ignore for now, but should be added}
+                     ;
                    else
                      internalerror(2010011101);
                  end;
@@ -1356,6 +1359,9 @@ Implementation
                      { handled in TreePass0 }
                      ;
                    asd_reference:
+                     { ignore for now, but should be added}
+                     ;
+                   asd_thumb_func:
                      { ignore for now, but should be added}
                      ;
                    else

@@ -80,7 +80,6 @@ interface
           ait_labeled_instruction,
 {$endif m68k}
 {$ifdef arm}
-          ait_thumb_func,
           ait_thumb_set,
 {$endif arm}
           ait_set,
@@ -198,7 +197,6 @@ interface
           'labeled_instr',
 {$endif m68k}
 {$ifdef arm}
-          'thumb_func',
           'thumb_set',
 {$endif arm}
           'set',
@@ -310,7 +308,6 @@ interface
                      ait_cutobject,ait_marker,ait_varloc,ait_align,ait_section,ait_comment,
                      ait_const,ait_directive,
 {$ifdef arm}
-                     ait_thumb_func,
                      ait_thumb_set,
 {$endif arm}
                      ait_set,ait_weak,
@@ -356,7 +353,9 @@ interface
         { for Jasmin }
         asd_jclass,asd_jinterface,asd_jsuper,asd_jfield,asd_jlimit,asd_jline,
         { .ent/.end for MIPS and Alpha }
-        asd_ent,asd_ent_end
+        asd_ent,asd_ent_end,
+        { .thumb_func for ARM }
+        asd_thumb_func
       );
 
       TAsmSehDirective=(
@@ -385,7 +384,9 @@ interface
         { for Jasmin }
         'class','interface','super','field','limit','line',
         { .ent/.end for MIPS and Alpha }
-        'ent','end'
+        'ent','end',
+        { .thumb_func for ARM }
+        'thumb_func'
       );
       sehdirectivestr : array[TAsmSehDirective] of string[16]=(
         '.seh_proc','.seh_endproc',

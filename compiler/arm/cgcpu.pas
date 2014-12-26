@@ -3244,7 +3244,7 @@ unit cgcpu;
           Internalerror(200109191);
 
           if GenerateThumbCode or GenerateThumb2Code then
-            list.concat(tai_thumb_func.create);
+            list.concat(tai_directive.Create(asd_thumb_func,''));
 
         make_global:=false;
         if (not current_module.is_unit) or
