@@ -328,7 +328,15 @@ procedure InitCompilerSwitches;
     default_settings.localswitches:=[cs_typed_const_writable];
   end;
 
-
+{$IFDEF HASAMIGA}
+procedure SetAmigaWindowTitle;
+begin
+  { window title first, then screen title, shown when the window is active }
+  Video.SetWindowTitle(
+     'Free Pascal IDE',
+     'Free Pascal IDE '+VersionStr+' ['+{$i %date%}+'] - Compiler '+Full_Version_String);
+end;
+{$ENDIF}
 {The square bullet needs an MS-DOS code page. On Unix it is for sure the code
  page is not available before video is initialized. (And only in certain
  circumstances after that, so, use a plain ascii character as bullet on Unix.)}
@@ -423,6 +431,10 @@ BEGIN
     to be able to find location of error in last compilation
     from command line PM }
   ParseUserScreen;
+
+{$IFDEF HASAMIGA}
+  SetAmigaWindowTitle;
+{$ENDIF}
 
   { Update IDE }
   IDEApp.Update;
