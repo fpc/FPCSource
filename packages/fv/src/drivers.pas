@@ -825,7 +825,8 @@ end;
 {$IFDEF OS_AMIGA}
   begin
     { AmigaOS Delay() wait's argument in 1/50 seconds }
-    DOSDelay(2);
+    { DOSDelay(2); // the old solution... }
+    Keyboard.WaitForSystemEvent(150);
   end;
 {$ENDIF OS_AMIGA}
 

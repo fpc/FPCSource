@@ -102,6 +102,14 @@ begin
          LastYSize:=height;
          PollSystemEvent:=true;
        end;
+     end else if Video.HasActiveWindow then begin
+       SystemEvent.typ:=SysSetFocus;
+       PutSystemEvent(SystemEvent);
+       PollSystemEvent:=true;
+     end else if Video.HasInactiveWindow then begin
+       SystemEvent.typ:=SysReleaseFocus;
+       PutSystemEvent(SystemEvent);
+       PollSystemEvent:=true;
      end;
-    end;
+   end;
 end;
