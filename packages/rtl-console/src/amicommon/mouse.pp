@@ -31,14 +31,6 @@ begin
   SysDetectMouse:=3;
 end;
 
-
-
-
-
-
-
-
-
 const
   SysMouseDriver : TMouseDriver = (
     UseDefaultQueue : True;

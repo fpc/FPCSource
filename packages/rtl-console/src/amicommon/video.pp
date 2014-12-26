@@ -1,9 +1,9 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2006 by Karoly Balogh
+    Copyright (c) 2006-2014 by Karoly Balogh
     member of the Free Pascal development team
 
-    Video unit for Amiga and MorphOS
+    Video unit for Amiga, MorphOS and AROS
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -28,62 +28,13 @@ unit Video;
   ---------------------------------------------------------------------------
   Attempt to add user-on-demand support for AROS Fullscreen to the FPC video 
   unit.
-
-  DISCLAIMER:
-  Experimental code only meant as PoC.
-  
-  DON'T USE FOR PUBLICATION UNLESS ALL PERSONAL COMMENTS AND REFERENCES ARE 
-  REMOVED AND THE ACTUAL CODE IS APPROVED BY SOMEONE THAT KNOWS WHAT HE/SHE 
-  IS DOING.
-  THIS CODE IS PROOF OF CONCEPT ONLY AND AS SUCH DOES NOT PROVIDE 100% 
-  RELIABLE CODE AND/OR APPROVED PROGRAMMING TECHNIQUES.
-
-  Idea:
-  The idea of running a video-unit screen on its own graphical screen
-  emerged from ALB42's port of the dos-based fp-editor that is distributed
-  with freepascal. In it's original form the editor would be run from dos
-  and would present itself in a full-screen modus fashion.
-  
-  This behaviour changed slightly with the ending of the dos era, and 
-  instead a commando window started to appear in regular OS'.
-  
-  But even when this changed, Windows users were still able to view this
-  command window in full-screen by means of pressing ctrl-enter.
-  
-  Since this behaviour is not present on current next gen amigaOS systems,
-  we have to live without that.
-  
-  And so begun the idea of letting the video-unit somehow be influenced
-  in such a way that an Freevision application that uses the videounit
-  could be shown in fullscreen.
-  
-  In order to accomplish this task we missuse the color tag of TVideomode.
-  When the color is set to monochrome it will show the 
-  dos-screen on a full graphics screen and the dos-output will be shown
-  in a borderless backdrop window. That way it appears that the vision
-  application is running full-screen.
-  
-  The current implementation has a limitation that cannot be solved.
-  
-  Namely, the vision screens are based on a ascii character screen, so 
-  the final measurements of the full-screen-window will depend
-  on the amount of pixels that maximally can be displayed by means of 
-  those same character-sizes. 
-  Since the used font is currently 8 pixels width and 16 pixels high, 
-  it becomes clear that not every screen-resolution is suitable to 
-  exactly fit both dimensions pixelwise. As a result a small
-  stripe (of default backgroundcolor) on the bottom or right may appear. 
-   
-  HAVE FUN !
-  
-  MaGoRiuM
 }
 
 
 interface
 
 uses
-  amigados, intuition, {tagsarray,} utility, sysutils;
+  amigados, intuition, utility, sysutils;
 
 {$i videoh.inc}
 
@@ -94,8 +45,13 @@ procedure GotCloseWindow;
 function  HasCloseWindow: boolean;
 procedure GotResizeWindow;
 function  HasResizeWindow(var winw:longint; var winh: longint): boolean;
-
-
+procedure GotRefreshWindow;
+procedure ToggleCursor(forceOff: boolean);
+procedure GotActiveWindow;
+function HasActiveWindow: boolean;
+procedure GotInactiveWindow;
+function HasInactiveWindow: boolean;
+procedure SetWindowTitle(const winTitle: AnsiString; const screenTitle: AnsiString);
 
 var
   VideoWindow: PWindow;
@@ -120,10 +76,16 @@ var
   VideoColorMap         : PColorMap;
   VideoPens             : array[0..15] of LongInt;
 
-  OldCursorX,
+  OldSH, OldSW          : longint;
+
+  OldCursorX, 
   OldCursorY            : LongInt;
   CursorType            : Word;
   OldCursorType         : Word;
+  CursorUpdateCnt       : Word;
+  CursorUpdateSpeed     : Word;
+  CursorState           : boolean;
+  ForceCursorUpdate     : boolean;
 
   {$ifdef WITHBUFFERING}
   BitmapWidth, BitmapHeight: Integer;
@@ -132,6 +94,8 @@ var
 
   GotCloseWindowMsg     : Boolean;
   GotResizeWindowMsg    : Boolean;
+  GotActiveWindowMsg    : Boolean;
+  GotInactiveWindowMsg  : Boolean;
   LastL, LastT: Integer;
   LastW, LastH: Integer;
   WindowForReqSave: PWindow;
@@ -143,17 +107,22 @@ var
   and returns the pointer to the screen. Result can be nil when failed
   otherwise the screen got opened correctly.
 *)
+function _OpenScreenTags(a: Pointer; tags: array of PtrUInt): pScreen;
+begin
+  _OpenScreenTags:=OpenScreenTagList(a, @tags);
+end;
+
 Function GetScreen: pScreen;
 begin
-  GetScreen:=OpenScreenTags(nil,[
-    SA_Title          , DWord(PChar(VIDEOSCREENNAME)),
+  GetScreen:=_OpenScreenTags(nil,[
+    SA_Title          , PtrUInt(PChar(VIDEOSCREENNAME)),
     SA_Left           , 0,
     SA_Top            , 0,
     SA_ShowTitle      , 0,    // Do not show the screen's TitleBar
-    SA_Type           , PUBLICSCREEN_F,
-    SA_PubName        , DWord(PChar(VIDEOSCREENNAME)),
+    SA_Type           , PUBLICSCREEN_F, // pubscreen
+    SA_PubName        , PtrUInt(PChar(VIDEOSCREENNAME)),
     SA_Quiet          , 1,
-    SA_LikeWorkbench  , 1     // Let OS
+    SA_LikeWorkbench  , 1     // Let OS  
   ]);
   {$ifdef VIDEODEBUG}
   if (GetScreen <> nil) then
@@ -175,10 +144,25 @@ end;
   In windowed mode it returns a window with another kind of 
   settings then when it has to reside on it's own customscreen.
 *)
+function _OpenWindowTags(a: Pointer; tags: array of PtrUInt): pWindow;
+begin
+  _OpenWindowTags:=OpenWindowTagList(a, @tags);
+end;
+
+const
+  VIDEO_IDCMP_DEFAULTS = IDCMP_RAWKEY       or
+                         IDCMP_MOUSEBUTTONS or
+                         IDCMP_CHANGEWINDOW or IDCMP_CLOSEWINDOW or
+                         IDCMP_ACTIVEWINDOW or IDCMP_INACTIVEWINDOW or
+                         IDCMP_REFRESHWINDOW or
+                         IDCMP_INTUITICKS;
+  { simple refresh would be nicer here, but smart refresh gives better
+    results when moving around the window with the input blocked.
+    (eg. compiling in the IDE) }
+  VIDEO_WFLG_DEFAULTS = WFLG_RMBTRAP or WFLG_SMART_REFRESH;
+
 Function GetWindow: PWindow;
 begin
-  GetWindow:=nil;
-
   if FPC_VIDEO_FULLSCREEN then
   begin
     OS_Screen := GetScreen;
@@ -188,8 +172,8 @@ begin
     {$ifdef VIDEODEBUG}
     WriteLn('DEBUG: Opened customscreen succesfully');
     {$endif}
-    GetWindow:=OpenWindowTags(nil, [
-      WA_CustomScreen, PtrUInt(OS_Screen),
+    GetWindow:=_OpenWindowTags(nil, [
+      WA_CustomScreen, PtrUint(OS_Screen),
       WA_Left       , 0,
       WA_Top        , 0,
       WA_InnerWidth , (OS_Screen^.Width div 8) * 8,
@@ -198,15 +182,12 @@ begin
       WA_Activate   , 1,
       WA_Borderless , 1,
       WA_BackDrop   , 1,
-      WA_FLAGS      , (WFLG_GIMMEZEROZERO or WFLG_REPORTMOUSE   or WFLG_RMBTRAP or
-                       WFLG_SMART_REFRESH or WFLG_NOCAREREFRESH),
-      WA_IDCMP      , (IDCMP_RAWKEY       or
-                       IDCMP_MOUSEMOVE    or IDCMP_MOUSEBUTTONS or
-                       IDCMP_CHANGEWINDOW or IDCMP_CLOSEWINDOW)
-    ]);
-  end else
+      WA_FLAGS      , VIDEO_WFLG_DEFAULTS,
+      WA_IDCMP      , VIDEO_IDCMP_DEFAULTS
+    ]); 
+  end else  
   begin      // Windowed Mode
-    GetWindow:=OpenWindowTags(nil,[
+    GetWindow:=_OpenWindowTags(nil, [
       WA_Left       , LastL,
       WA_Top        , LastT,
       WA_InnerWidth , LastW*8,
@@ -215,13 +196,10 @@ begin
       WA_MaxHeight  , 32768,
       WA_Title      , PtrUInt(PChar('FPC Video Window Output')),
       WA_Activate   , 1,
-      WA_FLAGS      , (WFLG_GIMMEZEROZERO or WFLG_REPORTMOUSE   or
-                       WFLG_SMART_REFRESH or WFLG_NOCAREREFRESH or 
+      WA_FLAGS      , (VIDEO_WFLG_DEFAULTS or
                        WFLG_DRAGBAR       or WFLG_DEPTHGADGET   or WFLG_SIZEGADGET or
-                       WFLG_SIZEBBOTTOM   or WFLG_RMBTRAP       or WFLG_CLOSEGADGET),
-      WA_IDCMP      , (IDCMP_RAWKEY       or
-                       IDCMP_MOUSEMOVE    or IDCMP_MOUSEBUTTONS or
-                       IDCMP_CHANGEWINDOW or IDCMP_CLOSEWINDOW)//,
+                       WFLG_SIZEBBOTTOM   or WFLG_CLOSEGADGET),
+      WA_IDCMP      , VIDEO_IDCMP_DEFAULTS
     ]);
   end;
 
@@ -249,11 +227,8 @@ procedure SysInitVideo;
 var
   Counter: LongInt;
 begin
-  InitGraphicsLibrary;
-  InitIntuitionLibrary;
-
   {$ifdef VIDEODEBUG}
-  WriteLn('FULLSCREEN VIDEO UNIT MODIFICATION v2');  
+  WriteLn('FULLSCREEN VIDEO UNIT MODIFICATION v2');
   if FPC_VIDEO_FULLSCREEN then
     WriteLn('DEBUG: Recognized fullscreen mode')
   else
@@ -293,18 +268,17 @@ begin
      ScreenColor := True;
    end;
    {$ifdef WITHBUFFERING}
-   BufRp^.Bitmap := AllocBitmap(VideoWindow^.GZZWidth, VideoWindow^.GZZHeight, VideoWindow^.RPort^.Bitmap^.Depth, BMF_CLEAR, VideoWindow^.RPort^.Bitmap);
-   BitmapWidth := VideoWindow^.GZZWidth;
-   BitmapHeight := VideoWindow^.GZZHeight;
+   BufRp^.Bitmap := AllocBitmap(VideoWindow^.InnerWidth, VideoWindow^.InnerHeight, VideoWindow^.RPort^.Bitmap^.Depth, BMF_CLEAR, VideoWindow^.RPort^.Bitmap);
+   BitmapWidth := VideoWindow^.InnerWidth;
+   BitmapHeight := VideoWindow^.InnerHeight;
    {$endif}
    { viewpostcolormap info }
    videoColorMap := pScreen(videoWindow^.WScreen)^.ViewPort.ColorMap;
-   
+
    for Counter := 0 to 15 do 
    begin
-     VideoPens[Counter] := ObtainPen(VideoColorMap, LongWord(-1),
-         vgacolors[counter, 0] shl 24, vgacolors[counter, 1] shl 24, vgacolors[counter, 2] shl 24,
-         PEN_EXCLUSIVE);
+     VideoPens[Counter] := ObtainBestPenA(VideoColorMap,
+         vgacolors[counter, 0] shl 24, vgacolors[counter, 1] shl 24, vgacolors[counter, 2] shl 24, nil);
      {$ifdef VIDEODEBUG}
      If VideoPens[Counter] = -1 then
        WriteLn('errr color[',Counter,'] = ', VideoPens[Counter])
@@ -312,21 +286,28 @@ begin
        WriteLn('good color[',Counter,'] = ', VideoPens[Counter]);
      {$endif}
    end;
-   
+
    CursorX := 0;
    CursorY := 0;
    OldCursorX := 0;
    OldCursorY := 0;
    CursorType := crHidden;
    OldCursorType := crHidden;
+   CursorState := true;
+   ForceCursorUpdate:=false;
+   CursorUpdateSpeed:=2; // this could come from an env-var or something
+   CursorUpdateCnt:=0;
 
    GotCloseWindowMsg := false;
    GotResizeWindowMsg := false;
+   GotActiveWindowMsg := false;
+   GotInactiveWindowMsg := false;
 end;
 
 procedure SysDoneVideo;
 var
   Counter: LongInt;
+  msg: PMessage;
 begin
   if VideoWindow <> nil then
   begin
@@ -336,13 +317,21 @@ begin
       LastL := VideoWindow^.LeftEdge;
       LastT := VideoWindow^.TopEdge;
     end;
+    // clean up the messages from our window before closing
+    Forbid();
+    repeat
+      msg:=GetMsg(videoWindow^.UserPort);
+      if (msg <> nil) then ReplyMsg(msg);
+    until msg = nil;
+    ModifyIDCMP(videoWindow,0);
+    Permit();
     CloseWindow(videoWindow);
+    VideoWindow := nil;
   end;
   {$ifdef WITHBUFFERING}
   FreeBitmap(BufRp^.Bitmap);
   BufRp^.Bitmap := nil;
   {$endif}
-  VideoWindow := nil;
   for Counter := 0 to 15 do
     ReleasePen(VideoColorMap, VideoPens[Counter]);
   if ((FPC_VIDEO_FULLSCREEN) and (OS_Screen <> nil)) then
@@ -364,6 +353,7 @@ begin
     begin
       LastT := 50;
       LastL := 50;
+      
       LastW := 80;
       LastH := 25;
     end;
@@ -383,8 +373,6 @@ begin
   SysSetVideoMode := True;
 end;
 
-var
-  OldSH, OldSW : longint;
 
 procedure SysClearScreen;
 begin
@@ -402,12 +390,12 @@ var
   sX, sY: LongInt;
 begin
   TmpCharData := VideoBuf^[y * ScreenWidth + x];
-  TmpChar    := TmpCharData and $0ff;
+  TmpChar    := byte(TmpCharData);
   TmpFGColor := (TmpCharData shr 8) and %00001111;
   TmpBGColor := (TmpCharData shr 12) and %00000111;
 
-  sX := x * 8;
-  sY := y * 16;
+  sX := x * 8 + videoWindow^.borderLeft;
+  sY := y * 16 + videoWindow^.borderTop;
 
   if crType <> crBlock then
   begin
@@ -424,8 +412,8 @@ begin
   if crType = crUnderLine then
   begin
     { draw two lines at the bottom of the char, in case of underline cursor }
-    agraphics.gfxMove(rp, sX, sY + 14); Draw(rp, sX + 7, sY + 14);
-    agraphics.gfxMove(rp, sX, sY + 15); Draw(rp, sX + 7, sY + 15);
+    GfxMove(rp, sX, sY + 14); Draw(rp, sX + 7, sY + 14);
+    GfxMove(rp, sX, sY + 15); Draw(rp, sX + 7, sY + 15);
   end;
 end;
 
@@ -444,7 +432,7 @@ begin
   if Force then
   begin
     if (OldSH = ScreenHeight) and (OldSW = ScreenWidth) then
-      Force:=false
+      Force := false
     else
     begin
       OldSH := ScreenHeight;
@@ -458,20 +446,21 @@ begin
   end else
   begin
     Counter:=0;
-    while not smallforce and (Counter < (VideoBufSize div 4) - 1) do
-    begin
-      SmallForce := (PDWord(VideoBuf)[Counter] <> PDWord(OldVideoBuf)[Counter]);
-      inc(Counter);
-    end;
+    if not ForceCursorUpdate then
+      while not smallforce and (Counter < (VideoBufSize div 4) - 1) do
+      begin
+        SmallForce := (PDWord(VideoBuf)[Counter] <> PDWord(OldVideoBuf)[Counter]);
+        inc(Counter);
+      end;
   end;
 
   {$ifdef WITHBUFFERING}
-  if (VideoWindow^.GZZWidth > BitmapWidth) or (VideoWindow^.GZZHeight > BitmapHeight) then
+  if (VideoWindow^.InnerWidth > BitmapWidth) or (VideoWindow^.InnerHeight > BitmapHeight) then
   begin
     FreeBitmap(BufRp^.Bitmap);
-    BufRp^.Bitmap := AllocBitmap(VideoWindow^.GZZWidth, VideoWindow^.GZZHeight, VideoWindow^.RPort^.Bitmap^.Depth, BMF_CLEAR, VideoWindow^.RPort^.Bitmap);
-    BitmapWidth := VideoWindow^.GZZWidth;
-    BitmapHeight := VideoWindow^.GZZHeight;
+    BufRp^.Bitmap := AllocBitmap(VideoWindow^.InnerWidth, VideoWindow^.InnerHeight, VideoWindow^.RPort^.Bitmap^.Depth, BMF_CLEAR, VideoWindow^.RPort^.Bitmap);
+    BitmapWidth := VideoWindow^.InnerWidth;
+    BitmapHeight := VideoWindow^.InnerHeight;
     Force := True;
     Smallforce := True;
   end;
@@ -505,14 +494,14 @@ begin
 
   if (CursorType <> OldCursorType) or
      (CursorX <> OldCursorX) or (CursorY <> OldCursorY) or
-     SmallForce then
+     SmallForce or ForceCursorUpdate then
   begin
     {$ifdef WITHBUFFERING}
     DrawChar(BufRp, OldCursorY, OldCursorX, crHidden);
-    DrawChar(BufRp, CursorY, CursorX, CursorType);
+    if CursorState then DrawChar(BufRp, CursorY, CursorX, CursorType);
     {$else}
     DrawChar(VideoWindow^.RPort, OldCursorY, OldCursorX, crHidden);
-    DrawChar(VideoWindow^.RPort, CursorY, CursorX, CursorType);
+    if CursorState then DrawChar(VideoWindow^.RPort, CursorY, CursorX, CursorType);
     {$endif}
     OldCursorX := CursorX;
     OldCursorY := CursorY;
@@ -576,15 +565,111 @@ begin
   WinW := 0;
   WinH := 0;
   HasResizeWindow := GotResizeWindowMsg;
-  if Assigned(VideoWindow) then
+  if GotResizeWindowMsg then
   begin
-    //writeln('resize');
-    WinW := VideoWindow^.GZZWidth div 8;
-    WinH := VideoWindow^.GZZHeight div 16;
-    LastW := WinW;
-    LastH := WinH;
+    //writeln('Has resize ', GotResizeWindowMsg);
+    if Assigned(VideoWindow) then
+    begin
+      WinW := VideoWindow^.GZZWidth div 8;
+      WinH := VideoWindow^.GZZHeight div 16;
+//      writeln('resize', winw, ' ',winh);
+      LastW := WinW;
+      LastH := WinH;
+    end
+  end
+  else
+  begin
+    WinW := LastW;
+    WinH := LastH;
   end;
   GotResizeWindowMsg := False;
+end;
+
+procedure GotRefreshWindow;
+begin
+  if assigned(VideoWindow) then
+  begin
+    oldSH := -1;
+    oldSW := -1;
+    BeginRefresh(VideoWindow);
+    SysUpdateScreen(true);
+    EndRefresh(VideoWindow, true);
+  end;
+end;
+
+procedure ToggleCursor(forceOff: boolean);
+begin
+  if CursorType = crHidden then exit;
+
+  if forceOff then
+  begin
+    CursorState:=false;
+    // to immediately turn on cursor on the next toggle
+    CursorUpdateCnt:=CursorUpdateSpeed;
+  end
+  else
+  begin
+    Inc(CursorUpdateCnt);
+    if CursorUpdateCnt >= CursorUpdateSpeed then
+    begin
+      CursorState:=not CursorState;
+      CursorUpdateCnt:=0;
+    end
+    else
+      exit;
+  end;
+  ForceCursorUpdate:=true;
+  SysUpdateScreen(False);
+  ForceCursorUpdate:=false;
+end;
+
+procedure GotActiveWindow;
+begin
+  GotActiveWindowMsg:=true;
+end;
+
+function HasActiveWindow: boolean;
+begin
+  HasActiveWindow:=GotActiveWindowMsg;
+  GotActiveWindowMsg:=false;
+end;
+
+procedure GotInactiveWindow;
+begin
+  GotInactiveWindowMsg:=true;
+end;
+
+function HasInactiveWindow: boolean;
+begin
+  HasInactiveWindow:=GotInactiveWindowMsg;
+  GotInactiveWindowMsg:=false;
+end;
+
+{ SetWindowTitles seems not to copy the buffer, at least on AROS.
+  So we better keep a reference of the strings to ourselves... }
+var
+  globWinT: AnsiString;
+  globScreenT: AnsiString;
+
+procedure SetWindowTitle(const winTitle: AnsiString; const screenTitle: AnsiString);
+var
+  winT: PChar;
+  screenT: PChar;
+begin
+  globWinT:=winTitle;
+  globScreenT:=screenTitle;
+  if VideoWindow <> nil then
+  begin
+    if globWinT = '' then
+      winT:=PChar(PtrInt(-1))
+    else
+      winT:=PChar(globWinT);
+    if globScreenT = '' then 
+      screenT:=PChar(PtrInt(-1))
+    else
+      screenT:=PChar(globScreenT);
+    SetWindowTitles(VideoWindow, winT, screenT);
+  end;
 end;
 
 function SysGetVideoModeCount: Word;
