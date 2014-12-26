@@ -4091,7 +4091,7 @@ PROCEDURE DrawBorder(rp : pRastPort location 'a0';const border : pBorder locatio
 PROCEDURE DrawImage(rp : pRastPort location 'a0'; image : pImage location 'a1'; leftOffset : LONGINT location 'd0'; topOffset : LONGINT location 'd1'); syscall _IntuitionBase 114;
 PROCEDURE DrawImageState(rp : pRastPort location 'a0'; image : pImage location 'a1'; leftOffset : LONGINT location 'd0'; topOffset : LONGINT location 'd1'; state : ULONG location 'd2';const drawInfo : pDrawInfo location 'a2'); syscall _IntuitionBase 618;
 FUNCTION EasyRequestArgs(window : pWindow location 'a0';const easyStruct : pEasyStruct location 'a1'; idcmpPtr : pULONG location 'a2';const args : POINTER location 'a3') : LONGINT; syscall _IntuitionBase 588;
-PROCEDURE EndRefresh(window : pWindow location 'a0'; complete : LONGINT location 'd0'); syscall _IntuitionBase 366;
+PROCEDURE EndRefresh(window : pWindow location 'a0'; complete : LONGBOOL location 'd0'); syscall _IntuitionBase 366;
 PROCEDURE EndRequest(requester : pRequester location 'a0'; window : pWindow location 'a1'); syscall _IntuitionBase 120;
 PROCEDURE EraseImage(rp : pRastPort location 'a0'; image : pImage location 'a1'; leftOffset : LONGINT location 'd0'; topOffset : LONGINT location 'd1'); syscall _IntuitionBase 630;
 FUNCTION FreeClass(classPtr : pIClass location 'a0') : LongBool; syscall _IntuitionBase 714;
