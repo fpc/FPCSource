@@ -2115,8 +2115,8 @@ implementation
         { Check wideformat flag }
         if ((p^.flags and IF_WIDE)<>0) <> wideformat then
           begin
-            //matches:=0;
-            //exit;
+            matches:=0;
+            exit;
           end;
 
         { Check that no spurious colons or TOs are present }
@@ -4745,7 +4745,7 @@ implementation
                   if (currsym.bind<>AB_LOCAL) and (currsym.objsection<>objdata.CurrObjSec) then
                     begin
                       objdata.writereloc(oper[0]^.ref^.offset,0,currsym,RELOC_RELATIVE_24);
-                      offset:=$FFFFFF
+                      offset:=$FFFFFE
                     end
                   else
                     offset:=((currsym.offset-insoffset-8) shr 1) and $FFFFFF;
