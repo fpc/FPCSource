@@ -362,21 +362,21 @@
     ops     : 1;
     optypes : (ot_immediate24,ot_none,ot_none,ot_none,ot_none,ot_none);
     code    : #141#240#208;
-    flags   : if_thumb32 or if_armv6t2
+    flags   : if_thumb or if_thumb32 or if_armv4t
   ),
   (
     opcode  : A_BL;
     ops     : 1;
     optypes : (ot_immediateshifter,ot_none,ot_none,ot_none,ot_none,ot_none);
     code    : #141#240#208;
-    flags   : if_thumb32 or if_armv6t2
+    flags   : if_thumb or if_thumb32 or if_armv4t
   ),
   (
     opcode  : A_BL;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none,ot_none,ot_none,ot_none);
     code    : #141#240#208;
-    flags   : if_thumb32 or if_armv6t2
+    flags   : if_thumb or if_thumb32 or if_armv4t
   ),
   (
     opcode  : A_BL;

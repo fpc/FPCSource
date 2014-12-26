@@ -168,9 +168,9 @@ reg32,reg32,reg32,shifterop \x6\x1\xC0                    ARM32,ARMv4
 reg32,reg32,immshifter      \x7\x3\xC0                    ARM32,ARMv4
 
 [BLcc]
-imm24                    \x8D\xF0\xD0                   THUMB32,ARMv6T2
-immshifter               \x8D\xF0\xD0                   THUMB32,ARMv6T2
-mem32                    \x8D\xF0\xD0                   THUMB32,ARMv6T2
+imm24                    \x8D\xF0\xD0                   THUMB,THUMB32,ARMv4T
+immshifter               \x8D\xF0\xD0                   THUMB,THUMB32,ARMv4T
+mem32                    \x8D\xF0\xD0                   THUMB,THUMB32,ARMv4T
 
 imm24                    \x1\x0B                        ARM32,ARMv4
 mem32                    \x1\x0B                        ARM32,ARMv4
