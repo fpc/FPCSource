@@ -12,7 +12,7 @@ units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
       sysutils \
       classes math typinfo ctypes \
       charset cpall getopts \
-      types rtlconsts sysconst lineinfo fgl \
+      types rtlconsts sysconst lineinfo fgl
 #      exec timer doslib utility hardware inputevent graphics layers \
 # these can be moved to packages later
 #      clipboard datatypes asl ahi tinygl get9 muihelper \
