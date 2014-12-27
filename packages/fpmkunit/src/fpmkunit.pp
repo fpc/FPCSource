@@ -1163,7 +1163,6 @@ Type
     Function ReadyToCompile(APackage:TPackage) : Boolean;
     Procedure Install(APackage : TPackage; AnArchiveFiles: boolean);
     Procedure Archive(APackage : TPackage);
-    Procedure Manifest(APackage : TPackage);
     Procedure PkgList(PkgList: TStrings; APackage : TPackage);
     Procedure Clean(APackage : TPackage; AllTargets: boolean);
     Procedure Clean(APackage : TPackage; ACPU:TCPU; AOS : TOS);
@@ -7177,31 +7176,6 @@ begin
 end;
 
 
-Procedure TBuildEngine.Manifest(APackage : TPackage);
-Var
-  L : TStrings;
-  PD,
-  MF : String;
-begin
-  L:=TStringList.Create;
-  Try
-    Log(vlInfo, Format(SInfoManifestPackage,[APackage.Name]));
-    PD:=APackage.Directory;
-    if PD<>'' then
-      PD:=IncludeTrailingPathDelimiter(PD);
-    MF:=PD+ManifestFile;
-    Log(vlDebug, Format(SDbgGenerating, [MF]));
-    L.Add('<?xml version="1.0"?>');
-    L.Add('<packages>');
-    APackage.GetManifest(L);
-    L.Add('</packages>');
-    L.SaveToFile(MF);
-  Finally
-    L.Free;
-  end;
-end;
-
-
 Procedure TBuildEngine.PkgList(PkgList: TStrings; APackage : TPackage);
 begin
   Log(vlInfo, Format(SInfoPkgListPackage,[APackage.Name]));
@@ -7433,17 +7407,31 @@ end;
 
 procedure TBuildEngine.Manifest(Packages: TPackages);
 Var
+  L : TStrings;
   I : Integer;
   P : TPackage;
 begin
   If Assigned(BeforeManifest) then
     BeforeManifest(Self);
   Log(vlDebug, SDbgBuildEngineGenerateManifests);
-  For I:=0 to Packages.Count-1 do
-    begin
-      P:=Packages.PackageItems[i];
-      Manifest(P);
-    end;
+
+  L:=TStringList.Create;
+  Try
+    Log(vlDebug, Format(SDbgGenerating, [ManifestFile]));
+    L.Add('<?xml version="1.0"?>');
+    L.Add('<packages>');
+    For I:=0 to Packages.Count-1 do
+      begin
+        P:=Packages.PackageItems[i];
+        Log(vlInfo, Format(SInfoManifestPackage,[P.Name]));
+        P.GetManifest(L);
+      end;
+    L.Add('</packages>');
+    L.SaveToFile(ManifestFile);
+  Finally
+    L.Free;
+  end;
+
   If Assigned(AfterManifest) then
     AfterManifest(Self);
 end;
