@@ -591,7 +591,6 @@ unit cpubase;
       var
         t : aint;
         i : longint;
-        imm : byte;
       begin
         {Loading 0-255 is simple}
         if (d and $FF) = d then
@@ -611,7 +610,7 @@ unit cpubase;
             result:=false;
             for i:=1 to 31 do
               begin
-                t:=RolDWord(imm,i);
+                t:=RolDWord(d,i);
                 if ((t and $FF)=t) and
                    ((t and $80)=$80) then
                   begin

@@ -145,11 +145,11 @@ reg32,reg32,reg32,shifterop \x6\x0\x00                    ARM32,ARMv4
 reg32,reg32,immshifter      \x7\x2\x00                    ARM32,ARMv4
 
 [Bcc]
-imm32                       \x62\xE0\x0                   THUMB,ARMv4T
+imm24                       \x62\xE0\x0                   THUMB,ARMv4T
 immshifter                  \x62\xE0\x0                   THUMB,ARMv4T
 mem32                       \x62\xE0\x0                   THUMB,ARMv4T
 
-imm32                       \x63\xD0\x0                   THUMB,ARMv4T
+imm24                       \x63\xD0\x0                   THUMB,ARMv4T
 immshifter                  \x63\xD0\x0                   THUMB,ARMv4T
 mem32                       \x63\xD0\x0                   THUMB,ARMv4T
 
@@ -361,6 +361,7 @@ reg32,regf          \x10\x01\x0F                        ARM32,ARMv4
 [MSRcc]
 regf,reg32          \x12\x01\x28\xF0                    ARM32,ARMv4
 regf,immshifter     \x13\x03\x28\xF0                    ARM32,ARMv4
+regs,immshifter     \x13\x03\x28\xF0                    ARM32,ARMv4
 
 [MULcc]
 reglo,reglo,reglo      \x64\x43\x40              THUMB,ARMv4T
@@ -396,6 +397,8 @@ vreg,reg32,reg32      \x40\xC\x40\xB\x10        ARM32,VFPv2
 [NOP]
 void                    \x61\xBF\x0                  THUMB,ARMv6T2
 void                    \x2F\x03\x20\xF0\x0          ARM32,ARMv6K
+; Before ARMv6K use mov r0,r0
+void                    \x2F\xE1\xA0\x0\x0           ARM32,ARMv4
 
 [ORNcc]
 reg32,reg32,immshifter      \x80\xF0\x60\x0\x0            THUMB32,ARMv6T2

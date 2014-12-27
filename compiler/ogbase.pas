@@ -172,6 +172,10 @@ interface
        { Darwin asm is using indirect symbols resolving }
        indsymbol  : TObjSymbol;
 
+{$ifdef ARM}
+       ThumbFunc : boolean;
+{$endif ARM}
+
        constructor create(AList:TFPHashObjectList;const AName:string);
        function  address:aword;
        procedure SetAddress(apass:byte;aobjsec:TObjSection;abind:TAsmsymbind;atyp:Tasmsymtype);
@@ -233,9 +237,6 @@ interface
        ExeSection  : TExeSection;
        USed        : Boolean;
        VTRefList : TFPObjectList;
-{$ifdef ARM}
-       ThumbFunc : boolean;
-{$endif ARM}
        constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);virtual;
        destructor  destroy;override;
        function  write(const d;l:aword):aword;
@@ -1140,10 +1141,6 @@ implementation
           begin
             result:=CObjSection.create(FObjSectionList,aname,aalign,aoptions);
             result.ObjData:=self;
-{$ifdef ARM}
-            result.ThumbFunc:=ThumbFunc;
-            ThumbFunc:=false;
-{$endif ARM}
           end;
         FCurrObjSec:=result;
       end;
@@ -1181,6 +1178,11 @@ implementation
         result:=TObjSymbol(FObjSymbolList.Find(aname));
         if not assigned(result) then
           result:=TObjSymbol.Create(FObjSymbolList,aname);
+
+{$ifdef ARM}
+        result.ThumbFunc:=ThumbFunc;
+        ThumbFunc:=false;
+{$endif ARM}
       end;
 
 

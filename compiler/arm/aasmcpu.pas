@@ -93,6 +93,7 @@ uses
       OT_REG64     = $00201008;
       OT_VREG      = $00201010;  { vector register }
       OT_REGF      = $00201020;  { coproc register }
+      OT_REGS      = $00201040;  { special register with mask }
       OT_MEMORY    = $00204000;  { register number in 'basereg'  }
       OT_MEM8      = $00204001;
       OT_MEM16     = $00204002;
@@ -1453,10 +1454,6 @@ implementation
 
 
     procedure gather_it_info(list: TAsmList);
-      const
-        opCount: array[A_IT..A_ITTTT] of longint =
-          (1,2,2,3,3,3,3,
-           4,4,4,4,4,4,4,4);
       var
         curtai: tai;
         in_it: boolean;
@@ -1479,7 +1476,7 @@ implementation
                         else
                           begin
                             in_it:=true;
-                            it_count:=opCount[taicpu(curtai).opcode];
+                            it_count:=GetITLevels(taicpu(curtai).opcode);
                           end;
                       end;
                     else
@@ -1502,8 +1499,51 @@ implementation
           end;
       end;
 
+
+    { Expands pseudo instructions ( mov r1,r2,lsl #4 -> lsl r1,r2,#4) }
+    procedure expand_instructions(list: TAsmList);
+      var
+        curtai: tai;
+      begin
+        curtai:=tai(list.First);
+        while assigned(curtai) do
+          begin
+            case curtai.typ of
+              ait_instruction:
+                begin
+                  case taicpu(curtai).opcode of
+                    A_MOV:
+                      begin
+                        if (taicpu(curtai).ops=3) and
+                           (taicpu(curtai).oper[2]^.typ=top_shifterop) then
+                          begin
+                            case taicpu(curtai).oper[2]^.shifterop^.shiftmode of
+                              SM_LSL: taicpu(curtai).opcode:=A_LSL;
+                              SM_LSR: taicpu(curtai).opcode:=A_LSR;
+                              SM_ASR: taicpu(curtai).opcode:=A_ASR;
+                              SM_ROR: taicpu(curtai).opcode:=A_ROR;
+                              SM_RRX: taicpu(curtai).opcode:=A_RRX;
+                            end;
+
+                            if taicpu(curtai).oper[2]^.shifterop^.rs=NR_NO then
+                              taicpu(curtai).loadconst(2, taicpu(curtai).oper[2]^.shifterop^.shiftimm)
+                            else
+                              taicpu(curtai).loadreg(2, taicpu(curtai).oper[2]^.shifterop^.rs);
+                          end;
+                      end;
+                  end;
+                end;
+            end;
+
+            curtai:=tai(curtai.Next);
+          end;
+      end;
+
+
     procedure finalizearmcode(list, listtoinsert: TAsmList);
       begin
+        expand_instructions(list);
+
         { Do Thumb-2 16bit -> 32bit transformations }
         if GenerateThumb2Code then
           begin
@@ -1712,6 +1752,9 @@ implementation
                else
                  if (ot and OT_FPUREG)=OT_FPUREG then
                   s:=s+'fpureg'
+               else
+                 if (ot and OT_REGS)=OT_REGS then
+                  s:=s+'sreg'
                else
                  if (ot and OT_REGF)=OT_REGF then
                   s:=s+'creg'
@@ -2109,6 +2152,10 @@ implementation
                 begin
                   ot:=OT_CONDITION;
                 end;
+              top_specialreg:
+                begin
+                  ot:=OT_REGS;
+                end;
               else
                 begin writeln(typ);
                 internalerror(200402261); end;
@@ -2166,10 +2213,10 @@ implementation
           end;
 
         { Check wideformat flag }
-        if ((p^.flags and IF_WIDE)<>0) <> wideformat then
+        if wideformat and ((p^.flags and IF_WIDE)=0) then
           begin
-            {matches:=0;
-            exit;}
+            matches:=0;
+            exit;
           end;
 
         { Check that no spurious colons or TOs are present }
@@ -4079,14 +4126,27 @@ implementation
               if oper[0]^.typ=top_const then
                 begin
                   if insentry^.code[0]=#$63 then
-                    bytes:=bytes or ((oper[0]^.val shr 1) and $FF)
+                    bytes:=bytes or (((oper[0]^.val shr 1)-1) and $FF)
                   else
-                    bytes:=bytes or ((oper[0]^.val shr 1) and $3FF);
+                    bytes:=bytes or (((oper[0]^.val shr 1)-1) and $3FF);
                 end
               else if oper[0]^.typ=top_reg then
                 begin
                   bytes:=bytes or (getsupreg(oper[0]^.reg) shl 3);
-                end;
+                end
+              else if oper[0]^.typ=top_ref then
+                begin
+                  offset:=0;
+                  currsym:=objdata.symbolref(oper[0]^.ref^.symbol);
+                  if assigned(currsym) then
+                    offset:=currsym.offset-insoffset-8;
+                  offset:=offset+oper[0]^.ref^.offset;
+
+                  if insentry^.code[0]=#$63 then
+                    bytes:=bytes or (((offset+4) shr 1) and $FF)
+                  else
+                    bytes:=bytes or (((offset+4) shr 1) and $7FF);
+                end
             end;
           #$64: { Thumb: Special encodings }
             begin
@@ -4171,7 +4231,7 @@ implementation
               else
                 bytes:=bytes or ((oper[1]^.val shr ord(insentry^.code[3])) and $FF);
             end;
-          #$68: { Thumb CB{N}Z }
+          #$68: { Thumb CB[N]Z }
             begin
               bytelen:=2;
               bytes:=0;
