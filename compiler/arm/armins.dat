@@ -88,6 +88,9 @@ void                  void                            none
 [ADCcc]
 reglo,reglo                 \x60\x41\x40                  THUMB,ARMv4T
 
+reg32,immshifter            \x80\xF1\x40\x0\x0            THUMB32,ARMv6T2
+reg32,reg32                 \x80\xEB\x40\x0\x0            THUMB32,WIDE,ARMv6T2
+reg32,reg32,shifterop       \x80\xEB\x40\x0\x0            THUMB32,WIDE,ARMv6T2
 reg32,reg32,immshifter      \x80\xF1\x40\x0\x0            THUMB32,ARMv6T2
 reg32,reg32,reg32           \x80\xEB\x40\x0\x0            THUMB32,WIDE,ARMv6T2
 reg32,reg32,reg32,shifterop \x80\xEB\x40\x0\x0            THUMB32,WIDE,ARMv6T2
@@ -108,6 +111,9 @@ regsp,regsp,immshifter      \x64\xB0\x00                  THUMB,ARMv4T
 reg32,regsp,reg32           \x64\x44\x68                  THUMB,ARMv4T
 regsp,reg32                 \x64\x44\x85                  THUMB,ARMv4T
 
+reg32,immshifter            \x80\xF1\x0\x0\x0             THUMB32,WIDE,ARMv6T2
+reg32,reg32                 \x80\xEB\x0\x0\x0             THUMB32,WIDE,ARMv6T2
+reg32,reg32,shifterop       \x80\xEB\x0\x0\x0             THUMB32,WIDE,ARMv6T2
 reg32,reg32,immshifter      \x80\xF1\x0\x0\x0             THUMB32,WIDE,ARMv6T2
 reg32,reg32,reg32           \x80\xEB\x0\x0\x0             THUMB32,WIDE,ARMv6T2
 reg32,reg32,reg32,shifterop \x80\xEB\x0\x0\x0             THUMB32,WIDE,ARMv6T2
@@ -136,6 +142,9 @@ reg32,memam2                \x33\x2\x0F                   ARM32,ARMv4
 [ANDcc]
 reglo,reglo                 \x60\x40\x00                  THUMB,ARMv4T
 
+reg32,immshifter            \x80\xF0\x0\x0\x0             THUMB32,ARMv6T2
+reg32,reg32                 \x80\xEA\x0\x0\x0             THUMB32,WIDE,ARMv6T2
+reg32,reg32,shifterop       \x80\xEA\x0\x0\x0             THUMB32,WIDE,ARMv6T2
 reg32,reg32,immshifter      \x80\xF0\x0\x0\x0             THUMB32,ARMv6T2
 reg32,reg32,reg32           \x80\xEA\x0\x0\x0             THUMB32,WIDE,ARMv6T2
 reg32,reg32,reg32,shifterop \x80\xEA\x0\x0\x0             THUMB32,WIDE,ARMv6T2
@@ -159,6 +168,9 @@ mem32                       \x1\x0A                       ARM32,ARMv4
 [BICcc]
 reglo,reglo                 \x60\x43\x80                  THUMB,ARMv4T
 
+reg32,immshifter            \x80\xF0\x20\x0\x0            THUMB32,ARMv6T2
+reg32,reg32                 \x80\xEA\x20\x0\x0            THUMB32,WIDE,ARMv6T2
+reg32,reg32,shifterop       \x80\xEA\x20\x0\x0            THUMB32,WIDE,ARMv6T2
 reg32,reg32,immshifter      \x80\xF0\x20\x0\x0            THUMB32,ARMv6T2
 reg32,reg32,reg32           \x80\xEA\x20\x0\x0            THUMB32,WIDE,ARMv6T2
 reg32,reg32,reg32,shifterop \x80\xEA\x20\x0\x0            THUMB32,WIDE,ARMv6T2
@@ -246,6 +258,9 @@ reg32,reg32              \x32\x01\x6F\xF\x10            ARM32,ARMv4
 [EORcc]
 reglo,reglo                 \x60\x40\x40                  THUMB,ARMv4T
 
+reg32,immshifter            \x80\xF0\x80\x0\x0            THUMB32,ARMv6T2
+reg32,reg32                 \x80\xEA\x80\x0\x0            THUMB32,WIDE,ARMv6T2
+reg32,reg32,shifterop       \x80\xEA\x80\x0\x0            THUMB32,WIDE,ARMv6T2
 reg32,reg32,immshifter      \x80\xF0\x80\x0\x0            THUMB32,ARMv6T2
 reg32,reg32,reg32           \x80\xEA\x80\x0\x0            THUMB32,WIDE,ARMv6T2
 reg32,reg32,reg32,shifterop \x80\xEA\x80\x0\x0            THUMB32,WIDE,ARMv6T2
@@ -365,6 +380,7 @@ regs,immshifter     \x13\x03\x28\xF0                    ARM32,ARMv4
 
 [MULcc]
 reglo,reglo,reglo      \x64\x43\x40              THUMB,ARMv4T
+reg32,reg32            \x80\xFB\x00\xF0\x00      THUMB32,ARMv6T2
 reg32,reg32,reg32      \x80\xFB\x00\xF0\x00      THUMB32,ARMv6T2
 reg32,reg32,reg32      \x14\x00\x00\x90          ARM32,ARMv4
 
@@ -401,13 +417,19 @@ void                    \x2F\x03\x20\xF0\x0          ARM32,ARMv6K
 void                    \x2F\xE1\xA0\x0\x0           ARM32,ARMv4
 
 [ORNcc]
+reg32,immshifter            \x80\xF0\x60\x0\x0            THUMB32,ARMv6T2
+reg32,reg32                 \x80\xEA\x60\x0\x0            THUMB32,ARMv6T2
+reg32,reg32,shifterop       \x80\xEA\x60\x0\x0            THUMB32,ARMv6T2
 reg32,reg32,immshifter      \x80\xF0\x60\x0\x0            THUMB32,ARMv6T2
-reg32,reg32,reg32           \x80\xEA\x60\x0\x0            THUMB32,WIDE,ARMv6T2
-reg32,reg32,reg32,shifterop \x80\xEA\x60\x0\x0            THUMB32,WIDE,ARMv6T2
+reg32,reg32,reg32           \x80\xEA\x60\x0\x0            THUMB32,ARMv6T2
+reg32,reg32,reg32,shifterop \x80\xEA\x60\x0\x0            THUMB32,ARMv6T2
 
 [ORRcc]
 reglo,reglo                  \x60\x43\x00            THUMB,ARMv4T
 
+reg32,immshifter            \x80\xF0\x40\x0\x0       THUMB32,ARMv6T2
+reg32,reg32                 \x80\xEA\x40\x0\x0       THUMB32,WIDE,ARMv6T2
+reg32,reg32,shifterop       \x80\xEA\x40\x0\x0       THUMB32,WIDE,ARMv6T2
 reg32,reg32,immshifter      \x80\xF0\x40\x0\x0       THUMB32,ARMv6T2
 reg32,reg32,reg32           \x80\xEA\x40\x0\x0       THUMB32,WIDE,ARMv6T2
 reg32,reg32,reg32,shifterop \x80\xEA\x40\x0\x0       THUMB32,WIDE,ARMv6T2
@@ -420,9 +442,12 @@ reg32,reg32,immshifter       \7\x3\x80               ARM32,ARMv4
 [RSBcc]
 reglo,reglo,immzero         \x60\x42\x40                  THUMB,ARMv4T
 
+reg32,immshifter            \x80\xF1\xC0\x0\x0             THUMB32,WIDE,ARMv6T2
+reg32,reg32                 \x80\xEB\xC0\x0\x0             THUMB32,ARMv6T2
+reg32,reg32,shifterop       \x80\xEB\xC0\x0\x0             THUMB32,ARMv6T2
 reg32,reg32,immshifter      \x80\xF1\xC0\x0\x0             THUMB32,WIDE,ARMv6T2
-reg32,reg32,reg32           \x80\xEB\xC0\x0\x0             THUMB32,WIDE,ARMv6T2
-reg32,reg32,reg32,shifterop \x80\xEB\xC0\x0\x0             THUMB32,WIDE,ARMv6T2
+reg32,reg32,reg32           \x80\xEB\xC0\x0\x0             THUMB32,ARMv6T2
+reg32,reg32,reg32,shifterop \x80\xEB\xC0\x0\x0             THUMB32,ARMv6T2
 
 reg32,reg32,reg32            \6\x0\x60                     ARM32,ARMv4
 reg32,reg32,reg32,shifterop  \6\x0\x60                     ARM32,ARMv4
@@ -437,7 +462,10 @@ reg32,reg32,immshifter       \7\x2\xE0                     ARM32,ARMv4
 [SBCcc]
 reglo,reglo                 \x60\x41\x80                  THUMB,ARMv4T
 
-reg32,reg32,immshifter      \x80\xF1\x60\x0\x0             THUMB32,WIDE,ARMv6T2
+reg32,immshifter            \x80\xF1\x60\x0\x0             THUMB32,ARMv6T2
+reg32,reg32                 \x80\xEB\x60\x0\x0             THUMB32,WIDE,ARMv6T2
+reg32,reg32,shifterop       \x80\xEB\x60\x0\x0             THUMB32,WIDE,ARMv6T2
+reg32,reg32,immshifter      \x80\xF1\x60\x0\x0             THUMB32,ARMv6T2
 reg32,reg32,reg32           \x80\xEB\x60\x0\x0             THUMB32,WIDE,ARMv6T2
 reg32,reg32,reg32,shifterop \x80\xEB\x60\x0\x0             THUMB32,WIDE,ARMv6T2
 
@@ -505,6 +533,9 @@ reglo,reglo,reglo           \x60\x1A\x0                    THUMB,ARMv4T
 reglo,reglo,immshifter      \x60\x1E\x0                    THUMB,ARMv4T
 reglo,imm8                  \x60\x38\x0                    THUMB,ARMv4T
 
+reg32,immshifter            \x80\xF1\xA0\x0\x0             THUMB32,WIDE,ARMv6T2
+reg32,reg32                 \x80\xEB\xA0\x0\x0             THUMB32,WIDE,ARMv6T2
+reg32,reg32,shifterop       \x80\xEB\xA0\x0\x0             THUMB32,WIDE,ARMv6T2
 reg32,reg32,immshifter      \x80\xF1\xA0\x0\x0             THUMB32,WIDE,ARMv6T2
 reg32,reg32,reg32           \x80\xEB\xA0\x0\x0             THUMB32,WIDE,ARMv6T2
 reg32,reg32,reg32,shifterop \x80\xEB\xA0\x0\x0             THUMB32,WIDE,ARMv6T2
@@ -822,7 +853,9 @@ void                       \x2F\x3\x20\xF0\x4                  ARM32,ARMv6K
 reglo,reglo,immshifter     \x60\x1\x0                          THUMB,ARMv4T
 reglo,reglo                \x60\x41\x0                         THUMB,ARMv4T
 
+reg32,immshifter           \x82\xEA\x4F\x0\x20                 THUMB32,WIDE,ARMv6T2
 reg32,reg32,immshifter     \x82\xEA\x4F\x0\x20                 THUMB32,WIDE,ARMv6T2
+reg32,reg32                \x80\xFA\x40\xF0\x0                 THUMB32,WIDE,ARMv6T2
 reg32,reg32,reg32          \x80\xFA\x40\xF0\x0                 THUMB32,WIDE,ARMv6T2
 
 reg32,reg32,reg32          \x30\x1\xA0\x0\x50                  ARM32,ARMv4
@@ -832,7 +865,9 @@ reg32,reg32,immshifter     \x30\x1\xA0\x0\x40                  ARM32,ARMv4
 reglo,reglo,immshifter     \x60\x8\x0                          THUMB,ARMv4T
 reglo,reglo                \x60\x40\xC0                        THUMB,ARMv4T
 
+reg32,immshifter           \x82\xEA\x4F\x0\x10                 THUMB32,WIDE,ARMv6T2
 reg32,reg32,immshifter     \x82\xEA\x4F\x0\x10                 THUMB32,WIDE,ARMv6T2
+reg32,reg32                \x80\xFA\x20\xF0\x0                 THUMB32,WIDE,ARMv6T2
 reg32,reg32,reg32          \x80\xFA\x20\xF0\x0                 THUMB32,WIDE,ARMv6T2
 
 reg32,reg32,reg32          \x30\x1\xA0\x0\x30                  ARM32,ARMv4
@@ -842,7 +877,9 @@ reg32,reg32,immshifter     \x30\x1\xA0\x0\x20                  ARM32,ARMv4
 reglo,reglo,immshifter     \x60\x0\x0                          THUMB,ARMv4T
 reglo,reglo                \x60\x40\x80                        THUMB,ARMv4T
 
+reg32,immshifter           \x82\xEA\x4F\x0\x00                 THUMB32,WIDE,ARMv6T2
 reg32,reg32,immshifter     \x82\xEA\x4F\x0\x00                 THUMB32,WIDE,ARMv6T2
+reg32,reg32                \x80\xFA\x60\xF0\x0                 THUMB32,WIDE,ARMv6T2
 reg32,reg32,reg32          \x80\xFA\x60\xF0\x0                 THUMB32,WIDE,ARMv6T2
 
 reg32,reg32,reg32          \x30\x1\xA0\x0\x10                  ARM32,ARMv4
@@ -851,7 +888,9 @@ reg32,reg32,immshifter     \x30\x1\xA0\x0\x00                  ARM32,ARMv4
 [RORcc]
 reglo,reglo                \x60\x41\xC0                        THUMB,ARMv4T
 
+reg32,immshifter           \x82\xEA\x4F\x0\x30                 THUMB32,WIDE,ARMv6T2
 reg32,reg32,immshifter     \x82\xEA\x4F\x0\x30                 THUMB32,WIDE,ARMv6T2
+reg32,reg32                \x80\xFA\x60\xF0\x0                 THUMB32,WIDE,ARMv6T2
 reg32,reg32,reg32          \x80\xFA\x60\xF0\x0                 THUMB32,WIDE,ARMv6T2
 
 reg32,reg32,reg32          \x30\x1\xA0\x0\x70                  ARM32,ARMv4
@@ -1354,8 +1393,11 @@ condition                     \xFE                       ARM32,ARMv4
 condition                     \x6A\xBF\x01\x0E           THUMB,ARMv6T2
 condition                     \xFE                       ARM32,ARMv4
 
-[TBB]
-[TBH]
+[TBBcc]
+memam2                  \x8E\xE8\xD0\xF0\x00       THUMB32,ARMv6T2
+
+[TBHcc]
+memam2                  \x8E\xE8\xD0\xF0\x10       THUMB32,ARMv6T2
 
 [MOVW]
 reg32,imm32             \x2C\x3\x0                 ARM32,ARMv6T2

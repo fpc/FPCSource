@@ -1388,6 +1388,7 @@ Implementation
         objsymend : TObjSymbol;
         zerobuf : array[0..63] of byte;
         relative_reloc: boolean;
+        tmp    : word;
       begin
         fillchar(zerobuf,sizeof(zerobuf),0);
         fillchar(objsym,sizeof(objsym),0);
@@ -1511,6 +1512,11 @@ Implementation
                    aitconst_darwin_dwarf_delta32,
                    aitconst_darwin_dwarf_delta64:
                      ObjData.writebytes(Tai_const(hp).value,tai_const(hp).size);
+                   aitconst_half16bit:
+                     begin
+                       tmp:=Tai_const(hp).value div 2;
+                       ObjData.writebytes(tmp,2);
+                     end
                    else
                      internalerror(200603254);
                  end;

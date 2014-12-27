@@ -2319,7 +2319,17 @@ implementation
         end
       else if p^.code[0]=#$62 then
         begin
-          if (condition<>C_None) then
+          if ((condition<>C_None) and
+              (not inIT) and
+              (not lastinIT)) then
+            begin
+              Matches:=0;
+              exit;
+            end;
+        end
+      else if p^.code[0]=#$63 then
+        begin
+          if inIT then
             begin
               Matches:=0;
               exit;
@@ -4370,6 +4380,7 @@ implementation
               else if ops=2 then
                 begin
                   bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
+                  bytes:=bytes or (getsupreg(oper[0]^.reg) shl 16);
 
                   if oper[1]^.typ=top_const then
                     encodethumbimm(oper[1]^.val)
@@ -4470,7 +4481,10 @@ implementation
                   bytes:=bytes or (getsupreg(oper[1]^.reg) shl 0);
                 end
               else
-                offset:=1;
+                begin
+                  bytes:=bytes or (getsupreg(oper[0]^.reg) shl 0);
+                  offset:=1;
+                end;
 
               if oper[offset]^.typ=top_const then
                 begin
@@ -4886,6 +4900,28 @@ implementation
               bytes:=bytes or (((offset shr 21) xor (offset shr 23) xor 1) and $1) shl 11;
               bytes:=bytes or (((offset shr 22) xor (offset shr 23) xor 1) and $1) shl 13;
               bytes:=bytes or ((offset shr 23) and $1) shl 26;
+            end;
+          #$8E: { Thumb-2: TBB/TBH }
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+              { set Rn and Rm }
+              bytes:=bytes or getsupreg(oper[0]^.ref^.base) shl 16;
+
+              if getregtype(oper[0]^.ref^.index)=R_INVALIDREGISTER then
+                message(asmw_e_invalid_effective_address)
+              else
+                begin
+                  bytes:=bytes or getsupreg(oper[0]^.ref^.index);
+
+                  if (opcode=A_TBH) and
+                     (oper[0]^.ref^.shiftmode<>SM_LSL) and
+                     (oper[0]^.ref^.shiftimm<>1) then
+                    message(asmw_e_invalid_effective_address);
+                end;
             end;
           #$fe: // No written data
             begin
