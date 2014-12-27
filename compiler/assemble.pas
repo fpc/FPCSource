@@ -1214,9 +1214,10 @@ Implementation
                    asd_reference:
                      { ignore for now, but should be added}
                      ;
+{$ifdef ARM}
                    asd_thumb_func:
-                     { ignore for now, but should be added}
-                     ;
+                     ObjData.ThumbFunc:=true;
+{$endif ARM}
                    else
                      internalerror(2010011101);
                  end;

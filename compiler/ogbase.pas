@@ -233,6 +233,9 @@ interface
        ExeSection  : TExeSection;
        USed        : Boolean;
        VTRefList : TFPObjectList;
+{$ifdef ARM}
+       ThumbFunc : boolean;
+{$endif ARM}
        constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);virtual;
        destructor  destroy;override;
        function  write(const d;l:aword):aword;
@@ -289,6 +292,9 @@ interface
      public
        CurrPass  : byte;
        ExecStack : boolean;
+{$ifdef ARM}
+       ThumbFunc : boolean;
+{$endif ARM}
        constructor create(const n:string);virtual;
        destructor  destroy;override;
        { Sections }
@@ -984,6 +990,9 @@ implementation
         FCachedAsmSymbolList:=TFPObjectList.Create(false);
         { section class type for creating of new sections }
         FCObjSection:=TObjSection;
+{$ifdef ARM}
+        ThumbFunc:=false;
+{$endif ARM}
       end;
 
 
@@ -1131,6 +1140,10 @@ implementation
           begin
             result:=CObjSection.create(FObjSectionList,aname,aalign,aoptions);
             result.ObjData:=self;
+{$ifdef ARM}
+            result.ThumbFunc:=ThumbFunc;
+            ThumbFunc:=false;
+{$endif ARM}
           end;
         FCurrObjSec:=result;
       end;

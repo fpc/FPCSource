@@ -968,6 +968,13 @@ implementation
           elfsym.st_name:=nameidx;
         elfsym.st_size:=objsym.size;
         elfsym.st_value:=objsym.address;
+
+{$ifdef ARM}
+        if (objsym.typ=AT_FUNCTION) and
+           objsym.objsection.ThumbFunc then
+          inc(elfsym.st_value);
+{$endif ARM}
+
         case objsym.bind of
           AB_LOCAL :
             begin
