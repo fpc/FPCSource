@@ -227,6 +227,11 @@ procedure SysInitVideo;
 var
   Counter: LongInt;
 begin
+{$IFDEF MORPHOS}
+  InitGraphicsLibrary;
+  InitIntuitionLibrary;
+{$ENDIF}
+
   {$ifdef VIDEODEBUG}
   WriteLn('FULLSCREEN VIDEO UNIT MODIFICATION v2');
   if FPC_VIDEO_FULLSCREEN then
