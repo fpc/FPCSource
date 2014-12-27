@@ -343,7 +343,7 @@ reg32,reg32,reg32,reg32  \x15\x00\x20\x9                ARM32,ARMv4
 
 [MOVcc]
 reglo,reglo             \x60\x0\x0                       THUMB,ARMv4T
-reg32,reg32             \x61\x46\xC0                     THUMB,ARMv4T
+reg32,reg32             \x61\x46\x00                     THUMB,ARMv4T
 
 reglo,immshifter        \x60\x20\x0                      THUMB,ARMv4T
 
@@ -839,7 +839,7 @@ reg32,reg32,immshifter     \x30\x1\xA0\x0\x20                  ARM32,ARMv4
 reglo,reglo,immshifter     \x60\x0\x0                          THUMB,ARMv4T
 reglo,reglo                \x60\x40\x80                        THUMB,ARMv4T
 
-reg32,reg32,immshifter     \x82\xEA\x4F\x0\x20                 THUMB32,ARMv6T2
+reg32,reg32,immshifter     \x82\xEA\x4F\x0\x00                 THUMB32,WIDE,ARMv6T2
 reg32,reg32,reg32          \x80\xFA\x60\xF0\x0                 THUMB32,WIDE,ARMv6T2
 
 reg32,reg32,reg32          \x30\x1\xA0\x0\x10                  ARM32,ARMv4
@@ -1292,48 +1292,63 @@ reg32,imm                     \x2C\x3\x40                ARM32,ARMv6T2
 reg32,immshifter              \x2C\x3\x40                ARM32,ARMv6T2
 
 [IT]
+condition                     \x6A\xBF\x08\x00           THUMB,ARMv6T2
 condition                     \xFE                       ARM32,ARMv4
 
 [ITE]
+condition                     \x6A\xBF\x04\x88           THUMB,ARMv6T2
 condition                     \xFE                       ARM32,ARMv4
 
 [ITT]
+condition                     \x6A\xBF\x04\x08           THUMB,ARMv6T2
 condition                     \xFE                       ARM32,ARMv4
 
 [ITEE]
+condition                     \x6A\xBF\x02\xCC           THUMB,ARMv6T2
 condition                     \xFE                       ARM32,ARMv4
 
 [ITTE]
+condition                     \x6A\xBF\x02\x4C           THUMB,ARMv6T2
 condition                     \xFE                       ARM32,ARMv4
 
 [ITET]
+condition                     \x6A\xBF\x02\x8C           THUMB,ARMv6T2
 condition                     \xFE                       ARM32,ARMv4
 
 [ITTT]
+condition                     \x6A\xBF\x02\x0C           THUMB,ARMv6T2
 condition                     \xFE                       ARM32,ARMv4
 
 [ITEEE]
+condition                     \x6A\xBF\x01\xEE           THUMB,ARMv6T2
 condition                     \xFE                       ARM32,ARMv4
 
 [ITTEE]
+condition                     \x6A\xBF\x01\x6E           THUMB,ARMv6T2
 condition                     \xFE                       ARM32,ARMv4
 
 [ITETE]
+condition                     \x6A\xBF\x01\xAE           THUMB,ARMv6T2
 condition                     \xFE                       ARM32,ARMv4
 
 [ITTTE]
+condition                     \x6A\xBF\x01\x2E           THUMB,ARMv6T2
 condition                     \xFE                       ARM32,ARMv4
 
 [ITEET]
+condition                     \x6A\xBF\x01\xCE           THUMB,ARMv6T2
 condition                     \xFE                       ARM32,ARMv4
 
 [ITTET]
+condition                     \x6A\xBF\x01\x4E           THUMB,ARMv6T2
 condition                     \xFE                       ARM32,ARMv4
 
 [ITETT]
+condition                     \x6A\xBF\x01\x8E           THUMB,ARMv6T2
 condition                     \xFE                       ARM32,ARMv4
 
 [ITTTT]
+condition                     \x6A\xBF\x01\x0E           THUMB,ARMv6T2
 condition                     \xFE                       ARM32,ARMv4
 
 [TBB]

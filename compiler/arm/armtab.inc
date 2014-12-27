@@ -1019,7 +1019,7 @@
     opcode  : A_MOV;
     ops     : 2;
     optypes : (ot_reg32,ot_reg32,ot_none,ot_none,ot_none,ot_none);
-    code    : #97#70#192;
+    code    : #97#70#0;
     flags   : if_thumb or if_armv4t
   ),
   (
@@ -2832,8 +2832,8 @@
     opcode  : A_LSL;
     ops     : 3;
     optypes : (ot_reg32,ot_reg32,ot_immediateshifter,ot_none,ot_none,ot_none);
-    code    : #130#234#79#0#32;
-    flags   : if_thumb32 or if_armv6t2
+    code    : #130#234#79#0#0;
+    flags   : if_thumb32 or if_wide or if_armv6t2
   ),
   (
     opcode  : A_LSL;
@@ -4043,8 +4043,22 @@
     opcode  : A_IT;
     ops     : 1;
     optypes : (ot_condition,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #106#191#8#0;
+    flags   : if_thumb or if_armv6t2
+  ),
+  (
+    opcode  : A_IT;
+    ops     : 1;
+    optypes : (ot_condition,ot_none,ot_none,ot_none,ot_none,ot_none);
     code    : #254;
     flags   : if_arm32 or if_armv4
+  ),
+  (
+    opcode  : A_ITE;
+    ops     : 1;
+    optypes : (ot_condition,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #106#191#4#136;
+    flags   : if_thumb or if_armv6t2
   ),
   (
     opcode  : A_ITE;
@@ -4057,8 +4071,22 @@
     opcode  : A_ITT;
     ops     : 1;
     optypes : (ot_condition,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #106#191#4#8;
+    flags   : if_thumb or if_armv6t2
+  ),
+  (
+    opcode  : A_ITT;
+    ops     : 1;
+    optypes : (ot_condition,ot_none,ot_none,ot_none,ot_none,ot_none);
     code    : #254;
     flags   : if_arm32 or if_armv4
+  ),
+  (
+    opcode  : A_ITEE;
+    ops     : 1;
+    optypes : (ot_condition,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #106#191#2#204;
+    flags   : if_thumb or if_armv6t2
   ),
   (
     opcode  : A_ITEE;
@@ -4071,8 +4099,22 @@
     opcode  : A_ITTE;
     ops     : 1;
     optypes : (ot_condition,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #106#191#2#76;
+    flags   : if_thumb or if_armv6t2
+  ),
+  (
+    opcode  : A_ITTE;
+    ops     : 1;
+    optypes : (ot_condition,ot_none,ot_none,ot_none,ot_none,ot_none);
     code    : #254;
     flags   : if_arm32 or if_armv4
+  ),
+  (
+    opcode  : A_ITET;
+    ops     : 1;
+    optypes : (ot_condition,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #106#191#2#140;
+    flags   : if_thumb or if_armv6t2
   ),
   (
     opcode  : A_ITET;
@@ -4085,8 +4127,22 @@
     opcode  : A_ITTT;
     ops     : 1;
     optypes : (ot_condition,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #106#191#2#12;
+    flags   : if_thumb or if_armv6t2
+  ),
+  (
+    opcode  : A_ITTT;
+    ops     : 1;
+    optypes : (ot_condition,ot_none,ot_none,ot_none,ot_none,ot_none);
     code    : #254;
     flags   : if_arm32 or if_armv4
+  ),
+  (
+    opcode  : A_ITEEE;
+    ops     : 1;
+    optypes : (ot_condition,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #106#191#1#238;
+    flags   : if_thumb or if_armv6t2
   ),
   (
     opcode  : A_ITEEE;
@@ -4099,8 +4155,22 @@
     opcode  : A_ITTEE;
     ops     : 1;
     optypes : (ot_condition,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #106#191#1#110;
+    flags   : if_thumb or if_armv6t2
+  ),
+  (
+    opcode  : A_ITTEE;
+    ops     : 1;
+    optypes : (ot_condition,ot_none,ot_none,ot_none,ot_none,ot_none);
     code    : #254;
     flags   : if_arm32 or if_armv4
+  ),
+  (
+    opcode  : A_ITETE;
+    ops     : 1;
+    optypes : (ot_condition,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #106#191#1#174;
+    flags   : if_thumb or if_armv6t2
   ),
   (
     opcode  : A_ITETE;
@@ -4113,8 +4183,22 @@
     opcode  : A_ITTTE;
     ops     : 1;
     optypes : (ot_condition,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #106#191#1#46;
+    flags   : if_thumb or if_armv6t2
+  ),
+  (
+    opcode  : A_ITTTE;
+    ops     : 1;
+    optypes : (ot_condition,ot_none,ot_none,ot_none,ot_none,ot_none);
     code    : #254;
     flags   : if_arm32 or if_armv4
+  ),
+  (
+    opcode  : A_ITEET;
+    ops     : 1;
+    optypes : (ot_condition,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #106#191#1#206;
+    flags   : if_thumb or if_armv6t2
   ),
   (
     opcode  : A_ITEET;
@@ -4127,6 +4211,13 @@
     opcode  : A_ITTET;
     ops     : 1;
     optypes : (ot_condition,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #106#191#1#78;
+    flags   : if_thumb or if_armv6t2
+  ),
+  (
+    opcode  : A_ITTET;
+    ops     : 1;
+    optypes : (ot_condition,ot_none,ot_none,ot_none,ot_none,ot_none);
     code    : #254;
     flags   : if_arm32 or if_armv4
   ),
@@ -4134,8 +4225,22 @@
     opcode  : A_ITETT;
     ops     : 1;
     optypes : (ot_condition,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #106#191#1#142;
+    flags   : if_thumb or if_armv6t2
+  ),
+  (
+    opcode  : A_ITETT;
+    ops     : 1;
+    optypes : (ot_condition,ot_none,ot_none,ot_none,ot_none,ot_none);
     code    : #254;
     flags   : if_arm32 or if_armv4
+  ),
+  (
+    opcode  : A_ITTTT;
+    ops     : 1;
+    optypes : (ot_condition,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #106#191#1#14;
+    flags   : if_thumb or if_armv6t2
   ),
   (
     opcode  : A_ITTTT;

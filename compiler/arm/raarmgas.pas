@@ -30,10 +30,8 @@ Unit raarmgas;
       cpubase;
 
     type
-      tarmsyntax = (asm_legacy, asm_unified);
 
       tarmattreader = class(tattreader)
-        asmsyntax : tarmsyntax;
         actoppostfix : TOpPostfix;
         actwideformat : boolean;
         function is_asmopcode(const s: string):boolean;override;
@@ -48,6 +46,13 @@ Unit raarmgas;
         procedure ReadSym(oper : tarmoperand);
         procedure ConvertCalljmp(instr : tarminstruction);
         procedure HandleTargetDirective; override;
+      protected
+        function is_unified: boolean; virtual;
+      end;
+
+      tarmunifiedattreader = class(tarmattreader)
+      protected
+        function is_unified: boolean; override;
       end;
 
 
@@ -64,6 +69,12 @@ Unit raarmgas;
       procinfo,
       rabase,rautils,
       cgbase,cgutils;
+
+
+    function tarmunifiedattreader.is_unified: boolean;
+      begin
+        result:=true;
+      end;
 
 
     function tarmattreader.is_register(const s:string):boolean;
@@ -1294,10 +1305,11 @@ Unit raarmgas;
                   end;
                 dec(j2);
               end;
+
             if actopcode=A_NONE then
               exit;
 
-            if asmsyntax=asm_unified then
+            if is_unified then
               begin
                 { check for postfix }
                 if (length(hs)>0) and (actoppostfix=PF_None) then
@@ -1431,10 +1443,15 @@ Unit raarmgas;
         else if actasmpattern='.thumb_func' then
           begin
             consume(AS_TARGET_DIRECTIVE);
-            curList.concat(tai_thumb_func.create);
+            curList.concat(tai_directive.create(asd_thumb_func,''));
           end
         else
           inherited HandleTargetDirective;
+      end;
+
+    function tarmattreader.is_unified: boolean;
+      begin
+        result:=false;
       end;
 
 
@@ -1455,8 +1472,6 @@ Unit raarmgas;
         instr.Free;
         actoppostfix:=PF_None;
         actwideformat:=false;
-
-        asmsyntax:=asm_legacy;
       end;
 
 
@@ -1468,8 +1483,15 @@ const
   asmmode_arm_att_info : tasmmodeinfo =
           (
             id    : asmmode_arm_gas;
-            idtxt : 'GAS';
+            idtxt : 'DIVIDED';
             casmreader : tarmattreader;
+          );
+
+  asmmode_arm_att_unified_info : tasmmodeinfo =
+          (
+            id    : asmmode_arm_gas_unified;
+            idtxt : 'UNIFIED';
+            casmreader : tarmunifiedattreader;
           );
 
   asmmode_arm_standard_info : tasmmodeinfo =
@@ -1481,5 +1503,6 @@ const
 
 initialization
   RegisterAsmMode(asmmode_arm_att_info);
+  RegisterAsmMode(asmmode_arm_att_unified_info);
   RegisterAsmMode(asmmode_arm_standard_info);
 end.

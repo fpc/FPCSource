@@ -260,6 +260,10 @@ uses
          procedure ppubuildderefimploper(var o:toper);override;
          procedure ppuderefoper(var o:toper);override;
       private
+         { pass1 info }
+         inIT,
+         lastinIT: boolean;
+         { arm version info }
          fArmVMask,
          fArmMask  : longint;
          { next fields are filled in pass1, so pass2 is faster }
@@ -1447,6 +1451,57 @@ implementation
           end;
       end;
 
+
+    procedure gather_it_info(list: TAsmList);
+      const
+        opCount: array[A_IT..A_ITTTT] of longint =
+          (1,2,2,3,3,3,3,
+           4,4,4,4,4,4,4,4);
+      var
+        curtai: tai;
+        in_it: boolean;
+        it_count: longint;
+      begin
+        in_it:=false;
+        it_count:=0;
+
+        curtai:=tai(list.First);
+        while assigned(curtai) do
+          begin
+            case curtai.typ of
+              ait_instruction:
+                begin
+                  case taicpu(curtai).opcode of
+                    A_IT..A_ITTTT:
+                      begin
+                        if in_it then
+                          Message1(asmw_e_invalid_opcode_and_operands, 'ITxx instruction is inside another ITxx instruction')
+                        else
+                          begin
+                            in_it:=true;
+                            it_count:=opCount[taicpu(curtai).opcode];
+                          end;
+                      end;
+                    else
+                      begin
+                        taicpu(curtai).inIT:=in_it;
+                        taicpu(curtai).lastinIT:=in_it and (it_count=1);
+
+                        if in_it then
+                          begin
+                            dec(it_count);
+                            if it_count <= 0 then
+                              in_it:=false;
+                          end;
+                      end;
+                  end;
+                end;
+            end;
+
+            curtai:=tai(curtai.Next);
+          end;
+      end;
+
     procedure finalizearmcode(list, listtoinsert: TAsmList);
       begin
         { Do Thumb-2 16bit -> 32bit transformations }
@@ -1458,6 +1513,8 @@ implementation
           end
         else if GenerateThumbCode then
           ensurethumbencodings(list);
+
+        gather_it_info(list);
 
         fix_invalid_imms(list);
 
@@ -2111,8 +2168,8 @@ implementation
         { Check wideformat flag }
         if ((p^.flags and IF_WIDE)<>0) <> wideformat then
           begin
-            matches:=0;
-            exit;
+            {matches:=0;
+            exit;}
           end;
 
         { Check that no spurious colons or TOs are present }
@@ -2200,8 +2257,8 @@ implementation
       if p^.code[0] in [#$60..#$61] then
         begin
           if (p^.code[0]=#$60) and
-             ((oppostfix<>PF_S) and
-              (condition<>C_None)) then
+             (((not inIT) and (oppostfix<>PF_S)) or
+              (inIT and (condition=C_None))) then
             begin
               Matches:=0;
               exit;
@@ -4188,6 +4245,23 @@ implementation
                       bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
                   end;
               end;
+            end;
+          #$6A: { Thumb: IT }
+            begin
+              bytelen:=2;
+              bytes:=0;
+
+              { set opcode }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 8);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 0);
+
+              bytes:=bytes or (CondVal[oper[0]^.cc] shl 4);
+
+              i_field:=(bytes shr 4) and 1;
+              i_field:=(i_field shl 1) or i_field;
+              i_field:=(i_field shl 2) or i_field;
+
+              bytes:=bytes or ((i_field and ord(insentry^.code[3])) xor (ord(insentry^.code[3]) shr 4));
             end;
           #$80: { Thumb-2: Dataprocessing }
             begin

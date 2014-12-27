@@ -68,6 +68,7 @@
             ,asmmode_avr_gas
             ,asmmode_i8086_intel
             ,asmmode_i8086_att
+            ,asmmode_arm_gas_unified
        );
 
      (* IMPORTANT NOTE:
