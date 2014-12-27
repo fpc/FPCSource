@@ -61,7 +61,7 @@ unit i_embed;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
-            assem        : as_gas;
+            assem        : as_arm_elf32;
             assemextern  : as_gas;
             link         : ld_none;
             linkextern   : ld_embedded;

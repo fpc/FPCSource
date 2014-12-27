@@ -650,7 +650,7 @@ unit i_linux;
             dirsep       : '/';
             assem        : as_arm_elf32;
             assemextern  : as_gas;
-            link         : ld_none;
+            link         : ld_int_linux;
             linkextern   : ld_linux;
             ar           : ar_gnu_ar;
             res          : res_elf;

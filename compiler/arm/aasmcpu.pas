@@ -1525,10 +1525,28 @@ implementation
                               SM_RRX: taicpu(curtai).opcode:=A_RRX;
                             end;
 
+                            if taicpu(curtai).oper[2]^.shifterop^.shiftmode=SM_RRX then
+                              taicpu(curtai).ops:=2;
+
                             if taicpu(curtai).oper[2]^.shifterop^.rs=NR_NO then
                               taicpu(curtai).loadconst(2, taicpu(curtai).oper[2]^.shifterop^.shiftimm)
                             else
                               taicpu(curtai).loadreg(2, taicpu(curtai).oper[2]^.shifterop^.rs);
+                          end;
+                      end;
+                    A_NEG:
+                      begin
+                        taicpu(curtai).opcode:=A_RSB;
+
+                        if taicpu(curtai).ops=2 then
+                          begin
+                            taicpu(curtai).loadconst(2,0);
+                            taicpu(curtai).ops:=3;
+                          end
+                        else
+                          begin
+                            taicpu(curtai).loadconst(1,0);
+                            taicpu(curtai).ops:=2;
                           end;
                       end;
                   end;
@@ -2258,7 +2276,7 @@ implementation
         { update condition flags
           or floating point single }
       if (oppostfix=PF_S) and
-        not(p^.code[0] in [#$04..#$0F,#$14..#$16,#$29,#$30, #$80..#$82]) then
+        not(p^.code[0] in [#$04..#$0F,#$14..#$16,#$29,#$30,#$60..#$6B,#$80..#$82]) then
         begin
           Matches:=0;
           exit;
@@ -2278,7 +2296,7 @@ implementation
           // ldr,str,ldrb,strb
           #$17,
           // stm,ldm
-          #$26,#$8C,
+          #$26,#$69,#$8C,
           // vldm/vstm
           #$44
         ]) then
@@ -2304,7 +2322,8 @@ implementation
       if p^.code[0] in [#$60..#$61] then
         begin
           if (p^.code[0]=#$60) and
-             (((not inIT) and (oppostfix<>PF_S)) or
+             (GenerateThumb2Code and
+              ((not inIT) and (oppostfix<>PF_S)) or
               (inIT and (condition=C_None))) then
             begin
               Matches:=0;
@@ -2319,7 +2338,8 @@ implementation
         end
       else if p^.code[0]=#$62 then
         begin
-          if ((condition<>C_None) and
+          if (GenerateThumb2Code and
+              (condition<>C_None) and
               (not inIT) and
               (not lastinIT)) then
             begin
@@ -2339,9 +2359,9 @@ implementation
         begin
           if (opcode=A_MUL) then
             begin
-              if (ops<>3) or
-                 (oper[2]^.typ<>top_reg) or
-                 (oper[0]^.reg<>oper[2]^.reg) then
+              if (ops=3) and
+                 ((oper[2]^.typ<>top_reg) or
+                  (oper[0]^.reg<>oper[2]^.reg)) then
                 begin
                   matches:=0;
                   exit;
@@ -4083,7 +4103,7 @@ implementation
               else
                 message(asmw_e_invalid_opcode_and_operands);
             end;
-          #$60..#$61: { Thumb }
+          #$60: { Thumb }
             begin
               bytelen:=2;
               bytes:=0;
@@ -4092,28 +4112,45 @@ implementation
               bytes:=bytes or (ord(insentry^.code[1]) shl 8);
               bytes:=bytes or ord(insentry^.code[2]);
               { set regs }
-              if ops>=2 then
+              if ops=2 then
                 begin
-                  if oper[1]^.typ=top_reg then
-                    begin
-                      bytes:=bytes or (getsupreg(oper[0]^.reg) and $7) or ((getsupreg(oper[0]^.reg) shr 3) shl 7);
-                      bytes:=bytes or (getsupreg(oper[1]^.reg) shl 3);
+                  bytes:=bytes or (getsupreg(oper[0]^.reg) and $7);
+                  bytes:=bytes or (getsupreg(oper[0]^.reg) shl 3);
+                  if (oper[1]^.typ=top_reg) then
+                    bytes:=bytes or ((getsupreg(oper[1]^.reg) and $7) shl 6)
+                  else
+                    bytes:=bytes or ((oper[1]^.val and $1F) shl 6);
+                end
+              else if ops=3 then
+                begin
+                  bytes:=bytes or (getsupreg(oper[0]^.reg) and $7);
+                  bytes:=bytes or (getsupreg(oper[1]^.reg) shl 3);
+                  if (oper[2]^.typ=top_reg) then
+                    bytes:=bytes or ((getsupreg(oper[2]^.reg) and $7) shl 6)
+                  else
+                    bytes:=bytes or ((oper[2]^.val and $1F) shl 6);
+                end
+              else if ops=1 then
+                begin
+                  if oper[0]^.typ=top_const then
+                    bytes:=bytes or (oper[0]^.val and $FF);
+                end;
+            end;
+          #$61: { Thumb }
+            begin
+              bytelen:=2;
+              bytes:=0;
 
-                      if ops=3 then
-                        begin
-                          case oper[2]^.typ of
-                            top_const:
-                              bytes:=bytes or ((oper[2]^.val and $1F) shl 6);
-                            top_reg:
-                              bytes:=bytes or ((getsupreg(oper[2]^.reg) and $7) shl 6);
-                          end;
-                        end;
-                    end
-                  else if oper[1]^.typ=top_const then
-                    begin
-                      bytes:=bytes or ((getsupreg(oper[0]^.reg) and $7) shl 8);
-                      bytes:=bytes or (oper[1]^.val and $FF);
-                    end;
+              { set opcode }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 8);
+              bytes:=bytes or ord(insentry^.code[2]);
+              { set regs }
+              if ops=2 then
+                begin
+                  bytes:=bytes or (getsupreg(oper[0]^.reg) and $7);
+                  bytes:=bytes or ((getsupreg(oper[0]^.reg) and $8) shr 3) shl 7;
+
+                  bytes:=bytes or (getsupreg(oper[1]^.reg) shl 3);
                 end
               else if ops=1 then
                 begin
@@ -4167,12 +4204,20 @@ implementation
               bytes:=bytes or (ord(insentry^.code[1]) shl 8);
               bytes:=bytes or ord(insentry^.code[2]);
 
+
               case opcode of
                 A_SUB:
-                  if(ops=3) then
-                    bytes:=bytes or ((oper[2]^.val shr 2) and $7F);
+                  begin
+                    bytes:=bytes or (getsupreg(oper[0]^.reg) and $7);
+                    if (ops=3) and
+                       (oper[2]^.typ=top_const) then
+                      bytes:=bytes or ((oper[2]^.val shr 2) and $7F)
+                    else if (ops=2) and
+                            (oper[1]^.typ=top_const) then
+                      bytes:=bytes or ((oper[1]^.val shr 2) and $7F);
+                  end;
                 A_MUL:
-                  if (ops=3) then
+                  if (ops in [2,3]) then
                     begin
                       bytes:=bytes or (getsupreg(oper[0]^.reg) and $7);
                       bytes:=bytes or (getsupreg(oper[1]^.reg) shl 3);
@@ -4181,6 +4226,7 @@ implementation
                   begin
                     if ops=2 then
                       begin
+                        bytes:=bytes or (getsupreg(oper[0]^.reg) and $7);
                         bytes:=bytes or (getsupreg(oper[1]^.reg) shl $3);
                       end
                     else if (oper[0]^.reg<>NR_STACK_POINTER_REG) and
@@ -4196,7 +4242,10 @@ implementation
                         bytes:=bytes or ((getsupreg(oper[0]^.reg) and $8) shr 3) shl 7;
                       end
                     else
-                      bytes:=bytes or ((oper[2]^.val shr 2) and $7F);
+                      begin
+                        bytes:=bytes or (getsupreg(oper[0]^.reg) and $7);
+                        bytes:=bytes or ((oper[2]^.val shr 2) and $7F);
+                      end;
                   end;
               end;
             end;
@@ -4332,6 +4381,34 @@ implementation
               i_field:=(i_field shl 2) or i_field;
 
               bytes:=bytes or ((i_field and ord(insentry^.code[3])) xor (ord(insentry^.code[3]) shr 4));
+            end;
+          #$6B: { Thumb: Data processing (misc) }
+            begin
+              bytelen:=2;
+              bytes:=0;
+
+              { set opcode }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 8);
+              bytes:=bytes or ord(insentry^.code[2]);
+              { set regs }
+              if ops>=2 then
+                begin
+                  if oper[1]^.typ=top_const then
+                    begin
+                      bytes:=bytes or ((getsupreg(oper[0]^.reg) and $7) shl 8);
+                      bytes:=bytes or (oper[1]^.val and $FF);
+                    end
+                  else if oper[1]^.typ=top_reg then
+                    begin
+                      bytes:=bytes or (getsupreg(oper[0]^.reg) and $7);
+                      bytes:=bytes or (getsupreg(oper[1]^.reg) shl 3);
+                    end;
+                end
+              else if ops=1 then
+                begin
+                  if oper[0]^.typ=top_const then
+                    bytes:=bytes or (oper[0]^.val and $FF);
+                end;
             end;
           #$80: { Thumb-2: Dataprocessing }
             begin
