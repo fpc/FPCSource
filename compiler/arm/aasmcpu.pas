@@ -2699,6 +2699,7 @@ implementation
           else
             begin
               found:=false;
+              imm12:=0;
               for shift:=1 to 31 do
                 begin
                   tmp:=RolDWord(imm,shift);
@@ -2726,12 +2727,14 @@ implementation
         var
           shift,typ: byte;
         begin
+          shift:=0;
+          typ:=0;
           case oper[op]^.shifterop^.shiftmode of
             SM_LSL: begin typ:=0; shift:=oper[op]^.shifterop^.shiftimm; end;
             SM_LSR: begin typ:=1; shift:=oper[op]^.shifterop^.shiftimm; if shift=32 then shift:=0; end;
             SM_ASR: begin typ:=2; shift:=oper[op]^.shifterop^.shiftimm; if shift=32 then shift:=0; end;
             SM_ROR: begin typ:=3; shift:=oper[op]^.shifterop^.shiftimm; if shift=0 then message(asmw_e_invalid_opcode_and_operands); end;
-            SM_RRX: begin typ:=3; shift:=oper[op]^.shifterop^.shiftimm; shift:=0; end;
+            SM_RRX: begin typ:=3; shift:=0; end;
           end;
 
           if is_sat then
@@ -4518,13 +4521,13 @@ implementation
                 begin
                   bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
 
+                  offset:=0;
                   if oper[1]^.typ=top_const then
                     begin
                       offset:=oper[1]^.val;
                     end
                   else if oper[1]^.typ=top_ref then
                     begin
-                      offset:=0;
                       currsym:=objdata.symbolref(oper[1]^.ref^.symbol);
                       if assigned(currsym) then
                         offset:=currsym.offset-insoffset-8;
