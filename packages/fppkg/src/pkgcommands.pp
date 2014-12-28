@@ -473,14 +473,13 @@ begin
                    PackageAvailableVersionStr(D.PackageName),status])
             end
         end;
-      if assigned(ManifestPackages) then
+      if assigned(ManifestPackages) and (PackNr<ManifestPackages.Count-1)  then
         begin
           inc(PackNr);
-          if PackNr<ManifestPackages.Count then
-            P := ManifestPackages[PackNr]
-          else
-            P := nil;
-        end;
+          P := ManifestPackages[PackNr]
+        end
+      else
+        p := nil;
     end;
   // Give error on first missing dependency
   if assigned(MissingDependency) then
