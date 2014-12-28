@@ -1984,8 +1984,22 @@ implementation
             IF_ARMv4T or IF_ARMv5T or IF_ARMv6T2 or IF_ARMv7M,
             IF_ARMv4T or IF_ARMv5T or IF_ARMv6T2 or IF_ARMv7M or IF_ARMv7EM
           );
+
+        FPUMasks: array[tfputype] of longint =
+          (
+            IF_NONE,
+            IF_NONE,
+            IF_NONE,
+            IF_NONE,
+            IF_NONE,
+            IF_NONE,
+            IF_VFPv2,
+            IF_VFPv2 or IF_VFPv3,
+            IF_VFPv2 or IF_VFPv3,
+            IF_NONE
+          );
       begin
-        fArmVMask:=Masks[current_settings.cputype];
+        fArmVMask:=Masks[current_settings.cputype] or FPUMasks[current_settings.fputype];
 
         if current_settings.instructionset=is_thumb then
           begin
@@ -2494,7 +2508,6 @@ implementation
            inc(i);
            insentry:=@instab[i];
          end;
-        if (ops=3) and (opcode=a_sub) then writeln(oppostfix,',',oper[2]^.val);
         Message1(asmw_e_invalid_opcode_and_operands,GetString);
         { No instruction found, set insentry to nil and inssize to -1 }
         insentry:=nil;
@@ -2893,6 +2906,9 @@ implementation
               bytes:=bytes or getsupreg(oper[0]^.reg) shl 16;
               bytes:=bytes or getsupreg(oper[1]^.reg);
               bytes:=bytes or getsupreg(oper[2]^.reg) shl 8;
+
+              if oppostfix in [PF_S] then
+                bytes:=bytes or (1 shl 20);
             end;
           #$15: // MUL/MLA r1,r2,r3,r4
             begin
@@ -2911,6 +2927,9 @@ implementation
 
               if oppostfix in [PF_R,PF_X] then
                 bytes:=bytes or (1 shl 5);
+
+              if oppostfix in [PF_S] then
+                bytes:=bytes or (1 shl 20);
             end;
           #$16: // MULL r1,r2,r3,r4
             begin
@@ -3006,7 +3025,7 @@ implementation
                   with oper[1]^.ref^ do
                     if shiftmode<>SM_None then
                       begin
-                        bytes:=bytes or (shiftimm shl 7);
+                        bytes:=bytes or ((shiftimm and $1F) shl 7);
                         if shiftmode<>SM_RRX then
                           bytes:=bytes or (ord(shiftmode) - ord(SM_LSL)) shl 5
                         else
@@ -3228,7 +3247,8 @@ implementation
               else
                 begin
                   { set U flag }
-                  bytes:=bytes or (1 shl 23);
+                  if oper[1]^.ref^.signindex>=0 then
+                    bytes:=bytes or (1 shl 23);
                   bytes:=bytes or getsupreg(oper[1]^.ref^.index);
                 end;
               { set W bit }
@@ -3278,7 +3298,7 @@ implementation
                   with oper[0]^.ref^ do
                     if shiftmode<>SM_None then
                       begin
-                        bytes:=bytes or (shiftimm shl 7);
+                        bytes:=bytes or ((shiftimm and $1F) shl 7);
                         if shiftmode<>SM_RRX then
                           bytes:=bytes or (ord(shiftmode) - ord(SM_LSL)) shl 5
                         else
@@ -4734,7 +4754,7 @@ implementation
                   { set shift }
                   with oper[0]^.ref^ do
                     if shiftmode=SM_LSL then
-                      bytes:=bytes or (shiftimm shl 4);
+                      bytes:=bytes or ((shiftimm and $1F) shl 4);
                 end;
             end;
           #$88: { Thumb-2: LDR/STR }
@@ -4780,7 +4800,7 @@ implementation
                   { set shift }
                   with oper[1]^.ref^ do
                     if shiftmode<>SM_None then
-                      bytes:=bytes or (shiftimm shl 4);
+                      bytes:=bytes or ((shiftimm and $1F) shl 4);
                 end;
 
               if not (opcode in [A_LDRT,A_LDRSBT,A_LDRSHT,A_LDRBT,A_LDRHT]) then
