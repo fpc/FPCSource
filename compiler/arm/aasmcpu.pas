@@ -2558,7 +2558,7 @@ implementation
                 if (op+1<opercnt) and (oper[op+1]^.typ=top_shifterop) then
                   with oper[op+1]^.shifterop^ do
                     begin
-                      bytes:=bytes or (shiftimm shl 7);
+                      bytes:=bytes or ((shiftimm and $1F) shl 7);
                       if shiftmode<>SM_RRX then
                         bytes:=bytes or (ord(shiftmode) - ord(SM_LSL)) shl 5
                       else
