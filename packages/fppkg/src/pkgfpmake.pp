@@ -15,7 +15,8 @@ uses
   pkgoptions,
   pkgglobals,
   pkgmessages,
-  pkgrepos;
+  pkgrepos,
+  fpxmlrep;
 
 type
   { TFPMakeCompiler }
@@ -269,6 +270,29 @@ Var
       AddOption(Name+'='+Value);
   end;
 
+  procedure ObtainSupportedTargetsFromManifest(p:TFPPackage);
+  var
+    X : TFPXMLRepositoryHandler;
+    ManifestPackages : TFPPackages;
+    i: integer;
+  begin
+    p.OSes:=[];
+    p.CPUs:=[];
+    ManifestPackages:=TFPPackages.Create(TFPPackage);
+    X:=TFPXMLRepositoryHandler.Create;
+    try
+      X.LoadFromXml(ManifestPackages,ManifestFileName);
+      for i := 0 to ManifestPackages.Count-1 do
+        begin
+          p.OSes:=p.OSes+ManifestPackages[i].OSes;
+          p.CPUs:=p.CPUs+ManifestPackages[i].CPUs;
+        end;
+    finally
+      X.Free;
+      ManifestPackages.Free;
+    end;
+  end;
+
 begin
   OOptions:='';
   // Does the current package support this CPU-OS?
@@ -276,12 +300,7 @@ begin
     begin
       P:=AvailableRepository.PackageByName(PackageName);
       if (PackageName=CurrentDirPackageName) and (FileExists(ManifestFileName)) then
-        begin
-          ManifestPackage:=LoadManifestFromFile(ManifestFileName);
-          P.OSes:=ManifestPackage.OSes;
-          P.CPUs:=ManifestPackage.CPUs;
-          ManifestPackage.Free;
-        end;
+        ObtainSupportedTargetsFromManifest(p);
     end
   else
     P:=nil;

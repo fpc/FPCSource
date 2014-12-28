@@ -16,6 +16,7 @@ uses
   pkgoptions,
   pkgdownload,
   pkgrepos,
+  fpxmlrep,
   fprepos;
 
 type
@@ -392,65 +393,94 @@ var
   P,
   InstalledP,
   AvailP : TFPPackage;
+  PackNr: integer;
+  ManifestPackages : TFPPackages;
+  X : TFPXMLRepositoryHandler;
   L : TStringList;
   status : string;
-  FreeManifest : boolean;
 begin
   if PackageName='' then
     Error(SErrNoPackageSpecified);
-  FreeManifest:=false;
+  ManifestPackages:=nil;
   // Load dependencies for local packages
   if (PackageName=CmdLinePackageName) or (PackageName=CurrentDirPackageName) then
     begin
       ExecuteAction(PackageName,'fpmakemanifest');
-      P:=LoadManifestFromFile(ManifestFileName);
-      FreeManifest:=true;
+      ManifestPackages:=TFPPackages.Create(TFPPackage);
+      X:=TFPXMLRepositoryHandler.Create;
+      try
+        X.LoadFromXml(ManifestPackages,ManifestFileName);
+      finally
+        X.Free;
+      end;
+      if ManifestPackages.Count>0 then
+        begin
+          PackNr:=0;
+          P := ManifestPackages[PackNr];
+        end
+      else
+        begin
+          ManifestPackages.Free;
+          Error(SErrManifestNoSinglePackage,[ManifestFileName]);
+        end;
     end
   else
     P:=AvailableRepository.PackageByName(PackageName);
-  // Find and List dependencies
+
   MissingDependency:=nil;
-  L:=TStringList.Create;
-  for i:=0 to P.Dependencies.Count-1 do
+  while assigned(P) do
     begin
-      D:=P.Dependencies[i];
-      if (CompilerOptions.CompilerOS in D.OSes) and
-         (CompilerOptions.CompilerCPU in D.CPUs) then
+      // Find and List dependencies
+      L:=TStringList.Create;
+      for i:=0 to P.Dependencies.Count-1 do
         begin
-          InstalledP:=InstalledRepository.FindPackage(D.PackageName);
-          // Need installation?
-          if not assigned(InstalledP) or
-             (InstalledP.Version.CompareVersion(D.MinVersion)<0) then
+          D:=P.Dependencies[i];
+          if not ((CompilerOptions.CompilerOS in D.OSes) and (CompilerOptions.CompilerCPU in D.CPUs)) then
+            Log(llDebug,SDbgPackageDependencyOtherTarget,[D.PackageName,MakeTargetString(CompilerOptions.CompilerCPU,CompilerOptions.CompilerOS)])
+          // Skip dependencies that are available within the fpmake-file itself
+          else if not (assigned(ManifestPackages) and assigned(ManifestPackages.FindPackage(D.PackageName))) then
             begin
-              AvailP:=AvailableRepository.FindPackage(D.PackageName);
-              if not assigned(AvailP) or
-                 (AvailP.Version.CompareVersion(D.MinVersion)<0) then
+              InstalledP:=InstalledRepository.FindPackage(D.PackageName);
+              // Need installation?
+              if not assigned(InstalledP) or
+                 (InstalledP.Version.CompareVersion(D.MinVersion)<0) then
                 begin
-                  status:='Not Available!';
-                  MissingDependency:=D;
+                  AvailP:=AvailableRepository.FindPackage(D.PackageName);
+                  if not assigned(AvailP) or
+                     (AvailP.Version.CompareVersion(D.MinVersion)<0) then
+                    begin
+                      status:='Not Available!';
+                      MissingDependency:=D;
+                    end
+                  else
+                    begin
+                      status:='Updating';
+                      L.Add(D.PackageName);
+                    end;
                 end
               else
                 begin
-                  status:='Updating';
-                  L.Add(D.PackageName);
+                  if PackageIsBroken(InstalledP, True) then
+                    begin
+                      status:='Broken, recompiling';
+                      L.Add(D.PackageName);
+                    end
+                  else
+                    status:='OK';
                 end;
+              Log(llInfo,SLogPackageDependency,
+                  [D.PackageName,D.MinVersion.AsString,PackageInstalledVersionStr(D.PackageName),
+                   PackageAvailableVersionStr(D.PackageName),status])
             end
+        end;
+      if assigned(ManifestPackages) then
+        begin
+          inc(PackNr);
+          if PackNr<ManifestPackages.Count then
+            P := ManifestPackages[PackNr]
           else
-            begin
-              if PackageIsBroken(InstalledP, True) then
-                begin
-                  status:='Broken, recompiling';
-                  L.Add(D.PackageName);
-                end
-              else
-                status:='OK';
-            end;
-          Log(llInfo,SLogPackageDependency,
-              [D.PackageName,D.MinVersion.AsString,PackageInstalledVersionStr(D.PackageName),
-               PackageAvailableVersionStr(D.PackageName),status]);
-        end
-      else
-        Log(llDebug,SDbgPackageDependencyOtherTarget,[D.PackageName,MakeTargetString(CompilerOptions.CompilerCPU,CompilerOptions.CompilerOS)]);
+            P := nil;
+        end;
     end;
   // Give error on first missing dependency
   if assigned(MissingDependency) then
@@ -470,8 +500,8 @@ begin
         pkgglobals.Log(llProgres,SProgrDependenciesInstalled);
     end;
   FreeAndNil(L);
-  if FreeManifest then
-    FreeAndNil(P);
+  if assigned(ManifestPackages) then
+    ManifestPackages.Free;
 end;
 
 
