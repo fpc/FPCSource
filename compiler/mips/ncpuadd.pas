@@ -37,26 +37,30 @@ type
     procedure cmp64_lt(left_reg, right_reg: TRegister64;unsigned:boolean);
     procedure cmp64_le(left_reg, right_reg: TRegister64;unsigned:boolean);
     procedure second_generic_cmp32(unsigned: boolean);
+    procedure second_mul64bit;
   protected
     procedure second_addfloat; override;
     procedure second_cmpfloat; override;
     procedure second_cmpboolean; override;
     procedure second_cmpsmallset; override;
+    procedure second_add64bit; override;
     procedure second_cmp64bit; override;
     procedure second_cmpordinal; override;
     procedure second_addordinal; override;
   public
     function use_generic_mul32to64: boolean; override;
+    function use_generic_mul64bit: boolean; override;
   end;
 
 implementation
 
 uses
-  systems,
+  systems, globtype, globals,
   cutils, verbose,
   paramgr,
   aasmtai, aasmcpu, aasmdata,
   defutil,
+  cpuinfo,
   {cgbase,} cgcpu, cgutils,
   cpupara,
   procinfo,
@@ -87,6 +91,15 @@ begin
     location.resflags.value:=right.location.value
   else
     location.resflags.reg2:=right.location.register;
+end;
+
+
+procedure tmipsaddnode.second_add64bit;
+begin
+  if (nodetype=muln) then
+    second_mul64bit
+  else
+    inherited second_add64bit;
 end;
 
 
@@ -326,11 +339,89 @@ begin
     inherited second_addordinal;
 end;
 
+procedure tmipsaddnode.second_mul64bit;
+var
+  list: TAsmList;
+  hreg1,hreg2,tmpreg: TRegister;
+begin
+  list:=current_asmdata.CurrAsmList;
+  pass_left_right;
+  location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+  hlcg.location_force_reg(list,left.location,left.resultdef,left.resultdef,true);
+  { calculate 32-bit terms lo(right)*hi(left) and hi(left)*lo(right) }
+  hreg1:=NR_NO;
+  hreg2:=NR_NO;
+  tmpreg:=NR_NO;
+  if (right.location.loc=LOC_CONSTANT) then
+    begin
+      { Omit zero terms, if any }
+      if hi(right.location.value64)<>0 then
+        begin
+          hreg2:=cg.getintregister(list,OS_INT);
+          tmpreg:=cg.getintregister(list,OS_INT);
+          cg.a_load_const_reg(list,OS_INT,longint(hi(right.location.value64)),tmpreg);
+          list.concat(taicpu.op_reg_reg_reg(A_MUL,hreg2,tmpreg,left.location.register64.reglo));
+        end;
+      tmpreg:=NR_NO;
+      if lo(right.location.value64)<>0 then
+        begin
+          hreg1:=cg.getintregister(list,OS_INT);
+          tmpreg:=cg.getintregister(list,OS_INT);
+          cg.a_load_const_reg(list,OS_INT,longint(lo(right.location.value64)),tmpreg);
+          list.concat(taicpu.op_reg_reg_reg(A_MUL,hreg1,tmpreg,left.location.register64.reghi));
+        end;
+    end
+  else
+    begin
+      hlcg.location_force_reg(list,right.location,right.resultdef,right.resultdef,true);
+      tmpreg:=right.location.register64.reglo;
+      hreg1:=cg.getintregister(list,OS_INT);
+      hreg2:=cg.getintregister(list,OS_INT);
+      list.concat(taicpu.op_reg_reg_reg(A_MUL,hreg1,right.location.register64.reglo,left.location.register64.reghi));
+      list.concat(taicpu.op_reg_reg_reg(A_MUL,hreg2,right.location.register64.reghi,left.location.register64.reglo));
+    end;
+
+  { At this point, tmpreg is either lo(right) or NR_NO if lo(left)*lo(right) is zero }
+  if (tmpreg=NR_NO) then
+    begin
+      if (hreg2<>NR_NO) and (hreg1<>NR_NO) then
+        begin
+          location.register64.reghi:=cg.getintregister(list,OS_INT);
+          list.concat(taicpu.op_reg_reg_reg(A_ADDU,location.register64.reghi,hreg1,hreg2));
+        end
+      else if (hreg2<>NR_NO) then
+        location.register64.reghi:=hreg2
+      else if (hreg1<>NR_NO) then
+        location.register64.reghi:=hreg1
+      else
+        InternalError(2014122701);
+      location.register64.reglo:=NR_R0;
+    end
+  else
+    begin
+      list.concat(taicpu.op_reg_reg(A_MULTU,left.location.register64.reglo,tmpreg));
+      location.register64.reghi:=cg.getintregister(list,OS_INT);
+      location.register64.reglo:=cg.getintregister(list,OS_INT);
+      current_asmdata.CurrAsmList.Concat(taicpu.op_reg(A_MFLO,location.register64.reglo));
+      current_asmdata.CurrAsmList.Concat(taicpu.op_reg(A_MFHI,location.register64.reghi));
+      if (hreg2<>NR_NO) then
+        list.concat(taicpu.op_reg_reg_reg(A_ADDU,location.register64.reghi,location.register64.reghi,hreg2));
+      if (hreg1<>NR_NO) then
+        list.concat(taicpu.op_reg_reg_reg(A_ADDU,location.register64.reghi,location.register64.reghi,hreg1));
+    end;
+end;
 
 function tmipsaddnode.use_generic_mul32to64: boolean;
 begin
   result:=false;
 end;
+
+function tmipsaddnode.use_generic_mul64bit: boolean;
+begin
+  result:=(cs_check_overflow in current_settings.localswitches) or
+    (not (CPUMIPS_HAS_ISA32R2 in cpu_capabilities[current_settings.cputype]));
+end;
+
 
 begin
   caddnode := tmipsaddnode;
