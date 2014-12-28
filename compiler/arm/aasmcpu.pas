@@ -3377,6 +3377,11 @@ implementation
                   else
                     begin
                       offset:=((currsym.offset-insoffset-8) and $3fffffe);
+
+                      { Turn BLX into BL if the destination isn't odd, could happen with recursion }
+                      if not odd(offset shr 1) then
+                        bytes:=(bytes and $EB000000) or $EB000000;
+
                       bytes:=bytes or ((offset shr 2) and $ffffff);
                       bytes:=bytes or ((offset shr 1) and $1) shl 24;
                     end;
