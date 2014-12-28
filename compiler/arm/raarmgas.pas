@@ -1190,6 +1190,7 @@ Unit raarmgas;
                   ((operandnum=3) and not(instr.opcode in [A_UMLAL,A_UMULL,A_SMLAL,A_SMULL,A_MLA,A_UMAAL,A_MLS,
                                                            A_SMLABB,A_SMLABT,A_SMLATB,A_SMLATT,A_SMMLA,A_SMMLS,A_SMLAD,A_SMLALD,A_SMLSD,
                                                            A_SMLALBB,A_SMLALBT,A_SMLALTB,A_SMLALTT,A_SMLSLD,
+                                                           A_SMLAWB,A_SMLAWT,
                                                            A_MRC,A_MCR,A_MCRR,A_MRRC,A_MRC2,A_MCR2,A_MCRR2,A_MRRC2,
                                                            A_STREXD,A_STRD,
                                                            A_USADA8,

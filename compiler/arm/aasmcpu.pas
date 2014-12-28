@@ -113,6 +113,7 @@ uses
       OT_AMMASK    = $001f0000;
       { IT instruction }
       OT_CONDITION = $00200000;
+      OT_MODEFLAGS = $00400000;
 
       OT_MEMORYAM2 = OT_MEMORY or OT_AM2;
       OT_MEMORYAM3 = OT_MEMORY or OT_AM3;
@@ -2188,6 +2189,10 @@ implementation
                 begin
                   ot:=OT_REGS;
                 end;
+              top_modeflags:
+                begin
+                  ot:=OT_MODEFLAGS;
+                end;
               else
                 begin writeln(typ);
                 internalerror(200402261); end;
@@ -2863,6 +2868,10 @@ implementation
 
               case oper[1]^.reg of
                 NR_APSR,NR_CPSR:;
+                NR_SPSR:
+                  begin
+                    bytes:=bytes or (1 shl 22);
+                  end;
               else
                 Message(asmw_e_invalid_opcode_and_operands);
               end;
@@ -2877,13 +2886,22 @@ implementation
 
               if oper[0]^.typ=top_specialreg then
                 begin
-                  if oper[0]^.specialreg<>NR_CPSR then
-                    Message1(asmw_e_invalid_opcode_and_operands, 'Can only use CPSR in this form');
+                  if (oper[0]^.specialreg<>NR_CPSR) and
+                     (oper[0]^.specialreg<>NR_SPSR) then
+                    Message1(asmw_e_invalid_opcode_and_operands, '"Invalid special reg"');
 
-                  if srF in oper[0]^.specialflags then
-                    bytes:=bytes or (2 shl 18);
+                  if srC in oper[0]^.specialflags then
+                    bytes:=bytes or (1 shl 16);
+                  if srX in oper[0]^.specialflags then
+                    bytes:=bytes or (1 shl 17);
                   if srS in oper[0]^.specialflags then
                     bytes:=bytes or (1 shl 18);
+                  if srF in oper[0]^.specialflags then
+                    bytes:=bytes or (1 shl 19);
+
+                  { Set R bit }
+                  if oper[0]^.specialreg=NR_SPSR then
+                    bytes:=bytes or (1 shl 22);
                 end
               else
                 case oper[0]^.reg of
@@ -3002,16 +3020,11 @@ implementation
                     offset:=currsym.offset-insoffset-8;
                   offset:=offset+oper[1]^.ref^.offset;
                   if offset>=0 then
-                    begin
-                      { set U flag }
-                      bytes:=bytes or (1 shl 23);
-                      bytes:=bytes or offset
-                    end
+                    { set U flag }
+                    bytes:=bytes or (1 shl 23)
                   else
-                    begin
-                      offset:=-offset;
-                      bytes:=bytes or offset
-                    end;
+                    offset:=-offset;
+                  bytes:=bytes or (offset and $FFF);
                 end
               else
                 begin
@@ -3090,18 +3103,12 @@ implementation
                     offset:=currsym.offset-insoffset-8;
                   offset:=offset+refoper^.ref^.offset;
                   if offset>=0 then
-                    begin
-                      { set U flag }
-                      bytes:=bytes or (1 shl 23);
-                      bytes:=bytes or (offset and $F);
-                      bytes:=bytes or ((offset and $F0) shl 4);
-                    end
+                    { set U flag }
+                    bytes:=bytes or (1 shl 23)
                   else
-                    begin
-                      offset:=-offset;
-                      bytes:=bytes or (offset and $F);
-                      bytes:=bytes or ((offset and $F0) shl 4);
-                    end;
+                    offset:=-offset;
+                  bytes:=bytes or (offset and $F);
+                  bytes:=bytes or ((offset and $F0) shl 4);
                 end
               else
                 begin
@@ -3197,19 +3204,14 @@ implementation
                   if assigned(currsym) then
                     offset:=currsym.offset-insoffset-8;
                   offset:=offset+refoper^.ref^.offset;
+
                   if offset>=0 then
-                    begin
-                      { set U flag }
-                      bytes:=bytes or (1 shl 23);
-                      bytes:=bytes or (offset and $F);
-                      bytes:=bytes or ((offset and $F0) shl 4);
-                    end
+                    { set U flag }
+                    bytes:=bytes or (1 shl 23)
                   else
-                    begin
-                      offset:=-offset;
-                      bytes:=bytes or (offset and $F);
-                      bytes:=bytes or ((offset and $F0) shl 4);
-                    end;
+                    offset:=-offset;
+                  bytes:=bytes or (offset and $F);
+                  bytes:=bytes or ((offset and $F0) shl 4);
                 end
               else
                 begin
@@ -3231,18 +3233,14 @@ implementation
               if getregtype(oper[1]^.ref^.index)=R_INVALIDREGISTER then
                 begin
                   bytes:=bytes or (1 shl 22); // with immediate offset
-                  if oper[1]^.ref^.offset < 0 then
-                    begin
-                      bytes:=bytes or ((-oper[1]^.ref^.offset) and $f0 shl 4);
-                      bytes:=bytes or ((-oper[1]^.ref^.offset) and $f);
-                    end
+                  offset:=oper[1]^.ref^.offset;
+                  if offset>=0 then
+                    { set U flag }
+                    bytes:=bytes or (1 shl 23)
                   else
-                    begin
-                      { set U bit }
-                      bytes:=bytes or (1 shl 23);
-                      bytes:=bytes or (oper[1]^.ref^.offset and $f0 shl 4);
-                      bytes:=bytes or (oper[1]^.ref^.offset and $f);
-                    end;
+                    offset:=-offset;
+                  bytes:=bytes or (offset and $F);
+                  bytes:=bytes or ((offset and $F0) shl 4);
                 end
               else
                 begin

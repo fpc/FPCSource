@@ -375,9 +375,9 @@ reg32,immshifter        \xB\x1\xA0                       ARM32,ARMv4
 reg32,regf          \x10\x01\x0F                        ARM32,ARMv4
 
 [MSRcc]
-regf,reg32          \x12\x01\x28\xF0                    ARM32,ARMv4
-regf,immshifter     \x13\x03\x28\xF0                    ARM32,ARMv4
-regs,immshifter     \x13\x03\x28\xF0                    ARM32,ARMv4
+regf,reg32          \x12\x01\x20\xF0                    ARM32,ARMv4
+regf,immshifter     \x13\x03\x20\xF0                    ARM32,ARMv4
+regs,immshifter     \x13\x03\x20\xF0                    ARM32,ARMv4
 
 [MULcc]
 reglo,reglo            \x64\x43\x40              THUMB,ARMv4T
@@ -647,8 +647,12 @@ reg32,reg32,reg32,reg32     \x16\x01\x40\xA                     ARM32,ARMv5TE
 reg32,reg32,reg32,reg32     \x16\x01\x40\xE                     ARM32,ARMv5TE
 
 [SMLAWBcc]
+reg32,reg32,reg32,reg32    \x80\xFB\x30\x0\x00                 THUMB32,ARMv6T2
+reg32,reg32,reg32,reg32    \x15\x1\x20\x8                      ARM32,ARMv5TE
 
 [SMLAWTcc]
+reg32,reg32,reg32,reg32    \x80\xFB\x30\x0\x10                 THUMB32,ARMv6T2
+reg32,reg32,reg32,reg32    \x15\x1\x20\xC                      ARM32,ARMv5TE
 
 [VLDMcc]
 memam4,reglist		      \x44\xC\x10\xA		         ARM32,VFPv2
@@ -1331,9 +1335,11 @@ reglist		                  \x26\x80		               ARM32,ARMv4
 
 [SDIVcc]
 reg32,reg32,reg32             \x80\xFB\x90\xF0\xF0       THUMB32,ARMv7R,ARMv7M
+reg32,reg32,reg32             \x15\x07\x10\x01\xF        ARM32,ARMv7
 
 [UDIVcc]
 reg32,reg32,reg32             \x80\xFB\xB0\xF0\xF0       THUMB32,ARMv7R,ARMv7M
+reg32,reg32,reg32             \x15\x07\x30\x01\xF        ARM32,ARMv7
 
 [MOVTcc]
 reg32,imm                     \x81\xF2\xC0\x0\x0         THUMB32,ARMv6T2
@@ -1501,6 +1507,7 @@ immshifter        \x2E\xF5\x7F\xF0\x40             ARM32,ARMv7
 
 [SMC]
 immshifter        \x2E\x01\x60\x00\x70             ARM32,ARMv7
+imm32             \x2E\x01\x60\x00\x70             ARM32,ARMv7
 
 ; Thumb armv6-m (gcc)
 [NEG]
