@@ -817,7 +817,7 @@ unit i_linux;
             name         : 'Linux for MIPSEB';
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
-                            tf_requires_proper_alignment,
+                            tf_requires_proper_alignment,tf_pic_uses_got,tf_safecall_exceptions,
                             tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_mipseb;
             unit_env     : 'LINUXUNITS';
@@ -882,7 +882,7 @@ unit i_linux;
             name         : 'Linux for MIPSEL';
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
-                            tf_requires_proper_alignment,
+                            tf_requires_proper_alignment,tf_pic_uses_got,tf_safecall_exceptions,
                             tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_mipsel;
             unit_env     : 'LINUXUNITS';
