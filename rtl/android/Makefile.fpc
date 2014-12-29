@@ -121,7 +121,7 @@ $(SYSTEMUNIT)$(PPUEXT) : $(LINUXINC)/$(SYSTEMUNIT).pp $(SYSDEPS)
         $(COMPILER) -Us -Sg $(LINUXINC)/$(SYSTEMUNIT).pp
 
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
-		$(COMPILER) $(INC)/uuchar.pp
+	$(COMPILER) $(INC)/uuchar.pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
@@ -129,6 +129,7 @@ objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
                    $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/strings.pp
 
 #
 # $(SYSTEMUNIT) Dependent Units
@@ -163,7 +164,7 @@ dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$
 
 initc$(PPUEXT) : $(UNIXINC)/initc.pp ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(UNIXINC)/initc.pp
-        
+
 unixcp$(PPUEXT) : $(UNIXINC)/unixcp.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) baseunix$(PPUEXT)
         $(COMPILER) $(UNIXINC)/unixcp.pp
 
