@@ -1550,6 +1550,10 @@ implementation
                             taicpu(curtai).ops:=2;
                           end;
                       end;
+                    A_SWI:
+                      begin
+                        taicpu(curtai).opcode:=A_SVC;
+                      end;
                   end;
                 end;
             end;
@@ -2317,7 +2321,7 @@ implementation
           // stm,ldm
           #$26,#$69,#$8C,
           // vldm/vstm
-          #$44
+          #$44,#$94
         ]) then
         begin
           Matches:=0;
@@ -3583,7 +3587,7 @@ implementation
                     end;
                 end;
             end;
-          #$40: // VMOV
+          #$40,#$90: // VMOV
             begin
               { set instruction code }
               bytes:=bytes or (ord(insentry^.code[1]) shl 24);
@@ -3706,7 +3710,7 @@ implementation
                   end;
               end;
             end;
-          #$41: // VMRS/VMSR
+          #$41,#$91: // VMRS/VMSR
             begin
               { set instruction code }
               bytes:=bytes or (ord(insentry^.code[1]) shl 24);
@@ -3750,7 +3754,7 @@ implementation
                   bytes:=bytes or (getsupreg(oper[1]^.reg) shl 12);
                 end;
             end;
-          #$42: // VMUL
+          #$42,#$92: // VMUL
             begin
               { set instruction code }
               bytes:=bytes or (ord(insentry^.code[1]) shl 24);
@@ -3800,7 +3804,7 @@ implementation
               bytes:=bytes or (N shl 7);
               bytes:=bytes or (M shl 5);
             end;
-          #$43: // VCVT
+          #$43,#$93: // VCVT
             begin
               { set instruction code }
               bytes:=bytes or (ord(insentry^.code[1]) shl 24);
@@ -3962,7 +3966,7 @@ implementation
                   bytes:=bytes or ((rn and $1E) shr 1);
                 end;
             end;
-          #$44: // VLDM/VSTM/VPUSH/VPOP
+          #$44,#$94: // VLDM/VSTM/VPUSH/VPOP
             begin
               { set instruction code }
               bytes:=bytes or (ord(insentry^.code[1]) shl 24);
@@ -4079,7 +4083,7 @@ implementation
                     end;
                 end;
             end;
-          #$45: // VLDR/VSTR
+          #$45,#$95: // VLDR/VSTR
             begin
               { set instruction code }
               bytes:=bytes or (ord(insentry^.code[1]) shl 24);
@@ -5040,7 +5044,7 @@ implementation
         end;
 
         { Todo: Decide whether the code above should take care of writing data in an order that makes senes }
-        if (insentry^.code[0] in [#$80..#$90]) and (bytelen=4) then
+        if (insentry^.code[0] in [#$80..#$95]) and (bytelen=4) then
           bytes:=((bytes shr 16) and $FFFF) or ((bytes and $FFFF) shl 16);
 
         { we're finished, write code }

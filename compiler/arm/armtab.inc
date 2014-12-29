@@ -1299,8 +1299,29 @@
     opcode  : A_VMOV;
     ops     : 2;
     optypes : (ot_vreg,ot_vreg,ot_none,ot_none,ot_none,ot_none);
+    code    : #144#238#176#10#64;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VMOV;
+    ops     : 2;
+    optypes : (ot_vreg,ot_vreg,ot_none,ot_none,ot_none,ot_none);
     code    : #64#14#176#10#64;
     flags   : if_arm32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VMOV;
+    ops     : 2;
+    optypes : (ot_reg32,ot_vreg,ot_none,ot_none,ot_none,ot_none);
+    code    : #144#238#16#10#16;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VMOV;
+    ops     : 2;
+    optypes : (ot_vreg,ot_reg32,ot_none,ot_none,ot_none,ot_none);
+    code    : #144#238#0#10#16;
+    flags   : if_thumb32 or if_vfpv2
   ),
   (
     opcode  : A_VMOV;
@@ -1320,6 +1341,20 @@
     opcode  : A_VMOV;
     ops     : 4;
     optypes : (ot_reg32,ot_reg32,ot_vreg,ot_vreg,ot_none,ot_none);
+    code    : #144#236#80#10#16;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VMOV;
+    ops     : 4;
+    optypes : (ot_vreg,ot_vreg,ot_reg32,ot_reg32,ot_none,ot_none);
+    code    : #144#236#64#10#16;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VMOV;
+    ops     : 4;
+    optypes : (ot_reg32,ot_reg32,ot_vreg,ot_vreg,ot_none,ot_none);
     code    : #64#12#80#10#16;
     flags   : if_arm32 or if_vfpv2
   ),
@@ -1329,6 +1364,20 @@
     optypes : (ot_vreg,ot_vreg,ot_reg32,ot_reg32,ot_none,ot_none);
     code    : #64#12#64#10#16;
     flags   : if_arm32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VMOV;
+    ops     : 3;
+    optypes : (ot_reg32,ot_reg32,ot_vreg,ot_none,ot_none,ot_none);
+    code    : #144#236#80#11#16;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VMOV;
+    ops     : 3;
+    optypes : (ot_vreg,ot_reg32,ot_reg32,ot_none,ot_none,ot_none);
+    code    : #144#236#64#11#16;
+    flags   : if_thumb32 or if_vfpv2
   ),
   (
     opcode  : A_VMOV;
@@ -1996,20 +2045,6 @@
     flags   : if_arm32 or if_armv4
   ),
   (
-    opcode  : A_SWI;
-    ops     : 1;
-    optypes : (ot_immediate,ot_none,ot_none,ot_none,ot_none,ot_none);
-    code    : #2#15;
-    flags   : if_arm32 or if_armv4
-  ),
-  (
-    opcode  : A_SWI;
-    ops     : 1;
-    optypes : (ot_immediateshifter,ot_none,ot_none,ot_none,ot_none,ot_none);
-    code    : #2#15;
-    flags   : if_arm32 or if_armv4
-  ),
-  (
     opcode  : A_SWP;
     ops     : 3;
     optypes : (ot_reg32,ot_reg32,ot_memoryam2,ot_none,ot_none,ot_none);
@@ -2342,6 +2377,20 @@
     opcode  : A_VLDM;
     ops     : 2;
     optypes : (ot_memoryam4,ot_reglist,ot_none,ot_none,ot_none,ot_none);
+    code    : #148#236#16#10;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VLDM;
+    ops     : 2;
+    optypes : (ot_reg32,ot_reglist,ot_none,ot_none,ot_none,ot_none);
+    code    : #148#236#16#10;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VLDM;
+    ops     : 2;
+    optypes : (ot_memoryam4,ot_reglist,ot_none,ot_none,ot_none,ot_none);
     code    : #68#12#16#10;
     flags   : if_arm32 or if_vfpv2
   ),
@@ -2351,6 +2400,20 @@
     optypes : (ot_reg32,ot_reglist,ot_none,ot_none,ot_none,ot_none);
     code    : #68#12#16#10;
     flags   : if_arm32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VSTM;
+    ops     : 2;
+    optypes : (ot_memoryam4,ot_reglist,ot_none,ot_none,ot_none,ot_none);
+    code    : #148#236#0#10;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VSTM;
+    ops     : 2;
+    optypes : (ot_reg32,ot_reglist,ot_none,ot_none,ot_none,ot_none);
+    code    : #148#236#0#10;
+    flags   : if_thumb32 or if_vfpv2
   ),
   (
     opcode  : A_VSTM;
@@ -2370,8 +2433,22 @@
     opcode  : A_VPOP;
     ops     : 1;
     optypes : (ot_reglist,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #148#236#189#10;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VPOP;
+    ops     : 1;
+    optypes : (ot_reglist,ot_none,ot_none,ot_none,ot_none,ot_none);
     code    : #68#12#189#10;
     flags   : if_arm32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VPUSH;
+    ops     : 1;
+    optypes : (ot_reglist,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #148#237#45#10;
+    flags   : if_thumb32 or if_vfpv2
   ),
   (
     opcode  : A_VPUSH;
@@ -2384,8 +2461,22 @@
     opcode  : A_VLDR;
     ops     : 2;
     optypes : (ot_vreg,ot_memoryam2,ot_none,ot_none,ot_none,ot_none);
+    code    : #149#237#16#10;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VLDR;
+    ops     : 2;
+    optypes : (ot_vreg,ot_memoryam2,ot_none,ot_none,ot_none,ot_none);
     code    : #69#13#16#10;
     flags   : if_arm32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VSTR;
+    ops     : 2;
+    optypes : (ot_vreg,ot_memoryam2,ot_none,ot_none,ot_none,ot_none);
+    code    : #149#237#0#10;
+    flags   : if_thumb32 or if_vfpv2
   ),
   (
     opcode  : A_VSTR;
@@ -4715,6 +4806,13 @@
     opcode  : A_VABS;
     ops     : 2;
     optypes : (ot_vreg,ot_vreg,ot_none,ot_none,ot_none,ot_none);
+    code    : #146#238#176#10#192;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VABS;
+    ops     : 2;
+    optypes : (ot_vreg,ot_vreg,ot_none,ot_none,ot_none,ot_none);
     code    : #66#14#176#10#192;
     flags   : if_arm32 or if_vfpv2
   ),
@@ -4722,8 +4820,29 @@
     opcode  : A_VADD;
     ops     : 3;
     optypes : (ot_vreg,ot_vreg,ot_vreg,ot_none,ot_none,ot_none);
+    code    : #146#238#48#10#0;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VADD;
+    ops     : 3;
+    optypes : (ot_vreg,ot_vreg,ot_vreg,ot_none,ot_none,ot_none);
     code    : #66#14#48#10#0;
     flags   : if_arm32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VCMP;
+    ops     : 2;
+    optypes : (ot_vreg,ot_vreg,ot_none,ot_none,ot_none,ot_none);
+    code    : #146#238#180#10#64;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VCMP;
+    ops     : 2;
+    optypes : (ot_vreg,ot_immediateshifter,ot_none,ot_none,ot_none,ot_none);
+    code    : #146#238#181#10#64;
+    flags   : if_thumb32 or if_vfpv2
   ),
   (
     opcode  : A_VCMP;
@@ -4743,6 +4862,20 @@
     opcode  : A_VCMPE;
     ops     : 2;
     optypes : (ot_vreg,ot_vreg,ot_none,ot_none,ot_none,ot_none);
+    code    : #146#238#180#10#192;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VCMPE;
+    ops     : 2;
+    optypes : (ot_vreg,ot_immediateshifter,ot_none,ot_none,ot_none,ot_none);
+    code    : #146#238#181#10#192;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VCMPE;
+    ops     : 2;
+    optypes : (ot_vreg,ot_vreg,ot_none,ot_none,ot_none,ot_none);
     code    : #66#14#180#10#192;
     flags   : if_arm32 or if_vfpv2
   ),
@@ -4752,6 +4885,20 @@
     optypes : (ot_vreg,ot_immediateshifter,ot_none,ot_none,ot_none,ot_none);
     code    : #66#14#181#10#192;
     flags   : if_arm32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VCVT;
+    ops     : 2;
+    optypes : (ot_vreg,ot_vreg,ot_none,ot_none,ot_none,ot_none);
+    code    : #147#238#184#10#192;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VCVT;
+    ops     : 3;
+    optypes : (ot_vreg,ot_vreg,ot_immediateshifter,ot_none,ot_none,ot_none);
+    code    : #147#238#186#10#64;
+    flags   : if_thumb32 or if_vfpv3
   ),
   (
     opcode  : A_VCVT;
@@ -4771,6 +4918,13 @@
     opcode  : A_VCVTR;
     ops     : 2;
     optypes : (ot_vreg,ot_vreg,ot_none,ot_none,ot_none,ot_none);
+    code    : #147#238#184#10#64;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VCVTR;
+    ops     : 2;
+    optypes : (ot_vreg,ot_vreg,ot_none,ot_none,ot_none,ot_none);
     code    : #67#14#184#10#64;
     flags   : if_arm32 or if_vfpv2
   ),
@@ -4778,8 +4932,29 @@
     opcode  : A_VDIV;
     ops     : 3;
     optypes : (ot_vreg,ot_vreg,ot_vreg,ot_none,ot_none,ot_none);
+    code    : #146#238#128#10#0;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VDIV;
+    ops     : 3;
+    optypes : (ot_vreg,ot_vreg,ot_vreg,ot_none,ot_none,ot_none);
     code    : #66#14#128#10#0;
     flags   : if_arm32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VMRS;
+    ops     : 2;
+    optypes : (ot_reg32,ot_regf,ot_none,ot_none,ot_none,ot_none);
+    code    : #145#238#240#10#16;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VMRS;
+    ops     : 2;
+    optypes : (ot_regf,ot_regf,ot_none,ot_none,ot_none,ot_none);
+    code    : #145#238#240#10#16;
+    flags   : if_thumb32 or if_vfpv2
   ),
   (
     opcode  : A_VMRS;
@@ -4799,8 +4974,22 @@
     opcode  : A_VMSR;
     ops     : 2;
     optypes : (ot_regf,ot_reg32,ot_none,ot_none,ot_none,ot_none);
+    code    : #145#238#224#10#16;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VMSR;
+    ops     : 2;
+    optypes : (ot_regf,ot_reg32,ot_none,ot_none,ot_none,ot_none);
     code    : #65#14#224#10#16;
     flags   : if_arm32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VMLA;
+    ops     : 3;
+    optypes : (ot_vreg,ot_vreg,ot_vreg,ot_none,ot_none,ot_none);
+    code    : #146#238#0#10#0;
+    flags   : if_thumb32 or if_vfpv2
   ),
   (
     opcode  : A_VMLA;
@@ -4813,8 +5002,22 @@
     opcode  : A_VMLS;
     ops     : 3;
     optypes : (ot_vreg,ot_vreg,ot_vreg,ot_none,ot_none,ot_none);
+    code    : #146#238#0#10#64;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VMLS;
+    ops     : 3;
+    optypes : (ot_vreg,ot_vreg,ot_vreg,ot_none,ot_none,ot_none);
     code    : #66#14#0#10#64;
     flags   : if_arm32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VMUL;
+    ops     : 3;
+    optypes : (ot_vreg,ot_vreg,ot_vreg,ot_none,ot_none,ot_none);
+    code    : #146#238#32#10#0;
+    flags   : if_thumb32 or if_vfpv2
   ),
   (
     opcode  : A_VMUL;
@@ -4827,8 +5030,22 @@
     opcode  : A_VNMLA;
     ops     : 3;
     optypes : (ot_vreg,ot_vreg,ot_vreg,ot_none,ot_none,ot_none);
+    code    : #146#238#16#10#64;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VNMLA;
+    ops     : 3;
+    optypes : (ot_vreg,ot_vreg,ot_vreg,ot_none,ot_none,ot_none);
     code    : #66#14#16#10#64;
     flags   : if_arm32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VNMLS;
+    ops     : 3;
+    optypes : (ot_vreg,ot_vreg,ot_vreg,ot_none,ot_none,ot_none);
+    code    : #146#238#16#10#0;
+    flags   : if_thumb32 or if_vfpv2
   ),
   (
     opcode  : A_VNMLS;
@@ -4841,8 +5058,22 @@
     opcode  : A_VNMUL;
     ops     : 3;
     optypes : (ot_vreg,ot_vreg,ot_vreg,ot_none,ot_none,ot_none);
+    code    : #146#238#32#10#64;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VNMUL;
+    ops     : 3;
+    optypes : (ot_vreg,ot_vreg,ot_vreg,ot_none,ot_none,ot_none);
     code    : #66#14#32#10#64;
     flags   : if_arm32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VNEG;
+    ops     : 2;
+    optypes : (ot_vreg,ot_vreg,ot_none,ot_none,ot_none,ot_none);
+    code    : #146#238#177#10#64;
+    flags   : if_thumb32 or if_vfpv2
   ),
   (
     opcode  : A_VNEG;
@@ -4855,8 +5086,22 @@
     opcode  : A_VSQRT;
     ops     : 2;
     optypes : (ot_vreg,ot_vreg,ot_none,ot_none,ot_none,ot_none);
+    code    : #146#238#177#10#192;
+    flags   : if_thumb32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VSQRT;
+    ops     : 2;
+    optypes : (ot_vreg,ot_vreg,ot_none,ot_none,ot_none,ot_none);
     code    : #66#14#177#10#192;
     flags   : if_arm32 or if_vfpv2
+  ),
+  (
+    opcode  : A_VSUB;
+    ops     : 3;
+    optypes : (ot_vreg,ot_vreg,ot_vreg,ot_none,ot_none,ot_none);
+    code    : #146#238#48#10#64;
+    flags   : if_thumb32 or if_vfpv2
   ),
   (
     opcode  : A_VSUB;
@@ -4932,13 +5177,20 @@
     opcode  : A_SVC;
     ops     : 1;
     optypes : (ot_immediate or ot_bits32,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #97#223#0;
+    flags   : if_thumb or if_armv4t
+  ),
+  (
+    opcode  : A_SVC;
+    ops     : 1;
+    optypes : (ot_immediateshifter,ot_none,ot_none,ot_none,ot_none,ot_none);
     code    : #2#15;
     flags   : if_arm32 or if_armv4
   ),
   (
     opcode  : A_SVC;
     ops     : 1;
-    optypes : (ot_immediateshifter,ot_none,ot_none,ot_none,ot_none,ot_none);
+    optypes : (ot_immediate or ot_bits32,ot_none,ot_none,ot_none,ot_none,ot_none);
     code    : #2#15;
     flags   : if_arm32 or if_armv4
   ),
