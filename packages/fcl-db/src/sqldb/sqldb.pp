@@ -2118,6 +2118,7 @@ begin
   FreeAndNil(FInsertSQL);
   FreeAndNil(FDeleteSQL);
   FreeAndNil(FUpdateSQL);
+  FreeAndNil(FRefreshSQL);
   FServerIndexDefs.Free;
   inherited Destroy;
 end;
