@@ -422,6 +422,37 @@ Type
     Property ConditionalStrings[Index : Integer] : TConditionalDestString Read GetConditionalString Write SetConditionalString; default;
   end;
 
+  { TNotifyEventCollection }
+
+  TNotifyEventAction = (neaBeforeCompile, neaAfterCompile, neaBeforeInstall, neaAfterInstall,
+                        neaBeforeClean, neaAfterClean, neaBeforeArchive, neaAfterArchive,
+                        neaBeforeManifest, neaAfterManifest, neaBeforePkgList, neaAfterPkgList,
+                        neaBeforeCreateBuildEngine, neaAfterCreateBuildengine);
+
+  TNotifyEventActionSet = set of TNotifyEventAction;
+
+  TNotifyEventItem = class(TCollectionItem)
+  private
+    FOnAction: TNotifyEventAction;
+    FOnEvent: TNotifyEvent;
+    FOnProcEvent: TNotifyProcEvent;
+  public
+    property OnAction: TNotifyEventAction read FOnAction write FOnAction;
+    property OnEvent: TNotifyEvent read FOnEvent write FOnEvent;
+    property OnProcEvent: TNotifyProcEvent read FOnProcEvent write FOnProcEvent;
+    procedure CallEvent(Sender: TObject);
+  end;
+
+  TNotifyEventCollection = class(TCollection)
+  private
+    FSupportedActionSet: TNotifyEventActionSet;
+  public
+    constructor create(ASupportedActionSet: TNotifyEventActionSet);
+    procedure AppendEvent(AnAction: TNotifyEventAction; AnEvent: TNotifyEvent);
+    procedure AppendProcEvent(AnACtion: TNotifyEventAction; AnProcEvent: TNotifyProcEvent);
+    procedure CallEvents(AnAction: TNotifyEventAction; Sender: TObject);
+  end;
+
   { TDictionary }
 
   TReplaceFunction = Function (Const AName,Args : String) : String of Object;
@@ -1057,18 +1088,7 @@ Type
     FExternalPackages : TPackages;
     // Events
     FOnLog: TLogEvent;
-    FAfterArchive: TNotifyEvent;
-    FAfterClean: TNotifyEvent;
-    FAfterCompile: TNotifyEvent;
-    FAfterInstall: TNotifyEvent;
-    FAfterManifest: TNotifyEvent;
-    FAfterPkgList: TNotifyEvent;
-    FBeforeArchive: TNotifyEvent;
-    FBeforeClean: TNotifyEvent;
-    FBeforeCompile: TNotifyEvent;
-    FBeforeInstall: TNotifyEvent;
-    FBeforeManifest: TNotifyEvent;
-    FBeforePkgList: TNotifyEvent;
+    FNotifyEventCollection: TNotifyEventCollection;
     FOnCopyFile: TCopyFileProc;
     FOnFinishCopy: TNotifyEvent;
 
@@ -1187,18 +1207,7 @@ Type
     Property ExternalPackages: TPackages Read FExternalPackages;
     Property StartDir: String Read FStartDir;
     // Events
-    Property BeforeCompile : TNotifyEvent Read FBeforeCompile Write FBeforeCompile;
-    Property AfterCompile : TNotifyEvent Read FAfterCompile Write FAfterCompile;
-    Property BeforeInstall : TNotifyEvent Read FBeforeInstall Write FBeforeInstall;
-    Property AfterInstall : TNotifyEvent Read FAfterInstall Write FAfterInstall;
-    Property BeforeClean : TNotifyEvent Read FBeforeClean Write FBeforeClean;
-    Property AfterClean : TNotifyEvent Read FAfterClean Write FAfterClean;
-    Property BeforeArchive : TNotifyEvent Read FBeforeArchive Write FBeforeArchive;
-    Property AfterArchive : TNotifyEvent Read FAfterArchive Write FAfterArchive;
-    Property BeforeManifest : TNotifyEvent Read FBeforeManifest Write FBeforeManifest;
-    Property AfterManifest : TNotifyEvent Read FAfterManifest Write FAfterManifest;
-    Property BeforePkgList : TNotifyEvent Read FBeforePkgList Write FBeforePkgList;
-    Property AfterPkgList : TNotifyEvent Read FAfterPkgList Write FAfterPkgList;
+    Property NotifyEventCollection: TNotifyEventCollection read FNotifyEventCollection;
     Property OnLog : TLogEvent Read FOnLog Write FOnlog;
   end;
 
@@ -1214,6 +1223,7 @@ Type
     FFPMakeOptionsString: string;
     FPackageVariantSettings: TStrings;
     FPackageVariants: TFPList;
+    FNotifyEventCollection: TNotifyEventCollection;
   Protected
     Procedure Log(Level : TVerboseLevel; Const Msg : String);
     Procedure CreatePackages; virtual;
@@ -1244,6 +1254,7 @@ Type
     Property Packages : TPackages Read GetPackages;
     Property RunMode : TRunMode Read FRunMode;
     Property ListMode : Boolean Read FListMode;
+    Property NotifyEventCollection : TNotifyEventCollection read FNotifyEventCollection;
   end;
 
   { TFPCInstaller }
@@ -1536,6 +1547,7 @@ ResourceString
   SErrCouldNotCompile   = 'Could not compile target %s from package %s';
   SErrUnsupportedBuildmode = 'Package does not support this buildmode';
   SErrPackVarNotExist   = 'There is no package variant with the name "%s"';
+  SErrEventNotSupported = 'Unsupported event type';
 
   SWarnCircularTargetDependency = 'Warning: Circular dependency detected when compiling target %s with target %s';
   SWarnCircularPackageDependency = 'Warning: Circular dependency detected when compiling package %s with package %s';
@@ -4409,6 +4421,10 @@ begin
   GlobalDictionary.AddVariable('BuildString',Defaults.BuildString);
   GlobalDictionary.AddVariable('Prefix',Defaults.Prefix);
   GlobalDictionary.AddVariable('CompilerVersion',Defaults.CompilerVersion);
+  FNotifyEventCollection := TNotifyEventCollection.create([neaBeforeCompile, neaAfterCompile, neaBeforeClean, neaAfterClean,
+                                                           neaBeforeInstall, neaAfterInstall, neaBeforeArchive, neaAfterArchive,
+                                                           neaBeforeManifest, neaAfterManifest, neaBeforePkgList, neaAfterPkgList,
+                                                           neaBeforeCreateBuildEngine, neaAfterCreateBuildengine]);
   CreatePackages;
 end;
 
@@ -4427,6 +4443,7 @@ begin
       TPackageVariants(FPackageVariants.Items[i]).Free;
     end;
   FreeAndNil(FPackageVariants);
+  FreeAndNil(FNotifyEventCollection);
   inherited destroy;
 end;
 
@@ -4458,11 +4475,13 @@ end;
 
 procedure TCustomInstaller.CreateBuildEngine;
 begin
+  NotifyEventCollection.CallEvents(neaBeforeCreateBuildEngine, Self);
   FBuildEngine:=TBuildEngine.Create(Self);
 //  FBuildEngine.Defaults:=Defaults;
   FBuildEngine.ListMode:=FListMode;
   FBuildEngine.Verbose := (FLogLevels = AllMessages);
   FBuildEngine.OnLog:=@Self.Log;
+  NotifyEventCollection.CallEvents(neaAfterCreateBuildengine, Self);
 end;
 
 
@@ -4784,25 +4803,33 @@ end;
 
 procedure TCustomInstaller.Compile(Force: Boolean);
 begin
+  FNotifyEventCollection.CallEvents(neaBeforeCompile, Self);
   FBuildEngine.ForceCompile:=Force;
   FBuildEngine.Compile(Packages);
+  FNotifyEventCollection.CallEvents(neaAfterCompile, Self);
 end;
 
 
 procedure TCustomInstaller.Clean(AllTargets: boolean);
 begin
+  NotifyEventCollection.CallEvents(neaBeforeClean, Self);
   BuildEngine.Clean(Packages, AllTargets);
+  NotifyEventCollection.CallEvents(neaAfterClean, Self);
 end;
 
 
 procedure TCustomInstaller.Install;
 begin
+  NotifyEventCollection.CallEvents(neaBeforeInstall, self);
   BuildEngine.Install(Packages);
+  NotifyEventCollection.CallEvents(neaAfterInstall, self);
 end;
 
 procedure TCustomInstaller.ZipInstall;
 begin
+  NotifyEventCollection.CallEvents(neaBeforeInstall, self);
   BuildEngine.ZipInstall(Packages);
+  NotifyEventCollection.CallEvents(neaAfterInstall, self);
 end;
 
 
@@ -4810,19 +4837,25 @@ procedure TCustomInstaller.Archive;
 begin
   // Force generation of manifest.xml, this is required for the repository
   BuildEngine.Manifest(Packages);
+  NotifyEventCollection.CallEvents(neaBeforeArchive, self);
   BuildEngine.Archive(Packages);
+  NotifyEventCollection.CallEvents(neaAfterArchive, self);
 end;
 
 
 procedure TCustomInstaller.Manifest;
 begin
+  NotifyEventCollection.CallEvents(neaBeforeManifest, self);
   BuildEngine.Manifest(Packages);
+  NotifyEventCollection.CallEvents(neaAfterManifest, self);
 end;
 
 
 procedure TCustomInstaller.PkgList;
 begin
+  NotifyEventCollection.CallEvents(neaBeforePkgList, self);
   BuildEngine.PkgList(Packages);
+  NotifyEventCollection.CallEvents(neaAfterPkgList, self);
 end;
 
 
@@ -4904,7 +4937,9 @@ begin
   // With --start-dir=/path/to/sources.
   FStartDir:=includeTrailingPathDelimiter(GetCurrentDir);
   FExternalPackages:=TPackages.Create(TPackage);
-
+  FNotifyEventCollection := TNotifyEventCollection.create([neaAfterCompile, neaBeforeCompile, neaAfterInstall, neaBeforeInstall,
+                                                           neaAfterClean, neaBeforeClean, neaAfterArchive, neaBeforeArchive,
+                                                           neaAfterManifest, neaBeforeManifest, neaAfterPkgList, neaBeforePkgList]);
 {$ifndef NO_THREADING}
   InitCriticalSection(FGeneralCriticalSection);
 {$endif NO_THREADING}
@@ -4914,6 +4949,7 @@ end;
 destructor TBuildEngine.Destroy;
 begin
   FreeAndNil(FExternalPackages);
+  FreeAndNil(FNotifyEventCollection);
 
 {$ifndef NO_THREADING}
   DoneCriticalsection(FGeneralCriticalSection);
@@ -7264,8 +7300,7 @@ Var
 {$endif NO_THREADING}
 
 begin
-  If Assigned(BeforeCompile) then
-    BeforeCompile(Self);
+  NotifyEventCollection.CallEvents(neaBeforeCompile, Self);
   FProgressMax:=Packages.Count;
   FProgressCount:=0;
 
@@ -7324,8 +7359,7 @@ begin
       raise Exception.Create(ErrorMessage);
 {$endif NO_THREADING}
     end;
-  If Assigned(AfterCompile) then
-    AfterCompile(Self);
+  NotifyEventCollection.CallEvents(neaAfterCompile, Self);
 end;
 
 
@@ -7334,8 +7368,7 @@ Var
   I : Integer;
   P : TPackage;
 begin
-  If Assigned(BeforeInstall) then
-    BeforeInstall(Self);
+  NotifyEventCollection.CallEvents(neaBeforeInstall, Self);
   For I:=0 to Packages.Count-1 do
     begin
       P:=Packages.PackageItems[i];
@@ -7347,8 +7380,7 @@ begin
       else
         log(vlWarning,SWarnSkipPackageTarget,[P.Name, Defaults.Target]);
     end;
-  If Assigned(AfterInstall) then
-    AfterInstall(Self);
+  NotifyEventCollection.CallEvents(neaAfterInstall, Self);
 end;
 
 procedure TBuildEngine.ZipInstall(Packages: TPackages);
@@ -7358,8 +7390,7 @@ var
   P : TPackage;
 
 begin
-  If Assigned(BeforeInstall) then
-    BeforeInstall(Self);
+  NotifyEventCollection.CallEvents(neaBeforeInstall, Self);
 
   if Defaults.UnixPaths then
     Defaults.IntSetBaseInstallDir('lib/fpc/' + Defaults.FCompilerVersion+ '/')
@@ -7382,8 +7413,7 @@ begin
     FinishArchive(P);
   end;
 
-  If Assigned(AfterInstall) then
-    AfterInstall(Self);
+  NotifyEventCollection.CallEvents(neaAfterInstall, Self);
 end;
 
 
@@ -7392,16 +7422,14 @@ Var
   I : Integer;
   P : TPackage;
 begin
-  If Assigned(BeforeArchive) then
-    BeforeArchive(Self);
+  NotifyEventCollection.CallEvents(neaBeforeArchive, Self);
   Log(vlDebug, SDbgBuildEngineArchiving);
   For I:=0 to Packages.Count-1 do
     begin
       P:=Packages.PackageItems[i];
       Archive(P);
     end;
-  If Assigned(AfterArchive) then
-    AfterArchive(Self);
+  NotifyEventCollection.CallEvents(neaAfterArchive, Self);
 end;
 
 
@@ -7411,8 +7439,7 @@ Var
   I : Integer;
   P : TPackage;
 begin
-  If Assigned(BeforeManifest) then
-    BeforeManifest(Self);
+  NotifyEventCollection.CallEvents(neaBeforeManifest, Self);
   Log(vlDebug, SDbgBuildEngineGenerateManifests);
 
   L:=TStringList.Create;
@@ -7432,8 +7459,7 @@ begin
     L.Free;
   end;
 
-  If Assigned(AfterManifest) then
-    AfterManifest(Self);
+  NotifyEventCollection.CallEvents(neaAfterManifest, Self);
 end;
 
 
@@ -7445,8 +7471,7 @@ Var
   PKGL : String;
 begin
   L:=TStringList.Create;
-  If Assigned(BeforePkgList) then
-    BeforePkgList(Self);
+  NotifyEventCollection.CallEvents(neaBeforePkgList, Self);
   Log(vlDebug, SDbgBuildEngineGeneratePkgList);
 { Consider only the target OS, because the installer would be run there }
   if Defaults.OS in AllLimit83fsOSes then
@@ -7471,8 +7496,7 @@ begin
     L.Free;
   end;
 
-  If Assigned(AfterPkgList) then
-    AfterPkgList(Self);
+  NotifyEventCollection.CallEvents(neaAfterPkgList, Self);
 end;
 
 procedure TBuildEngine.Clean(Packages: TPackages; AllTargets: boolean);
@@ -7480,8 +7504,7 @@ Var
   I : Integer;
   P : TPackage;
 begin
-  If Assigned(BeforeClean) then
-    BeforeClean(Self);
+  NotifyEventCollection.CallEvents(neaBeforeClean, Self);
   Log(vldebug, SDbgBuildEngineCleaning);
   For I:=0 to Packages.Count-1 do
     begin
@@ -7490,8 +7513,7 @@ begin
         Clean(P, AllTargets);
       log(vlWarning, SWarnCleanPackagecomplete, [P.Name]);
     end;
-  If Assigned(AfterClean) then
-    AfterClean(Self);
+  NotifyEventCollection.CallEvents(neaAfterClean, Self);
 end;
 
 {****************************************************************************
@@ -8164,6 +8186,62 @@ begin
   FFunc:=AFunc;
 end;
 
+{****************************************************************************
+                           TNotifyEventItem
+****************************************************************************}
+
+procedure TNotifyEventItem.CallEvent(Sender: TObject);
+begin
+  if assigned(OnEvent) then
+    OnEvent(Sender);
+  if assigned(OnProcEvent) then
+    OnProcEvent(sender);
+end;
+
+{****************************************************************************
+                           TNotifyEventCollection
+****************************************************************************}
+
+constructor TNotifyEventCollection.create(ASupportedActionSet: TNotifyEventActionSet);
+begin
+  FSupportedActionSet:=ASupportedActionSet;
+  inherited create(TNotifyEventItem);
+end;
+
+procedure TNotifyEventCollection.AppendEvent(AnAction: TNotifyEventAction; AnEvent: TNotifyEvent);
+var
+  item: TNotifyEventItem;
+begin
+  if not (AnAction in FSupportedActionSet) then
+    raise Exception.Create(SErrEventNotSupported);
+  item := TNotifyEventItem(add);
+  item.OnEvent:=AnEvent;
+  item.OnAction:=AnAction;
+end;
+
+procedure TNotifyEventCollection.AppendProcEvent(AnAction: TNotifyEventAction; AnProcEvent: TNotifyProcEvent);
+var
+  item: TNotifyEventItem;
+begin
+  if not (AnAction in FSupportedActionSet) then
+    raise Exception.Create(SErrEventNotSupported);
+  item := TNotifyEventItem(add);
+  item.OnProcEvent:=AnProcEvent;
+  item.OnAction:=AnAction;
+end;
+
+procedure TNotifyEventCollection.CallEvents(AnAction: TNotifyEventAction; Sender: TObject);
+var
+  i: integer;
+  item: TNotifyEventItem;
+begin
+  for i := 0 to Count-1 do
+    begin
+      item := TNotifyEventItem(Items[i]);
+      if item.OnAction=AnAction then
+        item.CallEvent(Sender);
+    end;
+end;
 
 {****************************************************************************
                                  TDictionary
