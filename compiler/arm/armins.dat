@@ -127,6 +127,8 @@ reg32,reg32,immshifter      \7\x2\x80                     ARM32,ARMv4
 reg32,reg32,immshifter      \x81\xF2\x0\x0\x0             THUMB32,ARMv6T2
 
 [ADFcc]
+fpureg,fpureg,fpureg        \xA1\0\x0                     ARM32,FPA
+fpureg,fpureg,immshifter    \xA1\0\x0                     ARM32,FPA
 
 [ADRcc]
 ;reg32,immshifter           \x33\x2\x0F                   ARM32,ARMv4
@@ -238,15 +240,22 @@ reg32,reg32,shifterop    \xE\x1\x40                     ARM32,ARMv4
 reg32,immshifter         \xF\x3\x40                     ARM32,ARMv4
 
 [CMFcc]
+fpureg,fpureg            \xA2\xE\x90                    ARM32,FPA
+fpureg,immshifter        \xA2\xE\x90                    ARM32,FPA
 
 [CMFEcc]
+fpureg,fpureg            \xA2\xE\xC0                    ARM32,FPA
+fpureg,immshifter        \xA2\xE\xC0                    ARM32,FPA
 
 [STFcc]
+fpureg,memam2            \xA0\xC\x00\x1\x0              ARM32,FPA
 
 [LDFcc]
+fpureg,memam2            \xA0\xC\x10\x1\x0              ARM32,FPA
 
 [LFMcc]
-reg32,imm8,fpureg        \xF0\x02\x01                   FPA
+fpureg,imm32,memam2      \xA0\xC\x10\x2\x0              ARM32,FPA
+fpureg,immshifter,memam2 \xA0\xC\x10\x2\x0              ARM32,FPA
 
 [CLZcc]
 reg32,reg32              \x80\xFA\xB0\xF0\x80           THUMB32,ARMv6T2
@@ -387,8 +396,8 @@ reg32,reg32,reg32      \x80\xFB\x00\xF0\x00      THUMB32,ARMv6T2
 reg32,reg32,reg32      \x14\x00\x00\x90          ARM32,ARMv4
 
 [MVFcc]
-fpureg,fpureg              \xF2                      FPA
-fpureg,immfpu              \xF2                      FPA
+fpureg,fpureg               \xA1\1\x1                     ARM32,FPA
+fpureg,immshifter           \xA1\1\x1                     ARM32,FPA
 
 [MVNcc]
 reglo,reglo             \x6B\x43\xc0                    THUMB,ARMv4T
@@ -485,7 +494,8 @@ reg32,reg32,reg32,shifterop \6\x0\xC0                     ARM32,ARMv4
 reg32,reg32,immshifter      \7\x2\xC0                     ARM32,ARMv4
 
 [SFMcc]
-reg32,imm8,fpureg           \xF0\x02\x00                  FPA
+fpureg,imm32,memam2      \xA0\xC\x00\x2\x0              ARM32,FPA
+fpureg,immshifter,memam2 \xA0\xC\x00\x2\x0              ARM32,FPA
 
 [SINcc]
 
@@ -598,6 +608,7 @@ reg32,reg32,reg32,reg32     \x85\xFB\xA0\x0\x0      THUMB32,ARMv6T2
 reg32,reg32,reg32,reg32     \x16\x00\x80\x9         ARM32,ARMv4
 
 [WFScc]
+reg32                      \xA2\xE\x2               ARM32,FPA
 
 ; EDSP instructions
 [LDRDcc]
@@ -1568,57 +1579,112 @@ void                 void                          ARM32,ARMv4T
 
 
 [TANcc]
+fpureg,fpureg               \xA1\1\x15                    ARM32,FPA
+fpureg,immshifter           \xA1\1\x15                    ARM32,FPA
 
 [SQTcc]
+fpureg,fpureg               \xA1\1\x9                     ARM32,FPA
+fpureg,immshifter           \xA1\1\x9                     ARM32,FPA
 
 [SUFcc]
+fpureg,fpureg,fpureg        \xA1\0\x4                     ARM32,FPA
+fpureg,fpureg,immshifter    \xA1\0\x4                     ARM32,FPA
 
 [RSFcc]
+fpureg,fpureg,fpureg        \xA1\0\x6                     ARM32,FPA
+fpureg,fpureg,immshifter    \xA1\0\x6                     ARM32,FPA
 
 [RNDcc]
 
 [POLcc]
+fpureg,fpureg,fpureg        \xA1\0\x18                    ARM32,FPA
+fpureg,fpureg,immshifter    \xA1\0\x18                    ARM32,FPA
 
 [RDFcc]
+fpureg,fpureg,fpureg        \xA1\0\xA                     ARM32,FPA
+fpureg,fpureg,immshifter    \xA1\0\xA                     ARM32,FPA
 
 [RFScc]
+reg32                      \xA2\xE\x3               ARM32,FPA
 
 [RFCcc]
+reg32                      \xA2\xE\x5               ARM32,FPA
+
+[WFCcc]
+reg32                      \xA2\xE\x4               ARM32,FPA
 
 [RMFcc]
+fpureg,fpureg,fpureg        \xA1\0\x10                    ARM32,FPA
+fpureg,fpureg,immshifter    \xA1\0\x10                    ARM32,FPA
 
 [RPWcc]
+fpureg,fpureg,fpureg        \xA1\0\xC                     ARM32,FPA
+fpureg,fpureg,immshifter    \xA1\0\xC                     ARM32,FPA
 
 [MNFcc]
+fpureg,fpureg               \xA1\1\x3                     ARM32,FPA
+fpureg,immshifter           \xA1\1\x3                     ARM32,FPA
 
 [MUFcc]
+fpureg,fpureg,fpureg        \xA1\0\x2                     ARM32,FPA
+fpureg,fpureg,immshifter    \xA1\0\x2                     ARM32,FPA
 
 [ABScc]
+fpureg,fpureg               \xA1\1\x5                     ARM32,FPA
+fpureg,immshifter           \xA1\1\x5                     ARM32,FPA
 
 [ACScc]
+fpureg,fpureg               \xA1\1\x19                    ARM32,FPA
+fpureg,immshifter           \xA1\1\x19                    ARM32,FPA
 
 [ASNcc]
+fpureg,fpureg               \xA1\1\x17                    ARM32,FPA
+fpureg,immshifter           \xA1\1\x17                    ARM32,FPA
 
 [ATNcc]
+fpureg,fpureg               \xA1\1\x1B                    ARM32,FPA
+fpureg,immshifter           \xA1\1\x1B                    ARM32,FPA
 
 [CNFcc]
+fpureg,fpureg            \xA2\xE\xB0                    ARM32,FPA
+fpureg,immshifter        \xA2\xE\xB0                    ARM32,FPA
+
+[CNFEcc]
+fpureg,fpureg            \xA2\xE\xF0                    ARM32,FPA
+fpureg,immshifter        \xA2\xE\xF0                    ARM32,FPA
 
 [COScc]
+fpureg,fpureg               \xA1\1\x13                    ARM32,FPA
+fpureg,immshifter           \xA1\1\x13                    ARM32,FPA
 
 [DVFcc]
+fpureg,fpureg,fpureg        \xA1\0\x8                     ARM32,FPA
+fpureg,fpureg,immshifter    \xA1\0\x8                     ARM32,FPA
 
 [EXPcc]
 
 [FDVcc]
+fpureg,fpureg,fpureg        \xA1\0\x14                    ARM32,FPA
+fpureg,fpureg,immshifter    \xA1\0\x14                    ARM32,FPA
 
 [FLTcc]
+fpureg,reg32                \xA2\xE\x00                   ARM32,FPA
 
 [FIXcc]
+reg32,fpureg                \xA2\xE\x10                   ARM32,FPA
 
 [FMLcc]
+fpureg,fpureg,fpureg        \xA1\0\x12                    ARM32,FPA
+fpureg,fpureg,immshifter    \xA1\0\x12                    ARM32,FPA
 
 [FRDcc]
+fpureg,fpureg,fpureg        \xA1\0\x16                    ARM32,FPA
+fpureg,fpureg,immshifter    \xA1\0\x16                    ARM32,FPA
 
 [LGNcc]
+fpureg,fpureg               \xA1\1\xD                     ARM32,FPA
+fpureg,immshifter           \xA1\1\xD                     ARM32,FPA
 
 [LOGcc]
+fpureg,fpureg               \xA1\1\xB                     ARM32,FPA
+fpureg,immshifter           \xA1\1\xB                     ARM32,FPA

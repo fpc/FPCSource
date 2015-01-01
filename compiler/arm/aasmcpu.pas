@@ -1995,9 +1995,9 @@ implementation
             IF_NONE,
             IF_NONE,
             IF_NONE,
-            IF_NONE,
-            IF_NONE,
-            IF_NONE,
+            IF_FPA,
+            IF_FPA,
+            IF_FPA,
             IF_VFPv2,
             IF_VFPv2 or IF_VFPv3,
             IF_VFPv2 or IF_VFPv3,
@@ -2299,7 +2299,7 @@ implementation
         { update condition flags
           or floating point single }
       if (oppostfix=PF_S) and
-        not(p^.code[0] in [#$04..#$0F,#$14..#$16,#$29,#$30,#$60..#$6B,#$80..#$82]) then
+        not(p^.code[0] in [#$04..#$0F,#$14..#$16,#$29,#$30,#$60..#$6B,#$80..#$82,#$A0..#$A2]) then
         begin
           Matches:=0;
           exit;
@@ -2307,7 +2307,7 @@ implementation
 
       { floating point size }
       if (oppostfix in [PF_D,PF_E,PF_P,PF_EP]) and
-        not(p^.code[0] in []) then
+        not(p^.code[0] in [#$A0..#$A2]) then
         begin
           Matches:=0;
           exit;
@@ -4589,8 +4589,8 @@ implementation
                 end
               else
                 begin
-                  bytes:=bytes or (getsupreg(oper[0]^.reg) shl 0);
                   offset:=1;
+                  bytes:=bytes or (getsupreg(oper[0]^.reg) shl 0);
                 end;
 
               if oper[offset]^.typ=top_const then
@@ -5029,6 +5029,183 @@ implementation
                      (oper[0]^.ref^.shiftimm<>1) then
                     message(asmw_e_invalid_effective_address);
                 end;
+            end;
+          #$A0: { FPA: CPDT(LDF/STF) }
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+
+              if ops=2 then
+                begin
+                  bytes:=bytes or getsupreg(oper[0]^.reg) shl 12;
+
+                  bytes:=bytes or getsupreg(oper[1]^.ref^.base) shl 16;
+                  bytes:=bytes or ((oper[1]^.ref^.offset shr 2) and $FF);
+                  if oper[1]^.ref^.offset>=0 then
+                    bytes:=bytes or (1 shl 23);
+
+                  if oper[1]^.ref^.addressmode<>AM_OFFSET then
+                    bytes:=bytes or (1 shl 21);
+                  if oper[1]^.ref^.addressmode=AM_PREINDEXED then
+                    bytes:=bytes or (1 shl 24);
+
+                  case oppostfix of
+                    PF_D: bytes:=bytes or (0 shl 22) or (1 shl 15);
+                    PF_E: bytes:=bytes or (1 shl 22) or (0 shl 15);
+                    PF_P: bytes:=bytes or (1 shl 22) or (1 shl 15);
+                  end;
+                end
+              else
+                begin
+                  bytes:=bytes or getsupreg(oper[0]^.reg) shl 12;
+
+                  case oper[1]^.val of
+                    1: bytes:=bytes or (1 shl 15);
+                    2: bytes:=bytes or (1 shl 22);
+                    3: bytes:=bytes or (1 shl 22) or (1 shl 15);
+                    4: ;
+                  else
+                    message1(asmw_e_invalid_opcode_and_operands, 'Invalid count for LFM/SFM');
+                  end;
+
+                  bytes:=bytes or getsupreg(oper[2]^.ref^.base) shl 16;
+                  bytes:=bytes or ((oper[2]^.ref^.offset shr 2) and $FF);
+                  if oper[2]^.ref^.offset>=0 then
+                    bytes:=bytes or (2 shl 23);
+
+                  if oper[2]^.ref^.addressmode<>AM_OFFSET then
+                    bytes:=bytes or (1 shl 21);
+                  if oper[2]^.ref^.addressmode=AM_PREINDEXED then
+                    bytes:=bytes or (1 shl 24);
+                end;
+            end;
+          #$A1: { FPA: CPDO }
+            begin
+              { set instruction code }
+              bytes:=bytes or ($E shl 24);
+              bytes:=bytes or (ord(insentry^.code[1]) shl 15);
+              bytes:=bytes or ((ord(insentry^.code[2]) shr 1) shl 20);
+              bytes:=bytes or (1 shl 8);
+
+              bytes:=bytes or getsupreg(oper[0]^.reg) shl 12;
+              if ops=2 then
+                begin
+                  if oper[1]^.typ=top_reg then
+                    bytes:=bytes or getsupreg(oper[1]^.reg) shl 0
+                  else
+                    case oper[1]^.val of
+                      0: bytes:=bytes or $8;
+                      1: bytes:=bytes or $9;
+                      2: bytes:=bytes or $A;
+                      3: bytes:=bytes or $B;
+                      4: bytes:=bytes or $C;
+                      5: bytes:=bytes or $D;
+                      //0.5: bytes:=bytes or $E;
+                      10: bytes:=bytes or $F;
+                    else
+                      Message(asmw_e_invalid_opcode_and_operands);
+                    end;
+                end
+              else
+                begin
+                  bytes:=bytes or getsupreg(oper[1]^.reg) shl 16;
+                  if oper[2]^.typ=top_reg then
+                    bytes:=bytes or getsupreg(oper[2]^.reg) shl 0
+                  else
+                    case oper[2]^.val of
+                      0: bytes:=bytes or $8;
+                      1: bytes:=bytes or $9;
+                      2: bytes:=bytes or $A;
+                      3: bytes:=bytes or $B;
+                      4: bytes:=bytes or $C;
+                      5: bytes:=bytes or $D;
+                      //0.5: bytes:=bytes or $E;
+                      10: bytes:=bytes or $F;
+                    else
+                      Message(asmw_e_invalid_opcode_and_operands);
+                    end;
+                end;
+
+              case roundingmode of
+                RM_P: bytes:=bytes or (1 shl 5);
+                RM_M: bytes:=bytes or (2 shl 5);
+                RM_Z: bytes:=bytes or (3 shl 5);
+              end;
+
+              case oppostfix of
+                PF_S: bytes:=bytes or (0 shl 19) or (0 shl 7);
+                PF_D: bytes:=bytes or (0 shl 19) or (1 shl 7);
+                PF_E: bytes:=bytes or (1 shl 19) or (0 shl 7);
+              else
+                message1(asmw_e_invalid_opcode_and_operands, 'Precision cannot be undefined');
+              end;
+            end;
+          #$A2: { FPA: CPDO }
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or ($11 shl 4);
+
+              case opcode of
+                A_FLT:
+                  begin
+                    bytes:=bytes or (getsupreg(oper[0]^.reg) shl 16);
+                    bytes:=bytes or (getsupreg(oper[1]^.reg) shl 12);
+
+                    case roundingmode of
+                      RM_P: bytes:=bytes or (1 shl 5);
+                      RM_M: bytes:=bytes or (2 shl 5);
+                      RM_Z: bytes:=bytes or (3 shl 5);
+                    end;
+
+                    case oppostfix of
+                      PF_S: bytes:=bytes or (0 shl 19) or (0 shl 7);
+                      PF_D: bytes:=bytes or (0 shl 19) or (1 shl 7);
+                      PF_E: bytes:=bytes or (1 shl 19) or (0 shl 7);
+                    else
+                      message1(asmw_e_invalid_opcode_and_operands, 'Precision cannot be undefined');
+                    end;
+                  end;
+                A_FIX:
+                  begin
+                    bytes:=bytes or (getsupreg(oper[0]^.reg) shl 12);
+                    bytes:=bytes or (getsupreg(oper[1]^.reg) shl 0);
+
+                    case roundingmode of
+                      RM_P: bytes:=bytes or (1 shl 5);
+                      RM_M: bytes:=bytes or (2 shl 5);
+                      RM_Z: bytes:=bytes or (3 shl 5);
+                    end;
+                  end;
+                A_WFS,A_RFS,A_WFC,A_RFC:
+                  begin
+                    bytes:=bytes or (getsupreg(oper[0]^.reg) shl 12);
+                  end;
+                A_CMF,A_CNF,A_CMFE,A_CNFE:
+                  begin
+                    bytes:=bytes or (getsupreg(oper[0]^.reg) shl 16);
+
+                    if oper[1]^.typ=top_reg then
+                      bytes:=bytes or getsupreg(oper[1]^.reg) shl 0
+                    else
+                      case oper[1]^.val of
+                        0: bytes:=bytes or $8;
+                        1: bytes:=bytes or $9;
+                        2: bytes:=bytes or $A;
+                        3: bytes:=bytes or $B;
+                        4: bytes:=bytes or $C;
+                        5: bytes:=bytes or $D;
+                        //0.5: bytes:=bytes or $E;
+                        10: bytes:=bytes or $F;
+                      else
+                        Message(asmw_e_invalid_opcode_and_operands);
+                      end;
+                  end;
+              end;
             end;
           #$fe: // No written data
             begin
