@@ -295,8 +295,8 @@ function EnumDisplaySettingsW(lpszDeviceName:LPCWSTR; iModeNum:DWORD;lpDevMode:L
 function SystemParametersInfoW(uiAction:UINT; uiParam:UINT; pvParam:PVOID; fWinIni:UINT):WINBOOL; external 'user32' name 'SystemParametersInfoW';
 function AddFontResourceW(_para1:LPCWSTR):longint; external 'gdi32' name 'AddFontResourceW';
 function CopyMetaFileW(_para1:HMETAFILE; _para2:LPCWSTR):HMETAFILE; external 'gdi32' name 'CopyMetaFileW';
-function CreateFontIndirectW(_para1:PLOGFONT):HFONT; external 'gdi32' name 'CreateFontIndirectW';
-function CreateFontIndirectW(var _para1:LOGFONT):HFONT; external 'gdi32' name 'CreateFontIndirectW';
+function CreateFontIndirectW(_para1:PLOGFONTW):HFONT; external 'gdi32' name 'CreateFontIndirectW';
+function CreateFontIndirectW(var _para1:LOGFONTW):HFONT; external 'gdi32' name 'CreateFontIndirectW';
 function CreateFontW(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:DWORD; _para7:DWORD; _para8:DWORD; _para9:DWORD; _para10:DWORD;_para11:DWORD; _para12:DWORD; _para13:DWORD; _para14:LPCWSTR):HFONT;
   external 'gdi32' name 'CreateFontW';
 function CreateICW(_para1:LPCWSTR; _para2:LPCWSTR; _para3:LPCWSTR; _para4:LPDEVMODEw):HDC; external 'gdi32' name 'CreateICW';
