@@ -262,8 +262,22 @@ reg32,reg32              \x80\xFA\xB0\xF0\x80           THUMB32,ARMv6T2
 reg32,reg32              \x32\x01\x6F\xF\x10            ARM32,ARMv4
 
 [CPS]
+immshifter               \x8F\xF3\xAF\x81\x00           THUMB32,ARMv6T2
+immshifter               \x46\xF1\x2\x0\x0              ARM32,ARMv6
+
 [CPSID]
+modeflags                \x6C\xB6\x70                   THUMB,ARMv6
+modeflags                \x8F\xF3\xAF\x86\x00           THUMB32,WIDE,ARMv6T2
+modeflags,immshifter     \x8F\xF3\xAF\x87\x00           THUMB32,WIDE,ARMv6T2
+modeflags                \x46\xF1\xC\x0\x0              ARM32,ARMv6
+modeflags,immshifter     \x46\xF1\xE\x0\x0              ARM32,ARMv6
+
 [CPSIE]
+modeflags                \x6C\xB6\x60                   THUMB,ARMv6
+modeflags                \x8F\xF3\xAF\x84\x00           THUMB32,WIDE,ARMv6T2
+modeflags,immshifter     \x8F\xF3\xAF\x85\x00           THUMB32,WIDE,ARMv6T2
+modeflags                \x46\xF1\x8\x0\x0              ARM32,ARMv6
+modeflags,immshifter     \x46\xF1\xA\x0\x0              ARM32,ARMv6
 
 [EORcc]
 reglo,reglo                 \x6B\x40\x40                  THUMB,ARMv4T
@@ -498,6 +512,8 @@ fpureg,imm32,memam2      \xA0\xC\x00\x2\x0              ARM32,FPA
 fpureg,immshifter,memam2 \xA0\xC\x00\x2\x0              ARM32,FPA
 
 [SINcc]
+fpureg,fpureg               \xA1\1\x11                    ARM32,FPA
+fpureg,immshifter           \xA1\1\x11                    ARM32,FPA
 
 [SMLALcc]
 reg32,reg32,reg32,reg32     \x85\xFB\xC0\x0\x0            THUMB32,ARMv6T2
@@ -1595,6 +1611,8 @@ fpureg,fpureg,fpureg        \xA1\0\x6                     ARM32,FPA
 fpureg,fpureg,immshifter    \xA1\0\x6                     ARM32,FPA
 
 [RNDcc]
+fpureg,fpureg               \xA1\1\x7                     ARM32,FPA
+fpureg,immshifter           \xA1\1\x7                     ARM32,FPA
 
 [POLcc]
 fpureg,fpureg,fpureg        \xA1\0\x18                    ARM32,FPA
@@ -1662,6 +1680,8 @@ fpureg,fpureg,fpureg        \xA1\0\x8                     ARM32,FPA
 fpureg,fpureg,immshifter    \xA1\0\x8                     ARM32,FPA
 
 [EXPcc]
+fpureg,fpureg               \xA1\1\xF                     ARM32,FPA
+fpureg,immshifter           \xA1\1\xF                     ARM32,FPA
 
 [FDVcc]
 fpureg,fpureg,fpureg        \xA1\0\x14                    ARM32,FPA

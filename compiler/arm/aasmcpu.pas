@@ -4133,6 +4133,26 @@ implementation
               else
                 message(asmw_e_invalid_opcode_and_operands);
             end;
+          #$46: { System instructions }
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              { set regs }
+              if (oper[0]^.typ=top_modeflags) then
+                begin
+                  if mfA in oper[0]^.modeflags then bytes:=bytes or (1 shl 8);
+                  if mfI in oper[0]^.modeflags then bytes:=bytes or (1 shl 7);
+                  if mfF in oper[0]^.modeflags then bytes:=bytes or (1 shl 6);
+                end;
+
+              if (ops=2) then
+                bytes:=bytes or (oper[1]^.val and $1F)
+              else if (ops=1) and
+                      (oper[0]^.typ=top_const) then
+                bytes:=bytes or (oper[0]^.val and $1F);
+            end;
           #$60: { Thumb }
             begin
               bytelen:=2;
@@ -4439,6 +4459,19 @@ implementation
                   if oper[0]^.typ=top_const then
                     bytes:=bytes or (oper[0]^.val and $FF);
                 end;
+            end;
+          #$6C: { Thumb: CPS }
+            begin
+              bytelen:=2;
+              bytes:=0;
+
+              { set opcode }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 8);
+              bytes:=bytes or ord(insentry^.code[2]);
+
+              if mfA in oper[0]^.modeflags then bytes:=bytes or (1 shl 2);
+              if mfI in oper[0]^.modeflags then bytes:=bytes or (1 shl 1);
+              if mfF in oper[0]^.modeflags then bytes:=bytes or (1 shl 0);
             end;
           #$80: { Thumb-2: Dataprocessing }
             begin
@@ -5029,6 +5062,27 @@ implementation
                      (oper[0]^.ref^.shiftimm<>1) then
                     message(asmw_e_invalid_effective_address);
                 end;
+            end;
+          #$8F: { Thumb-2: CPSxx }
+            begin
+              { set opcode }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+
+              if (oper[0]^.typ=top_modeflags) then
+                begin
+                  if mfA in oper[0]^.modeflags then bytes:=bytes or (1 shl 7);
+                  if mfI in oper[0]^.modeflags then bytes:=bytes or (1 shl 6);
+                  if mfF in oper[0]^.modeflags then bytes:=bytes or (1 shl 5);
+                end;
+
+              if (ops=2) then
+                bytes:=bytes or (oper[1]^.val and $1F)
+              else if (ops=1) and
+                      (oper[0]^.typ=top_const) then
+                bytes:=bytes or (oper[0]^.val and $1F);
             end;
           #$A0: { FPA: CPDT(LDF/STF) }
             begin

@@ -771,6 +771,90 @@
     flags   : if_arm32 or if_armv4
   ),
   (
+    opcode  : A_CPS;
+    ops     : 1;
+    optypes : (ot_immediateshifter,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #143#243#175#129#0;
+    flags   : if_thumb32 or if_armv6t2
+  ),
+  (
+    opcode  : A_CPS;
+    ops     : 1;
+    optypes : (ot_immediateshifter,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #70#241#2#0#0;
+    flags   : if_arm32 or if_armv6
+  ),
+  (
+    opcode  : A_CPSID;
+    ops     : 1;
+    optypes : (ot_modeflags,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #108#182#112;
+    flags   : if_thumb or if_armv6
+  ),
+  (
+    opcode  : A_CPSID;
+    ops     : 1;
+    optypes : (ot_modeflags,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #143#243#175#134#0;
+    flags   : if_thumb32 or if_wide or if_armv6t2
+  ),
+  (
+    opcode  : A_CPSID;
+    ops     : 2;
+    optypes : (ot_modeflags,ot_immediateshifter,ot_none,ot_none,ot_none,ot_none);
+    code    : #143#243#175#135#0;
+    flags   : if_thumb32 or if_wide or if_armv6t2
+  ),
+  (
+    opcode  : A_CPSID;
+    ops     : 1;
+    optypes : (ot_modeflags,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #70#241#12#0#0;
+    flags   : if_arm32 or if_armv6
+  ),
+  (
+    opcode  : A_CPSID;
+    ops     : 2;
+    optypes : (ot_modeflags,ot_immediateshifter,ot_none,ot_none,ot_none,ot_none);
+    code    : #70#241#14#0#0;
+    flags   : if_arm32 or if_armv6
+  ),
+  (
+    opcode  : A_CPSIE;
+    ops     : 1;
+    optypes : (ot_modeflags,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #108#182#96;
+    flags   : if_thumb or if_armv6
+  ),
+  (
+    opcode  : A_CPSIE;
+    ops     : 1;
+    optypes : (ot_modeflags,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #143#243#175#132#0;
+    flags   : if_thumb32 or if_wide or if_armv6t2
+  ),
+  (
+    opcode  : A_CPSIE;
+    ops     : 2;
+    optypes : (ot_modeflags,ot_immediateshifter,ot_none,ot_none,ot_none,ot_none);
+    code    : #143#243#175#133#0;
+    flags   : if_thumb32 or if_wide or if_armv6t2
+  ),
+  (
+    opcode  : A_CPSIE;
+    ops     : 1;
+    optypes : (ot_modeflags,ot_none,ot_none,ot_none,ot_none,ot_none);
+    code    : #70#241#8#0#0;
+    flags   : if_arm32 or if_armv6
+  ),
+  (
+    opcode  : A_CPSIE;
+    ops     : 2;
+    optypes : (ot_modeflags,ot_immediateshifter,ot_none,ot_none,ot_none,ot_none);
+    code    : #70#241#10#0#0;
+    flags   : if_arm32 or if_armv6
+  ),
+  (
     opcode  : A_EOR;
     ops     : 2;
     optypes : (ot_reglo,ot_reglo,ot_none,ot_none,ot_none,ot_none);
@@ -1790,6 +1874,20 @@
     ops     : 3;
     optypes : (ot_fpureg,ot_immediateshifter,ot_memoryam2,ot_none,ot_none,ot_none);
     code    : #160#12#0#2#0;
+    flags   : if_arm32 or if_fpa
+  ),
+  (
+    opcode  : A_SIN;
+    ops     : 2;
+    optypes : (ot_fpureg,ot_fpureg,ot_none,ot_none,ot_none,ot_none);
+    code    : #161#1#17;
+    flags   : if_arm32 or if_fpa
+  ),
+  (
+    opcode  : A_SIN;
+    ops     : 2;
+    optypes : (ot_fpureg,ot_immediateshifter,ot_none,ot_none,ot_none,ot_none);
+    code    : #161#1#17;
     flags   : if_arm32 or if_fpa
   ),
   (
@@ -5356,6 +5454,20 @@
     flags   : if_arm32 or if_fpa
   ),
   (
+    opcode  : A_RND;
+    ops     : 2;
+    optypes : (ot_fpureg,ot_fpureg,ot_none,ot_none,ot_none,ot_none);
+    code    : #161#1#7;
+    flags   : if_arm32 or if_fpa
+  ),
+  (
+    opcode  : A_RND;
+    ops     : 2;
+    optypes : (ot_fpureg,ot_immediateshifter,ot_none,ot_none,ot_none,ot_none);
+    code    : #161#1#7;
+    flags   : if_arm32 or if_fpa
+  ),
+  (
     opcode  : A_POL;
     ops     : 3;
     optypes : (ot_fpureg,ot_fpureg,ot_fpureg,ot_none,ot_none,ot_none);
@@ -5570,6 +5682,20 @@
     ops     : 3;
     optypes : (ot_fpureg,ot_fpureg,ot_immediateshifter,ot_none,ot_none,ot_none);
     code    : #161#0#8;
+    flags   : if_arm32 or if_fpa
+  ),
+  (
+    opcode  : A_EXP;
+    ops     : 2;
+    optypes : (ot_fpureg,ot_fpureg,ot_none,ot_none,ot_none,ot_none);
+    code    : #161#1#15;
+    flags   : if_arm32 or if_fpa
+  ),
+  (
+    opcode  : A_EXP;
+    ops     : 2;
+    optypes : (ot_fpureg,ot_immediateshifter,ot_none,ot_none,ot_none,ot_none);
+    code    : #161#1#15;
     flags   : if_arm32 or if_fpa
   ),
   (
