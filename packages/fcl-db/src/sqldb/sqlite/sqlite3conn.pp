@@ -38,9 +38,6 @@ const
 type
   PDateTime = ^TDateTime;
   
-  TSqliteOption = (sloTransactions,sloDesignTransactions);
-  TSqliteOptions = set of TSqliteOption;
- 
   TStringArray = Array of string;
   PStringArray = ^TStringArray;
  
@@ -52,8 +49,6 @@ type
   TSQLite3Connection = class(TSQLConnection)
   private
     fhandle: psqlite3;
-    foptions: TSQLiteOptions;
-    procedure setoptions(const avalue: tsqliteoptions);
   protected
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
@@ -100,8 +95,6 @@ type
     // Warning: CollationName has to be a UTF-8 string
     procedure CreateCollation(const CollationName: string; eTextRep: integer; Arg: Pointer=nil; Compare: xCompare=nil);
     procedure LoadExtension(LibraryFile: string);
-  published
-    property Options: TSqliteOptions read FOptions write SetOptions;
   end;
 
   { TSQLite3ConnectionDef }
@@ -1053,15 +1046,6 @@ begin
   except
     DatabaseError('LoadExtension: failed to load SQLite extension.',Self)
   end;
-end;
-
-procedure TSQLite3Connection.setoptions(const avalue: tsqliteoptions);
-begin
- if avalue <> foptions then 
-   begin
-   checkdisconnected;
-   foptions:= avalue;
-   end;
 end;
 
 

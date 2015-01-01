@@ -17,7 +17,7 @@ fpcpackage=y
 [default]
 cpu=arm
 target=nds
-fpcdir=
+fpcdir=../../../../../..
 
 [compiler]
 options=-g -Xm  

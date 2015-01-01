@@ -4117,6 +4117,7 @@ implementation
 {$endif}
          result:=cifnode.create(cnotnode.create(tcallparanode(left).left),
             ccallnode.createintern('fpc_assert',paras),nil);
+         include(result.flags,nf_internal);
          tcallparanode(left).left:=nil;
          tcallparanode(left).right:=nil;
        end;

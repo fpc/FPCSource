@@ -705,6 +705,14 @@ interface
 
     type
       tx86memorymodel = (mm_tiny,mm_small,mm_medium,mm_compact,mm_large,mm_huge);
+    const
+      x86memorymodelstr : array[tx86memorymodel] of string[7]=(
+        'TINY',
+        'SMALL',
+        'MEDIUM',
+        'COMPACT',
+        'LARGE',
+        'HUGE');
 
   { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
   const

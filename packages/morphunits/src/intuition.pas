@@ -4211,7 +4211,7 @@ SysCall IntuitionBase 354;
 function BuildSysRequest(window : pWindow location 'a0'; body : pIntuiText location 'a1'; posText : pIntuiText location 'a2'; negText : pIntuiText location 'a3'; flags : CARDINAL location 'd0'; width : CARDINAL location 'd1'; height : CARDINAL location 'd2') : pWindow;
 SysCall IntuitionBase 360;
 
-procedure EndRefresh(window : pWindow location 'a0'; complete : LongInt location 'd0');
+procedure EndRefresh(window : pWindow location 'a0'; complete : LongBool location 'd0');
 SysCall IntuitionBase 366;
 
 procedure FreeSysRequest(window : pWindow location 'a0');

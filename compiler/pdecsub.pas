@@ -548,6 +548,8 @@ implementation
         orgsp,sp : TIDString;
         srsym : tsym;
         checkstack : psymtablestackitem;
+        oldfilepos,
+        classstartfilepos,
         procstartfilepos : tfileposinfo;
         i,
         index : longint;
@@ -822,9 +824,16 @@ implementation
            try_to_consume(_POINT) then
          begin
            repeat
+             classstartfilepos:=procstartfilepos;
              searchagain:=false;
+
+             { throw the error at the right location }
+             oldfilepos:=current_filepos;
+             current_filepos:=procstartfilepos;
              if not assigned(astruct) and not assigned(srsym) then
                srsym:=search_object_name(sp,true);
+             current_filepos:=oldfilepos;
+
              { consume proc name }
              procstartfilepos:=current_tokenpos;
              consume_proc_name;
@@ -837,7 +846,7 @@ implementation
                   if (potype in [potype_class_constructor,potype_class_destructor]) then
                     sp:=lower(sp)
                   else
-                  if (potype=potype_operator)and(optoken=NOTOKEN) then
+                  if (potype=potype_operator) and (optoken=NOTOKEN) then
                     parse_operator_name;
                 srsym:=tsym(astruct.symtable.Find(sp));
                 if assigned(srsym) then
@@ -865,13 +874,13 @@ implementation
                  end
                 else
                  begin
-                   Message(parser_e_methode_id_expected);
+                   MessagePos(procstartfilepos,parser_e_methode_id_expected);
                    { recover by making it a normal procedure instead of method }
                    astruct:=nil;
                  end;
               end
              else
-              Message(parser_e_class_id_expected);
+              MessagePos(classstartfilepos,parser_e_class_id_expected);
            until not searchagain;
          end
         else

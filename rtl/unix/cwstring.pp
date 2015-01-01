@@ -993,6 +993,18 @@ begin
   ansi2pchar(temp,str,result);
 end;
 
+
+function envvarset(const varname: pchar): boolean;
+var
+  varval: pchar;
+begin
+  varval:=fpgetenv(varname);
+  result:=
+    assigned(varval) and
+    (varval[0]<>#0);
+end;
+
+
 function GetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystemCodePage;
 var
   langinfo: pchar;
@@ -1004,15 +1016,25 @@ begin
       exit;
     end;
 {$endif}
-  langinfo:=nl_langinfo(CODESET);
-  { there's a bug in the Mac OS X 10.5 libc (based on FreeBSD's)
-    that causes it to return an empty string of UTF-8 locales
-    -> patch up (and in general, UTF-8 is a good default on
-    Unix platforms) }
-  if not assigned(langinfo) or
-     (langinfo^=#0) then
-    langinfo:='UTF-8';
-  Result := GetCodepageByName(ansistring(langinfo));
+  { if none of the relevant LC_* environment variables are set, fall back to
+    UTF-8 (this happens under some versions of OS X for GUI applications, which
+    otherwise get CP_ASCII) }
+  if envvarset('LC_ALL') or
+     envvarset('LC_CTYPE') or
+     envvarset('LANG') then
+    begin
+      langinfo:=nl_langinfo(CODESET);
+      { there's a bug in the Mac OS X 10.5 libc (based on FreeBSD's)
+        that causes it to return an empty string of UTF-8 locales
+        -> patch up (and in general, UTF-8 is a good default on
+        Unix platforms) }
+      if not assigned(langinfo) or
+         (langinfo^=#0) then
+        langinfo:='UTF-8';
+      Result:=GetCodepageByName(ansistring(langinfo));
+    end
+  else
+    Result:=unixcp.GetSystemCodepage;
 end;
 
 {$ifdef FPC_HAS_CPSTRING}

@@ -21,7 +21,7 @@ begin
     P.License := 'LGPL with modification';
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
-    P.Description := 'An utility to create Pascal header files from c header files.';
+    P.Description := 'A utility to create Pascal header files from c header files.';
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;

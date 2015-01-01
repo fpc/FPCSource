@@ -17,10 +17,24 @@ interface
 
 {$i keybrdh.inc}
 
+{
+  Amiga specific function, waits for a system event to occur on the
+  message port of the window. This is mainly used in Free Vision to
+  give up the Task's timeslice instead of dos.library/Delay() which
+  blocks the event handling and ruins proper window refreshing among
+  others 
+  input: specify a timeout to wait for an event to arrive. this is the
+         maximum timeout. the function might return earlier or even
+         immediately if there's an event. it's specified in milliseconds
+  result: boolean if there is an incoming system event. false otherwise
+}
+
+function WaitForSystemEvent(millisec: Integer): boolean;
+
 implementation
 
 uses
-   video, exec,intuition, inputevent, mouse, sysutils, keymap;
+   video, exec, intuition, inputevent, mouse, sysutils, keymap, timer;
 
 {$i keyboard.inc}
 {$i keyscan.inc}
@@ -212,12 +226,45 @@ begin
       SetShiftState(IQual); // set Shift state qualifiers. do this for all messages we get.
       // main event case
       case (IClass) of
+        IDCMP_ACTIVEWINDOW: begin
+            GotActiveWindow;
+          end;
+        IDCMP_INACTIVEWINDOW: begin
+            // force cursor off. we stop getting IntuiTicks when 
+            // the window is inactive, so the blinking stops.
+            ToggleCursor(true);
+            GotInactiveWindow;
+          end;
+        IDCMP_INTUITICKS: begin
+            ToggleCursor(false);
+            MouseX := (MouseX - VideoWindow^.BorderLeft) div 8;
+            MouseY := (MouseY - VideoWindow^.BorderTop) div 16;
+            if (MouseX >= 0) and (MouseY >= 0) and
+               (MouseX < Video.ScreenWidth) and (MouseY < Video.ScreenHeight) and
+               ((MouseX <> OldMouseX) or (MouseY <> OldmouseY))
+              then begin
+//              //writeln('mousemove:',Mousex,'/',Mousey,' oldbutt:',OldButtons);
+              // Drawing is very slow so when moving window it will drag behind
+              // because the mouse events stack in the messageport
+              // -> so we override move until messageport is empty or keyevent is fired
+              SendMouse := True;
+              MouseEvent := True;
+              mes.Action := MouseActionMove;
+              mes.Buttons := OldButtons;
+              mes.X := MouseX;
+              mes.Y := MouseY;
+              //PutMouseEvent(me);
+            end;
+          end;
         IDCMP_CLOSEWINDOW: begin
             //writeln('got close');
             GotCloseWindow;
           end;
         IDCMP_CHANGEWINDOW: begin
             GotResizeWindow;
+          end;
+        IDCMP_REFRESHWINDOW: begin
+            GotRefreshWindow;
           end;
         IDCMP_MOUSEBUTTONS: begin
             MouseEvent := True;
@@ -256,6 +303,9 @@ begin
             //writeln('Buttons: ' , me.Buttons);
           end;
         IDCMP_MOUSEMOVE: begin
+            { IDCMP_MOUSEMOVE is disabled now in the video unit,
+              according to autodocs INTUITICKS should be enough
+              to handle most moves, esp. in a "textmode" app }
             MouseX := (MouseX - VideoWindow^.BorderLeft) div 8;
             MouseY := (MouseY - VideoWindow^.BorderTop) div 16;
             if (MouseX >= 0) and (MouseY >= 0) and
@@ -456,6 +506,111 @@ begin
   SysGetShiftState := LastShiftState;
 end;
 
+var
+  waitTPort:  PMsgPort;
+  waitTimer: PTimeRequest;
+  waitTimerFired: boolean;
+
+function WaitForSystemEvent(millisec: Integer): boolean;
+var
+  windowbit: PtrUInt;
+  timerbit: PtrUInt;
+  recvbits: PtrUInt;
+begin
+  WaitForSystemEvent:=false;
+  if waitTPort = nil then
+  begin
+    { this really shouldn't happen, but it's enough to avoid a
+      crash if the timer init failed during startup }
+    if VideoWindow <> nil then
+      WaitPort(VideoWindow^.UserPort);
+    exit;
+  end;
+
+  windowbit:=0;
+  if VideoWindow <> nil then
+  begin
+    if not IsMsgPortEmpty(VideoWindow^.UserPort) then
+    begin
+      WaitForSystemEvent:=true;
+      exit;
+    end;
+    windowbit:=1 shl (VideoWindow^.UserPort^.mp_SigBit);
+  end;
+  timerbit:=0;
+  if waitTPort <> nil then
+    timerbit:=1 shl (waitTPort^.mp_SigBit);
+  if (windowbit or timerbit) = 0 then exit;
+
+  if not waitTimerFired then
+  begin
+    waitTimer^.tr_node.io_Command:=TR_ADDREQUEST;
+    waitTimer^.tr_time.tv_secs:=millisec div 1000;
+    waitTimer^.tr_time.tv_micro:=(millisec mod 1000) * 1000;
+    SendIO(PIORequest(waitTimer));
+    waitTimerFired:=true;
+  end;
+
+  recvbits:=Wait(windowbit or timerbit);
+  if (recvbits and windowbit) > 0 then
+    WaitForSystemEvent:=true;
+
+  if waitTimerFired then 
+  begin
+    AbortIO(PIORequest(waitTimer));
+    WaitIO(PIORequest(waitTimer));
+    SetSignal(0,timerbit);
+    waitTimerFired:=false;
+  end;
+end;
+
+procedure DoneSystemEventWait;
+begin
+  if assigned(waitTimer) then
+  begin
+    if waitTimerFired then 
+    begin
+      AbortIO(PIORequest(waitTimer));
+      WaitIO(PIORequest(waitTimer));
+      waitTimerFired:=false;
+    end;
+    CloseDevice(PIORequest(waitTimer));
+    DeleteIORequest(PIORequest(waitTimer));
+    waitTimer:=nil;
+  end;
+  if assigned(waitTPort) then
+  begin
+    DeleteMsgPort(waitTPort);
+    waitTPort:=nil;
+  end;
+end;
+
+procedure InitSystemEventWait;
+var
+  initOK: boolean;
+begin
+  waitTimerFired:=false;
+  waitTPort:=CreateMsgPort();
+  if assigned(waitTPort) then
+  begin
+    waitTimer:=PTimeRequest(CreateIORequest(waitTPort,sizeof(TTimeRequest)));
+    if assigned(waitTimer) then
+    begin
+      if OpenDevice(TIMERNAME,UNIT_VBLANK,PIORequest(waitTimer),0) = 0 then
+      begin
+        initOK:=true;
+        waitTimerFired:=false;
+      end;
+    end;
+  end;
+  if not initOK then begin
+    {* this really shouldn't happen if everything is OK with the system *}
+    SysDebugLn('FPC RTL-Console: SystemEventWait Initialization failed!');
+    DoneSystemEventWait;
+  end;
+end;
+
+
 const
   SysKeyboardDriver : TKeyboardDriver = (
     InitDriver : @SysInitKeyBoard;
@@ -468,6 +623,10 @@ const
     TranslateKeyEventUnicode : Nil;
   );
 
-begin
+
+initialization
   SetKeyBoardDriver(SysKeyBoardDriver);
+  InitSystemEventWait;
+finalization
+  DoneSystemEventWait;
 end.

@@ -714,7 +714,7 @@ var
 begin
   // Get one of non-empty environment variables in the next order:
   // LC_ALL, LC_CTYPE, LANG. Default is UTF-8 or ASCII.
-{$ifdef linux}
+{$if defined(linux) or defined(darwin)}
   Result:=CP_UTF8;
 {$else}
   Result:=CP_ASCII;

@@ -243,6 +243,9 @@ interface
        tprocdef = class;
 
        tabstractrecorddef= class(tstoreddef)
+       private
+          rttistring     : string;
+       public
           objname,
           objrealname    : PShortString;
           { for C++ classes: name of the library this class is imported from }
@@ -2113,7 +2116,7 @@ implementation
                sym:=tsym(genericparas[i]);
                if sym.typ<>symconst.typesym then
                  internalerror(2014050904);
-               if sym.owner.defowner=self then
+               if sym.owner.defowner<>self then
                  exit(true);
              end;
            result:=false;
@@ -3766,8 +3769,104 @@ implementation
       end;
 
     function tabstractrecorddef.RttiName: string;
+
+        function generate_full_paramname(maxlength:longint):string;
+          const
+            commacount : array[boolean] of longint = (0,1);
+          var
+            fullparas,
+            paramname : ansistring;
+            module : tmodule;
+            sym : ttypesym;
+            i : longint;
+          begin
+            { we want at least enough space for an ellipsis }
+            if maxlength<3 then
+              internalerror(2014121203);
+            fullparas:='';
+            for i:=0 to genericparas.count-1 do
+              begin
+                sym:=ttypesym(genericparas[i]);
+                module:=find_module_from_symtable(sym.owner);
+                if not assigned(module) then
+                  internalerror(2014121202);
+                paramname:=module.realmodulename^;
+                if sym.typedef.typ in [objectdef,recorddef] then
+                  paramname:=paramname+'.'+tabstractrecorddef(sym.typedef).rttiname
+                else
+                  paramname:=paramname+'.'+sym.typedef.typename;
+                if length(fullparas)+commacount[i>0]+length(paramname)>maxlength then
+                  begin
+                    if i>0 then
+                      fullparas:=fullparas+',...'
+                    else
+                      fullparas:=fullparas+'...';
+                    break;
+                  end;
+                { could we fit an ellipsis after this parameter if it should be too long? }
+                if (maxlength-(length(fullparas)+commacount[i>0]+length(paramname))<4) and (i<genericparas.count-1) then
+                  begin
+                    { then omit already this parameter }
+                    if i>0 then
+                      fullparas:=fullparas+',...'
+                    else
+                      fullparas:=fullparas+'...';
+                    break;
+                  end;
+                if i>0 then
+                  fullparas:=fullparas+',';
+                fullparas:=fullparas+paramname;
+              end;
+            result:=fullparas;
+          end;
+
+      var
+        nongeneric,
+        basename : string;
+        i,
+        remlength,
+        paramcount,
+        crcidx : longint;
       begin
-        Result:=OwnerHierarchyName+objrealname^;
+        if rttistring='' then
+          begin
+            if is_specialization then
+              begin
+                rttistring:=OwnerHierarchyName;
+                { there should be two $ characters, one before the CRC and one before the count }
+                crcidx:=-1;
+                for i:=length(objrealname^) downto 1 do
+                  if objrealname^[i]='$' then
+                    begin
+                      crcidx:=i;
+                      break;
+                    end;
+                if crcidx<0 then
+                  internalerror(2014121201);
+                basename:=copy(objrealname^,1,crcidx-1);
+                split_generic_name(basename,nongeneric,paramcount);
+                rttistring:=rttistring+nongeneric+'<';
+                remlength:=255-length(rttistring)-1;
+                if remlength<4 then
+                  rttistring:=rttistring+'>'
+                else
+                  rttistring:=rttistring+generate_full_paramname(remlength)+'>';
+              end
+            else
+              if is_generic then
+                begin
+                  rttistring:=OwnerHierarchyName;
+                  split_generic_name(objrealname^,nongeneric,paramcount);
+                  rttistring:=rttistring+nongeneric+'<';
+                  { we don't want any ',' if there is only one parameter }
+                  for i:=0 to paramcount-0 do
+                    rttistring:=rttistring+',';
+                  rttistring:=rttistring+'>';
+                end
+              else
+                rttistring:=OwnerHierarchyName+objrealname^;
+          end;
+        result:=rttistring;
       end;
 
     function tabstractrecorddef.search_enumerator_get: tprocdef;

@@ -2906,7 +2906,7 @@ implementation
                   for i:=1 to procdefinition.maxparacount-paralength do
                     begin
                       if paraidx<0 then
-                        internalerror(200402261);
+                        internalerror(200402265);
                       if not assigned(tparavarsym(procdefinition.paras[paraidx]).defaultconstsym) then
                         begin
                           CGMessage1(parser_e_wrong_parameter_size,'<Procedure Variable>');

@@ -1448,7 +1448,12 @@ implementation
              begin
                WriteDirectiveName(tai_directive(hp).directive);
                if tai_directive(hp).name <>'' then
-                 AsmWrite(tai_directive(hp).name);
+                 begin
+                   if replaceforbidden then
+                     AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_directive(hp).name))
+                   else
+                     AsmWrite(tai_directive(hp).name);
+                 end;
                AsmLn;
              end;
 

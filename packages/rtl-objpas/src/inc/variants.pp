@@ -481,15 +481,16 @@ end;
 
 function TVariantArrayIterator.AtEnd: Boolean;
 var
-  i : sizeint;
+  i,l : sizeint;
 begin
-  result:=true;
-  for i:=0 to Pred(Dims) do
-    if Coords^[i] < Bounds^[i].LowBound + Bounds^[i].ElementCount then
-      begin
-        result:=false;
-        exit;
-      end;
+  result:=false;
+  l:=Pred(dims);
+  I:=0;
+  While (not Result) and (I<=L) do
+    begin
+    Result:=Coords^[i] >= (Bounds^[i].LowBound + Bounds^[i].ElementCount);
+    inc(i);
+    end;
 end;
 
 {$pop}// {$r-} for TVariantArrayIterator
@@ -4004,6 +4005,8 @@ var
   arg_ptr: pointer;
   arg_data: PVarData;
   dummy_data: TVarData;
+  arg_advanced: boolean;
+
 const
   argtype_mask = $7F;
   argref_mask = $80;
@@ -4032,22 +4035,46 @@ begin
         Inc(arg_ptr,sizeof(Pointer));
       end
       else
-        case arg_type of
-          varError:
-            arg_data^.vError:=VAR_PARAMNOTFOUND;
-          varVariant:
-            begin
+        begin
+          arg_advanced:=false;
+          case arg_type of
+            varError:
+              begin
+                arg_data^.vError:=VAR_PARAMNOTFOUND;
+                arg_advanced := true;
+              end;
+            varVariant:
               arg_data^ := PVarData(PPointer(arg_ptr)^)^;
-              Inc(arg_ptr,sizeof(Pointer));
-            end;
-          varDouble, varCurrency, varInt64, varQWord:
-            begin
-              arg_data^.vQWord := PQWord(arg_ptr)^; // 64bit on all platforms
-              inc(arg_ptr,sizeof(qword))
-            end
-        else
-          arg_data^.vAny := PPointer(arg_ptr)^; // 32 or 64bit
-          inc(arg_ptr,sizeof(pointer))
+            varDouble, varCurrency, varDate, varInt64, varQWord:
+              begin
+                arg_data^.vQWord := PQWord(arg_ptr)^; // 64bit on all platforms
+                inc(arg_ptr,sizeof(QWord));
+                arg_advanced := true;
+              end;
+            { values potentially smaller than sizeof(pointer) must be handled
+              explicitly to guarantee endian safety and to prevent copying/
+              skipping data (they are always copied into a 4 byte element
+              by the compiler, although it will still skip sizeof(pointer)
+              bytes afterwards) }
+            varSingle:
+              arg_data^.vSingle := PSingle(arg_ptr)^;
+            varSmallint:
+              arg_data^.vSmallInt := PLongint(arg_ptr)^;
+            varInteger:
+              arg_data^.vInteger := PLongint(arg_ptr)^;
+            varBoolean:
+              arg_data^.vBoolean := WordBool(PLongint(arg_ptr)^);
+            varShortInt:
+              arg_data^.vShortInt := PLongint(arg_ptr)^;
+            varByte:
+              arg_data^.vByte := PLongint(arg_ptr)^;
+            varWord:
+              arg_data^.vWord := PLongint(arg_ptr)^;
+            else
+              arg_data^.vAny := PPointer(arg_ptr)^; // 32 or 64bit
+          end;
+          if not arg_advanced then
+            inc(arg_ptr,sizeof(pointer));
         end;
     end;
   end;

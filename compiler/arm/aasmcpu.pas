@@ -2198,8 +2198,7 @@ implementation
                   ot:=OT_MODEFLAGS;
                 end;
               else
-                begin writeln(typ);
-                internalerror(200402261); end;
+                internalerror(2004022623);
             end;
           end;
       end;

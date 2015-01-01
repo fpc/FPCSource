@@ -325,12 +325,13 @@ implementation
                      paramanager.push_addr_param(parasym.varspez,parasym.vardef,
                          aktcallnode.procdefinition.proccalloption));
 
-                 { objects or advanced records could be located in registers if they are the result of a type case, see e.g. webtbs\tw26075.pp }
-                 if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
-                   hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
-
                  if pushaddr then
-                   push_addr_para
+                   begin
+                     { objects or advanced records could be located in registers if they are the result of a type case, see e.g. webtbs\tw26075.pp }
+                     if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
+                       hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
+                     push_addr_para
+                   end
                  else
                    push_value_para;
                end

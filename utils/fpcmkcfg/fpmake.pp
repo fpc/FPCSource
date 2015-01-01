@@ -22,7 +22,7 @@ begin
     P.License := 'LGPL with modification';
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
-    P.Description := 'An utility to creaty the Free Pascal configuration files.';
+    P.Description := 'A utility to create the Free Pascal configuration files.';
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;

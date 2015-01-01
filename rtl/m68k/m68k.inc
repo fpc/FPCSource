@@ -99,7 +99,9 @@ asm
   ble    @LMEMSET5
 {$ifdef CPUM68K_HAS_DBRA}
 { FIXME: Any reason why not always just use DBRA mode on
-         CPUs which support it? (KB) }
+         CPUs which support it? (KB)
+         - DBRA does only 16-bit decrements, so handling more than 65535 bytes
+         requires additional code anyway (Sergei) }
   cmpi.l #65535, d1     { check, if this is a word move }
   ble    @LMEMSET3      { use fast dbra mode            }
 {$endif CPUM68K_HAS_DBRA}

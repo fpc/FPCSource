@@ -1198,24 +1198,46 @@ begin
                     'P':
                       begin
                         delete(more,1,1);
-                        if upper(copy(more,1,pos('=',more)-1))='PACKSET' then
-                          begin
-                            delete(more,1,pos('=',more));
-                            if (more='0') or (more='DEFAULT') or (more='NORMAL') then
-                              init_settings.setalloc:=0
-                            else if  more='1' then
-                              init_settings.setalloc:=1
-                            else if more='2' then
-                              init_settings.setalloc:=2
-                            else if more='4' then
-                              init_settings.setalloc:=4
-                            else if more='8' then
-                              init_settings.setalloc:=8
-                            else
-                              IllegalPara(opt);
-                          end
-                        else
-                          IllegalPara(opt);
+                        case upper(copy(more,1,pos('=',more)-1)) of
+                          'PACKSET':
+                            begin
+                              delete(more,1,pos('=',more));
+                              case more of
+                                '0','DEFAULT','NORMAL':
+                                  init_settings.setalloc:=0;
+                                '1','2','4','8':
+                                  init_settings.setalloc:=StrToInt(more);
+                                else
+                                  IllegalPara(opt);
+                              end
+                            end;
+                          'PACKENUM':
+                            begin
+                              delete(more,1,pos('=',more));
+                              case more of
+                                '0','DEFAULT','NORMAL':
+                                  init_settings.packenum:=4;
+                                '1','2','4':
+                                  init_settings.packenum:=StrToInt(more);
+                                else
+                                  IllegalPara(opt);
+                              end;
+                            end;
+                          'PACKRECORD':
+                            begin
+                              delete(more,1,pos('=',more));
+                              case more of
+                                '0','DEFAULT','NORMAL':
+                                  init_settings.packrecords:=default_settings.packrecords;
+                                '1','2','4','8','16','32':
+                                  init_settings.packrecords:=StrToInt(more);
+                                else
+                                  IllegalPara(opt);
+                              end;
+                            end
+                          else
+                            IllegalPara(opt);
+                        end;
                       end;
                     'r' :
                       If UnsetBool(More, j, opt, false) then

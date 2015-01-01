@@ -1239,7 +1239,7 @@ implementation
                     assembler }
                 end;
               else
-                internalerror(200402261);
+                internalerror(200402266);
             end;
           end;
       end;

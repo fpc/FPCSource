@@ -30,4 +30,12 @@ type
   end;
   
 procedure DynArraySetLength(var a: Pointer; typeInfo: Pointer; dimCnt: SizeInt; lengthVec: PSizeInt);
+function DynArraySize(a : pointer): tdynarrayindex;
+procedure DynArrayClear(var a: Pointer; typeInfo: Pointer);
+function DynArrayDim(typeInfo: Pointer): Integer;
+function DynArrayBounds(a: Pointer; typeInfo: Pointer): TBoundArray;
+
+function IsDynArrayRectangular(a: Pointer; typeInfo: Pointer): Boolean;
+function DynArrayIndex(a: Pointer; const indices: array of SizeInt; typeInfo: Pointer): Pointer;
+
 procedure fpc_dynarray_rangecheck(p : pointer;i : tdynarrayindex); compilerproc;
