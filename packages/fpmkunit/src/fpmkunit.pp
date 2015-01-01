@@ -3644,8 +3644,8 @@ begin
     IncludePath.AddList(PackageVariants.ActivePackageVariant.IncludePath);
     SourcePath.AddList(PackageVariants.ActivePackageVariant.SourcePath);
     Dictionary.AddVariable(PackageVariants.Name,PackageVariants.ActivePackageVariantName);
-    SetUnitsOutputDir(FUnitsOutputDir+'$('+PackageVariants.name+')');
-    SetPackageUnitInstallDir(FPackageUnitInstallDir+'$('+PackageVariants.Name+')');
+    SetUnitsOutputDir(IncludeTrailingPathDelimiter(FUnitsOutputDir)+'$('+PackageVariants.name+')');
+    SetPackageUnitInstallDir(IncludeTrailingPathDelimiter(FPackageUnitInstallDir)+'$('+PackageVariants.Name+')');
     // Do not add targets f the package is inherited
     if PackageVariants.MasterPackage=Self then
       for j := 0 to PackageVariants.ActivePackageVariant.Targets.count -1 do
