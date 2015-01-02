@@ -47,7 +47,7 @@ unit aoptcpu;
   Implementation
 
      uses
-       cutils,globals,aasmbase,cpuinfo,verbose;
+       cutils,globtype,globals,aasmbase,cpuinfo,verbose;
 
 
   function MatchInstruction(const instr: tai; const op: TAsmOp): boolean;
@@ -271,8 +271,11 @@ unit aoptcpu;
                 lw  $reg, (whatever)
                 <alloc volatile registers>
                 move $t9,$reg
-                jalr $t9      }
+                jalr $t9
+                Do not do so if the used register might contain a 
+                register variable.      }
               if (opcode=A_MOVE) and
+                 not(cs_opt_regvar in current_settings.optimizerswitches) and
                  (taicpu(next).oper[0]^.reg=NR_R25) and
                  GetNextInstruction(next,hp1) and
                  MatchInstruction(hp1,A_JALR) and
@@ -492,7 +495,8 @@ unit aoptcpu;
                       else if (taicpu(next).opcode in [A_ADD,A_ADDU,A_ADDI,A_ADDIU,A_SUB,A_SUBU]) and
                          MatchOperand(taicpu(next).oper[0]^,taicpu(p).oper[0]^.reg) then
                         begin
-                          if MatchOperand(taicpu(next).oper[1]^,taicpu(p).oper[0]^.reg) then
+                          if MatchOperand(taicpu(next).oper[1]^,taicpu(p).oper[0]^.reg) and
+                             Assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(next.next))) then
                             begin
                               taicpu(next).loadreg(1,taicpu(p).oper[1]^.reg);
                               asml.remove(p);
@@ -501,7 +505,8 @@ unit aoptcpu;
                             end
                           { TODO: if Ry=NR_R0, this effectively changes instruction into MOVE,
                             providing further optimization possibilities }
-                          else if MatchOperand(taicpu(next).oper[2]^,taicpu(p).oper[0]^.reg) then
+                          else if MatchOperand(taicpu(next).oper[2]^,taicpu(p).oper[0]^.reg) and
+                                  Assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(next.next))) then
                             begin
                               taicpu(next).loadreg(2,taicpu(p).oper[1]^.reg);
                               asml.remove(p);
