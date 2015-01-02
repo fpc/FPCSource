@@ -378,8 +378,9 @@ unit cgcpu;
         if use_push(cgpara) then
           begin
             { Record copy? }
-            if (cgpara.size in [OS_NO,OS_F64]) or (size=OS_NO) then
+            if (cgpara.size in [OS_NO,OS_F64]) or (size in [OS_NO,OS_F64]) then
               begin
+                //list.concat(tai_comment.create(strpnew('a_load_ref_cgpara: g_concatcopy')));
                 cgpara.check_simple_location;
                 len:=align(cgpara.intsize,cgpara.alignment);
                 g_stackpointer_alloc(list,len);
@@ -1001,20 +1002,24 @@ unit cgcpu;
 
     procedure tcg68k.a_loadfpu_ref_cgpara(list : TAsmList; size : tcgsize;const ref : treference;const cgpara : TCGPara);
       begin
-        case cgpara.location^.loc of
-          LOC_REFERENCE,LOC_CREFERENCE:
-            begin
-              case size of
-                OS_F64,
-                OS_F32:
-                  a_load_ref_cgpara(list,size,ref,cgpara);
-                else
-                  internalerror(2013021201);
+        if current_settings.fputype = fpu_soft then
+          case cgpara.location^.loc of
+            LOC_REFERENCE,LOC_CREFERENCE:
+              begin
+                case size of
+                  OS_F64:
+                    cg64.a_load64_ref_cgpara(list,ref,cgpara);
+                  OS_F32:
+                    a_load_ref_cgpara(list,size,ref,cgpara);
+                  else
+                    internalerror(2013021201);
+                end;
               end;
-            end;
-          else
-            inherited a_loadfpu_ref_cgpara(list,size,ref,cgpara);
-        end;
+            else
+              inherited a_loadfpu_ref_cgpara(list,size,ref,cgpara);
+          end
+        else
+          inherited a_loadfpu_ref_cgpara(list,size,ref,cgpara);
       end;
 
 
