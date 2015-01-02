@@ -464,6 +464,7 @@ type
         result:=operand_read;
 
         case opcode of
+          // CPU opcodes
           A_MOVE, A_MOVEQ, A_MOVEA, A_MVZ, A_MVS, A_MOV3Q, A_LEA:
             if opnr=1 then
               result:=operand_write;
@@ -483,6 +484,17 @@ type
             result:=operand_readwrite;
           A_TST,A_CMP,A_CMPI:
             begin end; { Do nothing, default operand_read is fine here. }
+
+          // FPU opcodes
+          A_FMOVE:
+             if opnr=1 then
+               result:=operand_write;
+          A_FADD, A_FSUB, A_FMUL, A_FDIV:
+             if opnr=1 then
+               result:=operand_readwrite;
+          A_FCMP:
+             begin end; { operand_read }
+
           else begin
             internalerror(2004040903);
           end;
@@ -508,17 +520,17 @@ type
 
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
       begin
-	case getregtype(r) of
-	  R_INTREGISTER :
-	    result:=taicpu.op_reg_ref(A_MOVE,S_L,r,ref);
-	  R_ADDRESSREGISTER :
-	    result:=taicpu.op_reg_ref(A_MOVE,S_L,r,ref);
-	  R_FPUREGISTER :
+        case getregtype(r) of
+          R_INTREGISTER :
+            result:=taicpu.op_reg_ref(A_MOVE,S_L,r,ref);
+          R_ADDRESSREGISTER :
+            result:=taicpu.op_reg_ref(A_MOVE,S_L,r,ref);
+          R_FPUREGISTER :
             // no need to handle sizes here
             result:=taicpu.op_reg_ref(A_FMOVE,S_FS,r,ref);
           else
             internalerror(200602012);
-	end;
+        end;
       end;
 
 

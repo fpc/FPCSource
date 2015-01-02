@@ -964,20 +964,16 @@ unit cgcpu;
       var
         instr : taicpu;
       begin
-        { in emulation mode, only 32-bit single is supported }
-        if (cs_fp_emulation in current_settings.moduleswitches) or (current_settings.fputype=fpu_soft) then
-          instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg1,reg2)
-        else
-          instr:=taicpu.op_reg_reg(A_FMOVE,tcgsize2opsize[tosize],reg1,reg2);
-         add_move_instruction(instr);
-         list.concat(instr);
+        instr:=taicpu.op_reg_reg(A_FMOVE,S_FX,reg1,reg2);
+        add_move_instruction(instr);
+        list.concat(instr);
       end;
 
 
     procedure tcg68k.a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister);
-     var
-      opsize : topsize;
-      href : treference;
+      var
+        opsize : topsize;
+        href : treference;
       begin
         opsize := tcgsize2opsize[fromsize];
         { extended is not supported, since it is not available on Coldfire }
@@ -985,30 +981,21 @@ unit cgcpu;
           internalerror(20020729);
         href := ref;
         fixref(list,href);
-        { in emulation mode, only 32-bit single is supported }
-        if (cs_fp_emulation in current_settings.moduleswitches) or (current_settings.fputype=fpu_soft) then
-           list.concat(taicpu.op_ref_reg(A_MOVE,S_L,href,reg))
-        else
-           begin
-             list.concat(taicpu.op_ref_reg(A_FMOVE,opsize,href,reg));
-             if (tosize < fromsize) then
-               a_loadfpu_reg_reg(list,fromsize,tosize,reg,reg);
-           end;
+        list.concat(taicpu.op_ref_reg(A_FMOVE,opsize,href,reg));
       end;
 
     procedure tcg68k.a_loadfpu_reg_ref(list: TAsmList; fromsize,tosize: tcgsize; reg: tregister; const ref: treference);
       var
-       opsize : topsize;
+        opsize : topsize;
+        href : treference;
       begin
         opsize := tcgsize2opsize[tosize];
         { extended is not supported, since it is not available on Coldfire }
         if opsize = S_FX then
           internalerror(20020729);
-        { in emulation mode, only 32-bit single is supported }
-        if (cs_fp_emulation in current_settings.moduleswitches) or (current_settings.fputype=fpu_soft) then
-          list.concat(taicpu.op_reg_ref(A_MOVE,S_L,reg, ref))
-        else
-          list.concat(taicpu.op_reg_ref(A_FMOVE,opsize,reg, ref));
+        href := ref;
+        fixref(list,href);
+        list.concat(taicpu.op_reg_ref(A_FMOVE,opsize,reg,href));
       end;
 
 
@@ -1018,8 +1005,7 @@ unit cgcpu;
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
               case size of
-                OS_F64:
-                  cg64.a_load64_ref_cgpara(list,ref,cgpara);
+                OS_F64,
                 OS_F32:
                   a_load_ref_cgpara(list,size,ref,cgpara);
                 else
