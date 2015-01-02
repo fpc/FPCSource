@@ -3327,6 +3327,22 @@ implementation
                       { set Rn }
                       bytes:=bytes or (getsupreg(oper[0]^.reg) shl 16);
                     end;
+
+                  if oper[1]^.usermode then
+                    begin
+                      if (oper[0]^.typ=top_ref) then
+                        begin
+                          if (opcode=A_LDM) and
+                             (RS_PC in oper[1]^.regset^) then
+                            begin
+                              // Valid exception return
+                            end
+                          else
+                            Message(asmw_e_invalid_opcode_and_operands);
+                        end;
+
+                      bytes:=bytes or (1 shl 22);
+                    end;
                   { reglist }
                   bytes:=bytes or MakeRegList(oper[1]^.regset^);
                 end
@@ -5083,6 +5099,59 @@ implementation
                       (oper[0]^.typ=top_const) then
                 bytes:=bytes or (oper[0]^.val and $1F);
             end;
+          #$96: { Thumb-2: MSR/MRS }
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              bytes:=bytes or (ord(insentry^.code[3]) shl 8);
+              bytes:=bytes or ord(insentry^.code[4]);
+
+              if opcode=A_MRS then
+                begin
+                  bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
+
+                  case oper[1]^.reg of
+                    NR_MSP: bytes:=bytes or $08;
+                    NR_PSP: bytes:=bytes or $09;
+
+                    NR_IPSR: bytes:=bytes or $05;
+                    NR_EPSR: bytes:=bytes or $06;
+                    NR_APSR: bytes:=bytes or $00;
+
+                    NR_PRIMASK: bytes:=bytes or $10;
+                    NR_BASEPRI: bytes:=bytes or $11;
+                    NR_BASEPRI_MAX: bytes:=bytes or $12;
+                    NR_FAULTMASK: bytes:=bytes or $13;
+                    NR_CONTROL: bytes:=bytes or $14;
+                  else
+                    Message(asmw_e_invalid_opcode_and_operands);
+                  end;
+                end
+              else
+                begin
+                  bytes:=bytes or (getsupreg(oper[1]^.reg) shl 16);
+
+                  case oper[0]^.reg of
+                    NR_APSR,
+                    NR_APSR_nzcvqg: bytes:=bytes or $C00;
+                    NR_APSR_g: bytes:=bytes or $400;
+                    NR_APSR_nzcvq: bytes:=bytes or $800;
+
+                    NR_MSP: bytes:=bytes or $08;
+                    NR_PSP: bytes:=bytes or $09;
+
+                    NR_PRIMASK: bytes:=bytes or $10;
+                    NR_BASEPRI: bytes:=bytes or $11;
+                    NR_BASEPRI_MAX: bytes:=bytes or $12;
+
+                    NR_FAULTMASK: bytes:=bytes or $13;
+                    NR_CONTROL: bytes:=bytes or $14;
+                  else
+                    Message(asmw_e_invalid_opcode_and_operands);
+                  end;
+                end;
+            end;
           #$A0: { FPA: CPDT(LDF/STF) }
             begin
               { set instruction code }
@@ -5127,7 +5196,7 @@ implementation
                   bytes:=bytes or getsupreg(oper[2]^.ref^.base) shl 16;
                   bytes:=bytes or ((oper[2]^.ref^.offset shr 2) and $FF);
                   if oper[2]^.ref^.offset>=0 then
-                    bytes:=bytes or (2 shl 23);
+                    bytes:=bytes or (1 shl 23);
 
                   if oper[2]^.ref^.addressmode<>AM_OFFSET then
                     bytes:=bytes or (1 shl 21);
@@ -5274,7 +5343,7 @@ implementation
         end;
 
         { Todo: Decide whether the code above should take care of writing data in an order that makes senes }
-        if (insentry^.code[0] in [#$80..#$95]) and (bytelen=4) then
+        if (insentry^.code[0] in [#$80..#$96]) and (bytelen=4) then
           bytes:=((bytes shr 16) and $FFFF) or ((bytes and $FFFF) shl 16);
 
         { we're finished, write code }

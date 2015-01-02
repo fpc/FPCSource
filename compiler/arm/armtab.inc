@@ -1327,8 +1327,22 @@
     opcode  : A_MRS;
     ops     : 2;
     optypes : (ot_reg32,ot_regf,ot_none,ot_none,ot_none,ot_none);
+    code    : #144#243#239#128#0;
+    flags   : if_thumb32 or if_armv6
+  ),
+  (
+    opcode  : A_MRS;
+    ops     : 2;
+    optypes : (ot_reg32,ot_regf,ot_none,ot_none,ot_none,ot_none);
     code    : #16#1#15;
     flags   : if_arm32 or if_armv4
+  ),
+  (
+    opcode  : A_MSR;
+    ops     : 2;
+    optypes : (ot_regf,ot_reg32,ot_none,ot_none,ot_none,ot_none);
+    code    : #144#243#128#128#0;
+    flags   : if_thumb32 or if_armv6
   ),
   (
     opcode  : A_MSR;
