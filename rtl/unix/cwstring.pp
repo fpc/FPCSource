@@ -809,6 +809,10 @@ function CompareTextWideString(const s1, s2 : WideString): PtrInt;
   end;
 
 
+{ return value: number of code points in the string. Whenever an invalid
+  code point is encountered, all characters part of this invalid code point
+  are considered to form one "character" and the next character is
+  considered to be the start of a new (possibly also invalid) code point }
 function CharLengthPChar(const Str: PChar): PtrInt;
   var
     nextlen: ptrint;
@@ -824,14 +828,14 @@ function CharLengthPChar(const Str: PChar): PtrInt;
 {$endif not beos}
     repeat
 {$ifdef beos}
-      nextlen:=ptrint(mblen(str,MB_CUR_MAX));
+      nextlen:=ptrint(mblen(s,MB_CUR_MAX));
 {$else beos}
-      nextlen:=ptrint(mbrlen(str,MB_CUR_MAX,@mbstate));
+      nextlen:=ptrint(mbrlen(s,MB_CUR_MAX,@mbstate));
 {$endif beos}
       { skip invalid/incomplete sequences }
       if (nextlen<0) then
         nextlen:=1;
-      inc(result,nextlen);
+      inc(result,1);
       inc(s,nextlen);
     until (nextlen=0);
   end;
