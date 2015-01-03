@@ -64,6 +64,10 @@ Const
   { no IPC_M }
 {$endif}
 
+{$ifdef Solaris}
+  IPC_ALLOC  =  1 shl 15;
+{$endif}
+
 {$ifndef aix}
   IPC_CREAT  =  1 shl 9;  { create if key is non-existent }
 {$else aix}
@@ -72,14 +76,18 @@ Const
   IPC_EXCL   =  2 shl 9;  { fail if key exists }
   IPC_NOWAIT =  4 shl 9;  { return error on wait }
 
-{$if defined(FreeBSD) or defined(Darwin) or defined(Linux) or defined(OpenBSD)}
+{$if defined(FreeBSD) or defined(Darwin) or defined(Solaris) or defined(Linux) or defined(OpenBSD)}
   IPC_PRIVATE = TKey(0);
 {$elseif defined(aix)}
   IPC_PRIVATE = TKey(-1)
 {$endif}
 
   { Actions for ctl calls }
-
+{$ifdef Solaris}
+  IPC_RMID = 10;    { remove identifier }
+  IPC_SET  = 11;    { set ipc_perm options }
+  IPC_STAT = 12;    { get ipc_perm options }
+{$else}
   IPC_RMID = 0;     { remove resource }
 {$ifndef aix}
   IPC_SET  = 1;     { set ipc_perm options }
@@ -91,10 +99,24 @@ Const
 {$ifndef Darwin}
   IPC_INFO = 3;     { see ipcs }
 {$endif}
+{$endif}
 
 type
   PIPC_Perm = ^TIPC_Perm;
-{$if defined(darwin) }
+{$if defined(Solaris)}
+  TIPC_Perm = record
+       uid   : uid_t;  { owner's user id }
+       gid   : gid_t;  { owner's group id }
+       cuid  : uid_t;  { creator's user id }
+       cgid  : gid_t;  { creator's group id }
+       mode  : mode_t; { access mode (r/w permission) }
+       seq   : uint_t; { slot usage sequence number }
+       key   : key_t;  { user specified msg/sem/shm key }
+  {$ifndef cpux86_64}
+       pad   : array [0..3] of cint;
+  {$endif}
+  End;
+{$elseif defined(darwin) }
 {$packrecords 4}
 { This is also the strcut for FreeBSD up to version 7
   renamed ipc_perm_old in /usr/include/sys/ipc.h in version 8 and after }
@@ -194,6 +216,39 @@ Type
   end;
 {$endif}
 
+{$ifdef Solaris}
+  shmatt_t = culong;
+
+  TShmid_ds = record
+    shm_perm     : TIPC_Perm; // operation permission struct
+    shm_segsz    : size_t;    // size of segment in bytes
+    shm_flags    : uintptr_t; // if 1 the shm_gransize is valid
+    shm_lkcnt    : cushort;   // number of times it is being locked
+    shm_lpid     : pid_t;     // pid of last shmop
+    shm_cpid     : pid_t;     // pid of creator
+    shm_nattch   : shmatt_t;  // number of attaches
+    shm_cnattch  : culong;    // number of ISM attaches
+{$ifdef cpux86_64}
+    shm_atime    : time_t;    // last shmat time
+    shm_dtime    : time_t;    // last shmdt time
+    shm_ctime    : time_t;    // last change time
+    shm_amp      : pointer;   // unused
+    shm_gransize : cuint64;   // granule size
+    shm_allocated: cuint64;   // mem allocated, for OSM
+    shm_pad4     : cint64;    // reserve area
+{$else}
+    shm_atime    : time_t;    // last shmat time
+    shm_pad1     : cint32;    // reserved for time_t expansion
+    shm_dtime    : time_t;    // last shmdt time
+    shm_pad2     : cint32;    // reserved for time_t expansion
+    shm_ctime    : time_t;    // last change time
+    shm_amp      : pointer;   // unused
+    shm_gransize : cuint64;   // granule size
+    shm_allocated: cuint64;   // mem allocated, for OSM
+{$endif}
+  end;
+{$endif}
+
 {$ifdef Darwin}
 {$packrecords 4}
   TShmid_ds = record
@@ -263,7 +318,7 @@ Type
 {$endif aix}
 
   const
-{$if defined(Linux)}
+{$if defined(Linux) or defined(Solaris)}
      SHM_R      = 4 shl 6;
      SHM_W      = 2 shl 6;
 {$else}
@@ -284,16 +339,30 @@ Type
      SHM_LGPAGE = 2 shl 30; { only available with SHM_PIN }
 {$endif}
 
-{$ifndef aix}
-     SHM_LOCK   = 11;
-     SHM_UNLOCK = 12;
-{$else not aix}
+{$if defined(Solaris)}
+ // Shared memory control operations
+     SHM_LOCK   = 3;
+     SHM_UNLOCK = 4;
+
+     // Shared memory advice commands
+     SHM_ADV_GET = 0;  // get advice
+     SHM_ADV_SET = 1;  // set advice
+
+     // Shared memory advice values
+     SHM_ACCESS_DEFAULT   = 0;  // default access
+     SHM_ACCESS_LWP       = 1;  // next thread will access heavily
+     SHM_ACCESS_MANY      = 2;  // many threads will access heavily
+     SHM_ACCESS_MANY_PSET = 3;  // many threads in pset will access heavily
+{$elseif defined(aix)}
      SHM_SIZE      = 6;
      SHM_PAGESIZE  = 200;
      SHM_LOCK      = 201;
      SHM_UNLOCK    = 202;
      SHM_GETLBA    = 203;
-{$endif not aix}
+{$else}
+     SHM_LOCK   = 11;
+     SHM_UNLOCK = 12;
+{$endif}
 
 {$ifdef FreeBSD}        // ipcs shmctl commands
      SHM_STAT   = 13;
@@ -303,7 +372,7 @@ Type
 type            // the shm*info kind is "kernel" only.
   PSHMinfo = ^TSHMinfo;
 {$ifndef aix}
-  TSHMinfo = record             // comment under FreeBSD/Darwin: do we really need this?
+  TSHMinfo = record             // comment under FreeBSD/Darwin/Solaris: do we really need this?
     shmmax : cint;
     shmmin : cint;
     shmmni : cint;
@@ -375,7 +444,7 @@ type
 
   PMSG = ^TMSG;
   TMSG = record
-{$ifndef FreeBSD}                       // opaque in FreeBSD
+{$if not defined(FreeBSD) and not defined(Solaris)}                       // opaque in FreeBSD and Solaris
    {$if defined(Darwin)}
     msg_next  : PMSG;
     msg_type  : clong;
@@ -398,7 +467,34 @@ type
 
 type
 
-{$if defined(Linux)}
+{$if defined(Solaris)}
+ PMSQid_ds = ^TMSQid_ds;
+  TMSQid_ds = record
+    msg_perm   : TIPC_perm;
+    msg_first  : PMsg;
+    msg_last   : PMsg;
+    msg_cbytes : msglen_t;
+    msg_qnum   : msgqnum_t;
+    msg_qbytes : msglen_t;
+    msg_lspid  : pid_t;
+    msg_lrpid  : pid_t;
+{$ifndef cpux86_64}
+    msg_stime  : time_t;
+    msg_rtime  : time_t;
+    msg_ctime  : time_t;
+{$else}
+    msg_stime  : time_t;
+    msg_pad1   : cint32;
+    msg_rtime  : time_t;
+    msg_pad2   : cint32;
+    msg_ctime  : time_t;
+    msg_pad3   : cint32;
+{$endif}
+    msg_cv     : cshort;
+    msg_qnum_cv: cshort;
+    msg_pad4   : array [0..3] of clong;
+  end;
+{$elseif defined(Linux)}
   PMSQid_ds = ^TMSQid_ds;
   TMSQid_ds = record
     msg_perm   : TIPC_perm;
@@ -637,6 +733,27 @@ type
        sem_nsems: cushort;
        sem_otime: time_t;
        sem_ctime: time_t;
+     end;
+   {$elseif defined(Solaris}
+     PSEM = ^TSEM;
+     TSEM = record end; // opague
+
+     PSEMid_ds = ^TSEMid_ds;
+     TSEMid_ds = record
+        sem_perm  : tipc_perm;
+        sem_base  : PSEM;
+        sem_nsems : cushort;
+     {$ifndef cpux86_64}
+        sem_otime : time_t;
+        sem_ctime : time_t;
+     {$else}
+        sem_otime : time_t;
+        sem_pad1  : cint32;
+        sem_ctime : time_t;
+        sem_pad2  : cint32;
+     {$endif}
+        sem_binary: cint;
+        sem_pad3  : array[0..2] of clong;
      end;
    {$else}
      PSEM = ^TSEM;
