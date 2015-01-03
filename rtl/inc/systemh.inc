@@ -413,6 +413,7 @@ Type
   AnsiChar            = Char;
   PAnsiChar           = PChar;
   PPAnsiChar          = PPChar;
+  PPPAnsiChar         = PPPChar;
 
   UCS4Char            = type 0..$10ffff;
   PUCS4Char           = ^UCS4Char;
