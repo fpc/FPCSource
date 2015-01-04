@@ -304,7 +304,7 @@ begin
 {$IFDEF ASYS_FILESIZE_NO_DOUBLE_SEEK}
     fib:=AllocDosObject(DOS_FIB,nil);
     if fib <> nil then begin
-      if ExamineFH(handle, fib) then
+      if ExamineFH(BPTR(handle), fib) then
         do_filesize:=fib^.fib_Size;
       FreeDosObject(DOS_FIB,fib);
     end;
