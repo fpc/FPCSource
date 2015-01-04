@@ -2116,7 +2116,7 @@ option_code_page_not_available=11039_E_Nieznana strona kodowa
 #
 option_logo=11023_[
 Free Pascal Compiler wersja $FPCFULLVERSION [$FPCDATE] dla $FPCCPU
-Copyright (c) 1993-2014 by Florian Klaempfl
+Copyright (c) 1993-2015 by Florian Klaempfl and others
 ]
 
 #
