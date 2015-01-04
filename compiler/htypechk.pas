@@ -2780,7 +2780,7 @@ implementation
                    eq:=compare_defs_ext(n.resultdef,def_to,n.nodetype,convtype,pdoper,cdoptions);
                    n.free;
                  end
-              else if (def_to.typ=arraydef) and
+              else if is_open_array(def_to) and
                       is_class_or_interface_or_dispinterface_or_objc_or_java(tarraydef(def_to).elementdef) and
                       is_array_constructor(currpt.left.resultdef) and
                       assigned(tarrayconstructornode(currpt.left).left) then
