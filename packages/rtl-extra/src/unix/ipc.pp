@@ -112,7 +112,7 @@ type
        mode  : mode_t; { access mode (r/w permission) }
        seq   : uint_t; { slot usage sequence number }
        key   : key_t;  { user specified msg/sem/shm key }
-  {$ifndef cpux86_64}
+  {$ifndef cpu64}
        pad   : array [0..3] of cint;
   {$endif}
   End;
@@ -228,7 +228,7 @@ Type
     shm_cpid     : pid_t;     // pid of creator
     shm_nattch   : shmatt_t;  // number of attaches
     shm_cnattch  : culong;    // number of ISM attaches
-{$ifdef cpux86_64}
+{$ifdef cpu64}
     shm_atime    : time_t;    // last shmat time
     shm_dtime    : time_t;    // last shmdt time
     shm_ctime    : time_t;    // last change time
@@ -340,7 +340,10 @@ Type
 {$endif}
 
 {$if defined(Solaris)}
- // Shared memory control operations
+     SHM_SHARE_MMU = 4 shl 12;
+     SHM_PAGEABLE  = 1 shl 15;
+
+     // Shared memory control operations
      SHM_LOCK   = 3;
      SHM_UNLOCK = 4;
 
@@ -411,6 +414,14 @@ Function shmctl(shmid:cint; cmd:cint; buf: pshmid_ds): cint; {$ifdef FPC_USE_LIB
 const
   MSG_NOERROR = 1 shl 12;
 
+{$if defined(Solaris)}
+  MSG_R = 4 shl 6;      // read permission
+  MSG_W = 2 shl 6;      // write permission
+
+  MSG_RWAIT = 1 shl 9;  // a reader is waiting for a message
+  MSG_WWAIT = 2 shl 9;  // a writer is waiting to send
+{$endif}
+
 {$if defined(Linux)}
   MSG_EXCEPT  = 2 shl 12;
 
@@ -478,7 +489,7 @@ type
     msg_qbytes : msglen_t;
     msg_lspid  : pid_t;
     msg_lrpid  : pid_t;
-{$ifndef cpux86_64}
+{$ifdef cpu64}
     msg_stime  : time_t;
     msg_rtime  : time_t;
     msg_ctime  : time_t;
@@ -492,7 +503,7 @@ type
 {$endif}
     msg_cv     : cshort;
     msg_qnum_cv: cshort;
-    msg_pad4   : array [0..3] of clong;
+    msg_pad4   : array [0..2] of clong;
   end;
 {$elseif defined(Linux)}
   PMSQid_ds = ^TMSQid_ds;
@@ -616,7 +627,7 @@ type
 
 Function msgget(key: TKey; msgflg:cint):cint; {$ifdef FPC_USE_LIBC} cdecl; external clib name 'msgget'; {$endif}
 Function msgsnd(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgflg:cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external clib name 'msgsnd'; {$endif}
-Function msgrcv(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgtyp:clong; msgflg:cint): {$if defined(Darwin) or defined(aix)}ssize_t;{$else}cint;{$endif} {$ifdef FPC_USE_LIBC} cdecl; external clib name 'msgrcv'; {$endif}
+Function msgrcv(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgtyp:clong; msgflg:cint): {$if defined(Darwin) or defined(aix) or defined(Solaris)}ssize_t;{$else}cint;{$endif} {$ifdef FPC_USE_LIBC} cdecl; external clib name 'msgrcv'; {$endif}
 Function msgctl(msqid:cint; cmd: cint; buf: PMSQid_ds): cint; {$ifdef FPC_USE_LIBC} cdecl; external clib name 'msgctl'; {$endif}
 
 { ----------------------------------------------------------------------
@@ -641,7 +652,9 @@ const
   SEM_SEMVMX = 32767;
 {$else}
   SEM_UNDO = 1 shl 12;
+{$if not defined(Solaris)}
   MAX_SOPS = 5;
+{$endif}
 
 {$if not defined(aix) and not defined(darwin)}
   SEM_GETNCNT = 3;   { Return the value of sempid (READ)  }
@@ -734,7 +747,7 @@ type
        sem_otime: time_t;
        sem_ctime: time_t;
      end;
-   {$elseif defined(Solaris}
+   {$elseif defined(Solaris)}
      PSEM = ^TSEM;
      TSEM = record end; // opague
 
@@ -743,7 +756,7 @@ type
         sem_perm  : tipc_perm;
         sem_base  : PSEM;
         sem_nsems : cushort;
-     {$ifndef cpux86_64}
+     {$ifdef cpu64}
         sem_otime : time_t;
         sem_ctime : time_t;
      {$else}
