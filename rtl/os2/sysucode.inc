@@ -91,6 +91,8 @@ type
 const
   DefCpRec: TCpRec = (WinCP: 0; OS2CP: 0; UConvObj: nil);
   IBMPrefix: packed array [1..4] of WideChar = 'IBM-';
+  CachedDefFSCodepage: TSystemCodepage = 0;
+
 
 threadvar
 (* Temporary allocations may be performed in parallel in different threads *)
@@ -107,7 +109,10 @@ begin
    begin
     OSErrorWatch (RC);
     C := 850;
-   end;
+   end
+  else
+   if RetSize < SizeOf (C) then
+    C := 850;
   OS2GetStandardCodePage := OS2CpToRtlCp (C, cpxMappingOnly, NoUConvObject);
 end;
 
@@ -397,6 +402,15 @@ const
 
 (* Possibly add index tables for both directions and binary search??? *)
 
+{
+function GetRtlCpFromCpRec (const CpRec: TCpRec): TSystemCodepage; inline;
+begin
+  if RtlUsesWinCp then
+   GetRtlCp := CpRec.WinCP
+  else
+   GetRtlCp := TSystemCodepage (CpRec.Os2Cp);
+end;
+}
 
 function UConvObjectForCP (CP: cardinal; var UConvObj: TUConvObject): longint;
 var
@@ -414,78 +428,130 @@ begin
 end;
 
 
+procedure InitDefaultCP;
+var
+  OS2CP, I: cardinal;
+  NoUConvObj: TUConvObject;
+  RCI: longint;
+  RC: cardinal;
+  CPArr: TCPArray;
+  ReturnedSize: cardinal;
+begin
+  if DefCpRec.UConvObj <> nil then
+   begin
+    RCI := Sys_UniFreeUConvObject (DefCpRec.UConvObj);
+    if RCI <> 0 then
+     OSErrorWatch (cardinal (RCI));
+    DefCpRec.UConvObj := nil;
+   end;
+  RC := DosQueryCP (SizeOf (CPArr), @CPArr, ReturnedSize);
+  if (RC <> 0) and (RC <> 473) then
+   begin
+    OSErrorWatch (RC);
+    CPArr [0] := 850;
+   end
+  else if (ReturnedSize < 4) then
+   CPArr [0] := 850;
+  DefaultFileSystemCodePage := OS2CPtoRtlCP (CPArr [0], cpxMappingOnly,
+                                                            DefCpRec.UConvObj);
+  CachedDefFSCodepage := DefaultFileSystemCodePage;
+  DefCpRec.OS2CP := CPArr [0];
+(* Find out WinCP _without_ considering RtlUsesWinCP *)
+  I := 1;
+  while (I <= MaxNonEqualCPMapping) and (CpXList [I].OS2CP <> OS2CP) do
+   Inc (I);
+  if CpXList [I].OS2CP = CPArr [0] then
+   DefCpRec.WinCP := CpXList [I].WinCP
+  else
+   DefCpRec.WinCP := CPArr [0];
+end;
+
+
 function OS2CPtoRtlCP (CP: cardinal; ReqFlags: byte;
                                   var UConvObj: TUConvObject): TSystemCodepage;
 var
   I, I2: cardinal;
   RCI: longint;
-begin
-  OS2CPtoRtlCP := TSystemCodePage (CP);
-  UConvObj := nil;
-  if not UniAPI then (* No UniAPI => no need for UConvObj *)
-   ReqFlags := ReqFlags or CpxMappingOnly;
+
+ function CheckDefaultOS2CP: boolean;
+ begin
   if CP = DefCpRec.OS2CP then
    begin
+    CheckDefaultOS2CP := true;
     if RTLUsesWinCP then
      OS2CPtoRtlCP := DefCpRec.WinCP;
     if ReqFlags and CpxMappingOnly = 0 then
      UConvObj := DefCpRec.UConvObj;
    end
   else
+   CheckDefaultOS2CP := false;
+ end;
+
+begin
+  OS2CPtoRtlCP := TSystemCodePage (CP);
+  UConvObj := nil;
+  if not UniAPI then (* No UniAPI => no need for UConvObj *)
+   ReqFlags := ReqFlags or CpxMappingOnly;
+  if CheckDefaultOS2CP then
+   Exit;
+  if CachedDefFSCodepage <> DefaultFileSystemCodePage then
    begin
-    I := 1;
-    if ReqFlags and CpxSpecial = CpxSpecial then
-     I2 := 2
-    else
-     if ReqFlags and CpxMappingOnly = CpxMappingOnly then
-      I2 := MaxNonEqualCPMapping
-     else
-      I2 := MaxCPMapping;
-    while I <= I2 do
+    InitDefaultCP;
+    if CheckDefaultOS2CP then
+     Exit;
+   end;
+  I := 1;
+  if ReqFlags and CpxSpecial = CpxSpecial then
+   I2 := 2
+  else
+   if ReqFlags and CpxMappingOnly = CpxMappingOnly then
+    I2 := MaxNonEqualCPMapping
+   else
+    I2 := MaxCPMapping;
+  while I <= I2 do
+   begin
+    if CP = CpXList [I].OS2CP then
      begin
-      if CP = CpXList [I].OS2CP then
+      if RTLUsesWinCP then
+       OS2CPtoRtlCP := CpXList [I].WinCP;
+      if ReqFlags and CpxMappingOnly = 0 then
        begin
-        if RTLUsesWinCP then
-         OS2CPtoRtlCP := CpXList [I].WinCP;
-        if ReqFlags and CpxMappingOnly = 0 then
+        if CpXList [I].UConvObj = nil then
          begin
-          if CpXList [I].UConvObj = nil then
-           begin
-            if UConvObjectForCP (CpXList [I].OS2CP, UConvObj) = Uls_Success
+          if UConvObjectForCP (CpXList [I].OS2CP, UConvObj) = Uls_Success
                                                                            then
-             CpXList [I].UConvObj := UConvObj
-            else
-             UConvObj := nil;
-           end
+           CpXList [I].UConvObj := UConvObj
           else
-           UConvObj := CpXList [I].UConvObj;
-         end;
-        Exit;
-       end;
-      Inc (I);
-     end;
-(* If codepage was not found in the translation table and UConvObj is
-   requested, allocate one in the temporary record. *)
-    if ReqFlags and CpxMappingOnly = 0 then
-     begin
-      if TempCpRec.OS2CP = CP then
-       UConvObj := TempCpRec.UConvObj
-      else
-       begin
-        if TempCpRec.UConvObj <> nil then
-         begin
-          RCI := Sys_UniFreeUConvObject (TempCpRec.UConvObj);
-          if RCI <> 0 then
-           OSErrorWatch (cardinal (RCI));
-         end;
-        if UConvObjectForCP (CP, UConvObj) = Uls_Success then
-         begin
-          TempCpRec.UConvObj := UConvObj;
-          TempCpRec.OS2CP := CP;
+           UConvObj := nil;
          end
         else
-         UConvObj := nil;
+         UConvObj := CpXList [I].UConvObj;
        end;
+      Exit;
+     end;
+    Inc (I);
+   end;
+(* If codepage was not found in the translation table and UConvObj is
+   requested, allocate one in the temporary record. *)
+  if ReqFlags and CpxMappingOnly = 0 then
+   begin
+    if TempCpRec.OS2CP = CP then
+     UConvObj := TempCpRec.UConvObj
+    else
+     begin
+      if TempCpRec.UConvObj <> nil then
+       begin
+        RCI := Sys_UniFreeUConvObject (TempCpRec.UConvObj);
+        if RCI <> 0 then
+         OSErrorWatch (cardinal (RCI));
+       end;
+      if UConvObjectForCP (CP, UConvObj) = Uls_Success then
+       begin
+        TempCpRec.UConvObj := UConvObj;
+        TempCpRec.OS2CP := CP;
+       end
+      else
+       UConvObj := nil;
      end;
    end;
 end;
@@ -495,6 +561,20 @@ function RtlCPtoOS2CP (RtlCP: TSystemCodepage; ReqFlags: byte;
                                          var UConvObj: TUConvObject): cardinal;
 var
   I, I2: cardinal;
+
+ function CheckDefaultWinCP: boolean;
+ begin
+  if RtlCP = DefCpRec.WinCP then
+   begin
+    CheckDefaultWinCP := true;
+    RtlCPtoOS2CP := DefCpRec.WinCP;
+    if ReqFlags and CpxMappingOnly = 0 then
+     UConvObj := DefCpRec.UConvObj;
+   end
+  else
+  CheckDefaultWinCP := false;
+ end;
+
 begin
   RtlCPtoOS2CP := RtlCP;
   UConvObj := nil;
@@ -505,14 +585,16 @@ begin
     if ReqFlags and CpxMappingOnly = 0 then
      OS2CPtoRtlCP (cardinal (RtlCp), ReqFlags, UConvObj);
    end
-  else if RtlCP = DefCpRec.WinCP then
-   begin
-    RtlCPtoOS2CP := DefCpRec.WinCP;
-    if ReqFlags and CpxMappingOnly = 0 then
-     UConvObj := DefCpRec.UConvObj;
-   end
+  else if CheckDefaultWinCp then
+   Exit
   else
    begin
+    if CachedDefFSCodepage <> DefaultFileSystemCodePage then
+     begin
+      InitDefaultCP;
+      if CheckDefaultWinCP then
+       Exit;
+     end;
     I := 1;
     if ReqFlags and CpxSpecial = CpxSpecial then
      I2 := 2
