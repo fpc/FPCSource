@@ -40,6 +40,7 @@ begin
     T:=P.Targets.AddUnit('hardware.pas');
     T:=P.Targets.AddUnit('amigados.pas');
     T:=P.Targets.AddUnit('clipboard.pas');
+    T:=P.Targets.AddUnit('iffparse.pas');
     T:=P.Targets.AddUnit('datatypes.pas');
     T:=P.Targets.AddUnit('keymap.pas');
     T:=P.Targets.AddUnit('asl.pas');
