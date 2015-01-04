@@ -3487,7 +3487,7 @@ F*0*_Only options valid for the default or selected platform are listed.
 3*2Aelf_ELF (Linux) using internal writer
 3*2Acoff_COFF (Go32v2) using internal writer
 3*2Apecoff_PE-COFF (Win32) using internal writer
-3*2Ayasm_Assmeble using Yasm (experimental)
+3*2Ayasm_Assemble using Yasm (experimental)
 4*2Aas_Assemble using GNU AS
 4*2Agas_Assemble using GNU GAS
 4*2Agas-darwin_Assemble darwin Mach-O64 using GNU GAS

@@ -271,7 +271,7 @@ scan_e_illegal_asmmode_specifier=02050_E_Ugyldig assemblerstil angivet "$1"
 % the compiler didn't recognize the mode you specified.
 scan_w_no_asm_reader_switch_inside_asm=02051_W_Kan ikke skifte assemblerlæser midt i en assemblerblok. Skifter til "$1" i næste blok
 % It is not possible to switch from one assembler reader to another
-% inside an assmebler block. The new reader will be used for next
+% inside an assembler block. The new reader will be used for next
 % assembler statements only.
 scan_e_wrong_switch_toggle=02052_E_Forkert indstillingsparameter. Brug ON/OFF eller +/-
 % You need to use ON or OFF or a + or - to toggle the switch

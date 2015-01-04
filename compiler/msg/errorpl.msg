@@ -266,7 +266,7 @@ scan_w_unsupported_asmmode_specifier=02050_W_Nieprawidˆowy styl asemblera $1
 % the compiler didn't recognize the mode you specified.
 scan_w_no_asm_reader_switch_inside_asm=02051_W_Przeˆ¥cznik stylu asemblera niedozwolony w bloku asemblera, $1 b©dzie dziaˆa† dopiero w nast©pnym bloku
 % It is not possible to switch from one assembler reader to another
-% inside an assmebler block. The new reader will be used for next
+% inside an assembler block. The new reader will be used for next
 % assembler statement only.
 scan_e_wrong_switch_toggle=02052_E_Zˆa warto˜† przeˆ¥cznika, u¾yj ON/OFF lub +/-
 % You need to use ON or OFF or a + or - to toggle the switch

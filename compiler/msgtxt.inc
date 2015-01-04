@@ -1299,7 +1299,7 @@ const msgtxt : array[0..000310,1..240] of char=(
   '3*2Aelf_ELF (Linux) using internal writer'#010+
   '3*2Acoff_COFF (Go32v2) using internal writer'#010+
   '3*2Apecoff_PE-COFF (Win32) using internal writer'#010+
-  '3*2Ayasm_Assmeble usi','ng Yasm (experimental)'#010+
+  '3*2Ayasm_Assemble usi','ng Yasm (experimental)'#010+
   '4*2Aas_Assemble using GNU AS'#010+
   '4*2Agas_Assemble using GNU GAS'#010+
   '4*2Agas-darwin_Assemble darwin Mach-O64 using GNU GAS'#010+
