@@ -2043,6 +2043,7 @@ implementation
     procedure duplicatesym(var hashedid:THashedIDString;dupsym,origsym:TSymEntry);
       var
         st : TSymtable;
+        filename : TIDString;
       begin
         Message1(sym_e_duplicate_id,tsym(origsym).realname);
         { Write hint where the original symbol was found }
@@ -2054,7 +2055,13 @@ implementation
                st.iscurrentunit then
               Message2(sym_h_duplicate_id_where,current_module.sourcefiles.get_file_name(fileindex),tostr(line))
             else if assigned(st.name) then
-              Message2(sym_h_duplicate_id_where,'unit '+st.name^,tostr(line));
+              begin
+                filename:=find_module_from_symtable(st).sourcefiles.get_file_name(fileindex);
+                if filename<>'' then
+                  Message2(sym_h_duplicate_id_where,'unit '+st.name^+': '+filename,tostr(line))
+                else
+                  Message2(sym_h_duplicate_id_where,'unit '+st.name^,tostr(line))
+              end;
           end;
         { Rename duplicate sym to an unreachable name, but it can be
           inserted in the symtable without errors }
