@@ -481,9 +481,6 @@ var
                   if s = 'overload' then
                     ProcOpt:=ProcOpt + [poOverload]
                   else
-                  if s = 'overload' then
-                    ProcOpt:=ProcOpt + [poMethodPtr]
-                  else
                   if s = 'abstract' then
                     TClassDef(Parent).HasAbstractMethods:=True;
                 end;
