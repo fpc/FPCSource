@@ -763,9 +763,9 @@ begin
     exit;
   With SA do
     begin
-    family:=AF_INET;
-    port:=htons(DNSport);
-    addr:=cardinal(DNSServers[Resolver]); // dnsservers already in net order
+    sin_family:=AF_INET;
+    sin_port:=htons(DNSport);
+    sin_addr.s_addr:=cardinal(DNSServers[Resolver]); // dnsservers already in net order
     end;
   fpsendto(sock,@qry,qrylen+12,0,@SA,SizeOf(SA));
   // Wait for answer.
