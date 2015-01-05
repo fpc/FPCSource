@@ -1,4 +1,5 @@
   add_a52(ADirectory+IncludeTrailingPathDelimiter('a52'));
+  add_ami_extra(ADirectory+IncludeTrailingPathDelimiter('ami-extra'));
   add_amunits(ADirectory+IncludeTrailingPathDelimiter('amunits'));
   add_arosunits(ADirectory+IncludeTrailingPathDelimiter('arosunits'));
   add_aspell(ADirectory+IncludeTrailingPathDelimiter('aspell'));

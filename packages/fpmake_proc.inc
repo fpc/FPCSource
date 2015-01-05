@@ -4,6 +4,12 @@ begin
 {$include a52/fpmake.pp}
 end;
 
+procedure add_ami_extra(const ADirectory: string);
+begin
+  with Installer do
+{$include ami-extra/fpmake.pp}
+end;
+
 procedure add_amunits(const ADirectory: string);
 begin
   with Installer do

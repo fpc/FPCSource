@@ -100,10 +100,12 @@
 
 {$ifdef Amiga}
   {$define FSCaseInsensitive}
+  {$define WinClipSupported}
 {$endif}
 
 {$ifdef MorphOS}
   {$define FSCaseInsensitive}
+  {$define WinClipSupported}
 {$endif}
 
 {$ifdef AROS}

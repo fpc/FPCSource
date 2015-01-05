@@ -227,7 +227,7 @@ VAR IFFParseBase : pLibrary;
 
 FUNCTION AllocIFF : pIFFHandle; syscall IFFParseBase 030;
 FUNCTION AllocLocalItem(typ : LONGINT location 'd0'; id : LONGINT location 'd1'; ident : LONGINT location 'd2'; dataSize : LONGINT location 'd3') : pLocalContextItem; syscall IFFParseBase 186;
-PROCEDURE CloseClipboard(clipHandle : pClipboardHandle location 'd0'); syscall IFFParseBase 252;
+PROCEDURE CloseClipboard(clipHandle : pClipboardHandle location 'a0'); syscall IFFParseBase 252;
 PROCEDURE CloseIFF(iff : pIFFHandle location 'a0'); syscall IFFParseBase 048;
 FUNCTION CollectionChunk(iff : pIFFHandle location 'a0'; typ : LONGINT location 'd0'; id : LONGINT location 'd1') : LONGINT; syscall IFFParseBase 138;
 FUNCTION CollectionChunks(iff : pIFFHandle location 'a0'; const propArray : pLONGINT location 'a1'; numPairs : LONGINT location 'd0') : LONGINT; syscall IFFParseBase 144;
