@@ -56,9 +56,7 @@ begin
     T.Dependencies.AddUnit('dglobals');
 
     T:=P.Targets.AddProgram('unitdiff.pp');
-    T.ResourceStrings:=true;
     T:=P.Targets.AddProgram('fpclasschart.pp');
-    T.ResourceStrings:=true;
 
     T := P.Targets.AddUnit('dglobals.pp');
     T.install:=false;
