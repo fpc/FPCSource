@@ -26,7 +26,7 @@ begin
     P.OSes:=P.OSes-[embedded];
     P.Dependencies.Add('rtl-objpas');
 
-    P.Version:='2.7.1';
+    P.Version:='3.0.1';
     T:=P.Targets.AddUnit('src/md5.pp');
     T:=P.Targets.AddUnit('src/sha1.pp');
     T:=P.Targets.AddUnit('src/crc.pas');

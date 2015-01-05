@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.0.1';
     if Defaults.CPU = i386 then
       P.OSes := [linux,win32,darwin]
     else

@@ -18,10 +18,10 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.0.1';
     P.Options.Add('-S2h');
     D:=P.Dependencies.Add('fcl-base');
-      D.Version:='2.7.1';
+      D.Version:='3.0.1';
     D:=P.Dependencies.Add('iconvenc',[linux,darwin,iphonesim,freebsd,haiku,beos,aix]);
 
     P.Author := 'Sebastian Guenther, Sergei Gorelkin and FPC development team';

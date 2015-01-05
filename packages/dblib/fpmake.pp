@@ -19,7 +19,7 @@ begin
     begin
       P:=AddPackage('dblib');
       P.Directory:=ADirectory;
-      P.Version:='1.0';
+      P.Version:='3.0.1';
       P.Author := 'Library: (FreeTDS/Microsoft), header: Ladislav Karrach';
       P.License := 'Library: FreeTDS License, header: LGPL with modification, ';
       P.HomepageURL := 'www.freepascal.org';

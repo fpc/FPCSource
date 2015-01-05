@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.0.1';
     P.OSes := [freebsd,linux,win32];
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

@@ -26,7 +26,7 @@ uses
   {$ifdef LZX_USETHREADS}{$ifdef Unix}cthreads,{$endif}{$endif} Classes, Sysutils, chmfilewriter, GetOpts;
 
 Const
-  CHMCMDVersion = '2.6.1';
+  CHMCMDVersion = '3.0.1';
 
 Procedure Usage;
 

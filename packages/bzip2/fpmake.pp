@@ -19,7 +19,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
 
-    P.Version:='2.7.1';
+    P.Version:='3.0.1';
 
     P.Author := 'Library: Julian R. Seward, header: Daniel Mantione';
     // 3 clause becaue "prominent notice" is not required.

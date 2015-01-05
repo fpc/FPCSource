@@ -4,7 +4,7 @@
 
 [package]
 name=fcl-passrc
-version=2.7.1
+version=3.0.1
 
 [target]
 units=pastree pscanner pparser paswrite

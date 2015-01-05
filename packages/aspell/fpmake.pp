@@ -18,7 +18,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
 
-    P.Version:='2.7.1';
+    P.Version:='3.0.1';
 
     P.Author := 'header:Aleš Katona, library: Kevin Atkinson';
     P.License := 'header: LGPL with modification, library: LGPL 2.0 or 2.1';

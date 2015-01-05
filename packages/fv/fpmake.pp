@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.0.1';
     P.Author := 'Leon De Boer and Pierre Mueller';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

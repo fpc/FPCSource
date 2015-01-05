@@ -18,7 +18,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
 
-    P.Version:='2.7.1';
+    P.Version:='3.0.1';
     P.Author := 'Vlado Boza';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

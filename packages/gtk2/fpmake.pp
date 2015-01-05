@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.0.1';
     P.SupportBuildModes := [bmOneByOne];
     P.OSes:=AllUnixOSes+[Win32,Win64]-[darwin,iphonesim,Android];
     if Defaults.CPU<>arm then

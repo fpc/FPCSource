@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.0.1';
     P.Author := 'Library: Cygnus Support, header: by Uli Tessel';
     P.License := 'Library: GPL2 or later, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

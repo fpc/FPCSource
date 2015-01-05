@@ -66,7 +66,7 @@ begin
     P.Dependencies.Add('hash');
     P.Dependencies.Add('univint',[darwin,iphonesim]);
 
-    P.Version:='2.7.1';
+    P.Version:='3.0.1';
 
     T:=P.Targets.AddProgram('ptop.pp');
     T.Dependencies.AddUnit('ptopu');

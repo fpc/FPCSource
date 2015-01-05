@@ -18,7 +18,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
 
-    P.Version:='2.7.1';
+    P.Version:='3.0.1';
     P.OSes := [win32,win64,linux,android];
 
     P.Author := 'FreePascal development team';
