@@ -46,10 +46,11 @@ implementation
     strings,windows;
 {$endif Windows}
 
-{$ifdef aros}
+{$ifdef HASAMIGA}
   uses
-    clipboard;
+    clipboard,cliputils;
 {$endif}
+
 
 {$ifdef DOS}
 function WinClipboardSupported : boolean;
@@ -134,7 +135,7 @@ begin
 end;
 {$endif Windows}
 
-{$ifdef Aros}
+{$ifdef HASAMIGA}
 function WinClipboardSupported: Boolean;
 begin
   WinClipboardSupported := True;
@@ -162,7 +163,7 @@ begin
   Text := GetTextFromClip(PRIMARY_CLIP);
   InternGetDataSize := Length(Text);
 end;
-{$endif Aros}
+{$endif HASAMIGA}
 
 
 function GetTextWinClipboardSize : longint;
@@ -182,10 +183,10 @@ var
   h : HGlobal;
   pp : pchar;
 {$endif Windows}
-{$ifdef aros}
+{$ifdef HASAMIGA}
   Text: AnsiString;
   pp: PChar;
-{$endif aros}
+{$endif HASAMIGA}
 begin
   p:=nil;
   GetTextWinClipBoardData:=False;
@@ -220,14 +221,14 @@ begin
     end;
   GetTextWinClipBoardData:=h<>0;
 {$endif Windows}
-{$ifdef aros}
+{$ifdef HASAMIGA}
   Text := GetTextFromClip(0) + #0;
   PP := @Text[1];
   l := Length(Text);
   GetMem(p,l);
   Move(pp^,p^,l);
   GetTextWinClipBoardData := True;
-{$endif aros}
+{$endif HASAMIGA}
   CloseWinClipBoard;
 {$ifdef DOS}
   M.MoveDataFrom(l,P^);
@@ -246,10 +247,10 @@ var
   pp : pchar;
   res : boolean;
 {$endif Windows}
-{$ifdef aros}
+{$ifdef HASAMIGA}
   pp: PChar;
   Test: AnsiString;
-{$endif aros}
+{$endif HASAMIGA}
 begin
   SetTextWinClipBoardData:=False;
   if (l=0) or (l>65520) then
@@ -290,9 +291,9 @@ begin
   GlobalUnlock(h);
   SetTextWinClipBoardData:=res;
 {$endif Windows}
-{$ifdef Aros}
+{$ifdef HASAMIGA}
   PutTextToClip(0, AnsiString(p));
-{$endif Aros}
+{$endif HASAMIGA}
   CloseWinClipBoard;
 end;
 
