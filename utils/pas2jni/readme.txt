@@ -57,6 +57,60 @@ After successfull run of pas2jni you will get the following output files:
 
 Note: You need to use ppudump of the same version as the FPC compiler. Use the -D switch to specify correct ppudump if it is not in PATH.
 
+CUSTOM HANDLERS
+
+It is possible to define the following custom handlers in your Pascal code.
+
+procedure JNI_OnException;
+  - is called when an unhandled Pascal exception occurs. For example, you can log a stack back trace in this handler.
+
+Custom handlers must be public and defined in one of the main units specified when calling pas2jni.
+
+CODING TIPS
+
+* Setting handlers (method pointers) in a Java code.
+
+For example there is the following event handler in your Pascal code:
+
+TMyClass = class
+...
+  property OnChange: TNotifyEvent;
+...
+end;
+
+In a Java code you get the following TMyClass instance:
+
+TMyClass myclass = TMyClass.Create();
+
+It is possible set a Java handler in 2 ways:
+
+1) Place the handler inline.
+
+...
+  myclass.setOnChange(
+      new TNotifyEvent() {
+        protected void Execute(TObject Sender) {
+          // The handler code
+        }
+      }
+    );
+...
+
+2) Define the handler as a method in a class.
+
+public class MyJavaClass {
+  private void DoOnChange(TObject Sender) {
+    // The handler code
+  }
+
+  public void main() {
+    ...
+    // Set the handler to the method with the "DoOnChange" name in the current class (this).
+    myclass.setOnChange( new TNotifyEvent(this, "DoOnChange") );
+    ...
+  }
+}
+
 COMMAND LINE OPTIONS
 
 Usage: pas2jni [options] <unit> [<unit2> <unit3> ...]
