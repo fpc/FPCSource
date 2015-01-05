@@ -66,9 +66,9 @@ dirs_netware=rtl-console rtl-unicode fv zlib unzip
 dirs_netwlibc=rtl-console rtl-unicode fv zlib unzip
 dirs_palmos=palmunits
 dirs_go32v2=rtl-console rtl-unicode fv graph unzip gdbint
-dirs_amiga=amunits rtl-console rtl-unicode fv
-dirs_morphos=morphunits rtl-console rtl-unicode fv opengl sdl
-dirs_aros=arosunits rtl-console rtl-unicode fv
+dirs_amiga=amunits ami-extra rtl-console rtl-unicode fv
+dirs_morphos=morphunits ami-extra rtl-console rtl-unicode fv opengl sdl
+dirs_aros=arosunits ami-extra rtl-console rtl-unicode fv
 dirs_wii=libogcfpc
 dirs_arm_nds=libndsfpc
 
