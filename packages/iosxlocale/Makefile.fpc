@@ -3,7 +3,7 @@
 #
 
 [package]
-name=univint
+name=iosxlocale
 version=2.7.1
 
 [require]
