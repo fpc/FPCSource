@@ -92,7 +92,7 @@ function dlerror() : Pchar; cdecl; external libdl;
 { overloaded for compatibility with hmodule }
 function dlsym(Lib : PtrInt; Name : Pchar) : Pointer; cdecl; external Libdl;
 function dlclose(Lib : PtrInt) : Longint; cdecl; external libdl;
-function dladdr(Lib: pointer; info: Pdl_info): Longint; cdecl; {$ifndef aix}external;{$endif}
+function dladdr(Lib: pointer; info: Pdl_info): Longint; cdecl; {$if not defined(aix) and not defined(android)} external; {$endif}
 
 implementation
 
@@ -133,9 +133,10 @@ uses
 {$i dlaix.inc}
 {$endif}
 
+{$ifdef android}
+{$i dlandroid.inc}
+{$endif}
 
 begin
-{$ifndef android}
   UnixGetModuleByAddrHook:=@UnixGetModuleByAddr;
-{$endif android}
 end.
