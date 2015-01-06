@@ -1795,11 +1795,11 @@ implementation
              { Give an error for accesses in the static symtable that aren't visible
                outside the current unit }
              st:=procdef.owner;
-             while (st.symtabletype=ObjectSymtable) do
+             while (st.symtabletype in [ObjectSymtable,recordsymtable]) do
                st:=st.defowner.owner;
              if (pi_uses_static_symtable in flags) and
                 (st.symtabletype<>staticsymtable) then
-               Comment(V_Error,'Global Generic template references static symtable');
+               Message(parser_e_global_generic_references_static);
            end;
 
          { save exit info }

@@ -411,7 +411,7 @@ scan_e_illegal_hugepointernormalization=02098_E_Illegal argument for HUGEPOINTER
 #
 # Parser
 #
-# 03338 is the last used one
+# 03339 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1528,6 +1528,9 @@ parser_w_ptr_type_ignored=03338_W_Pointer type "$1" ignored
 % The specified pointer type modifier is ignored, because it is not supported on
 % the current platform. This happens, for example, when a far pointer is
 % declared on a non-x86 platform.
+parser_e_global_generic_references_static=03339_E_Global Generic template references static symtable
+% A generic declared in the interface section of a unit must not reference symbols that belong
+% solely to the implementation section of that unit.
 %
 %
 %
