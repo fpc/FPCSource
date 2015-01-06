@@ -345,6 +345,7 @@ interface
 
 implementation
 
+{$asmmode att}
 
 const
      EXCEPTION_ACCESS_VIOLATION = $c0000005;

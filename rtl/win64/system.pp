@@ -100,6 +100,8 @@ Const
 
 implementation
 
+{$asmmode att}
+
 var
   SysInstance : qword;public;
 
