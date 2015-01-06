@@ -254,7 +254,7 @@ yysstate, yylstate : Integer;
 yymatches          : Integer;
 yystack            : array [1..max_matches] of Integer;
 yypos              : array [1..max_rules] of Integer;
-yysleng            : Integer;
+yysleng            : Longint;
 
 (* Utilities: *)
 
