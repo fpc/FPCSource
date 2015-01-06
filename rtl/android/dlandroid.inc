@@ -2,7 +2,7 @@
 // On Android the dladdr() function does not return full path to modules.
 // Emulate dladdr() by reading the /proc/self/maps to get full path to modules.
 
-var
+threadvar
   _ModuleName: ansistring;
 
 function dladdr(Lib: pointer; info: Pdl_info): Longint; cdecl;
