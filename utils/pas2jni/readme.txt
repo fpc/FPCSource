@@ -1,8 +1,10 @@
 pas2jni - JNI bridge generator for Pascal.
 
-Copyright (c) 2013 by Yury Sidorov.
+Copyright (c) 2013-2015 by Yury Sidorov.
 
 The pas2jni utility generates a JNI (Java Native Interface) bridge for a Pascal code. Then the Pascal code (including classes and other advanced features) can be easily used in Java programs.
+
+The pas2jni wiki page is available here: http://wiki.freepascal.org/pas2jni
 
 For example you can do the following in Java:
 
@@ -31,7 +33,7 @@ The following Pascal features are supported by pas2jni:
 - pointer type;
 - string types;
 - all numeric types;
-- method poiner.
+- method pointer.
 
 USUPPORTED features:
 - array;
@@ -51,7 +53,7 @@ pas2jni myunit -U/path/to/my/units;/path/to/FPC/units/*
 
 Here you specify myunit as the main unit and provide path to your compiled units and FPC compiled units. 
 
-After successfull run of pas2jni you will get the following output files:
+After successful run of pas2jni you will get the following output files:
 - file "myunitjni.pas" - a generated library unit to be compiled to a shared library. It will contain all your Pascal code to be used from Java.
 - folder "pas" - generated Java package "pas" to be used in your Java program. Interface to each Pascal unit is placed to a separate Java public class. 
 
