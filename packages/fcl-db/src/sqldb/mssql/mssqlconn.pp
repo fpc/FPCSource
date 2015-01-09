@@ -540,7 +540,7 @@ end;
 
 function TMSSQLConnection.Rollback(trans: TSQLHandle): boolean;
 begin
-  Execute('ROLLBACK');
+  Execute('IF @@TRANCOUNT>0 ROLLBACK');
   Result:=true;
 end;
 
