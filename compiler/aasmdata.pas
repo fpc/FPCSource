@@ -406,7 +406,12 @@ implementation
                  internalerror(200603261);
              end;
            hp.typ:=_typ;
-           hp.bind:=_bind;
+{$ifdef x86_64}
+           { On x86_64 at least changing bind from AB_GLOBAL to AB_LOCAL is wrong
+             if bind is already AB_GLOBAL, GOT might be involved, so do not change. }
+           if (_bind<>AB_LOCAL) or (hp.bind<>AB_GLOBAL) then
+{$endif x86_64}
+             hp.bind:=_bind;
          end
         else
          begin
