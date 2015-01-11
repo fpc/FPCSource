@@ -5043,7 +5043,7 @@ implementation
                   currsym:=objdata.symbolref(oper[0]^.ref^.symbol);
                   if (currsym.bind<>AB_LOCAL) and (currsym.objsection<>objdata.CurrObjSec) then
                     begin
-                      objdata.writereloc(oper[0]^.ref^.offset,0,currsym,RELOC_RELATIVE_24);
+                      objdata.writereloc(oper[0]^.ref^.offset,0,currsym,RELOC_RELATIVE_24_THUMB);
                       offset:=$FFFFFE
                     end
                   else
