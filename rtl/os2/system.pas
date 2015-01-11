@@ -55,6 +55,7 @@ const
 type
   TOS = (osDOS, osOS2, osDPMI); (* For compatibility with target EMX *)
   TUConvObject = pointer;
+  TLocaleObject = pointer;
 
 const
   OS_Mode: TOS = osOS2; (* For compatibility with target EMX *)
@@ -185,6 +186,19 @@ type
    var InBytesLeft: longint; var UcsBuf: PWideChar; var UniCharsLeft: longint;
                                     var NonIdentical: longint): longint; cdecl;
 
+  TUniToLower = function (UniCharIn: WideChar): WideChar; cdecl;
+
+  TUniToUpper = function (UniCharIn: WideChar): WideChar; cdecl;
+
+  TUniStrColl = function (Locale_Object: TLocaleObject;
+                                  const UCS1, UCS2: PWideChar): longint; cdecl;
+
+  TUniCreateLocaleObject = function (LocaleSpecType: longint;
+                             const LocaleSpec: pointer;
+                             var Locale_Object: TLocaleObject): longint; cdecl;
+
+  TUniFreeLocaleObject = function (Locale_Object: TLocaleObject): longint;
+                                                                         cdecl;
 
 
 const
@@ -205,6 +219,12 @@ var
   Sys_UniMapCpToUcsCp: TUniMapCpToUcsCp;
   Sys_UniUConvFromUcs: TUniUConvFromUcs;
   Sys_UniUConvToUcs: TUniUConvToUcs;
+  Sys_UniToLower: TUniToLower;
+  Sys_UniToUpper: TUniToUpper;
+  Sys_UniStrColl: TUniStrColl;
+  Sys_UniCreateLocaleObject: TUniCreateLocaleObject;
+  Sys_UniFreeLocaleObject: TUniFreeLocaleObject;
+
 {$ENDIF OS2UNICODE}
 
 

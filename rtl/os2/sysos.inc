@@ -431,3 +431,23 @@ external 'DOSCALLS' index 291;
 
 function DosSetProcessCP (CP: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 289;
+
+type
+ TCountryCode = record
+  Country,            {Country to query info about (0=current).}
+  CodePage: cardinal; {Code page to query info about (0=current).}
+ end;
+
+function DosMapCase (Size: cardinal; var Country: TCountryCode;
+                     AString: PChar): cardinal; cdecl;
+external 'NLS' index 7;
+
+{
+function DosQueryDBCSEnv (Size: cardinal; var Country: TCountryCode;
+                                                  Buf: PChar): cardinal; cdecl;
+external 'NLS' index 6;
+
+function DosQueryCollate (Size: cardinal; var Country: TCountryCode;
+                     Buf: PByteArray; var TableLen: cardinal): cardinal; cdecl;
+external 'NLS' index 8;
+}
