@@ -58,6 +58,12 @@ type
     Procedure Execute;override;
   end;
 
+  { TFPMakeRunnerUnInstall }
+
+  TFPMakeRunnerUnInstall = Class(TFPMakeRunner)
+  Public
+    Procedure Execute;override;
+  end;
 
   { TFPMakeRunnerClean }
 
@@ -381,6 +387,12 @@ begin
 end;
 
 
+procedure TFPMakeRunnerUnInstall.Execute;
+begin
+  RunFPMake('uninstall');
+end;
+
+
 procedure TFPMakeRunnerClean.Execute;
 begin
   RunFPMake('clean');
@@ -404,6 +416,7 @@ initialization
   RegisterPkgHandler('fpmakecompile',TFPMakeRunnerCompile);
   RegisterPkgHandler('fpmakebuild',TFPMakeRunnerBuild);
   RegisterPkgHandler('fpmakeinstall',TFPMakeRunnerInstall);
+  RegisterPkgHandler('fpmakeuninstall',TFPMakeRunnerUnInstall);
   RegisterPkgHandler('fpmakeclean',TFPMakeRunnerClean);
   RegisterPkgHandler('fpmakemanifest',TFPMakeRunnerManifest);
   RegisterPkgHandler('fpmakearchive',TFPMakeRunnerArchive);
