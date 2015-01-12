@@ -62,6 +62,8 @@ interface
 
     const
        asmlabeltypeprefix : array[TAsmLabeltype] of char = ('j','a','d','l','f','t','c');
+       asmsymbindname : array[TAsmsymbind] of string = ('none', 'external','common',
+       'local','global','weak external','private external','lazy','import');
 
     type
        TAsmSectiontype=(sec_none,
