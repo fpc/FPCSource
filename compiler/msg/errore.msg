@@ -2739,7 +2739,7 @@ asmr_e_invalid_ref_register=07125_E_Invalid register used in memory reference ex
 #
 # Assembler/binary writers
 #
-# 08026 is the last used one
+# 08028 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Too many assembler files
 % With smartlinking enabled, there are too many assembler
@@ -2783,7 +2783,12 @@ asmw_e_handlerdata_no_handler=08025_E_.seh_handlerdata directive without precedi
 asmw_f_too_many_relocations=08026_F_Relocation count for section $1 exceeds 65535
 % Legacy COFF targets limit number of relocations per section to 65535 because they use a 2-byte field
 % to store the relocation count. Targets using newer PECOFF format do not have this limitation.
-
+asmw_w_changing_bind_type=08027_N_Change of bind type of symbol $1 from $2 to $3 after use
+asmw_h_changing_bind_type=08028_H_Change of bind type of symbol $1 from $2 to $3 after use
+% An assembler symbol bind type has been altered after use, which can lead to wrong code.
+% First version is reserved for changig to local label, which is the most probable cause
+% of wrong code generation, but currently set to Note level as it appears inside
+% the compiler compilation.
 #
 # Executing linker/assembler
 #
