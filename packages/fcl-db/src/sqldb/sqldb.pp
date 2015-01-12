@@ -472,7 +472,6 @@ type
   public
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
-    Procedure ApplyUpdates(MaxErrors: Integer); override; overload;
     procedure Prepare; virtual;
     procedure UnPrepare; virtual;
     procedure ExecSQL; virtual;
@@ -482,6 +481,8 @@ type
     Property Prepared : boolean read IsPrepared;
     Property SQLConnection : TSQLConnection Read GetSQLConnection Write SetSQLConnection;
     Property SQLTransaction: TSQLTransaction Read GetSQLTransaction Write SetSQLTransaction;
+    // overriden TBufDataSet methods
+    Procedure ApplyUpdates(MaxErrors: Integer); override; overload;
     // overriden TDataSet methods
     Procedure Post; override;
     Procedure Delete; override;
@@ -2086,10 +2087,10 @@ begin
   F.FQuery:=Self;
   FStatement:=F;
 
-  FUpdateSQL := TStringList.Create;
-  FUpdateSQL.OnChange := @OnChangeModifySQL;
   FInsertSQL := TStringList.Create;
   FInsertSQL.OnChange := @OnChangeModifySQL;
+  FUpdateSQL := TStringList.Create;
+  FUpdateSQL.OnChange := @OnChangeModifySQL;
   FDeleteSQL := TStringList.Create;
   FDeleteSQL.OnChange := @OnChangeModifySQL;
   FRefreshSQL := TStringList.Create;
@@ -2116,22 +2117,11 @@ begin
   UnPrepare;
   FreeAndNil(FStatement);
   FreeAndNil(FInsertSQL);
-  FreeAndNil(FDeleteSQL);
   FreeAndNil(FUpdateSQL);
+  FreeAndNil(FDeleteSQL);
   FreeAndNil(FRefreshSQL);
   FServerIndexDefs.Free;
   inherited Destroy;
-end;
-
-Procedure TCustomSQLQuery.ApplyUpdates(MaxErrors: Integer);
-begin
-  inherited ApplyUpdates(MaxErrors);
-  If sqoAutoCommit in Options then
-    begin
-    // Retrieve rows affected for last update.
-    FStatement.RowsAffected;
-    SQLTransaction.Commit;
-    end;
 end;
 
 function TCustomSQLQuery.ParamByName(Const AParamName: String): TParam;
@@ -2542,6 +2532,17 @@ begin
     // Don't deallocate cursor; f.e. RowsAffected is requested later
     if not Prepared and (assigned(Database)) and (assigned(Cursor)) then SQLConnection.UnPrepareStatement(Cursor);
   end;
+end;
+
+Procedure TCustomSQLQuery.ApplyUpdates(MaxErrors: Integer);
+begin
+  inherited ApplyUpdates(MaxErrors);
+  If sqoAutoCommit in Options then
+    begin
+    // Retrieve rows affected for last update.
+    FStatement.RowsAffected;
+    SQLTransaction.Commit;
+    end;
 end;
 
 Procedure TCustomSQLQuery.Post;
