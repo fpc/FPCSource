@@ -406,12 +406,17 @@ implementation
                  internalerror(200603261);
              end;
            hp.typ:=_typ;
-{$ifdef x86_64}
-           { On x86_64 at least changing bind from AB_GLOBAL to AB_LOCAL is wrong
-             if bind is already AB_GLOBAL, GOT might be involved, so do not change. }
-           if (_bind<>AB_LOCAL) or (hp.bind<>AB_GLOBAL) then
-{$endif x86_64}
-             hp.bind:=_bind;
+           { Changing bind from AB_GLOBAL to AB_LOCAL is wrong
+             if bind is already AB_GLOBAL or AB_EXTERNAL,
+             GOT might have been used, so change might be harmful. }
+           if (_bind<>hp.bind) and (hp.getrefs>0) then
+             begin
+               if (_bind=AB_LOCAL) then
+                 Message3(asmw_w_changing_bind_type,s,asmsymbindname[hp.bind],asmsymbindname[_bind])
+               else
+                 Message3(asmw_h_changing_bind_type,s,asmsymbindname[hp.bind],asmsymbindname[_bind]);
+             end;
+           hp.bind:=_bind;
          end
         else
          begin
