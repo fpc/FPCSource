@@ -31,7 +31,6 @@ type
   private
     FMyQ: TSQLQuery;
     procedure DoAfterPost(DataSet: TDataSet);
-    Procedure Allow;
     Procedure DoApplyUpdates;
     Procedure SetQueryOptions;
     Procedure TrySetPacketRecords;
@@ -86,16 +85,6 @@ implementation
 
 
 { TTestTSQLQuery }
-
-procedure TTestTSQLQuery.DoAfterPost(DataSet: TDataSet);
-begin
-  AssertTrue('Have modifications in after post',FMyq.UpdateStatus=usModified)
-end;
-
-Procedure TTestTSQLQuery.Allow;
-begin
-
-end;
 
 procedure TTestTSQLQuery.TestMasterDetail;
 var MasterQuery, DetailQuery: TSQLQuery;
@@ -264,6 +253,11 @@ begin
     end;
 end;
 
+procedure TTestTSQLQuery.DoAfterPost(DataSet: TDataSet);
+begin
+  AssertTrue('Have modifications in after post',FMyq.UpdateStatus=usModified)
+end;
+
 Procedure TTestTSQLQuery.TestAutoApplyUpdatesPost;
 var Q: TSQLQuery;
     I: Integer;
@@ -416,10 +410,10 @@ begin
   Q.Insert;
   Q.FieldByName('id').AsInteger:=1;
   Q.Post;
-  AssertTrue('field value has not been fetched after post',Q.FieldByName('a').IsNull);
+  AssertTrue('Field value has not been fetched after post',Q.FieldByName('a').IsNull);
   Q.ApplyUpdates(0);
-  AssertEquals('Still on correc field',1,Q.FieldByName('id').AsInteger);
-  AssertEquals('field value has been fetched from the database ','abcde',Q.FieldByName('a').AsString);
+  AssertEquals('Still on correct field',1,Q.FieldByName('id').AsInteger);
+  AssertEquals('Field value has been fetched from the database ','abcde',Q.FieldByName('a').AsString);
 end;
 
 Procedure TTestTSQLQuery.TestGeneratedRefreshSQL;
@@ -448,11 +442,11 @@ begin
   Q.Insert;
   Q.FieldByName('id').AsInteger:=1;
   Q.Post;
-  AssertTrue('field value has not been fetched after post',Q.FieldByName('a').IsNull);
+  AssertTrue('Field value has not been fetched after post',Q.FieldByName('a').IsNull);
   Q.ApplyUpdates(0);
-  AssertEquals('Still on correc field',1,Q.FieldByName('id').AsInteger);
-  AssertEquals('field value has been fetched from the database ','abcde',Q.FieldByName('a').AsString);
-  AssertEquals('field value has been fetched from the database ','fgh',Q.FieldByName('b').AsString);
+  AssertEquals('Still on correct field',1,Q.FieldByName('id').AsInteger);
+  AssertEquals('Field value has been fetched from the database ','abcde',Q.FieldByName('a').AsString);
+  AssertEquals('Field value has been fetched from the database ','fgh',Q.FieldByName('b').AsString);
 end;
 
 Procedure TTestTSQLQuery.TestGeneratedRefreshSQL1Field;
@@ -478,11 +472,11 @@ begin
   Q.Insert;
   Q.FieldByName('id').AsInteger:=1;
   Q.Post;
-  AssertTrue('field value has not been fetched after post',Q.FieldByName('a').IsNull);
+  AssertTrue('Field value has not been fetched after post',Q.FieldByName('a').IsNull);
   Q.ApplyUpdates(0);
-  AssertEquals('Still on correc field',1,Q.FieldByName('id').AsInteger);
-  AssertEquals('field value a has been fetched from the database ','abcde',Q.FieldByName('a').AsString);
-  AssertEquals('field value b has NOT been fetched from the database ','',Q.FieldByName('b').AsString);
+  AssertEquals('Still on correct field',1,Q.FieldByName('id').AsInteger);
+  AssertEquals('Field value a has been fetched from the database ','abcde',Q.FieldByName('a').AsString);
+  AssertEquals('Field value b has NOT been fetched from the database ','',Q.FieldByName('b').AsString);
 end;
 
 Procedure TTestTSQLQuery.TestGeneratedRefreshSQLNoKey;
@@ -560,7 +554,7 @@ begin
   FMyQ.Insert;
   FMyQ.FieldByName('id').AsInteger:=1;
   FMyQ.Post;
-  AssertException('Multiple records returned by RefreshSQL gives an error',EUpdateError,@DoApplyUpdates);
+  AssertException('No records returned by RefreshSQL gives an error',EUpdateError,@DoApplyUpdates);
 end;
 
 Procedure TTestTSQLQuery.TestFetchAutoInc;
