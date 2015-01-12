@@ -171,12 +171,14 @@ type
   end;
   PDummyUConvObject = ^TDummyUConvObject;
 
+
 const
   DefCpRec: TCpRec = (WinCP: 0; OS2CP: 0; UConvObj: nil);
   InInitDefaultCP: boolean = false;
   DefLocObj: TLocaleObject = nil;
   IBMPrefix: packed array [1..4] of WideChar = 'IBM-';
   CachedDefFSCodepage: TSystemCodepage = 0;
+  EmptyCC: TCountryCode = (Country: 0; Codepage: 0); (* Empty = current *)
 
 
 threadvar
@@ -405,15 +407,20 @@ end;
 
 
 function DummyUniToLower (UniCharIn: WideChar): WideChar; cdecl;
+var
+  C: char;
 begin
   DummyUniToLower := UniCharIn;
 
 end;
 
 function DummyUniToUpper (UniCharIn: WideChar): WideChar; cdecl;
+var
+  C: char;
 begin
   DummyUniToUpper := UniCharIn;
-
+  C := UniCharIn;
+  if DosMapCase (1, );
 end;
 
 function DummyUniStrColl (Locale_Object: TLocaleObject;
@@ -1055,13 +1062,12 @@ end;
 
 function OS2UpperAnsiString (const S: AnsiString): AnsiString;
 var
-  CC: TCountryCode;
   RC: cardinal;
 begin
   Result := S;
   UniqueString (Result);
   FillChar (CC, SizeOf (CC), 0);
-  RC := DosMapCase (Length (Result), CC, PChar (Result));
+  RC := DosMapCase (Length (Result), EmptyCC, PChar (Result));
 { What to do in case of a failure??? }
   if RC <> 0 then
    Result := UpCase (S); { Use a fallback? }
@@ -1071,7 +1077,6 @@ end;
 function OS2LowerAnsiString (const S: AnsiString): AnsiString;
 {
 var
-  CC: TCountryCode;
   RC: cardinal;
 }
 begin
@@ -1089,7 +1094,7 @@ begin
 
   RC := DosQueryDBCSEnv...
   FillChar (CC, SizeOf (CC), 0);
-  RC := DosMapCase (Length (Result), CC, PChar (Result));
+  RC := DosMapCase (Length (Result), EmptyCC, PChar (Result));
 *)
   Result := OS2LowerUnicodeString (S);
 { Two implicit conversions... ;-) }
