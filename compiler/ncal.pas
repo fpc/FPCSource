@@ -1702,7 +1702,10 @@ implementation
                       typecheckpass(temp);
                       if (temp.nodetype <> ordconstn) or
                          (tordconstnode(temp).value <> 0) then
-                        hightree := caddnode.create(subn,hightree,temp)
+                        begin
+                          hightree:=caddnode.create(subn,hightree,temp);
+                          include(hightree.flags,nf_internal);
+                        end
                       else
                         temp.free;
                     end;
