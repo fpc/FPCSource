@@ -574,6 +574,8 @@ begin
     case SQLServerType of
       ssMySQL:
         datatype := 'integer auto_increment';
+      ssMSSQL, ssSybase:
+        datatype := 'integer identity';
       ssSQLite:
         datatype := 'integer';
       else
@@ -590,18 +592,18 @@ begin
     Open;
     Insert;
     FieldByName('f').AsString:='a';
-    Post;
+    Post;  // #1 record
     Append;
     FieldByName('f').AsString:='b';
-    Post;
+    Post;  // #2 record
     AssertTrue('ID field is not null after Post', FieldByName('id').IsNull);
-    First;
+    First; // #1 record
     ApplyUpdates(0);
     AssertTrue('ID field is still null after ApplyUpdates', Not FieldByName('id').IsNull);
     // Should be 1 after the table was created, but this is not guaranteed... So we just test positive values.
     id := FieldByName('id').AsLargeInt;
     AssertTrue('ID field has not positive value', id>0);
-    Next;
+    Next;  // #2 record
     AssertTrue('Next ID value is not greater than previous', FieldByName('id').AsLargeInt>id);
     end;
 end;

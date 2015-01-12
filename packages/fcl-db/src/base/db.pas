@@ -48,7 +48,7 @@ type
 
   TDataSetState = (dsInactive, dsBrowse, dsEdit, dsInsert, dsSetKey,
     dsCalcFields, dsFilter, dsNewValue, dsOldValue, dsCurValue, dsBlockRead,
-    dsInternalCalc, dsOpening);
+    dsInternalCalc, dsOpening, dsRefreshFields);
 
   TDataEvent = (deFieldChange, deRecordChange, deDataSetChange,
     deDataSetScroll, deLayoutChange, deUpdateRecord, deUpdateState,
@@ -2157,7 +2157,7 @@ const
 
   dsEditModes = [dsEdit, dsInsert, dsSetKey];
   dsWriteModes = [dsEdit, dsInsert, dsSetKey, dsCalcFields, dsFilter,
-    dsNewValue, dsInternalCalc];
+                  dsNewValue, dsInternalCalc, dsRefreshFields];
   // Correct list of all field types that are BLOB types.
   // Please use this instead of checking TBlobType which will give
   // incorrect results

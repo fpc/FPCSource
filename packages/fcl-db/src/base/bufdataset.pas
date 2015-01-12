@@ -2104,9 +2104,10 @@ end;
 function TCustomBufDataset.GetCurrentBuffer: TRecordBuffer;
 begin
   case State of
-    dsFilter:     Result := FFilterBuffer;
-    dsCalcFields: Result := CalcBuffer;
-    else          Result := ActiveBuffer;
+    dsFilter:        Result := FFilterBuffer;
+    dsCalcFields:    Result := CalcBuffer;
+    dsRefreshFields: Result := FCurrentIndex.CurrentBuffer
+    else             Result := ActiveBuffer;
   end;
 end;
 
@@ -2155,7 +2156,7 @@ begin
     begin
     Inc(CurrBuff, GetRecordSize + Field.Offset);
     Result := Boolean(CurrBuff^);
-    if result and assigned(Buffer) then
+    if Result and assigned(Buffer) then
       begin
       inc(CurrBuff);
       Move(CurrBuff^, Buffer^, Field.DataSize);
@@ -2180,7 +2181,7 @@ begin
   CurrBuff := GetCurrentBuffer;
   If Field.FieldNo > 0 then // If =-1, then calculated/lookup field or =0 unbound field
     begin
-    if Field.ReadOnly and not (State in [dsSetKey, dsFilter]) then
+    if Field.ReadOnly and not (State in [dsSetKey, dsFilter, dsRefreshFields]) then
       DatabaseErrorFmt(SReadOnlyField, [Field.DisplayName]);	
     if State in [dsEdit, dsInsert, dsNewValue] then
       Field.Validate(Buffer);	

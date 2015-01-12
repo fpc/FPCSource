@@ -2644,7 +2644,9 @@ begin
   DoRefresh:=(UpdateKind in [ukModify,ukInsert]) and NeedRefreshRecord(UpdateKind);
   if assigned(LastIDField) or DoRefresh then
     begin
-    S:=SetTempState(dsNewValue);
+    // updates fields directly in record buffer of TBufDataSet
+    //   TDataSet buffers are resynchronized at end of ApplyUpdates process
+    S:=SetTempState(dsRefreshFields);
     try
       RecordRefreshed:=False;
       if assigned(LastIDField) then
@@ -2656,7 +2658,7 @@ begin
     end;
     if RecordRefreshed then
       // Active buffer is updated, move to record.
-      ActiveBufferToRecord;
+      //ActiveBufferToRecord;
     end;
 end;
 
