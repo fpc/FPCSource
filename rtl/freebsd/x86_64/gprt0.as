@@ -11,7 +11,7 @@ abitag:
 	.long	4
 	.long	1
 	.string	"FreeBSD"
-	.long	502110
+	.long	900044
 	.section	.rodata
 .LC0:
 	.string	""
