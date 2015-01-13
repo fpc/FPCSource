@@ -148,6 +148,12 @@
 -Fu%basepath%/units/$fpctarget/*
 -Fu%basepath%/units/$fpctarget/rtl
 
+#ifdef cpui8086
+-Fu%basepath%/units/$fpctarget/$fpcsubarch-$fpcmemorymodel
+-Fu%basepath%/units/$fpctarget/$fpcsubarch-$fpcmemorymodel/*
+-Fu%basepath%/units/$fpctarget/$fpcsubarch-$fpcmemorymodel/rtl
+#endif
+
 #IFDEF FPCAPACHE_1_3
 -Fu%basepath%/units/$fpctarget/httpd13/
 #ELSE
