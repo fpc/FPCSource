@@ -146,6 +146,7 @@ begin
 {$endif}
 {$endif arm}
 {$ifdef x86_64}
+  if not Dontlinkstdlibpath Then
     LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/x86_64-linux-gnu',true);
 {$endif x86_64}
 end;
