@@ -180,14 +180,13 @@ begin
   // Test also that an edit still works.
   with SQLDBConnector do
     begin
-    TryDropIfExist('testdiscon');
-    ExecuteDirect('create table testdiscon (id integer not null, a varchar(10), constraint pk_testdiscon primary key(id))');
+    ExecuteDirect('create table FPDEV2 (id integer not null, a varchar(10), constraint PK_FPDEV2 primary key(id))');
     Transaction.Commit;
     for I:=1 to 20 do
-      ExecuteDirect(Format('INSERT INTO testdiscon values (%d,''%.6d'')',[i,i]));
+      ExecuteDirect(Format('INSERT INTO FPDEV2 values (%d,''%.6d'')',[i,i]));
     Transaction.Commit;
     Q := SQLDBConnector.Query;
-    Q.SQL.Text:='select * from testdiscon';
+    Q.SQL.Text:='select * from FPDEV2';
     Q.Options:=[sqoKeepOpenOnCommit];
     AssertEquals('PacketRecords forced to -1',-1,Q.PacketRecords);
     Q.Open;
@@ -203,7 +202,7 @@ begin
     Q.ApplyUpdates;
     AssertTrue('Have no more updates pending',Q.UpdateStatus=usUnmodified);
     Q.Close;
-    Q.SQL.Text:='select * from testdiscon where (id=20) and (a=''abc'')';
+    Q.SQL.Text:='select * from FPDEV2 where (id=20) and (a=''abc'')';
     Q.Open;
     AssertTrue('Have modified data record in database', not (Q.EOF AND Q.BOF));
     end;
@@ -240,13 +239,12 @@ begin
   // Check that we can only set QueryOptions when the query is inactive.
   with SQLDBConnector do
     begin
-    TryDropIfExist('testdiscon');
-    ExecuteDirect('create table testdiscon (id integer not null, a varchar(10), constraint pk_testdiscon primary key(id))');
+    ExecuteDirect('create table FPDEV2 (id integer not null, a varchar(10), constraint PK_FPDEV2 primary key(id))');
     Transaction.COmmit;
-     ExecuteDirect(Format('INSERT INTO testdiscon values (%d,''%.6d'')',[1,1]));
+     ExecuteDirect(Format('INSERT INTO FPDEV2 values (%d,''%.6d'')',[1,1]));
     Transaction.COmmit;
     FMyQ := SQLDBConnector.Query;
-    FMyQ.SQL.Text:='select * from testdiscon';
+    FMyQ.SQL.Text:='select * from FPDEV2';
     FMyQ := SQLDBConnector.Query;
     FMyQ.OPen;
     AssertException('Cannot set packetrecords when sqoDisconnected is active',EDatabaseError,@SetQueryOptions);
@@ -266,15 +264,14 @@ begin
   // Test also that POST afterpost event is backwards compatible.
   with SQLDBConnector do
     begin
-    TryDropIfExist('testdiscon');
-    ExecuteDirect('create table testdiscon (id integer not null, a varchar(10), constraint pk_testdiscon primary key(id))');
+    ExecuteDirect('create table FPDEV2 (id integer not null, a varchar(10), constraint PK_FPDEV2 primary key(id))');
     Transaction.COmmit;
     for I:=1 to 2 do
-      ExecuteDirect(Format('INSERT INTO testdiscon values (%d,''%.6d'')',[i,i]));
+      ExecuteDirect(Format('INSERT INTO FPDEV2 values (%d,''%.6d'')',[i,i]));
     Transaction.COmmit;
     Q := SQLDBConnector.Query;
     FMyQ:=Q; // so th event handler can reach it.
-    Q.SQL.Text:='select * from testdiscon';
+    Q.SQL.Text:='select * from FPDEV2';
     Q.Options:=[sqoAutoApplyUpdates];
     // We must test that in AfterPost, the modification is still there, for backwards compatibilty
     Q.AfterPost:=@DoAfterPost;
@@ -287,7 +284,7 @@ begin
     Q.Post;
     AssertTrue('Have no more updates pending',Q.UpdateStatus=usUnmodified);
     Q.Close;
-    Q.SQL.Text:='select * from testdiscon where (id=2) and (a=''abc'')';
+    Q.SQL.Text:='select * from FPDEV2 where (id=2) and (a=''abc'')';
     Q.Open;
     AssertTrue('Have modified data record in database',not (Q.EOF AND Q.BOF));
     end;
@@ -302,15 +299,14 @@ begin
   // Test that if sqoAutoApplyUpdates is in QueryOptions, then Delete automatically does an ApplyUpdates
   with SQLDBConnector do
     begin
-    TryDropIfExist('testdiscon');
-    ExecuteDirect('create table testdiscon (id integer not null, a varchar(10), constraint pk_testdiscon primary key(id))');
+    ExecuteDirect('create table FPDEV2 (id integer not null, a varchar(10), constraint PK_FPDEV2 primary key(id))');
     Transaction.COmmit;
     for I:=1 to 2 do
-      ExecuteDirect(Format('INSERT INTO testdiscon values (%d,''%.6d'')',[i,i]));
+      ExecuteDirect(Format('INSERT INTO FPDEV2 values (%d,''%.6d'')',[i,i]));
     Transaction.COmmit;
     Q := SQLDBConnector.Query;
     FMyQ:=Q; // so th event handler can reach it.
-    Q.SQL.Text:='select * from testdiscon';
+    Q.SQL.Text:='select * from FPDEV2';
     Q.Options:=[sqoAutoApplyUpdates];
     // We must test that in AfterPost, the modification is still there, for backwards compatibilty
     Q.AfterPost:=@DoAfterPost;
@@ -321,7 +317,7 @@ begin
     Q.Delete;
     AssertTrue('Have no more updates pending',Q.UpdateStatus=usUnmodified);
     Q.Close;
-    Q.SQL.Text:='select * from testdiscon where (id=2)';
+    Q.SQL.Text:='select * from FPDEV2 where (id=2)';
     Q.Open;
     AssertTrue('Data record is deleted in database', (Q.EOF AND Q.BOF));
     end;
@@ -340,22 +336,21 @@ begin
   // Test that if sqoAutoApplyUpdates is in QueryOptions, then Delete automatically does an ApplyUpdates
   with SQLDBConnector do
     begin
-    TryDropIfExist('testdiscon');
-    ExecuteDirect('create table testdiscon (id integer not null, a varchar(10), constraint pk_testdiscon primary key(id))');
+    ExecuteDirect('create table FPDEV2 (id integer not null, a varchar(10), constraint PK_FPDEV2 primary key(id))');
     Transaction.COmmit;
     for I:=1 to 2 do
-      ExecuteDirect(Format('INSERT INTO testdiscon values (%d,''%.6d'')',[i,i]));
+      ExecuteDirect(Format('INSERT INTO FPDEV2 values (%d,''%.6d'')',[i,i]));
     Transaction.COmmit;
     SQLDBConnector.Connection.Options:=[scoApplyUpdatesChecksRowsAffected];
     Q := SQLDBConnector.Query;
-    Q.SQL.Text:='select * from testdiscon';
-    Q.DeleteSQL.Text:='delete from testdiscon';
+    Q.SQL.Text:='select * from FPDEV2';
+    Q.DeleteSQL.Text:='delete from FPDEV2';
     Q.Open;
     AssertEquals('Got all records',2,Q.RecordCount);
     // Now check editing
     Q.Delete;
     FMyQ:=Q;
-    AssertException('Rowsaffected > 1 raises exception',EUpdateError,@DoApplyUpdates);
+    AssertException('RowsAffected > 1 raises exception',EUpdateError,@DoApplyUpdates);
     end;
 end;
 
@@ -365,15 +360,14 @@ var
 begin
   with SQLDBConnector do
     begin
-    TryDropIfExist('testdiscon');
-    ExecuteDirect('create table testdiscon (id integer not null, a varchar(10), constraint pk_testdiscon primary key(id))');
+    ExecuteDirect('create table FPDEV2 (id integer not null, a varchar(10), constraint PK_FPDEV2 primary key(id))');
     if Transaction.Active then
       Transaction.Commit;
 
     Query.Options:=[sqoAutoCommit];
     for I:=1 to 2 do
       begin
-      Query.SQL.Text:=Format('INSERT INTO testdiscon values (%d,''%.6d'');',[i,i]);
+      Query.SQL.Text:=Format('INSERT INTO FPDEV2 values (%d,''%.6d'');',[i,i]);
       Query.Prepare;
       Query.ExecSQL;
       // We do not commit anything explicitly.
@@ -384,7 +378,7 @@ begin
     Connection.Close;
     Connection.Open;
 
-    Query.SQL.Text:='SELECT COUNT(*) from testdiscon';
+    Query.SQL.Text:='SELECT COUNT(*) from FPDEV2';
     Query.Open;
     AssertEquals('Records haven''t been committed to database', 2, Query.Fields[0].AsInteger);
     end;
@@ -397,23 +391,32 @@ var
 begin
   with SQLDBConnector do
     begin
-    TryDropIfExist('testdefval');
-    ExecuteDirect('create table testdefval (id integer not null, a varchar(10) default ''abcde'', constraint pk_testdefval primary key(id))');
+    ExecuteDirect('create table FPDEV2 (id integer not null primary key, a varchar(5) default ''abcde'', b integer default 1)');
     if Transaction.Active then
       Transaction.Commit;
     end;
   Q:=SQLDBConnector.Query;
-  Q.SQL.Text:='select * from testdefval';
-  Q.InsertSQL.Text:='insert into testdefval (id) values (:id)';
-  Q.RefreshSQL.Text:='SELECT a FROM testdefval WHERE (id=:id)';
+  Q.SQL.Text:='select * from FPDEV2';
+  Q.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
+  Q.RefreshSQL.Text:='SELECT a,b FROM FPDEV2 WHERE (id=:id)';
   Q.Open;
-  Q.Insert;
+  Q.Insert;  // #1 record
   Q.FieldByName('id').AsInteger:=1;
   Q.Post;
-  AssertTrue('Field value has not been fetched after post',Q.FieldByName('a').IsNull);
+  Q.Append;  // #2 record
+  Q.FieldByName('id').AsInteger:=2;
+  Q.Post;
+  AssertTrue('Field value has not been fetched after Post', Q.FieldByName('a').IsNull);
   Q.ApplyUpdates(0);
-  AssertEquals('Still on correct field',1,Q.FieldByName('id').AsInteger);
-  AssertEquals('Field value has been fetched from the database ','abcde',Q.FieldByName('a').AsString);
+  // #2 record:
+  AssertEquals('Still on correct field', 2, Q.FieldByName('id').AsInteger);
+  AssertEquals('Field value has been fetched from the database', 'abcde', Q.FieldByName('a').AsString);
+  AssertEquals('Field value has been fetched from the database', 1, Q.FieldByName('b').AsInteger);
+  Q.Prior;
+  // #1 record:
+  AssertEquals('Still on correct field', 1, Q.FieldByName('id').AsInteger);
+  AssertEquals('Field value has been fetched from the database', 'abcde', Q.FieldByName('a').AsString);
+  AssertEquals('Field value has been fetched from the database', 1, Q.FieldByName('b').AsInteger);
 end;
 
 Procedure TTestTSQLQuery.TestGeneratedRefreshSQL;
@@ -424,14 +427,13 @@ var
 begin
   with SQLDBConnector do
     begin
-    TryDropIfExist('testdefval');
-    ExecuteDirect('create table testdefval (id integer not null, a varchar(10) default ''abcde'', b varchar(5) default ''fgh'', constraint pk_testdefval primary key(id))');
+    ExecuteDirect('create table FPDEV2 (id integer not null, a varchar(10) default ''abcde'', b varchar(5) default ''fgh'', constraint PK_FPDEV2 primary key(id))');
     if Transaction.Active then
       Transaction.Commit;
     end;
   Q:=SQLDBConnector.Query;
-  Q.SQL.Text:='select * from testdefval';
-  Q.InsertSQL.Text:='insert into testdefval (id) values (:id)';
+  Q.SQL.Text:='select * from FPDEV2';
+  Q.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
   Q.Open;
   With Q.FieldByName('id') do
     ProviderFlags:=ProviderFlags+[pfInKey];
@@ -456,14 +458,13 @@ var
 begin
   with SQLDBConnector do
     begin
-    TryDropIfExist('testdefval');
-    ExecuteDirect('create table testdefval (id integer not null, a varchar(10) default ''abcde'', b varchar(5) default ''fgh'', constraint pk_testdefval primary key(id))');
+    ExecuteDirect('create table FPDEV2 (id integer not null, a varchar(10) default ''abcde'', b varchar(5) default ''fgh'', constraint PK_FPDEV2 primary key(id))');
     if Transaction.Active then
       Transaction.Commit;
     end;
   Q:=SQLDBConnector.Query;
-  Q.SQL.Text:='select * from testdefval';
-  Q.InsertSQL.Text:='insert into testdefval (id) values (:id)';
+  Q.SQL.Text:='select * from FPDEV2';
+  Q.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
   Q.Open;
   With Q.FieldByName('id') do
     ProviderFlags:=ProviderFlags+[pfInKey];
@@ -483,14 +484,13 @@ Procedure TTestTSQLQuery.TestGeneratedRefreshSQLNoKey;
 begin
   with SQLDBConnector do
     begin
-    TryDropIfExist('testdefval');
-    ExecuteDirect('create table testdefval (id integer not null, a varchar(10) default ''abcde'', b varchar(5) default ''fgh'', constraint pk_testdefval primary key(id))');
+    ExecuteDirect('create table FPDEV2 (id integer not null, a varchar(10) default ''abcde'', b varchar(5) default ''fgh'', constraint PK_FPDEV2 primary key(id))');
     if Transaction.Active then
       Transaction.Commit;
     end;
   FMyQ:=SQLDBConnector.Query;
-  FMyQ.SQL.Text:='select * from testdefval';
-  FMyQ.InsertSQL.Text:='insert into testdefval (id) values (:id)';
+  FMyQ.SQL.Text:='select * from FPDEV2';
+  FMyQ.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
   FMyQ.Open;
   With FMyQ.FieldByName('id') do
     ProviderFlags:=ProviderFlags-[pfInKey];
@@ -507,18 +507,17 @@ Procedure TTestTSQLQuery.TestRefreshSQLMultipleRecords;
 begin
   with SQLDBConnector do
     begin
-    TryDropIfExist('testdefval');
-    ExecuteDirect('create table testdefval (id integer not null, a varchar(10) default ''abcde'', b varchar(5) default ''fgh'', constraint pk_testdefval primary key(id))');
+    ExecuteDirect('create table FPDEV2 (id integer not null, a varchar(10) default ''abcde'', b varchar(5) default ''fgh'', constraint PK_FPDEV2 primary key(id))');
     if Transaction.Active then
       Transaction.Commit;
-    ExecuteDirect('insert into testdefval (id) values (123)');
+    ExecuteDirect('insert into FPDEV2 (id) values (123)');
     if Transaction.Active then
       Transaction.Commit;
     end;
   FMyQ:=SQLDBConnector.Query;
-  FMyQ.SQL.Text:='select * from testdefval';
-  FMyQ.InsertSQL.Text:='insert into testdefval (id) values (:id)';
-  FMyQ.RefreshSQL.Text:='select * from testdefval';
+  FMyQ.SQL.Text:='select * from FPDEV2';
+  FMyQ.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
+  FMyQ.RefreshSQL.Text:='select * from FPDEV2';
   FMyQ.Open;
   With FMyQ.FieldByName('id') do
     ProviderFlags:=ProviderFlags+[pfInKey];
@@ -534,18 +533,17 @@ Procedure TTestTSQLQuery.TestRefreshSQLNoRecords;
 begin
   with SQLDBConnector do
     begin
-    TryDropIfExist('testdefval');
-    ExecuteDirect('create table testdefval (id integer not null, a varchar(10) default ''abcde'', b varchar(5) default ''fgh'', constraint pk_testdefval primary key(id))');
+    ExecuteDirect('create table FPDEV2 (id integer not null, a varchar(10) default ''abcde'', b varchar(5) default ''fgh'', constraint PK_FPDEV2 primary key(id))');
     if Transaction.Active then
       Transaction.Commit;
-    ExecuteDirect('insert into testdefval (id) values (123)');
+    ExecuteDirect('insert into FPDEV2 (id) values (123)');
     if Transaction.Active then
       Transaction.Commit;
     end;
   FMyQ:=SQLDBConnector.Query;
-  FMyQ.SQL.Text:='select * from testdefval';
-  FMyQ.InsertSQL.Text:='insert into testdefval (id) values (:id)';
-  FMyQ.RefreshSQL.Text:='select * from testdefval where 1=2';
+  FMyQ.SQL.Text:='select * from FPDEV2';
+  FMyQ.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
+  FMyQ.RefreshSQL.Text:='select * from FPDEV2 where 1=2';
   FMyQ.Open;
   With FMyQ.FieldByName('id') do
     ProviderFlags:=ProviderFlags+[pfInKey];
@@ -575,7 +573,6 @@ begin
       else
         Ignore(STestNotApplicable);
     end;
-    TryDropIfExist('FPDEV2');
     ExecuteDirect('create table FPDEV2 (id '+datatype+' primary key, f varchar(5))');
     CommitDDL;
     end;
@@ -651,7 +648,6 @@ end;
 
 procedure TTestTSQLConnection.TestImplicitTransactionOK;
 
-
 var
   Q : TSQLQuery;
   T : TSQLTransaction;
@@ -659,8 +655,7 @@ var
 begin
   with SQLDBConnector do
     begin
-    TryDropIfExist('testdiscon');
-    ExecuteDirect('create table testdiscon (id integer not null, a varchar(10), constraint pk_testdiscon primary key(id))');
+    ExecuteDirect('create table FPDEV2 (id integer not null, a varchar(10), constraint PK_FPDEV2 primary key(id))');
     if Transaction.Active then
       Transaction.Commit;
     end;
@@ -668,7 +663,7 @@ begin
   Q:=SQLDBConnector.Query;
   for I:=1 to 2 do
     begin
-    Q.SQL.Text:=Format('INSERT INTO testdiscon values (%d,''%.6d'');',[i,i]);
+    Q.SQL.Text:=Format('INSERT INTO FPDEV2 values (%d,''%.6d'');',[i,i]);
     Q.Prepare;
     Q.ExecSQL;
     // We do not commit anything explicitly.
@@ -681,7 +676,7 @@ begin
     Q.Transaction:=T;
     Q.Database:=SQLDBConnector.Connection;
     T.Database:=SQLDBConnector.Connection;
-    Q.SQL.text:='SELECT COUNT(*) from testdiscon';
+    Q.SQL.text:='SELECT COUNT(*) from FPDEV2';
     Q.Open;
     AssertEquals('Records have been committed to database',2,Q.Fields[0].AsInteger);
   finally
