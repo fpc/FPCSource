@@ -5706,7 +5706,20 @@ external 'DOSCALLS' index 358;
 
 functionDosGetProcessorStatus (...): cardinal; cdecl;
 external 'DOSCALLS' index 447;
+
  DosSetProcessorStatus = DOSCALLS.448
+
+type
+  TSpinLock = cardinal;
+  HSpinLock = TSpinLock;
+  PSpinLock = ^TSpinLock;
+  PHSpinLock = PSpinLock;
+
+function DosCreateSpinLock (var SpinLock: TSpinLock): cardinal; cdecl;
+procedure DosAcquireSpinLock (SpinLock: TSpinLock); cdecl;
+procedure DosReleaseSpinLock (SpinLock: TSpinLock); cdecl;
+function DosFreeSpinLock (SpinLock: TSpinLock): cardinal; cdecl;
+
  DosCreateSpinLock     = DOSCALLS.449
  DosAcquireSpinLock    = DOSCALLS.450
  DosReleaseSpinLock    = DOSCALLS.451

@@ -121,7 +121,7 @@ begin
 end;
 
 begin
-{$IF DEFINED(MORPHOS) OR DEFINED(AMIGA)}
+{$IF DEFINED(MORPHOS)}
   InitIFFParseLibrary;
 {$ENDIF}
 end.

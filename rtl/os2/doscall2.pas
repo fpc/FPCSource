@@ -2181,6 +2181,17 @@ DosAcquireSpinLock    = DOSCALLS.450 - might be simulated using semaphores on no
 DosReleaseSpinLock    = DOSCALLS.451 - might be simulated using semaphores on non-SMP
 DosFreeSpinLock       = DOSCALLS.452 - might be simulated using semaphores on non-SMP
 
+type
+  TSpinLock = cardinal;
+  HSpinLock = TSpinLock;
+  PSpinLock = ^TSpinLock;
+  PHSpinLock = PSpinLock;
+
+function DosCreateSpinLock (var SpinLock: TSpinLock): cardinal; cdecl;
+procedure DosAcquireSpinLock (SpinLock: TSpinLock); cdecl;
+procedure DosReleaseSpinLock (SpinLock: TSpinLock); cdecl;
+function DosFreeSpinLock (SpinLock: TSpinLock): cardinal; cdecl;
+
  DosQueryModFromEIP - may be simulated by returning empty value if not available or possibly by using data returned by DosQuerySysState (if they are equal across different OS/2 versions?)
 
 ___ function Dos16QueryModFromCS (...): ...
