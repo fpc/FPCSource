@@ -442,11 +442,11 @@ function DosMapCase (Size: cardinal; var Country: TCountryCode;
                      AString: PChar): cardinal; cdecl;
 external 'NLS' index 7;
 
-{
 function DosQueryDBCSEnv (Size: cardinal; var Country: TCountryCode;
                                                   Buf: PChar): cardinal; cdecl;
 external 'NLS' index 6;
 
+{
 function DosQueryCollate (Size: cardinal; var Country: TCountryCode;
                      Buf: PByteArray; var TableLen: cardinal): cardinal; cdecl;
 external 'NLS' index 8;

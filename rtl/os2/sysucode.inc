@@ -172,14 +172,67 @@ type
   PDummyUConvObject = ^TDummyUConvObject;
 
 
+var
+  DBCSLeadRanges: array [0..11] of char;
+
+
 const
   DefCpRec: TCpRec = (WinCP: 0; OS2CP: 0; UConvObj: nil);
-  InInitDefaultCP: boolean = false;
+  InInitDefaultCP: int64 = -1; (* Range is bigger than TThreadID to avoid conflict *)
   DefLocObj: TLocaleObject = nil;
   IBMPrefix: packed array [1..4] of WideChar = 'IBM-';
   CachedDefFSCodepage: TSystemCodepage = 0;
   EmptyCC: TCountryCode = (Country: 0; Codepage: 0); (* Empty = current *)
-
+  (* 819 = IBM codepage number for ISO 8859-1 used in FPC default *)
+  (* dummy translation between UnicodeString and AnsiString.      *)
+  IsoCC: TCountryCode = (Country: 1; Codepage: 819); (* Empty = current *)
+  (* The following two arrays are initialized on startup in case that *)
+  (* Dummy* routines must be used. First for current codepage...      *)
+  DBCSLeadRangesEnd: byte = 0;
+  LowerChars: array [char] of char =
+   (#0, #1, #2, #3, #4, #5, #6, #7, #8, #9, #10, #11, #12, #13, #14, #15, #16,
+    #17, #18, #19, #20, #21, #22, #23, #24, #25, #26, #27, #28, #29, #30, #31,
+    #32, #33, #34, #35, #36, #37, #38, #39, #40, #41, #42, #43, #44, #45, #46,
+    #47, #48, #49, #50, #51, #52, #53, #54, #55, #56, #57, #58, #59, #60, #61,
+    #62, #63, #64, #65, #66, #67, #68, #69, #70, #71, #72, #73, #74, #75, #76,
+    #77, #78, #79, #80, #81, #82, #83, #84, #85, #86, #87, #88, #89, #90, #91,
+    #92, #93, #94, #95, #96, #97, #98, #99, #100, #101, #102, #103, #104, #105,
+    #106, #107, #108, #109, #110, #111, #112, #113, #114, #115, #116, #117,
+    #118, #119, #120, #121, #122, #123, #124, #125, #126, #127, #128, #129,
+    #130, #131, #132, #133, #134, #135, #136, #137, #138, #139, #140, #141,
+    #142, #143, #144, #145, #146, #147, #148, #149, #150, #151, #152, #153,
+    #154, #155, #156, #157, #158, #159, #160, #161, #162, #163, #164, #165,
+    #166, #167, #168, #169, #170, #171, #172, #173, #174, #175, #176, #177,
+    #178, #179, #180, #181, #182, #183, #184, #185, #186, #187, #188, #189,
+    #190, #191, #192, #193, #194, #195, #196, #197, #198, #199, #200, #201,
+    #202, #203, #204, #205, #206, #207, #208, #209, #210, #211, #212, #213,
+    #214, #215, #216, #217, #218, #219, #220, #221, #222, #223, #224, #225,
+    #226, #227, #228, #229, #230, #231, #232, #233, #234, #235, #236, #237,
+    #238, #239, #240, #241, #242, #243, #244, #245, #246, #247, #248, #249,
+    #250, #251, #252, #253, #254, #255);
+  (* ...and now for ISO 8859-1 aka IBM codepage 819 *)
+  LowerCharsISO88591: array [char] of char =
+   (#0, #1, #2, #3, #4, #5, #6, #7, #8, #9, #10, #11, #12, #13, #14, #15, #16,
+    #17, #18, #19, #20, #21, #22, #23, #24, #25, #26, #27, #28, #29, #30, #31,
+    #32, #33, #34, #35, #36, #37, #38, #39, #40, #41, #42, #43, #44, #45, #46,
+    #47, #48, #49, #50, #51, #52, #53, #54, #55, #56, #57, #58, #59, #60, #61,
+    #62, #63, #64, #65, #66, #67, #68, #69, #70, #71, #72, #73, #74, #75, #76,
+    #77, #78, #79, #80, #81, #82, #83, #84, #85, #86, #87, #88, #89, #90, #91,
+    #92, #93, #94, #95, #96, #97, #98, #99, #100, #101, #102, #103, #104, #105,
+    #106, #107, #108, #109, #110, #111, #112, #113, #114, #115, #116, #117,
+    #118, #119, #120, #121, #122, #123, #124, #125, #126, #127, #128, #129,
+    #130, #131, #132, #133, #134, #135, #136, #137, #138, #139, #140, #141,
+    #142, #143, #144, #145, #146, #147, #148, #149, #150, #151, #152, #153,
+    #154, #155, #156, #157, #158, #159, #160, #161, #162, #163, #164, #165,
+    #166, #167, #168, #169, #170, #171, #172, #173, #174, #175, #176, #177,
+    #178, #179, #180, #181, #182, #183, #184, #185, #186, #187, #188, #189,
+    #190, #191, #192, #193, #194, #195, #196, #197, #198, #199, #200, #201,
+    #202, #203, #204, #205, #206, #207, #208, #209, #210, #211, #212, #213,
+    #214, #215, #216, #217, #218, #219, #220, #221, #222, #223, #224, #225,
+    #226, #227, #228, #229, #230, #231, #232, #233, #234, #235, #236, #237,
+    #238, #239, #240, #241, #242, #243, #244, #245, #246, #247, #248, #249,
+    #250, #251, #252, #253, #254, #255);
+  NoIso88591Support: boolean = false;
 
 threadvar
 (* Temporary allocations may be performed in parallel in different threads *)
@@ -406,13 +459,73 @@ begin
 end;
 
 
+procedure InitDBCSLeadRanges;
+var
+  RC: cardinal;
+begin
+  RC := DosQueryDBCSEnv (SizeOf (DBCSLeadRanges), EmptyCC,
+                                                          @DBCSLeadRanges [0]);
+  DBCSLeadRangesEnd := 0;
+  if RC <> 0 then
+   while (DBCSLeadRangesEnd < SizeOf (DBCSLeadRanges)) and
+                ((DBCSLeadRanges [DBCSLeadRangesEnd] <> #0) or
+                          (DBCSLeadRanges [Succ (DBCSLeadRangesEnd)] <> #0)) do
+    Inc (DBCSLeadRangesEnd, 2);
+end;
+
+procedure InitDummyLowercase;
+var
+  C: char;
+  AllChars: array [char] of char;
+begin
+  Move (LowerChars, AllChars, SizeOf (AllChars));
+  if DosMapCase (SizeOf (AllChars), IsoCC, @AllChars [#0]) <> 0 then
+(* Codepage 819 may not be supported in all old OS/2 versions. *)
+   begin
+    Move (LowerCharsIso88591, AllChars, SizeOf (AllChars));
+    DosMapCase (SizeOf (AllChars), EmptyCC, @AllChars [#0]);
+    NoIso88591Support := true;
+   end;
+  for C := Low (char) to High (char) do
+   if AllChars [C] <> C then
+    LowerCharsIso88591 [AllChars [C]] := C;
+  if NoIso88591Support then
+   Move (LowerCharsIso88591, LowerChars, SizeOf (LowerChars))
+  else
+   begin
+    Move (LowerChars, AllChars, SizeOf (AllChars));
+    DosMapCase (SizeOf (AllChars), EmptyCC, @AllChars [#0]);
+    for C := Low (char) to High (char) do
+     if AllChars [C] <> C then
+      LowerChars [AllChars [C]] := C;
+   end;
+  InitDBCSLeadRanges;
+end;
+
+
+procedure ReInitDummyLowercase;
+var
+  C: char;
+  AllChars: array [char] of char;
+begin
+  for C := Low (char) to High (char) do
+   AllChars [C] := C;
+  DosMapCase (SizeOf (AllChars), EmptyCC, @AllChars [#0]);
+  for C := Low (char) to High (char) do
+   if AllChars [C] <> C then
+    LowerChars [AllChars [C]] := C;
+  InitDBCSLeadRanges;
+end;
+
+
 function DummyUniToLower (UniCharIn: WideChar): WideChar; cdecl;
 var
   C: char;
 begin
-  DummyUniToLower := UniCharIn;
-
+  C := UniCharIn;
+  DummyUniToLower := LowerCharsIso88591 [C];
 end;
+
 
 function DummyUniToUpper (UniCharIn: WideChar): WideChar; cdecl;
 var
@@ -420,8 +533,16 @@ var
 begin
   DummyUniToUpper := UniCharIn;
   C := UniCharIn;
-  if DosMapCase (1, );
+  if NoIso88591Support then
+   begin
+    if DosMapCase (1, EmptyCC, @C) = 0 then
+     DummyUniToUpper := C;
+   end
+  else
+   if DosMapCase (1, IsoCC, @C) = 0 then
+    DummyUniToUpper := C
 end;
+
 
 function DummyUniStrColl (Locale_Object: TLocaleObject;
                                   const UCS1, UCS2: PWideChar): longint; cdecl;
@@ -571,7 +692,14 @@ var
   CPArr: TCPArray;
   ReturnedSize: cardinal;
 begin
-  InInitDefaultCP := true;
+  if InInitDefaultCP <> -1 then
+   begin
+    repeat
+     DosSleep (5);
+    until InInitDefaultCP <> -1;
+    Exit;
+   end;
+  InInitDefaultCP := ThreadID;
   if DefCpRec.UConvObj <> nil then
    begin
 (*  Do not free the UConv object from DefCpRec, because it is also stored in
@@ -613,7 +741,9 @@ begin
   RCI := Sys_UniCreateLocaleObject (Uni_UCS_String_Pointer, @WNull, DefLocObj);
   if RCI <> 0 then
    OSErrorWatch (cardinal (RCI));
-  InInitDefaultCP := false;
+  if not (UniAPI) then
+   ReInitDummyLowercase;
+  InInitDefaultCP := -1;
 end;
 
 
@@ -645,9 +775,15 @@ begin
   if CheckDefaultOS2CP then
    Exit;
   if (CachedDefFSCodepage <> DefaultFileSystemCodePage) and
-                                                     not (InInitDefaultCP) then
+                                             (InInitDefaultCP <> ThreadID) then
+(* InInitDefaultCP = ThreadID -> this thread is already re-initializing the cached information *)
    begin
-    InitDefaultCP;
+    if InInitDefaultCP <> -1 then
+     repeat
+      DosSleep (5) (* Let's wait until the other thread finishes re-initialization of the cache *)
+     until InInitDefaultCP = -1
+    else
+     InitDefaultCP;
     if CheckDefaultOS2CP then
      Exit;
    end;
@@ -740,9 +876,16 @@ begin
   else
    begin
     if (CachedDefFSCodepage <> DefaultFileSystemCodePage) and
-                                                     not (InInitDefaultCP) then
+                                             (InInitDefaultCP <> ThreadID) then
+(* InInitDefaultCP = ThreadID -> this thread is already re-initializing the cached information *)
      begin
-      InitDefaultCP;
+      if InInitDefaultCP <> -1 then
+       repeat
+(* Let's wait until the other thread finishes re-initialization of the cache *)
+        DosSleep (5)
+       until InInitDefaultCP = -1
+      else
+       InitDefaultCP;
       if CheckDefaultWinCP then
        Exit;
      end;
@@ -1066,7 +1209,7 @@ var
 begin
   Result := S;
   UniqueString (Result);
-  FillChar (CC, SizeOf (CC), 0);
+  FillChar (EmptyCC, SizeOf (EmptyCC), 0);
   RC := DosMapCase (Length (Result), EmptyCC, PChar (Result));
 { What to do in case of a failure??? }
   if RC <> 0 then
@@ -1075,29 +1218,64 @@ end;
 
       
 function OS2LowerAnsiString (const S: AnsiString): AnsiString;
-{
 var
-  RC: cardinal;
-}
+  I: PtrUInt;
+
+  function IsDBCSLeadChar (C: char): boolean;
+  var
+    D: byte;
+  begin
+    IsDBCSLeadChar := false;
+    D := 0;
+    while D < DBCSLeadRangesEnd do
+     begin
+      if (C >= DBCSLeadRanges [D]) and (C <= DBCSLeadRanges [Succ (D)]) then
+       begin
+        IsDBCSLeadChar := true;
+        Exit;
+       end;
+      Inc (D, 2);
+     end;
+  end;
+
 begin
 (*
   OS/2 provides no direct solution for lowercase conversion of MBCS strings.
-  If the current codepage is SBCS (which may be found using DosQueryDBCSEnv),
-  simplified translation table may be built using translation of the full
+  If Unicode support is available, using Unicode routines is the best solution.
+  If not, we use a translation table built at startup by translating the full
   character set to uppercase and using that for creation of a lookup table
-  (as already done in sysutils). In theory, the same approach might be
-  possible for DBCS as well using lead byte ranges returned by DosQueryDBCSEnv,
-  but that would be very inefficient and thus the fallback solution via
-  conversion to Unicode and back is probably better anyway. For now, let's
-  stick just to the Unicode solution - with the disadvantage that it wouldn't
-  do much useful with old OS/2 versions.
-
-  RC := DosQueryDBCSEnv...
-  FillChar (CC, SizeOf (CC), 0);
-  RC := DosMapCase (Length (Result), EmptyCC, PChar (Result));
+  (as already done in sysutils). However, we need to check for DBCS (MBCS)
+  codepages and avoid translating the DBCS lead bytes and the following
+  character.
 *)
-  Result := OS2LowerUnicodeString (S);
+  if UniAPI then
+   Result := OS2LowerUnicodeString (S)
 { Two implicit conversions... ;-) }
+  else
+   begin
+    Result := S;
+    if Length (Result) > 0 then
+     begin
+      UniqueString (Result);
+      if DBCSLeadRangesEnd > 0 then
+       begin
+        I := 1;
+        while I <= Length (Result) do
+         begin
+          if IsDBCSLeadChar (Result [I]) then
+           Inc (I, 2)
+          else
+           begin
+            Result [I] := LowerChars [Result [I]];
+            Inc (I);
+           end;
+         end;
+       end
+      else
+       for I := 1 to Length (Result) do
+        Result [I] := LowerChars [Result [I]];
+     end;
+   end;
 end;
 
       
@@ -1468,7 +1646,7 @@ begin
     Sys_UniStrColl := @DummyUniStrColl;
     Sys_UniCreateLocaleObject := @DummyUniCreateLocaleObject;
     Sys_UniFreeLocaleObject := @DummyUniFreeLocaleObject;
-
+    InitDummyLowercase;
    end;
 
     { Widestring }
