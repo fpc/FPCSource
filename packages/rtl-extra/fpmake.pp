@@ -16,7 +16,7 @@ Const
   ClocaleOSes   = UnixLikes -[beos];
   CLocaleIncOSes= [Aix,freebsd,netbsd,openbsd,solaris,darwin,iphonesim,dragonfly];
 
-  IPCOSes       = UnixLikes-[aix,android,beos,haiku,solaris];
+  IPCOSes       = UnixLikes-[aix,android,beos,haiku];
   IPCBSDs       = [FreeBSD,NetBSD,OpenBSD,DragonFly];
 //  IPCcdeclOSes  = [Darwin,iphonesim];
 
