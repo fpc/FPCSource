@@ -3316,8 +3316,6 @@ type
                       begin
                         current_settings.pmessage:=nil;
                         mesgnb:=tokenreadsizeint;
-                        if mesgnb>0 then
-                          Comment(V_Error,'Message recordind not yet supported');
                         prevmsg:=nil;
                         for i:=1 to mesgnb do
                           begin
