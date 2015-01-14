@@ -348,7 +348,7 @@ UNIT_PROCESS=
 ifneq ($(findstring $(OS_SOURCE),win32 win64),)
 UNIT_PROCESS+=-Fi../fcl-process/src/win
 endif
-ifneq ($(findstring $(OS_SOURCE),linux freebsd darwin iphonesim netbsd openbsd solaris haiku aix android),)
+ifneq ($(findstring $(OS_SOURCE),linux freebsd darwin iphonesim netbsd openbsd solaris haiku aix android dragonfly),)
 UNIT_PROCESS+=-Fi../fcl-process/src/unix
 endif
 ifneq ($(findstring $(OS_SOURCE),os2 emx),)
