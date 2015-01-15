@@ -92,11 +92,15 @@ var
   {$ELSE}
    {$IFDEF OS2}
     {$IFDEF OS2GCC}
-  DLLSSLName: string = 'kssl.dll';
-  DLLUtilName: string = 'kcrypto.dll';
+  DLLSSLName: string = 'kssl10.dll';
+  DLLUtilName: string = 'kcrypt10.dll';
+  DLLSSLName2: string = 'kssl.dll';
+  DLLUtilName2: string = 'kcrypto.dll';
     {$ELSE OS2GCC}
-  DLLSSLName: string = 'ssl.dll';
-  DLLUtilName: string = 'crypto.dll';
+  DLLSSLName: string = 'emssl10.dll';
+  DLLUtilName: string = 'emcrpt10.dll';
+  DLLSSLName2: string = 'ssl.dll';
+  DLLUtilName2: string = 'crypto.dll';
     {$ENDIF OS2GCC}
    {$ELSE OS2}
   DLLSSLName: string = 'libssl';
@@ -3430,7 +3434,14 @@ begin
   {$IFDEF MSWINDOWS}
   if (SSLLibHandle = 0) then
     SSLLibHandle := LoadLib(DLLSSLName2);
-  {$ENDIF}
+  {$ELSE MSWINDOWS}
+   {$IFDEF OS2}
+  if (SSLUtilHandle = 0) then
+    SSLUtilHandle := LoadLib(DLLUtilName2);
+  if (SSLLibHandle = 0) then
+    SSLLibHandle := LoadLib(DLLSSLName2);
+   {$ENDIF OS2}
+  {$ENDIF MSWINDOWS}
   Result:=(SSLLibHandle<>0) and (SSLUtilHandle<>0);
 end;
 
