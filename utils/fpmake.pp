@@ -77,6 +77,7 @@ begin
     P.Targets.AddProgram('data2inc.pp');
     P.Targets.AddProgram('delp.pp');
     P.Targets.AddProgram('bin2obj.pp');
+    P.Targets.AddProgram('mkinsadd.pp');
     P.Targets.AddProgram('postw32.pp');
     P.Targets.AddProgram('rmcvsdir.pp');
     P.Targets.AddProgram('grab_vcsa.pp',[linux]);
