@@ -21,10 +21,10 @@ type
 
   TPQTrans = Class(TSQLHandle)
   protected
-    PGConn        : PPGConn;
-    FList : TThreadList;
-    Procedure RegisterCursor(S : TPQCursor);
-    Procedure UnRegisterCursor(S : TPQCursor);
+    PGConn : PPGConn;
+    FList  : TThreadList;
+    Procedure RegisterCursor(Cursor : TPQCursor);
+    Procedure UnRegisterCursor(Cursor : TPQCursor);
   Public
     Constructor Create;
     Destructor Destroy; override;
@@ -60,6 +60,8 @@ type
     Destructor Destroy; override;
   end;
 
+  { EPQDatabaseError }
+
   EPQDatabaseError = class(EDatabaseError)
     public
       SEVERITY:string;
@@ -69,6 +71,8 @@ type
       MESSAGE_HINT:string;
       STATEMENT_POSITION:string;
   end;
+
+  { TPQTranConnection }
 
   TPQTranConnection = class
   protected
@@ -125,7 +129,7 @@ type
     function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
   public
     constructor Create(AOwner : TComponent); override;
-    destructor destroy; override;
+    destructor Destroy; override;
     function GetConnectionInfo(InfoType:TConnInfoType): string; override;
     procedure CreateDB; override;
     procedure DropDB; override;
@@ -189,23 +193,12 @@ const Oid_Bool     = 16;
       oid_numeric   = 1700;
       Oid_uuid      = 2950;
 
+
 { TPQTrans }
-
-procedure TPQTrans.RegisterCursor(S: TPQCursor);
-begin
-  FList.Add(S);
-  S.tr:=Self;
-end;
-
-procedure TPQTrans.UnRegisterCursor(S: TPQCursor);
-begin
-  S.tr:=Nil;
-  FList.Remove(S);
-end;
 
 constructor TPQTrans.Create;
 begin
-  Flist:=TThreadList.Create;
+  FList:=TThreadList.Create;
   FList.Duplicates:=dupIgnore;
 end;
 
@@ -216,18 +209,38 @@ Var
   I : integer;
 
 begin
-  L:=Flist.LockList;
+  L:=FList.LockList;
   try
     For I:=0 to L.Count-1 do
       TPQCursor(L[i]).tr:=Nil;
   finally
-    Flist.UnlockList;
+    FList.UnlockList;
   end;
   FreeAndNil(FList);
   inherited Destroy;
 end;
 
+procedure TPQTrans.RegisterCursor(Cursor: TPQCursor);
+begin
+  FList.Add(Cursor);
+  Cursor.tr:=Self;
+end;
+
+procedure TPQTrans.UnRegisterCursor(Cursor: TPQCursor);
+begin
+  Cursor.tr:=Nil;
+  FList.Remove(Cursor);
+end;
+
+
 { TPQCursor }
+
+destructor TPQCursor.Destroy;
+begin
+  if Assigned(tr) then
+    tr.UnRegisterCursor(Self);
+  inherited Destroy;
+end;
 
 function TPQCursor.GetFieldBinding(F: TFieldDef): PFieldBinding;
 
@@ -252,13 +265,8 @@ begin
     end;
 end;
 
-destructor TPQCursor.Destroy;
-begin
-  if Assigned(tr) then
-    Tr.UnRegisterCursor(Self);
-  inherited Destroy;
-end;
 
+{ TPQConnection }
 
 constructor TPQConnection.Create(AOwner : TComponent);
 
@@ -270,7 +278,7 @@ begin
   FConnectionPool:=TThreadlist.Create;
 end;
 
-destructor TPQConnection.destroy;
+destructor TPQConnection.Destroy;
 begin
   // We must disconnect here. If it is done in inherited, then connection pool is gone.
   Connected:=False;
@@ -432,6 +440,7 @@ var
 begin
   result := false;
   tr := trans as TPQTrans;
+  // unprepare statements associated with given transaction
   L:=tr.FList.LockList;
   try
     For I:=0 to L.Count-1 do
@@ -441,8 +450,9 @@ begin
       end;
     L.Clear;
   finally
-    tr.flist.UnlockList;
+    tr.FList.UnlockList;
   end;
+
   res := PQexec(tr.PGConn, 'ROLLBACK');
   CheckResultError(res,tr.PGConn,SErrRollbackFailed);
   PQclear(res);
@@ -462,56 +472,6 @@ begin
   PQclear(res);
   //make connection available in pool
   ReleaseConnection(tr.PGConn,false);
-  result := true;
-end;
-
-function TPQConnection.StartImplicitTransaction(trans : TSQLHandle; AParams : string) : boolean;
-var
-  tr  : TPQTrans;
-  i   : Integer;
-  t : TPQTranConnection;
-  L : TList;
-begin
-  result:=false;
-  tr := trans as TPQTrans;
-
-  //find an unused connection in the pool
-  i:=0;
-  t:=Nil;
-  L:=FConnectionPool.LockList;
-  try
-    while (I<L.Count) do
-      begin
-      T:=TPQTranConnection(L[i]);
-      if (T.FPGConn=nil) or not T.FTranActive then
-        break
-      else
-        T:=Nil;
-      i:=i+1;
-      end;
-    // set to active now, so when we exit critical section,
-    // it will be marked active and will not be found.
-    if Assigned(T) then
-      T.FTranActive:=true;
-  finally
-    FConnectionPool.UnLockList;
-  end;
-  if (T=Nil) then
-    begin
-    T:=TPQTranConnection.Create;
-    T.FTranActive:=True;
-    AddConnection(T);
-    end;
-  if (T.FPGConn<>nil) then
-    tr.PGConn:=T.FPGConn
-  else
-    begin
-    tr.PGConn := PQconnectdb(pchar(FConnectString));
-    T.FPGConn:=tr.PGConn;
-    CheckConnectionStatus(tr.PGConn);
-    if CharSet <> '' then
-      PQsetClientEncoding(tr.PGConn, pchar(CharSet));
-    end;
   result := true;
 end;
 
@@ -545,6 +505,53 @@ begin
   CheckResultError(res,tr.PGConn,sErrTransactionFailed);
 
   PQclear(res);
+end;
+
+function TPQConnection.StartImplicitTransaction(trans : TSQLHandle; AParams : string) : boolean;
+var
+  i : Integer;
+  T : TPQTranConnection;
+  L : TList;
+begin
+  //find an unused connection in the pool
+  i:=0;
+  T:=Nil;
+  L:=FConnectionPool.LockList;
+  try
+    while (i<L.Count) do
+      begin
+      T:=TPQTranConnection(L[i]);
+      if (T.FPGConn=nil) or not T.FTranActive then
+        break
+      else
+        T:=Nil;
+      i:=i+1;
+      end;
+    // set to active now, so when we exit critical section,
+    // it will be marked active and will not be found.
+    if Assigned(T) then
+      T.FTranActive:=true;
+  finally
+    FConnectionPool.UnLockList;
+  end;
+
+  if (T=Nil) then
+    begin
+    T:=TPQTranConnection.Create;
+    T.FTranActive:=True;
+    AddConnection(T);
+    end;
+
+  if (T.FPGConn=nil) then
+    begin
+    T.FPGConn := PQconnectdb(pchar(FConnectString));
+    CheckConnectionStatus(T.FPGConn);
+    if CharSet <> '' then
+      PQsetClientEncoding(T.FPGConn, pchar(CharSet));
+    end;
+
+  TPQTrans(trans).PGConn := T.FPGConn;
+  Result := true;
 end;
 
 function TPQConnection.StartDBTransaction(trans: TSQLHandle;
@@ -866,7 +873,6 @@ var
   i : integer;
   P : TParam;
   PQ : TSQLDBParam;
-  r          : PPGresult;
 
 begin
   with (cursor as TPQCursor) do
@@ -1029,7 +1035,7 @@ begin
       end
     else
       begin
-      // Registercursor sets tr
+      // RegisterCursor sets tr
       TPQTrans(aTransaction.Handle).RegisterCursor(Cursor as TPQCursor);
 
       if Assigned(AParams) and (AParams.Count > 0) then
@@ -1119,7 +1125,7 @@ begin
             end
         else
           if ErrorOnUnknownType then
-            DatabaseError('unhandled field type :'+FB^.TypeName,Self);
+            DatabaseError('Unhandled field type :'+FB^.TypeName,Self);
         end;
         end;
       end;
