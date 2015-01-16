@@ -2211,6 +2211,7 @@ implementation
     function is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tabstractrecorddef):boolean;
       var
         symownerdef : tabstractrecorddef;
+        nonlocalst : tsymtable;
       begin
         result:=false;
 
@@ -2219,17 +2220,22 @@ implementation
            not (symst.symtabletype in [objectsymtable,recordsymtable]) then
           internalerror(200810285);
         symownerdef:=tabstractrecorddef(symst.defowner);
+        { specializations might belong to a localsymtable or parasymtable }
+        nonlocalst:=symownerdef.owner;
+        if tstoreddef(symst.defowner).is_specialization then
+          while nonlocalst.symtabletype in [localsymtable,parasymtable] do
+            nonlocalst:=nonlocalst.defowner.owner;
         case symvisibility of
           vis_private :
             begin
               { private symbols are allowed when we are in the same
                 module as they are defined }
               result:=(
-                       (symownerdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
-                       (symownerdef.owner.iscurrentunit)
+                       (nonlocalst.symtabletype in [globalsymtable,staticsymtable]) and
+                       (nonlocalst.iscurrentunit)
                       ) or
                       ( // the case of specialize inside the generic declaration and nested types
-                       (symownerdef.owner.symtabletype in [objectsymtable,recordsymtable]) and
+                       (nonlocalst.symtabletype in [objectsymtable,recordsymtable]) and
                        (
                          assigned(current_structdef) and
                          (
@@ -2281,8 +2287,8 @@ implementation
                 in the current module }
               result:=(
                        (
-                        (symownerdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
-                        (symownerdef.owner.iscurrentunit)
+                        (nonlocalst.symtabletype in [globalsymtable,staticsymtable]) and
+                        (nonlocalst.iscurrentunit)
                        ) or
                        (
                         assigned(contextobjdef) and
@@ -2291,7 +2297,7 @@ implementation
                         def_is_related(contextobjdef,symownerdef)
                        ) or
                        ( // the case of specialize inside the generic declaration and nested types
-                        (symownerdef.owner.symtabletype in [objectsymtable,recordsymtable]) and
+                        (nonlocalst.symtabletype in [objectsymtable,recordsymtable]) and
                         (
                           assigned(current_structdef) and
                           (
