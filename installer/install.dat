@@ -846,6 +846,22 @@ defaultcfg=
 # Parsing switches
 # ----------------
 
+# Pascal language mode
+#      -Mfpc      free pascal dialect (default)
+#      -Mobjfpc   switch some Delphi 2 extensions on
+#      -Mdelphi   tries to be Delphi compatible
+#      -Mtp       tries to be TP/BP 7.0 compatible
+#      -Mgpc      tries to be gpc compatible
+#      -Mmacpas   tries to be compatible to the macintosh pascal dialects
+#
+# Turn on Object Pascal extensions by default
+#-Mobjfpc
+
+# Assembler reader mode
+#      -Rdefault  use default assembler
+#      -Ratt      read AT&T style assembler
+#      -Rintel    read Intel style assembler
+#
 # All assembler blocks are intel styled by default
 #-Rintel
 
@@ -856,19 +872,29 @@ defaultcfg=
 #-Rdirect
 
 # Semantic checking
-#  -S2        switch some Delphi 2 extensions on
-#  -Sc        supports operators like C (*=,+=,/= and -=)
-#  -Sd        tries to be Delphi compatible
-#  -Se<x>     compiler stops after the <x> errors (default is 1)
-#  -Sg        allow LABEL and GOTO
-#  -Sh        Use ansistrings
-#  -Si        support C++ styled INLINE
-#  -Sm        support macros like C (global)
-#  -So        tries to be TP/BP 7.0 compatible
-#  -Sp        tries to be gpc compatible
-#  -Ss        constructor name must be init (destructor must be done)
-#  -St        allow static keyword in objects
-# Allow goto, inline, C-operators
+#      -S2        same as -Mobjfpc
+#      -Sa        include assertion code.
+#      -Sc        supports operators like C (*=,+=,/= and -=)
+#      -Sd        same as -Mdelphi
+#      -Se<x>     error options. <x> is a combination of the following:
+#         <n> : compiler stops after <n> errors (default is 1)
+#         w   : compiler stops also after warnings
+#         n   : compiler stops also after notes
+#         h   : compiler stops also after hints
+#      -Sg        allow LABEL and GOTO
+#      -Sh        Use ansistrings
+#      -Si        support C++ styled INLINE
+#      -Sk        load fpcylix unit
+#      -SI<x>     set interface style to <x>
+#         -SIcom    COM compatible interface (default)
+#         -SIcorba  CORBA compatible interface
+#      -Sm        support macros like C (global)
+#      -So        same as -Mtp
+#      -Sp        same as -Mgpc
+#      -Ss        constructor name must be init (destructor must be done)
+#      -Sx        enable exception keywords (default in Delphi/ObjFPC modes)
+#
+# Allow goto, inline, C-operators, C-vars
 -Sgic
 
 # ---------------
@@ -890,9 +916,21 @@ defaultcfg=
 #-Ct
 
 # Optimizer switches
-# -O1        level 1 optimizations (quick and debugger friendly)
-# -O2        level 2 optimizations (-O1 + quick optimizations)
-# -O3        level 3 optimizations (-O2 + slow optimizations)
+# -Os        generate smaller code
+# -Oa=N      set alignment to N
+# -O1        level 1 optimizations (quick optimizations, debuggable)
+# -O2        level 2 optimizations (-O1 + optimizations which make debugging more difficult)
+# -O3        level 3 optimizations (-O2 + optimizations which also may make the program slower rather than faster)
+# -Oo<x>     switch on optimalization x. See fpc -i for possible values
+# -OoNO<x>   switch off optimalization x. See fpc -i for possible values
+# -Op<x>     set target cpu for optimizing, see fpc -i for possible values
+
+#ifdef darwin
+#ifdef cpui386
+-Cppentiumm
+-Oppentiumm
+#endif
+#endif
 
 
 # -----------------------
@@ -909,6 +947,8 @@ defaultcfg=
 #-Fr%basepath%/msg/errord.msg
 #-Fr%basepath%/msg/errorr.msg
 
+# search path for unicode binary files
+-FM%basepath%/unicode/
 # path to the gcclib
 #-Fl%basepath%/lib
 
@@ -926,12 +966,42 @@ defaultcfg=
 -Fu%basepath%/units/%fpctargetmacro%/*
 -Fu%basepath%/units/%fpctargetmacro%/rtl
 
+#ifdef cpui8086
+-Fu%basepath%/units/%fpctargetmacro%/$fpcsubarch-$fpcmemorymodel
+-Fu%basepath%/units/%fpctargetmacro%/$fpcsubarch-$fpcmemorymodel/*
+-Fu%basepath%/units/%fpctargetmacro%/$fpcsubarch-$fpcmemorymodel/rtl
+#endif
+
 # searchpath for libraries
 #-Fl%basepath%/lib
 #-Fl/lib;/usr/lib
 
 # searchpath for tools
 -FD%basepath%/bin/%fpctargetmacro%
+# never need cross-prefix when targeting the JVM
+# (no native compiler, always cross-compiling)
+#ifdef cpujvm
+#undef NEEDCROSSBINUTILS
+#endif
+
+# for android cross-prefix is set by compiler
+#ifdef android
+#undef NEEDCROSSBINUTILS
+#endif
+
+# never need cross-prefix when targeting the i8086
+# (no native compiler, always cross-compiling)
+#ifdef cpui8086
+#undef NEEDCROSSBINUTILS
+#endif
+
+# binutils prefix for cross compiling
+#IFDEF FPC_CROSSCOMPILING
+#IFDEF NEEDCROSSBINUTILS
+  -XP$FPCTARGET-
+#ENDIF
+#ENDIF
+
 
 # -------------
 # Linking
@@ -939,6 +1009,15 @@ defaultcfg=
 
 # generate always debugging information for GDB (slows down the compiling
 # process)
+#      -gc        generate checks for pointers
+#      -gd        use dbx
+#      -gg        use gsym
+#      -gh        use heap trace unit (for memory leak debugging)
+#      -gl        use line info unit to show more info for backtraces
+#      -gv        generates programs tracable with valgrind
+#      -gw        generate dwarf debugging info
+#
+# Enable debuginfo and use the line info unit by default
 #-gl
 
 # always pass an option to the linker
@@ -946,6 +1025,13 @@ defaultcfg=
 
 # Always strip debuginfo from the executable
 -Xs
+
+# Always use smartlinking on i8086, because the system unit exceeds the 64kb
+# code limit
+#ifdef cpui8086
+-CX
+-XX
+#endif
 
 
 # -------------
@@ -956,15 +1042,19 @@ defaultcfg=
 -l
 
 # Verbosity
-# e : Show errors (default)       d : Show debug info
-# w : Show warnings               u : Show used files
-# n : Show notes                  t : Show tried files
-# h : Show hints                  m : Show defined macros
-# i : Show general info           p : Show compiled procedures
-# l : Show linenumbers            c : Show conditionals
-# a : Show everything             0 : Show nothing (except errors)
-
-# Display Info, Warnings, Notes and Hints
+#      e : Show errors (default)       d : Show debug info
+#      w : Show warnings               u : Show unit info
+#      n : Show notes                  t : Show tried/used files
+#      h : Show hints                  s : Show time stamps
+#      i : Show general info           q : Show message numbers
+#      l : Show linenumbers            c : Show conditionals
+#      a : Show everything             0 : Show nothing (except errors)
+#      b : Write file names messages   r : Rhide/GCC compatibility mode
+#          with full path              x : Executable info (Win32 only)
+#      v : write fpcdebug.txt with     p : Write tree.log with parse tree
+#          lots of debugging info
+#
+# Display Info, Warnings and Notes
 -viwn
 # If you don't want so much verbosity use
 #-vw
