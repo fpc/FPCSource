@@ -340,7 +340,11 @@ implementation
             ((ttypesym(srsym).typedef.typ=errordef) or
             (not allowgenericsyms and
             (ttypesym(srsym).typedef.typ=undefineddef) and
-            not (sp_generic_para in srsym.symoptions))) then
+            not (sp_generic_para in srsym.symoptions) and
+            not (sp_explicitrename in srsym.symoptions) and
+            not assigned(srsym.owner.defowner) and
+            { use df_generic instead of is_generic to allow aliases in nested types as well }
+            not (df_generic in tstoreddef(srsym.owner.defowner).defoptions))) then
           begin
             Message1(type_e_type_is_not_completly_defined,ttypesym(srsym).realname);
             def:=generrordef;
