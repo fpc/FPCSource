@@ -212,10 +212,16 @@ const DefaultConfig : array[0..30,1..240] of char=(
   '#undef NEEDCROSSBINUTILS'#013#010+
   '#endif'#013#010+
   #013#010+
+  '# never need cross-prefix when targeting the i8086'#013#010+
+  '# (no native compiler, always cross-compiling)'#013#010+
+  '#ifde','f cpui8086'#013#010+
+  '#undef NEEDCROSSBINUTILS'#013#010+
+  '#endif'#013#010+
+  #013#010+
   '# binutils prefix for cross compiling'#013#010+
   '#IFDEF FPC_CROSSCOMPILING'#013#010+
   '#IFDEF NEEDCROSSBINUTILS'#013#010+
-  '  -XP$FPCTARG','ET-'#013#010+
+  '  -XP$FPCTARGET-'#013#010+
   '#ENDIF'#013#010+
   '#ENDIF'#013#010+
   #013#010+
@@ -224,19 +230,19 @@ const DefaultConfig : array[0..30,1..240] of char=(
   '# Linking'#013#010+
   '# -------------'#013#010+
   #013#010+
-  '# generate always debugging information for GDB (slows down the compil'+
-  'ing'#013#010+
+  '# generate alwa','ys debugging information for GDB (slows down the comp'+
+  'iling'#013#010+
   '# process)'#013#010+
   '#      -gc        generate checks for pointers'#013#010+
   '#      -gd        use dbx'#013#010+
-  '#     ',' -gg        use gsym'#013#010+
-  '#      -gh        use heap trace unit (for memory leak debugging)'#013#010+
+  '#      -gg        use gsym'#013#010+
+  '#      -gh        use heap trace unit (for memory leak debugging)',#013#010+
   '#      -gl        use line info unit to show more info for backtraces'#013+
   #010+
   '#      -gv        generates programs tracable with valgrind'#013#010+
-  '#      -gw        g','enerate dwarf debugging info'#013#010+
+  '#      -gw        generate dwarf debugging info'#013#010+
   '#'#013#010+
-  '# Enable debuginfo and use the line info unit by default'#013#010+
+  '# Enable debuginfo and use the line info unit by defau','lt'#013#010+
   '#-gl'#013#010+
   #013#010+
   '# always pass an option to the linker'#013#010+
@@ -245,13 +251,13 @@ const DefaultConfig : array[0..30,1..240] of char=(
   '# Always strip debuginfo from the executable'#013#010+
   '-Xs'#013#010+
   #013#010+
-  '# Always use smartlinking on i8086, beca','use the system unit exceeds '+
-  'the 64kb'#013#010+
+  '# Always use smartlinking on i8086, because the system unit exceeds th'+
+  'e 64kb'#013#010+
   '# code limit'#013#010+
   '#ifdef cpui8086'#013#010+
   '-CX'#013#010+
   '-XX'#013#010+
-  '#endif'#013#010+
+  '#endif'#013#010,
   #013#010+
   #013#010+
   '# -------------'#013#010+
@@ -262,24 +268,25 @@ const DefaultConfig : array[0..30,1..240] of char=(
   '-l'#013#010+
   #013#010+
   '# Verbosity'#013#010+
-  '#      e : Show errors (default)       d :',' Show debug info'#013#010+
+  '#      e : Show errors (default)       d : Show debug info'#013#010+
   '#      w : Show warnings               u : Show unit info'#013#010+
-  '#      n : Show notes                  t : Show tried/used files'#013#010+
+  '#      n :',' Show notes                  t : Show tried/used files'#013+
+  #010+
   '#      h : Show hints                  s : Show time stamps'#013#010+
-  '#      i : Show general info        ','   q : Show message numbers'#013#010+
-  '#      l : Show linenumbers            c : Show conditionals'#013#010+
+  '#      i : Show general info           q : Show message numbers'#013#010+
+  '#      l : Show linenumbers            c : Show conditiona','ls'#013#010+
   '#      a : Show everything             0 : Show nothing (except errors'+
   ')'#013#010+
   '#      b : Write file names messages   r : Rhide/GCC compatibility mod'+
   'e'#013#010+
-  '#  ','        with full path              x : Executable info (Win32 on'+
-  'ly)'#013#010+
-  '#      v : write fpcdebug.txt with     p : Write tree.log with parse t'+
-  'ree'#013#010+
+  '#          with full path              x : Executable info (Win32 only'+
+  ')'#013#010+
+  '#      v : write ','fpcdebug.txt with     p : Write tree.log with parse'+
+  ' tree'#013#010+
   '#          lots of debugging info'#013#010+
   '#'#013#010+
   '# Display Info, Warnings and Notes'#013#010+
   '-viwn'#013#010+
-  '# If you don'#039't',' want so much verbosity use'#013#010+
+  '# If you don'#039't want so much verbosity use'#013#010+
   '#-vw'#013#010
 );
