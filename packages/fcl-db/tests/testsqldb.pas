@@ -32,7 +32,7 @@ type
     FMyQ: TSQLQuery;
     procedure DoAfterPost(DataSet: TDataSet);
     Procedure DoApplyUpdates;
-    Procedure SetQueryOptions;
+    Procedure TrySetQueryOptions;
     Procedure TrySetPacketRecords;
   Protected
     Procedure Setup; override;
@@ -85,6 +85,12 @@ implementation
 
 
 { TTestTSQLQuery }
+
+Procedure TTestTSQLQuery.Setup;
+begin
+  inherited Setup;
+  SQLDBConnector.Connection.Options:=[];
+end;
 
 procedure TTestTSQLQuery.TestMasterDetail;
 var MasterQuery, DetailQuery: TSQLQuery;
@@ -185,6 +191,7 @@ begin
     for I:=1 to 20 do
       ExecuteDirect(Format('INSERT INTO FPDEV2 values (%d,''%.6d'')',[i,i]));
     Transaction.Commit;
+
     Q := SQLDBConnector.Query;
     Q.SQL.Text:='select * from FPDEV2';
     Q.Options:=[sqoKeepOpenOnCommit];
@@ -193,6 +200,7 @@ begin
     AssertEquals('Got all records',20,Q.RecordCount);
     Q.SQLTransaction.Commit;
     AssertTrue('Still open after transaction',Q.Active);
+
     // Now check editing
     Q.Locate('id',20,[]);
     Q.Edit;
@@ -213,12 +221,6 @@ begin
   FMyQ.PacketRecords:=10;
 end;
 
-Procedure TTestTSQLQuery.Setup;
-begin
-  inherited Setup;
-  SQLDBConnector.Connection.Options:=[];
-end;
-
 Procedure TTestTSQLQuery.TestKeepOpenOnCommitPacketRecords;
 begin
   with SQLDBConnector do
@@ -229,7 +231,7 @@ begin
     end;
 end;
 
-Procedure TTestTSQLQuery.SetQueryOptions;
+Procedure TTestTSQLQuery.TrySetQueryOptions;
 begin
   FMyQ.Options:=[sqoKeepOpenOnCommit];
 end;
@@ -240,14 +242,14 @@ begin
   with SQLDBConnector do
     begin
     ExecuteDirect('create table FPDEV2 (id integer not null, a varchar(10), constraint PK_FPDEV2 primary key(id))');
-    Transaction.COmmit;
-     ExecuteDirect(Format('INSERT INTO FPDEV2 values (%d,''%.6d'')',[1,1]));
-    Transaction.COmmit;
+    Transaction.Commit;
+    ExecuteDirect(Format('INSERT INTO FPDEV2 values (%d,''%.6d'')',[1,1]));
+    Transaction.Commit;
     FMyQ := SQLDBConnector.Query;
     FMyQ.SQL.Text:='select * from FPDEV2';
     FMyQ := SQLDBConnector.Query;
-    FMyQ.OPen;
-    AssertException('Cannot set packetrecords when sqoDisconnected is active',EDatabaseError,@SetQueryOptions);
+    FMyQ.Open;
+    AssertException('Cannot set Options when query is active',EDatabaseError,@TrySetQueryOptions);
     end;
 end;
 
