@@ -268,6 +268,9 @@ interface
        between the callparanodes and the callnode they belong to }
       aktcallnode : tcallnode;
 
+    const
+      { track current inlining depth }
+      inlinelevel : longint = 0;
 
 implementation
 
@@ -3492,9 +3495,25 @@ implementation
         { Can we inline the procedure? }
         if (po_inline in procdefinition.procoptions) and
            (procdefinition.typ=procdef) and
-           tprocdef(procdefinition).has_inlininginfo then
+           tprocdef(procdefinition).has_inlininginfo and
+           {  Prevent too deep inlining recursion and code bloat by inlining
+
+              The actual formuala is
+                                inlinelevel+1  /-------
+                  node count <  -------------\/  10000
+
+              This allows exponential grow of the code only to a certain limit.
+
+              Remarks
+               - The current approach calculates the inlining level top down, so outer call nodes (nodes closer to the leaf) might not be inlined
+                 if the max. complexity is reached. This is done because it makes the implementation easier and because
+                 there might be situations were it is more beneficial to inline inner nodes and do the calls to the outer nodes
+                 if the outer nodes are in a seldomly used code path
+               - The code avoids to use functions from the math unit
+           }
+           (node_count(tprocdef(procdefinition).inlininginfo^.code)<round(exp((1.0/(inlinelevel+1))*ln(10000)))) then
           begin
-             include(callnodeflags,cnf_do_inline);
+            include(callnodeflags,cnf_do_inline);
             { Check if we can inline the procedure when it references proc/var that
               are not in the globally available }
             st:=procdefinition.owner;
@@ -4162,6 +4181,7 @@ implementation
         inlineblock,
         inlinecleanupblock : tblocknode;
       begin
+        inc(inlinelevel);
         result:=nil;
         if not(assigned(tprocdef(procdefinition).inlininginfo) and
                assigned(tprocdef(procdefinition).inlininginfo^.code)) then
@@ -4259,6 +4279,7 @@ implementation
         writeln('**************************',tprocdef(procdefinition).mangledname);
         printnode(output,result);
 {$endif DEBUGINLINE}
+        dec(inlinelevel);
       end;
 
 end.
