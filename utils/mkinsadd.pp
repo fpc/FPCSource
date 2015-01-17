@@ -27,7 +27,7 @@
 program mkinsadd;
 
 uses
- Dos, Objects;
+ dos, objects;
 
 
 const
