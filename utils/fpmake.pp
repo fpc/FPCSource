@@ -65,7 +65,8 @@ begin
     P.Dependencies.Add('paszlib');
     P.Dependencies.Add('hash');
     P.Dependencies.Add('univint',[darwin,iphonesim]);
-
+    P.Dependencies.Add('rtl-extra');
+	
     P.Version:='3.1.1';
 
     T:=P.Targets.AddProgram('ptop.pp');
