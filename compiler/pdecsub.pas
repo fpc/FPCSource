@@ -1134,7 +1134,7 @@ implementation
               end;
             single_type(pd.returndef,[stoAllowSpecialization]);
 
-// Issue #24863, commented out for now because it breaks building of RTL and needs extensive
+            // Issue #24863, enabled only for the main progra commented out for now because it breaks building of RTL and needs extensive
 // testing and/or RTL patching.
 {
             if ((pd.returndef=cvarianttype) or (pd.returndef=colevarianttype)) and
@@ -2487,7 +2487,7 @@ const
       handler  : nil;
       pocall   : pocall_none;
       pooption : [po_varargs];
-      mutexclpocall : [pocall_internproc,pocall_stdcall,pocall_register,
+      mutexclpocall : [pocall_internproc,pocall_register,
                        pocall_far16,pocall_oldfpccall,pocall_mwpascal];
       mutexclpotype : [];
       mutexclpo     : [po_assembler,po_interrupt,po_inline]
@@ -2920,7 +2920,7 @@ const
                          { for objcclasses this is checked later, because the entire
                            class may be external.  }
                          is_objc_class_or_protocol(tprocdef(pd).struct)) and
-                     not(pd.proccalloption in (cdecl_pocalls + [pocall_mwpascal])) then
+                     not(pd.proccalloption in (cdecl_pocalls + [pocall_mwpascal,pocall_stdcall])) then
                     Message(parser_e_varargs_need_cdecl_and_external);
                 end
                else
@@ -2928,7 +2928,7 @@ const
                   { both must be defined now }
                   if not((po_external in pd.procoptions) or
                          (pd.typ=procvardef)) or
-                     not(pd.proccalloption in (cdecl_pocalls + [pocall_mwpascal])) then
+                     not(pd.proccalloption in (cdecl_pocalls + [pocall_mwpascal,pocall_stdcall])) then
                     Message(parser_e_varargs_need_cdecl_and_external);
                 end;
              end;

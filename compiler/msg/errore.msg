@@ -977,10 +977,10 @@ parser_w_skipped_fields_after=03177_W_Some fields coming after "$1" were not ini
 % You can leave some fields at the end of a type constant record uninitialized
 % (The compiler will initialize them to zero automatically). This may be the cause
 % of subtle problems.
-parser_e_varargs_need_cdecl_and_external=03178_E_VarArgs directive (or '...' in MacPas) without CDecl/CPPDecl/MWPascal and External
+parser_e_varargs_need_cdecl_and_external=03178_E_VarArgs directive (or '...' in MacPas) without CDecl/CPPDecl/MWPascal/StdCall and External
 % The varargs directive (or the ``...'' varargs parameter in MacPas mode) can only be
 % used with procedures or functions that are declared with \var{external} and one of
-% \var{cdecl}, \var{cppdecl} and \var{mwpascal}. This functionality
+% \var{cdecl}, \var{cppdecl}, \var{stdcall}  and \var{mwpascal}. This functionality
 % is only supported to provide a compatible interface to C functions like printf.
 parser_e_self_call_by_value=03179_E_Self must be a normal (call-by-value) parameter
 % You cannot declare \var{Self} as a const or var parameter, it must always be
