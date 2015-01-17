@@ -2032,8 +2032,7 @@ implementation
               recsize:=size;
               is_intregable:=
                 ispowerof2(recsize,temp) and
-                { sizeof(asizeint)*2 records in int registers is currently broken for endian_big targets }
-                (((recsize <= sizeof(asizeint)*2) and (target_info.endian=endian_little)
+                (((recsize <= sizeof(asizeint)*2)
                  { records cannot go into registers on 16 bit targets for now }
                   and (sizeof(asizeint)>2)
                   and not trecorddef(self).contains_float_field) or
