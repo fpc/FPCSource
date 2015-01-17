@@ -1498,8 +1498,9 @@ implementation
                     happen due to all possible categories being imported via
                     CocoaAll }
                   warn:=
-                    is_objccategory(tdef(hsym.owner.defowner)) and
-                    (sym.typ in [paravarsym,localvarsym]);
+                    (is_objccategory(tdef(hsym.owner.defowner)) or
+                     is_classhelper(tdef(hsym.owner.defowner))) and
+                    (sym.typ in [paravarsym,localvarsym,fieldvarsym]);
                   DuplicateSym(hashedid,sym,hsym,warn);
                   result:=true;
                 end;

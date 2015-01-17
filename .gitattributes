@@ -11760,6 +11760,7 @@ tests/test/thlp44.pp svneol=native#text/pascal
 tests/test/thlp45.pp svneol=native#text/pascal
 tests/test/thlp46.pp svneol=native#text/pascal
 tests/test/thlp47.pp svneol=native#text/pascal
+tests/test/thlp48.pp svneol=native#text/plain
 tests/test/thlp5.pp svneol=native#text/pascal
 tests/test/thlp6.pp svneol=native#text/pascal
 tests/test/thlp7.pp svneol=native#text/pascal
