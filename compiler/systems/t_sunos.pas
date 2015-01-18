@@ -148,7 +148,7 @@ const
 {$endif}
 {$ifdef i386}
 const
-  gld = 'gld ';
+  gld = 'gld -m elf_i386_sol2 ';
   solaris_ld = '/usr/bin/ld ';
 {$endif }
 {$ifdef sparc}
