@@ -3760,7 +3760,7 @@ V*2Tembedded_Embedded
 **2*_a : Show everything             x : Show info about invoked tools
 **2*_b : Write file names messages   p : Write tree.log with parse tree
 **2*_    with full path              v : Write fpcdebug.txt with
-**2*_                                    lots of debugging info
+**2*_z : Write output to stderr          lots of debugging info
 **2*_m<x>,<y> : Do not show messages numbered <x> and <y>
 F*1V<x>_Append '-<x>' to the used compiler binary name (e.g. for version)
 **1W<x>_Target-specific options (targets)

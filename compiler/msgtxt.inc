@@ -1612,7 +1612,7 @@ const msgtxt : array[0..000310,1..240] of char=(
   '**2*_b : Write file names messages   p : Write tree','.log with parse t'+
   'ree'#010+
   '**2*_    with full path              v : Write fpcdebug.txt with'#010+
-  '**2*_                                    lots of debugging info'#010+
+  '**2*_z : Write output to stderr          lots of debugging info'#010+
   '**2*_m<x>,<y> : Do not show messages numbered <x> and <y>'#010+
   'F*1V<x>_Append '#039'-<x>'#039' to the use','d compiler binary name (e.g.'+
   ' for version)'#010+

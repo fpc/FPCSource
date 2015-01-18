@@ -174,6 +174,7 @@ type
 
 var
   DBCSLeadRanges: array [0..11] of char;
+  CollationSequence: array [char] of char;
 
 
 const
@@ -233,6 +234,7 @@ const
     #238, #239, #240, #241, #242, #243, #244, #245, #246, #247, #248, #249,
     #250, #251, #252, #253, #254, #255);
   NoIso88591Support: boolean = false;
+
 
 threadvar
 (* Temporary allocations may be performed in parallel in different threads *)
@@ -473,11 +475,16 @@ begin
     Inc (DBCSLeadRangesEnd, 2);
 end;
 
-procedure InitDummyLowercase;
+
+procedure InitDummyAnsiSupport;
 var
   C: char;
   AllChars: array [char] of char;
+  RetSize: cardinal;
 begin
+  if DosQueryCollate (SizeOf (CollationSequence), EmptyCC, @CollationSequence,
+                                                             RetSize) <> 0 then
+   Move (LowerChars, CollationSequence, SizeOf (CollationSequence));
   Move (LowerChars, AllChars, SizeOf (AllChars));
   if DosMapCase (SizeOf (AllChars), IsoCC, @AllChars [#0]) <> 0 then
 (* Codepage 819 may not be supported in all old OS/2 versions. *)
@@ -503,13 +510,17 @@ begin
 end;
 
 
-procedure ReInitDummyLowercase;
+procedure ReInitDummyAnsiSupport;
 var
   C: char;
   AllChars: array [char] of char;
+  RetSize: cardinal;
 begin
   for C := Low (char) to High (char) do
    AllChars [C] := C;
+  if DosQueryCollate (SizeOf (CollationSequence), EmptyCC, @CollationSequence,
+                                                             RetSize) <> 0 then
+   Move (AllChars, CollationSequence, SizeOf (CollationSequence));
   DosMapCase (SizeOf (AllChars), EmptyCC, @AllChars [#0]);
   for C := Low (char) to High (char) do
    if AllChars [C] <> C then
@@ -742,7 +753,7 @@ begin
   if RCI <> 0 then
    OSErrorWatch (cardinal (RCI));
   if not (UniAPI) then
-   ReInitDummyLowercase;
+   ReInitDummyAnsiSupport;
   InInitDefaultCP := -1;
 end;
 
@@ -1278,77 +1289,195 @@ begin
    end;
 end;
 
-      
-{
-      CompareStrAnsiStringProc:=@CompareStrAnsiString;
-      CompareTextAnsiStringProc:=@AnsiCompareText;
-      StrCompAnsiStringProc:=@StrCompAnsi;
-      StrICompAnsiStringProc:=@AnsiStrIComp;
-      StrLCompAnsiStringProc:=@AnsiStrLComp;
-      StrLICompAnsiStringProc:=@AnsiStrLIComp;
-      StrLowerAnsiStringProc:=@AnsiStrLower;
-      StrUpperAnsiStringProc:=@AnsiStrUpper;
-}
+
+function OS2CompareStrAnsiString (const S1, S2: AnsiString): PtrInt;
+var
+  I, MaxLen: PtrUInt;
+begin
+  if UniAPI then
+   Result := OS2CompareUnicodeString (S1, S2) (* implicit conversions *)
+  else
+(* Older OS/2 versions without Unicode support do not provide direct means *)
+(* for case sensitive and codepage and language-aware string comparison.   *)
+(* We have to resort to manual comparison of the original strings together *)
+(* with strings translated using the case insensitive collation sequence.  *)
+   begin
+    if Length (S1) = 0 then
+     begin
+      if Length (S2) = 0 then
+       Result := 0
+      else
+       Result := -1;
+      Exit;
+     end
+    else
+     if Length (S2) = 0 then
+      begin
+       Result := 1;
+       Exit;
+      end;
+    I := 1;
+    MaxLen := Length (S1);
+    if Length (S2) < MaxLen then
+     MaxLen := Length (S2);
+    repeat
+     if CollationSequence [S1 [I]] = CollationSequence [S2 [I]] then
+      begin
+       if S1 [I] < S2 [I] then
+        begin
+         Result := -1;
+         Exit;
+        end
+       else if S1 [I] > S2 [I] then
+        begin
+         Result := 1;
+         Exit;
+        end;
+      end
+     else
+      begin
+       if CollationSequence [S1 [I]] < CollationSequence [S2 [I]] then
+        Result := -1
+       else
+        Result := 1;
+       Exit;
+      end;
+     Inc (I);
+    until (I > MaxLen);
+    if Length (S2) > MaxLen then
+     Result := -1
+    else if Length (S1) > MaxLen then
+     Result := 1
+    else
+     Result := 0;
+   end;
+end;
+
+
+function OS2StrCompAnsiString (S1, S2: PChar): PtrInt;
+var
+  HSA1, HSA2: AnsiString;
+  HSU1, HSU2: UnicodeString;
+begin
+(* Do not call OS2CompareUnicodeString to skip scanning for #0. *)
+  HSA1 := AnsiString (S1);
+  HSA2 := AnsiString (S2);
+  if UniApi then
+   begin
+    HSU1 := HSA1; (* implicit conversion *)
+    HSU2 := HSA2; (* implicit conversion *)
+    Result := Sys_UniStrColl (DefLocObj, PWideChar (HSU1), PWideChar (HSU2));
+    if Result < -1 then
+     Result := -1
+    else if Result > 1 then
+     Result := 1;
+   end
+  else
+   Result := OS2CompareStrAnsiString (HSA1, HSA2);
+end;
+
+
+function OS2CompareTextAnsiString (const S1, S2: AnsiString): PtrInt;
+var
+  HSA1, HSA2: AnsiString;
+  I: PtrUInt;
+begin
+  if UniAPI then
+   Result := OS2CompareTextUnicodeString (S1, S2) (* implicit conversions *)
+  else
+   begin
+(* Let's use collation strings here as a fallback *)
+    SetLength (HSA1, Length (S1));
+    if Length (HSA1) > 0 then
+(* Using assembler would be much faster, but never mind... *)
+     for I := 1 to Length (HSA1) do
+      HSA1 [I] := CollationSequence [S1 [I]];
+{$WARNING Results of using collation sequence with DBCS not known/tested!}
+    SetLength (HSA2, Length (S2));
+    if Length (HSA2) > 0 then
+     for I := 1 to Length (HSA2) do
+      HSA2 [I] := CollationSequence [S2 [I]];
+    if HSA1 = HSA2 then
+     Result := 0
+    else if HSA1 < HSA2 then
+     Result := -1
+    else
+     Result := 1;
+   end;
+end;
+
+
+function OS2StrICompAnsiString (S1, S2: PChar): PtrInt;
+begin
+  Result := OS2CompareTextAnsiString (AnsiString (S1), AnsiString (S2));
+end;
+
+
+function OS2StrLCompAnsiString (S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+var
+  A, B: AnsiString;
+begin
+  if (MaxLen = 0) then
+   Exit (0);
+  SetLength (A, MaxLen);
+  Move (S1^, A [1], MaxLen);
+  SetLength (B, MaxLen);
+  Move (S2^, B [1], MaxLen);
+  Result := OS2CompareStrAnsiString (A, B);
+end;
+
+
+function OS2StrLICompAnsiString (S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+var
+  A, B: AnsiString;
+begin
+  if (MaxLen = 0) then
+   Exit (0);
+  SetLength (A, MaxLen);
+  Move (S1^, A [1], MaxLen);
+  SetLength (B, MaxLen);
+  Move (S2^, B [1], MaxLen);
+  Result := OS2CompareTextAnsiString (A, B);
+end;
+
+
+procedure FPC_RangeError; [external name 'FPC_RANGEERROR'];
+
+
+procedure Ansi2PChar (const S: AnsiString; const OrgP: PChar; out P: Pchar);
+var
+  NewLen: SizeUInt;
+begin
+  NewLen := Length (S);
+  if NewLen > StrLen (OrgP) then
+   FPC_RangeError;
+  P := OrgP;
+  if (NewLen > 0) then
+   Move (S [1], P [0], NewLen);
+  P [NewLen] := #0;
+end;
+
+
+function OS2StrUpperAnsiString (Str: PChar): PChar;
+var
+  Temp: AnsiString;
+begin
+  Temp := OS2UpperAnsiString (Str);
+  Ansi2PChar (Temp, Str, Result);
+end;
+
+
+function OS2StrLowerAnsiString (Str: PChar): PChar;
+var
+  Temp: AnsiString;
+begin
+  Temp := OS2LowerAnsiString (Str);
+  Ansi2PChar (Temp, Str, Result);
+end;
+
 
 (*
 CWSTRING:
-
-procedure EnsureAnsiLen(var S: AnsiString; const len: SizeInt); inline;
-begin
-  if (len>length(s)) then
-    if (length(s) < 10*256) then
-      setlength(s,length(s)+10)
-    else
-      setlength(s,length(s)+length(s) shr 8);
-end;
-
-
-procedure ConcatCharToAnsiStr(const c: char; var S: AnsiString; var index: SizeInt);
-begin
-  EnsureAnsiLen(s,index);
-  pchar(@s[index])^:=c;
-  inc(index);
-end;
-
-
-{ concatenates an utf-32 char to a widestring. S *must* be unique when entering. }
-{$ifndef beos}
-procedure ConcatUTF32ToAnsiStr(const nc: wint_t; var S: AnsiString; var index: SizeInt; var mbstate: mbstate_t);
-{$else not beos}
-procedure ConcatUTF32ToAnsiStr(const nc: wint_t; var S: AnsiString; var index: SizeInt);
-{$endif beos}
-var
-  p     : pchar;
-  mblen : size_t;
-begin
-  { we know that s is unique -> avoid uniquestring calls}
-  p:=@s[index];
-  if (nc<=127) then
-    ConcatCharToAnsiStr(char(nc),s,index)
-  else
-    begin
-      EnsureAnsiLen(s,index+MB_CUR_MAX);
-{$ifndef beos}
-      mblen:=wcrtomb(p,wchar_t(nc),@mbstate);
-{$else not beos}
-      mblen:=wctomb(p,wchar_t(nc));
-{$endif not beos}
-      if (mblen<>size_t(-1)) then
-        inc(index,mblen)
-      else
-        begin
-          { invalid wide char }
-          p^:='?';
-          inc(index);
-        end;
-    end;
-end;
-
-
-
-
-function utf16toutf32(const S: WideString; const index: SizeInt; out len: longint): UCS4Char; external name 'FPC_UTF16TOUTF32';
-
 { return value: number of code points in the string. Whenever an invalid
   code point is encountered, all characters part of this invalid code point
   are considered to form one "character" and the next character is
@@ -1399,164 +1528,6 @@ function CodePointLength(const Str: PChar; maxlookahead: ptrint): PtrInt;
       result:=-1;
 {$endif beos}
   end;
-
-
-function StrCompAnsiIntern(s1,s2 : PChar; len1, len2: PtrInt; canmodifys1, canmodifys2: boolean): PtrInt;
-  var
-    a,b: pchar;
-    i: PtrInt;
-  begin
-    if not(canmodifys1) then
-      getmem(a,len1+1)
-    else
-      a:=s1;
-    for i:=0 to len1-1 do
-      if s1[i]<>#0 then
-        a[i]:=s1[i]
-      else
-        a[i]:=#32;
-    a[len1]:=#0;
-
-    if not(canmodifys2) then
-      getmem(b,len2+1)
-    else
-      b:=s2;
-    for i:=0 to len2-1 do
-      if s2[i]<>#0 then
-        b[i]:=s2[i]
-      else
-        b[i]:=#32;
-    b[len2]:=#0;
-    result:=strcoll(a,b);
-    if not(canmodifys1) then
-      freemem(a);
-    if not(canmodifys2) then
-      freemem(b);
-  end;
-
-
-function CompareStrAnsiString(const s1, s2: ansistring): PtrInt;
-  begin
-    result:=StrCompAnsiIntern(pchar(s1),pchar(s2),length(s1),length(s2),false,false);
-  end;
-
-
-function StrCompAnsi(s1,s2 : PChar): PtrInt;
-  begin
-    result:=strcoll(s1,s2);
-  end;
-
-
-function AnsiCompareText(const S1, S2: ansistring): PtrInt;
-  var
-    a, b: AnsiString;
-  begin
-    a:=UpperAnsistring(s1);
-    b:=UpperAnsistring(s2);
-    result:=StrCompAnsiIntern(pchar(a),pchar(b),length(a),length(b),true,true);
-  end;
-
-
-function AnsiStrIComp(S1, S2: PChar): PtrInt;
-  begin
-    result:=AnsiCompareText(ansistring(s1),ansistring(s2));
-  end;
-
-
-function AnsiStrLComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
-  var
-    a, b: pchar;
-begin
-  if (maxlen=0) then
-    exit(0);
-  if (s1[maxlen]<>#0) then
-    begin
-      getmem(a,maxlen+1);
-      move(s1^,a^,maxlen);
-      a[maxlen]:=#0;
-    end
-  else
-    a:=s1;
-  if (s2[maxlen]<>#0) then
-    begin
-      getmem(b,maxlen+1);
-      move(s2^,b^,maxlen);
-      b[maxlen]:=#0;
-    end
-  else
-    b:=s2;
-  result:=StrCompAnsiIntern(a,b,maxlen,maxlen,a<>s1,b<>s2);
-  if (a<>s1) then
-    freemem(a);
-  if (b<>s2) then
-    freemem(b);
-end;
-
-
-function AnsiStrLIComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
-  var
-    a, b: ansistring;
-begin
-  if (maxlen=0) then
-    exit(0);
-  setlength(a,maxlen);
-  move(s1^,a[1],maxlen);
-  setlength(b,maxlen);
-  move(s2^,b[1],maxlen);
-  result:=AnsiCompareText(a,b);
-end;
-
-
-procedure ansi2pchar(const s: ansistring; const orgp: pchar; out p: pchar);
-var
-  newlen: sizeint;
-begin
-  newlen:=length(s);
-  if newlen>strlen(orgp) then
-    fpc_rangeerror;
-  p:=orgp;
-  if (newlen>0) then
-    move(s[1],p[0],newlen);
-  p[newlen]:=#0;
-end;
-
-
-function AnsiStrLower(Str: PChar): PChar;
-var
-  temp: ansistring;
-begin
-  temp:=loweransistring(str);
-  ansi2pchar(temp,str,result);
-end;
-
-
-function AnsiStrUpper(Str: PChar): PChar;
-var
-  temp: ansistring;
-begin
-  temp:=upperansistring(str);
-  ansi2pchar(temp,str,result);
-end;
-
-{$ifdef FPC_HAS_CPSTRING}
-{$i textrec.inc}
-procedure SetStdIOCodePage(var T: Text); inline;
-begin
-  case TextRec(T).Mode of
-    fmInput:TextRec(T).CodePage:=GetStandardCodePage(scpConsoleInput);
-    fmOutput:TextRec(T).CodePage:=GetStandardCodePage(scpConsoleOutput);
-  end;
-end;
-
-procedure SetStdIOCodePages; inline;
-begin
-  SetStdIOCodePage(Input);
-  SetStdIOCodePage(Output);
-  SetStdIOCodePage(ErrOutput);
-  SetStdIOCodePage(StdOut);
-  SetStdIOCodePage(StdErr);
-end;
-{$endif FPC_HAS_CPSTRING}
 *)
 
 procedure InitOS2WideStringManager; inline;
@@ -1646,7 +1617,7 @@ begin
     Sys_UniStrColl := @DummyUniStrColl;
     Sys_UniCreateLocaleObject := @DummyUniCreateLocaleObject;
     Sys_UniFreeLocaleObject := @DummyUniFreeLocaleObject;
-    InitDummyLowercase;
+    InitDummyAnsiSupport;
    end;
 
     { Widestring }
@@ -1672,15 +1643,12 @@ begin
 *)
   WideStringManager.UpperAnsiStringProc := @OS2UpperAnsiString;
   WideStringManager.LowerAnsiStringProc := @OS2LowerAnsiString;
-(*
   WideStringManager.CompareStrAnsiStringProc := @OS2CompareStrAnsiString;
-  WideStringManager.CompareTextAnsiStringProc := @OS2AnsiCompareTextAnsiString;
-
-      StrCompAnsiStringProc:=@StrCompAnsi;
-      StrICompAnsiStringProc:=@AnsiStrIComp;
-      StrLCompAnsiStringProc:=@AnsiStrLComp;
-      StrLICompAnsiStringProc:=@AnsiStrLIComp;
-      StrLowerAnsiStringProc:=@AnsiStrLower;
-      StrUpperAnsiStringProc:=@AnsiStrUpper;
-*)
+  WideStringManager.CompareTextAnsiStringProc := @OS2CompareTextAnsiString;
+  WideStringManager.StrCompAnsiStringProc := @OS2StrCompAnsiString;
+  WideStringManager.StrICompAnsiStringProc := @OS2StrICompAnsiString;
+  WideStringManager.StrLCompAnsiStringProc := @OS2StrLCompAnsiString;
+  WideStringManager.StrLICompAnsiStringProc := @OS2StrLICompAnsiString;
+  WideStringManager.StrLowerAnsiStringProc := @OS2StrLowerAnsiString;
+  WideStringManager.StrUpperAnsiStringProc := @OS2StrUpperAnsiString;
 end;

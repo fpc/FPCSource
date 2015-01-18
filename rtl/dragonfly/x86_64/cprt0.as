@@ -120,6 +120,22 @@ _start:
 	call	exit
 .LFE5:
 	.size	_start, .-_start
+.weak __error
+.type	__error, @function
+__error:
+.LFB9:
+	
+	pushq	%rbp
+	movq	%rsp, %rbp
+	movq	%fs:0, %rdx
+	movq	errno@gottpoff(%rip), %rax
+	addq	%rdx, %rax
+	popq	%rbp
+	ret
+	
+.LFE9:
+	.size	__error, .-__error
+
 .bss
         .type   __stkptr,@object
         .size   __stkptr,8
