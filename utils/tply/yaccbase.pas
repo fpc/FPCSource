@@ -66,7 +66,8 @@ yfilename     : String;
 pasfilename   : String;
 lstfilename   : String;
 codfilename   : String;
-codfilepath   : String; { Under Linux,
+codfilepath1,
+codfilepath2  : String; { Under Linux,
                           binary and conf file are never in 1 directory.}
 
 (* Yacc input, output, list and code template file: *)
