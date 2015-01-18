@@ -2105,6 +2105,13 @@ begin
     pd_external(pd);
 end;
 
+procedure pd_winapi(pd:tabstractprocdef);
+begin
+  if not(target_info.system in systems_wince) then
+    pd.proccalloption:=pocall_cdecl
+  else
+    pd.proccalloption:=pocall_stdcall;
+end;
 
 type
    pd_handler=procedure(pd:tabstractprocdef);
@@ -2120,7 +2127,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=44;
+  num_proc_directives=45;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -2514,6 +2521,15 @@ const
       mutexclpotype : [{potype_constructor,potype_destructor}potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_public,po_exports,po_interrupt,po_assembler,po_inline]
     ),(
+      idtok:_WINAPI;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
+      handler  : @pd_winapi;
+      pocall   : pocall_none;
+      pooption : [];
+      mutexclpocall : [pocall_stdcall,pocall_cdecl];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
+      mutexclpo     : [po_external]
+    ),(
       idtok:_ENUMERATOR;
       pd_flags : [pd_interface,pd_object,pd_record];
       handler  : @pd_enumerator;
@@ -2609,7 +2625,7 @@ const
               next variable !! }
             if ((pdflags * [pd_procvar,pd_object,pd_record,pd_objcclass,pd_objcprot])=[]) and
                not(idtoken=_PROPERTY) then
-              Message1(parser_w_unknown_proc_directive_ignored,name);
+              Message1(parser_w_unknown_proc_directive_ignored,pattern);
             exit;
          end;
 
