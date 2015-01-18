@@ -1,4 +1,4 @@
-{ %OS=win32,win64,wince}
+{ %target=win32,win64,wince }
 { %norun }
 program Project1;
 
