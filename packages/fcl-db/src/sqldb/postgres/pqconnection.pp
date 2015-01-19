@@ -953,7 +953,7 @@ begin
     res:=nil;
     if FPrepared then
       begin
-      if PQtransactionStatus(tr.PGConn) <> PQTRANS_INERROR then
+      if assigned(tr) and (PQtransactionStatus(tr.PGConn) <> PQTRANS_INERROR) then
         begin
         res := PQexec(tr.PGConn,pchar('deallocate '+StmtName));
         CheckResultError(res,nil,SErrUnPrepareFailed);
