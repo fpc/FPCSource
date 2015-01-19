@@ -34,8 +34,7 @@ package=aslddos.zip,GNU ~L~inker and GNU Assembler for Go32v2 (required)
 # Dos 3
 package=idedos.zip,~I~DE with integrated debugger/compiler (BETA)
 # Dos 4
-#package=utilsdos.zip[utildos.zip],~E~xtra Utilities
-package=utils-dxegendos.zip[dxegdos.zip],Generation of D~X~E modules loadable at runtime
+package=utilsdos.zip[utildos.zip],~E~xtra Utilities
 # Dos 5
 package=makedos.zip,GNU ~U~tilities (needed for Makefile usage)
 # Dos 6
@@ -134,6 +133,8 @@ package=utils-rmwaitdos.zip[rmwdos.zip],Remove (delete) file(s) with optional re
 package=utils-lexyaccdos.zip[tplydos.zip],Compiler generator for TP and compatibles
 # Dos 53
 package=units-ptcdos.zip[uptcdos.zip],Free portable framebuffer library
+# Dos 54
+package=utils-dxegendos.zip[dxegdos.zip],Generation of D~X~E modules loadable at runtime
 
 #
 # Win32 packages
@@ -296,8 +297,7 @@ package=asldos2.zip,GNU ~L~inker and GNU assembler for OS/2 (required)
 # OS/2 3
 package=ideos2.zip,~I~DE with integrated compiler (BETA - no debugger)
 # OS/2 4
-#package=utilsos2.zip[utilos2.zip],~E~xtra Utilities
-package=utils-fpcmos2.zip[fpcmos2.zip],Generate Makefiles out of Makefile.fpc files
+package=utilsos2.zip[utilos2.zip],~E~xtra Utilities
 # OS/2 5
 package=makeos2.zip,GNU ~U~tilities (needed for Makefile usage)
 # OS/2 6
@@ -360,6 +360,8 @@ package=utils-pas2utos2.zip[p2utos2.zip],Pascal source to FPC Unit test generato
 package=utils-rmwaitos2.zip[rmwos2.zip],Remove (delete) file(s) with optional retries
 # OS/2 34
 package=utils-lexyaccos2.zip[tplyos2.zip],Compiler generator for TP and compatibles
+# OS/2 35
+package=utils-fpcmos2.zip[fpcmos2.zip],Generate Makefiles out of Makefile.fpc files
 
 #
 # OS/2 packages 2nd part
@@ -454,8 +456,7 @@ package=asldemx.zip,GNU ~L~inker and GNU assembler for EMX (required)
 # EMX 3
 package=ideemx.zip,~I~DE with integrated compiler (BETA - no debugger)
 # EMX 4
-#package=utilsemx.zip[utilemx.zip],~E~xtra Utilities
-package=utils-fpcmemx.zip[fpcmemx.zip],Generate Makefiles out of Makefile.fpc files
+package=utilsemx.zip[utilemx.zip],~E~xtra Utilities
 # EMX 5
 package=makeemx.zip,GNU ~U~tilities (needed for Makefile usage)
 # EMX 6
@@ -519,6 +520,8 @@ package=utils-pas2utemx.zip[p2utemx.zip],Pascal source to FPC Unit test generato
 package=utils-rmwaitemx.zip[rmwemx.zip],Remove (delete) file(s) with optional retries
 # EMX 35
 package=utils-lexyaccemx.zip[tplyemx.zip],Compiler generator for TP and compatibles
+# EMX 36
+package=utils-fpcmemx.zip[fpcmemx.zip],Generate Makefiles out of Makefile.fpc files
 
 #
 # EMX packages 2nd part
@@ -623,7 +626,7 @@ package=rtl.source.zip[rtlsrc.zip],Run time library sources
 # Source 4
 package=ide.source.zip[idesrc.zip],IDE sources
 # Source 5
-package=utils.source.zip[utilsrc.zip],~U~tils sources
+package=utils.source.zip[utilssrc.zip],~U~tils sources
 # Source 6
 package=installer.source.zip[instsrc.zip],~I~nstaller sources
 # Source 7
