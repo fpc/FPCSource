@@ -913,7 +913,7 @@ implementation
     begin
       if (target_res.id in [res_elf,res_macho,res_xcoff]) then
         begin
-        ResourceInfo:=TAsmList.Create;
+        ResourceInfo:=current_asmdata.asmlists[al_globals];
 
         maybe_new_object_file(ResourceInfo);
         new_section(ResourceInfo,sec_data,'FPC_RESLOCATION',sizeof(aint));
@@ -928,9 +928,6 @@ implementation
           {$ELSE}
           ResourceInfo.Concat(Tai_const.Create_64bit(0));
           {$ENDIF}
-        maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-        current_asmdata.asmlists[al_globals].concatlist(ResourceInfo);
-        ResourceInfo.free;
         end;
     end;
 
