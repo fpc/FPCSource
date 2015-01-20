@@ -535,7 +535,7 @@ procedure ti386tryexceptnode.pass_generate_code;
     { start of scope }
     if assigned(right) then
       begin
-        current_asmdata.getdatalabel(filterlabel);
+        current_asmdata.getaddrlabel(filterlabel);
         emit_scope_start(
           current_asmdata.RefAsmSymbol('__FPC_on_handler'),
           filterlabel);
@@ -609,8 +609,7 @@ procedure ti386tryexceptnode.pass_generate_code;
           begin
             if hnode.nodetype<>onn then
               InternalError(2011103101);
-            { TODO: make it done without using global label }
-            current_asmdata.getglobaljumplabel(onlabel);
+            current_asmdata.getjumplabel(onlabel);
             hlist.concat(tai_const.create_sym(current_asmdata.RefAsmSymbol(tonnode(hnode).excepttype.vmt_mangledname,AT_DATA)));
             hlist.concat(tai_const.create_sym(onlabel));
             cg.a_label(current_asmdata.CurrAsmList,onlabel);
@@ -626,8 +625,7 @@ procedure ti386tryexceptnode.pass_generate_code;
             inc(onnodecount.value);
           end;
         { now move filter table to permanent list all at once }
-        maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-        current_asmdata.asmlists[al_typedconsts].concatlist(hlist);
+        current_procinfo.aktlocaldata.concatlist(hlist);
         hlist.free;
       end;
 
