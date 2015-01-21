@@ -463,7 +463,7 @@ const
       'jvm enum fpcvalueof', 'jvm enum long2set',
       'jvm enum bitset2set', 'jvm enum set2set',
       'jvm procvar invoke', 'jvm procvar intf constructor',
-      'jvm virtual class method', 'jvm field getter', 'jvm field setter');
+      'jvm virtual class method', 'jvm field getter', 'jvm field setter', 'block invoke');
 begin
   if w<=ord(high(syntheticName)) then
     result:=syntheticName[tsynthetickind(w)]
@@ -1755,7 +1755,9 @@ const
      (mask:po_rtlproc;         str: 'RTL procedure'),
      (mask:po_auto_raised_visibility; str: 'Visibility raised by compiler'),
      (mask:po_far;             str: 'Far'),
-     (mask:po_noreturn;             str: 'No return')
+     (mask:po_noreturn;        str: 'No return'),
+     (mask:po_is_function_ref; str: 'Function reference'),
+     (mask:po_is_block;        str: 'C "Block"')
   );
 var
   proctypeoption  : tproctypeoption;

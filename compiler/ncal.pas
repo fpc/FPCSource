@@ -69,6 +69,7 @@ interface
           function  gen_procvar_context_tree_parentfp:tnode;
           function  gen_self_tree:tnode;
           function  gen_vmt_tree:tnode;
+          function gen_block_context:tnode;
           procedure gen_hidden_parameters;
           function  funcret_can_be_reused:boolean;
           procedure maybe_create_funcret_node;
@@ -2343,6 +2344,13 @@ implementation
       end;
 
 
+    function tcallnode.gen_block_context: tnode;
+      begin
+        { the self parameter of a block invocation is that address of the
+          block literal (which is what right contains) }
+        result:=right.getcopy;
+      end;
+
 
     function check_funcret_used_as_para(var n: tnode; arg: pointer): foreachnoderesult;
       var
@@ -2573,8 +2581,10 @@ implementation
                          else
                            internalerror(200309287);
                        end
+                     else if not(po_is_block in procdefinition.procoptions) then
+                       para.left:=gen_procvar_context_tree_parentfp
                      else
-                       para.left:=gen_procvar_context_tree_parentfp;
+                       para.left:=gen_block_context
                    end
                 else
                  if vo_is_range_check in para.parasym.varoptions then

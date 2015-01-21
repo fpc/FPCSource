@@ -43,6 +43,7 @@ interface
           init_final_check_done : boolean;
           procedure _needs_init_final(sym:TObject;arg:pointer);
           procedure check_forward(sym:TObject;arg:pointer);
+          procedure check_block_valid(def: TObject;arg:pointer);
           procedure labeldefined(sym:TObject;arg:pointer);
           procedure varsymbolused(sym:TObject;arg:pointer);
           procedure TestPrivate(sym:TObject;arg:pointer);
@@ -360,7 +361,7 @@ implementation
       { global }
       verbose,globals,
       { symtable }
-      symutil,defutil,defcmp,
+      symutil,defutil,defcmp,objcdef,
       { module }
       fmodule,
       { codegen }
@@ -656,6 +657,21 @@ implementation
       end;
 
 
+    procedure tstoredsymtable.check_block_valid(def: TObject; arg: pointer);
+      var
+        founderrordef: tdef;
+      begin
+        { all parameters passed to a block must be handled by the Objective-C
+          runtime }
+        if is_block(tdef(def)) and
+           not objcchecktype(tdef(def),founderrordef) then
+          if assigned(tdef(def).typesym) then
+            MessagePos1(tdef(def).typesym.fileinfo,type_e_objc_type_unsupported,founderrordef.typename)
+          else
+            Message1(type_e_objc_type_unsupported,tprocvardef(def).typename)
+      end;
+
+
     procedure TStoredSymtable.labeldefined(sym:TObject;arg:pointer);
       begin
         if (tsym(sym).typ=labelsym) and
@@ -800,6 +816,9 @@ implementation
     procedure tstoredsymtable.check_forwards;
       begin
          SymList.ForEachCall(@check_forward,nil);
+         { check whether all block definitions contain valid Objective-C types
+           (now that all forward definitions have been resolved) }
+         DefList.ForEachCall(@check_block_valid,nil);
       end;
 
 

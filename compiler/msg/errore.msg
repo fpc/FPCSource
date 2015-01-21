@@ -1538,7 +1538,7 @@ parser_e_global_generic_references_static=03339_E_Global Generic template refere
 %
 # Type Checking
 #
-# 04122 is the last used one
+# 04123 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1846,13 +1846,13 @@ type_w_zero_to_nil=04090_W_Converting 0 to NIL
 % Use NIL rather than 0 when initialising a pointer.
 type_e_protocol_type_expected=04091_E_Objective-C protocol type expected, but got "$1"
 % The compiler expected a protocol type name, but found something else.
-type_e_objc_type_unsupported=04092_E_The type "$1" is not supported for interaction with the Objective-C runtime.
-% Objective-C makes extensive use of run time type information (RTTI). This format
+type_e_objc_type_unsupported=04092_E_The type "$1" is not supported for interaction with the Objective-C and the blocks runtime.
+% Objective-C and Blocks make extensive use of run time type information (RTTI). This format
 % is defined by the maintainers of the run time and can therefore not be adapted
 % to all possible Object Pascal types. In particular, types that depend on
 % reference counting by the compiler (such as ansistrings and certain kinds of
 % interfaces) cannot be used as fields of Objective-C classes, cannot be
-% directly passed to Objective-C methods, and cannot be encoded using \var{objc\_encode}.
+% directly passed to Objective-C methods or Blocks, and cannot be encoded using \var{objc\_encode}.
 type_e_class_or_objcclass_type_expected=04093_E_Class or objcclass type expected, but got "$1"
 % It is only possible to create class reference types of \var{class} and \var{objcclass}
 type_e_objcclass_type_expected=04094_E_Objcclass type expected
@@ -1968,6 +1968,13 @@ type_e_procedure_must_be_far=04121_E_Procedure or function must be far in order 
 type_w_instance_abstract_class=04122_W_Creating an instance of abstract class "$1"
 % The specified class is declared as \var{abstract} and thus no instance of this class
 % should be created. This is merely a warning for Delphi compatibility.
+type_e_function_reference_kind=04123_E_Subroutine references cannot be declared as "of object" or "is nested", they can always refer to any kind of subroutine
+% Subroutine references can refer to any kind of subroutine and hence do not
+% require specialisation for methods or nested subroutines.
+type_e_anonymous_function_unsupported=04999_E_Function references are not yet supported, only blocks (add "cdecl;" at the end)
+% Remove this error message once Delphi-style anonymous are implemented. It has
+% number 4999 so as not to result in a gap in the error message numbering once
+% it's removed.
 % \end{description}
 #
 # Symtable

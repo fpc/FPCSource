@@ -5243,7 +5243,9 @@ implementation
            not(is_void(returndef)) then
           s:=s+':'+returndef.GetTypeName;
         if owner.symtabletype=localsymtable then
-          s:=s+' is nested';
+          s:=s+' is nested'
+        else if po_is_block in procoptions then
+          s:=s+' is block';
         s:=s+';';
         { forced calling convention? }
         if (po_hascallingconvention in procoptions) then
@@ -5885,7 +5887,11 @@ implementation
            s := s+' of object';
          if is_nested_pd(self) then
            s := s+' is nested';
-         GetTypeName := s+';'+ProcCallOptionStr[proccalloption]+'>';
+         { calling convention doesn't matter for blocks }
+         if po_is_block in procoptions then
+           GetTypeName := s+' is block;'
+         else
+           GetTypeName := s+';'+ProcCallOptionStr[proccalloption]+'>';
       end;
 
 

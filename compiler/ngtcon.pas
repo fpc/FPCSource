@@ -1237,6 +1237,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
       var
         tmpn,n : tnode;
         pd   : tprocdef;
+        havepd,
+        haveblock: boolean;
       begin
         { Procvars and pointers are no longer compatible.  }
         { under tp:  =nil or =var under fpc: =nil or =@var }
@@ -1287,17 +1289,33 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             n:=tmpn;
           end;
         { we now need to have a loadn with a procsym }
-        if (n.nodetype=loadn) and
-           (tloadnode(n).symtableentry.typ=procsym) then
+        havepd:=
+          (n.nodetype=loadn) and
+          (tloadnode(n).symtableentry.typ=procsym);
+        { or a staticvarsym representing a block }
+        haveblock:=
+          (n.nodetype=loadn) and
+          (tloadnode(n).symtableentry.typ=staticvarsym) and
+          (sp_internal in tloadnode(n).symtableentry.symoptions);
+        if havepd or
+           haveblock then
           begin
-            pd:=tloadnode(n).procdef;
-            list.concat(Tai_const.createname(pd.mangledname,0));
+            if havepd then
+              begin
+                pd:=tloadnode(n).procdef;
+                list.concat(Tai_const.createname(pd.mangledname,0));
+              end
+            else
+              begin
+                list.concat(Tai_const.Createname(tstaticvarsym(tloadnode(n).symtableentry).mangledname,0));
+              end;
             { nested procvar typed consts can only be initialised with nil
               (checked above) or with a global procedure (checked here),
               because in other cases we need a valid frame pointer }
             if is_nested_pd(def) then
               begin
-                if is_nested_pd(pd) then
+                if haveblock or
+                   is_nested_pd(pd) then
                   Message(parser_e_no_procvarnested_const);
                 list.concat(Tai_const.Create_sym(nil));
               end
