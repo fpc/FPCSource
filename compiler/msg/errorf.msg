@@ -269,7 +269,7 @@ scan_w_unsupported_asmmode_specifier=02050_W_Style assembleur non support‚ $1
 % the compiler didn't recognize the mode you specified.
 scan_w_no_asm_reader_switch_inside_asm=02051_W_Changement de type d'interpr‚teur ASM … l'int‚rieur de code assembleur, $1 sera effectif seulement pour le prochain
 % It is not possible to switch from one assembler reader to another
-% inside an assembler block. The new reader will be used for next
+% inside an assmebler block. The new reader will be used for next
 % assembler statement only.
 scan_e_wrong_switch_toggle=02052_E_Mauvais argument de switch, utilisez ON/OFF ou +/-
 % You need to use ON or OFF or a + or - to toggle the switch
@@ -1712,7 +1712,7 @@ option_asm_forced=11022_W_"$1" assembler use forced
 #
 option_logo=11023_[
 Compilateur Free Pascal version $FPCFULLVERSION [$FPCDATE] pour $FPCTARGET
-Copyright (c) 1993-2015 by Florian Klaempfl and others
+Copyright (c) 1993-2014 by Florian Klaempfl
 ]
 
 #

@@ -471,7 +471,7 @@ implementation
               end
             else
               begin
-                location.value:=aint(swapendian(Pcardinal(value_set)^));
+                location.value:=swapendian(Pcardinal(value_set)^);
                 location.value:=aint(
                                    reverse_byte (location.value         and $ff)         or
                                   (reverse_byte((location.value shr  8) and $ff) shl  8) or

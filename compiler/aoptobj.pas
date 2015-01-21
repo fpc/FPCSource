@@ -1041,9 +1041,6 @@ Unit AoptObj;
         Repeat
           While Assigned(StartPai) And
                 ((StartPai.typ in (SkipInstr - [ait_regAlloc])) Or
-{$if defined(MIPS) or defined(SPARC)}
-                ((startpai.typ=ait_instruction) and (taicpu(startpai).opcode=A_NOP)) or
-{$endif MIPS or SPARC}
                  ((StartPai.typ = ait_label) and
                   Not(Tai_Label(StartPai).labsym.Is_Used))) Do
             StartPai := Tai(StartPai.Next);

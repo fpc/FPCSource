@@ -1075,13 +1075,13 @@ implementation
                         begin
                           unget_para(paraloc^);
                           gen_alloc_regloc(list,destloc);
-                          cg.a_load_cgparaloc_anyreg(list,OS_8,paraloc^,destloc.register,sizeof(aint));
+                          cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^,destloc.register,sizeof(aint));
                           unget_para(paraloc^.Next^);
-                          cg.a_load_cgparaloc_anyreg(list,OS_8,paraloc^.Next^,GetNextReg(destloc.register),sizeof(aint));
+                          cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^.Next^,GetNextReg(destloc.register),sizeof(aint));
                           unget_para(paraloc^.Next^.Next^);
-                          cg.a_load_cgparaloc_anyreg(list,OS_8,paraloc^.Next^.Next^,GetNextReg(GetNextReg(destloc.register)),sizeof(aint));
+                          cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^.Next^.Next^,GetNextReg(GetNextReg(destloc.register)),sizeof(aint));
                           unget_para(paraloc^.Next^.Next^.Next^);
-                          cg.a_load_cgparaloc_anyreg(list,OS_8,paraloc^.Next^.Next^.Next^,GetNextReg(GetNextReg(GetNextReg(destloc.register))),sizeof(aint));
+                          cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^.Next^.Next^.Next^,GetNextReg(GetNextReg(GetNextReg(destloc.register))),sizeof(aint));
                         end
 {$endif defined(cpu8bitalu)}
                       else
@@ -1348,18 +1348,10 @@ implementation
         item := TCmdStrListItem(pd.aliasnames.first);
         while assigned(item) do
           begin
-            { The condition to use global or local symbol must match
-              the code written in hlcg.gen_proc_symbol to 
-              avoid change from AB_LOCAL to AB_GLOBAL, which generates
-              erroneous code (at least for targets using GOT) } 
-            if (cs_profile in current_settings.moduleswitches) or
-               (po_global in current_procinfo.procdef.procoptions) then
-              current_asmdata.DefineAsmSymbol(item.str,AB_GLOBAL,AT_FUNCTION)
-            else
-              current_asmdata.DefineAsmSymbol(item.str,AB_LOCAL,AT_FUNCTION);
-           item := TCmdStrListItem(item.next);
-         end;
-      end;
+            current_asmdata.DefineAsmSymbol(item.str,AB_GLOBAL,AT_FUNCTION);
+            item := TCmdStrListItem(item.next);
+          end;
+       end;
 
 
     procedure gen_proc_entry_code(list:TAsmList);

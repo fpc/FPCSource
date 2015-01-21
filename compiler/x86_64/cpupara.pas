@@ -407,20 +407,6 @@ unit cpupara;
             if (classes[i].typ=X86_64_X87UP_CLASS) and
                (classes[i-1].typ<>X86_64_X87_CLASS) then
               exit(0);
-
-            (* FPC addition: because we store an extended in 10 bytes, the
-               X86_64_X87UP_CLASS can be replaced with e.g. INTEGER if an
-               extended is followed by e.g. an array [0..5] of byte -> we also
-               have to check whether each X86_64_X87_CLASS is followed by
-               X86_64_X87UP_CLASS -- if not, pass in memory
-
-               This cannot happen in the original ABI, because there
-               sizeof(extended) = 16 and hence nothing can be merged with
-               X86_64_X87UP_CLASS and change it into something else *)
-            if (classes[i].typ=X86_64_X87_CLASS) and
-               ((i=(words-1)) or
-                (classes[i+1].typ<>X86_64_X87UP_CLASS)) then
-              exit(0);
           end;
 
           { FIXME: in case a record contains empty padding space, e.g. a
@@ -1035,18 +1021,6 @@ unit cpupara;
                           end;
                       end;
                       inc(mmretregidx);
-                    end;
-                  X86_64_X87_CLASS:
-                    begin
-                      { must be followed by X86_64_X87UP_CLASS and that must be
-                        the last class }
-                      if (i<>(numclasses-2)) or
-                         (classes[i+1].typ<>X86_64_X87UP_CLASS) then
-                        internalerror(2014110401);
-                      paraloc^.loc:=LOC_FPUREGISTER;
-                      paraloc^.register:=NR_FPU_RESULT_REG;
-                      paraloc^.size:=OS_F80;
-                      break;
                     end;
                   X86_64_NO_CLASS:
                     begin

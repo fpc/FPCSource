@@ -82,14 +82,12 @@ Var
   linklibc,
   linklibgcc : boolean;
   found1,
-  found2   : boolean;
+  found2   : boolean;  
 begin
   WriteResponseFile:=False;
   linklibc:=(SharedLibFiles.Find('c')<>nil);
   linklibgcc:=(SharedLibFiles.Find('gcc')<>nil);
-
-  prtobj:='';
-  cprtobj:='';
+  
   case apptype of
     app_arm9:
       begin
@@ -245,19 +243,20 @@ begin
     begin
       if apptype=app_arm9 then //ARM9
       begin
+        add('OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")');
+        add('OUTPUT_ARCH(arm)');
+        add('ENTRY(_start)');
+        add('');
         add('MEMORY {');
+        add('');
         add('	rom	: ORIGIN = 0x08000000, LENGTH = 32M');
         add('	ewram	: ORIGIN = 0x02000000, LENGTH = 4M - 4k');
         add('	dtcm	: ORIGIN = 0x0b000000, LENGTH = 16K');
-        add('	vectors	: ORIGIN = 0x01000000, LENGTH = 256');
-        add('	itcm	: ORIGIN = 0x01000100, LENGTH = 32K - 256');
+        add('	vectors : ORIGIN = 0x01000000, LENGTH = 256');
+        add('	itcm    : ORIGIN = 0x01000100, LENGTH = 32K - 256');
         add('}');
         add('');
-        add('OUTPUT_ARCH(arm)');
-        add('OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")');
-        add('ENTRY(_start)');
-        add('');
-        add('__vectors_start	=	ORIGIN(vectors);');
+        add('__vectors_start = ORIGIN(vectors);');
         add('__itcm_start	=	ORIGIN(itcm);');
         add('__ewram_end	=	ORIGIN(ewram) + LENGTH(ewram);');
         add('__eheap_end	=	ORIGIN(ewram) + LENGTH(ewram);');
@@ -277,7 +276,7 @@ begin
         add('		__text_start = . ;');
         add('		KEEP (*(.init))');
         add('		. = ALIGN(4);  /* REQUIRED. LD is flaky without it. */');
-        add('	} >ewram = 0xff');
+        add('		} >ewram = 0xff');
         add('');
         add('	.plt : { *(.plt) } >ewram = 0xff');
         add('');
@@ -313,40 +312,36 @@ begin
         add('		. = ALIGN(4);   /* REQUIRED. LD is flaky without it. */');
         add('	} >ewram = 0xff');
         add('');
-        add('	.ARM.extab   : { *(.ARM.extab* .gnu.linkonce.armextab.*) } >ewram');
-        add(' 	__exidx_start = .;');
-        add('	ARM.exidx   : { *(.ARM.exidx* .gnu.linkonce.armexidx.*) } >ewram');
-        add(' 	__exidx_end = .;');
-        add('');
-        add('	/*	Ensure the __preinit_array_start label is properly aligned.  We');
-        add('		could instead move the label definition inside the section, but');
-        add('		the linker would then create the section even if it turns out to');
-        add('		be empty, which isn''t pretty.  */');
-        add('');
-        add('	. = ALIGN(32 / 8);');
-        add('');
-        add('	PROVIDE (__preinit_array_start = .);');
-        add('	.preinit_array     : { KEEP (*(.preinit_array)) } >ewram = 0xff');
-        add('	PROVIDE (__preinit_array_end = .);');
-        add('	PROVIDE (__init_array_start = .);');
-        add('	.init_array     :');
-        add('	{');
-        add('		KEEP (*(SORT(.init_array.*)))');
-        add('		KEEP (*(.init_array))');
-        add('	} >ewram = 0xff');
-        add('	PROVIDE (__init_array_end = .);');
-        add('	PROVIDE (__fini_array_start = .);');
-        add('	.fini_array     :');
-        add('	{');
-        add('		KEEP (*(.fini_array))');
-        add('		KEEP (*(SORT(.fini_array.*)))');
-        add('	} >ewram = 0xff');
-        add('');
-        add('	PROVIDE (__fini_array_end = .);');
+        add('  .ARM.extab   : { *(.ARM.extab* .gnu.linkonce.armextab.*) } >ewram');
+        add('   __exidx_start = .;');
+        add('  .ARM.exidx   : { *(.ARM.exidx* .gnu.linkonce.armexidx.*) } >ewram');
+        add('   __exidx_end = .;');
+        add('  /* Ensure the __preinit_array_start label is properly aligned.  We');
+        add('     could instead move the label definition inside the section, but');
+        add('     the linker would then create the section even if it turns out to');
+        add('     be empty, which isn''t pretty.  */');
+        add('  . = ALIGN(32 / 8);');
+        add('  PROVIDE (__preinit_array_start = .);');
+        add('  .preinit_array     : { KEEP (*(.preinit_array)) } >ewram = 0xff');
+        add('  PROVIDE (__preinit_array_end = .);');
+        add('  PROVIDE (__init_array_start = .);');
+        add('  .init_array     :');
+        add('  {');
+        add('       KEEP (*(SORT(.init_array.*)))');
+        add('       KEEP (*(.init_array))');
+        add('  } >ewram = 0xff');        
+        add('  PROVIDE (__init_array_end = .);');
+        add('  PROVIDE (__fini_array_start = .);');
+        add('  .fini_array     :');
+        add('  {');
+        add('       KEEP (*(.fini_array))');
+        add('       KEEP (*(SORT(.fini_array.*)))');
+        add('  } >ewram = 0xff');
+        add('  PROVIDE (__fini_array_end = .);');
         add('');
         add('	.ctors :');
         add('	{');
-        add('	/*	gcc uses crtbegin.o to find the start of the constructors, so');
+        add('	/* gcc uses crtbegin.o to find the start of the constructors, so');
         add('		we make sure it is first.  Because this is a wildcard, it');
         add('		doesn''t matter if the user does not actually link against');
         add('		crtbegin.o; the linker won''t look for a file to match a');
@@ -397,6 +392,7 @@ begin
         add('		*(.data)');
         add('		*(.data.*)');
         add('		*(.gnu.linkonce.d*)');
+        add('		*(.fpc*)');
         add('		CONSTRUCTORS');
         add('		. = ALIGN(4);');
         add('		__data_end = ABSOLUTE(.) ;');
@@ -412,7 +408,7 @@ begin
         add('		*(.dtcm.*)');
         add('		. = ALIGN(4);');
         add('		__dtcm_end = ABSOLUTE(.);');
-        add('	} >dtcm  = 0xff');
+        add('	} >dtcm = 0xff');
         add('');
         add('');
         add('	__itcm_lma = __dtcm_lma + SIZEOF(.dtcm);');
@@ -424,27 +420,29 @@ begin
         add('		. = ALIGN(4);');
         add('		__itcm_end = ABSOLUTE(.);');
         add('	} >itcm = 0xff');
-        add('	');
-        add('	__vectors_lma = __itcm_lma + SIZEOF(.itcm);');
         add('');
-        add('	.vectors __vectors_start : AT (__vectors_lma)');
-        add('	{');
-        add('		*(.vectors)');
-        add('		*vectors.*(.text)');
-        add('		. = ALIGN(4);');
-        add('		__vectors_end = ABSOLUTE(.);');
-        add('	} >vectors = 0xff');
-        add('	');
-        add('	.sbss __dtcm_end (NOLOAD): ');
+
+        add(' __vectors_lma = __itcm_lma + SIZEOF(.itcm);');
+        add(' .vectors __vectors_start : AT (__vectors_lma)');
+        add(' {');
+        add('   *(.vectors)');
+        add('   *vectors.*(.text)');
+        add('   . = ALIGN(4);');
+        add('   __vectors_end = ABSOLUTE(.);');
+        add(' } >vectors = 0xff');
+        add('');
+        add(' .sbss __dtcm_end (NOLOAD):');
         add('	{');
         add('		__sbss_start = ABSOLUTE(.);');
         add('		__sbss_start__ = ABSOLUTE(.);');
         add('		*(.sbss)');
         add('		. = ALIGN(4);    /* REQUIRED. LD is flaky without it. */');
         add('		__sbss_end = ABSOLUTE(.);');
-        add('	} >dtcm ');
+        add('	} >dtcm');
         add('');
-        add('	.bss __bss_vma (NOLOAD): ');
+        add('');
+        add('');
+        add('	.bss __bss_vma (NOLOAD):');
         add('	{');
         add('		__bss_start = ABSOLUTE(.);');
         add('		__bss_start__ = ABSOLUTE(.);');
@@ -455,8 +453,7 @@ begin
         add('		. = ALIGN(4);    /* REQUIRED. LD is flaky without it. */');
         add('		__bss_end__ = ABSOLUTE(.) ;');
         add('		__end__ = ABSOLUTE(.) ;');
-        add('	} AT>ewram ');
-        add('');
+        add('	} AT>ewram');
         add('');
         add('');
         add('	/* Stabs debugging sections.  */');
@@ -495,7 +492,6 @@ begin
         add('	.stack 0x80000 : { _stack = .; *(.stack) }');
         add('	/* These must appear regardless of  .  */');
         add('}');
-        add('');
       end;
       if apptype=app_arm7 then
       begin
@@ -505,13 +501,12 @@ begin
         add('');
         add('MEMORY {');
         add('');
-        add('	rom	: ORIGIN = 0x08000000, LENGTH = 32M');
-        add('	iwram	: ORIGIN = 0x037f8000, LENGTH = 96K	');
+        add('	rom	  : ORIGIN = 0x08000000, LENGTH = 32M');
+        add('	iwram : ORIGIN = 0x037f8000, LENGTH = 96K');
         add('}');
         add('');
         add('__iwram_start	=	ORIGIN(iwram);');
         add('__iwram_top	=	ORIGIN(iwram)+ LENGTH(iwram);');
-        add('');
         add('__sp_irq	=	__iwram_top - 0x100;');
         add('__sp_svc	=	__sp_irq - 0x100;');
         add('__sp_usr	=	__sp_svc - 0x100;');
@@ -532,8 +527,9 @@ begin
         add('');
         add('	.text :   /* ALIGN (4): */');
         add('	{');
-        add('		*(.text .stub .text.* .gnu.linkonce.t.*)');
-        add('		KEEP (*(.text.*personality*))');
+        add('');
+        add('   *(.text .stub .text.* .gnu.linkonce.t.*)');
+        add('   KEEP (*(.text.*personality*))');        
         add('		/* .gnu.warning sections are handled specially by elf32.em.  */');
         add('		*(.gnu.warning)');
         add('		*(.glue_7t) *(.glue_7) *(.vfp11_veneer)');
@@ -616,15 +612,29 @@ begin
         add('	.jcr            : { KEEP (*(.jcr)) } >iwram = 0');
         add('	.got            : { *(.got.plt) *(.got) } >iwram = 0');
         add('');
+        add('');
+        add('	.iwram ALIGN(4) :');
+        add('	{');
+        add('		__iwram_start = ABSOLUTE(.) ;');
+        add('		*(.iwram)');
+        add('		*iwram.*(.text)');
+        add('		. = ALIGN(4);   /* REQUIRED. LD is flaky without it. */');
+        add('		__iwram_end = ABSOLUTE(.) ;');
+        add('	} >iwram = 0xff');
+        add('');
+        add('');
         add('	.data ALIGN(4) : 	{');
         add('		__data_start = ABSOLUTE(.);');
         add('		*(.data)');
         add('		*(.data.*)');
         add('		*(.gnu.linkonce.d*)');
+        add('		*(.fpc*)');
         add('		CONSTRUCTORS');
         add('		. = ALIGN(4);');
         add('		__data_end = ABSOLUTE(.) ;');
         add('	} >iwram = 0xff');
+        add('');
+        add('');
         add('');
         add('	.bss ALIGN(4) :');
         add('	{');
@@ -704,8 +714,6 @@ begin
   StripStr:='';
   MapStr:='';
   DynLinkStr:='';
-  GCSectionsStr:='';
-  preName:='';
   case apptype of
    app_arm9: preName:='.nef';
    app_arm7: preName:='.nlf';

@@ -1216,10 +1216,7 @@ implementation
                           begin
                             if is_interface(current_structdef) or
                                is_objc_protocol_or_category(current_structdef) or
-                               (
-                                 is_objectpascal_helper(current_structdef) and
-                                 not class_fields
-                               ) or
+                               is_objectpascal_helper(current_structdef) or
                                (is_javainterface(current_structdef) and
                                 not(class_fields and final_fields)) then
                               Message(parser_e_no_vars_in_interfaces);

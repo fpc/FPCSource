@@ -61,7 +61,7 @@ interface
          { mc64040 instructions }
          'move16',
          { coldfire v4 instructions }
-         'mov3q','mvz','mvs','sats','byterev','ff1',
+         'mov3q','mvz','mvs','sats',
          { fpu processor instructions - directly supported only. }
          { ieee aware and misc. condition codes not supported   }
          'fabs','fadd',

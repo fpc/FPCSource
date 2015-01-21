@@ -42,7 +42,7 @@ interface
 implementation
 
 uses
-  ncnv,defcmp,defutil,aasmtai,symcpu;
+  ncnv,defcmp,defutil,aasmtai;
 
     { ti8086typedconstbuilder }
 

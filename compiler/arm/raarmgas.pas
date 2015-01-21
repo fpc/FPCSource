@@ -1043,7 +1043,6 @@ Unit raarmgas;
         hreg : tregister;
         flags : tspecialregflags;
       begin
-        hreg:=NR_NO;
         case actasmtoken of
           AS_REGISTER:
             begin

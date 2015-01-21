@@ -266,7 +266,7 @@ scan_w_unsupported_asmmode_specifier=02050_W_Nieprawid³owy styl asemblera $1
 % the compiler didn't recognize the mode you specified.
 scan_w_no_asm_reader_switch_inside_asm=02051_W_Prze³±cznik stylu asemblera niedozwolony w bloku asemblera, $1 bêdzie dzia³aæ dopiero w nastêpnym bloku
 % It is not possible to switch from one assembler reader to another
-% inside an assembler block. The new reader will be used for next
+% inside an assmebler block. The new reader will be used for next
 % assembler statement only.
 scan_e_wrong_switch_toggle=02052_E_Z³a warto¶æ prze³±cznika, u¿yj ON/OFF lub +/-
 % You need to use ON or OFF or a + or - to toggle the switch
@@ -2116,7 +2116,7 @@ option_code_page_not_available=11039_E_Nieznana strona kodowa
 #
 option_logo=11023_[
 Free Pascal Compiler wersja $FPCFULLVERSION [$FPCDATE] dla $FPCCPU
-Copyright (c) 1993-2015 by Florian Klaempfl and others
+Copyright (c) 1993-2014 by Florian Klaempfl
 ]
 
 #

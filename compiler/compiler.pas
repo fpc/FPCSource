@@ -65,9 +65,6 @@ uses
 {$ifdef android}
   ,i_android
 {$endif android}
-{$ifdef aros}
-  ,i_aros
-{$endif}
 {$ifdef atari}
   ,i_atari
 {$endif atari}

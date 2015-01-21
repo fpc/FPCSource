@@ -448,7 +448,7 @@ procedure tx64tryexceptnode.pass_generate_code;
       begin
         { emit filter table to a temporary asmlist }
         hlist:=TAsmList.Create;
-        current_asmdata.getaddrlabel(filterlabel);
+        current_asmdata.getdatalabel(filterlabel);
         new_section(hlist,sec_rodata_norel,filterlabel.name,4);
         cg.a_label(hlist,filterlabel);
         onnodecount:=tai_const.create_32bit(0);
@@ -459,7 +459,8 @@ procedure tx64tryexceptnode.pass_generate_code;
           begin
             if hnode.nodetype<>onn then
               InternalError(2011103101);
-            current_asmdata.getjumplabel(onlabel);
+            { TODO: make it done without using global label }
+            current_asmdata.getglobaljumplabel(onlabel);
             hlist.concat(tai_const.create_rva_sym(current_asmdata.RefAsmSymbol(tonnode(hnode).excepttype.vmt_mangledname,AT_DATA)));
             hlist.concat(tai_const.create_rva_sym(onlabel));
             cg.a_label(current_asmdata.CurrAsmList,onlabel);
@@ -475,7 +476,8 @@ procedure tx64tryexceptnode.pass_generate_code;
             inc(onnodecount.value);
           end;
         { now move filter table to permanent list all at once }
-        current_procinfo.aktlocaldata.concatlist(hlist);
+        maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
+        current_asmdata.asmlists[al_typedconsts].concatlist(hlist);
         hlist.free;
       end;
 

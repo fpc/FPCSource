@@ -47,7 +47,6 @@ unit nx86add;
         procedure second_addfloatsse;
         procedure second_addfloatavx;
       public
-        function use_fma : boolean;override;
         procedure second_addfloat;override;
 {$ifndef i8086}
         procedure second_addsmallset;override;
@@ -274,15 +273,6 @@ unit nx86add;
     procedure tx86addnode.prepare_x87_locations(out refnode: tnode);
       begin
         refnode:=nil;
-
-        { later on, no mm registers are allowed, so transfer everything to memory here
-          below it is loaded into an fpu register if neede }
-        if left.location.loc in [LOC_CMMREGISTER,LOC_MMREGISTER] then
-          hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
-
-        if right.location.loc in [LOC_CMMREGISTER,LOC_MMREGISTER] then
-          hlcg.location_force_mem(current_asmdata.CurrAsmList,right.location,right.resultdef);
-
         case ord(left.location.loc=LOC_FPUREGISTER)+ord(right.location.loc=LOC_FPUREGISTER) of
           0:
             begin
@@ -613,8 +603,6 @@ unit nx86add;
         pass_left_right;
 
         cmpop:=false;
-        op:=A_NOP;
-
         mmxbase:=mmx_type(left.resultdef);
         location_reset(location,LOC_MMXREGISTER,def_cgsize(resultdef));
         case nodetype of
@@ -690,9 +678,6 @@ unit nx86add;
           else
             internalerror(2003042214);
         end;
-
-        if op = A_NOP then
-          internalerror(201408201);
 
         { left and right no register?  }
         { then one must be demanded    }
@@ -1084,18 +1069,6 @@ unit nx86add;
               location.register,
               mms_movescalar);
           end;
-      end;
-
-
-    function tx86addnode.use_fma : boolean;
-      begin
-{$ifndef i8086}
-        { test if the result stays in an xmm register, fiddeling with fpu registers and fma makes no sense }
-        Result:=use_vectorfpu(resultdef) and
-          ((cpu_capabilities[current_settings.cputype]*[CPUX86_HAS_FMA,CPUX86_HAS_FMA4])<>[]);
-{$else i8086}
-        Result:=inherited use_fma;
-{$endif i8086}
       end;
 
 

@@ -310,8 +310,6 @@ type
     po_syscall_basesysv,
     po_syscall_sysvbase,
     po_syscall_r12base,
-    { Used to record the fact that a symbol is asociated to this syscall }
-    po_syscall_has_libsym,
     { Procedure can be inlined }
     po_inline,
     { Procedure is used for internal compiler calls }
@@ -469,7 +467,7 @@ type
   );
   tobjectoptions=set of tobjectoption;
 
-  tarraydefoption=(
+  tarraydefoption=(    
     ado_IsConvertedPointer, // array created from pointer (e.g. PInteger(Ptr)[1])
     ado_IsDynamicArray,     // dynamic array
     ado_IsVariant,          //

@@ -230,7 +230,7 @@ interface
     function generate_objectpascal_helper_key(def:tdef):string;
     procedure incompatibletypes(def1,def2:tdef);
     procedure hidesym(sym:TSymEntry);
-    procedure duplicatesym(var hashedid: THashedIDString; dupsym, origsym:TSymEntry; warn: boolean);
+    procedure duplicatesym(var hashedid:THashedIDString;dupsym,origsym:TSymEntry);
     function handle_generic_dummysym(sym:TSymEntry;var symoptions:tsymoptions):boolean;
     function get_jumpbuf_size : longint;
 
@@ -631,7 +631,7 @@ implementation
       begin
         hsym:=tsym(FindWithHash(hashedid));
         if assigned(hsym) then
-          DuplicateSym(hashedid,sym,hsym,false);
+          DuplicateSym(hashedid,sym,hsym);
         result:=assigned(hsym);
       end;
 
@@ -1393,9 +1393,9 @@ implementation
             if tfieldvarsym(sym).fieldoffset=0 then
               include(tfieldvarsym(sym).varoptions,vo_is_first_field);
 
-            { add to this record symtable, checking for duplicate names }
+            { add to this record symtable }
 //            unionst.SymList.List.List^[i].Data:=nil;
-            insert(sym);
+            sym.ChangeOwner(self);
             varalign:=tfieldvarsym(sym).vardef.alignment;
             if varalign=0 then
               varalign:=size_2_align(tfieldvarsym(sym).getsize);
@@ -1480,8 +1480,7 @@ implementation
 
     function tObjectSymtable.checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;
       var
-         hsym: tsym;
-         warn: boolean;
+         hsym : tsym;
       begin
          result:=false;
          if not assigned(defowner) then
@@ -1512,15 +1511,7 @@ implementation
                   )
                  ) then
                 begin
-                  { only watn when a parameter/local variable in a method
-                    conflicts with a category method, because this can easily
-                    happen due to all possible categories being imported via
-                    CocoaAll }
-                  warn:=
-                    (is_objccategory(tdef(hsym.owner.defowner)) or
-                     is_classhelper(tdef(hsym.owner.defowner))) and
-                    (sym.typ in [paravarsym,localvarsym,fieldvarsym]);
-                  DuplicateSym(hashedid,sym,hsym,warn);
+                  DuplicateSym(hashedid,sym,hsym);
                   result:=true;
                 end;
            end
@@ -1599,7 +1590,7 @@ implementation
                    (vo_is_result in tabstractvarsym(hsym).varoptions)) then
               HideSym(hsym)
             else
-              DuplicateSym(hashedid,sym,hsym,false);
+              DuplicateSym(hashedid,sym,hsym);
             result:=true;
             exit;
           end;
@@ -1619,7 +1610,7 @@ implementation
                    (vo_is_result in tabstractvarsym(sym).varoptions)) then
               Hidesym(sym)
             else
-              DuplicateSym(hashedid,sym,hsym,false);
+              DuplicateSym(hashedid,sym,hsym);
             result:=true;
             exit;
           end;
@@ -1725,7 +1716,7 @@ implementation
                   tnamespacesym(sym).unitsym:=tsym(hsym);
               end
             else
-              DuplicateSym(hashedid,sym,hsym,false);
+              DuplicateSym(hashedid,sym,hsym);
             result:=true;
             exit;
           end;
@@ -2068,15 +2059,11 @@ implementation
       end;
 
 
-    procedure duplicatesym(var hashedid: THashedIDString; dupsym, origsym: TSymEntry; warn: boolean);
+    procedure duplicatesym(var hashedid:THashedIDString;dupsym,origsym:TSymEntry);
       var
         st : TSymtable;
-        filename : TIDString;
       begin
-        if not warn then
-          Message1(sym_e_duplicate_id,tsym(origsym).realname)
-        else
-         Message1(sym_w_duplicate_id,tsym(origsym).realname);
+        Message1(sym_e_duplicate_id,tsym(origsym).realname);
         { Write hint where the original symbol was found }
         st:=finduniTSymtable(origsym.owner);
         with tsym(origsym).fileinfo do
@@ -2086,13 +2073,7 @@ implementation
                st.iscurrentunit then
               Message2(sym_h_duplicate_id_where,current_module.sourcefiles.get_file_name(fileindex),tostr(line))
             else if assigned(st.name) then
-              begin
-                filename:=find_module_from_symtable(st).sourcefiles.get_file_name(fileindex);
-                if filename<>'' then
-                  Message2(sym_h_duplicate_id_where,'unit '+st.name^+': '+filename,tostr(line))
-                else
-                  Message2(sym_h_duplicate_id_where,'unit '+st.name^,tostr(line))
-              end;
+              Message2(sym_h_duplicate_id_where,'unit '+st.name^,tostr(line));
           end;
         { Rename duplicate sym to an unreachable name, but it can be
           inserted in the symtable without errors }
@@ -2242,7 +2223,6 @@ implementation
     function is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tabstractrecorddef):boolean;
       var
         symownerdef : tabstractrecorddef;
-        nonlocalst : tsymtable;
       begin
         result:=false;
 
@@ -2251,22 +2231,17 @@ implementation
            not (symst.symtabletype in [objectsymtable,recordsymtable]) then
           internalerror(200810285);
         symownerdef:=tabstractrecorddef(symst.defowner);
-        { specializations might belong to a localsymtable or parasymtable }
-        nonlocalst:=symownerdef.owner;
-        if tstoreddef(symst.defowner).is_specialization then
-          while nonlocalst.symtabletype in [localsymtable,parasymtable] do
-            nonlocalst:=nonlocalst.defowner.owner;
         case symvisibility of
           vis_private :
             begin
               { private symbols are allowed when we are in the same
                 module as they are defined }
               result:=(
-                       (nonlocalst.symtabletype in [globalsymtable,staticsymtable]) and
-                       (nonlocalst.iscurrentunit)
+                       (symownerdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
+                       (symownerdef.owner.iscurrentunit)
                       ) or
                       ( // the case of specialize inside the generic declaration and nested types
-                       (nonlocalst.symtabletype in [objectsymtable,recordsymtable]) and
+                       (symownerdef.owner.symtabletype in [objectsymtable,recordsymtable]) and
                        (
                          assigned(current_structdef) and
                          (
@@ -2318,8 +2293,8 @@ implementation
                 in the current module }
               result:=(
                        (
-                        (nonlocalst.symtabletype in [globalsymtable,staticsymtable]) and
-                        (nonlocalst.iscurrentunit)
+                        (symownerdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
+                        (symownerdef.owner.iscurrentunit)
                        ) or
                        (
                         assigned(contextobjdef) and
@@ -2328,7 +2303,7 @@ implementation
                         def_is_related(contextobjdef,symownerdef)
                        ) or
                        ( // the case of specialize inside the generic declaration and nested types
-                        (nonlocalst.symtabletype in [objectsymtable,recordsymtable]) and
+                        (symownerdef.owner.symtabletype in [objectsymtable,recordsymtable]) and
                         (
                           assigned(current_structdef) and
                           (
@@ -2970,9 +2945,7 @@ implementation
               end;
           end;
         { now search in the extended type itself }
-        { Note: the extendeddef might be Nil if we are currently parsing the
-                extended type itself and the identifier was not found }
-        if assigned(classh.extendeddef) and (classh.extendeddef.typ in [recorddef,objectdef]) then
+        if classh.extendeddef.typ in [recorddef,objectdef] then
           begin
             srsymtable:=tabstractrecorddef(classh.extendeddef).symtable;
             srsym:=tsym(srsymtable.FindWithHash(hashedid));

@@ -145,9 +145,7 @@ interface
        { Contains only strings }
        oso_strings,
        { Must be cloned when writing separate debug file }
-       oso_debug_copy,
-       { Has relocations with explicit addends (ELF-specific) }
-       oso_rela_relocs
+       oso_debug_copy
      );
 
      TObjSectionOptions = set of TObjSectionOption;

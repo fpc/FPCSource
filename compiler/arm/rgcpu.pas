@@ -290,10 +290,6 @@ unit rgcpu;
         if abs(spilltemp.offset)>4095 then
           exit;
 
-        { ldr can't set the flags }
-        if instr.oppostfix=PF_S then
-          exit;
-
         if GenerateThumbCode and
           (abs(spilltemp.offset)>1020) then
           exit;
@@ -308,11 +304,6 @@ unit rgcpu;
                    (get_alias(getsupreg(oper[0]^.reg))=orgreg) and
                    (get_alias(getsupreg(oper[1]^.reg))<>orgreg) then
                   begin
-                    { do not replace if we're on Thumb, ldr/str cannot be used with rX>r7 }
-                    if GenerateThumbCode and
-                       (getsupreg(oper[1]^.reg)>RS_R7) then
-                       exit;
-
                     { str expects the register in oper[0] }
                     instr.loadreg(0,oper[1]^.reg);
                     instr.loadref(1,spilltemp);
@@ -323,11 +314,6 @@ unit rgcpu;
                    (get_alias(getsupreg(oper[1]^.reg))=orgreg) and
                    (get_alias(getsupreg(oper[0]^.reg))<>orgreg) then
                   begin
-                    { do not replace if we're on Thumb, ldr/str cannot be used with rX>r7 }
-                    if GenerateThumbCode and
-                       (getsupreg(oper[0]^.reg)>RS_R7) then
-                       exit;
-
                     instr.loadref(1,spilltemp);
                     opcode:=A_LDR;
                     result:=true;

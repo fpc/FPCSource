@@ -33,9 +33,9 @@ uses
 
 const
   { "mov reg,reg" source operand number }
-  O_MOV_SOURCE = 1;
+  O_MOV_SOURCE = 0;
   { "mov reg,reg" source operand number }
-  O_MOV_DEST   = 0;
+  O_MOV_DEST   = 1;
 
 type
   { taicpu }
@@ -401,22 +401,13 @@ end;
       A_SNE,
       A_EXT,
       A_INS,
-      A_MFC0,
-      A_SEB,
-      A_SEH];
+      A_MFC0];
 
       begin
         result := operand_read;
-        case opcode of
-          A_DIV,   { these have 3 operands if used as macros }
-          A_DIVU:
-            if (ops=3) and (opnr=0) then
-              result:=operand_write;
-        else
-          if opcode in op_write_set then
-            if opnr = 0 then
-              result := operand_write;
-        end;
+        if opcode in op_write_set then
+          if opnr = 0 then
+            result := operand_write;
       end;
 
 

@@ -141,7 +141,6 @@ implementation
     procedure tarmcasenode.genjumptable(hp : pcaselabel;min_,max_ : aint);
       var
         last : TConstExprInt;
-        tmpreg,
         basereg,
         indexreg : tregister;
         href : treference;
@@ -223,7 +222,7 @@ implementation
           begin
             if cs_create_pic in current_settings.moduleswitches then
               internalerror(2013082102);
-            cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,min_,indexreg,indexreg);
+            cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,min_+1,indexreg,indexreg);
             current_asmdata.getaddrlabel(tablelabel);
 
             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,2,indexreg);
@@ -232,15 +231,9 @@ implementation
             reference_reset_symbol(href,tablelabel,0,4);
             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList, href, basereg);
 
-            reference_reset(href,0);
-            href.base:=basereg;
-            href.index:=indexreg;
-            
-            tmpreg:=cg.getintregister(current_asmdata.CurrAsmList, OS_ADDR);
-            cg.a_load_ref_reg(current_asmdata.CurrAsmList, OS_ADDR, OS_ADDR, href, tmpreg);
-            
-            { do not use BX here to avoid switching into arm mode }
-            current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_MOV, NR_PC, tmpreg));
+            cg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_ADD, OS_ADDr, indexreg, basereg);
+
+            current_asmdata.CurrAsmList.Concat(taicpu.op_reg(A_BX, basereg));
 
             cg.a_label(current_asmdata.CurrAsmList,tablelabel);
             { generate jump table }

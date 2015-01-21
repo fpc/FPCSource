@@ -212,7 +212,7 @@ uses
          function is_same_reg_move(regtype: Tregistertype):boolean; override;
 
          function spilling_get_operation_type(opnr: longint): topertype;override;
-         function spilling_get_operation_type_ref(opnr: longint; reg: tregister): topertype;override;
+
          { assembler }
       public
          { the next will reset all instructions that can change in pass 2 }
@@ -777,15 +777,6 @@ implementation
       end;
 
 
-    function taicpu.spilling_get_operation_type_ref(opnr: longint; reg: tregister): topertype;
-      begin
-        result := operand_read;
-        if (oper[opnr]^.ref^.base = reg) and
-          (oper[opnr]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) then
-           result := operand_readwrite;
-      end;
-
-
     procedure BuildInsTabCache;
       var
         i : longint;
@@ -1064,16 +1055,15 @@ implementation
               (tai(hp).typ=ait_instruction) then
               begin
                 case taicpu(hp).opcode of
-                  A_MOV,
+                  A_BX,
                   A_LDR,
                   A_ADD:
                     { approximation if we hit a case jump table }
                     if ((taicpu(hp).opcode in [A_ADD,A_LDR]) and not(GenerateThumbCode or GenerateThumb2Code) and
                        (taicpu(hp).oper[0]^.typ=top_reg) and
                       (taicpu(hp).oper[0]^.reg=NR_PC)) or
-                      ((taicpu(hp).opcode=A_MOV) and (GenerateThumbCode) and
-                       (taicpu(hp).oper[0]^.typ=top_reg) and
-                       (taicpu(hp).oper[0]^.reg=NR_PC))
+                      ((taicpu(hp).opcode=A_BX) and (GenerateThumbCode) and
+                       (taicpu(hp).oper[0]^.typ=top_reg))
                        then
                       begin
                         penalty:=multiplier;
@@ -1868,7 +1858,7 @@ implementation
                   ot:=OT_SHIFTEROP;
                 end;
               else
-                internalerror(2004022623);
+                internalerror(200402261);
             end;
           end;
       end;

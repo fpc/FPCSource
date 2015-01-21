@@ -398,7 +398,6 @@ implementation
         hreg64hi:=left.location.register64.reghi;
         hreg64lo:=left.location.register64.reglo;
 
-        v:=0;
         if right.nodetype=ordconstn then
           v:=Tordconstnode(right).value and 63;
 

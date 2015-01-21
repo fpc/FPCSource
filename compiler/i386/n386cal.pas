@@ -28,16 +28,13 @@ interface
 { $define AnsiStrRef}
 
     uses
-      nx86cal,ncal;
+      nx86cal;
 
     type
        ti386callnode = class(tx86callnode)
        protected
-          procedure gen_syscall_para(para: tcallparanode); override;
           procedure pop_parasize(pop_size:longint);override;
           procedure extra_interrupt_code;override;
-       public
-         procedure do_syscall;override;
        end;
 
 
@@ -49,8 +46,7 @@ implementation
       cgbase,cgutils,
       cpubase,paramgr,
       aasmtai,aasmdata,aasmcpu,
-      nbas,nmem,nld,ncnv,
-      symdef,symsym,symcpu,
+      ncal,nbas,nmem,nld,ncnv,
       cga,cgobj,cpuinfo;
 
 
@@ -58,36 +54,6 @@ implementation
                              TI386CALLNODE
 *****************************************************************************}
 
-
-    procedure ti386callnode.do_syscall;
-      var
-        tmpref: treference;
-      begin
-        case target_info.system of
-          system_i386_aros:
-            begin
-              // one syscall convention for AROS
-              current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall')));
-              reference_reset(tmpref,sizeof(pint));
-              tmpref.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(tcpuprocdef(procdefinition).libsym).mangledname);
-              cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
-              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,NR_EAX);
-              reference_reset_base(tmpref,NR_EAX,-tprocdef(procdefinition).extnumber,sizeof(pint));
-              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,NR_EAX);
-              cg.a_call_reg(current_asmdata.CurrAsmList,NR_EAX);
-              cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_EAX);
-            end;
-          else
-            internalerror(2014081801);
-        end;
-      end;
-
-
-    procedure ti386callnode.gen_syscall_para(para: tcallparanode);
-      begin
-        { lib parameter has no special type but proccalloptions must be a syscall }
-        para.left:=cloadnode.create(tcpuprocdef(procdefinition).libsym,tcpuprocdef(procdefinition).libsym.owner);
-      end;
 
     procedure ti386callnode.extra_interrupt_code;
       begin

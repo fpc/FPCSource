@@ -21,9 +21,6 @@ Interface
 
 Type
    bestreal = double;
-{$if FPC_FULLVERSION>20700}
-   bestrealrec = TDoubleRec;
-{$endif FPC_FULLVERSION>20700}
    ts32real = single;
    ts64real = double;
    ts80real = extended;
@@ -51,25 +48,7 @@ Type
       fpu_68881
      );
 
-   tcontrollertype =
-     (ct_none
-     );
-
-
 Const
-   { Is there support for dealing with multiple microcontrollers available }
-   { for this platform? }
-   ControllerSupport = false;
-
-   { We know that there are fields after sramsize
-     but we don't care about this warning }
-   {$PUSH}
-    {$WARN 3177 OFF}
-   embedded_controllers : array [tcontrollertype] of tcontrollerdatatype =
-   (
-      (controllertypestr:''; controllerunitstr:''; flashbase:0; flashsize:0; srambase:0; sramsize:0));
-   {$POP}
-
    { calling conventions supported by the code generator }
    supported_calling_conventions : tproccalloptions = [
      pocall_internproc,
@@ -128,21 +107,19 @@ type
      (CPUM68K_HAS_DBRA,      { CPU supports the DBRA instruction                         }
       CPUM68K_HAS_CAS,       { CPU supports the CAS instruction                          }
       CPUM68K_HAS_TAS,       { CPU supports the TAS instruction                          }
-      CPUM68K_HAS_BRAL,      { CPU supports the BRA.L/Bcc.L instructions                 }
-      CPUM68K_HAS_ROLROR,    { CPU supports the ROL/ROR and ROXL/ROXR instructions       }
-      CPUM68K_HAS_BYTEREV    { CPU supports the BYTEREV instruction                      }
+      CPUM68K_HAS_BRAL       { CPU supports the BRA.L/Bcc.L instructions                 }
      );
 
 const
   cpu_capabilities : array[tcputype] of set of tcpuflags =
     ( { cpu_none     } [],
-      { cpu_68000    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_TAS,CPUM68K_HAS_ROLROR],
-      { cpu_68020    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_CAS,CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL,CPUM68K_HAS_ROLROR],
-      { cpu_68040    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_CAS,CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL,CPUM68K_HAS_ROLROR],
+      { cpu_68000    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_TAS],
+      { cpu_68020    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_CAS,CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL],
+      { cpu_68040    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_CAS,CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL],
       { cpu_isaa     } [],
-      { cpu_isaap    } [CPUM68K_HAS_BRAL,CPUM68K_HAS_BYTEREV],
+      { cpu_isaap    } [CPUM68K_HAS_BRAL],
       { cpu_isab     } [CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL],
-      { cpu_isac     } [CPUM68K_HAS_TAS,CPUM68K_HAS_BYTEREV]
+      { cpu_isac     } [CPUM68K_HAS_TAS]
     );
 
   { all CPUs commonly called "coldfire" }

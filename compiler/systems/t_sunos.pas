@@ -143,12 +143,12 @@ procedure TLinkersolaris.SetDefaultInfo;
 }
 {$ifdef x86_64}
 const
-  gld = 'gld -m elf_x86_64_sol2 ';
+  gld = 'gld -m elf_x86_64 ';
   solaris_ld = '/usr/bin/ld -64 ';
 {$endif}
 {$ifdef i386}
 const
-  gld = 'gld -m elf_i386_sol2 ';
+  gld = 'gld ';
   solaris_ld = '/usr/bin/ld ';
 {$endif }
 {$ifdef sparc}

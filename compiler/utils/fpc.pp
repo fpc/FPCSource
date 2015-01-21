@@ -29,15 +29,19 @@ program fpc;
 {$ifdef UNIX}
     exeext='';
 {$else UNIX}
-  {$ifdef HASAMIGA}
+  {$ifdef AMIGA}
     exeext='';
   {$else}
-    {$ifdef NETWARE}
-      exeext='.nlm';
+    {$ifdef MORPHOS}
+      exeext='';
     {$else}
+      {$ifdef NETWARE}
+      exeext='.nlm';
+      {$else}
       exeext='.exe';
-    {$endif NETWARE}
-  {$endif HASAMIGA}
+      {$endif NETWARE}
+    {$endif MORPHOS}
+  {$endif AMIGA}
 {$endif UNIX}
 
 

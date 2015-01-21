@@ -508,14 +508,14 @@ type
          destructor Destroy; override;
          procedure Clear;
          { finds an entry by key }
-         function Find(Key: Pointer; KeyLen: Integer): PHashSetItem;virtual;
+         function Find(Key: Pointer; KeyLen: Integer): PHashSetItem;
          { finds an entry, creates one if not exists }
          function FindOrAdd(Key: Pointer; KeyLen: Integer;
-           var Found: Boolean): PHashSetItem;virtual;
+           var Found: Boolean): PHashSetItem;
          { finds an entry, creates one if not exists }
-         function FindOrAdd(Key: Pointer; KeyLen: Integer): PHashSetItem;virtual;
+         function FindOrAdd(Key: Pointer; KeyLen: Integer): PHashSetItem;
          { returns Data by given Key }
-         function Get(Key: Pointer; KeyLen: Integer): TObject;virtual;
+         function Get(Key: Pointer; KeyLen: Integer): TObject;
          { removes an entry, returns False if entry wasn't there }
          function Remove(Entry: PHashSetItem): Boolean;
          property Count: LongWord read FCount;

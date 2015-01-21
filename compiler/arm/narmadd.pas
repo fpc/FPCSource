@@ -85,8 +85,6 @@ interface
                       GetResFlags:=F_LT;
                     gten:
                       GetResFlags:=F_LE;
-                    else
-                      internalerror(201408203);
                   end
                 else
                   case NodeType of
@@ -98,8 +96,6 @@ interface
                       GetResFlags:=F_GT;
                     gten:
                       GetResFlags:=F_GE;
-                    else
-                      internalerror(201408204);
                   end;
               end
             else
@@ -114,8 +110,6 @@ interface
                       GetResFlags:=F_CC;
                     gten:
                       GetResFlags:=F_LS;
-                    else
-                      internalerror(201408205);
                   end
                 else
                   case NodeType of
@@ -127,8 +121,6 @@ interface
                       GetResFlags:=F_HI;
                     gten:
                       GetResFlags:=F_CS;
-                    else
-                      internalerror(201408206);
                   end;
               end;
         end;
@@ -152,8 +144,6 @@ interface
             result:=F_GT;
           gten:
             result:=F_GE;
-          else
-            internalerror(201408207);
         end;
       end;
 
@@ -389,13 +379,13 @@ interface
               tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
               if right.location.loc = LOC_CONSTANT then
                 begin
-                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_AND,OS_32,right.location.value,left.location.register,tmpreg);
+                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_AND,tmpreg,left.location.register,right.location.value));
                   cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,tmpreg,right.location.value));
                 end
               else
                 begin
-                  cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,OS_32,left.location.register,right.location.register,tmpreg);
+                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_AND,tmpreg,left.location.register,right.location.register));
                   cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,tmpreg,right.location.register));
                 end;
@@ -413,8 +403,6 @@ interface
         oldnodetype : tnodetype;
         dummyreg : tregister;
         l: tasmlabel;
-      const
-        lt_zero_swapped: array[boolean] of tnodetype = (ltn, gtn);
       begin
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
@@ -423,34 +411,20 @@ interface
 
         { pass_left_right moves possible consts to the right, the only
           remaining case with left consts (currency) can take this path too (KB) }
-        if (right.nodetype=ordconstn) and
-           (tordconstnode(right).value=0) and
-           ((nodetype in [equaln,unequaln]) or
-            (not(GenerateThumbCode) and is_signed(left.resultdef) and (nodetype = lt_zero_swapped[nf_swapped in Flags]))
-           ) then
+        if (nodetype in [equaln,unequaln]) and
+          (right.nodetype=ordconstn) and (tordconstnode(right).value=0) then
           begin
             location_reset(location,LOC_FLAGS,OS_NO);
+            location.resflags:=getresflags(unsigned);
             if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
               hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
-
+            dummyreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
             cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-            { Optimize for the common case of int64 < 0 }
-            if nodetype in [ltn, gtn] then
-              begin
-                {Just check for the MSB in reghi to be set or not, this is independed from nf_swapped}
-                location.resflags:=F_NE;
-                current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_TST,left.location.register64.reghi, aint($80000000)));
-              end
-            else
-              begin
-                location.resflags:=getresflags(unsigned);
-                dummyreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
 
-                if GenerateThumbCode then
-                  cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.register64.reglo,left.location.register64.reghi,dummyreg)
-                else
-                  current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ORR,dummyreg,left.location.register64.reglo,left.location.register64.reghi),PF_S));
-              end;
+            if GenerateThumbCode then
+              cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.register64.reglo,left.location.register64.reghi,dummyreg)
+            else
+              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ORR,dummyreg,left.location.register64.reglo,left.location.register64.reghi),PF_S));
           end
         else
           begin

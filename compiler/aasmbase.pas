@@ -62,8 +62,6 @@ interface
 
     const
        asmlabeltypeprefix : array[TAsmLabeltype] of char = ('j','a','d','l','f','t','c');
-       asmsymbindname : array[TAsmsymbind] of string = ('none', 'external','common',
-       'local','global','weak external','private external','lazy','import');
 
     type
        TAsmSectiontype=(sec_none,
@@ -199,7 +197,7 @@ interface
     function EncodeUleb128(a: qword;out buf) : byte;
     function EncodeSleb128(a: int64;out buf) : byte;
 
-    function ReplaceForbiddenAsmSymbolChars(const s: ansistring): ansistring;
+    function ReplaceForbiddenAsmSymbolChars(const s: string): string;
 
     { dummy default noop callback }
     procedure default_global_used;
@@ -350,7 +348,7 @@ implementation
       end;
 
 
-    function ReplaceForbiddenAsmSymbolChars(const s: ansistring): ansistring;
+    function ReplaceForbiddenAsmSymbolChars(const s: string): string;
       var
         i : longint;
         rchar: char;

@@ -2592,27 +2592,6 @@ implementation
       end;
 {$endif not CPUNO32BITOPS}
 
-    procedure swap_const_value (var val : TConstExprInt; size : longint);
-      begin
-        case size of
-          1 : {do nothing };
-          2 : if val.signed then
-                val.svalue:=swapendian(smallint(val.svalue))
-              else
-                val.uvalue:=swapendian(word(val.uvalue));
-          4 : if val.signed then
-                val.svalue:=swapendian(longint(val.svalue))
-              else
-                val.uvalue:=swapendian(qword(val.uvalue));
-          8 : if val.signed then
-                val.svalue:=swapendian(int64(val.svalue))
-              else
-                val.uvalue:=swapendian(qword(val.uvalue));
-	  else
-            internalerror(2014111201);
-        end;
-      end;
-
     function ttypeconvnode.simplify(forinline : boolean): tnode;
       var
         hp: tnode;
@@ -2728,7 +2707,7 @@ implementation
                       not(convtype=tc_char_2_char) then
                 begin
                    { replace the resultdef and recheck the range }
-                   if ([nf_explicit,nf_absolute, nf_internal] * flags <> []) then
+                   if ([nf_explicit,nf_internal] * flags <> []) then
                      include(left.flags, nf_explicit)
                    else
                      { no longer an ordconst with an explicit typecast }
@@ -2747,16 +2726,7 @@ implementation
                          tordconstnode(left).value:=-ord(tordconstnode(left).value<>0);
                      end
                    else
-                     begin
-                       { for constant values on absolute variables, swaping is required }
-                       if (target_info.endian = endian_big) and (nf_absolute in flags) then
-                         swap_const_value(tordconstnode(left).value,tordconstnode(left).resultdef.size);
-                       testrange(resultdef,tordconstnode(left).value,(nf_explicit in flags)
-                                 or (nf_absolute in flags),false);
-                       { swap value back, but according to new type }
-                       if (target_info.endian = endian_big) and (nf_absolute in flags) then
-                         swap_const_value(tordconstnode(left).value,resultdef.size);
-                     end;
+                     testrange(resultdef,tordconstnode(left).value,(nf_explicit in flags),false);
                    left.resultdef:=resultdef;
                    tordconstnode(left).typedef:=resultdef;
                    if is_signed(resultdef) then

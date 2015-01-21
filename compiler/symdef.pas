@@ -227,12 +227,6 @@ interface
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           function  GetTypeName:string;override;
-          {# returns the appropriate int type for pointer arithmetic with the given pointer type.
-             When adding or subtracting a number to/from a pointer, this function returns the
-             int type to which that number has to be converted, before the operation can be performed.
-             Normally, this is sinttype, except on i8086, where it takes into account the
-             special i8086 pointer types (near, far, huge). }
-          function pointer_arithmetic_int_type:tdef;virtual;
           {# returns the int type produced when subtracting two pointers of the given type.
              Normally, this is sinttype, except on i8086, where it takes into account the
              special i8086 pointer types (near, far, huge). }
@@ -243,9 +237,6 @@ interface
        tprocdef = class;
 
        tabstractrecorddef= class(tstoreddef)
-       private
-          rttistring     : string;
-       public
           objname,
           objrealname    : PShortString;
           { for C++ classes: name of the library this class is imported from }
@@ -262,8 +253,6 @@ interface
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           destructor destroy; override;
-          procedure buildderefimpl;override;
-          procedure derefimpl;override;
           procedure check_forwards; virtual;
           function find_procdef_bytype(pt:tproctypeoption): tprocdef;
           function GetSymtable(t:tGetSymtable):TSymtable;override;
@@ -308,6 +297,7 @@ interface
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
           procedure buildderef;override;
+          procedure buildderefimpl;override;
           procedure deref;override;
           function  size:asizeint;override;
           function  alignment : shortint;override;
@@ -414,6 +404,7 @@ interface
           function GetTypeName:string;override;
           procedure buildderef;override;
           procedure deref;override;
+          procedure buildderefimpl;override;
           procedure derefimpl;override;
           procedure resetvmtentries;
           procedure copyvmtentries(objdef:tobjectdef);
@@ -482,7 +473,7 @@ interface
           function elesize : asizeint;
           function elepackedbitsize : asizeint;
           function elecount : asizeuint;
-          constructor create_from_pointer(def:tpointerdef);virtual;
+          constructor create_from_pointer(def:tdef);virtual;
           constructor create(l,h:asizeint;def:tdef);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy; override;
@@ -1780,7 +1771,7 @@ implementation
           end;
         if assigned(typesym) and
            (owner.symtabletype in [staticsymtable,globalsymtable]) then
-          result:=make_mangledname(prefix,typesym.owner,typesym.name)
+          result:=make_mangledname(prefix,owner,typesym.name)
         else
           result:=make_mangledname(prefix,findunitsymtable(owner),'DEF'+tostr(DefId))
       end;
@@ -2032,7 +2023,8 @@ implementation
               recsize:=size;
               is_intregable:=
                 ispowerof2(recsize,temp) and
-                (((recsize <= sizeof(asizeint)*2)
+                { sizeof(asizeint)*2 records in int registers is currently broken for endian_big targets }
+                (((recsize <= sizeof(asizeint)*2) and (target_info.endian=endian_little)
                  { records cannot go into registers on 16 bit targets for now }
                   and (sizeof(asizeint)>2)
                   and not trecorddef(self).contains_float_field) or
@@ -2115,7 +2107,7 @@ implementation
                sym:=tsym(genericparas[i]);
                if sym.typ<>symconst.typesym then
                  internalerror(2014050904);
-               if sym.owner.defowner<>self then
+               if sym.owner.defowner=self then
                  exit(true);
              end;
            result:=false;
@@ -2433,12 +2425,10 @@ implementation
 {$IFNDEF cpu64bitaddr} {$push}{$warnings off} {$ENDIF} //comparison always false warning
         if (current_settings.packenum=8) or (min<low(longint)) or (int64(max)>high(cardinal)) then
          savesize:=8
-{$IFNDEF cpu64bitaddr} {$pop} {$ENDIF}
+{$IFDEF not cpu64bitaddr} {$pop} {$ENDIF}
         else
-{$IFDEF cpu16bitaddr} {$push}{$warnings off} {$ENDIF} //comparison always false warning
          if (current_settings.packenum=4) or (min<low(smallint)) or (max>high(word)) then
           savesize:=4
-{$IFDEF cpu16bitaddr} {$pop} {$ENDIF}
         else
          if (current_settings.packenum=2) or (min<low(shortint)) or (max>high(byte)) then
           savesize:=2
@@ -2797,12 +2787,10 @@ implementation
            s32real : savesize:=4;
            s80real : savesize:=10;
            sc80real:
-             if target_info.system in [system_i386_darwin,
-                  system_i386_iphonesim,system_x86_64_darwin,
+             if target_info.system in [system_i386_darwin,system_i386_iphonesim,system_x86_64_darwin,
                   system_x86_64_linux,system_x86_64_freebsd,
                   system_x86_64_openbsd,system_x86_64_netbsd,
-                  system_x86_64_solaris,system_x86_64_embedded,
-                  system_x86_64_dragonfly] then
+                  system_x86_64_solaris,system_x86_64_embedded] then
                savesize:=16
              else
                savesize:=12;
@@ -3182,12 +3170,6 @@ implementation
       end;
 
 
-    function tpointerdef.pointer_arithmetic_int_type:tdef;
-      begin
-        result:=ptrsinttype;
-      end;
-
-
     function tpointerdef.pointer_subtraction_result_type:tdef;
       begin
         result:=ptrsinttype;
@@ -3414,12 +3396,12 @@ implementation
         inherited;
       end;
 
-    constructor tarraydef.create_from_pointer(def:tpointerdef);
+    constructor tarraydef.create_from_pointer(def:tdef);
       begin
          { use -1 so that the elecount will not overflow }
          self.create(0,high(asizeint)-1,ptrsinttype);
          arrayoptions:=[ado_IsConvertedPointer];
-         setelementdef(def.pointeddef);
+         setelementdef(def);
       end;
 
 
@@ -3711,23 +3693,6 @@ implementation
         inherited destroy;
       end;
 
-
-    procedure tabstractrecorddef.buildderefimpl;
-      begin
-         inherited buildderefimpl;
-         if not (df_copied_def in defoptions) then
-           tstoredsymtable(symtable).buildderefimpl;
-      end;
-
-
-    procedure tabstractrecorddef.derefimpl;
-      begin
-        inherited derefimpl;
-        if not (df_copied_def in defoptions) then
-          tstoredsymtable(symtable).derefimpl;
-      end;
-
-
     procedure tabstractrecorddef.check_forwards;
       begin
         { the defs of a copied def are defined for the original type only }
@@ -3768,104 +3733,8 @@ implementation
       end;
 
     function tabstractrecorddef.RttiName: string;
-
-        function generate_full_paramname(maxlength:longint):string;
-          const
-            commacount : array[boolean] of longint = (0,1);
-          var
-            fullparas,
-            paramname : ansistring;
-            module : tmodule;
-            sym : ttypesym;
-            i : longint;
-          begin
-            { we want at least enough space for an ellipsis }
-            if maxlength<3 then
-              internalerror(2014121203);
-            fullparas:='';
-            for i:=0 to genericparas.count-1 do
-              begin
-                sym:=ttypesym(genericparas[i]);
-                module:=find_module_from_symtable(sym.owner);
-                if not assigned(module) then
-                  internalerror(2014121202);
-                paramname:=module.realmodulename^;
-                if sym.typedef.typ in [objectdef,recorddef] then
-                  paramname:=paramname+'.'+tabstractrecorddef(sym.typedef).rttiname
-                else
-                  paramname:=paramname+'.'+sym.typedef.typename;
-                if length(fullparas)+commacount[i>0]+length(paramname)>maxlength then
-                  begin
-                    if i>0 then
-                      fullparas:=fullparas+',...'
-                    else
-                      fullparas:=fullparas+'...';
-                    break;
-                  end;
-                { could we fit an ellipsis after this parameter if it should be too long? }
-                if (maxlength-(length(fullparas)+commacount[i>0]+length(paramname))<4) and (i<genericparas.count-1) then
-                  begin
-                    { then omit already this parameter }
-                    if i>0 then
-                      fullparas:=fullparas+',...'
-                    else
-                      fullparas:=fullparas+'...';
-                    break;
-                  end;
-                if i>0 then
-                  fullparas:=fullparas+',';
-                fullparas:=fullparas+paramname;
-              end;
-            result:=fullparas;
-          end;
-
-      var
-        nongeneric,
-        basename : string;
-        i,
-        remlength,
-        paramcount,
-        crcidx : longint;
       begin
-        if rttistring='' then
-          begin
-            if is_specialization then
-              begin
-                rttistring:=OwnerHierarchyName;
-                { there should be two $ characters, one before the CRC and one before the count }
-                crcidx:=-1;
-                for i:=length(objrealname^) downto 1 do
-                  if objrealname^[i]='$' then
-                    begin
-                      crcidx:=i;
-                      break;
-                    end;
-                if crcidx<0 then
-                  internalerror(2014121201);
-                basename:=copy(objrealname^,1,crcidx-1);
-                split_generic_name(basename,nongeneric,paramcount);
-                rttistring:=rttistring+nongeneric+'<';
-                remlength:=255-length(rttistring)-1;
-                if remlength<4 then
-                  rttistring:=rttistring+'>'
-                else
-                  rttistring:=rttistring+generate_full_paramname(remlength)+'>';
-              end
-            else
-              if is_generic then
-                begin
-                  rttistring:=OwnerHierarchyName;
-                  split_generic_name(objrealname^,nongeneric,paramcount);
-                  rttistring:=rttistring+nongeneric+'<';
-                  { we don't want any ',' if there is only one parameter }
-                  for i:=0 to paramcount-0 do
-                    rttistring:=rttistring+',';
-                  rttistring:=rttistring+'>';
-                end
-              else
-                rttistring:=OwnerHierarchyName+objrealname^;
-          end;
-        result:=rttistring;
+        Result:=OwnerHierarchyName+objrealname^;
       end;
 
     function tabstractrecorddef.search_enumerator_get: tprocdef;
@@ -4132,6 +4001,14 @@ implementation
            cloneddefderef.build(symtable.defowner)
          else
            tstoredsymtable(symtable).buildderef;
+      end;
+
+
+    procedure trecorddef.buildderefimpl;
+      begin
+         inherited buildderefimpl;
+         if not (df_copied_def in defoptions) then
+           tstoredsymtable(symtable).buildderefimpl;
       end;
 
 
@@ -6300,9 +6177,19 @@ implementation
       end;
 
 
+    procedure tobjectdef.buildderefimpl;
+      begin
+         inherited buildderefimpl;
+         if not (df_copied_def in defoptions) then
+           tstoredsymtable(symtable).buildderefimpl;
+      end;
+
+
     procedure tobjectdef.derefimpl;
       begin
          inherited derefimpl;
+         if not (df_copied_def in defoptions) then
+           tstoredsymtable(symtable).derefimpl;
          { the procdefs are not owned by the class helper procsyms, so they
            are not stored/restored either -> re-add them here }
          if (objecttype=odt_objcclass) or

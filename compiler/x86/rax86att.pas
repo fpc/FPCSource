@@ -98,6 +98,9 @@ Implementation
 
     procedure Tx86attInstruction.FixupOpcode;
       begin
+        if (OpOrder=op_intel) then
+          SwapOperands;
+
         case opcode of
           A_MOVQ:
             begin
@@ -970,6 +973,7 @@ Implementation
         instr : Tx86Instruction;
       begin
         instr:=Tx86attInstruction.Create(Tx86Operand);
+        instr.OpOrder:=op_att;
         BuildOpcode(instr);
         instr.AddReferenceSizes;
         instr.SetInstructionOpsize;

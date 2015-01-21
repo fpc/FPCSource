@@ -937,7 +937,7 @@ implementation
           read_var_decls([vd_threadvar])
         else
           begin
-            Message1(parser_f_unsupported_feature,featurestr[f_threading]);
+            Message(parser_f_unsupported_feature);
             read_var_decls([]);
           end;
       end;

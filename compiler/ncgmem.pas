@@ -300,7 +300,7 @@ implementation
             pd:=tprocdef(tprocsym(sym).ProcdefList[0]);
             paraloc1.init;
             paramanager.getintparaloc(pd,1,paraloc1);
-            hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,left.resultdef,location.reference.base,paraloc1);
+            hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,resultdef,location.reference.base,paraloc1);
             paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
             paraloc1.done;
             hlcg.allocallcpuregisters(current_asmdata.CurrAsmList);
@@ -383,7 +383,7 @@ implementation
                       internalerror(2012010602);
                     pd:=tprocdef(tprocsym(sym).ProcdefList[0]);
                     paramanager.getintparaloc(pd,1,paraloc1);
-                    hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,left.resultdef,location.reference.base,paraloc1);
+                    hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,resultdef,location.reference.base,paraloc1);
                     paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                     hlcg.allocallcpuregisters(current_asmdata.CurrAsmList);
                     hlcg.a_call_name(current_asmdata.CurrAsmList,pd,'FPC_CHECKPOINTER',nil,false);
@@ -446,13 +446,13 @@ implementation
                        offsetcorrection:=0;
                        if (left.location.size in [OS_PAIR,OS_SPAIR]) then
                          begin
-                           if (vs.fieldoffset>=sizeof(aword)) xor (target_info.endian=endian_big) then
-                             location.sreg.subsetreg := left.location.registerhi
+                           if (vs.fieldoffset>=sizeof(aword)) then
+                             begin
+                               location.sreg.subsetreg := left.location.registerhi;
+                               offsetcorrection:=sizeof(aword)*8;
+                             end
                            else
                              location.sreg.subsetreg := left.location.register;
-
-                           if (vs.fieldoffset>=sizeof(aword)) then
-                             offsetcorrection:=sizeof(aword)*8;
 
                            location.sreg.subsetregsize := OS_INT;
                          end

@@ -670,11 +670,7 @@ unit cpupara;
               p.paraloc[callerside].intsize:=tcgsize2size[paracgsize];
               paraloc:=p.paraloc[callerside].add_location;
               paraloc^.loc:=LOC_REFERENCE;
-              { The OS side should be zero extended and the entire "virtual"
-                68k register should be overwritten. This is what the C ppcinline
-                macros do as well, by casting all arguments to ULONG. A call
-                which breaks w/o this is for example exec/RawPutChar (KB) }
-              paraloc^.size:=OS_ADDR;
+              paraloc^.size:=paracgsize;
               paraloc^.def:=p.vardef;
               paraloc^.reference.index:=newreg(R_INTREGISTER,RS_R2,R_SUBWHOLE);
               { pattern is always uppercase'd }

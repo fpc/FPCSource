@@ -328,7 +328,6 @@ unit ra68k;
 
     function TM68kInstruction.ConcatLabeledInstr(p : TAsmList):tai;
       begin
-        result:=nil;
         if ((opcode >= A_BCC) and (opcode <= A_BVS)) or
            (opcode = A_BRA) or (opcode = A_BSR) or
            (opcode = A_JMP) or (opcode = A_JSR) or

@@ -77,8 +77,6 @@ interface
                       GetResFlags:=F_LT;
                     gten:
                       GetResFlags:=F_NotPossible;
-                    else
-                      internalerror(2014082020);
                   end
                 else
                   case NodeType of
@@ -90,8 +88,6 @@ interface
                       GetResFlags:=F_NotPossible;
                     gten:
                       GetResFlags:=F_GE;
-                    else
-                      internalerror(2014082021);
                   end;
               end
             else
@@ -106,8 +102,6 @@ interface
                       GetResFlags:=F_CC;
                     gten:
                       GetResFlags:=F_NotPossible;
-                    else
-                      internalerror(2014082022);
                   end
                 else
                   case NodeType of
@@ -119,8 +113,6 @@ interface
                       GetResFlags:=F_NotPossible;
                     gten:
                       GetResFlags:=F_CS;
-                    else
-                      internalerror(2014082023);
                   end;
               end;
         end;
@@ -228,7 +220,7 @@ interface
     function tavraddnode.pass_1 : tnode;
       begin
         result:=inherited pass_1;
-{$ifdef dummy}
+{
         if not(assigned(result)) then
           begin
             unsigned:=not(is_signed(left.resultdef)) or
@@ -248,7 +240,7 @@ interface
              is_dynamic_array(left.resultdef)
            ) then
           expectloc:=LOC_FLAGS;
-{$endif dummy}
+}
       end;
 
 

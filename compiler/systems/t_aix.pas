@@ -43,7 +43,6 @@ interface
     TLinkerAIX=class(texternallinker)
     private
       prtobj  : string[80];
-      assumebinutils,use_gld : boolean;
       Function  WriteResponseFile(isdll:boolean) : Boolean;
     public
       constructor Create;override;
@@ -51,6 +50,7 @@ interface
       function  MakeExecutable:boolean;override;
       function  MakeSharedLibrary:boolean;override;
     end;
+
 
 implementation
 
@@ -117,8 +117,8 @@ begin
        sure that the binary does not contain any relocations in the text
        section (otherwise you get an error at load time instead of at link time
        in case something is wrong) }
-     ExeCmd[1]:='$LDBIN -bpT:0x10000000 -bpD:0x20000000 -btextro $OPT $STRIP -L. -o $EXE $CATRES' {$ifdef powerpc64}+' -b64'{$endif};
-     DllCmd[1]:='$LDBIN -bpT:0x10000000 -bpD:0x20000000 -btextro $OPT $INITFINI $STRIP -G -L. -o $EXE $CATRES' {$ifdef powerpc64}+' -b64'{$endif};
+     ExeCmd[1]:='ld -bpT:0x10000000 -bpD:0x20000000 -btextro $OPT $STRIP -L. -o $EXE $CATRES' {$ifdef powerpc64}+' -b64'{$endif};
+     DllCmd[1]:='ld -bpT:0x10000000 -bpD:0x20000000 -btextro $OPT $INITFINI $STRIP -G -L. -o $EXE $CATRES' {$ifdef powerpc64}+' -b64'{$endif};
      if cs_debuginfo in current_settings.moduleswitches then
        begin
          { debugging helpers }
@@ -139,11 +139,6 @@ begin
 {$else}
 {$error unsupported AIX architecture}
 {$endif}
-  assumebinutils:=
-    not(cs_link_native in current_settings.globalswitches) or
-    (not(cs_link_on_target in current_settings.globalswitches) and
-     not(source_info.system in systems_aix)) ;
-  use_gld:=assumebinutils and (source_info.system in systems_aix)
 end;
 
 
@@ -153,8 +148,12 @@ Var
   i            : longint;
   HPath        : TCmdStrListItem;
   s,s1         : TCmdStr;
+  assumebinutils : boolean;
 begin
   result:=False;
+  assumebinutils:=
+    not(cs_link_on_target in current_settings.globalswitches) and
+    not(source_info.system in systems_aix) ;
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName,assumebinutils);
   with linkres do
@@ -262,10 +261,6 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  if assumebinutils and (source_info.system in systems_aix) then
-    Replace(binstr,'$LDBIN','gld')
-  else
-    Replace(binstr,'$LDBIN','ld');
   binstr:=FindUtil(utilsprefix+BinStr);
   Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
@@ -356,10 +351,6 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
-  if assumebinutils and (source_info.system in systems_aix) then
-    Replace(binstr,'$LDBIN','gld')
-  else
-    Replace(binstr,'$LDBIN','ld');
   binstr:=FindUtil(utilsprefix+BinStr);
   { on AIX, shared libraries are special object files that are stored inside
     an archive. In that archive, the 32 bit version of the library is called

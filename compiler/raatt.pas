@@ -112,7 +112,10 @@ unit raatt;
          procedure handledollar;virtual;
          procedure HandleTargetDirective;virtual;
        end;
+       tcattreader = class of tattreader;
 
+    var
+      cattreader : tcattreader;
 
   implementation
 

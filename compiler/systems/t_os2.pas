@@ -396,7 +396,7 @@ begin
   with Info do
    begin
      ExeCmd[1]:='ld $OPT -o $OUT @$RES';
-     ExeCmd[2]:='emxbind -b $STRIP $MAP $APPTYPE $RSRC -k$STACKKB -h1 -q -o $EXE $OUT -ai -s8';
+     ExeCmd[2]:='emxbind -b $STRIP $MAP $APPTYPE $RSRC -k$STACKKB -h1 -o $EXE $OUT -ai -s8';
      if Source_Info.Script = script_dos then
       ExeCmd[3]:='del $OUT';
    end;
@@ -533,11 +533,7 @@ begin
         Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
 *)
         Replace(cmdstr,'$RES',outputexedir+Info.ResName);
-        if (Info.ExtraOptions <> '') and
-                   (Info.ExtraOptions [Length (Info.ExtraOptions)] <> ' ') then
-         Replace(cmdstr,'$OPT',Info.ExtraOptions)
-        else
-         Replace(cmdstr,'$OPT ',Info.ExtraOptions);
+        Replace(cmdstr,'$OPT ',Info.ExtraOptions);
         Replace(cmdstr,'$RSRC ',RsrcStr);
         Replace(cmdstr,'$OUT',maybequoted(OutName));
         Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));

@@ -1239,7 +1239,7 @@ implementation
                     assembler }
                 end;
               else
-                internalerror(200402266);
+                internalerror(200402261);
             end;
           end;
       end;
@@ -1827,13 +1827,9 @@ implementation
         {No register, so memory reference.}
         if (input.typ<>top_ref) then
           internalerror(200409262);
-
-        if ((input.ref^.index<>NR_NO) and (getregtype(input.ref^.index)=R_MMREGISTER) and (input.ref^.base<>NR_NO) and (getregtype(input.ref^.base)<>R_INTREGISTER)) or // vector memory (AVX2)
-           ((input.ref^.index<>NR_NO) and (getregtype(input.ref^.index)<>R_INTREGISTER) and (getregtype(input.ref^.index)<>R_MMREGISTER)) or
+        if ((input.ref^.index<>NR_NO) and (getregtype(input.ref^.index)<>R_INTREGISTER)) or
            ((input.ref^.base<>NR_NO) and (getregtype(input.ref^.base)<>R_INTREGISTER)) then
-         internalerror(200301081);
-
-
+          internalerror(200301081);
         ir:=input.ref^.index;
         br:=input.ref^.base;
         isub:=getsubreg(ir);
@@ -1853,15 +1849,8 @@ implementation
         { it's an indirection }
          begin
            { 16 bit address? }
-
-           if ((ir<>NR_NO) and (isub in [R_SUBMMX,R_SUBMMY]) and
-               (br<>NR_NO) and (bsub=R_SUBADDR)
-              ) then
-           begin
-             // vector memory (AVX2) =>> ignore
-           end
-           else if ((ir<>NR_NO) and (isub<>R_SUBADDR)) or
-                   ((br<>NR_NO) and (bsub<>R_SUBADDR)) then
+           if ((ir<>NR_NO) and (isub<>R_SUBADDR)) or
+              ((br<>NR_NO) and (bsub<>R_SUBADDR)) then
              message(asmw_e_16bit_not_supported);
 {$ifdef OPTEA}
            { make single reg base }
@@ -1904,30 +1893,14 @@ implementation
            end;
            { index }
            case ir of
-             NR_EAX,
-             NR_XMM0,
-             NR_YMM0: index:=0;
-             NR_ECX,
-             NR_XMM1,
-             NR_YMM1: index:=1;
-             NR_EDX,
-             NR_XMM2,
-             NR_YMM2: index:=2;
-             NR_EBX,
-             NR_XMM3,
-             NR_YMM3: index:=3;
-             NR_NO,
-             NR_XMM4,
-             NR_YMM4: index:=4;
-             NR_EBP,
-             NR_XMM5,
-             NR_YMM5: index:=5;
-             NR_ESI,
-             NR_XMM6,
-             NR_YMM6: index:=6;
-             NR_EDI,
-             NR_XMM7,
-             NR_YMM7: index:=7;
+             NR_EAX : index:=0;
+             NR_ECX : index:=1;
+             NR_EDX : index:=2;
+             NR_EBX : index:=3;
+             NR_NO  : index:=4;
+             NR_EBP : index:=5;
+             NR_ESI : index:=6;
+             NR_EDI : index:=7;
            else
              exit;
            end;
@@ -3317,44 +3290,46 @@ implementation
               RegXMMSizeMask := RegXMMSizeMask;
             end;
 
+
+
             for j := 0 to insentry^.ops -1 do
             begin
               if (insentry^.optypes[j] and OT_REGISTER) = OT_REGISTER then
-                begin
-                  inc(actRegCount);
+              begin
+                inc(actRegCount);
 
-                  NewRegSize := (insentry^.optypes[j] and OT_SIZE_MASK);
-                  if NewRegSize = 0 then
-                    begin
-                      case insentry^.optypes[j] and (OT_MMXREG OR OT_XMMREG OR OT_YMMREG) of
-                        OT_MMXREG: begin
-                                     NewRegSize := OT_BITS64;
-                                   end;
-                        OT_XMMREG: begin
-                                     NewRegSize := OT_BITS128;
-                                     InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX := true;
-                                   end;
-                        OT_YMMREG: begin
-                                     NewRegSize := OT_BITS256;
-                                     InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX := true;
-                                   end;
-                              else NewRegSize := not(0);
-                      end;
+                NewRegSize := (insentry^.optypes[j] and OT_SIZE_MASK);
+                if NewRegSize = 0 then
+                begin
+                  case insentry^.optypes[j] and (OT_MMXREG OR OT_XMMREG OR OT_YMMREG) of
+                    OT_MMXREG: begin
+                                 NewRegSize := OT_BITS64;
+                               end;
+                    OT_XMMREG: begin
+                                 NewRegSize := OT_BITS128;
+                                 InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX := true;
+                               end;
+                    OT_YMMREG: begin
+                                 NewRegSize := OT_BITS256;
+                                 InsTabMemRefSizeInfoCache^[AsmOp].ExistsSSEAVX := true;
+                               end;
+                          else NewRegSize := not(0);
                   end;
+                end;
 
                 actRegSize  := actRegSize or NewRegSize;
                 actRegTypes := actRegTypes or (insentry^.optypes[j] and (OT_MMXREG OR OT_XMMREG OR OT_YMMREG));
-                end
+              end
               else if ((insentry^.optypes[j] and OT_MEMORY) <> 0) then
-                begin
-                  inc(actMemCount);
+              begin
+                inc(actMemCount);
 
-                  actMemSize:=actMemSize or (insentry^.optypes[j] and OT_SIZE_MASK);
-                  if (insentry^.optypes[j] and OT_REGMEM) = OT_REGMEM then
-                    begin
-                      actRegMemTypes  := actRegMemTypes or insentry^.optypes[j];
-                    end;
-                end
+                actMemSize    := actMemSize or (insentry^.optypes[j] and OT_SIZE_MASK);
+                if (insentry^.optypes[j] and OT_REGMEM) = OT_REGMEM then
+                begin
+                  actRegMemTypes  := actRegMemTypes or insentry^.optypes[j];
+                end;
+              end
               else if ((insentry^.optypes[j] and OT_IMMEDIATE) = OT_IMMEDIATE) then
               begin
                 inc(actConstCount);
@@ -3366,12 +3341,12 @@ implementation
             if actConstCount > 0 then
             begin
               case actConstSize of
-                0: SConstInfo := csiNoSize;
-                OT_BITS8: SConstInfo := csiMem8;
+                        0: SConstInfo := csiNoSize;
+                 OT_BITS8: SConstInfo := csiMem8;
                 OT_BITS16: SConstInfo := csiMem16;
                 OT_BITS32: SConstInfo := csiMem32;
                 OT_BITS64: SConstInfo := csiMem64;
-                else SConstInfo := csiMultiple;
+                      else SConstInfo := csiMultiple;
               end;
 
               if InsTabMemRefSizeInfoCache^[AsmOp].ConstSize = csiUnkown then
@@ -3396,57 +3371,59 @@ implementation
                      end;
 
                      case actMemSize of
-                       0: MRefInfo := msiNoSize;
-                       OT_BITS8: MRefInfo := msiMem8;
-                       OT_BITS16: MRefInfo := msiMem16;
-                       OT_BITS32: MRefInfo := msiMem32;
-                       OT_BITS64: MRefInfo := msiMem64;
+                                0: MRefInfo := msiNoSize;
+                         OT_BITS8: MRefInfo := msiMem8;
+                        OT_BITS16: MRefInfo := msiMem16;
+                        OT_BITS32: MRefInfo := msiMem32;
+                        OT_BITS64: MRefInfo := msiMem64;
                        OT_BITS128: MRefInfo := msiMem128;
                        OT_BITS256: MRefInfo := msiMem256;
                        OT_BITS80,
-                       OT_FAR,
-                       OT_NEAR,
-                       OT_SHORT: ; // ignore
-                       else
-                         begin
-                           bitcount := bitcnt(actMemSize);
+                          OT_FAR,
+                         OT_NEAR,
+                         OT_SHORT: ; // ignore
+                              else begin
+                                     bitcount := bitcnt(actMemSize);
 
-                           if bitcount > 1 then MRefInfo := msiMultiple
-                           else InternalError(777203);
-                         end;
+                                     if bitcount > 1 then MRefInfo := msiMultiple
+                                     else InternalError(777203);
+                                   end;
                      end;
 
                      if InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize = msiUnkown then
-                       begin
-                         InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := MRefInfo;
-                       end
+                     begin
+                       InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize := MRefInfo;
+                     end
                      else if InsTabMemRefSizeInfoCache^[AsmOp].MemRefSize <> MRefInfo then
+                     begin
+                       with InsTabMemRefSizeInfoCache^[AsmOp] do
                        begin
-                         with InsTabMemRefSizeInfoCache^[AsmOp] do
-                         begin
-                           if ((MemRefSize = msiMem8)        OR (MRefInfo = msiMem8))   then MemRefSize := msiMultiple8
-                           else if ((MemRefSize = msiMem16)  OR (MRefInfo = msiMem16))  then MemRefSize := msiMultiple16
-                           else if ((MemRefSize = msiMem32)  OR (MRefInfo = msiMem32))  then MemRefSize := msiMultiple32
-                           else if ((MemRefSize = msiMem64)  OR (MRefInfo = msiMem64))  then MemRefSize := msiMultiple64
-                           else if ((MemRefSize = msiMem128) OR (MRefInfo = msiMem128)) then MemRefSize := msiMultiple128
-                           else if ((MemRefSize = msiMem256) OR (MRefInfo = msiMem256)) then MemRefSize := msiMultiple256
-                           else MemRefSize := msiMultiple;
-                         end;
+
+
+                         if ((MemRefSize = msiMem8)        OR (MRefInfo = msiMem8))   then MemRefSize := msiMultiple8
+                         else if ((MemRefSize = msiMem16)  OR (MRefInfo = msiMem16))  then MemRefSize := msiMultiple16
+                         else if ((MemRefSize = msiMem32)  OR (MRefInfo = msiMem32))  then MemRefSize := msiMultiple32
+                         else if ((MemRefSize = msiMem64)  OR (MRefInfo = msiMem64))  then MemRefSize := msiMultiple64
+                         else if ((MemRefSize = msiMem128) OR (MRefInfo = msiMem128)) then MemRefSize := msiMultiple128
+                         else if ((MemRefSize = msiMem256) OR (MRefInfo = msiMem256)) then MemRefSize := msiMultiple256
+
+                         else MemRefSize := msiMultiple;
+                       end;
                      end;
 
                      if actRegCount > 0 then
-                       begin
-                         case actRegTypes and (OT_MMXREG or OT_XMMREG or OT_YMMREG) of
-                           OT_MMXREG: RegMMXSizeMask := RegMMXSizeMask or actMemSize;
-                           OT_XMMREG: RegXMMSizeMask := RegXMMSizeMask or actMemSize;
-                           OT_YMMREG: RegYMMSizeMask := RegYMMSizeMask or actMemSize;
-                                 else begin
-                                        RegMMXSizeMask := not(0);
-                                        RegXMMSizeMask := not(0);
-                                        RegYMMSizeMask := not(0);
-                                      end;
-                         end;
+                     begin
+                       case actRegTypes and (OT_MMXREG or OT_XMMREG or OT_YMMREG) of
+                         OT_MMXREG: RegMMXSizeMask := RegMMXSizeMask or actMemSize;
+                         OT_XMMREG: RegXMMSizeMask := RegXMMSizeMask or actMemSize;
+                         OT_YMMREG: RegYMMSizeMask := RegYMMSizeMask or actMemSize;
+                               else begin
+                                      RegMMXSizeMask := not(0);
+                                      RegXMMSizeMask := not(0);
+                                      RegYMMSizeMask := not(0);
+                                    end;
                        end;
+                     end;
                    end;
               else InternalError(777202);
             end;

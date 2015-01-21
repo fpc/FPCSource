@@ -30,7 +30,7 @@ Unit aoptcpu;
 
 Interface
 
-uses cgbase, cgutils, cpubase, aasmtai, aasmcpu,aopt, aoptobj;
+uses cgbase, cpubase, aasmtai, aasmcpu,aopt, aoptobj;
 
 Type
   TCpuAsmOptimizer = class(TAsmOptimizer)
@@ -49,8 +49,7 @@ Type
       change in program flow.
       If there is none, it returns false and
       sets p1 to nil                                                     }
-    Function GetNextInstructionUsingReg(Current: tai; Out Next: tai; reg: TRegister): Boolean;
-    Function GetNextInstructionUsingRef(Current: tai; Out Next: tai; const ref: TReference; StopOnStore: Boolean = true): Boolean;
+    Function GetNextInstructionUsingReg(Current: tai; Var Next: tai;reg : TRegister): Boolean;
 
     { outputs a debug message into the assembler file }
     procedure DebugMsg(const s: string; p: tai);
@@ -80,7 +79,7 @@ Implementation
     cutils,verbose,globtype,globals,
     systems,
     cpuinfo,
-    cgobj,procinfo,
+    cgobj,cgutils,procinfo,
     aasmbase,aasmdata;
 
   function CanBeCond(p : tai) : boolean;
@@ -318,46 +317,15 @@ Implementation
          RegLoadedWithNewValue(reg,p);
     end;
 
-  function TCpuAsmOptimizer.GetNextInstructionUsingReg(Current: tai;
-    Out Next: tai; reg: TRegister): Boolean;
-    begin
-      Next:=Current;
-      repeat
-        Result:=GetNextInstruction(Next,Next);
-      until not (Result) or
-            not(cs_opt_level3 in current_settings.optimizerswitches) or
-            (Next.typ<>ait_instruction) or
-            RegInInstruction(reg,Next) or
-            is_calljmp(taicpu(Next).opcode) or
-            RegModifiedByInstruction(NR_PC,Next);
-    end;
 
-  function TCpuAsmOptimizer.GetNextInstructionUsingRef(Current: tai;
-    Out Next: tai; const ref: TReference; StopOnStore: Boolean = true): Boolean;
+  function TCpuAsmOptimizer.GetNextInstructionUsingReg(Current: tai;
+    var Next: tai; reg: TRegister): Boolean;
     begin
       Next:=Current;
       repeat
         Result:=GetNextInstruction(Next,Next);
-        if Result and
-           (Next.typ=ait_instruction) and
-           (taicpu(Next).opcode in [A_LDR, A_STR]) and
-           (
-            ((taicpu(Next).ops = 2) and
-             (taicpu(Next).oper[1]^.typ = top_ref) and
-             RefsEqual(taicpu(Next).oper[1]^.ref^,ref)) or
-            ((taicpu(Next).ops = 3) and { LDRD/STRD }
-             (taicpu(Next).oper[2]^.typ = top_ref) and
-             RefsEqual(taicpu(Next).oper[2]^.ref^,ref))
-           ) then
-            {We've found an instruction LDR or STR with the same reference}
-            exit;
-      until not(Result) or
-            (Next.typ<>ait_instruction) or
-            not(cs_opt_level3 in current_settings.optimizerswitches) or
-            is_calljmp(taicpu(Next).opcode) or
-            (StopOnStore and (taicpu(Next).opcode in [A_STR, A_STM])) or
-            RegModifiedByInstruction(NR_PC,Next);
-      Result:=false;
+      until not(cs_opt_level3 in current_settings.optimizerswitches) or not(Result) or (Next.typ<>ait_instruction) or (RegInInstruction(reg,Next)) or
+        (is_calljmp(taicpu(Next).opcode)) or (RegInInstruction(NR_PC,Next));
     end;
 
 {$ifdef DEBUG_AOPTCPU}
@@ -514,8 +482,7 @@ Implementation
       hp1 : tai;
     begin
       Result:=false;
-      if (p.oper[1]^.typ = top_ref) and
-        (p.oper[1]^.ref^.addressmode=AM_OFFSET) and
+      if (p.oper[1]^.ref^.addressmode=AM_OFFSET) and
         (p.oper[1]^.ref^.index=NR_NO) and
         (p.oper[1]^.ref^.offset=0) and
         GetNextInstructionUsingReg(p, hp1, p.oper[1]^.ref^.base) and
@@ -571,7 +538,6 @@ Implementation
       TmpUsedRegs: TAllUsedRegs;
       tempop: tasmop;
       oldreg: tregister;
-      dealloc: tai_regalloc;
 
     function IsPowerOf2(const value: DWord): boolean; inline;
       begin
@@ -641,17 +607,12 @@ Implementation
                       str reg1,ref
                       mov reg2,reg1
                     }
-                    if (taicpu(p).oper[1]^.typ = top_ref) and
-                       (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
+                    if (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
                        (taicpu(p).oppostfix=PF_None) and
-                       (taicpu(p).condition=C_None) and
-                       GetNextInstructionUsingRef(p,hp1,taicpu(p).oper[1]^.ref^) and
-                       MatchInstruction(hp1, A_LDR, [taicpu(p).condition], [PF_None]) and
-                       (taicpu(hp1).oper[1]^.typ=top_ref) and
-                       (taicpu(hp1).oper[1]^.ref^.addressmode=AM_OFFSET) and
-                       not(RegModifiedBetween(taicpu(p).oper[0]^.reg, p, hp1)) and
-                       ((taicpu(hp1).oper[1]^.ref^.index=NR_NO) or not (RegModifiedBetween(taicpu(hp1).oper[1]^.ref^.index, p, hp1))) and
-                       ((taicpu(hp1).oper[1]^.ref^.base=NR_NO) or not (RegModifiedBetween(taicpu(hp1).oper[1]^.ref^.base, p, hp1))) then
+                       GetNextInstruction(p,hp1) and
+                       MatchInstruction(hp1, A_LDR, [taicpu(p).condition, C_None], [PF_None]) and
+                       RefsEqual(taicpu(p).oper[1]^.ref^,taicpu(hp1).oper[1]^.ref^) and
+                       (taicpu(hp1).oper[1]^.ref^.addressmode=AM_OFFSET) then
                       begin
                         if taicpu(hp1).oper[0]^.reg=taicpu(p).oper[0]^.reg then
                           begin
@@ -672,7 +633,7 @@ Implementation
                       str reg1,ref
                       str reg2,ref
                       into
-                      strd reg1,reg2,ref
+                      strd reg1,ref
                     }
                     else if (GenerateARMCode or GenerateThumb2Code) and
                        (CPUARM_HAS_EDSP in cpu_capabilities[current_settings.cputype]) and
@@ -693,9 +654,6 @@ Implementation
                       begin
                         DebugMsg('Peephole StrStr2Strd done', p);
                         taicpu(p).oppostfix:=PF_D;
-                        taicpu(p).loadref(2,taicpu(p).oper[1]^.ref^);
-                        taicpu(p).loadreg(1, taicpu(hp1).oper[0]^.reg);
-                        taicpu(p).ops:=3;
                         asml.remove(hp1);
                         hp1.free;
                         result:=true;
@@ -709,8 +667,7 @@ Implementation
                       ldr reg2,ref
                       into ...
                     }
-                    if (taicpu(p).oper[1]^.typ = top_ref) and
-                       (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
+                    if (taicpu(p).oper[1]^.ref^.addressmode=AM_OFFSET) and
                        GetNextInstruction(p,hp1) and
                        { ldrd is not allowed here }
                        MatchInstruction(hp1, A_LDR, [taicpu(p).condition, C_None], [taicpu(p).oppostfix,PF_None]-[PF_D]) then
@@ -743,7 +700,7 @@ Implementation
                           end
                         {
                            ...
-                           ldrd reg1,reg1+1,ref
+                           ldrd reg1,ref
                         }
                         else if (GenerateARMCode or GenerateThumb2Code) and
                           (CPUARM_HAS_EDSP in cpu_capabilities[current_settings.cputype]) and
@@ -761,9 +718,6 @@ Implementation
                           AlignedToQWord(taicpu(p).oper[1]^.ref^) then
                           begin
                             DebugMsg('Peephole LdrLdr2Ldrd done', p);
-                            taicpu(p).loadref(2,taicpu(p).oper[1]^.ref^);
-                            taicpu(p).loadreg(1, taicpu(hp1).oper[0]^.reg);
-                            taicpu(p).ops:=3;
                             taicpu(p).oppostfix:=PF_D;
                             asml.remove(hp1);
                             hp1.free;
@@ -1246,7 +1200,6 @@ Implementation
                        (taicpu(p).oppostfix = PF_NONE) and
                        GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
                        MatchInstruction(hp1, [A_LDR, A_STR], [taicpu(p).condition], []) and
-                       (taicpu(hp1).oper[1]^.typ = top_ref) and
                        { We can change the base register only when the instruction uses AM_OFFSET }
                        ((taicpu(hp1).oper[1]^.ref^.index = taicpu(p).oper[0]^.reg) or
                          ((taicpu(hp1).oper[1]^.ref^.addressmode = AM_OFFSET) and
@@ -1268,13 +1221,6 @@ Implementation
 
                         if taicpu(hp1).oper[1]^.ref^.index = taicpu(p).oper[0]^.reg then
                           taicpu(hp1).oper[1]^.ref^.index := taicpu(p).oper[1]^.reg;
-
-                        dealloc:=FindRegDeAlloc(taicpu(p).oper[1]^.reg, taicpu(p.Next));
-                        if Assigned(dealloc) then
-                          begin
-                            asml.remove(dealloc);
-                            asml.InsertAfter(dealloc,hp1);
-                          end;
 
                         GetNextInstruction(p, hp1);
                         asml.remove(p);
@@ -1637,14 +1583,13 @@ Implementation
                               and reg1,reg0,2^n-1
                               mov reg2,reg1, lsl imm1
                               =>
-                              mov reg2,reg0, lsl imm1
+                              mov reg2,reg1, lsl imm1
                               if imm1>i
                             }
-                            else if (i>32-taicpu(hp1).oper[2]^.shifterop^.shiftimm) and
-                                    not(RegModifiedBetween(taicpu(p).oper[1]^.reg, p, hp1)) then
+                            else if i>32-taicpu(hp1).oper[2]^.shifterop^.shiftimm then
                               begin
                                 DebugMsg('Peephole AndLsl2Lsl done', p);
-                                taicpu(hp1).oper[1]^.reg:=taicpu(p).oper[1]^.reg;
+                                taicpu(hp1).oper[1]^.reg:=taicpu(p).oper[0]^.reg;
                                 GetNextInstruction(p, hp1);
                                 asml.Remove(p);
                                 p.free;
@@ -1671,7 +1616,6 @@ Implementation
                         while GetNextInstructionUsingReg(hp1, hp1, taicpu(p).oper[0]^.reg) and
                           { we cannot check NR_DEFAULTFLAGS for modification yet so don't allow a condition }
                           MatchInstruction(hp1, [A_LDR, A_STR], [C_None], []) and
-                          (taicpu(hp1).oper[1]^.typ = top_ref) and
                           (taicpu(hp1).oper[1]^.ref^.base=taicpu(p).oper[0]^.reg) and
                           { don't optimize if the register is stored/overwritten }
                           (taicpu(hp1).oper[0]^.reg<>taicpu(p).oper[1]^.reg) and
@@ -2445,7 +2389,7 @@ Implementation
     begin
       result:=true;
 
-      list:=TAsmList.create;
+      list:=TAsmList.create_without_marker;
       p:=BlockStart;
       while p<>BlockEnd Do
         begin
@@ -2466,7 +2410,6 @@ Implementation
                ) or
                { try to prove that the memory accesses don't overlapp }
                ((taicpu(p).opcode in [A_STRB,A_STRH,A_STR]) and
-                (taicpu(p).oper[1]^.typ = top_ref) and
                 (taicpu(p).oper[1]^.ref^.base=taicpu(hp1).oper[1]^.ref^.base) and
                 (taicpu(p).oppostfix=PF_None) and
                 (taicpu(hp1).oppostfix=PF_None) and
@@ -2492,10 +2435,7 @@ Implementation
             { first instruction might not change the register used as index }
             ((taicpu(hp1).oper[1]^.ref^.index=NR_NO) or
              not(RegModifiedByInstruction(taicpu(hp1).oper[1]^.ref^.index,p))
-            ) and
-            { if we modify the basereg AND the first instruction used that reg, we can not schedule }
-            ((taicpu(hp1).oper[1]^.ref^.addressmode = AM_OFFSET) or
-             not(instructionLoadsFromReg(taicpu(hp1).oper[1]^.ref^.base,p))) then
+            ) then
             begin
               hp3:=tai(p.Previous);
               hp5:=tai(p.next);

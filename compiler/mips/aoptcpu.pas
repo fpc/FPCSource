@@ -28,18 +28,15 @@ unit aoptcpu;
   Interface
 
     uses
-      cgbase, cpubase, aoptobj, aoptcpub, aopt, aasmtai, aasmcpu;
+      cgbase, cpubase, aoptobj, aoptcpub, aopt, aasmtai;
 
     Type
-      TAsmOpSet = set of TAsmOp;
-
       TCpuAsmOptimizer = class(TAsmOptimizer)
-        function RegModifiedByInstruction(Reg: TRegister; p1: tai): boolean; override;
         function GetNextInstructionUsingReg(Current: tai;
           var Next: tai; reg: TRegister): Boolean;
+        function RegUsedAfterInstruction(reg: Tregister; p: tai;
+          var AllUsedRegs: TAllUsedRegs): Boolean;
         function TryRemoveMov(var p: tai; opcode: TAsmOp): boolean;
-        function TryRemoveMovToRefIndex(var p: tai; next: taicpu): boolean;
-        function TryRemoveMovBeforeStore(var p: tai; next: taicpu; const storeops: TAsmOpSet): boolean;
         function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
         procedure PeepHoleOptPass2; override;
       End;
@@ -47,7 +44,7 @@ unit aoptcpu;
   Implementation
 
      uses
-       cutils,globtype,globals,aasmbase,cpuinfo,verbose;
+       globals,aasmbase,aasmcpu,cpuinfo,verbose;
 
 
   function MatchInstruction(const instr: tai; const op: TAsmOp): boolean;
@@ -96,15 +93,10 @@ unit aoptcpu;
     end;
 
 
-  function CanBeCMOV(p: tai; condreg: tregister): boolean;
+  function CanBeCMOV(p: tai): boolean;
     begin
       result:=assigned(p) and (p.typ=ait_instruction) and
-        ((taicpu(p).opcode in [A_MOV_D,A_MOV_S]) or
-        (
-          { register with condition must not be overwritten }
-          (taicpu(p).opcode=A_MOVE) and
-          (taicpu(p).oper[0]^.reg<>condreg)
-        ));
+        (taicpu(p).opcode in [A_MOV_D,A_MOV_S,A_MOVE]);
     end;
 
 
@@ -178,20 +170,6 @@ unit aoptcpu;
     end;
 
 
-  function TCpuAsmOptimizer.RegModifiedByInstruction(Reg: TRegister; p1: tai): boolean;
-    var
-      i : Longint;
-    begin
-      result:=false;
-      for i:=0 to taicpu(p1).ops-1 do
-        if (taicpu(p1).oper[i]^.typ=top_reg) and (taicpu(p1).oper[i]^.reg=Reg) and (taicpu(p1).spilling_get_operation_type(i) in [operand_write,operand_readwrite]) then
-          begin
-            result:=true;
-            exit;
-          end;
-    end;
-
-
   function TCpuAsmOptimizer.GetNextInstructionUsingReg(Current: tai;
     var Next: tai; reg: TRegister): Boolean;
     begin
@@ -200,11 +178,26 @@ unit aoptcpu;
         Result:=GetNextInstruction(Next,Next);
       until {not(cs_opt_level3 in current_settings.optimizerswitches) or} not(Result) or (Next.typ<>ait_instruction) or (RegInInstruction(reg,Next)) or
         (is_calljmp(taicpu(Next).opcode));
-      if Result and (next.typ=ait_instruction) and is_calljmp(taicpu(next).opcode) then
+      if Result and is_calljmp(taicpu(next).opcode) then
         begin
           result:=false;
           next:=nil;
         end;
+    end;
+
+
+  function TCpuAsmOptimizer.RegUsedAfterInstruction(reg: Tregister; p: tai;
+    var AllUsedRegs: TAllUsedRegs): Boolean;
+    begin
+      AllUsedRegs[getregtype(reg)].Update(tai(p.Next),true);
+      RegUsedAfterInstruction :=
+        AllUsedRegs[getregtype(reg)].IsUsed(reg) and
+        not(regLoadedWithNewValue(reg,p)) and
+        (
+          not(GetNextInstruction(p,p)) or
+          instructionLoadsFromReg(reg,p) or
+          not(regLoadedWithNewValue(reg,p))
+        );
     end;
 
 
@@ -222,7 +215,7 @@ unit aoptcpu;
         opcode may be A_MOVE, A_MOV_s, A_MOV_d, etc.
       }
       result:=false;
-      if (taicpu(p).ops>0) and
+      if (taicpu(p).ops>1) and
          GetNextInstructionUsingReg(p,next,taicpu(p).oper[0]^.reg) and
          MatchInstruction(next,opcode) and
          MatchOperand(taicpu(next).oper[1]^,taicpu(p).oper[0]^.reg) and
@@ -263,63 +256,7 @@ unit aoptcpu;
               taicpu(p).loadreg(0,taicpu(next).oper[0]^.reg);
               asml.remove(next);
               next.free;
-              result:=true;
-            end
-          else       // no dealloc found
-            begin
-              { try to optimize the typical call sequence
-                lw  $reg, (whatever)
-                <alloc volatile registers>
-                move $t9,$reg
-                jalr $t9
-                Do not do so if the used register might contain a 
-                register variable.      }
-              if (opcode=A_MOVE) and
-                 not(cs_opt_regvar in current_settings.optimizerswitches) and
-                 (taicpu(next).oper[0]^.reg=NR_R25) and
-                 GetNextInstruction(next,hp1) and
-                 MatchInstruction(hp1,A_JALR) and
-                 MatchOperand(taicpu(hp1).oper[0]^,NR_R25) then
-                begin
-                  taicpu(p).loadreg(0,taicpu(next).oper[0]^.reg);
-                  asml.remove(next);
-                  next.free;
-                  result:=true;
-                end;
             end;
-        end;
-    end;
-
-
-  function TCpuAsmOptimizer.TryRemoveMovBeforeStore(var p: tai; next: taicpu; const storeops: TAsmOpSet): boolean;
-    begin
-      result:=(next.opcode in storeops) and
-        MatchOperand(next.oper[0]^,taicpu(p).oper[0]^.reg) and
-        { Ry cannot be modified between move and store }
-        (not RegModifiedBetween(taicpu(p).oper[1]^.reg,p,next)) and
-        Assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(next.next)));
-      if result then
-        begin
-          next.loadreg(0,taicpu(p).oper[1]^.reg);
-          asml.remove(p);
-          p.free;
-          p:=next;
-        end;
-    end;
-
-
-  function TCpuAsmOptimizer.TryRemoveMovToRefIndex(var p: tai; next: taicpu): boolean;
-    begin
-      result:=(next.oper[1]^.typ=top_ref) and
-        (next.oper[1]^.ref^.base=taicpu(p).oper[0]^.reg) and
-        (not RegModifiedBetween(taicpu(p).oper[1]^.reg,p,next)) and
-        Assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(next.next)));
-      if result then
-        begin
-          next.oper[1]^.ref^.base:=taicpu(p).oper[1]^.reg;
-          asml.remove(p);
-          p.free;
-          p:=next;
         end;
     end;
 
@@ -327,32 +264,13 @@ unit aoptcpu;
   function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
     var
       next,next2: tai;
+      TmpUsedRegs: TAllUsedRegs;
     begin
       result:=false;
       case p.typ of
         ait_instruction:
           begin
             case taicpu(p).opcode of
-              A_SEH:
-                begin
-                  if GetNextInstructionUsingReg(p,next,taicpu(p).oper[0]^.reg) and
-                    MatchInstruction(next,A_SH) and
-                    MatchOperand(taicpu(next).oper[0]^,taicpu(p).oper[0]^.reg) and
-                    (not RegUsedBetween(taicpu(p).oper[1]^.reg,p,next)) and
-                    Assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(next.next))) then
-                    begin
-                      taicpu(next).loadreg(0,taicpu(p).oper[1]^.reg);
-                      asml.remove(p);
-                      p.free;
-                      p:=next;
-                    end
-                  else
-                    TryRemoveMov(p,A_MOVE);
-                end;
-              A_SEB:
-                { TODO: can be handled similar to A_SEH, but it's almost never encountered }
-                TryRemoveMov(p,A_MOVE);
-
               A_SLL:
                 begin
                   { if this is a sign extension... }
@@ -371,7 +289,10 @@ unit aoptcpu;
                     { the initial register may not be reused }
                     (not RegUsedBetween(taicpu(p).oper[1]^.reg,next,next2)) then
                     begin
-                      if Assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(next2.next))) then
+                      CopyUsedRegs(TmpUsedRegs);
+                      UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+                      UpdateUsedRegs(TmpUsedRegs, tai(next.next));
+                      if not RegUsedAfterInstruction(taicpu(p).oper[0]^.reg,next2,TmpUsedRegs) then
                         begin
                           taicpu(next2).loadreg(0,taicpu(p).oper[1]^.reg);
                           asml.remove(p);
@@ -380,6 +301,7 @@ unit aoptcpu;
                           next.free;
                           p:=next2;
                         end;
+                      ReleaseUsedRegs(TmpUsedRegs);
                     end
                   else
                     TryRemoveMov(p,A_MOVE);
@@ -387,7 +309,6 @@ unit aoptcpu;
 
               A_SRL:
                 begin
-                  { TODO: also kill sign-extensions that follow, both SLL+SRA and SEB/SEH versions }
                   { Remove 'andi' in sequences
                       srl   Rx,Ry,16
                       andi  Rx,Rx,65535
@@ -447,184 +368,37 @@ unit aoptcpu;
                     ((taicpu(p).oper[2]^.val=255) and MatchInstruction(next,A_SB)) or
                     ((taicpu(p).oper[2]^.val=65535) and MatchInstruction(next,A_SH)) and
                     (taicpu(next).oper[0]^.typ=top_reg) and
-                    (taicpu(next).oper[0]^.reg=taicpu(p).oper[0]^.reg) and
-                    assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(next.next))) then
+                    (taicpu(next).oper[0]^.reg=taicpu(p).oper[0]^.reg) then
                     begin
-                      taicpu(next).loadreg(0,taicpu(p).oper[1]^.reg);
-                      asml.remove(p);
-                      p.free;
-                      p:=next;
+                      CopyUsedRegs(TmpUsedRegs);
+                      UpdateUsedRegs(TmpUsedRegs, tai(p.next));
+                      if not RegUsedAfterInstruction(taicpu(p).oper[0]^.reg,next,TmpUsedRegs) then
+                        begin
+                          taicpu(next).loadreg(0,taicpu(p).oper[1]^.reg);
+                          asml.remove(p);
+                          p.free;
+                          p:=next;
+                        end;
+                      ReleaseUsedRegs(TmpUsedRegs);
                     end
                   else
                     TryRemoveMov(p,A_MOVE);
                 end;
 
-              A_MOV_S:
-                begin
-                  if GetNextInstructionUsingReg(p,next,taicpu(p).oper[0]^.reg) and
-                     (next.typ=ait_instruction) then
-                    begin
-                      if TryRemoveMovBeforeStore(p,taicpu(next),[A_SWC1]) then
-                        { optimization successful };
-                    end;
-                end;
-
-              A_MOV_D:
-                begin
-                  if GetNextInstructionUsingReg(p,next,taicpu(p).oper[0]^.reg) and
-                     (next.typ=ait_instruction) then
-                    begin
-                      if TryRemoveMovBeforeStore(p,taicpu(next),[A_SDC1]) then
-                        { optimization successful };
-                    end;
-                end;
-
-              A_MOVE:
-                begin
-                  if GetNextInstructionUsingReg(p,next,taicpu(p).oper[0]^.reg) and
-                    (next.typ=ait_instruction) and
-                    (not RegModifiedBetween(taicpu(p).oper[1]^.reg,p,next)) then
-                    begin
-                      { MOVE  Rx,Ry; store Rx,(ref); dealloc Rx   ==> store Ry,(ref) }
-                      if TryRemoveMovBeforeStore(p,taicpu(next),[A_SB,A_SH,A_SW]) then
-                        { optimization successful }
-                      else if TryRemoveMovToRefIndex(p,taicpu(next)) then
-                        { successful as well }
-                      { MOVE  Rx,Ry; opcode  Rx,Rx,any              ==> opcode Rx,Ry,any
-                        MOVE  Rx,Ry; opcode  Rx,Rz,Rx               ==> opcode Rx,Rz,Ry   }
-                      else if (taicpu(next).opcode in [A_ADD,A_ADDU,A_ADDI,A_ADDIU,A_SUB,A_SUBU]) and
-                         MatchOperand(taicpu(next).oper[0]^,taicpu(p).oper[0]^.reg) then
-                        begin
-                          if MatchOperand(taicpu(next).oper[1]^,taicpu(p).oper[0]^.reg) and
-                             Assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(next.next))) then
-                            begin
-                              taicpu(next).loadreg(1,taicpu(p).oper[1]^.reg);
-                              asml.remove(p);
-                              p.free;
-                              p:=next;
-                            end
-                          { TODO: if Ry=NR_R0, this effectively changes instruction into MOVE,
-                            providing further optimization possibilities }
-                          else if MatchOperand(taicpu(next).oper[2]^,taicpu(p).oper[0]^.reg) and
-                                  Assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(next.next))) then
-                            begin
-                              taicpu(next).loadreg(2,taicpu(p).oper[1]^.reg);
-                              asml.remove(p);
-                              p.free;
-                              p:=next;
-                            end;
-                        end
-                      { MOVE  Rx,Ry; opcode Rz,Rx,any; dealloc Rx  ==> opcode Rz,Ry,any }
-                      else if (taicpu(next).opcode in [A_ADD,A_ADDU,A_ADDI,A_ADDIU,A_SUB,A_SUBU,A_SLT,A_SLTU,A_DIV,A_DIVU]) and
-                         Assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(next.next))) then
-                        begin
-                          if MatchOperand(taicpu(next).oper[1]^,taicpu(p).oper[0]^.reg) then
-                            begin
-                              taicpu(next).loadreg(1,taicpu(p).oper[1]^.reg);
-                              asml.remove(p);
-                              p.free;
-                              p:=next;
-                            end
-                          else if MatchOperand(taicpu(next).oper[2]^,taicpu(p).oper[0]^.reg) then
-                            begin
-                              taicpu(next).loadreg(2,taicpu(p).oper[1]^.reg);
-                              asml.remove(p);
-                              p.free;
-                              p:=next;
-                            end;
-                        end
-                      { MULT[U] must be handled separately due to different operand numbers }
-                      else if (taicpu(next).opcode in [A_MULT,A_MULTU]) and
-                         Assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(next.next))) then
-                        begin
-                          if MatchOperand(taicpu(next).oper[0]^,taicpu(p).oper[0]^.reg) then
-                            begin
-                              taicpu(next).loadreg(0,taicpu(p).oper[1]^.reg);
-                              asml.remove(p);
-                              p.free;
-                              p:=next;
-                            end
-                          else if MatchOperand(taicpu(next).oper[1]^,taicpu(p).oper[0]^.reg) then
-                            begin
-                              taicpu(next).loadreg(1,taicpu(p).oper[1]^.reg);
-                              asml.remove(p);
-                              p.free;
-                              p:=next;
-                            end;
-                        end
-                      else if TryRemoveMov(p,A_MOVE) then
-                        begin
-                          { Ended up with move between same register? Suicide then. }
-                          if (taicpu(p).oper[0]^.reg=taicpu(p).oper[1]^.reg) then
-                            begin
-                              GetNextInstruction(p,next);
-                              asml.remove(p);
-                              p.free;
-                              p:=next;
-                            end;
-                        end;
-                      { TODO: MOVE  Rx,Ry; Bcc Rx,Rz,label; dealloc Rx   ==> Bcc Ry,Rz,label  }
-                    end;
-                end;
-
-              A_ADDIU:
-                begin
-                  { ADDIU  Rx,Ry,const;    load/store  Rz,(Rx); dealloc Rx  ==> load/store Rz,const(Ry)
-                    ADDIU  Rx,Ry,%lo(sym); load/store  Rz,(Rx); dealloc Rx  ==> load/store Rz,%lo(sym)(Ry)
-                    ADDIU  Rx,Ry,const;    load Rx,(Rx)                     ==> load Rx,const(Ry)
-                    ADDIU  Rx,Ry,%lo(sym); load Rx,(Rx)                     ==> load Rx,%lo(sym)(Ry)    }
-                  if GetNextInstructionUsingReg(p,next,taicpu(p).oper[0]^.reg) and
-                    (next.typ=ait_instruction) and
-                    (taicpu(next).opcode in [A_LB,A_LBU,A_LH,A_LHU,A_LW,A_SB,A_SH,A_SW]) and
-                    (taicpu(p).oper[0]^.reg=taicpu(next).oper[1]^.ref^.base) and
-                    (taicpu(next).oper[1]^.ref^.offset=0) and
-                    (taicpu(next).oper[1]^.ref^.symbol=nil) and
-                    (
-                      Assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(next.next))) or
-                      (
-                        (taicpu(p).oper[0]^.reg=taicpu(next).oper[0]^.reg) and
-                        (taicpu(next).opcode in [A_LB,A_LBU,A_LH,A_LHU,A_LW])
-                      )
-                    )  and
-                    (not RegModifiedBetween(taicpu(p).oper[1]^.reg,p,next)) then
-                    begin
-                      case taicpu(p).oper[2]^.typ of
-                        top_const:
-                          taicpu(next).oper[1]^.ref^.offset:=taicpu(p).oper[2]^.val;
-
-                        top_ref:
-                          taicpu(next).oper[1]^.ref^:=taicpu(p).oper[2]^.ref^;
-                      else
-                        InternalError(2014100401);
-                      end;
-                      taicpu(next).oper[1]^.ref^.base:=taicpu(p).oper[1]^.reg;
-                      asml.remove(p);
-                      p.free;
-                      p:=next;
-                      result:=true;
-                    end
-                  else
-                    result:=TryRemoveMov(p,A_MOVE);
-                end;
-
-              A_LB,A_LBU,A_LH,A_LHU,A_LW,
               A_ADD,A_ADDU,
-              A_ADDI,
+              A_ADDI,A_ADDIU,
               A_SUB,A_SUBU,
               A_SRA,A_SRAV,
               A_SRLV,
               A_SLLV,
-              A_MFLO,A_MFHI,
               A_AND,A_OR,A_XOR,A_ORI,A_XORI:
                 TryRemoveMov(p,A_MOVE);
 
-              A_LWC1,
               A_ADD_s, A_SUB_s, A_MUL_s, A_DIV_s,
               A_ABS_s, A_NEG_s, A_SQRT_s,
               A_CVT_s_w, A_CVT_s_l, A_CVT_s_d:
                 TryRemoveMov(p,A_MOV_s);
 
-              A_LDC1,
               A_ADD_d, A_SUB_d, A_MUL_d, A_DIV_d,
               A_ABS_d, A_NEG_d, A_SQRT_d,
               A_CVT_d_w, A_CVT_d_l, A_CVT_d_s:
@@ -678,7 +452,7 @@ unit aoptcpu;
                           }
                           l:=0;
                           GetNextInstruction(p, hp1);
-                          while CanBeCMOV(hp1,condreg) do       // CanBeCMOV returns False for nil or labels
+                          while CanBeCMOV(hp1) do       // CanBeCMOV returns False for nil or labels
                             begin
                               inc(l);
                               GetNextInstruction(hp1,hp1);
@@ -696,7 +470,7 @@ unit aoptcpu;
                                       repeat
                                         ChangeToCMOV(taicpu(hp1),condition,condreg);
                                         GetNextInstruction(hp1,hp1);
-                                      until not CanBeCMOV(hp1,condreg);
+                                      until not CanBeCMOV(hp1);
                                       { wait with removing else GetNextInstruction could
                                         ignore the label if it was the only usage in the
                                         jump moved away }
@@ -734,7 +508,7 @@ unit aoptcpu;
                                       l:=0;
                                       { skip hp1 to <several moves 2> }
                                       GetNextInstruction(hp1, hp1);
-                                      while CanBeCMOV(hp1,condreg) do
+                                      while CanBeCMOV(hp1) do
                                         begin
                                           inc(l);
                                           GetNextInstruction(hp1, hp1);
@@ -750,7 +524,7 @@ unit aoptcpu;
                                           repeat
                                             ChangeToCMOV(taicpu(hp1),condition,condreg);
                                             GetNextInstruction(hp1,hp1);
-                                          until not CanBeCMOV(hp1,condreg);
+                                          until not CanBeCMOV(hp1);
                                           { hp2 is still at b yyy }
                                           GetNextInstruction(hp2,hp1);
                                           { hp2 is now at xxx: }
@@ -760,7 +534,7 @@ unit aoptcpu;
                                           repeat
                                             ChangeToCMOV(taicpu(hp1),condition,condreg);
                                             GetNextInstruction(hp1,hp1);
-                                          until not CanBeCMOV(hp1,condreg);
+                                          until not CanBeCMOV(hp1);
                                           { remove bCC }
                                           tasmlabel(taicpu(hp3).oper[taicpu(hp3).ops-1]^.ref^.symbol).decrefs;
                                           RemoveDelaySlot(hp3);

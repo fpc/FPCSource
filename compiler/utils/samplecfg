@@ -99,4 +99,4 @@ ${FPCMKCFGBIN} -p -3 $compilerconfigdir -o $fppkgfile
 
 # Write default
 echo Writing sample configuration file to $defaultfile
-${FPCMKCFGBIN} -p -4 -d "GlobalPrefix=$FPCGLOBALPREFIX" -d "FpcBin=$FPCBIN" -o $defaultfile
+${FPCMKCFGBIN} -p -4 -d "GlobalPrefix=$FPCGLOBALPREFIX" -o $defaultfile

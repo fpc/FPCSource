@@ -124,7 +124,7 @@ unit cpupara;
             orddef:
               getparaloc:=LOC_REGISTER;
             floatdef:
-              getparaloc:=LOC_MMREGISTER;
+              getparaloc:=LOC_MMREGISTER
             enumdef:
               getparaloc:=LOC_REGISTER;
             pointerdef:

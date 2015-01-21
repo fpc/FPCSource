@@ -579,8 +579,6 @@ interface
           constructor Create_type_name(_typ:taiconst_type;const name:string;_symtyp:Tasmsymtype;ofs:aint);
           constructor Create_nil_codeptr;
           constructor Create_nil_dataptr;
-          constructor Create_int_codeptr(_value: int64);
-          constructor Create_int_dataptr(_value: int64);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure derefimpl;override;
@@ -1750,18 +1748,6 @@ implementation
 
     constructor tai_const.Create_nil_codeptr;
       begin
-        self.Create_int_codeptr(0);
-      end;
-
-
-    constructor tai_const.Create_nil_dataptr;
-      begin
-        self.Create_int_dataptr(0);
-      end;
-
-
-    constructor tai_const.Create_int_codeptr(_value: int64);
-      begin
         inherited Create;
         typ:=ait_const;
 {$ifdef i8086}
@@ -1773,11 +1759,11 @@ implementation
         sym:=nil;
         endsym:=nil;
         symofs:=0;
-        value:=_value;
+        value:=0;
       end;
 
 
-    constructor tai_const.Create_int_dataptr(_value: int64);
+    constructor tai_const.Create_nil_dataptr;
       begin
         inherited Create;
         typ:=ait_const;
@@ -1790,7 +1776,7 @@ implementation
         sym:=nil;
         endsym:=nil;
         symofs:=0;
-        value:=_value;
+        value:=0;
       end;
 
 
@@ -2187,10 +2173,7 @@ implementation
          typ:=ait_stab;
          stabtype:=_stabtype;
          getmem(str,length(s)+1);
-         if length(s)>0 then
-           move(s[1],str^,length(s)+1)
-         else
-           str^:=#0;
+         move(s[1],str^,length(s)+1);
       end;
 
     destructor tai_stab.destroy;

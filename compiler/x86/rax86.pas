@@ -47,9 +47,8 @@ type
     Function CheckOperand: boolean; override;
   end;
 
-  { Operands are always in AT&T order.
-    Intel reader attaches them right-to-left, then shifts to start with 1 }
   Tx86Instruction=class(TInstruction)
+    OpOrder : TOperandOrder;
     opsize  : topsize;
     constructor Create(optype : tcoperand);override;
     { Operand sizes }
@@ -57,6 +56,7 @@ type
     procedure SetInstructionOpsize;
     procedure CheckOperandSizes;
     procedure CheckNonCommutativeOpcodes;
+    procedure SwapOperands;
     { Additional actions required by specific reader }
     procedure FixupOpcode;virtual;
     { opcode adding }
@@ -295,6 +295,16 @@ begin
 end;
 
 
+procedure Tx86Instruction.SwapOperands;
+begin
+  Inherited SwapOperands;
+  { mark the correct order }
+  if OpOrder=op_intel then
+    OpOrder:=op_att
+  else
+    OpOrder:=op_intel;
+end;
+
 const
 {$ifdef x86_64}
   topsize2memsize: array[topsize] of integer =
@@ -427,11 +437,7 @@ begin
             memopsize := 0;
             case operands[i].opr.typ of
                   OPR_LOCAL: memopsize := operands[i].opr.localvarsize * 8;
-              OPR_REFERENCE:
-                  if operands[i].opr.ref.refaddr = addr_pic then
-                    memopsize := sizeof(pint) * 8
-                  else
-                    memopsize := operands[i].opr.varsize * 8;
+              OPR_REFERENCE: memopsize := operands[i].opr.varsize * 8;
             end;
 
             if memopsize = 0 then memopsize := topsize2memsize[tx86operand(operands[i]).opsize];
@@ -794,6 +800,8 @@ procedure Tx86Instruction.SetInstructionOpsize;
 begin
   if opsize<>S_NO then
    exit;
+  if (OpOrder=op_intel) then
+    SwapOperands;
   case ops of
     0 : ;
     1 :
@@ -929,6 +937,8 @@ end;
   but before swapping in the NASM and TASM writers PM }
 procedure Tx86Instruction.CheckNonCommutativeOpcodes;
 begin
+  if (OpOrder=op_intel) then
+    SwapOperands;
   if (
       (ops=2) and
       (operands[1].opr.typ=OPR_REGISTER) and
@@ -988,6 +998,8 @@ var
   ai   : taicpu;
 begin
   ConcatInstruction:=nil;
+  if (OpOrder=op_intel) then
+    SwapOperands;
 
   ai:=nil;
   for i:=1 to Ops do
@@ -1148,7 +1160,7 @@ begin
 
   ai:=taicpu.op_none(opcode,siz);
   ai.fileinfo:=filepos;
-  ai.SetOperandOrder(op_att);
+  ai.SetOperandOrder(OpOrder);
   ai.Ops:=Ops;
   ai.Allocate_oper(Ops);
   for i:=1 to Ops do

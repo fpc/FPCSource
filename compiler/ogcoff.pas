@@ -1665,13 +1665,6 @@ const pemagic : array[0..3] of byte = (
         strname   : string;
         auxrec    : array[0..17] of byte;
         objsec    : TObjSection;
-
-        { keeps string manipulations out of main routine }
-        procedure UnsupportedSymbolType;
-          begin
-            Comment(V_Fatal,'Unsupported COFF symbol type '+tostr(sym.typ)+' at index '+tostr(symidx)+' while reading '+InputFileName);
-          end;
-
       begin
         with TCoffObjData(objdata) do
          begin
@@ -1745,7 +1738,8 @@ const pemagic : array[0..3] of byte = (
                   end;
                 COFF_SYM_SECTION :
                   begin
-                    { GetSection checks that index is in range }
+                    if sym.section=0 then
+                      InputError('Failed reading coff file, illegal section');
                     objsec:=GetSection(sym.section);
                     if assigned(objsec) then
                       begin
@@ -1763,7 +1757,7 @@ const pemagic : array[0..3] of byte = (
                 COFF_SYM_FILE :
                   ;
                 else
-                  UnsupportedSymbolType;
+                  internalerror(200602232);
               end;
               FSymTbl^[symidx]:=objsym;
               { read aux records }

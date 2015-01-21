@@ -269,9 +269,6 @@ interface
        between the callparanodes and the callnode they belong to }
       aktcallnode : tcallnode;
 
-    const
-      { track current inlining depth }
-      inlinelevel : longint = 0;
 
 implementation
 
@@ -340,8 +337,6 @@ implementation
         pvardatadef : tdef;
         useresult: boolean;
         restype: byte;
-        selftemp: ttempcreatenode;
-        selfpara: tnode;
 
         names : ansistring;
         variantdispatch : boolean;
@@ -375,7 +370,7 @@ implementation
           if is_interfacecom_or_dispinterface(sourcedef) then
             begin
               { distinct IDispatch and IUnknown interfaces }
-              if def_is_related(tobjectdef(sourcedef),interface_idispatch) then
+              if def_is_related(tobjectdef(sourcedef),tobjectdef(search_system_type('IDISPATCH').typedef)) then
                 result:=vardispatch
               else
                 result:=varunknown;
@@ -388,8 +383,6 @@ implementation
         variantdispatch:=selfnode.resultdef.typ=variantdef;
         result:=internalstatements(statements);
         result_data:=nil;
-        selftemp:=nil;
-        selfpara:=nil;
 
         useresult := assigned(resultdef) and not is_void(resultdef);
         if useresult then
@@ -535,27 +528,13 @@ implementation
             { actual call }
             vardatadef:=trecorddef(search_system_type('TVARDATA').typedef);
 
-            { the Variant should behave similar to hidden 'self' parameter of objects/records,
-              see issues #26773 and #27044 }
-            if not valid_for_var(selfnode,false) then
-              begin
-                selftemp:=ctempcreatenode.create(selfnode.resultdef,selfnode.resultdef.size,tt_persistent,false);
-                addstatement(statements,selftemp);
-                addstatement(statements,cassignmentnode.create(ctemprefnode.create(selftemp),selfnode));
-                selfpara:=ctemprefnode.create(selftemp);
-              end
-            else
-              selfpara:=selfnode;
-
             addstatement(statements,ccallnode.createintern('fpc_dispinvoke_variant',
               { parameters are passed always reverted, i.e. the last comes first }
               ccallparanode.create(caddrnode.create(ctemprefnode.create(params)),
               ccallparanode.create(caddrnode.create(calldescnode),
-              ccallparanode.create(ctypeconvnode.create_internal(selfpara,vardatadef),
+              ccallparanode.create(ctypeconvnode.create_internal(selfnode,vardatadef),
               ccallparanode.create(ctypeconvnode.create_internal(resultvalue,pvardatadef),nil)))))
             );
-            if assigned(selftemp) then
-              addstatement(statements,ctempdeletenode.create(selftemp));
           end
         else
           begin
@@ -1706,10 +1685,7 @@ implementation
                       typecheckpass(temp);
                       if (temp.nodetype <> ordconstn) or
                          (tordconstnode(temp).value <> 0) then
-                        begin
-                          hightree:=caddnode.create(subn,hightree,temp);
-                          include(hightree.flags,nf_internal);
-                        end
+                        hightree := caddnode.create(subn,hightree,temp)
                       else
                         temp.free;
                     end;
@@ -2922,7 +2898,7 @@ implementation
                   for i:=1 to procdefinition.maxparacount-paralength do
                     begin
                       if paraidx<0 then
-                        internalerror(200402265);
+                        internalerror(200402261);
                       if not assigned(tparavarsym(procdefinition.paras[paraidx]).defaultconstsym) then
                         begin
                           CGMessage1(parser_e_wrong_parameter_size,'<Procedure Variable>');
@@ -3505,25 +3481,9 @@ implementation
         { Can we inline the procedure? }
         if (po_inline in procdefinition.procoptions) and
            (procdefinition.typ=procdef) and
-           tprocdef(procdefinition).has_inlininginfo and
-           {  Prevent too deep inlining recursion and code bloat by inlining
-
-              The actual formuala is
-                                inlinelevel+1  /-------
-                  node count <  -------------\/  10000
-
-              This allows exponential grow of the code only to a certain limit.
-
-              Remarks
-               - The current approach calculates the inlining level top down, so outer call nodes (nodes closer to the leaf) might not be inlined
-                 if the max. complexity is reached. This is done because it makes the implementation easier and because
-                 there might be situations were it is more beneficial to inline inner nodes and do the calls to the outer nodes
-                 if the outer nodes are in a seldomly used code path
-               - The code avoids to use functions from the math unit
-           }
-           (node_count(tprocdef(procdefinition).inlininginfo^.code)<round(exp((1.0/(inlinelevel+1))*ln(10000)))) then
+           tprocdef(procdefinition).has_inlininginfo then
           begin
-            include(callnodeflags,cnf_do_inline);
+             include(callnodeflags,cnf_do_inline);
             { Check if we can inline the procedure when it references proc/var that
               are not in the globally available }
             st:=procdefinition.owner;
@@ -4027,7 +3987,7 @@ implementation
                       (assigned(aktassignmentnode) and
                        (aktassignmentnode.right=self) and
                        (nf_assign_done_in_right in aktassignmentnode.flags) and
-                       actualtargetnode(@aktassignmentnode.left)^.isequal(actualtargetnode(@para.left)^)))) or
+                       aktassignmentnode.left.isequal(para.left)))) or
                     { the compiler expects that it can take the address of parameters passed by reference in
                       the case of const so we can't replace the node simply by a constant node
                       When playing with this code, ensure that
@@ -4191,7 +4151,6 @@ implementation
         inlineblock,
         inlinecleanupblock : tblocknode;
       begin
-        inc(inlinelevel);
         result:=nil;
         if not(assigned(tprocdef(procdefinition).inlininginfo) and
                assigned(tprocdef(procdefinition).inlininginfo^.code)) then
@@ -4289,7 +4248,6 @@ implementation
         writeln('**************************',tprocdef(procdefinition).mangledname);
         printnode(output,result);
 {$endif DEBUGINLINE}
-        dec(inlinelevel);
       end;
 
 end.

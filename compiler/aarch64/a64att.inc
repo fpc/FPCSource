@@ -1,6 +1,5 @@
 { don't edit, this file is generated from armins.dat }
 (
-'nop',
 'b',
 'cb',
 'tb',

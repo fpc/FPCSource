@@ -33,6 +33,7 @@ unit cgppc;
 
     type
       tcgppcgen = class(tcg)
+        procedure a_load_const_cgpara(list: TAsmList; size: tcgsize; a: tcgint; const paraloc : tcgpara); override;
         procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : tcgpara); override;
 
         procedure a_call_reg(list : TAsmList;reg: tregister); override;
@@ -188,6 +189,29 @@ unit cgppc;
           (cs_profile in init_settings.moduleswitches)))  or
         ([cs_lineinfo,cs_debuginfo] * current_settings.moduleswitches <> []);
       end;
+
+
+    procedure tcgppcgen.a_load_const_cgpara(list: TAsmList; size: tcgsize; a: tcgint; const
+      paraloc: tcgpara);
+    var
+      ref: treference;
+    begin
+      paraloc.check_simple_location;
+      paramanager.allocparaloc(list,paraloc.location);
+      case paraloc.location^.loc of
+        LOC_REGISTER, LOC_CREGISTER:
+          a_load_const_reg(list, size, a, paraloc.location^.register);
+        LOC_REFERENCE:
+          begin
+            reference_reset(ref,paraloc.alignment);
+            ref.base := paraloc.location^.reference.index;
+            ref.offset := paraloc.location^.reference.offset;
+            a_load_const_ref(list, size, a, ref);
+          end;
+      else
+        internalerror(2002081101);
+      end;
+    end;
 
 
     procedure tcgppcgen.a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : tcgpara);

@@ -108,7 +108,6 @@ unit cgcpu;
      tcg64f68k = class(tcg64f32)
        procedure a_op64_reg_reg(list : TAsmList;op:TOpCG; size: tcgsize; regsrc,regdst : tregister64);override;
        procedure a_op64_const_reg(list : TAsmList;op:TOpCG; size: tcgsize; value : int64;regdst : tregister64);override;
-       procedure a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);override;
      end;
 
      { This function returns true if the reference+offset is valid.
@@ -378,9 +377,8 @@ unit cgcpu;
         if use_push(cgpara) then
           begin
             { Record copy? }
-            if (cgpara.size in [OS_NO,OS_F64]) or (size in [OS_NO,OS_F64]) then
+            if (cgpara.size in [OS_NO,OS_F64]) or (size=OS_NO) then
               begin
-                //list.concat(tai_comment.create(strpnew('a_load_ref_cgpara: g_concatcopy')));
                 cgpara.check_simple_location;
                 len:=align(cgpara.intsize,cgpara.alignment);
                 g_stackpointer_alloc(list,len);
@@ -753,11 +751,7 @@ unit cgcpu;
            list.concat(taicpu.op_reg(A_CLR,S_L,register))
         else
          begin
-           { Prefer MOV3Q if applicable, it allows replacement spilling for register }
-           if (current_settings.cputype in [cpu_isa_b,cpu_isa_c]) and
-             ((longint(a)=-1) or ((longint(a)>0) and (longint(a)<8))) then
-             list.concat(taicpu.op_const_reg(A_MOV3Q,S_L,longint(a),register))
-           else if (longint(a) >= low(shortint)) and (longint(a) <= high(shortint)) then
+           if (longint(a) >= low(shortint)) and (longint(a) <= high(shortint)) then
               list.concat(taicpu.op_const_reg(A_MOVEQ,S_L,longint(a),register))
            else
              begin
@@ -792,18 +786,11 @@ unit cgcpu;
         hreg : tregister;
         href : treference;
       begin
-        a:=longint(a);
         href:=ref;
         fixref(list,href);
-        if (a=0) and not (current_settings.cputype = cpu_mc68000) then
-          list.concat(taicpu.op_ref(A_CLR,tcgsize2opsize[tosize],href))
-        else if (tcgsize2opsize[tosize]=S_L) and
-           (current_settings.cputype in [cpu_isa_b,cpu_isa_c]) and
-           ((a=-1) or ((a>0) and (a<8))) then
-          list.concat(taicpu.op_const_ref(A_MOV3Q,S_L,a,href))
         { for coldfire we need to go through a temporary register if we have a
           offset, index or symbol given }
-        else if (current_settings.cputype in cpu_coldfire) and
+        if (current_settings.cputype in cpu_coldfire) and
             (
               (href.offset<>0) or
               { TODO : check whether we really need this second condition }
@@ -915,13 +902,10 @@ unit cgcpu;
       var
         instr : taicpu;
       begin
-        { move to destination register }
-        if (reg1<>reg2) then
-          begin
-            instr:=taicpu.op_reg_reg(A_MOVE,TCGSize2OpSize[fromsize],reg1,reg2);
-            add_move_instruction(instr);
-            list.concat(instr);
-          end;
+         { move to destination register }
+         instr:=taicpu.op_reg_reg(A_MOVE,TCGSize2OpSize[fromsize],reg1,reg2);
+         add_move_instruction(instr);
+         list.concat(instr);
          sign_extend(list, fromsize, reg2);
       end;
 
@@ -939,25 +923,17 @@ unit cgcpu;
            size:=tosize;
          list.concat(taicpu.op_ref_reg(A_MOVE,TCGSize2OpSize[size],href,register));
          { extend the value in the register }
-         sign_extend(list, size, register);
+         sign_extend(list, fromsize, register);
       end;
 
 
     procedure tcg68k.a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);
       var
         href : treference;
-        hreg : tregister;
       begin
         href:=ref;
         fixref(list, href);
-        if not isaddressregister(r) then
-          begin
-            hreg:=getaddressregister(list);
-            list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,hreg));
-            a_load_reg_reg(list, OS_ADDR, OS_ADDR, hreg, r);
-          end
-        else
-          list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,r));
+        list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,r));
       end;
 
 
@@ -965,16 +941,20 @@ unit cgcpu;
       var
         instr : taicpu;
       begin
-        instr:=taicpu.op_reg_reg(A_FMOVE,S_FX,reg1,reg2);
-        add_move_instruction(instr);
-        list.concat(instr);
+        { in emulation mode, only 32-bit single is supported }
+        if (cs_fp_emulation in current_settings.moduleswitches) or (current_settings.fputype=fpu_soft) then
+          instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg1,reg2)
+        else
+          instr:=taicpu.op_reg_reg(A_FMOVE,tcgsize2opsize[tosize],reg1,reg2);
+         add_move_instruction(instr);
+         list.concat(instr);
       end;
 
 
     procedure tcg68k.a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister);
-      var
-        opsize : topsize;
-        href : treference;
+     var
+      opsize : topsize;
+      href : treference;
       begin
         opsize := tcgsize2opsize[fromsize];
         { extended is not supported, since it is not available on Coldfire }
@@ -982,44 +962,50 @@ unit cgcpu;
           internalerror(20020729);
         href := ref;
         fixref(list,href);
-        list.concat(taicpu.op_ref_reg(A_FMOVE,opsize,href,reg));
+        { in emulation mode, only 32-bit single is supported }
+        if (cs_fp_emulation in current_settings.moduleswitches) or (current_settings.fputype=fpu_soft) then
+           list.concat(taicpu.op_ref_reg(A_MOVE,S_L,href,reg))
+        else
+           begin
+             list.concat(taicpu.op_ref_reg(A_FMOVE,opsize,href,reg));
+             if (tosize < fromsize) then
+               a_loadfpu_reg_reg(list,fromsize,tosize,reg,reg);
+           end;
       end;
 
     procedure tcg68k.a_loadfpu_reg_ref(list: TAsmList; fromsize,tosize: tcgsize; reg: tregister; const ref: treference);
       var
-        opsize : topsize;
-        href : treference;
+       opsize : topsize;
       begin
         opsize := tcgsize2opsize[tosize];
         { extended is not supported, since it is not available on Coldfire }
         if opsize = S_FX then
           internalerror(20020729);
-        href := ref;
-        fixref(list,href);
-        list.concat(taicpu.op_reg_ref(A_FMOVE,opsize,reg,href));
+        { in emulation mode, only 32-bit single is supported }
+        if (cs_fp_emulation in current_settings.moduleswitches) or (current_settings.fputype=fpu_soft) then
+          list.concat(taicpu.op_reg_ref(A_MOVE,S_L,reg, ref))
+        else
+          list.concat(taicpu.op_reg_ref(A_FMOVE,opsize,reg, ref));
       end;
 
 
     procedure tcg68k.a_loadfpu_ref_cgpara(list : TAsmList; size : tcgsize;const ref : treference;const cgpara : TCGPara);
       begin
-        if current_settings.fputype = fpu_soft then
-          case cgpara.location^.loc of
-            LOC_REFERENCE,LOC_CREFERENCE:
-              begin
-                case size of
-                  OS_F64:
-                    cg64.a_load64_ref_cgpara(list,ref,cgpara);
-                  OS_F32:
-                    a_load_ref_cgpara(list,size,ref,cgpara);
-                  else
-                    internalerror(2013021201);
-                end;
+        case cgpara.location^.loc of
+          LOC_REFERENCE,LOC_CREFERENCE:
+            begin
+              case size of
+                OS_F64:
+                  cg64.a_load64_ref_cgpara(list,ref,cgpara);
+                OS_F32:
+                  a_load_ref_cgpara(list,size,ref,cgpara);
+                else
+                  internalerror(2013021201);
               end;
-            else
-              inherited a_loadfpu_ref_cgpara(list,size,ref,cgpara);
-          end
-        else
-          inherited a_loadfpu_ref_cgpara(list,size,ref,cgpara);
+            end;
+          else
+            inherited a_loadfpu_ref_cgpara(list,size,ref,cgpara);
+        end;
       end;
 
 
@@ -1114,40 +1100,9 @@ unit cgcpu;
               begin
                 scratch_reg := force_to_dataregister(list, size, reg);
                 sign_extend(list, size, scratch_reg);
-
-                { some special cases which can generate smarter code 
-                  using the SWAP instruction }
-                if (a = 16) then
-                  begin
-                    if (op = OP_SHL) then
-                      begin
-                        list.concat(taicpu.op_reg(A_SWAP,S_NO,scratch_reg));
-                        list.concat(taicpu.op_reg(A_CLR,S_W,scratch_reg));
-                      end
-                    else if (op = OP_SHR) then
-                      begin
-                        list.concat(taicpu.op_reg(A_CLR,S_W,scratch_reg));
-                        list.concat(taicpu.op_reg(A_SWAP,S_NO,scratch_reg));
-                      end
-                    else if (op = OP_SAR) then
-                      begin
-                        list.concat(taicpu.op_reg(A_SWAP,S_NO,scratch_reg));
-                        list.concat(taicpu.op_reg(A_EXT,S_L,scratch_reg));
-                      end
-                    else if (op = OP_ROR) or (op = OP_ROL) then
-                      list.concat(taicpu.op_reg(A_SWAP,S_NO,scratch_reg))
-                  end
-                else if (a >= 1) and (a <= 8) then
+                if (a >= 1) and (a <= 8) then
                   begin
                     list.concat(taicpu.op_const_reg(opcode, S_L, a, scratch_reg));
-                  end
-                else if (a >= 9) and (a < 16) then
-                  begin
-                    { Use two ops instead of const -> reg + shift with reg, because
-                      this way is the same in length and speed but has less register
-                      pressure }
-                    list.concat(taicpu.op_const_reg(opcode, S_L, 8, scratch_reg));
-                    list.concat(taicpu.op_const_reg(opcode, S_L, a-8, scratch_reg));
                   end
                 else
                   begin
@@ -1443,13 +1398,6 @@ unit cgcpu;
 
     procedure tcg68k.a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel);
       begin
-         if (current_settings.cputype in cpu_coldfire-[cpu_isa_b,cpu_isa_c]) then
-           begin
-             sign_extend(list,size,reg1);
-             sign_extend(list,size,reg2);
-             size:=OS_INT;
-           end;
-
          list.concat(taicpu.op_reg_reg(A_CMP,tcgsize2opsize[size],reg1,reg2));
          { emit the actual jump to the label }
          a_jmp_cond(list,cmp_op,l);
@@ -1525,8 +1473,10 @@ unit cgcpu;
          hp2 : treference;
          hl : tasmlabel;
          srcref,dstref : treference;
+         orglen : tcgint;
       begin
          hregister := getintregister(list,OS_INT);
+         orglen:=len;
 
          { from 12 bytes movs is being used }
          if ((len<=8) or (not(cs_opt_size in current_settings.optimizerswitches) and (len<=12))) then
@@ -1618,28 +1568,7 @@ unit cgcpu;
     end;
 
     procedure tcg68k.g_overflowcheck(list: TAsmList; const l:tlocation; def:tdef);
-      var
-        hl : tasmlabel;
-        ai : taicpu;
-        cond : TAsmCond;
       begin
-        if not(cs_check_overflow in current_settings.localswitches) then
-          exit;
-        current_asmdata.getjumplabel(hl);
-        if not ((def.typ=pointerdef) or
-               ((def.typ=orddef) and
-                (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
-                                          pasbool8,pasbool16,pasbool32,pasbool64]))) then
-          cond:=C_VC
-        else
-          cond:=C_CC;
-        ai:=Taicpu.Op_Sym(A_Bxx,S_NO,hl);
-        ai.SetCondition(cond);
-        ai.is_jmp:=true;
-        list.concat(ai);
-
-        a_call_name(list,'FPC_OVERFLOW',false);
-        a_label(list,hl);
       end;
 
     procedure tcg68k.g_proc_entry(list: TAsmList; localsize: longint; nostackframe:boolean);
@@ -1653,13 +1582,13 @@ unit cgcpu;
             if (localsize < 0) then
               internalerror(2006122601);
 
+            { Not to complicate the code generator too much, and since some }
+            { of the systems only support this format, the localsize cannot }
+            { exceed 32K in size.                                           }
             if (localsize > high(smallint)) then
-              begin
-                list.concat(taicpu.op_reg_const(A_LINK,S_W,NR_FRAME_POINTER_REG,0));
-                list.concat(taicpu.op_const_reg(A_SUBA,S_L,localsize,NR_STACK_POINTER_REG));
-              end
-            else
-              list.concat(taicpu.op_reg_const(A_LINK,S_W,NR_FRAME_POINTER_REG,-localsize));
+              CGMessage(cg_e_localsize_too_big);
+
+            list.concat(taicpu.op_reg_const(A_LINK,S_W,NR_FRAME_POINTER_REG,-localsize));
           end;
       end;
 
@@ -1769,7 +1698,6 @@ unit cgcpu;
 
         { calculate temp. size }
         size:=0;
-        hreg:=NR_NO;
         for r:=low(saved_standard_registers) to high(saved_standard_registers) do
           if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
             begin
@@ -1796,16 +1724,9 @@ unit cgcpu;
             include(current_procinfo.flags,pi_has_saved_regs);
 
             { Copy registers to temp }
-            { NOTE: virtual registers allocated here won't be translated --> no higher-level stuff. }
             href:=current_procinfo.save_regs_ref;
-            if (href.offset<low(smallint)) and (current_settings.cputype in cpu_coldfire) then
-              begin
-                list.concat(taicpu.op_reg_reg(A_MOVE,S_L,href.base,NR_A0));
-                list.concat(taicpu.op_const_reg(A_ADDA,S_L,href.offset,NR_A0));
-                reference_reset_base(href,NR_A0,0,sizeof(pint));
-              end;
             if size = sizeof(aint) then
-              list.concat(taicpu.op_reg_ref(A_MOVE,S_L,hreg,href))
+              a_load_reg_ref(list, OS_32, OS_32, hreg, href)
             else
               list.concat(taicpu.op_regset_ref(A_MOVEM,S_L,dataregs,addrregs,href));
           end;
@@ -1829,7 +1750,6 @@ unit cgcpu;
           exit;
         { Copy registers from temp }
         size:=0;
-        hreg:=NR_NO;
         for r:=low(saved_standard_registers) to high(saved_standard_registers) do
           if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
             begin
@@ -1857,14 +1777,8 @@ unit cgcpu;
 
         { Restore registers from temp }
         href:=current_procinfo.save_regs_ref;
-        if (href.offset<low(smallint)) and (current_settings.cputype in cpu_coldfire) then
-          begin
-            list.concat(taicpu.op_reg_reg(A_MOVE,S_L,href.base,NR_A0));
-            list.concat(taicpu.op_const_reg(A_ADDA,S_L,href.offset,NR_A0));
-            reference_reset_base(href,NR_A0,0,sizeof(pint));
-          end;
         if size = sizeof(aint) then
-          list.concat(taicpu.op_ref_reg(A_MOVE,S_L,href,hreg))
+          a_load_ref_reg(list, OS_32, OS_32, href, hreg)
         else
           list.concat(taicpu.op_ref_regset(A_MOVEM,S_L,href,dataregs,addrregs));
 
@@ -2180,34 +2094,6 @@ unit cgcpu;
               list.concat(taicpu.op_reg(xopcode,S_L,regdst.reghi));
             end;
         end; { end case }
-      end;
-
-
-    procedure tcg64f68k.a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);
-      var
-        tempref : treference;
-      begin
-        case op of
-          OP_NEG,OP_NOT:
-            begin
-              a_load64_ref_reg(list,ref,reg);
-              a_op64_reg_reg(list,op,size,reg,reg);
-            end;
-
-          OP_AND,OP_OR:
-            begin
-              tempref:=ref;
-              tcg68k(cg).fixref(list,tempref);
-              inc(tempref.offset,4);
-              list.concat(taicpu.op_ref_reg(topcg2tasmop[op],S_L,tempref,reg.reglo));
-              dec(tempref.offset,4);
-              list.concat(taicpu.op_ref_reg(topcg2tasmop[op],S_L,tempref,reg.reghi));
-            end;
-        else
-          { XOR does not allow reference for source; ADD/SUB do not allow reference for
-            high dword, although low dword can still be handled directly. }
-          inherited a_op64_ref_reg(list,op,size,ref,reg);
-        end;
       end;
 
 

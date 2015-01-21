@@ -203,7 +203,7 @@ unit agppcgas;
         top_ref :
           begin
             if o.ref^.refaddr<>addr_full then
-              internalerror(200402267);
+              internalerror(200402262);
             hs:=o.ref^.symbol.name;
             if target_asm.dollarsign<>'$' then
               hs:=ReplaceForbiddenAsmSymbolChars(hs);

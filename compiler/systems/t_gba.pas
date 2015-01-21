@@ -571,7 +571,6 @@ begin
   StripStr:='';
   DynLinkStr:='';
   MapStr:='';
-  GCSectionsStr:='';
 
   if (cs_link_strip in current_settings.globalswitches) and
      not(cs_link_separate_dbg_file in current_settings.globalswitches) then

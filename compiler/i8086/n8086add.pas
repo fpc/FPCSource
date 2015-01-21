@@ -55,7 +55,7 @@ interface
     uses
       globtype,systems,
       cutils,verbose,globals,constexp,pass_1,
-      symconst,symdef,symtype,symcpu,paramgr,defutil,
+      symconst,symdef,symtype,paramgr,defutil,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,procinfo,
       ncal,ncon,nset,cgutils,tgobj,
@@ -960,9 +960,6 @@ interface
       asmops: array[boolean] of tasmop = (A_IMUL, A_MUL);
 
     begin
-      reg:=NR_NO;
-      reference_reset(ref,sizeof(pint));
-
       pass_left_right;
 
       { MUL is faster than IMUL on the 8086 & 8088 (and equal in speed on 286+),

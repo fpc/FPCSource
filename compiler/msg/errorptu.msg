@@ -3083,7 +3083,7 @@ wpo_cant_create_feedback_file=12019_E_Impossível criar arquivo retorno otimiza�
 #
 option_logo=11023_[
 Compilador Free Pascal versão $FPCFULLVERSION [$FPCDATE] para $FPCCPU
-Copyright (c) 1993-2015 by Florian Klaempfl and others
+Copyright (c) 1993-2014 by Florian Klaempfl
 ]
 
 #
@@ -3384,7 +3384,7 @@ A*2Wb_Cria um encarte ao invés de uma biblioteca (Darwin)
 A*2WB_Cria uma imagem relocável (Windows, Symbian)
 A*2WBxxxx_Define base da imagem para xxxx (Windows, Symbian)
 3*2WC_Especifica aplicação do tipo console (EMX, OS/2, Windows)
-4*2WC_Especifica aplicação do tipo console (Windows)
+4*2WC_Especifica aplicação do tipo console (EMX, OS/2, Windows)
 A*2WC_Especifica aplicação do tipo console (Windows)
 P*2WC_Especifica aplicação do tipo console (Classic Mac OS)
 3*2WD_Usa DEFFILE para exportar funções de DLL ou EXE (Windows)
@@ -3397,7 +3397,7 @@ P*2We_Usa recursos externos (Darwin)
 p*2We_Usa recursos externos (Darwin)
 3*2WF_Especifica aplicação do tipo tela-cheia (EMX, OS/2)
 3*2WG_Especifica aplicação do tipo gráfica (EMX, OS/2, Windows)
-4*2WG_Especifica aplicação do tipo gráfica (Windows)
+4*2WG_Especifica aplicação do tipo gráfica (EMX, OS/2, Windows)
 A*2WG_Especifica aplicação do tipo gráfica (Windows)
 P*2WG_Especifica aplicação do tipo gráfica (Classic Mac OS)
 3*2Wi_Usa recursos internos (Darwin)

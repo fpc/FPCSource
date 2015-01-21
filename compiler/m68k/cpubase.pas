@@ -67,7 +67,7 @@ unit cpubase;
          { mc64040 instructions }
          a_move16,
          { coldfire v4 instructions }
-         a_mov3q,a_mvz,a_mvs,a_sats,a_byterev,a_ff1,
+         a_mov3q,a_mvz,a_mvs,a_sats,
          { fpu processor instructions - directly supported only. }
          { ieee aware and misc. condition codes not supported   }
          a_fabs,a_fadd,
@@ -153,7 +153,7 @@ unit cpubase;
 
       { registers which may be destroyed by calls }
       VOLATILE_INTREGISTERS = [RS_D0,RS_D1];
-      VOLATILE_FPUREGISTERS = [RS_FP0,RS_FP1];
+      VOLATILE_FPUREGISTERS = [];
       VOLATILE_ADDRESSREGISTERS = [RS_A0,RS_A1];
 
     type
@@ -311,7 +311,6 @@ unit cpubase;
       }
       saved_standard_registers : array[0..5] of tsuperregister = (RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7);
       saved_address_registers : array[0..4] of tsuperregister = (RS_A2,RS_A3,RS_A4,RS_A5,RS_A6);
-      saved_fpu_registers : array[0..5] of tsuperregister = (RS_FP2,RS_FP3,RS_FP4,RS_FP5,RS_FP6,RS_FP7);
 
       { this is only for the generic code which is not used for this architecture }
       saved_mm_registers : array[0..0] of tsuperregister = (RS_INVALID);
@@ -472,9 +471,7 @@ implementation
           R_INTREGISTER :
             result:=OS_32;
           R_FPUREGISTER :
-            { 68881 & compatibles -> 80 bit }
-            { CF FPU -> 64 bit, but that's unsupported for now }
-            result:=OS_F80;
+            result:=OS_F64;
           else
             internalerror(200303181);
         end;

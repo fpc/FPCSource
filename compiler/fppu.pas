@@ -836,13 +836,7 @@ var
                 end;
              end
            else
-             begin
-               { still register the source module for proper error messages
-                 since source_avail for the module is still false, this should not hurt }
-               sourcefiles.register_file(tdosinputfile.create(hs));
-
-               temp:=' not available';
-             end;
+             temp:=' not available';
            if is_main then
              begin
                mainsource:=hs;

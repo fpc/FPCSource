@@ -26,7 +26,7 @@ unit symx86;
 interface
 
 uses
-  globtype, cclasses,
+  globtype,
   symconst, symtype,symdef,symsym;
 
 type
@@ -45,62 +45,10 @@ type
   end;
   tx86pointerdefclass = class of tx86pointerdef;
 
-  tx86PtrDefKey = packed record
-    def: tdef;
-    x86typ:tx86pointertyp;
-  end;
-
-  { tx86PtrDefHashSet }
-
-  tx86PtrDefHashSet = class(TPtrDefHashSet)
-   private
-    class procedure Key2FullKey(Key: Pointer; out FullKey: tx86PtrDefKey);
-   public
-    function Find(Key: Pointer; KeyLen: Integer): PHashSetItem;override;
-    function FindOrAdd(Key: Pointer; KeyLen: Integer;
-      var Found: Boolean): PHashSetItem;override;
-    function FindOrAdd(Key: Pointer; KeyLen: Integer): PHashSetItem;override;
-    function Get(Key: Pointer; KeyLen: Integer): TObject;override;
-  end;
-
-  { returns a pointerdef for def, reusing an existing one in case it exists
-    in the current module }
-  function getx86pointerdef(def: tdef;x86typ:tx86pointertyp): tpointerdef;
-
 implementation
 
   uses
-    globals, verbose,
-    symbase, fmodule;
-
-  function getx86pointerdef(def: tdef;x86typ:tx86pointertyp): tpointerdef;
-    var
-      res: PHashSetItem;
-      oldsymtablestack: tsymtablestack;
-      key: tx86PtrDefKey;
-    begin
-      if not assigned(current_module) then
-        internalerror(2011071101);
-      key.def:=def;
-      key.x86typ:=x86typ;
-      res:=current_module.ptrdefs.FindOrAdd(@key,sizeof(key));
-      if not assigned(res^.Data) then
-        begin
-          { since these pointerdefs can be reused anywhere in the current
-            unit, add them to the global/staticsymtable }
-          oldsymtablestack:=symtablestack;
-          { do not simply push/pop current_module.localsymtable, because
-            that can have side-effects (e.g., it removes helpers) }
-          symtablestack:=nil;
-          res^.Data:=tx86pointerdefclass(cpointerdef).createx86(def,x86typ);
-          if assigned(current_module.localsymtable) then
-            current_module.localsymtable.insertdef(tdef(res^.Data))
-          else
-            current_module.globalsymtable.insertdef(tdef(res^.Data));
-          symtablestack:=oldsymtablestack;
-        end;
-      result:=tpointerdef(res^.Data);
-    end;
+    globals, verbose;
 
 {****************************************************************************
                              tx86pointerdef
@@ -187,70 +135,6 @@ implementation
       result:=x86pt_near;
     end;
 
-
-{****************************************************************************
-                             tx86PtrDefHashSet
-****************************************************************************}
-
-    class procedure tx86PtrDefHashSet.Key2FullKey(Key: Pointer; out FullKey: tx86PtrDefKey);
-      type
-        pdef=^tdef;
-      begin
-        FullKey.def:=pdef(Key)^;
-        FullKey.x86typ:=tx86pointerdefclass(cpointerdef).default_x86_data_pointer_type;
-      end;
-
-    function tx86PtrDefHashSet.Find(Key: Pointer; KeyLen: Integer): PHashSetItem;
-      var
-        FullKey: tx86PtrDefKey;
-      begin
-        if KeyLen=SizeOf(tdef) then
-          begin
-            Key2FullKey(Key, FullKey);
-            Result:=inherited Find(@FullKey, SizeOf(FullKey));
-          end
-        else
-          Result:=inherited Find(Key, KeyLen);
-      end;
-
-    function tx86PtrDefHashSet.FindOrAdd(Key: Pointer; KeyLen: Integer; var Found: Boolean): PHashSetItem;
-      var
-        FullKey: tx86PtrDefKey;
-      begin
-        if KeyLen=SizeOf(tdef) then
-          begin
-            Key2FullKey(Key, FullKey);
-            Result:=inherited FindOrAdd(@FullKey, SizeOf(FullKey), Found);
-          end
-        else
-          Result:=inherited FindOrAdd(Key, KeyLen, Found);
-      end;
-
-    function tx86PtrDefHashSet.FindOrAdd(Key: Pointer; KeyLen: Integer): PHashSetItem;
-      var
-        FullKey: tx86PtrDefKey;
-      begin
-        if KeyLen=SizeOf(tdef) then
-          begin
-            Key2FullKey(Key, FullKey);
-            Result:=inherited FindOrAdd(@FullKey, SizeOf(FullKey));
-          end
-        else
-          Result:=inherited FindOrAdd(Key, KeyLen);
-      end;
-
-    function tx86PtrDefHashSet.Get(Key: Pointer; KeyLen: Integer): TObject;
-      var
-        FullKey: tx86PtrDefKey;
-      begin
-        if KeyLen=SizeOf(tdef) then
-          begin
-            Key2FullKey(Key, FullKey);
-            Result:=inherited Get(@FullKey, SizeOf(FullKey));
-          end
-        else
-          Result:=inherited Get(Key, KeyLen);
-      end;
 
 end.
 
