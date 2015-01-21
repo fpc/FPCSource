@@ -1191,6 +1191,23 @@ implementation
         i : integer;
         varsym : tabstractnormalvarsym;
         {RedoDFA : boolean;}
+
+        procedure delete_marker(anode: tasmnode);
+          var
+            ai: tai;
+          begin
+            if assigned(anode) then
+              begin
+                ai:=anode.currenttai;
+                if assigned(ai) then
+                  begin
+                    aktproccode.remove(ai);
+                    ai.free;
+                    anode.currenttai:=nil;
+                  end;
+              end;
+          end;
+
       begin
         { the initialization procedure can be empty, then we
           don't need to generate anything. When it was an empty
@@ -1317,7 +1334,12 @@ implementation
               { iterate through life info of the first node }
               for i:=0 to dfabuilder.nodemap.count-1 do
                 begin
-                  if DFASetIn(GetUserCode.optinfo^.life,i) then
+                  if DFASetIn(GetUserCode.optinfo^.life,i) and
+                    { do not warn about parameters passed by var }
+                    not((tnode(dfabuilder.nodemap[i]).nodetype=loadn) and (tloadnode(dfabuilder.nodemap[i]).symtableentry.typ=paravarsym) and
+                        (tparavarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry).varspez=vs_var) and
+                        { function result is passed by var but it must be initialized }
+                        not(vo_is_funcret in tparavarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry).varoptions)) then
                     CheckAndWarn(GetUserCode,tnode(dfabuilder.nodemap[i]));
                 end;
           end;
@@ -1581,6 +1603,16 @@ implementation
                not(target_info.system in systems_garbage_collected_managed_types) then
              internalerror(200405231);
 
+            { Position markers are only used to insert additional code after the secondpass
+              and before this point. They are of no use in optimizer. Instead of checking and
+              ignoring all over the optimizer, just remove them here. }
+            delete_marker(entry_asmnode);
+            delete_marker(loadpara_asmnode);
+            delete_marker(exitlabel_asmnode);
+            delete_marker(stackcheck_asmnode);
+            delete_marker(init_asmnode);
+            delete_marker(final_asmnode);
+
 {$ifndef NoOpt}
             if not(cs_no_regalloc in current_settings.globalswitches) then
               begin
@@ -1763,11 +1795,11 @@ implementation
              { Give an error for accesses in the static symtable that aren't visible
                outside the current unit }
              st:=procdef.owner;
-             while (st.symtabletype=ObjectSymtable) do
+             while (st.symtabletype in [ObjectSymtable,recordsymtable]) do
                st:=st.defowner.owner;
              if (pi_uses_static_symtable in flags) and
                 (st.symtabletype<>staticsymtable) then
-               Comment(V_Error,'Global Generic template references static symtable');
+               Message(parser_e_global_generic_references_static);
            end;
 
          { save exit info }

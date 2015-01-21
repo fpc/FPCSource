@@ -2,7 +2,7 @@
     Copyright (c) 2004-2006 by Free Pascal Development Team
 
     This unit implements support import, export, link routines
-    for the Amiga targets (AmigaOS/m68k, AmigaOS/PPC)
+    for the aros targets (arosOS/i386, arosOS/x86_64)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,25 +20,31 @@
 
  ****************************************************************************
 }
-unit t_amiga;
+unit t_aros;
 
 {$i fpcdefs.inc}
 
 interface
 
     uses
-      link;
+      rescmn, comprsrc, import, export,  link, ogbase;
 
 
 type
-  PLinkerAmiga = ^TLinkerAmiga;
-  TLinkerAmiga = class(texternallinker)
+
+  timportlibaros=class(timportlib)
+    procedure generatelib; override;
+  end;
+  
+  
+  PLinkeraros = ^TLinkeraros;
+  TLinkeraros = class(texternallinker)
     private
       function WriteResponseFile(isdll: boolean): boolean;
-      procedure SetAmiga68kInfo;
-      procedure SetAmigaPPCInfo;
-      function MakeAmiga68kExe: boolean;
-      function MakeAmigaPPCExe: boolean;
+      procedure Setaros386Info;
+      procedure Setarosx86_64Info;
+      function Makearos386Exe: boolean;
+      function Makearosx86_64Exe: boolean;
     public
       constructor Create; override;
       procedure SetDefaultInfo; override;
@@ -51,15 +57,28 @@ implementation
     uses
        SysUtils,
        cutils,cfileutl,cclasses,
-       globtype,globals,systems,verbose,script,fmodule,i_amiga;
+       globtype,globals,systems,verbose,script,fmodule,i_aros;
 
 
+procedure timportlibaros.generatelib;
+var
+  i: longint;
+  ImportLibrary: TImportLibrary;
+begin
+  for i:=0 to current_module.ImportLibraryList.count -1 do
+  begin
+    ImportLibrary := TImportlibrary(current_module.ImportLibraryList[i]);
+    current_module.linkothersharedlibs.add(ImportLibrary.Name, link_always);
+  end;
+end;
 
 {****************************************************************************
-                               TLinkerAmiga
+                               TLinkeraros
 ****************************************************************************}
 
-constructor TLinkerAmiga.Create;
+
+
+constructor TLinkeraros.Create;
 begin
   Inherited Create;
   { allow duplicated libs (PM) }
@@ -67,35 +86,40 @@ begin
   StaticLibFiles.doubles:=true;
 end;
 
-procedure TLinkerAmiga.SetAmiga68kInfo;
+procedure TLinkeraros.Setaros386Info;
 begin
   with Info do begin
-    ExeCmd[1]:='ld $DYNLINK $OPT -d -n -o $EXE $RES';
+    { Note: collect-aros seems to be buggy, and doesn't forward options }
+    {       properly when calling the underlying GNU LD. (FIXME?)       }
+    { This means paths with spaces in them are not supported for now on AROS.   }
+    { So for example no Ram Disk: usage for anything which must be linked. (KB) }
+    ExeCmd[1]:='collect-aros $OPT $STRIP -d -n -o $EXE $RES';
+    //ExeCmd[1]:='ld $OPT -d -n -o $EXE $RES';
   end;
 end;
 
-procedure TLinkerAmiga.SetAmigaPPCInfo;
+procedure TLinkeraros.Setarosx86_64Info;
 begin
   with Info do begin
-    ExeCmd[1]:='ld $DYNLINK $OPT -defsym=__amigaos4__=1 -d -q -n -o $EXE $RES';
+    ExeCmd[1]:='ld $OPT -defsym=__AROS__=1 -d -q -n -o $EXE $RES';
   end;
 end;
 
-procedure TLinkerAmiga.SetDefaultInfo;
+procedure TLinkeraros.SetDefaultInfo;
 begin
   case (target_info.system) of
-    system_m68k_amiga:      SetAmiga68kInfo;
-    system_powerpc_amiga:   SetAmigaPPCInfo;
+    system_i386_aros:      Setaros386Info;
+    system_x86_64_aros:   Setarosx86_64Info;
   end;
 end;
 
 
-function TLinkerAmiga.WriteResponseFile(isdll: boolean): boolean;
+function TLinkeraros.WriteResponseFile(isdll: boolean): boolean;
 var
   linkres  : TLinkRes;
   i        : longint;
   HPath    : TCmdStrListItem;
-  s        : string;
+  s,s1     : string;
   linklibc : boolean;
 begin
   WriteResponseFile:=False;
@@ -117,8 +141,9 @@ begin
   while assigned(HPath) do
    begin
     s:=HPath.Str;
-    if s<>'' then
-     LinkRes.Add('SEARCH_DIR("'+Unix2AmigaPath(s)+'")');
+    s1 := Unix2AmigaPath(maybequoted(s)); 
+    if trim(s1)<>'' then
+     LinkRes.Add('SEARCH_DIR('+s1+')');
     HPath:=TCmdStrListItem(HPath.Next);
    end;
 
@@ -195,12 +220,34 @@ begin
 end;
 
 
-function TLinkerAmiga.MakeAmiga68kExe: boolean;
+function TLinkeraros.Makearos386Exe: boolean;
 var
   BinStr,
   CmdStr  : TCmdStr;
   StripStr: string[40];
-  DynLinkStr : string;
+begin
+  StripStr:='';
+  if (cs_link_strip in current_settings.globalswitches) then StripStr:='-s';
+
+  { Call linker }
+  SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
+  Replace(cmdstr,'$OPT',Info.ExtraOptions);
+  Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename)));
+  Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
+  Replace(cmdstr,'$STRIP',StripStr);
+
+  { Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename^))));
+    Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));}
+
+  Makearos386Exe:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
+end;
+
+
+function TLinkeraros.Makearosx86_64Exe: boolean;
+var
+  BinStr,
+  CmdStr  : TCmdStr;
+  StripStr: string[40];
 begin
   StripStr:='';
   if (cs_link_strip in current_settings.globalswitches) then StripStr:='-s';
@@ -212,55 +259,24 @@ begin
   Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename))));
   Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
   Replace(cmdstr,'$STRIP',StripStr);
-  if rlinkpath<>'' Then
-    DynLinkStr:='--rpath-link '+rlinkpath
-  else
-    DynLinkStr:='';
-  Replace(cmdstr,'$DYNLINK',DynLinkStr);
-  MakeAmiga68kExe:=DoExec(BinStr,CmdStr,true,false);
+  Makearosx86_64Exe:=DoExec(FindUtil(BinStr),CmdStr,true,false);
 end;
 
 
-function TLinkerAmiga.MakeAmigaPPCExe: boolean;
-var
-  BinStr,
-  CmdStr  : TCmdStr;
-  StripStr: string[40];
-  DynLinkStr : string;
-begin
-  StripStr:='';
-  if (cs_link_strip in current_settings.globalswitches) then StripStr:='-s';
-
-  { Call linker }
-  SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
-  binstr:=FindUtil(utilsprefix+BinStr);
-  Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename))));
-  Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
-  Replace(cmdstr,'$STRIP',StripStr);
-  if rlinkpath<>'' Then
-    DynLinkStr:='--rpath-link '+rlinkpath
-  else
-    DynLinkStr:='';
-  Replace(cmdstr,'$DYNLINK',DynLinkStr);
-  MakeAmigaPPCExe:=DoExec(BinStr,CmdStr,true,false);
-end;
-
-
-function TLinkerAmiga.MakeExecutable:boolean;
+function TLinkeraros.MakeExecutable:boolean;
 var
   success : boolean;
 begin
+  success:=false;
   if not(cs_link_nolink in current_settings.globalswitches) then
     Message1(exec_i_linking,current_module.exefilename);
 
   { Write used files and libraries }
   WriteResponseFile(false);
 
-  success:=false;
   case (target_info.system) of
-    system_m68k_amiga:      success:=MakeAmiga68kExe;
-    system_powerpc_amiga:   success:=MakeAmigaPPCExe;
+    system_i386_aros:      success:=Makearos386Exe;
+    system_x86_64_aros:   success:=Makearosx86_64Exe;
   end;
 
   { Remove ReponseFile }
@@ -276,13 +292,13 @@ end;
 *****************************************************************************}
 
 initialization
-{$ifdef m68k}
-{ TODO: No executable creation support for m68k yet!}
-  RegisterLinker(ld_amiga,TLinkerAmiga);
-  RegisterTarget(system_m68k_Amiga_info);
-{$endif m68k}
-{$ifdef powerpc}
-  RegisterLinker(ld_amiga,TLinkerAmiga);
-  RegisterTarget(system_powerpc_Amiga_info);
-{$endif powerpc}
+{$ifdef i386}
+  RegisterLinker(ld_aros,TLinkeraros);
+  RegisterTarget(system_i386_aros_info);
+{$endif i386}
+{$ifdef x86_64}
+  RegisterLinker(ld_aros,TLinkeraros);
+  RegisterTarget(system_x86_64_aros_info);
+{$endif x86_64}
+  RegisterRes(res_elf_info, TWinLikeResourceFile);
 end.

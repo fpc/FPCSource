@@ -81,6 +81,7 @@ unit agavrgas;
         var
           s : string;
         begin
+           s:='';
            with ref do
             begin
   {$ifdef extdebug}
@@ -95,9 +96,8 @@ unit agavrgas;
               else if base<>NR_NO then
                 begin
                   if addressmode=AM_PREDRECEMENT then
-                    s:='-'
-                  else
-                    s:='';
+                    s:='-';
+
                   case base of
                     NR_R26:
                       s:=s+'X';
@@ -119,9 +119,7 @@ unit agavrgas;
               else if assigned(symbol) or (offset<>0) then
                 begin
                   if assigned(symbol) then
-                    s:=ReplaceForbiddenAsmSymbolChars(symbol.name)
-                  else
-                     s:='';
+                    s:=ReplaceForbiddenAsmSymbolChars(symbol.name);
 
                   if offset<0 then
                     s:=s+tostr(offset)

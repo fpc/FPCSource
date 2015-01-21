@@ -75,6 +75,9 @@ implementation
       paras: tcallparanode;
       proc: string;
     begin
+      result:=nil;
+      proc:='';
+      temp:=nil;
       if not assigned(p.resultdef) then
         typecheckpass(p);
       if ((p.resultdef.typ=stringdef) and

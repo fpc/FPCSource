@@ -656,6 +656,7 @@ implementation
         internalerror(2012071226);
       tocgsize:=getintmmcgsize(reg,def_cgmmsize(tosize));
       case loc.loc of
+        LOC_CONSTANT,
         LOC_SUBSETREG,LOC_CSUBSETREG,
         LOC_SUBSETREF,LOC_CSUBSETREF:
           begin

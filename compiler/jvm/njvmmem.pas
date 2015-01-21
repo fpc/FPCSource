@@ -361,6 +361,8 @@ implementation
         newsize: tcgsize;
         isjump: boolean;
       begin
+        otl:=nil;
+        ofl:=nil;
         if left.resultdef.typ=stringdef then
           internalerror(2011052702);
 

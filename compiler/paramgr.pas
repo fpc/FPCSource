@@ -179,15 +179,14 @@ implementation
     { true if uses a parameter as return value }
     function tparamanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
       begin
+         { This handles all managed types, including COM interfaces and Variants }
          if handle_common_ret_in_param(def,pd,result) then
            exit;
          ret_in_param:=(def.typ=arraydef) or
            (def.typ=recorddef) or
            (def.typ=stringdef) or
            ((def.typ=procvardef) and not tprocvardef(def).is_addressonly) or
-           { interfaces are also passed by reference to be compatible with delphi and COM }
-           ((def.typ=objectdef) and (is_object(def) or is_interface(def) or is_dispinterface(def))) or
-           (def.typ=variantdef) or
+           ((def.typ=objectdef) and (is_object(def))) or
            ((def.typ=setdef) and not is_smallset(def));
       end;
 
@@ -420,7 +419,12 @@ implementation
               newparaloc^.loc:=paraloc^.loc;
             case newparaloc^.loc of
               LOC_REGISTER :
-                newparaloc^.register:=cg.getintregister(list,paraloc^.size);
+                begin
+                  if (vo_has_explicit_paraloc in parasym.varoptions) and (paraloc^.loc = LOC_REGISTER) then
+                    newparaloc^.register:=paraloc^.register
+                  else
+                    newparaloc^.register:=cg.getintregister(list,paraloc^.size);
+                end;
               LOC_FPUREGISTER :
                 newparaloc^.register:=cg.getfpuregister(list,paraloc^.size);
               LOC_MMREGISTER :

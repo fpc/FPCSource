@@ -110,12 +110,12 @@ interface
 {$endif i8086}
 
        { Use a variant record to be sure that the array if aligned correctly }
-       tdoublerec=record
+       tcompdoublerec=record
          case byte of
            0 : (bytes:array[0..7] of byte);
            1 : (value:double);
        end;
-       textendedrec=record
+       tcompextendedrec=record
          case byte of
            0 : (bytes:array[0..9] of byte);
            1 : (value:extended);
@@ -707,6 +707,14 @@ interface
 
     type
       tx86memorymodel = (mm_tiny,mm_small,mm_medium,mm_compact,mm_large,mm_huge);
+    const
+      x86memorymodelstr : array[tx86memorymodel] of string[7]=(
+        'TINY',
+        'SMALL',
+        'MEDIUM',
+        'COMPACT',
+        'LARGE',
+        'HUGE');
 
   { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
   const

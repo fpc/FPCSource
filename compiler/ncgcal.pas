@@ -249,6 +249,7 @@ implementation
          href    : treference;
          otlabel,
          oflabel : tasmlabel;
+         pushaddr: boolean;
       begin
          if not(assigned(parasym)) then
            internalerror(200304242);
@@ -306,7 +307,7 @@ implementation
                begin
                  { don't push a node that already generated a pointer type
                    by address for implicit hidden parameters }
-                 if (vo_is_funcret in parasym.varoptions) or
+                 pushaddr:=(vo_is_funcret in parasym.varoptions) or
                    { pass "this" in C++ classes explicitly as pointer
                      because push_addr_param might not be true for them }
                    (is_cppclass(parasym.vardef) and (vo_is_self in parasym.varoptions)) or
@@ -324,8 +325,15 @@ implementation
                         )
                       ) and
                      paramanager.push_addr_param(parasym.varspez,parasym.vardef,
-                         aktcallnode.procdefinition.proccalloption)) then
-                   push_addr_para
+                         aktcallnode.procdefinition.proccalloption));
+
+                 if pushaddr then
+                   begin
+                     { objects or advanced records could be located in registers if they are the result of a type case, see e.g. webtbs\tw26075.pp }
+                     if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
+                       hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
+                     push_addr_para
+                   end
                  else
                    push_value_para;
                end
@@ -918,8 +926,7 @@ implementation
                  else
                    begin
                      { Load VMT value in register }
-                     { todo: fix vmt type for high level cg }
-                     hlcg.location_force_reg(current_asmdata.CurrAsmList,methodpointer.location,proc_addr_voidptrdef,proc_addr_voidptrdef,false);
+                     hlcg.location_force_reg(current_asmdata.CurrAsmList,methodpointer.location,methodpointer.resultdef,methodpointer.resultdef,false);
                      vmtreg:=methodpointer.location.register;
                      { test validity of VMT }
                      if not(is_interface(tprocdef(procdefinition).struct)) and
@@ -1048,6 +1055,7 @@ implementation
                 correct parameter register }
               if assigned(left) then
                 begin
+                  reorder_parameters;
                   pushparas;
                   { free the resources allocated for the parameters }
                   freeparas;

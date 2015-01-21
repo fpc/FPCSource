@@ -616,6 +616,7 @@ const
       l : longint;
       errorflag: boolean;
   begin
+    BuildExpression:=0;
     errorflag := FALSE;
     expr := '';
     tempstr := '';
@@ -986,6 +987,7 @@ const
       l: longint;
       code: integer;
   begin
+     str:='';
      Consume(AS_STAR);
      if (oper.opr.ref.scalefactor <> 0)
      and (oper.opr.ref.scalefactor <> 1) then
@@ -1180,6 +1182,7 @@ const
       code: integer;
       str: string;
     begin
+       str:='';
        Consume(AS_LPAREN);
        case actasmtoken of
          { // (reg ... // }
@@ -1309,6 +1312,7 @@ const
    dataregset := [];
    addrregset := [];
    tempstr := '';
+   r:=NR_NO;
    case actasmtoken of
    { // Memory reference //  }
      AS_LPAREN:

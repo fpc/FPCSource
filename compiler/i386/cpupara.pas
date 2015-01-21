@@ -114,6 +114,23 @@ unit cpupara;
                   end;
               end;
             end;
+          system_i386_os2,
+          system_i386_emx:
+            begin
+              case def.typ of
+                recorddef :
+                  begin
+                    { EMX port of GCC returns small records in the FUNCTION_RETURN_REG up to 4 bytes in registers. }
+                    if ((pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
+                        (def.size>0) and
+                        (def.size<=4)) then
+                     begin
+                       result:=false;
+                       exit;
+                     end;
+                  end;
+              end;
+            end;
           system_i386_freebsd,
           system_i386_openbsd,
           system_i386_darwin,
@@ -243,6 +260,7 @@ unit cpupara;
           pocall_safecall,
           pocall_stdcall,
           pocall_cdecl,
+          pocall_syscall,
           pocall_cppdecl,
           pocall_mwpascal :
             result:=[RS_EAX,RS_EDX,RS_ECX];

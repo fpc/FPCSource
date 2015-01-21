@@ -50,6 +50,7 @@ interface
 {$endif not cpu64bitalu}
          procedure second_integer;virtual;
          procedure second_float;virtual;
+         procedure second_float_emulated;virtual;
       public
          procedure pass_generate_code;override;
       end;
@@ -206,6 +207,23 @@ implementation
       end;
 {$endif not cpu64bitalu}
 
+
+    procedure tcgunaryminusnode.second_float_emulated;
+      begin
+        secondpass(left);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+        location:=left.location;
+        case location.size of
+          OS_32:
+            cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,tcgint($80000000),location.register);
+          OS_64:
+            cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,tcgint($80000000),location.registerhi);
+        else
+          internalerror(2014033101);
+        end;
+      end;
+
+
     procedure tcgunaryminusnode.second_float;
       begin
         secondpass(left);
@@ -282,7 +300,12 @@ implementation
          else
 {$endif SUPPORT_MMX}
            if (left.resultdef.typ=floatdef) then
-             second_float
+             begin
+               if (cs_fp_emulation in current_settings.moduleswitches) then
+                 second_float_emulated
+               else
+                 second_float;
+             end
          else
            second_integer;
       end;

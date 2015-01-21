@@ -931,26 +931,8 @@ implementation
           begin
             if not(target_info.system in systems_wince) then
               begin
-                case tfloatdef(resultdef).floattype of
-                  s32real:
-                    begin
-                      procname:='float32_sub';
-                      fdef:=search_system_type('FLOAT32REC').typedef;
-                    end;
-                  s64real:
-                    begin
-                      procname:='float64_sub';
-                      fdef:=search_system_type('FLOAT64').typedef;
-                    end;
-                  {!!! not yet implemented
-                  s128real:
-                  }
-                  else
-                    internalerror(2005082801);
-                end;
-                result:=ctypeconvnode.create_internal(ccallnode.createintern(procname,ccallparanode.create(
-                  ctypeconvnode.create_internal(left,fDef),
-                  ccallparanode.create(ctypeconvnode.create_internal(crealconstnode.create(0,resultdef),fdef),nil))),resultdef);
+                expectloc:=LOC_REGISTER;
+                exit;
               end
             else
               begin

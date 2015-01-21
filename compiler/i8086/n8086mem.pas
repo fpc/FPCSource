@@ -43,21 +43,23 @@ interface
 
        { tx86vecnode doesn't work for i8086, so we inherit tcgvecnode }
        ti8086vecnode = class(tcgvecnode)
+        protected
+         function first_arraydef: tnode;override;
          procedure update_reference_reg_mul(maybe_const_reg:tregister;l:aint);override;
        end;
 
 implementation
 
     uses
-      systems,globals,
+      systems,globals,constexp,
       cutils,verbose,
-      symbase,symconst,symdef,symtable,symtype,symsym,symcpu,
+      symbase,symconst,symdef,symtable,symtype,symsym,symx86,symcpu,
       parabase,paramgr,
       aasmtai,aasmdata,
-      nld,ncon,nadd,
+      nld,ncon,nadd,ncal,ncnv,
       cgutils,cgobj,
       defutil,hlcgobj,
-      pass_2,ncgutil;
+      pass_1,pass_2,ncgutil;
 
 {*****************************************************************************
                              TI8086ADDRNODE
@@ -169,6 +171,46 @@ implementation
 {*****************************************************************************
                              TI8086VECNODE
 *****************************************************************************}
+
+    function ti8086vecnode.first_arraydef: tnode;
+      var
+        arraydef: tcpuarraydef;
+        procname:string;
+      begin
+        if tcpuarraydef(left.resultdef).is_huge then
+          begin
+            arraydef:=tcpuarraydef(left.resultdef);
+
+            if not (ado_IsConvertedPointer in arraydef.arrayoptions) then
+              internalerror(2014080701);
+
+            if left.nodetype<>typeconvn then
+              internalerror(2014080702);
+
+            procname:='fpc_hugeptr_add_longint';
+            if cs_hugeptr_arithmetic_normalization in current_settings.localswitches then
+              procname:=procname+'_normalized';
+
+            if arraydef.elementdef.size>1 then
+              right:=caddnode.create(muln,right,
+                cordconstnode.create(arraydef.elementdef.size,s32inttype,true));
+
+            result:=ccallnode.createintern(procname,
+              ccallparanode.create(right,
+              ccallparanode.create(ttypeconvnode(left).left,nil)));
+            inserttypeconv_internal(result,getx86pointerdef(arraydef.elementdef,x86pt_huge));
+            result:=cderefnode.create(result);
+
+            ttypeconvnode(left).left:=nil;
+            ttypeconvnode(left).free;
+            left := nil;
+            right := nil;
+            firstpass(result);
+          end
+        else
+          result:=inherited;
+      end;
+
 
     procedure ti8086vecnode.update_reference_reg_mul(maybe_const_reg:tregister;l:aint);
       var

@@ -44,7 +44,7 @@ interface
     uses
        cutils,cclasses,cfileutl,
        globtype,finput,ogbase,
-       symbase,symsym,
+       symbase,symconst,symsym,symcpu,
        wpobase,
        aasmbase,aasmtai,aasmdata;
 
@@ -142,7 +142,7 @@ interface
         checkforwarddefs,
         deflist,
         symlist       : TFPObjectList;
-        ptrdefs       : THashSet; { list of pointerdefs created in this module so we can reuse them (not saved/restored) }
+        ptrdefs       : tPtrDefHashSet; { list of pointerdefs created in this module so we can reuse them (not saved/restored) }
         arraydefs     : THashSet; { list of single-element-arraydefs created in this module so we can reuse them (not saved/restored) }
         ansistrdef    : tobject; { an ansistring def redefined for the current module }
         wpoinfo       : tunitwpoinfobase; { whole program optimization-related information that is generated during the current run for this unit }
@@ -567,7 +567,7 @@ implementation
         derefdataintflen:=0;
         deflist:=TFPObjectList.Create(false);
         symlist:=TFPObjectList.Create(false);
-        ptrdefs:=THashSet.Create(64,true,false);
+        ptrdefs:=cPtrDefHashSet.Create;
         arraydefs:=THashSet.Create(64,true,false);
         ansistrdef:=nil;
         wpoinfo:=nil;
@@ -744,7 +744,7 @@ implementation
         symlist.free;
         symlist:=TFPObjectList.Create(false);
         ptrdefs.free;
-        ptrdefs:=THashSet.Create(64,true,false);
+        ptrdefs:=cPtrDefHashSet.Create;
         arraydefs.free;
         arraydefs:=THashSet.Create(64,true,false);
         wpoinfo.free;

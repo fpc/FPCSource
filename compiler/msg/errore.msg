@@ -174,16 +174,16 @@ scan_n_ignored_switch=02008_N_Ignored compiler switch "$1"
 scan_w_illegal_switch=02009_W_Illegal compiler switch "$1"
 % You included a compiler switch (i.e. \var{\{\$... \}}) which the compiler
 % does not recognise.
-scan_w_switch_is_global=02010_W_Misplaced global compiler switch
-% The compiler switch is misplaced, and should be located at
-% the start of the unit or program.
+scan_w_switch_is_global=02010_W_Misplaced global compiler switch, ignored
+% The compiler switch is misplaced. It must be located at
+% the start of the compilation unit, before the uses clause or any declaration.
 scan_e_illegal_char_const=02011_E_Illegal char constant
 % This happens when you specify a character with its ASCII code, as in
 % \var{\#96}, but the number is either illegal, or out of range.
-scan_f_cannot_open_input=02012_F_Can not open file "$1"
+scan_f_cannot_open_input=02012_F_Cannot open file "$1"
 % \fpc cannot find the program or unit source file you specified on the
 % command line.
-scan_f_cannot_open_includefile=02013_F_Can not open include file "$1"
+scan_f_cannot_open_includefile=02013_F_Cannot open include file "$1"
 % \fpc cannot find the source file you specified in a \var{\{\$include ..\}}
 % statement.
 scan_e_illegal_pack_records=02015_E_Illegal record alignment specifier "$1"
@@ -411,7 +411,7 @@ scan_e_illegal_hugepointernormalization=02098_E_Illegal argument for HUGEPOINTER
 #
 # Parser
 #
-# 03338 is the last used one
+# 03339 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -704,7 +704,7 @@ parser_e_comparative_operator_return_boolean=03090_E_Comparative operator must r
 parser_e_only_virtual_methods_abstract=03091_E_Only virtual methods can be abstract
 % You are declaring a method as abstract, when it is not declared to be
 % virtual.
-parser_f_unsupported_feature=03092_F_Use of unsupported feature!
+parser_f_unsupported_feature=03092_F_Use of unsupported feature: "$1".
 % You're trying to force the compiler into doing something it cannot do yet.
 parser_e_mix_of_classes_and_objects=03093_E_The mix of different kind of objects (class, object, interface, etc) isn't allowed
 % You cannot derive \var{objects}, \var{classes}, \var{cppclasses} and \var{interfaces} intertwined. E.g.
@@ -802,7 +802,7 @@ parser_e_function_already_declared_public_forward=03120_E_Function is already de
 % You will get this error if a function is defined as \var{forward} twice.
 % Or if it occurs in the \var{interface} section, and again as a \var{forward}
 % declaration in the \var{implementation} section.
-parser_e_not_external_and_export=03121_E_Can not use both EXPORT and EXTERNAL
+parser_e_not_external_and_export=03121_E_Cannot use both EXPORT and EXTERNAL
 % These two procedure directives are mutually exclusive.
 parser_h_not_supported_for_inline=03123_H_"$1" not yet supported inside inline procedure/function
 % Inline procedures don't support this declaration.
@@ -873,7 +873,7 @@ parser_e_threadvars_only_sg=03147_E_Threadvars can be only static or global
 parser_f_direct_assembler_not_allowed=03148_F_Direct assembler not supported for binary output format
 % You cannot use direct assembler when using a binary writer. Choose an
 % other output format or use another assembler reader.
-parser_w_no_objpas_use_mode=03149_W_Don't load OBJPAS unit manually, use \{\$mode objfpc\} or \{\$mode delphi\} instead
+parser_w_no_objpas_use_mode=03149_W_Don't load OBJPAS unit manually, use {$mode objfpc} or {$mode delphi} instead
 % You are trying to load the \file{ObjPas} unit manually from a \var{uses} clause.
 % This is not a good idea. Use the \var{\{\$MODE OBJFPC\}} or
 % \var{\{\$mode delphi\}} directives which load the unit automatically.
@@ -927,7 +927,7 @@ parser_e_dlltool_unit_var_problem2=03161_E_Compile without -WD option
 parser_f_need_objfpc_or_delphi_mode=03162_F_You need ObjFpc (-S2) or Delphi (-Sd) mode to compile this module
 % You need to use \var{\{\$MODE OBJFPC\}} or \var{\{\$MODE DELPHI\}} to compile this file.
 % Or use the corresponding command line switch, either \var{-Mobjfpc} or \var{-MDelphi.}
-parser_e_no_export_with_index_for_target=03163_E_Can not export with index under $1
+parser_e_no_export_with_index_for_target=03163_E_Cannot export with index under $1
 % Exporting of functions or procedures with a specified index is not
 % supported on this target.
 parser_e_no_export_of_variables_for_target=03164_E_Exporting of variables is not supported under $1
@@ -964,7 +964,7 @@ parser_e_no_access_specifier_in_interfaces=03172_E_Access specifiers cannot be u
 parser_e_no_vars_in_interfaces=03173_E_An interface, helper or Objective-C protocol or category cannot contain fields
 % Declarations of fields are not allowed in interfaces, helpers and Objective-C protocols and categories.
 % An interface/helper/protocol/category can contain only methods and properties with method read/write specifiers.
-parser_e_no_local_proc_external=03174_E_Can not declare local procedure as EXTERNAL
+parser_e_no_local_proc_external=03174_E_Cannot declare local procedure as EXTERNAL
 % Declaring local procedures as external is not possible. Local procedures
 % get hidden parameters that will make the chance of errors very high.
 parser_w_skipped_fields_before=03175_W_Some fields coming before "$1" were not initialized
@@ -977,10 +977,10 @@ parser_w_skipped_fields_after=03177_W_Some fields coming after "$1" were not ini
 % You can leave some fields at the end of a type constant record uninitialized
 % (The compiler will initialize them to zero automatically). This may be the cause
 % of subtle problems.
-parser_e_varargs_need_cdecl_and_external=03178_E_VarArgs directive (or '...' in MacPas) without CDecl/CPPDecl/MWPascal and External
+parser_e_varargs_need_cdecl_and_external=03178_E_VarArgs directive (or '...' in MacPas) without CDecl/CPPDecl/MWPascal/StdCall and External
 % The varargs directive (or the ``...'' varargs parameter in MacPas mode) can only be
 % used with procedures or functions that are declared with \var{external} and one of
-% \var{cdecl}, \var{cppdecl} and \var{mwpascal}. This functionality
+% \var{cdecl}, \var{cppdecl}, \var{stdcall}  and \var{mwpascal}. This functionality
 % is only supported to provide a compatible interface to C functions like printf.
 parser_e_self_call_by_value=03179_E_Self must be a normal (call-by-value) parameter
 % You cannot declare \var{Self} as a const or var parameter, it must always be
@@ -1102,7 +1102,7 @@ parser_e_illegal_assignment_to_count_var=03208_E_Illegal assignment to for-loop 
 % loop variables inside the loop (Except in Delphi and TP modes). Use a while or
 % repeat loop instead if you need to do something like that, since those
 % constructs were built for that.
-parser_e_no_local_var_external=03209_E_Can not declare local variable as EXTERNAL
+parser_e_no_local_var_external=03209_E_Cannot declare local variable as EXTERNAL
 % Declaring local variables as external is not allowed. Only global variables can reference
 % external variables.
 parser_e_proc_already_external=03210_E_Procedure is already declared EXTERNAL
@@ -1528,6 +1528,9 @@ parser_w_ptr_type_ignored=03338_W_Pointer type "$1" ignored
 % The specified pointer type modifier is ignored, because it is not supported on
 % the current platform. This happens, for example, when a far pointer is
 % declared on a non-x86 platform.
+parser_e_global_generic_references_static=03339_E_Global Generic template references static symtable
+% A generic declared in the interface section of a unit must not reference symbols that belong
+% solely to the implementation section of that unit.
 %
 %
 %
@@ -1976,7 +1979,7 @@ type_e_anonymous_function_unsupported=04999_E_Function references are not yet su
 #
 # Symtable
 #
-# 05087 is the last used one
+# 05095 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -2244,6 +2247,47 @@ sym_d_adding_helper_for=05087_D_Adding helper for $1
 % A helper for the mentioned type is added to the current scope
 sym_e_param_list=05088_E_Found declaration: $1
 % This message shows all overloaded declarations in case of an error.
+sym_w_uninitialized_managed_local_variable=05089_W_Local variable "$1" of a managed type does not seem to be initialized
+% This message is displayed if the compiler thinks that a variable will
+% be used (i.e. it appears in the right-hand side of an expression) when it
+% was not initialized first (i.e. appeared in the left-hand side of an
+% assignment). Since the variable is managed, i. e. implicitly initialized by the compiler, this might be intended behaviour and
+% does not necessarily mean that the code is wrong.
+sym_w_uninitialized_managed_variable=05090_W_Variable "$1" of a managed type does not seem to be initialized
+% This message is displayed if the compiler thinks that a variable will
+% be used (i.e. it appears in the right-hand side of an expression) when it
+% was not initialized first (i.e. appeared in the left-hand side of an
+% assignment). Since the variable is managed, i. e. implicitly initialized by the compiler, this might be intended behaviour and
+% does not necessarily mean that the code is wrong.
+sym_h_uninitialized_managed_local_variable=05091_H_Local variable "$1" of a managed type does not seem to be initialized
+% This message is displayed if the compiler thinks that a variable will
+% be used (i.e. it appears in the right-hand side of an expression) when it
+% was not initialized first (i.e. it did not appear in the left-hand side of an
+% assignment). Since the variable is managed, i. e. implicitly initialized by the compiler, this might be intended behaviour and
+% does not necessarily mean that the code is wrong.
+sym_h_uninitialized_managed_variable=05092_H_Variable "$1" of a managed type does not seem to be initialized
+% This message is displayed if the compiler thinks that a variable will
+% be used (i.e. it appears in the right-hand side of an expression) when it
+% was not initialized first (i.e. t did not appear in the left-hand side of an
+% assignment). Since the variable is managed, i. e. implicitly initialized by the compiler, this might be intended behaviour and
+% does not necessarily mean that the code is wrong.
+sym_w_managed_function_result_uninitialized=05093_W_function result variable of a managed type does not seem to initialized
+% This message is displayed if the compiler thinks that the function result
+% variable will be used (i.e. it appears in the right-hand side of an expression)
+% before it is initialized (i.e. before it appeared in the left-hand side of an
+% assignment). Since the variable is managed, i. e. implicitly initialized by the compiler, this might be intended behaviour and
+% does not necessarily mean that the code is wrong.
+sym_h_managed_function_result_uninitialized=05094_H_Function result variable of a managed type does not seem to be initialized
+% This message is displayed if the compiler thinks that the function result
+% variable will be used (i.e. it appears in the right-hand side of an expression)
+% before it is initialized (i.e. it appears in the left-hand side of an
+% assignment). Since the variable is managed, i. e. implicitly initialized by the compiler, this might be intended behaviour and
+% does not necessarily mean that the code is wrong.
+sym_w_duplicate_id=05095_W_Duplicate identifier "$1"
+% The identifier was already declared in an Objective-C category that's in the
+% same scope as the current identifier. This is a warning instead of an error,
+% because while this hides the identifier from the category, there are often
+% many unused categories in scope.
 % \end{description}
 #
 # Codegenerator
@@ -2682,7 +2726,7 @@ asmr_e_wrong_gotpcrel_intel_syntax=07117_E_GOTPCREL references in Intel assemble
 asmr_e_no_gotpcrel_support=07118_E_The current target does not support GOTPCREL relocations
 % Not all targets support position-independent code using a global offset table.
 % Use a different way to access symbols in a position-indepent way in these cases.
-asmr_w_global_access_without_got=07119_W_Exported/global symbols should accessed via the GOT
+asmr_w_global_access_without_got=07119_W_Exported/global symbols should be accessed via the GOT
 % Global symbols (symbols from the unit interface, or defined in a program
 % or library) should be accessed via the GOT when generating position-indepent code.
 asmr_w_check_mem_operand_size=07120_W_Check size of memory operand "$1"
@@ -2707,7 +2751,7 @@ asmr_e_invalid_ref_register=07125_E_Invalid register used in memory reference ex
 #
 # Assembler/binary writers
 #
-# 08026 is the last used one
+# 08028 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Too many assembler files
 % With smartlinking enabled, there are too many assembler
@@ -2751,7 +2795,12 @@ asmw_e_handlerdata_no_handler=08025_E_.seh_handlerdata directive without precedi
 asmw_f_too_many_relocations=08026_F_Relocation count for section $1 exceeds 65535
 % Legacy COFF targets limit number of relocations per section to 65535 because they use a 2-byte field
 % to store the relocation count. Targets using newer PECOFF format do not have this limitation.
-
+asmw_w_changing_bind_type=08027_N_Change of bind type of symbol $1 from $2 to $3 after use
+asmw_h_changing_bind_type=08028_H_Change of bind type of symbol $1 from $2 to $3 after use
+% An assembler symbol bind type has been altered after use, which can lead to wrong code.
+% First version is reserved for changig to local label, which is the most probable cause
+% of wrong code generation, but currently set to Note level as it appears inside
+% the compiler compilation.
 #
 # Executing linker/assembler
 #
@@ -3107,10 +3156,10 @@ unit_u_indirect_crc_changed=10062_U_Indirect interface (objects/classes) CRC cha
 % indirect CRC calculated for the unit (this is the CRC of all classes/objects/interfaces/$\ldots$
 % in the interfaces of units directly or indirectly used by this unit in the interface) has been changed after the
 % implementation has been parsed.
-% \end{description}
 unit_u_ppu_invalid_memory_model=10063_U_PPU is compiled for another i8086 memory model
 % This unit file was compiled for a different i8086 memory model and
 % cannot be read.
+% \end{description}
 # EndOfTeX
 
 #
@@ -3153,10 +3202,10 @@ option_target_is_already_set=11011_W_Target is already set to: $1
 option_no_shared_lib_under_dos=11012_W_Shared libs not supported on DOS platform, reverting to static
 % If you specify \var{-CD} for the \dos platform, this message is displayed.
 % The compiler supports only static libraries under \dos.
-option_too_many_ifdef=11013_F_In options file $1 at line $2 too many \var{\#IF(N)DEFs} encountered
+option_too_many_ifdef=11013_F_In options file $1 at line $2 too many #IF(N)DEFs encountered
 % The \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
-option_too_many_endif=11014_F_In options file $1 at line $2 unexpected \var{\#ENDIFs} encountered
+option_too_many_endif=11014_F_In options file $1 at line $2 unexpected #ENDIFs encountered
 % The \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
 option_too_less_endif=11015_F_Open conditional at the end of the options file
@@ -3225,7 +3274,7 @@ option_confict_asm_debug=11041_W_Assembler output selected "$1" cannot generate 
 option_ppc386_deprecated=11042_W_Use of ppc386.cfg is deprecated, please use fpc.cfg instead
 % Using ppc386.cfg is still supported for historical reasons, however, for a multiplatform
 % system the naming makes no sense anymore. Please continue to use fpc.cfg instead.
-option_else_without_if=11043_F_In options file $1 at line $2 \var{\#ELSE} directive without \var{\#IF(N)DEF} found
+option_else_without_if=11043_F_In options file $1 at line $2 #ELSE directive without #IF(N)DEF found
 % An \var{\#ELSE} statement was found in the options file without a matching \var{\#IF(N)DEF} statement.
 option_unsupported_target=11044_F_Option "$1" is not, or not yet, supported on the current target platform
 % Not all options are supported or implemented for all target platforms. This message informs you that a chosen
@@ -3349,7 +3398,7 @@ wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program opti
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2014 by Florian Klaempfl and others
+Copyright (c) 1993-2015 by Florian Klaempfl and others
 ]
 
 #
@@ -3358,10 +3407,10 @@ Copyright (c) 1993-2014 by Florian Klaempfl and others
 option_info=11024_[
 Free Pascal Compiler version $FPCVERSION
 
-Compiler Date      : $FPCDATE
-Compiler CPU Target: $FPCCPU
+Compiler date      : $FPCDATE
+Compiler CPU target: $FPCCPU
 
-Supported targets:
+Supported targets (targets marked with '{*}' are under development):
   $OSTARGETS
 
 Supported CPU instruction sets:
@@ -3373,6 +3422,9 @@ Supported FPU instruction sets:
 Supported inline assembler modes:
   $ASMMODES
 
+Recognized compiler and RTL features:
+  $FEATURELIST
+
 Supported ABI targets:
   $ABITARGETS
 
@@ -3383,9 +3435,7 @@ Supported Whole Program Optimizations:
   All
   $WPOPTIMIZATIONS
 
-Supported Microcontroller types:
-  $CONTROLLERTYPES
-
+Supported Microcontroller types:$\n  $CONTROLLERTYPES$\n
 This program comes under the GNU General Public Licence
 For more information read COPYING.v2
 
@@ -3411,10 +3461,14 @@ new features, etc.):
 #    A = ARM
 #    e = in extended debug mode only
 #    F = help for the 'fpc' binary (independent of the target compiler)
-#    P = PowerPC targets
-#    S = Sparc targets
-#    V = Virtual machine targets
+#    I = VIS
 #    J = JVM
+#    M = MIPS (MIPSEB) targets
+#    m = MIPSEL targets
+#    P = PowerPC targets
+#    p = PowerPC64 targets
+#    S = Sparc targets
+#    V = AVR
 # The second character also indicates who will display this line,
 # (if the above character was TRUE) the current possibilities are :
 #    * = everyone
@@ -3424,7 +3478,8 @@ new features, etc.):
 #  The third character represents the indentation level.
 #
 option_help_pages=11025_[
-**0*_Put + after a boolean switch option to enable it, - to disable it
+F*0*_Only options valid for the default or selected platform are listed.
+**0*_Put + after a boolean switch option to enable it, - to disable it.
 **1@<x>_Read compiler options from <x> in addition to the default fpc.cfg
 **1a_The compiler does not delete the generated assembler file
 **2al_List sourcecode lines in assembler file
@@ -3452,7 +3507,7 @@ option_help_pages=11025_[
 3*2Aelf_ELF (Linux) using internal writer
 3*2Acoff_COFF (Go32v2) using internal writer
 3*2Apecoff_PE-COFF (Win32) using internal writer
-3*2Ayasm_Assmeble using Yasm (experimental)
+3*2Ayasm_Assemble using Yasm (experimental)
 4*2Aas_Assemble using GNU AS
 4*2Agas_Assemble using GNU GAS
 4*2Agas-darwin_Assemble darwin Mach-O64 using GNU GAS
@@ -3476,12 +3531,12 @@ S*2Aas_Assemble using GNU AS
 **1B_Build all modules
 **1C<x>_Code generation options:
 **2C3_Turn on ieee error checking for constants
-**2Ca<x>_Select ABI, see fpc -i for possible values
+**2Ca<x>_Select ABI; see fpc -i or fpc -ia for possible values
 **2Cb_Generate code for a big-endian variant of the target architecture
 **2Cc<x>_Set default calling convention to <x>
 **2CD_Create also dynamic library (not supported)
 **2Ce_Compilation with emulated floating point opcodes
-**2Cf<x>_Select fpu instruction set to use, see fpc -i for possible values
+**2Cf<x>_Select fpu instruction set to use; see fpc -i or fpc -if for possible values
 **2CF<x>_Minimal floating point constant precision (default, 32, 64)
 **2Cg_Generate PIC code
 **2Ch<n>_<n> bytes heap (between 1023 and 67107840)
@@ -3491,9 +3546,11 @@ A*2CI<x>_Select instruction set on ARM: ARM or THUMB
 P*2CN_Generate nil-pointer checks (AIX-only)
 **2Co_Check overflow of integer operations
 **2CO_Check for possible overflow of integer operations
-**2Cp<x>_Select instruction set, see fpc -i for possible values
+**2Cp<x>_Select instruction set; see fpc -i or fpc -ic for possible values
 **2CP<x>=<y>_ packing settings
 **3CPPACKSET=<y>_ <y> set allocation: 0, 1 or DEFAULT or NORMAL, 2, 4 and 8
+**3CPPACKENUM=<y>_ <y> enum packing: 0, 1, 2 and 4 or DEFAULT or NORMAL
+**3CPPACKRECORD=<y>_ <y> record packing: 0 or DEFAULT or NORMAL, 1, 2, 4, 8, 16 and 32
 **2Cr_Range checking
 **2CR_Verify object method call validity
 **2Cs<n>_Set stack checking size to <n>
@@ -3558,7 +3615,7 @@ J*2Cv_Var/out parameter copy-out checking
 *g3godwarfmethodclassprefix_ Prefix method names in DWARF with class name
 *g2gp_Preserve case in stabs symbol names
 *g2gs_Generate Stabs debug information
-*g2gt_Trash local variables (to detect uninitialized uses)
+*g2gt_Trash local variables (to detect uninitialized uses; multiple 't' changes the trashing value)
 *g2gv_Generates programs traceable with Valgrind
 *g2gw_Generate DWARFv2 debug information (same as -gw2)
 *g2gw2_Generate DWARFv2 debug information
@@ -3566,12 +3623,21 @@ J*2Cv_Var/out parameter copy-out checking
 *g2gw4_Generate DWARFv4 debug information (experimental)
 **1i_Information
 **2iD_Return compiler date
-**2iV_Return short compiler version
-**2iW_Return full compiler version
 **2iSO_Return compiler OS
 **2iSP_Return compiler host processor
 **2iTO_Return target OS
 **2iTP_Return target processor
+**2iV_Return short compiler version
+**2iW_Return full compiler version
+**2ia_Return list of supported ABI targets
+**2ic_Return list of supported CPU instruction sets
+**2if_Return list of supported FPU instruction sets
+**2ii_Return list of supported inline assembler modes
+**2io_Return list of supported optimizations
+**2ir_Return list of recognized compiler and RTL features
+**2it_Return list of supported targets
+**2iu_Return list of supported microcontroller types
+**2iw_Return list of supported whole program optimizations
 **1I<x>_Add <x> to include path
 **1k<x>_Pass <x> to the linker
 **1l_Write logo
@@ -3590,16 +3656,16 @@ J*2Cv_Var/out parameter copy-out checking
 **2O3_Level 3 optimizations (-O2 + slow optimizations)
 **2O4_Level 4 optimizations (-O3 + optimizations which might have unexpected side effects)
 **2Oa<x>=<y>_Set alignment
-**2Oo[NO]<x>_Enable or disable optimizations, see fpc -i for possible values
-**2Op<x>_Set target cpu for optimizing, see fpc -i for possible values
-**2OW<x>_Generate whole-program optimization feedback for optimization <x>, see fpc -i for possible values
-**2Ow<x>_Perform whole-program optimization <x>, see fpc -i for possible values
+**2Oo[NO]<x>_Enable or disable optimizations; see fpc -i or fpc -io for possible values
+**2Op<x>_Set target cpu for optimizing; see fpc -i or fpc -ic for possible values
+**2OW<x>_Generate whole-program optimization feedback for optimization <x>; see fpc -i or fpc -iw for possible values
+**2Ow<x>_Perform whole-program optimization <x>; see fpc -i or fpc -iw for possible values
 **2Os_Optimize for size rather than speed
 **1pg_Generate profile code for gprof (defines FPC_PROFILE)
 F*1P<x>_Target CPU / compiler related options:
 F*2PB_Show default compiler binary
 F*2PP_Show default target cpu
-F*2P<x>_Set target CPU (arm,i386,m68k,mips,mipsel,powerpc,powerpc64,sparc,x86_64)
+F*2P<x>_Set target CPU (arm,avr,i386,jvm,m68k,mips,mipsel,powerpc,powerpc64,sparc,x86_64)
 **1R<x>_Assembler reading style:
 **2Rdefault_Use default assembler for target
 3*2Ratt_Read AT&T style assembler
@@ -3615,6 +3681,7 @@ F*2P<x>_Set target CPU (arm,i386,m68k,mips,mipsel,powerpc,powerpc64,sparc,x86_64
 **3*_w : Compiler also halts after warnings
 **3*_n : Compiler also halts after notes
 **3*_h : Compiler also halts after hints
+**2Sf_Enable certain features in compiler and RTL; see fpc -i or fpc -ir for possible values)
 **2Sg_Enable LABEL and GOTO (default in -Mtp and -Mdelphi)
 **2Sh_Use reference counted strings (ansistring by default) instead of shortstrings
 **2Si_Turn on inlining of procedures/functions declared as "inline"
@@ -3625,6 +3692,7 @@ F*2P<x>_Set target CPU (arm,i386,m68k,mips,mipsel,powerpc,powerpc64,sparc,x86_64
 **2Sm_Support macros like C (global)
 **2So_Same as -Mtp
 **2Ss_Constructor name must be init (destructor must be done)
+**2Sv_Support vector processing (use CPU vector extensions if available)
 **2Sx_Enable exception keywords (default in Delphi/ObjFPC modes)
 **2Sy_@<pointer> returns a typed pointer, same as $T+
 **1s_Do not call assembler and linker
@@ -3632,10 +3700,15 @@ F*2P<x>_Set target CPU (arm,i386,m68k,mips,mipsel,powerpc,powerpc64,sparc,x86_64
 **2st_Generate script to link on target
 **2sr_Skip register allocation phase (use with -alr)
 **1T<x>_Target operating system:
+3*2Tandroid_Android
+3*2Taros_AROS
+3*2Tbeos_BeOS
 3*2Tdarwin_Darwin/Mac OS X
+3*2Tembedded_Embedded
 3*2Temx_OS/2 via EMX (including EMX/RSX extender)
 3*2Tfreebsd_FreeBSD
 3*2Tgo32v2_Version 2 of DJ Delorie DOS extender
+3*2Thaiku_Haiku
 3*2Tiphonesim_ iPhoneSimulator from iOS SDK 3.2+ (older versions: -Tdarwin)
 3*2Tlinux_Linux
 3*2Tnativent_Native NT API (experimental)
@@ -3652,22 +3725,45 @@ F*2P<x>_Set target CPU (arm,i386,m68k,mips,mipsel,powerpc,powerpc64,sparc,x86_64
 3*2Twin32_Windows 32 Bit
 3*2Twince_Windows CE
 4*2Tdarwin_Darwin/Mac OS X
+4*2Tfreebsd_FreeBSD
 4*2Tlinux_Linux
+4*2Tnetbsd_NetBSD
+4*2Topenbsd_OpenBSD
+4*2Tsolaris_Solaris
 4*2Twin64_Win64 (64 bit Windows systems)
 6*2Tamiga_Commodore Amiga
 6*2Tatari_Atari ST/STe/TT
 6*2Tlinux_Linux
 6*2Tpalmos_PalmOS
+8*2Tmsdos_MS-DOS (and compatible)
+A*2Tandroid_Android
 A*2Tdarwin_Darwin/iPhoneOS/iOS
+A*2Tembedded_Embedded
+A*2Tgba_Game Boy Advance
 A*2Tlinux_Linux
+A*2Tnds_Nintendo DS
+A*2Tsymbian_Symbian
 A*2Twince_Windows CE
+J*2Tandroid_Android
+J*2Tjava_Java
+m*2Tembedded_Embedded
+M*2Tandroid_Android
+M*2Tembedded_Embedded
+M*2Tlinux_Linux
+P*2Taix_AIX
 P*2Tamiga_AmigaOS
 P*2Tdarwin_Darwin/Mac OS X
 P*2Tlinux_Linux
 P*2Tmacos_Mac OS (classic)
 P*2Tmorphos_MorphOS
+P*2Tnetbsd_NetBSD
+P*2Twii_Wii
+p*2Taix_AIX
+p*2Tdarwin_Darwin/Mac OS X
+p*2Tlinux_Linux
 S*2Tsolaris_Solaris
 S*2Tlinux_Linux
+V*2Tembedded_Embedded
 **1u<x>_Undefines the symbol <x>
 **1U_Unit options:
 **2Un_Do not check where the unit name matches the file name
@@ -3681,10 +3777,10 @@ S*2Tlinux_Linux
 **2*_i : Show general info           d : Show debug info
 **2*_l : Show linenumbers            r : Rhide/GCC compatibility mode
 **2*_s : Show time stamps            q : Show message numbers
-**2*_a : Show everything             x : Executable info (Win32 only)
+**2*_a : Show everything             x : Show info about invoked tools
 **2*_b : Write file names messages   p : Write tree.log with parse tree
 **2*_    with full path              v : Write fpcdebug.txt with
-**2*_                                    lots of debugging info
+**2*_z : Write output to stderr          lots of debugging info
 **2*_m<x>,<y> : Do not show messages numbered <x> and <y>
 F*1V<x>_Append '-<x>' to the used compiler binary name (e.g. for version)
 **1W<x>_Target-specific options (targets)
@@ -3703,7 +3799,7 @@ A*2Wb_Create a bundle instead of a library (Darwin)
 A*2WB_Create a relocatable image (Windows, Symbian)
 A*2WBxxxx_Set image base to xxxx (Windows, Symbian)
 3*2WC_Specify console type application (EMX, OS/2, Windows)
-4*2WC_Specify console type application (EMX, OS/2, Windows)
+4*2WC_Specify console type application (Windows)
 A*2WC_Specify console type application (Windows)
 P*2WC_Specify console type application (Classic Mac OS)
 3*2WD_Use DEFFILE to export functions of DLL or EXE (Windows)
@@ -3716,7 +3812,7 @@ P*2We_Use external resources (Darwin)
 p*2We_Use external resources (Darwin)
 3*2WF_Specify full-screen type application (EMX, OS/2)
 3*2WG_Specify graphic type application (EMX, OS/2, Windows)
-4*2WG_Specify graphic type application (EMX, OS/2, Windows)
+4*2WG_Specify graphic type application (Windows)
 A*2WG_Specify graphic type application (Windows)
 P*2WG_Specify graphic type application (Classic Mac OS)
 3*2Wi_Use internal resources (Darwin)
@@ -3740,8 +3836,9 @@ P*2WM<x>_Minimum Mac OS X deployment version: 10.4, 10.5.1, ... (Darwin)
 3*2WN_Do not generate relocation code, needed for debugging (Windows)
 4*2WN_Do not generate relocation code, needed for debugging (Windows)
 A*2WN_Do not generate relocation code, needed for debugging (Windows)
-A*2Wpxxxx_Specify the controller type, see fpc -i for possible values
-V*2Wpxxxx_Specify the controller type, see fpc -i for possible values
+A*2Wpxxxx_Specify the controller type; see fpc -i or fpc -iu for possible values
+m*2Wpxxxx_Specify the controller type; see fpc -i or fpc -iu for possible values
+V*2Wpxxxx_Specify the controller type; see fpc -i or fpc -iu for possible values
 3*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (iphonesim)
 A*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (Darwin)
 3*2WR_Generate relocation code (Windows)
@@ -3756,11 +3853,16 @@ P*2WT_Specify MPW tool type application (Classic Mac OS)
 **2Xc_Pass --shared/-dynamic to the linker (BeOS, Darwin, FreeBSD, Linux)
 **2Xd_Do not search default library path (sometimes required for cross-compiling when not using -XR)
 **2Xe_Use external linker
+**2Xf_Substitute pthread library name for linking (BSD)
 **2Xg_Create debuginfo in a separate file and add a debuglink section to executable
 **2XD_Try to link units dynamically      (defines FPC_LINK_DYNAMIC)
 **2Xi_Use internal linker
+**2XLA_Define library substitutions for linking
+**2XLO_Define order of library linking
+**2XLD_Exclude default order of standard libraries
 **2Xm_Generate link map
 **2XM<x>_Set the name of the 'main' program routine (default is 'main')
+**2Xn_Use target system native linker instead of GNU ld (Solaris, AIX)
 F*2Xp<x>_First search for the compiler binary in the directory <x>
 **2XP<x>_Prepend the binutils names with the prefix <x>
 **2Xr<x>_Set the linker's rlink-path to <x> (needed for cross compile, see the ld manual for more information) (BeOS, Linux)
@@ -3768,6 +3870,7 @@ F*2Xp<x>_First search for the compiler binary in the directory <x>
 **2Xs_Strip all symbols from executable
 **2XS_Try to link units statically (default, defines FPC_LINK_STATIC)
 **2Xt_Link with static libraries (-static is passed to linker)
+**2Xv_Generate table for Virtual Entry calls
 **2XX_Try to smartlink units             (defines FPC_LINK_SMART)
 **1*_
 **1?_Show this help

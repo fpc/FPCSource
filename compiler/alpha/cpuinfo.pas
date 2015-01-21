@@ -21,6 +21,9 @@ Unit CPUInfo;
 
 Interface
 
+uses
+ globtype;
+
 Type
    { Natural integer register type and size for the target machine }
 {$ifdef FPC}
@@ -38,6 +41,9 @@ Type
    TConstPtrUInt = qword;
 
    bestreal = extended;
+{$if FPC_FULLVERSION>20700}
+   bestrealrec = TExtended80Rec;
+{$endif FPC_FULLVERSION>20700}
    ts32real = single;
    ts64real = double;
    ts80real = extended;
@@ -52,13 +58,30 @@ Type
        ClassEV8
       );
 
+   tcontrollertype =
+     (ct_none
+     );
+
+
 Const
+   { Is there support for dealing with multiple microcontrollers available }
+   { for this platform? }
+   ControllerSupport = false;
    { Size of native extended type }
    extended_size = 16;
    {# Size of a pointer                           }
    aint_size  = 8;
    {# Size of a multimedia register               }
    mmreg_size = 8;
+
+   { We know that there are fields after sramsize
+     but we don't care about this warning }
+   {$PUSH}
+    {$WARN 3177 OFF}
+   embedded_controllers : array [tcontrollertype] of tcontrollerdatatype =
+   (
+      (controllertypestr:''; controllerunitstr:''; flashbase:0; flashsize:0; srambase:0; sramsize:0));
+   {$POP}
 
    { target cpu string (used by compiler options) }
    target_cpu_string = 'alpha';

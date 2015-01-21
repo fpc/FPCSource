@@ -41,7 +41,6 @@ interface
 {$ELSE}
       fksysutl,
 {$ENDIF}
-
       { comphook pulls in sysutils anyways }
       cutils,cclasses,cfileutl,
       cpuinfo,
@@ -52,7 +51,7 @@ interface
          [m_delphi,m_class,m_objpas,m_result,m_string_pchar,
           m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring,
           m_out,m_default_para,m_duplicate_names,m_hintdirective,
-          m_property,m_default_inline,m_except,m_advanced_records];
+          m_property,m_default_inline,m_except,m_advanced_records,m_type_helpers];
        delphiunicodemodeswitches = delphimodeswitches + [m_systemcodepage,m_default_unicodestring];
        fpcmodeswitches =
          [m_fpc,m_string_pchar,m_nested_comment,m_repeat_forward,
@@ -84,23 +83,23 @@ interface
        treelogfilename = 'tree.log';
 
 {$if defined(CPUARM) and defined(FPUFPA)}
-       MathQNaN : tdoublerec = (bytes : (0,0,252,255,0,0,0,0));
-       MathInf : tdoublerec = (bytes : (0,0,240,127,0,0,0,0));
-       MathNegInf : tdoublerec = (bytes : (0,0,240,255,0,0,0,0));
-       MathPi : tdoublerec =  (bytes : (251,33,9,64,24,45,68,84));
+       MathQNaN : tcompdoublerec = (bytes : (0,0,252,255,0,0,0,0));
+       MathInf : tcompdoublerec = (bytes : (0,0,240,127,0,0,0,0));
+       MathNegInf : tcompdoublerec = (bytes : (0,0,240,255,0,0,0,0));
+       MathPi : tcompdoublerec =  (bytes : (251,33,9,64,24,45,68,84));
 {$else}
 {$ifdef FPC_LITTLE_ENDIAN}
-       MathQNaN : tdoublerec = (bytes : (0,0,0,0,0,0,252,255));
-       MathInf : tdoublerec = (bytes : (0,0,0,0,0,0,240,127));
-       MathNegInf : tdoublerec = (bytes : (0,0,0,0,0,0,240,255));
-       MathPi : tdoublerec = (bytes : (24,45,68,84,251,33,9,64));
-       MathPiExtended : textendedrec = (bytes : (53,194,104,33,162,218,15,201,0,64));
+       MathQNaN : tcompdoublerec = (bytes : (0,0,0,0,0,0,252,255));
+       MathInf : tcompdoublerec = (bytes : (0,0,0,0,0,0,240,127));
+       MathNegInf : tcompdoublerec = (bytes : (0,0,0,0,0,0,240,255));
+       MathPi : tcompdoublerec = (bytes : (24,45,68,84,251,33,9,64));
+       MathPiExtended : tcompextendedrec = (bytes : (53,194,104,33,162,218,15,201,0,64));
 {$else FPC_LITTLE_ENDIAN}
-       MathQNaN : tdoublerec = (bytes : (255,252,0,0,0,0,0,0));
-       MathInf : tdoublerec = (bytes : (127,240,0,0,0,0,0,0));
-       MathNegInf : tdoublerec = (bytes : (255,240,0,0,0,0,0,0));
-       MathPi : tdoublerec =  (bytes : (64,9,33,251,84,68,45,24));
-       MathPiExtended : textendedrec = (bytes : (64,0,201,15,218,162,33,104,194,53));
+       MathQNaN : tcompdoublerec = (bytes : (255,252,0,0,0,0,0,0));
+       MathInf : tcompdoublerec = (bytes : (127,240,0,0,0,0,0,0));
+       MathNegInf : tcompdoublerec = (bytes : (255,240,0,0,0,0,0,0));
+       MathPi : tcompdoublerec =  (bytes : (64,9,33,251,84,68,45,24));
+       MathPiExtended : tcompextendedrec = (bytes : (64,0,201,15,218,162,33,104,194,53));
 {$endif FPC_LITTLE_ENDIAN}
 {$endif}
 
@@ -163,9 +162,8 @@ interface
 {$endif defined(ARM)}
 
         { CPU targets with microcontroller support can add a controller specific unit }
-{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
          controllertype   : tcontrollertype;
-{$endif defined(ARM) or defined(AVR) or defined(MIPSEL)}
+
          { WARNING: this pointer cannot be written as such in record token }
          pmessage : pmessagestaterecord;
        end;
@@ -238,7 +236,9 @@ interface
        paralinkoptions   : TCmdStr;
        paradynamiclinker : string;
        paraprintnodetree : byte;
+{$ifdef PREPROCWRITE}
        parapreprocess    : boolean;
+{$endif PREPROCWRITE}
        printnodefile     : text;
 
        {  typical cross compiling params}
@@ -411,7 +411,7 @@ interface
 {$endif i8086}
         maxfpuregisters : 0;
 
-{ Note: GENERIC_CPU is sued together with generic subdirectory to
+{ Note: GENERIC_CPU is used together with generic subdirectory to
   be able to compile some of the units without any real CPU.
   This is used to generate a CPU independant PPUDUMP utility. PM }
 {$ifdef GENERIC_CPU}
@@ -502,9 +502,7 @@ interface
 {$if defined(ARM)}
         instructionset : is_arm;
 {$endif defined(ARM)}
-{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
         controllertype : ct_none;
-{$endif defined(ARM) or defined(AVR) or defined(MIPSEL)}
         pmessage : nil;
       );
 
@@ -536,9 +534,7 @@ interface
     function Setoptimizecputype(const s:string;var a:tcputype):boolean;
     function Setcputype(const s:string;var a:tsettings):boolean;
     function SetFpuType(const s:string;var a:tfputype):boolean;
-{$if defined(arm) or defined(avr) or defined(mipsel)}
     function SetControllerType(const s:string;var a:tcontrollertype):boolean;
-{$endif defined(arm) or defined(avr) or defined(mipsel)}
     function IncludeFeature(const s : string) : boolean;
     function SetMinFPConstPrec(const s: string; var a: tfloattype) : boolean;
 
@@ -838,6 +834,13 @@ implementation
            Replace(s,'$FPCTARGET',target_os_string)
          else
            Replace(s,'$FPCTARGET',target_full_string);
+         Replace(s,'$FPCSUBARCH',lower(cputypestr[init_settings.cputype]));
+         Replace(s,'$FPCABI',lower(abiinfo[target_info.abi].name));
+{$ifdef i8086}
+         Replace(s,'$FPCMEMORYMODEL',lower(x86memorymodelstr[init_settings.x86memorymodel]));
+{$else i8086}
+         Replace(s,'$FPCMEMORYMODEL','flat');
+{$endif i8086}
 {$ifdef mswindows}
          ReplaceSpecialFolder('$LOCAL_APPDATA',CSIDL_LOCAL_APPDATA);
          ReplaceSpecialFolder('$APPDATA',CSIDL_APPDATA);
@@ -968,7 +971,7 @@ implementation
           result := -1;
       end;
 
-    function convertdoublerec(d : tdoublerec) : tdoublerec;{$ifdef USEINLINE}inline;{$endif}
+    function convertdoublerec(d : tcompdoublerec) : tcompdoublerec;{$ifdef USEINLINE}inline;{$endif}
 {$ifdef CPUARM}
       var
         i : longint;
@@ -1177,23 +1180,34 @@ implementation
       end;
 
 
-{$if defined(arm) or defined(avr) or defined(mipsel)}
     function SetControllerType(const s:string;var a:tcontrollertype):boolean;
       var
         t  : tcontrollertype;
         hs : string;
       begin
-        result:=false;
-        hs:=Upper(s);
-        for t:=low(tcontrollertype) to high(tcontrollertype) do
-          if embedded_controllers[t].controllertypestr=hs then
-            begin
-              a:=t;
-              result:=true;
-              break;
-            end;
+{ The following check allows to reduce amount of code for platforms  }
+{ not supporting microcontrollers due to evaluation at compile time. }
+{$PUSH}
+ {$WARN 6018 OFF} (* Unreachable code due to compile time evaluation *)
+        if ControllerSupport then
+         begin
+          result:=false;
+          hs:=Upper(s);
+          for t:=low(tcontrollertype) to high(tcontrollertype) do
+            if embedded_controllers[t].controllertypestr=hs then
+              begin
+                a:=t;
+                result:=true;
+                break;
+              end;
+         end
+        else
+         begin
+          a := ct_none;
+          Result := true;
+         end;
+{$POP}
       end;
-{$endif defined(arm) or defined(avr) or defined(mipsel)}
 
 
     function IncludeFeature(const s : string) : boolean;

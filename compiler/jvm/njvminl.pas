@@ -87,13 +87,13 @@ implementation
 
     function tjvminlinenode.typecheck_length(var handled: boolean): tnode;
       begin
+        result:=nil;
         typecheckpass(left);
         if is_open_array(left.resultdef) or
            is_dynamic_array(left.resultdef) or
            is_array_of_const(left.resultdef) then
           begin
             resultdef:=s32inttype;
-            result:=nil;
             handled:=true;
           end;
       end;
@@ -101,6 +101,7 @@ implementation
 
     function tjvminlinenode.typecheck_high(var handled: boolean): tnode;
       begin
+        result:=nil;
         typecheckpass(left);
         if is_dynamic_array(left.resultdef) or
            is_open_array(left.resultdef) or
@@ -120,6 +121,7 @@ implementation
         para: tcallparanode;
         elemdef: tdef;
       begin
+        result:=nil;
         { normally never exists; used by the JVM backend to create new
           arrays because it requires special opcodes }
         tcallparanode(left).get_paratype;
@@ -150,7 +152,6 @@ implementation
                 para:=tcallparanode(para.right);
                 elemdef:=tarraydef(elemdef).elementdef;
               end;
-            result:=nil;
             resultdef:=left.resultdef;
             handled:=true;
           end;
@@ -289,6 +290,7 @@ implementation
       var
         handled: boolean;
       begin
+         result:=nil;
          handled:=false;
          case inlinenumber of
            in_length_x:

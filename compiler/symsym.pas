@@ -435,6 +435,14 @@ interface
           function GetCopy:tmacro;
        end;
 
+       { tPtrDefHashSet }
+
+       tPtrDefHashSet = class(THashSet)
+       public
+         constructor Create;virtual;
+       end;
+       tPtrDefHashSetClass = class of tPtrDefHashSet;
+
     var
        generrorsym : tsym;
 
@@ -452,6 +460,7 @@ interface
        cconstsym: tconstsymclass;
        cenumsym: tenumsymclass;
        csyssym: tsyssymclass;
+       cPtrDefHashSet : tPtrDefHashSetClass = tPtrDefHashSet;
 
     { generate internal static field name based on regular field name }
     function internal_static_field_name(const fieldname: TSymStr): TSymStr;
@@ -2130,15 +2139,8 @@ implementation
          paraloc[calleeside].init;
          paraloc[callerside].init;
          if vo_has_explicit_paraloc in varoptions then
-           begin
-             paraloc[callerside].alignment:=ppufile.getbyte;
-             b:=ppufile.getbyte;
-             if b<>sizeof(paraloc[callerside].location^) then
-               internalerror(200411154);
-             ppufile.getdata(paraloc[callerside].add_location^,sizeof(paraloc[callerside].location^));
-             paraloc[callerside].size:=paraloc[callerside].location^.size;
-             paraloc[callerside].intsize:=tcgsize2size[paraloc[callerside].size];
-           end;
+           paraloc[callerside].ppuload(ppufile);
+
          ppuload_platform(ppufile);
       end;
 
@@ -2166,9 +2168,7 @@ implementation
          if vo_has_explicit_paraloc in varoptions then
            begin
              paraloc[callerside].check_simple_location;
-             ppufile.putbyte(sizeof(paraloc[callerside].alignment));
-             ppufile.putbyte(sizeof(paraloc[callerside].location^));
-             ppufile.putdata(paraloc[callerside].location^,sizeof(paraloc[callerside].location^));
+             paraloc[callerside].ppuwrite(ppufile);
            end;
          writeentry(ppufile,ibparavarsym);
       end;
@@ -2688,6 +2688,16 @@ implementation
             move(buftext^,p.buftext^,buflen);
           end;
         Result:=p;
+      end;
+
+
+{****************************************************************************
+                             tPtrDefHashSet
+ ****************************************************************************}
+
+    constructor tPtrDefHashSet.Create;
+      begin
+        inherited Create(64,true,false);
       end;
 
 end.

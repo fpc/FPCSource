@@ -120,12 +120,12 @@ interface
             { On targets without 8/16 bit register components, 8/16-bit operations
               always adjust high bits of result, see 'maybeadjustresult' method in
               respective cgcpu.pas. Therefore 8/16-bit locations are valid as larger
-              ones (except OS_S8->OS_16 which still needs high 16 bits cleared). }
+              ones (except signed->unsigned, which still needs high bits cleared). }
             else if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) and
-              (tcgsize2size[(reg_cgsize(left.location.register))]=sizeof(aint)) and
-              (ressize>leftsize) and
-              (newsize in [OS_32,OS_S32,OS_16,OS_S16]) and
-              not ((newsize=OS_16) and (def_cgsize(left.resultdef)=OS_S8)) then
+               (tcgsize2size[(reg_cgsize(left.location.register))]=sizeof(aint)) and
+               (ressize>leftsize) and
+               (newsize in [OS_32,OS_S32,OS_16,OS_S16]) and
+               (not is_signed(left.resultdef) or is_signed(resultdef)) then
               location.size:=newsize
 {$endif}
             else

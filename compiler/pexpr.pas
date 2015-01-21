@@ -889,6 +889,11 @@ implementation
               { consume the right bracket here for a nicer error position }
               consume(_RKLAMMER);
             end;
+
+          in_setstring_x_y_z:
+            begin
+              statement_syssym := inline_setstring;
+            end;
           else
             internalerror(15);
 
@@ -1711,7 +1716,7 @@ implementation
           extdef : tdef;
         begin
           result:=false;
-          if (token=_ID) and (block_type in [bt_body,bt_general,bt_except]) then
+          if (token=_ID) and (block_type in [bt_body,bt_general,bt_except,bt_const]) then
             begin
               if not assigned(def) then
                 if node.nodetype=addrn then

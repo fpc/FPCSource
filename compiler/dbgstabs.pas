@@ -1408,20 +1408,16 @@ implementation
             if target_info.system in systems_dotted_function_names then
               mangledname:='.'+mangledname;
             // LBRAC
-            ss:=tostr(STABS_N_LBRAC)+',0,0,'+mangledname;
-            if not(af_stabs_use_function_absolute_addresses in target_asm.flags) then
-              begin
-                ss:=ss+'-';
-                ss:=ss+mangledname;
-              end;
+            if af_stabs_use_function_absolute_addresses in target_asm.flags then
+              ss:=tostr(STABS_N_LBRAC)+',0,0,'+mangledname
+            else
+              ss:=tostr(STABS_N_LBRAC)+',0,0,0';
             result.concat(Tai_stab.Create_ansistr(stab_stabn,ss));
+
             // RBRAC
             ss:=tostr(STABS_N_RBRAC)+',0,0,'+stabsendlabel.name;
             if not(af_stabs_use_function_absolute_addresses in target_asm.flags) then
-              begin
-                ss:=ss+'-';
-                ss:=ss+mangledname;
-              end;
+              ss:=ss+'-'+mangledname;
             result.concat(Tai_stab.Create_ansistr(stab_stabn,ss));
 
             { the stabsendlabel must come after all other stabs for this }

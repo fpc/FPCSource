@@ -106,6 +106,9 @@ interface
        tsubscriptnodeclass = class of tsubscriptnode;
 
        tvecnode = class(tbinarynode)
+       protected
+          function first_arraydef: tnode; virtual;
+       public
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
@@ -570,7 +573,7 @@ implementation
         else
           begin
             hp:=left;
-            while assigned(hp) and (hp.nodetype in [typeconvn,vecn,derefn,subscriptn]) do
+            while assigned(hp) and (hp.nodetype in [typeconvn,derefn,subscriptn]) do
               hp:=tunarynode(hp).left;
             if not assigned(hp) then
               internalerror(200412042);
@@ -833,7 +836,7 @@ implementation
     function tvecnode.pass_typecheck:tnode;
       var
          hightree: tnode;
-         htype,elementdef : tdef;
+         htype,elementdef,elementptrdef : tdef;
          newordtyp: tordtype;
          valid : boolean;
       begin
@@ -946,8 +949,10 @@ implementation
                else
                  {Convert indexes into dynamically allocated strings to aword.}
                  inserttypeconv(right,uinttype);
+             pointerdef:
+               inserttypeconv(right,tpointerdef(left.resultdef).pointer_arithmetic_int_type);
              else
-               {Others, i.e. pointer indexes to aint.}
+               {Others, (are there any?) indexes to aint.}
                inserttypeconv(right,sinttype);
            end;
 
@@ -1014,7 +1019,7 @@ implementation
                   ) then
                 begin
                   { convert pointer to array }
-                  htype:=carraydef.create_from_pointer(tpointerdef(left.resultdef).pointeddef);
+                  htype:=carraydef.create_from_pointer(tpointerdef(left.resultdef));
                   inserttypeconv(left,htype);
                   if right.nodetype=rangen then
                     resultdef:=htype
@@ -1029,19 +1034,23 @@ implementation
                 case tstringdef(left.resultdef).stringtype of
                   st_unicodestring,
                   st_widestring :
-                    elementdef:=cwidechartype;
-                  st_ansistring :
-                    elementdef:=cansichartype;
-                  st_longstring :
-                    elementdef:=cansichartype;
+                    begin
+                      elementdef:=cwidechartype;
+                      elementptrdef:=widecharpointertype;
+                    end;
+                  st_ansistring,
+                  st_longstring,
                   st_shortstring :
-                    elementdef:=cansichartype;
+                    begin
+                      elementdef:=cansichartype;
+                      elementptrdef:=charpointertype;
+                    end;
                   else
                     internalerror(2013112902);
                 end;
                 if right.nodetype=rangen then
                   begin
-                    htype:=carraydef.create_from_pointer(elementdef);
+                    htype:=carraydef.create_from_pointer(tpointerdef(elementptrdef));
                     resultdef:=htype;
                   end
                 else
@@ -1100,17 +1109,32 @@ implementation
            tcallnode.gen_high_tree }
          if (right.nodetype=rangen) then
            CGMessagePos(right.fileinfo,parser_e_illegal_expression)
-         else if (not is_packed_array(left.resultdef)) or
-            ((tarraydef(left.resultdef).elepackedbitsize mod 8) = 0) then
-           if left.expectloc=LOC_CREFERENCE then
-             expectloc:=LOC_CREFERENCE
-           else
-             expectloc:=LOC_REFERENCE
+         else if left.resultdef.typ=arraydef then
+           result:=first_arraydef
          else
-           if left.expectloc=LOC_CREFERENCE then
-             expectloc:=LOC_CSUBSETREF
-           else
-             expectloc:=LOC_SUBSETREF;
+           begin
+             if left.expectloc=LOC_CREFERENCE then
+               expectloc:=LOC_CREFERENCE
+             else
+               expectloc:=LOC_REFERENCE
+           end;
+      end;
+
+
+    function tvecnode.first_arraydef: tnode;
+      begin
+        result:=nil;
+        if (not is_packed_array(left.resultdef)) or
+           ((tarraydef(left.resultdef).elepackedbitsize mod 8) = 0) then
+          if left.expectloc=LOC_CREFERENCE then
+            expectloc:=LOC_CREFERENCE
+          else
+            expectloc:=LOC_REFERENCE
+        else
+          if left.expectloc=LOC_CREFERENCE then
+            expectloc:=LOC_CSUBSETREF
+          else
+            expectloc:=LOC_SUBSETREF;
       end;
 
 
