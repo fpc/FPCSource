@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal packages.
-    Copyright (c) 2009 by the Free Pascal development team
+    Copyright (c) 2009-2014 by the Free Pascal development team
 
     Implements a SHA-1 digest algorithm (RFC 3174)
 
@@ -12,6 +12,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+// Normally, if an optimized version is available for OS/CPU, that will be used
+// Define to use existing unoptimized implementation
+{ the assembler implementation does not work on darwin }
+{$ifdef darwin}
+{$DEFINE SHA1PASCAL}
+{$endif darwin}
 
 unit sha1;
 {$mode objfpc}{$h+}
@@ -77,6 +84,12 @@ const
   K60 = $8F1BBCDC;
   K80 = $CA62C1D6;
 
+{$IF (NOT(DEFINED(SHA1PASCAL))) and (DEFINED(CPU386)) }
+// Use assembler version if we have a suitable CPU as well
+// Define SHA1PASCAL to force use of original reference code
+{$i sha1i386.inc}
+{$ELSE}
+// Use original version if asked for, or when we have no optimized assembler version
 procedure SHA1Transform(var ctx: TSHA1Context; Buf: Pointer);
 var
   A, B, C, D, E, T: Cardinal;
@@ -144,6 +157,7 @@ begin
 {$pop}
   Inc(ctx.Length,64);
 end;
+{$ENDIF}
 
 procedure SHA1Update(var ctx: TSHA1Context; const Buf; BufLen: PtrUInt);
 var

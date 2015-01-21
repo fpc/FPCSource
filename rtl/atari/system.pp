@@ -358,5 +358,4 @@ begin
   errno := 0;
 { Setup command line arguments }
   argc:=GetParamCount(args);
-  InitVariantManager;
 end.

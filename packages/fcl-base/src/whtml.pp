@@ -339,7 +339,7 @@ Var
 begin
   A:='NAME="'+Name+'" TYPE="checkbox" VALUE="'+Value+'"';
   If Checked then
-    A:=A+' CHECKED=1';
+    A:=A+' CHECKED="checked"';
   TagStart('INPUT',A);
 end;
 
@@ -357,7 +357,7 @@ Var
 begin
   A:='NAME="'+Name+'" TYPE="checkbox" VALUE="'+Value+'"';
   If Checked then
-    A:=A+' CHECKED=1';
+    A:=A+' CHECKED="checked"';
   TagStart('INPUT',A);
 
 end;
@@ -410,7 +410,7 @@ begin
         end;
       end;
     If (Value<>'') and (V=Value) then
-      A:=A+' SELECTED';
+      A:=A+' SELECTED="selected"';
     TagStart('OPTION',A);
     end;
   TagEnd('SELECT')

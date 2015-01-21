@@ -15,8 +15,7 @@ nortl=y
 fpcpackage=y
 
 [compiler]
-options=-g -Xm -d__THUMB__
-
+options=-Xm 
 
 [default]
 cpu=arm

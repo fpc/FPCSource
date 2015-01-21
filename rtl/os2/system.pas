@@ -27,6 +27,7 @@ interface
 {$endif SYSTEMDEBUG}
 
 {$DEFINE OS2EXCEPTIONS}
+{$DEFINE OS2UNICODE}
 {$define DISABLE_NO_THREAD_MANAGER}
 {$DEFINE HAS_GETCPUCOUNT}
 
@@ -51,23 +52,30 @@ const
   RealMaxPathLen: word = MaxPathLen;
 (* Default value only - real value queried from the system on startup. *)
 
-type    Tos=(osDOS,osOS2,osDPMI);
+type
+  TOS = (osDOS, osOS2, osDPMI); (* For compatibility with target EMX *)
+  TUConvObject = pointer;
+  TLocaleObject = pointer;
 
-const   OS_Mode: Tos = osOS2;
-        First_Meg: pointer = nil;
+const
+  OS_Mode: TOS = osOS2; (* For compatibility with target EMX *)
+  First_Meg: pointer = nil; (* For compatibility with target EMX *)
 
-const   UnusedHandle=-1;
-        StdInputHandle=0;
-        StdOutputHandle=1;
-        StdErrorHandle=2;
+  UnusedHandle=-1;
+  StdInputHandle=0;
+  StdOutputHandle=1;
+  StdErrorHandle=2;
 
-        LFNSupport: boolean = true;
-        FileNameCaseSensitive: boolean = false;
-        FileNameCasePreserving: boolean = true;
-        CtrlZMarksEOF: boolean = true; (* #26 is considered as end of file *)
+  LFNSupport: boolean = true;
+  FileNameCaseSensitive: boolean = false;
+  FileNameCasePreserving: boolean = true;
+  CtrlZMarksEOF: boolean = true; (* #26 is considered as end of file *)
+  RTLUsesWinCP: boolean = true; (* UnicodeString manager shall treat *)
+(* codepage numbers passed to RTL functions as those used under MS Windows *)
+(* and translates them to their OS/2 equivalents if necessary.             *)
 
-        sLineBreak = LineEnding;
-        DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
+  sLineBreak = LineEnding;
+  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
 
 var
 { C-compatible arguments and environment }
@@ -90,26 +98,61 @@ var
   ApplicationType: cardinal;
 
 const
- HeapAllocFlags: cardinal = $53; (* Compatible to VP/2 *)
- (* mfPag_Commit or mfObj_Tile or mfPag_Write or mfPag_Read *)
+  HeapAllocFlags: cardinal = $53; (* Compatible to VP/2 *)
+  (* mfPag_Commit or mfObj_Tile or mfPag_Write or mfPag_Read *)
 
 function ReadUseHighMem: boolean;
 
 procedure WriteUseHighMem (B: boolean);
 
-(* Is allocation of memory above 512 MB address limit allowed? Initialized *)
-(* during initialization of system unit according to capabilities of the   *)
-(* underlying OS/2 version, can be overridden by user - heap is allocated  *)
-(* for all threads, so the setting isn't declared as a threadvar and       *)
-(* should be only changed at the beginning of the main thread if needed.   *)
+(* Is allocation of memory above 512 MB address limit allowed? Even if use   *)
+(* of high memory is supported by the underlying OS/2 version, just a subset *)
+(* of OS/2 API functions can work with memory buffers located in high        *)
+(* memory. Since FPC RTL allocates heap using memory pools received from     *)
+(* the operating system and thus memory allocation from the operating system *)
+(* may happen at a different time than allocation of memory from FPC heap,   *)
+(* use of high memory shall be enabled only if the given program is ensured  *)
+(* not to use any OS/2 API function beyond the limited set supporting it any *)
+(* time between enabling this feature and program termination.               *)
 property
   UseHighMem: boolean read ReadUseHighMem write WriteUseHighMem;
 (* UseHighMem is provided for compatibility with 2.0.x. *)
 
+
+{$IFDEF OS2UNICODE}
+function OS2CPtoRtlCP (CP: cardinal; ReqFlags: byte;
+                                  var UConvObj: TUConvObject): TSystemCodepage;
+
+function RtlCPtoOS2CP (RtlCP: TSystemCodepage; ReqFlags: byte;
+                                         var UConvObj: TUConvObject): cardinal;
+
+function OS2CPtoRtlCP (CP: cardinal; ReqFlags: byte): TSystemCodepage;
+
+function RtlCPtoOS2CP (RtlCP: TSystemCodepage; ReqFlags: byte): cardinal;
+
+(* function RtlChangeCP (CP: TSystemCodePage; const stdcp: TStandardCodePageEnum): longint; *)
+{$ENDIF OS2UNICODE}
+
+
 const
 (* Are file sizes > 2 GB (64-bit) supported on the current system? *)
   FSApi64: boolean = false;
+  UniAPI: boolean = false;
 
+(* Support for tracking I/O errors returned by OS/2 API calls - emulation *)
+(* of GetLastError / fpGetError functionality used e.g. in Sysutils.      *)
+type
+  TOSErrorWatch = procedure (Error: cardinal);
+
+procedure NoErrorTracking (Error: cardinal);
+
+(* This shall be invoked whenever a non-zero error is returned by OS/2 APIs *)
+(* used in the RTL. Direct OS/2 API calls in user programs are not covered! *)
+const
+  OSErrorWatch: TOSErrorWatch = @NoErrorTracking;
+
+
+function SetOSErrorTracking (P: pointer): pointer;
 
 procedure SetDefaultOS2FileType (FType: ShortString);
 
@@ -127,21 +170,62 @@ type
   TDosSetFileSizeL = function (Handle: THandle; Size: int64): cardinal; cdecl;
 
 
-function DummyDosOpenL (FileName: PChar; var Handle: THandle;
-                        var Action: cardinal; InitSize: int64;
-                        Attrib, OpenFlags, FileMode: cardinal;
-                                                 EA: pointer): cardinal; cdecl;
+  TUniCreateUConvObject = function (const CpName: PWideChar;
+                               var UConv_Object: TUConvObject): longint; cdecl;
 
-function DummyDosSetFilePtrL (Handle: THandle; Pos: int64; Method: cardinal;
-                                        var PosActual: int64): cardinal; cdecl;
+  TUniFreeUConvObject = function (UConv_Object: TUConvObject): longint; cdecl;
 
-function DummyDosSetFileSizeL (Handle: THandle; Size: int64): cardinal; cdecl;
+  TUniMapCpToUcsCp = function (const Codepage: cardinal;
+                   CodepageName: PWideChar; const N: cardinal): longint; cdecl;
+
+  TUniUConvFromUcs = function (UConv_Object: TUConvObject;
+       var UcsBuf: PWideChar; var UniCharsLeft: longint; var OutBuf: PChar;
+         var OutBytesLeft: longint; var NonIdentical: longint): longint; cdecl;
+
+  TUniUConvToUcs = function (UConv_Object: TUConvObject; var InBuf: PChar;
+   var InBytesLeft: longint; var UcsBuf: PWideChar; var UniCharsLeft: longint;
+                                    var NonIdentical: longint): longint; cdecl;
+
+  TUniToLower = function (UniCharIn: WideChar): WideChar; cdecl;
+
+  TUniToUpper = function (UniCharIn: WideChar): WideChar; cdecl;
+
+  TUniStrColl = function (Locale_Object: TLocaleObject;
+                                  const UCS1, UCS2: PWideChar): longint; cdecl;
+
+  TUniCreateLocaleObject = function (LocaleSpecType: longint;
+                             const LocaleSpec: pointer;
+                             var Locale_Object: TLocaleObject): longint; cdecl;
+
+  TUniFreeLocaleObject = function (Locale_Object: TLocaleObject): longint;
+                                                                         cdecl;
 
 
 const
-  Sys_DosOpenL: TDosOpenL = @DummyDosOpenL;
-  Sys_DosSetFilePtrL: TDosSetFilePtrL = @DummyDosSetFilePtrL;
-  Sys_DosSetFileSizeL: TDosSetFileSizeL = @DummyDosSetFileSizeL;
+  DosCallsHandle: THandle = THandle (-1);
+{$IFDEF OS2UNICODE}
+  UConvHandle: THandle = THandle (-1);
+  LibUniHandle: THandle = THandle (-1);
+{$ENDIF OS2UNICODE}
+
+
+var
+  Sys_DosOpenL: TDosOpenL;
+  Sys_DosSetFilePtrL: TDosSetFilePtrL;
+  Sys_DosSetFileSizeL: TDosSetFileSizeL;
+{$IFDEF OS2UNICODE}
+  Sys_UniCreateUConvObject: TUniCreateUConvObject;
+  Sys_UniFreeUConvObject: TUniFreeUConvObject;
+  Sys_UniMapCpToUcsCp: TUniMapCpToUcsCp;
+  Sys_UniUConvFromUcs: TUniUConvFromUcs;
+  Sys_UniUConvToUcs: TUniUConvToUcs;
+  Sys_UniToLower: TUniToLower;
+  Sys_UniToUpper: TUniToUpper;
+  Sys_UniStrColl: TUniStrColl;
+  Sys_UniCreateLocaleObject: TUniCreateLocaleObject;
+  Sys_UniFreeLocaleObject: TUniFreeLocaleObject;
+
+{$ENDIF OS2UNICODE}
 
 
 implementation
@@ -174,12 +258,15 @@ function Is_Prefetch (P: pointer): boolean;
     InstrLo, InstrHi, OpCode: byte;
     I: longint;
     MemSize, MemAttrs: cardinal;
+    RC: cardinal;
   begin
     Is_Prefetch := false;
 
     MemSize := SizeOf (A);
-    if (DosQueryMem (P, MemSize, MemAttrs) = 0) and
-            (MemAttrs and (mfPag_Free or mfPag_Commit) <> 0)
+    RC := DosQueryMem (P, MemSize, MemAttrs);
+    if RC <> 0 then
+     OSErrorWatch (RC)
+    else if (MemAttrs and (mfPag_Free or mfPag_Commit) <> 0)
                                                and (MemSize >= SizeOf (A)) then
      Move (P^, A [0], SizeOf (A))
     else
@@ -289,6 +376,7 @@ var
  Res: cardinal;
  Err: byte;
  Must_Reset_FPU: boolean;
+ RC: cardinal;
 {$IFDEF SYSTEMEXCEPTIONDEBUG}
  CurSS: cardinal;
  B: byte;
@@ -382,7 +470,9 @@ begin
 {$ENDIF SYSTEMEXCEPTIONDEBUG}
           Report^.Exception_Num := 0;
           Res := Xcpt_Continue_Execution;
-          DosAcknowledgeSignalException (Report^.Parameters [0]);
+          RC := DosAcknowledgeSignalException (Report^.Parameters [0]);
+          if RC <> 0 then
+           OSErrorWatch (RC);
          end
         else
          Err := 217;
@@ -443,7 +533,9 @@ begin
 {$ENDIF SYSTEMEXCEPTIONDEBUG}
      Report^.Exception_Num := 0;
      Res := Xcpt_Continue_Execution;
-     DosAcknowledgeSignalException (Report^.Parameters [0]);
+     RC := DosAcknowledgeSignalException (Report^.Parameters [0]);
+     if RC <> 0 then
+      OSErrorWatch (RC);
     end
    else
     Err := 217;
@@ -504,6 +596,7 @@ var
 procedure Install_Exception_Handler;
 var
  T: cardinal;
+ RC: cardinal;
 begin
 {$ifdef SYSTEMEXCEPTIONDEBUG}
 (* ThreadInfoBlock is located at FS:[0], the first      *)
@@ -524,9 +617,15 @@ begin
  DosSetExceptionHandler (ExcptReg^);
  if IsConsole then
   begin
-   DosSetSignalExceptionFocus (1, T);
-   DosAcknowledgeSignalException (Xcpt_Signal_Intr);
-   DosAcknowledgeSignalException (Xcpt_Signal_Break);
+   RC := DosSetSignalExceptionFocus (1, T);
+   if RC <> 0 then
+    OSErrorWatch (RC);
+   RC := DosAcknowledgeSignalException (Xcpt_Signal_Intr);
+   if RC <> 0 then
+    OSErrorWatch (RC);
+   RC := DosAcknowledgeSignalException (Xcpt_Signal_Break);
+   if RC <> 0 then
+    OSErrorWatch (RC);
   end;
 {$ifdef SYSTEMEXCEPTIONDEBUG}
  asm
@@ -538,8 +637,11 @@ begin
 end;
 
 procedure Remove_Exception_Handlers;
+var
+  RC: cardinal;
 begin
-  DosUnsetExceptionHandler (ExcptReg^);
+  RC := DosUnsetExceptionHandler (ExcptReg^);
+  OSErrorWatch (RC);
 end;
 {$ENDIF OS2EXCEPTIONS}
 
@@ -686,6 +788,10 @@ begin
 end;
 
 procedure SysInitStdIO;
+(*
+var
+  RC: cardinal;
+*)
 begin
   { Setup stdin, stdout and stderr, for GUI apps redirect stderr,stdout to be
     displayed in a messagebox }
@@ -695,21 +801,36 @@ begin
   StdErrorHandle := longint(GetStdHandle(cardinal(STD_ERROR_HANDLE)));
 
   if not IsConsole then
-    begin
-      if (DosLoadModule (nil, 0, 'PMWIN', PMWinHandle) = 0) and
-       (DosQueryProcAddr (PMWinHandle, 789, nil, pointer (WinMessageBox)) = 0)
-                                                                           and
-       (DosQueryProcAddr (PMWinHandle, 763, nil, pointer (WinInitialize)) = 0)
-                                                                           and
-       (DosQueryProcAddr (PMWinHandle, 716, nil, pointer (WinCreateMsgQueue))
-                                                                           = 0)
-        then
-          begin
+   begin
+    RC := DosLoadModule (nil, 0, 'PMWIN', PMWinHandle);
+    if RC <> 0 then
+     OSErrorWatch (RC)
+    else
+     begin
+      RC := DosQueryProcAddr (PMWinHandle, 789, nil, pointer (WinMessageBox));
+      if RC <> 0 then
+       OSErrorWatch (RC)
+      else
+       begin
+        RC := DosQueryProcAddr (PMWinHandle, 763, nil, pointer (WinInitialize));
+        if RC <> 0 then
+         OSErrorWatch (RC)
+        else
+         begin
+          RC := DosQueryProcAddr (PMWinHandle, 716, nil, pointer (WinCreateMsgQueue));
+          if RC <> 0 then
+           OSErrorWatch (RC)
+          else
+           begin
             WinInitialize (0);
             WinCreateMsgQueue (0, 0);
-          end
-        else
-          HandleError (2);
+           end
+         end
+       end
+     end;
+    if RC <> 0 then
+     HandleError (2);
+
      AssignError (StdErr);
      AssignError (StdOut);
      Assign (Output, '');
@@ -824,9 +945,25 @@ begin
 end;
 
 
+(* The default handler does not store the OS/2 API error codes. *)
+procedure NoErrorTracking (Error: cardinal);
+begin
+end;
+
+
+function SetOSErrorTracking (P: pointer): pointer;
+begin
+ SetOSErrorTracking := OSErrorWatch;
+ if P = nil then
+  OSErrorWatch := @NoErrorTracking
+ else
+  OSErrorWatch := TOSErrorWatch (P);
+end;
+
+
 procedure InitEnvironment;
 var env_count : longint;
-    dos_env,cp : pchar;
+    cp : pchar;
 begin
   env_count:=0;
   cp:=environment;
@@ -870,14 +1007,15 @@ var
   pc,arg  : pchar;
   quote   : char;
   argvlen : PtrInt;
+  RC: cardinal;
 
   procedure allocarg(idx,len: PtrInt);
-    var
-      oldargvlen : PtrInt;
+{    var
+      oldargvlen : PtrInt;}
     begin
       if idx>=argvlen then
        begin
-         oldargvlen:=argvlen;
+{         oldargvlen:=argvlen;}
          argvlen:=(idx+8) and (not 7);
          sysreallocmem(argv,argvlen*sizeof(pointer));
 {         fillchar(argv[oldargvlen],(argvlen-oldargvlen)*sizeof(pointer),0);}
@@ -896,7 +1034,8 @@ begin
   ArgLen := StrLen (PChar (PIB^.Cmd));
   Inc (ArgLen);
 
-  if DosQueryModuleName (PIB^.Handle, MaxPathLen, CmdLine) = 0 then
+  RC := DosQueryModuleName (PIB^.Handle, MaxPathLen, CmdLine);
+  if RC = 0 then
    ArgVLen := Succ (StrLen (CmdLine))
   else
 (* Error occurred - use program name from command line as fallback. *)
@@ -1070,10 +1209,17 @@ end;
 function GetFileHandleCount: longint;
 var L1: longint;
     L2: cardinal;
+    RC: cardinal;
 begin
     L1 := 0; (* Don't change the amount, just check. *)
-    if DosSetRelMaxFH (L1, L2) <> 0 then GetFileHandleCount := 50
-                                                 else GetFileHandleCount := L2;
+    RC := DosSetRelMaxFH (L1, L2);
+    if RC <> 0 then
+     begin
+      GetFileHandleCount := 50;
+      OSErrorWatch (RC);
+     end
+    else
+     GetFileHandleCount := L2;
 end;
 
 function CheckInitialStkLen (StkLen: SizeUInt): SizeUInt;
@@ -1081,144 +1227,165 @@ begin
   CheckInitialStkLen := StkLen;
 end;
 
-var TIB: PThreadInfoBlock;
-    RC: cardinal;
-    ErrStr: string;
-    P: pointer;
-    DosCallsHandle: THandle;
-    DW: cardinal;
+var
+  TIB: PThreadInfoBlock;
+  RC: cardinal;
+  P: pointer;
+  DW: cardinal;
 
 const
-    DosCallsName: array [0..8] of char = 'DOSCALLS'#0;
+  DosCallsName: array [0..8] of char = 'DOSCALLS'#0;
 
 {$IFDEF OS2UNICODE}
- {$I sysucode.inc}
+  {$I sysucode.inc}
 {$ENDIF OS2UNICODE}
 
-{*var}
-{* ST: pointer;}
-{*}
 begin
 {$IFDEF OS2EXCEPTIONS}
-(*    asm
-      { allocate space for exception registration record }
-     pushl $0
-     pushl $0}
-{*     pushl %fs:(0)}
-        { movl  %esp,%fs:(0)
-          but don't insert it as it doesn't
-          point to anything yet
-          this will be used in signals unit }
-     movl %esp,%eax
-     movl %eax,ExcptReg
-     pushl %ebp
-     movl %esp,%eax
-{*     movl %eax,st*}
-     movl %eax,StackTop
-    end;
-{*    StackTop:=st;}
-*)    asm
-     xorl %eax,%eax
-     movw %ss,%ax
-     movl %eax,_SS
-    end;
+  asm
+   xorl %eax,%eax
+   movw %ss,%ax
+   movl %eax,_SS
+  end;
 {$ENDIF OS2EXCEPTIONS}
-    DosGetInfoBlocks (@TIB, @PIB);
-    StackLength := CheckInitialStkLen (InitialStkLen);
-    { OS/2 has top of stack in TIB^.StackLimit - unlike Windows where it is in TIB^.Stack }
-    StackBottom := TIB^.StackLimit - StackLength;
+  DosGetInfoBlocks (@TIB, @PIB);
+  StackLength := CheckInitialStkLen (InitialStkLen);
+  { OS/2 has top of stack in TIB^.StackLimit - unlike Windows where it is in TIB^.Stack }
+  StackBottom := TIB^.StackLimit - StackLength;
 
-    {Set type of application}
-    ApplicationType := PIB^.ProcType;
-    ProcessID := PIB^.PID;
-    ThreadID := TIB^.TIB2^.TID;
-    IsConsole := ApplicationType <> 3;
+  {Set type of application}
+  ApplicationType := PIB^.ProcType;
+  ProcessID := PIB^.PID;
+  ThreadID := TIB^.TIB2^.TID;
+  IsConsole := ApplicationType <> 3;
 
-    {Query maximum path length (QSV_MAX_PATH_LEN = 1)}
-    if DosQuerySysInfo (1, 1, DW, SizeOf (DW)) = 0 then
-     RealMaxPathLen := DW;
+  {Query maximum path length (QSV_MAX_PATH_LEN = 1)}
+  if DosQuerySysInfo (1, 1, DW, SizeOf (DW)) = 0 then
+   RealMaxPathLen := DW;
 
-    ExitProc := nil;
+  ExitProc := nil;
 
 {$IFDEF OS2EXCEPTIONS}
-    Install_Exception_Handler;
+  Install_Exception_Handler;
 {$ENDIF OS2EXCEPTIONS}
 
-    (* Initialize the amount of file handles *)
-    FileHandleCount := GetFileHandleCount;
+  (* Initialize the amount of file handles *)
+  FileHandleCount := GetFileHandleCount;
 
-    {Initialize the heap.}
-    (* Logic is following:
-       The heap is initially restricted to low address space (< 512 MB).
-       If underlying OS/2 version allows using more than 512 MB per process
-       (OS/2 WarpServer for e-Business, eComStation, possibly OS/2 Warp 4.0
-       with FP13 and above as well), use of this high memory is allowed for
-       future memory allocations at the end of System unit initialization.
-       The consequences are that the compiled application can allocate more
-       memory, but it must make sure to use direct DosAllocMem calls if it
-       needs a memory block for some system API not supporting high memory.
-       This is probably no problem for direct calls to these APIs, but
-       there might be situations when a memory block needs to be passed
-       to a 3rd party DLL which in turn calls such an API call. In case
-       of problems usage of high memory can be turned off by setting
-       UseHighMem to false - the program should change the setting at its
-       very beginning (e.g. in initialization section of the first unit
-       listed in the "uses" section) to avoid having preallocated memory
-       from the high memory region before changing value of this variable. *)
-    InitHeap;
+  {Initialize the heap.}
+  (* Logic is following:
+     The heap is initially restricted to low address space (< 512 MB).
+     If underlying OS/2 version allows using more than 512 MB per process
+     (OS/2 WarpServer for e-Business, eComStation, possibly OS/2 Warp 4.0
+     with FP13 and above as well), use of this high memory is allowed for
+     future memory allocations at the end of System unit initialization.
+     The consequences are that the compiled application can allocate more
+     memory, but it must make sure to use direct DosAllocMem calls if it
+     needs a memory block for some system API not supporting high memory.
+     This is probably no problem for direct calls to these APIs, but
+     there might be situations when a memory block needs to be passed
+     to a 3rd party DLL which in turn calls such an API call. In case
+     of problems usage of high memory can be turned off by setting
+     UseHighMem to false - the program should change the setting at its
+     very beginning (e.g. in initialization section of the first unit
+     listed in the "uses" section) to avoid having preallocated memory
+     from the high memory region before changing value of this variable. *)
+  InitHeap;
 
-    if DosQueryModuleHandle (@DosCallsName [0], DosCallsHandle) = 0 then
-      begin
-        if DosQueryProcAddr (DosCallsHandle, OrdDosOpenL, nil, P) = 0 then
-          begin
-            Sys_DosOpenL := TDosOpenL (P);
-            if DosQueryProcAddr (DosCallsHandle, OrdDosSetFilePtrL, nil, P) = 0
-                                                                           then
-              begin
-                Sys_DosSetFilePtrL := TDosSetFilePtrL (P);
-                if DosQueryProcAddr (DosCallsHandle, OrdDosSetFileSizeL, nil,
-                                                                    P) = 0 then
-                  begin
-                    Sys_DosSetFileSizeL := TDosSetFileSizeL (P);
-                    FSApi64 := true;
-                  end;
-              end;
-          end;
-      end;
+  Sys_DosOpenL := @DummyDosOpenL;
+  Sys_DosSetFilePtrL := @DummyDosSetFilePtrL;
+  Sys_DosSetFileSizeL := @DummyDosSetFileSizeL;
+  RC := DosQueryModuleHandle (@DosCallsName [0], DosCallsHandle);
+  if RC = 0 then
+   begin
+    RC := DosQueryProcAddr (DosCallsHandle, OrdDosOpenL, nil, P);
+    if RC = 0 then
+     begin
+      Sys_DosOpenL := TDosOpenL (P);
+      RC := DosQueryProcAddr (DosCallsHandle, OrdDosSetFilePtrL, nil, P);
+      if RC = 0 then
+       begin
+        Sys_DosSetFilePtrL := TDosSetFilePtrL (P);
+        RC := DosQueryProcAddr (DosCallsHandle, OrdDosSetFileSizeL, nil, P);
+        if RC = 0 then
+         begin
+          Sys_DosSetFileSizeL := TDosSetFileSizeL (P);
+          FSApi64 := true;
+         end;
+       end;
+     end;
+    if RC <> 0 then
+     OSErrorWatch (RC);
+    RC := DosQueryProcAddr (DosCallsHandle, OrdDosAllocThreadLocalMemory,
+                                                                       nil, P);
+    if RC = 0 then
+     begin
+      DosAllocThreadLocalMemory := TDosAllocThreadLocalMemory (P);
+      RC := DosQueryProcAddr (DosCallsHandle, OrdDosAllocThreadLocalMemory,
+                                                                       nil, P);
+      if RC = 0 then
+       begin
+        DosFreeThreadLocalMemory := TDosFreeThreadLocalMemory (P);
+        TLSAPISupported := true;
+       end
+      else
+       OSErrorWatch (RC);
+     end
+    else
+     OSErrorWatch (RC);
+   end
+  else
+   OSErrorWatch (RC);
 
-    { ... and exceptions }
-    SysInitExceptions;
-    fpc_cpucodeinit;
+  { ... and exceptions }
+  SysInitExceptions;
+  fpc_cpucodeinit;
 
-    InitUnicodeStringManager;
-{$ifdef OS2UCODE}
-    InitOS2WideStrings;
-{$endif OS2UCODE}
+  InitUnicodeStringManager;
 
-    { ... and I/O }
-    SysInitStdIO;
+{$IFDEF OS2UNICODE}
+  InitOS2WideStringManager;
 
-    { no I/O-Error }
-    inoutres:=0;
+  InitDefaultCP;
+{$ELSE OS2UNICODE}
+(* Otherwise called within InitDefaultCP... *)
+  RC := DosQueryCP (SizeOf (CPArr), @CPArr, ReturnedSize);
+  if (RC <> 0) and (RC <> 473) then
+   begin
+    OSErrorWatch (RC);
+    CPArr [0] := 850;
+   end
+  else if (ReturnedSize < 4) then
+   CPArr [0] := 850;
+  DefaultFileSystemCodePage := CPArr [0];
+{$ENDIF OS2UNICODE}
+  DefaultSystemCodePage := DefaultFileSystemCodePage;
+  DefaultRTLFileSystemCodePage := DefaultFileSystemCodePage;
+  DefaultUnicodeCodePage := CP_UTF16;
 
-    {Initialize environment (must be after InitHeap because allocates memory)}
-    Environment := pointer (PIB^.Env);
-    InitEnvironment;
+  { ... and I/O }
+  SysInitStdIO;
 
-    InitArguments;
+  { no I/O-Error }
+  InOutRes:=0;
 
-    DefaultCreator := '';
-    DefaultFileType := '';
+  {Initialize environment (must be after InitHeap because allocates memory)}
+  Environment := pointer (PIB^.Env);
+  InitEnvironment;
 
-    InitSystemThreads;
-    InitVariantManager;
+  InitArguments;
+
+  DefaultCreator := '';
+  DefaultFileType := '';
+
+  InitSystemThreads;
 
 {$IFDEF EXTDUMPGROW}
 {    Int_HeapSize := high (cardinal);}
 {$ENDIF EXTDUMPGROW}
 {$ifdef SYSTEMEXCEPTIONDEBUG}
- if IsConsole then
-  WriteLn (StdErr, 'Old exception ', HexStr (OldExceptAddr, 8),
+  if IsConsole then
+   WriteLn (StdErr, 'Old exception ', HexStr (OldExceptAddr, 8),
    ', new exception ', HexStr (NewExceptAddr, 8), ', _SS = ', HexStr (_SS, 8));
 {$endif SYSTEMEXCEPTIONDEBUG}
 end.

@@ -30,7 +30,7 @@ type
    packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
    record
-     elSize : PtrUInt;
+     elSize : SizeUInt;
      elType2 : Pointer;
      varType : Longint;
    end;
@@ -302,6 +302,88 @@ function fpc_dynarray_copy(psrc : pointer;ti : pointer;
 
 procedure DynArraySetLength(var a: Pointer; typeInfo: Pointer; dimCnt: SizeInt; lengthVec: PSizeInt);
   external name 'FPC_DYNARR_SETLENGTH';
+
+function DynArraySize(a : pointer): tdynarrayindex;
+  external name 'FPC_DYNARRAY_LENGTH';
+
+procedure DynArrayClear(var a: Pointer; typeInfo: Pointer);
+  external name 'FPC_DYNARRAY_CLEAR';
+
+function DynArrayDim(typeInfo: Pointer): Integer;
+  begin
+    result:=0;
+    while (typeInfo <> nil) and (pdynarraytypeinfo(typeInfo)^.kind = tkDynArray) do
+    begin
+      { skip kind and name }
+      typeInfo:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
+
+      { element type info}
+      typeInfo:=pdynarraytypedata(typeInfo)^.elType2;
+
+      Inc(result);
+    end;
+  end;
+
+function DynArrayBounds(a: Pointer; typeInfo: Pointer): TBoundArray;
+  var
+    i,dim: sizeint;
+  begin
+    dim:=DynArrayDim(typeInfo);
+    SetLength(result, dim);
+
+    for i:=0 to pred(dim) do
+      if a = nil then
+        exit
+      else
+      begin
+        result[i]:=DynArraySize(a)-1;
+        a:=PPointerArray(a)^[0];
+      end;
+  end;
+
+function IsDynArrayRectangular(a: Pointer; typeInfo: Pointer): Boolean;
+  var
+    i,j: sizeint;
+    dim,count: sizeint;
+  begin
+    dim:=DynArrayDim(typeInfo);
+    for i:=1 to pred(dim) do
+    begin
+      count:=DynArraySize(PPointerArray(a)^[0]);
+
+      for j:=1 to Pred(DynArraySize(a)) do
+        if count<>DynArraySize(PPointerArray(a)^[j]) then
+          exit(false);
+
+      a:=PPointerArray(a)^[0];
+    end;
+    result:=true;
+  end;
+
+function DynArrayIndex(a: Pointer; const indices: array of SizeInt; typeInfo: Pointer): Pointer;
+  var
+    i,h: sizeint;
+  begin
+    h:=High(indices);
+    for i:=0 to h do
+    begin
+      if i<h then
+        a := PPointerArray(a)^[indices[i]];
+
+      { skip kind and name }
+      typeInfo:=(typeInfo+2+PByte(typeInfo)[1]);
+      { element type info}
+      typeInfo:=pdynarraytypedata(typeInfo)^.elType2;
+
+      if typeInfo=nil then
+        exit(nil);
+    end;
+
+    { skip kind and name }
+    typeInfo:=(typeInfo+2+PByte(typeInfo)[1]);
+
+    result:=@(PByte(a)[indices[h]*pdynarraytypedata(typeInfo)^.elSize]);
+  end;
 
 { obsolete but needed for bootstrapping }
 procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer); [Public,Alias:'FPC_DYNARRAY_DECR_REF']; compilerproc;

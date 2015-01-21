@@ -81,6 +81,7 @@ interface
         function parse_single_packed_const(def: tdef; var bp: tbitpackedval): boolean;
        protected
         list: tasmlist;
+        datalist: tasmlist;
 
         procedure parse_packed_array_def(def: tarraydef);
         procedure parse_arraydef(def:tarraydef);override;
@@ -97,7 +98,7 @@ interface
         procedure tc_emit_stringdef(def: tstringdef; var node: tnode);override;
        public
         constructor create(sym: tstaticvarsym);virtual;
-        function parse_into_asmlist: tasmlist;
+        procedure parse_into_asmlist(out res, data: tasmlist);
       end;
       tasmlisttypedconstbuilderclass = class of tasmlisttypedconstbuilder;
 
@@ -428,6 +429,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
       begin
         inherited;
         list:=tasmlist.create;
+        datalist:=tasmlist.create;
         curoffset:=0;
       end;
 
@@ -545,7 +547,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                        ll.ofs:=0;
                      end
                    else
-                     ll:=emit_ansistring_const(current_asmdata.asmlists[al_const],strval,strlength,def.encoding);
+                     ll:=emit_ansistring_const(datalist,strval,strlength,def.encoding);
                    list.concat(Tai_const.Create_sym_offset(ll.lab,ll.ofs));
                 end;
               st_unicodestring,
@@ -560,7 +562,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                    else
                      begin
                        winlike:=(def.stringtype=st_widestring) and (tf_winlikewidestring in target_info.flags);
-                       ll:=emit_unicodestring_const(current_asmdata.asmlists[al_const],
+                       ll:=emit_unicodestring_const(datalist,
                               strval,
                               def.encoding,
                               winlike);
@@ -833,8 +835,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               else
                varalign:=0;
               varalign:=const_align(varalign);
-              new_section(current_asmdata.asmlists[al_const], sec_rodata, ll.name, varalign);
-              current_asmdata.asmlists[al_const].concat(Tai_label.Create(ll));
+              new_section(datalist, sec_rodata, ll.name, varalign);
+              datalist.concat(Tai_label.Create(ll));
               if node.nodetype=stringconstn then
                 begin
                   len:=tstringconstnode(node).len;
@@ -844,11 +846,11 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                    len:=255;
                   getmem(ca,len+2);
                   move(tstringconstnode(node).value_str^,ca^,len+1);
-                  current_asmdata.asmlists[al_const].concat(Tai_string.Create_pchar(ca,len+1));
+                  datalist.concat(Tai_string.Create_pchar(ca,len+1));
                 end
               else
                 if is_constcharnode(node) then
-                  current_asmdata.asmlists[al_const].concat(Tai_string.Create(char(byte(tordconstnode(node).value.svalue))+#0))
+                  datalist.concat(Tai_string.Create(char(byte(tordconstnode(node).value.svalue))+#0))
               else
                 IncompatibleTypes(node.resultdef, def);
           end
@@ -859,8 +861,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             begin
               current_asmdata.getdatalabel(ll);
               list.concat(Tai_const.Create_sym(ll));
-              current_asmdata.asmlists[al_typedconsts].concat(tai_align.create(const_align(sizeof(pint))));
-              current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(ll));
+              new_section(datalist,sec_rodata_norel,ll.name,const_align(sizeof(pint)));
+              datalist.concat(Tai_label.Create(ll));
               if (node.nodetype in [stringconstn,ordconstn]) then
                 begin
                   { convert to unicodestring stringconstn }
@@ -870,9 +872,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                    begin
                      pw:=pcompilerwidestring(tstringconstnode(node).value_str);
                      for i:=0 to tstringconstnode(node).len-1 do
-                       current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(pw^.data[i]));
+                       datalist.concat(Tai_const.Create_16bit(pw^.data[i]));
                      { ending #0 }
-                     current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(0))
+                     datalist.concat(Tai_const.Create_16bit(0))
                    end;
                 end
               else
@@ -1060,8 +1062,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
            (not equal_defs(node.resultdef,def) and
             not is_subequal(node.resultdef,def)) then
           begin
-            node.free;
             incompatibletypes(node.resultdef,def);
+            node.free;
             consume_all_until(_SEMICOLON);
             result:=false;
             exit;
@@ -1689,10 +1691,11 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
       end;
 
 
-    function tasmlisttypedconstbuilder.parse_into_asmlist: tasmlist;
+    procedure tasmlisttypedconstbuilder.parse_into_asmlist(out res,data: tasmlist);
       begin
         read_typed_const_data(tcsym.vardef);
-        result:=list;
+        res:=list;
+        data:=datalist;
       end;
 
 

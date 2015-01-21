@@ -48,7 +48,7 @@ type
 
   TDataSetState = (dsInactive, dsBrowse, dsEdit, dsInsert, dsSetKey,
     dsCalcFields, dsFilter, dsNewValue, dsOldValue, dsCurValue, dsBlockRead,
-    dsInternalCalc, dsOpening);
+    dsInternalCalc, dsOpening, dsRefreshFields);
 
   TDataEvent = (deFieldChange, deRecordChange, deDataSetChange,
     deDataSetScroll, deLayoutChange, deUpdateRecord, deUpdateState,
@@ -61,7 +61,7 @@ type
   TUpdateMode = (upWhereAll, upWhereChanged, upWhereKeyOnly);
   TResolverResponse = (rrSkip, rrAbort, rrMerge, rrApply, rrIgnore);
 
-  TProviderFlag = (pfInUpdate, pfInWhere, pfInKey, pfHidden);
+  TProviderFlag = (pfInUpdate, pfInWhere, pfInKey, pfHidden, pfRefreshOnInsert,pfRefreshOnUpdate);
   TProviderFlags = set of TProviderFlag;
 
 { Forward declarations }
@@ -79,6 +79,7 @@ type
 { Exception classes }
 
   EDatabaseError = class(Exception);
+
   EUpdateError   = class(EDatabaseError)
   private
     FContext           : String;
@@ -1231,6 +1232,19 @@ type
   end;
   TParamClass = Class of TParam;
 
+  { TParamsEnumerator }
+
+  TParamsEnumerator = class
+  private
+    FPosition: Integer;
+    FParams: TParams;
+    function GetCurrent: TParam;
+  public
+    constructor Create(AParams: TParams);
+    function MoveNext: Boolean;
+    property Current: TParam read GetCurrent;
+  end;
+
 { TParams }
 
   TParams = class(TCollection)
@@ -1255,6 +1269,7 @@ type
     Function  FindParam(const Value: string): TParam;
     Procedure GetParamList(List: TList; const ParamNames: string);
     Function  IsEqual(Value: TParams): Boolean;
+    Function GetEnumerator: TParamsEnumerator;
     Function  ParamByName(const Value: string): TParam;
     Function  ParseSQL(SQL: String; DoCreate: Boolean): String; overload;
     Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle): String; overload;
@@ -1607,7 +1622,7 @@ type
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; virtual;
     procedure CursorPosChanged;
     procedure DataConvert(aField: TField; aSource, aDest: Pointer; aToNative: Boolean); virtual;
-    procedure Delete;
+    procedure Delete; virtual;
     procedure DisableControls;
     procedure Edit;
     procedure EnableControls;
@@ -1878,6 +1893,7 @@ type
     procedure RemoveDataSets;
     procedure SetActive(Value : boolean);
   Protected
+    Function AllowClose(DS: TDBDataset): Boolean; virtual;
     Procedure SetDatabase (Value : TDatabase); virtual;
     procedure CloseTrans;
     procedure openTrans;
@@ -2141,7 +2157,7 @@ const
 
   dsEditModes = [dsEdit, dsInsert, dsSetKey];
   dsWriteModes = [dsEdit, dsInsert, dsSetKey, dsCalcFields, dsFilter,
-    dsNewValue, dsInternalCalc];
+                  dsNewValue, dsInternalCalc, dsRefreshFields];
   // Correct list of all field types that are BLOB types.
   // Please use this instead of checking TBlobType which will give
   // incorrect results
@@ -2213,6 +2229,7 @@ begin
   if (i<=FieldsLength) and (Fields[i]=';') then Inc(i);
   Pos:=i;
 end;
+
 
 { EUpdateError }
 constructor EUpdateError.Create(NativeError, Context : String;

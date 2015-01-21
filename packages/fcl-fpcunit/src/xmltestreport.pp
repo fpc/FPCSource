@@ -21,7 +21,7 @@
     is valid XML, with reserved characters correctly escaped.
     This allows the XML document to be further processed with XSLT etc without
     any issues.
-		
+
   Notes:
     Specify 'null' as the filename if you don't want to output to file (e.g.
     used by the GUI test runner which instead reads the Document property).
@@ -194,7 +194,7 @@ begin
   inherited;
   FResults := FDoc.CreateElement('TestResults');
   FResults.AppendChild(FDoc.CreateComment(' Generated using FPCUnit on '
-    + FormatDateTime('yyyy-mm-dd hh:mm:ss', Now) ));
+    + FormatDateTime('yyyy-mm-dd hh:nn:ss', Now) ));
   FDoc.AppendChild(FResults);
   FListing := FDoc.CreateElement('TestListing');
   FResults.AppendChild(FListing);
@@ -283,7 +283,7 @@ begin
 
   { Summary of ISO 8601  http://www.cl.cam.ac.uk/~mgk25/iso-time.html }
   n := FDoc.CreateElement('DateTimeRan');
-  n.AppendChild(FDoc.CreateTextNode(FormatDateTime('yyyy-mm-dd hh:mm:ss', Now)));
+  n.AppendChild(FDoc.CreateTextNode(FormatDateTime('yyyy-mm-dd hh:nn:ss', Now)));
   lResults.AppendChild(n);
 
   // This is so that the GUI Test Runner doesn't output text as well.

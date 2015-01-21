@@ -1327,10 +1327,14 @@ Begin
         { Delete leading spaces }
         while Result[1] = ' ' do
           System.Delete(Result, 1, 1);
-        if Result[1] = '-' then
+
+        if (Result[1]='-') and
+          { not Nan etc.? }
+          (Result[3]='.') then
           Result[3] := DS
-        else
+        else if Result[2]='.' then
           Result[2] := DS;
+
         P:=Pos('E',Result);
         if P <> 0 then
           begin
@@ -1905,6 +1909,7 @@ Var
   UnexpectedDigits: Integer;                  { Number Of unexpected Digits that }
                                               { have To be inserted before the   }
                                               { First placeholder.               }
+  UnexpectedDigitsStart: Integer;             { Location in Digits where first unexpected Digit is located }
   DigitExponent: Integer;                     { Exponent Of First digit In       }
                                               { Digits Array.                    }
 
@@ -2242,8 +2247,12 @@ Var
         Insert('e',Exponent,1);
       End;
     DigitExponent:=DecimalPoint-2;
-    If (Digits[1]='-') Then
+    I:=1;
+    While (I<=Length(Digits)) and (Digits[i] in [' ','-']) do
+      begin
       Dec(DigitExponent);
+      Inc(i);
+      end;
     UnexpectedDigits:=DecimalPoint-1-(Placehold[1]+Placehold[2]);
   End;
 
@@ -2262,7 +2271,7 @@ Var
     Dig := 1;
     While (Fmt<FmtStop) Do
       Begin
-      //Write(Fmt[0]);
+//      WriteLn('Treating : "',Fmt[0],'"');
       Case Fmt[0] Of
         #34:
           Begin
@@ -2292,9 +2301,9 @@ Var
                       Buf[0] := Digits[N];
                       Inc(Buf);
                     end;
-                  If thousand And (Digits[N]<>'-') Then
+                  If thousand And (Not (Digits[N] in [' ','-'])) Then
                     Begin
-                    If (DigitExponent Mod 3 = 0) And (DigitExponent>0) and (N > 1) Then
+                    If (DigitExponent Mod 3 = 0) And (DigitExponent>0) Then
                       Begin
                       Buf[0] := FormatSettings.ThousandSeparator;
                       Inc(Buf);
@@ -2317,8 +2326,9 @@ Var
                   Inc(Buf);
                   End;
                 End;
+              if Digits[Dig]<>'-' then  
+                Dec(DigitExponent);
               Inc(Dig);
-              Dec(DigitExponent);
               Inc(Fmt);
               End;
             'e', 'E':

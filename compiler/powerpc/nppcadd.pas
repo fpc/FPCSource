@@ -73,6 +73,7 @@ interface
         tmpreg : tregister;
         useconst : boolean;
       begin
+        tmpreg:=NR_NO;
         // get the constant on the right if there is one
         if (left.location.loc = LOC_CONSTANT) then
           swapleftright;
@@ -512,6 +513,8 @@ interface
                       op1 := A_MULLW;
                       op2 := A_MULHWU
                     end;
+                  else
+                    internalerror(2014082040);
                 end;
               end;
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op1,location.register64.reglo,
@@ -663,6 +666,8 @@ interface
                        cgop := OP_OR;
                      andn:
                        cgop := OP_AND;
+                     else
+                       internalerror(2014082041);
                    end;
                    if (left.location.loc = LOC_CONSTANT) then
                      swapleftright;

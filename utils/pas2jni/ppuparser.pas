@@ -42,6 +42,7 @@ type
   public
     SearchPath: TStringList;
     Units: TDef;
+    OnExceptionProc: TProcDef;
 
     constructor Create(const ASearchPath: string);
     destructor Destroy; override;
@@ -55,6 +56,9 @@ var
 implementation
 
 uses process, pipes, fpjson, jsonparser;
+
+const
+  OnExceptionProcName = 'JNI_OnException';
 
 type
   TCharSet = set of char;
@@ -424,7 +428,7 @@ var
         else
           continue;
 
-        if CurObjName = '' then begin
+        if (CurObjName = '') and (d.DefType <> dtEnum) then begin
           d.Free;
           continue;
         end;
@@ -481,9 +485,6 @@ var
                   if s = 'overload' then
                     ProcOpt:=ProcOpt + [poOverload]
                   else
-                  if s = 'overload' then
-                    ProcOpt:=ProcOpt + [poMethodPtr]
-                  else
                   if s = 'abstract' then
                     TClassDef(Parent).HasAbstractMethods:=True;
                 end;
@@ -498,6 +499,9 @@ var
                   Name:='Int';
 
               _ReadDefs(d, it, 'Params');
+              // Check for user exception handler proc
+              if AMainUnit and (Parent = CurUnit) and (OnExceptionProc = nil) and (AnsiCompareText(Name, OnExceptionProcName) = 0) then
+                OnExceptionProc:=TProcDef(d);
             end;
           dtVar, dtField, dtParam:
             with TVarDef(d) do begin
@@ -520,9 +524,7 @@ var
               if it.Get('Setter', TJSONObject(nil)) <> nil then
                 VarOpt:=VarOpt + [voWrite];
 
-              arr:=it.Get('Params', TJSONArray(nil));
-              if (arr <> nil) and (arr.Count = 1) then
-                IndexType:=_GetRef(arr.Objects[0].Objects['VarType']);
+              _ReadDefs(d, it, 'Params');
             end;
           dtEnum:
             _ReadDefs(d, it, 'Elements');
@@ -532,6 +534,8 @@ var
               Base:=it.Integers['Base'];
               ElMax:=it.Integers['Max'];
               ElType:=TTypeDef(_GetRef(it.Objects['ElType'], TTypeDef));
+              if (ElType <> nil) and (ElType.Name = '') then
+                ElType.Name:=CurObjName + 'El';
             end;
           dtConst:
             with TConstDef(d) do begin

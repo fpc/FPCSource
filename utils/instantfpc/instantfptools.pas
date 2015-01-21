@@ -264,6 +264,7 @@ begin
         Halt(1);
       end;
     until FindNext(FileInfo)<>0;
+    Findclose(FileInfo);
   end;
   if not RemoveDir(Directory) then begin
     writeln('unable to delete directory "'+Directory+'"');
@@ -281,7 +282,7 @@ var
   buf : Array[1..4096] of byte;
   pid: SizeUInt;
   BuildDir: String;
-  BuildOutputFilename: String;
+  OutputFilenameExe, BuildOutputFilename: String;
 
   procedure CleanUp;
   begin
@@ -295,14 +296,15 @@ begin
   Compiler:=GetCompiler;
   pid:=GetProcessID;
   BuildDir:='';
-  BuildOutputFilename:=OutputFilename;
+  OutputFilenameExe:=OutputFilename {$IFDEF HASEXEEXT} + '.exe' {$ENDIF};
+  BuildOutputFilename:=OutputFilenameExe;
   if pid>0 then begin
-    BuildDir:=ExtractFilePath(OutputFilename)+'__tmp'+IntToStr(pid)+PathDelim;
-    BuildOutputFilename:=BuildDir+ExtractFileName(OutputFilename);
+    BuildDir:=ExtractFilePath(OutputFilenameExe)+'__tmp'+IntToStr(pid)+PathDelim;
+    BuildOutputFilename:=BuildDir+ExtractFileName(OutputFilenameExe);
   end;
   //writeln('Compiler=',Compiler,' Params=',CompParams);
-  if FileExists(OutputFilename) and not DeleteFile(OutputFilename) then begin
-    writeln('unable to delete ',OutputFilename);
+  if FileExists(OutputFilenameExe) and not DeleteFile(OutputFilenameExe) then begin
+    writeln('unable to delete ',OutputFilenameExe);
     Halt(1);
   end;
   if BuildDir<>'' then begin
@@ -337,8 +339,8 @@ begin
     end;
     if BuildDir<>'' then begin
       // move from build directory to cache
-      if not RenameFile(BuildOutputFilename,OutputFilename) then begin
-        writeln('unable to move "',BuildOutputFilename,'" to "',OutputFilename,'"');
+      if not RenameFile(BuildOutputFilename,OutputFilenameExe) then begin
+        writeln('unable to move "',BuildOutputFilename,'" to "',OutputFilenameExe,'"');
         Halt(1);
       end;
     end;
@@ -370,7 +372,7 @@ begin
     end;
   if OutputDirectory<>'' then
     AddParam('-FU'+OutputDirectory,Result);
-  AddParam('-o'+OutputFilename {$IFDEF HASEXEEXT} + '.exe' {$ENDIF},Result);
+  AddParam('-o'+OutputFilename,Result);
   AddParam(SrcFilename,Result);
 end;
 

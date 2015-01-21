@@ -100,6 +100,8 @@ Const
 
 implementation
 
+{$asmmode att}
+
 var
   SysInstance : qword;public;
 
@@ -605,7 +607,6 @@ begin
     InitSystemThreads;
   end;
   SysInitExceptions;
-  initwidestringmanager;
   initunicodestringmanager;
   InitWin32Widestrings;
   SysInitStdIO;
@@ -614,6 +615,5 @@ begin
   { Reset IO Error }
   InOutRes:=0;
   ProcessID := GetCurrentProcessID;
-  initvariantmanager;
   DispCallByIDProc:=@DoDispCallByIDError;
 end.

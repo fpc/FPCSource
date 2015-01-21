@@ -68,8 +68,8 @@ type
     FOciUserSession : POCISession;
     FUserMem        : pointer;
     procedure HandleError;
-    procedure GetParameters(cursor : TSQLCursor; AParams : TParams);
-    procedure SetParameters(cursor : TSQLCursor; AParams : TParams);
+    procedure GetParameters(cursor : TSQLCursor; ATransaction : TSQLTransaction; AParams : TParams);
+    procedure SetParameters(cursor : TSQLCursor; ATransaction : TSQLTransaction; AParams : TParams);
   protected
     // - Connect/disconnect
     procedure DoInternalConnect; override;
@@ -332,22 +332,17 @@ end;
 
 procedure TOracleConnection.HandleError;
 
-var errcode : sb4;
+var
+    errcode : sb4;
     buf     : array[0..1023] of char;
-    E       : EOraDatabaseError;
+
 begin
   OCIErrorGet(FOciError,1,nil,errcode,@buf[0],1024,OCI_HTYPE_ERROR);
 
-  if (Self.Name <> '') then
-    E := EOraDatabaseError.CreateFmt('%s : %s',[Self.Name,pchar(buf)])
-  else
-    E := EOraDatabaseError.Create(pchar(buf));
-
-  E.ErrorCode := errcode;
-  Raise E;
+  raise EOraDatabaseError.CreateFmt(pchar(buf), [], Self, errcode, '')
 end;
 
-procedure TOracleConnection.GetParameters(cursor: TSQLCursor; AParams: TParams);
+procedure TOracleConnection.GetParameters(cursor: TSQLCursor; ATransaction : TSQLTransaction; AParams: TParams);
 var
     i    : integer;
     odt  : TODateTime;
@@ -384,11 +379,10 @@ begin
 end;
 
 procedure TOracleConnection.DoInternalConnect;
-
 var
   ConnectString : string;
   TempServiceContext : POCISvcCtx;
-
+  IsConnected : boolean;
 begin
 {$IfDef LinkDynamically}
   InitialiseOCI;
@@ -397,42 +391,78 @@ begin
   inherited DoInternalConnect;
   //todo: get rid of FUserMem, as it isn't used
   FUserMem := nil;
+  IsConnected := false;
 
-  // Create environment handle
-  if OCIEnvCreate(FOciEnvironment,oci_default,nil,nil,nil,nil,0,FUserMem) <> OCI_SUCCESS then
-    DatabaseError(SErrEnvCreateFailed,self);
-  // Create error handle
-  if OciHandleAlloc(FOciEnvironment,FOciError,OCI_HTYPE_ERROR,0,FUserMem) <> OCI_SUCCESS then
-    DatabaseError(SErrHandleAllocFailed,self);
-  // Create Server handle
-  if OciHandleAlloc(FOciEnvironment,FOciServer,OCI_HTYPE_SERVER,0,FUserMem) <> OCI_SUCCESS then
-    DatabaseError(SErrHandleAllocFailed,self);
-  // Initialize Server handle
-  if hostname='' then connectstring := databasename
-  else connectstring := '//'+hostname+'/'+databasename;
-  if OCIServerAttach(FOciServer,FOciError,@(ConnectString[1]),Length(ConnectString),OCI_DEFAULT) <> OCI_SUCCESS then
-    HandleError();
+  try
+    // Create environment handle
+    if OCIEnvCreate(FOciEnvironment,OCI_DEFAULT,nil,nil,nil,nil,0,FUserMem) <> OCI_SUCCESS then
+      DatabaseError(SErrEnvCreateFailed,self);
+    // Create error handle
+    if OciHandleAlloc(FOciEnvironment,FOciError,OCI_HTYPE_ERROR,0,FUserMem) <> OCI_SUCCESS then
+      DatabaseError(SErrHandleAllocFailed,self);
+    // Create server handle
+    if OciHandleAlloc(FOciEnvironment,FOciServer,OCI_HTYPE_SERVER,0,FUserMem) <> OCI_SUCCESS then
+      DatabaseError(SErrHandleAllocFailed,self);
 
-  // Create temporary service-context handle for user authentication
-  if OciHandleAlloc(FOciEnvironment,TempServiceContext,OCI_HTYPE_SVCCTX,0,FUserMem) <> OCI_SUCCESS then
-    DatabaseError(SErrHandleAllocFailed,self);
+    // Initialize server handle
+    if hostname='' then
+      connectstring := databasename
+    else
+      connectstring := '//'+hostname+'/'+databasename;
+    if OCIServerAttach(FOciServer,FOciError,@(ConnectString[1]),Length(ConnectString),OCI_DEFAULT) <> OCI_SUCCESS then
+      HandleError();
 
-  // Create user-session handle
-  if OciHandleAlloc(FOciEnvironment,FOciUserSession,OCI_HTYPE_SESSION,0,FUserMem) <> OCI_SUCCESS then
-    DatabaseError(SErrHandleAllocFailed,self);
-  // Set the server-handle in the service-context handle
-  if OCIAttrSet(TempServiceContext,OCI_HTYPE_SVCCTX,FOciServer,0,OCI_ATTR_SERVER,FOciError) <> OCI_SUCCESS then
-    HandleError();
-  // Set username and password in the user-session handle
-  if OCIAttrSet(FOciUserSession,OCI_HTYPE_SESSION,@(Self.UserName[1]),Length(Self.UserName),OCI_ATTR_USERNAME,FOciError) <> OCI_SUCCESS then
-    HandleError();
-  if OCIAttrSet(FOciUserSession,OCI_HTYPE_SESSION,@(Self.Password[1]),Length(Self.Password),OCI_ATTR_PASSWORD,FOciError) <> OCI_SUCCESS then
-    HandleError();
-  // Authenticate
-  if OCISessionBegin(TempServiceContext,FOciError,FOcIUserSession,OCI_CRED_RDBMS,OCI_DEFAULT) <> OCI_SUCCESS then
-    HandleError();
-  // Free temporary service-context handle
-  OCIHandleFree(TempServiceContext,OCI_HTYPE_SVCCTX);
+    try
+      // Create temporary service-context handle for user authentication
+      if OciHandleAlloc(FOciEnvironment,TempServiceContext,OCI_HTYPE_SVCCTX,0,FUserMem) <> OCI_SUCCESS then
+        DatabaseError(SErrHandleAllocFailed,self);
+
+      try
+        // Create user-session handle
+        if OciHandleAlloc(FOciEnvironment,FOciUserSession,OCI_HTYPE_SESSION,0,FUserMem) <> OCI_SUCCESS then
+          DatabaseError(SErrHandleAllocFailed,self);
+        try
+          // Set the server-handle in the service-context handle
+          if OCIAttrSet(TempServiceContext,OCI_HTYPE_SVCCTX,FOciServer,0,OCI_ATTR_SERVER,FOciError) <> OCI_SUCCESS then
+            HandleError();
+          // Set username and password in the user-session handle
+          if OCIAttrSet(FOciUserSession,OCI_HTYPE_SESSION,@(Self.UserName[1]),Length(Self.UserName),OCI_ATTR_USERNAME,FOciError) <> OCI_SUCCESS then
+            HandleError();
+          if OCIAttrSet(FOciUserSession,OCI_HTYPE_SESSION,@(Self.Password[1]),Length(Self.Password),OCI_ATTR_PASSWORD,FOciError) <> OCI_SUCCESS then
+            HandleError();
+          // Authenticate
+          if OCISessionBegin(TempServiceContext,FOciError,FOcIUserSession,OCI_CRED_RDBMS,OCI_DEFAULT) <> OCI_SUCCESS then
+            HandleError();
+          IsConnected := true;
+        finally
+          if not IsConnected then
+          begin
+            OCIHandleFree(FOciUserSession,OCI_HTYPE_SESSION);
+            FOciUserSession := nil;
+          end;
+        end;
+      finally
+        // Free temporary service-context handle
+        OCIHandleFree(TempServiceContext,OCI_HTYPE_SVCCTX);
+      end;
+    finally
+      if not IsConnected then
+        OCIServerDetach(FOciServer,FOciError,OCI_DEFAULT);
+    end;
+  finally
+    if not IsConnected then
+    begin
+      if assigned(FOciServer) then
+      OCIHandleFree(FOciServer,OCI_HTYPE_SERVER);
+      if assigned(FOciError) then
+        OCIHandleFree(FOciError,OCI_HTYPE_ERROR);
+      if assigned(FOciEnvironment) then
+        OCIHandleFree(FOciEnvironment,OCI_HTYPE_ENV);
+      FOciEnvironment := nil;
+      FOciError := nil;
+      FOciServer := nil;
+    end;
+  end;
 end;
 
 procedure TOracleConnection.DoInternalDisconnect;
@@ -441,36 +471,56 @@ var
 begin
   inherited DoInternalDisconnect;
 
-  // Create temporary service-context handle for user-disconnect
-  if OciHandleAlloc(FOciEnvironment,TempServiceContext,OCI_HTYPE_SVCCTX,0,FUserMem) <> OCI_SUCCESS then
-    DatabaseError(SErrHandleAllocFailed,self);
+  if assigned(FOciEnvironment) then
+  begin
+    if assigned(FOciError) then
+    begin
+      if assigned(FOciServer) then
+      begin
+        if assigned(FOciUserSession) then
+        begin
+          try
+            // Create temporary service-context handle for user-disconnect
+            if OciHandleAlloc(FOciEnvironment,TempServiceContext,OCI_HTYPE_SVCCTX,0,FUserMem) <> OCI_SUCCESS then
+              DatabaseError(SErrHandleAllocFailed,self);
 
-  // Set the server handle in the service-context handle
-  if OCIAttrSet(TempServiceContext,OCI_HTYPE_SVCCTX,FOciServer,0,OCI_ATTR_SERVER,FOciError) <> OCI_SUCCESS then
-    HandleError();
-  // Set the user session handle in the service-context handle
-  if OCIAttrSet(TempServiceContext,OCI_HTYPE_SVCCTX,FOciUserSession,0,OCI_ATTR_SESSION,FOciError) <> OCI_SUCCESS then
-    HandleError();
-  // Disconnect uses-session handle
-  if OCISessionEnd(TempServiceContext,FOciError,FOcIUserSession,OCI_DEFAULT) <> OCI_SUCCESS then
-    HandleError();
-  // Free user-session handle
-  OCIHandleFree(FOciUserSession,OCI_HTYPE_SESSION);
-  // Free temporary service-context handle
-  OCIHandleFree(TempServiceContext,OCI_HTYPE_SVCCTX);
+            // Set the server handle in the service-context handle
+            if OCIAttrSet(TempServiceContext,OCI_HTYPE_SVCCTX,FOciServer,0,OCI_ATTR_SERVER,FOciError) <> OCI_SUCCESS then
+              HandleError();
+            // Set the user session handle in the service-context handle
+            if OCIAttrSet(TempServiceContext,OCI_HTYPE_SVCCTX,FOciUserSession,0,OCI_ATTR_SESSION,FOciError) <> OCI_SUCCESS then
+              HandleError();
+            // Disconnect uses-session handle
+            if OCISessionEnd(TempServiceContext,FOciError,FOcIUserSession,OCI_DEFAULT) <> OCI_SUCCESS then
+              HandleError();
+          finally
+            // Free user-session handle
+            OCIHandleFree(FOciUserSession,OCI_HTYPE_SESSION);
+            // Free temporary service-context handle
+            OCIHandleFree(TempServiceContext,OCI_HTYPE_SVCCTX);
+            FOciUserSession := nil;
+          end;
+        end;
 
-  // Disconnect server handle
-  if OCIServerDetach(FOciServer,FOciError,OCI_DEFAULT) <> OCI_SUCCESS then
-    HandleError();
-
-  // Free connection handles
-  OCIHandleFree(FOciServer,OCI_HTYPE_SERVER);
-  OCIHandleFree(FOciError,OCI_HTYPE_ERROR);
-  OCIHandleFree(FOciEnvironment,OCI_HTYPE_ENV);
+        try
+          // Disconnect server handle
+          if OCIServerDetach(FOciServer,FOciError,OCI_DEFAULT) <> OCI_SUCCESS then
+            HandleError();
+        finally
+          // Free connection handles
+          OCIHandleFree(FOciServer,OCI_HTYPE_SERVER);
+          FOciServer := nil;
+        end;
+      end;
+      OCIHandleFree(FOciError,OCI_HTYPE_ERROR);
+      FOciError := nil;
+    end;
+    OCIHandleFree(FOciEnvironment,OCI_HTYPE_ENV);
+    FOciEnvironment := nil;
+  end;
 {$IfDef LinkDynamically}
   ReleaseOCI;
 {$EndIf}
-
 end;
 
 function TOracleConnection.AllocateCursorHandle: TSQLCursor;
@@ -568,6 +618,7 @@ begin
     end;
     if FStatementType in [stUpdate,stDelete,stInsert,stDDL] then
       FSelectable:=false;
+
     if assigned(AParams) then
       begin
       setlength(ParamBuffers,AParams.Count);
@@ -588,7 +639,8 @@ begin
           ftFMTBcd, ftBCD :
             begin OFieldType := SQLT_VNU; OFieldSize := 22; end;
           ftBlob :
-            begin OFieldType := SQLT_LVB; OFieldSize := 65535; end;
+            //begin OFieldType := SQLT_LVB; OFieldSize := 65535; end;
+            begin OFieldType := SQLT_BLOB; OFieldSize := sizeof(pointer); ODescType := OCI_DTYPE_LOB; end;
           ftMemo :
             begin OFieldType := SQLT_LVC; OFieldSize := 65535; end;
         else
@@ -629,13 +681,13 @@ begin
     end;
 end;
 
-procedure TOracleConnection.SetParameters(cursor : TSQLCursor; AParams : TParams);
+procedure TOracleConnection.SetParameters(cursor : TSQLCursor; ATransaction : TSQLTransaction; AParams : TParams);
 
-var i              : integer;
+var i         : integer;
     year, month, day, hour, min, sec, msec : word;
-    s              : string;
-    blobbuf        : string;
-    bloblen        : ub4;
+    s         : string;
+    LobBuffer : string;
+    LobLength : ub4;
 
 begin
   with cursor as TOracleCursor do for i := 0 to High(ParamBuffers) do with AParams[i] do
@@ -671,14 +723,21 @@ begin
         ftFmtBCD, ftBCD   : begin
                             FmtBCD2Nvu(asFmtBCD,parambuffers[i].buffer);
                             end;
-        ftBlob, ftMemo    : begin
-                            blobbuf := AsBlob; // todo: use AsBytes
-                            bloblen := length(blobbuf);
-                            if bloblen > 65531 then bloblen := 65531;
-                            PInteger(ParamBuffers[i].Buffer)^ := bloblen;
-                            Move(blobbuf[1], (ParamBuffers[i].Buffer+sizeof(integer))^, bloblen);
-                            //if OciLobWrite(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, ParamBuffers[i].buffer, @bloblen, 1, @blobbuf[1], bloblen, OCI_ONE_PIECE, nil, nil, 0, SQLCS_IMPLICIT) = OCI_ERROR then
-                            //  HandleError;
+        ftBlob            : begin
+                            LobBuffer := AsBlob; // todo: use AsBytes
+                            LobLength := length(LobBuffer);
+                            // create empty temporary LOB with zero length
+                            if OciLobCreateTemporary(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, ParamBuffers[i].Buffer, OCI_DEFAULT, OCI_DEFAULT, OCI_TEMP_BLOB, False, OCI_DURATION_SESSION) = OCI_ERROR then
+                              HandleError;
+                            if (LobLength > 0) and (OciLobWrite(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, ParamBuffers[i].Buffer, @LobLength, 1, @LobBuffer[1], LobLength, OCI_ONE_PIECE, nil, nil, 0, SQLCS_IMPLICIT) = OCI_ERROR) then
+                              HandleError;
+                            end;
+        ftMemo            : begin
+                            LobBuffer := AsString;
+                            LobLength := length(LobBuffer);
+                            if LobLength > 65531 then LobLength := 65531;
+                            PInteger(ParamBuffers[i].Buffer)^ := LobLength;
+                            Move(LobBuffer[1], (ParamBuffers[i].Buffer+sizeof(integer))^, LobLength);
                             end;
         else
           DatabaseErrorFmt(SUnsupportedParameter,[DataType],self);
@@ -763,8 +822,17 @@ begin
 end;
 
 procedure TOracleConnection.Execute(cursor: TSQLCursor; ATransaction: TSQLTransaction; AParams: TParams);
+  procedure FreeParameters;
+  var i: integer;
+  begin
+    with cursor as TOracleCursor do
+      for i:=0 to high(ParamBuffers) do
+        if ParamBuffers[i].DescType = OCI_DTYPE_LOB then
+          if OciLobFreeTemporary(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, ParamBuffers[i].Buffer) = OCI_ERROR then
+            HandleError;
+  end;
 begin
-  if Assigned(AParams) and (AParams.Count > 0) then SetParameters(cursor, AParams);
+  if Assigned(AParams) and (AParams.Count > 0) then SetParameters(cursor, ATransaction, AParams);
   if cursor.FStatementType = stSelect then
     begin
     if OCIStmtExecute(TOracleTrans(ATransaction.Handle).FOciSvcCtx,(cursor as TOracleCursor).FOciStmt,FOciError,0,0,nil,nil,OCI_DEFAULT) = OCI_ERROR then
@@ -774,8 +842,9 @@ begin
     begin
     if OCIStmtExecute(TOracleTrans(ATransaction.Handle).FOciSvcCtx,(cursor as TOracleCursor).FOciStmt,FOciError,1,0,nil,nil,OCI_DEFAULT) = OCI_ERROR then
       HandleError;
-    if Assigned(AParams) and (AParams.Count > 0) then GetParameters(cursor, AParams);
+    if Assigned(AParams) and (AParams.Count > 0) then GetParameters(cursor, ATransaction, AParams);
     end;
+  FreeParameters;
 end;
 
 function TOracleConnection.RowsAffected(cursor: TSQLCursor): TRowsCount;
@@ -892,7 +961,12 @@ begin
                                   OFieldSize:=sizeof(double);
                                   end;
                                 end;
-        SQLT_LNG,
+        SQLT_LNG              : begin
+                                FieldType := ftString;
+                                FieldSize := MaxSmallint; // OFieldSize is zero for LONG data type
+                                OFieldSize:= MaxSmallint+1;
+                                OFieldType:=SQLT_STR;
+                                end;
         OCI_TYPECODE_CHAR,
         OCI_TYPECODE_VARCHAR,
         OCI_TYPECODE_VARCHAR2 : begin
@@ -1044,17 +1118,20 @@ end;
 
 procedure TOracleConnection.LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction: TSQLTransaction);
 var LobLocator: pointer;
-    len: ub4;
+    LobCharSetForm: ub1;
+    LobLength: ub4;
 begin
   LobLocator := (cursor as TOracleCursor).FieldBuffers[FieldDef.FieldNo-1].Buffer;
   //if OCILobLocatorIsInit(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, LobLocator, @is_init) = OCI_ERROR then
   //  HandleError;
-  if OciLobGetLength(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, LobLocator, @len) = OCI_ERROR then
+  // For character LOBs, it is the number of characters, for binary LOBs and BFILEs it is the number of bytes
+  if OciLobGetLength(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, LobLocator, @LobLength) = OCI_ERROR then
     HandleError;
-  // Len - For character LOBs, it is the number of characters, for binary LOBs and BFILEs it is the number of bytes
-  ReAllocMem(ABlobBuf^.BlobBuffer^.Buffer, len);
-  ABlobBuf^.BlobBuffer^.Size := len;
-  if OciLobRead(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, LobLocator, @len, 1, ABlobBuf^.BlobBuffer^.Buffer, len, nil, nil, 0, SQLCS_IMPLICIT) = OCI_ERROR then
+  if OCILobCharSetForm(FOciEnvironment, FOciError, LobLocator, @LobCharSetForm) = OCI_ERROR then
+    HandleError;
+  ReAllocMem(ABlobBuf^.BlobBuffer^.Buffer, LobLength);
+  ABlobBuf^.BlobBuffer^.Size := LobLength;
+  if (LobLength > 0) and (OciLobRead(TOracleTrans(ATransaction.Handle).FOciSvcCtx, FOciError, LobLocator, @LobLength, 1, ABlobBuf^.BlobBuffer^.Buffer, LobLength, nil, nil, 0, LobCharSetForm) = OCI_ERROR) then
     HandleError;
 end;
 
@@ -1123,7 +1200,8 @@ begin
     stTables     : s := 'SELECT '+
                           '''' + DatabaseName + ''' as catalog_name, '+
                           'sys_context( ''userenv'', ''current_schema'' ) as schema_name, '+
-                          'TABLE_NAME '+
+                          'TABLE_NAME,'+
+                          'TABLE_TYPE '+
                         'FROM USER_CATALOG ' +
                         'WHERE '+
                           'TABLE_TYPE<>''SEQUENCE'' '+
@@ -1132,20 +1210,22 @@ begin
     stSysTables  : s := 'SELECT '+
                           '''' + DatabaseName + ''' as catalog_name, '+
                           'OWNER as schema_name, '+
-                          'TABLE_NAME '+
+                          'TABLE_NAME,'+
+                          'TABLE_TYPE '+
                         'FROM ALL_CATALOG ' +
                         'WHERE '+
                           'TABLE_TYPE<>''SEQUENCE'' '+
                         'ORDER BY TABLE_NAME';
     stColumns    : s := 'SELECT '+
+                          'OWNER as schema_name, '+
                           'COLUMN_NAME, '+
                           'DATA_TYPE as column_datatype, '+
                           'CHARACTER_SET_NAME, '+
                           'NULLABLE as column_nullable, '+
                           'DATA_LENGTH as column_length, '+
                           'DATA_PRECISION as column_precision, '+
-                          'DATA_SCALE as column_scale '+
-                          {DATA_DEFAULT is type LONG; no support for that in oracleconnection so removed this from query}
+                          'DATA_SCALE as column_scale, '+
+                          'DATA_DEFAULT as column_default '+
                         'FROM ALL_TAB_COLUMNS '+
                         'WHERE Upper(TABLE_NAME) = '''+UpperCase(SchemaObjectName)+''' '+
                         'ORDER BY COLUMN_NAME';
@@ -1163,6 +1243,10 @@ constructor TOracleConnection.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FConnOptions := FConnOptions + [sqEscapeRepeat];
+  FOciEnvironment := nil;
+  FOciError := nil;
+  FOciServer := nil;
+  FOciUserSession := nil;
   FUserMem := nil;
 end;
 

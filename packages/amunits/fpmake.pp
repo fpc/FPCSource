@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
 
     P.Author := 'Nils Sjoholm';
     P.License := 'LGPL with modification';
@@ -33,7 +33,7 @@ begin
     P.SourcePath.Add('src/utilunits');
     P.IncludePath.Add('src');
 
-    T:=P.Targets.AddUnit('msgbox.pas');
+    T:=P.Targets.AddUnit('amsgbox.pas');
     T:=P.Targets.AddUnit('amigautils.pas');
     T:=P.Targets.AddUnit('wbargs.pas');
     T:=P.Targets.AddUnit('vartags.pas');
@@ -49,8 +49,9 @@ begin
     T:=P.Targets.AddUnit('timerutils.pas');
     T:=P.Targets.AddUnit('easyasl.pas');
     T:=P.Targets.AddUnit('doublebuffer.pas');
+    T:=P.Targets.AddUnit('exec.pas');
     T:=P.Targets.AddUnit('intuition.pas');
-    T:=P.Targets.AddUnit('graphics.pas');
+    T:=P.Targets.AddUnit('agraphics.pas');
     T:=P.Targets.AddUnit('amigalib.pas');
     T:=P.Targets.AddUnit('nonvolatile.pas');
     T:=P.Targets.AddUnit('iffparse.pas');
@@ -60,7 +61,7 @@ begin
     T:=P.Targets.AddUnit('conunit.pas');
     T:=P.Targets.AddUnit('amigados.pas');
     T:=P.Targets.AddUnit('configvars.pas');
-    T:=P.Targets.AddUnit('keyboard.pas');
+    T:=P.Targets.AddUnit('akeyboard.pas');
     T:=P.Targets.AddUnit('bootblock.pas');
     T:=P.Targets.AddUnit('icon.pas');
     T:=P.Targets.AddUnit('cd.pas');

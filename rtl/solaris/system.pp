@@ -286,7 +286,6 @@ Begin
 { Arguments }
   SetupCmdLine;
   InitSystemThreads;
-  initvariantmanager;
   { restore original signal handlers in case this is a library }
   if IsLibrary then
     RestoreOldSignalHandlers;

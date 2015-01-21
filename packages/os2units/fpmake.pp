@@ -12,10 +12,12 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('os2units');
+    P.ShortName:='os2';
+    P.Description := 'Interface units for various libraries included with OS/2 and/or eComStation (multimedia, direct graphics I/O, management of disk partitions / volumes, simple FTP communication library, etc.).';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.OSes := [OS2,emx];
     P.SourcePath.Add('src');
 //    P.Dependencies.Add('x11');

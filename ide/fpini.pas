@@ -32,6 +32,7 @@ procedure SetPrinterDevice(const Device: string);
 implementation
 
 uses
+  sysutils, { used for SameFileName function }
   Dos,Objects,Drivers,
   FVConsts,
   Version,
@@ -102,10 +103,17 @@ const
   ieDebuggeeRedir    = 'DebugRedirection';
   ieRemoteMachine    = 'RemoteMachine';
   ieRemotePort       = 'RemotePort';
+  ieRemotePuttySession = 'RemotePuttySession';
   ieRemoteSendCommand = 'RemoteSendCommand';
+  ieRemoteExecCommand = 'RemoteExecCommand';
+  ieRemoteSshExecCommand = 'RemoteSshExecCommand';
   ieRemoteConfig     = 'RemoteSendConfig';
   ieRemoteIdent      = 'RemoteSendIdent';
   ieRemoteDirectory  = 'RemoteDirectory';
+  ieRemoteCopy       = 'RemoteCopy';
+  ieRemoteShell      = 'RemoteShell';
+  ieRemoteGdbServer  = 'gdbserver';
+
   iePrimaryFile      = 'PrimaryFile';
   ieCompileMode      = 'CompileMode';
   iePalette          = 'Palette';
@@ -226,10 +234,17 @@ begin
                ErrorBox(FormatStrStr(msg_errorwritingfile,CurDir+IniName),nil)
              else
                IniFileName:=CurDir+IniName;
-             if CopyFile(SwitchesPath,CurDir+SwitchesName)=false then
-               ErrorBox(FormatStrStr(msg_errorwritingfile,CurDir+SwitchesName),nil)
-             else
-               SwitchesPath:=CurDir+SwitchesName;
+             { copy also SwitchesPath to current dir, but only if
+               1) SwitchesPath exists
+               2) SwitchesPath is different from CurDir+SwitchesName }
+             if ExistsFile(SwitchesPath) and
+                not SameFileName(SwitchesPath,CurDir+SwitchesName) then
+               begin
+                 if CopyFile(SwitchesPath,CurDir+SwitchesName)=false then
+                   ErrorBox(FormatStrStr(msg_errorwritingfile,CurDir+SwitchesName),nil)
+                 else
+                   SwitchesPath:=CurDir+SwitchesName;
+               end;
            end;
        end
      else
@@ -420,10 +435,16 @@ begin
 {$ifdef SUPPORT_REMOTE}
   RemoteMachine :=INIFile^.GetEntry(secRun,ieRemoteMachine,RemoteMachine);
   RemotePort :=INIFile^.GetEntry(secRun,ieRemotePort,RemotePort);
+  RemotePuttySession :=INIFile^.GetEntry(secRun,ieRemotePuttySession,RemotePuttySession);
   RemoteSendCommand :=INIFile^.GetEntry(secRun,ieRemoteSendCommand,RemoteSendCommand);
+  RemoteExecCommand :=INIFile^.GetEntry(secRun,ieRemoteExecCommand,RemoteExecCommand);
+  RemoteSshExecCommand :=INIFile^.GetEntry(secRun,ieRemoteSshExecCommand,RemoteSshExecCommand);
   RemoteConfig :=INIFile^.GetEntry(secRun,ieRemoteConfig,RemoteConfig);
   RemoteIdent :=INIFile^.GetEntry(secRun,ieRemoteIdent,RemoteIdent);
   RemoteDir :=INIFile^.GetEntry(secRun,ieRemoteDirectory,RemoteDir);
+  RemoteGDBServer :=INIFile^.GetEntry(secRun,ieRemoteGDBServer,RemoteGDBServer);
+  RemoteCopy :=INIFile^.GetEntry(secRun,ieRemoteCopy,RemoteCopy);
+  RemoteShell :=INIFile^.GetEntry(secRun,ieRemoteShell,RemoteShell);
 {$endif SUPPORT_REMOTE}
   { Compile }
   S:=INIFile^.GetEntry(secCompile,ieCompileMode,'');
@@ -637,10 +658,19 @@ begin
 {$ifdef SUPPORT_REMOTE}
     INIFile^.SetEntry(secRun,ieRemoteMachine,RemoteMachine);
     INIFile^.SetEntry(secRun,ieRemotePort,RemotePort);
+    INIFile^.SetEntry(secRun,ieRemotePuttySession,RemotePuttySession);
     INIFile^.SetEntry(secRun,ieRemoteSendCommand,RemoteSendCommand);
     INIFile^.SetEntry(secRun,ieRemoteConfig,RemoteConfig);
     INIFile^.SetEntry(secRun,ieRemoteIdent,RemoteIdent);
     INIFile^.SetEntry(secRun,ieRemoteDirectory,RemoteDir);
+    INIFile^.SetEntry(secRun,ieRemoteExecCommand,RemoteExecCommand);
+    INIFile^.SetEntry(secRun,ieRemoteSshExecCommand,RemoteSshExecCommand);
+    INIFile^.SetEntry(secRun,ieRemoteConfig,RemoteConfig);
+    INIFile^.SetEntry(secRun,ieRemoteIdent,RemoteIdent);
+    INIFile^.SetEntry(secRun,ieRemoteDirectory,RemoteDir);
+    INIFile^.SetEntry(secRun,ieRemoteGDBServer,RemoteGDBServer);
+    INIFile^.SetEntry(secRun,ieRemoteCopy,RemoteCopy);
+    INIFile^.SetEntry(secRun,ieRemoteShell,RemoteShell);
 {$endif SUPPORT_REMOTE}
   { Compile }
   INIFile^.SetEntry(secCompile,iePrimaryFile,PrimaryFile);

@@ -340,6 +340,12 @@ implementation
          reasonbuf,
          exceptreg: tregister;
       begin
+         oldBreakLabel:=nil;
+         oldContinueLabel:=nil;
+         finallycodecopy:=nil;
+         continuefinallylabel:=nil;
+         breakfinallylabel:=nil;
+
          { not necessary on a garbage-collected platform }
          if implicitframe then
            internalerror(2011031803);

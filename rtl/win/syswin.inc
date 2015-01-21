@@ -498,9 +498,15 @@ procedure SysInitStdIO;
 begin
   { Setup stdin, stdout and stderr, for GUI apps redirect stderr,stdout to be
     displayed in a messagebox }
-  StdInputHandle:=longint(GetStdHandle(cardinal(STD_INPUT_HANDLE)));
-  StdOutputHandle:=longint(GetStdHandle(cardinal(STD_OUTPUT_HANDLE)));
-  StdErrorHandle:=longint(GetStdHandle(cardinal(STD_ERROR_HANDLE)));
+  { WARNING: this should be done only once at startup,
+    not for DLL entry code, as the standard handles might
+    have been redirected }
+  if StdInputHandle=0 then
+    StdInputHandle:=longint(GetStdHandle(cardinal(STD_INPUT_HANDLE)));
+  if StdOutputHandle=0 then
+    StdOutputHandle:=longint(GetStdHandle(cardinal(STD_OUTPUT_HANDLE)));
+  if StdErrorHandle=0 then
+    StdErrorHandle:=longint(GetStdHandle(cardinal(STD_ERROR_HANDLE)));
   if not IsConsole then
    begin
      AssignError(stderr);

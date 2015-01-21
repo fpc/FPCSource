@@ -225,7 +225,7 @@ unit cpugas;
             not (ai.condition in [C_EQ,C_NE,C_GTZ,C_GEZ,C_LTZ,C_LEZ,C_COP1TRUE,C_COP1FALSE])) {or (op=A_JAL)}
           or (op=A_REM) or (op=A_REMU)
           { DIV and DIVU are normally macros, but use $zero as first arg to generate a CPU instruction. }
-          or ((op=A_DIV) or (op=A_DIVU) and
+          or (((op=A_DIV) or (op=A_DIVU)) and
             ((ai.ops<>3) or (ai.oper[0]^.typ<>top_reg) or (ai.oper[0]^.reg<>NR_R0)))
           or (op=A_MULO) or (op=A_MULOU)
           { A_LI is only a macro if the immediate is not in thez 16-bit range }

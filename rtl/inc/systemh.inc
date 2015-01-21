@@ -20,6 +20,7 @@
 
 {$I-,Q-,H-,R-,V-}
 {$mode objfpc}
+{$modeswitch advancedrecords}
 
 { At least 2.4.0 is required }
 {$if defined(VER1) or defined(VER2_0) or defined(VER2_2) }
@@ -412,6 +413,7 @@ Type
   AnsiChar            = Char;
   PAnsiChar           = PChar;
   PPAnsiChar          = PPChar;
+  PPPAnsiChar         = PPPChar;
 
   UCS4Char            = type 0..$10ffff;
   PUCS4Char           = ^UCS4Char;
@@ -524,7 +526,8 @@ Type
   { the size of textrec/filerec is hardcoded in the 2.6 compiler binary }
   {$define FPC_ANSI_TEXTFILEREC}
 {$endif}
-  TFileTextRecChar    = {$ifdef FPC_ANSI_TEXTFILEREC}AnsiChar{$else}UnicodeChar{$endif};
+
+  TFileTextRecChar    = {$if defined(FPC_ANSI_TEXTFILEREC) or not(defined(FPC_HAS_FEATURE_WIDESTRINGS))}AnsiChar{$else}UnicodeChar{$endif};
   PFileTextRecChar    = ^TFileTextRecChar;
 
   TTextLineBreakStyle = (tlbsLF,tlbsCRLF,tlbsCR);
@@ -1070,10 +1073,16 @@ Function  Pos(const substr:shortstring;const s:shortstring):SizeInt;
 Function  Pos(C:Char;const s:shortstring):SizeInt;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Function  Pos(const Substr : ShortString; const Source : RawByteString) : SizeInt;
+
+{$ifdef FPC_HAS_CPSTRING}
+Procedure fpc_setstring_ansistr_pansichar(out S : RawByteString; Buf : PAnsiChar; Len : SizeInt; cp: TSystemCodePage); rtlproc; compilerproc;
+Procedure fpc_setstring_ansistr_pwidechar(out S : RawByteString; Buf : PWideChar; Len : SizeInt; cp: TSystemCodePage); rtlproc; compilerproc;
+{$else}
 Procedure SetString(out S : AnsiString; Buf : PAnsiChar; Len : SizeInt);
 Procedure SetString(out S : AnsiString; Buf : PWideChar; Len : SizeInt);
+{$endif}
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
-Procedure SetString (out S : Shortstring; Buf : PChar; Len : SizeInt);
+Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_shortstr{$else}SetString{$endif}(out S : Shortstring; Buf : PChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
 function  ShortCompareText(const S1, S2: shortstring): SizeInt;
 Function  upCase(const s:shortstring):shortstring;
 Function  lowerCase(const s:shortstring):shortstring; overload;
@@ -1467,6 +1476,14 @@ const
 {$ifdef FPC_HAS_FEATURE_VARIANTS}
 {$i varianth.inc}
 {$endif FPC_HAS_FEATURE_VARIANTS}
+
+{*****************************************************************************
+                           RTTI support
+*****************************************************************************}
+
+{$ifdef FPC_HAS_FEATURE_RTTI}
+{$i rttih.inc}
+{$endif FPC_HAS_FEATURE_RTTI}
 
 {*****************************************************************************
                    Internal helper routines support

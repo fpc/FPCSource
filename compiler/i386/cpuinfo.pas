@@ -30,6 +30,9 @@ Interface
 
 Type
    bestreal = extended;
+{$if FPC_FULLVERSION>20700}
+   bestrealrec = TExtended80Rec;
+{$endif FPC_FULLVERSION>20700}
    ts32real = single;
    ts64real = double;
    ts80real = extended;
@@ -66,8 +69,25 @@ Type
       fpu_avx2
      );
 
+   tcontrollertype =
+     (ct_none
+     );
+
 
 Const
+   { Is there support for dealing with multiple microcontrollers available }
+   { for this platform? }
+   ControllerSupport = false;
+
+   { We know that there are fields after sramsize
+     but we don't care about this warning }
+   {$PUSH}
+    {$WARN 3177 OFF}
+   embedded_controllers : array [tcontrollertype] of tcontrollerdatatype =
+   (
+      (controllertypestr:''; controllerunitstr:''; flashbase:0; flashsize:0; srambase:0; sramsize:0));
+   {$POP}
+
    { calling conventions supported by the code generator }
    supported_calling_conventions : tproccalloptions = [
      pocall_internproc,

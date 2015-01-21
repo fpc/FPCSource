@@ -457,7 +457,7 @@ implementation
         if hp.resultdef.typ<>pointerdef then
           internalerror(2010061904);
         inserttypeconv(hp,
-          carraydef.create_from_pointer(tpointerdef(hp.resultdef).pointeddef));
+          carraydef.create_from_pointer(tpointerdef(hp.resultdef)));
         hp:=cvecnode.create(hp,ctemprefnode.create(innerloopcounter));
         addstatement(innerloopbodystatement,
           cassignmentnode.create(hloopvar,hp));
@@ -1394,7 +1394,7 @@ implementation
            not(is_typeparam(left.resultdef)) then
              inserttypeconv(left,pasbool8type);
 
-         result:=internalsimplify(true);
+         result:=internalsimplify(not(nf_internal in flags));
       end;
 
 
@@ -1524,8 +1524,11 @@ implementation
          set_varstate(left,vs_written,[]);
 
          { loop unrolling }
-         if cs_opt_loopunroll in current_settings.optimizerswitches then
+         if (cs_opt_loopunroll in current_settings.optimizerswitches) and
+           { statements must be error free }
+           not(nf_error in t2.flags) then
            begin
+             typecheckpass(t2);
              res:=t2.simplify(false);
              if assigned(res) then
                t2:=res;

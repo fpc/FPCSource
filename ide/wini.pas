@@ -123,13 +123,40 @@ end;
 
 function TINIEntry.GetText: string;
 var S,CoS: string;
+    delimiter : char;
+    i : longint;
 begin
   if Text=nil then
     begin
       CoS:=GetComment;
       S:=GetTag+'='+GetValue;
       if Trim(S)='=' then S:=CoS else
-        if CoS<>'' then S:=S+' '+CommentChar+' '+CoS;
+        if CoS<>'' then
+          begin
+            { if Value contains CommentChar, we need to add delimiters }
+            if pos(CommentChar,S)>0 then
+              begin
+                delimiter:=#0;
+                while delimiter < #255 do
+                  begin
+                    if (delimiter in ValidStrDelimiters) and
+                       (pos(delimiter,S)=0) then
+                      break;
+                    delimiter:=succ(delimiter);
+                  end;
+                if delimiter=#255 then
+                  delimiter:='"';
+                { we use \", but we also need to escape \ itself }
+                for i:=length(s) downto 1 do
+                  if (s[i]=delimiter) then
+                    s:=copy(s,1,i-1)+'\'+delimiter+copy(s,i+1,length(s))
+                  else if (s[i]='\') then
+                    s:=copy(s,1,i-1)+'\\'+copy(s,i+1,length(s));
+
+                s:=delimiter+s+delimiter;
+              end;
+            S:=S+' '+CommentChar+' '+CoS;
+          end
     end
     else S:=Text^;
   GetText:=S;
@@ -176,7 +203,8 @@ var S,ValueS: string;
 begin
   S:=GetText; Delimiter:=#0;
   P:=Pos('=',S); P2:=Pos(CommentChar,S);
-  if (P2<>0) and (P2<P) then P:=0;
+  if (P2<>0) and (P2<P) then
+    P:=0;
   if P<>0 then
     begin
       Tag:=NewStr(copy(S,1,P-1));
@@ -186,15 +214,38 @@ begin
       while (P2<=length(S)) do
         begin
           C:=S[P2];
-          if (P2=StartP) and (C in ValidStrDelimiters) then begin Delimiter:=C; InString:=true; end else
-          if C=Delimiter then InString:=not InString else
-          if (C=CommentChar) and (InString=false) then Break else
-          ValueS:=ValueS+C;
+          if (P2=StartP) and (C in ValidStrDelimiters) then
+            begin
+              Delimiter:=C;
+              InString:=true;
+            end
+          { if Value is delimited with ' or ", handle escaping }
+          else if (Delimiter<>#0) and (C='\') and (P2<length(S)) then
+            begin
+              inc(P2);
+              C:=S[P2];
+              ValueS:=ValueS+C;
+            end
+          else if C=Delimiter then
+            InString:=not InString
+          else if (C=CommentChar) and (InString=false) then
+            Break
+          else
+            ValueS:=ValueS+C;
           Inc(P2);
         end;
       Value:=NewStr(Trim(ValueS));
       Comment:=NewStr(copy(S,P2+1,High(S)));
-    end else
+      { dispose raw text as special treatment is needed for
+        write }
+      if assigned(Comment) and assigned(Text) and
+         (delimiter<>#0) then
+        begin
+          DisposeStr(Text);
+          Text:=nil;
+        end;
+    end
+  else
     begin
       Tag:=nil;
       TagHash:=0;

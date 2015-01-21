@@ -12,8 +12,11 @@
 
  **********************************************************************}
 {
-   This example shows how to use curl and write the result to a TStream.
+    This example shows how to use curl and write the result to a TStream.
+    It requires the libcurl library. Should work on Unix/Linux.
+    It would need modifications to run on Windows.
 }
+
 {$mode objfpc}
 {$H+}
 program teststream;

@@ -164,7 +164,10 @@ const
   { 79 }  'MSDOS-i8086',
   { 80 }  'Android-MIPSel',
   { 81 }  'Embedded-mipseb',
-  { 82 }  'Embedded-mipsel'
+  { 82 }  'Embedded-mipsel',
+  { 83 }  'AROS-i386',
+  { 84 }  'AROS-x86-64',
+  { 85 }  'DragonFly-x86-64'
   );
 
 const
@@ -1100,9 +1103,7 @@ end;
          disabledircache : boolean;
 
         { CPU targets with microcontroller support can add a controller specific unit }
-{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
         controllertype   : tcontrollertype;
-{$endif defined(ARM) or defined(AVR) or defined(MIPSEL)}
          { WARNING: this pointer cannot be written as such in record token }
          pmessage : pmessagestaterecord;
        end;
@@ -1526,6 +1527,19 @@ begin
         end;
     end;
 
+  if [df_generic,df_specialization]*defoptions<>[] then
+    begin
+      nb:=ppufile.getlongint;
+      writeln([space,'has ',nb,' parameters']);
+      if nb>0 then
+        begin
+          for i:=0 to nb-1 do
+            begin
+              writeln([space,'parameter ',i,': ',ppufile.getstring]);
+              readderef(space);
+            end;
+        end;
+    end;
   if df_generic in defoptions then
     begin
       tokenbufsize:=ppufile.getlongint;
@@ -1724,6 +1738,7 @@ const
      (mask:po_syscall_basesysv;str:'SyscallBaseSysV'),
      (mask:po_syscall_sysvbase;str:'SyscallSysVBase'),
      (mask:po_syscall_r12base; str:'SyscallR12Base'),
+     (mask:po_syscall_has_libsym; str:'Has LibSym'),
      (mask:po_inline;          str:'Inline'),
      (mask:po_compilerproc;    str:'CompilerProc'),
      (mask:po_has_importdll;   str:'HasImportDLL'),
@@ -1804,6 +1819,8 @@ begin
       i:=ppufile.getbyte;
       ppufile.getdata(tempbuf,i);
     end;
+  if po_syscall_has_libsym in procoptions then
+      readderef(space);
 end;
 
 
@@ -2867,6 +2884,8 @@ begin
              writeln([space,'            Range : ',arrdef.RangeLow,' to ',arrdef.RangeHigh]);
              write  ([space,'          Options : ']);
              readarraydefoptions(arrdef);
+             if tsystemcpu(ppufile.header.cpu)=cpu_i8086 then
+               writeln([space,'             Huge : ',(getbyte<>0)]);
              readsymtable('symbols', arrdef);
            end;
 

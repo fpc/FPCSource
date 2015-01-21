@@ -54,7 +54,7 @@ type
 var
   ProcessID: SizeUInt;
 
-function GetProcessID:SizeUInt;
+function GetProcessID: SizeUInt;
 begin
  GetProcessID := ProcessID;
 end;
@@ -79,7 +79,7 @@ procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
                             external 'DOSCALLS' index 312;
 
 function DosLoadModule (ObjName: PChar; ObjLen: cardinal; DLLName: PChar;
-                                        var Handle: cardinal): cardinal; cdecl;
+                                         var Handle: THandle): cardinal; cdecl;
 external 'DOSCALLS' index 318;
 
 function DosQueryModuleHandle (DLLName: PChar; var Handle: THandle): cardinal;
@@ -420,3 +420,32 @@ external 'DOSCALLS' index 306;
 function DosQuerySysInfo (First, Last: cardinal; var Buf; BufSize: cardinal):
                                                                cardinal; cdecl;
 external 'DOSCALLS' index 348;
+
+type
+ TCPArray = array [0..2] of cardinal;
+ PCPArray = ^TCPArray;
+
+function DosQueryCP (Size: cardinal; CodePages: PCPArray;
+                                       var ActSize: cardinal): cardinal; cdecl;
+external 'DOSCALLS' index 291;
+
+function DosSetProcessCP (CP: cardinal): cardinal; cdecl;
+external 'DOSCALLS' index 289;
+
+type
+ TCountryCode = record
+  Country,            {Country to query info about (0=current).}
+  CodePage: cardinal; {Code page to query info about (0=current).}
+ end;
+
+function DosMapCase (Size: cardinal; var Country: TCountryCode;
+                     AString: PChar): cardinal; cdecl;
+external 'NLS' index 7;
+
+function DosQueryDBCSEnv (Size: cardinal; var Country: TCountryCode;
+                                                  Buf: PChar): cardinal; cdecl;
+external 'NLS' index 6;
+
+function DosQueryCollate (Size: cardinal; var Country: TCountryCode;
+                     Buf: PByteArray; var TableLen: cardinal): cardinal; cdecl;
+external 'NLS' index 8;

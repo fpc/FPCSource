@@ -947,8 +947,14 @@ BEGIN
            Drivers.GetMouseEvent(Event);              { Load mouse event }
            If (Event.What = evNothing) Then
              begin
+{$IFNDEF HASAMIGA}
+               { due to isses with the event handling in FV itself,
+                 we skip this here, and let the IDE to handle it
+                 directly on Amiga-like systems. The FV itself cannot
+                 handle the System Events anyway. (KB) }
                Drivers.GetSystemEvent(Event);         { Load system event }
                If (Event.What = evNothing) Then
+{$ENDIF}
                  Idle;     { Idle if no event }
              end;
          End;

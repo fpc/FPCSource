@@ -211,13 +211,12 @@ var
 {$endif FPC_HAS_FEATURE_STACKCHECK}
 
 begin
-{$ifdef FPC_HAS_FEATURE_FPU}
-  { Beware: The same code is executed from fpc_cpuinit, which is included
-    per-cpu unconditionally }
+  { FPU (hard or soft) is initialized from fpc_cpuinit, which is included
+    per-cpu unconditionally.
   SysResetFPU;
   if not(IsLibrary) then
     SysInitFPU;
-{$endif FPC_HAS_FEATURE_FPU}
+  }
 
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
   IsConsole := TRUE;
@@ -248,10 +247,6 @@ begin
   { threading }
   InitSystemThreads;
 {$endif FPC_HAS_FEATURE_THREADING}
-
-{$ifdef FPC_HAS_FEATURE_VARIANTS}
-  initvariantmanager;
-{$endif FPC_HAS_FEATURE_VARIANTS}
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 //  initunicodestringmanager;

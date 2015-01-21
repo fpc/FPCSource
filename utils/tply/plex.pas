@@ -62,7 +62,7 @@ $History: LEX.PAS $
 program Lex;
 
 uses
-  LexBase, LexTable, LexPos, LexDFA, LexOpt, LexList, LexRules, LexMsgs;
+  LexBase, LexTable, LexPos, LexDFA, LexOpt, LexList, LexRules, LexMsgs, SysUtils;
 
 
 procedure get_line;
@@ -597,14 +597,13 @@ var i : Integer;
 
 begin
 {$ifdef Unix}
- {$ifdef BSD}
-  codfilepath:='/usr/local/lib/fpc/lexyacc/';
- {$else}
-  codfilepath:='/usr/lib/fpc/lexyacc/';
- {$endif}
+  codfilepath1:='/usr/local/lib/fpc/lexyacc/';
+  codfilepath2:='/usr/lib/fpc/lexyacc/';
 {$else}
-  codfilepath:=path(paramstr(0));
+  codfilepath1:=path(paramstr(0));
+  codfilepath2:='';
 {$endif}
+
 
   (* sign-on: *)
 
@@ -662,17 +661,29 @@ begin
   rewrite(yyout); if ioresult<>0 then fatal(cannot_open_file+pasfilename);
   rewrite(yylst); if ioresult<>0 then fatal(cannot_open_file+lstfilename);
 
-  (* search code template in current directory, then on path where Lex
-     was executed from: *)
+  (* search code template *)
   codfilename := 'yylex.cod';
   assign(yycod, codfilename);
   reset(yycod);
   if ioresult<>0 then
     begin
-      codfilename := codfilepath+'yylex.cod';
+      codfilename := IncludeTrailingPathDelimiter(GetEnvironmentVariable('FPCDIR'))+'lexyacc'+DirectorySeparator+'yylex.cod';
       assign(yycod, codfilename);
       reset(yycod);
-      if ioresult<>0 then fatal(cannot_open_file+codfilename);
+      if ioresult<>0 then
+        begin
+          codfilename := codfilepath1+'yylex.cod';
+          assign(yycod, codfilename);
+          reset(yycod);
+          if (codfilepath2<>'') and (ioresult<>0) then 
+            begin
+              codfilename := codfilepath2+'yylex.cod';
+              assign(yycod, codfilename);
+              reset(yycod);
+              if ioresult<>0 then 
+                fatal(cannot_open_file+codfilename);
+            end;
+        end;
     end;
 
   (* parse source grammar: *)

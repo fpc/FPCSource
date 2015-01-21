@@ -2,7 +2,7 @@
 {$h+}
 program testsuite;
 
-uses utests;
+uses utests, tresults;
 
 Var
   App : TTestSuite;

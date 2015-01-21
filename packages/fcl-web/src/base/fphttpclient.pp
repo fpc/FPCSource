@@ -275,8 +275,9 @@ Function EncodeURLElement(S : String) : String;
 Function DecodeURLElement(Const S : String) : String;
 
 implementation
-
+{$if not defined(aros) and not defined(amiga)}
 uses sslsockets;
+{$endif}
 
 resourcestring
   SErrInvalidProtocol = 'Invalid protocol : "%s"';
@@ -425,10 +426,12 @@ begin
   Result:=Nil;
   if Assigned(FonGetSocketHandler) then
     FOnGetSocketHandler(Self,UseSSL,Result);
-  if (Result=Nil) then  
+  if (Result=Nil) then
+  {$if not defined(AROS) and not defined(Amiga)}  
     If UseSSL then
       Result:=TSSLSocketHandler.Create
     else
+  {$endif}  
       Result:=TSocketHandler.Create;
 end;
 

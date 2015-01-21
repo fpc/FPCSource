@@ -12,8 +12,9 @@ units=$(SYSTEMUNIT) uuchar fpintres ctypes objpas macpas iso7185 strings \
       dos \
       rtlconsts sysconst sysutils \
       typinfo types fgl classes \
-      math \
+      math fpwidestring \
       charset cpall getopts \
+      unicodedata  unicodenumtable character \
       cmem sharemem
 #    initc  signals \
 #    crt graph \
@@ -234,6 +235,18 @@ ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 fpintres$(PPUEXT) : $(INC)/fpintres.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/fpintres.pp
+
+fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp unicodedata$(PPUEXT) charset$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fpwidestring.pp
+
+unicodedata$(PPUEXT): $(OBJPASDIR)/unicodedata.pas
+        $(COMPILER) $(OBJPASDIR)/unicodedata.pas
+
+unicodenumtable$(PPUEXT): $(OBJPASDIR)/unicodenumtable.pas
+        $(COMPILER) $(OBJPASDIR)/unicodenumtable.pas
+
+character$(PPUEXT): $(OBJPASDIR)/character.pas
+        $(COMPILER) $(OBJPASDIR)/character.pas
 
 #
 # Other system-dependent RTL Units

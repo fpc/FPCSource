@@ -105,13 +105,22 @@ Resourcestring
   SStreamNotRecognised     = 'The data-stream format is not recognized';
   SNoReaderClassRegistered = 'There is no TDatapacketReaderClass registered for this kind of data-stream';
   SErrCircularDataSourceReferenceNotAllowed = 'Circular datasource references are not allowed.';
-  SCommitting              = 'Committing transaction';
-  SRollingBack             = 'Rolling back transaction';
-  SCommitRetaining         = 'Commit and retaining transaction';
-  SRollBackRetaining       = 'Rollback and retaining transaction';
-  SErrNoFieldsDefined      = 'Can not create a dataset when there are no fielddefinitions or fields defined';
-  SErrApplyUpdBeforeRefresh= 'Must apply updates before refreshing data';
-  SErrNoDataset            = 'Missing (compatible) underlying dataset, can not open';
+  SCommitting               = 'Committing transaction';
+  SRollingBack              = 'Rolling back transaction';
+  SCommitRetaining          = 'Commit and retaining transaction';
+  SRollBackRetaining        = 'Rollback and retaining transaction';
+  SErrNoFieldsDefined       = 'Can not create a dataset when there are no fielddefinitions or fields defined';
+  SErrApplyUpdBeforeRefresh = 'Must apply updates before refreshing data';
+  SErrNoDataset             = 'Missing (compatible) underlying dataset, can not open';
+  SErrDisconnectedPacketRecords = 'For disconnected TSQLQuery instances, packetrecords must be -1';
+  SErrImplicitNoRollBack      = 'Implicit use of transactions does not allow rollback.';
+  SErrNoImplicitTransaction   = 'Connection %s does not allow implicit transactions.';
+  SErrImplictTransactionStart = 'Error: attempt to implicitly start a transaction on Connection "%s", transaction "%s".';
+  SErrImplicitConnect         = 'Error: attempt to implicitly activate connection "%s".';
+  SErrFailedToUpdateRecord    = 'Failed to apply record updates: %d rows updated.';
+  SErrRefreshNotSingleton     = 'Refresh SQL resulted in multiple records: %d.';
+  SErrRefreshEmptyResult      = 'Refresh SQL resulted in empty result set.';
+  SErrNoKeyFieldForRefreshClause = 'No key field found to construct refresh SQL WHERE clause';
 
 Implementation
 

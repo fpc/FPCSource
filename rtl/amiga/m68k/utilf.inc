@@ -55,7 +55,7 @@ procedure RefreshTagItemClones(clone   : PTagItem location 'a0';
 SysCall AOS_UtilityBase 084;
 
 function TagInArray(tagValue    : Cardinal location 'd0';
-                    var tagArray: Cardinal location 'a0'): Boolean;
+                    var tagArray: Cardinal location 'a0'): LongBool;
 SysCall AOS_UtilityBase 090;
 
 function FilterTagItems(tagList        : PTagItem location 'a0';
@@ -132,7 +132,7 @@ function UnpackStructureTags(pack         : Pointer  location 'a0';
 SysCall AOS_UtilityBase 216;
 
 function AddNamedObject(nameSpace: PNamedObject location 'a0';
-                        nobject  : PNamedObject location 'a1'): Boolean;
+                        nobject  : PNamedObject location 'a1'): LongBool;
 SysCall AOS_UtilityBase 222;
 
 function AllocNamedObjectA(name   : PChar    location 'a0';

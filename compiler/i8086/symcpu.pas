@@ -57,6 +57,7 @@ type
 
   tcpupointerdef = class(tx86pointerdef)
     class function default_x86_data_pointer_type: tx86pointertyp; override;
+    function pointer_arithmetic_int_type:tdef; override;
     function pointer_subtraction_result_type:tdef; override;
   end;
   tcpupointerdefclass = class of tcpupointerdef;
@@ -77,7 +78,19 @@ type
   end;
   tcpuclassrefdefclass = class of tcpuclassrefdef;
 
+  { tcpuarraydef }
+
   tcpuarraydef = class(tarraydef)
+   private
+    huge: Boolean;
+   protected
+    procedure ppuload_platform(ppufile: tcompilerppufile); override;
+    procedure ppuwrite_platform(ppufile: tcompilerppufile); override;
+   public
+    constructor create_from_pointer(def:tpointerdef);override;
+    function getcopy: tstoreddef; override;
+    function GetTypeName:string;override;
+    property is_huge: Boolean read huge write huge;
   end;
   tcpuarraydefclass = class of tcpuarraydef;
 
@@ -197,11 +210,16 @@ const
 
   function is_proc_far(p: tabstractprocdef): boolean;
 
+  {# Returns true if p is a far pointer def }
+  function is_farpointer(p : tdef) : boolean;
+
+  {# Returns true if p is a huge pointer def }
+  function is_hugepointer(p : tdef) : boolean;
 
 implementation
 
   uses
-    globals, cpuinfo, verbose;
+    globals, cpuinfo, verbose, fmodule;
 
 
   function is_proc_far(p: tabstractprocdef): boolean;
@@ -213,6 +231,68 @@ implementation
     else
       internalerror(2014041301);
   end;
+
+  { true if p is a far pointer def }
+  function is_farpointer(p : tdef) : boolean;
+    begin
+      result:=(p.typ=pointerdef) and (tcpupointerdef(p).x86pointertyp=x86pt_far);
+    end;
+
+  { true if p is a huge pointer def }
+  function is_hugepointer(p : tdef) : boolean;
+    begin
+      result:=(p.typ=pointerdef) and (tcpupointerdef(p).x86pointertyp=x86pt_huge);
+    end;
+
+{****************************************************************************
+                               tcpuarraydef
+****************************************************************************}
+
+  constructor tcpuarraydef.create_from_pointer(def: tpointerdef);
+    begin
+      if tcpupointerdef(def).x86pointertyp=x86pt_huge then
+        begin
+          huge:=true;
+          { use -1 so that the elecount will not overflow }
+          self.create(0,high(asizeint)-1,s32inttype);
+          arrayoptions:=[ado_IsConvertedPointer];
+          setelementdef(def.pointeddef);
+        end
+      else
+        begin
+          huge:=false;
+          inherited create_from_pointer(def);
+        end;
+    end;
+
+
+  function tcpuarraydef.getcopy: tstoreddef;
+    begin
+      result:=inherited;
+      tcpuarraydef(result).huge:=huge;
+    end;
+
+
+  function tcpuarraydef.GetTypeName: string;
+    begin
+      Result:=inherited;
+      if is_huge then
+        Result:='Huge '+Result;
+    end;
+
+
+  procedure tcpuarraydef.ppuload_platform(ppufile: tcompilerppufile);
+    begin
+      inherited;
+      huge:=(ppufile.getbyte<>0);
+    end;
+
+
+  procedure tcpuarraydef.ppuwrite_platform(ppufile: tcompilerppufile);
+    begin
+      inherited;
+      ppufile.putbyte(byte(huge));
+    end;
 
 
 {****************************************************************************
@@ -312,6 +392,15 @@ implementation
       end;
 
 
+    function tcpupointerdef.pointer_arithmetic_int_type:tdef;
+      begin
+        if x86pointertyp=x86pt_huge then
+          result:=s32inttype
+        else
+          result:=inherited;
+      end;
+
+
     function tcpupointerdef.pointer_subtraction_result_type:tdef;
       begin
         case x86pointertyp of
@@ -381,5 +470,7 @@ begin
   cconstsym:=tcpuconstsym;
   cenumsym:=tcpuenumsym;
   csyssym:=tcpusyssym;
+
+  cPtrDefHashSet:=tx86PtrDefHashSet;
 end.
 

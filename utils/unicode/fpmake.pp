@@ -14,7 +14,8 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('unicode');
+    P:=AddPackage('utils-unicode');
+    P.ShortName:='unicode';
 
     P.Author := 'Inoussa OUEDRAOGO';
     P.License := 'LGPL with modification';
@@ -24,7 +25,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Dependencies.Add('rtl');
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');

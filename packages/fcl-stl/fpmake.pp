@@ -13,16 +13,17 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('fcl-stl');
+    P.ShortName:='fcst';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
 
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Author := 'Vlado Boza';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
-    P.Description := 'Asynchonous event management of Free Component Libraries (FCL), FPC''s OOP library.';
+    P.Description := 'Generic container library of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
     P.OSes:=AllOSes-[embedded];
 

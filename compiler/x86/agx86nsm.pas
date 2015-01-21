@@ -1302,6 +1302,8 @@ interface
         case target_info.system of
           system_i8086_msdos:
             FormatName:='obj';
+          else
+            internalerror(2014082060);
         end;
 {$endif i8086}
 {$ifdef i386}

@@ -67,7 +67,7 @@ unit doublebuffer;
 
 interface
 
-uses exec, intuition, graphics;
+uses exec, intuition, agraphics;
 
 {
     OpenDoubleBuffer opens the Screen described in "ns" without

@@ -392,6 +392,7 @@ begin
   if (regs.realflags and carryflag) <> 0 then
     begin
       GetInOutRes(lo(regs.realeax));
+      FileRec(f).mode:=fmclosed;
       if oldp<>p then
         freemem(p);
       exit;

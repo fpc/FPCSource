@@ -13,10 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('ibase');
+    P.ShortName:='ibas';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Author := 'Library: (Codegear?), header: ?';
     P.License := 'Library: Interbase License, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

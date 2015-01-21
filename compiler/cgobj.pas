@@ -815,8 +815,15 @@ implementation
 
 
     procedure tcg.translate_register(var reg : tregister);
+      var
+        rt: tregistertype;
       begin
-        rg[getregtype(reg)].translate_register(reg);
+        { Getting here without assigned rg is possible for an "assembler nostackframe"
+          function returning x87 float, compiler tries to translate NR_ST which is used for
+          result.  }
+        rt:=getregtype(reg);
+        if assigned(rg[rt]) then
+          rg[rt].translate_register(reg);
       end;
 
 
@@ -828,7 +835,8 @@ implementation
 
     procedure tcg.a_reg_dealloc(list : TAsmList;r : tregister);
       begin
-         list.concat(tai_regalloc.dealloc(r,nil));
+        if (r<>NR_NO) then
+          list.concat(tai_regalloc.dealloc(r,nil));
       end;
 
 

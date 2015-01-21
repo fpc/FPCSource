@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal Classes Library (FCL).
-    Copyright (c) 2006 by the Free Pascal development team
+    Copyright (c) 2006-2014 by the Free Pascal development team
 
     SQLite3 connection for SQLDB
 
@@ -38,9 +38,6 @@ const
 type
   PDateTime = ^TDateTime;
   
-  TSqliteOption = (sloTransactions,sloDesignTransactions);
-  TSqliteOptions = set of TSqliteOption;
- 
   TStringArray = Array of string;
   PStringArray = ^TStringArray;
  
@@ -52,44 +49,41 @@ type
   TSQLite3Connection = class(TSQLConnection)
   private
     fhandle: psqlite3;
-    foptions: TSQLiteOptions;
-    procedure setoptions(const avalue: tsqliteoptions);
   protected
-    function stringsquery(const asql: string): TArrayStringArray;
-    procedure checkerror(const aerror: integer);
-    
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
     function GetHandle : pointer; override;
  
     Function AllocateCursorHandle : TSQLCursor; override;
-                        //aowner used as blob cache
     Procedure DeAllocateCursorHandle(var cursor : TSQLCursor); override;
     Function AllocateTransactionHandle : TSQLHandle; override;
  
-    procedure PrepareStatement(cursor: TSQLCursor; ATransaction : TSQLTransaction; 
-                          buf: string; AParams : TParams); override;
+    function StrToStatementType(s : string) : TStatementType; override;
+    procedure PrepareStatement(cursor: TSQLCursor; ATransaction : TSQLTransaction; buf: string; AParams : TParams); override;
     procedure Execute(cursor: TSQLCursor;atransaction:tSQLtransaction; AParams : TParams); override;
     function Fetch(cursor : TSQLCursor) : boolean; override;
-    procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs); override;
+    procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TFieldDefs); override;
     procedure UnPrepareStatement(cursor : TSQLCursor); override;
  
     procedure FreeFldBuffers(cursor : TSQLCursor); override;
-    function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; override;
-           //if bufsize < 0 -> buffer was too small, should be -bufsize
+    function LoadField(cursor : TSQLCursor; FieldDef : TFieldDef; buffer : pointer; out CreateBlob : boolean) : boolean; override;
+    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
+
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
     function StartdbTransaction(trans : TSQLHandle; aParams : string) : boolean; override;
     procedure CommitRetaining(trans : TSQLHandle); override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
-    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
-    // New methods
-    procedure execsql(const asql: string);
+
     procedure UpdateIndexDefs(IndexDefs : TIndexDefs; TableName : string); override;
-    function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
-    function StrToStatementType(s : string) : TStatementType; override;
+    function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
+    function RefreshLastInsertID(Query : TCustomSQLQuery; Field : TField): Boolean; override;
+    // New methods
+    procedure checkerror(const aerror: integer);
+    function stringsquery(const asql: string): TArrayStringArray;
+    procedure execsql(const asql: string);
   public
     constructor Create(AOwner : TComponent); override;
     procedure GetFieldNames(const TableName : string; List :  TStrings); override;
@@ -97,12 +91,10 @@ type
     function GetInsertID: int64;
     // See http://www.sqlite.org/c3ref/create_collation.html for detailed information
     // If eTextRep=0 a default UTF-8 compare function is used (UTF8CompareCallback)
-    // Warning: UTF8CompareCallback needs a wide string manager on linux such as cwstring
+    // Warning: UTF8CompareCallback needs a wide string manager on Linux such as cwstring
     // Warning: CollationName has to be a UTF-8 string
     procedure CreateCollation(const CollationName: string; eTextRep: integer; Arg: Pointer=nil; Compare: xCompare=nil);
     procedure LoadExtension(LibraryFile: string);
-  published
-    property Options: TSqliteOptions read FOptions write SetOptions;
   end;
 
   { TSQLite3ConnectionDef }
@@ -194,8 +186,9 @@ begin
     if P.IsNull then
       checkerror(sqlite3_bind_null(fstatement,I))
     else 
-      case P.datatype of
+      case P.DataType of
         ftInteger,
+        ftAutoInc,
         ftBoolean,
         ftSmallint: checkerror(sqlite3_bind_int(fstatement,I,P.AsInteger));
         ftWord:     checkerror(sqlite3_bind_int(fstatement,I,P.AsWord));
@@ -298,7 +291,14 @@ end;
 
 { TSQLite3Connection }
 
-procedure TSQLite3Connection.LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); 
+constructor TSQLite3Connection.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FConnOptions := [sqEscapeRepeat, sqEscapeSlash, sqImplicitTransaction, sqLastInsertID];
+  FieldNameQuoteChars:=DoubleQuotes;
+end;
+
+procedure TSQLite3Connection.LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction);
 
 var
  int1: integer;
@@ -334,12 +334,12 @@ begin
   ABlobBuf^.BlobBuffer^.Size := int1;
 end;
 
-function TSQLite3Connection.AllocateTransactionHandle: TSQLHandle;
+Function TSQLite3Connection.AllocateTransactionHandle: TSQLHandle;
 begin
  result:= tsqlhandle.create;
 end;
 
-function TSQLite3Connection.AllocateCursorHandle: TSQLCursor;
+Function TSQLite3Connection.AllocateCursorHandle: TSQLCursor;
 
 Var
   Res : TSQLite3Cursor;
@@ -350,9 +350,16 @@ begin
   Result:=Res;
 end;
 
-procedure TSQLite3Connection.DeAllocateCursorHandle(var cursor: TSQLCursor);
+Procedure TSQLite3Connection.DeAllocateCursorHandle(var cursor: TSQLCursor);
 begin
   freeandnil(cursor);
+end;
+
+function TSQLite3Connection.StrToStatementType(s: string): TStatementType;
+begin
+  S:=Lowercase(s);
+  if s = 'pragma' then exit(stSelect);
+  result := inherited StrToStatementType(s);
 end;
 
 procedure TSQLite3Connection.PrepareStatement(cursor: TSQLCursor;
@@ -412,15 +419,30 @@ Const
 }
   );
 
-procedure TSQLite3Connection.AddFieldDefs(cursor: TSQLCursor;
-               FieldDefs: TfieldDefs);
+procedure TSQLite3Connection.AddFieldDefs(cursor: TSQLCursor; FieldDefs: TFieldDefs);
 var
- i     : integer;
- FN,FD : string;
- ft1   : tfieldtype;
+ i, fi : integer;
+ FN, FD, PrimaryKeyFields : string;
+ ft1   : TFieldType;
  size1, size2 : integer;
- fi    : integer;
  st    : psqlite3_stmt;
+
+ function GetPrimaryKeyFields: string;
+ var IndexDefs: TServerIndexDefs;
+     i: integer;
+ begin
+   if FieldDefs.Dataset is TSQLQuery then
+   begin
+     IndexDefs := (FieldDefs.DataSet as TSQLQuery).ServerIndexDefs;
+     for i:=IndexDefs.Count-1 downto 0 do
+       if ixPrimary in IndexDefs[i].Options then
+       begin
+         Result := IndexDefs[i].Fields;
+         Exit;
+       end;
+   end;
+   Result := '';
+ end;
 
  function ExtractPrecisionAndScale(decltype: string; var precision, scale: integer): boolean;
  var p: integer;
@@ -447,6 +469,7 @@ var
  end;
 
 begin
+  PrimaryKeyFields := GetPrimaryKeyFields;
   st:=TSQLite3Cursor(cursor).fstatement;
   for i:= 0 to sqlite3_column_count(st) - 1 do 
     begin
@@ -459,6 +482,10 @@ begin
       ft1:=FieldMap[fi].t;
       break;
       end;
+    // Column declared as INTEGER PRIMARY KEY [AUTOINCREMENT] becomes ROWID for given table
+    // declared data type must be INTEGER (not INT, BIGINT, NUMERIC etc.)
+    if (FD='INTEGER') and SameText(FN, PrimaryKeyFields) then
+      ft1:=ftAutoInc;
     // In case of an empty fieldtype (FD='', which is allowed and used in calculated
     // columns (aggregates) and by pragma-statements) or an unknown fieldtype,
     // use the field's affinity:
@@ -493,13 +520,14 @@ begin
                  else if (size2-size1>MaxBCDPrecision-MaxBCDScale) or (size1>MaxBCDScale) then
                    ft1:=ftFmtBCD;
                end;
-      ftUnknown : DatabaseError('Unknown record type: '+FN);
+      ftUnknown : DatabaseErrorFmt('Unknown or unsupported data type %s of column %s', [FD, FN]);
     end; // Case
-    Fielddefs.Add(FieldDefs.MakeNameUnique(FN),ft1,size1,false,i+1);
+    FieldDefs.Add(FieldDefs.MakeNameUnique(FN),ft1,size1,false,i+1);
     end;
 end;
 
-procedure TSQLite3Connection.Execute(cursor: TSQLCursor; atransaction: tsqltransaction; AParams: TParams);
+procedure TSQLite3Connection.Execute(cursor: TSQLCursor;
+  atransaction: tSQLtransaction; AParams: TParams);
 var
  SC : TSQLite3Cursor;
             
@@ -524,18 +552,26 @@ begin
   Delete(S,1,P);
 end;
 
+// Parses string-formatted date into TDateTime value
+// Expected format: '2013-12-31 ' (without ')
 Function ParseSQLiteDate(S : ShortString) : TDateTime;
 
 Var
   Year, Month, Day : Integer;
+
 begin
- Result:=0;
- If TryStrToInt(NextWord(S,'-'),Year) then
-   if TryStrToInt(NextWord(S,'-'),Month) then
-     if TryStrToInt(NextWord(S,' '),Day) then
+  Result:=0;
+  If TryStrToInt(NextWord(S,'-'),Year) then
+    if TryStrToInt(NextWord(S,'-'),Month) then
+      if TryStrToInt(NextWord(S,' '),Day) then
         Result:=EncodeDate(Year,Month,Day);
 end;
 
+// Parses string-formatted time into TDateTime value
+// Expected formats
+// 23:59
+// 23:59:59
+// 23:59:59.999
 Function ParseSQLiteTime(S : ShortString; Interval: boolean) : TDateTime;
 
 Var
@@ -545,16 +581,28 @@ begin
   Result:=0;
   If TryStrToInt(NextWord(S,':'),Hour) then
     if TryStrToInt(NextWord(S,':'),Min) then
+    begin
       if TryStrToInt(NextWord(S,'.'),Sec) then
-        begin
-        MSec:=StrToIntDef(S,0);
-        if Interval then
-          Result:=EncodeTimeInterval(Hour,Min,Sec,MSec)
-        else
-          Result:=EncodeTime(Hour,Min,Sec,MSec);
-        end;
+      begin // 23:59:59 or 23:59:59.999
+      MSec:=StrToIntDef(S,0);
+      if Interval then
+        Result:=EncodeTimeInterval(Hour,Min,Sec,MSec)
+      else
+        Result:=EncodeTime(Hour,Min,Sec,MSec);
+      end;
+    end
+    else //23:59
+    begin
+      Sec:=0;
+      MSec:=0;
+      if Interval then
+        Result:=EncodeTimeInterval(Hour,Min,Sec,MSec)
+      else
+        Result:=EncodeTime(Hour,Min,Sec,MSec);
+    end;
 end;
 
+// Parses string-formatted date/time into TDateTime value
 Function ParseSQLiteDateTime(S : String) : TDateTime;
 
 var
@@ -564,7 +612,9 @@ var
 begin
   DS:='';
   TS:='';
-  P:=Pos(' ',S);
+  P:=Pos('T',S); //allow e.g. YYYY-MM-DDTHH:MM
+  if P=0 then
+    P:=Pos(' ',S); //allow e.g. YYYY-MM-DD HH:MM
   If (P<>0) then
     begin
     DS:=Copy(S,1,P-1);
@@ -581,7 +631,7 @@ begin
   Result:=ComposeDateTime(ParseSQLiteDate(DS),ParseSQLiteTime(TS,False));
 end;
 
-function TSQLite3Connection.LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
+function TSQLite3Connection.LoadField(cursor : TSQLCursor; FieldDef : TFieldDef; buffer : pointer; out CreateBlob : boolean) : boolean;
 
 var
  st1: TStorageType;
@@ -600,7 +650,8 @@ begin
   result:= st1 <> stnull;
   if Not result then 
     Exit;
-  case FieldDef.datatype of
+  case FieldDef.DataType of
+    ftAutoInc,
     ftInteger  : pinteger(buffer)^  := sqlite3_column_int(st,fnum);
     ftSmallInt : psmallint(buffer)^ := sqlite3_column_int(st,fnum);
     ftWord     : pword(buffer)^     := sqlite3_column_int(st,fnum);
@@ -612,17 +663,17 @@ begin
     ftDateTime,
     ftDate,
     ftTime:  if st1 = sttext then 
-               begin
+               begin { Stored as string }
                setlength(str1,sqlite3_column_bytes(st,fnum));
                move(sqlite3_column_text(st,fnum)^,str1[1],length(str1));
                case FieldDef.datatype of
                  ftDateTime: PDateTime(Buffer)^:=ParseSqliteDateTime(str1);
                  ftDate    : PDateTime(Buffer)^:=ParseSqliteDate(str1);
-                 ftTime    : PDateTime(Buffer)^:=ParseSQLiteTime(str1,true);
+                 ftTime    : PDateTime(Buffer)^:=ParseSqliteTime(str1,true);
                end; {case}
                end
              else
-               begin
+               begin { Assume stored as double }
                PDateTime(buffer)^ := sqlite3_column_double(st,fnum);
                if PDateTime(buffer)^ > 1721059.5 {Julian 01/01/0000} then
                   PDateTime(buffer)^ := PDateTime(buffer)^ + JulianEpoch; //backward compatibility hack
@@ -833,14 +884,6 @@ begin
   checkerror(sqlite3_exec(fhandle,pchar(asql),@execscallback,@result,nil));
 end;
 
-function TSQLite3Connection.RowsAffected(cursor: TSQLCursor): TRowsCount;
-begin
-  if assigned(cursor) then
-    Result := (cursor as TSQLite3Cursor).RowsAffected
-  else
-    Result := -1;
-end;
-
 function TSQLite3Connection.GetSchemaInfoSQL(SchemaType: TSchemaType;
   SchemaObjectName, SchemaPattern: string): string;
   
@@ -852,20 +895,6 @@ begin
   else
     DatabaseError(SMetadataUnavailable)
   end; {case}
-end;
-
-function TSQLite3Connection.StrToStatementType(s: string): TStatementType;
-begin
-  S:=Lowercase(s);
-  if s = 'pragma' then exit(stSelect);
-  result := inherited StrToStatementType(s);
-end;
-
-constructor TSQLite3Connection.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-  FConnOptions := FConnOptions + [sqEscapeRepeat] + [sqEscapeSlash];
-  FieldNameQuoteChars:=DoubleQuotes;
 end;
 
 procedure TSQLite3Connection.UpdateIndexDefs(IndexDefs: TIndexDefs; TableName: string);
@@ -926,7 +955,21 @@ begin
   IXFields.Free;
 end;
 
-function TSQLite3Connection.getinsertid: int64;
+function TSQLite3Connection.RowsAffected(cursor: TSQLCursor): TRowsCount;
+begin
+  if assigned(cursor) then
+    Result := (cursor as TSQLite3Cursor).RowsAffected
+  else
+    Result := -1;
+end;
+
+function TSQLite3Connection.RefreshLastInsertID(Query: TCustomSQLQuery; Field: TField): Boolean;
+begin
+  Field.AsLargeInt:=GetInsertID;
+  Result:=True;
+end;
+
+function TSQLite3Connection.GetInsertID: int64;
 begin
  result:= sqlite3_last_insert_rowid(fhandle);
 end;
@@ -980,7 +1023,7 @@ begin
   CheckError(sqlite3_create_collation(fhandle, PChar(CollationName), eTextRep, Arg, Compare));
 end;
 
-procedure TSQLite3Connection.LoadExtension(LibraryFile: String);
+procedure TSQLite3Connection.LoadExtension(LibraryFile: string);
 var
   LoadResult: integer;
 begin
@@ -1005,14 +1048,6 @@ begin
   end;
 end;
 
-procedure TSQLite3Connection.setoptions(const avalue: tsqliteoptions);
-begin
- if avalue <> foptions then 
-   begin
-   checkdisconnected;
-   foptions:= avalue;
-   end;
-end;
 
 { TSQLite3ConnectionDef }
 

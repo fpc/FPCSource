@@ -62,15 +62,16 @@ begin
 
   auxv := PElf32AuxiliaryVector(ep);
 
-  repeat
-    if auxv^.a_type = AT_SYSINFO then begin
-      psysinfo := auxv^.a_un.a_val;
-      if psysinfo <> 0 then
-        sysenter_supported := 1; // descision factor in asm syscall routines
-      Break;
+  while auxv^.a_type <> AT_NULL do
+    begin
+      if auxv^.a_type = AT_SYSINFO then begin
+        psysinfo := auxv^.a_un.a_val;
+        if psysinfo <> 0 then
+          sysenter_supported := 1; // descision factor in asm syscall routines
+        Break;
+      end;
+      Inc(auxv);
     end;
-    Inc(auxv);
-  until auxv^.a_type = AT_NULL;
 end;
 
 {***********************SYSENTER CODE END******************************}

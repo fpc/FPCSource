@@ -368,7 +368,9 @@ begin
                     do_seekend (FileRec (F).Handle);
                     FileRec (F).Mode := fmOutput; {fool fmappend}
                 end;
-        end;
+        end
+    else
+      FileRec(f).mode:=fmclosed;
     if oldp<>p then
       freemem(p);
 end;

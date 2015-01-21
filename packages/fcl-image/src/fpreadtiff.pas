@@ -189,8 +189,8 @@ begin
   0, 1: if SampleCnt-ExtraSampleCnt<>1 then
     TiffError('gray images expect one sample per pixel, but found '+IntToStr(
       SampleCnt));
-  2: if SampleCnt-ExtraSampleCnt<>3 then
-    TiffError('rgb images expect three samples per pixel, but found '+IntToStr(
+  2: if (SampleCnt-ExtraSampleCnt<>3) and (SampleCnt-ExtraSampleCnt<>4) then
+    TiffError('rgb(a) images expect three or four samples per pixel, but found '+IntToStr(
       SampleCnt));
   3: if SampleCnt-ExtraSampleCnt<>1 then
     TiffError('palette images expect one sample per pixel, but found '+IntToStr(
@@ -238,10 +238,15 @@ begin
       RedBits:=SampleBits[0];
       GreenBits:=SampleBits[1];
       BlueBits:=SampleBits[2];
+      if SampleCnt=4 then
+        AlphaBits:=SampleBits[3];
       IFD.RedBits:=RedBits;
       IFD.GreenBits:=GreenBits;
       IFD.BlueBits:=BlueBits;
-      IFD.AlphaBits:=0;
+      if SampleCnt=4 then
+        IFD.AlphaBits:=AlphaBits
+      else
+        IFD.AlphaBits:=0;
       for i:=0 to ExtraSampleCnt-1 do begin
         //writeln('  ',i,'/',ExtraSampleCnt,' Type=',ExtraSamples[i],' Count=',SampleBits[3+i]);
         if ExtraSamples[i] in [1, 2] then begin
@@ -1822,7 +1827,10 @@ begin
               ReadImgValue(RedBits,Run,cx,IFD.Predictor,LastRedValue,RedValue);
               ReadImgValue(GreenBits,Run,cx,IFD.Predictor,LastGreenValue,GreenValue);
               ReadImgValue(BlueBits,Run,cx,IFD.Predictor,LastBlueValue,BlueValue);
-              AlphaValue:=alphaOpaque;
+              if SampleBitsPerPixel=32 then
+                ReadImgValue(AlphaBits,Run,cx,IFD.Predictor,LastAlphaValue,AlphaValue)
+              else
+                AlphaValue:=alphaOpaque;
               for i:=0 to ExtraSampleCnt-1 do begin
                 if ExtraSamples[i] in [1,2] then begin
                   ReadImgValue(AlphaBits,Run,cx,IFD.Predictor,LastAlphaValue,AlphaValue);
@@ -2256,6 +2264,8 @@ var
     p[s1.Count]:=s2.Data^;
     // increase TableCount
     inc(TableCount);
+    if ((SrcPos+3=Count) and (CurBitLength+SrcPosBit>16)) or
+       ((SrcPos+2=Count) and (CurBitLength+SrcPosBit<=16)) then exit;
     case TableCount+259 of
     512,1024,2048: inc(CurBitLength);
     end;

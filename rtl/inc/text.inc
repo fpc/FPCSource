@@ -200,10 +200,15 @@ Begin
   TextRec(t).mode:=mode;
   TextRec(t).bufpos:=0;
   TextRec(t).bufend:=0;
-  {$ifdef FPC_HAS_CPSTRING}
+
+{$ifdef FPC_HAS_CPSTRING}
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
   { if no codepage is yet assigned then assign default ansi codepage }
   TextRec(t).CodePage:=TranslatePlaceholderCP(TextRec(t).CodePage);
-  {$endif}
+{$else FPC_HAS_FEATURE_ANSISTRINGS}
+  TextRec(t).CodePage:=0;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+{$endif FPC_HAS_CPSTRING}
   FileFunc(TextRec(t).OpenFunc)(TextRec(t));
   { reset the mode to closed when an error has occured }
   if InOutRes<>0 then
@@ -266,6 +271,7 @@ Begin
 End;
 
 
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 Procedure Rename(var t : Text;const s : unicodestring);[IOCheck];
 {$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
 var
@@ -296,8 +302,11 @@ Begin
 {$endif FPC_ANSI_TEXTFILEREC}
 {$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
 End;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 
+
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure Rename(var t : Text;const s : rawbytestring);[IOCheck];
 var
 {$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
@@ -342,6 +351,7 @@ Begin
     TextRec(t).Name:=fs
 {$endif FPC_ANSI_TEXTTextRec and not FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
 End;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 
 Procedure Rename(var t : Text;const s : ShortString);[IOCheck];
@@ -366,16 +376,16 @@ Begin
 End;
 {$else FPC_HAS_FEATURE_ANSISTRINGS}
 var
-  len: SizeInt
+  len: SizeInt;
 Begin
   if InOutRes<>0 then
     exit;
-  if TextRec(f).mode<>fmClosed then
+  if TextRec(t).mode<>fmClosed then
     begin
       InOutRes:=102;
       exit;
     end;
-  Do_Rename(PFileTextRecChar(@TextRec(t).Name),p,false);
+  Do_Rename(PFileTextRecChar(@TextRec(t).Name),p,false,false);
   { check error code of do_rename }
   if InOutRes=0 then
     begin
@@ -602,16 +612,17 @@ End;
 
 function GetTextCodePage(var T: Text): TSystemCodePage;
 begin
-{$ifdef FPC_HAS_CPSTRING}
+{$if defined(FPC_HAS_CPSTRING) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
   GetTextCodePage:=TextRec(T).CodePage;
 {$else}
   GetTextCodePage:=0;
 {$endif}
 end;
 
+
 procedure SetTextCodePage(var T: Text; CodePage: TSystemCodePage);
 begin
-{$ifdef FPC_HAS_CPSTRING}
+{$if defined(FPC_HAS_CPSTRING) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
   TextRec(T).CodePage:=TranslatePlaceholderCP(CodePage);
 {$endif}
 end;
@@ -631,7 +642,15 @@ end;
 
 Procedure fpc_textinit_iso(var t : Text;nr : DWord);compilerproc;
 begin
+{$ifdef FPC_HAS_FEATURE_COMMANDARGS}
   assign(t,paramstr(nr));
+{$else FPC_HAS_FEATURE_COMMANDARGS}
+  { primitive workaround for targets supporting no command line arguments,
+    invent some file name, this will be fixed later on anways because
+    the current way of handling iso program parameters is apparently
+    wrong }
+  assign(t,chr((nr mod 16)+65));
+{$endif FPC_HAS_FEATURE_COMMANDARGS}
   reset(t);
 end;
 
@@ -2450,9 +2469,9 @@ begin
   t.mode:=fmOutput;
   t.OpenFunc:=nil;
   t.CloseFunc:=nil;
-  {$ifdef FPC_HAS_CPSTRING}
+{$if defined(FPC_HAS_CPSTRING) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
   t.CodePage:=TranslatePlaceholderCP(cp);
-  {$endif}
+{$endif}
 end;
 
 
@@ -2561,7 +2580,7 @@ begin
   t.mode:=fmInput;
   t.OpenFunc:=nil;
   t.CloseFunc:=nil;
-  {$ifdef FPC_HAS_CPSTRING}
+{$if defined(FPC_HAS_CPSTRING) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
   t.CodePage:=TranslatePlaceholderCP(cp);
   {$endif}
   PSizeInt(@t.userdata[BytesReadIndex])^:=0;

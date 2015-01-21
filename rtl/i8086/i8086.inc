@@ -586,10 +586,6 @@ const
   FPU_StackOverflow = $40;
   FPU_ExceptionMask = $ff;
 
-  { use Default8087CW instead
-  fpucw : word = $1300 or FPU_StackUnderflow or FPU_Underflow or FPU_Denormal;
-  }
-
 { Detects the FPU and initializes the Test8087 variable (and Default8087CW):
   0 = NO FPU
   1 = 8087

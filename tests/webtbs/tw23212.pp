@@ -10,7 +10,7 @@ Type
   End; { Record }
 
   TSomeRecord = Packed Record
-    Case A : Cardinal OF
+    Case x : Cardinal OF
       0 : (A : TSomeRec1);
   End; { Record }
 

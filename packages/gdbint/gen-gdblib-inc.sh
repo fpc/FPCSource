@@ -145,6 +145,13 @@ if [ "${1#libdir=}" != "$1" ]; then
   echo "libdir is set to \"$libdir\""
   opt_handled=1
 fi
+
+if [ "${1//=/ }" != "$1" ]; then
+  # Some variable set explicitly
+  echo "Evaluating $1"
+  export $1
+  opt_handled=1
+fi
 }
 
 # Try to handle all command line options
@@ -188,7 +195,7 @@ cat > gdb_get_stdin.c <<EOF
 FILE * gdb_get_stdin (void);
 
 FILE *
-gdb_get_stdin ()
+gdb_get_stdin (void)
 {
   return stdin;
 }
@@ -380,6 +387,15 @@ END {
 chmod u+x ./copy-libs.sh
 # For later
 
+# Check if mingw executable contains
+# __cpu_features_init function
+has_cpu_features_init=`objdump -t gdb.exe | grep cpu_features_init `
+if [ "X$has_cpu_features_init" == "X" ] ; then
+  mingw_no_cpu_features_init=1
+else
+  mingw_no_cpu_features_init=0
+fi
+
 echo Creating ./gdblib.inc file
 # Generate gdblib.inc file
 cat comp-cmd.log |${AWK} -v gdbcvs=${gdbcvs} \
@@ -387,6 +403,7 @@ cat comp-cmd.log |${AWK} -v gdbcvs=${gdbcvs} \
   -v gdbversion=${gdbversion} -v forcestatic=${forcestatic} \
   -v force64bitcoreaddr=${force64bitcoreaddr} \
   -v has_get_stdin=${has_get_stdin} \
+  -v mingw_no_cpu_features_init=${mingw_no_cpu_features_init} \
   -v add_libgdb=${add_libgdb} '
 BEGIN {
   use_mingw=0;
@@ -467,6 +484,9 @@ END {
   print "{$undef NotImplemented}"
   if ( use_mingw == 1 ) {
     print "{$define USE_MINGW_GDB}"
+    if ( mingw_no_cpu_features_init == 1 ) {
+      print "{$define DISABLE_CPU_FEATURES_INIT}"
+    }
   }
   if ( has_get_stdin == 1 ) {
     print "{$define LIBGDB_HAS_GET_STDIN}"

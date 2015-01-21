@@ -74,7 +74,7 @@ var
     (name : 'i386';         formats : [ofElf, ofCoff, ofMachO]),  //mti386
     (name : 'x86_64';       formats : [ofElf, ofCoff, ofMachO]),  //mtx86_64
     (name : 'powerpc';      formats : [ofElf, ofXCoff, ofMachO]), //mtppc
-    (name : 'powerpc64';    formats : [ofElf, ofMachO]),          //mtppc64
+    (name : 'powerpc64';    formats : [ofElf, {ofXCoff,} ofMachO]), //mtppc64
     (name : 'arm';          formats : [ofElf, ofCoff, ofMachO]),  //mtarm
     (name : 'armeb';        formats : [ofElf]),                   //mtarmeb
     (name : 'm68k';         formats : [ofElf]),                   //mtm68k

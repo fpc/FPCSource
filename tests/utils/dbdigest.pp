@@ -81,7 +81,8 @@ TConfigOpt = (
   coComment,
   coTestSrcDir,
   coRelSrcDir,
-  coVerbose
+  coVerbose,
+  coSQL
  );
 
 { Additional options only for dbdigest.cfg file }
@@ -115,7 +116,8 @@ ConfigStrings : Array [TConfigOpt] of string = (
   'comment',
   'testsrcdir',
   'relsrcdir',
-  'verbose'
+  'verbose',
+  'sql'
 );
 
 ConfigOpts : Array[TConfigOpt] of char =(
@@ -136,7 +138,8 @@ ConfigOpts : Array[TConfigOpt] of char =(
  'C', {  coComment }
  'S', {  coTestSrcDir }
  'r', {  coRelSrcDir }
- 'V'  {  coVerbose }
+ 'V', {  coVerbose }
+ 'Q'  {  coSQL }
 );
 
 ConfigAddStrings : Array [TConfigAddOpt] of string = (
@@ -215,6 +218,7 @@ begin
     coCPU          : TestCPU:=Value;
     coCategory     : TestCategory:=Value;
     coVersion      : TestVersion:=Value;
+    coSQL          : DoSQL:=True;
     coDate         :
       begin
         { Formated like YYYYMMDDhhmm }
@@ -369,7 +373,13 @@ begin
       Verbose(V_ERROR,'Illegal command-line option : '+O)
     else
       begin
-      Found:=(I<ParamCount);
+      if c=coverbose then
+        begin
+          Found:=true;
+          o:='';
+        end
+      else
+        Found:=(I<ParamCount);
       If Not found then
         Verbose(V_ERROR,'Option requires argument : '+O)
       else
@@ -533,6 +543,7 @@ begin
     begin
     readln(logfile,line);
     fullline:=line;
+    ts:=stFailedToCompile;
     If analyse(line,TS) then
       begin
       Verbose(V_NORMAL,'Analysing result for test '+Line);
@@ -599,29 +610,27 @@ procedure UpdateTestRun;
   var
      i : TTestStatus;
      qry : string;
-     res : TQueryResult;
 
   begin
     qry:='UPDATE TESTRUN SET ';
     for i:=low(TTestStatus) to high(TTestStatus) do
       qry:=qry+format('%s=%d, ',[SQLField[i],StatusCount[i]]);
     if TestCompilerDate<>'' then
-      qry:=qry+format('%s="%s", ',[ConfigAddCols[coCompilerDate],EscapeSQL(TestCompilerDate)]);
+      qry:=qry+format('%s=''%s'', ',[ConfigAddCols[coCompilerDate],EscapeSQL(TestCompilerDate)]);
     if TestCompilerFullVersion<>'' then
-      qry:=qry+format('%s="%s", ',[ConfigAddCols[coCompilerFullVersion],EscapeSQL(TestCompilerFullVersion)]);
+      qry:=qry+format('%s=''%s'', ',[ConfigAddCols[coCompilerFullVersion],EscapeSQL(TestCompilerFullVersion)]);
     if TestSvnCompilerRevision<>'' then
-      qry:=qry+format('%s="%s", ',[ConfigAddCols[coSvnCompilerRevision],EscapeSQL(TestSvnCompilerRevision)]);
+      qry:=qry+format('%s=''%s'', ',[ConfigAddCols[coSvnCompilerRevision],EscapeSQL(TestSvnCompilerRevision)]);
     if TestSvnTestsRevision<>'' then
-      qry:=qry+format('%s="%s", ',[ConfigAddCols[coSvnTestsRevision],EscapeSQL(TestSvnTestsRevision)]);
+      qry:=qry+format('%s=''%s'', ',[ConfigAddCols[coSvnTestsRevision],EscapeSQL(TestSvnTestsRevision)]);
     if TestSvnRTLRevision<>'' then
-      qry:=qry+format('%s="%s", ',[ConfigAddCols[coSvnRTLRevision],EscapeSQL(TestSvnRTLRevision)]);
+      qry:=qry+format('%s=''%s'', ',[ConfigAddCols[coSvnRTLRevision],EscapeSQL(TestSvnRTLRevision)]);
     if TestSvnPackagesRevision<>'' then
-      qry:=qry+format('%s="%s", ',[ConfigAddCols[coSvnPackagesRevision],EscapeSQL(TestSvnPackagesRevision)]);
+      qry:=qry+format('%s=''%s'', ',[ConfigAddCols[coSvnPackagesRevision],EscapeSQL(TestSvnPackagesRevision)]);
 
-    qry:=qry+format('TU_SUBMITTER="%s", TU_MACHINE="%s", TU_COMMENT="%s", TU_DATE="%s"',[Submitter,Machine,Comment,SqlDate(TestDate)]);
+    qry:=qry+format('TU_SUBMITTER=''%s'', TU_MACHINE=''%s'', TU_COMMENT=''%s'', TU_DATE=''%s''',[Submitter,Machine,Comment,SqlDate(TestDate)]);
     qry:=qry+' WHERE TU_ID='+format('%d',[TestRunID]);
-    if RunQuery(Qry,res) then
-      FreeQueryResult(Res);
+    ExecuteQuery(Qry,False);
   end;
 
 function GetTestConfigId : Integer;
@@ -633,9 +642,9 @@ begin
        'TCONF_OS_FK=%d AND ' +
        'TCONF_VERSION_FK=%d AND ' +
        'TCONF_CATEGORY_FK=%d AND ' +
-       'TCONF_SUBMITTER="%s" AND ' +
-       'TCONF_MACHINE="%s" AND ' +
-       'TCONF_COMMENT="%s" ';
+       'TCONF_SUBMITTER=''%s'' AND ' +
+       'TCONF_MACHINE=''%s'' AND ' +
+       'TCONF_COMMENT=''%s'' ';
   ConfigID:=IDQuery(format(qry,[TestCPUID, TestOSID, TestVersionID, TestCategoryID,
                                 Submitter, Machine, Comment]));
   GetTestConfigID:=ConfigID;
@@ -646,7 +655,6 @@ var
   qry : string;
   firstRunID, lastRunID,PrevRunID : Integer;
   RunCount : Integer;
-  res : TQueryResult;
   AddCount : boolean;
 
 begin
@@ -659,9 +667,7 @@ begin
       Verbose(V_Warning,format('FirstRunID changed from %d to %d',[FirstRunID,TestRunID]));
       qry:=format('UPDATE TESTCONFIG SET TCONF_FIRST_RUN_FK=%d WHERE TCONF_ID=%d',
                   [TestRunID,ConfigID]);
-      if RunQuery(qry,res) then
-        FreeQueryResult(res)
-      else
+      if Not ExecuteQuery(qry,False) then
         Verbose(V_Warning,'Update of LastRunID failed');
     end;
   qry:=format('SELECT TCONF_LAST_RUN_FK FROM TESTCONFIG WHERE TCONF_ID=%d',[ConfigID]);
@@ -670,9 +676,7 @@ begin
     begin
       qry:=format('UPDATE TESTCONFIG SET TCONF_LAST_RUN_FK=%d WHERE TCONF_ID=%d',
                   [TestRunID,ConfigID]);
-      if RunQuery(qry,res) then
-        FreeQueryResult(res)
-      else
+      if not ExecuteQuery(qry,False) then
         Verbose(V_Warning,'Update of LastRunID failed');
     end
    else
@@ -681,14 +685,12 @@ begin
   PrevRunID:=IDQuery(qry);
   if TestRunID<>PrevRunID then
     begin
-      qry:=format('UPDATE TESTCONFIG SET TCONF_NEW_RUN_FK=%d WHERE TCONF_ID=%d',
-                  [TestRunID,ConfigID]);
-      if RunQuery(qry,res) then
-        FreeQueryResult(res)
-      else
-        Verbose(V_Warning,'Update of LastRunID failed');
-      AddTestHistoryEntry(TestRunID,PrevRunID);
-      AddCount:=true;
+    qry:=format('UPDATE TESTCONFIG SET TCONF_NEW_RUN_FK=%d WHERE TCONF_ID=%d',
+                [TestRunID,ConfigID]);
+    if not ExecuteQuery(qry,False) then
+      Verbose(V_Warning,'Update of LastRunID failed');
+    AddTestHistoryEntry(TestRunID,PrevRunID);
+    AddCount:=true;
     end
   else
     Verbose(V_Warning,'TestRunID is equal to last!');
@@ -700,9 +702,7 @@ begin
       Inc(RunCount);
       qry:=format('UPDATE TESTCONFIG SET TCONF_COUNT_RUNS=%d WHERE TCONF_ID=%d',
                   [RunCount,ConfigID]);
-      if RunQuery(qry,res) then
-        FreeQueryResult(res)
-      else
+      if not ExecuteQuery(qry,False) then
         Verbose(V_Warning,'Update of TU_COUNT_RUNS failed');
     end;
   UpdateTestConfigID:=true;
@@ -717,31 +717,23 @@ begin
          'TCONF_CPU_FK,TCONF_OS_FK,TCONF_VERSION_FK,TCONF_CATEGORY_FK,'+
          'TCONF_SUBMITTER,TCONF_MACHINE,TCONF_COMMENT,'+
          'TCONF_NEW_DATE,TCONF_FIRST_DATE,TCONF_LAST_DATE) ';
-    qry:=qry+format(' VALUES(%d,%d,%d,%d,%d,%d,%d,"%s","%s","%s","%s","%s","%s") ',
-                    [TestRunID, TestRunID, TestRunID, TestCPUID, 
-                     TestOSID, TestVersionID, TestCategoryID,
-                     Submitter, Machine, Comment,
-                     SqlDate(TestDate), SqlDate(TestDate), SqlDate(TestDate)]);
+  qry:=qry+format(' VALUES(%d,%d,%d,%d,%d,%d,%d,''%s'',''%s'',''%s'',''%s'',''%s'',''%s'') ',
+                  [TestRunID, TestRunID, TestRunID, TestCPUID,
+                   TestOSID, TestVersionID, TestCategoryID,
+                   Submitter, Machine, Comment,
+                   SqlDate(TestDate), SqlDate(TestDate), SqlDate(TestDate)]);
+  qry:=qry+' RETURNING TCONF_ID';
   Result:=InsertQuery(qry);
   AddTestHistoryEntry(TestRunID,0);
 end;
 
 procedure UpdateTestConfig;
 
-  var
-     qry : string;
-     res : TQueryResult;
   begin
-    qry:='SHOW TABLES LIKE ''TESTCONFIG''';
-    if not RunQuery(Qry,Res) then
-      exit;
-    { Row_Count is zero if table does not exist }
-    if Res^.Row_Count=0 then exit;
-    FreeQueryResult(Res);
     if GetTestPreviousRunHistoryID(TestRunID) <> -1 then
       begin
-        Verbose(V_DEBUG,format('TestRun %d already in TestHistory table',[TestRunID]));
-        exit;
+      Verbose(V_DEBUG,format('TestRun %d already in TestHistory table',[TestRunID]));
+      exit;
       end;
 
     if GetTestConfigID >= 0 then

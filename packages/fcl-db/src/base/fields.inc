@@ -1331,7 +1331,7 @@ end;
 procedure TNumericField.RangeError(AValue, Min, Max: Double);
 
 begin
-  DatabaseErrorFMT(SRangeError,[AValue,Min,Max,FieldName]);
+  DatabaseErrorFmt(SRangeError,[AValue,Min,Max,FieldName]);
 end;
 
 procedure TNumericField.SetDisplayFormat(const AValue: string);
@@ -1474,12 +1474,15 @@ begin
 end;
 
 procedure TLongintField.SetAsInteger(AValue: Longint);
-
+var Min, Max: Longint;
 begin
   If CheckRange(AValue) then
     SetData(@AValue)
   else
-    RangeError(AValue,FMinRange,FMaxRange);
+    if (FMinValue<>0) or (FMaxValue<>0) then
+      RangeError(AValue,FMinValue,FMaxValue)
+    else
+      RangeError(AValue,FMinRange,FMaxRange);
 end;
 
 procedure TLongintField.SetVarValue(const AValue: Variant);
@@ -1500,27 +1503,17 @@ begin
     If Code=0 then
       SetAsInteger(L)
     else
-      DatabaseErrorFMT(SNotAnInteger,[AValue]);
+      DatabaseErrorFmt(SNotAnInteger,[AValue]);
     end;
 end;
 
 Function TLongintField.CheckRange(AValue : longint) : Boolean;
 
 begin
-  result := true;
-  if (FMaxValue=0) then
-    begin
-    if (AValue>FMaxRange) Then result := false;
-    end
+  if (FMinValue<>0) or (FMaxValue<>0) then
+    Result := (AValue>=FMinValue) and (AValue<=FMaxValue)
   else
-    if AValue>FMaxValue then result := false;
-
-  if (FMinValue=0) then
-    begin
-    if (AValue<FMinRange) Then result := false;
-    end
-  else
-    if AValue<FMinValue then result := false;
+    Result := (AValue>=FMinRange) and (AValue<=FMaxRange);
 end;
 
 Procedure TLongintField.SetMaxValue (AValue : longint);
@@ -1645,7 +1638,7 @@ begin
   If CheckRange(AValue) then
     SetData(@AValue)
   else
-    RangeError(AValue,FMinRange,FMaxRange);
+    RangeError(AValue,FMinValue,FMaxValue);
 end;
 
 procedure TLargeintField.SetAsInteger(AValue: Longint);
@@ -1668,7 +1661,7 @@ begin
     If Code=0 then
       SetAsLargeint(L)
     else
-      DatabaseErrorFMT(SNotAnInteger,[AValue]);
+      DatabaseErrorFmt(SNotAnInteger,[AValue]);
     end;
 end;
 
@@ -1680,20 +1673,10 @@ end;
 Function TLargeintField.CheckRange(AValue : largeint) : Boolean;
 
 begin
-  result := true;
-  if (FMaxValue=0) then
-    begin
-    if (AValue>FMaxRange) Then result := false;
-    end
+  if (FMinValue<>0) or (FMaxValue<>0) then
+    Result := (AValue>=FMinValue) and (AValue<=FMaxValue)
   else
-    if AValue>FMaxValue then result := false;
-
-  if (FMinValue=0) then
-    begin
-    if (AValue<FMinRange) Then result := false;
-    end
-  else
-    if AValue<FMinValue then result := false;
+    Result := (AValue>=FMinRange) and (AValue<=FMaxRange);
 end;
 
 Procedure TLargeintField.SetMaxValue (AValue : largeint);
@@ -2393,7 +2376,7 @@ class procedure TBCDField.CheckTypeSize(AValue: Longint);
 
 begin
   If not (AValue in [0..4]) then
-    DatabaseErrorfmt(SInvalidFieldSize,[AValue]);
+    DatabaseErrorFmt(SInvalidFieldSize,[AValue]);
 end;
 
 function TBCDField.GetAsBCD: TBCD;
@@ -2504,7 +2487,7 @@ procedure TBCDField.SetAsCurrency(AValue: Currency);
 
 begin
   If CheckRange(AValue) then
-    setdata(@AValue)
+    SetData(@AValue)
   else
     RangeError(AValue,FMinValue,FMaxValue);
 end;
@@ -2564,7 +2547,7 @@ end;
 class procedure TFMTBCDField.CheckTypeSize(AValue: Longint);
 begin
   If AValue > MAXFMTBcdFractionSize then
-    DatabaseErrorfmt(SInvalidFieldSize,[AValue]);
+    DatabaseErrorFmt(SInvalidFieldSize,[AValue]);
 end;
 
 constructor TFMTBCDField.Create(AOwner: TComponent);

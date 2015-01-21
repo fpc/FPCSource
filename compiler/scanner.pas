@@ -1921,21 +1921,38 @@ type
                     { first look for a macros/int/float }
                     result:=preproc_substitutedtoken(storedpattern,eval);
                     if eval and (result.consttyp=conststring) then
-                      if searchsym(storedpattern,srsym,srsymtable) then
+                      begin
+                        if searchsym(storedpattern,srsym,srsymtable) then
+                          begin
+                            try_consume_nestedsym(srsym,srsymtable);
+                            if assigned(srsym) then
+                              case srsym.typ of
+                                constsym:
+                                  begin
+                                    result.free;
+                                    result:=texprvalue.create_const(tconstsym(srsym));
+                                  end;
+                                enumsym:
+                                  begin
+                                    result.free;
+                                    result:=texprvalue.create_int(tenumsym(srsym).value);
+                                  end;
+                              end;
+                          end
+                        end
+                      { skip id(<expr>) if expression must not be evaluated }
+                      else if not(eval) and (result.consttyp=conststring) then
                         begin
-                          try_consume_nestedsym(srsym,srsymtable);
-                          if assigned(srsym) then
-                            case srsym.typ of
-                              constsym:
-                                begin
-                                  result.free;
-                                  result:=texprvalue.create_const(tconstsym(srsym));
-                                end;
-                              enumsym:
-                                begin
-                                  result.free;
-                                  result:=texprvalue.create_int(tenumsym(srsym).value);
-                                end;
+                          if current_scanner.preproc_token =_LKLAMMER then
+                            begin
+                              preproc_consume(_LKLAMMER);
+                              current_scanner.skipspace;
+
+                              result:=preproc_factor(false);
+                              if current_scanner.preproc_token =_RKLAMMER then
+                                preproc_consume(_RKLAMMER)
+                              else
+                                Message(scan_e_error_in_preproc_expr);
                             end;
                         end;
                   end
@@ -2952,9 +2969,18 @@ type
             minfpconstprec:=tfloattype(tokenreadenum(sizeof(tfloattype)));
 
             disabledircache:=boolean(tokenreadbyte);
-{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
-            controllertype:=tcontrollertype(tokenreadenum(sizeof(tcontrollertype)));
-{$endif defined(ARM) or defined(AVR) or DEFINED(MIPSEL)}
+{ TH: Since the field was conditional originally, it was not stored in PPUs.  }
+{ While adding ControllerSupport constant, I decided not to store ct_none     }
+{ on targets not supporting controllers, but this might be changed here and   }
+{ in tokenwritesettings in the future to unify the PPU structure and handling }
+{ of this field in the compiler.                                              }
+{$PUSH}
+ {$WARN 6018 OFF} (* Unreachable code due to compile time evaluation *)
+            if ControllerSupport then
+             controllertype:=tcontrollertype(tokenreadenum(sizeof(tcontrollertype)))
+            else
+             ControllerType:=ct_none;
+{$POP}
            endpos:=replaytokenbuf.pos;
            if endpos-startpos<>expected_size then
              Comment(V_Error,'Wrong size of Settings read-in');
@@ -3021,9 +3047,12 @@ type
             tokenwriteenum(minfpconstprec,sizeof(tfloattype));
 
             recordtokenbuf.write(byte(disabledircache),1);
-{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
-            tokenwriteenum(controllertype,sizeof(tcontrollertype));
-{$endif defined(ARM) or defined(AVR) or defined(MIPSEL)}
+{ TH: See note about controllertype field in tokenreadsettings. }
+{$PUSH}
+ {$WARN 6018 OFF} (* Unreachable code due to compile time evaluation *)
+            if ControllerSupport then
+              tokenwriteenum(controllertype,sizeof(tcontrollertype));
+{$POP}
            endpos:=recordtokenbuf.pos;
            size:=endpos-startpos;
            recordtokenbuf.seek(sizepos);
@@ -3296,8 +3325,6 @@ type
                       begin
                         current_settings.pmessage:=nil;
                         mesgnb:=tokenreadsizeint;
-                        if mesgnb>0 then
-                          Comment(V_Error,'Message recordind not yet supported');
                         prevmsg:=nil;
                         for i:=1 to mesgnb do
                           begin

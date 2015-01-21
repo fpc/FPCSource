@@ -26,7 +26,7 @@ unit htypechk;
 interface
 
     uses
-      cclasses,tokens,cpuinfo,
+      cclasses,cmsgs,tokens,cpuinfo,
       node,globtype,
       symconst,symtype,symdef,symsym,symbase;
 
@@ -177,6 +177,8 @@ interface
     { returns whether the def may be used in the Default() intrinsic; static
       arrays, records and objects are checked recursively }
     function is_valid_for_default(def:tdef):boolean;
+
+    procedure UninitializedVariableMessage(pos : tfileposinfo;warning,local,managed : boolean;name : TMsgStr);
 
 implementation
 
@@ -1092,6 +1094,23 @@ implementation
       end;
 
 
+    procedure UninitializedVariableMessage(pos : tfileposinfo;warning,local,managed : boolean;name : TMsgStr);
+      const
+        msg : array[false..true,false..true,false..true] of dword = (
+            (
+              (sym_h_uninitialized_variable,sym_h_uninitialized_managed_variable),
+              (sym_h_uninitialized_local_variable,sym_h_uninitialized_managed_local_variable)
+            ),
+            (
+              (sym_w_uninitialized_variable,sym_w_uninitialized_managed_variable),
+              (sym_w_uninitialized_local_variable,sym_w_uninitialized_managed_local_variable)
+            )
+          );
+      begin
+        CGMessagePos1(pos,msg[warning,local,managed],name);
+      end;
+
+
     procedure set_varstate(p:tnode;newstate:tvarstate;varstateflags:tvarstateflags);
       const
         vstrans: array[tvarstate,tvarstate] of tvarstate = (
@@ -1197,32 +1216,29 @@ implementation
                                  if (vo_is_funcret in hsym.varoptions) then
                                    begin
                                      if (vsf_use_hints in varstateflags) then
-                                       CGMessagePos(p.fileinfo,sym_h_function_result_uninitialized)
-                                     else
-                                       CGMessagePos(p.fileinfo,sym_w_function_result_uninitialized)
-                                   end
-                                 else
-                                   begin
-                                     if tloadnode(p).symtable.symtabletype=localsymtable then
                                        begin
-                                         { on the JVM, an uninitialized var-parameter
-                                           is just as fatal as a nil pointer dereference }
-                                         if (vsf_use_hints in varstateflags) and
-                                            not(target_info.system in systems_jvm) then
-                                           CGMessagePos1(p.fileinfo,sym_h_uninitialized_local_variable,hsym.realname)
+                                         if is_managed_type(hsym.vardef) then
+                                           CGMessagePos(p.fileinfo,sym_h_managed_function_result_uninitialized)
                                          else
-                                           CGMessagePos1(p.fileinfo,sym_w_uninitialized_local_variable,hsym.realname);
+                                           CGMessagePos(p.fileinfo,sym_h_function_result_uninitialized);
                                        end
                                      else
                                        begin
-                                         { on the JVM, an uninitialized var-parameter
-                                           is just as fatal as a nil pointer dereference }
-                                         if (vsf_use_hints in varstateflags) and
-                                            not(target_info.system in systems_jvm) then
-                                           CGMessagePos1(p.fileinfo,sym_h_uninitialized_variable,hsym.realname)
+                                         if is_managed_type(hsym.vardef) then
+                                           CGMessagePos(p.fileinfo,sym_w_managed_function_result_uninitialized)
                                          else
-                                           CGMessagePos1(p.fileinfo,sym_w_uninitialized_variable,hsym.realname);
+                                          CGMessagePos(p.fileinfo,sym_w_function_result_uninitialized);
                                        end;
+                                   end
+                                 else
+                                   begin
+                                     UninitializedVariableMessage(p.fileinfo,
+                                       { on the JVM, an uninitialized var-parameter
+                                         is just as fatal as a nil pointer dereference }
+                                       not((vsf_use_hints in varstateflags) and not(target_info.system in systems_jvm)),
+                                       tloadnode(p).symtable.symtabletype=localsymtable,
+                                       is_managed_type(tloadnode(p).resultdef),
+                                       hsym.realname);
                                    end;
                                end;
                            end
@@ -2227,7 +2243,7 @@ implementation
                  break;
              end;
            if is_objectpascal_helper(structdef) and
-              (tobjectdef(structdef).typ in [recorddef,objectdef]) then
+              (tobjectdef(structdef).extendeddef.typ in [recorddef,objectdef]) then
              begin
                { search methods in the extended type as well }
                srsym:=tprocsym(tabstractrecorddef(tobjectdef(structdef).extendeddef).symtable.FindWithHash(hashedid));
@@ -2583,7 +2599,8 @@ implementation
         def_to   : tdef;
         currpt,
         pt       : tcallparanode;
-        eq       : tequaltype;
+        eq,
+        mineq    : tequaltype;
         convtype : tconverttype;
         pdtemp,
         pdoper   : tprocdef;
@@ -2763,6 +2780,30 @@ implementation
                    eq:=compare_defs_ext(n.resultdef,def_to,n.nodetype,convtype,pdoper,cdoptions);
                    n.free;
                  end
+              else if is_open_array(def_to) and
+                      is_class_or_interface_or_dispinterface_or_objc_or_java(tarraydef(def_to).elementdef) and
+                      is_array_constructor(currpt.left.resultdef) and
+                      assigned(tarrayconstructornode(currpt.left).left) then
+                begin
+                  { ensure that [nil] can be converted to "array of tobject",
+                    because if we just try to convert "array of pointer" to
+                    "array of tobject", we get type conversion errors in
+                    non-Delphi modes }
+                  n:=currpt.left;
+                  mineq:=te_exact;
+                  repeat
+                    if tarrayconstructornode(n).left.nodetype=arrayconstructorrangen then
+                      eq:=te_incompatible
+                    else
+                      eq:=compare_defs_ext(tarrayconstructornode(n).left.resultdef,tarraydef(def_to).elementdef,tarrayconstructornode(n).left.nodetype,convtype,pdoper,cdoptions);
+                    if eq<mineq then
+                      mineq:=eq;
+                    if eq=te_incompatible then
+                      break;
+                    n:=tarrayconstructornode(n).right;
+                  until not assigned(n);
+                  eq:=mineq;
+                end
               else
               { generic type comparision }
                begin

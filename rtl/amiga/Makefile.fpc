@@ -34,8 +34,8 @@ target=amiga
 cpu=powerpc
 
 [compiler]
-includedir=$(INC) $(PROCINC) $(CPU_TARGET)
-sourcedir=$(INC) $(PROCINC) $(CPU_TARGET) $(COMMON)
+includedir=$(INC) $(PROCINC) $(CPU_TARGET) $(AMIINC)
+sourcedir=$(INC) $(PROCINC) $(CPU_TARGET) $(AMIINC) $(COMMON)
 
 
 [prerules]
@@ -43,6 +43,7 @@ RTL=..
 INC=$(RTL)/inc
 COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
+AMIINC=$(RTL)/amicommon
 UNITPREFIX=rtl
 SYSTEMUNIT=system
 
@@ -55,7 +56,6 @@ endif
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
-GRAPHDIR=$(INC)/graph
 
 [rules]
 .NOTPARALLEL:
@@ -126,11 +126,11 @@ dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
 
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
                     objpas$(PPUEXT) dos$(PPUEXT) sysconst$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
+        $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(AMIINC)/sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) types$(PPUEXT) fgl$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
+        $(COMPILER) -Fi$(OBJPASDIR)/classes $(AMIINC)/classes.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp $(REDIR)

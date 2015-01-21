@@ -148,6 +148,12 @@
 -Fu%basepath%/units/$fpctarget/*
 -Fu%basepath%/units/$fpctarget/rtl
 
+#ifdef cpui8086
+-Fu%basepath%/units/$fpctarget/$fpcsubarch-$fpcmemorymodel
+-Fu%basepath%/units/$fpctarget/$fpcsubarch-$fpcmemorymodel/*
+-Fu%basepath%/units/$fpctarget/$fpcsubarch-$fpcmemorymodel/rtl
+#endif
+
 #IFDEF FPCAPACHE_1_3
 -Fu%basepath%/units/$fpctarget/httpd13/
 #ELSE
@@ -185,6 +191,12 @@
 #undef NEEDCROSSBINUTILS
 #endif
 
+# never need cross-prefix when targeting the i8086
+# (no native compiler, always cross-compiling)
+#ifdef cpui8086
+#undef NEEDCROSSBINUTILS
+#endif
+
 # binutils prefix for cross compiling
 #IFDEF FPC_CROSSCOMPILING
 #IFDEF NEEDCROSSBINUTILS
@@ -215,6 +227,13 @@
 
 # Always strip debuginfo from the executable
 -Xs
+
+# Always use smartlinking on i8086, because the system unit exceeds the 64kb
+# code limit
+#ifdef cpui8086
+-CX
+-XX
+#endif
 
 
 # -------------

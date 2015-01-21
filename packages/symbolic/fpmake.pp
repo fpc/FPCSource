@@ -12,10 +12,11 @@ begin
     begin
 {$endif ALLPACKAGES}
     P:=AddPackage('symbolic');
+    P.ShortName:='symb';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Author := 'Marco van de Voort';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

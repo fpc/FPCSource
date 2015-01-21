@@ -14,7 +14,8 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('fpcres');
+    P:=AddPackage('utils-fpcres');
+    P.ShortName:='fpres';
 
     P.Author := 'Giulio Bernardi';
     P.License := 'LGPL with modification';
@@ -24,9 +25,9 @@ begin
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
 
-    P.OSes:=[win32,win64,wince,haiku,linux,freebsd,openbsd,netbsd,darwin,iphonesim,solaris,os2,emx,aix];
+    P.OSes:=[win32,win64,wince,haiku,linux,freebsd,openbsd,netbsd,darwin,iphonesim,solaris,os2,emx,aix,aros];
 
     P.Dependencies.Add('fcl-res');
     P.Dependencies.Add('paszlib');

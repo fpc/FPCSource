@@ -23,6 +23,7 @@ interface
 {$H+}
 
 {$DEFINE HAS_SLEEP}
+{$DEFINE HAS_OSERROR}
 
 { used OS file system APIs use ansistring }
 {$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
@@ -42,6 +43,9 @@ implementation
 type
 (* Necessary here due to a different definition of TDateTime in DosCalls. *)
   TDateTime = System.TDateTime;
+
+threadvar
+  LastOSError: cardinal;
 
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
@@ -83,8 +87,11 @@ begin
   If Rc=0 then
     FileOpen:=Handle
   else
+   begin
     FileOpen:=feInvalidHandle; //FileOpen:=-RC;
     //should return feInvalidHandle(=-1) if fail, other negative returned value are no more errors
+    OSErrorWatch (RC);
+   end;
 end;
 
 function FileCreate (const FileName: RawByteString): THandle;
@@ -115,56 +122,84 @@ begin
   if RC = 0 then
    FileCreate := Handle
   else
-   FileCreate := feInvalidHandle;
+   begin
+    FileCreate := feInvalidHandle;
+    OSErrorWatch (RC);
+   end;
 End;
 
 
 function FileRead (Handle: THandle; Out Buffer; Count: longint): longint;
 Var
   T: cardinal;
+  RC: cardinal;
 begin
-  DosRead(Handle, Buffer, Count, T);
+  RC := DosRead (Handle, Buffer, Count, T);
   FileRead := longint (T);
+  if RC <> 0 then
+   OSErrorWatch (RC);
 end;
 
 function FileWrite (Handle: THandle; const Buffer; Count: longint): longint;
 Var
   T: cardinal;
+  RC: cardinal;
 begin
-  DosWrite (Handle, Buffer, Count, T);
+  RC := DosWrite (Handle, Buffer, Count, T);
   FileWrite := longint (T);
+  if RC <> 0 then
+   OSErrorWatch (RC);
 end;
 
 function FileSeek (Handle: THandle; FOffset, Origin: longint): longint;
 var
   NPos: int64;
+  RC: cardinal;
 begin
-  if (Sys_DosSetFilePtrL (Handle, FOffset, Origin, NPos) = 0)
-                                               and (NPos < high (longint)) then
+  RC := Sys_DosSetFilePtrL (Handle, FOffset, Origin, NPos);
+  if (RC = 0) and (NPos < high (longint)) then
     FileSeek:= longint (NPos)
   else
+   begin
     FileSeek:=-1;
+    OSErrorWatch (RC);
+   end;
 end;
 
 function FileSeek (Handle: THandle; FOffset: Int64; Origin: Longint): Int64;
 var
   NPos: int64;
+  RC: cardinal;
 begin
-  if Sys_DosSetFilePtrL (Handle, FOffset, Origin, NPos) = 0 then
+  RC := Sys_DosSetFilePtrL (Handle, FOffset, Origin, NPos);
+  if RC = 0 then
     FileSeek:= NPos
   else
+   begin
     FileSeek:=-1;
+    OSErrorWatch (RC);
+   end;
 end;
 
 procedure FileClose (Handle: THandle);
+var
+  RC: cardinal;
 begin
-  DosClose(Handle);
+  RC := DosClose (Handle);
+  if RC <> 0 then
+   OSErrorWatch (RC);
 end;
 
 function FileTruncate (Handle: THandle; Size: Int64): boolean;
+var
+  RC: cardinal;
 begin
-  FileTruncate:=Sys_DosSetFileSizeL(Handle, Size)=0;
-  FileSeek(Handle, 0, 2);
+  RC := Sys_DosSetFileSizeL(Handle, Size);
+  FileTruncate := RC = 0;
+  if RC = 0 then
+   FileSeek(Handle, 0, 2)
+  else
+   OSErrorWatch (RC);
 end;
 
 function FileAge (const FileName: RawByteString): longint;
@@ -222,7 +257,9 @@ begin
   else
    Err := DosFindFirst (PChar (SystemEncodedPath), Rslt.FindHandle,
             Attr and FindResvdMask, FStat, SizeOf (FStat^), Count, ilStandard);
-  if (Err = 0) and (Count = 0) then
+  if Err <> 0 then
+   OSErrorWatch (Err)
+  else if Count = 0 then
    Err := 18;
   InternalFindFirst := -Err;
   if Err = 0 then
@@ -261,7 +298,9 @@ begin
   New (FStat);
   Count := 1;
   Err := DosFindNext (Rslt.FindHandle, FStat, SizeOf (FStat^), Count);
-  if (Err = 0) and (Count = 0) then
+  if Err <> 0 then
+   OSErrorWatch (Err)
+  else if Count = 0 then
    Err := 18;
   InternalFindNext := -Err;
   if Err = 0 then
@@ -290,9 +329,12 @@ end;
 Procedure InternalFindClose(var Handle: THandle);
 var
   SR: PSearchRec;
+  RC: cardinal;
 begin
-  DosFindClose (Handle);
+  RC := DosFindClose (Handle);
   Handle := 0;
+  if RC <> 0 then
+   OSErrorWatch (RC);
 end;
 
 function FileGetDate (Handle: THandle): longint;
@@ -308,7 +350,10 @@ begin
     if Time = 0 then
       Time := FStat.TimeCreation + longint (FStat.DateCreation) shl 16;
   end else
+   begin
     Time:=0;
+    OSErrorWatch (RC);
+   end;
   FileGetDate:=Time;
 end;
 
@@ -320,19 +365,25 @@ begin
   New (FStat);
   RC := DosQueryFileInfo (Handle, ilStandard, FStat, SizeOf (FStat^));
   if RC <> 0 then
-    FileSetDate := -1
+   begin
+    FileSetDate := -1;
+    OSErrorWatch (RC);
+   end
   else
-  begin
+   begin
     FStat^.DateLastAccess := Hi (Age);
     FStat^.DateLastWrite := Hi (Age);
     FStat^.TimeLastAccess := Lo (Age);
     FStat^.TimeLastWrite := Lo (Age);
     RC := DosSetFileInfo (Handle, ilStandard, FStat, SizeOf (FStat^));
     if RC <> 0 then
-      FileSetDate := -1
+     begin
+      FileSetDate := -1;
+      OSErrorWatch (RC);
+     end
     else
-      FileSetDate := 0;
-  end;
+     FileSetDate := 0;
+   end;
   Dispose (FStat);
 end;
 
@@ -340,11 +391,18 @@ function FileGetAttr (const FileName: RawByteString): longint;
 var
   FS: PFileStatus3;
   SystemFileName: RawByteString;
+  RC: cardinal;
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(Filename);
   New(FS);
-  Result:=-DosQueryPathInfo(PChar (SystemFileName), ilStandard, FS, SizeOf(FS^));
-  If Result=0 Then Result:=FS^.attrFile;
+  RC := DosQueryPathInfo(PChar (SystemFileName), ilStandard, FS, SizeOf(FS^));
+  if RC = 0 then
+   Result := FS^.AttrFile
+  else
+   begin
+    Result := - longint (RC);
+    OSErrorWatch (RC);
+   end;
   Dispose(FS);
 end;
 
@@ -352,12 +410,16 @@ function FileSetAttr (const Filename: RawByteString; Attr: longint): longint;
 Var
   FS: PFileStatus3;
   SystemFileName: RawByteString;
+  RC: cardinal;
 Begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(Filename);
   New(FS);
   FillChar(FS, SizeOf(FS^), 0);
   FS^.AttrFile:=Attr;
-  Result:=-DosSetPathInfo(PChar (SystemFileName), ilStandard, FS, SizeOf(FS^), 0);
+  RC := DosSetPathInfo(PChar (SystemFileName), ilStandard, FS, SizeOf(FS^), 0);
+  if RC <> 0 then
+   OSErrorWatch (RC);
+  Result := - longint (RC);
   Dispose(FS);
 end;
 
@@ -365,18 +427,34 @@ end;
 function DeleteFile (const FileName: RawByteString): boolean;
 var
   SystemFileName: RawByteString;
+  RC: cardinal;
 Begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(Filename);
-  Result:=(DosDelete(PChar (SystemFileName))=0);
+  RC := DosDelete (PChar (SystemFileName));
+  if RC <> 0 then
+   begin
+    Result := false;
+    OSErrorWatch (RC);
+   end
+  else
+   Result := true;
 End;
 
 function RenameFile (const OldName, NewName: RawByteString): boolean;
 var
   OldSystemFileName, NewSystemFileName: RawByteString;
+  RC: cardinal;
 Begin
   OldSystemFileName:=ToSingleByteFileSystemEncodedFileName(OldName);
   NewSystemFileName:=ToSingleByteFileSystemEncodedFileName(NewName);
-  Result:=(DosMove(PChar (OldSystemFileName), PChar (NewSystemFileName))=0);
+  RC := DosMove (PChar (OldSystemFileName), PChar (NewSystemFileName));
+  if RC <> 0 then
+   begin
+    Result := false;
+    OSErrorWatch (RC);
+   end
+  else
+   Result := true;
 End;
 
 {****************************************************************************
@@ -389,13 +467,16 @@ var FI: TFSinfo;
     RC: cardinal;
 
 begin
-        {In OS/2, we use the filesystem information.}
-            RC := DosQueryFSInfo (Drive, 1, FI, SizeOf (FI));
-            if RC = 0 then
-                DiskFree := int64 (FI.Free_Clusters) *
+  {In OS/2, we use the filesystem information.}
+  RC := DosQueryFSInfo (Drive, 1, FI, SizeOf (FI));
+  if RC = 0 then
+   DiskFree := int64 (FI.Free_Clusters) *
                    int64 (FI.Sectors_Per_Cluster) * int64 (FI.Bytes_Per_Sector)
-            else
-                DiskFree := -1;
+  else
+   begin
+    DiskFree := -1;
+    OSErrorWatch (RC);
+   end;
 end;
 
 function DiskSize (Drive: byte): int64;
@@ -404,13 +485,16 @@ var FI: TFSinfo;
     RC: cardinal;
 
 begin
-        {In OS/2, we use the filesystem information.}
-            RC := DosQueryFSinfo (Drive, 1, FI, SizeOf (FI));
-            if RC = 0 then
-                DiskSize := int64 (FI.Total_Clusters) *
+  {In OS/2, we use the filesystem information.}
+  RC := DosQueryFSinfo (Drive, 1, FI, SizeOf (FI));
+  if RC = 0 then
+   DiskSize := int64 (FI.Total_Clusters) *
                    int64 (FI.Sectors_Per_Cluster) * int64 (FI.Bytes_Per_Sector)
-            else
-                DiskSize := -1;
+  else
+   begin
+    DiskSize := -1;
+    OSErrorWatch (RC);
+   end;
 end;
 
 
@@ -469,17 +553,21 @@ end;
 procedure sysbeep;
 
 begin
-  // Maybe implement later on ?
-
+  DosBeep (800, 250);
 end;
 
 {****************************************************************************
                               Locale Functions
 ****************************************************************************}
 
+var
+  Country: TCountryCode;
+  CtryInfo: TCountryInfo;
+
 procedure InitAnsi;
-var I: byte;
-    Country: TCountryCode;
+var
+  I: byte;
+  RC: cardinal;
 begin
     for I := 0 to 255 do
         UpperCaseTable [I] := Chr (I);
@@ -493,46 +581,63 @@ end;
 
 
 procedure InitInternational;
-var Country: TCountryCode;
-    CtryInfo: TCountryInfo;
-    Size: cardinal;
-    RC: cardinal;
+var
+  Size: cardinal;
+  RC: cardinal;
 begin
-    Size := 0;
-    FillChar (Country, SizeOf (Country), 0);
-    FillChar (CtryInfo, SizeOf (CtryInfo), 0);
-    RC := DosQueryCtryInfo (SizeOf (CtryInfo), Country, CtryInfo, Size);
-    if RC = 0 then
-        begin
-            DateSeparator := CtryInfo.DateSeparator;
-            case CtryInfo.DateFormat of
-             1: begin
-                    ShortDateFormat := 'd/m/y';
-                    LongDateFormat := 'dd" "mmmm" "yyyy';
-                end;
-             2: begin
-                    ShortDateFormat := 'y/m/d';
-                    LongDateFormat := 'yyyy" "mmmm" "dd';
-                end;
-             3: begin
-                    ShortDateFormat := 'm/d/y';
-                    LongDateFormat := 'mmmm" "dd" "yyyy';
-                end;
-            end;
-            TimeSeparator := CtryInfo.TimeSeparator;
-            DecimalSeparator := CtryInfo.DecimalSeparator;
-            ThousandSeparator := CtryInfo.ThousandSeparator;
-            CurrencyFormat := CtryInfo.CurrencyFormat;
-            CurrencyString := PChar (CtryInfo.CurrencyUnit);
+  Size := 0;
+  FillChar (Country, SizeOf (Country), 0);
+  FillChar (CtryInfo, SizeOf (CtryInfo), 0);
+  RC := DosQueryCtryInfo (SizeOf (CtryInfo), Country, CtryInfo, Size);
+  if RC = 0 then
+   begin
+    DateSeparator := CtryInfo.DateSeparator;
+    case CtryInfo.DateFormat of
+     1: begin
+         ShortDateFormat := 'd/m/y';
+         LongDateFormat := 'dd" "mmmm" "yyyy';
         end;
-    InitAnsi;
-    InitInternationalGeneric;
+     2: begin
+         ShortDateFormat := 'y/m/d';
+         LongDateFormat := 'yyyy" "mmmm" "dd';
+        end;
+     3: begin
+         ShortDateFormat := 'm/d/y';
+         LongDateFormat := 'mmmm" "dd" "yyyy';
+        end;
+    end;
+    TimeSeparator := CtryInfo.TimeSeparator;
+    DecimalSeparator := CtryInfo.DecimalSeparator;
+    ThousandSeparator := CtryInfo.ThousandSeparator;
+    CurrencyFormat := CtryInfo.CurrencyFormat;
+    CurrencyString := PChar (CtryInfo.CurrencyUnit);
+   end
+  else
+   OSErrorWatch (RC);
+  InitAnsi;
+  InitInternationalGeneric;
 end;
 
 function SysErrorMessage(ErrorCode: Integer): String;
-
+const
+  SysMsgFile: array [0..10] of char = 'OSO001.MSG'#0;
+var
+  OutBuf: array [0..999] of char;
+  RetMsgSize: cardinal;
+  RC: cardinal;
 begin
-  Result:=Format(SUnknownErrorCode,[ErrorCode]);
+  RC := DosGetMessage (nil, 0, @OutBuf [0], SizeOf (OutBuf),
+                                       ErrorCode, @SysMsgFile [0], RetMsgSize);
+  if RC = 0 then
+   begin
+    SetLength (Result, RetMsgSize);
+    Move (OutBuf [0], Result [1], RetMsgSize);
+   end
+  else
+   begin
+    Result:=Format(SUnknownErrorCode,[ErrorCode]);
+    OSErrorWatch (RC);
+   end;
 end;
 
 
@@ -648,9 +753,10 @@ var
  ObjName: shortstring;
  RC: cardinal;
  ExecAppType: cardinal;
+ MaxArgsSize: PtrUInt; (* Amount of memory reserved for arguments in bytes. *)
+ MaxArgsSizeInc: word;
 
 const
- MaxArgsSize = 3072; (* Amount of memory reserved for arguments in bytes. *)
  ObjBufSize = 512;
 
 function StartSession: cardinal;
@@ -687,7 +793,10 @@ begin
  SD.ObjectBuffLen := ObjBufSize;
  RC := DosCreateQueue (HQ, quFIFO or quConvert_Address, @QName [1]);
  if RC <> 0 then
-  Move (QName [1], ObjNameBuf^, Length (QName))
+  begin
+   Move (QName [1], ObjNameBuf^, Length (QName));
+   OSErrorWatch (RC);
+  end
  else
   begin
    RC := DosStartSession (SD, SID, PID);
@@ -697,15 +806,28 @@ begin
      if RC = 0 then
       begin
        Result := PCI^.Return;
-       DosCloseQueue (HQ);
-       DosFreeMem (PCI);
+       RC := DosCloseQueue (HQ);
+       if RC <> 0 then
+        OSErrorWatch (RC);
+       RC := DosFreeMem (PCI);
+       if RC <> 0 then
+        OSErrorWatch (RC);
        FreeMem (ObjNameBuf, ObjBufSize);
       end
      else
-      DosCloseQueue (HQ);
+      begin
+       OSErrorWatch (RC);
+       RC := DosCloseQueue (HQ);
+       OSErrorWatch (RC);
+      end;
     end
    else
-    DosCloseQueue (HQ);
+    begin
+     OSErrorWatch (RC);
+     RC := DosCloseQueue (HQ);
+     if RC <> 0 then
+      OSErrorWatch (RC);
+    end;
   end;
 end;
 
@@ -715,52 +837,68 @@ begin
  GetMem (ObjNameBuf, ObjBufSize);
  FillChar (ObjNameBuf^, ObjBufSize, 0);
 
- if (DosQueryAppType (PChar (Path), ExecAppType) = 0) and
-                               (ApplicationType and 3 = ExecAppType and 3) then
-(* DosExecPgm should work... *)
+ RC := DosQueryAppType (PChar (Path), ExecAppType);
+ if RC <> 0 then
   begin
-   if ComLine = '' then
-    begin
-     Args0 := nil;
-     Args := nil;
-    end
-   else
-    begin
-     GetMem (Args0, MaxArgsSize);
-     Args := Args0;
-(* Work around a bug in OS/2 - argument to DosExecPgm *)
-(* should not cross 64K boundary. *)
-     if ((PtrUInt (Args) + 1024) and $FFFF) < 1024 then
-      Inc (pointer (Args), 1024);
-     ArgSize := 0;
-     Move (Path [1], Args^ [ArgSize], Length (Path));
-     Inc (ArgSize, Length (Path));
-     Args^ [ArgSize] := 0;
-     Inc (ArgSize);
-     {Now do the real arguments.}
-     Move (ComLine [1], Args^ [ArgSize], Length (ComLine));
-     Inc (ArgSize, Length (ComLine));
-     Args^ [ArgSize] := 0;
-     Inc (ArgSize);
-     Args^ [ArgSize] := 0;
-    end;
-   Res.ExitCode := $FFFFFFFF;
-   RC := DosExecPgm (ObjNameBuf, ObjBufSize, 0, Args, nil, Res, PChar (Path));
-   if Args0 <> nil then
-    FreeMem (Args0, MaxArgsSize);
-   if RC = 0 then
-    begin
-     Result := Res.ExitCode;
-     FreeMem (ObjNameBuf, ObjBufSize);
-    end
-   else
-    begin
-     if (RC = 190) or (RC = 191) then
-      Result := StartSession;
-    end;
+   OSErrorWatch (RC);
+   if (RC = 190) or (RC = 191) then
+    Result := StartSession;
   end
  else
-  Result := StartSession;
+  begin
+   if (ApplicationType and 3 = ExecAppType and 3) then
+(* DosExecPgm should work... *)
+    begin
+     MaxArgsSize := Length (ComLine) + Length (Path) + 256; (* More than enough *)
+     if MaxArgsSize > high (word) then
+      Exit;
+     if ComLine = '' then
+      begin
+       Args0 := nil;
+       Args := nil;
+      end
+     else
+      begin
+       GetMem (Args0, MaxArgsSize);
+       Args := Args0;
+(* Work around a bug in OS/2 - argument to DosExecPgm *)
+(* should not cross 64K boundary. *)
+       while ((PtrUInt (Args) + MaxArgsSize) and $FFFF) < MaxArgsSize do
+        begin
+         MaxArgsSizeInc := MaxArgsSize -
+                                    ((PtrUInt (Args) + MaxArgsSize) and $FFFF);
+         Inc (MaxArgsSize, MaxArgsSizeInc);
+         if MaxArgsSize > high (word) then
+          Exit;
+         ReallocMem (Args0, MaxArgsSize);
+         Inc (pointer (Args), MaxArgsSizeInc);
+        end;
+       ArgSize := 0;
+       Move (Path [1], Args^ [ArgSize], Length (Path));
+       Inc (ArgSize, Length (Path));
+       Args^ [ArgSize] := 0;
+       Inc (ArgSize);
+       {Now do the real arguments.}
+       Move (ComLine [1], Args^ [ArgSize], Length (ComLine));
+       Inc (ArgSize, Length (ComLine));
+       Args^ [ArgSize] := 0;
+       Inc (ArgSize);
+       Args^ [ArgSize] := 0;
+      end;
+     Res.ExitCode := $FFFFFFFF;
+     RC := DosExecPgm (ObjNameBuf, ObjBufSize, 0, Args, nil, Res,
+                                                                 PChar (Path));
+     if RC <> 0 then
+      OSErrorWatch (RC);
+     if Args0 <> nil then
+      FreeMem (Args0, MaxArgsSize);
+     if RC = 0 then
+      begin
+       Result := Res.ExitCode;
+       FreeMem (ObjNameBuf, ObjBufSize);
+      end
+    end
+  end;
  if RC <> 0 then
   begin
    ObjName := StrPas (ObjNameBuf);
@@ -805,16 +943,30 @@ begin
   GetTickCount := L;
 end;
 
-
 function GetTickCount64: QWord;
 var
-  L: cardinal;
+  Freq2: cardinal;
+  T: QWord;
 begin
-  DosQuerySysInfo (svMsCount, svMsCount, L, 4);
-  GetTickCount64 := L;
+  DosTmrQueryFreq (Freq2);
+  DosTmrQueryTime (T);
+  GetTickCount64 := T div (QWord (Freq2) div 1000);
+{$NOTE GetTickCount64 takes 20 microseconds on 1GHz CPU, GetTickCount not measurable}
 end;
 
+const
+  OrigOSErrorWatch: TOSErrorWatch = nil;
 
+procedure TrackLastOSError (Error: cardinal);
+begin
+  LastOSError := Error;
+  OrigOSErrorWatch (Error);
+end;
+
+function GetLastOSError: Integer;
+begin
+  GetLastOSError := Integer (LastOSError);
+end;
 
 {****************************************************************************
                               Initialization code
@@ -824,6 +976,8 @@ Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
   OnBeep:=@SysBeep;
+  LastOSError := 0;
+  OrigOSErrorWatch := TOSErrorWatch (SetOSErrorTracking (@TrackLastOSError));
 Finalization
   DoneExceptions;
 end.

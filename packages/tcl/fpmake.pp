@@ -13,10 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('tcl');
+    P.Description := 'Interface unit for invoking Tcl interpreter using a library.';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.SourcePath.Add('src');
     P.OSes := AllUnixOSes+AllWindowsOSes+[os2,emx]-[qnx];
 

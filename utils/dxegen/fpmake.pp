@@ -14,7 +14,8 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('dxegen');
+    P:=AddPackage('utils-dxegen');
+    P.ShortName:='dxeg';
 
     P.Author := 'Charles Sandmann and others';
     P.License := 'LGPL with modification';
@@ -27,7 +28,7 @@ begin
     P.OSes:=[go32v2];
 
     P.Directory:=ADirectory;
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
 
     T:=P.Targets.AddProgram('dxegen.pp');
     T.Dependencies.AddUnit('coff');

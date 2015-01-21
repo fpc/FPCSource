@@ -70,8 +70,7 @@ implementation
     procedure tm68knotnode.second_boolean;
       var
         hreg: tregister;
-         opsize : tcgsize;
-         loc : tcgloc;
+        opsize : tcgsize;
       begin
         if not handle_locjump then
           begin
@@ -154,10 +153,8 @@ implementation
 
 
   procedure tm68kmoddivnode.emit_mod_reg_reg(signed: boolean;denum,num : tregister);
-      var tmpreg : tregister;
-          continuelabel : tasmlabel;
-          signlabel : tasmlabel;
-          reg_d0,reg_d1 : tregister;
+    var
+      tmpreg : tregister;
     begin
      if current_settings.cputype=cpu_MC68020 then
        begin

@@ -68,8 +68,6 @@ type
 
   psockaddr_in = ^sockaddr_in;
   sockaddr_in = packed record
-    case boolean of
-     false : (
   {$ifdef SOCK_HAS_SINLEN}
      sin_len     : cuchar;
   {$endif}
@@ -77,16 +75,6 @@ type
      sin_port    : cushort;
      sin_addr    : in_addr;
      xpad         : array [0..7] of char; { to get to the size of sockaddr... }
-      );
-   true: (
-  {$ifdef SOCK_HAS_SINLEN}
-     len     : cuchar deprecated;
-  {$endif}
-     family  : sa_family_t deprecated;
-     port    : cushort deprecated;
-     addr    : cardinal deprecated;
-     pad         : array [0..7] of char deprecated; { to get to the size of sockaddr... }
-      );
   end;
 
   TInetSockAddr = sockaddr_in;
@@ -183,23 +171,6 @@ function  fpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint;
 Function CloseSocket(Sock:Longint):Longint;
 
 {Basic Socket Functions}
-{$ifdef legacysocket}
-Function Socket(Domain,SocketType,Protocol:Longint):Longint; deprecated;
-Function Send(Sock:Longint;Const Buf;BufLen,Flags:Longint):Longint; deprecated;
-Function SendTo(Sock:Longint;Const Buf;BufLen,Flags:Longint;Var Addr; AddrLen : Longint):Longint; deprecated;
-Function Recv(Sock:Longint;Var Buf;BufLen,Flags:Longint):Longint; deprecated;
-Function RecvFrom(Sock : Longint; Var Buf; Buflen,Flags : Longint; Var Addr; var AddrLen : longInt) : longint;deprecated; 
-Function Bind(Sock:Longint;Const Addr;AddrLen:Longint):Boolean;deprecated;
-Function Listen (Sock,MaxConnect:Longint):Boolean;deprecated;
-Function Accept(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;deprecated;
-Function Connect(Sock:Longint;Const Addr;Addrlen:Longint):boolean;deprecated;
-Function Shutdown(Sock:Longint;How:Longint):Longint;deprecated;
-Function GetSocketName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;deprecated;
-Function GetPeerName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;deprecated;
-Function SetSocketOptions(Sock,Level,OptName:Longint;const OptVal;optlen:longint):Longint;deprecated;
-Function GetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;Var optlen:longint):Longint;deprecated;
-Function SocketPair(Domain,SocketType,Protocol:Longint;var Pair:TSockArray):Longint;deprecated;
-{$endif}
 
 { untyped/text filetype support }
 
@@ -211,8 +182,6 @@ Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):
 Procedure Sock2File(Sock:Longint;Var SockIn,SockOut:File);deprecated;
 
 { Utility routines}
-function htonl( host : longint):longint; inline; overload;deprecated;
-Function NToHl( Net : longint):longint; inline; overload;deprecated;
 function htonl( host : cardinal):cardinal; inline; overload;
 Function NToHl( Net : cardinal):cardinal; inline; overload;
 function htons( host : word):word; inline;

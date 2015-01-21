@@ -23,7 +23,9 @@ unit cfileutl;
 
 {$i fpcdefs.inc}
 
+{$ifndef DragonFly}
 {$define usedircache}
+{$endif DragonFly}
 
 interface
 
@@ -124,6 +126,7 @@ interface
     function  GetShortName(const n:TCmdStr):TCmdStr;
     function maybequoted(const s:string):string;
     function maybequoted(const s:ansistring):ansistring;
+    function maybequoted_for_script(const s:ansistring; quote_script: tscripttype):ansistring;
 
     procedure InitFileUtils;
     procedure DoneFileUtils;
@@ -140,7 +143,7 @@ interface
 { * Since native Amiga commands can't handle Unix-style relative paths used by the compiler,
     and some GNU tools, Unix2AmigaPath is needed to handle such situations (KB) * }
 
-{$IF DEFINED(MORPHOS) OR DEFINED(AMIGA)}
+{$IFDEF HASAMIGA}
 { * PATHCONV is implemented in the Amiga/MorphOS system unit * }
 {$NOTE TODO Amiga: implement PathConv() in System unit, which works with AnsiString}
 function Unix2AmigaPath(path: ShortString): ShortString; external name 'PATHCONV';
@@ -187,7 +190,7 @@ implementation
       DirCache : TDirectoryCache;
 
 
-{$IF NOT (DEFINED(MORPHOS) OR DEFINED(AMIGA))}
+{$IFNDEF HASAMIGA}
 { Stub function for Unix2Amiga Path conversion functionality, only available in
   Amiga/MorphOS RTL. I'm open for better solutions. (KB) }
 function Unix2AmigaPath(path: String): String;{$IFDEF USEINLINE}inline;{$ENDIF}
@@ -537,7 +540,7 @@ end;
 {$if defined(unix)}
         if (length(s)>0) and (s[1] in AllowDirectorySeparators) then
           result:=true;
-{$elseif defined(amiga) or defined(morphos)}
+{$elseif defined(hasamiga)}
         (* An Amiga path is absolute, if it has a volume/device name in it (contains ":"),
            otherwise it's always a relative path, no matter if it starts with a directory
            separator or not. (KB) *)
@@ -1077,7 +1080,7 @@ end;
             currPath:=FixPath(ExpandFileName(currpath),false);
             if (CurrentDir<>'') and (Copy(currPath,1,length(CurrentDir))=CurrentDir) then
              begin
-{$if defined(amiga) and defined(morphos)}
+{$ifdef hasamiga}
                currPath:= CurrentDir+Copy(currPath,length(CurrentDir)+1,length(currPath));
 {$else}
                currPath:= CurDirRelPath(source_info)+Copy(currPath,length(CurrentDir)+1,length(currPath));

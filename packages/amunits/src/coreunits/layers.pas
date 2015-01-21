@@ -31,7 +31,7 @@
 
     nils.sjoholm@mailbox.swipnet.se
 }
-
+{$PACKRECORDS 2}
 {$I useamigasmartlink.inc}
 {$ifdef use_amiga_smartlink}
    {$smartlink on}
@@ -40,7 +40,7 @@
 UNIT layers;
 
 INTERFACE
-USES exec, graphics, utility;
+USES exec, agraphics, utility;
 
 const
 
@@ -138,7 +138,7 @@ IMPLEMENTATION
 
 uses
 {$ifndef dont_use_openlib}
-msgbox;
+amsgbox;
 {$endif dont_use_openlib}
 
 FUNCTION BeginUpdate(l : pLayer) : LONGINT;

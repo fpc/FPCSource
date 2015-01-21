@@ -168,6 +168,7 @@ Var
 
 begin
   CDS:=PCopyDataStruct(Msg.Lparam);
+  Owner.FMsgData.Size:=0;
   Owner.FMsgData.Seek(0,soFrombeginning);
   Owner.FMsgData.WriteBuffer(CDS^.lpData^,CDS^.cbData);
 end;

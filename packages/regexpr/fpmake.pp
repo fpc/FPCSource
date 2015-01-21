@@ -13,10 +13,12 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('regexpr');
+    P.ShortName:='reg';
+    P.Description := 'Library for working with regular expressions.';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.OSes:=P.OSes-[embedded];
     P.Dependencies.Add('rtl-objpas');
     P.SourcePath.Add('src');

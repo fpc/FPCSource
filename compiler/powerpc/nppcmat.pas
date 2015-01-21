@@ -419,6 +419,7 @@ implementation
         op: tasmop;
 
       begin
+         src1:=NR_NO;
          secondpass(left);
          if is_64bit(left.resultdef) then
            begin

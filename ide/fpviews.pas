@@ -510,6 +510,7 @@ const menu_key_common_copy_borland   = 'Ctrl+Ins';
       menu_key_edit_cut_microsoft    = 'Ctrl+X';
       menu_key_edit_copy_microsoft   = menu_key_common_copy_microsoft;
       menu_key_edit_paste_microsoft  = 'Ctrl+V';
+      menu_key_edit_all_borland      = '';
       menu_key_edit_clear            = 'Ctrl+Del';
 
       menu_key_common_helpindex      = 'Shift+F1';
@@ -530,10 +531,12 @@ const menu_key_common_copy_borland   = 'Ctrl+Ins';
 const menu_key_edit_cut:string[63]=menu_key_edit_cut_borland;
       menu_key_edit_copy:string[63]=menu_key_edit_copy_borland;
       menu_key_edit_paste:string[63]=menu_key_edit_paste_borland;
+      menu_key_edit_all:string[63]=menu_key_edit_all_borland;
       menu_key_hlplocal_copy:string[63]=menu_key_hlplocal_copy_borland;
       cut_key:word=kbShiftDel;
       copy_key:word=kbCtrlIns;
       paste_key:word=kbShiftIns;
+      all_key:word=kbNoKey;
 
 procedure RegisterFPViews;
 
@@ -4238,7 +4241,7 @@ begin
   HelpCtx:=hcAbout;
   GetExtent(R); R.Grow(-3,-2);
   R2.Copy(R); R2.B.Y:=R2.A.Y+1;
-  Insert(New(PStaticText, Init(R2, ^C'FreePascal IDE for '+source_info.name)));
+  Insert(New(PStaticText, Init(R2, ^C'Free Pascal IDE for '+source_info.name)));
   R2.Move(0,1);
   Insert(New(PStaticText, Init(R2, ^C'Target CPU: '+target_cpu_string)));
   R2.Move(0,1);
@@ -4354,7 +4357,7 @@ end;
 procedure TFPASCIIChart.HandleEvent(var Event: TEvent);
 var W: PSourceWindow;
 begin
-  writeln(stderr,'all what=',event.what,' cmd=', event.command);
+  {writeln(stderr,'all what=',event.what,' cmd=', event.command);}
   case Event.What of
     evKeyDown :
       case Event.KeyCode of
@@ -4366,7 +4369,7 @@ begin
       end;
     evCommand :
       begin
-      writeln(stderr,'fpascii what=',event.what, ' cmd=', event.command, ' ',cmtransfer,' ',cmsearchwindow);
+      {writeln(stderr,'fpascii what=',event.what, ' cmd=', event.command, ' ',cmtransfer,' ',cmsearchwindow);}
       if Event.Command=(AsciiTableCommandBase+1) then // variable
           begin
             W:=FirstEditorWindow;

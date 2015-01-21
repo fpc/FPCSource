@@ -4,10 +4,22 @@ begin
 {$include a52/fpmake.pp}
 end;
 
+procedure add_ami_extra(const ADirectory: string);
+begin
+  with Installer do
+{$include ami-extra/fpmake.pp}
+end;
+
 procedure add_amunits(const ADirectory: string);
 begin
   with Installer do
 {$include amunits/fpmake.pp}
+end;
+
+procedure add_arosunits(const ADirectory: string);
+begin
+  with Installer do
+{$include arosunits/fpmake.pp}
 end;
 
 procedure add_aspell(const ADirectory: string);
@@ -414,6 +426,12 @@ procedure add_modplug(const ADirectory: string);
 begin
   with Installer do
 {$include modplug/fpmake.pp}
+end;
+
+procedure add_morphunits(const ADirectory: string);
+begin
+  with Installer do
+{$include morphunits/fpmake.pp}
 end;
 
 procedure add_mysql(const ADirectory: string);

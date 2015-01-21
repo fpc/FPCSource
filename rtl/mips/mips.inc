@@ -55,6 +55,7 @@ const
 
   fpu_all_bits = fpu_enable_mask or fpu_flags_mask or fpu_cause_mask or fpu_rounding_mask;
 
+{$if defined(FPUMIPS2) or defined(FPUMIPS3)}
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
 procedure SysInitFPU;
   begin
@@ -66,13 +67,16 @@ procedure SysInitFPU;
 procedure SysResetFPU;
   begin
   end;
+{$endif FPUMIPS2 or FPUMIPS3}
 
 
 procedure fpc_cpuinit;
   begin
+{$ifndef FPUNONE}
     SysResetFPU;
     if (not IsLibrary) then
       SysInitFPU;
+{$endif FPUNONE}
   end;
 
 
@@ -199,6 +203,63 @@ function Sptr:Pointer;assembler;nostackframe;
   asm
     move $2,$sp
   end;
+
+{$ifndef FPC_SYSTEM_HAS_FILLCHAR}
+{$define FPC_SYSTEM_HAS_FILLCHAR}
+procedure FillChar(var x;count:SizeInt;value:byte);assembler;nostackframe;
+// x=$a0, count=$a1, value=$a2
+// $t0 and $t1 used as temps
+  asm
+    // correctness of this routine depends on instructions in delay slots!!
+    slti   $t1, $a1, 8
+    bne    $t1, $0, .Lless8
+    andi   $a2, 0xff
+
+    beq    $a2, $0, .L1         // if value is zero, expansion can be skipped
+    sll    $t1, $a2, 8
+    or     $a2, $t1
+    sll    $t1, $a2, 16
+    or     $a2, $t1
+.L1:
+    subu   $t1, $0, $a0         // negate
+    andi   $t1, 3               // misalignment 0..3
+    beq    $t1, $0, .L2
+    subu   $a1, $t1             // decrease count (if branching, this is no-op because $t1=0)
+{$ifdef ENDIAN_BIG}
+    swl    $a2, 0($a0)
+{$else ENDIAN_BIG}
+    swr    $a2, 0($a0)
+{$endif ENDIAN_BIG}
+    addu   $a0, $t1             // add misalignment to address, making it dword-aligned
+.L2:
+    andi   $t1, $a1, 7          // $t1=count mod 8
+    beq    $t1, $a1, .L3        // (count and 7)=count => (count and (not 7))=0
+    subu   $t0, $a1, $t1        // $t0=count div 8
+    addu   $t0, $a0             // $t0=last loop address
+    move   $a1, $t1
+.Lloop8:                        // do 2 dwords per iteration
+    addiu  $a0, 8
+    sw     $a2, -8($a0)
+    bne    $a0, $t0, .Lloop8
+    sw     $a2, -4($a0)
+.L3:
+    andi   $t1, $a1, 4          // handle a single dword separately
+    beq    $t1, $0, .Lless8
+    subu   $a1, $t1
+    sw     $a2, 0($a0)
+    addiu  $a0, 4
+
+.Lless8:
+    ble    $a1, $0, .Lexit
+    addu   $t0, $a1, $a0
+.L4:
+    addiu  $a0, 1
+    bne    $a0, $t0, .L4
+    sb     $a2, -1($a0)
+.Lexit:
+  end;
+{$endif FPC_SYSTEM_HAS_FILLCHAR}
+
 
 {$ifdef USE_MIPS_STK2_ASM}
 {$ifndef FPC_SYSTEM_HAS_MOVE}
@@ -407,132 +468,20 @@ procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];
   end;
 *)
 {$endif FPC_SYSTEM_HAS_MOVE}
-{****************************************************************************
-                               Integer math
-****************************************************************************}
-
-var
-  fpc_system_lock : longint; export name 'fpc_system_lock';
-
+{$endif def USE_MIPS_STK2_ASM}
 
 {$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
-function declocked(var l : longint) : boolean;assembler;nostackframe;
-{ input:  address of l in $4                                      }
-{ output: boolean indicating whether l is zero after decrementing }
-asm
-  sw  $4,0($23)
-  sw  $5,-4($23)
-  sw  $6,-8($23)
-  sw  $7,-12($23)
-  sw  $8,-16($23)
-  sw  $9,-20($23)
-  sw  $10,-24($23)
-  sw  $11,-28($23)
-  sw  $12,-32($23)
-  sw  $13,-36($23)
-  sw  $14,-40($23)
-  addiu  $23,$23,-44
-
-
-
-.Ldeclocked1:
-  lui $5,%hi(fpc_system_lock)
-  addiu $5,$5,%lo(fpc_system_lock)
-  ll $6,0($5)
-  ori $7,$6,1
-  beq $7,$6,.Ldeclocked1
-  nop
-  sc  $7,0($5)
-
-  beq $7,$0,.Ldeclocked1
-  nop
-
-  lw $5,0($4)
-  addiu $5,$5,-1
-  sw $5,0($4)
-  seq $2,$5,$0
-
-
-  { unlock }
-  lui $5,%hi(fpc_system_lock)
-  addiu $5,$5,%lo(fpc_system_lock)
-  sw $0,0($5)
-
-  addiu  $23,$23,44
-  lw  $4,0($23)
-  lw  $5,-4($23)
-  lw  $6,-8($23)
-  lw  $7,-12($23)
-  lw  $8,-16($23)
-  lw  $9,-20($23)
-  lw  $10,-24($23)
-  lw  $11,-28($23)
-  lw  $12,-32($23)
-  lw  $13,-36($23)
-  lw  $14,-40($23)
+function declocked(var l: longint) : boolean; inline;
+begin
+  Result:=InterLockedDecrement(l) = 0;
 end;
 
 
 {$define FPC_SYSTEM_HAS_INCLOCKED_LONGINT}
-procedure inclocked(var l : longint);assembler;nostackframe;
-asm
-  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
-    worse the effort, especially while waiting :)
-  }
-
-  { unlock }
-
-  sw  $4,0($23)
-  sw  $5,-4($23)
-  sw  $6,-8($23)
-  sw  $7,-12($23)
-  sw  $8,-16($23)
-  sw  $9,-20($23)
-  sw  $10,-24($23)
-  sw  $11,-28($23)
-  sw  $12,-32($23)
-  sw  $13,-36($23)
-  sw  $14,-40($23)
-  addiu  $23,$23,-44
-
-
-.Ldeclocked1:
-  lui $5,%hi(fpc_system_lock)
-  addiu $5,$5,%lo(fpc_system_lock)
-  ll $6,0($5)
-  ori $7,$6,1
-  beq $7,$6,.Ldeclocked1
-  nop
-  sc  $7,0($5)
-
-  beq $7,$0,.Ldeclocked1
-  nop
-
-  lw $5,0($4)
-  addiu $5,$5,1
-  sw $5,0($4)
-
-
-  { unlock }
-  lui $5,%hi(fpc_system_lock)
-  addiu $5,$5,%lo(fpc_system_lock)
-  sw $0,0($5)
-
-  addiu  $23,$23,44
-  lw  $4,0($23)
-  lw  $5,-4($23)
-  lw  $6,-8($23)
-  lw  $7,-12($23)
-  lw  $8,-16($23)
-  lw  $9,-20($23)
-  lw  $10,-24($23)
-  lw  $11,-28($23)
-  lw  $12,-32($23)
-  lw  $13,-36($23)
-  lw  $14,-40($23)
-
+procedure inclocked(var l: longint); inline;
+begin
+  InterLockedIncrement(l);
 end;
-{$endif def USE_MIPS_STK2_ASM}
 
 function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
 asm

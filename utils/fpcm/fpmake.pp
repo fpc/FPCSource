@@ -3,6 +3,16 @@
  {$DEFINE NO_THREADING}
 {$ENDIF}
 
+{$IFDEF AROS}
+ {$DEFINE NO_UNIT_PROCESS}
+ {$DEFINE NO_THREADING}
+{$ENDIF}
+
+{$IFDEF AMIGA}
+ {$DEFINE NO_UNIT_PROCESS}
+ {$DEFINE NO_THREADING}
+{$ENDIF}
+
 {$IFDEF OS2}
  {$DEFINE NO_UNIT_PROCESS}
 {$ENDIF OS2}
@@ -198,7 +208,8 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('fpcm');
+    P:=AddPackage('utils-fpcm');
+    P.ShortName:='fpcm';
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';
@@ -210,7 +221,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
 
     P.Dependencies.Add('fcl-base');
 
@@ -223,7 +234,7 @@ begin
 {$endif HAS_UNIT_PROCESS}
 
     Data2IncBin := AddProgramExtension('data2inc',Defaults.BuildOS);
-    p.Commands.AddCommand(caBeforeCompile, Data2IncBin, '-b -s fpcmake.ini fpcmake.inc fpcmakeini','fpcmake.inc','fpcmake.ini');
+    p.Commands.AddCommand(caBeforeCompile, Data2IncBin, '-b -s ' + P.Directory + 'fpcmake.ini ' + P.Directory + 'fpcmake.inc fpcmakeini','fpcmake.inc','fpcmake.ini');
     T:=P.Targets.AddUnit('fpcmmain.pp');
     T.install:=false;
     T.ResourceStrings:=true;

@@ -5,10 +5,13 @@
 
 uses sysutils;
 
+var
+  has_errors: boolean;
+
 procedure doerror(l: longint);
 begin
   writeln('error near ',l);
-  halt(1);
+  has_errors:=true;
 end;
 
 {$R-}
@@ -20,6 +23,7 @@ var i: integer;
     n: int64;
     q: qword;
 begin
+  has_errors:=false;
   i := 32767;
   i := i + 15;
   b := 255;
@@ -212,5 +216,6 @@ begin
   end;
 
 {$endif fpc}
-
+  if has_errors then
+    halt(1);
 End.

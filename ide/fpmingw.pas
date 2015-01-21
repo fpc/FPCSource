@@ -14,6 +14,8 @@ unit fpmingw;
 
  **********************************************************************}
 
+{$I globdir.inc}
+
 interface
 
 // mingw put atexit in binaries, so that it can have one atexit, and call it from
@@ -72,9 +74,11 @@ procedure doinit;
 begin
  // not (yet) done: set mingw exception handlers:
  // SetUnhandledExceptionFilter (_gnu_exception_handler);
+{$ifndef DISABLE_CPU_FEATURES_INIT}
 {$ifdef win32}
   __cpu_features_init;        // load CPU features. Might be useful for debugger :-)
 {$endif win32}
+{$endif ndef DISABLE_CPU_FEATURES_INIT}
 
  // fpreset; 		      // don't do this, we init our own fp mask
 

@@ -42,9 +42,11 @@ interface
 {$define SYSUTILS_HAS_ANSISTR_ENVVAR_IMPL}
 
 uses
-{$IFDEF LINUX}linux,{$ENDIF} Unix,errors,sysconst,Unixtype;
+{$IFDEF LINUX}linux,{$ENDIF}
+{$IFDEF FreeBSD}freebsd,{$ENDIF}
+  Unix,errors,sysconst,Unixtype;
 
-{$IFDEF LINUX}
+{$IF defined(LINUX) or defined(FreeBSD)}
 {$DEFINE HAVECLOCKGETTIME}
 {$ENDIF}
 

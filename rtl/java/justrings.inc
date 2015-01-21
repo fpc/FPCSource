@@ -760,7 +760,7 @@ end;
 
 
 {$define FPC_HAS_SETSTRING_UNICODESTR_PUNICODECHAR}
-Procedure SetString (Out S : UnicodeString; Buf : PUnicodeChar; Len : SizeInt);
+Procedure fpc_setstring_unicodestr_pwidechar(Out S : UnicodeString; Buf : PUnicodeChar; Len : SizeInt); compilerproc;
 begin
   if assigned(buf) and (Len>0) then
     s:=JLString.Create(TJCharArray(Buf),0,Len)

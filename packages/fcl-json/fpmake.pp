@@ -13,11 +13,13 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('fcl-json');
+    P.ShortName:='fclj';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Dependencies.Add('fcl-base');
+    P.Dependencies.Add('rtl-objpas');
     P.Author := 'Michael van Canneyt';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

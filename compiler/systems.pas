@@ -217,6 +217,7 @@ interface
        systems_linux = [system_i386_linux,system_x86_64_linux,system_powerpc_linux,system_powerpc64_linux,
                        system_arm_linux,system_sparc_linux,system_alpha_linux,system_m68k_linux,
                        system_x86_6432_linux,system_mipseb_linux,system_mipsel_linux];
+       systems_dragonfly = [system_x86_64_dragonfly];
        systems_freebsd = [system_i386_freebsd,
                           system_x86_64_freebsd];
        systems_netbsd  = [system_i386_netbsd,
@@ -227,7 +228,7 @@ interface
                           system_m68k_openbsd,
                           system_x86_64_openbsd];
 
-       systems_bsd = systems_freebsd + systems_netbsd + systems_openbsd;
+       systems_bsd = systems_freebsd + systems_netbsd + systems_openbsd + systems_dragonfly;
 
        systems_aix = [system_powerpc_aix,system_powerpc64_aix];
 
@@ -771,6 +772,10 @@ begin
    {$endif}
    {$ifdef linux}
     default_target(system_x86_64_linux);
+    {$define default_target_set}
+   {$endif}
+   {$ifdef dragonfly}
+    default_target(system_x86_64_dragonfly);
     {$define default_target_set}
    {$endif}
    {$ifdef freebsd}

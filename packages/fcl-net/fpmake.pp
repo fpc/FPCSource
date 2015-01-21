@@ -13,15 +13,16 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('fcl-net');
+    P.ShortName:='fcln';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Dependencies.Add('fcl-base');
-    P.Dependencies.Add('openssl');
+    P.Dependencies.Add('openssl',AllOSes - [amiga,aros]);
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-passrc');
-    P.Dependencies.Add('fcl-async',[linux,freebsd,netbsd,openbsd]);
+    P.Dependencies.Add('fcl-async',[linux,freebsd,netbsd,openbsd,dragonfly]);
     P.Dependencies.Add('rtl-extra');
 
     P.Author := 'Sebastian Guenther and Free Pascal development team';
@@ -40,14 +41,14 @@ begin
 
     // IP and Sockets
     T:=P.Targets.AddUnit('netdb.pp',AllUnixOSes);
-    T:=P.Targets.AddUnit('resolve.pp',AllUnixOSes+AllWindowsOSes+[OS2,EMX]);
+    T:=P.Targets.AddUnit('resolve.pp',AllUnixOSes+AllWindowsOSes+[OS2,EMX,amiga,aros]);
       with T.Dependencies do
         begin
           AddInclude('resolve.inc');
           AddUnit('netdb',AllUnixOSes);
         end;
     T.ResourceStrings := True;
-    T:=P.Targets.AddUnit('ssockets.pp',AllUnixOSes+AllWindowsOSes+[OS2,EMX]);
+    T:=P.Targets.AddUnit('ssockets.pp',AllUnixOSes+AllWindowsOSes+[OS2,EMX, amiga,aros]);
       with T.Dependencies do
         begin
           AddUnit('resolve');
@@ -61,7 +62,7 @@ begin
     T.ResourceStrings := True;
 
     // HTTP Client
-    T:=P.Targets.AddUnit('fpsock.pp',[linux,freebsd,netbsd,openbsd]);
+    T:=P.Targets.AddUnit('fpsock.pp',[linux,freebsd,netbsd,openbsd,dragonfly]);
       with T.Dependencies do
         begin
           AddUnit('resolve');

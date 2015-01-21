@@ -257,6 +257,7 @@ begin
   { Write used files and libraries }
   WriteResponseFile(false);
 
+  success:=false;
   case (target_info.system) of
     system_m68k_amiga:      success:=MakeAmiga68kExe;
     system_powerpc_amiga:   success:=MakeAmigaPPCExe;

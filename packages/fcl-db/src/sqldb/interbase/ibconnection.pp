@@ -26,9 +26,9 @@ type
     ServerVersionString : string;  //Complete version string, including name, platform
   end;
 
-  EIBDatabaseError = class(EDatabaseError)
+  EIBDatabaseError = class(ESQLDatabaseError)
     public
-      GDSErrorCode : Longint;
+      property GDSErrorCode: integer read ErrorCode; deprecated 'Please use ErrorCode instead of GDSErrorCode'; // Nov 2014
   end;
 
   { TIBCursor }
@@ -152,21 +152,25 @@ const
 
 procedure TIBConnection.CheckError(ProcName : string; Status : PISC_STATUS);
 var
-  buf : array [0..1023] of char;
-  Msg : string;
-  E   : EIBDatabaseError;
-  Err : longint;
-  
+  ErrorCode : longint;
+  Msg, SQLState : string;
+  Buf : array [0..1023] of char;
+
 begin
   if ((Status[0] = 1) and (Status[1] <> 0)) then
   begin
-    Err := Status[1];
-    msg := '';
+    ErrorCode := Status[1];
+{$IFDEF LinkDynamically}
+    if assigned(fb_sqlstate) then // >= Firebird 2.5
+    begin
+      fb_sqlstate(Buf, Status);
+      SQLState := StrPas(Buf);
+    end;
+{$ENDIF}
+    Msg := '';
     while isc_interprete(Buf, @Status) > 0 do
-      Msg := Msg + LineEnding +' -' + StrPas(Buf);
-    E := EIBDatabaseError.CreateFmt('%s : %s : %s',[self.Name,ProcName,Msg]);
-    E.GDSErrorCode := Err;
-    Raise E;
+      Msg := Msg + LineEnding + ' -' + StrPas(Buf);
+    raise EIBDatabaseError.CreateFmt('%s : %s', [ProcName,Msg], Self, ErrorCode, SQLState);
   end;
 end;
 
@@ -354,6 +358,13 @@ begin
     CheckError('Close', FStatus);
 {$IfDef LinkDynamically}
   ReleaseIBase60;
+{$ELSE}
+  // Shutdown embedded subsystem with timeout 300ms (Firebird 2.5+)
+  // Required before unloading library; has no effect on non-embedded client
+  if (pointer(fb_shutdown)<>nil) and (fb_shutdown(300,1)<>0) then
+  begin
+    //todo: log error; still try to unload library below as the timeout may have been insufficient
+  end;
 {$EndIf}
 end;
 
@@ -595,7 +606,7 @@ begin
         TrLen := SQLLen;
       end;
     SQL_TYPE_DATE :
-      TrType := ftDate;
+        TrType := ftDate;
     SQL_TYPE_TIME :
         TrType := ftTime;
     SQL_TIMESTAMP :
@@ -608,9 +619,9 @@ begin
     SQL_BLOB :
       begin
         if SQLSubType = isc_blob_text then
-           TrType := ftMemo
+          TrType := ftMemo
         else
-           TrType := ftBlob;
+          TrType := ftBlob;
         TrLen := SQLLen;
       end;
     SQL_SHORT :
@@ -988,14 +999,6 @@ begin
       VSQLVar^.SQLInd^ := 0;
 
       case (VSQLVar^.sqltype and not 1) of
-        SQL_LONG :
-          begin
-            if VSQLVar^.sqlscale = 0 then
-              i := AParams[ParNr].AsInteger
-            else
-              i := Round(AParams[ParNr].AsCurrency * IntPower10(-VSQLVar^.sqlscale));
-            Move(i, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
-          end;
         SQL_SHORT, SQL_BOOLEAN_INTERBASE :
           begin
             if VSQLVar^.sqlscale = 0 then
@@ -1005,6 +1008,26 @@ begin
             i := si;
             Move(i, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
           end;
+        SQL_LONG :
+          begin
+            if VSQLVar^.sqlscale = 0 then
+              i := AParams[ParNr].AsInteger
+            else
+              i := Round(AParams[ParNr].AsFloat * IntPower10(-VSQLVar^.sqlscale)); //*any number of digits
+            Move(i, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
+          end;
+        SQL_INT64:
+          begin
+            if VSQLVar^.sqlscale = 0 then
+              li := AParams[ParNr].AsLargeInt
+            else if AParams[ParNr].DataType = ftFMTBcd then
+              li := AParams[ParNr].AsFMTBCD * IntPower10(-VSQLVar^.sqlscale)
+            else
+              li := Round(AParams[ParNr].AsCurrency * IntPower10(-VSQLVar^.sqlscale));
+            Move(li, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
+          end;
+        SQL_DOUBLE, SQL_FLOAT:
+          SetFloat(VSQLVar^.SQLData, AParams[ParNr].AsFloat, VSQLVar^.SQLLen);
         SQL_BLOB :
           SetBlobParam;
         SQL_VARYING, SQL_TEXT :
@@ -1045,18 +1068,6 @@ begin
           end;
         SQL_TYPE_DATE, SQL_TYPE_TIME, SQL_TIMESTAMP :
           SetDateTime(VSQLVar^.SQLData, AParams[ParNr].AsDateTime, VSQLVar^.SQLType);
-        SQL_INT64:
-          begin
-            if VSQLVar^.sqlscale = 0 then
-              li := AParams[ParNr].AsLargeInt
-            else if AParams[ParNr].DataType = ftFMTBcd then
-              li := AParams[ParNr].AsFMTBCD * IntPower10(-VSQLVar^.sqlscale)
-            else
-              li := Round(AParams[ParNr].AsCurrency * IntPower10(-VSQLVar^.sqlscale));
-            Move(li, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
-          end;
-        SQL_DOUBLE, SQL_FLOAT:
-          SetFloat(VSQLVar^.SQLData, AParams[ParNr].AsFloat, VSQLVar^.SQLLen);
         SQL_BOOLEAN_FIREBIRD:
           PByte(VSQLVar^.SQLData)^ := Byte(AParams[ParNr].AsBoolean);
       else
@@ -1607,29 +1618,41 @@ end;
 
 class function TIBConnectionDef.DefaultLibraryName: String;
 begin
+{$IFDEF LinkDynamically}
   If UseEmbeddedFirebird then
     Result:=fbembedlib
   else
-    Result:=fbclib
+    Result:=fbclib;
+{$ELSE}
+  Result:='';
+{$ENDIF}
 end;
 
 class function TIBConnectionDef.LoadFunction: TLibraryLoadFunction;
 begin
+{$IFDEF LinkDynamically}
   Result:=@InitialiseIBase60;
+{$ELSE}
+  Result:=nil;
+{$ENDIF}
 end;
 
 class function TIBConnectionDef.UnLoadFunction: TLibraryUnLoadFunction;
 begin
+{$IFDEF LinkDynamically}
   Result:=@ReleaseIBase60
+{$ELSE}
+  Result:=nil;
+{$ENDIF}
 end;
 
 class function TIBConnectionDef.LoadedLibraryName: string;
 begin
-  {$IfDef LinkDynamically}
+{$IFDEF LinkDynamically}
   Result:=IBaseLoadedLibrary;
-  {$else}
+{$ELSE}
   Result:='';
-  {$endif}
+{$ENDIF}
 end;
 
 initialization

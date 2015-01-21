@@ -61,6 +61,7 @@ const
   DllExt : string = '.so';
   DllPrefix: string = 'lib';
   DefaultTimeout=60;
+  READ_ONLY = 0;
 
 var
   Config : TConfig;
@@ -358,7 +359,8 @@ end;
 
 procedure mkdirtree(const s:string);
 var
-  hs : string;
+  SErr, hs : string;
+  Err: longint;
 begin
   if s='' then
     exit;
@@ -371,11 +373,16 @@ begin
       { Try parent first }
       mkdirtree(SplitPath(hs));
       { make this dir }
-      Verbose(V_Debug,'Making Directory '+s);
+      Verbose(V_Debug,'Making directory '+s);
       {$I-}
-       mkdir(s);
+       MkDir (HS);
       {$I+}
-      ioresult;
+      Err := IOResult;
+      if Err <> 0 then
+       begin
+        Str (Err, SErr);
+        Verbose (V_Error, 'Directory creation failed ' + SErr);
+       end;
     end;
 end;
 
@@ -397,6 +404,8 @@ const
   bufsize = 16384;
 var
   f,g : file;
+  oldfilemode : byte;
+  st : string;
   addsize,
   i   : longint;
   buf : pointer;
@@ -405,14 +414,7 @@ begin
    Verbose(V_Debug,'Appending '+fn1+' to '+fn2)
   else
    Verbose(V_Debug,'Copying '+fn1+' to '+fn2);
-  assign(f,fn1);
   assign(g,fn2);
-  {$I-}
-   reset(f,1);
-  {$I+}
-  addsize:=0;
-  if ioresult<>0 then
-   Verbose(V_Error,'Can''t open '+fn1);
   if append then
    begin
      {$I-}
@@ -431,7 +433,36 @@ begin
      if ioresult<>0 then
       Verbose(V_Error,'Can''t open '+fn2+' for output');
    end;
+  assign(f,fn1);
+  {$I-}
+  { Try using read only file mode }
+  oldfilemode:=filemode;
+  filemode:=READ_ONLY;
+  reset(f,1);
+  {$I+}
+  addsize:=0;
   getmem(buf,bufsize);
+  if ioresult<>0 then
+   begin
+     sleep(1000);
+     {$I-}
+      reset(f,1);
+     {$I+}
+      if ioresult<>0 then
+        begin
+          Verbose(V_Warning,'Can''t open '+fn1);
+          st:='Can''t open '+fn1;
+          i:=length(st);
+          // blocksize is larger than 255, so no check is needed
+          move(st[1],buf^,i);
+          blockwrite(g,buf^,i);
+          freemem(buf,bufsize);
+          close(g);
+          filemode:=oldfilemode;
+          exit;
+        end;
+   end;
+  filemode:=oldfilemode;
   repeat
     blockread(f,buf^,bufsize,i);
     blockwrite(g,buf^,i);

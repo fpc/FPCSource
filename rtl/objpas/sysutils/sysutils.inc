@@ -294,8 +294,10 @@ begin
   Writeln(hstdout^,'An unhandled exception occurred at $',HexStr(Addr),':');
   if Obj is exception then
     Writeln(hstdout^,Obj.ClassName,': ',Exception(Obj).Message)
+  else if Obj is TObject then
+    Writeln(hstdout^,'Exception object ',Obj.ClassName,' is not of class Exception.')
   else
-    Writeln(hstdout^,'Exception object ',Obj.ClassName,' is not of class Exception.');
+    Writeln(hstdout^,'Exception object is not ia valid class.');
   Writeln(hstdout^,BackTraceStrFunc(Addr));
   if (FrameCount>0) then
     begin

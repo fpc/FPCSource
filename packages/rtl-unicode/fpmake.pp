@@ -12,13 +12,13 @@ Const
   // in workable state atm.
   UnixLikes = AllUnixOSes -[QNX];
 
-  CollationOSes = [aix,darwin,freebsd,linux,netbsd,openbsd,solaris,win32,win64];
-  CPUnits       = [aix,amiga,android,beos,darwin,iphonesim,emx,gba,freebsd,go32v2,haiku,linux,morphos,netbsd,netware,netwlibc,openbsd,os2,solaris,watcom,wii,win32,win64,wince];
+  CollationOSes = [aix,darwin,freebsd,linux,netbsd,openbsd,solaris,win32,win64,dragonfly];
+  CPUnits       = [aix,amiga,aros,android,beos,darwin,iphonesim,emx,gba,freebsd,go32v2,haiku,linux,morphos,netbsd,netware,netwlibc,openbsd,os2,solaris,watcom,wii,win32,win64,wince,dragonfly];
   utf8bidiOSes  = [netware,netwlibc];
   freebidiOSes  = [netware,netwlibc];  
 
 // Character not movable because fpwidestring depends on it.
-//  CharacterOSes = [android,darwin,freebsd,linux,netbsd,openbsd,solaris,win32,win64];
+//  CharacterOSes = [android,darwin,freebsd,linux,netbsd,openbsd,solaris,win32,win64,dragonfly];
 
   UnicodeAllOSes =   CollationOSes + utf8bidiOSes + freebidiOSes + CPUnits;
 
@@ -32,8 +32,9 @@ begin
   With Installer do
     begin
     P:=AddPackage('rtl-unicode');
+    P.ShortName:='rtlu';
     P.Directory:=ADirectory;
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Author := 'FPC core team';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

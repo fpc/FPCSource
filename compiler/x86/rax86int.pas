@@ -65,7 +65,7 @@ Unit Rax86int;
          procedure BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string; needvmtofs: boolean);
          procedure BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
          function BuildConstExpression:aint;
-         function BuildRefConstExpression:aint;
+         function BuildRefConstExpression(startingminus:boolean=false):aint;
          procedure BuildReference(oper : tx86operand);
          procedure BuildOperand(oper: tx86operand;istypecast:boolean);
          procedure BuildConstantOperand(oper: tx86operand);
@@ -1141,13 +1141,13 @@ Unit Rax86int;
       end;
 
 
-    Function tx86intreader.BuildRefConstExpression:aint;
+    Function tx86intreader.BuildRefConstExpression(startingminus:boolean):aint;
       var
         l : aint;
         hs : string;
         hssymtyp : TAsmsymtype;
       begin
-        BuildConstSymbolExpression(false,true,false,l,hs,hssymtyp);
+        BuildConstSymbolExpression(false,true,startingminus,l,hs,hssymtyp);
         if hs<>'' then
          Message(asmr_e_relocatable_symbol_not_allowed);
         BuildRefConstExpression:=l;
@@ -1190,7 +1190,8 @@ Unit Rax86int;
                    (SearchIConstant(actasmpattern,l) or
                     SearchRecordType(actasmpattern)) then
                  begin
-                   l:=BuildRefConstExpression;
+                   l:=BuildRefConstExpression(negative);
+                   negative:=false;   { "l" was negated if necessary }
                    GotPlus:=(prevasmtoken=AS_PLUS);
                    GotStar:=(prevasmtoken=AS_STAR);
                    case oper.opr.typ of
@@ -1198,23 +1199,15 @@ Unit Rax86int;
                        begin
                          if GotStar then
                            Message(asmr_e_invalid_reference_syntax);
-                         if negative then
-                           Dec(oper.opr.localsymofs,l)
-                         else
-                           Inc(oper.opr.localsymofs,l);
+                         Inc(oper.opr.localsymofs,l);
                        end;
                      OPR_REFERENCE :
                        begin
                          if GotStar then
                           oper.opr.ref.scalefactor:=l
                          else
-                          begin
-                            if negative then
-                              Dec(oper.opr.ref.offset,l)
-                            else
-                              Inc(oper.opr.ref.offset,l);
-                          end;
-                        end;
+                           Inc(oper.opr.ref.offset,l);
+                       end;
                    end;
                  end
                 else
@@ -1427,6 +1420,11 @@ Unit Rax86int;
                     begin
                       if (oper.opr.localindexreg<>NR_NO) then
                         Message(asmr_e_multiple_index);
+{$ifdef x86_64}
+                      { Locals/parameters cannot be accessed RIP-relative. Need a dedicated error message here? }
+                      if (hreg=NR_RIP) then
+                        Message(asmr_e_no_local_or_para_allowed);
+{$endif x86_64}
                       oper.opr.localindexreg:=hreg;
                       if scale<>0 then
                         begin
@@ -1980,6 +1978,7 @@ Unit Rax86int;
         operandnum : longint;
         is_far_const:boolean;
         i:byte;
+        tmp: toperand;
       begin
         PrefixOp:=A_None;
         OverrideOp:=A_None;
@@ -1989,7 +1988,6 @@ Unit Rax86int;
           if is_prefix(actopcode) then
             with instr do
               begin
-                OpOrder:=op_intel;
                 PrefixOp:=ActOpcode;
                 opcode:=ActOpcode;
                 condition:=ActCondition;
@@ -2001,7 +1999,6 @@ Unit Rax86int;
            if is_override(actopcode) then
              with instr do
                begin
-                 OpOrder:=op_intel;
                  OverrideOp:=ActOpcode;
                  opcode:=ActOpcode;
                  condition:=ActCondition;
@@ -2025,7 +2022,6 @@ Unit Rax86int;
         { Fill the instr object with the current state }
         with instr do
           begin
-            OpOrder:=op_intel;
             Opcode:=ActOpcode;
             condition:=ActCondition;
             opsize:=ActOpsize;
@@ -2052,15 +2048,13 @@ Unit Rax86int;
 {$endif x86_64}
         ;
         { We are reading operands, so opcode will be an AS_ID }
-        operandnum:=1;
+        { process operands backwards to get them in AT&T order }
+        operandnum:=max_operands;
         is_far_const:=false;
         Consume(AS_OPCODE);
         { Zero operand opcode ?  }
         if actasmtoken in [AS_SEPARATOR,AS_END] then
-         begin
-           operandnum:=0;
-           exit;
-         end;
+          exit;
         { Read Operands }
         repeat
           case actasmtoken of
@@ -2072,10 +2066,13 @@ Unit Rax86int;
             { Operand delimiter }
             AS_COMMA :
               begin
-                if operandnum > Max_Operands then
+                { should have something before the comma }
+                if instr.operands[operandnum].opr.typ=OPR_NONE then
+                  Message(asmr_e_syntax_error);
+                if operandnum <= 1 then
                   Message(asmr_e_too_many_operands)
                 else
-                  Inc(operandnum);
+                  Dec(operandnum);
                 Consume(AS_COMMA);
               end;
 
@@ -2083,10 +2080,10 @@ Unit Rax86int;
             AS_COLON:
               begin
                 is_far_const:=true;
-                if operandnum>1 then
+                if operandnum<max_operands then
                   message(asmr_e_too_many_operands)
                 else
-                  inc(operandnum);
+                  dec(operandnum);
                 consume(AS_COLON);
               end;
 
@@ -2116,6 +2113,15 @@ Unit Rax86int;
               BuildOperand(instr.Operands[operandnum] as tx86operand,false);
           end; { end case }
         until false;
+
+        { shift operands to start from 1, exchange to make sure they are destroyed correctly }
+        for i:=operandnum to max_operands do
+          begin
+            tmp:=instr.operands[i+1-operandnum];
+            instr.operands[i+1-operandnum]:=instr.operands[i];
+            instr.operands[i]:=tmp;
+          end;
+        operandnum:=(max_operands+1)-operandnum;
         instr.ops:=operandnum;
         { Check operands }
         for i:=1 to operandnum do
@@ -2303,9 +2309,6 @@ Unit Rax86int;
               BuildOpcode(instr);
               with instr do
                 begin
-                  { We need AT&T style operands }
-                  Swapoperands;
-                  { Must be done with args in ATT order }
                   CheckNonCommutativeOpcodes;
                   AddReferenceSizes;
                   SetInstructionOpsize;

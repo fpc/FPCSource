@@ -22,29 +22,49 @@ begin
   until notRepeatEscaped;
 end;
 
+{ TParamsEnumerator }
+
+function TParamsEnumerator.GetCurrent: TParam;
+begin
+  Result := FParams[FPosition];
+end;
+
+constructor TParamsEnumerator.Create(AParams: TParams);
+begin
+  inherited Create;
+  FParams := AParams;
+  FPosition := -1;
+end;
+
+function TParamsEnumerator.MoveNext: Boolean;
+begin
+  inc(FPosition);
+  Result := FPosition < FParams.Count;
+end;
+
 { TParams }
 
-function TParams.GetItem(Index: Integer): TParam;
+Function TParams.GetItem(Index: Integer): TParam;
 begin
   Result:=(Inherited GetItem(Index)) as TParam;
 end;
 
-function TParams.GetParamValue(const ParamName: string): Variant;
+Function TParams.GetParamValue(const ParamName: string): Variant;
 begin
   Result:=ParamByName(ParamName).Value;
 end;
 
-procedure TParams.SetItem(Index: Integer; Value: TParam);
+Procedure TParams.SetItem(Index: Integer; Value: TParam);
 begin
   Inherited SetItem(Index,Value);
 end;
 
-procedure TParams.SetParamValue(const ParamName: string; const Value: Variant);
+Procedure TParams.SetParamValue(const ParamName: string; const Value: Variant);
 begin
   ParamByName(ParamName).Value:=Value;
 end;
 
-procedure TParams.AssignTo(Dest: TPersistent);
+Procedure TParams.AssignTo(Dest: TPersistent);
 begin
  if (Dest is TParams) then
    TParams(Dest).Assign(Self)
@@ -52,7 +72,7 @@ begin
    inherited AssignTo(Dest);
 end;
 
-function TParams.GetDataSet: TDataSet;
+Function TParams.GetDataSet: TDataSet;
 begin
   If (FOwner is TDataset) Then
     Result:=TDataset(FOwner)
@@ -60,17 +80,17 @@ begin
     Result:=Nil;
 end;
 
-function TParams.GetOwner: TPersistent;
+Function TParams.GetOwner: TPersistent;
 begin
   Result:=FOwner;
 end;
 
-class function TParams.ParamClass: TParamClass;
+Class Function TParams.ParamClass: TParamClass;
 begin
   Result:=TParam;
 end;
 
-constructor TParams.Create(AOwner: TPersistent; AItemClass: TCollectionItemClass
+Constructor TParams.Create(AOwner: TPersistent; AItemClass: TCollectionItemClass
   );
 begin
   Inherited Create(AItemClass);
@@ -78,22 +98,22 @@ begin
 end;
 
 
-constructor TParams.Create(AOwner: TPersistent);
+Constructor TParams.Create(AOwner: TPersistent);
 begin
   Create(AOwner,ParamClass);
 end;
 
-constructor TParams.Create;
+Constructor TParams.Create;
 begin
   Create(TPersistent(Nil));
 end;
 
-procedure TParams.AddParam(Value: TParam);
+Procedure TParams.AddParam(Value: TParam);
 begin
   Value.Collection:=Self;
 end;
 
-procedure TParams.AssignValues(Value: TParams);
+Procedure TParams.AssignValues(Value: TParams);
 
 Var
   I : Integer;
@@ -109,7 +129,7 @@ begin
     end;
 end;
 
-function TParams.CreateParam(FldType: TFieldType; const ParamName: string;
+Function TParams.CreateParam(FldType: TFieldType; const ParamName: string;
   ParamType: TParamType): TParam;
 
 begin
@@ -119,7 +139,7 @@ begin
   Result.ParamType:=ParamType;
 end;
 
-function TParams.FindParam(const Value: string): TParam;
+Function TParams.FindParam(const Value: string): TParam;
 
 Var
   I : Integer;
@@ -134,7 +154,7 @@ begin
       Dec(i);
 end;
 
-procedure TParams.GetParamList(List: TList; const ParamNames: string);
+Procedure TParams.GetParamList(List: TList; const ParamNames: string);
 
 Var
   P: TParam;
@@ -152,7 +172,7 @@ begin
   until StrPos > Length(ParamNames);
 end;
 
-function TParams.IsEqual(Value: TParams): Boolean;
+Function TParams.IsEqual(Value: TParams): Boolean;
 
 Var
   I : Integer;
@@ -167,14 +187,19 @@ begin
     end;
 end;
 
-function TParams.ParamByName(const Value: string): TParam;
+Function TParams.GetEnumerator: TParamsEnumerator;
+begin
+  Result:=TParamsEnumerator.Create(Self);
+end;
+
+Function TParams.ParamByName(const Value: string): TParam;
 begin
   Result:=FindParam(Value);
   If (Result=Nil) then
     DatabaseErrorFmt(SParameterNotFound,[Value],Dataset);
 end;
 
-function TParams.ParseSQL(SQL: String; DoCreate: Boolean): String;
+Function TParams.ParseSQL(SQL: String; DoCreate: Boolean): String;
 
 var pb : TParamBinding;
     rs : string;
@@ -183,7 +208,7 @@ begin
   Result := ParseSQL(SQL,DoCreate,True,True,psInterbase, pb, rs);
 end;
 
-function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash,
+Function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash,
   EscapeRepeat: Boolean; ParameterStyle: TParamStyle): String;
 
 var pb : TParamBinding;
@@ -193,7 +218,7 @@ begin
   Result := ParseSQL(SQL,DoCreate,EscapeSlash,EscapeRepeat,ParameterStyle,pb, rs);
 end;
 
-function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash,
+Function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash,
   EscapeRepeat: Boolean; ParameterStyle: TParamStyle; out
   ParamBinding: TParambinding): String;
 
@@ -246,7 +271,7 @@ begin
   end; {case}
 end;
 
-function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash,
+Function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash,
   EscapeRepeat: Boolean; ParameterStyle: TParamStyle; out
   ParamBinding: TParambinding; out ReplaceString: string): String;
 
@@ -435,7 +460,7 @@ begin
 end;
 
 
-procedure TParams.RemoveParam(Value: TParam);
+Procedure TParams.RemoveParam(Value: TParam);
 begin
    Value.Collection:=Nil;
 end;
@@ -1123,7 +1148,7 @@ begin
 end;
 
 
-procedure TParams.CopyParamValuesFromDataset(ADataset: TDataset;
+Procedure TParams.CopyParamValuesFromDataset(ADataset: TDataset;
   CopyBound: Boolean);
 
 Var

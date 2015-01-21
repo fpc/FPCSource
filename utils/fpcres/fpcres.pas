@@ -272,6 +272,7 @@ begin
   case CurrentTarget.machine of
 //    mtnone :
     mtppc : Result.MachineType:=cmtppc32aix;
+//    mtppc64 : Result.MachineType:=cmtppc64aix;
   end;
 end;
 

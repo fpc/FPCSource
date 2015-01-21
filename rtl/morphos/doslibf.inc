@@ -5,7 +5,7 @@
     Copyright (c) 2002 The MorphOS Development Team, All Rights Reserved.
 
     Free Pascal conversion
-    Copyright (c) 2004 Karoly Balogh for Genesi S.a.r.l. <www.genesi.lu>
+    Copyright (c) 2004-2014 by Karoly Balogh
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -23,7 +23,7 @@ function Open(fname     : PChar   location 'd1';
               accessMode: LongInt location 'd2'): LongInt;
 SysCall MOS_DOSBase 30;
 
-function dosClose(fileh: LongInt location 'd1'): Boolean;
+function dosClose(fileh: LongInt location 'd1'): LongBool;
 SysCall MOS_DOSBase 36;
 
 function dosRead(fileh : LongInt location 'd1';
@@ -47,11 +47,11 @@ function dosSeek(fileh   : LongInt location 'd1';
                  posmode : LongInt location 'd3'): LongInt;
 SysCall MOS_DOSBase 66;
 
-function dosDeleteFile(fname: PChar location 'd1'): Boolean;
+function dosDeleteFile(fname: PChar location 'd1'): LongBool;
 SysCall MOS_DOSBase 72;
 
 function dosRename(oldName: PChar location 'd1';
-                   newName: PChar location 'd2'): Boolean;
+                   newName: PChar location 'd2'): LongInt;
 SysCall MOS_DOSBase 78;
 
 function Lock(lname     : PChar   location 'd1';
@@ -65,7 +65,7 @@ function DupLock(lock: LongInt location 'd1'): LongInt;
 SysCall MOS_DOSBase 096;
 
 function Examine(lock         : LongInt        location 'd1';
-                 fileInfoBlock: PFileInfoBlock location 'd2'): Boolean;
+                 fileInfoBlock: PFileInfoBlock location 'd2'): LongInt;
 SysCall MOS_DOSBase 102;
 
 function ExNext(lock         : LongInt        location 'd1';
@@ -73,7 +73,7 @@ function ExNext(lock         : LongInt        location 'd1';
 SysCall MOS_DOSBase 108;
 
 function Info(lock          : LongInt   location 'd1';
-              parameterBlock: PInfoData location 'd2'): Boolean;
+              parameterBlock: PInfoData location 'd2'): LongInt;
 SysCall MOS_DOSBase 114;
 
 function dosCreateDir(dname: PChar location 'd1'): LongInt;
@@ -104,11 +104,11 @@ function DeviceProc(name: PChar location 'd1'): PMsgPort;
 SysCall MOS_DOSBase 174;
 
 function SetComment(name   : PChar location 'd1';
-                    comment: PChar location 'd2'): Boolean;
+                    comment: PChar location 'd2'): LongBool;
 SysCall MOS_DOSBase 180;
 
 function SetProtection(name: PChar   location 'd1';
-                       mask: LongInt location 'd2'): Boolean;
+                       mask: LongInt location 'd2'): LongInt;
 SysCall MOS_DOSBase 186;
 
 function DateStamp(date: PDateStamp location 'd1'): PDateStamp;
@@ -118,18 +118,18 @@ procedure Delay(timeout: LongInt location 'd1');
 SysCall MOS_DOSBase 198;
 
 function WaitForChar(file1  : LongInt location 'd1';
-                     timeout: LongInt location 'd2'): Boolean;
+                     timeout: LongInt location 'd2'): LongBool;
 SysCall MOS_DOSBase 204;
 
 function ParentDir(lock: LongInt location 'd1'): LongInt;
 SysCall MOS_DOSBase 210;
 
-function IsInteractive(file1: LongInt location 'd1'): Boolean;
+function IsInteractive(file1: LongInt location 'd1'): LongBool;
 SysCall MOS_DOSBase 216;
 
 function Execute(string1: PChar   location 'd1';
                  file1  : LongInt location 'd2';
-                 file2  : LongInt location 'd3'): Boolean;
+                 file2  : LongInt location 'd3'): LongBool;
 SysCall MOS_DOSBase 222;
 
 function AllocDosObject(type1: Cardinal location 'd1';
@@ -204,19 +204,19 @@ function LockRecord(fh     : LongInt  location 'd1';
                     offset : Cardinal location 'd2';
                     length : Cardinal location 'd3';
                     mode   : Cardinal location 'd4';
-                    timeout: Cardinal location 'd5'): Boolean;
+                    timeout: Cardinal location 'd5'): LongBool;
 SysCall MOS_DOSBase 270;
 
 function LockRecords(recArray: PRecordLock location 'd1';
-                     timeout : Cardinal    location 'd2'): Boolean;
+                     timeout : Cardinal    location 'd2'): LongBool;
 SysCall MOS_DOSBase 276;
 
 function UnLockRecord(fh    : LongInt  location 'd1';
                       offset: Cardinal location 'd2';
-                      length: Cardinal location 'd3'): Boolean;
+                      length: Cardinal location 'd3'): LongBool;
 SysCall MOS_DOSBase 282;
 
-function UnLockRecords(recArray: PRecordLock location 'd1'): Boolean;
+function UnLockRecords(recArray: PRecordLock location 'd1'): LongBool;
 SysCall MOS_DOSBase 288;
 
 function SelectInput(fh: LongInt location 'd1'): LongInt;
@@ -286,21 +286,21 @@ function ParentOfFH(fh: LongInt location 'd1'): LongInt;
 SysCall MOS_DOSBase 384;
 
 function ExamineFH(fh : LongInt        location 'd1';
-                   fib: PFileInfoBlock location 'd2'): Boolean;
+                   fib: PFileInfoBlock location 'd2'): LongBool;
 SysCall MOS_DOSBase 390;
 
 function SetFileDate(name: PChar      location 'd1';
-                     date: PDateStamp location 'd2'): Boolean;
+                     date: PDateStamp location 'd2'): LongBool;
 SysCall MOS_DOSBase 396;
 
 function NameFromLock(lock  : LongInt location 'd1';
                       buffer: PChar   location 'd2';
-                      len   : LongInt location 'd3'): Boolean;
+                      len   : LongInt location 'd3'): LongBool;
 SysCall MOS_DOSBase 402;
 
 function NameFromFH(fh    : LongInt location 'd1';
                     buffer: PChar   location 'd2';
-                    len   : LongInt location 'd3'): LongInt;
+                    len   : LongInt location 'd3'): LongBool;
 SysCall MOS_DOSBase 408;
 
 function SplitName(name     : PChar    location 'd1';
@@ -322,24 +322,24 @@ function ExAll(lock   : LongInt       location 'd1';
                buffer : PExAllData    location 'd2';
                size   : LongInt       location 'd3';
                data   : LongInt       location 'd4';
-               control: PExAllControl location 'd5'): Boolean;
+               control: PExAllControl location 'd5'): LongBool;
 SysCall MOS_DOSBase 432;
 
 function ReadLink(port  : PMsgPort location 'd1';
                   lock  : LongInt  location 'd2';
                   path  : PChar    location 'd3';
                   buffer: PChar    location 'd4';
-                  size  : Cardinal location 'd5'): Boolean;
+                  size  : Cardinal location 'd5'): LongBool;
 SysCall MOS_DOSBase 438;
 
 function MakeLink(name: PChar   location 'd1';
                   dest: LongInt location 'd2';
-                  soft: LongInt location 'd3'): Boolean;
+                  soft: LongInt location 'd3'): LongBool;
 SysCall MOS_DOSBase 444;
 
 function ChangeMode(type1  : LongInt location 'd1';
                     fh     : LongInt location 'd2';
-                    newmode: LongInt location 'd3'): Boolean;
+                    newmode: LongInt location 'd3'): LongBool;
 SysCall MOS_DOSBase 450;
 
 function SetFileSize(fh  : LongInt location 'd1';
@@ -353,17 +353,17 @@ SysCall MOS_DOSBase 462;
 function Fault(code  : LongInt location 'd1';
                header: PChar   location 'd2';
                buffer: PChar   location 'd3';
-               len   : LongInt location 'd4'): Boolean;
+               len   : LongInt location 'd4'): LongBool;
 SysCall MOS_DOSBase 468;
 
 function PrintFault(code  : LongInt location 'd1';
-                    header: PChar   location 'd2'): Boolean;
+                    header: PChar   location 'd2'): LongBool;
 SysCall MOS_DOSBase 474;
 
 function ErrorReport(code  : LongInt  location 'd1';
                      type1 : LongInt  location 'd2';
                      arg1  : Cardinal location 'd3';
-                     device: PMsgPort location 'd4'): Boolean;
+                     device: PMsgPort location 'd4'): LongBool;
 SysCall MOS_DOSBase 480;
 
 function Cli: PCommandLineInterface;
@@ -396,7 +396,7 @@ SysCall MOS_DOSBase 528;
 function GetArgStr: PChar;
 SysCall MOS_DOSBase 534;
 
-function SetArgStr(str: PChar location 'd1'): Boolean;
+function SetArgStr(str: PChar location 'd1'): LongBool;
 SysCall MOS_DOSBase 540;
 
 function FindCliProc(num: Cardinal location 'd1'): PProcess;
@@ -405,25 +405,25 @@ SysCall MOS_DOSBase 546;
 function MaxCli: Cardinal;
 SysCall MOS_DOSBase 552;
 
-function SetCurrentDirName(name: PChar location 'd1'): Boolean;
+function SetCurrentDirName(name: PChar location 'd1'): LongBool;
 SysCall MOS_DOSBase 558;
 
 function GetCurrentDirName(buf: PChar   location 'd1';
-                           len: LongInt location 'd2'): Boolean;
+                           len: LongInt location 'd2'): LongBool;
 SysCall MOS_DOSBase 564;
 
-function SetProgramName(name: PChar location 'd1'): Boolean;
+function SetProgramName(name: PChar location 'd1'): LongBool;
 SysCall MOS_DOSBase 570;
 
 function GetProgramName(buf: PChar   location 'd1';
-                        len: LongInt location 'd2'): Boolean;
+                        len: LongInt location 'd2'): LongBool;
 SysCall MOS_DOSBase 576;
 
-function SetPrompt(name: PChar location 'd1'): Boolean;
+function SetPrompt(name: PChar location 'd1'): LongBool;
 SysCall MOS_DOSBase 582;
 
 function GetPrompt(buf: PChar   location 'd1';
-                   len: LongInt location 'd2'): Boolean;
+                   len: LongInt location 'd2'): LongBool;
 SysCall MOS_DOSBase 588;
 
 function SetProgramDir(lock: LongInt location 'd1'): LongInt;
@@ -441,23 +441,23 @@ function dosSystem(command: PChar    location 'd1';
 SysCall MOS_DOSBase 606;
 
 function AssignLock(name: PChar   location 'd1';
-                    lock: LongInt location 'd2'): Boolean;
+                    lock: LongInt location 'd2'): LongBool;
 SysCall MOS_DOSBase 612;
 
 function AssignLate(name: PChar location 'd1';
-                    path: PChar location 'd2'): Boolean;
+                    path: PChar location 'd2'): LongBool;
 SysCall MOS_DOSBase 618;
 
 function AssignPath(name: PChar location 'd1';
-                    path: PChar location 'd2'): Boolean;
+                    path: PChar location 'd2'): LongBool;
 SysCall MOS_DOSBase 624;
 
 function AssignAdd(name: PChar   location 'd1';
-                   lock: LongInt location 'd2'): Boolean;
+                   lock: LongInt location 'd2'): LongBool;
 SysCall MOS_DOSBase 630;
 
 function RemAssignList(name: PChar   location 'd1';
-                       lock: LongInt location 'd2'): Boolean;
+                       lock: LongInt location 'd2'): LongBool;
 SysCall MOS_DOSBase 636;
 
 function GetDeviceProc(name: PChar    location 'd1';
@@ -476,7 +476,7 @@ SysCall MOS_DOSBase 660;
 function AttemptLockDosList(flags: Cardinal location 'd1'): PDosList;
 SysCall MOS_DOSBase 666;
 
-function RemDosEntry(dlist: PDosList location 'd1'): Boolean;
+function RemDosEntry(dlist: PDosList location 'd1'): LongBool;
 SysCall MOS_DOSBase 672;
 
 function AddDosEntry(dlist: PDosList location 'd1'): LongInt;
@@ -498,34 +498,34 @@ SysCall MOS_DOSBase 696;
 procedure FreeDosEntry(dlist: PDosList location 'd1');
 SysCall MOS_DOSBase 702;
 
-function IsFileSystem(name: PChar location 'd1'): Boolean;
+function IsFileSystem(name: PChar location 'd1'): LongBool;
 SysCall MOS_DOSBase 708;
 
 function Format(filesystem: PChar    location 'd1';
                 volumename: PChar    location 'd2';
-                dostype   : Cardinal location 'd3'): Boolean;
+                dostype   : Cardinal location 'd3'): LongBool;
 SysCall MOS_DOSBase 714;
 
 function Relabel(drive  : PChar location 'd1';
-                 newname: PChar location 'd2'): Boolean;
+                 newname: PChar location 'd2'): LongBool;
 SysCall MOS_DOSBase 720;
 
 function Inhibit(name : PChar   location 'd1';
-                 onoff: LongInt location 'd2'): Boolean;
+                 onoff: LongInt location 'd2'): LongBool;
 SysCall MOS_DOSBase 726;
 
 function AddBuffers(name  : PChar   location 'd1';
-                    number: LongInt location 'd2'): Boolean;
+                    number: LongInt location 'd2'): LongBool;
 SysCall MOS_DOSBase 732;
 
 function CompareDates(date1: PDateStamp location 'd1';
                       date2: PDateStamp location 'd2'): LongInt;
 SysCall MOS_DOSBase 738;
 
-function DateToStr(datetime: _PDateTime location 'd1'): Boolean;
+function DateToStr(datetime: _PDateTime location 'd1'): LongBool;
 SysCall MOS_DOSBase 744;
 
-function StrToDate(datetime: _PDateTime location 'd1'): Boolean;
+function StrToDate(datetime: _PDateTime location 'd1'): LongBool;
 SysCall MOS_DOSBase 750;
 
 function InternalLoadSeg(fh           : LongInt location 'd0';
@@ -544,7 +544,7 @@ SysCall MOS_DOSBase 768;
 
 function AddSegment(name  : PChar   location 'd1';
                     seg   : LongInt location 'd2';
-                    system: LongInt location 'd3'): Boolean;
+                    system: LongInt location 'd3'): LongBool;
 SysCall MOS_DOSBase 774;
 
 function FindSegment(name  : PChar    location 'd1';
@@ -552,7 +552,7 @@ function FindSegment(name  : PChar    location 'd1';
                      system: LongInt  location 'd3'): PSegment;
 SysCall MOS_DOSBase 780;
 
-function RemSegment(seg: PSegment location 'd1'): Boolean;
+function RemSegment(seg: PSegment location 'd1'): LongBool;
 SysCall MOS_DOSBase 786;
 
 function CheckSignal(mask: LongInt location 'd1'): LongInt;
@@ -592,7 +592,7 @@ function ParsePattern(pat   : PChar   location 'd1';
 SysCall MOS_DOSBase 840;
 
 function MatchPattern(pat: PChar location 'd1';
-                      str: PChar location 'd2'): Boolean;
+                      str: PChar location 'd2'): LongBool;
 SysCall MOS_DOSBase 846;
 
 procedure FreeArgs(args: pRDArgs location 'd1');
@@ -606,10 +606,10 @@ SysCall MOS_DOSBase 876;
 
 function AddPart(dirname: PChar    location 'd1';
                 filename: PChar    location 'd2';
-                size    : Cardinal location 'd3'): Boolean;
+                size    : Cardinal location 'd3'): LongBool;
 SysCall MOS_DOSBase 882;
 
-function StartNotify(notify: PNotifyRequest location 'd1'): Boolean;
+function StartNotify(notify: PNotifyRequest location 'd1'): LongBool;
 SysCall MOS_DOSBase 888;
 
 procedure EndNotify(notify: PNotifyRequest location 'd1');
@@ -618,7 +618,7 @@ SysCall MOS_DOSBase 894;
 function SetVar(name  : PChar   location 'd1';
                 buffer: PChar   location 'd2';
                 size  : LongInt location 'd3';
-                flags : LongInt location 'd4'): Boolean;
+                flags : LongInt location 'd4'): LongBool;
 SysCall MOS_DOSBase 900;
 
 function GetVar(name  : PChar   location 'd1';
@@ -628,7 +628,7 @@ function GetVar(name  : PChar   location 'd1';
 SysCall MOS_DOSBase 906;
 
 function DeleteVar(name : PChar    location 'd1';
-                   flags: Cardinal location 'd2'): Boolean;
+                   flags: Cardinal location 'd2'): LongBool;
 SysCall MOS_DOSBase 912;
 
 function FindVar(name : PChar    location 'd1';
@@ -658,11 +658,11 @@ function ParsePatternNoCase(pat   : PChar   location 'd1';
 SysCall MOS_DOSBase 966;
 
 function MatchPatternNoCase(pat: PChar location 'd1';
-                            str: PChar location 'd2'): Boolean;
+                            str: PChar location 'd2'): LongBool;
 SysCall MOS_DOSBase 972;
 
 function SameDevice(lock1: LongInt location 'd1';
-                    lock2: LongInt location 'd2'): Boolean;
+                    lock2: LongInt location 'd2'): LongBool;
 SysCall MOS_DOSBase 984;
 
 procedure ExAllEnd(lock   : LongInt       location 'd1';
@@ -673,7 +673,7 @@ procedure ExAllEnd(lock   : LongInt       location 'd1';
 SysCall MOS_DOSBase 990;
 
 function SetOwner(name      : PChar   location 'd1';
-                  owner_info: LongInt location 'd2'): Boolean;
+                  owner_info: LongInt location 'd2'): LongBool;
 SysCall MOS_DOSBase 996;
 
 function AddSegmentTagList(tags: PTagItem location 'a0'): LongInt;
@@ -681,6 +681,5 @@ SysCall MOS_DOSBase 1002;
 
 function FindSegmentTagList(tags: PTagItem location 'a0'): PSegment;
 SysCall MOS_DOSBase 1008;
-
 
 

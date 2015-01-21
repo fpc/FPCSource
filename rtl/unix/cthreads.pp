@@ -336,7 +336,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 {$endif DEBUG_MT}
       pthread_attr_init(@thread_attr);
       {$if not defined(HAIKU) and not defined(ANDROID)}
-      {$ifdef solaris}
+      {$if defined (solaris) or defined (netbsd) }
       pthread_attr_setinheritsched(@thread_attr, PTHREAD_INHERIT_SCHED);
       {$else not solaris}
       pthread_attr_setinheritsched(@thread_attr, PTHREAD_EXPLICIT_SCHED);
@@ -874,8 +874,19 @@ var p:pintrtlevent;
 
 begin
   new(p);
-  pthread_cond_init(@p^.condvar, nil);
-  pthread_mutex_init(@p^.mutex, nil);
+  if not assigned(p) then
+    fpc_threaderror;
+  if pthread_cond_init(@p^.condvar, nil)<>0 then
+    begin
+      dispose(p);
+      fpc_threaderror;
+    end;
+  if pthread_mutex_init(@p^.mutex, nil)<>0 then
+    begin
+      pthread_cond_destroy(@p^.condvar);
+      dispose(p);
+      fpc_threaderror;
+    end;
   p^.isset:=false;
   result:=PRTLEVENT(p);
 end;

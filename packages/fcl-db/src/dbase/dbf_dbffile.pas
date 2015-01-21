@@ -228,12 +228,14 @@ implementation
 
 uses
 {$ifndef WINDOWS}
-{$ifndef FPC}
+ {$IFNDEF OS2}
+  {$ifndef FPC}
   RTLConsts,
-{$else}
+  {$else FPC}
   BaseUnix,
-{$endif}
-{$endif}
+  {$endif FPC}
+ {$ENDIF OS2}
+{$endif WINDOWS}
 {$ifdef SUPPORT_MATH_UNIT}
   Math,
 {$endif}
@@ -3155,8 +3157,10 @@ end;
 procedure TDbfGlobals.InitUserName;
 {$ifdef FPC}
 {$ifndef WINDOWS}
+ {$IFNDEF OS2}
 var
   TempName: UTSName;
+ {$ENDIF OS2}
 {$endif}
 {$endif}
 begin
@@ -3176,8 +3180,12 @@ begin
 {$endif wince}
 {$else}
 {$ifdef FPC}
+ {$IFDEF OS2}
+  FUserName := GetEnvironmentVariable ('HOSTNAME');
+ {$ELSE OS2}
   FpUname(TempName);
   FUserName := TempName.machine;
+ {$ENDIF OS2}
   FUserNameLen := Length(FUserName);
 {$endif}  
 {$endif}

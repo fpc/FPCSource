@@ -54,13 +54,14 @@ type
     procedure DropFieldDataset; override;
     Function InternalGetNDataset(n : integer) : TDataset; override;
     Function InternalGetFieldDataset : TDataSet; override;
-    procedure TryDropIfExist(ATableName : String);
   public
+    procedure TryDropIfExist(ATableName : String);
     destructor Destroy; override;
     constructor Create; override;
     procedure ExecuteDirect(const SQL: string);
     // Issue a commit(retaining) for databases that need it (e.g. in DDL)
     procedure CommitDDL;
+    Procedure FreeTransaction;
     property Connection : TSQLConnection read FConnection;
     property Transaction : TSQLTransaction read FTransaction;
     property Query : TSQLQuery read FQuery;
@@ -321,7 +322,7 @@ begin
       FieldtypeDefinitions[ftMemo]     := 'CLOB';
       FieldtypeDefinitions[ftWideString] := 'NVARCHAR2(10)';
       FieldtypeDefinitions[ftFixedWideChar] := 'NCHAR(10)';
-      //FieldtypeDefinitions[ftWideMemo] := 'NCLOB';
+      FieldtypeDefinitions[ftWideMemo] := 'NCLOB';
       end;
     ssPostgreSQL:
       begin
@@ -400,7 +401,7 @@ begin
       testValues[ftFixedChar,i] := PadRight(testValues[ftFixedChar,i], 10);
 end;
 
-function TSQLDBConnector.CreateQuery: TSQLQuery;
+Function TSQLDBConnector.CreateQuery: TSQLQuery;
 
 begin
   Result := TSQLQuery.create(nil);
@@ -555,7 +556,7 @@ begin
 end;
 
 procedure TSQLDBConnector.DoLogEvent(Sender: TSQLConnection;
-  EventType: TDBEventType; const Msg: String);
+  EventType: TDBEventType; Const Msg: String);
 var
   Category: string;
 begin
@@ -609,7 +610,7 @@ begin
     end;
 end;
 
-function TSQLDBConnector.InternalGetNDataset(n: integer): TDataset;
+Function TSQLDBConnector.InternalGetNDataset(n: integer): TDataset;
 begin
   Result := CreateQuery;
   with (Result as TSQLQuery) do
@@ -620,7 +621,7 @@ begin
     end;
 end;
 
-function TSQLDBConnector.InternalGetFieldDataset: TDataSet;
+Function TSQLDBConnector.InternalGetFieldDataset: TDataSet;
 begin
   Result := CreateQuery;
   with (Result as TSQLQuery) do
@@ -641,7 +642,7 @@ begin
       ssFirebird:
         begin
         // This only works with Firebird 2+
-        FConnection.ExecuteDirect('execute block as begin if (exists (select 1 from rdb$relations where rdb$relation_name=''' + ATableName + ''')) '+
+        FConnection.ExecuteDirect('execute block as begin if (exists (select 1 from rdb$relations where upper(rdb$relation_name)=''' + UpperCase(ATableName) + ''')) '+
           'then execute statement ''drop table ' + ATableName + ';'';end');
         FTransaction.CommitRetaining;
         end;
@@ -651,14 +652,18 @@ begin
         // which leads to the rollback not referring to the right transaction=>SQL error
         // Use SQL92 ISO standard INFORMATION_SCHEMA:
         FConnection.ExecuteDirect(
-          'if exists (select * from INFORMATION_SCHEMA.TABLES where TABLE_TYPE=''BASE TABLE'' AND TABLE_NAME=''' + ATableName + ''') '+
-          'begin '+
-          'drop table ' + ATableName + ' '+
-          'end');
+          'if exists (select * from INFORMATION_SCHEMA.TABLES where TABLE_TYPE=''BASE TABLE'' AND TABLE_NAME=''' + ATableName + ''')'+
+          ' drop table ' + ATableName );
         end;
       ssMySQL:
         begin
         FConnection.ExecuteDirect('drop table if exists ' + ATableName);
+        end;
+      ssPostgreSQL,
+      ssSQLite:
+        begin
+        FConnection.ExecuteDirect('drop table if exists ' + ATableName);
+        FTransaction.CommitRetaining;
         end;
       ssOracle:
         begin
@@ -702,23 +707,34 @@ begin
     Transaction.CommitRetaining;
 end;
 
+Procedure TSQLDBConnector.FreeTransaction;
+begin
+  FreeAndNil(FTransaction);
+end;
+
 destructor TSQLDBConnector.Destroy;
 begin
+  FreeAndNil(FQuery);
   if assigned(FTransaction) then
     begin
     try
-      if Ftransaction.Active then Ftransaction.Rollback;
-      Ftransaction.StartTransaction;
-      Fconnection.ExecuteDirect('DROP TABLE FPDEV2');
-      Ftransaction.Commit;
+      if not (stoUseImplicit in Transaction.Options) then
+        begin
+        if Ftransaction.Active then
+          Ftransaction.Rollback;
+        Ftransaction.StartTransaction;
+        end;
+      TryDropIfExist('FPDEV2');
+      if not (stoUseImplicit in Transaction.Options) then
+        Ftransaction.Commit;
     Except
-      if Ftransaction.Active then Ftransaction.Rollback;
+      if Ftransaction.Active and not (stoUseImplicit in Transaction.Options) then
+        Ftransaction.Rollback;
     end; // try
     end;
-  inherited Destroy;
-  FreeAndNil(FQuery);
-  FreeAndNil(FTransaction);
+  FreeTransaction;
   FreeAndNil(FConnection);
+  inherited Destroy;
 end;
 
 constructor TSQLDBConnector.Create;

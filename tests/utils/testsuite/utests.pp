@@ -1,13 +1,16 @@
 {$mode objfpc}
 {$h+}
+
 unit utests;
 
 interface
 
 uses
      cgiapp,
-     sysutils,mysql55conn,sqldb,whtml,dbwhtml,db,
-     tresults,
+     sysutils,
+     pqconnection,
+     sqldb,whtml,dbwhtml,db,
+     tresults,webutil,
      Classes,ftFont,fpimage,fpimgcanv,fpWritePng,fpcanvas;
 
 const
@@ -17,9 +20,14 @@ const
   ViewRevURL='http://svn.freepascal.org/cgi-bin/viewvc.cgi?view=revision&amp;revision=';
   TestsSubDir='/tests/';
   DataBaseSubDir='/packages/fcl-db/tests/';
+
 var
   TestsuiteCGIURL : string;
+
 Type
+
+  { TTestSuite }
+
   TTestSuite = Class(TCgiApplication)
   Private
     FHTMLWriter : THtmlWriter;
@@ -56,6 +64,7 @@ Type
     FLimit : Integer;
     FTestLastDays : Integer;
     FNeedEnd : boolean;
+    procedure DumpTestInfo(Q: TSQLQuery);
     Procedure GetOverviewRowAttr(Sender : TObject; Var BGColor : String;
                                    Var Align : THTMLAlign; Var VAlign : THTMLValign;
                                    Var CustomAttr : String) ;
@@ -191,6 +200,8 @@ type
     ver_2_6_1,
     ver_2_6_2,
     ver_2_6_3,
+    ver_2_6_4,
+    ver_2_6_5,
     ver_2_7_1);
 
 const
@@ -227,6 +238,8 @@ const
    '2.6.1',
    '2.6.2',
    '2.6.3',
+   '2.6.4',
+   '2.6.5',
    '2.7.1'
   );
 
@@ -259,6 +272,8 @@ const
    'tags/release_2_6_0',
    'tags/release_2_6_2',
    'tags/release_2_6_2',
+   'tags/release_2_6_4',
+   'tags/release_2_6_4',
    'branches/fixes_2_6',
    'trunk'
   );
@@ -366,7 +381,8 @@ begin
   FVersion:=RequestVariables['version'];
   if Length(FVersion) = 0 then
     FVersion:=RequestVariables['TESTVERSION'];
-
+  TestsuiteCGIURL:=Self.ScriptName;
+  SDetailsURL := TestsuiteCGIURL + '?action=1&amp;run1id=%s';
   FOS:=RequestVariables['os'];
   if Length(FOS) = 0 then
     FOS:=RequestVariables['TESTOS'];
@@ -434,7 +450,7 @@ Function TTestSuite.ConnectToDB : Boolean;
 
 begin
   Result:=False;
-  FDB:=TMySQl55Connection.Create(Self);
+  FDB:=TPQConnection.Create(Self);
   FDB.HostName:=DefHost;
   FDB.DatabaseName:=DefDatabase;
   FDB.UserName:=DefDBUser;
@@ -548,6 +564,9 @@ begin
 end;
 
 Procedure TTestSuite.EmitTitle(ATitle : String);
+
+Var
+  S : TStrings;
 begin
   AddResponseLn('<HTML>');
   AddResponseLn('<TITLE>'+ATitle+'</TITLE>');
@@ -575,7 +594,6 @@ begin
     DumpLn('View Test suite results');
     HeaderEnd(1);
     DumpLn('Please specify search criteria:');
-    ParagraphStart;
     FormStart(TestsuiteCGIURL,'');
     if FDebug then
       EmitHiddenVar('DEBUGCGI', '1');
@@ -692,7 +710,6 @@ begin
     DumpLn('View Test suite results');
     HeaderEnd(1);
     DumpLn('Please specify search criteria:');
-    ParagraphStart;
     FormStart(TestsuiteCGIURL,'');
     if FDebug then
       EmitHiddenVar('DEBUGCGI', '1');
@@ -892,7 +909,7 @@ end;
 Procedure TTestSuite.ShowRunOverview;
 Const
   SOverview = 'SELECT TU_ID as ID,TU_DATE as Date,TC_NAME as CPU,TO_NAME as OS,'+
-               'TV_VERSION as Version,count(*) as Count,'+
+               'TV_VERSION as Version,(select count(*) from testresults where (TR_TESTRUN_FK=TU_ID)) as Count,'+
                'TU_SVNCOMPILERREVISION as SvnCompRev,'+
                'TU_SVNRTLREVISION as SvnRTLRev,'+
                'TU_SVNPACKAGESREVISION as SvnPackRev,TU_SVNTESTSREVISION as SvnTestsRev,'+
@@ -901,11 +918,13 @@ Const
                '(TU_SUCCESSFULLYFAILED+TU_SUCCESFULLYCOMPILED+TU_SUCCESSFULLYRUN+'+
                 'TU_FAILEDTOCOMPILE+TU_FAILEDTORUN+TU_FAILEDTOFAIL) as Total,'+
                'TU_SUBMITTER as Submitter, TU_MACHINE as Machine, TU_COMMENT as Comment %s '+
-              'FROM TESTRUN left join TESTCPU on (TC_ID=TU_CPU_FK) left join TESTOS on (TO_ID=TU_OS_FK) '+
-              'left join TESTVERSION on (TV_ID=TU_VERSION_FK) left join TESTCATEGORY on (TCAT_ID=TU_CATEGORY_FK) '+
-              'left join TESTRESULTS on (TR_TESTRUN_FK=TU_ID) '+
+              'FROM '+
+               ' TESTRUN '+
+               ' left join TESTCPU on (TC_ID=TU_CPU_FK) '+
+               ' left join TESTOS on (TO_ID=TU_OS_FK) '+
+               ' left join TESTVERSION on (TV_ID=TU_VERSION_FK) '+
+               ' left join TESTCATEGORY on (TCAT_ID=TU_CATEGORY_FK) '+
               '%s'+
-              'GROUP BY TU_ID '+
               'ORDER BY TU_ID DESC LIMIT %d';
 
 
@@ -924,7 +943,7 @@ begin
    if (FOS<>'') and (GetOSName(FOS)<>'All') then
      S:=S+' AND (TU_OS_FK='+FOS+')';
    If (Round(FDate)<>0) then
-     S:=S+' AND (TU_DATE LIKE '''+FormatDateTime('YYYY-MM-DD',FDate)+'%'')';
+     S:=S+' AND (to_char(TU_DATE, ''YYYY-MM-DD'') LIKE '''+FormatDateTime('YYYY-MM-DD',FDate)+'%'')';
    If FSubmitter<>'' then
      S:=S+' AND (TU_SUBMITTER='''+FSubmitter+''')';
    If FMachine<>'' then
@@ -933,11 +952,9 @@ begin
      S:=S+' AND (TU_COMMENT LIKE '''+Fcomment+''')';
    If FCond<>'' then
      S:=S+' AND ('+FCond+')';
-   If FOnlyFailed then
-     S:=S+' AND (TR_OK="-")';
    If GetCategoryName(FCategory)<>'DB' then
-     SC:=', CONCAT(TU_SVNCOMPILERREVISION,"/",TU_SVNRTLREVISION,"/", '+
-          'TU_SVNPACKAGESREVISION,"/",TU_SVNTESTSREVISION) as svnrev'
+     SC:=', CONCAT(TU_SVNCOMPILERREVISION,''/'',TU_SVNRTLREVISION,''/'', '+
+          'TU_SVNPACKAGESREVISION,''/'',TU_SVNTESTSREVISION) as svnrev'
    else
      SC:='';
    If (FCategory='') or (GetCategoryName(FCategory)='All') then
@@ -1088,8 +1105,8 @@ begin
   If Result then
     begin
     If GetCategoryName(FCategory)<>'DB' then
-      SC:=', CONCAT(TU_SVNCOMPILERREVISION,"/",TU_SVNRTLREVISION,"/", '+
-          'TU_SVNPACKAGESREVISION,"/",TU_SVNTESTSREVISION) as svnrev'
+      SC:=', CONCAT(TU_SVNCOMPILERREVISION,''/'',TU_SVNRTLREVISION,''/'', '+
+          'TU_SVNPACKAGESREVISION,''/'',TU_SVNTESTSREVISION) as svnrev'
     else
       SC:='';
     If GetCategoryName(FCategory)='All' then
@@ -1198,7 +1215,8 @@ begin
                 DumpLn('SVN Revisions:');
                 CellNext;
                 SC:=Q1.FieldByName('svnrev').AsString;
-                FormatSVNData(SC);
+                if (SC<>'') then
+                  FormatSVNData(SC);
                 LDumpLn(SC);
                 CellNext;
                 if Q2 <> nil then
@@ -1397,9 +1415,9 @@ begin
         +' WHERE (TR_TEST_FK=T_ID) AND (TR_TESTRUN_FK='+FRunID+') ';
 
       If FOnlyFailed then
-        S:=S+' AND (TR_OK="-")';
+        S:=S+' AND (not TR_OK)';
       If FNoSkipped then
-        S:=S+' AND (TR_SKIP="-")';
+        S:=S+' AND (not TR_SKIP)';
       S:=S+' ORDER BY TR_ID ';
       Qry:=S;
       If FDebug then
@@ -1466,6 +1484,45 @@ begin
     end;
 end;
 
+Procedure TTestSuite.DumpTestInfo(Q : TSQLQuery);
+
+Var
+  I : Integer;
+  field_displayed : boolean;
+  FieldValue,FieldName : String;
+
+begin
+  With FHTMLWriter do
+    For i:=0 to Q.FieldCount-1 do
+      begin
+      FieldValue:=Q.Fields[i].AsString;
+      FieldName:=Q.Fields[i].DisplayName;
+      field_displayed:=false;
+      if (Not Q.fields[i].IsNull) and (FieldName<>'t_name') and (FieldName<>'t_source') then
+        begin
+        if (Q.Fields[i].Datatype=ftBoolean) then
+          begin
+            if Q.Fields[i].AsBoolean then
+              begin
+                DumpLn('Flag ');
+                DumpLn(FieldName);
+                DumpLn(' set');
+                field_displayed:=true;
+              end;
+          end
+        else if FieldValue<>'' then
+          begin
+            DumpLn(FieldName);
+            DumpLn(' ');
+            DumpLn(FieldValue);
+            field_displayed:=true;
+          end;
+        if field_displayed then
+          DumpLn('<BR>');
+        end;
+      end;
+end;
+
 Procedure TTestSuite.ShowOneTest;
 
 Var
@@ -1484,8 +1541,7 @@ begin
   EmitContentType;
   EmitDocType;
   if FTestFileID='' then
-    FTestFileID:=GetSingleton('SELECT T_ID FROM TESTS WHERE T_NAME LIKE ''%'+
-     FTestFileName+'%''');
+    FTestFileID:=GetSingleton('SELECT T_ID FROM TESTS WHERE T_NAME LIKE ''%'+FTestFileName+'%''');
   if FTestFileID<>'' then
     FTestFileName:=GetTestFileName(FTestFileID);
   EmitTitle(Title+' : File '+FTestFileName+' Results');
@@ -1527,26 +1583,7 @@ begin
         Try
           Open;
           Try
-            For i:=0 to FieldCount-1 do
-              begin
-                FieldValue:=Fields[i].AsString;
-                FieldName:=Fields[i].DisplayName;
-
-                if (FieldValue<>'') and (FieldValue<>'-') and
-                   (FieldName<>'T_NAME') and (FieldName<>'T_SOURCE') then
-                  begin
-                    if (FieldValue='+') then
-                      DumpLn('Flag ');
-                    DumpLn(FieldName);
-                    DumpLn(' ');
-                    if FieldValue='+' then
-                      DumpLn(' set')
-                    else
-                      DumpLn(FieldValue);
-                    DumpLn('<BR>');
-                  end;
-              end;
-
+            DumpTestInfo(Q);
           Finally
             Close;
           end;
@@ -1617,7 +1654,7 @@ begin
                 Free;
               end;
            ParaGraphStart;
-           DumpLn(Format('<p>Record count: %d </p>',[Q.RecordCount]));
+           DumpLn(Format('Record count: %d',[Q.RecordCount]));
            ParaGraphEnd;
           Finally
             Close;
@@ -1746,8 +1783,10 @@ end;
 
 
 Procedure TTestSuite.ShowHistory;
+
 Const
   MaxCombo = 50;
+
 Type
   StatusLongintArray = Array [TTestStatus] of longint;
   StatusDateTimeArray = Array [TTestStatus] of TDateTime;
@@ -1755,6 +1794,7 @@ Type
   AStatusDTA = Array[1..MaxCombo] of StatusDateTimeArray;
   PStatusLA = ^AStatusLA;
   PStatusDTA = ^AStatusDTA;
+
 Var
   S,SS,FL,cpu,version,os : String;
   date : TDateTime;
@@ -1782,8 +1822,9 @@ Var
   version_first_date_id, version_last_date_id : PStatusLA;
   FieldName,FieldValue,
   LLog,Source : String;
-  Res : Boolean;
+  B,Res : Boolean;
   ver : known_versions;
+
 begin
   Res:=False;
   os_count:=nil;
@@ -1855,25 +1896,7 @@ begin
             Try
               Open;
               Try
-                For i:=0 to FieldCount-1 do
-                  begin
-                    FieldValue:=Fields[i].AsString;
-                    FieldName:=Fields[i].DisplayName;
-                    if (FieldValue<>'') and (FieldValue<>'-') and
-                       (FieldName<>'T_NAME') and (FieldName<>'T_SOURCE') then
-                      begin
-                        if (FieldValue='+') then
-                          DumpLn('Flag ');
-                        DumpLn(FieldName);
-                        DumpLn(' ');
-                        if FieldValue='+' then
-                          DumpLn(' set')
-                        else
-                          DumpLn(FieldValue);
-                        DumpLn('<BR>');
-                      end;
-                  end;
-
+                DumpTestInfo(Q);
               Finally
                 Close;
               end;
@@ -2048,14 +2071,11 @@ begin
             begin
               Q.RecNo:=i;
               inc(total_count);
-              S:=Fields[ok_ind].AsString;
-
-              if S='+' then
+              if Q.Fields[ok_ind].AsBoolean then
                 inc(OK_count)
               else
                 inc(not_OK_count);
-              S:=Fields[skip_ind].AsString;
-              if S='+' then
+              if Fields[skip_ind].AsBoolean then
                 inc(skip_count)
               else
                 inc(not_skip_count);
@@ -2529,35 +2549,26 @@ begin
       HeaderEnd(2);
       ParaGraphStart;
       Q:=CreateDataset('');
-      Q.SQL.Text:='CREATE TEMPORARY TABLE tr1 like TESTRESULTS;';
-      Q.ExecSQL;
-      Q.SQL.Text:='CREATE TEMPORARY TABLE tr2 like TESTRESULTS;';
-      Q.ExecSQL;
-      Q.SQL.Text:='INSERT INTO tr1 SELECT * FROM '+TESTRESULTSTableName(FRunId)+
-
-        ' WHERE TR_TESTRUN_FK='+FRunID+';';
-      Q.ExecSQL;
-      Q.SQL.Text:='INSERT INTO tr2 SELECT * FROM '+TESTRESULTSTableName(FCompareRunId)+
-        ' WHERE TR_TESTRUN_FK='+FCompareRunID+';';
-      Q.ExecSQL;
-      S:='SELECT T_ID as Id,T_NAME as Filename,tr1.TR_SKIP as Run1_Skipped,'
+      S:='with tr1 as (SELECT * FROM '+TESTRESULTSTableName(FRunId)+ ' WHERE TR_TESTRUN_FK='+FRunID+'), '+
+         '  tr2 as (SELECT * FROM '+TESTRESULTSTableName(FCompareRunId)+' WHERE TR_TESTRUN_FK='+FCompareRunID+')'+
+         ' SELECT T_ID as id,T_NAME as Filename,tr1.TR_SKIP as Run1_Skipped,'
          +'tr2.TR_SKIP as Run2_Skipped,tr1.TR_OK as Run1_OK,'
          +'tr2.TR_OK as Run2_OK, tr1.TR_Result as Run1_Result,'
          +'tr2.TR_RESULT as Run2_Result '
          +'FROM TESTS, tr2 LEFT JOIN tr1 USING (TR_TEST_FK) '
-         +'WHERE ((tr1.TR_SKIP IS NULL) or'
-         +' (tr2.TR_SKIP IS NULL) or '
+         +'WHERE ((tr1.TR_SKIP IS NULL) or (tr2.TR_SKIP IS NULL) or '
          +' (%s (tr1.TR_Result<>tr2.TR_Result)))'
          +'and (T_ID=tr2.TR_TEST_FK)';
       If FNoSkipped then
         begin
-        Qry:='(((tr1.TR_SKIP="+") and (tr2.TR_OK="-") and (tr2.TR_SKIP="-")) or '
-           +'((tr1.TR_OK="-") and (tr1.TR_SKIP="-") and (tr2.TR_SKIP="+")) or '
-           +'((tr1.TR_SKIP="-") and (tr2.TR_SKIP="-"))) and ';
+        Qry:='(((tr1.TR_SKIP) and (not tr2.TR_OK) and (not tr2.TR_SKIP)) or '
+           +'((not tr1.TR_OK) and (not tr1.TR_SKIP) and (tr2.TR_SKIP)) or '
+           +'((not tr1.TR_SKIP) and (not tr2.TR_SKIP))) and ';
         end
       else
         Qry:='';
       Qry:=Format(S,[Qry]);
+//      DumpLn(Qry);
       If FDebug then
         begin
         system.WriteLn('Query: '+Qry);
@@ -2646,25 +2657,25 @@ begin
     Run2Field := P.Dataset.FindField('OK');
     if Run2Field = nil then
       Run2Field := P.Dataset.FindField('Run2_OK');
-    If (not FNoSkipped) and ((Skip1Field.AsString='+')
-        or ((Skip2Field <> nil) and (Skip2Field.AsString = '+'))) then
+    If (not FNoSkipped) and ((Skip1Field.AsBoolean)
+        or ((Skip2Field <> nil) and (Skip2Field.AsBoolean))) then
       begin
       Inc(FRunSkipCount);
       BGColor:='yellow';    // Yellow
       end
-    else If Run2Field.AsString='+' then
+    else If Run2Field.AsBoolean then
       begin
       if Run1Field.AsString='' then
         BGColor:='#68DFB8'
-      else if Run1Field.ASString<>'+' then
+      else if Run1Field.AsBoolean then
         BGColor:='#98FB98';    // pale Green
       end
-    else if Run2Field.AsString='-' then
+    else if Not Run2Field.AsBoolean then
       begin
       Inc(FRunFailedCount);
       if Run1Field.AsString='' then
         BGColor:='#FF82AB'    // Light red
-      else if Run1Field.AsString<>'-' then
+      else if Not Run1Field.AsBoolean then
         BGColor:='#FF225B';
       end;
     end;
@@ -2738,7 +2749,7 @@ begin
           pos_colon:=pos(':',SubStr);
           Rev:=copy(SubStr,pos_colon+1,length(SubStr));
           { Remove suffix like M for modified...}
-          while not (Rev[length(Rev)] in ['0'..'9']) do
+          while (length(Rev)>0) and (not (Rev[length(Rev)] in ['0'..'9'])) do
             Rev:=Copy(Rev,1,length(Rev)-1);
           S:=ViewRevURL+Rev;
           CellData:=CellData+Format('<A HREF="%s" target="_blank">%s</A>',[S,SubStr]);
@@ -2971,6 +2982,5 @@ begin
   else
     TestsuiteCGIURL:=TestsuiteURLPrefix+'cgi-bin/'+TestsuiteBin;
 
-  SDetailsURL := TestsuiteCGIURL + '?action=1&amp;run1id=%s';
   ShortDateFormat:='yyyy/mm/dd';
 end.

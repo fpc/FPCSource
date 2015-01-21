@@ -352,22 +352,22 @@ End;
 
 Function Swap (X : Longint) : Longint;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
-  Swap:=(X and $ffff) shl 16 + (X shr 16)
+  Swap:=(X shl 16) + (X shr 16);
 End;
 
 Function Swap (X : Cardinal) : Cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
-  Swap:=(X and $ffff) shl 16 + (X shr 16)
+  Swap:=(X shl 16) + (X shr 16);
 End;
 
 Function Swap (X : QWord) : QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
-  Swap:=(X and $ffffffff) shl 32 + (X shr 32);
+  Swap:=(X shl 32) + (X shr 32);
 End;
 
-Function swap (X : Int64) : Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Swap (X : Int64) : Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
-  Swap:=(X and $ffffffff) shl 32 + (X shr 32);
+  Swap:=(X shl 32) + (X shr 32);
 End;
 
 {$ifdef SUPPORT_DOUBLE}
@@ -1519,6 +1519,7 @@ begin
 end;
 
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 procedure DoDirSeparators(var ps:RawByteString);
 var
   i : longint;
@@ -1538,7 +1539,10 @@ begin
         p[i-1]:=DirectorySeparator;
       end;
 end;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
+
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
 procedure DoDirSeparators(var ps:UnicodeString);
 var
   i : longint;
@@ -1558,6 +1562,7 @@ begin
         p[i-1]:=DirectorySeparator;
       end;
 end;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
 
 {$endif FPC_HAS_FEATURE_FILEIO}
 
@@ -1642,8 +1647,20 @@ end;
 
 {$endif FPC_HAS_FEATURE_FILEIO}
 
+{ helper for targets supporting no ansistrings, it is used
+  by non-ansistring code }
+function min(v1,v2 : SizeInt) : SizeInt;
+  begin
+    if v1<v2 then
+      result:=v1
+    else
+      result:=v2;
+  end;
+
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
 { Text file }
 {$i text.inc}
+{$endif FPC_HAS_FEATURE_TEXTIO}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 { Untyped file }

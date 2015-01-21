@@ -334,21 +334,6 @@ interface
     { returns true if def is a C "block" }
     function is_block(def: tdef): boolean;
 
-    {# returns the appropriate int type for pointer arithmetic with the given pointer type.
-       When adding or subtracting a number to/from a pointer, this function returns the
-       int type to which that number has to be converted, before the operation can be performed.
-       Normally, this is sinttype, except on i8086, where it takes into account the
-       special i8086 pointer types (near, far, huge). }
-    function get_int_type_for_pointer_arithmetic(p : tdef) : tdef;
-
-{$ifdef i8086}
-    {# Returns true if p is a far pointer def }
-    function is_farpointer(p : tdef) : boolean;
-
-    {# Returns true if p is a huge pointer def }
-    function is_hugepointer(p : tdef) : boolean;
-{$endif i8086}
-
 implementation
 
     uses
@@ -1448,30 +1433,5 @@ implementation
       begin
         result:=(def.typ=procvardef) and (po_is_block in tprocvardef(def).procoptions)
       end;
-
-
-    function get_int_type_for_pointer_arithmetic(p : tdef) : tdef;
-      begin
-{$ifdef i8086}
-        if is_hugepointer(p) then
-          result:=s32inttype
-        else
-{$endif i8086}
-          result:=sinttype;
-      end;
-
-{$ifdef i8086}
-    { true if p is a far pointer def }
-    function is_farpointer(p : tdef) : boolean;
-      begin
-        result:=(p.typ=pointerdef) and (tcpupointerdef(p).x86pointertyp=x86pt_far);
-      end;
-
-    { true if p is a huge pointer def }
-    function is_hugepointer(p : tdef) : boolean;
-      begin
-        result:=(p.typ=pointerdef) and (tcpupointerdef(p).x86pointertyp=x86pt_huge);
-      end;
-{$endif i8086}
 
 end.

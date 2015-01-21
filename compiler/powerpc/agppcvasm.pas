@@ -165,7 +165,7 @@ unit agppcvasm;
         top_ref :
           begin
             if o.ref^.refaddr<>addr_full then
-              internalerror(200402262);
+              internalerror(200402264);
             hs:=o.ref^.symbol.name;
             if o.ref^.offset>0 then
               hs:=hs+'+'+tostr(o.ref^.offset)

@@ -284,7 +284,7 @@ var
     current_arg:='';
     proxy_argc:=0;
     end_of_arg:=false;
-    while TB + current_dos_buffer_pos mod 16 <> 0 do
+    while (TB + current_dos_buffer_pos) mod 16 <> 0 do
       inc(current_dos_buffer_pos);
     la_proxy_seg:=(TB + current_dos_buffer_pos) shr 4;
     { Also copy parameter 0 }

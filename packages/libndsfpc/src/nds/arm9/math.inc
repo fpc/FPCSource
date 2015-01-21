@@ -30,6 +30,11 @@ const
   SQRT_64			= 1;
   SQRT_32			= 0;
   SQRT_BUSY		= (1 shl 15);
+
+function inttof32(n: cint): cint32; inline;
+function f32toint(n: cint32): cint; inline;
+function floattof32(n: cfloat): cint32; inline;  //inlining it makes impossible to pass it to another function :/
+function f32tofloat(n: cint32): cfloat; inline;
   
 function divf32(num: cint32; den: cint32): cint32; inline;
 function mulf32(a, b: cint32): cint32; inline;
@@ -46,6 +51,27 @@ procedure normalizef32(a: pcint32); inline;
 {$endif NDS_INTERFACE}
 
 {$ifdef NDS_IMPLEMENTATION}
+function inttof32(n: cint): cint32; inline;
+begin
+  inttof32 := ((n) shl 12);
+end;
+
+function f32toint(n: cint32): cint; inline;
+begin
+  f32toint := ((n) shr 12);
+end;
+
+function floattof32(n: cfloat): cint32; inline;
+begin
+  floattof32 := trunc((n) * (1 shl 12));
+end;
+
+// check it!
+function f32tofloat(n: cint32): cfloat; inline;
+begin
+  f32tofloat := cfloat(n * 1.0) / cfloat((1 shl 12) * 1.0);
+end;
+
 function divf32(num: cint32; den: cint32): cint32; inline;
 begin
   REG_DIVCNT^ := DIV_64_32;
