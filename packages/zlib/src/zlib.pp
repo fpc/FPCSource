@@ -24,9 +24,7 @@ const
   {$ifdef windows}
     libz='zlib1';
   {$else windows}
-   {$IFDEF OS2}
     libz='z';
-   {$ENDIF OS2}
   {$endif windows}
 {$endif}
 
