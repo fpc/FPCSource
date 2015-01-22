@@ -213,6 +213,7 @@ var
   SR: SearchRec;
   MaxArgsSize: PtrUInt; (* Amount of memory reserved for arguments in bytes. *)
   MaxArgsSizeInc: word;
+  PathZ: array [0..255] of char;
 
 begin
 {  LastDosExitCode := Exec (Path, ExecRunFlags (ExecFlags), efDefault, ComLine);}
@@ -235,6 +236,8 @@ begin
    begin
     Args0 := nil;
     Args := nil;
+    StrPCopy (PathZ, Path);
+    RC := DosQueryAppType (@PathZ [0], ExecAppType);
    end
   else
    begin
@@ -266,9 +269,9 @@ begin
     Args^ [ArgSize] := 0;
     Inc (ArgSize);
     Args^ [ArgSize] := 0;
+    RC := DosQueryAppType (PChar (Args), ExecAppType);
    end;
 
-  RC := DosQueryAppType (PChar (Args), ExecAppType);
   if RC <> 0 then
    OSErrorWatch (RC)
   else
