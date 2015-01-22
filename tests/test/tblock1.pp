@@ -1,4 +1,5 @@
 { %target=darwin,iphonesim}
+{ %skipcpu=powerpc,powerpc64 }
 
 {$modeswitch blocks}
 
