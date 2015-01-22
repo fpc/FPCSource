@@ -1288,6 +1288,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             n.free;
             n:=tmpn;
           end;
+        pd:=nil;
         { we now need to have a loadn with a procsym }
         havepd:=
           (n.nodetype=loadn) and
