@@ -115,10 +115,26 @@ implementation
                                   TLINKERsolaris
 *****************************************************************************}
 
+{$ifdef x86_64}
+const
+  new_gnu_emul = '-m elf_x86_64_sol2';
+  old_gnu_emul = '-m elf_x86_64';
+{$endif}
+{$ifdef i386}
+const
+  new_gnu_emul = '-m elf_i386_sol2';
+  old_gnu_emul = '-m elf_i386';
+{$endif }
+{$ifdef sparc}
+const
+  { no emulation specification needed, as long as only 32-bit is supported }
+  new_gnu_emul = '';
+  old_gnu_emul = '';
+{$endif}
+
 Constructor TLinkersolaris.Create;
 begin
   Inherited Create;
-
   if cs_link_native in init_settings.globalswitches then
     use_gnu_ld:=false
   else
@@ -143,12 +159,12 @@ procedure TLinkersolaris.SetDefaultInfo;
 }
 {$ifdef x86_64}
 const
-  gld = 'gld -m elf_x86_64_sol2 ';
+  gld = 'gld $EMUL ';
   solaris_ld = '/usr/bin/ld -64 ';
 {$endif}
 {$ifdef i386}
 const
-  gld = 'gld -m elf_i386_sol2 ';
+  gld = 'gld $EMUL';
   solaris_ld = '/usr/bin/ld ';
 {$endif }
 {$ifdef sparc}
@@ -163,10 +179,10 @@ begin
    begin
 {$IFDEF GnuLd}
      ExeCmd[1]:=gld + '$OPT $DYNLINK $STATIC $STRIP -L. -o $EXE $RES';
-     ExeCmd[2]:=solaris_ld + '$OPT $DYNLINK $STATIC $STRIP -L . -o $EXE $RESDATA';
-     DllCmd[1]:=gld + '$OPT $INITFINI -shared -L. -o $EXE $RES';
+     ExeCmd[2]:=solaris_ld + '$OPT $DYNLINK $STATIC $STRIP -L . -o $EXE $RESDATA $REDIRECT';
+     DllCmd[1]:=gld + '$OPT $INITFINI -shared -L. $MAP -o $EXE $RES';
      DllCmd[2]:='gstrip --strip-unneeded $EXE';
-     DllCmd[3]:=solaris_ld + '$OPT $INITFINI -M $VERSIONFILE -G -Bdynamic -L. -o $EXE $RESDATA';
+     DllCmd[3]:=solaris_ld + '$OPT $INITFINI -M $VERSIONFILE $MAP -G -Bdynamic -L. -o $EXE $RESDATA $REDIRECT';
      DynamicLinker:=''; { Gnu uses the default }
      Glibc21:=false;
 {$ELSE}
@@ -242,7 +258,7 @@ begin
   if (isdll) then
     begin
       LinkRes.add('VERSION');
-      LinkRes.add('{');
+      LinkRes.add('{ DEFAULT'); { gld 2.25 does not support anonymous version }
       LinkRes.add('  {');
       if not texportlibunix(exportlib).exportedsymnames.empty then
         begin
@@ -310,6 +326,7 @@ begin
          end
         else
          begin
+           LinkRes.Add('-lc');
            linklibc:=true;
            linkdynamic:=false; { libc will include the ld-solaris (war ld-linux) for us }
          end;
@@ -474,7 +491,7 @@ var
   cmdstr  : TCmdStr;
   success : boolean;
   DynLinkStr : string[60];
-  StaticStr,
+  StaticStr, RedirectStr,
   StripStr   : string[40];
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
@@ -483,11 +500,22 @@ begin
 { Create some replacements }
   StaticStr:='';
   StripStr:='';
+  RedirectStr:='';
   DynLinkStr:='';
   if (cs_link_staticflag in current_settings.globalswitches) then
     StaticStr:='-Bstatic';
   if (cs_link_strip in current_settings.globalswitches) then
    StripStr:='-s';
+  if (cs_link_map in current_settings.globalswitches) then
+   begin
+     if use_gnu_ld then
+       StripStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'))
+     else
+       begin
+         StripStr:='-m';
+         RedirectStr:=' > '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
+       end;
+   end;
   If (cs_profile in current_settings.moduleswitches) or
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
    DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
@@ -509,7 +537,10 @@ begin
   Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   if use_gnu_ld then
-    Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName))
+    begin
+      Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+      Replace(cmdstr,'$EMUL',new_gnu_emul);
+    end
   else
     begin
       linkstr:='';
@@ -524,12 +555,37 @@ begin
     end;
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
+  Replace(cmdstr,'$REDIRECT',RedirectStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
   if BinStr[1]<>'/' then
-    success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false)
-  else { Using utilsprefix has no sense on /usr/bin/ld }
-    success:=DoExec(BinStr,Trim(CmdStr),true,false);
+    BinStr:=FindUtil(utilsprefix+BinStr);
 
+  if (cs_link_nolink in current_settings.globalswitches) then
+    begin
+      AsmRes.Add('echo Linking '+ScriptFixFileName(current_module.exefilename));
+      AsmRes.Add('OFS=$IFS');
+      AsmRes.Add('IFS="');
+      AsmRes.Add('"');
+      AsmRes.Add(maybequoted(BinStr)+' '+Trim(cmdstr));
+      AsmRes.Add('if [ $? != 0 ] ; then');
+      AsmRes.Add('echo "Retrying with old emulation"');
+      Replace(cmdstr,new_gnu_emul,old_gnu_emul);
+      AsmRes.Add(maybequoted(BinStr)+' '+Trim(cmdstr));
+      AsmRes.Add('fi');
+      AsmRes.Add('if [ $? != 0 ]; then DoExitLink '+ScriptFixFileName(current_module.exefilename)+'; fi');
+      AsmRes.Add('IFS=$OFS');
+    end
+  else
+    begin
+      { We need shell if output is redirected }
+      success:=DoExec(BinStr,Trim(CmdStr),true,RedirectStr<>'');
+      { Try old emulation name if new failed }
+      if use_gnu_ld and (not success) and (new_gnu_emul <> '') then
+        begin
+         Replace(cmdstr,new_gnu_emul,old_gnu_emul);
+         success:=DoExec(BinStr,Trim(CmdStr),true,RedirectStr<>'');
+        end;
+    end;
 { Remove ReponseFile }
 {$IFNDEF LinkTest}
   if (success) and use_gnu_ld and
@@ -543,10 +599,10 @@ end;
 Function TLinkersolaris.MakeSharedLibrary:boolean;
 var
   InitFiniStr : string;
-  binstr,
-  s, linkstr,
+  binstr, RedirectStr,
+  s, linkstr, MapStr,
   cmdstr  : TCmdStr;
-  success : boolean;
+  need_quotes, success : boolean;
 begin
   MakeSharedLibrary:=false;
   if not(cs_link_nolink in current_settings.globalswitches) then
@@ -555,20 +611,34 @@ begin
 { Write used files and libraries }
   WriteResponseFile(true);
 
+  RedirectStr:='';
+  MapStr:='';
 { Create some replacements }
+  if (cs_link_map in current_settings.globalswitches) then
+   begin
+     if use_gnu_ld then
+       MapStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'))
+     else
+       begin
+         MapStr:='-m';
+         RedirectStr:=' > '+maybequoted(ChangeFileExt(current_module.exefilename,'.map'));
+       end;
+   end;
+  need_quotes:= (cs_link_nolink in current_settings.globalswitches) or
+                (RedirectStr<>'');
 { initname and fininame may contain $, which can be wrongly interpreted
   in a link script, thus we surround them with single quotes 
   in cs_link_nolink is in globalswitches }
   if use_gnu_ld then
     begin
       InitFiniStr:='-init ';
-      if cs_link_nolink in current_settings.globalswitches then
+      if need_quotes then
         InitFiniStr:=InitFiniStr+''''+exportlib.initname+''''
       else
         InitFiniStr:=InitFiniStr+exportlib.initname;
       if (exportlib.fininame<>'') then
         begin
-          if cs_link_nolink in current_settings.globalswitches then
+          if need_quotes then
             InitFiniStr:=InitFiniStr+' -fini '''+exportlib.initname+''''
           else
             InitFiniStr:=InitFiniStr+' -fini '+exportlib.fininame;
@@ -577,13 +647,13 @@ begin
   else
     begin
       InitFiniStr:='-z initarray=';
-      if cs_link_nolink in current_settings.globalswitches then
+      if need_quotes then
         InitFiniStr:=InitFiniStr+''''+exportlib.initname+''''
       else
         InitFiniStr:=InitFiniStr+exportlib.initname;
       if (exportlib.fininame<>'') then
         begin
-          if cs_link_nolink in current_settings.globalswitches then
+          if need_quotes then
             InitFiniStr:=InitFiniStr+' -z finiarray='''+exportlib.initname+''''
           else
             InitFiniStr:=InitFiniStr+' -z finiarray='+exportlib.fininame;
@@ -599,7 +669,10 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$INITFINI',InitFiniStr);
   if use_gnu_ld then
-    Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName))
+    begin
+      Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+      Replace(cmdstr,'$EMUL',new_gnu_emul);
+    end
   else
     begin
       Replace(cmdstr,'$VERSIONFILE',maybequoted(outputexedir+Info.ResName));
@@ -613,12 +686,36 @@ begin
       linkres.free;
       Replace(cmdstr,'$RESDATA',linkstr);
     end;
+  Replace(cmdstr,'$REDIRECT',RedirectStr);
+  Replace(cmdstr,'$MAP',MapStr);
   if BinStr[1]<>'/' then
-    success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false)
-  else { Using utilsprefix has no sense on /usr/bin/ld }
-    success:=DoExec(BinStr,Trim(CmdStr),true,false);
-
-
+    BinStr:=FindUtil(utilsprefix+BinStr);
+  if (cs_link_nolink in current_settings.globalswitches) then
+    begin
+      AsmRes.Add('echo Linking '+ScriptFixFileName(current_module.exefilename));
+      AsmRes.Add('OFS=$IFS');
+      AsmRes.Add('IFS="');
+      AsmRes.Add('"');
+      AsmRes.Add(maybequoted(BinStr)+' '+Trim(cmdstr));
+      AsmRes.Add('if [ $? != 0 ] ; then');
+      AsmRes.Add('echo "Retrying with old emulation"');
+      Replace(cmdstr,new_gnu_emul,old_gnu_emul);
+      AsmRes.Add(maybequoted(BinStr)+' '+Trim(cmdstr));
+      AsmRes.Add('fi');
+      AsmRes.Add('if [ $? != 0 ]; then DoExitLink '+ScriptFixFileName(current_module.exefilename)+'; fi');
+      AsmRes.Add('IFS=$OFS');
+    end
+  else
+    begin
+      { We need shell if output is redirected }
+      success:=DoExec(BinStr,Trim(CmdStr),true,RedirectStr<>'');
+      { Try old emulation name if new failed }
+      if use_gnu_ld and (not success) and (new_gnu_emul <> '') then
+        begin
+         Replace(cmdstr,new_gnu_emul,old_gnu_emul);
+         success:=DoExec(BinStr,Trim(CmdStr),true,RedirectStr<>'');
+        end;
+    end;
 { Strip the library ? }
   if success and (cs_link_strip in current_settings.globalswitches) then
    begin
