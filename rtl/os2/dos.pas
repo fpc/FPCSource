@@ -135,6 +135,8 @@ begin
    begin
     Time:=0;
     OSErrorWatch (DosError);
+    if DosError = 87 then
+     DosError := 6; (* Align to TP/BP behaviour *)
    end;
 end;
 
@@ -157,7 +159,11 @@ begin
      OSErrorWatch (RC);
    end
   else
-   OSErrorWatch (RC);
+   begin
+    OSErrorWatch (RC);
+    if RC = 87 then
+     RC := 6;
+   end;
   DosError := integer (RC);
 end;
 
