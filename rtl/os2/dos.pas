@@ -694,7 +694,11 @@ begin
   if RC = 0 then
     Attr := PathInfo.AttrFile
   else
-   OSErrorWatch (RC);
+   begin
+    OSErrorWatch (RC);
+    if FileRec (F).Name = '' then
+     DosError := 3; (* Align the returned error value to TP/BP *)
+   end;
 end;
 
 
@@ -723,7 +727,11 @@ begin
      OSErrorWatch (RC);
    end
   else
-   OSErrorWatch (RC);
+   begin
+    OSErrorWatch (RC);
+    if FileRec (F).Name = '' then
+     DosError := 3; (* Align the returned error value to TP/BP *)
+   end;
   DosError := integer (RC);
 end;
 
