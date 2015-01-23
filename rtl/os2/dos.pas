@@ -112,7 +112,8 @@ Var
 begin
   P:=Path;
   D:=DirList;
-  DosError := DosSearchPath (dsIgnoreNetErrs, PChar(D), PChar(P), @A, 255);
+  DosError := DosSearchPath (dsCurrentDir or dsIgnoreNetErrs, PChar(D),
+                                                            PChar(P), @A, 255);
   if DosError <> 0 then
    OSErrorWatch (DosError);
   fsearch := StrPas (@A);
