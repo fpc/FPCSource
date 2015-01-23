@@ -5508,8 +5508,11 @@ implementation
                     crc:=UpdateCrc32(crc,hs[1],length(hs));
                   end;
               end;
-            hs:=hp.vardef.mangledparaname;
-            crc:=UpdateCrc32(crc,hs[1],length(hs));
+            if not is_void(returndef) then
+              begin
+                hs:=returndef.mangledparaname;
+                crc:=UpdateCrc32(crc,hs[1],length(hs));
+              end;
             defaultmangledname:=Copy(defaultmangledname,1,oldlen)+'$crc'+hexstr(crc,8);
           end;
       end;
