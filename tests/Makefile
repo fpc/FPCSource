@@ -2138,7 +2138,11 @@ ifndef PREPUP
 PREPUP=utils/prepup
 endif
 tstunits:
+ifdef inOS2
+	$(MAKE) -C tstunits FPC_VERSION= FPC=$(TEST_FPC) CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET) "OPT=$(TEST_OPT)" CCOMPILER=$(TEST_CCOMPILER) BINUTILSPREFIX=$(TEST_BINUTILSPREFIX)
+else
 	$(MAKE) -C tstunits FPC_VERSION= FPC=$(TEST_FPC) CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET) 'OPT=$(TEST_OPT)' CCOMPILER=$(TEST_CCOMPILER) BINUTILSPREFIX=$(TEST_BINUTILSPREFIX)
+endif
 .PHONY: create_c_objects delete_c_objects copyfiles test_c_objects
 C_SOURCE_DIR=test/cg/obj
 C_SOURCES=ctest.c tcext3.c tcext4.c tcext5.c tcext6.c
