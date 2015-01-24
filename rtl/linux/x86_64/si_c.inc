@@ -153,11 +153,9 @@ procedure _FPC_libc_start; assembler; nostackframe; public name '_start';
   end;
 
 
-procedure _FPC_libc_haltproc; assembler; nostackframe; public name '_haltproc';
+procedure _FPC_libc_haltproc(e:longint); assembler; nostackframe; public name '_haltproc';
   asm
-    movq      ExitCode@GOTPCREL(%rip),%rax
-    movzwq    (%rax),%rax { load and save exitcode }
-
+    movl      %edi,%eax
     movq fpc_ret(%rip),%rdx         { return to libc }
     movq fpc_ret_rbp(%rip),%rbp
     pushq %rdx

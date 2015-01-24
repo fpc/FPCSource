@@ -68,8 +68,11 @@ procedure _FPC_dynamic_proc_start; assembler; nostackframe; public name '_dynami
     jmp _FPC_proc_start
   end;
 
-procedure _FPC_proc_haltproc; assembler; nostackframe; public name '_haltproc';
+procedure _FPC_proc_haltproc(e: longint); assembler; public name '_haltproc';
+  var
+    code: longint;
   asm
+    movl    %edi,code
     movq    dlexitproc@GOTPCREL(%rip),%rax
     movq    (%rax),%rdx
     testq   %rdx,%rdx
@@ -79,8 +82,7 @@ procedure _FPC_proc_haltproc; assembler; nostackframe; public name '_haltproc';
 
   .Lhaltproc:
     movl    $231,%eax                             { exit_group call }
-    movq    ExitCode@GOTPCREL(%rip),%rdi
-    movzwl  (%rdi),%edi
+    movl    code,%edi
     syscall
     jmp     .Lhaltproc
 
