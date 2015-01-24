@@ -1055,7 +1055,7 @@ begin
 (* ArgLen contains size of command line arguments including leading space. *)
   ArgLen := Succ (StrLen (PC));
 
-  SysReallocMem (CmdLine, ArgVLen + ArgLen);
+  SysReallocMem (CmdLine, ArgVLen + Succ (ArgLen));
 
   Move (PC^, CmdLine [ArgVLen], Succ (ArgLen));
 

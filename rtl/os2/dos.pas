@@ -105,17 +105,50 @@ begin
 end;
 
 
-function fsearch(path:pathstr;dirlist:string):pathstr;
-Var
-  A: array [0..255] of char;
-  D, P: AnsiString;
+function FSearch (Path: PathStr; DirList: string): PathStr;
+var
+  i,p1   : longint;
+  s      : searchrec;
+  newdir : pathstr;
 begin
-  P:=Path;
-  D:=DirList;
-  DosError := DosSearchPath (dsIgnoreNetErrs, PChar(D), PChar(P), @A, 255);
-  if DosError <> 0 then
-   OSErrorWatch (DosError);
-  fsearch := StrPas (@A);
+{ check if the file specified exists }
+  findfirst(path,anyfile and not(directory),s);
+  if doserror=0 then
+   begin
+     findclose(s);
+     fsearch:=path;
+     exit;
+   end;
+{ No wildcards allowed in these things }
+  if (pos('?',path)<>0) or (pos('*',path)<>0) then
+    fsearch:=''
+  else
+    begin
+       { allow slash as backslash }
+       DoDirSeparators(dirlist);
+       repeat
+         p1:=pos(';',dirlist);
+         if p1<>0 then
+          begin
+            newdir:=copy(dirlist,1,p1-1);
+            delete(dirlist,1,p1);
+          end
+         else
+          begin
+            newdir:=dirlist;
+            dirlist:='';
+          end;
+         if (newdir<>'') and (not (newdir[length(newdir)] in ['\',':'])) then
+          newdir:=newdir+'\';
+         findfirst(newdir+path,anyfile and not(directory),s);
+         if doserror=0 then
+          newdir:=newdir+path
+         else
+          newdir:='';
+       until (dirlist='') or (newdir<>'');
+       fsearch:=newdir;
+    end;
+  findclose(s);
 end;
 
 
@@ -213,6 +246,7 @@ var
   SR: SearchRec;
   MaxArgsSize: PtrUInt; (* Amount of memory reserved for arguments in bytes. *)
   MaxArgsSizeInc: word;
+  PathZ: array [0..255] of char;
 
 begin
 {  LastDosExitCode := Exec (Path, ExecRunFlags (ExecFlags), efDefault, ComLine);}
@@ -235,6 +269,8 @@ begin
    begin
     Args0 := nil;
     Args := nil;
+    StrPCopy (PathZ, Path);
+    RC := DosQueryAppType (@PathZ [0], ExecAppType);
    end
   else
    begin
@@ -266,9 +302,9 @@ begin
     Args^ [ArgSize] := 0;
     Inc (ArgSize);
     Args^ [ArgSize] := 0;
+    RC := DosQueryAppType (PChar (Args), ExecAppType);
    end;
 
-  RC := DosQueryAppType (PChar (Args), ExecAppType);
   if RC <> 0 then
    OSErrorWatch (RC)
   else

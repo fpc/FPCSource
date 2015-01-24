@@ -330,17 +330,13 @@ begin
     if index<>0 then
         begin
             str(index,tmp3);
-(*
-            tmp3:=func+'='+module+'.'+tmp3;
-*)
             tmp3:=Name+'='+module+'.'+tmp3;
         end
     else
-        tmp3:=Name+'='+module+'.'+name;
-(*
-        tmp3:=func+'='+module+'.'+name;
-    aout_sym(tmp2,n_imp1+n_ext,0,0,0);
+(*        tmp3:=Name+'='+module+'.'+name;
 *)
+        tmp3 := MangledName + '=' + module + '.' + target_info.Cprefix + name;
+
     aout_sym(tmp2,n_imp1+n_ext,0,0,0);
     aout_sym(tmp3,n_imp2+n_ext,0,0,0);
     aout_finish;
