@@ -729,7 +729,7 @@ begin
   else
    begin
     OSErrorWatch (RC);
-    if FileRec (F).Name = '' then
+    if FileRec (F).Name [0] = #0 then
      DosError := 3; (* Align the returned error value to TP/BP *)
    end;
 end;
@@ -762,7 +762,7 @@ begin
   else
    begin
     OSErrorWatch (RC);
-    if FileRec (F).Name = '' then
+    if FileRec (F).Name [0] = #0 then
      DosError := 3; (* Align the returned error value to TP/BP *)
    end;
   DosError := integer (RC);
