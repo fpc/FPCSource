@@ -23,7 +23,7 @@ program chmcmd;
 {$mode objfpc}{$H+}
 
 uses
-  {$ifdef LZX_USETHREADS}{$ifdef Unix}cthreads,{$endif}{$endif} Classes, Sysutils, chmfilewriter, GetOpts;
+  {$ifdef Unix}cthreads,{$endif} Classes, Sysutils, chmfilewriter, GetOpts;
 
 Const
   CHMCMDVersion = '3.1.1';
@@ -45,7 +45,8 @@ begin
 end;
 
 var
-  theopts : array[1..6] of TOption;
+  theopts : array[1..7] of TOption;
+  cores   : Integer = 2;
 
 procedure InitOptions;
 
@@ -85,6 +86,12 @@ begin
     flag:=nil;
   end;
   with theopts[6] do
+   begin
+    name:='cores';
+    has_arg:=1;
+    flag:=nil;
+  end;
+  with theopts[7] do
    begin
     name:='';
     has_arg:=0;
@@ -198,6 +205,15 @@ begin
                     Usage;
                     Halt;
                    end;
+               5 : begin
+                     if not trystrtoint(optarg,cores) then
+                       begin
+                         Writeln('Illegal value for switch --cores :',optarg);
+                         Usage;
+                         Halt;
+                       end;
+
+		   end;
                 end;
            end;
       '?' : begin
