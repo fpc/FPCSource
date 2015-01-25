@@ -426,13 +426,13 @@ begin
   { Write staticlibraries }
   if not StaticLibFiles.Empty then
    begin
-     linkres.add('-('); 
+     linkres.add('-(');
      While not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.GetFirst;
         LinkRes.AddFileName(maybequoted(s))
       end;
-     linkres.add('-)'); 
+     linkres.add('-)');
    end;
 
   { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
@@ -494,6 +494,7 @@ var
   StaticStr, RedirectStr,
   StripStr   : string[40];
 begin
+  success:=false;
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.exefilename);
 
@@ -604,6 +605,7 @@ var
   cmdstr  : TCmdStr;
   need_quotes, success : boolean;
 begin
+  success:=false;
   MakeSharedLibrary:=false;
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.sharedlibfilename);
@@ -627,7 +629,7 @@ begin
   need_quotes:= (cs_link_nolink in current_settings.globalswitches) or
                 (RedirectStr<>'');
 { initname and fininame may contain $, which can be wrongly interpreted
-  in a link script, thus we surround them with single quotes 
+  in a link script, thus we surround them with single quotes
   in cs_link_nolink is in globalswitches }
   if use_gnu_ld then
     begin
