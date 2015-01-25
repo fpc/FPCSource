@@ -46,7 +46,7 @@ end;
 
 var
   theopts : array[1..7] of TOption;
-  cores   : Integer = 2;
+  cores   : Integer = 0;
 
 procedure InitOptions;
 
