@@ -160,12 +160,14 @@ type
     procedure AssertVariantSelector(AName, AType: string);
     procedure AssertField1(Hints: TPasMemberHints);
     procedure AssertField2(Hints: TPasMemberHints);
+    procedure AssertMethod2(Hints: TPasMemberHints);
     procedure AssertVariant1(Hints: TPasMemberHints);
     procedure AssertVariant1(Hints: TPasMemberHints; VariantLabels : Array of string);
     procedure AssertVariant2(Hints: TPasMemberHints);
     procedure AssertVariant2(Hints: TPasMemberHints; VariantLabels : Array of string);
     procedure AssertOneIntegerField(Hints: TPasMemberHints);
     procedure AssertTwoIntegerFields(Hints1, Hints2: TPasMemberHints);
+    procedure AssertIntegerFieldAndMethod(Hints1, Hints2: TPasMemberHints);
     procedure AssertRecordField(AIndex: Integer;Hints: TPasMemberHints);
     procedure AssertRecordVariant(AIndex: Integer;Hints: TPasMemberHints; VariantLabels : Array of string);
     Procedure AssertRecordVariantVariant(AIndex: Integer;Const AFieldName,ATypeName: string;Hints: TPasMemberHints; VariantLabels : Array of string);
@@ -228,6 +230,8 @@ type
     Procedure TestTwoDeprecatedFieldsCombined;
     Procedure TestTwoDeprecatedFieldsCombinedDeprecated;
     Procedure TestTwoDeprecatedFieldsCombinedPlatform;
+    Procedure TestFieldAndMethod;
+    Procedure TestFieldAnd2Methods;
     Procedure TestNested;
     Procedure TestNestedDeprecated;
     Procedure TestNestedPlatform;
@@ -1434,6 +1438,18 @@ begin
   AssertTrue('Field 2 hints match',Field2.Hints=Hints)
 end;
 
+procedure TTestRecordTypeParser.AssertMethod2(Hints: TPasMemberHints);
+
+Var
+  P : TPasProcedure;
+
+begin
+  AssertEquals('Member 2 type',TPasProcedure,TObject(TheRecord.Members[1]).ClassType);
+  P:=TPasProcedure(TheRecord.Members[1]);
+  AssertEquals('Method name','dosomething2',P.Name);
+  AssertTrue('Method hints match',P.Hints=Hints)
+end;
+
 procedure TTestRecordTypeParser.AssertOneIntegerField(Hints : TPasMemberHints);
 
 begin
@@ -1447,6 +1463,14 @@ begin
   AssertEquals('Two field',2,TheRecord.Members.Count);
   AssertField1(Hints1);
   AssertField2(Hints2);
+end;
+
+procedure TTestRecordTypeParser.AssertIntegerFieldAndMethod(Hints1,
+  Hints2: TPasMemberHints);
+begin
+  AssertEquals('Two members',2,TheRecord.Members.Count);
+  AssertField1(Hints1);
+  AssertMethod2(Hints2);
 end;
 
 procedure TTestRecordTypeParser.AssertRecordField(AIndex: Integer;
@@ -1769,6 +1793,29 @@ procedure TTestRecordTypeParser.TestTwoDeprecatedFieldsCombinedPlatform;
 begin
   TestFields(['x,y : integer deprecated;'],'platform',False);
   AssertTwoIntegerFields([hdeprecated],[hdeprecated]);
+end;
+
+procedure TTestRecordTypeParser.TestFieldAndMethod;
+begin
+  TestFields(['x : integer;','procedure dosomething2;'],'',False);
+  AssertIntegerFieldAndMethod([],[]);
+end;
+
+procedure TTestRecordTypeParser.TestFieldAnd2Methods;
+Var
+  P : TPasFunction;
+
+begin
+  TestFields(['x : integer;','procedure dosomething2;','function dosomething3 : Integer;'],'',False);
+  AssertEquals('Member count',3,TheRecord.Members.Count);
+  AssertField1([]);
+  AssertMethod2([]);
+  AssertEquals('Member 3 type',TPasFunction,TObject(TheRecord.Members[2]).ClassType);
+  P:=TPasFunction(TheRecord.Members[2]);
+  AssertEquals('Method 2 name','dosomething3',P.Name);
+  AssertTrue('Method 2 hints match',[]=P.Hints);
+  // Standard type
+  AssertEquals('Method 2 result type','Integer', P.FuncType.ResultEl.ResultType.Name);
 end;
 
 procedure TTestRecordTypeParser.TestNested;

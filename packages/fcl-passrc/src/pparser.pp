@@ -63,7 +63,7 @@ resourcestring
   SParserNoConstructorAllowed = 'Constructors or Destructors are not allowed in Interfaces or Record helpers';
   SParserNoFieldsAllowed = 'Fields are not allowed in Interfaces';
   SParserInvalidRecordVisibility = 'Records can only have public and (strict) private as visibility specifiers';
-
+  SErrRecordMethodsNotAllowed = 'Record methods not allowed at this location.';
 type
   TPasParserLogHandler = Procedure (Sender : TObject; Const Msg : String) of object;
   TPParserLogEvent = (pleInterface,pleImplementation);
@@ -150,7 +150,7 @@ type
     Procedure DoLog(Const Msg : String; SkipSourceInfo : Boolean = False);overload;
     Procedure DoLog(Const Fmt : String; Args : Array of const;SkipSourceInfo : Boolean = False);overload;
     function GetProcTypeFromToken(tk: TToken; IsClass: Boolean=False ): TProcType;
-    procedure ParseRecordFieldList(ARec: TPasRecordType; AEndToken: TToken);
+    procedure ParseRecordFieldList(ARec: TPasRecordType; AEndToken: TToken; AllowMethods : Boolean);
     procedure ParseRecordVariantParts(ARec: TPasRecordType; AEndToken: TToken);
     function GetProcedureClass(ProcType : TProcType): TPTreeElement;
     procedure ParseClassFields(AType: TPasClassType; const AVisibility: TPasMemberVisibility; IsClassField : Boolean);
@@ -3587,7 +3587,7 @@ begin
     NextToken;
     M:=TPasRecordType(CreateElement(TPasRecordType,'',V));
     V.Members:=M;
-    ParseRecordFieldList(M,tkBraceClose);
+    ParseRecordFieldList(M,tkBraceClose,False);
     // Current token is closing ), so we eat that
     NextToken;
     // If there is a semicolon, we eat that too.
@@ -3612,16 +3612,31 @@ begin
 end;
 
 // Starts on first token after Record or (. Ends on AEndToken
-Procedure TPasParser.ParseRecordFieldList(ARec : TPasRecordType; AEndToken : TToken);
+Procedure TPasParser.ParseRecordFieldList(ARec : TPasRecordType; AEndToken : TToken; AllowMethods : Boolean);
 
 Var
   VN : String;
   v : TPasmemberVisibility;
+  Proc: TPasProcedure;
+  ProcType: TProcType;
 
 begin
+  v:=visPublic;
   while CurToken<>AEndToken do
     begin
     Case CurToken of
+      tkProcedure,
+      tkFunction :
+        begin
+        if Not AllowMethods then
+          ParseExc(SErrRecordMethodsNotAllowed);
+        ProcType:=GetProcTypeFromtoken(CurToken,False);
+        Proc:=ParseProcedureOrFunctionDecl(ARec,ProcType,v);
+        if Proc.Parent is TPasOverloadedProc then
+          TPasOverloadedProc(Proc.Parent).Overloads.Add(Proc)
+        else
+          ARec.Members.Add(Proc);
+        end;
       tkIdentifier :
         begin
         v:=visDefault;
@@ -3669,7 +3684,7 @@ begin
     try
       Result.PackMode:=PackMode;
       NextToken;
-      ParseRecordFieldList(Result,tkEnd);
+      ParseRecordFieldList(Result,tkEnd,true);
     except
       FreeAndNil(Result);
       Raise;

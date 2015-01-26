@@ -34,13 +34,10 @@
         <LaunchingApplication Use="True"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="2">
+    <RequiredPackages Count="1">
       <Item1>
-        <PackageName Value="FPCUnitConsoleRunner"/>
-      </Item1>
-      <Item2>
         <PackageName Value="FCL"/>
-      </Item2>
+      </Item1>
     </RequiredPackages>
     <Units Count="12">
       <Unit0>
@@ -109,6 +106,7 @@
     <Version Value="11"/>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="../src"/>
     </SearchPaths>
     <Other>
       <CompilerMessages>
