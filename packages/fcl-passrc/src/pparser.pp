@@ -669,7 +669,7 @@ begin
   Result:=IsModifier(S,PM);
   if result and (pm in [pmPublic,pmForward]) then
     begin
-    While (Parent<>Nil) and Not (Parent is TPasClassType) do
+    While (Parent<>Nil) and Not ((Parent is TPasClassType) or (Parent is TPasRecordType)) do
      Parent:=Parent.Parent;
     Result:=Not Assigned(Parent);
     end;
@@ -3640,14 +3640,13 @@ begin
       tkIdentifier :
         begin
         v:=visDefault;
-        If po_delphi in Scanner.Options then
+//        If (po_delphi in Scanner.Options) then
           if CheckVisibility(CurtokenString,v) then
             begin
             if not (v in [visPrivate,visPublic,visStrictPrivate]) then
               ParseExc(SParserInvalidRecordVisibility);
             NextToken;
-            if CurToken<>tkIdentifier then
-              ParseExc(SParserTypeSyntaxError);
+            Continue;
             end;
         ParseInlineVarDecl(ARec, ARec.Members, v, AEndToken=tkBraceClose);
         end;

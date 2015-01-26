@@ -30,8 +30,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="--suite=TTestClassType.TestConstProtected"/>
-        <LaunchingApplication Use="True"/>
+        <CommandLineParams Value="--suite=TTestRecordTypeParser.TestVisibilityAndMethods"/>
       </local>
     </RunParams>
     <RequiredPackages Count="1">

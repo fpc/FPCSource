@@ -232,6 +232,7 @@ type
     Procedure TestTwoDeprecatedFieldsCombinedPlatform;
     Procedure TestFieldAndMethod;
     Procedure TestFieldAnd2Methods;
+    Procedure TestVisibilityAndMethods;
     Procedure TestNested;
     Procedure TestNestedDeprecated;
     Procedure TestNestedPlatform;
@@ -1816,6 +1817,16 @@ begin
   AssertTrue('Method 2 hints match',[]=P.Hints);
   // Standard type
   AssertEquals('Method 2 result type','Integer', P.FuncType.ResultEl.ResultType.Name);
+end;
+
+procedure TTestRecordTypeParser.TestVisibilityAndMethods;
+begin
+  ParseType('record '+slineBreak+
+    'private '+slineBreak+
+    'function something: integer; '+slineBreak+
+    'public '+slineBreak+
+    'x : integer; '+slineBreak+
+    'end',TPasRecordType,'');
 end;
 
 procedure TTestRecordTypeParser.TestNested;
