@@ -2417,9 +2417,10 @@ begin
     else
       VarType := ParseComplexType(Parent);
     Value:=Nil;
+    H:=CheckHint(Nil,False);
     If Full then
       GetVariableValueAndLocation(Parent,Value,Loc);
-    H:=CheckHint(Nil,Full);
+    H:=H+CheckHint(Nil,Full);
     if full then
       Mods:=GetVariableModifiers(varmods,alibname,aexpname)
     else
@@ -3619,12 +3620,21 @@ Var
   v : TPasmemberVisibility;
   Proc: TPasProcedure;
   ProcType: TProcType;
+  Prop : TPasProperty;
 
 begin
   v:=visPublic;
   while CurToken<>AEndToken do
     begin
     Case CurToken of
+      tkProperty:
+        begin
+        if Not AllowMethods then
+          ParseExc(SErrRecordMethodsNotAllowed);
+        ExpectToken(tkIdentifier);
+        Prop:=ParseProperty(ARec,CurtokenString,v);
+        Arec.Members.Add(Prop);
+        end;
       tkProcedure,
       tkFunction :
         begin
