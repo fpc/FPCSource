@@ -44,6 +44,9 @@ Android-mipsel : GCC 4.7
 haiku-i386 : gcc 2.95.3-haiku-100818
 aix-powerpc64 : gcc (GCC) 4.8.1 using "gcc -maix64" for TEST_CCOMPILER
                 on (AIX power-aix 1 7 00F84C0C4C00)
+OS/2 (os2-i386): original EMX port of GCC (GCC 2.8.1) except for tcext6.c which
+      cannot be compiled using version 2.8.1 and thus GCC 3.0.4 was used for
+      compiling it (but FPC doesn't pass this test under OS/2 yet anyway)
 
 Data retieved from .comment or similar section:
 beos-i386 : GCC: (GNU) 2.95v.3-beos-060710
