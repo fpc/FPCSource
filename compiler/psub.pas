@@ -1334,13 +1334,21 @@ implementation
               { iterate through life info of the first node }
               for i:=0 to dfabuilder.nodemap.count-1 do
                 begin
-                  if DFASetIn(GetUserCode.optinfo^.life,i) and
-                    { do not warn about parameters passed by var }
-                    not((tnode(dfabuilder.nodemap[i]).nodetype=loadn) and (tloadnode(dfabuilder.nodemap[i]).symtableentry.typ=paravarsym) and
+                  if DFASetIn(GetUserCode.optinfo^.life,i) then
+                    begin
+                      { do not warn about parameters passed by var }
+                      if not((tnode(dfabuilder.nodemap[i]).nodetype=loadn) and (tloadnode(dfabuilder.nodemap[i]).symtableentry.typ=paravarsym) and
                         (tparavarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry).varspez=vs_var) and
                         { function result is passed by var but it must be initialized }
                         not(vo_is_funcret in tparavarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry).varoptions)) then
-                    CheckAndWarn(GetUserCode,tnode(dfabuilder.nodemap[i]));
+                        CheckAndWarn(GetUserCode,tnode(dfabuilder.nodemap[i]));
+                    end
+                  else
+                    begin
+                      if (tnode(dfabuilder.nodemap[i]).nodetype=loadn) and
+                        (tloadnode(dfabuilder.nodemap[i]).symtableentry.typ in [staticvarsym,localvarsym]) then
+                        tabstractnormalvarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry).noregvarinitneeded:=true
+                    end;
                 end;
           end;
 

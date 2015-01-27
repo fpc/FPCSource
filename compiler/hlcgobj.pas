@@ -4387,7 +4387,7 @@ implementation
     var
       href : treference;
     begin
-      if (tsym(p).typ=staticvarsym) then
+      if (tsym(p).typ=staticvarsym) and not(tstaticvarsym(p).noregvarinitneeded) then
        begin
          { Static variables can have the initialloc only set to LOC_CxREGISTER
            or LOC_INVALID, for explaination see gen_alloc_symtable (PFV) }
