@@ -30,7 +30,7 @@ begin
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
 
-    P.OSes:=[win32, win64, linux, darwin];
+    P.OSes:=[win32, win64, linux, darwin, os2, emx];
 
     T := P.Targets.AddImplicitUnit('helper.pas');
     T.ResourceStrings := true;
@@ -66,7 +66,3 @@ begin
   Installer.Run;
 end.
 {$endif ALLPACKAGES}
-
-
-
-
