@@ -150,6 +150,7 @@ const
   Uni_System_Locales = 1;
   Uni_User_Locales = 2;
   WNull: WideChar = #0;
+  WUniv: array [0..4] of WideChar = 'UNIV'#0;
 
 
 
@@ -748,10 +749,23 @@ begin
     RCI := Sys_UniFreeLocaleObject (DefLocObj);
     if RCI <> 0 then
      OSErrorWatch (cardinal (RCI));
+    DefLocObj := nil;
    end;
   RCI := Sys_UniCreateLocaleObject (Uni_UCS_String_Pointer, @WNull, DefLocObj);
   if RCI <> 0 then
-   OSErrorWatch (cardinal (RCI));
+   begin
+    OSErrorWatch (cardinal (RCI));
+(* The locale dependent routines like comparison require a valid locale *)
+(* setting, but the locale set using environment variable LANG is not *)
+(* recognized by OS/2 -> we try the "Universal" locale as a fallback. *)
+    RCI := Sys_UniCreateLocaleObject (Uni_UCS_String_Pointer, @WUniv [0],
+                                                                    DefLocObj);
+    if RCI <> 0 then
+     begin
+      OSErrorWatch (cardinal (RCI));
+      DefLocObj := nil;
+     end;
+   end;
   if not (UniAPI) then
    ReInitDummyAnsiSupport;
   InInitDefaultCP := -1;
