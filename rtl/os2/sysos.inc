@@ -1,10 +1,9 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2001 by Free Pascal development team
+    Copyright (c) 2001-2015 by Free Pascal development team
 
-    This file implements all the base types and limits required
-    for a minimal POSIX compliant subset required to port the compiler
-    to a new OS.
+    This file contains a subset of OS/2 base types and imported OS/2 API
+    functions necessary for implementation of unit system.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -449,3 +448,41 @@ external 'NLS' index 6;
 function DosQueryCollate (Size: cardinal; var Country: TCountryCode;
                      Buf: PByteArray; var TableLen: cardinal): cardinal; cdecl;
 external 'NLS' index 8;
+
+type
+ TTimeFmt = (Clock12, Clock24);
+
+ TCountryInfo = record
+  Country, CodePage: cardinal;     {Country and codepage requested.}
+  DateFormat: cardinal;            {1=ddmmyy 2=yymmdd 3=mmddyy}
+  CurrencyUnit: array [0..4] of char;
+  ThousandSeparator: char;         {Thousands separator.}
+  Zero1: byte;                     {Always zero.}
+  DecimalSeparator: char;          {Decimals separator,}
+  Zero2: byte;
+  DateSeparator: char;             {Date separator.}
+  Zero3: byte;
+  TimeSeparator: char;             {Time separator.}
+  Zero4: byte;
+  CurrencyFormat,                  {Bit field:
+                                    Bit 0: 0=indicator before value
+                                           1=indicator after value
+                                    Bit 1: 1=insert space after indicator.
+                                    Bit 2: 1=Ignore bit 0&1, replace
+                                             decimal separator with
+                                             indicator.}
+  DecimalPlace: byte;              {Number of decimal places used in
+                                    currency indication.}
+  TimeFormat: TTimeFmt;            {12/24 hour.}
+  Reserve1: array [0..1] of word;
+  DataSeparator: char;             {Data list separator}
+  Zero5: byte;
+  Reserve2: array [0..4] of word;
+ end;
+
+const
+ CurrentCountry: TCountryCode = (Country: 0; CodePage: 0);
+
+function DosQueryCtryInfo (Size: cardinal; var Country: TCountryCode;
+             var Res: TCountryInfo; var ActualSize: cardinal): cardinal; cdecl;
+external 'NLS' index 5;
