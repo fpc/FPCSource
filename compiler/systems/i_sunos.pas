@@ -131,7 +131,7 @@ unit i_sunos;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
-            assem        : as_ggas{as_x86_64_elf64};
+            assem        : as_x86_64_elf64;
             assemextern  : as_ggas;
             link         : ld_none;
             linkextern   : ld_solaris;
