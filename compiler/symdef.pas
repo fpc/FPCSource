@@ -1244,8 +1244,12 @@ implementation
                        crc:=UpdateCrc32(crc,hs[1],length(hs));
                      end;
                  end;
-               hs:=hp.vardef.mangledparaname;
-               crc:=UpdateCrc32(crc,hs[1],length(hs));
+               if not is_void(tprocdef(st.defowner).returndef) then
+                 begin
+                   { add a little prefix so that x(integer; integer) is different from x(integer):integer }
+                   hs:='$$'+tprocdef(st.defowner).returndef.mangledparaname;
+                   crc:=UpdateCrc32(crc,hs[1],length(hs));
+                 end;
                s:=Copy(s,1,oldlen)+'$crc'+hexstr(crc,8);
              end;
            if prefix<>'' then
@@ -5510,7 +5514,8 @@ implementation
               end;
             if not is_void(returndef) then
               begin
-                hs:=returndef.mangledparaname;
+                { add a little prefix so that x(integer; integer) is different from x(integer):integer }
+                hs:='$$'+returndef.mangledparaname;
                 crc:=UpdateCrc32(crc,hs[1],length(hs));
               end;
             defaultmangledname:=Copy(defaultmangledname,1,oldlen)+'$crc'+hexstr(crc,8);
