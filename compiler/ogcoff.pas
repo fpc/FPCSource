@@ -1009,10 +1009,9 @@ const pemagic : array[0..3] of byte = (
           result:=aname
         else
           begin
-            { non-PECOFF targets lack rodata support.
-              TODO: WinCE likely supports it, but needs testing. }
+            { non-PECOFF targets lack rodata support }
             if (atype in [sec_rodata,sec_rodata_norel]) and
-               not (target_info.system in systems_windows) then
+               not (target_info.system in systems_all_windows) then
               atype:=sec_data;
             secname:=coffsecnames[atype];
             if create_smartlink_sections and
@@ -1038,8 +1037,7 @@ const pemagic : array[0..3] of byte = (
       begin
         if (aType in [sec_rodata,sec_rodata_norel]) then
           begin
-            { TODO: WinCE needs testing }
-            if (target_info.system in systems_windows) then
+            if (target_info.system in systems_all_windows) then
               aType:=sec_rodata_norel
             else
               aType:=sec_data;
@@ -1279,6 +1277,8 @@ const pemagic : array[0..3] of byte = (
                 rel.reloctype:=IMAGE_REL_ARM_ADDR32NB;
               RELOC_SECREL32 :
                 rel.reloctype:=IMAGE_REL_ARM_SECREL;
+              RELOC_RELATIVE_24 :
+                rel.reloctype:=IMAGE_REL_ARM_BRANCH24;
 {$endif arm}
 {$ifdef i386}
               RELOC_RELATIVE :
@@ -3045,7 +3045,7 @@ const pemagic : array[0..3] of byte = (
             asmbin : '';
             asmcmd : '';
             supported_targets : [system_arm_wince];
-            flags : [af_outputbinary];
+            flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
             comment : '';
             dollarsign: '$';
