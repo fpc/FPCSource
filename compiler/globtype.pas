@@ -617,7 +617,9 @@ interface
          { allocates memory on stack, so stack is unbalanced on exit }
          pi_has_stack_allocs,
          { set if the stack frame of the procedure is estimated }
-         pi_estimatestacksize
+         pi_estimatestacksize,
+         { the routine calls a C-style varargs function }
+         pi_calls_c_varargs
        );
        tprocinfoflags=set of tprocinfoflag;
 

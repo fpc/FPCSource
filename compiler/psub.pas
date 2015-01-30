@@ -155,6 +155,12 @@ implementation
             Message(parser_h_inlining_disabled);
             exit;
           end;
+        if pi_calls_c_varargs in current_procinfo.flags then
+          begin
+            Message1(parser_h_not_supported_for_inline,'called C-style varargs functions');
+            Message(parser_h_inlining_disabled);
+            exit;
+          end;
         { the compiler cannot handle inherited in inlined subroutines because
           it tries to search for self in the symtable, however, the symtable
           is not available }

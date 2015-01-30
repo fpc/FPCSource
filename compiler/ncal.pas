@@ -2837,6 +2837,7 @@ implementation
           end;
         if (i>0) then
           begin
+            include(current_procinfo.flags,pi_calls_c_varargs);
             varargsparas:=tvarargsparalist.create;
             pt:=tcallparanode(left);
             while assigned(pt) do

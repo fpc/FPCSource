@@ -1266,7 +1266,9 @@ const
          (mask:pi_has_stack_allocs;
          str:' allocates memory on stack, so stack may be unbalanced on exit '),
          (mask:pi_estimatestacksize;
-         str:' stack size is estimated before subroutine is compiled ')
+         str:' stack size is estimated before subroutine is compiled '),
+         (mask:pi_calls_c_varargs;
+         str:' calls function with C-style varargs ')
   );
 var
   procinfooptions : tprocinfoflags;
