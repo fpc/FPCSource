@@ -117,11 +117,4 @@ function  FpStat(path: pchar; var buf : stat): cint;inline;
     FpStat:=__xstat(_STAT_VER,path,buf);
   end;
 
-{$ifndef fs32bit}
-function  FpOpen    (path: pchar; flags : cint; mode: TMode):cint; inline;
-  begin
-    FpOpen:=__fpopen(path, flags or O_LARGEFILE, mode);
-  end;
-{$endif}
-
 {$endif FPC_USE_LIBC}
