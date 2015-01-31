@@ -268,7 +268,10 @@ implementation
         if (tsym(p).typ=paravarsym) then
           begin
             if tparavarsym(p).needs_finalization then
-              include(current_procinfo.flags,pi_needs_implicit_finally);
+              begin
+                include(current_procinfo.flags,pi_needs_implicit_finally);
+                include(current_procinfo.flags,pi_do_call);
+              end;
             if (tparavarsym(p).varspez in [vs_value,vs_out]) and
                (cs_create_pic in current_settings.moduleswitches) and
                (tf_pic_uses_got in target_info.flags) and
@@ -287,6 +290,7 @@ implementation
            is_managed_type(tlocalvarsym(p).vardef) then
           begin
             include(current_procinfo.flags,pi_needs_implicit_finally);
+            include(current_procinfo.flags,pi_do_call);
             if is_rtti_managed_type(tlocalvarsym(p).vardef) and
               (cs_create_pic in current_settings.moduleswitches) and
               (tf_pic_uses_got in target_info.flags) then
