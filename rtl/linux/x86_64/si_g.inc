@@ -33,6 +33,8 @@
          argc <--- esp
 }
 
+{$asmmode gas}
+
 var
   libc_environ: pchar; external name '__environ';
   libc_fpu_control: word; external name '__fpu_control';

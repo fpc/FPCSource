@@ -33,6 +33,8 @@
          argc <--- esp
 }
 
+{$asmmode gas}
+
 {$L abitag.o}
 var
   libc_environ: pchar; external name '__environ';

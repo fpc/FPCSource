@@ -31,6 +31,8 @@
 					NULL
 }
 
+{$asmmode gas}
+
 {$L abitag.o}
 
 procedure PASCALMAIN; external name 'PASCALMAIN';
