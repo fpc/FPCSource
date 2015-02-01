@@ -299,7 +299,7 @@ implementation
     procedure tarminlinenode.second_sqrt_real;
       var
         singleprec: boolean;
-        op: TAsmOp;
+        pf: TOpPostfix;
       begin
         load_fpu_location(singleprec);
         case current_settings.fputype of
@@ -309,9 +309,16 @@ implementation
             current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_SQT,location.register,left.location.register),get_fpu_postfix(resultdef)));
           fpu_vfpv2,
           fpu_vfpv3,
-          fpu_vfpv3_d16,
+          fpu_vfpv3_d16:
+            begin
+              if singleprec then
+                pf:=PF_F32
+              else
+                pf:=PF_F64;
+              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VSQRT,location.register,left.location.register),pf));
+            end;
           fpu_fpv4_s16:
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_VSQRT,location.register,left.location.register));
+            current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VSQRT,location.register,left.location.register), PF_F32));
         else
           internalerror(2009111402);
         end;

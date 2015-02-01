@@ -327,7 +327,7 @@ unit agarmgas;
 
           if taicpu(hp).ops = 0 then
             s:=#9+gas_op2str[op]+cond2str[taicpu(hp).condition]+oppostfix2str[taicpu(hp).oppostfix]
-          else if (taicpu(hp).opcode>=A_VABS) and (taicpu(hp).opcode<=A_VSUB) then
+          else if taicpu(hp).oppostfix in [PF_8..PF_U32F64] then
             s:=#9+gas_op2str[op]+cond2str[taicpu(hp).condition]+oppostfix2str[taicpu(hp).oppostfix]
           else
             s:=#9+gas_op2str[op]+oppostfix2str[taicpu(hp).oppostfix]+cond2str[taicpu(hp).condition]+postfix; // Conditional infixes are deprecated in unified syntax
