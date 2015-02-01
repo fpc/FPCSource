@@ -2311,7 +2311,9 @@ implementation
 
   function thlcgobj.get_bit_reg_ref_sref(list: TAsmList; bitnumbersize, refsize: tdef; bitnumber: tregister; const ref: treference): tsubsetreference;
     var
-      tmpreg: tregister;
+      refptrdef: tdef;
+      tmpreg,
+      newbase: tregister;
     begin
       result.ref:=ref;
       result.startbit:=0;
@@ -2323,13 +2325,15 @@ implementation
 
       { don't assign to ref.base, that one is for pointers and this is an index
         (important for platforms like LLVM) }
-      if (result.ref.index=NR_NO) then
-        result.ref.index:=tmpreg
-      else
+      if result.ref.index<>NR_NO then
         begin
-          a_op_reg_reg(list,OP_ADD,ptruinttype,result.ref.index,tmpreg);
-          result.ref.index:=tmpreg;
+          { don't just add to ref.index, as it may be scaled }
+          refptrdef:=getpointerdef(refsize);
+          newbase:=getaddressregister(list,refptrdef);
+          a_loadaddr_ref_reg(list,refsize,refptrdef,ref,newbase);
+          reference_reset_base(result.ref,refptrdef,newbase,0,result.ref.alignment);
         end;
+      result.ref.index:=tmpreg;
       tmpreg:=getintregister(list,ptruinttype);
       a_load_reg_reg(list,bitnumbersize,ptruinttype,bitnumber,tmpreg);
       a_op_const_reg(list,OP_AND,ptruinttype,7,tmpreg);
