@@ -2,7 +2,7 @@
 { %skipcpu=powerpc,powerpc64 }
 
 {$mode delphi}
-{$modeswitch blocks}
+{$modeswitch cblocks}
 
 type
   tblock = reference to procedure; cdecl;

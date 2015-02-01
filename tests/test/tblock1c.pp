@@ -1,7 +1,7 @@
 { %target=darwin,iphonesim}
 { %skipcpu=powerpc,powerpc64 }
 
-{$modeswitch blocks}
+{$modeswitch cblocks}
 
 type
   tblock = reference to function(l: longint): longint; cdecl;

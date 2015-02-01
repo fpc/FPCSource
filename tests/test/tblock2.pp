@@ -2,7 +2,7 @@
 { %skipcpu=powerpc,powerpc64 }
 
 {$mode objfpc}
-{$modeswitch blocks}
+{$modeswitch cblocks}
 
 type
   tblock = reference to procedure(j: longint); cdecl;

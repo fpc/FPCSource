@@ -568,7 +568,7 @@ interface
          'FINALFIELDS',
          'UNICODESTRINGS',
          'TYPEHELPERS',
-         'BLOCKS');
+         'CBLOCKS');
 
 
      type
