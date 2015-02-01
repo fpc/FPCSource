@@ -3,10 +3,10 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at web.de>
 #
-#   Based on errore.msg of SVN revision 29129
+#   Based on errore.msg of SVN revision 29517
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1998-2014 by the Free Pascal Development team
+#   Copyright (c) 1998-2015 by the Free Pascal Development team
 #
 #   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
@@ -421,7 +421,7 @@ scan_e_illegal_hugepointernormalization=02098_E_Illegales Argument für HUGEPOIN
 #
 # Parser
 #
-# 03338 is the last used one
+# 03339 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -714,7 +714,7 @@ parser_e_comparative_operator_return_boolean=03090_E_Vergleichsoperator muss ein
 parser_e_only_virtual_methods_abstract=03091_E_Nur virtuelle Methoden können abstrakt sein
 % You are declaring a method as abstract, when it isn't declared to be
 % virtual.
-parser_f_unsupported_feature=03092_F_Benutzung einer nicht unterstützten Erweiterung!
+parser_f_unsupported_feature=03092_F_Benutzung der nicht unterstützten Erweiterung: "$1"
 % You're trying to force the compiler into doing something it cannot do yet.
 parser_e_mix_of_classes_and_objects=03093_E_Das Mischen von Klassen und Objekten ist unzulässig
 % You cannot derive \var{objects}, \var{classes}, \var{cppclasses} and \var{interfaces} intertwined. E.g.
@@ -988,10 +988,10 @@ parser_w_skipped_fields_after=03177_W_Einige Felder nach dem Feld "$1" sind nich
 % You can leave some fields at the end of a type constant record uninitialized
 % (The compiler will initialize them to zero automatically). This may be the cause
 % of subtle problems.
-parser_e_varargs_need_cdecl_and_external=03178_E_Verwendung von VarArgs (oder '...' in MacPas) ohne CDecl/CPPDecl/MWPascal oder External nicht möglich
+parser_e_varargs_need_cdecl_and_external=03178_E_Verwendung von VarArgs (oder '...' in MacPas) ohne CDecl/CPPDecl/MWPascal/StdCall oder External nicht möglich
 % The varargs directive (or the ``...'' varargs parameter in MacPas mode) can only be
 % used with procedures or functions that are declared with \var{external} and one of
-% \var{cdecl}, \var{cppdecl} and \var{mwpascal}. This functionality
+% \var{cdecl}, \var{cppdecl}, \var{stdcall} and \var{mwpascal}. This functionality
 % is only supported to provide a compatible interface to C functions like printf.
 parser_e_self_call_by_value=03179_E_Self muss ein Call-By-Value-Parameter sein
 % You cannot declare \var{Self} as a const or var parameter, it must always be
@@ -1539,6 +1539,9 @@ parser_w_ptr_type_ignored=03338_W_Zeigertyp "$1" ignoriert
 % The specified pointer type modifier is ignored, because it is not supported on
 % the current platform. This happens, for example, when a far pointer is
 % declared on a non-x86 platform.
+parser_e_global_generic_references_static=03339_E_Ein globales, generisches Templat referenziert eine statische Symboltabelle
+% A generic declared in the interface section of a unit must not reference symbols that belong
+% solely to the implementation section of that unit.
 %
 % \end{description}
 # EndOfTeX
@@ -1546,7 +1549,7 @@ parser_w_ptr_type_ignored=03338_W_Zeigertyp "$1" ignoriert
 #
 # Type Checking
 #
-# 04122 is the last used one
+# 04123 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1854,13 +1857,13 @@ type_w_zero_to_nil=04090_W_Konvertiere 0 zu NIL
 % Use NIL rather than 0 when initialising a pointer. 
 type_e_protocol_type_expected=04091_E_Objective-C Protokolltyp erwartet, erhielt aber "$1"
 % The compiler expected a protocol type name, but found something else.
-type_e_objc_type_unsupported=04092_E_Der Typ "$1" wird nicht für die Verwendung mit der Objective-C Laufzeitumgebung unterstützt.
+type_e_objc_type_unsupported=04092_E_Der Typ "$1" wird für die Verwendung mit den Laufzeitumgebungen Objective-C- oder Blocks nicht unterstützt.
 % Objective-C makes extensive use of run time type information (RTTI). This format
 % is defined by the maintainers of the run time and can therefore not be adapted
 % to all possible Object Pascal types. In particular, types that depend on
 % reference counting by the compiler (such as ansistrings and certain kinds of
 % interfaces) cannot be used as fields of Objective-C classes, cannot be
-% directly passed to Objective-C methods, and cannot be encoded using \var{objc\_encode}.
+% directly passed to Objective-C methods or Blocks, and cannot be encoded using \var{objc\_encode}.
 type_e_class_or_objcclass_type_expected=04093_E_Klasse oder Objective-C Klasse als Typ erwartet, erhielt aber "$1"
 % It is only possible to create class reference types of \var{class} and \var{objcclass}
 type_e_objcclass_type_expected=04094_E_Objective-C Klasse als Typ erwartet
@@ -1976,6 +1979,13 @@ type_e_procedure_must_be_far=04121_E_Prozedur oder Funktion muss weit ("far") se
 type_w_instance_abstract_class=04122_W_Erzeugung einer Instanz der abstrakten Klasse "$1"
 % The specified class is declared as \var{abstract} and thus no instance of this class
 % should be created. This is merely a warning for Delphi compatibility.
+type_e_function_reference_kind=04123_E_Unterprogrammreferenzen können nicht als "of object" oder "is nested" deklariert werden; sie können sich immer auf alle mögliche Arten von Unterprogrammen beziehen
+% Subroutine references can refer to any kind of subroutine and hence do not
+% require specialisation for methods or nested subroutines.
+type_e_anonymous_function_unsupported=04999_E_Referenzen auf Funktionen werden noch nicht unterstützt, lediglich blocks (füge "cdecl;" am Ende hinzu.)
+% Remove this error message once Delphi-style anonymous are implemented. It has
+% number 4999 so as not to result in a gap in the error message numbering once
+% it's removed.
 %
 % \end{description}
 # EndOfTeX
@@ -1983,7 +1993,7 @@ type_w_instance_abstract_class=04122_W_Erzeugung einer Instanz der abstrakten Kl
 #
 # Symtable
 #
-# 05088 is the last used one
+# 05095 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -2251,6 +2261,47 @@ sym_d_adding_helper_for=05087_D_Helfer für $1 hinzugefügt
 % A helper for the mentioned type is added to the current scope
 sym_e_param_list=05088_E_Deklaration gefunden: $1
 % This message shows all overloaded declarations in case of an error.
+sym_w_uninitialized_managed_local_variable=05089_W_Die lokale Variable "$1" eines managed Typs ist anscheinend nicht initialisiert
+% This message is displayed if the compiler thinks that a variable will
+% be used (i.e. it appears in the right-hand side of an expression) when it
+% was not initialized first (i.e. appeared in the left-hand side of an
+% assignment). Since the variable is managed, i. e. implicitly initialized by the compiler, this might be intended behaviour and
+% does not necessarily mean that the code is wrong.
+sym_w_uninitialized_managed_variable=05090_W_Die Variable "$1" eines managed Typs ist anscheinend nicht initialisiert
+% This message is displayed if the compiler thinks that a variable will
+% be used (i.e. it appears in the right-hand side of an expression) when it
+% was not initialized first (i.e. appeared in the left-hand side of an
+% assignment). Since the variable is managed, i. e. implicitly initialized by the compiler, this might be intended behaviour and
+% does not necessarily mean that the code is wrong.
+sym_h_uninitialized_managed_local_variable=05091_H_Die lokale Variable "$1" eines managed Typs ist anscheinend nicht initialisiert
+% This message is displayed if the compiler thinks that a variable will
+% be used (i.e. it appears in the right-hand side of an expression) when it
+% was not initialized first (i.e. it did not appear in the left-hand side of an
+% assignment). Since the variable is managed, i. e. implicitly initialized by the compiler, this might be intended behaviour and
+% does not necessarily mean that the code is wrong.
+sym_h_uninitialized_managed_variable=05092_H_Die Variable "$1" eines managed Typs ist anscheinend nicht initialisiert
+% This message is displayed if the compiler thinks that a variable will
+% be used (i.e. it appears in the right-hand side of an expression) when it
+% was not initialized first (i.e. t did not appear in the left-hand side of an
+% assignment). Since the variable is managed, i. e. implicitly initialized by the compiler, this might be intended behaviour and
+% does not necessarily mean that the code is wrong.
+sym_w_managed_function_result_uninitialized=05093_W_Die Ergebnisvariable einer Funktion eines managed Typs ist anscheinend nicht initialisiert
+% This message is displayed if the compiler thinks that the function result
+% variable will be used (i.e. it appears in the right-hand side of an expression)
+% before it is initialized (i.e. before it appeared in the left-hand side of an
+% assignment). Since the variable is managed, i. e. implicitly initialized by the compiler, this might be intended behaviour and
+% does not necessarily mean that the code is wrong.
+sym_h_managed_function_result_uninitialized=05094_H_Die Ergebnisvariable einer Funktion eines managed Typs ist anscheinend nicht initialisiert
+% This message is displayed if the compiler thinks that the function result
+% variable will be used (i.e. it appears in the right-hand side of an expression)
+% before it is initialized (i.e. it appears in the left-hand side of an
+% assignment). Since the variable is managed, i. e. implicitly initialized by the compiler, this might be intended behaviour and
+% does not necessarily mean that the code is wrong.
+sym_w_duplicate_id=05095_W_Duplikat des Bezeichners "$1"
+% The identifier was already declared in an Objective-C category that's in the
+% same scope as the current identifier. This is a warning instead of an error,
+% because while this hides the identifier from the category, there are often
+% many unused categories in scope.
 %
 % \end{description}
 # EndOfTeX
@@ -2721,7 +2772,7 @@ asmr_e_invalid_ref_register=07125_E_Ungültiges Register in Speicherreferenzausd
 #
 # Assembler/binary writers
 #
-# 08026 is the last used one
+# 08028 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Zu viele Assembler-Dateien
 % With smartlinking enabled, there are too many assembler
@@ -2765,6 +2816,12 @@ asmw_e_handlerdata_no_handler=08025_E_".seh_handlerdata"-Direktive ohne vorangeh
 asmw_f_too_many_relocations=08026_F_Relocationzähler für Sektion $1 übersteigt 65535
 % Legacy COFF targets limit number of relocations per section to 65535 because they use a 2-byte field
 % to store the relocation count. Targets using newer PECOFF format do not have this limitation.
+asmw_w_changing_bind_type=08027_N_Änderung des Bind-Typs des Symbols $1 von $2 nach $3 nach seiner Verwendung
+asmw_h_changing_bind_type=08028_H_Änderung des Bind-Typs des Symbols $1 von $2 nach $3 nach seiner Verwendung
+% An assembler symbol bind type has been altered after use, which can lead to wrong code.
+% First version is reserved for changig to local label, which is the most probable cause
+% of wrong code generation, but currently set to Note level as it appears inside
+% the compiler compilation.
 %
 % \end{description}
 # EndOfTeX
@@ -3173,10 +3230,10 @@ option_target_is_already_set=11011_W_Zielsystem ist bereits gesetzt: $1
 option_no_shared_lib_under_dos=11012_W_Gemeinsame Bibliotheken sind auf der DOS Platform nicht verfügbar, verwende stattdessen statische Bibliotheken
 % If you specify \var{-CD} for the \dos platform, this message is displayed.
 % The compiler supports only static libraries under \dos.
-option_too_many_ifdef=11013_F_Zu viele \var{\#IF(N)DEFs} in Zeile $2 der Optionen-Datei $1
+option_too_many_ifdef=11013_F_Zu viele \#IF(N)DEFs in Zeile $2 der Optionen-Datei $1
 % The \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
-option_too_many_endif=11014_F_Unerwartetes \var{\#ENDIFs} in Zeile $2 der Optionen-Datei $1
+option_too_many_endif=11014_F_Unerwartete \#ENDIFs in Zeile $2 der Optionen-Datei $1
 % The \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
 option_too_less_endif=11015_F_Offene Bedingung am Ende der Optionen-Datei
@@ -3245,7 +3302,7 @@ option_confict_asm_debug=11041_W_Die gewählte Assembler-Ausgabe "$1" kann kein 
 option_ppc386_deprecated=11042_W_Die Verwendung von ppc386.cfg wird beendet. Bitte statt dessen fpc.cfg benutzen
 % Using ppc386.cfg is still supported for historical reasons, however, for a multiplatform
 % system the naming makes no sense anymore. Please continue to use fpc.cfg instead.
-option_else_without_if=11043_F_Zur \var{\#ELSE} Direktive in Zeile $2 der Optionen-Datei $1 gibt es kein entsprechendes \var{\#IF(N)DEF}
+option_else_without_if=11043_F_Zur \#ELSE Direktive in Zeile $2 der Optionen-Datei $1 gibt es kein entsprechendes \#IF(N)DEF
 % An \var{\#ELSE} statement was found in the options file without a matching \var{\#IF(N)DEF} statement.
 option_unsupported_target=11044_F_Die Option "$1" wird auf der Zielplattform nicht oder noch nicht unterstützt
 % Not all options are supported or implemented for all target platforms. This message informs you that a chosen
@@ -3521,6 +3578,8 @@ P*2CN_Erzeuge Überprüfungen auf Nil-Zeiger (nur AIX)
 **2Cp<x>_Wähle Instruction-Set aus; fpc -i oder fpc -ic geben die möglichen Werte aus
 **2CP<x>=<y>_ Einstellungen für packing
 **3CPPACKSET=<y>_ <y> Belegung von Sets: 0, 1 oder DEFAULT oder NORMAL, 2, 4 und 8
+**3CPPACKENUM=<y>_ <y> Packen von Aufzählungen: 0, 1, 2 und 4 oder DEFAULT oder NORMAL
+**3CPPACKRECORD=<y>_ <y> Packen von Records: 0 oder DEFAULT oder NORMAL, 1, 2, 4, 8, 16 und 32
 **2Cr_Führe Bereichsprüfung durch
 **2CR_Verifiziere die Gültigkiet des Aufrufs der Objektmethoden
 **2Cs<n>_Setze die Prüfgrösse des Stacks auf <n>
@@ -3750,6 +3809,7 @@ V*2Tembedded_Embedded
 **2*_b : Schreibe bei Meldungen mit    p : Schreibe tree.log mit Analysenbaum (parse tree)
 **2*_    Dateinamen den vollständigen  v : Schreibe fpcdebug.txt mit 
 **2*_    Pfad                              ganz viel Information
+**2*_z : Schreibe output nach stderr
 **2*_m<x>,<y> : Zeige die Meldungen mit den Nummern <x> und <y> nicht
 F*1V<x>_Hänge '-<x>' an den Namen der Compilerbinary an (z.B. für die Version)
 **1W<x>_Spezifiziere ein natives Programm (Windows)
