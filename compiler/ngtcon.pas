@@ -1109,21 +1109,40 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           begin
             oldoffset:=curoffset;
             curoffset:=0;
-            for i:=def.lowrange to def.highrange-1 do
+            { in case of a generic subroutine, it might be we cannot
+              determine the size yet }
+            if assigned(current_procinfo) and (df_generic in current_procinfo.procdef.defoptions) then
               begin
-                read_typed_const_data(def.elementdef);
-                Inc(curoffset,def.elementdef.size);
-                if token=_RKLAMMER then
+                while true do
                   begin
-                    Message1(parser_e_more_array_elements_expected,tostr(def.highrange-i));
-                    consume(_RKLAMMER);
-                    exit;
-                  end
-                else
-                  consume(_COMMA);
+                    read_typed_const_data(def.elementdef);
+                    if token=_RKLAMMER then
+                      begin
+                        consume(_RKLAMMER);
+                        break;
+                      end
+                    else
+                      consume(_COMMA);
+                  end;
+              end
+            else
+              begin
+                for i:=def.lowrange to def.highrange-1 do
+                  begin
+                    read_typed_const_data(def.elementdef);
+                    Inc(curoffset,def.elementdef.size);
+                    if token=_RKLAMMER then
+                      begin
+                        Message1(parser_e_more_array_elements_expected,tostr(def.highrange-i));
+                        consume(_RKLAMMER);
+                        exit;
+                      end
+                    else
+                      consume(_COMMA);
+                  end;
+                read_typed_const_data(def.elementdef);
+                consume(_RKLAMMER);
               end;
-            read_typed_const_data(def.elementdef);
-            consume(_RKLAMMER);
             curoffset:=oldoffset;
           end
         { if array of char then we allow also a string }
