@@ -1358,7 +1358,7 @@ implementation
         { support procedure proc stdcall export; }
         if not(check_proc_directive(false)) then
           begin
-            if (token=_COLON) then
+            if (token=_COLON) and not(Assigned(pd) and is_void(pd.returndef)) then
               begin
                 message(parser_e_field_not_allowed_here);
                 consume_all_until(_SEMICOLON);
