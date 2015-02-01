@@ -87,6 +87,7 @@ type
 
      function is_same_reg_move(regtype: Tregistertype):boolean;override;
      function spilling_get_operation_type(opnr: longint): topertype;override;
+     function spilling_get_operation_type_ref(opnr: longint; reg: tregister): topertype;override;
 
   private
      procedure init(_size : topsize); { this need to be called by all constructor }
@@ -501,6 +502,13 @@ type
         end;
       end;
 
+    function taicpu.spilling_get_operation_type_ref(opnr: longint; reg: tregister): topertype;
+      begin
+        result := operand_read;
+        if (oper[opnr]^.ref^.base = reg) and
+          (oper[opnr]^.ref^.direction <> dir_none) then
+           result := operand_readwrite;
+      end;
 
     function spilling_create_load(const ref:treference;r:tregister):Taicpu;
       begin
