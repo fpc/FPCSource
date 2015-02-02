@@ -360,6 +360,10 @@ unit cpubase;
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function dwarf_reg(r:tregister):shortint;
 
+    function isvalue8bit(val: tcgint): boolean;
+    function isvalue16bit(val: tcgint): boolean;
+    function isvalueforaddqsubq(val: tcgint): boolean;
+
 implementation
 
     uses
@@ -540,6 +544,25 @@ implementation
         result:=regdwarf_table[findreg_by_number(r)];
         if result=-1 then
           internalerror(200603251);
+      end;
+
+
+    { returns true if given value fits to an 8bit signed integer }
+    function isvalue8bit(val: tcgint): boolean;
+      begin
+        isvalue8bit := (val >= low(shortint)) and (val <= high(shortint));
+      end;
+
+    { returns true if given value fits to a 16bit signed integer }
+    function isvalue16bit(val: tcgint): boolean;
+      begin
+        isvalue16bit := (val >= low(smallint)) and (val <= high(smallint));
+      end;
+
+    { returns true if given value fits addq/subq argument, so in 1 - 8 range }
+    function isvalueforaddqsubq(val: tcgint): boolean;
+      begin
+        isvalueforaddqsubq := (val >= 1) and (val <= 8);
       end;
 
 end.
