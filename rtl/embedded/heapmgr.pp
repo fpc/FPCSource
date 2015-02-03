@@ -18,6 +18,8 @@ Unit heapmgr;
   interface
 
     procedure RegisterHeapBlock(AAddress: pointer; ASize: ptruint);
+    
+    function GetAlignedMem(Size, Alignment: ptruint): pointer;
 
   implementation
 
@@ -220,7 +222,7 @@ Unit heapmgr;
 
     procedure RegisterHeapBlock(AAddress: pointer; ASize: ptruint);
       begin
-        FreeMem(AAddress, ASize);
+        InternalFreeMem(AAddress, ASize);
       end;
 
     const
