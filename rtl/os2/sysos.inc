@@ -81,6 +81,9 @@ function DosLoadModule (ObjName: PChar; ObjLen: cardinal; DLLName: PChar;
                                          var Handle: THandle): cardinal; cdecl;
 external 'DOSCALLS' index 318;
 
+function DosFreeModule (Handle: THandle): cardinal; cdecl;
+external 'DOSCALLS' index 322;
+
 function DosQueryModuleHandle (DLLName: PChar; var Handle: THandle): cardinal;
                                                                          cdecl;
 external 'DOSCALLS' index 319;
@@ -486,3 +489,43 @@ const
 function DosQueryCtryInfo (Size: cardinal; var Country: TCountryCode;
              var Res: TCountryInfo; var ActualSize: cardinal): cardinal; cdecl;
 external 'NLS' index 5;
+
+type
+ PInsertTable = ^TInsertTable;
+ TInsertTable = array [1..9] of PChar;
+
+function DosTrueGetMessage (MsgSeg: pointer; Table: PInsertTable;
+                            TableSize: cardinal; Buf: PChar;
+                            BufSize, MsgNumber: cardinal; FileName: PChar;
+                            var MsgSize: cardinal): cardinal; cdecl;
+external 'MSG' index 6;
+
+procedure MagicHeaderEnd; assembler; forward;
+
+{$ASMMODE INTEL}
+
+{start of _MSGSEG32 segment}
+procedure MagicHeaderStart; assembler;
+asm
+  db $0FF
+  db $4D,$53,$47,$53,$45,$47,$33,$32, 0       //'MSGSEG32'
+  dd $8001
+  dd MagicHeaderEnd
+end;
+
+function DosGetMessage (Table: PInsertTable; TableSize: cardinal; Buf: PChar;
+                        BufSize, MsgNumber: cardinal; FileName: PChar;
+                        var MsgSize: cardinal): cardinal; cdecl; assembler;
+                                                                  nostackframe;
+asm
+  pop eax
+  push offset MagicHeaderStart
+  push eax
+  jmp DosTrueGetMessage
+end;
+
+procedure MagicHeaderEnd; assembler;
+asm
+  dd $0FFFF0000
+end;
+{$ASMMODE DEFAULT}

@@ -9042,6 +9042,7 @@ rtl/os2/prt0.as svneol=native#text/plain
 rtl/os2/rtldefs.inc svneol=native#text/plain
 rtl/os2/so32dll.pas svneol=native#text/plain
 rtl/os2/sysdir.inc svneol=native#text/plain
+rtl/os2/sysdl.inc svneol=native#text/plain
 rtl/os2/sysdlh.inc svneol=native#text/plain
 rtl/os2/sysfile.inc svneol=native#text/plain
 rtl/os2/sysheap.inc svneol=native#text/plain
