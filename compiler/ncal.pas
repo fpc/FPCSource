@@ -1008,10 +1008,17 @@ implementation
                         { uninitialized warnings (tbs/tb0542)         }
                         set_varstate(left,vs_written,[]);
                         set_varstate(left,vs_readwritten,[]);
+                        make_not_regable(left,[ra_addr_regable,ra_addr_taken]);
                       end;
                     vs_var,
                     vs_constref:
-                      set_varstate(left,vs_readwritten,[vsf_must_be_valid,vsf_use_hints]);
+                      begin
+                        set_varstate(left,vs_readwritten,[vsf_must_be_valid,vsf_use_hints]);
+                        { constref takes also the address, but storing it is actually the compiler
+                          is not supposed to expect }
+                        if parasym.varspez=vs_var then
+                          make_not_regable(left,[ra_addr_regable,ra_addr_taken]);
+                      end;
                     else
                       set_varstate(left,vs_read,[vsf_must_be_valid]);
                   end;
@@ -3916,7 +3923,10 @@ implementation
             ((tloadnode(n).symtable.symtabletype in [globalsymtable,ObjectSymtable]) or
             { statics can only be modified by functions in the same unit }
              ((tloadnode(n).symtable.symtabletype = staticsymtable) and
-              (tloadnode(n).symtable = TSymtable(arg))))) or
+              (tloadnode(n).symtable = TSymtable(arg))) or
+              { if the addr of the symbol is taken somewhere, it can be also non-local }
+              (tabstractvarsym(tloadnode(n).symtableentry).addr_taken)
+           )) or
            ((n.nodetype = subscriptn) and
             (tsubscriptnode(n).vs.owner.symtabletype = ObjectSymtable)) then
           result := fen_norecurse_true;
