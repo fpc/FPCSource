@@ -1458,8 +1458,25 @@ end;
 
 
 {*****************************************************************************
+                          Dynamic library support
+*****************************************************************************}
+
+
+{$ifdef FPC_HAS_FEATURE_DYNLIBS}
+{$i dynlib.inc}
+
+{$ifdef DISABLE_NO_DYNLIBS_MANAGER}
+{ OS Dependant implementation }
+{$i sysdl.inc}
+{$endif DISABLE_NO_DYNLIBS_MANAGER}
+{$endif FPC_HAS_FEATURE_DYNLIBS}
+
+
+{*****************************************************************************
                             File Handling
 *****************************************************************************}
+
+
 
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}

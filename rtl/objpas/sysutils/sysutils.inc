@@ -320,7 +320,7 @@ type
   end;
 
 const
-  exceptmap: array[0..28] of TExceptMapEntry = (
+  exceptmap: array[0..29] of TExceptMapEntry = (
     (code: 200; cls: EDivByZero;     msg: @SDivByZero),
     (code: 201; cls: ERangeError;    msg: @SRangeError),
     (code: 202; cls: EStackOverflow; msg: @SStackOverflow),
@@ -350,7 +350,8 @@ const
     (code: 231; cls: EConvertError;  msg: @SiconvError),
     (code: 232; cls: ENoThreadSupport; msg: @SNoThreadSupport),
     (code: 233; cls: ENoWideStringSupport; msg: @SSigQuit),
-    (code: 234; cls: ENoWideStringSupport; msg: @SMissingWStringManager)
+    (code: 234; cls: ENoWideStringSupport; msg: @SMissingWStringManager),
+    (code: 235; cls: ENoDynLibsSupport; msg: @SNoDynLibsSupport)
   );
 
 function FindExceptMapEntry(err: longint): PExceptMapEntry;

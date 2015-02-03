@@ -14,6 +14,29 @@
  **********************************************************************}
 
 
+{$ifdef readinterface}
+
+{ ---------------------------------------------------------------------
+    Interface declarations
+  ---------------------------------------------------------------------}
+
+{$DEFINE DYNLIBS_SUPPORTS_ORDINAL}
+
+type
+ TLibHandle = longint;
+ TOrdinalEntry = cardinal;
+
+const
+ NilHandle = 0;
+// these are for easier crossplatform construction of dll names in dynloading libs.
+ SharedSuffix  = 'dll';
+
+{$else}
+
+{ ---------------------------------------------------------------------
+    Implementation section
+  ---------------------------------------------------------------------}
+
 uses
  DosCalls;
 
@@ -21,7 +44,7 @@ threadvar
  DynLibErrNo: cardinal;
  DynLibErrPath: array [0..259] of char;
 
-function SysLoadLibraryA (const Name: RawbyteString): TLibHandle;
+function DoLoadLibrary (const Name: RawbyteString): TLibHandle;
 var
  Handle: longint;
 begin
@@ -37,12 +60,7 @@ begin
   end;
 end;
 
-function SysLoadLibraryU (const Name: UnicodeString): TLibHandle;
-begin
-  Result := SysLoadLibraryA(ToSingleByteFileSystemEncodedFileName(Name));
-end;
-
-function SysGetProcedureAddress (Lib: TLibHandle; const ProcName: AnsiString): pointer;
+function GetProcedureAddress (Lib: TLibHandle; const ProcName: AnsiString): pointer;
 var
  P: pointer;
 begin
@@ -57,7 +75,7 @@ begin
   end;
 end;
 
-function SysGetProcedureAddressOrdinal (Lib: TLibHandle; Ordinal: TOrdinalEntry): pointer;
+function GetProcedureAddress (Lib: TLibHandle; Ordinal: TOrdinalEntry): pointer;
 var
  P: pointer;
 begin
@@ -72,7 +90,7 @@ begin
   end;
 end;
 
-function SysUnloadLibrary (Lib: TLibHandle): boolean;
+function UnloadLibrary (Lib: TLibHandle): boolean;
 begin
  DynLibErrPath [0] := #0;
  DynLibErrNo := DosFreeModule (Lib);
@@ -86,7 +104,7 @@ begin
  GetDynLibsError := DynLibErrNo;
 end;
 
-function SysGetDynLibsErrorStr: string;
+function GetDynLibsErrorStr: string;
 const
  SysMsgFile: array [0..10] of char = 'OSO001.MSG'#0;
 var
@@ -96,7 +114,7 @@ var
  RC: cardinal;
 begin
  if DynLibErrNo = 0 then
-  SysGetDynLibsErrorStr := ''
+  GetDynLibsErrorStr := ''
  else
   begin
    Result := '';
@@ -119,23 +137,8 @@ begin
   end;
 end;
 
-function SysGetLoadErrorStr: string;
+function GetLoadErrorStr: string;
 begin
  GetLoadErrorStr := GetDynLibsErrorStr;
 end;
-
-const
-  SysDynLibsManager: TDynLibsManager = (
-    LoadLibraryU: @SysLoadLibraryU;
-    LoadLibraryA: @SysLoadLibraryA;
-    GetProcAddress: @SysGetProcedureAddress;
-    GetProcAddressOrdinal: @SysGetProcedureAdressOrdinal;
-    UnloadLibrary: @SysUnloadLibrary;
-    GetLoadErrorStr: @SysGetLoadErrorStr;
-  );
-
-procedure InitDynLibs;
-begin
-  SetDynLibsManager(SysDynLibsManager);
-end;
-
+{$endif}

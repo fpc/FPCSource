@@ -418,4 +418,5 @@ begin
 { Arguments }
   GenerateArgs;
   InitSystemThreads;
+  InitSystemDynLibs;
 end.

@@ -552,4 +552,5 @@ Begin
   IsConsole := TRUE;
   ExitCode  := 0;
   InitSystemThreads;
+  InitSystemDynLibs;
 End.

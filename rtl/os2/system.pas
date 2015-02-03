@@ -30,6 +30,7 @@ interface
 {$DEFINE OS2UNICODE}
 {$define DISABLE_NO_THREAD_MANAGER}
 {$DEFINE HAS_GETCPUCOUNT}
+{$define FPC_SYSTEM_HAS_SYSDLH}
 
 {$I systemh.inc}
 
@@ -1383,6 +1384,7 @@ begin
   DefaultFileType := '';
 
   InitSystemThreads;
+  InitSystemDynLibs;
 
 {$IFDEF EXTDUMPGROW}
 {    Int_HeapSize := high (cardinal);}

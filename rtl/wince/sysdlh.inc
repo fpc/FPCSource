@@ -13,7 +13,12 @@
 
  **********************************************************************}
 
-procedure InitDynLibs;
-begin
-  { nothing to do here since Windows DynLibs is done in System }
-end;
+type
+  TLibHandle = THandle;
+  TOrdinalEntry = word;
+
+const
+  NilHandle = 0;
+// these are for easier crossplatform construction of dll names in dynloading libs.
+  SharedSuffix = 'dll';
+

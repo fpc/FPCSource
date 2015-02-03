@@ -1769,6 +1769,7 @@ initialization
   ProcessID := GetCurrentProcessID;
   { threading }
   InitSystemThreads;
+  InitSystemDynLibs;
   DispCallByIDProc:=@DoDispCallByIDError;
 
 finalization

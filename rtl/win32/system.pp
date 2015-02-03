@@ -28,6 +28,8 @@ interface
 
 {$define DISABLE_NO_THREAD_MANAGER}
 {$define HAS_WIDESTRINGMANAGER}
+{$define DISABLE_NO_DYNLIBS_MANAGER}
+{$define FPC_SYSTEM_HAS_SYSDLH}
 
 {$ifdef FPC_USE_WIN32_SEH}
   {$define FPC_SYSTEM_HAS_RAISEEXCEPTION}
@@ -676,6 +678,7 @@ begin
   SysInitStdIO;
   { Arguments }
   setup_arguments;
+  InitSystemDynLibs;
   { Reset IO Error }
   InOutRes:=0;
   ProcessID := GetCurrentProcessID;

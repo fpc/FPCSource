@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by the Free Pascal development team
+    Copyright (c) 1999-2011 by the Free Pascal development team
 
     Implements OS dependent part for loading of dynamic libraries.
 
@@ -13,7 +13,12 @@
 
  **********************************************************************}
 
-procedure InitDynLibs;
-begin
-  { nothing to do here since Windows DynLibs is done in System }
-end;
+
+Type
+  TLibHandle = System.THandle;
+
+Const
+  NilHandle = 0;
+// these are for easier crossplatform construction of dll names in dynloading libs.
+  SharedSuffix = 'nlm';
+
