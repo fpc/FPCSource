@@ -77,6 +77,7 @@ Type
     Procedure HaveHint(AHint : TPasMemberHint; AHints : TPasMemberHints);
     Property Resolver : TStreamResolver Read FResolver;
     Property Scanner : TPascalScanner Read FScanner;
+    Property Engine : TTestEngine read FEngine;
     Property Parser : TTestPasParser read FParser ;
     Property Source : TStrings Read FSource;
     Property Module : TPasModule Read FModule;
@@ -108,6 +109,11 @@ begin
   Result.Visibility := AVisibility;
   Result.SourceFilename := ASourceFilename;
   Result.SourceLinenumber := ASourceLinenumber;
+  if NeedComments and Assigned(CurrentParser) then
+    begin
+//    Writeln('Saving comment : ',CurrentParser.SavedComments);
+    Result.DocComment:=CurrentParser.SavedComments;
+    end;
   If not Assigned(FList) then
     FList:=TFPList.Create;
   FList.Add(Result);
