@@ -21,6 +21,7 @@ begin
     P.License := 'LGPL with modification';
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
+    P.Description := 'Utilities for processing the Unicode consortium data files for use with FPC.';
 
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
