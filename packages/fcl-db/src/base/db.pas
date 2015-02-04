@@ -22,7 +22,7 @@ unit db;
 
 interface
 
-uses Classes,Sysutils,Variants,FmtBCD,MaskUtils;
+uses Classes,SysUtils,Variants,FmtBCD,MaskUtils;
 
 const
 
@@ -328,7 +328,7 @@ type
     function GetAsBoolean: Boolean; virtual;
     function GetAsBytes: TBytes; virtual;
     function GetAsCurrency: Currency; virtual;
-    function GetAsLargeInt: LargeInt; virtual;
+    function GetAsLargeInt: Largeint; virtual;
     function GetAsDateTime: TDateTime; virtual;
     function GetAsFloat: Double; virtual;
     function GetAsLongint: Longint; virtual;
@@ -359,7 +359,7 @@ type
     procedure SetAsFloat(AValue: Double); virtual;
     procedure SetAsLongint(AValue: Longint); virtual;
     procedure SetAsInteger(AValue: Longint); virtual;
-    procedure SetAsLargeint(AValue: Largeint); virtual;
+    procedure SetAsLargeInt(AValue: Largeint); virtual;
     procedure SetAsVariant(const AValue: variant); virtual;
     procedure SetAsString(const AValue: string); virtual;
     procedure SetAsWideString(const AValue: WideString); virtual;
@@ -462,6 +462,7 @@ type
     function GetAsDateTime: TDateTime; override;
     function GetAsFloat: Double; override;
     function GetAsInteger: Longint; override;
+    function GetAsLargeInt: Largeint; override;
     function GetAsString: string; override;
     function GetAsVariant: variant; override;
     function GetDataSize: Integer; override;
@@ -472,6 +473,7 @@ type
     procedure SetAsDateTime(AValue: TDateTime); override;
     procedure SetAsFloat(AValue: Double); override;
     procedure SetAsInteger(AValue: Longint); override;
+    procedure SetAsLargeInt(AValue: Largeint); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
   public
@@ -552,8 +554,8 @@ type
     procedure SetAsInteger(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
-    function GetAsLargeint: Largeint; override;
-    procedure SetAsLargeint(AValue: Largeint); override;
+    function GetAsLargeInt: Largeint; override;
+    procedure SetAsLargeInt(AValue: Largeint); override;
   public
     constructor Create(AOwner: TComponent); override;
     Function CheckRange(AValue : Longint) : Boolean;
@@ -577,7 +579,7 @@ type
   protected
     function GetAsFloat: Double; override;
     function GetAsInteger: Longint; override;
-    function GetAsLargeint: Largeint; override;
+    function GetAsLargeInt: Largeint; override;
     function GetAsString: string; override;
     function GetAsVariant: variant; override;
     function GetDataSize: Integer; override;
@@ -585,13 +587,13 @@ type
     function GetValue(var AValue: Largeint): Boolean;
     procedure SetAsFloat(AValue: Double); override;
     procedure SetAsInteger(AValue: Longint); override;
-    procedure SetAsLargeint(AValue: Largeint); override;
+    procedure SetAsLargeInt(AValue: Largeint); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
   public
     constructor Create(AOwner: TComponent); override;
-    Function CheckRange(AValue : largeint) : Boolean;
-    property Value: Largeint read GetAsLargeint write SetAsLargeint;
+    Function CheckRange(AValue : Largeint) : Boolean;
+    property Value: Largeint read GetAsLargeInt write SetAsLargeInt;
   published
     property MaxValue: Largeint read FMaxValue write SetMaxValue default 0;
     property MinValue: Largeint read FMinValue write SetMinValue default 0;
