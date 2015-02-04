@@ -1829,7 +1829,11 @@ endif
 DUMMYINSTALLDIR=$(BASEDIR)/tmp
 INSTALLOPT=INSTALL_PREFIX=$(DUMMYINSTALLDIR) INSTALL_UNITDIR=$(BASEDIR)/$(COMPILER_TARGETDIR)
 rtl-stamp.$(FULL_TARGET):
+ifneq ($(inOS2),)
+	$(MAKE) -C ../../rtl all "OPT=$(OPT) -n" "CROSSOPT=$(CROSSOPT)"
+else
 	$(MAKE) -C ../../rtl all 'OPT=$(OPT) -n' 'CROSSOPT=$(CROSSOPT)'
+endif
 	$(MAKE) -C ../../rtl install $(INSTALLOPT) OPT= CROSSOPT=
 	$(ECHO) Compiled > rtl-stamp.$(FULL_TARGET)
 cleanrtl:
@@ -1858,7 +1862,11 @@ DUMMYINSTALLDIR=$(BASEDIR)/tmp
 INSTALLOPT=INSTALL_PREFIX=$(DUMMYINSTALLDIR) INSTALL_UNITDIR=$(BASEDIR)/$(COMPILER_TARGETDIR)
 PACKAGESDIR=../../packages
 packages-stamp.$(FULL_TARGET):
+ifneq ($(inOS2),)
+	$(MAKE) -C ../../packages all "OPT=$(OPT) -n" "CROSSOPT=$(CROSSOPT)"
+else
 	$(MAKE) -C ../../packages all 'OPT=$(OPT) -n' 'CROSSOPT=$(CROSSOPT)'
+endif
 	$(MAKE) -C ../../packages install $(INSTALLOPT) OPT= CROSSOPT=
 	$(ECHO) Compiled > packages-stamp.$(FULL_TARGET)
 cleanpackages:
