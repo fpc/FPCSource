@@ -4194,6 +4194,18 @@ implementation
       end;
 
 
+    { this procedure removes the user code flag because it prevents optimizations }
+    function removeusercodeflag(var n : tnode; arg : pointer) : foreachnoderesult;
+      begin
+        result:=fen_false;
+        if nf_usercode_entry in n.flags then
+          begin
+            exclude(n.flags,nf_usercode_entry);
+            result:=fen_norecurse_true;
+          end;
+      end;
+
+
     function tcallnode.pass1_inline:tnode;
       var
         n,
@@ -4230,6 +4242,7 @@ implementation
 
         { create a copy of the body and replace parameter loads with the parameter values }
         body:=tprocdef(procdefinition).inlininginfo^.code.getcopy;
+        foreachnodestatic(pm_postprocess,body,@removeusercodeflag,nil);
         foreachnode(pm_preprocess,body,@replaceparaload,@fileinfo);
 
         { Concat the body and finalization parts }
