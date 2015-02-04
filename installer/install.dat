@@ -278,6 +278,8 @@ package=units-rtl-extra.i386-win32.zip,RTL-additional units not needed for boots
 package=units-rtl-objpas.i386-win32.zip,RTL-Object Pascal units (e.g. Delphi compatibility)
 # Win32-2 38
 package=units-rtl-unicode.i386-win32.zip,RTL-miscellaneous Unicode support units
+# Win32-2 39
+package=utils-unicode.i386-win32.zip,Transformation of Unicode consortium data for FPC
 
 #
 # OS/2 packages
@@ -362,6 +364,8 @@ package=utils-rmwaitos2.zip[rmwos2.zip],Remove (delete) file(s) with optional re
 package=utils-lexyaccos2.zip[tplyos2.zip],Compiler generator for TP and compatibles
 # OS/2 35
 package=utils-fpcmos2.zip[fpcmos2.zip],Generate Makefiles out of Makefile.fpc files
+# OS/2 36
+package=utils-unicodeos2.zip[ucodeos2.zip],Transformation of Unicode consortium data for FPC
 
 #
 # OS/2 packages 2nd part
@@ -522,6 +526,8 @@ package=utils-rmwaitemx.zip[rmwemx.zip],Remove (delete) file(s) with optional re
 package=utils-lexyaccemx.zip[tplyemx.zip],Compiler generator for TP and compatibles
 # EMX 36
 package=utils-fpcmemx.zip[fpcmemx.zip],Generate Makefiles out of Makefile.fpc files
+# EMX 37
+package=utils-unicodeemx.zip[ucodeemx.zip],Transformation of Unicode consortium data for FPC
 
 #
 # EMX packages 2nd part
@@ -681,6 +687,8 @@ package=utils-pas2ut.source.zip[p2utsrc.zip],Pascal source to FPC Unit test gene
 package=utils-rmwait.source.zip[rmwsrc.zip],Remove (delete) file(s) with optional retries
 # Source 32
 package=utils-lexyacc.source.zip[tplysrc.zip],Compiler generator for TP and compatibles
+# Source 33
+package=utils-unicode.source.zip[ucodesrc.zip],Transformation of Unicode consortium data for FPC
 
 #
 # Source packages 2nd part
