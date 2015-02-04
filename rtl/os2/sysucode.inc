@@ -1221,8 +1221,9 @@ var
   I: cardinal;
 begin
   SetLength (Result, Length (S));
-  for I := 0 to Pred (Length (S)) do
-   PWideChar (Result) [I] := Sys_UniToUpper (S [Succ (I)]);
+  if Length (S) > 0 then
+   for I := 0 to Pred (Length (S)) do
+    PWideChar (Result) [I] := Sys_UniToUpper (S [Succ (I)]);
 end;
 
 
@@ -1231,8 +1232,9 @@ var
   I: cardinal;
 begin
   SetLength (Result, Length (S));
-  for I := 0 to Pred (Length (S)) do
-   PWideChar (Result) [I] := Sys_UniToLower (S [Succ (I)]);
+  if Length (S) > 0 then
+   for I := 0 to Pred (Length (S)) do
+    PWideChar (Result) [I] := Sys_UniToLower (S [Succ (I)]);
 end;
 
 
@@ -1242,9 +1244,10 @@ var
 begin
   Result := S;
   UniqueString (Result);
-  for I := 1 to Length (S) do
-   if Result [I] = WNull then
-    Result [I] := ' ';
+  if Length (S) > 0 then
+   for I := 1 to Length (S) do
+    if Result [I] = WNull then
+     Result [I] := ' ';
 end;
 
 
