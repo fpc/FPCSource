@@ -297,7 +297,12 @@ begin
   else if Obj is TObject then
     Writeln(hstdout^,'Exception object ',Obj.ClassName,' is not of class Exception.')
   else
-    Writeln(hstdout^,'Exception object is not ia valid class.');
+    Writeln(hstdout^,'Exception object is not a valid class.');
+{$IFDEF HAS_OSERROR}
+ {$IFDEF DEBUG_EXCEPTIONS_LASTOSERROR}
+  WriteLn (HStdOut^, 'Last OS error detected in the RTL: ', GetLastOSError);
+ {$ENDIF DEBUG_EXCEPTIONS_LASTOSERROR}
+{$ENDIF HAS_OSERROR}
   Writeln(hstdout^,BackTraceStrFunc(Addr));
   if (FrameCount>0) then
     begin
