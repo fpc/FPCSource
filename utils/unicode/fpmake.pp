@@ -15,7 +15,7 @@ begin
   With Installer do
     begin
     P:=AddPackage('utils-unicode');
-    P.ShortName:='unicode';
+    P.ShortName:='ucode';
 
     P.Author := 'Inoussa OUEDRAOGO';
     P.License := 'LGPL with modification';
