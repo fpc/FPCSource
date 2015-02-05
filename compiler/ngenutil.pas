@@ -981,7 +981,7 @@ implementation
 
       { Valgrind usage }
       maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-      new_section(current_asmdata.asmlists[al_globals],sec_data,'__fpc_valgrind',sizeof(boolean));
+      new_section(current_asmdata.asmlists[al_globals],sec_data,'__fpc_valgrind',sizeof(pint));
       current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__fpc_valgrind',AT_DATA,sizeof(boolean)));
       current_asmdata.asmlists[al_globals].concat(Tai_const.create_8bit(byte(cs_gdb_valgrind in current_settings.globalswitches)));
     end;
