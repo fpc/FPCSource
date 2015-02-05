@@ -247,13 +247,33 @@
 //--- Conclude supported features in non-Windows platforms ---
 //----------------------------------------------------------
 
-{$ifndef WINDOWS}
+{$IFDEF WINDOWS}
+    {$DEFINE SUPPORT_DRIVES_AND_UNC}
+{$ELSE WINDOWS}
+ {$IFDEF LINUX}
+  {$IFNDEF UNIX}
+   {$DEFINE UNIX}
+  {$ENDIF UNIX}
+ {$ENDIF LINUX}
+
+ {$IFDEF OS2}
+    {$DEFINE SUPPORT_DRIVES_AND_UNC}
+ {$ENDIF OS2}
+ {$IFDEF GO32V2}
+    {$DEFINE SUPPORT_DRIVES_AND_UNC}
+ {$ENDIF GO32V2}
+ {$IFDEF WATCOM}
+    {$DEFINE SUPPORT_DRIVES_AND_UNC}
+ {$ENDIF WATCOM}
+ {$IFDEF MSDOS}
+    {$DEFINE SUPPORT_DRIVES_AND_UNC}
+ {$ENDIF MSDOS}
 
     {$define SUPPORT_PATHDELIM}
     {$define SUPPORT_INCLUDETRAILPATHDELIM}
     {$define SUPPORT_INCLUDETRAILBACKSLASH}
 
-{$endif}
+{$ENDIF WINDOWS}
 
 {$ifndef ENDIAN_LITTLE}
 {$ifndef ENDIAN_BIG}
