@@ -150,6 +150,460 @@ const
    EAGAIN = ESysEAGAIN;
 *)
 {$PACKRECORDS 1}
+type
+  Str3 = string [3];
+
+  TLocaleRec = packed record
+   case boolean of
+    false:
+     (LangCode: Str3;
+      SubLangCode: Str3;
+      SubLangID: byte;
+      LangID: byte);
+    true:
+     (LangNum: dword;
+      SubLangNum: dword;
+      LCID: word)
+  end;
+
+
+const
+  MaxLocale = 108;
+  MinRealLocale = 4;
+  LocaleMap: array [1..MaxLocale] of TLocaleRec = (
+  (LangCode: #0;
+   SubLangCode: #0;
+   SubLangID: SUBLANG_DEFAULT; { user default }
+   LangID: LANG_NEUTRAL),
+  (LangCode: #0;
+   SubLangCode: #0;
+   SubLangID: SUBLANG_SYS_DEFAULT; { system default }
+   LangID: LANG_NEUTRAL),
+  (LangCode: 'UNI';
+   SubLangCode: 'V';
+   SubLangID: SUBLANG_NEUTRAL; { language neutral }
+   LangID: LANG_NEUTRAL),
+  (LangCode: 'AR';
+   SubLangCode: '_SA';
+   SubLangID: SUBLANG_ARABIC_SAUDI_ARABIA; { Arabic (Saudi Arabia) }
+   LangID: LANG_ARABIC),
+  (LangCode: 'AR';
+   SubLangCode: '_IQ';
+   SubLangID: SUBLANG_ARABIC_IRAQ; { Arabic (Iraq) }
+   LangID: LANG_ARABIC),
+  (LangCode: 'AR';
+   SubLangCode: '_EG';
+   SubLangID: SUBLANG_ARABIC_EGYPT; { Arabic (Egypt) }
+   LangID: LANG_ARABIC),
+  (LangCode: 'AR';
+   SubLangCode: '_LY';
+   SubLangID: SUBLANG_ARABIC_LIBYA; { Arabic (Libya) }
+   LangID: LANG_ARABIC),
+  (LangCode: 'AR';
+   SubLangCode: '_DZ';
+   SubLangID: SUBLANG_ARABIC_ALGERIA; { Arabic (Algeria) }
+   LangID: LANG_ARABIC),
+  (LangCode: 'AR';
+   SubLangCode: '_MA';
+   SubLangID: SUBLANG_ARABIC_MOROCCO; { Arabic (Morocco) }
+   LangID: LANG_ARABIC),
+  (LangCode: 'AR';
+   SubLangCode: '_TN';
+   SubLangID: SUBLANG_ARABIC_TUNISIA; { Arabic (Tunisia) }
+   LangID: LANG_ARABIC),
+  (LangCode: 'AR';
+   SubLangCode: '_OM';
+   SubLangID: SUBLANG_ARABIC_OMAN; { Arabic (Oman) }
+   LangID: LANG_ARABIC),
+  (LangCode: 'AR';
+   SubLangCode: '_YE';
+   SubLangID: SUBLANG_ARABIC_YEMEN; { Arabic (Yemen) }
+   LangID: LANG_ARABIC),
+  (LangCode: 'AR';
+   SubLangCode: '_SY';
+   SubLangID: SUBLANG_ARABIC_SYRIA; { Arabic (Syria) }
+   LangID: LANG_ARABIC),
+  (LangCode: 'AR';
+   SubLangCode: '_JO';
+   SubLangID: SUBLANG_ARABIC_JORDAN; { Arabic (Jordan) }
+   LangID: LANG_ARABIC),
+  (LangCode: 'AR';
+   SubLangCode: '_LB';
+   SubLangID: SUBLANG_ARABIC_LEBANON; { Arabic (Lebanon) }
+   LangID: LANG_ARABIC),
+  (LangCode: 'AR';
+   SubLangCode: '_KW';
+   SubLangID: SUBLANG_ARABIC_KUWAIT; { Arabic (Kuwait) }
+   LangID: LANG_ARABIC),
+  (LangCode: 'AR';
+   SubLangCode: '_AE';
+   SubLangID: SUBLANG_ARABIC_UAE; { Arabic (U.A.E) }
+   LangID: LANG_ARABIC),
+  (LangCode: 'AR';
+   SubLangCode: '_BH';
+   SubLangID: SUBLANG_ARABIC_BAHRAIN; { Arabic (Bahrain) }
+   LangID: LANG_ARABIC),
+  (LangCode: 'AR';
+   SubLangCode: '_QA';
+   SubLangID: SUBLANG_ARABIC_QATAR; { Arabic (Qatar) }
+   LangID: LANG_ARABIC),
+  (LangCode: 'BG';
+   SubLangCode: '_BG';
+   SubLangID: 0;
+   LangID: LANG_BULGARIAN),
+  (LangCode: 'CA';
+   SubLangCode: '_ES';
+   SubLangID: 0;
+   LangID: LANG_CATALAN),
+  (LangCode: 'ZH';
+   SubLangCode: '_TW';
+   SubLangID: SUBLANG_CHINESE_TRADITIONAL; { Chinese (Taiwan) }
+   LangID: LANG_CHINESE),
+  (LangCode: 'ZH';
+   SubLangCode: '_CN';
+   SubLangID: SUBLANG_CHINESE_SIMPLIFIED; { Chinese (PR China) }
+   LangID: LANG_CHINESE),
+  (LangCode: 'ZH';
+   SubLangCode: '_HK';
+   SubLangID: SUBLANG_CHINESE_HONGKONG; { Chinese (Hong Kong) }
+   LangID: LANG_CHINESE),
+  (LangCode: 'ZH';
+   SubLangCode: '_SG';
+   SubLangID: SUBLANG_CHINESE_SINGAPORE; { Chinese (Singapore) }
+   LangID: LANG_CHINESE),
+  (LangCode: 'CS';
+   SubLangCode: '_CZ';
+   SubLangID: 0;
+   LangID: LANG_CZECH),
+  (LangCode: 'DA';
+   SubLangCode: '_DK';
+   SubLangID: 0;
+   LangID: LANG_DANISH),
+  (LangCode: 'DE';
+   SubLangCode: '_DE';
+   SubLangID: SUBLANG_GERMAN; { German }
+   LangID: LANG_GERMAN),
+  (LangCode: 'DE';
+   SubLangCode: '_CH';
+   SubLangID: SUBLANG_GERMAN_SWISS; { German (Swiss) }
+   LangID: LANG_GERMAN),
+  (LangCode: 'DE';
+   SubLangCode: '_AT';
+   SubLangID: SUBLANG_GERMAN_AUSTRIAN; { German (Austrian) }
+   LangID: LANG_GERMAN),
+  (LangCode: 'DE';
+   SubLangCode: '_LU';
+   SubLangID: SUBLANG_GERMAN_LUXEMBOURG; { German (Luxembourg) }
+   LangID: LANG_GERMAN),
+  (LangCode: 'DE';
+   SubLangCode: '_LI';
+   SubLangID: SUBLANG_GERMAN_LIECHTENSTEIN; { German (Liechtenstein) }
+   LangID: LANG_GERMAN),
+  (LangCode: 'EL';
+   SubLangCode: '_GR';
+   SubLangID: 0;
+   LangID: LANG_GREEK),
+  (LangCode: 'EN';
+   SubLangCode: '_US';
+   SubLangID: SUBLANG_ENGLISH_US; { English (USA) }
+   LangID: LANG_ENGLISH),
+  (LangCode: 'EN';
+   SubLangCode: '_GB';
+   SubLangID: SUBLANG_ENGLISH_UK; { English (UK) }
+   LangID: LANG_ENGLISH),
+  (LangCode: 'EN';
+   SubLangCode: '_AU';
+   SubLangID: SUBLANG_ENGLISH_AUS; { English (Australian) }
+   LangID: LANG_ENGLISH),
+  (LangCode: 'EN';
+   SubLangCode: '_CA';
+   SubLangID: SUBLANG_ENGLISH_CAN; { English (Canadian) }
+   LangID: LANG_ENGLISH),
+  (LangCode: 'EN';
+   SubLangCode: '_NZ';
+   SubLangID: SUBLANG_ENGLISH_NZ; { English (New Zealand) }
+   LangID: LANG_ENGLISH),
+  (LangCode: 'EN';
+   SubLangCode: '_IE';
+   SubLangID: SUBLANG_ENGLISH_EIRE; { English (Irish) }
+   LangID: LANG_ENGLISH),
+  (LangCode: 'EN';
+   SubLangCode: '_ZA';
+   SubLangID: SUBLANG_ENGLISH_SOUTH_AFRICA; { English (South Africa) }
+   LangID: LANG_ENGLISH),
+  (LangCode: 'EN';
+   SubLangCode: '_JM';
+   SubLangID: SUBLANG_ENGLISH_JAMAICA; { English (Jamaica) }
+   LangID: LANG_ENGLISH),
+  (LangCode: 'EN_';
+   SubLangCode: '029';
+   SubLangID: SUBLANG_ENGLISH_CARIBBEAN; { English (Caribbean) }
+   LangID: LANG_ENGLISH),
+  (LangCode: 'EN';
+   SubLangCode: '_BZ';
+   SubLangID: SUBLANG_ENGLISH_BELIZE; { English (Belize) }
+   LangID: LANG_ENGLISH),
+  (LangCode: 'EN';
+   SubLangCode: '_TT';
+   SubLangID: SUBLANG_ENGLISH_TRINIDAD; { English (Trinidad) }
+   LangID: LANG_ENGLISH),
+  (LangCode: 'ES';
+   SubLangCode: '_ES';
+   SubLangID: SUBLANG_SPANISH; { Spanish (Castilian) }
+   LangID: LANG_SPANISH),
+  (LangCode: 'ES';
+   SubLangCode: '_MX';
+   SubLangID: SUBLANG_SPANISH_MEXICAN; { Spanish (Mexican) }
+   LangID: LANG_SPANISH),
+  (LangCode: 'ES';
+   SubLangCode: '_EM';
+   SubLangID: SUBLANG_SPANISH_MODERN; { Spanish (Modern) }
+   LangID: LANG_SPANISH),
+  (LangCode: 'ES';
+   SubLangCode: '_GT';
+   SubLangID: SUBLANG_SPANISH_GUATEMALA; { Spanish (Guatemala) }
+   LangID: LANG_SPANISH),
+  (LangCode: 'ES';
+   SubLangCode: '_CR';
+   SubLangID: SUBLANG_SPANISH_COSTA_RICA; { Spanish (Costa Rica) }
+   LangID: LANG_SPANISH),
+  (LangCode: 'ES';
+   SubLangCode: '_PA';
+   SubLangID: SUBLANG_SPANISH_PANAMA; { Spanish (Panama) }
+   LangID: LANG_SPANISH),
+  (LangCode: 'ES';
+   SubLangCode: '_DO';
+   SubLangID: SUBLANG_SPANISH_DOMINICAN_REPUBLIC; { Spanish (Dominican Republic) }
+   LangID: LANG_SPANISH),
+  (LangCode: 'ES';
+   SubLangCode: '_VE';
+   SubLangID: SUBLANG_SPANISH_VENEZUELA; { Spanish (Venezuela) }
+   LangID: LANG_SPANISH),
+  (LangCode: 'ES';
+   SubLangCode: '_CO';
+   SubLangID: SUBLANG_SPANISH_COLOMBIA; { Spanish (Colombia) }
+   LangID: LANG_SPANISH),
+  (LangCode: 'ES';
+   SubLangCode: '_PE';
+   SubLangID: SUBLANG_SPANISH_PERU; { Spanish (Peru) }
+   LangID: LANG_SPANISH),
+  (LangCode: 'ES';
+   SubLangCode: '_AR';
+   SubLangID: SUBLANG_SPANISH_ARGENTINA; { Spanish (Argentina) }
+   LangID: LANG_SPANISH),
+  (LangCode: 'ES';
+   SubLangCode: '_EC';
+   SubLangID: SUBLANG_SPANISH_ECUADOR; { Spanish (Ecuador) }
+   LangID: LANG_SPANISH),
+  (LangCode: 'ES';
+   SubLangCode: '_CL';
+   SubLangID: SUBLANG_SPANISH_CHILE; { Spanish (Chile) }
+   LangID: LANG_SPANISH),
+  (LangCode: 'ES';
+   SubLangCode: '_UY';
+   SubLangID: SUBLANG_SPANISH_URUGUAY; { Spanish (Uruguay) }
+   LangID: LANG_SPANISH),
+  (LangCode: 'ES';
+   SubLangCode: '_PY';
+   SubLangID: SUBLANG_SPANISH_PARAGUAY; { Spanish (Paraguay) }
+   LangID: LANG_SPANISH),
+  (LangCode: 'ES';
+   SubLangCode: '_BO';
+   SubLangID: SUBLANG_SPANISH_BOLIVIA; { Spanish (Bolivia) }
+   LangID: LANG_SPANISH),
+  (LangCode: 'ES';
+   SubLangCode: '_SV';
+   SubLangID: SUBLANG_SPANISH_EL_SALVADOR; { Spanish (El Salvador) }
+   LangID: LANG_SPANISH),
+  (LangCode: 'ES';
+   SubLangCode: '_HN';
+   SubLangID: SUBLANG_SPANISH_HONDURAS; { Spanish (Honduras) }
+   LangID: LANG_SPANISH),
+  (LangCode: 'ES';
+   SubLangCode: '_NI';
+   SubLangID: SUBLANG_SPANISH_NICARAGUA; { Spanish (Nicaragua) }
+   LangID: LANG_SPANISH),
+  (LangCode: 'ES';
+   SubLangCode: '_PR';
+   SubLangID: SUBLANG_SPANISH_PUERTO_RICO; { Spanish (Puerto Rico) }
+   LangID: LANG_SPANISH),
+  (LangCode: 'FI';
+   SubLangCode: '_FI';
+   SubLangID: 0;
+   LangID: LANG_FINNISH),
+  (LangCode: 'FR';
+   SubLangCode: '_FR';
+   SubLangID: SUBLANG_FRENCH; { French }
+   LangID: LANG_FRENCH),
+  (LangCode: 'FR';
+   SubLangCode: '_BE';
+   SubLangID: SUBLANG_FRENCH_BELGIAN; { French (Belgian) }
+   LangID: LANG_FRENCH),
+  (LangCode: 'FR';
+   SubLangCode: '_CA';
+   SubLangID: SUBLANG_FRENCH_CANADIAN; { French (Canadian) }
+   LangID: LANG_FRENCH),
+  (LangCode: 'FR';
+   SubLangCode: '_CH';
+   SubLangID: SUBLANG_FRENCH_SWISS; { French (Swiss) }
+   LangID: LANG_FRENCH),
+  (LangCode: 'FR';
+   SubLangCode: '_LU';
+   SubLangID: SUBLANG_FRENCH_LUXEMBOURG; { French (Luxembourg) }
+   LangID: LANG_FRENCH),
+  (LangCode: 'HE';
+   SubLangCode: '_IL';
+   SubLangID: 0;
+   LangID: LANG_HEBREW),
+  (LangCode: 'HU';
+   SubLangCode: '_HU';
+   SubLangID: 0;
+   LangID: LANG_HUNGARIAN),
+  (LangCode: 'IS';
+   SubLangCode: '_IS';
+   SubLangID: 0;
+   LangID: LANG_ICELANDIC),
+  (LangCode: 'IT';
+   SubLangCode: '_IT';
+   SubLangID: SUBLANG_ITALIAN; { Italian }
+   LangID: LANG_ITALIAN),
+  (LangCode: 'IT';
+   SubLangCode: '_CH';
+   SubLangID: SUBLANG_ITALIAN_SWISS; { Italian (Swiss) }
+   LangID: LANG_ITALIAN),
+  (LangCode: 'JA';
+   SubLangCode: '_JP';
+   SubLangID: 0;
+   LangID: LANG_JAPANESE),
+  (LangCode: 'KO';
+   SubLangCode: '_KR';
+   SubLangID: SUBLANG_KOREAN; { Korean (Extended Wansung) }
+   LangID: LANG_KOREAN),
+  (LangCode: 'KO';
+   SubLangCode: '_';
+   SubLangID: SUBLANG_KOREAN_JOHAB; { Korean (Johab) }
+   LangID: LANG_KOREAN),
+  (LangCode: 'NL';
+   SubLangCode: '_NL';
+   SubLangID: SUBLANG_DUTCH; { Dutch }
+   LangID: LANG_DUTCH),
+  (LangCode: 'NL';
+   SubLangCode: '_BE';
+   SubLangID: SUBLANG_DUTCH_BELGIAN; { Dutch (Belgian) }
+   LangID: LANG_DUTCH),
+  (LangCode: 'NB';
+   SubLangCode: '_NO';
+   SubLangID: SUBLANG_NORWEGIAN_BOKMAL; { Norwegian (Bokmal) }
+   LangID: LANG_NORWEGIAN),
+  (LangCode: 'NN';
+   SubLangCode: '_NO';
+   SubLangID: SUBLANG_NORWEGIAN_NYNORSK; { Norwegian (Nynorsk) }
+   LangID: LANG_NORWEGIAN),
+  (LangCode: 'PL';
+   SubLangCode: '_PL';
+   SubLangID: 0;
+   LangID: LANG_POLISH),
+  (LangCode: 'PT';
+   SubLangCode: '_PT';
+   SubLangID: SUBLANG_PORTUGUESE; { Portuguese }
+   LangID: LANG_PORTUGUESE),
+  (LangCode: 'PT';
+   SubLangCode: '_BR';
+   SubLangID: SUBLANG_PORTUGUESE_BRAZILIAN; { Portuguese (Brazilian) }
+   LangID: LANG_PORTUGUESE),
+  (LangCode: 'RO';
+   SubLangCode: '_RO';
+   SubLangID: 0;
+   LangID: LANG_ROMANIAN),
+  (LangCode: 'RU';
+   SubLangCode: '_RU';
+   SubLangID: 0;
+   LangID: LANG_RUSSIAN),
+  (LangCode: 'SR';
+   SubLangCode: '_RS';
+   SubLangID: SUBLANG_SERBIAN_LATIN; { Serbian (Latin) }
+   LangID: LANG_SERBIAN),
+  (LangCode: 'SR';
+   SubLangCode: '_RS';
+   SubLangID: SUBLANG_SERBIAN_CYRILLIC; { Serbian (Cyrillic) }
+   LangID: LANG_SERBIAN),
+  (LangCode: 'HR';
+   SubLangCode: '_HR';
+   SubLangID: 0;
+   LangID: LANG_CROATIAN),
+  (LangCode: 'SK';
+   SubLangCode: '_SK';
+   SubLangID: 0;
+   LangID: LANG_SLOVAK),
+  (LangCode: 'SQ';
+   SubLangCode: '_AL';
+   SubLangID: 0;
+   LangID: LANG_ALBANIAN),
+  (LangCode: 'SV';
+   SubLangCode: '_SE';
+   SubLangID: SUBLANG_SWEDISH; { Swedish }
+   LangID: LANG_SWEDISH),
+  (LangCode: 'SV';
+   SubLangCode: '_FI';
+   SubLangID: SUBLANG_SWEDISH_FINLAND; { Swedish (Finland) }
+   LangID: LANG_SWEDISH),
+  (LangCode: 'TH';
+   SubLangCode: '_TH';
+   SubLangID: 0;
+   LangID: LANG_THAI),
+  (LangCode: 'TR';
+   SubLangCode: '_TR';
+   SubLangID: 0;
+   LangID: LANG_TURKISH),
+  (LangCode: 'ID';
+   SubLangCode: '_ID';
+   SubLangID: 0;
+   LangID: LANG_INDONESIAN),
+  (LangCode: 'UK';
+   SubLangCode: '_UA';
+   SubLangID: 0;
+   LangID: LANG_UKRAINIAN),
+  (LangCode: 'BE';
+   SubLangCode: '_BY';
+   SubLangID: 0;
+   LangID: LANG_BELARUSIAN),
+  (LangCode: 'SL';
+   SubLangCode: '_SI';
+   SubLangID: 0;
+   LangID: LANG_SLOVENIAN),
+  (LangCode: 'ET';
+   SubLangCode: '_EE';
+   SubLangID: 0;
+   LangID: LANG_ESTONIAN),
+  (LangCode: 'LV';
+   SubLangCode: '_LV';
+   SubLangID: 0;
+   LangID: LANG_LATVIAN),
+  (LangCode: 'LT';
+   SubLangCode: '_LT';
+   SubLangID: 0;
+   LangID: LANG_LITHUANIAN),
+  (LangCode: 'FA';
+   SubLangCode: '_IR';
+   SubLangID: 0;
+   LangID: LANG_FARSI),
+  (LangCode: 'VI';
+   SubLangCode: '_VN';
+   SubLangID: 0;
+   LangID: LANG_VIETNAMESE),
+  (LangCode: 'EU';
+   SubLangCode: '_ES';
+   SubLangID: 0;
+   LangID: LANG_BASQUE),
+  (LangCode: 'AF';
+   SubLangCode: '_ZA';
+   SubLangID: 0;
+   LangID: LANG_AFRIKAANS),
+  (LangCode: 'FO';
+   SubLangCode: '_FO';
+   SubLangID: 0;
+   LangID: LANG_FAEROESE));
+
 const
   LastErr: cardinal = 0;
 
@@ -173,7 +627,7 @@ begin
   TQRecC (FLock.Offset).C1 := dwFileOffsetLow;
   TQRecC (FLock.Range).C2 := nNumberOfBytesToLockHigh;
   TQRecC (FLock.Range).C1 := nNumberOfBytesToLockLow;
-  RC := DosSetFileLocksL (hFile, FLock, FUnlock, 50, 0);
+  RC := DosSetFileLocksL (hFile, FUnlock, FLock, 50, 0);
   if RC <> 0 then
    begin
     LastErr := RC;
@@ -244,54 +698,160 @@ end;
 
 function MultiByteToWideChar(CodePage: DWORD; dwFlags: DWORD; const lpMultiByteStr: LPCSTR; cchMultiByte: Integer; lpWideCharStr: LPWSTR; cchWideChar: Integer): Integer;
 var
-  TempA: AnsiString;
-  TempW: WideString;
+  TempA: RawByteString;
+  TempW: UnicodeString;
 begin
-{$WARNING To be rewritten using the UnicodeStringManager functionality!}
-  TempA := String(lpMultiByteStr^);
+  TempA := String (lpMultiByteStr);
+  SetCodePage (TempA, CodePage, false);
   TempW := TempA;
   Result := Length(TempW);
-  System.Move(TempW, lpWideCharStr^, Result);
+  if cchWideChar <= Result then
+   begin
+    System.Move (TempW, lpWideCharStr^, Pred (cchWideChar) * SizeOf (WideChar));
+    lpWideCharStr [Pred (cchWideChar)] := #0;
+   end
+  else
+   begin
+    System.Move (TempW, lpWideCharStr^, Result * SizeOf (WideChar));
+    lpWideCharStr [Pred (Result)] := #0;
+   end;
 end;
 
 function WideCharToMultiByte(CodePage: DWORD; dwFlags: DWORD; lpWideCharStr: LPWSTR; cchWideChar: Integer; lpMultiByteStr: LPSTR; cchMultiByte: Integer; lpDefaultChar: LPCSTR; lpUsedDefaultChar: PBOOL): Integer;
 var
-  TempA: AnsiString;
-  TempW: WideString;
+  TempA: RawByteString;
+  TempW: UnicodeString;
 begin
-{$WARNING To be rewritten using the UnicodeStringManager functionality!}
-  TempW := WideString(lpWideCharStr^);
+  SetLength (TempW, cchWideChar);
+  System.Move (lpWideCharStr^, TempW, cchWideChar * SizeOf (WideChar));
+  TempA := '';
+  SetCodePage (TempA, CodePage, false);
   TempA := TempW;
-  Result := Length(TempA);
-  System.Move(TempA, lpMultiByteStr^, Result);
+  Result := Length (TempA);
+  if Result >= cchMultiByte then
+   begin
+    System.Move (TempA, lpMultiByteStr^, Pred (cchMultiByte));
+    lpMultiByteStr [Pred (cchMultiByte)] := #0;
+   end
+  else
+   begin
+    System.Move (TempA, lpMultiByteStr^, Result);
+    lpMultiByteStr [Pred (Result)] := #0;
+   end;
 end;
 
 function CompareString(Locale: LCID; dwCmpFlags: DWORD; lpString1: PChar; cchCount1: Integer; lpString2: PChar; cchCount2: Integer): Integer;
 begin
-{$WARNING To be rewritten using the UnicodeStringManager functionality!}
+{$WARNING To be rewritten using the UnicodeStringManager and LIBUNI.DLL functionality!}
   Result := StrLComp(lpString1, lpString2, cchCount1) + 2;
   if Result > 2 then Result := 3;
   if Result < 2 then Result := 1;
 end;
 
 function EnumSystemCodePages(lpCodePageEnumProc: TFNCodepageEnumProc; dwFlags: DWORD): BOOL;
+
+type
+  TCodePagesProc = function (CodePageString: PChar): Cardinal; stdcall;
+
+var
+  CP: word;
+  CP2: TSystemCodepage;
+  S: AnsiString;
+  CPProc: TCodePagesProc;
+
+ function TestCPNum: boolean;
+ var
+  UConvObj: TUConvObject;
+ begin
+  CP2 := OS2CPToRtlCP (CP, 0, UConvObj);
+  if UConvObj <> nil then
+   begin
+    Str (CP2, S);
+    TestCPNum := true;
+   end
+  else
+   TestCPNum := false;
+ end;
+
 begin
-{$WARNING To be rewritten using the LIBUNI.DLL functionality!}
+  CPProc := TCodePagesProc (lpCodepageEnumProc);
+  if not (UniAPI) then
+   begin
+    Str (DefaultSystemCodepage, S);
+    CPProc (PChar (S));
+   end
+  else
+   begin
+    for CP := 1 to 1386 do
+(* Skip higher numbers which are not supported under OS/2 anyway *)
+(* and testing them would take considerable amount of time.      *)
+     if TestCPNum then
+      CPProc (PChar (S));
+    CP := 4946;
+    if TestCPNum then
+(* This one might be recognized... *)
+     CPProc (PChar (S));
+    CP := 28709;
+    if TestCPNum then
+(* ...and this one as well. *)
+     CPProc (PChar (S));
+   end;
   Result := True;
 end;
 
 function EnumSystemLocales(lpLocaleEnumProc: TFNLocaleEnumProc; dwFlags: DWORD): BOOL;
+type
+  TLocaleProc = function (LocaleString: PChar): Integer; stdcall;
+var
+  S: AnsiString;
+  Loc: PtrInt;
+  LocObj: TLocaleObject;
 begin
-{$WARNING To be rewritten using the LIBUNI.DLL functionality!}
-(* http://compgroups.net/comp.os.os2.programmer.misc/how-to-obtain-current-locale-lang/2524034 *)
+  if UniAPI then
+   begin
+    for Loc := MinRealLocale to High (LocaleMap) do
+     begin
+      S := LocaleMap [Loc].LangCode + LocaleMap [Loc].SubLangCode;
+      if Sys_UniCreateLocaleObject (2, PChar (S), LocObj) = 0 then
+       begin
+        S := HexStr (Pointer (PtrUInt (LocaleMap [Loc].LCID)));
+        TLocaleProc (lpLocaleEnumProc) (PChar (S));
+        Sys_UniFreeLocaleObject (LocObj);
+       end;
+     end;
+   end
+  else
+   begin
+    Str (GetUserDefaultLCID, S);
+    TLocaleProc (lpLocaleEnumProc) (PChar (S));
+   end;
   Result := True;
 end;
 
 function GetUserDefaultLCID: LCID;
+var
+  Loc: PtrInt;
+  Lang: AnsiString;
+  Res2: word;
 begin
-{$WARNING To be rewritten using the LIBUNI.DLL functionality!}
-(* http://compgroups.net/comp.os.os2.programmer.misc/how-to-obtain-current-locale-lang/2524034 *)
-  Result := LANG_ENGLISH or (SUBLANG_ENGLISH_UK shl 10);
+  Result := 0;
+  Lang := UpCase (GetEnvironmentVariable ('LANG'));
+  if Lang <> '' then
+   begin
+    Res2 := 0;
+    for Loc := MinRealLocale to High (LocaleMap) do
+     begin
+      if Lang = LocaleMap [Loc].LangCode + LocaleMap [Loc].SubLangCode then
+       Result := LocaleMap [Loc].LCID
+      else
+       if (Res2 = 0) and (Lang = LocaleMap [Loc].LangCode) then
+        Res2 := LocaleMap [Loc].LangID;
+     end;
+    if (Result = 0) and (Res2 <> 0) then
+     Result := Res2;
+   end;
+  if Result = 0 then
+   Result := LANG_ENGLISH or (SUBLANG_ENGLISH_US shl 10);
 end;
 
 function GetLastError: Integer;
