@@ -898,6 +898,7 @@ begin
         RCI := Sys_UniFreeUConvObject (TempCpRec.UConvObj);
         if RCI <> 0 then
          OSErrorWatch (cardinal (RCI));
+        TempCpRec.UConvObj := nil;
        end;
       if UConvObjectForCP (CP, UConvObj) = Uls_Success then
        begin
