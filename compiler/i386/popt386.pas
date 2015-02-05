@@ -79,6 +79,35 @@ begin
 end;
 
 
+function IsExitCode(p : tai) : boolean;
+  var
+    hp2,hp3 : tai;
+  begin
+    result:=(p.typ=ait_instruction) and
+    ((taicpu(p).opcode = A_RET) or
+     ((taicpu(p).opcode=A_LEAVE) and
+      GetNextInstruction(p,hp2) and
+      (hp2.typ=ait_instruction) and
+      (taicpu(hp2).opcode=A_RET)
+     ) or
+     ((taicpu(p).opcode=A_MOV) and
+      (taicpu(p).oper[0]^.typ=top_reg) and
+      (taicpu(p).oper[0]^.reg=NR_EBP) and
+      (taicpu(p).oper[1]^.typ=top_reg) and
+      (taicpu(p).oper[1]^.reg=NR_ESP) and
+      GetNextInstruction(p,hp2) and
+      (hp2.typ=ait_instruction) and
+      (taicpu(hp2).opcode=A_POP) and
+      (taicpu(hp2).oper[0]^.typ=top_reg) and
+      (taicpu(hp2).oper[0]^.reg=NR_EBP) and
+      GetNextInstruction(hp2,hp3) and
+      (hp3.typ=ait_instruction) and
+      (taicpu(hp3).opcode=A_RET)
+     )
+    );
+  end;
+
+
 function doFpuLoadStoreOpt(asmL: TAsmList; var p: tai): boolean;
 { returns true if a "continue" should be done after this optimization }
 var hp1, hp2: tai;
@@ -99,8 +128,7 @@ begin
       if (taicpu(p).opsize=S_FX) and
          getNextInstruction(hp1, hp2) and
          (hp2.typ = ait_instruction) and
-         ((taicpu(hp2).opcode = A_LEAVE) or
-          (taicpu(hp2).opcode = A_RET)) and
+         IsExitCode(hp2) and
          (taicpu(p).oper[0]^.ref^.base = current_procinfo.FramePointer) and
          not(assigned(current_procinfo.procdef.funcretsym) and
              (taicpu(p).oper[0]^.ref^.offset < tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset)) and
@@ -516,7 +544,6 @@ function MatchReference(const ref : treference;base,index : TRegister) : Boolean
      ((index=NR_INVALID) or
       (ref.index=index));
   end;
-
 
 { First pass of peephole optimizations }
 procedure PeepHoleOptPass1(Asml: TAsmList; BlockStart, BlockEnd: tai);
@@ -1214,8 +1241,7 @@ begin
                     result)}
                           if GetNextInstruction(p, hp1) and
                              (tai(hp1).typ = ait_instruction) then
-                            if ((taicpu(hp1).opcode = A_LEAVE) or
-                                (taicpu(hp1).opcode = A_RET)) and
+                            if IsExitCode(hp1) and
                                (taicpu(p).oper[1]^.typ = top_ref) and
                                (taicpu(p).oper[1]^.ref^.base = current_procinfo.FramePointer) and
                                not(assigned(current_procinfo.procdef.funcretsym) and
@@ -1873,9 +1899,7 @@ begin
                       if (taicpu(p).oper[0]^.typ = top_ref) and
                          GetNextInstruction(p, hp1) and
                          GetNextInstruction(hp1, hp2) and
-                         (hp2.typ = ait_instruction) and
-                         ((taicpu(hp2).opcode = A_LEAVE) or
-                          (taicpu(hp2).opcode = A_RET)) and
+                         IsExitCode(hp2) and
                          (taicpu(p).oper[0]^.ref^.base = current_procinfo.FramePointer) and
                          (taicpu(p).oper[0]^.ref^.index = NR_NO) and
                          not(assigned(current_procinfo.procdef.funcretsym) and

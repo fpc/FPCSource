@@ -343,7 +343,7 @@ unit cgcpu;
               begin
                 if (not paramanager.use_fixed_stack) then
                   internal_restore_regs(list,not (pi_has_stack_allocs in current_procinfo.flags));
-                list.concat(Taicpu.op_none(A_LEAVE,S_NO));
+                generate_leave(list);
               end;
             list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
           end;

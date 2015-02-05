@@ -128,6 +128,8 @@ unit cgx86;
         procedure g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string); override;
 
         procedure make_simple_ref(list:TAsmList;var ref: treference);
+
+        procedure generate_leave(list : TAsmList);
       protected
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
         procedure check_register_size(size:tcgsize;reg:tregister);
@@ -175,6 +177,9 @@ unit cgx86;
 
     function UseIncDec: boolean;
 
+    { returns true, if the compiler should use leave instead of mov/pop }
+    function UseLeave: boolean;
+
   implementation
 
     uses
@@ -202,6 +207,18 @@ unit cgx86;
 {$endif}
       end;
 
+
+    function UseLeave: boolean;
+      begin
+{$if defined(x86_64)}
+        { Modern processors should be happy with mov;pop, maybe except older AMDs }
+        Result:=cs_opt_size in current_settings.optimizerswitches;
+{$elseif defined(i386)}
+        Result:=(cs_opt_size in current_settings.optimizerswitches) or (current_settings.optimizecputype<cpu_Pentium2);
+{$elseif defined(i8086)}
+        Result:=current_settings.cputype>=cpu_186;
+{$endif}
+      end;
 
     const
       TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_MOV,A_ADD,A_AND,A_DIV,
@@ -2999,6 +3016,26 @@ unit cgx86;
       end;
 
 
+    procedure tcgx86.generate_leave(list: TAsmList);
+      begin
+        if UseLeave then
+          list.concat(taicpu.op_none(A_LEAVE,S_NO))
+        else
+          begin
+{$if defined(x86_64)}
+            list.Concat(taicpu.op_reg_reg(A_MOV,S_Q,NR_RBP,NR_RSP));
+            list.Concat(taicpu.op_reg(A_POP,S_Q,NR_RBP));
+{$elseif defined(i386)}
+            list.Concat(taicpu.op_reg_reg(A_MOV,S_L,NR_EBP,NR_ESP));
+            list.Concat(taicpu.op_reg(A_POP,S_L,NR_EBP));
+{$elseif defined(i8086)}
+            list.Concat(taicpu.op_reg_reg(A_MOV,S_W,NR_BP,NR_SP));
+            list.Concat(taicpu.op_reg(A_POP,S_W,NR_BP));
+{$endif}
+          end;
+      end;
+
+
     { produces if necessary overflowcode }
     procedure tcgx86.g_overflowcheck(list: TAsmList; const l:tlocation;def:tdef);
       var
@@ -3024,6 +3061,7 @@ unit cgx86;
          a_call_name(list,'FPC_OVERFLOW',false);
          a_label(list,hl);
       end;
+
 
     procedure tcgx86.g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string);
       var

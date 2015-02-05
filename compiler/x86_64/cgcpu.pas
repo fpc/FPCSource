@@ -398,7 +398,7 @@ unit cgcpu;
                 list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],current_procinfo.framepointer));
               end
             else
-              list.concat(Taicpu.op_none(A_LEAVE,S_NO));
+              generate_leave(list);
             list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
           end;
 
