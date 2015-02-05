@@ -150,6 +150,7 @@ const
   Uni_System_Locales = 1;
   Uni_User_Locales = 2;
   WNull: WideChar = #0;
+  WUniv: array [0..4] of WideChar = 'UNIV'#0;
 
 
 
@@ -186,7 +187,7 @@ const
   EmptyCC: TCountryCode = (Country: 0; Codepage: 0); (* Empty = current *)
   (* 819 = IBM codepage number for ISO 8859-1 used in FPC default *)
   (* dummy translation between UnicodeString and AnsiString.      *)
-  IsoCC: TCountryCode = (Country: 1; Codepage: 819); (* Empty = current *)
+  IsoCC: TCountryCode = (Country: 1; Codepage: 819); (* US with ISO 8859-1 *)
   (* The following two arrays are initialized on startup in case that *)
   (* Dummy* routines must be used. First for current codepage...      *)
   DBCSLeadRangesEnd: byte = 0;
@@ -447,7 +448,7 @@ begin
     Dec (SrcLen);
     Inc (InBuf, SrcLen);
     Dec (InBytesLeft, SrcLen);
-    DummyUniUConvToUcs := Uls_BufferFull; { According to IBM documentation Uls_Invalid and not Uls_BufferFull as returned by UniUConvFromUcs?! }
+    DummyUniUConvToUcs := Uls_BufferFull; { According to IBM documentation Uls_Invalid and not Uls_BufferFull is returned by UniUConvFromUcs?! }
    end
   else
    begin
@@ -458,6 +459,19 @@ begin
   Move (Dest [1], UcsBuf^, Length (Dest) * 2);
   Inc (UcsBuf, Length (Dest)); { Shall it be increased in case of success too??? }
   Dec (UniCharsLeft, Length (Dest));
+end;
+
+
+function DummyUniMapCtryToLocale (CountryCode: cardinal; LocaleName: PWideChar;
+                                             BufSize: longint): longint; cdecl;
+begin
+  if BufSize = 0 then
+   DummyUniMapCtryToLocale := Uls_Invalid
+  else
+   begin
+    LocaleName^ := #0;
+    DummyUniMapCtryToLocale := Uls_Unsupported;
+   end;
 end;
 
 
@@ -702,6 +716,8 @@ var
   RC: cardinal;
   CPArr: TCPArray;
   ReturnedSize: cardinal;
+  WA: array [0..9] of WideChar; (* Even just 6 WideChars should be enough *)
+  CI: TCountryInfo;
 begin
   if InInitDefaultCP <> -1 then
    begin
@@ -748,11 +764,52 @@ begin
     RCI := Sys_UniFreeLocaleObject (DefLocObj);
     if RCI <> 0 then
      OSErrorWatch (cardinal (RCI));
+    DefLocObj := nil;
    end;
-  RCI := Sys_UniCreateLocaleObject (Uni_UCS_String_Pointer, @WNull, DefLocObj);
-  if RCI <> 0 then
-   OSErrorWatch (cardinal (RCI));
-  if not (UniAPI) then
+  if UniAPI then (* Do not bother with the locale object otherwise *)
+   begin
+    RCI := Sys_UniCreateLocaleObject (Uni_UCS_String_Pointer, @WNull, DefLocObj);
+    if RCI <> 0 then
+     begin
+      OSErrorWatch (cardinal (RCI));
+      DefLocObj := nil;
+(* The locale dependent routines like comparison require a valid locale *)
+(* setting, but the locale set using environment variable LANG is not *)
+(* recognized by OS/2 -> let's try to derive the locale from country *)
+      RC := DosQueryCtryInfo (SizeOf (CI), EmptyCC, CI, ReturnedSize);
+      if RC = 0 then
+       begin
+        RCI := Sys_UniMapCtryToLocale (CI.Country, @WA [0],
+                                            SizeOf (WA) div SizeOf (WideChar));
+        if RCI = 0 then
+         begin
+          RCI := Sys_UniCreateLocaleObject (Uni_UCS_String_Pointer, @WA [0],
+                                                                    DefLocObj);
+          if RCI <> 0 then
+           begin
+            OSErrorWatch (cardinal (RCI));
+            DefLocObj := nil;
+           end;
+         end
+        else
+         OSErrorWatch (cardinal (RCI));
+       end
+      else
+       OSErrorWatch (RC);
+      if DefLocObj = nil then
+(* Still no success -> let's use the "Universal" locale as a fallback. *)
+       begin
+        RCI := Sys_UniCreateLocaleObject (Uni_UCS_String_Pointer, @WUniv [0],
+                                                                    DefLocObj);
+        if RCI <> 0 then
+         begin
+          OSErrorWatch (cardinal (RCI));
+          DefLocObj := nil;
+         end;
+       end;
+     end;
+   end
+  else (* not UniAPI *)
    ReInitDummyAnsiSupport;
   InInitDefaultCP := -1;
 end;
@@ -841,6 +898,7 @@ begin
         RCI := Sys_UniFreeUConvObject (TempCpRec.UConvObj);
         if RCI <> 0 then
          OSErrorWatch (cardinal (RCI));
+        TempCpRec.UConvObj := nil;
        end;
       if UConvObjectForCP (CP, UConvObj) = Uls_Success then
        begin
@@ -1164,8 +1222,9 @@ var
   I: cardinal;
 begin
   SetLength (Result, Length (S));
-  for I := 0 to Pred (Length (S)) do
-   PWideChar (Result) [I] := Sys_UniToUpper (S [Succ (I)]);
+  if Length (S) > 0 then
+   for I := 0 to Pred (Length (S)) do
+    PWideChar (Result) [I] := Sys_UniToUpper (S [Succ (I)]);
 end;
 
 
@@ -1174,8 +1233,9 @@ var
   I: cardinal;
 begin
   SetLength (Result, Length (S));
-  for I := 0 to Pred (Length (S)) do
-   PWideChar (Result) [I] := Sys_UniToLower (S [Succ (I)]);
+  if Length (S) > 0 then
+   for I := 0 to Pred (Length (S)) do
+    PWideChar (Result) [I] := Sys_UniToLower (S [Succ (I)]);
 end;
 
 
@@ -1185,9 +1245,10 @@ var
 begin
   Result := S;
   UniqueString (Result);
-  for I := 1 to Length (S) do
-   if Result [I] = WNull then
-    Result [I] := ' ';
+  if Length (S) > 0 then
+   for I := 1 to Length (S) do
+    if Result [I] = WNull then
+     Result [I] := ' ';
 end;
 
 
@@ -1589,8 +1650,14 @@ begin
                         if RC = 0 then
                          begin
                           Sys_UniFreeLocaleObject := TUniFreeLocaleObject (P);
+                          RC := DosQueryProcAddr (LibUniHandle,
+                                                OrdUniMapCtryToLocale, nil, P);
+                          if RC = 0 then
+                           begin
+                            Sys_UniMapCtryToLocale := TUniMapCtryToLocale (P);
 
-                          UniAPI := true;
+                            UniAPI := true;
+                           end;
                          end;
                        end;
                      end;
@@ -1617,6 +1684,7 @@ begin
     Sys_UniStrColl := @DummyUniStrColl;
     Sys_UniCreateLocaleObject := @DummyUniCreateLocaleObject;
     Sys_UniFreeLocaleObject := @DummyUniFreeLocaleObject;
+    Sys_UniMapCtryToLocale := @DummyUniMapCtryToLocale;
     InitDummyAnsiSupport;
    end;
 

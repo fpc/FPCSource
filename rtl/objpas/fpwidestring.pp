@@ -785,18 +785,26 @@ begin
   DefaultUnicodeCodePage:=CP_UTF16;
 {$ifdef MSWINDOWS}
   DefaultSystemCodePage:=GetACP();
-{$endif MSWINDOWS}
-{$ifdef UNIX}
+{$ELSE MSWINDOWS}
+ {$ifdef UNIX}
   DefaultSystemCodePage:=GetSystemCodepage;
   if (DefaultSystemCodePage = CP_NONE) then
     DefaultSystemCodePage:=CP_UTF8;
-{$ifdef FPCRTL_FILESYSTEM_UTF8}
+  {$ifdef FPCRTL_FILESYSTEM_UTF8}
   DefaultFileSystemCodePage:=CP_UTF8;
-{$else}
+  {$else}
   DefaultFileSystemCodePage:=DefaultSystemCodepage;
-{$endif}
+  {$endif}
   DefaultRTLFileSystemCodePage:=DefaultFileSystemCodePage;
-{$endif UNIX}
+ {$ELSE UNIX}
+  if Assigned (WideStringManager.GetStandardCodePageProc) then
+   DefaultSystemCodePage := WideStringManager.GetStandardCodePageProc (scpAnsi)
+  else
+   DefaultSystemCodePage := CP_NONE;
+  DefaultFileSystemCodePage := DefaultSystemCodePage;
+  DefaultRTLFileSystemCodePage := DefaultSystemCodePage;
+ {$endif UNIX}
+{$endif MSWINDOWS}
 end;
 
 

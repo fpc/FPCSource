@@ -200,6 +200,9 @@ type
   TUniFreeLocaleObject = function (Locale_Object: TLocaleObject): longint;
                                                                          cdecl;
 
+  TUniMapCtryToLocale = function (CountryCode: cardinal; LocaleName: PWideChar;
+                                             BufSize: longint): longint; cdecl;
+
 
 const
   DosCallsHandle: THandle = THandle (-1);
@@ -224,6 +227,7 @@ var
   Sys_UniStrColl: TUniStrColl;
   Sys_UniCreateLocaleObject: TUniCreateLocaleObject;
   Sys_UniFreeLocaleObject: TUniFreeLocaleObject;
+  Sys_UniMapCtryToLocale: TUniMapCtryToLocale;
 
 {$ENDIF OS2UNICODE}
 
