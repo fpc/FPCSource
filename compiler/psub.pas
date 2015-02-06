@@ -1346,11 +1346,14 @@ implementation
                 begin
                   if DFASetIn(GetUserCode.optinfo^.life,i) then
                     begin
-                      { do not warn about parameters passed by var }
+                      { do not warn for certain parameters: }
                       if not((tnode(dfabuilder.nodemap[i]).nodetype=loadn) and (tloadnode(dfabuilder.nodemap[i]).symtableentry.typ=paravarsym) and
-                        (tparavarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry).varspez=vs_var) and
+                        { do not warn about parameters passed by var }
+                        (((tparavarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry).varspez=vs_var) and
                         { function result is passed by var but it must be initialized }
-                        not(vo_is_funcret in tparavarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry).varoptions)) then
+                        not(vo_is_funcret in tparavarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry).varoptions)) or
+                        { do not warn about initialized hidden parameters }
+                        ((tparavarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry).varoptions*[vo_is_high_para,vo_is_parentfp,vo_is_result,vo_is_self])<>[]))) then
                         CheckAndWarn(GetUserCode,tnode(dfabuilder.nodemap[i]));
                     end
                   else
