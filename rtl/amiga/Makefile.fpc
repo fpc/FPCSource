@@ -117,7 +117,7 @@ iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
 
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
                $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) dos.pp
+	$(COMPILER) $(AMIINC)/dos.pp
 
 #crt$(PPUEXT) : crt.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
 
