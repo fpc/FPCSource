@@ -2255,12 +2255,16 @@ begin
       Dest.vType := varString;
       Dest.vString := nil;
       AnsiString(Dest.vString) := AnsiString(vString);
+    end else if vType = varOleStr then begin
+      Dest.vType := varOleStr;
+      Dest.vOleStr := nil;
+      WideString(Pointer(Dest.vOleStr)) := WideString(Pointer(vOleStr));
     end else if vType = varAny then begin
       Dest := Source;
       RefAnyProc(Dest);
     end else if vType and varArray <> 0 then
       DoVarCopyArray(Dest, Source, @DoVarCopy)
-    else if (vType and varByRef <> 0) and (vType xor varByRef = varString) then
+    else if (vType and varByRef <> 0) and ((vType xor varByRef) in [varString,varOleStr]) then
       Dest := Source
     else if FindCustomVariantType(vType, Handler) then
       Handler.Copy(Dest, Source, False)
