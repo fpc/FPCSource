@@ -2283,7 +2283,8 @@ unit cgx86;
         REGCX=NR_CX;
         REGSI=NR_SI;
         REGDI=NR_DI;
-        copy_len_sizes = [1, 2];
+        copy_len_sizes = [1, 2, 4]; { 4 is included here, because it's still more
+          efficient to use copy_move instead of copy_string for copying 4 bytes }
         push_segment_size = S_W;
 {$endif}
 
