@@ -173,6 +173,11 @@ interface
                   if i in o.addrregset^ then
                    hs:=hs+gas_regname(newreg(R_ADDRESSREGISTER,i,R_SUBWHOLE))+'/';
                 end;
+              for i:=RS_FP0 to RS_FP7 do
+                begin
+                  if i in o.fpuregset^ then
+                   hs:=hs+gas_regname(newreg(R_FPUREGISTER,i,R_SUBWHOLE))+'/';
+                end;
               delete(hs,length(hs),1);
               getopstr := hs;
             end;

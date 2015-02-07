@@ -54,7 +54,7 @@ type
       OPR_LOCAL     : (localvarsize, localconstoffset: asizeint;localsym:tabstractnormalvarsym;localsymofs:aint;localindexreg:tregister;localscale:byte;localgetoffset,localforceref:boolean);
       OPR_REGISTER  : (reg:tregister);
 {$ifdef m68k}
-      OPR_REGSET   : (regsetdata,regsetaddr : tcpuregisterset);
+      OPR_REGSET   : (regsetdata,regsetaddr,regsetfpu : tcpuregisterset);
 {$endif m68k}
 {$ifdef powerpc}
       OPR_COND      : (cond : tasmcond);
@@ -1057,7 +1057,7 @@ end;
                 ai.loadref(i-1,ref);
 {$ifdef m68k}
               OPR_REGSET:
-                ai.loadregset(i-1,regsetdata,regsetaddr);
+                ai.loadregset(i-1,regsetdata,regsetaddr,regsetfpu);
 {$endif}
 {$ifdef ARM}
               OPR_REGSET:
