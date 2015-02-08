@@ -58,6 +58,7 @@ unit cgcpu;
         procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister); override;
         procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); override;
         procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); override;
+        procedure a_loadfpu_reg_cgpara(list : TAsmList; size : tcgsize;const reg : tregister;const cgpara : TCGPara); override;
         procedure a_loadfpu_ref_cgpara(list : TAsmList; size : tcgsize;const ref : treference;const cgpara : TCGPara);override;
 
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tcgsize; a: tcgint; reg: TRegister); override;
@@ -1007,8 +1008,28 @@ unit cgcpu;
         list.concat(taicpu.op_reg_ref(A_FMOVE,opsize,reg,href));
       end;
 
+    procedure tcg68k.a_loadfpu_reg_cgpara(list : TAsmList;size : tcgsize;const reg : tregister;const cgpara : tcgpara);
+      var
+        ref : treference;
+      begin
+        if use_push(cgpara) and (current_settings.fputype in [fpu_68881]) then
+          begin
+            cgpara.check_simple_location;
+            { FIXME: 68k cg really needs to support 2 byte stack alignment, otherwise the "Extended"
+              floating point type cannot work (KB) }
+            reference_reset_base(ref, NR_STACK_POINTER_REG, 0, cgpara.alignment);
+            ref.direction := dir_dec;
+            list.concat(taicpu.op_reg_ref(A_FMOVE,tcgsize2opsize[cgpara.location^.size],reg,ref));
+          end
+        else
+          inherited a_loadfpu_reg_cgpara(list,size,reg,cgpara);
+      end;
 
     procedure tcg68k.a_loadfpu_ref_cgpara(list : TAsmList; size : tcgsize;const ref : treference;const cgpara : TCGPara);
+      var
+        href : treference;
+        fref : treference;
+        freg : tregister;
       begin
         if current_settings.fputype = fpu_soft then
           case cgpara.location^.loc of
@@ -1027,7 +1048,22 @@ unit cgcpu;
               inherited a_loadfpu_ref_cgpara(list,size,ref,cgpara);
           end
         else
-          inherited a_loadfpu_ref_cgpara(list,size,ref,cgpara);
+          if use_push(cgpara) and (current_settings.fputype in [fpu_68881]) then
+            begin
+              fref:=ref;
+              fixref(list,fref);
+              { fmove can't do <ea> -> <ea>, so move it to an fpreg first }
+              freg:=getfpuregister(list,size);
+              a_loadfpu_ref_reg(list,size,size,fref,freg);
+              reference_reset_base(href, NR_STACK_POINTER_REG, 0, cgpara.alignment);
+              href.direction := dir_dec;
+              list.concat(taicpu.op_reg_ref(A_FMOVE,tcgsize2opsize[cgpara.location^.size],freg,href));
+            end
+          else
+            begin
+              //list.concat(tai_comment.create(strpnew('a_loadfpu_ref_cgpara inherited')));
+              inherited a_loadfpu_ref_cgpara(list,size,ref,cgpara);
+            end;
       end;
 
 
