@@ -117,19 +117,16 @@ implementation
 
 {$ifdef x86_64}
 const
-  new_gnu_emul = '-m elf_x86_64_sol2';
-  old_gnu_emul = '-m elf_x86_64';
+  gnu_emul = '-m elf_x86_64_sol2';
 {$endif}
 {$ifdef i386}
 const
-  new_gnu_emul = '-m elf_i386_sol2';
-  old_gnu_emul = '-m elf_i386';
+  gnu_emul = '-m elf_i386_sol2';
 {$endif }
 {$ifdef sparc}
 const
   { no emulation specification needed, as long as only 32-bit is supported }
-  new_gnu_emul = '';
-  old_gnu_emul = '';
+  gnu_emul = '';
 {$endif}
 
 Constructor TLinkersolaris.Create;
@@ -540,7 +537,7 @@ begin
   if use_gnu_ld then
     begin
       Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
-      Replace(cmdstr,'$EMUL',new_gnu_emul);
+      Replace(cmdstr,'$EMUL',gnu_emul);
     end
   else
     begin
@@ -561,32 +558,8 @@ begin
   if BinStr[1]<>'/' then
     BinStr:=FindUtil(utilsprefix+BinStr);
 
-  if (cs_link_nolink in current_settings.globalswitches) then
-    begin
-      AsmRes.Add('echo Linking '+ScriptFixFileName(current_module.exefilename));
-      AsmRes.Add('OFS=$IFS');
-      AsmRes.Add('IFS="');
-      AsmRes.Add('"');
-      AsmRes.Add(maybequoted(BinStr)+' '+Trim(cmdstr));
-      AsmRes.Add('if [ $? != 0 ] ; then');
-      AsmRes.Add('echo "Retrying with old emulation"');
-      Replace(cmdstr,new_gnu_emul,old_gnu_emul);
-      AsmRes.Add(maybequoted(BinStr)+' '+Trim(cmdstr));
-      AsmRes.Add('fi');
-      AsmRes.Add('if [ $? != 0 ]; then DoExitLink '+ScriptFixFileName(current_module.exefilename)+'; fi');
-      AsmRes.Add('IFS=$OFS');
-    end
-  else
-    begin
-      { We need shell if output is redirected }
-      success:=DoExec(BinStr,Trim(CmdStr),true,RedirectStr<>'');
-      { Try old emulation name if new failed }
-      if use_gnu_ld and (not success) and (new_gnu_emul <> '') then
-        begin
-         Replace(cmdstr,new_gnu_emul,old_gnu_emul);
-         success:=DoExec(BinStr,Trim(CmdStr),true,RedirectStr<>'');
-        end;
-    end;
+  { We need shell if output is redirected }
+  success:=DoExec(BinStr,Trim(CmdStr),true,RedirectStr<>'');
 { Remove ReponseFile }
 {$IFNDEF LinkTest}
   if (success) and use_gnu_ld and
@@ -673,7 +646,7 @@ begin
   if use_gnu_ld then
     begin
       Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
-      Replace(cmdstr,'$EMUL',new_gnu_emul);
+      Replace(cmdstr,'$EMUL',gnu_emul);
     end
   else
     begin
@@ -692,32 +665,8 @@ begin
   Replace(cmdstr,'$MAP',MapStr);
   if BinStr[1]<>'/' then
     BinStr:=FindUtil(utilsprefix+BinStr);
-  if (cs_link_nolink in current_settings.globalswitches) then
-    begin
-      AsmRes.Add('echo Linking '+ScriptFixFileName(current_module.exefilename));
-      AsmRes.Add('OFS=$IFS');
-      AsmRes.Add('IFS="');
-      AsmRes.Add('"');
-      AsmRes.Add(maybequoted(BinStr)+' '+Trim(cmdstr));
-      AsmRes.Add('if [ $? != 0 ] ; then');
-      AsmRes.Add('echo "Retrying with old emulation"');
-      Replace(cmdstr,new_gnu_emul,old_gnu_emul);
-      AsmRes.Add(maybequoted(BinStr)+' '+Trim(cmdstr));
-      AsmRes.Add('fi');
-      AsmRes.Add('if [ $? != 0 ]; then DoExitLink '+ScriptFixFileName(current_module.exefilename)+'; fi');
-      AsmRes.Add('IFS=$OFS');
-    end
-  else
-    begin
-      { We need shell if output is redirected }
-      success:=DoExec(BinStr,Trim(CmdStr),true,RedirectStr<>'');
-      { Try old emulation name if new failed }
-      if use_gnu_ld and (not success) and (new_gnu_emul <> '') then
-        begin
-         Replace(cmdstr,new_gnu_emul,old_gnu_emul);
-         success:=DoExec(BinStr,Trim(CmdStr),true,RedirectStr<>'');
-        end;
-    end;
+  { We need shell if output is redirected }
+  success:=DoExec(BinStr,Trim(CmdStr),true,RedirectStr<>'');
 { Strip the library ? }
   if success and (cs_link_strip in current_settings.globalswitches) then
    begin
