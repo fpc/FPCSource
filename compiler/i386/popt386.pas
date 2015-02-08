@@ -2331,22 +2331,47 @@ begin
               end;
             case taicpu(p).opcode Of
               A_CALL:
-                { don't do this on modern CPUs, this really hurts them due to
-                  broken call/ret pairing }
-                if (current_settings.optimizecputype < cpu_Pentium2) and
-                   not(cs_create_pic in current_settings.moduleswitches) and
-                   GetNextInstruction(p, hp1) and
-                   (hp1.typ = ait_instruction) and
-                   (taicpu(hp1).opcode = A_JMP) and
-                   ((taicpu(hp1).oper[0]^.typ=top_ref) and (taicpu(hp1).oper[0]^.ref^.refaddr=addr_full)) then
-                  begin
-                    hp2 := taicpu.Op_sym(A_PUSH,S_L,taicpu(hp1).oper[0]^.ref^.symbol);
-                    InsertLLItem(asml, p.previous, p, hp2);
-                    taicpu(p).opcode := A_JMP;
-                    taicpu(p).is_jmp := true;
-                    asml.remove(hp1);
-                    hp1.free;
-                  end;
+                begin
+                  { don't do this on modern CPUs, this really hurts them due to
+                    broken call/ret pairing }
+                  if (current_settings.optimizecputype < cpu_Pentium2) and
+                     not(cs_create_pic in current_settings.moduleswitches) and
+                     GetNextInstruction(p, hp1) and
+                     (hp1.typ = ait_instruction) and
+                     (taicpu(hp1).opcode = A_JMP) and
+                     ((taicpu(hp1).oper[0]^.typ=top_ref) and (taicpu(hp1).oper[0]^.ref^.refaddr=addr_full)) then
+                    begin
+                      hp2 := taicpu.Op_sym(A_PUSH,S_L,taicpu(hp1).oper[0]^.ref^.symbol);
+                      InsertLLItem(asml, p.previous, p, hp2);
+                      taicpu(p).opcode := A_JMP;
+                      taicpu(p).is_jmp := true;
+                      asml.remove(hp1);
+                      hp1.free;
+                    end
+                  { replace
+                      call   procname
+                      ret
+                    by
+                      jmp    procname
+
+                    this should never hurt except when pic is used, not sure
+                    how to handle it then
+
+                    but do it only on level 4 because it destroys stack back traces
+                  }  
+                  else if (cs_opt_level4 in current_settings.optimizerswitches) and
+                     not(cs_create_pic in current_settings.moduleswitches) and
+                     GetNextInstruction(p, hp1) and
+                     (hp1.typ = ait_instruction) and
+                     (taicpu(hp1).opcode = A_RET) and
+                     (taicpu(hp1).ops=0) then
+                    begin
+                      taicpu(p).opcode := A_JMP;
+                      taicpu(p).is_jmp := true;
+                      asml.remove(hp1);
+                      hp1.free;
+                    end;
+                end;
               A_CMP:
                 begin
                   if (taicpu(p).oper[0]^.typ = top_const) and
