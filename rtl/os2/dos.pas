@@ -754,16 +754,19 @@ begin
   if RC = 0 then
    begin
     PathInfo.AttrFile := Attr;
-    RC := DosSetPathInfo (P, ilStandard, @PathInfo, SizeOf (PathInfo),
-                                                        doWriteThru);
+    RC := DosSetPathInfo (P, ilStandard, @PathInfo, SizeOf (PathInfo), 0);
     if RC <> 0 then
-     OSErrorWatch (RC);
+     begin
+      OSErrorWatch (RC);
+      if Attr and VolumeID = VolumeID then
+       RC := 5; (* Align the returned error value to TP/BP *)
+     end;
    end
   else
    begin
     OSErrorWatch (RC);
     if FileRec (F).Name [0] = #0 then
-     DosError := 3; (* Align the returned error value to TP/BP *)
+     RC := 3; (* Align the returned error value to TP/BP *)
    end;
   DosError := integer (RC);
 end;
