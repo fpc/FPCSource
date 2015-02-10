@@ -78,7 +78,7 @@ Procedure CheckDosError(err: Integer);
   else
    begin
     Str (X, S);
-    s := s + 'INVALID DOSERROR';
+    s := '(' + s + ') - INVALID DOSERROR';
    end
   end;
   if err <> x then
