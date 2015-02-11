@@ -322,7 +322,8 @@ begin
     // Move to end of file for Append command
     if ((Flags and $100) <> 0) then
     begin
-      do_seekend(FileRec(F).Handle);
+      if not (Do_IsDevice (FileRec (F).Handle)) then
+       Do_SeekEnd (FileRec (F).Handle);
       FileRec(F).Mode := fmOutput;
     end;
 
