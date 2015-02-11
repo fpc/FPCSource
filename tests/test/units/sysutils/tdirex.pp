@@ -57,44 +57,78 @@ end;
 var
   dir,dir1,dir2,StoredDir : string;
   P,N,E : shortstring;
+  ch : char;
 begin
   Dos.FSplit(paramstr(0),P,N,E);
   Writeln('Path="',P,'"');
   Writeln('Name="',N,'"');
   Writeln('Ext="',E,'"');
   Writeln('DirectorySeparator="',DirectorySeparator,'"');
-  TestDirectoryExists(P,true);
+  Write('AllowDirectorySeparators="');
+  for ch:=low(char) to high(char) do
+    if ch in AllowDirectorySeparators then
+      Write(ch);
+  Writeln('"');
 
+{ The following would be already tested at the beginning of TestParents
+  TestDirectoryExists(P,true);
+}
+{ The following check wouldn't work correctly if running the test executable
+  from a root drive - not a typical case, but still worth mentioning... }
+  if DirectoryExists(P) then
+   AllowOneTrailingSeparator:=true
+  else
+   WriteLn ('Warning: Some code may expect support for a trailing directory separator!');
   if DirectoryExists(P+DirectorySeparator) then
-    AllowOneTrailingSeparator:=true;
-  if DirectoryExists(P+DirectorySeparator) and
-     DirectoryExists(P+DirectorySeparator+DirectorySeparator) then
     AllowMultipleTrailingSeparators:=true;
 
   dir:=P;
+  Writeln('Calling TestParents with dir="',dir,'"');
   TestParents(dir);
   dir:=P;
-  if (length(dir)>2) and (dir[2]=':') and (dir[3]=DirectorySeparator) then
+{$IFDEF MACOS}
+ {$WARNING The following test is wrong for Mac OS!}
+{$ENDIF MACOS}
+{$IFDEF AMIGA}
+ {$WARNING The following test is wrong for Amiga (volumes are not detected properly)!}
+{$ENDIF AMIGA}
+{$IFDEF NETWARE}
+ {$WARNING The following test is wrong for Amiga (volumes are not detected properly)!}
+{$ENDIF NETWARE}
+{$IFNDEF UNIX}
+  if (length(dir)>2) and (dir[2]= DriveSeparator) and (dir[3]=DirectorySeparator) then
     begin
       GetDir(0,StoredDir);
-      Writeln('Testing from Root drive');
       ChDir(Copy(Dir,1,3));
+      Writeln('Calling TestParents with dir="',dir,'" from directory '
+                                               + Copy (Dir, 1, 3) + ' (root)');
       TestParents(dir);
       ChDir(StoredDir);
     end;
+{$ELSE UNIX}
+  GetDir(0,StoredDir);
+  ChDir(DirectorySeparator);
+  Writeln('Calling TestParents with dir="',dir,'" from directory '
+                                             + DirectorySeparator + ' (root)');
+  TestParents(dir);
+  ChDir(StoredDir);
+{$ENDIF UNIX}
   dir:=P+'_Dummy';
   TestDirectoryExists(dir,false);
   dir1:=P+'_Dummy'+DirectorySeparator;
   TestDirectoryExists(dir1,false);
   mkdir(dir);
   TestDirectoryExists(dir,true);
-  TestDirectoryExists(dir1,true);
+  TestDirectoryExists(dir1,AllowOneTrailingSeparator);
   { Check that using two directory separators fails }
-  TestDirectoryExists(dir1+DirectorySeparator,AllowOneTrailingSeparator);
-  TestDirectoryExists(dir1+'/',AllowOneTrailingSeparator);
-  TestDirectoryExists(dir1+'//',AllowMultipleTrailingSeparators);
-  if DirectorySeparator='\' then
-    TestDirectoryExists(dir1+'\\',AllowMultipleTrailingSeparators);
+  TestDirectoryExists(dir1+DirectorySeparator,AllowMultipleTrailingSeparators);
+  if ('/' in AllowDirectorySeparators) and ('/' <> DirectorySeparator) then
+   begin
+    TestDirectoryExists(dir+'/',AllowOneTrailingSeparator);
+    TestDirectoryExists(dir1+'/',AllowMultipleTrailingSeparators);
+    TestDirectoryExists(dir1+'//',AllowMultipleTrailingSeparators)
+   end;
+  TestDirectoryExists (dir1 + DirectorySeparator + DirectorySeparator, AllowMultipleTrailingSeparators);
   dir2:=dir1+'_Dummy2';
   TestDirectoryExists(dir2,false);
   mkdir(dir2);
@@ -107,7 +141,9 @@ begin
     begin
       Writeln('Program encountered errors');
       Halt(1);
-    end;
+    end
+  else
+   WriteLn ('All OK');
 end.
 
 
