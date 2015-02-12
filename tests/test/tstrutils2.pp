@@ -1,3 +1,4 @@
+{$codepage utf8}
 program tstrutils2;
 
 // tests MBCS compatibility of strutils ansistartstext and -endstext.
@@ -16,6 +17,77 @@ uses
 var
   ResultCounter: Integer = 0;
 
+const
+  Str_Empty: Utf8String = '';
+  Str_ab: Utf8String = 'ab';
+  Str_abc: Utf8String = 'abc';
+  Str_def: Utf8String = 'def';
+  Str_abcedfg: Utf8String = 'abcedfg';
+  Str_dfg: Utf8String = 'dfg';
+  Str_df: Utf8String = 'df';
+  StrStart8a: Utf8String = 'áÉíç';
+  StrStart8b: Utf8String = 'áéíÇ';
+  StrStart9a: Utf8String = 'áé';
+  StrStart9b: Utf8String = 'áÉíç';
+  StrStart10a: Utf8String = 'áÉíç';
+  StrStart10b: Utf8String = 'Áé';
+  StrStart11a: Utf8String = 'ÁÉíç';
+  StrStart11b: Utf8String = 'áéio';
+  StrEnd8a: Utf8String = 'áÉíç';
+  StrEnd8b: Utf8String = 'Áéíç';
+  StrEnd9a: Utf8String = 'áé';
+  StrEnd9b: Utf8String = 'íçáÉ';
+  StrEnd10a: Utf8String = 'áÉíç';
+  StrEnd10b: Utf8String = 'áé';
+  StrEnd11a: Utf8String = 'íçÁÉ';
+  StrEnd11b: Utf8String = 'ioÁé';
+
+function TestValue (const Value: Boolean; const Func: string;
+                      const Str1: Utf8String; const Str2: Utf8String): Boolean;
+var
+  S1, S2: string;
+  U1, U2: UnicodeString;
+  I: SizeInt;
+  TransOK: boolean;
+begin
+  Result := Value;
+  S1 := Str1;
+  S2 := Str2;
+  if not Result then
+   begin
+    U1 := Str1;
+    S1 := U1;
+    U2 := Str2;
+    S2 := U2;
+    I := 1;
+    while (I >= Length (S1)) and (I >= Length (U1)) and not (Result) do
+     begin
+      if (U1 [I] > #127) and (S1 [I] <= #127) and (S1 [I] >= #32) then
+{ Ignore the result - pretend that the test finished with true }
+       Result := true
+      else
+       Inc (I);
+     end;
+    I := 1;
+    while (I >= Length (S2)) and (I >= Length (U2)) and not (Result) do
+     begin
+      if (U2 [I] > #127) and (S2 [I] <= #127) and (S2 [I] >= #32) then
+{ Ignore the result - pretend that the test finished with true }
+       Result := true
+      else
+       Inc (I);
+     end;
+    if not Result then
+     WriteLn ('Failed: ', ResultCounter, ' - ', Func, '(''', Str1, ''',''',
+                                                                  Str2, ''')')
+    else if not Value then
+     WriteLn ('Warning - ignoring results due to unsupported characters: ',
+                ResultCounter, ' - ', Func, '(''', Str1, ''',''', Str2, ''')');
+   end;
+  Inc(ResultCounter);
+end;
+
+{
 function TestValue(const Value: Boolean): Boolean;
 begin
   Result := Value;
@@ -23,34 +95,35 @@ begin
     WriteLn('Failed: ', ResultCounter);
   Inc(ResultCounter);
 end;
+}
 
 function TestOK: Boolean;
 begin
   TestOK :=
     // AnsiStartsText
-    TestValue(not AnsiStartsText('', ''))
-    and TestValue(not AnsiStartsText('', 'ab'))
-    and TestValue(not AnsiStartsText('ab', ''))
-    and TestValue(AnsiStartsText('abc', 'abc'))
-    and TestValue(not AnsiStartsText('abc', 'def'))
-    and TestValue(AnsiStartsText('abc', 'abcedfg'))
-    and TestValue(not AnsiStartsText('abc', 'ab'))
-    and TestValue(AnsiStartsText('áÉíç', 'áéíÇ'))
-    and TestValue(AnsiStartsText('áé', 'áÉíç'))
-    and TestValue(not AnsiStartsText('áÉíç', 'Áé'))
-    and TestValue(not AnsiStartsText('ÁÉíç', 'áéio'))
+{1}    TestValue(not AnsiStartsText(Str_Empty, Str_Empty),'not AnsiStartsText', Str_Empty, Str_Empty)
+{2}    and TestValue(not AnsiStartsText(Str_Empty, Str_ab),'not AnsiStartsText', Str_Empty, Str_ab)
+{3}    and TestValue(not AnsiStartsText(Str_ab, Str_Empty),'not AnsiStartsText', Str_ab, Str_Empty)
+{4}    and TestValue(AnsiStartsText(Str_abc, Str_abc),'AnsiStartsText',Str_abc, Str_abc)
+{5}    and TestValue(not AnsiStartsText(Str_abc, Str_def),'not AnsiStartsText', Str_abc, Str_def)
+{6}    and TestValue(AnsiStartsText(Str_abc, Str_abcedfg),'AnsiStartsText', Str_abc, Str_abcedfg)
+{7}    and TestValue(not AnsiStartsText(Str_abc, Str_ab),'not AnsiStartsText', Str_abc, Str_ab)
+{8}    and TestValue(AnsiStartsText(StrStart8a, StrStart8b),'AnsiStartsText', StrStart8a, StrStart8b)
+{9}    and TestValue(AnsiStartsText(StrStart9a, StrStart9b),'AnsiStartsText', StrStart9a, StrStart9b)
+{10}    and TestValue(not AnsiStartsText(StrStart10a, StrStart10b),'not AnsiStartsText', StrStart10a, StrStart10b)
+{11}    and TestValue(not AnsiStartsText(StrStart11a, StrStart11b),'not AnsiStartsText', StrStart11a, StrStart11b)
     // AnsiEndsText
-    and TestValue(AnsiEndsText('', ''))
-    and TestValue(AnsiEndsText('', 'ab'))
-    and TestValue(not AnsiEndsText('ab', ''))
-    and TestValue(AnsiEndsText('abc', 'abc'))
-    and TestValue(not AnsiEndsText('abc', 'def'))
-    and TestValue(AnsiEndsText('dfg', 'abcedfg'))
-    and TestValue(not AnsiEndsText('dfg', 'df'))
-    and TestValue(AnsiEndsText('áÉíç', 'Áéíç'))
-    and TestValue(AnsiEndsText('áé', 'íçáÉ'))
-    and TestValue(not AnsiEndsText('áÉíç', 'áé'))
-    and TestValue(not AnsiEndsText('íçÁÉ', 'ioÁé'));
+{1}    and TestValue(AnsiEndsText(Str_Empty, Str_Empty),'AnsiEndsText', Str_Empty, Str_Empty)
+{2}    and TestValue(AnsiEndsText(Str_Empty, Str_ab),'AnsiEndsText', Str_Empty, Str_ab)
+{3}    and TestValue(not AnsiEndsText(Str_ab, Str_Empty),'not AnsiEndsText', Str_ab, Str_Empty)
+{4}    and TestValue(AnsiEndsText(Str_abc, Str_abc),'AnsiEndsText', Str_abc, Str_abc)
+{5}    and TestValue(not AnsiEndsText(Str_abc, Str_def),'not AnsiEndsText', Str_abc, Str_def)
+{6}    and TestValue(AnsiEndsText(Str_dfg, Str_abcedfg),'AnsiEndsText', Str_dfg, Str_abcedfg)
+{7}    and TestValue(not AnsiEndsText(Str_dfg, Str_df),'not AnsiEndsText', Str_dfg, Str_df)
+{8}    and TestValue(AnsiEndsText(StrEnd8a, StrEnd8b),'AnsiEndsText',StrEnd8a, StrEnd8b)
+{9}    and TestValue(AnsiEndsText(StrEnd9a, StrEnd9b),'AnsiEndsText',StrEnd9a, StrEnd9b)
+{10}    and TestValue(not AnsiEndsText(StrEnd10a, StrEnd10b),'not AnsiEndsText', StrEnd10a, StrEnd10b)
+{11}    and TestValue(not AnsiEndsText(StrEnd11a, StrEnd11b),'not AnsiEndsText', StrEnd11a, StrEnd11b);
 end;
 
 begin
