@@ -1,3 +1,4 @@
+{ %skiptarget=os2 emx go32v2 msdos }
 {$codepage utf8}
 {$mode objfpc}{$h+}
 
