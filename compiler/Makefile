@@ -477,7 +477,7 @@ ifneq ($(REVINC),)
 override LOCALOPT+=-dREVINC
 ifeq ($(REVSTR),)
 ifneq ($(SVNVERSION),)
-REVSTR:=$(shell $(SVNVERSION) -c .)
+REVSTR:=$(subst r,,$(subst r1:,,r$(shell $(SVNVERSION) -c .)))
 export REVSTR
 else
 ifeq ($(REVINC),force)
