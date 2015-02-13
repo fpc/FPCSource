@@ -1969,7 +1969,7 @@ type_w_instance_abstract_class=04122_W_Creating an instance of abstract class "$
 #
 # Symtable
 #
-# 05087 is the last used one
+# 05095 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -2273,6 +2273,11 @@ sym_h_managed_function_result_uninitialized=05094_H_Function result variable of 
 % before it is initialized (i.e. it appears in the left-hand side of an
 % assignment). Since the variable is managed, i. e. implicitly initialized by the compiler, this might be intended behaviour and
 % does not necessarily mean that the code is wrong.
+sym_w_duplicate_id=05095_W_Duplicate identifier "$1"
+% The identifier was already declared in an Objective-C category that's in the
+% same scope as the current identifier. This is a warning instead of an error,
+% because while this hides the identifier from the category, there are often
+% many unused categories in scope.
 % \end{description}
 #
 # Codegenerator

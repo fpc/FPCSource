@@ -229,7 +229,7 @@ interface
     function generate_objectpascal_helper_key(def:tdef):string;
     procedure incompatibletypes(def1,def2:tdef);
     procedure hidesym(sym:TSymEntry);
-    procedure duplicatesym(var hashedid:THashedIDString;dupsym,origsym:TSymEntry);
+    procedure duplicatesym(var hashedid: THashedIDString; dupsym, origsym:TSymEntry; warn: boolean);
     function handle_generic_dummysym(sym:TSymEntry;var symoptions:tsymoptions):boolean;
     function get_jumpbuf_size : longint;
 
@@ -630,7 +630,7 @@ implementation
       begin
         hsym:=tsym(FindWithHash(hashedid));
         if assigned(hsym) then
-          DuplicateSym(hashedid,sym,hsym);
+          DuplicateSym(hashedid,sym,hsym,false);
         result:=assigned(hsym);
       end;
 
@@ -1461,7 +1461,8 @@ implementation
 
     function tObjectSymtable.checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;
       var
-         hsym : tsym;
+         hsym: tsym;
+         warn: boolean;
       begin
          result:=false;
          if not assigned(defowner) then
@@ -1492,7 +1493,15 @@ implementation
                   )
                  ) then
                 begin
-                  DuplicateSym(hashedid,sym,hsym);
+                  { only watn when a parameter/local variable in a method
+                    conflicts with a category method, because this can easily
+                    happen due to all possible categories being imported via
+                    CocoaAll }
+                  warn:=
+                    (is_objccategory(tdef(hsym.owner.defowner)) or
+                     is_classhelper(tdef(hsym.owner.defowner))) and
+                    (sym.typ in [paravarsym,localvarsym,fieldvarsym]);
+                  DuplicateSym(hashedid,sym,hsym,warn);
                   result:=true;
                 end;
            end
@@ -1571,7 +1580,7 @@ implementation
                    (vo_is_result in tabstractvarsym(hsym).varoptions)) then
               HideSym(hsym)
             else
-              DuplicateSym(hashedid,sym,hsym);
+              DuplicateSym(hashedid,sym,hsym,false);
             result:=true;
             exit;
           end;
@@ -1591,7 +1600,7 @@ implementation
                    (vo_is_result in tabstractvarsym(sym).varoptions)) then
               Hidesym(sym)
             else
-              DuplicateSym(hashedid,sym,hsym);
+              DuplicateSym(hashedid,sym,hsym,false);
             result:=true;
             exit;
           end;
@@ -1697,7 +1706,7 @@ implementation
                   tnamespacesym(sym).unitsym:=tsym(hsym);
               end
             else
-              DuplicateSym(hashedid,sym,hsym);
+              DuplicateSym(hashedid,sym,hsym,false);
             result:=true;
             exit;
           end;
@@ -2040,11 +2049,14 @@ implementation
       end;
 
 
-    procedure duplicatesym(var hashedid:THashedIDString;dupsym,origsym:TSymEntry);
+    procedure duplicatesym(var hashedid: THashedIDString; dupsym, origsym: TSymEntry; warn: boolean);
       var
         st : TSymtable;
       begin
-        Message1(sym_e_duplicate_id,tsym(origsym).realname);
+        if not warn then
+          Message1(sym_e_duplicate_id,tsym(origsym).realname)
+        else
+         Message1(sym_w_duplicate_id,tsym(origsym).realname);
         { Write hint where the original symbol was found }
         st:=finduniTSymtable(origsym.owner);
         with tsym(origsym).fileinfo do
