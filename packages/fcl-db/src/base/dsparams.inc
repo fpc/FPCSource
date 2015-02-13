@@ -1148,7 +1148,7 @@ begin
 end;
 
 
-Procedure TParams.CopyParamValuesFromDataset(ADataset: TDataset;
+Procedure TParams.CopyParamValuesFromDataset(ADataSet: TDataSet;
   CopyBound: Boolean);
 
 Var
@@ -1157,13 +1157,15 @@ Var
   F : TField;
 
 begin
-  If (ADataSet<>Nil) then
+  If assigned(ADataSet) then
     For I:=0 to Count-1 do
      begin
      P:=Items[i];
      if CopyBound or (not P.Bound) then
        begin
-       F:=ADataset.FieldByName(P.Name);
+       // Master dataset must be active and unbound parameters must have fields
+       // with same names in master dataset (Delphi compatible behavior)
+       F:=ADataSet.FieldByName(P.Name);
        P.AssignField(F);
        If Not CopyBound then
          P.Bound:=False;

@@ -96,6 +96,7 @@ type
     // - Statement execution
     procedure Execute(cursor:TSQLCursor; ATransaction:TSQLTransaction; AParams:TParams); override;
     function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
+    function RefreshLastInsertID(Query : TCustomSQLQuery; Field : TField): boolean; override;
     // - Result retrieving
     procedure AddFieldDefs(cursor:TSQLCursor; FieldDefs:TFieldDefs); override;
     function Fetch(cursor:TSQLCursor):boolean; override;
@@ -315,7 +316,7 @@ end;
 constructor TMSSQLConnection.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FConnOptions := FConnOptions + [sqSupportEmptyDatabaseName, sqEscapeRepeat];
+  FConnOptions := [sqSupportEmptyDatabaseName, sqEscapeRepeat, sqImplicitTransaction, sqLastInsertID];
   //FieldNameQuoteChars:=DoubleQuotes; //default
   Ftds := DBTDS_UNKNOWN;
 end;
@@ -540,7 +541,7 @@ end;
 
 function TMSSQLConnection.Rollback(trans: TSQLHandle): boolean;
 begin
-  Execute('ROLLBACK');
+  Execute('IF @@TRANCOUNT>0 ROLLBACK');
   Result:=true;
 end;
 
@@ -657,6 +658,21 @@ begin
     Result := (cursor as TDBLibCursor).FRowsAffected
   else
     Result := inherited RowsAffected(cursor);
+end;
+
+function TMSSQLConnection.RefreshLastInsertID(Query: TCustomSQLQuery; Field: TField): boolean;
+var Identity: int64;
+begin
+  // global variable @@IDENTITY is NUMERIC(38,0)
+  Result:=False;
+  if dbcmd(FDBProc, 'SELECT @@IDENTITY') = FAIL then Exit;
+  if dbsqlexec(FDBProc) = FAIL then Exit;
+  if dbresults(FDBProc) = FAIL then Exit;
+  if dbnextrow(FDBProc) = FAIL then Exit;
+  if dbconvert(FDBProc, dbcoltype(FDBProc,1), dbdata(FDBProc,1), -1, SYBINT8, @Identity, sizeof(Identity)) = -1 then Exit;
+  // by default identity columns are ReadOnly
+  Field.AsLargeInt := Identity;
+  Result:=True;
 end;
 
 function TMSSQLConnection.TranslateFldType(SQLDataType: integer): TFieldType;

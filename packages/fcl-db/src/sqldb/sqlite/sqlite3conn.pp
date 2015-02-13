@@ -294,7 +294,7 @@ end;
 constructor TSQLite3Connection.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FConnOptions := FConnOptions + [sqEscapeRepeat,sqEscapeSlash,sqLastInsertID];
+  FConnOptions := [sqEscapeRepeat, sqEscapeSlash, sqImplicitTransaction, sqLastInsertID];
   FieldNameQuoteChars:=DoubleQuotes;
 end;
 

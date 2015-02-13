@@ -112,11 +112,13 @@ begin
     T.Install:=False;
     with T.Dependencies do
       begin
+        AddUnit('cp895',CPUnits);
         AddUnit('cp932',CPUnits);
         AddUnit('cp936',CPUnits);
         AddUnit('cp949',CPUnits);
         AddUnit('cp950',CPUnits);
       end;
+    T:=P.Targets.AddImplicitUnit('cp895.pas',CPUnits);
     T:=P.Targets.AddImplicitUnit('cp932.pas',CPUnits);
     T:=P.Targets.AddImplicitUnit('cp936.pas',CPUnits);
     T:=P.Targets.AddImplicitUnit('cp949.pas',CPUnits);
