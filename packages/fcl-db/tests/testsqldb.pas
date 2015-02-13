@@ -110,6 +110,9 @@ begin
     CheckEquals('TestName1', DetailQuery.Fields[0].AsString);
     MasterQuery.MoveBy(3);
     CheckEquals('TestName4', DetailQuery.Fields[0].AsString);
+
+    MasterQuery.Close;
+    CheckTrue(DetailQuery.Active, 'Detail dataset should remain intact, when master dataset is closed');
   finally
     MasterSource.Free;
   end;
