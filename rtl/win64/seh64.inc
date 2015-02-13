@@ -375,6 +375,8 @@ label L1;
 var
   exc: PExceptObject;
   obj: TObject;
+  hstdout: ^text;
+  i,code: Longint;
 begin
   if (rec.ExceptionFlags and EXCEPTION_UNWIND)=0 then
   begin
@@ -391,7 +393,19 @@ begin
   begin
     Exc:=ExceptObjectStack;
     if Exc^.FObject=nil then
-      RunError(abs(RunErrorCodex64(rec,context)))  // !!prints wrong backtrace
+    begin
+      hstdout:=@stdout;
+      code:=abs(RunErrorCodex64(rec,context));
+      Writeln(hstdout^,'Runtime error ',code,' at $',hexstr(Exc^.addr));
+      Writeln(hstdout^,BackTraceStrFunc(Exc^.Addr));
+      if (Exc^.FrameCount>0) then
+      begin
+        for i:=0 to Exc^.FrameCount-1 do
+          Writeln(hstdout^,BackTraceStrFunc(Exc^.Frames[i]));
+      end;
+      Writeln(hstdout^,'');
+      Halt(code);
+    end
     else
     begin
       { if ExceptObjProc=nil, ExceptProc is typically also nil,
@@ -404,8 +418,10 @@ begin
 L1:
       { RtlUnwindEx above resets execution context to the point where the handler
         was installed, i.e. main_wrapper. It makes exiting this procedure no longer
-        possible, halting is the only possible action here. }
-      RunError(217);
+        possible. Halting is the only possible action here.
+        Furthermore, this is not expected to execute at all, because the above block
+        definitely halts. }
+      Halt(217);
     end;
   end;
   result:=ExceptionContinueSearch;
