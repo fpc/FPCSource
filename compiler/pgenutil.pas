@@ -1130,7 +1130,11 @@ uses
               firstidx:=result.count;
 
               constraintdata.free;
-            end;
+            end
+          else
+            if token=_SEMICOLON then
+              { a semicolon terminates a type parameter group }
+              firstidx:=result.count;
         until not (try_to_consume(_COMMA) or try_to_consume(_SEMICOLON));
         block_type:=old_block_type;
       end;
