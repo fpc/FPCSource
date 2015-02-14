@@ -50,5 +50,6 @@ end;
 
 begin
   test;
+  writeln('ok');
 end.
 
