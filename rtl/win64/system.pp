@@ -31,6 +31,7 @@ interface
 {$ifdef FPC_USE_WIN64_SEH}
   {$define FPC_SYSTEM_HAS_RAISEEXCEPTION}
   {$define FPC_SYSTEM_HAS_RERAISE}
+  {$define FPC_SYSTEM_HAS_CAPTUREBACKTRACE}
 {$endif FPC_USE_WIN64_SEH}
 
 { include system-independent routine headers }

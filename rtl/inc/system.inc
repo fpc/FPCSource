@@ -1067,6 +1067,7 @@ begin
 end;
 
 
+{$ifndef FPC_SYSTEM_HAS_CAPTUREBACKTRACE}
 function CaptureBacktrace(skipframes,count:sizeint;frames:PCodePointer):sizeint;
 var
   curr_frame,prev_frame: pointer;
@@ -1095,6 +1096,7 @@ begin
   else
     result:=i;
 end;
+{$endif FPC_SYSTEM_HAS_CAPTUREBACKTRACE}
 
 
 Procedure HandleErrorAddrFrame (Errno : longint;addr : CodePointer; frame : Pointer);[public,alias:'FPC_BREAK_ERROR']; {$ifdef CPUI386} register; {$endif}

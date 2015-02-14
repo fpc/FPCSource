@@ -213,6 +213,12 @@ type
   end;
 
 
+function CaptureBacktrace(skipframes,count:sizeint;frames:PCodePointer):sizeint;
+begin
+  { skipframes is increased because this function adds a call level }
+  Result:=RtlCaptureStackBackTrace(skipframes+1,count,frames^,nil);
+end;
+
 { note: context must be passed by value, so modifications are made to a local copy }
 function GetBacktrace(Context: TContext; StartingFrame: Pointer; out Frames: PPointer): Longint;
 var
