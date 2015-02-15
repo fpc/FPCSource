@@ -1212,6 +1212,28 @@ Begin
 End;
 
 
+procedure dump_stack(var f: text; skipframes: longint);
+var
+  i,count: longint;
+  frames: array [0..255] of codepointer;
+begin
+  if do_isdevice(textrec(f).handle) then
+    count:=max_frame_dump
+  else
+    count:=255;
+{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
+  try
+{$endif FPC_HAS_FEATURE_EXCEPTIONS}
+    count:=CaptureBacktrace(skipframes+1,count,@frames[0]);
+    for i:=0 to count-1 do
+      writeln(f,BackTraceStrFunc(frames[i]));
+{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
+  except
+  end;
+{$endif FPC_HAS_FEATURE_EXCEPTIONS}
+end;
+
+
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
 procedure DumpExceptionBackTrace(var f:text);
 var
