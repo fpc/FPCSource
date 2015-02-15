@@ -520,10 +520,10 @@ begin
          StackSizeKB := 64
         else if StackSizeKB > (512 shl 10) then
          StackSizeKB := 512 shl 10;
-        Replace(cmdstr,'$STACKKB',tostr((stacksize+1023) shr 10));
+        Replace(cmdstr,'$STACKKB',tostr(StackSizeKB));
         {When an EMX program runs in DOS, the heap and stack share the
          same memory pool. The heap grows upwards, the stack grows downwards.}
-        Replace(cmdstr,'$DOSHEAPKB',tostr((stacksize+1023) shr 10));
+        Replace(cmdstr,'$DOSHEAPKB',tostr(StackSizeKB));
         Replace(cmdstr,'$STRIP ', StripStr);
         Replace(cmdstr,'$MAP ', MapStr);
         Replace(cmdstr,'$APPTYPE',AppTypeStr);
