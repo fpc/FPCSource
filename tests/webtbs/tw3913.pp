@@ -4,6 +4,7 @@ uses
 var
   d : tdatetime;
 begin
+  ShortDateFormat := 'd/m/y';
   try
     d:=strtodate('03'+dateseparator+'03'+dateseparator+'2033');
   except
