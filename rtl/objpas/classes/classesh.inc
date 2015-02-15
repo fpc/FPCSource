@@ -1602,7 +1602,7 @@ type
     procedure Queue(aMethod: TThreadMethod);
     property ReturnValue: Integer read FReturnValue write FReturnValue;
     property Terminated: Boolean read FTerminated;
-{$ifdef windows}
+{$if defined(windows) or defined(OS2)}
   private
     FInitialSuspended: boolean;
 {$endif}
