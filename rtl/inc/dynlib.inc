@@ -170,32 +170,32 @@ begin
   RunError(235)
 end;
 
-Function NoLoadLibraryU(const Name: UnicodeString): TLibHandle;
+Function NoLoadLibraryU(const Name: UnicodeString): TLibHandle; {$ifndef ver2_6}noreturn;{$endif}
 begin
   NoDynLibsError;
 end;
 
-Function NoLoadLibraryA(const Name: RawByteString): TLibHandle;
+Function NoLoadLibraryA(const Name: RawByteString): TLibHandle; {$ifndef ver2_6}noreturn;{$endif}
 begin
   NoDynLibsError;
 end;
 
-function NoGetProcAddress(Lib: TLibHandle; const Proc: AnsiString): Pointer;
+function NoGetProcAddress(Lib: TLibHandle; const Proc: AnsiString): Pointer; {$ifndef ver2_6}noreturn;{$endif}
 begin
   NoDynLibsError;
 end;
 
-function NoGetProcAddressOrdinal(Lib: TLibHandle; Ordinal: TOrdinalEntry): Pointer;
+function NoGetProcAddressOrdinal(Lib: TLibHandle; Ordinal: TOrdinalEntry): Pointer; {$ifndef ver2_6}noreturn;{$endif}
 begin
   NoDynLibsError;
 end;
 
-function NoGetLoadErrorStr: String;
+function NoGetLoadErrorStr: String; {$ifndef ver2_6}noreturn;{$endif}
 begin
   NoDynLibsError;
 end;
 
-function NoUnloadLibrary(Lib: TLibHandle): Boolean;
+function NoUnloadLibrary(Lib: TLibHandle): Boolean; {$ifndef ver2_6}noreturn;{$endif}
 begin
   NoDynLibsError;
 end;
