@@ -172,8 +172,6 @@ implementation
         case current_settings.fputype of
           fpu_68881:
             begin
-              location_reset(location,LOC_FLAGS,OS_NO);
-
               { force fpureg as location, left right doesn't matter
                 as both will be in a fpureg }
               hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
@@ -182,18 +180,17 @@ implementation
               // emit compare
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCMP,S_FX,right.location.register,left.location.register));
 
-              location.resflags:=getresflags(false);
-
               // temporary(?) hack, move condition result back to the CPU from the FPU.
               // 6888x has its own FBcc branch instructions and FScc flags->reg instruction,
               // which we don't support yet in the rest of the cg. (KB)
               tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_8);
               ai:=taicpu.op_reg(A_FSxx,S_B,tmpreg);
-              ai.SetCondition(flags_to_cond(location.resflags));
+              ai.SetCondition(flags_to_cond(getresflags(false)));
               current_asmdata.CurrAsmList.concat(ai);
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_B,tmpreg));
-              location.resflags:=F_E;
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_NEG,S_B,tmpreg));
 
+              location_reset(location,LOC_REGISTER,OS_8);
+              location.register:=tmpreg;
             end;
           else
             // softfpu should be handled in pass1, others are not yet supported...
