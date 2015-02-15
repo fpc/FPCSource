@@ -192,6 +192,8 @@ implementation
               ai.SetCondition(flags_to_cond(location.resflags));
               current_asmdata.CurrAsmList.concat(ai);
               current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_B,tmpreg));
+              location.resflags:=F_E;
+
             end;
           else
             // softfpu should be handled in pass1, others are not yet supported...
