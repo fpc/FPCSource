@@ -156,7 +156,7 @@ begin
     P:=AddPackage('gdbint');
     P.ShortName:='gdb';
     P.Directory:=ADirectory;
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Author := 'Library : Cygnus, header: Peter Vreman';
     P.License := 'Library: GPL2 or later, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -167,7 +167,7 @@ begin
     // file within the BeforeCompile event.
     P.SupportBuildModes:= [bmOneByOne];
 
-    P.OSes:=[aix,beos,haiku,freebsd,netbsd,openbsd,linux,win32,win64,go32v2,dragonfly];
+    P.OSes:=[aix,beos,haiku,freebsd,netbsd,openbsd,linux,win32,win64,go32v2,dragonfly,solaris];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

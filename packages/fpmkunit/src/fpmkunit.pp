@@ -123,6 +123,8 @@ Type
   TCompilerMode = (cmFPC,cmTP,cmObjFPC,cmDelphi,cmMacPas);
   TCompilerModes = Set of TCompilerMode;
 
+  TInstallMOde = (imInstall, imUnInstall);
+
   TTargetType = (ttProgram,ttUnit,ttImplicitUnit,ttCleanOnlyUnit,ttExampleUnit,ttExampleProgram,ttFPDoc);
   TTargetTypes = set of TTargetType;
 
@@ -150,7 +152,7 @@ Type
   TLogEvent = Procedure (Level : TVerboseLevel; Const Msg : String) of Object;
   TNotifyProcEvent = procedure(Sender: TObject);
 
-  TRunMode = (rmCompile,rmBuild,rmInstall,rmArchive,rmClean,rmDistClean,rmManifest,rmZipInstall,rmPkgList);
+  TRunMode = (rmCompile,rmBuild,rmInstall,rmArchive,rmClean,rmDistClean,rmManifest,rmZipInstall,rmPkgList,rmUnInstall);
 
   TBuildMode = (bmOneByOne, bmBuildUnit{, bmSkipImplicitUnits});
   TBuildModes = set of TBuildMode;
@@ -189,7 +191,7 @@ Const
     { netbsd }  ( false, true,  true,  true,  true,  true,  false, false, false, false, false, false, false, false),
     { amiga }   ( false, false, true,  true,  false, false, false, false, false, false, false, false, false, false),
     { atari }   ( false, false, true,  false, false, false, false, false, false, false, false, false, false, false),
-    { solaris } ( false, true,  false, false, true,  false, false, false, false, false, false, false, false, false),
+    { solaris } ( false, true,  false, false, true,  true,  false, false, false, false, false, false, false, false),
     { qnx }     ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false),
     { netware } ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false),
     { openbsd } ( false, true,  true,  false, false, true,  false, false, false, false, false, false, false, false),
@@ -427,6 +429,7 @@ Type
   TNotifyEventAction = (neaBeforeCompile, neaAfterCompile, neaBeforeInstall, neaAfterInstall,
                         neaBeforeClean, neaAfterClean, neaBeforeArchive, neaAfterArchive,
                         neaBeforeManifest, neaAfterManifest, neaBeforePkgList, neaAfterPkgList,
+                        neaBeforeUnInstall, neaAfterUnInstall,
                         neaBeforeCreateBuildEngine, neaAfterCreateBuildengine);
 
   TNotifyEventActionSet = set of TNotifyEventAction;
@@ -1119,11 +1122,11 @@ Type
     procedure LogUnIndent;
     Procedure EnterDir(ADir : String);
     Function GetCompiler : String;
-    Function InstallPackageFiles(APAckage : TPackage; tt : TTargetTypes; Const Dest : String):Boolean;
+    Function InstallPackageFiles(APAckage : TPackage; tt : TTargetTypes; Const Dest : String; Const InstallMode: TInstallMode):Boolean;
     Procedure InstallUnitConfigFile(APAckage : TPackage; Const Dest : String);
     function GetUnitConfigFilesInstallDir(ABaseDir: string): String;
 
-    Function InstallPackageSourceFiles(APAckage : TPackage; stt : TSourceTypes; ttt : TTargetTypes; Const Dest : String):Boolean;
+    Function InstallPackageSourceFiles(APAckage : TPackage; stt : TSourceTypes; ttt : TTargetTypes; Const Dest : String; Const InstallMode: TInstallMode):Boolean;
     Function FileNewer(const Src,Dest : String) : Boolean;
     Procedure LogSearchPath(APackage: TPackage;const ASearchPathName:string;Path:TConditionalStrings; ACPU:TCPU;AOS:TOS);
     Function FindFileInPath(APackage: TPackage; Path:TConditionalStrings; AFileName:String; var FoundPath:String;ACPU:TCPU;AOS:TOS):Boolean;
@@ -1149,6 +1152,7 @@ Type
     Procedure CmdCreateDir(const DestDir : String);
     Procedure CmdMoveFiles(List : TStrings; Const DestDir : String);
     Procedure CmdDeleteFiles(List : TStrings);
+    procedure CmdDeleteDestFiles(List: TStrings; const DestDir: String);
     Procedure CmdArchiveFiles(List : TStrings; Const ArchiveFile : String);
     Procedure CmdRenameFile(SourceName, DestName : String);
     Procedure CmdRemoveDirs(List: TStrings);
@@ -1182,6 +1186,7 @@ Type
     Procedure MaybeCompile(APackage:TPackage);
     Function ReadyToCompile(APackage:TPackage) : Boolean;
     Procedure Install(APackage : TPackage; AnArchiveFiles: boolean);
+    Procedure UnInstall(APackage : TPackage);
     Procedure Archive(APackage : TPackage);
     Procedure PkgList(PkgList: TStrings; APackage : TPackage);
     Procedure Clean(APackage : TPackage; AllTargets: boolean);
@@ -1193,6 +1198,7 @@ Type
     // Packages commands
     Procedure Compile(Packages : TPackages);
     Procedure Install(Packages : TPackages);
+    Procedure UnInstall(Packages : TPackages);
     Procedure ZipInstall(Packages : TPackages);
     Procedure Archive(Packages : TPackages);
     procedure Manifest(Packages: TPackages);
@@ -1238,6 +1244,7 @@ Type
     Procedure Compile(Force : Boolean); virtual;
     Procedure Clean(AllTargets: boolean); virtual;
     Procedure Install; virtual;
+    Procedure UnInstall; virtual;
     Procedure ZipInstall; virtual;
     Procedure Archive; virtual;
     Procedure Manifest; virtual;
@@ -1548,6 +1555,7 @@ ResourceString
   SErrUnsupportedBuildmode = 'Package does not support this buildmode';
   SErrPackVarNotExist   = 'There is no package variant with the name "%s"';
   SErrEventNotSupported = 'Unsupported event type';
+  SErrorPkgNotInstalled = 'Package "%s" is not installed, can not uninstall.';
 
   SWarnCircularTargetDependency = 'Warning: Circular dependency detected when compiling target %s with target %s';
   SWarnCircularPackageDependency = 'Warning: Circular dependency detected when compiling package %s with package %s';
@@ -1581,6 +1589,7 @@ ResourceString
   SInfoExecutingCommand   = 'Executing command "%s %s"';
   SInfoCreatingOutputDir  = 'Creating output dir "%s"';
   SInfoInstallingPackage  = 'Installing package %s';
+  SInfoUnInstallingPackage= 'Uninstalling package %s';
   SInfoArchivingPackage   = 'Archiving package %s in "%s"';
   SInfoCleaningPackage    = 'Cleaning package %s';
   SInfoManifestPackage    = 'Creating manifest for package %s';
@@ -1645,6 +1654,7 @@ ResourceString
   SHelpCompile        = 'Compile all units in the package(s).';
   SHelpBuild          = 'Build all units in the package(s).';
   SHelpInstall        = 'Install all units in the package(s).';
+  SHelpUnInstall      = 'Uninstall the package(s).';
   SHelpClean          = 'Clean (remove) all units in the package(s).';
   SHelpArchive        = 'Create archive (zip) with all units in the package(s).';
   SHelpHelp           = 'This message.';
@@ -4424,6 +4434,7 @@ begin
   FNotifyEventCollection := TNotifyEventCollection.create([neaBeforeCompile, neaAfterCompile, neaBeforeClean, neaAfterClean,
                                                            neaBeforeInstall, neaAfterInstall, neaBeforeArchive, neaAfterArchive,
                                                            neaBeforeManifest, neaAfterManifest, neaBeforePkgList, neaAfterPkgList,
+                                                           neaBeforeUnInstall, neaAfterUnInstall,
                                                            neaBeforeCreateBuildEngine, neaAfterCreateBuildengine]);
   CreatePackages;
 end;
@@ -4651,6 +4662,8 @@ begin
       FRunMode:=rmManifest
     else if CheckCommand(I,'l','pkglist') then
       FRunMode:=rmPkgList
+    else if CheckCommand(I,'u','uninstall') then
+      FRunMode:=rmUnInstall
     else if CheckOption(I,'h','help') then
       Usage('',[])
     else if Checkoption(I,'C','cpu') then
@@ -4757,6 +4770,7 @@ begin
   LogCmd('compile',SHelpCompile);
   LogCmd('build',SHelpBuild);
   LogCmd('install',SHelpInstall);
+  LogCmd('uninstall',SHelpUnInstall);
   LogCmd('clean',SHelpClean);
   LogCmd('archive',SHelpArchive);
   LogCmd('manifest',SHelpManifest);
@@ -4833,6 +4847,14 @@ begin
 end;
 
 
+procedure TCustomInstaller.UnInstall;
+begin
+  NotifyEventCollection.CallEvents(neaBeforeUnInstall, self);
+  BuildEngine.UnInstall(Packages);
+  NotifyEventCollection.CallEvents(neaAfterUnInstall, self);
+end;
+
+
 procedure TCustomInstaller.Archive;
 begin
   // Force generation of manifest.xml, this is required for the repository
@@ -4883,6 +4905,7 @@ begin
       rmDistClean: Clean(True);
       rmManifest : Manifest;
       rmPkgList : PkgList;
+      rmUnInstall : UnInstall;
     end;
   except
     On E : Exception do
@@ -4939,7 +4962,8 @@ begin
   FExternalPackages:=TPackages.Create(TPackage);
   FNotifyEventCollection := TNotifyEventCollection.create([neaAfterCompile, neaBeforeCompile, neaAfterInstall, neaBeforeInstall,
                                                            neaAfterClean, neaBeforeClean, neaAfterArchive, neaBeforeArchive,
-                                                           neaAfterManifest, neaBeforeManifest, neaAfterPkgList, neaBeforePkgList]);
+                                                           neaAfterManifest, neaBeforeManifest, neaAfterPkgList, neaBeforePkgList,
+                                                           neaBeforeUnInstall, neaAfterUnInstall]);
 {$ifndef NO_THREADING}
   InitCriticalSection(FGeneralCriticalSection);
 {$endif NO_THREADING}
@@ -5433,6 +5457,28 @@ begin
   else
     For I:=0 to List.Count-1 do
       SysDeleteFile(List[i]);
+end;
+
+procedure TBuildEngine.CmdDeleteDestFiles(List: TStrings; Const DestDir: String);
+
+Var
+  I : Integer;
+  DeleteFileName : String;
+begin
+  // Delete files from their location on disk
+  For I:=0 to List.Count-1 do
+    begin
+      if List.Names[i]<>'' then
+        begin
+          if IsRelativePath(list.ValueFromIndex[i]) then
+            DeleteFileName:=DestDir+list.ValueFromIndex[i]
+          else
+            DeleteFileName:=list.ValueFromIndex[i];
+        end
+      else
+        DeleteFileName:=DestDir+ExtractFileName(list[i]);
+      SysDeleteFile(DeleteFileName);
+    end;
 end;
 
 
@@ -6844,7 +6890,7 @@ begin
 end;
 
 
-Function TBuildEngine.InstallPackageFiles(APAckage : TPackage; tt : TTargetTypes; Const Dest : String):Boolean;
+Function TBuildEngine.InstallPackageFiles(APAckage : TPackage; tt : TTargetTypes; Const Dest : String; Const InstallMode: TInstallMode):Boolean;
 Var
   List : TStringList;
 begin
@@ -6855,7 +6901,10 @@ begin
     if (List.Count>0) then
       begin
         Result:=True;
-        CmdCopyFiles(List,Dest,APackage);
+        case InstallMode of
+          imInstall:   CmdCopyFiles(List,Dest,APackage);
+          imUnInstall: CmdDeleteDestFiles(List,Dest);
+        end;
       end;
   Finally
     List.Free;
@@ -6902,7 +6951,7 @@ begin
   end;
 end;
 
-function TBuildEngine.InstallPackageSourceFiles(APAckage : TPackage; stt : TSourceTypes; ttt : TTargetTypes; Const Dest : String): Boolean;
+function TBuildEngine.InstallPackageSourceFiles(APAckage : TPackage; stt : TSourceTypes; ttt : TTargetTypes; Const Dest : String; Const InstallMode: TInstallMode): Boolean;
 Var
   List : TStringList;
 begin
@@ -6913,7 +6962,10 @@ begin
     if (List.Count>0) then
       begin
         Result:=True;
-        CmdCopyFiles(List,Dest,APackage);
+        case InstallMode of
+          imInstall:   CmdCopyFiles(List,Dest,APackage);
+          imUnInstall: CmdDeleteDestFiles(List,Dest);
+        end;
       end;
   Finally
     List.Free;
@@ -6969,10 +7021,10 @@ begin
     D:=FixPath(Defaults.Prefix,true);
     // This is to install the TPackage.Installfiles, which are not related to any
     // target
-    if InstallPackageFiles(APackage,[],D) then
+    if InstallPackageFiles(APackage,[],D, imInstall) then
       B:=true;
     D:=FixPath(APackage.Dictionary.ReplaceStrings(Defaults.UnitInstallDir), True)+APackage.GetPackageUnitInstallDir(Defaults.CPU,Defaults.OS);
-    if InstallPackageFiles(APackage,[ttUnit, ttImplicitUnit],D) then
+    if InstallPackageFiles(APackage,[ttUnit, ttImplicitUnit],D, imInstall) then
       B:=true;
     // By default do not install the examples. Maybe add an option for this later
     //if InstallPackageFiles(APAckage,ttExampleUnit,D) then
@@ -6983,16 +7035,16 @@ begin
       InstallUnitConfigFile(APackage,D);
     // Programs
     D:=IncludeTrailingPathDelimiter(Defaults.BinInstallDir);
-    InstallPackageFiles(APAckage,[ttProgram],D);
+    InstallPackageFiles(APAckage,[ttProgram],D, imInstall);
     //InstallPackageFiles(APAckage,ttExampleProgram,D);
     // Documentation
     D:=FixPath(APackage.Dictionary.ReplaceStrings(Defaults.DocInstallDir), True);
-    InstallPackageSourceFiles(APackage,[stDoc],[],D);
+    InstallPackageSourceFiles(APackage,[stDoc],[],D, imInstall);
     // Examples
     if Defaults.InstallExamples then
       begin
         D:=FixPath(APackage.Dictionary.ReplaceStrings(Defaults.ExamplesInstallDir), True);
-        InstallPackageSourceFiles(APackage,[stExample],[ttExampleProgram,ttExampleUnit],D);
+        InstallPackageSourceFiles(APackage,[stExample],[ttExampleProgram,ttExampleUnit],D, imInstall);
       end;
     // Done.
     APackage.FTargetState:=tsInstalled;
@@ -7006,6 +7058,61 @@ begin
     If (APackage.Directory<>'') then
       GPathPrefix := '';
   end;
+end;
+
+
+procedure TBuildEngine.UnInstall(APackage: TPackage);
+Var
+  D : String;
+begin
+  CheckDependencies(APackage, False);
+  ResolvePackagePaths(APackage);
+  APackage.SetDefaultPackageVariant;
+  If (Apackage.State<>tsInstalled) then
+    begin
+    Error(SErrorPkgNotInstalled,[APackage.Name]);
+    exit;
+    end;
+  Log(vlCommand,SInfoUnInstallingPackage,[APackage.Name]);
+
+  //DoBeforeUnInstall(APackage);
+
+  // units
+  AddPackageMacrosToDictionary(APackage, APackage.Dictionary);
+  GlobalDictionary.AddVariable('unitinstalldir', FixPath(APackage.Dictionary.ReplaceStrings(Defaults.UnitInstallDir), False));
+  GlobalDictionary.AddVariable('packageunitinstalldir',APackage.GetPackageUnitInstallDir(Defaults.CPU,Defaults.OS));
+
+  D:=FixPath(Defaults.Prefix,true);
+  // This is to uninstall the TPackage.Installfiles, which are not related to any
+  // target
+  InstallPackageFiles(APackage,[],D,imUnInstall);
+  D:=FixPath(APackage.Dictionary.ReplaceStrings(Defaults.UnitInstallDir), True)+APackage.GetPackageUnitInstallDir(Defaults.CPU,Defaults.OS);
+  InstallPackageFiles(APackage,[ttUnit, ttImplicitUnit],D, imUnInstall);
+  SysDeleteDirectory(D);
+
+  // Unit (dependency) configuration
+  D:=FixPath(APackage.Dictionary.ReplaceStrings(GetUnitConfigFilesInstallDir(Defaults.BaseInstallDir)), True);
+  SysDeleteFile(D+APackage.Name+FpmkExt);
+
+  // Programs
+  D:=IncludeTrailingPathDelimiter(Defaults.BinInstallDir);
+  InstallPackageFiles(APAckage,[ttProgram],D, imUnInstall);
+  SysDeleteDirectory(D);
+  // Documentation
+  D:=FixPath(APackage.Dictionary.ReplaceStrings(Defaults.DocInstallDir), True);
+  InstallPackageSourceFiles(APackage,[stDoc],[],D, imUnInstall);
+  SysDeleteDirectory(D);
+  // Examples
+  if Defaults.InstallExamples then
+    begin
+      D:=FixPath(APackage.Dictionary.ReplaceStrings(Defaults.ExamplesInstallDir), True);
+      InstallPackageSourceFiles(APackage,[stExample],[ttExampleProgram,ttExampleUnit],D, imUnInstall);
+      SysDeleteDirectory(D);
+    end;
+  // Done.
+  APackage.FTargetState:=tsNeutral;
+
+  //DoAfterUnInstall(APackage);
 end;
 
 
@@ -7414,6 +7521,21 @@ begin
   end;
 
   NotifyEventCollection.CallEvents(neaAfterInstall, Self);
+end;
+
+
+procedure TBuildEngine.UnInstall(Packages: TPackages);
+Var
+  I : Integer;
+  P : TPackage;
+begin
+  NotifyEventCollection.CallEvents(neaBeforeUnInstall, Self);
+  For I:=0 to Packages.Count-1 do
+    begin
+      P:=Packages.PackageItems[i];
+      UnInstall(P);
+    end;
+  NotifyEventCollection.CallEvents(neaAfterUnInstall, Self);
 end;
 
 

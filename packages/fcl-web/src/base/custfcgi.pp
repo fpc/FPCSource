@@ -354,7 +354,7 @@ end;
 
 Function TFCGIRequest.GetFieldValue(Index : Integer) : String;
 
-Type THttpToCGI = array[1..CGIVarCount] of byte;
+Type THttpToCGI = array[1..37] of byte;
 
 const HttpToCGI : THttpToCGI =
    (

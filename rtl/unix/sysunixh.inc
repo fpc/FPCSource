@@ -15,6 +15,7 @@
  **********************************************************************}
 
 {$define newsignal}
+{$define FPC_SYSTEM_HAS_SYSDLH}
 
 {$I systemh.inc}
 

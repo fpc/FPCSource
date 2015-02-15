@@ -274,7 +274,7 @@ interface
           top_shifterop : (shifterop : pshifterop);
       {$endif defined(arm) or defined(aarch64)}
       {$ifdef m68k}
-          top_regset : (dataregset,addrregset:^tcpuregisterset);
+          top_regset : (dataregset,addrregset,fpuregset:^tcpuregisterset);
       {$endif m68k}
       {$ifdef jvm}
           top_single : (sval:single);
@@ -2654,6 +2654,7 @@ implementation
                 begin
                   dispose(dataregset);
                   dispose(addrregset);
+                  dispose(fpuregset);
                 end;
 {$endif m68k}
 {$ifdef jvm}

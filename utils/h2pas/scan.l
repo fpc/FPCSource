@@ -20,6 +20,7 @@
 
 
 unit scan;
+{$H+}
 
   interface
 

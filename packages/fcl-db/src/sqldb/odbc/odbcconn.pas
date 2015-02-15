@@ -16,9 +16,7 @@ unit odbcconn;
 interface
 
 uses
-  Classes, SysUtils, sqldb, db, odbcsqldyn
-{$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}, BufDataset{$ENDIF}
-  ;
+  Classes, SysUtils, sqldb, db, odbcsqldyn, BufDataset;
 
 type
 
@@ -33,9 +31,6 @@ type
     FQuery:string;        // last prepared query, with :ParamName converted to ?
     FParamIndex:TParamBinding; // maps the i-th parameter in the query to the TParams passed to PrepareStatement
     FParamBuf:array of pointer; // buffers that can be used to bind the i-th parameter in the query
-{$IF NOT((FPC_VERSION>=2) AND (FPC_RELEASE>=1))}
-    FBlobStreams:TList;   // list of Blob TMemoryStreams stored in field buffers (we need this currently as we can't hook into the freeing of TBufDataset buffers)
-{$ENDIF}
   public
     constructor Create(Connection:TODBCConnection);
     destructor Destroy; override;
@@ -95,13 +90,8 @@ type
     // - Result retrieving
     procedure AddFieldDefs(cursor:TSQLCursor; FieldDefs:TFieldDefs); override;
     function Fetch(cursor:TSQLCursor):boolean; override;
-{$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
     function LoadField(cursor:TSQLCursor; FieldDef:TFieldDef; buffer:pointer; out CreateBlob : boolean):boolean; override;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
-{$ELSE}
-    function LoadField(cursor:TSQLCursor; FieldDef:TFieldDef; buffer:pointer):boolean; override;
-    function CreateBlobStream(Field:TField; Mode:TBlobStreamMode):TStream; override;
-{$ENDIF}
     procedure FreeFldBuffers(cursor:TSQLCursor); override;
     // - UpdateIndexDefs
     procedure UpdateIndexDefs(IndexDefs:TIndexDefs; TableName:string); override;
@@ -135,7 +125,6 @@ type
 
   EODBCException = class(ESQLDatabaseError);
 
-{$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
   { TODBCConnectionDef }
 
   TODBCConnectionDef = Class(TConnectionDef)
@@ -143,7 +132,6 @@ type
     Class Function ConnectionClass : TSQLConnectionClass; override;
     Class Function Description : String; override;
   end;
-{$ENDIF}
 
 implementation
 
@@ -302,9 +290,7 @@ end;
 constructor TODBCConnection.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-{$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
   FConnOptions := FConnOptions + [sqEscapeRepeat] + [sqEscapeSlash];
-{$ENDIF}
 end;
 
 function TODBCConnection.StrToStatementType(s : string) : TStatementType;
@@ -661,11 +647,7 @@ begin
 
   // Parse the SQL and build FParamIndex
   if assigned(AParams) and (AParams.count > 0) then
-{$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
     buf := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psInterbase,ODBCCursor.FParamIndex);
-{$ELSE}
-    buf := AParams.ParseSQL(buf,false,psInterbase,ODBCCursor.FParamIndex);
-{$ENDIF}
 
   // prepare statement
   ODBCCursor.FQuery:=Buf;
@@ -815,11 +797,7 @@ end;
 const
   DEFAULT_BLOB_BUFFER_SIZE = 1024;
 
-{$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
 function TODBCConnection.LoadField(cursor: TSQLCursor; FieldDef: TFieldDef; buffer: pointer; out CreateBlob : boolean): boolean;
-{$ELSE}
-function TODBCConnection.LoadField(cursor: TSQLCursor; FieldDef: TFieldDef; buffer: pointer):boolean;
-{$ENDIF}
 var
   ODBCCursor:TODBCCursor;
   StrLenOrInd:SQLLEN;
@@ -827,16 +805,9 @@ var
   ODBCTimeStruct:SQL_TIME_STRUCT;
   ODBCTimeStampStruct:SQL_TIMESTAMP_STRUCT;
   DateTime:TDateTime;
-{$IF NOT((FPC_VERSION>=2) AND (FPC_RELEASE>=1))}
-  BlobBuffer:pointer;
-  BlobBufferSize,BytesRead:SQLINTEGER;
-  BlobMemoryStream:TMemoryStream;
-{$ENDIF}
   Res:SQLRETURN;
 begin
-{$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
   CreateBlob := False;
-{$ENDIF}
   ODBCCursor:=cursor as TODBCCursor;
 
   // load the field using SQLGetData
@@ -899,9 +870,7 @@ begin
       else
         PWord(buffer)^ := StrLenOrInd;
     end;
-{$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
     ftWideMemo,
-{$ENDIF}
     ftBlob, ftMemo:       // BLOBs
     begin
       //Writeln('BLOB');
@@ -911,48 +880,8 @@ begin
       // Read the data if not NULL
       if StrLenOrInd<>SQL_NULL_DATA then
       begin
-{$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
         CreateBlob:=true; // defer actual loading of blob data to LoadBlobIntoBuffer method
         //WriteLn('Deferring loading of blob of length ',StrLenOrInd);
-{$ELSE}
-        // Determine size of buffer to use
-        if StrLenOrInd<>SQL_NO_TOTAL then
-          BlobBufferSize:=StrLenOrInd
-        else
-          BlobBufferSize:=DEFAULT_BLOB_BUFFER_SIZE;
-        try
-          // init BlobBuffer and BlobMemoryStream to nil pointers
-          BlobBuffer:=nil;
-          BlobMemoryStream:=nil;
-          if BlobBufferSize>0 then // Note: zero-length BLOB is represented as nil pointer in the field buffer to save memory usage
-          begin
-            // Allocate the buffer and memorystream
-            BlobBuffer:=GetMem(BlobBufferSize);
-            BlobMemoryStream:=TMemoryStream.Create;
-            // Retrieve data in parts (or effectively in one part if StrLenOrInd<>SQL_NO_TOTAL above)
-            repeat
-              Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_BINARY, BlobBuffer, BlobBufferSize, @StrLenOrInd);
-              ODBCCheckResult(Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get field data for field "%s" (index %d).',[FieldDef.Name, FieldDef.Index+1]);
-              // Append data in buffer to memorystream
-              if (StrLenOrInd=SQL_NO_TOTAL) or (StrLenOrInd>BlobBufferSize) then
-                BytesRead:=BlobBufferSize
-              else
-                BytesRead:=StrLenOrInd;
-              BlobMemoryStream.Write(BlobBuffer^, BytesRead);
-            until Res=SQL_SUCCESS;
-          end;
-          // Store memorystream pointer in Field buffer and in the cursor's FBlobStreams list
-          TObject(buffer^):=BlobMemoryStream;
-          if BlobMemoryStream<>nil then
-            ODBCCursor.FBlobStreams.Add(BlobMemoryStream);
-          // Set BlobMemoryStream to nil, so it won't get freed in the finally block below
-          BlobMemoryStream:=nil;
-        finally
-          BlobMemoryStream.Free;
-          if BlobBuffer<>nil then
-            Freemem(BlobBuffer,BlobBufferSize);
-        end;
-{$ENDIF}
       end;
     end;
     // TODO: Loading of other field types
@@ -965,7 +894,6 @@ begin
   //writeln(Format('Field.Size: %d; StrLenOrInd: %d',[FieldDef.Size, StrLenOrInd]));
 end;
 
-{$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
 procedure TODBCConnection.LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction: TSQLTransaction);
 var
   ODBCCursor: TODBCCursor;
@@ -1036,40 +964,12 @@ begin
     end;
   end;
 end;
-{$ELSE}
-function TODBCConnection.CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream;
-var
-  ODBCCursor: TODBCCursor;
-  BlobMemoryStream, BlobMemoryStreamCopy: TMemoryStream;
-begin
-  if (Mode=bmRead) and not Field.IsNull then
-  begin
-    Field.GetData(@BlobMemoryStream);
-    BlobMemoryStreamCopy:=TMemoryStream.Create;
-    if BlobMemoryStream<>nil then
-      BlobMemoryStreamCopy.LoadFromStream(BlobMemoryStream);
-    Result:=BlobMemoryStreamCopy;
-  end
-  else
-    Result:=nil;
-end;
-{$ENDIF}
 
 procedure TODBCConnection.FreeFldBuffers(cursor: TSQLCursor);
 var
   ODBCCursor:TODBCCursor;
-{$IF NOT((FPC_VERSION>=2) AND (FPC_RELEASE>=1))}
-  i: integer;
-{$ENDIF}
 begin
   ODBCCursor:=cursor as TODBCCursor;
-
-{$IF NOT((FPC_VERSION>=2) AND (FPC_RELEASE>=1))}
-  // Free TMemoryStreams in cursor.FBlobStreams and clear it
-  for i:=0 to ODBCCursor.FBlobStreams.Count-1 do
-    TObject(ODBCCursor.FBlobStreams[i]).Free;
-  ODBCCursor.FBlobStreams.Clear;
-{$ENDIF}
 
   if ODBCCursor.FSTMTHandle <> SQL_NULL_HSTMT then
     ODBCCheckResult(
@@ -1082,11 +982,7 @@ procedure TODBCConnection.AddFieldDefs(cursor: TSQLCursor; FieldDefs: TFieldDefs
 const
   ColNameDefaultLength  = 40; // should be > 0, because an ansistring of length 0 is a nil pointer instead of a pointer to a #0
   TypeNameDefaultLength = 80; // idem
-{$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
   BLOB_BUF_SIZE = 0;
-{$ELSE}
-  BLOB_BUF_SIZE = sizeof(pointer);
-{$ENDIF}
 var
   ODBCCursor:TODBCCursor;
   ColumnCount:SQLSMALLINT;
@@ -1149,11 +1045,9 @@ begin
       SQL_CHAR:          begin FieldType:=ftFixedChar;  FieldSize:=ColumnSize; end;
       SQL_VARCHAR:       begin FieldType:=ftString;     FieldSize:=ColumnSize; end;
       SQL_LONGVARCHAR:   begin FieldType:=ftMemo;       FieldSize:=BLOB_BUF_SIZE; end; // is a blob
-{$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
       SQL_WCHAR:         begin FieldType:=ftFixedWideChar; FieldSize:=ColumnSize*sizeof(Widechar); end;
       SQL_WVARCHAR:      begin FieldType:=ftWideString; FieldSize:=ColumnSize*sizeof(Widechar); end;
       SQL_WLONGVARCHAR:  begin FieldType:=ftWideMemo;   FieldSize:=BLOB_BUF_SIZE; end; // is a blob
-{$ENDIF}
       SQL_DECIMAL:       begin FieldType:=ftFloat;      FieldSize:=0; end;
       SQL_NUMERIC:       begin FieldType:=ftFloat;      FieldSize:=0; end;
       SQL_SMALLINT:      begin FieldType:=ftSmallint;   FieldSize:=0; end;
@@ -1186,9 +1080,7 @@ begin
 {      SQL_INTERVAL_HOUR_TO_MINUTE:  FieldType:=ftUnknown;}
 {      SQL_INTERVAL_HOUR_TO_SECOND:  FieldType:=ftUnknown;}
 {      SQL_INTERVAL_MINUTE_TO_SECOND:FieldType:=ftUnknown;}
-{$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
       SQL_GUID:          begin FieldType:=ftGuid;       FieldSize:=38; end; //SQL_GUID defines 36, but TGuidField requires 38
-{$ENDIF}
     else
       begin FieldType:=ftUnknown; FieldSize:=ColumnSize; end
     end;
@@ -1565,21 +1457,13 @@ end;
 
 constructor TODBCCursor.Create(Connection:TODBCConnection);
 begin
-{$IF NOT((FPC_VERSION>=2) AND (FPC_RELEASE>=1))}
-  // allocate FBlobStreams
-  FBlobStreams:=TList.Create;
-{$ENDIF}
 end;
 
 destructor TODBCCursor.Destroy;
 begin
-{$IF NOT((FPC_VERSION>=2) AND (FPC_RELEASE>=1))}
-  FBlobStreams.Free;
-{$ENDIF}
   inherited Destroy;
 end;
 
-{$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
 class function TODBCConnectionDef.TypeName: String;
 begin
   Result:='ODBC';
@@ -1597,12 +1481,9 @@ end;
 
 initialization
   RegisterConnection(TODBCConnectionDef);
-{$ENDIF}
 
 finalization
-{$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
   UnRegisterConnection(TODBCConnectionDef);
-{$ENDIF}
   if Assigned(DefaultEnvironment) then
     DefaultEnvironment.Free;
 end.

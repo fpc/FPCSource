@@ -163,18 +163,19 @@ interface
            if assigned(relsymbol) then
              owner.AsmWrite('-'+relsymbol.name);
            if ref.refaddr=addr_pic then
-{$ifdef x86_64}
              begin
-               { local symbols don't have to (and in case of Mac OS X: cannot)
-                 be accessed via the GOT
-               }
-               if not assigned(ref.symbol) or
-                  (ref.symbol.bind<>AB_LOCAL) then
-                 owner.AsmWrite('@GOTPCREL');
-             end;
+               { @GOT and @GOTPCREL references are only allowed for symbol alone,
+                 indexing, relsymbol or offset cannot be present. }
+               if assigned(relsymbol) or (offset<>0) or (index<>NR_NO) then
+                 InternalError(2015011801);
+{$ifdef x86_64}
+               if (base<>NR_RIP) then
+                 InternalError(2015011802);
+               owner.AsmWrite('@GOTPCREL');
 {$else x86_64}
-             owner.AsmWrite('@GOT');
+               owner.AsmWrite('@GOT');
 {$endif x86_64}
+             end;
            if offset<0 then
              owner.AsmWrite(tostr(offset))
            else

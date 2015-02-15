@@ -1067,6 +1067,7 @@ begin
 end;
 
 
+{$ifndef FPC_SYSTEM_HAS_CAPTUREBACKTRACE}
 function CaptureBacktrace(skipframes,count:sizeint;frames:PCodePointer):sizeint;
 var
   curr_frame,prev_frame: pointer;
@@ -1081,20 +1082,21 @@ begin
   while (i<count) and (curr_frame>prev_frame) and
      (curr_frame<StackTop) do
     begin
-      prev_frame:=curr_frame;
-      get_caller_stackinfo(curr_frame,curr_addr);
       if (curr_addr=nil) or
          (curr_frame=nil) then
         break;
       if (i>=0) then
         frames[i]:=curr_addr;
       inc(i);
+      prev_frame:=curr_frame;
+      get_caller_stackinfo(curr_frame,curr_addr);
     end;
   if i<0 then
     result:=0
   else
     result:=i;
 end;
+{$endif FPC_SYSTEM_HAS_CAPTUREBACKTRACE}
 
 
 Procedure HandleErrorAddrFrame (Errno : longint;addr : CodePointer; frame : Pointer);[public,alias:'FPC_BREAK_ERROR']; {$ifdef CPUI386} register; {$endif}
@@ -1458,8 +1460,25 @@ end;
 
 
 {*****************************************************************************
+                          Dynamic library support
+*****************************************************************************}
+
+
+{$ifdef FPC_HAS_FEATURE_DYNLIBS}
+{$i dynlib.inc}
+
+{$ifdef DISABLE_NO_DYNLIBS_MANAGER}
+{ OS Dependant implementation }
+{$i sysdl.inc}
+{$endif DISABLE_NO_DYNLIBS_MANAGER}
+{$endif FPC_HAS_FEATURE_DYNLIBS}
+
+
+{*****************************************************************************
                             File Handling
 *****************************************************************************}
+
+
 
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}

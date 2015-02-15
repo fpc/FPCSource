@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Author := 'Michael van Canneyt and Free Pascal Development team';
     P.License := 'LGPL with modification';
     P.HomepageURL := 'www.freepascal.org';
@@ -30,8 +30,8 @@ begin
     P.SourcePath.Add('src');
     P.IncludePath.Add('src/unix',AllUnixOSes);
     P.IncludePath.Add('src/win',[win32,win64]);
-    P.IncludePath.Add('src/dummy',AllOSes-[win32,win64]-AllUnixOSes);
     P.IncludePath.Add('src/$(OS)',AllOSes-[win32,win64]-AllUnixOSes);
+    P.IncludePath.Add('src/dummy',AllOSes-[win32,win64]-AllUnixOSes);
 
     T:=P.Targets.AddUnit('pipes.pp');
       T.Dependencies.AddInclude('pipes.inc');

@@ -1533,6 +1533,10 @@ implementation
                    begin
                      { procvar -> procvar }
                      eq:=proc_to_procvar_equal(tprocvardef(def_from),tprocvardef(def_to),cdo_warn_incompatible_univ in cdoptions);
+                     if eq<te_equal then
+                       doconv:=tc_proc_2_procvar
+                     else
+                       doconv:=tc_equal;
                    end;
                  pointerdef :
                    begin
@@ -2176,30 +2180,38 @@ implementation
          if not(assigned(def1)) or not(assigned(def2)) then
            exit;
          { check for method pointer and local procedure pointer:
-             a) if one is a procedure of object, the other also has to be one
-             b) if one is a pure address, the other also has to be one
+             a) anything but procvars can be assigned to blocks
+             b) if one is a procedure of object, the other also has to be one
+                (except for block)
+             c) if one is a pure address, the other also has to be one
                 except if def1 is a global proc and def2 is a nested procdef
                 (global procedures can be converted into nested procvars)
-             c) if def1 is a nested procedure, then def2 has to be a nested
+             d) if def1 is a nested procedure, then def2 has to be a nested
                 procvar and def1 has to have the po_delphi_nested_cc option
-             d) if def1 is a procvar, def1 and def2 both have to be nested or
+             e) if def1 is a procvar, def1 and def2 both have to be nested or
                 non-nested (we don't allow assignments from non-nested to
                 nested procvars to make sure that we can still implement
                 nested procvars using trampolines -- e.g., this would be
                 necessary for LLVM or CIL as long as they do not have support
                 for Delphi-style frame pointer parameter passing) }
-         if (def1.is_methodpointer<>def2.is_methodpointer) or  { a) }
-            ((def1.is_addressonly<>def2.is_addressonly) and    { b) }
+         if is_block(def2) then                                     { a) }
+           { can't explicitly check against procvars here, because
+             def1 may already be a procvar due to a proc_to_procvar;
+             this is checked in the type conversion node itself -> ok }
+         else if (def1.is_methodpointer<>def2.is_methodpointer) or  { b) }
+            ((def1.is_addressonly<>def2.is_addressonly) and         { c) }
              (is_nested_pd(def1) or
               not is_nested_pd(def2))) or
-            ((def1.typ=procdef) and                            { c) }
+            ((def1.typ=procdef) and                                 { d) }
              is_nested_pd(def1) and
              (not(po_delphi_nested_cc in def1.procoptions) or
               not is_nested_pd(def2))) or
-            ((def1.typ=procvardef) and                         { d) }
+            ((def1.typ=procvardef) and                              { e) }
              (is_nested_pd(def1)<>is_nested_pd(def2))) then
            exit;
          pa_comp:=[cpo_ignoreframepointer];
+         if is_block(def2) then
+           include(pa_comp,cpo_ignorehidden);
          if checkincompatibleuniv then
            include(pa_comp,cpo_warn_incompatible_univ);
          { check return value and options, methodpointer is already checked }
@@ -2209,7 +2221,10 @@ implementation
            include(po_comp,po_staticmethod);
          if (m_delphi in current_settings.modeswitches) then
            exclude(po_comp,po_varargs);
-         if (def1.proccalloption=def2.proccalloption) and
+         { for blocks, the calling convention doesn't matter because we have to
+           generate a wrapper anyway }
+         if ((po_is_block in def2.procoptions) or
+             (def1.proccalloption=def2.proccalloption)) and
             ((po_comp * def1.procoptions)= (po_comp * def2.procoptions)) and
             equal_defs(def1.returndef,def2.returndef) then
           begin
@@ -2223,6 +2238,9 @@ implementation
               begin
                 { prefer non-nested to non-nested over non-nested to nested }
                 if (is_nested_pd(def1)<>is_nested_pd(def2)) then
+                  eq:=te_convert_l1;
+                { in case of non-block to block, we need a type conversion }
+                if (po_is_block in def1.procoptions) <> (po_is_block in def2.procoptions) then
                   eq:=te_convert_l1;
               end;
             proc_to_procvar_equal:=eq;

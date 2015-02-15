@@ -73,7 +73,7 @@ implementation
        paramgr,procinfo,
        { symtable }
        symconst,symsym,symtable,symcreat,
-       defutil,defcmp,
+       defutil,defcmp,objcdef,
 {$ifdef jvm}
        jvmdef,
 {$endif}
@@ -340,7 +340,11 @@ implementation
             ((ttypesym(srsym).typedef.typ=errordef) or
             (not allowgenericsyms and
             (ttypesym(srsym).typedef.typ=undefineddef) and
-            not (sp_generic_para in srsym.symoptions))) then
+            not (sp_generic_para in srsym.symoptions) and
+            not (sp_explicitrename in srsym.symoptions) and
+            not assigned(srsym.owner.defowner) and
+            { use df_generic instead of is_generic to allow aliases in nested types as well }
+            not (df_generic in tstoreddef(srsym.owner.defowner).defoptions))) then
           begin
             Message1(type_e_type_is_not_completly_defined,ttypesym(srsym).realname);
             def:=generrordef;
@@ -1791,6 +1795,43 @@ implementation
                 jvm_create_procvar_class(name,def);
 {$endif}
               end;
+            _ID:
+              begin
+                case idtoken of
+                  _HELPER:
+                    begin
+                      if hadtypetoken and
+                         { don't allow "type helper" in mode delphi and require modeswitch typehelpers }
+                         ([m_delphi,m_type_helpers]*current_settings.modeswitches=[m_type_helpers]) then
+                        begin
+                          { reset hadtypetoken, so that calling code knows that it should not be handled
+                            as a "unique" type }
+                          hadtypetoken:=false;
+                          consume(_HELPER);
+                          def:=object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_type);
+                        end
+                      else
+                        expr_type
+                    end;
+                  _REFERENCE:
+                    begin
+                      if m_blocks in current_settings.modeswitches then
+                        begin
+                          consume(_REFERENCE);
+                          consume(_TO);
+                          def:=procvar_dec(genericdef,genericlist);
+                          { could be errordef in case of a syntax error }
+                          if assigned(def) and
+                             (def.typ=procvardef) then
+                            include(tprocvardef(def).procoptions,po_is_function_ref);
+                        end
+                      else
+                        expr_type;
+                    end;
+                  else
+                    expr_type;
+                end;
+              end
             else
               if (token=_KLAMMERAFFE) and (m_iso in current_settings.modeswitches) then
                 begin
@@ -1801,19 +1842,7 @@ implementation
                     current_module.checkforwarddefs.add(def);
                 end
               else
-                if hadtypetoken and
-                    { don't allow "type helper" in mode delphi and require modeswitch typehelpers }
-                    ([m_delphi,m_type_helpers]*current_settings.modeswitches=[m_type_helpers]) and
-                    (token=_ID) and (idtoken=_HELPER) then
-                  begin
-                    { reset hadtypetoken, so that calling code knows that it should not be handled
-                      as a "unique" type }
-                    hadtypetoken:=false;
-                    consume(_HELPER);
-                    def:=object_dec(odt_helper,name,newsym,genericdef,genericlist,nil,ht_type);
-                  end
-                else
-                  expr_type;
+                expr_type;
          end;
 
          if def=nil then

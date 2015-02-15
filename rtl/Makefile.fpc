@@ -4,7 +4,7 @@
 
 [package]
 name=rtl
-version=2.7.1
+version=3.1.1
 
 [target]
 dirs_linux=linux
@@ -44,6 +44,7 @@ dirs_mipsel_android=android
 dirs_jvm_android=android/jvm
 dirs_msdos=msdos
 dirs_aros=aros
+dirs_atari=atari
 
 [install]
 fpcpackage=y

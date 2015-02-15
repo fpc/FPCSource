@@ -527,8 +527,8 @@ interface
             else
               emit_reg_reg(A_XOR,opsize,regd,regd);
 
-            {Division depends on the right type.}
-            if is_signed(right.resultdef) then
+            { Division depends on the result type }
+            if is_signed(resultdef) then
               op:=A_IDIV
             else
               op:=A_DIV;

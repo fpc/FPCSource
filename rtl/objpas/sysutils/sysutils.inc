@@ -297,7 +297,12 @@ begin
   else if Obj is TObject then
     Writeln(hstdout^,'Exception object ',Obj.ClassName,' is not of class Exception.')
   else
-    Writeln(hstdout^,'Exception object is not ia valid class.');
+    Writeln(hstdout^,'Exception object is not a valid class.');
+{$IFDEF HAS_OSERROR}
+ {$IFDEF DEBUG_EXCEPTIONS_LASTOSERROR}
+  WriteLn (HStdOut^, 'Last OS error detected in the RTL: ', GetLastOSError);
+ {$ENDIF DEBUG_EXCEPTIONS_LASTOSERROR}
+{$ENDIF HAS_OSERROR}
   Writeln(hstdout^,BackTraceStrFunc(Addr));
   if (FrameCount>0) then
     begin
@@ -320,7 +325,7 @@ type
   end;
 
 const
-  exceptmap: array[0..28] of TExceptMapEntry = (
+  exceptmap: array[0..29] of TExceptMapEntry = (
     (code: 200; cls: EDivByZero;     msg: @SDivByZero),
     (code: 201; cls: ERangeError;    msg: @SRangeError),
     (code: 202; cls: EStackOverflow; msg: @SStackOverflow),
@@ -350,7 +355,8 @@ const
     (code: 231; cls: EConvertError;  msg: @SiconvError),
     (code: 232; cls: ENoThreadSupport; msg: @SNoThreadSupport),
     (code: 233; cls: ENoWideStringSupport; msg: @SSigQuit),
-    (code: 234; cls: ENoWideStringSupport; msg: @SMissingWStringManager)
+    (code: 234; cls: ENoWideStringSupport; msg: @SMissingWStringManager),
+    (code: 235; cls: ENoDynLibsSupport; msg: @SNoDynLibsSupport)
   );
 
 function FindExceptMapEntry(err: longint): PExceptMapEntry;

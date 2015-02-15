@@ -34,7 +34,7 @@ begin
     P.Dependencies.Add('univint',[darwin,iphonesim]);
 
     P.Directory:=ADirectory;
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
 
     P.Options.Add('-S2h');
 
@@ -56,9 +56,7 @@ begin
     T.Dependencies.AddUnit('dglobals');
 
     T:=P.Targets.AddProgram('unitdiff.pp');
-    T.ResourceStrings:=true;
     T:=P.Targets.AddProgram('fpclasschart.pp');
-    T.ResourceStrings:=true;
 
     T := P.Targets.AddUnit('dglobals.pp');
     T.install:=false;

@@ -411,7 +411,7 @@ scan_e_illegal_hugepointernormalization=02098_E_Illegal argument for HUGEPOINTER
 #
 # Parser
 #
-# 03338 is the last used one
+# 03339 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -977,10 +977,10 @@ parser_w_skipped_fields_after=03177_W_Some fields coming after "$1" were not ini
 % You can leave some fields at the end of a type constant record uninitialized
 % (The compiler will initialize them to zero automatically). This may be the cause
 % of subtle problems.
-parser_e_varargs_need_cdecl_and_external=03178_E_VarArgs directive (or '...' in MacPas) without CDecl/CPPDecl/MWPascal and External
+parser_e_varargs_need_cdecl_and_external=03178_E_VarArgs directive (or '...' in MacPas) without CDecl/CPPDecl/MWPascal/StdCall and External
 % The varargs directive (or the ``...'' varargs parameter in MacPas mode) can only be
 % used with procedures or functions that are declared with \var{external} and one of
-% \var{cdecl}, \var{cppdecl} and \var{mwpascal}. This functionality
+% \var{cdecl}, \var{cppdecl}, \var{stdcall}  and \var{mwpascal}. This functionality
 % is only supported to provide a compatible interface to C functions like printf.
 parser_e_self_call_by_value=03179_E_Self must be a normal (call-by-value) parameter
 % You cannot declare \var{Self} as a const or var parameter, it must always be
@@ -1528,6 +1528,9 @@ parser_w_ptr_type_ignored=03338_W_Pointer type "$1" ignored
 % The specified pointer type modifier is ignored, because it is not supported on
 % the current platform. This happens, for example, when a far pointer is
 % declared on a non-x86 platform.
+parser_e_global_generic_references_static=03339_E_Global Generic template references static symtable
+% A generic declared in the interface section of a unit must not reference symbols that belong
+% solely to the implementation section of that unit.
 %
 %
 %
@@ -1535,7 +1538,7 @@ parser_w_ptr_type_ignored=03338_W_Pointer type "$1" ignored
 %
 # Type Checking
 #
-# 04122 is the last used one
+# 04123 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1843,13 +1846,13 @@ type_w_zero_to_nil=04090_W_Converting 0 to NIL
 % Use NIL rather than 0 when initialising a pointer.
 type_e_protocol_type_expected=04091_E_Objective-C protocol type expected, but got "$1"
 % The compiler expected a protocol type name, but found something else.
-type_e_objc_type_unsupported=04092_E_The type "$1" is not supported for interaction with the Objective-C runtime.
-% Objective-C makes extensive use of run time type information (RTTI). This format
+type_e_objc_type_unsupported=04092_E_The type "$1" is not supported for interaction with the Objective-C and the blocks runtime.
+% Objective-C and Blocks make extensive use of run time type information (RTTI). This format
 % is defined by the maintainers of the run time and can therefore not be adapted
 % to all possible Object Pascal types. In particular, types that depend on
 % reference counting by the compiler (such as ansistrings and certain kinds of
 % interfaces) cannot be used as fields of Objective-C classes, cannot be
-% directly passed to Objective-C methods, and cannot be encoded using \var{objc\_encode}.
+% directly passed to Objective-C methods or Blocks, and cannot be encoded using \var{objc\_encode}.
 type_e_class_or_objcclass_type_expected=04093_E_Class or objcclass type expected, but got "$1"
 % It is only possible to create class reference types of \var{class} and \var{objcclass}
 type_e_objcclass_type_expected=04094_E_Objcclass type expected
@@ -1965,11 +1968,18 @@ type_e_procedure_must_be_far=04121_E_Procedure or function must be far in order 
 type_w_instance_abstract_class=04122_W_Creating an instance of abstract class "$1"
 % The specified class is declared as \var{abstract} and thus no instance of this class
 % should be created. This is merely a warning for Delphi compatibility.
+type_e_function_reference_kind=04123_E_Subroutine references cannot be declared as "of object" or "is nested", they can always refer to any kind of subroutine
+% Subroutine references can refer to any kind of subroutine and hence do not
+% require specialisation for methods or nested subroutines.
+type_e_anonymous_function_unsupported=04999_E_Function references are not yet supported, only blocks (add "cdecl;" at the end)
+% Remove this error message once Delphi-style anonymous are implemented. It has
+% number 4999 so as not to result in a gap in the error message numbering once
+% it's removed.
 % \end{description}
 #
 # Symtable
 #
-# 05087 is the last used one
+# 05095 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -2273,6 +2283,11 @@ sym_h_managed_function_result_uninitialized=05094_H_Function result variable of 
 % before it is initialized (i.e. it appears in the left-hand side of an
 % assignment). Since the variable is managed, i. e. implicitly initialized by the compiler, this might be intended behaviour and
 % does not necessarily mean that the code is wrong.
+sym_w_duplicate_id=05095_W_Duplicate identifier "$1"
+% The identifier was already declared in an Objective-C category that's in the
+% same scope as the current identifier. This is a warning instead of an error,
+% because while this hides the identifier from the category, there are often
+% many unused categories in scope.
 % \end{description}
 #
 # Codegenerator
@@ -2736,7 +2751,7 @@ asmr_e_invalid_ref_register=07125_E_Invalid register used in memory reference ex
 #
 # Assembler/binary writers
 #
-# 08026 is the last used one
+# 08028 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Too many assembler files
 % With smartlinking enabled, there are too many assembler
@@ -2780,7 +2795,12 @@ asmw_e_handlerdata_no_handler=08025_E_.seh_handlerdata directive without precedi
 asmw_f_too_many_relocations=08026_F_Relocation count for section $1 exceeds 65535
 % Legacy COFF targets limit number of relocations per section to 65535 because they use a 2-byte field
 % to store the relocation count. Targets using newer PECOFF format do not have this limitation.
-
+asmw_w_changing_bind_type=08027_N_Change of bind type of symbol $1 from $2 to $3 after use
+asmw_h_changing_bind_type=08028_H_Change of bind type of symbol $1 from $2 to $3 after use
+% An assembler symbol bind type has been altered after use, which can lead to wrong code.
+% First version is reserved for changig to local label, which is the most probable cause
+% of wrong code generation, but currently set to Note level as it appears inside
+% the compiler compilation.
 #
 # Executing linker/assembler
 #
@@ -3378,7 +3398,7 @@ wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program opti
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2014 by Florian Klaempfl and others
+Copyright (c) 1993-2015 by Florian Klaempfl and others
 ]
 
 #
@@ -3487,7 +3507,7 @@ F*0*_Only options valid for the default or selected platform are listed.
 3*2Aelf_ELF (Linux) using internal writer
 3*2Acoff_COFF (Go32v2) using internal writer
 3*2Apecoff_PE-COFF (Win32) using internal writer
-3*2Ayasm_Assmeble using Yasm (experimental)
+3*2Ayasm_Assemble using Yasm (experimental)
 4*2Aas_Assemble using GNU AS
 4*2Agas_Assemble using GNU GAS
 4*2Agas-darwin_Assemble darwin Mach-O64 using GNU GAS
@@ -3760,7 +3780,7 @@ V*2Tembedded_Embedded
 **2*_a : Show everything             x : Show info about invoked tools
 **2*_b : Write file names messages   p : Write tree.log with parse tree
 **2*_    with full path              v : Write fpcdebug.txt with
-**2*_                                    lots of debugging info
+**2*_z : Write output to stderr          lots of debugging info
 **2*_m<x>,<y> : Do not show messages numbered <x> and <y>
 F*1V<x>_Append '-<x>' to the used compiler binary name (e.g. for version)
 **1W<x>_Target-specific options (targets)

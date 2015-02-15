@@ -1074,7 +1074,7 @@ procedure TWriter.WriteProcType(d: TProcDef; PreInfo: boolean);
 var
   vd: TVarDef;
   i: integer;
-  s, ss: string;
+  s, ss, hclass: string;
   err: boolean;
 begin
   if not d.IsUsed or not (poMethodPtr in d.ProcOpt) then
@@ -1084,21 +1084,14 @@ begin
     WriteClassInfoVar(d);
 
     // Handler proc
+    hclass:=GetClassPrefix(d) + 'Class';
     Fps.WriteLn;
-    vd:=TVarDef.Create(nil, dtParam);
-    try
-      vd.Name:='_data';
-      vd.VarType:=TTypeDef.Create(nil, dtType);
-      with TTypeDef(vd.VarType) do begin
-        Name:='pointer';
-        BasicType:=btPointer;
-      end;
-      d.Insert(0, vd);
-      Fps.WriteLn(GetProcDeclaration(d, Format('%sHandler', [GetClassPrefix(d)]), True) + ';');
-    finally
-      vd.VarType.Free;
-      vd.Free;
-    end;
+    Fps.WriteLn(Format('type %s = class', [hclass]));
+    Fps.WriteLn(Format('private %s;', [ GetProcDeclaration(d, 'Handler', True)]), 1);
+    Fps.WriteLn('end;');
+    Fps.WriteLn;
+    Fps.WriteLn(GetProcDeclaration(d, Format('%s.Handler', [hclass]), True) + ';');
+
     Fps.WriteLn('var');
     Fps.IncI;
     Fps.WriteLn('_env: PJNIEnv;');
@@ -1118,7 +1111,7 @@ begin
     Fps.WriteLn('CurJavaVM^^.GetEnv(CurJavaVM, @_env, JNI_VERSION_1_6);');
     Fps.WriteLn('_MethodPointersCS.Enter;');
     Fps.WriteLn('try');
-    Fps.WriteLn('_mpi:=_TMethodPtrInfo(_MethodPointers[-integer(ptruint(_data)) - 1]);', 1);
+    Fps.WriteLn('_mpi:=_TMethodPtrInfo(_MethodPointers[-integer(ptruint(Self)) - 1]);', 1);
     Fps.WriteLn('finally');
     Fps.WriteLn('_MethodPointersCS.Leave;', 1);
     Fps.WriteLn('end;');
@@ -1190,7 +1183,7 @@ begin
     Fps.WriteLn('else');
     Fps.WriteLn('with TMethod(Result) do begin', 1);
     Fps.WriteLn('Data:=pointer(ptruint(-integer(mpi.Index)));', 2);
-    Fps.WriteLn(Format('Code:=@%sHandler;', [GetClassPrefix(d)]), 2);
+    Fps.WriteLn(Format('Code:=@%s.Handler;', [hclass]), 2);
     Fps.WriteLn('end;', 1);
     Fps.DecI;
     Fps.WriteLn('end;');
@@ -2128,6 +2121,10 @@ begin
     Fps.WriteLn;
     Fps.WriteLn('procedure _HandleJNIException(env: PJNIEnv);');
     Fps.WriteLn('begin');
+    if p.OnExceptionProc <> nil then begin
+      Fps.WriteLn(Format('%s.%s;', [p.OnExceptionProc.Parent.Name, p.OnExceptionProc.Name]), 1);
+      p.OnExceptionProc.SetNotUsed;
+    end;
     Fps.WriteLn('env^^.ThrowNew(env, env^^.FindClass(env, ''java/lang/Exception''), PAnsiChar(Utf8Encode(Exception(ExceptObject).Message)));', 1);
     Fps.WriteLn('end;');
 

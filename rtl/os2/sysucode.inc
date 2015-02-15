@@ -1,7 +1,7 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2014 by Tomas Hajny,
-    member of the Free Pascal development team.
+    Copyright (c) 2014-2015 by Tomas Hajny and other members
+    of the Free Pascal development team.
 
     OS/2 UnicodeStrings support
 
@@ -29,6 +29,7 @@ const
   CpxSpecial = 1;
   CpxMappingOnly = 2;
   Uls_Success = 0;
+  Uls_API_Error_Base = $20400;
   Uls_Other = $20401;
   Uls_IllegalSequence = $20402;
   Uls_MaxFilesPerProc = $20403;
@@ -65,7 +66,91 @@ const
   Ord_UniMalloc = 13;
   Ord_UniFree = 14;
   LibUniName: array [0..6] of char = 'LIBUNI'#0;
+  OrdUniQueryXdigit = 1;
+  OrdUniQuerySpace = 2;
+  OrdUniQueryPrint = 3;
+  OrdUniQueryGraph = 4;
+  OrdUniQueryCntrl = 5;
+  OrdUniQueryAlpha = 6;
+  OrdUniFreeAttrObject = 7;
+  OrdUniQueryCharAttr = 8;
+  OrdUniQueryUpper = 9;
+  OrdUniQueryPunct = 10;
+  OrdUniQueryLower = 11;
+  OrdUniQueryDigit = 12;
+  OrdUniQueryBlank = 13;
+  OrdUniQueryAlnum = 14;
+  OrdUniScanForAttr = 15;
+  OrdUniCreateAttrObject = 16;
+  OrdUniCreateTransformObject = 17;
+  OrdUniFreeTransformObject = 18;
+  OrdUniQueryLocaleObject = 19;
+  OrdUniCreateLocaleObject = 20;
+  OrdUniFreeLocaleObject = 21;
+  OrdUniFreeMem = 22;
+  OrdUniFreeLocaleInfo = 28;
+  OrdUniQueryLocaleInfo = 29;
+  OrdUniQueryLocaleItem = 30;
+  OrdUniStrcat = 31;
+  OrdUniStrchr = 32;
+  OrdUniStrcmp = 33;
+  OrdUniStrcmpi = 34;
+  OrdUniStrColl = 35;
+  OrdUniStrcpy = 36;
+  OrdUniStrcspn = 37;
+  OrdUniStrfmon = 38;
+  OrdUniStrftime = 39;
+  OrdUniStrlen = 40;
+  OrdUniStrncat = 41;
+  OrdUniStrncmp = 42;
+  OrdUniStrncmpi = 43;
+  OrdUniStrncpy = 44;
+  OrdUniStrpbrk = 45;
+  OrdUniStrptime = 46;
+  OrdUniStrrchr = 47;
+  OrdUniStrspn = 48;
+  OrdUniStrstr = 49;
+  OrdUniStrtod = 50;
+  OrdUniStrtol = 51;
+  OrdUniStrtoul = 52;
+  OrdUniStrxfrm = 53;
+  OrdUniLocaleStrToToken = 54;
+  OrdUniLocaleTokenToStr = 55;
+  OrdUniTransformStr = 56;
+  OrdUniTransLower = 57;
+  OrdUniTransUpper = 58;
+  OrdUniTolower = 59;
+  OrdUniToupper = 60;
+  OrdUniStrupr = 61;
+  OrdUniStrlwr = 62;
+  OrdUniStrtok = 63;
+  OrdUniMapCtryToLocale = 67;
+  OrdUniMakeKey = 70;
+  OrdUniQueryChar = 71;
+  OrdUniGetOverride = 72;
+  OrdUniGetColval = 73;
+  OrdUniQueryAttr = 74;
+  OrdUniQueryStringType = 75;
+  OrdUniQueryCharType = 76;
+  OrdUniQueryNumericValue = 77;
+  OrdUniQueryCharTypeTable = 78;
+  OrdUniProcessUconv = 80;
+  OrdLocale = 151;
+  OrdUniMakeUserLocale = 152;
+  OrdUniSetUserLocaleItem = 153;
+  OrdUniDeleteUserLocale = 154;
+  OrdUniCompleteUserLocale = 155;
+  OrdUniQueryLocaleValue = 156;
+  OrdUniQueryLocaleList = 157;
+  OrdUniQueryLanguageName = 158;
+  OrdUniQueryCountryName = 159;
+  Uni_Token_Pointer = 1;
+  Uni_MBS_String_Pointer = 2;
+  Uni_UCS_String_Pointer = 3;
+  Uni_System_Locales = 1;
+  Uni_User_Locales = 2;
   WNull: WideChar = #0;
+  WUniv: array [0..4] of WideChar = 'UNIV'#0;
 
 
 
@@ -80,7 +165,6 @@ type
    UConvObj: TUConvObject;
   end;
   TCpXList = array [1..MaxCPMapping] of TCpRec;
-  TLocaleObject = pointer;
   TDummyUConvObject = record
    CP: cardinal;
    CPNameLen: byte;
@@ -88,9 +172,70 @@ type
   end;
   PDummyUConvObject = ^TDummyUConvObject;
 
+
+var
+  DBCSLeadRanges: array [0..11] of char;
+  CollationSequence: array [char] of char;
+
+
 const
   DefCpRec: TCpRec = (WinCP: 0; OS2CP: 0; UConvObj: nil);
+  InInitDefaultCP: int64 = -1; (* Range is bigger than TThreadID to avoid conflict *)
+  DefLocObj: TLocaleObject = nil;
   IBMPrefix: packed array [1..4] of WideChar = 'IBM-';
+  CachedDefFSCodepage: TSystemCodepage = 0;
+  EmptyCC: TCountryCode = (Country: 0; Codepage: 0); (* Empty = current *)
+  (* 819 = IBM codepage number for ISO 8859-1 used in FPC default *)
+  (* dummy translation between UnicodeString and AnsiString.      *)
+  IsoCC: TCountryCode = (Country: 1; Codepage: 819); (* US with ISO 8859-1 *)
+  (* The following two arrays are initialized on startup in case that *)
+  (* Dummy* routines must be used. First for current codepage...      *)
+  DBCSLeadRangesEnd: byte = 0;
+  LowerChars: array [char] of char =
+   (#0, #1, #2, #3, #4, #5, #6, #7, #8, #9, #10, #11, #12, #13, #14, #15, #16,
+    #17, #18, #19, #20, #21, #22, #23, #24, #25, #26, #27, #28, #29, #30, #31,
+    #32, #33, #34, #35, #36, #37, #38, #39, #40, #41, #42, #43, #44, #45, #46,
+    #47, #48, #49, #50, #51, #52, #53, #54, #55, #56, #57, #58, #59, #60, #61,
+    #62, #63, #64, #65, #66, #67, #68, #69, #70, #71, #72, #73, #74, #75, #76,
+    #77, #78, #79, #80, #81, #82, #83, #84, #85, #86, #87, #88, #89, #90, #91,
+    #92, #93, #94, #95, #96, #97, #98, #99, #100, #101, #102, #103, #104, #105,
+    #106, #107, #108, #109, #110, #111, #112, #113, #114, #115, #116, #117,
+    #118, #119, #120, #121, #122, #123, #124, #125, #126, #127, #128, #129,
+    #130, #131, #132, #133, #134, #135, #136, #137, #138, #139, #140, #141,
+    #142, #143, #144, #145, #146, #147, #148, #149, #150, #151, #152, #153,
+    #154, #155, #156, #157, #158, #159, #160, #161, #162, #163, #164, #165,
+    #166, #167, #168, #169, #170, #171, #172, #173, #174, #175, #176, #177,
+    #178, #179, #180, #181, #182, #183, #184, #185, #186, #187, #188, #189,
+    #190, #191, #192, #193, #194, #195, #196, #197, #198, #199, #200, #201,
+    #202, #203, #204, #205, #206, #207, #208, #209, #210, #211, #212, #213,
+    #214, #215, #216, #217, #218, #219, #220, #221, #222, #223, #224, #225,
+    #226, #227, #228, #229, #230, #231, #232, #233, #234, #235, #236, #237,
+    #238, #239, #240, #241, #242, #243, #244, #245, #246, #247, #248, #249,
+    #250, #251, #252, #253, #254, #255);
+  (* ...and now for ISO 8859-1 aka IBM codepage 819 *)
+  LowerCharsISO88591: array [char] of char =
+   (#0, #1, #2, #3, #4, #5, #6, #7, #8, #9, #10, #11, #12, #13, #14, #15, #16,
+    #17, #18, #19, #20, #21, #22, #23, #24, #25, #26, #27, #28, #29, #30, #31,
+    #32, #33, #34, #35, #36, #37, #38, #39, #40, #41, #42, #43, #44, #45, #46,
+    #47, #48, #49, #50, #51, #52, #53, #54, #55, #56, #57, #58, #59, #60, #61,
+    #62, #63, #64, #65, #66, #67, #68, #69, #70, #71, #72, #73, #74, #75, #76,
+    #77, #78, #79, #80, #81, #82, #83, #84, #85, #86, #87, #88, #89, #90, #91,
+    #92, #93, #94, #95, #96, #97, #98, #99, #100, #101, #102, #103, #104, #105,
+    #106, #107, #108, #109, #110, #111, #112, #113, #114, #115, #116, #117,
+    #118, #119, #120, #121, #122, #123, #124, #125, #126, #127, #128, #129,
+    #130, #131, #132, #133, #134, #135, #136, #137, #138, #139, #140, #141,
+    #142, #143, #144, #145, #146, #147, #148, #149, #150, #151, #152, #153,
+    #154, #155, #156, #157, #158, #159, #160, #161, #162, #163, #164, #165,
+    #166, #167, #168, #169, #170, #171, #172, #173, #174, #175, #176, #177,
+    #178, #179, #180, #181, #182, #183, #184, #185, #186, #187, #188, #189,
+    #190, #191, #192, #193, #194, #195, #196, #197, #198, #199, #200, #201,
+    #202, #203, #204, #205, #206, #207, #208, #209, #210, #211, #212, #213,
+    #214, #215, #216, #217, #218, #219, #220, #221, #222, #223, #224, #225,
+    #226, #227, #228, #229, #230, #231, #232, #233, #234, #235, #236, #237,
+    #238, #239, #240, #241, #242, #243, #244, #245, #246, #247, #248, #249,
+    #250, #251, #252, #253, #254, #255);
+  NoIso88591Support: boolean = false;
+
 
 threadvar
 (* Temporary allocations may be performed in parallel in different threads *)
@@ -107,7 +252,10 @@ begin
    begin
     OSErrorWatch (RC);
     C := 850;
-   end;
+   end
+  else
+   if RetSize < SizeOf (C) then
+    C := 850;
   OS2GetStandardCodePage := OS2CpToRtlCp (C, cpxMappingOnly, NoUConvObject);
 end;
 
@@ -300,7 +448,7 @@ begin
     Dec (SrcLen);
     Inc (InBuf, SrcLen);
     Dec (InBytesLeft, SrcLen);
-    DummyUniUConvToUcs := Uls_BufferFull; { According to IBM documentation Uls_Invalid and not Uls_BufferFull as returned by UniUConvFromUcs?! }
+    DummyUniUConvToUcs := Uls_BufferFull; { According to IBM documentation Uls_Invalid and not Uls_BufferFull is returned by UniUConvFromUcs?! }
    end
   else
    begin
@@ -311,6 +459,143 @@ begin
   Move (Dest [1], UcsBuf^, Length (Dest) * 2);
   Inc (UcsBuf, Length (Dest)); { Shall it be increased in case of success too??? }
   Dec (UniCharsLeft, Length (Dest));
+end;
+
+
+function DummyUniMapCtryToLocale (CountryCode: cardinal; LocaleName: PWideChar;
+                                             BufSize: longint): longint; cdecl;
+begin
+  if BufSize = 0 then
+   DummyUniMapCtryToLocale := Uls_Invalid
+  else
+   begin
+    LocaleName^ := #0;
+    DummyUniMapCtryToLocale := Uls_Unsupported;
+   end;
+end;
+
+
+procedure InitDBCSLeadRanges;
+var
+  RC: cardinal;
+begin
+  RC := DosQueryDBCSEnv (SizeOf (DBCSLeadRanges), EmptyCC,
+                                                          @DBCSLeadRanges [0]);
+  DBCSLeadRangesEnd := 0;
+  if RC <> 0 then
+   while (DBCSLeadRangesEnd < SizeOf (DBCSLeadRanges)) and
+                ((DBCSLeadRanges [DBCSLeadRangesEnd] <> #0) or
+                          (DBCSLeadRanges [Succ (DBCSLeadRangesEnd)] <> #0)) do
+    Inc (DBCSLeadRangesEnd, 2);
+end;
+
+
+procedure InitDummyAnsiSupport;
+var
+  C: char;
+  AllChars: array [char] of char;
+  RetSize: cardinal;
+begin
+  if DosQueryCollate (SizeOf (CollationSequence), EmptyCC, @CollationSequence,
+                                                             RetSize) <> 0 then
+   Move (LowerChars, CollationSequence, SizeOf (CollationSequence));
+  Move (LowerChars, AllChars, SizeOf (AllChars));
+  if DosMapCase (SizeOf (AllChars), IsoCC, @AllChars [#0]) <> 0 then
+(* Codepage 819 may not be supported in all old OS/2 versions. *)
+   begin
+    Move (LowerCharsIso88591, AllChars, SizeOf (AllChars));
+    DosMapCase (SizeOf (AllChars), EmptyCC, @AllChars [#0]);
+    NoIso88591Support := true;
+   end;
+  for C := Low (char) to High (char) do
+   if AllChars [C] <> C then
+    LowerCharsIso88591 [AllChars [C]] := C;
+  if NoIso88591Support then
+   Move (LowerCharsIso88591, LowerChars, SizeOf (LowerChars))
+  else
+   begin
+    Move (LowerChars, AllChars, SizeOf (AllChars));
+    DosMapCase (SizeOf (AllChars), EmptyCC, @AllChars [#0]);
+    for C := Low (char) to High (char) do
+     if AllChars [C] <> C then
+      LowerChars [AllChars [C]] := C;
+   end;
+  InitDBCSLeadRanges;
+end;
+
+
+procedure ReInitDummyAnsiSupport;
+var
+  C: char;
+  AllChars: array [char] of char;
+  RetSize: cardinal;
+begin
+  for C := Low (char) to High (char) do
+   AllChars [C] := C;
+  if DosQueryCollate (SizeOf (CollationSequence), EmptyCC, @CollationSequence,
+                                                             RetSize) <> 0 then
+   Move (AllChars, CollationSequence, SizeOf (CollationSequence));
+  DosMapCase (SizeOf (AllChars), EmptyCC, @AllChars [#0]);
+  for C := Low (char) to High (char) do
+   if AllChars [C] <> C then
+    LowerChars [AllChars [C]] := C;
+  InitDBCSLeadRanges;
+end;
+
+
+function DummyUniToLower (UniCharIn: WideChar): WideChar; cdecl;
+var
+  C: char;
+begin
+  C := UniCharIn;
+  DummyUniToLower := LowerCharsIso88591 [C];
+end;
+
+
+function DummyUniToUpper (UniCharIn: WideChar): WideChar; cdecl;
+var
+  C: char;
+begin
+  DummyUniToUpper := UniCharIn;
+  C := UniCharIn;
+  if NoIso88591Support then
+   begin
+    if DosMapCase (1, EmptyCC, @C) = 0 then
+     DummyUniToUpper := C;
+   end
+  else
+   if DosMapCase (1, IsoCC, @C) = 0 then
+    DummyUniToUpper := C
+end;
+
+
+function DummyUniStrColl (Locale_Object: TLocaleObject;
+                                  const UCS1, UCS2: PWideChar): longint; cdecl;
+var
+  S1, S2: ansistring;
+begin
+  S1 := UCS1;
+  S2 := UCS2;
+  if S1 = S2 then
+   DummyUniStrColl := 0
+  else if S1 < S2 then
+   DummyUniStrColl := -1
+  else
+   DummyUniStrColl := 1;
+end;
+
+
+function DummyUniCreateLocaleObject (LocaleSpecType: longint;
+  const LocaleSpec: pointer; var Locale_Object: TLocaleObject): longint; cdecl;
+begin
+  DummyUniCreateLocaleObject := ULS_Unsupported;
+end;
+
+
+function DummyUniFreeLocaleObject (Locale_Object: TLocaleObject): longint;
+                                                                         cdecl;
+begin
+  DummyUniFreeLocaleObject := ULS_BadObject;
 end;
 
 
@@ -397,6 +682,15 @@ const
 
 (* Possibly add index tables for both directions and binary search??? *)
 
+{
+function GetRtlCpFromCpRec (const CpRec: TCpRec): TSystemCodepage; inline;
+begin
+  if RtlUsesWinCp then
+   GetRtlCp := CpRec.WinCP
+  else
+   GetRtlCp := TSystemCodepage (CpRec.Os2Cp);
+end;
+}
 
 function UConvObjectForCP (CP: cardinal; var UConvObj: TUConvObject): longint;
 var
@@ -414,78 +708,205 @@ begin
 end;
 
 
+procedure InitDefaultCP;
+var
+  OS2CP, I: cardinal;
+  NoUConvObj: TUConvObject;
+  RCI: longint;
+  RC: cardinal;
+  CPArr: TCPArray;
+  ReturnedSize: cardinal;
+  WA: array [0..9] of WideChar; (* Even just 6 WideChars should be enough *)
+  CI: TCountryInfo;
+begin
+  if InInitDefaultCP <> -1 then
+   begin
+    repeat
+     DosSleep (5);
+    until InInitDefaultCP <> -1;
+    Exit;
+   end;
+  InInitDefaultCP := ThreadID;
+  if DefCpRec.UConvObj <> nil then
+   begin
+(*  Do not free the UConv object from DefCpRec, because it is also stored in
+    the respective CPXList record! *)
+{
+    RCI := Sys_UniFreeUConvObject (DefCpRec.UConvObj);
+    if RCI <> 0 then
+     OSErrorWatch (cardinal (RCI));
+}
+    DefCpRec.UConvObj := nil;
+   end;
+  RC := DosQueryCP (SizeOf (CPArr), @CPArr, ReturnedSize);
+  if (RC <> 0) and (RC <> 473) then
+   begin
+    OSErrorWatch (RC);
+    CPArr [0] := 850;
+   end
+  else if (ReturnedSize < 4) then
+   CPArr [0] := 850;
+  DefaultFileSystemCodePage := OS2CPtoRtlCP (CPArr [0], cpxAll,
+                                                            DefCpRec.UConvObj);
+  CachedDefFSCodepage := DefaultFileSystemCodePage;
+  DefCpRec.OS2CP := CPArr [0];
+(* Find out WinCP _without_ considering RtlUsesWinCP *)
+  I := 1;
+  while (I <= MaxNonEqualCPMapping) and (CpXList [I].OS2CP <> OS2CP) do
+   Inc (I);
+  if CpXList [I].OS2CP = CPArr [0] then
+   DefCpRec.WinCP := CpXList [I].WinCP
+  else
+   DefCpRec.WinCP := CPArr [0];
+
+  if DefLocObj <> nil then
+   begin
+    RCI := Sys_UniFreeLocaleObject (DefLocObj);
+    if RCI <> 0 then
+     OSErrorWatch (cardinal (RCI));
+    DefLocObj := nil;
+   end;
+  if UniAPI then (* Do not bother with the locale object otherwise *)
+   begin
+    RCI := Sys_UniCreateLocaleObject (Uni_UCS_String_Pointer, @WNull, DefLocObj);
+    if RCI <> 0 then
+     begin
+      OSErrorWatch (cardinal (RCI));
+      DefLocObj := nil;
+(* The locale dependent routines like comparison require a valid locale *)
+(* setting, but the locale set using environment variable LANG is not *)
+(* recognized by OS/2 -> let's try to derive the locale from country *)
+      RC := DosQueryCtryInfo (SizeOf (CI), EmptyCC, CI, ReturnedSize);
+      if RC = 0 then
+       begin
+        RCI := Sys_UniMapCtryToLocale (CI.Country, @WA [0],
+                                            SizeOf (WA) div SizeOf (WideChar));
+        if RCI = 0 then
+         begin
+          RCI := Sys_UniCreateLocaleObject (Uni_UCS_String_Pointer, @WA [0],
+                                                                    DefLocObj);
+          if RCI <> 0 then
+           begin
+            OSErrorWatch (cardinal (RCI));
+            DefLocObj := nil;
+           end;
+         end
+        else
+         OSErrorWatch (cardinal (RCI));
+       end
+      else
+       OSErrorWatch (RC);
+      if DefLocObj = nil then
+(* Still no success -> let's use the "Universal" locale as a fallback. *)
+       begin
+        RCI := Sys_UniCreateLocaleObject (Uni_UCS_String_Pointer, @WUniv [0],
+                                                                    DefLocObj);
+        if RCI <> 0 then
+         begin
+          OSErrorWatch (cardinal (RCI));
+          DefLocObj := nil;
+         end;
+       end;
+     end;
+   end
+  else (* not UniAPI *)
+   ReInitDummyAnsiSupport;
+  InInitDefaultCP := -1;
+end;
+
+
 function OS2CPtoRtlCP (CP: cardinal; ReqFlags: byte;
                                   var UConvObj: TUConvObject): TSystemCodepage;
 var
   I, I2: cardinal;
   RCI: longint;
-begin
-  OS2CPtoRtlCP := TSystemCodePage (CP);
-  UConvObj := nil;
-  if not UniAPI then (* No UniAPI => no need for UConvObj *)
-   ReqFlags := ReqFlags or CpxMappingOnly;
+
+ function CheckDefaultOS2CP: boolean;
+ begin
   if CP = DefCpRec.OS2CP then
    begin
+    CheckDefaultOS2CP := true;
     if RTLUsesWinCP then
      OS2CPtoRtlCP := DefCpRec.WinCP;
     if ReqFlags and CpxMappingOnly = 0 then
      UConvObj := DefCpRec.UConvObj;
    end
   else
+   CheckDefaultOS2CP := false;
+ end;
+
+begin
+  OS2CPtoRtlCP := TSystemCodePage (CP);
+  UConvObj := nil;
+  if not UniAPI then (* No UniAPI => no need for UConvObj *)
+   ReqFlags := ReqFlags or CpxMappingOnly;
+  if CheckDefaultOS2CP then
+   Exit;
+  if (CachedDefFSCodepage <> DefaultFileSystemCodePage) and
+                                             (InInitDefaultCP <> ThreadID) then
+(* InInitDefaultCP = ThreadID -> this thread is already re-initializing the cached information *)
    begin
-    I := 1;
-    if ReqFlags and CpxSpecial = CpxSpecial then
-     I2 := 2
+    if InInitDefaultCP <> -1 then
+     repeat
+      DosSleep (5) (* Let's wait until the other thread finishes re-initialization of the cache *)
+     until InInitDefaultCP = -1
     else
-     if ReqFlags and CpxMappingOnly = CpxMappingOnly then
-      I2 := MaxNonEqualCPMapping
-     else
-      I2 := MaxCPMapping;
-    while I <= I2 do
+     InitDefaultCP;
+    if CheckDefaultOS2CP then
+     Exit;
+   end;
+  I := 1;
+  if ReqFlags and CpxSpecial = CpxSpecial then
+   I2 := 2
+  else
+   if ReqFlags and CpxMappingOnly = CpxMappingOnly then
+    I2 := MaxNonEqualCPMapping
+   else
+    I2 := MaxCPMapping;
+  while I <= I2 do
+   begin
+    if CP = CpXList [I].OS2CP then
      begin
-      if CP = CpXList [I].OS2CP then
+      if RTLUsesWinCP then
+       OS2CPtoRtlCP := CpXList [I].WinCP;
+      if ReqFlags and CpxMappingOnly = 0 then
        begin
-        if RTLUsesWinCP then
-         OS2CPtoRtlCP := CpXList [I].WinCP;
-        if ReqFlags and CpxMappingOnly = 0 then
+        if CpXList [I].UConvObj = nil then
          begin
-          if CpXList [I].UConvObj = nil then
-           begin
-            if UConvObjectForCP (CpXList [I].OS2CP, UConvObj) = Uls_Success
-                                                                           then
-             CpXList [I].UConvObj := UConvObj
-            else
-             UConvObj := nil;
-           end
+          if UConvObjectForCP (CpXList [I].OS2CP, UConvObj) = Uls_Success then
+           CpXList [I].UConvObj := UConvObj
           else
-           UConvObj := CpXList [I].UConvObj;
-         end;
-        Exit;
-       end;
-      Inc (I);
-     end;
-(* If codepage was not found in the translation table and UConvObj is
-   requested, allocate one in the temporary record. *)
-    if ReqFlags and CpxMappingOnly = 0 then
-     begin
-      if TempCpRec.OS2CP = CP then
-       UConvObj := TempCpRec.UConvObj
-      else
-       begin
-        if TempCpRec.UConvObj <> nil then
-         begin
-          RCI := Sys_UniFreeUConvObject (TempCpRec.UConvObj);
-          if RCI <> 0 then
-           OSErrorWatch (cardinal (RCI));
-         end;
-        if UConvObjectForCP (CP, UConvObj) = Uls_Success then
-         begin
-          TempCpRec.UConvObj := UConvObj;
-          TempCpRec.OS2CP := CP;
+           UConvObj := nil;
          end
         else
-         UConvObj := nil;
+         UConvObj := CpXList [I].UConvObj;
        end;
+      Exit;
+     end;
+    Inc (I);
+   end;
+(* If codepage was not found in the translation table and UConvObj is
+   requested, allocate one in the temporary record. *)
+  if ReqFlags and CpxMappingOnly = 0 then
+   begin
+    if TempCpRec.OS2CP = CP then
+     UConvObj := TempCpRec.UConvObj
+    else
+     begin
+      if TempCpRec.UConvObj <> nil then
+       begin
+        RCI := Sys_UniFreeUConvObject (TempCpRec.UConvObj);
+        if RCI <> 0 then
+         OSErrorWatch (cardinal (RCI));
+        TempCpRec.UConvObj := nil;
+       end;
+      if UConvObjectForCP (CP, UConvObj) = Uls_Success then
+       begin
+        TempCpRec.UConvObj := UConvObj;
+        TempCpRec.OS2CP := CP;
+       end
+      else
+       UConvObj := nil;
      end;
    end;
 end;
@@ -495,6 +916,20 @@ function RtlCPtoOS2CP (RtlCP: TSystemCodepage; ReqFlags: byte;
                                          var UConvObj: TUConvObject): cardinal;
 var
   I, I2: cardinal;
+
+ function CheckDefaultWinCP: boolean;
+ begin
+  if RtlCP = DefCpRec.WinCP then
+   begin
+    CheckDefaultWinCP := true;
+    RtlCPtoOS2CP := DefCpRec.WinCP;
+    if ReqFlags and CpxMappingOnly = 0 then
+     UConvObj := DefCpRec.UConvObj;
+   end
+  else
+  CheckDefaultWinCP := false;
+ end;
+
 begin
   RtlCPtoOS2CP := RtlCP;
   UConvObj := nil;
@@ -505,14 +940,24 @@ begin
     if ReqFlags and CpxMappingOnly = 0 then
      OS2CPtoRtlCP (cardinal (RtlCp), ReqFlags, UConvObj);
    end
-  else if RtlCP = DefCpRec.WinCP then
-   begin
-    RtlCPtoOS2CP := DefCpRec.WinCP;
-    if ReqFlags and CpxMappingOnly = 0 then
-     UConvObj := DefCpRec.UConvObj;
-   end
+  else if CheckDefaultWinCp then
+   Exit
   else
    begin
+    if (CachedDefFSCodepage <> DefaultFileSystemCodePage) and
+                                             (InInitDefaultCP <> ThreadID) then
+(* InInitDefaultCP = ThreadID -> this thread is already re-initializing the cached information *)
+     begin
+      if InInitDefaultCP <> -1 then
+       repeat
+(* Let's wait until the other thread finishes re-initialization of the cache *)
+        DosSleep (5)
+       until InInitDefaultCP = -1
+      else
+       InitDefaultCP;
+      if CheckDefaultWinCP then
+       Exit;
+     end;
     I := 1;
     if ReqFlags and CpxSpecial = CpxSpecial then
      I2 := 2
@@ -657,6 +1102,7 @@ begin
   until false;
 end;
 
+
 procedure OS2Ansi2UnicodeMove (Source: PChar; CP: TSystemCodePage;
                                         var Dest: UnicodeString; Len: SizeInt);
 var
@@ -722,10 +1168,6 @@ begin
    RCI := Sys_UniUConvToUcs (UConvObj, Src2, Len2, Dest2, LenOut,
                                                                  NonIdentical);
   until false;
-
-{???
-        PUnicodeRec(pointer(dest)-UnicodeFirstOff)^.CodePage:=CP_UTF16;
-}
 end;
 
 
@@ -749,9 +1191,13 @@ begin
      begin
       if DefCpRec.UConvObj <> nil then
        begin
+(*  Do not free the UConv object from DefCpRec, because it is also stored in
+    the respective CpXList record! *)
+{
         RCI := Sys_UniFreeUConvObject (DefCpRec.UConvObj);
         if RCI <> 0 then
          OSErrorWatch (cardinal (RCI));
+}
         DefCpRec.UConvObj := nil;
        end;
       DefCPRec.OS2CP := OS2CP;
@@ -770,280 +1216,333 @@ begin
    end;
 end;
 
-{
-function Win32UnicodeUpper(const s : UnicodeString) : UnicodeString;
-  begin
-    result:=s;
-    UniqueString(result);
-    if length(result)>0 then
-      CharUpperBuff(LPWSTR(result),length(result));
-  end;
+
+function OS2UpperUnicodeString (const S: UnicodeString): UnicodeString;
+var
+  I: cardinal;
+begin
+  SetLength (Result, Length (S));
+  if Length (S) > 0 then
+   for I := 0 to Pred (Length (S)) do
+    PWideChar (Result) [I] := Sys_UniToUpper (S [Succ (I)]);
+end;
 
 
-function Win32UnicodeLower(const s : UnicodeString) : UnicodeString;
+function OS2LowerUnicodeString (const S: UnicodeString): UnicodeString;
+var
+  I: cardinal;
+begin
+  SetLength (Result, Length (S));
+  if Length (S) > 0 then
+   for I := 0 to Pred (Length (S)) do
+    PWideChar (Result) [I] := Sys_UniToLower (S [Succ (I)]);
+end;
+
+
+function NoNullsUnicodeString (const S: UnicodeString): UnicodeString;
+var
+  I: cardinal;
+begin
+  Result := S;
+  UniqueString (Result);
+  if Length (S) > 0 then
+   for I := 1 to Length (S) do
+    if Result [I] = WNull then
+     Result [I] := ' ';
+end;
+
+
+function OS2CompareUnicodeString (const S1, S2: UnicodeString): PtrInt;
+var
+  HS1, HS2: UnicodeString;
+begin
+  { UniStrColl interprets null chars as end-of-string -> filter out }
+  HS1 := NoNullsUnicodeString (S1);
+  HS2 := NoNullsUnicodeString (S2);
+  Result := Sys_UniStrColl (DefLocObj, PWideChar (HS1), PWideChar (HS2));
+  if Result < -1 then
+   Result := -1
+  else if Result > 1 then
+   Result := 1;
+end;
+
+
+function OS2CompareTextUnicodeString (const S1, S2: UnicodeString): PtrInt;
+begin
+  Result := OS2CompareUnicodeString (OS2UpperUnicodeString (S1),
+                                                   OS2UpperUnicodeString (S2));
+{$WARNING Language independent uppercase routine may not be appropriate for language dependent case insensitive comparison!}
+end;
+
+
+function OS2UpperAnsiString (const S: AnsiString): AnsiString;
+var
+  RC: cardinal;
+begin
+  Result := S;
+  UniqueString (Result);
+  FillChar (EmptyCC, SizeOf (EmptyCC), 0);
+  RC := DosMapCase (Length (Result), EmptyCC, PChar (Result));
+{ What to do in case of a failure??? }
+  if RC <> 0 then
+   Result := UpCase (S); { Use a fallback? }
+end;
+
+      
+function OS2LowerAnsiString (const S: AnsiString): AnsiString;
+var
+  I: PtrUInt;
+
+  function IsDBCSLeadChar (C: char): boolean;
+  var
+    D: byte;
   begin
-    result:=s;
-    UniqueString(result);
-    if length(result)>0 then
-      CharLowerBuff(LPWSTR(result),length(result));
+    IsDBCSLeadChar := false;
+    D := 0;
+    while D < DBCSLeadRangesEnd do
+     begin
+      if (C >= DBCSLeadRanges [D]) and (C <= DBCSLeadRanges [Succ (D)]) then
+       begin
+        IsDBCSLeadChar := true;
+        Exit;
+       end;
+      Inc (D, 2);
+     end;
   end;
-}
+
+begin
+(*
+  OS/2 provides no direct solution for lowercase conversion of MBCS strings.
+  If Unicode support is available, using Unicode routines is the best solution.
+  If not, we use a translation table built at startup by translating the full
+  character set to uppercase and using that for creation of a lookup table
+  (as already done in sysutils). However, we need to check for DBCS (MBCS)
+  codepages and avoid translating the DBCS lead bytes and the following
+  character.
+*)
+  if UniAPI then
+   Result := OS2LowerUnicodeString (S)
+{ Two implicit conversions... ;-) }
+  else
+   begin
+    Result := S;
+    if Length (Result) > 0 then
+     begin
+      UniqueString (Result);
+      if DBCSLeadRangesEnd > 0 then
+       begin
+        I := 1;
+        while I <= Length (Result) do
+         begin
+          if IsDBCSLeadChar (Result [I]) then
+           Inc (I, 2)
+          else
+           begin
+            Result [I] := LowerChars [Result [I]];
+            Inc (I);
+           end;
+         end;
+       end
+      else
+       for I := 1 to Length (Result) do
+        Result [I] := LowerChars [Result [I]];
+     end;
+   end;
+end;
+
+
+function OS2CompareStrAnsiString (const S1, S2: AnsiString): PtrInt;
+var
+  I, MaxLen: PtrUInt;
+begin
+  if UniAPI then
+   Result := OS2CompareUnicodeString (S1, S2) (* implicit conversions *)
+  else
+(* Older OS/2 versions without Unicode support do not provide direct means *)
+(* for case sensitive and codepage and language-aware string comparison.   *)
+(* We have to resort to manual comparison of the original strings together *)
+(* with strings translated using the case insensitive collation sequence.  *)
+   begin
+    if Length (S1) = 0 then
+     begin
+      if Length (S2) = 0 then
+       Result := 0
+      else
+       Result := -1;
+      Exit;
+     end
+    else
+     if Length (S2) = 0 then
+      begin
+       Result := 1;
+       Exit;
+      end;
+    I := 1;
+    MaxLen := Length (S1);
+    if Length (S2) < MaxLen then
+     MaxLen := Length (S2);
+    repeat
+     if CollationSequence [S1 [I]] = CollationSequence [S2 [I]] then
+      begin
+       if S1 [I] < S2 [I] then
+        begin
+         Result := -1;
+         Exit;
+        end
+       else if S1 [I] > S2 [I] then
+        begin
+         Result := 1;
+         Exit;
+        end;
+      end
+     else
+      begin
+       if CollationSequence [S1 [I]] < CollationSequence [S2 [I]] then
+        Result := -1
+       else
+        Result := 1;
+       Exit;
+      end;
+     Inc (I);
+    until (I > MaxLen);
+    if Length (S2) > MaxLen then
+     Result := -1
+    else if Length (S1) > MaxLen then
+     Result := 1
+    else
+     Result := 0;
+   end;
+end;
+
+
+function OS2StrCompAnsiString (S1, S2: PChar): PtrInt;
+var
+  HSA1, HSA2: AnsiString;
+  HSU1, HSU2: UnicodeString;
+begin
+(* Do not call OS2CompareUnicodeString to skip scanning for #0. *)
+  HSA1 := AnsiString (S1);
+  HSA2 := AnsiString (S2);
+  if UniApi then
+   begin
+    HSU1 := HSA1; (* implicit conversion *)
+    HSU2 := HSA2; (* implicit conversion *)
+    Result := Sys_UniStrColl (DefLocObj, PWideChar (HSU1), PWideChar (HSU2));
+    if Result < -1 then
+     Result := -1
+    else if Result > 1 then
+     Result := 1;
+   end
+  else
+   Result := OS2CompareStrAnsiString (HSA1, HSA2);
+end;
+
+
+function OS2CompareTextAnsiString (const S1, S2: AnsiString): PtrInt;
+var
+  HSA1, HSA2: AnsiString;
+  I: PtrUInt;
+begin
+  if UniAPI then
+   Result := OS2CompareTextUnicodeString (S1, S2) (* implicit conversions *)
+  else
+   begin
+(* Let's use collation strings here as a fallback *)
+    SetLength (HSA1, Length (S1));
+    if Length (HSA1) > 0 then
+(* Using assembler would be much faster, but never mind... *)
+     for I := 1 to Length (HSA1) do
+      HSA1 [I] := CollationSequence [S1 [I]];
+{$WARNING Results of using collation sequence with DBCS not known/tested!}
+    SetLength (HSA2, Length (S2));
+    if Length (HSA2) > 0 then
+     for I := 1 to Length (HSA2) do
+      HSA2 [I] := CollationSequence [S2 [I]];
+    if HSA1 = HSA2 then
+     Result := 0
+    else if HSA1 < HSA2 then
+     Result := -1
+    else
+     Result := 1;
+   end;
+end;
+
+
+function OS2StrICompAnsiString (S1, S2: PChar): PtrInt;
+begin
+  Result := OS2CompareTextAnsiString (AnsiString (S1), AnsiString (S2));
+end;
+
+
+function OS2StrLCompAnsiString (S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+var
+  A, B: AnsiString;
+begin
+  if (MaxLen = 0) then
+   Exit (0);
+  SetLength (A, MaxLen);
+  Move (S1^, A [1], MaxLen);
+  SetLength (B, MaxLen);
+  Move (S2^, B [1], MaxLen);
+  Result := OS2CompareStrAnsiString (A, B);
+end;
+
+
+function OS2StrLICompAnsiString (S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
+var
+  A, B: AnsiString;
+begin
+  if (MaxLen = 0) then
+   Exit (0);
+  SetLength (A, MaxLen);
+  Move (S1^, A [1], MaxLen);
+  SetLength (B, MaxLen);
+  Move (S2^, B [1], MaxLen);
+  Result := OS2CompareTextAnsiString (A, B);
+end;
+
+
+procedure FPC_RangeError; [external name 'FPC_RANGEERROR'];
+
+
+procedure Ansi2PChar (const S: AnsiString; const OrgP: PChar; out P: Pchar);
+var
+  NewLen: SizeUInt;
+begin
+  NewLen := Length (S);
+  if NewLen > StrLen (OrgP) then
+   FPC_RangeError;
+  P := OrgP;
+  if (NewLen > 0) then
+   Move (S [1], P [0], NewLen);
+  P [NewLen] := #0;
+end;
+
+
+function OS2StrUpperAnsiString (Str: PChar): PChar;
+var
+  Temp: AnsiString;
+begin
+  Temp := OS2UpperAnsiString (Str);
+  Ansi2PChar (Temp, Str, Result);
+end;
+
+
+function OS2StrLowerAnsiString (Str: PChar): PChar;
+var
+  Temp: AnsiString;
+begin
+  Temp := OS2LowerAnsiString (Str);
+  Ansi2PChar (Temp, Str, Result);
+end;
 
 
 (*
 CWSTRING:
-
-function LowerWideString(const s : WideString) : WideString;
-  var
-    i : SizeInt;
-  begin
-    SetLength(result,length(s));
-    for i:=0 to length(s)-1 do
-      pwidechar(result)[i]:=WideChar(towlower(wint_t(s[i+1])));
-  end;
-
-
-function UpperWideString(const s : WideString) : WideString;
-  var
-    i : SizeInt;
-  begin
-    SetLength(result,length(s));
-    for i:=0 to length(s)-1 do
-      pwidechar(result)[i]:=WideChar(towupper(wint_t(s[i+1])));
-  end;
-
-
-procedure EnsureAnsiLen(var S: AnsiString; const len: SizeInt); inline;
-begin
-  if (len>length(s)) then
-    if (length(s) < 10*256) then
-      setlength(s,length(s)+10)
-    else
-      setlength(s,length(s)+length(s) shr 8);
-end;
-
-
-procedure ConcatCharToAnsiStr(const c: char; var S: AnsiString; var index: SizeInt);
-begin
-  EnsureAnsiLen(s,index);
-  pchar(@s[index])^:=c;
-  inc(index);
-end;
-
-
-{ concatenates an utf-32 char to a widestring. S *must* be unique when entering. }
-{$ifndef beos}
-procedure ConcatUTF32ToAnsiStr(const nc: wint_t; var S: AnsiString; var index: SizeInt; var mbstate: mbstate_t);
-{$else not beos}
-procedure ConcatUTF32ToAnsiStr(const nc: wint_t; var S: AnsiString; var index: SizeInt);
-{$endif beos}
-var
-  p     : pchar;
-  mblen : size_t;
-begin
-  { we know that s is unique -> avoid uniquestring calls}
-  p:=@s[index];
-  if (nc<=127) then
-    ConcatCharToAnsiStr(char(nc),s,index)
-  else
-    begin
-      EnsureAnsiLen(s,index+MB_CUR_MAX);
-{$ifndef beos}
-      mblen:=wcrtomb(p,wchar_t(nc),@mbstate);
-{$else not beos}
-      mblen:=wctomb(p,wchar_t(nc));
-{$endif not beos}
-      if (mblen<>size_t(-1)) then
-        inc(index,mblen)
-      else
-        begin
-          { invalid wide char }
-          p^:='?';
-          inc(index);
-        end;
-    end;
-end;
-
-
-function LowerAnsiString(const s : AnsiString) : AnsiString;
-  var
-    i, slen,
-    resindex : SizeInt;
-    mblen    : size_t;
-{$ifndef beos}
-    ombstate,
-    nmbstate : mbstate_t;
-{$endif beos}
-    wc       : wchar_t;
-  begin
-{$ifndef beos}
-    fillchar(ombstate,sizeof(ombstate),0);
-    fillchar(nmbstate,sizeof(nmbstate),0);
-{$endif beos}
-    slen:=length(s);
-    SetLength(result,slen+10);
-    i:=1;
-    resindex:=1;
-    while (i<=slen) do
-      begin
-        if (s[i]<=#127) then
-          begin
-            wc:=wchar_t(s[i]);
-            mblen:= 1;
-          end
-        else
-{$ifndef beos}
-          mblen:=mbrtowc(@wc, pchar(@s[i]), slen-i+1, @ombstate);
-{$else not beos}
-          mblen:=mbtowc(@wc, pchar(@s[i]), slen-i+1);
-{$endif not beos}
-        case mblen of
-          size_t(-2):
-            begin
-              { partial invalid character, copy literally }
-              while (i<=slen) do
-                begin
-                  ConcatCharToAnsiStr(s[i],result,resindex);
-                  inc(i);
-                end;
-            end;
-          size_t(-1), 0:
-            begin
-              { invalid or null character }
-              ConcatCharToAnsiStr(s[i],result,resindex);
-              inc(i);
-            end;
-          else
-            begin
-              { a valid sequence }
-              { even if mblen = 1, the lowercase version may have a }
-              { different length                                     }
-              { We can't do anything special if wchar_t is 16 bit... }
-{$ifndef beos}
-              ConcatUTF32ToAnsiStr(towlower(wint_t(wc)),result,resindex,nmbstate);
-{$else not beos}
-              ConcatUTF32ToAnsiStr(towlower(wint_t(wc)),result,resindex);
-{$endif not beos}
-              inc(i,mblen);
-            end;
-          end;
-      end;
-    SetLength(result,resindex-1);
-  end;
-
-
-function UpperAnsiString(const s : AnsiString) : AnsiString;
-  var
-    i, slen,
-    resindex : SizeInt;
-    mblen    : size_t;
-{$ifndef beos}
-    ombstate,
-    nmbstate : mbstate_t;
-{$endif beos}
-    wc       : wchar_t;
-  begin
-{$ifndef beos}
-    fillchar(ombstate,sizeof(ombstate),0);
-    fillchar(nmbstate,sizeof(nmbstate),0);
-{$endif beos}
-    slen:=length(s);
-    SetLength(result,slen+10);
-    i:=1;
-    resindex:=1;
-    while (i<=slen) do
-      begin
-        if (s[i]<=#127) then
-          begin
-            wc:=wchar_t(s[i]);
-            mblen:= 1;
-          end
-        else
-{$ifndef beos}
-          mblen:=mbrtowc(@wc, pchar(@s[i]), slen-i+1, @ombstate);
-{$else not beos}
-          mblen:=mbtowc(@wc, pchar(@s[i]), slen-i+1);
-{$endif beos}
-        case mblen of
-          size_t(-2):
-            begin
-              { partial invalid character, copy literally }
-              while (i<=slen) do
-                begin
-                  ConcatCharToAnsiStr(s[i],result,resindex);
-                  inc(i);
-                end;
-            end;
-          size_t(-1), 0:
-            begin
-              { invalid or null character }
-              ConcatCharToAnsiStr(s[i],result,resindex);
-              inc(i);
-            end;
-          else
-            begin
-              { a valid sequence }
-              { even if mblen = 1, the uppercase version may have a }
-              { different length                                     }
-              { We can't do anything special if wchar_t is 16 bit... }
-{$ifndef beos}
-              ConcatUTF32ToAnsiStr(towupper(wint_t(wc)),result,resindex,nmbstate);
-{$else not beos}
-              ConcatUTF32ToAnsiStr(towupper(wint_t(wc)),result,resindex);
-{$endif not beos}
-              inc(i,mblen);
-            end;
-          end;
-      end;
-    SetLength(result,resindex-1);
-  end;
-
-
-function utf16toutf32(const S: WideString; const index: SizeInt; out len: longint): UCS4Char; external name 'FPC_UTF16TOUTF32';
-
-function WideStringToUCS4StringNoNulls(const s : WideString) : UCS4String;
-  var
-    i, slen,
-    destindex : SizeInt;
-    len       : longint;
-    uch       : UCS4Char;
-  begin
-    slen:=length(s);
-    setlength(result,slen+1);
-    i:=1;
-    destindex:=0;
-    while (i<=slen) do
-      begin
-        uch:=utf16toutf32(s,i,len);
-        if (uch=UCS4Char(0)) then
-          uch:=UCS4Char(32);
-        result[destindex]:=uch;
-        inc(destindex);
-        inc(i,len);
-      end;
-    result[destindex]:=UCS4Char(0);
-    { destindex <= slen }
-    setlength(result,destindex+1);
-  end;
-
-
-function CompareWideString(const s1, s2 : WideString) : PtrInt;
-  var
-    hs1,hs2 : UCS4String;
-  begin
-    { wcscoll interprets null chars as end-of-string -> filter out }
-    hs1:=WideStringToUCS4StringNoNulls(s1);
-    hs2:=WideStringToUCS4StringNoNulls(s2);
-    result:=wcscoll(pwchar_t(hs1),pwchar_t(hs2));
-  end;
-
-
-function CompareTextWideString(const s1, s2 : WideString): PtrInt;
-  begin
-    result:=CompareWideString(UpperWideString(s1),UpperWideString(s2));
-  end;
-
-
+{ return value: number of code points in the string. Whenever an invalid
+  code point is encountered, all characters part of this invalid code point
+  are considered to form one "character" and the next character is
+  considered to be the start of a new (possibly also invalid) code point }
 function CharLengthPChar(const Str: PChar): PtrInt;
   var
     nextlen: ptrint;
@@ -1059,14 +1558,14 @@ function CharLengthPChar(const Str: PChar): PtrInt;
 {$endif not beos}
     repeat
 {$ifdef beos}
-      nextlen:=ptrint(mblen(str,MB_CUR_MAX));
+      nextlen:=ptrint(mblen(s,MB_CUR_MAX));
 {$else beos}
-      nextlen:=ptrint(mbrlen(str,MB_CUR_MAX,@mbstate));
+      nextlen:=ptrint(mbrlen(s,MB_CUR_MAX,@mbstate));
 {$endif beos}
       { skip invalid/incomplete sequences }
       if (nextlen<0) then
         nextlen:=1;
-      inc(result,nextlen);
+      inc(result,1);
       inc(s,nextlen);
     until (nextlen=0);
   end;
@@ -1090,164 +1589,6 @@ function CodePointLength(const Str: PChar; maxlookahead: ptrint): PtrInt;
       result:=-1;
 {$endif beos}
   end;
-
-
-function StrCompAnsiIntern(s1,s2 : PChar; len1, len2: PtrInt; canmodifys1, canmodifys2: boolean): PtrInt;
-  var
-    a,b: pchar;
-    i: PtrInt;
-  begin
-    if not(canmodifys1) then
-      getmem(a,len1+1)
-    else
-      a:=s1;
-    for i:=0 to len1-1 do
-      if s1[i]<>#0 then
-        a[i]:=s1[i]
-      else
-        a[i]:=#32;
-    a[len1]:=#0;
-
-    if not(canmodifys2) then
-      getmem(b,len2+1)
-    else
-      b:=s2;
-    for i:=0 to len2-1 do
-      if s2[i]<>#0 then
-        b[i]:=s2[i]
-      else
-        b[i]:=#32;
-    b[len2]:=#0;
-    result:=strcoll(a,b);
-    if not(canmodifys1) then
-      freemem(a);
-    if not(canmodifys2) then
-      freemem(b);
-  end;
-
-
-function CompareStrAnsiString(const s1, s2: ansistring): PtrInt;
-  begin
-    result:=StrCompAnsiIntern(pchar(s1),pchar(s2),length(s1),length(s2),false,false);
-  end;
-
-
-function StrCompAnsi(s1,s2 : PChar): PtrInt;
-  begin
-    result:=strcoll(s1,s2);
-  end;
-
-
-function AnsiCompareText(const S1, S2: ansistring): PtrInt;
-  var
-    a, b: AnsiString;
-  begin
-    a:=UpperAnsistring(s1);
-    b:=UpperAnsistring(s2);
-    result:=StrCompAnsiIntern(pchar(a),pchar(b),length(a),length(b),true,true);
-  end;
-
-
-function AnsiStrIComp(S1, S2: PChar): PtrInt;
-  begin
-    result:=AnsiCompareText(ansistring(s1),ansistring(s2));
-  end;
-
-
-function AnsiStrLComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
-  var
-    a, b: pchar;
-begin
-  if (maxlen=0) then
-    exit(0);
-  if (s1[maxlen]<>#0) then
-    begin
-      getmem(a,maxlen+1);
-      move(s1^,a^,maxlen);
-      a[maxlen]:=#0;
-    end
-  else
-    a:=s1;
-  if (s2[maxlen]<>#0) then
-    begin
-      getmem(b,maxlen+1);
-      move(s2^,b^,maxlen);
-      b[maxlen]:=#0;
-    end
-  else
-    b:=s2;
-  result:=StrCompAnsiIntern(a,b,maxlen,maxlen,a<>s1,b<>s2);
-  if (a<>s1) then
-    freemem(a);
-  if (b<>s2) then
-    freemem(b);
-end;
-
-
-function AnsiStrLIComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
-  var
-    a, b: ansistring;
-begin
-  if (maxlen=0) then
-    exit(0);
-  setlength(a,maxlen);
-  move(s1^,a[1],maxlen);
-  setlength(b,maxlen);
-  move(s2^,b[1],maxlen);
-  result:=AnsiCompareText(a,b);
-end;
-
-
-procedure ansi2pchar(const s: ansistring; const orgp: pchar; out p: pchar);
-var
-  newlen: sizeint;
-begin
-  newlen:=length(s);
-  if newlen>strlen(orgp) then
-    fpc_rangeerror;
-  p:=orgp;
-  if (newlen>0) then
-    move(s[1],p[0],newlen);
-  p[newlen]:=#0;
-end;
-
-
-function AnsiStrLower(Str: PChar): PChar;
-var
-  temp: ansistring;
-begin
-  temp:=loweransistring(str);
-  ansi2pchar(temp,str,result);
-end;
-
-
-function AnsiStrUpper(Str: PChar): PChar;
-var
-  temp: ansistring;
-begin
-  temp:=upperansistring(str);
-  ansi2pchar(temp,str,result);
-end;
-
-{$ifdef FPC_HAS_CPSTRING}
-{$i textrec.inc}
-procedure SetStdIOCodePage(var T: Text); inline;
-begin
-  case TextRec(T).Mode of
-    fmInput:TextRec(T).CodePage:=GetStandardCodePage(scpConsoleInput);
-    fmOutput:TextRec(T).CodePage:=GetStandardCodePage(scpConsoleOutput);
-  end;
-end;
-
-procedure SetStdIOCodePages; inline;
-begin
-  SetStdIOCodePage(Input);
-  SetStdIOCodePage(Output);
-  SetStdIOCodePage(ErrOutput);
-  SetStdIOCodePage(StdOut);
-  SetStdIOCodePage(StdErr);
-end;
-{$endif FPC_HAS_CPSTRING}
 *)
 
 procedure InitOS2WideStringManager; inline;
@@ -1281,7 +1622,48 @@ begin
              begin
               Sys_UniUConvToUcs := TUniUConvToUcs (P);
 
-              UniAPI := true;
+              RC := DosLoadModule (@ErrName [0], SizeOf (ErrName),
+                                                @LibUniName [0], LibUniHandle);
+              if RC = 0 then
+               begin
+                RC := DosQueryProcAddr (LibUniHandle, OrdUniToLower, nil, P);
+                if RC = 0 then
+                 begin
+                  Sys_UniToLower := TUniToLower (P);
+                  RC := DosQueryProcAddr (LibUniHandle, OrdUniToUpper, nil, P);
+                  if RC = 0 then
+                   begin
+                    Sys_UniToUpper := TUniToUpper (P);
+                    RC := DosQueryProcAddr (LibUniHandle, OrdUniStrColl, nil,
+                                                                            P);
+                    if RC = 0 then
+                     begin
+                      Sys_UniStrColl := TUniStrColl (P);
+                      RC := DosQueryProcAddr (LibUniHandle,
+                                             OrdUniCreateLocaleObject, nil, P);
+                      if RC = 0 then
+                       begin
+                        Sys_UniCreateLocaleObject := TUniCreateLocaleObject
+                                                                           (P);
+                        RC := DosQueryProcAddr (LibUniHandle,
+                                               OrdUniFreeLocaleObject, nil, P);
+                        if RC = 0 then
+                         begin
+                          Sys_UniFreeLocaleObject := TUniFreeLocaleObject (P);
+                          RC := DosQueryProcAddr (LibUniHandle,
+                                                OrdUniMapCtryToLocale, nil, P);
+                          if RC = 0 then
+                           begin
+                            Sys_UniMapCtryToLocale := TUniMapCtryToLocale (P);
+
+                            UniAPI := true;
+                           end;
+                         end;
+                       end;
+                     end;
+                   end;
+                 end;
+               end;
              end;
            end;
          end;
@@ -1297,52 +1679,44 @@ begin
     Sys_UniFreeUConvObject := @DummyUniFreeUConvObject;
     Sys_UniUConvFromUcs := @DummyUniUConvFromUcs;
     Sys_UniUConvToUcs := @DummyUniUConvToUcs;
-
+    Sys_UniToLower := @DummyUniToLower;
+    Sys_UniToUpper := @DummyUniToUpper;
+    Sys_UniStrColl := @DummyUniStrColl;
+    Sys_UniCreateLocaleObject := @DummyUniCreateLocaleObject;
+    Sys_UniFreeLocaleObject := @DummyUniFreeLocaleObject;
+    Sys_UniMapCtryToLocale := @DummyUniMapCtryToLocale;
+    InitDummyAnsiSupport;
    end;
 
     { Widestring }
   WideStringManager.Wide2AnsiMoveProc := @OS2Unicode2AnsiMove;
   WideStringManager.Ansi2WideMoveProc := @OS2Ansi2UnicodeMove;
-{  WideStringManager.UpperWideStringProc := @OS2UnicodeUpper;
-  WideStringManager.LowerWideStringProc := @OS2UnicodeLower;}
+  WideStringManager.UpperWideStringProc := @OS2UpperUnicodeString;
+  WideStringManager.LowerWideStringProc := @OS2LowerUnicodeString;
+  WideStringManager.CompareWideStringProc := @OS2CompareUnicodeString;
+  WideStringManager.CompareTextWideStringProc := @OS2CompareTextUnicodeString;
     { Unicode }
   WideStringManager.Unicode2AnsiMoveProc := @OS2Unicode2AnsiMove;
   WideStringManager.Ansi2UnicodeMoveProc := @OS2Ansi2UnicodeMove;
-{  WideStringManager.UpperUnicodeStringProc := @OS2UnicodeUpper;
-  WideStringManager.LowerUnicodeStringProc := @OS2UnicodeLower;}
+  WideStringManager.UpperUnicodeStringProc := @OS2UpperUnicodeString;
+  WideStringManager.LowerUnicodeStringProc := @OS2LowerUnicodeString;
+  WideStringManager.CompareUnicodeStringProc := @OS2CompareUnicodeString;
+  WideStringManager.CompareTextUnicodeStringProc :=
+                                                  @OS2CompareTextUnicodeString;
     { Codepage }
   WideStringManager.GetStandardCodePageProc := @OS2GetStandardCodePage;
 (*
-      Wide2AnsiMoveProc:=@Wide2AnsiMove;
-      Ansi2WideMoveProc:=@Ansi2WideMove;
-
-      UpperWideStringProc:=@UpperWideString;
-      LowerWideStringProc:=@LowerWideString;
-
-      CompareWideStringProc:=@CompareWideString;
-      CompareTextWideStringProc:=@CompareTextWideString;
-
       CharLengthPCharProc:=@CharLengthPChar;
       CodePointLengthProc:=@CodePointLength;
-
-      UpperAnsiStringProc:=@UpperAnsiString;
-      LowerAnsiStringProc:=@LowerAnsiString;
-      CompareStrAnsiStringProc:=@CompareStrAnsiString;
-      CompareTextAnsiStringProc:=@AnsiCompareText;
-      StrCompAnsiStringProc:=@StrCompAnsi;
-      StrICompAnsiStringProc:=@AnsiStrIComp;
-      StrLCompAnsiStringProc:=@AnsiStrLComp;
-      StrLICompAnsiStringProc:=@AnsiStrLIComp;
-      StrLowerAnsiStringProc:=@AnsiStrLower;
-      StrUpperAnsiStringProc:=@AnsiStrUpper;
-      ThreadInitProc:=@InitThread;
-      ThreadFiniProc:=@FiniThread;
-      { Unicode }
-      Unicode2AnsiMoveProc:=@Wide2AnsiMove;
-      Ansi2UnicodeMoveProc:=@Ansi2WideMove;
-      UpperUnicodeStringProc:=@UpperWideString;
-      LowerUnicodeStringProc:=@LowerWideString;
-      CompareUnicodeStringProc:=@CompareWideString;
-      CompareTextUnicodeStringProc:=@CompareTextWideString;
 *)
+  WideStringManager.UpperAnsiStringProc := @OS2UpperAnsiString;
+  WideStringManager.LowerAnsiStringProc := @OS2LowerAnsiString;
+  WideStringManager.CompareStrAnsiStringProc := @OS2CompareStrAnsiString;
+  WideStringManager.CompareTextAnsiStringProc := @OS2CompareTextAnsiString;
+  WideStringManager.StrCompAnsiStringProc := @OS2StrCompAnsiString;
+  WideStringManager.StrICompAnsiStringProc := @OS2StrICompAnsiString;
+  WideStringManager.StrLCompAnsiStringProc := @OS2StrLCompAnsiString;
+  WideStringManager.StrLICompAnsiStringProc := @OS2StrLICompAnsiString;
+  WideStringManager.StrLowerAnsiStringProc := @OS2StrLowerAnsiString;
+  WideStringManager.StrUpperAnsiStringProc := @OS2StrUpperAnsiString;
 end;

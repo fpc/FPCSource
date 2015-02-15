@@ -3226,7 +3226,10 @@ unit cgcpu;
               reference_reset_base(href,NR_R12,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
               cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R12);
             end;
-          list.concat(taicpu.op_reg(A_BX,NR_R12));
+          if not(CPUARM_HAS_BX in cpu_capabilities[current_settings.cputype]) then
+            list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R12))
+          else
+            list.concat(taicpu.op_reg(A_BX,NR_R12));
         end;
 
       var

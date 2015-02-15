@@ -299,6 +299,7 @@ reg32,reg32         \321\300\1\x11\101            ARM32,ARMv4
 [LDMcc]
 memam4,reglist              \x69\xC8            THUMB,ARMv4T
 reglo,reglist               \x69\xC8            THUMB,ARMv4T
+reg32,reglist		   \x26\x81			ARM7
 
 memam4,reglist              \x8C\xE8\x10\x0\x0  THUMB32,WIDE,ARMv6T2
 reg32,reglist               \x8C\xE8\x10\x0\x0  THUMB32,WIDE,ARMv6T2

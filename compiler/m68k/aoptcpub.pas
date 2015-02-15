@@ -27,7 +27,7 @@ Unit aoptcpub; { Assembler OPTimizer CPU specific Base }
 
 { enable the following define if memory references can have a scaled index }
 
-{ define RefsHaveScale}
+{$define RefsHaveScale}
 
 { enable the following define if memory references can have a segment }
 { override                                                            }
@@ -37,6 +37,7 @@ Unit aoptcpub; { Assembler OPTimizer CPU specific Base }
 Interface
 
 Uses
+  aasmtai,cgbase,
   cpubase,aasmcpu,AOptBase;
 
 Type
@@ -59,6 +60,7 @@ Type
 { ************************************************************************* }
 
   TAoptBaseCpu = class(TAoptBase)
+    function RegModifiedByInstruction(Reg: TRegister; p1: tai): boolean; override;
   End;
 
 
@@ -111,5 +113,21 @@ End;
 Destructor TCondRegs.Done; {$ifdef inl} inline; {$endif inl}
 Begin
 End;
+
+  function TAoptBaseCpu.RegModifiedByInstruction(Reg: TRegister; p1: tai): boolean;
+    var
+      i : Longint;
+    begin
+      result:=false;
+      for i:=0 to taicpu(p1).ops-1 do
+        case taicpu(p1).oper[i]^.typ of
+          top_reg:
+            if (taicpu(p1).oper[i]^.reg=Reg) and (taicpu(p1).spilling_get_operation_type(i) in [operand_write,operand_readwrite]) then
+              exit(true);
+          top_ref:
+            if (taicpu(p1).spilling_get_operation_type_ref(i,Reg)<>operand_read) then
+              exit(true);
+        end;
+    end;
 
 End.

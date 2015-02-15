@@ -546,7 +546,7 @@ type
     procedure SetFilterText(const Value: String); override; {virtual;}
     procedure SetFiltered(Value: Boolean); override; {virtual;}
     procedure InternalRefresh; override;
-    procedure DataEvent(Event: TDataEvent; Info: Ptrint); override;
+    procedure DataEvent(Event: TDataEvent; Info: PtrInt); override;
     // virtual or methods, which can be used by descendants
     function GetNewBlobBuffer : PBlobBuffer;
     function GetNewWriteBlobBuffer : PBlobBuffer;
@@ -2104,9 +2104,10 @@ end;
 function TCustomBufDataset.GetCurrentBuffer: TRecordBuffer;
 begin
   case State of
-    dsFilter:     Result := FFilterBuffer;
-    dsCalcFields: Result := CalcBuffer;
-    else          Result := ActiveBuffer;
+    dsFilter:        Result := FFilterBuffer;
+    dsCalcFields:    Result := CalcBuffer;
+    dsRefreshFields: Result := FCurrentIndex.CurrentBuffer
+    else             Result := ActiveBuffer;
   end;
 end;
 
@@ -2144,7 +2145,7 @@ begin
     begin
     if GetFieldIsNull(pbyte(CurrBuff),Field.FieldNo-1) then
       Exit;
-    if assigned(buffer) then
+    if assigned(Buffer) then
       begin
       inc(CurrBuff,FFieldBufPositions[Field.FieldNo-1]);
       Move(CurrBuff^, Buffer^, GetFieldSize(FieldDefs[Field.FieldNo-1]));
@@ -2155,7 +2156,7 @@ begin
     begin
     Inc(CurrBuff, GetRecordSize + Field.Offset);
     Result := Boolean(CurrBuff^);
-    if result and assigned(Buffer) then
+    if Result and assigned(Buffer) then
       begin
       inc(CurrBuff);
       Move(CurrBuff^, Buffer^, Field.DataSize);
@@ -2180,7 +2181,7 @@ begin
   CurrBuff := GetCurrentBuffer;
   If Field.FieldNo > 0 then // If =-1, then calculated/lookup field or =0 unbound field
     begin
-    if Field.ReadOnly and not (State in [dsSetKey, dsFilter]) then
+    if Field.ReadOnly and not (State in [dsSetKey, dsFilter, dsRefreshFields]) then
       DatabaseErrorFmt(SReadOnlyField, [Field.DisplayName]);	
     if State in [dsEdit, dsInsert, dsNewValue] then
       Field.Validate(Buffer);	
@@ -2204,7 +2205,7 @@ begin
       Move(Buffer^, CurrBuff^, Field.DataSize);
     end;
   if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
-    DataEvent(deFieldChange, Ptrint(Field));
+    DataEvent(deFieldChange, PtrInt(Field));
 end;
 
 procedure TCustomBufDataset.InternalDelete;
@@ -2374,7 +2375,7 @@ begin
       if not ((FUpdateBuffer[r].UpdateKind=ukDelete) and not (assigned(FUpdateBuffer[r].OldValuesBuffer))) then
         begin
         FCurrentIndex.GotoBookmark(@FUpdateBuffer[r].BookmarkData);
-        // Synchronise the Currentbuffer to the ActiveBuffer
+        // Synchronise the CurrentBuffer to the ActiveBuffer
         CurrentRecordToBuffer(ActiveBuffer);
         Response := rrApply;
         try
@@ -3247,7 +3248,7 @@ begin
   // Do nothing
 end;
 
-procedure TCustomBufDataset.DataEvent(Event: TDataEvent; Info: Ptrint);
+procedure TCustomBufDataset.DataEvent(Event: TDataEvent; Info: PtrInt);
 begin
   if Event = deUpdateState then
     // Save DataSet.State set by DataSet.SetState (filter out State set by DataSet.SetTempState)

@@ -4,12 +4,12 @@
 
 [package]
 name=morphunits
-version=2.7.1
+version=3.1.1
 
 [target]
 units= aboxlib agraphics ahi amigados asl clipboard datatypes exec get9 \
        hardware inputevent intuition keymap kvm layers mui muihelper timer \
-       tinygl utility
+       tinygl utility iffparse
 
 [compiler]
 includedir=src

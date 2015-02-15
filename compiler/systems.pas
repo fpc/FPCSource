@@ -287,6 +287,9 @@ interface
        { systems using the non-fragile Objective-C ABI }
        systems_objc_nfabi = [system_powerpc64_darwin,system_x86_64_darwin,system_arm_darwin,system_i386_iphonesim];
 
+       { systems supporting "blocks" }
+       systems_blocks_supported = systems_darwin;
+
        { all systems supporting exports from programs or units }
        systems_unit_program_exports = [system_i386_win32,
                                          system_i386_wdosx,

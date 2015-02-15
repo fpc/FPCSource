@@ -114,6 +114,10 @@ const
 
     EXCEPTION_MAXIMUM_PARAMETERS = 15;
 
+    FORMAT_MESSAGE_FROM_SYSTEM = 4096;
+    LANG_NEUTRAL = $00;
+    SUBLANG_DEFAULT = $00;
+
 type
    {UINT  = longint;
    BOOL  = longint; obsolete }
@@ -139,6 +143,13 @@ type
    LPStr   = pchar;
    PLPSTR  = ^LPSTR;
    PLPWSTR = ^LPWSTR;
+
+   { WARNING
+     the variable argument list
+     is not implemented for FPC
+     va_list is just a dummy record
+     MvdV: Nevertheless it should be a pointer type, not a record}
+   va_list = pchar;
 
   PSecurityAttributes = ^TSecurityAttributes;
   TSecurityAttributes = record
@@ -288,15 +299,23 @@ type
      {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetFileSize';
    function SetEndOfFile(h : thandle) : longbool;
      {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'SetEndOfFile';
-   function FreeLibrary(hLibModule:THandle):ByteBool; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'FreeLibrary';
 
    procedure GetSystemInfo(lpSystemInfo: PSystemInfo); {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetSystemInfo';
 
+   function WinLoadLibraryW(lpLibFileName:pwidechar):THandle; {$ifdef wince}cdecl{$else}stdcall{$endif}; external KernelDLL name 'LoadLibraryW';
+   function WinLoadLibraryA(lpLibFileName:pwidechar):THandle; {$ifdef wince}cdecl{$else}stdcall{$endif}; external KernelDLL name 'LoadLibraryA';
+   {$ifdef wince}
+   function WinGetProcAddress(hModule:THandle; lpProcName:pchar):pointer; {$ifdef wince}cdecl{$else}stdcall{$endif}; external KernelDLL name 'GetProcAddressA';
+   {$else}
+   function WinGetProcAddress(hModule:THandle; lpProcName:pchar):pointer; {$ifdef wince}cdecl{$else}stdcall{$endif}; external KernelDLL name 'GetProcAddress';
+   {$endif}
+   function WinFreeLibrary(hLibModule:THandle):ByteBool; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'FreeLibrary';
+
+   function FormatMessageW(dwFlags:DWORD; lpSource:LPCVOID; dwMessageId:DWORD; dwLanguageId:DWORD; lpBuffer:LPWSTR;nSize:DWORD; Arguments:va_list):DWORD;{$ifdef wince}cdecl{$else}stdcall{$endif}; external KernelDLL name 'FormatMessageW';
+
 {$ifndef WINCE}
-   function LoadLibrary(lpLibFileName:pchar):THandle; stdcall; external KernelDLL name 'LoadLibraryA';
    function GetFileType(Handle:thandle):DWord;
      stdcall;external KernelDLL name 'GetFileType';
-   function GetProcAddress(hModule:THandle; lpProcName:pchar):pointer; stdcall; external KernelDLL name 'GetProcAddress';
 
    { File }
    function DeleteFileW(p : punicodechar) : longint;

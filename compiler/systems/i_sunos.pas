@@ -36,6 +36,7 @@ unit i_sunos;
             shortname    : 'solaris';
             flags        : [tf_under_development,tf_needs_symbol_size,
                             tf_files_case_sensitive,tf_requires_proper_alignment,
+                            tf_pic_uses_got,tf_library_needs_pic,
                             tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_i386;
             unit_env     : 'SOLARISUNITS';
@@ -130,7 +131,7 @@ unit i_sunos;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
-            assem        : as_ggas{as_x86_64_elf64};
+            assem        : as_x86_64_elf64;
             assemextern  : as_ggas;
             link         : ld_none;
             linkextern   : ld_solaris;

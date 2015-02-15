@@ -16,7 +16,7 @@ Const
   ClocaleOSes   = UnixLikes -[beos];
   CLocaleIncOSes= [Aix,freebsd,netbsd,openbsd,solaris,darwin,iphonesim,dragonfly];
 
-  IPCOSes       = UnixLikes-[aix,android,beos,haiku,solaris];
+  IPCOSes       = UnixLikes-[aix,android,beos,haiku];
   IPCBSDs       = [FreeBSD,NetBSD,OpenBSD,DragonFly];
 //  IPCcdeclOSes  = [Darwin,iphonesim];
 
@@ -45,7 +45,7 @@ begin
     P:=AddPackage('rtl-extra');
     P.ShortName:='rtle';
     P.Directory:=ADirectory;
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Author := 'FPC core team';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

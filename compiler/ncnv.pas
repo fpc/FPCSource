@@ -296,7 +296,7 @@ implementation
       symconst,symdef,symsym,symcpu,symtable,
       ncon,ncal,nset,nadd,nmem,nmat,nbas,nutils,ninl,
       cgbase,procinfo,
-      htypechk,pass_1,cpuinfo;
+      htypechk,blockutl,pass_1,cpuinfo;
 
 
 {*****************************************************************************
@@ -1992,6 +1992,7 @@ implementation
     function ttypeconvnode.typecheck_proc_to_procvar : tnode;
       var
         pd : tabstractprocdef;
+        source: pnode;
       begin
         result:=nil;
         pd:=tabstractprocdef(left.resultdef);
@@ -2002,7 +2003,36 @@ implementation
           real procvartype that we are converting to) }
         if assigned(totypedef) and
            (totypedef.typ=procvardef) then
-          resultdef:=totypedef
+          begin
+            { have to do this in typecheckpass so that it's triggered for
+              typed constant declarations }
+            if po_is_block in tprocvardef(totypedef).procoptions then
+              begin
+                { can only convert from procdef to procvardef, but in the mean
+                  time other type conversions may have been inserted (pointers,
+                  proc2procvar, ...) }
+                source:=actualtargetnode(@left);
+                while (source^.nodetype=typeconvn) and
+                      (ttypeconvnode(source^).convtype=tc_proc_2_procvar) and
+                      (is_void(source^.resultdef) or
+                       (source^.resultdef.typ=procvardef)) do
+                  begin
+                    { won't skip proc2procvar }
+                    source:=actualtargetnode(@ttypeconvnode(source^).left);
+                  end;
+                if (source^.nodetype=loadn) and
+                   (source^.resultdef.typ=procdef) and
+                   not is_nested_pd(tprocdef(source^.resultdef)) and
+                   not is_objcclass(tdef(source^.resultdef.owner.defowner)) then
+                  begin
+                    result:=generate_block_for_procaddr(tloadnode(source^));
+                    exit;
+                  end
+                else
+                  CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
+              end;
+            resultdef:=totypedef;
+          end
         else
          begin
            resultdef:=pd.getcopyas(procvardef,pc_normal);
@@ -2241,7 +2271,9 @@ implementation
                        the procvar, is compatible with the procvar's type }
                      if not(nf_explicit in flags) and
                         (proc_to_procvar_equal(currprocdef,tprocvardef(resultdef),false)=te_incompatible) then
-                       IncompatibleTypes(left.resultdef,resultdef);
+                       IncompatibleTypes(left.resultdef,resultdef)
+                     else
+                       result:=typecheck_call_helper(convtype);
                      exit;
                    end
                   else if maybe_global_proc_to_nested(left,resultdef) then

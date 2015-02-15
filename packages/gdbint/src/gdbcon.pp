@@ -12,6 +12,13 @@
 
  **********************************************************************}
 unit GDBCon;
+
+{$ifdef USE_GDBLIBINC}
+  {$i gdblib.inc}
+{$else not USE_GDBLIBINC}
+  {$i gdbver.inc}
+{$endif not USE_GDBLIBINC}
+
 interface
 
 uses

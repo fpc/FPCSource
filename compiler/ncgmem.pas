@@ -446,13 +446,13 @@ implementation
                        offsetcorrection:=0;
                        if (left.location.size in [OS_PAIR,OS_SPAIR]) then
                          begin
-                           if (vs.fieldoffset>=sizeof(aword)) then
-                             begin
-                               location.sreg.subsetreg := left.location.registerhi;
-                               offsetcorrection:=sizeof(aword)*8;
-                             end
+                           if (vs.fieldoffset>=sizeof(aword)) xor (target_info.endian=endian_big) then
+                             location.sreg.subsetreg := left.location.registerhi
                            else
                              location.sreg.subsetreg := left.location.register;
+
+                           if (vs.fieldoffset>=sizeof(aword)) then
+                             offsetcorrection:=sizeof(aword)*8;
 
                            location.sreg.subsetregsize := OS_INT;
                          end

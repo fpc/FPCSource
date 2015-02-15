@@ -289,7 +289,31 @@ const
   end;
 
 const has_errors : boolean = false;
+      has_warnings : boolean = false;
       has_more_infos : boolean = false;
+
+procedure SetHasErrors;
+begin
+  has_errors:=true;
+end;
+
+Procedure WriteError(const S : string);
+Begin
+  system.Writeln(StdErr, S);
+  SetHasErrors;
+End;
+
+Procedure WriteWarning(const S : string);
+var
+  ss: string;
+Begin
+  ss:='!! Warning: ' + S;
+  if nostdout then
+    system.Writeln(StdErr, ss)
+  else
+    system.Writeln(ss);
+  has_warnings:=true;
+End;
 
 procedure Write(const s: string);
 begin
@@ -300,20 +324,84 @@ end;
 procedure Write(const params: array of const);
 var
   i: integer;
+  { Last vtType define in rtl/inc/objpash.inc }
+const
+  max_vttype = vtUnicodeString;
 begin
   if nostdout then exit;
   for i:=Low(params) to High(params) do
+  { All vtType in
+        vtInteger       = 0;
+        vtBoolean       = 1;
+        vtChar          = 2;
+        vtExtended      = 3;
+        vtString        = 4;
+        vtPointer       = 5;
+        vtPChar         = 6;
+        vtObject        = 7;
+        vtClass         = 8;
+        vtWideChar      = 9;
+        vtPWideChar     = 10;
+        vtAnsiString32  = 11; called vtAnsiString in objpas unit
+        vtCurrency      = 12;
+        vtVariant       = 13;
+        vtInterface     = 14;
+        vtWideString    = 15;
+        vtInt64         = 16;
+        vtQWord         = 17;
+        vtUnicodeString = 18;
+        // vtAnsiString16  = 19; not yet used
+        // vtAnsiString64  = 20; not yet used
+    }
     with TVarRec(params[i]) do
       case VType of
         vtInteger: system.write(VInteger);
+        vtBoolean: system.write(VBoolean);
+        vtChar: system.write(VChar);
+        vtExtended: system.write(VExtended^);
+        vtString: system.write(VString^);
+        vtPointer:
+          begin
+            { Not sure the display will be correct
+              if sizeof pointer is not native }
+            WriteWarning('Pointer constant');
+          end;
+        vtPChar: system.write(VPChar);
+        vtObject:
+          begin
+            { Not sure the display will be correct
+              if sizeof pointer is not native }
+            WriteWarning('Object constant');
+          end;
+        vtClass:
+          begin
+            { Not sure the display will be correct
+              if sizeof pointer is not native }
+            WriteWarning('Class constant');
+          end;
+        vtWideChar: system.write(VWideChar);
+        vtPWideChar:
+          begin
+            WriteWarning('PWideChar constant');
+          end;
+        vtAnsiString: system.write(ansistring(VAnsiString));
+        vtCurrency : system.write(VCurrency^);
+        vtVariant :
+          begin
+            { Not sure the display will be correct
+              if sizeof pointer is not native }
+            WriteWarning('Variant constant');
+          end;
+        vtInterface :
+          begin
+            { Not sure the display will be correct
+              if sizeof pointer is not native }
+            WriteWarning('Interface constant');
+          end;
+        vtWideString : system.write(widestring(VWideString));
         vtInt64: system.write(VInt64^);
         vtQWord: system.write(VQWord^);
-        vtString: system.write(VString^);
-        vtAnsiString: system.write(ansistring(VAnsiString));
-        vtPChar: system.write(VPChar);
-        vtChar: system.write(VChar);
-        vtBoolean: system.write(VBoolean);
-        vtExtended: system.write(VExtended^);
+        vtUnicodeString : system.write(unicodestring(VUnicodeString));
         else
           begin
             system.writeln;
@@ -341,28 +429,6 @@ begin
   Writeln('!! Entry has more information stored');
   has_more_infos:=true;
 end;
-
-procedure SetHasErrors;
-begin
-  has_errors:=true;
-end;
-
-Procedure WriteError(const S : string);
-Begin
-  system.Writeln(StdErr, S);
-  SetHasErrors;
-End;
-
-Procedure WriteWarning(const S : string);
-var
-  ss: string;
-Begin
-  ss:='!! Warning: ' + S;
-  if nostdout then
-    system.Writeln(StdErr, ss)
-  else
-    system.Writeln(ss);
-End;
 
 function Unknown(const st : string; val :longint) : string;
 Begin
@@ -463,7 +529,7 @@ const
       'jvm enum fpcvalueof', 'jvm enum long2set',
       'jvm enum bitset2set', 'jvm enum set2set',
       'jvm procvar invoke', 'jvm procvar intf constructor',
-      'jvm virtual class method', 'jvm field getter', 'jvm field setter');
+      'jvm virtual class method', 'jvm field getter', 'jvm field setter', 'block invoke');
 begin
   if w<=ord(high(syntheticName)) then
     result:=syntheticName[tsynthetickind(w)]
@@ -1200,7 +1266,9 @@ const
          (mask:pi_has_stack_allocs;
          str:' allocates memory on stack, so stack may be unbalanced on exit '),
          (mask:pi_estimatestacksize;
-         str:' stack size is estimated before subroutine is compiled ')
+         str:' stack size is estimated before subroutine is compiled '),
+         (mask:pi_calls_c_varargs;
+         str:' calls function with C-style varargs ')
   );
 var
   procinfooptions : tprocinfoflags;
@@ -1755,7 +1823,9 @@ const
      (mask:po_rtlproc;         str: 'RTL procedure'),
      (mask:po_auto_raised_visibility; str: 'Visibility raised by compiler'),
      (mask:po_far;             str: 'Far'),
-     (mask:po_noreturn;             str: 'No return')
+     (mask:po_noreturn;        str: 'No return'),
+     (mask:po_is_function_ref; str: 'Function reference'),
+     (mask:po_is_block;        str: 'C "Block"')
   );
 var
   proctypeoption  : tproctypeoption;
@@ -2546,9 +2616,8 @@ begin
          ibmacrosym :
            begin
              readcommonsym('Macro symbol ');
-             writeln([space,'          Name: ',getstring]);
-             writeln([space,'       Defined: ',getbyte]);
-             writeln([space,'  Compiler var: ',getbyte]);
+             writeln([space,'       Defined: ',boolean(getbyte)]);
+             writeln([space,'  Compiler var: ',boolean(getbyte)]);
              len:=getlongint;
              writeln([space,'  Value length: ',len]);
              if len > 0 then
@@ -3791,7 +3860,8 @@ begin
   end;
   if has_errors then
     Halt(1);
-  if error_on_more and has_more_infos then
+  if error_on_more and
+    (has_more_infos or has_warnings) then
     Halt(2);
 end.
 

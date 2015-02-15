@@ -138,56 +138,67 @@ implementation
         if nf_swapped in flags then
           swapleftright;
 
-        // put both operands in a register
-        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
-        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+        case current_settings.fputype of
+          fpu_68881:
+            begin
+              // put both operands in a register
+              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
+              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
 
-        // initialize de result
-        location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-        if left.location.loc = LOC_FPUREGISTER then
-          location.register := left.location.register
-        else if right.location.loc = LOC_FPUREGISTER then
-          location.register := right.location.register
-        else
-          location.register := cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+              // initialize the result
+              location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
+              location.register := cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
 
-        // emit the actual operation
-        {
-          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,
-            location.register,left.location.register,
-            right.location.register))
-        }
+              // emit the actual operation
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FMOVE,S_FX,left.location.register,location.register));
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,S_FX,right.location.register,location.register));
+            end;
+          else
+            // softfpu should be handled in pass1, others are not yet supported...
+            internalerror(2015010201);
+        end;
       end;
 
 
     procedure t68kaddnode.second_cmpfloat;
+      var
+        tmpreg : tregister;
+        ai: taicpu;
       begin
         pass_left_right;
-
-{
         if (nf_swapped in flags) then
           swapleftright;
-}
-        { force fpureg as location, left right doesn't matter
-          as both will be in a fpureg }
-        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-        hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
-        location_reset(location,LOC_FLAGS,OS_NO);
-        location.resflags:=getresflags(true);
-{
-        if nodetype in [equaln,unequaln] then
-          current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_CMF,
-             left.location.register,right.location.register),
-             cgsize2fpuoppostfix[def_cgsize(resultdef)]))
-        else
-          current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_CMFE,
-             left.location.register,right.location.register),
-             cgsize2fpuoppostfix[def_cgsize(resultdef)]));
+        case current_settings.fputype of
+          fpu_68881:
+            begin
+              location_reset(location,LOC_FLAGS,OS_NO);
 
-        location_reset(location,LOC_FLAGS,OS_NO);
-        location.resflags:=getresflags(false);
-}
+              { force fpureg as location, left right doesn't matter
+                as both will be in a fpureg }
+              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
+
+              // emit compare
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCMP,S_FX,right.location.register,left.location.register));
+
+              location.resflags:=getresflags(false);
+
+              // temporary(?) hack, move condition result back to the CPU from the FPU.
+              // 6888x has its own FBcc branch instructions and FScc flags->reg instruction,
+              // which we don't support yet in the rest of the cg. (KB)
+              tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_8);
+              ai:=taicpu.op_reg(A_FSxx,S_B,tmpreg);
+              ai.SetCondition(flags_to_cond(location.resflags));
+              current_asmdata.CurrAsmList.concat(ai);
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_B,tmpreg));
+              location.resflags:=F_E;
+
+            end;
+          else
+            // softfpu should be handled in pass1, others are not yet supported...
+            internalerror(2015010201);
+        end;
       end;
 
 

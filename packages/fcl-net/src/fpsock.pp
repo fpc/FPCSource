@@ -512,9 +512,9 @@ var
   SockAddr: TInetSockAddr;
 begin
   inherited DoConnect;
-  SockAddr.Family := AF_INET;
-  SockAddr.Port := ShortHostToNet(Port);
-  SockAddr.Addr := Cardinal(HostAddr);
+  SockAddr.sin_Family := AF_INET;
+  SockAddr.sin_Port := ShortHostToNet(Port);
+  SockAddr.sin_Addr.s_addr := Cardinal(HostAddr);
   if Sockets.FpConnect(Stream.Handle, @SockAddr, SizeOf(SockAddr))<>0 Then
     if (SocketError <> sys_EINPROGRESS) and (SocketError <> 0) then
       raise ESocketError.CreateFmt(SSocketConnectFailed,
@@ -558,9 +558,9 @@ begin
       Sockets.fpSetSockOpt(Socket, SOL_SOCKET, SO_REUSEADDR,
         @TrueValue, SizeOf(TrueValue));
       FStream := TSocketStream.Create(Socket);
-      Addr.Family := AF_INET;
-      Addr.Port := ShortHostToNet(Port);
-      Addr.Addr := 0;
+      Addr.sin_Family := AF_INET;
+      Addr.sin_Port := ShortHostToNet(Port);
+      Addr.sin_Addr.s_addr := 0;
       if  fpBind(Socket, @Addr, SizeOf(Addr))<>0 then
         raise ESocketError.CreateFmt(SSocketBindingError,
           [Port, StrError(SocketError)]);

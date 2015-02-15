@@ -4,7 +4,7 @@
 
 [package]
 name=compiler
-version=2.7.1
+version=3.1.1
 
 [target]
 programs=pp
@@ -225,7 +225,7 @@ override LOCALOPT+=-dREVINC
 # svnversion executable is available
 ifeq ($(REVSTR),)
 ifneq ($(SVNVERSION),)
-REVSTR:=$(shell $(SVNVERSION) -c .)
+REVSTR:=$(subst r,,$(subst r1:,,r$(shell $(SVNVERSION) -c .)))
 export REVSTR
 else
 ifeq ($(REVINC),force)

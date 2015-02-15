@@ -29,7 +29,9 @@ interface
 {$DEFINE OS2EXCEPTIONS}
 {$DEFINE OS2UNICODE}
 {$define DISABLE_NO_THREAD_MANAGER}
+{$define DISABLE_NO_DYNLIBS_MANAGER}
 {$DEFINE HAS_GETCPUCOUNT}
+{$define FPC_SYSTEM_HAS_SYSDLH}
 
 {$I systemh.inc}
 
@@ -55,6 +57,7 @@ const
 type
   TOS = (osDOS, osOS2, osDPMI); (* For compatibility with target EMX *)
   TUConvObject = pointer;
+  TLocaleObject = pointer;
 
 const
   OS_Mode: TOS = osOS2; (* For compatibility with target EMX *)
@@ -129,7 +132,7 @@ function OS2CPtoRtlCP (CP: cardinal; ReqFlags: byte): TSystemCodepage;
 
 function RtlCPtoOS2CP (RtlCP: TSystemCodepage; ReqFlags: byte): cardinal;
 
-function RtlChangeCP (CP: TSystemCodePage): longint;
+(* function RtlChangeCP (CP: TSystemCodePage; const stdcp: TStandardCodePageEnum): longint; *)
 {$ENDIF OS2UNICODE}
 
 
@@ -185,6 +188,22 @@ type
    var InBytesLeft: longint; var UcsBuf: PWideChar; var UniCharsLeft: longint;
                                     var NonIdentical: longint): longint; cdecl;
 
+  TUniToLower = function (UniCharIn: WideChar): WideChar; cdecl;
+
+  TUniToUpper = function (UniCharIn: WideChar): WideChar; cdecl;
+
+  TUniStrColl = function (Locale_Object: TLocaleObject;
+                                  const UCS1, UCS2: PWideChar): longint; cdecl;
+
+  TUniCreateLocaleObject = function (LocaleSpecType: longint;
+                             const LocaleSpec: pointer;
+                             var Locale_Object: TLocaleObject): longint; cdecl;
+
+  TUniFreeLocaleObject = function (Locale_Object: TLocaleObject): longint;
+                                                                         cdecl;
+
+  TUniMapCtryToLocale = function (CountryCode: cardinal; LocaleName: PWideChar;
+                                             BufSize: longint): longint; cdecl;
 
 
 const
@@ -205,6 +224,13 @@ var
   Sys_UniMapCpToUcsCp: TUniMapCpToUcsCp;
   Sys_UniUConvFromUcs: TUniUConvFromUcs;
   Sys_UniUConvToUcs: TUniUConvToUcs;
+  Sys_UniToLower: TUniToLower;
+  Sys_UniToUpper: TUniToUpper;
+  Sys_UniStrColl: TUniStrColl;
+  Sys_UniCreateLocaleObject: TUniCreateLocaleObject;
+  Sys_UniFreeLocaleObject: TUniFreeLocaleObject;
+  Sys_UniMapCtryToLocale: TUniMapCtryToLocale;
+
 {$ENDIF OS2UNICODE}
 
 
@@ -1035,7 +1061,7 @@ begin
 (* ArgLen contains size of command line arguments including leading space. *)
   ArgLen := Succ (StrLen (PC));
 
-  SysReallocMem (CmdLine, ArgVLen + ArgLen);
+  SysReallocMem (CmdLine, ArgVLen + Succ (ArgLen));
 
   Move (PC^, CmdLine [ArgVLen], Succ (ArgLen));
 
@@ -1207,172 +1233,166 @@ begin
   CheckInitialStkLen := StkLen;
 end;
 
-var TIB: PThreadInfoBlock;
-    RC: cardinal;
-    ErrStr: string;
-    P: pointer;
-    DW: cardinal;
-    CPArr: TCPArray;
-    ReturnedSize: cardinal;
+var
+  TIB: PThreadInfoBlock;
+  RC: cardinal;
+  P: pointer;
+  DW: cardinal;
 
 const
-    DosCallsName: array [0..8] of char = 'DOSCALLS'#0;
+  DosCallsName: array [0..8] of char = 'DOSCALLS'#0;
 
 {$IFDEF OS2UNICODE}
- {$I sysucode.inc}
+  {$I sysucode.inc}
 {$ENDIF OS2UNICODE}
 
 begin
 {$IFDEF OS2EXCEPTIONS}
-    asm
-     xorl %eax,%eax
-     movw %ss,%ax
-     movl %eax,_SS
-    end;
+  asm
+   xorl %eax,%eax
+   movw %ss,%ax
+   movl %eax,_SS
+  end;
 {$ENDIF OS2EXCEPTIONS}
-    DosGetInfoBlocks (@TIB, @PIB);
-    StackLength := CheckInitialStkLen (InitialStkLen);
-    { OS/2 has top of stack in TIB^.StackLimit - unlike Windows where it is in TIB^.Stack }
-    StackBottom := TIB^.StackLimit - StackLength;
+  DosGetInfoBlocks (@TIB, @PIB);
+  StackLength := CheckInitialStkLen (InitialStkLen);
+  { OS/2 has top of stack in TIB^.StackLimit - unlike Windows where it is in TIB^.Stack }
+  StackBottom := TIB^.StackLimit - StackLength;
 
-    {Set type of application}
-    ApplicationType := PIB^.ProcType;
-    ProcessID := PIB^.PID;
-    ThreadID := TIB^.TIB2^.TID;
-    IsConsole := ApplicationType <> 3;
+  {Set type of application}
+  ApplicationType := PIB^.ProcType;
+  ProcessID := PIB^.PID;
+  ThreadID := TIB^.TIB2^.TID;
+  IsConsole := ApplicationType <> 3;
 
-    {Query maximum path length (QSV_MAX_PATH_LEN = 1)}
-    if DosQuerySysInfo (1, 1, DW, SizeOf (DW)) = 0 then
-     RealMaxPathLen := DW;
+  {Query maximum path length (QSV_MAX_PATH_LEN = 1)}
+  if DosQuerySysInfo (1, 1, DW, SizeOf (DW)) = 0 then
+   RealMaxPathLen := DW;
 
-    ExitProc := nil;
+  ExitProc := nil;
 
 {$IFDEF OS2EXCEPTIONS}
-    Install_Exception_Handler;
+  Install_Exception_Handler;
 {$ENDIF OS2EXCEPTIONS}
 
-    (* Initialize the amount of file handles *)
-    FileHandleCount := GetFileHandleCount;
+  (* Initialize the amount of file handles *)
+  FileHandleCount := GetFileHandleCount;
 
-    {Initialize the heap.}
-    (* Logic is following:
-       The heap is initially restricted to low address space (< 512 MB).
-       If underlying OS/2 version allows using more than 512 MB per process
-       (OS/2 WarpServer for e-Business, eComStation, possibly OS/2 Warp 4.0
-       with FP13 and above as well), use of this high memory is allowed for
-       future memory allocations at the end of System unit initialization.
-       The consequences are that the compiled application can allocate more
-       memory, but it must make sure to use direct DosAllocMem calls if it
-       needs a memory block for some system API not supporting high memory.
-       This is probably no problem for direct calls to these APIs, but
-       there might be situations when a memory block needs to be passed
-       to a 3rd party DLL which in turn calls such an API call. In case
-       of problems usage of high memory can be turned off by setting
-       UseHighMem to false - the program should change the setting at its
-       very beginning (e.g. in initialization section of the first unit
-       listed in the "uses" section) to avoid having preallocated memory
-       from the high memory region before changing value of this variable. *)
-    InitHeap;
+  {Initialize the heap.}
+  (* Logic is following:
+     The heap is initially restricted to low address space (< 512 MB).
+     If underlying OS/2 version allows using more than 512 MB per process
+     (OS/2 WarpServer for e-Business, eComStation, possibly OS/2 Warp 4.0
+     with FP13 and above as well), use of this high memory is allowed for
+     future memory allocations at the end of System unit initialization.
+     The consequences are that the compiled application can allocate more
+     memory, but it must make sure to use direct DosAllocMem calls if it
+     needs a memory block for some system API not supporting high memory.
+     This is probably no problem for direct calls to these APIs, but
+     there might be situations when a memory block needs to be passed
+     to a 3rd party DLL which in turn calls such an API call. In case
+     of problems usage of high memory can be turned off by setting
+     UseHighMem to false - the program should change the setting at its
+     very beginning (e.g. in initialization section of the first unit
+     listed in the "uses" section) to avoid having preallocated memory
+     from the high memory region before changing value of this variable. *)
+  InitHeap;
 
-    Sys_DosOpenL := @DummyDosOpenL;
-    Sys_DosSetFilePtrL := @DummyDosSetFilePtrL;
-    Sys_DosSetFileSizeL := @DummyDosSetFileSizeL;
-    RC := DosQueryModuleHandle (@DosCallsName [0], DosCallsHandle);
+  Sys_DosOpenL := @DummyDosOpenL;
+  Sys_DosSetFilePtrL := @DummyDosSetFilePtrL;
+  Sys_DosSetFileSizeL := @DummyDosSetFileSizeL;
+  RC := DosQueryModuleHandle (@DosCallsName [0], DosCallsHandle);
+  if RC = 0 then
+   begin
+    RC := DosQueryProcAddr (DosCallsHandle, OrdDosOpenL, nil, P);
     if RC = 0 then
      begin
-      RC := DosQueryProcAddr (DosCallsHandle, OrdDosOpenL, nil, P);
+      Sys_DosOpenL := TDosOpenL (P);
+      RC := DosQueryProcAddr (DosCallsHandle, OrdDosSetFilePtrL, nil, P);
       if RC = 0 then
        begin
-        Sys_DosOpenL := TDosOpenL (P);
-        RC := DosQueryProcAddr (DosCallsHandle, OrdDosSetFilePtrL, nil, P);
+        Sys_DosSetFilePtrL := TDosSetFilePtrL (P);
+        RC := DosQueryProcAddr (DosCallsHandle, OrdDosSetFileSizeL, nil, P);
         if RC = 0 then
          begin
-          Sys_DosSetFilePtrL := TDosSetFilePtrL (P);
-          RC := DosQueryProcAddr (DosCallsHandle, OrdDosSetFileSizeL, nil, P);
-          if RC = 0 then
-           begin
-            Sys_DosSetFileSizeL := TDosSetFileSizeL (P);
-            FSApi64 := true;
-           end;
+          Sys_DosSetFileSizeL := TDosSetFileSizeL (P);
+          FSApi64 := true;
          end;
        end;
-      if RC <> 0 then
-       OSErrorWatch (RC);
+     end;
+    if RC <> 0 then
+     OSErrorWatch (RC);
+    RC := DosQueryProcAddr (DosCallsHandle, OrdDosAllocThreadLocalMemory,
+                                                                       nil, P);
+    if RC = 0 then
+     begin
+      DosAllocThreadLocalMemory := TDosAllocThreadLocalMemory (P);
       RC := DosQueryProcAddr (DosCallsHandle, OrdDosAllocThreadLocalMemory,
                                                                        nil, P);
       if RC = 0 then
        begin
-        DosAllocThreadLocalMemory := TDosAllocThreadLocalMemory (P);
-        RC := DosQueryProcAddr (DosCallsHandle, OrdDosAllocThreadLocalMemory,
-                                                                       nil, P);
-        if RC = 0 then
-         begin
-          DosFreeThreadLocalMemory := TDosFreeThreadLocalMemory (P);
-          TLSAPISupported := true;
-         end
-        else
-         OSErrorWatch (RC);
+        DosFreeThreadLocalMemory := TDosFreeThreadLocalMemory (P);
+        TLSAPISupported := true;
        end
       else
        OSErrorWatch (RC);
      end
     else
      OSErrorWatch (RC);
+   end
+  else
+   OSErrorWatch (RC);
 
-    { ... and exceptions }
-    SysInitExceptions;
-    fpc_cpucodeinit;
+  { ... and exceptions }
+  SysInitExceptions;
+  fpc_cpucodeinit;
 
-    InitUnicodeStringManager;
+  InitUnicodeStringManager;
 
 {$IFDEF OS2UNICODE}
-    InitOS2WideStringManager;
-{$ENDIF OS2UNICODE}
+  InitOS2WideStringManager;
 
-    RC := DosQueryCP (SizeOf (CPArr), @CPArr, ReturnedSize);
-    if (RC <> 0) and (RC <> 473) then
-     begin
-      OSErrorWatch (RC);
-      CPArr [0] := 850;
-     end
-    else if (ReturnedSize < 4) then
-     CPArr [0] := 850;
-{$IFDEF OS2UNICODE}
-    DefaultSystemCodePage := OS2CPtoRtlCP (CPArr [0], cpxMappingOnly,
-                                                            DefCpRec.UConvObj);
-    DefCpRec.OS2CP := CPArr [0];
-    DefCpRec.WinCP := DefaultSystemCodePage;
-    Sys_UniCreateUconvObject (@WNull, DefCpRec.UConvObj);
+  InitDefaultCP;
 {$ELSE OS2UNICODE}
-    DefaultSystemCodePage := CPArr [0];
+(* Otherwise called within InitDefaultCP... *)
+  RC := DosQueryCP (SizeOf (CPArr), @CPArr, ReturnedSize);
+  if (RC <> 0) and (RC <> 473) then
+   begin
+    OSErrorWatch (RC);
+    CPArr [0] := 850;
+   end
+  else if (ReturnedSize < 4) then
+   CPArr [0] := 850;
+  DefaultFileSystemCodePage := CPArr [0];
 {$ENDIF OS2UNICODE}
-    DefaultRTLFileSystemCodePage := DefaultSystemCodePage;
-    DefaultFileSystemCodePage := DefaultSystemCodePage;
-    DefaultUnicodeCodePage := CP_UTF16;
+  DefaultSystemCodePage := DefaultFileSystemCodePage;
+  DefaultRTLFileSystemCodePage := DefaultFileSystemCodePage;
+  DefaultUnicodeCodePage := CP_UTF16;
 
-    { ... and I/O }
-    SysInitStdIO;
+  { ... and I/O }
+  SysInitStdIO;
 
-    { no I/O-Error }
-    inoutres:=0;
+  { no I/O-Error }
+  InOutRes:=0;
 
-    {Initialize environment (must be after InitHeap because allocates memory)}
-    Environment := pointer (PIB^.Env);
-    InitEnvironment;
+  {Initialize environment (must be after InitHeap because allocates memory)}
+  Environment := pointer (PIB^.Env);
+  InitEnvironment;
 
-    InitArguments;
+  InitArguments;
 
-    DefaultCreator := '';
-    DefaultFileType := '';
+  DefaultCreator := '';
+  DefaultFileType := '';
 
-    InitSystemThreads;
+  InitSystemThreads;
+  InitSystemDynLibs;
 
 {$IFDEF EXTDUMPGROW}
 {    Int_HeapSize := high (cardinal);}
 {$ENDIF EXTDUMPGROW}
 {$ifdef SYSTEMEXCEPTIONDEBUG}
- if IsConsole then
-  WriteLn (StdErr, 'Old exception ', HexStr (OldExceptAddr, 8),
+  if IsConsole then
+   WriteLn (StdErr, 'Old exception ', HexStr (OldExceptAddr, 8),
    ', new exception ', HexStr (NewExceptAddr, 8), ', _SS = ', HexStr (_SS, 8));
 {$endif SYSTEMEXCEPTIONDEBUG}
 end.

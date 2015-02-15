@@ -220,6 +220,9 @@ interface
           currentregloc  : TLocation;
           { migrated to a parentfpstruct because of nested access (not written to ppu, because not important and would change interface crc) }
           inparentfpstruct : boolean;
+          { the variable is not living at entry of the scope, so it does not need to be initialized if it is a reg. var
+            (not written to ppu, because not important and would change interface crc) }
+          noregvarinitneeded : boolean;
           constructor create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           function globalasmsym: boolean;

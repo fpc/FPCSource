@@ -26,6 +26,9 @@ interface
 {$define HAS_CMDLINE}
 {$define HAS_MEMORYMANAGER}  // comment this line to switch from wincemm to fpcmm
 {$define HAS_WIDESTRINGMANAGER}
+{$define DISABLE_NO_DYNLIBS_MANAGER}
+{$define FPC_SYSTEM_HAS_SYSDLH}
+
 
 { include system-independent routine headers }
 {$I systemh.inc}
@@ -1769,6 +1772,7 @@ initialization
   ProcessID := GetCurrentProcessID;
   { threading }
   InitSystemThreads;
+  InitSystemDynLibs;
   DispCallByIDProc:=@DoDispCallByIDError;
 
 finalization

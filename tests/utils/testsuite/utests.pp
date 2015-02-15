@@ -89,7 +89,9 @@ Type
     Procedure ComboBoxFromQuery(Const ComboName,Qry,Value : String);
     Function  GetSingleTon(Const Qry : String) : String;
     Function GetOSName(ID : String) : String;
+    Function GetOSID(AName : String) : String;
     Function GetCPUName(ID : String) : String;
+    Function GetCPUID(AName : String) : String;
     Function GetVersionName(ID : String) : String;
     Function GetCategoryName(ID : String) : String;
     Function GetTestFileName(ID : String) : String;
@@ -202,7 +204,10 @@ type
     ver_2_6_3,
     ver_2_6_4,
     ver_2_6_5,
-    ver_2_7_1);
+    ver_2_7_1,
+    ver_3_0_0,
+    ver_3_0_1,
+    ver_3_1_1);
 
 const
   ver_trunk = high (known_versions);
@@ -240,7 +245,10 @@ const
    '2.6.3',
    '2.6.4',
    '2.6.5',
-   '2.7.1'
+   '2.7.1',
+   '3.0.0',
+   '3.0.1',
+   '3.1.1'
   );
 
   ver_branch : array [known_versions] of string =
@@ -275,6 +283,9 @@ const
    'tags/release_2_6_4',
    'tags/release_2_6_4',
    'branches/fixes_2_6',
+   'trunk',
+   'branches/release_3_0_0',
+   'branches/fixes_3_0',
    'trunk'
   );
 
@@ -460,6 +471,12 @@ begin
   FDB.Transaction := FTrans;
   FDB.Connected:=True;
   Result:=True;
+  { All is not the first anymore, we need to put it by default explicity }
+  if Length(FOS) = 0 then
+    FOS:=GetOSID('All');
+  { All is not the first anymore, we need to put it by default explicity }
+  if Length(FCPU) = 0 then
+    FCPU:=GetCPUID('All');
 end;
 
 procedure TTestsuite.LDump(Const St : String);
@@ -1010,6 +1027,15 @@ begin
     Result:='';
 end;
 
+Function TTestSuite.GetOSID(AName : String) : String;
+
+begin
+  if (AName<>'') then
+    Result:=GetSingleTon('SELECT TO_ID FROM TESTOS WHERE TO_NAME='''+Aname+'''')
+  else
+    Result:='';
+end;
+
 Function TTestSuite.GetTestFileName(ID : String) : String;
 
 begin
@@ -1032,6 +1058,15 @@ Function TTestSuite.GetCPUName(ID : String) : String;
 begin
   if (ID<>'') then
     Result:=GetSingleTon('SELECT TC_NAME FROM TESTCPU WHERE TC_ID='+ID)
+  else
+    Result:='';
+end;
+
+Function TTestSuite.GetCPUID(AName : String) : String;
+
+begin
+  if (AName<>'') then
+    Result:=GetSingleTon('SELECT TC_ID FROM TESTCPU WHERE TC_NAME='''+AName+'''')
   else
     Result:='';
 end;
@@ -1785,7 +1820,8 @@ end;
 Procedure TTestSuite.ShowHistory;
 
 Const
-  MaxCombo = 50;
+  { We already have 53 versions }
+  MaxCombo = 100;
 
 Type
   StatusLongintArray = Array [TTestStatus] of longint;

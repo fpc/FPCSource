@@ -991,6 +991,8 @@ uses
           if token=_ID then
             begin
               generictype:=ctypesym.create(orgpattern,cundefinedtype);
+              { type parameters need to be added as strict private }
+              generictype.visibility:=vis_strictprivate;
               include(generictype.symoptions,sp_generic_para);
               result.add(orgpattern,generictype);
             end;
@@ -1128,7 +1130,11 @@ uses
               firstidx:=result.count;
 
               constraintdata.free;
-            end;
+            end
+          else
+            if token=_SEMICOLON then
+              { a semicolon terminates a type parameter group }
+              firstidx:=result.count;
         until not (try_to_consume(_COMMA) or try_to_consume(_SEMICOLON));
         block_type:=old_block_type;
       end;
@@ -1166,6 +1172,8 @@ uses
             if assigned(generictype.owner) then
               begin
                 sym:=ctypesym.create(genericlist.nameofindex(i),generictype.typedef);
+                { type parameters need to be added as strict private }
+                sym.visibility:=vis_strictprivate;
                 st.insert(sym);
                 include(sym.symoptions,sp_generic_para);
               end

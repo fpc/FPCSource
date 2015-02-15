@@ -42,6 +42,7 @@ type
   public
     SearchPath: TStringList;
     Units: TDef;
+    OnExceptionProc: TProcDef;
 
     constructor Create(const ASearchPath: string);
     destructor Destroy; override;
@@ -55,6 +56,9 @@ var
 implementation
 
 uses process, pipes, fpjson, jsonparser;
+
+const
+  OnExceptionProcName = 'JNI_OnException';
 
 type
   TCharSet = set of char;
@@ -481,9 +485,6 @@ var
                   if s = 'overload' then
                     ProcOpt:=ProcOpt + [poOverload]
                   else
-                  if s = 'overload' then
-                    ProcOpt:=ProcOpt + [poMethodPtr]
-                  else
                   if s = 'abstract' then
                     TClassDef(Parent).HasAbstractMethods:=True;
                 end;
@@ -498,6 +499,9 @@ var
                   Name:='Int';
 
               _ReadDefs(d, it, 'Params');
+              // Check for user exception handler proc
+              if AMainUnit and (Parent = CurUnit) and (OnExceptionProc = nil) and (AnsiCompareText(Name, OnExceptionProcName) = 0) then
+                OnExceptionProc:=TProcDef(d);
             end;
           dtVar, dtField, dtParam:
             with TVarDef(d) do begin

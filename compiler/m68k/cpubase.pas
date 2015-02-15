@@ -89,7 +89,7 @@ unit cpubase;
          { (this may include 68040 mmu instructions)          }
          a_frestore,a_fsave,a_pflush,a_pflusha,a_pload,a_pmove,a_ptest,
          { useful for assembly language output }
-         a_label,a_dbxx,a_sxx,a_bxx,a_fbxx);
+         a_label,a_dbxx,a_sxx,a_bxx,a_fsxx,a_fbxx);
 
       {# This should define the array of instructions as string }
       op2strtable=array[tasmop] of string[11];
@@ -153,7 +153,7 @@ unit cpubase;
 
       { registers which may be destroyed by calls }
       VOLATILE_INTREGISTERS = [RS_D0,RS_D1];
-      VOLATILE_FPUREGISTERS = [];
+      VOLATILE_FPUREGISTERS = [RS_FP0,RS_FP1];
       VOLATILE_ADDRESSREGISTERS = [RS_A0,RS_A1];
 
     type
@@ -311,6 +311,7 @@ unit cpubase;
       }
       saved_standard_registers : array[0..5] of tsuperregister = (RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7);
       saved_address_registers : array[0..4] of tsuperregister = (RS_A2,RS_A3,RS_A4,RS_A5,RS_A6);
+      saved_fpu_registers : array[0..5] of tsuperregister = (RS_FP2,RS_FP3,RS_FP4,RS_FP5,RS_FP6,RS_FP7);
 
       { this is only for the generic code which is not used for this architecture }
       saved_mm_registers : array[0..0] of tsuperregister = (RS_INVALID);
@@ -358,6 +359,10 @@ unit cpubase;
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function dwarf_reg(r:tregister):shortint;
+
+    function isvalue8bit(val: tcgint): boolean;
+    function isvalue16bit(val: tcgint): boolean;
+    function isvalueforaddqsubq(val: tcgint): boolean;
 
 implementation
 
@@ -471,7 +476,9 @@ implementation
           R_INTREGISTER :
             result:=OS_32;
           R_FPUREGISTER :
-            result:=OS_F64;
+            { 68881 & compatibles -> 80 bit }
+            { CF FPU -> 64 bit, but that's unsupported for now }
+            result:=OS_F80;
           else
             internalerror(200303181);
         end;
@@ -537,6 +544,25 @@ implementation
         result:=regdwarf_table[findreg_by_number(r)];
         if result=-1 then
           internalerror(200603251);
+      end;
+
+
+    { returns true if given value fits to an 8bit signed integer }
+    function isvalue8bit(val: tcgint): boolean;
+      begin
+        isvalue8bit := (val >= low(shortint)) and (val <= high(shortint));
+      end;
+
+    { returns true if given value fits to a 16bit signed integer }
+    function isvalue16bit(val: tcgint): boolean;
+      begin
+        isvalue16bit := (val >= low(smallint)) and (val <= high(smallint));
+      end;
+
+    { returns true if given value fits addq/subq argument, so in 1 - 8 range }
+    function isvalueforaddqsubq(val: tcgint): boolean;
+      begin
+        isvalueforaddqsubq := (val >= 1) and (val <= 8);
       end;
 
 end.

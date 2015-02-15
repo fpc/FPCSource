@@ -330,17 +330,13 @@ begin
     if index<>0 then
         begin
             str(index,tmp3);
-(*
-            tmp3:=func+'='+module+'.'+tmp3;
-*)
             tmp3:=Name+'='+module+'.'+tmp3;
         end
     else
-        tmp3:=Name+'='+module+'.'+name;
-(*
-        tmp3:=func+'='+module+'.'+name;
-    aout_sym(tmp2,n_imp1+n_ext,0,0,0);
+(*        tmp3:=Name+'='+module+'.'+name;
 *)
+        tmp3 := MangledName + '=' + module + '.' + target_info.Cprefix + name;
+
     aout_sym(tmp2,n_imp1+n_ext,0,0,0);
     aout_sym(tmp3,n_imp2+n_ext,0,0,0);
     aout_finish;
@@ -477,6 +473,7 @@ var
   BaseFilename: TPathStr;
   RsrcStr : string;
   OutName: TPathStr;
+  StackSizeKB: cardinal;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.exefilename);
@@ -517,10 +514,16 @@ begin
         { Is this really required? Not anymore according to my EMX docs }
         Replace(cmdstr,'$HEAPMB',tostr((1048575) shr 20));
         {Size of the stack when an EMX program runs in OS/2.}
-        Replace(cmdstr,'$STACKKB',tostr((stacksize+1023) shr 10));
+        StackSizeKB := (StackSize + 1023) shr 10;
+        (* Ensure a value which might work and is accepted by EMXBIND *)
+        if StackSizeKB < 64 then
+         StackSizeKB := 64
+        else if StackSizeKB > (512 shl 10) then
+         StackSizeKB := 512 shl 10;
+        Replace(cmdstr,'$STACKKB',tostr(StackSizeKB));
         {When an EMX program runs in DOS, the heap and stack share the
          same memory pool. The heap grows upwards, the stack grows downwards.}
-        Replace(cmdstr,'$DOSHEAPKB',tostr((stacksize+1023) shr 10));
+        Replace(cmdstr,'$DOSHEAPKB',tostr(StackSizeKB));
         Replace(cmdstr,'$STRIP ', StripStr);
         Replace(cmdstr,'$MAP ', MapStr);
         Replace(cmdstr,'$APPTYPE',AppTypeStr);

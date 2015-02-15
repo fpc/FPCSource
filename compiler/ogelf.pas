@@ -256,7 +256,9 @@ interface
          hashobjsec: TElfObjSection;
          neededlist: TFPHashList;
          dyncopysyms: TFPObjectList;
-
+         preinitarraysec,
+         initarraysec,
+         finiarraysec: TObjSection;
          function AttachSection(objsec:TObjSection):TElfExeSection;
          function CreateSegment(atype,aflags,aalign:longword):TElfSegment;
          procedure WriteHeader;
@@ -2359,12 +2361,15 @@ implementation
 
     procedure TElfExeOutput.Order_end;
 
-      procedure set_oso_keep(const s:string);
+      procedure set_oso_keep(const s:string;out firstsec:TObjSection);
         var
           exesec:TExeSection;
           objsec:TObjSection;
           i:longint;
+          sz: aword;
         begin
+          firstsec:=nil;
+          sz:=0;
           exesec:=TExeSection(ExeSectionList.Find(s));
           if assigned(exesec) then
             begin
@@ -2373,23 +2378,33 @@ implementation
                   objsec:=TObjSection(exesec.ObjSectionList[i]);
                   { ignore sections used for symbol definition }
                   if oso_data in objsec.SecOptions then
-                    objsec.SecOptions:=[oso_keep];
+                    begin
+                      if firstsec=nil then
+                        firstsec:=objsec;
+                      objsec.SecOptions:=[oso_keep];
+                      inc(sz,objsec.size);
+                    end;
                 end;
+              exesec.size:=sz;
             end;
         end;
 
+      var
+        dummy: TObjSection;
       begin
         OrderOrphanSections;
         inherited Order_end;
-        set_oso_keep('.init');
-        set_oso_keep('.fini');
-        set_oso_keep('.jcr');
-        set_oso_keep('.ctors');
-        set_oso_keep('.dtors');
-        set_oso_keep('.preinit_array');
-        set_oso_keep('.init_array');
-        set_oso_keep('.fini_array');
-        set_oso_keep('.eh_frame');
+        set_oso_keep('.init',dummy);
+        set_oso_keep('.fini',dummy);
+        set_oso_keep('.jcr',dummy);
+        set_oso_keep('.ctors',dummy);
+        set_oso_keep('.dtors',dummy);
+        set_oso_keep('.preinit_array',preinitarraysec);
+        if assigned(preinitarraysec) and IsSharedLibrary then
+          Comment(v_error,'.preinit_array section is not allowed in shared libraries');
+        set_oso_keep('.init_array',initarraysec);
+        set_oso_keep('.fini_array',finiarraysec);
+        set_oso_keep('.eh_frame',dummy);
 
         { let .dynamic reference other dynamic sections so they aren't marked
           for removal as unused }
@@ -2406,7 +2421,7 @@ implementation
         exesec:TExeSection;
         opts:TObjSectionOptions;
         s:string;
-        newsections,tmp:TFPHashObjectList;
+        newsections:TFPHashObjectList;
         allsections:TFPList;
         inserts:array[0..6] of TExeSection;
         idx,inspos:longint;
@@ -3224,6 +3239,24 @@ implementation
                     WriteDynTag(DT_RPATH,s);
                   end;
               end;
+          end;
+
+        if assigned(preinitarraysec) then
+          begin
+            WriteDynTag(DT_PREINIT_ARRAY,preinitarraysec,0);
+            WriteDynTag(DT_PREINIT_ARRAYSZ,preinitarraysec.exesection.size);
+          end;
+
+        if assigned(initarraysec) then
+          begin
+            WriteDynTag(DT_INIT_ARRAY,initarraysec,0);
+            WriteDynTag(DT_INIT_ARRAYSZ,initarraysec.exesection.size);
+          end;
+
+        if assigned(finiarraysec) then
+          begin
+            WriteDynTag(DT_FINI_ARRAY,finiarraysec,0);
+            WriteDynTag(DT_FINI_ARRAYSZ,finiarraysec.exesection.size);
           end;
 
         writeDynTag(DT_HASH,hashobjsec);

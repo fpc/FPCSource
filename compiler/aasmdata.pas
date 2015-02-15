@@ -406,6 +406,21 @@ implementation
                  internalerror(200603261);
              end;
            hp.typ:=_typ;
+           { Changing bind from AB_GLOBAL to AB_LOCAL is wrong
+             if bind is already AB_GLOBAL or AB_EXTERNAL,
+             GOT might have been used, so change might be harmful. }
+           if (_bind<>hp.bind) and (hp.getrefs>0) then
+             begin
+{$ifdef extdebug}
+               { the changes that matter must become internalerrors, the rest
+                 should be ignored; a used cannot change anything about this,
+                 so printing a warning/hint is not useful }
+               if (_bind=AB_LOCAL) then
+                 Message3(asmw_w_changing_bind_type,s,asmsymbindname[hp.bind],asmsymbindname[_bind])
+               else
+                 Message3(asmw_h_changing_bind_type,s,asmsymbindname[hp.bind],asmsymbindname[_bind]);
+{$endif extdebug}
+             end;
            hp.bind:=_bind;
          end
         else

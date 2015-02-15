@@ -28,7 +28,7 @@ interface
     uses
       cpubase,
       globtype,
-      parabase,cgutils,
+      parabase,cgbase,cgutils,
       symdef,node,ncal;
 
     type
@@ -95,6 +95,8 @@ interface
           function can_call_ref(var ref: treference):boolean;virtual;
           procedure extra_call_ref_code(var ref: treference);virtual;
           procedure do_call_ref(ref: treference);virtual;
+
+          procedure load_block_invoke(toreg: tregister);virtual;
        public
           procedure pass_generate_code;override;
           destructor destroy;override;
@@ -107,11 +109,11 @@ implementation
       systems,
       cutils,verbose,globals,
       cpuinfo,
-      symconst,symtable,symtype,defutil,paramgr,
-      cgbase,pass_2,
+      symconst,symbase,symtable,symtype,symsym,defutil,paramgr,
+      pass_2,
       aasmbase,aasmtai,aasmdata,
       nbas,nmem,nld,ncnv,nutils,
-      ncgutil,
+      ncgutil,blockutl,
       cgobj,tgobj,hlcgobj,
       procinfo,
       wpobase;
@@ -446,6 +448,26 @@ implementation
     procedure tcgcallnode.do_call_ref(ref: treference);
       begin
         InternalError(2014012901);
+      end;
+
+
+    procedure tcgcallnode.load_block_invoke(toreg: tregister);
+      var
+        href: treference;
+        srsym: tsym;
+        srsymtable: tsymtable;
+        literaldef: trecorddef;
+      begin
+        literaldef:=get_block_literal_type_for_proc(tabstractprocdef(right.resultdef));
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,getpointerdef(literaldef),true);
+        { load the invoke pointer }
+        hlcg.reference_reset_base(href,right.resultdef,right.location.register,0,right.resultdef.alignment);
+        if not searchsym_in_record(literaldef,'INVOKE',srsym,srsymtable) or
+           (srsym.typ<>fieldvarsym) or
+           (tfieldvarsym(srsym).vardef<>voidpointertype) then
+          internalerror(2014071506);
+        href.offset:=tfieldvarsym(srsym).fieldoffset;
+        hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,tfieldvarsym(srsym).vardef,procdefinition,href,toreg);
       end;
 
 
@@ -1007,7 +1029,9 @@ implementation
               pvreg:=cg.getintregister(current_asmdata.CurrAsmList,proc_addr_size);
               { Only load OS_ADDR from the reference (when converting to hlcg:
                 watch out with procedure of object) }
-              if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+              if po_is_block in procdefinition.procoptions then
+                load_block_invoke(pvreg)
+              else if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
                 begin
                   href:=right.location.reference;
                   callref:=can_call_ref(href);

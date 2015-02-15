@@ -69,6 +69,7 @@ interface
           function  gen_procvar_context_tree_parentfp:tnode;
           function  gen_self_tree:tnode;
           function  gen_vmt_tree:tnode;
+          function gen_block_context:tnode;
           procedure gen_hidden_parameters;
           function  funcret_can_be_reused:boolean;
           procedure maybe_create_funcret_node;
@@ -268,6 +269,9 @@ interface
        between the callparanodes and the callnode they belong to }
       aktcallnode : tcallnode;
 
+    const
+      { track current inlining depth }
+      inlinelevel : longint = 0;
 
 implementation
 
@@ -1004,10 +1008,17 @@ implementation
                         { uninitialized warnings (tbs/tb0542)         }
                         set_varstate(left,vs_written,[]);
                         set_varstate(left,vs_readwritten,[]);
+                        make_not_regable(left,[ra_addr_regable,ra_addr_taken]);
                       end;
                     vs_var,
                     vs_constref:
-                      set_varstate(left,vs_readwritten,[vsf_must_be_valid,vsf_use_hints]);
+                      begin
+                        set_varstate(left,vs_readwritten,[vsf_must_be_valid,vsf_use_hints]);
+                        { constref takes also the address, but storing it is actually the compiler
+                          is not supposed to expect }
+                        if parasym.varspez=vs_var then
+                          make_not_regable(left,[ra_addr_regable,ra_addr_taken]);
+                      end;
                     else
                       set_varstate(left,vs_read,[vsf_must_be_valid]);
                   end;
@@ -1702,7 +1713,10 @@ implementation
                       typecheckpass(temp);
                       if (temp.nodetype <> ordconstn) or
                          (tordconstnode(temp).value <> 0) then
-                        hightree := caddnode.create(subn,hightree,temp)
+                        begin
+                          hightree:=caddnode.create(subn,hightree,temp);
+                          include(hightree.flags,nf_internal);
+                        end
                       else
                         temp.free;
                     end;
@@ -2337,6 +2351,13 @@ implementation
       end;
 
 
+    function tcallnode.gen_block_context: tnode;
+      begin
+        { the self parameter of a block invocation is that address of the
+          block literal (which is what right contains) }
+        result:=right.getcopy;
+      end;
+
 
     function check_funcret_used_as_para(var n: tnode; arg: pointer): foreachnoderesult;
       var
@@ -2567,8 +2588,10 @@ implementation
                          else
                            internalerror(200309287);
                        end
+                     else if not(po_is_block in procdefinition.procoptions) then
+                       para.left:=gen_procvar_context_tree_parentfp
                      else
-                       para.left:=gen_procvar_context_tree_parentfp;
+                       para.left:=gen_block_context
                    end
                 else
                  if vo_is_range_check in para.parasym.varoptions then
@@ -2821,6 +2844,7 @@ implementation
           end;
         if (i>0) then
           begin
+            include(current_procinfo.flags,pi_calls_c_varargs);
             varargsparas:=tvarargsparalist.create;
             pt:=tcallparanode(left);
             while assigned(pt) do
@@ -3489,9 +3513,25 @@ implementation
         { Can we inline the procedure? }
         if (po_inline in procdefinition.procoptions) and
            (procdefinition.typ=procdef) and
-           tprocdef(procdefinition).has_inlininginfo then
+           tprocdef(procdefinition).has_inlininginfo and
+           {  Prevent too deep inlining recursion and code bloat by inlining
+
+              The actual formuala is
+                                inlinelevel+1  /-------
+                  node count <  -------------\/  10000
+
+              This allows exponential grow of the code only to a certain limit.
+
+              Remarks
+               - The current approach calculates the inlining level top down, so outer call nodes (nodes closer to the leaf) might not be inlined
+                 if the max. complexity is reached. This is done because it makes the implementation easier and because
+                 there might be situations were it is more beneficial to inline inner nodes and do the calls to the outer nodes
+                 if the outer nodes are in a seldomly used code path
+               - The code avoids to use functions from the math unit
+           }
+           (node_count(tprocdef(procdefinition).inlininginfo^.code)<round(exp((1.0/(inlinelevel+1))*ln(10000)))) then
           begin
-             include(callnodeflags,cnf_do_inline);
+            include(callnodeflags,cnf_do_inline);
             { Check if we can inline the procedure when it references proc/var that
               are not in the globally available }
             st:=procdefinition.owner;
@@ -3883,7 +3923,10 @@ implementation
             ((tloadnode(n).symtable.symtabletype in [globalsymtable,ObjectSymtable]) or
             { statics can only be modified by functions in the same unit }
              ((tloadnode(n).symtable.symtabletype = staticsymtable) and
-              (tloadnode(n).symtable = TSymtable(arg))))) or
+              (tloadnode(n).symtable = TSymtable(arg))) or
+              { if the addr of the symbol is taken somewhere, it can be also non-local }
+              (tabstractvarsym(tloadnode(n).symtableentry).addr_taken)
+           )) or
            ((n.nodetype = subscriptn) and
             (tsubscriptnode(n).vs.owner.symtabletype = ObjectSymtable)) then
           result := fen_norecurse_true;
@@ -4151,6 +4194,18 @@ implementation
       end;
 
 
+    { this procedure removes the user code flag because it prevents optimizations }
+    function removeusercodeflag(var n : tnode; arg : pointer) : foreachnoderesult;
+      begin
+        result:=fen_false;
+        if nf_usercode_entry in n.flags then
+          begin
+            exclude(n.flags,nf_usercode_entry);
+            result:=fen_norecurse_true;
+          end;
+      end;
+
+
     function tcallnode.pass1_inline:tnode;
       var
         n,
@@ -4159,6 +4214,7 @@ implementation
         inlineblock,
         inlinecleanupblock : tblocknode;
       begin
+        inc(inlinelevel);
         result:=nil;
         if not(assigned(tprocdef(procdefinition).inlininginfo) and
                assigned(tprocdef(procdefinition).inlininginfo^.code)) then
@@ -4186,6 +4242,7 @@ implementation
 
         { create a copy of the body and replace parameter loads with the parameter values }
         body:=tprocdef(procdefinition).inlininginfo^.code.getcopy;
+        foreachnodestatic(pm_postprocess,body,@removeusercodeflag,nil);
         foreachnode(pm_preprocess,body,@replaceparaload,@fileinfo);
 
         { Concat the body and finalization parts }
@@ -4256,6 +4313,7 @@ implementation
         writeln('**************************',tprocdef(procdefinition).mangledname);
         printnode(output,result);
 {$endif DEBUGINLINE}
+        dec(inlinelevel);
       end;
 
 end.

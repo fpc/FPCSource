@@ -44,7 +44,7 @@ begin
   SetString(S, PAnsiChar(Bytes), Length(Bytes));
   if not CompareMem(Pointer(S), Pointer(Cp866String), Length(S)) then
     halt(1);
-  if StringCodePage(S)<>DefaultSystemCodePage then
+  if StringCodePage(S)<>CP_ACP then
     halt(11);
   SetString(Cp1251String,pchar(Cp1251String),length(Cp1251String));
   if StringCodePage(Cp1251String)<>1251 then

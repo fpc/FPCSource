@@ -235,9 +235,14 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 menu_file_exit         = 'E~x~it';
 
                 menu_edit              = '~E~dit';
+                {$ifdef HASAMIGA}
                 {$ifdef AROS}
                 menu_edit_copywin      = 'Cop~y~ to AROS';
                 menu_edit_pastewin     = 'Paste from A~R~OS';
+                {$else}
+                menu_edit_copywin      = 'Cop~y~ to System';
+                menu_edit_pastewin     = 'Paste from Syste~m~';
+                {$endif}
                 {$else}
                 menu_edit_copywin      = 'Cop~y~ to Windows';
                 menu_edit_pastewin     = 'Paste from ~W~indows';

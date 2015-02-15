@@ -4,7 +4,7 @@
 
 [package]
 name=fpc
-version=2.7.1
+version=3.1.1
 
 [target]
 dirs=compiler rtl utils packages ide installer
@@ -204,7 +204,7 @@ endif
 BuildOnlyBaseCPUs=jvm
 
 ifneq ($(wildcard utils),)
-NOUTILSTARGETS=embedded gba $(BuildOnlyBaseCPUs)
+NOUTILSTARGETS=embedded gba msdos $(BuildOnlyBaseCPUs)
 ifeq ($(findstring $(OS_TARGET),$(NOUTILSTARGETS)),)
 ifdef BUILDFULLNATIVE
 UTILS=1

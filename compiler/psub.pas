@@ -155,6 +155,12 @@ implementation
             Message(parser_h_inlining_disabled);
             exit;
           end;
+        if pi_calls_c_varargs in current_procinfo.flags then
+          begin
+            Message1(parser_h_not_supported_for_inline,'called C-style varargs functions');
+            Message(parser_h_inlining_disabled);
+            exit;
+          end;
         { the compiler cannot handle inherited in inlined subroutines because
           it tries to search for self in the symtable, however, the symtable
           is not available }
@@ -262,7 +268,10 @@ implementation
         if (tsym(p).typ=paravarsym) then
           begin
             if tparavarsym(p).needs_finalization then
-              include(current_procinfo.flags,pi_needs_implicit_finally);
+              begin
+                include(current_procinfo.flags,pi_needs_implicit_finally);
+                include(current_procinfo.flags,pi_do_call);
+              end;
             if (tparavarsym(p).varspez in [vs_value,vs_out]) and
                (cs_create_pic in current_settings.moduleswitches) and
                (tf_pic_uses_got in target_info.flags) and
@@ -281,6 +290,7 @@ implementation
            is_managed_type(tlocalvarsym(p).vardef) then
           begin
             include(current_procinfo.flags,pi_needs_implicit_finally);
+            include(current_procinfo.flags,pi_do_call);
             if is_rtti_managed_type(tlocalvarsym(p).vardef) and
               (cs_create_pic in current_settings.moduleswitches) and
               (tf_pic_uses_got in target_info.flags) then
@@ -1334,13 +1344,24 @@ implementation
               { iterate through life info of the first node }
               for i:=0 to dfabuilder.nodemap.count-1 do
                 begin
-                  if DFASetIn(GetUserCode.optinfo^.life,i) and
-                    { do not warn about parameters passed by var }
-                    not((tnode(dfabuilder.nodemap[i]).nodetype=loadn) and (tloadnode(dfabuilder.nodemap[i]).symtableentry.typ=paravarsym) and
-                        (tparavarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry).varspez=vs_var) and
+                  if DFASetIn(GetUserCode.optinfo^.life,i) then
+                    begin
+                      { do not warn for certain parameters: }
+                      if not((tnode(dfabuilder.nodemap[i]).nodetype=loadn) and (tloadnode(dfabuilder.nodemap[i]).symtableentry.typ=paravarsym) and
+                        { do not warn about parameters passed by var }
+                        (((tparavarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry).varspez=vs_var) and
                         { function result is passed by var but it must be initialized }
-                        not(vo_is_funcret in tparavarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry).varoptions)) then
-                    CheckAndWarn(GetUserCode,tnode(dfabuilder.nodemap[i]));
+                        not(vo_is_funcret in tparavarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry).varoptions)) or
+                        { do not warn about initialized hidden parameters }
+                        ((tparavarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry).varoptions*[vo_is_high_para,vo_is_parentfp,vo_is_result,vo_is_self])<>[]))) then
+                        CheckAndWarn(GetUserCode,tnode(dfabuilder.nodemap[i]));
+                    end
+                  else
+                    begin
+                      if (tnode(dfabuilder.nodemap[i]).nodetype=loadn) and
+                        (tloadnode(dfabuilder.nodemap[i]).symtableentry.typ in [staticvarsym,localvarsym]) then
+                        tabstractnormalvarsym(tloadnode(dfabuilder.nodemap[i]).symtableentry).noregvarinitneeded:=true
+                    end;
                 end;
           end;
 
@@ -1795,11 +1816,11 @@ implementation
              { Give an error for accesses in the static symtable that aren't visible
                outside the current unit }
              st:=procdef.owner;
-             while (st.symtabletype=ObjectSymtable) do
+             while (st.symtabletype in [ObjectSymtable,recordsymtable]) do
                st:=st.defowner.owner;
              if (pi_uses_static_symtable in flags) and
                 (st.symtabletype<>staticsymtable) then
-               Comment(V_Error,'Global Generic template references static symtable');
+               Message(parser_e_global_generic_references_static);
            end;
 
          { save exit info }

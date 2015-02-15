@@ -413,6 +413,7 @@ Type
   AnsiChar            = Char;
   PAnsiChar           = PChar;
   PPAnsiChar          = PPChar;
+  PPPAnsiChar         = PPPChar;
 
   UCS4Char            = type 0..$10ffff;
   PUCS4Char           = ^UCS4Char;
@@ -1511,6 +1512,14 @@ const
 {$ifdef FPC_HAS_FEATURE_THREADING}
 {$i threadh.inc}
 {$endif FPC_HAS_FEATURE_THREADING}
+
+{*****************************************************************************
+                          Dynamic library support
+*****************************************************************************}
+
+{$ifdef FPC_HAS_FEATURE_DYNLIBS}
+{$i dynlibh.inc}
+{$endif FPC_HAS_FEATURE_DYNLIBS}
 
 {*****************************************************************************
                           Resources support

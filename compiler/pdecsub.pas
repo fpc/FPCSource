@@ -1134,7 +1134,7 @@ implementation
               end;
             single_type(pd.returndef,[stoAllowSpecialization]);
 
-// Issue #24863, commented out for now because it breaks building of RTL and needs extensive
+            // Issue #24863, enabled only for the main progra commented out for now because it breaks building of RTL and needs extensive
 // testing and/or RTL patching.
 {
             if ((pd.returndef=cvarianttype) or (pd.returndef=colevarianttype)) and
@@ -1358,7 +1358,7 @@ implementation
         { support procedure proc stdcall export; }
         if not(check_proc_directive(false)) then
           begin
-            if (token=_COLON) then
+            if (token=_COLON) and not(Assigned(pd) and is_void(pd.returndef)) then
               begin
                 message(parser_e_field_not_allowed_here);
                 consume_all_until(_SEMICOLON);
@@ -2105,6 +2105,13 @@ begin
     pd_external(pd);
 end;
 
+procedure pd_winapi(pd:tabstractprocdef);
+begin
+  if not(target_info.system in systems_wince) then
+    pd.proccalloption:=pocall_cdecl
+  else
+    pd.proccalloption:=pocall_stdcall;
+end;
 
 type
    pd_handler=procedure(pd:tabstractprocdef);
@@ -2120,7 +2127,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=44;
+  num_proc_directives=45;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -2487,7 +2494,7 @@ const
       handler  : nil;
       pocall   : pocall_none;
       pooption : [po_varargs];
-      mutexclpocall : [pocall_internproc,pocall_stdcall,pocall_register,
+      mutexclpocall : [pocall_internproc,pocall_register,
                        pocall_far16,pocall_oldfpccall,pocall_mwpascal];
       mutexclpotype : [];
       mutexclpo     : [po_assembler,po_interrupt,po_inline]
@@ -2513,6 +2520,15 @@ const
       { allowed for external cpp classes }
       mutexclpotype : [{potype_constructor,potype_destructor}potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_public,po_exports,po_interrupt,po_assembler,po_inline]
+    ),(
+      idtok:_WINAPI;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
+      handler  : @pd_winapi;
+      pocall   : pocall_none;
+      pooption : [];
+      mutexclpocall : [pocall_stdcall,pocall_cdecl];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
+      mutexclpo     : [po_external]
     ),(
       idtok:_ENUMERATOR;
       pd_flags : [pd_interface,pd_object,pd_record];
@@ -2609,7 +2625,7 @@ const
               next variable !! }
             if ((pdflags * [pd_procvar,pd_object,pd_record,pd_objcclass,pd_objcprot])=[]) and
                not(idtoken=_PROPERTY) then
-              Message1(parser_w_unknown_proc_directive_ignored,name);
+              Message1(parser_w_unknown_proc_directive_ignored,pattern);
             exit;
          end;
 
@@ -2920,7 +2936,7 @@ const
                          { for objcclasses this is checked later, because the entire
                            class may be external.  }
                          is_objc_class_or_protocol(tprocdef(pd).struct)) and
-                     not(pd.proccalloption in (cdecl_pocalls + [pocall_mwpascal])) then
+                     not(pd.proccalloption in (cdecl_pocalls + [pocall_mwpascal,pocall_stdcall])) then
                     Message(parser_e_varargs_need_cdecl_and_external);
                 end
                else
@@ -2928,7 +2944,7 @@ const
                   { both must be defined now }
                   if not((po_external in pd.procoptions) or
                          (pd.typ=procvardef)) or
-                     not(pd.proccalloption in (cdecl_pocalls + [pocall_mwpascal])) then
+                     not(pd.proccalloption in (cdecl_pocalls + [pocall_mwpascal,pocall_stdcall])) then
                     Message(parser_e_varargs_need_cdecl_and_external);
                 end;
              end;

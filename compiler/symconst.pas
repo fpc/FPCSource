@@ -113,16 +113,17 @@ const
   { implicit parameter positions, normal parameters start at 10
     and will increase with 10 for each parameter. The high parameters
     will be inserted with n+1 }
-  paranr_parentfp = 1;
-  paranr_parentfp_delphi_cc_leftright = 1;
-  paranr_self = 2;
-  paranr_result = 3;
-  paranr_vmt = 4;
+  paranr_blockselfpara = 1;
+  paranr_parentfp = 2;
+  paranr_parentfp_delphi_cc_leftright = 2;
+  paranr_self = 3;
+  paranr_result = 4;
+  paranr_vmt = 5;
 
   { the implicit parameters for Objective-C methods need to come
     after the hidden result parameter }
-  paranr_objc_self = 4;
-  paranr_objc_cmd = 5;
+  paranr_objc_self = 5;
+  paranr_objc_cmd = 6;
   { Required to support variations of syscalls on MorphOS }
   paranr_syscall_basesysv    = 9;
   paranr_syscall_sysvbase    = high(word)-5;
@@ -355,7 +356,11 @@ type
     { procedure is far (x86 only) }
     po_far,
     { the procedure never returns, this information is usefull for dfa }
-    po_noreturn
+    po_noreturn,
+    { procvar is a function reference }
+    po_is_function_ref,
+    { procvar is a block (http://en.wikipedia.org/wiki/Blocks_(C_language_extension) ) }
+    po_is_block
   );
   tprocoptions=set of tprocoption;
 
@@ -393,7 +398,8 @@ type
     tsk_jvm_procvar_intconstr, // Java procvar class constructor that accepts an interface instance for easy Java interoperation
     tsk_jvm_virtual_clmethod,  // Java wrapper for virtual class method
     tsk_field_getter,          // getter for a field (callthrough property is passed in skpara)
-    tsk_field_setter           // Setter for a field (callthrough property is passed in skpara)
+    tsk_field_setter,          // Setter for a field (callthrough property is passed in skpara)
+    tsk_block_invoke_procvar   // Call a procvar to invoke inside a block
   );
 
   { options for objects and classes }
@@ -761,6 +767,9 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
       vardefmask = $fff;
       vararray = $2000;
       varbyref = $4000;
+
+      { blocks-related constants }
+      blocks_procvar_invoke_type_name = '__FPC_invoke_pvtype';
 
 implementation
 

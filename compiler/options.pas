@@ -3863,11 +3863,16 @@ if (target_info.abi = abi_eabihf) then
     2. override with generic optimizer setting (little size)
     3. override with the user specified -Oa }
   UpdateAlignment(init_settings.alignment,target_info.alignment);
-  if (cs_opt_size in current_settings.optimizerswitches) then
+  if (cs_opt_size in init_settings.optimizerswitches) then
    begin
      init_settings.alignment.procalign:=1;
      init_settings.alignment.jumpalign:=1;
      init_settings.alignment.loopalign:=1;
+{$ifdef x86}
+     { constalignmax=1 keeps the executable and thus the memory foot print small but
+       all processors except x86 are really hurt by this or might even crash }
+     init_settings.alignment.constalignmax:=1;
+{$endif x86}
    end;
 
   UpdateAlignment(init_settings.alignment,option.paraalignment);

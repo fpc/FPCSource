@@ -5,8 +5,8 @@
 #
 # Warning: no package should contain more than 60 files
 
-title=Free Pascal Compiler 2.7.1
-version=2.7.1
+title=Free Pascal Compiler 3.1.1
+version=3.1.1
 
 #
 # General
@@ -34,8 +34,7 @@ package=aslddos.zip,GNU ~L~inker and GNU Assembler for Go32v2 (required)
 # Dos 3
 package=idedos.zip,~I~DE with integrated debugger/compiler (BETA)
 # Dos 4
-#package=utilsdos.zip[utildos.zip],~E~xtra Utilities
-package=utils-dxegendos.zip[dxegdos.zip],Generation of D~X~E modules loadable at runtime
+package=utilsdos.zip[utildos.zip],~E~xtra Utilities
 # Dos 5
 package=makedos.zip,GNU ~U~tilities (needed for Makefile usage)
 # Dos 6
@@ -134,6 +133,8 @@ package=utils-rmwaitdos.zip[rmwdos.zip],Remove (delete) file(s) with optional re
 package=utils-lexyaccdos.zip[tplydos.zip],Compiler generator for TP and compatibles
 # Dos 53
 package=units-ptcdos.zip[uptcdos.zip],Free portable framebuffer library
+# Dos 54
+package=utils-dxegendos.zip[dxegdos.zip],Generation of D~X~E modules loadable at runtime
 
 #
 # Win32 packages
@@ -277,6 +278,8 @@ package=units-rtl-extra.i386-win32.zip,RTL-additional units not needed for boots
 package=units-rtl-objpas.i386-win32.zip,RTL-Object Pascal units (e.g. Delphi compatibility)
 # Win32-2 38
 package=units-rtl-unicode.i386-win32.zip,RTL-miscellaneous Unicode support units
+# Win32-2 39
+package=utils-unicode.i386-win32.zip,Transformation of Unicode consortium data for FPC
 
 #
 # OS/2 packages
@@ -296,8 +299,7 @@ package=asldos2.zip,GNU ~L~inker and GNU assembler for OS/2 (required)
 # OS/2 3
 package=ideos2.zip,~I~DE with integrated compiler (BETA - no debugger)
 # OS/2 4
-#package=utilsos2.zip[utilos2.zip],~E~xtra Utilities
-package=utils-fpcmos2.zip[fpcmos2.zip],Generate Makefiles out of Makefile.fpc files
+package=utilsos2.zip[utilos2.zip],~E~xtra Utilities
 # OS/2 5
 package=makeos2.zip,GNU ~U~tilities (needed for Makefile usage)
 # OS/2 6
@@ -360,6 +362,10 @@ package=utils-pas2utos2.zip[p2utos2.zip],Pascal source to FPC Unit test generato
 package=utils-rmwaitos2.zip[rmwos2.zip],Remove (delete) file(s) with optional retries
 # OS/2 34
 package=utils-lexyaccos2.zip[tplyos2.zip],Compiler generator for TP and compatibles
+# OS/2 35
+package=utils-fpcmos2.zip[fpcmos2.zip],Generate Makefiles out of Makefile.fpc files
+# OS/2 36
+package=utils-unicodeos2.zip[ucodeos2.zip],Transformation of Unicode consortium data for FPC
 
 #
 # OS/2 packages 2nd part
@@ -454,8 +460,7 @@ package=asldemx.zip,GNU ~L~inker and GNU assembler for EMX (required)
 # EMX 3
 package=ideemx.zip,~I~DE with integrated compiler (BETA - no debugger)
 # EMX 4
-#package=utilsemx.zip[utilemx.zip],~E~xtra Utilities
-package=utils-fpcmemx.zip[fpcmemx.zip],Generate Makefiles out of Makefile.fpc files
+package=utilsemx.zip[utilemx.zip],~E~xtra Utilities
 # EMX 5
 package=makeemx.zip,GNU ~U~tilities (needed for Makefile usage)
 # EMX 6
@@ -519,6 +524,10 @@ package=utils-pas2utemx.zip[p2utemx.zip],Pascal source to FPC Unit test generato
 package=utils-rmwaitemx.zip[rmwemx.zip],Remove (delete) file(s) with optional retries
 # EMX 35
 package=utils-lexyaccemx.zip[tplyemx.zip],Compiler generator for TP and compatibles
+# EMX 36
+package=utils-fpcmemx.zip[fpcmemx.zip],Generate Makefiles out of Makefile.fpc files
+# EMX 37
+package=utils-unicodeemx.zip[ucodeemx.zip],Transformation of Unicode consortium data for FPC
 
 #
 # EMX packages 2nd part
@@ -623,7 +632,7 @@ package=rtl.source.zip[rtlsrc.zip],Run time library sources
 # Source 4
 package=ide.source.zip[idesrc.zip],IDE sources
 # Source 5
-package=utils.source.zip[utilsrc.zip],~U~tils sources
+package=utils.source.zip[utilssrc.zip],~U~tils sources
 # Source 6
 package=installer.source.zip[instsrc.zip],~I~nstaller sources
 # Source 7
@@ -678,6 +687,8 @@ package=utils-pas2ut.source.zip[p2utsrc.zip],Pascal source to FPC Unit test gene
 package=utils-rmwait.source.zip[rmwsrc.zip],Remove (delete) file(s) with optional retries
 # Source 32
 package=utils-lexyacc.source.zip[tplysrc.zip],Compiler generator for TP and compatibles
+# Source 33
+package=utils-unicode.source.zip[ucodesrc.zip],Transformation of Unicode consortium data for FPC
 
 #
 # Source packages 2nd part
@@ -846,6 +857,22 @@ defaultcfg=
 # Parsing switches
 # ----------------
 
+# Pascal language mode
+#      -Mfpc      free pascal dialect (default)
+#      -Mobjfpc   switch some Delphi 2 extensions on
+#      -Mdelphi   tries to be Delphi compatible
+#      -Mtp       tries to be TP/BP 7.0 compatible
+#      -Mgpc      tries to be gpc compatible
+#      -Mmacpas   tries to be compatible to the macintosh pascal dialects
+#
+# Turn on Object Pascal extensions by default
+#-Mobjfpc
+
+# Assembler reader mode
+#      -Rdefault  use default assembler
+#      -Ratt      read AT&T style assembler
+#      -Rintel    read Intel style assembler
+#
 # All assembler blocks are intel styled by default
 #-Rintel
 
@@ -856,19 +883,29 @@ defaultcfg=
 #-Rdirect
 
 # Semantic checking
-#  -S2        switch some Delphi 2 extensions on
-#  -Sc        supports operators like C (*=,+=,/= and -=)
-#  -Sd        tries to be Delphi compatible
-#  -Se<x>     compiler stops after the <x> errors (default is 1)
-#  -Sg        allow LABEL and GOTO
-#  -Sh        Use ansistrings
-#  -Si        support C++ styled INLINE
-#  -Sm        support macros like C (global)
-#  -So        tries to be TP/BP 7.0 compatible
-#  -Sp        tries to be gpc compatible
-#  -Ss        constructor name must be init (destructor must be done)
-#  -St        allow static keyword in objects
-# Allow goto, inline, C-operators
+#      -S2        same as -Mobjfpc
+#      -Sa        include assertion code.
+#      -Sc        supports operators like C (*=,+=,/= and -=)
+#      -Sd        same as -Mdelphi
+#      -Se<x>     error options. <x> is a combination of the following:
+#         <n> : compiler stops after <n> errors (default is 1)
+#         w   : compiler stops also after warnings
+#         n   : compiler stops also after notes
+#         h   : compiler stops also after hints
+#      -Sg        allow LABEL and GOTO
+#      -Sh        Use ansistrings
+#      -Si        support C++ styled INLINE
+#      -Sk        load fpcylix unit
+#      -SI<x>     set interface style to <x>
+#         -SIcom    COM compatible interface (default)
+#         -SIcorba  CORBA compatible interface
+#      -Sm        support macros like C (global)
+#      -So        same as -Mtp
+#      -Sp        same as -Mgpc
+#      -Ss        constructor name must be init (destructor must be done)
+#      -Sx        enable exception keywords (default in Delphi/ObjFPC modes)
+#
+# Allow goto, inline, C-operators, C-vars
 -Sgic
 
 # ---------------
@@ -890,9 +927,21 @@ defaultcfg=
 #-Ct
 
 # Optimizer switches
-# -O1        level 1 optimizations (quick and debugger friendly)
-# -O2        level 2 optimizations (-O1 + quick optimizations)
-# -O3        level 3 optimizations (-O2 + slow optimizations)
+# -Os        generate smaller code
+# -Oa=N      set alignment to N
+# -O1        level 1 optimizations (quick optimizations, debuggable)
+# -O2        level 2 optimizations (-O1 + optimizations which make debugging more difficult)
+# -O3        level 3 optimizations (-O2 + optimizations which also may make the program slower rather than faster)
+# -Oo<x>     switch on optimalization x. See fpc -i for possible values
+# -OoNO<x>   switch off optimalization x. See fpc -i for possible values
+# -Op<x>     set target cpu for optimizing, see fpc -i for possible values
+
+#ifdef darwin
+#ifdef cpui386
+-Cppentiumm
+-Oppentiumm
+#endif
+#endif
 
 
 # -----------------------
@@ -909,6 +958,8 @@ defaultcfg=
 #-Fr%basepath%/msg/errord.msg
 #-Fr%basepath%/msg/errorr.msg
 
+# search path for unicode binary files
+-FM%basepath%/unicode/
 # path to the gcclib
 #-Fl%basepath%/lib
 
@@ -926,12 +977,42 @@ defaultcfg=
 -Fu%basepath%/units/%fpctargetmacro%/*
 -Fu%basepath%/units/%fpctargetmacro%/rtl
 
+#ifdef cpui8086
+-Fu%basepath%/units/%fpctargetmacro%/$fpcsubarch-$fpcmemorymodel
+-Fu%basepath%/units/%fpctargetmacro%/$fpcsubarch-$fpcmemorymodel/*
+-Fu%basepath%/units/%fpctargetmacro%/$fpcsubarch-$fpcmemorymodel/rtl
+#endif
+
 # searchpath for libraries
 #-Fl%basepath%/lib
 #-Fl/lib;/usr/lib
 
 # searchpath for tools
 -FD%basepath%/bin/%fpctargetmacro%
+# never need cross-prefix when targeting the JVM
+# (no native compiler, always cross-compiling)
+#ifdef cpujvm
+#undef NEEDCROSSBINUTILS
+#endif
+
+# for android cross-prefix is set by compiler
+#ifdef android
+#undef NEEDCROSSBINUTILS
+#endif
+
+# never need cross-prefix when targeting the i8086
+# (no native compiler, always cross-compiling)
+#ifdef cpui8086
+#undef NEEDCROSSBINUTILS
+#endif
+
+# binutils prefix for cross compiling
+#IFDEF FPC_CROSSCOMPILING
+#IFDEF NEEDCROSSBINUTILS
+  -XP$FPCTARGET-
+#ENDIF
+#ENDIF
+
 
 # -------------
 # Linking
@@ -939,6 +1020,15 @@ defaultcfg=
 
 # generate always debugging information for GDB (slows down the compiling
 # process)
+#      -gc        generate checks for pointers
+#      -gd        use dbx
+#      -gg        use gsym
+#      -gh        use heap trace unit (for memory leak debugging)
+#      -gl        use line info unit to show more info for backtraces
+#      -gv        generates programs tracable with valgrind
+#      -gw        generate dwarf debugging info
+#
+# Enable debuginfo and use the line info unit by default
 #-gl
 
 # always pass an option to the linker
@@ -946,6 +1036,13 @@ defaultcfg=
 
 # Always strip debuginfo from the executable
 -Xs
+
+# Always use smartlinking on i8086, because the system unit exceeds the 64kb
+# code limit
+#ifdef cpui8086
+-CX
+-XX
+#endif
 
 
 # -------------
@@ -956,15 +1053,19 @@ defaultcfg=
 -l
 
 # Verbosity
-# e : Show errors (default)       d : Show debug info
-# w : Show warnings               u : Show used files
-# n : Show notes                  t : Show tried files
-# h : Show hints                  m : Show defined macros
-# i : Show general info           p : Show compiled procedures
-# l : Show linenumbers            c : Show conditionals
-# a : Show everything             0 : Show nothing (except errors)
-
-# Display Info, Warnings, Notes and Hints
+#      e : Show errors (default)       d : Show debug info
+#      w : Show warnings               u : Show unit info
+#      n : Show notes                  t : Show tried/used files
+#      h : Show hints                  s : Show time stamps
+#      i : Show general info           q : Show message numbers
+#      l : Show linenumbers            c : Show conditionals
+#      a : Show everything             0 : Show nothing (except errors)
+#      b : Write file names messages   r : Rhide/GCC compatibility mode
+#          with full path              x : Executable info (Win32 only)
+#      v : write fpcdebug.txt with     p : Write tree.log with parse tree
+#          lots of debugging info
+#
+# Display Info, Warnings and Notes
 -viwn
 # If you don't want so much verbosity use
 #-vw

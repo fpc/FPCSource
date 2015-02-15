@@ -83,6 +83,13 @@ type
     Procedure Execute;override;
   end;
 
+  { TCommandUnInstall }
+
+  TCommandUnInstall = Class(TPackagehandler)
+  Public
+    Procedure Execute;override;
+  end;
+
   { TCommandClean }
 
   TCommandClean = Class(TPackagehandler)
@@ -120,6 +127,43 @@ type
 
 var
   DependenciesDepth: integer;
+
+{ TCommandUnInstall }
+
+procedure TCommandUnInstall.Execute;
+var
+  AvailP: TFPPackage;
+  APackage: TFPPackage;
+begin
+  if PackageName<>'' then
+    begin
+      if (PackageName=CmdLinePackageName) then
+        begin
+          ExecuteAction(PackageName,'unzip');
+        end
+      else if (PackageName<>CurrentDirPackageName) then
+        begin
+          AvailP:=AvailableRepository.FindPackage(PackageName);
+          if not assigned(AvailP) then
+            begin
+              APackage := InstalledRepository.FindPackage(PackageName);
+              if assigned(APackage) and (APackage.SourcePath<>'') then
+                begin
+                  AvailP := AvailableRepository.AddPackage(PackageName);
+                  AvailP.Assign(APackage);
+                  // The package won't be recompiled, but should be handled as such.
+                  AvailP.RecompileBroken:=true;
+                end
+              else
+                begin
+                  // The package is not available locally, download and unzip it.
+                  ExecuteAction(PackageName,'unzip');
+                end;
+            end;
+        end;
+    end;
+  ExecuteAction(PackageName,'fpmakeuninstall');
+end;
 
 { TCommandListSettings }
 
@@ -535,6 +579,7 @@ initialization
   RegisterPkgHandler('compile',TCommandCompile);
   RegisterPkgHandler('build',TCommandBuild);
   RegisterPkgHandler('install',TCommandInstall);
+  RegisterPkgHandler('uninstall',TCommandUnInstall);
   RegisterPkgHandler('clean',TCommandClean);
   RegisterPkgHandler('archive',TCommandArchive);
   RegisterPkgHandler('installdependencies',TCommandInstallDependencies);

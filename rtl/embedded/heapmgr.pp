@@ -18,6 +18,8 @@ Unit heapmgr;
   interface
 
     procedure RegisterHeapBlock(AAddress: pointer; ASize: ptruint);
+    
+    function GetAlignedMem(Size, Alignment: ptruint): pointer;
 
   implementation
 
@@ -47,7 +49,7 @@ Unit heapmgr;
         p, prev: PHeapBlock;
         AllocSize, RestSize: ptruint;
       begin
-        AllocSize := align(size+sizeof(ptruint), sizeof(pointer));
+        AllocSize := align(size+sizeof(pointer), sizeof(pointer));
 
         p := Blocks;
         prev := nil;
@@ -61,7 +63,8 @@ Unit heapmgr;
           begin
             result := @pptruint(p)[1];
 
-            if p^.Size-AllocSize >= MinBlock then
+            if (p^.size > AllocSize) and
+               (p^.Size-AllocSize >= MinBlock) then
               RestSize := p^.Size-AllocSize
             else
               begin
@@ -91,8 +94,8 @@ Unit heapmgr;
           result := GetMem(size)
         else
           begin
-            mem := GetMem(Size+Alignment-1);
-            memp := align(ptruint(mem), Alignment);
+            mem := GetMem(Size+Alignment-1+MinBlock);
+            memp := align(ptruint(mem)+MinBlock, Alignment);
             InternalFreemem(mem, ptruint(memp)-ptruint(mem));
             result := pointer(memp);
           end;
@@ -103,6 +106,9 @@ Unit heapmgr;
         b, p, prev: PHeapBlock;
         concatenated: boolean;
       begin
+        if size<=0 then
+          exit;
+
         concatenated := true;
         while concatenated do
           begin
@@ -175,7 +181,12 @@ Unit heapmgr;
       var
         sz: ptruint;
       begin
-        sz := Align(FindSize(addr)+SizeOf(ptruint), sizeof(pointer));
+        if addr=nil then
+          begin
+            result:=0;
+            exit;
+          end;
+        sz := Align(FindSize(addr)+SizeOf(pointer), sizeof(pointer));
 
         InternalFreeMem(@pptruint(addr)[-1], sz);
 
@@ -196,31 +207,45 @@ Unit heapmgr;
       begin
         result := SysGetMem(size);
         if result<>nil then
-          FillChar(result^,SysMemSize(result),0);
+          FillChar(pbyte(result)^,size,0);
       end;
 
     function SysReAllocMem(var p: pointer; size: ptruint):pointer;
       var
         sz: ptruint;
       begin
-        result := AllocMem(size);
-        if result <> nil then
+        if size=0 then
           begin
-            if p <> nil then
+            SysFreeMem(p);
+            result := nil;
+            p := nil;
+          end
+        else if p=nil then
+          begin
+            result := AllocMem(size);
+            p := result;
+          end
+        else
+          begin
+            result := AllocMem(size);
+            if result <> nil then
               begin
-                sz := FindSize(p);
-                if sz > size then
-                  sz := size;
-                move(pbyte(p)^, pbyte(result)^, sz);
+                if p <> nil then
+                  begin
+                    sz := FindSize(p);
+                    if sz > size then
+                      sz := size;
+                    move(pbyte(p)^, pbyte(result)^, sz);
+                  end;
               end;
+            SysFreeMem(p);
+            p := result;
           end;
-        SysFreeMem(p);
-        p := result;
       end;
 
     procedure RegisterHeapBlock(AAddress: pointer; ASize: ptruint);
       begin
-        FreeMem(AAddress, ASize);
+        InternalFreeMem(AAddress, ASize);
       end;
 
     const

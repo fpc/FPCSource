@@ -53,7 +53,7 @@ type
     function InternalGetHandle: Pointer; override;
     procedure InternalCloseHandle; override;
     procedure RetrieveFieldDefs; override;
-    function SqliteExec(ASQL: PChar; ACallback: TSqliteCdeclCallback; Data: Pointer): Integer; override;
+    function SqliteExec(ASQL: PAnsiChar; ACallback: TSqliteCdeclCallback; Data: Pointer): Integer; override;
   public
     procedure ExecuteDirect(const ASQL: String); override;
     function QuickQuery(const ASQL: String; const AStrList: TStrings; FillObjects: Boolean): String; override;
@@ -69,7 +69,7 @@ uses
 
 //function sqlite_last_statement_changes(dbhandle:Pointer):longint;cdecl;external 'sqlite' name 'sqlite_last_statement_changes';
 
-function GetAutoIncValue(NextValue: Pointer; Columns: Integer; ColumnValues: PPChar; ColumnNames: PPChar): Integer; cdecl;
+function GetAutoIncValue(NextValue: Pointer; Columns: Integer; ColumnValues: PPAnsiChar; ColumnNames: PPAnsiChar): Integer; cdecl;
 var
   CodeError, TempInt: Integer;
 begin
@@ -86,7 +86,7 @@ end;
 
 { TSqliteDataset }
 
-function TSqliteDataset.SqliteExec(ASQL: PChar; ACallback: TSqliteCdeclCallback; Data: Pointer): Integer;
+function TSqliteDataset.SqliteExec(ASQL: PAnsiChar; ACallback: TSqliteCdeclCallback; Data: Pointer): Integer;
 begin
   Result := sqlite_exec(FSqliteHandle, ASQL, ACallback, Data, nil);
 end;
@@ -99,9 +99,9 @@ end;
 
 function TSqliteDataset.InternalGetHandle: Pointer;
 var
-  ErrorStr: PChar;
+  ErrorStr: PAnsiChar;
 begin
-  Result := sqlite_open(PChar(FFileName), 0, @ErrorStr);
+  Result := sqlite_open(PAnsiChar(FFileName), 0, @ErrorStr);
   if Result = nil then
   begin
     DatabaseError('Error opening "' + FFileName + '": ' + String(ErrorStr));
@@ -114,12 +114,12 @@ var
   ColumnCount, i, DataSize:Integer;
   AType: TFieldType;
   vm: Pointer;
-  ColumnNames, ColumnValues:PPChar;
+  ColumnNames, ColumnValues:PPAnsiChar;
   ColumnStr: String;
 begin
   FieldDefs.Clear;
   FAutoIncFieldNo := -1;
-  FReturnCode := sqlite_compile(FSqliteHandle, PChar(FEffectiveSQL), nil, @vm, nil);
+  FReturnCode := sqlite_compile(FSqliteHandle, PAnsiChar(FEffectiveSQL), nil, @vm, nil);
   if FReturnCode <> SQLITE_OK then
     DatabaseError(ReturnString, Self);
   sqlite_step(vm, @ColumnCount, @ColumnValues, @ColumnNames);
@@ -207,10 +207,10 @@ end;
 procedure TSqliteDataset.ExecuteDirect(const ASQL: String);
 var
   vm: Pointer;
-  ColumnNames, ColumnValues: PPChar;
+  ColumnNames, ColumnValues: PPAnsiChar;
   ColCount: Integer;
 begin
-  FReturnCode := sqlite_compile(FSqliteHandle, Pchar(ASQL), nil, @vm, nil);
+  FReturnCode := sqlite_compile(FSqliteHandle, PAnsiChar(ASQL), nil, @vm, nil);
   if FReturnCode <> SQLITE_OK then
     DatabaseError(ReturnString,Self);
 
@@ -223,15 +223,15 @@ procedure TSqliteDataset.BuildLinkedList;
 var
   TempItem: PDataRecord;
   vm: Pointer;
-  ColumnNames, ColumnValues: PPChar;
+  ColumnNames, ColumnValues: PPAnsiChar;
   Counter, ColumnCount: Integer;
 begin
   //Get AutoInc Field initial value
   if FAutoIncFieldNo <> -1 then
-    sqlite_exec(FSqliteHandle, PChar('Select Max(' + FieldDefs[FAutoIncFieldNo].Name + ') from ' + FTableName),
+    sqlite_exec(FSqliteHandle, PAnsiChar('Select Max(' + FieldDefs[FAutoIncFieldNo].Name + ') from ' + FTableName),
       @GetAutoIncValue, @FNextAutoInc, nil);
 
-  FReturnCode := sqlite_compile(FSqliteHandle, PChar(FEffectiveSQL), nil, @vm, nil);
+  FReturnCode := sqlite_compile(FSqliteHandle, PAnsiChar(FEffectiveSQL), nil, @vm, nil);
   if FReturnCode <> SQLITE_OK then
     DatabaseError(ReturnString, Self);
 
@@ -244,7 +244,7 @@ begin
   //add extra rows for calculated fields
   if FCalcFieldList <> nil then
     Inc(FRowCount, FCalcFieldList.Count);
-  FRowBufferSize := (SizeOf(PPChar) * FRowCount);
+  FRowBufferSize := (SizeOf(PPAnsiChar) * FRowCount);
 
   while FReturnCode = SQLITE_ROW do
   begin
@@ -339,7 +339,7 @@ end;
 function TSqliteDataset.QuickQuery(const ASQL: String; const AStrList: TStrings; FillObjects: Boolean): String;
 var
   vm: Pointer;
-  ColumnNames, ColumnValues: PPChar;
+  ColumnNames, ColumnValues: PPAnsiChar;
   ColCount: Integer;
   
   procedure FillStrings;
@@ -364,7 +364,7 @@ begin
   if FSqliteHandle = nil then
     GetSqliteHandle;
   Result := '';
-  FReturnCode := sqlite_compile(FSqliteHandle, PChar(ASQL), nil, @vm, nil);
+  FReturnCode := sqlite_compile(FSqliteHandle, PAnsiChar(ASQL), nil, @vm, nil);
   if FReturnCode <> SQLITE_OK then
     DatabaseError(ReturnString,Self);
     

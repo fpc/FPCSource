@@ -47,6 +47,7 @@ implementation
         cursectype   : TAsmSectionType;
         section      : ansistring;
         tcbuilder    : ttypedconstbuilder;
+        datalist,
         reslist      : tasmlist;
         restree,
         previnit     : tnode;
@@ -66,7 +67,7 @@ implementation
           begin
             maybe_new_object_file(list);
             tcbuilder:=tasmlisttypedconstbuilderclass(ctypedconstbuilder).create(sym);
-            reslist:=tasmlisttypedconstbuilder(tcbuilder).parse_into_asmlist;
+            tasmlisttypedconstbuilder(tcbuilder).parse_into_asmlist(reslist,datalist);
             { Certain types like windows WideString are initialized at runtime and cannot
               be placed into readonly memory }
             if (sym.varspez=vs_const) and not (vo_force_finalize in sym.varoptions) then
@@ -89,6 +90,7 @@ implementation
               current_module.tcinitcode:=restree;
             tcbuilder.free;
             reslist:=nil;
+            datalist:=nil;
             cursectype:=sec_none;
           end;
 
@@ -160,6 +162,9 @@ implementation
             list.concatlist(reslist);
             reslist.free;
             list.concat(tai_symbol_end.Createname(sym.mangledname));
+            { and pointed data, if any }
+            current_asmdata.asmlists[al_const].concatlist(datalist);
+            datalist.free;
           end
         else
           begin

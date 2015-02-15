@@ -105,17 +105,50 @@ begin
 end;
 
 
-function fsearch(path:pathstr;dirlist:string):pathstr;
-Var
-  A: array [0..255] of char;
-  D, P: AnsiString;
+function FSearch (Path: PathStr; DirList: string): PathStr;
+var
+  i,p1   : longint;
+  s      : searchrec;
+  newdir : pathstr;
 begin
-  P:=Path;
-  D:=DirList;
-  DosError := DosSearchPath (dsIgnoreNetErrs, PChar(D), PChar(P), @A, 255);
-  if DosError <> 0 then
-   OSErrorWatch (DosError);
-  fsearch := StrPas (@A);
+{ check if the file specified exists }
+  findfirst(path,anyfile and not(directory),s);
+  if doserror=0 then
+   begin
+     findclose(s);
+     fsearch:=path;
+     exit;
+   end;
+{ No wildcards allowed in these things }
+  if (pos('?',path)<>0) or (pos('*',path)<>0) then
+    fsearch:=''
+  else
+    begin
+       { allow slash as backslash }
+       DoDirSeparators(dirlist);
+       repeat
+         p1:=pos(';',dirlist);
+         if p1<>0 then
+          begin
+            newdir:=copy(dirlist,1,p1-1);
+            delete(dirlist,1,p1);
+          end
+         else
+          begin
+            newdir:=dirlist;
+            dirlist:='';
+          end;
+         if (newdir<>'') and (not (newdir[length(newdir)] in ['\',':'])) then
+          newdir:=newdir+'\';
+         findfirst(newdir+path,anyfile and not(directory),s);
+         if doserror=0 then
+          newdir:=newdir+path
+         else
+          newdir:='';
+       until (dirlist='') or (newdir<>'');
+       fsearch:=newdir;
+    end;
+  findclose(s);
 end;
 
 
@@ -135,6 +168,8 @@ begin
    begin
     Time:=0;
     OSErrorWatch (DosError);
+    if DosError = 87 then
+     DosError := 6; (* Align to TP/BP behaviour *)
    end;
 end;
 
@@ -157,7 +192,11 @@ begin
      OSErrorWatch (RC);
    end
   else
-   OSErrorWatch (RC);
+   begin
+    OSErrorWatch (RC);
+    if RC = 87 then
+     RC := 6;
+   end;
   DosError := integer (RC);
 end;
 
@@ -213,6 +252,7 @@ var
   SR: SearchRec;
   MaxArgsSize: PtrUInt; (* Amount of memory reserved for arguments in bytes. *)
   MaxArgsSizeInc: word;
+  PathZ: array [0..255] of char;
 
 begin
 {  LastDosExitCode := Exec (Path, ExecRunFlags (ExecFlags), efDefault, ComLine);}
@@ -235,6 +275,8 @@ begin
    begin
     Args0 := nil;
     Args := nil;
+    StrPCopy (PathZ, Path);
+    RC := DosQueryAppType (@PathZ [0], ExecAppType);
    end
   else
    begin
@@ -266,9 +308,9 @@ begin
     Args^ [ArgSize] := 0;
     Inc (ArgSize);
     Args^ [ArgSize] := 0;
+    RC := DosQueryAppType (PChar (Args), ExecAppType);
    end;
 
-  RC := DosQueryAppType (PChar (Args), ExecAppType);
   if RC <> 0 then
    OSErrorWatch (RC)
   else
@@ -685,7 +727,11 @@ begin
   if RC = 0 then
     Attr := PathInfo.AttrFile
   else
-   OSErrorWatch (RC);
+   begin
+    OSErrorWatch (RC);
+    if FileRec (F).Name [0] = #0 then
+     DosError := 3; (* Align the returned error value to TP/BP *)
+   end;
 end;
 
 
@@ -708,13 +754,20 @@ begin
   if RC = 0 then
    begin
     PathInfo.AttrFile := Attr;
-    RC := DosSetPathInfo (P, ilStandard, @PathInfo, SizeOf (PathInfo),
-                                                        doWriteThru);
+    RC := DosSetPathInfo (P, ilStandard, @PathInfo, SizeOf (PathInfo), 0);
     if RC <> 0 then
-     OSErrorWatch (RC);
+     begin
+      OSErrorWatch (RC);
+      if Attr and VolumeID = VolumeID then
+       RC := 5; (* Align the returned error value to TP/BP *)
+     end;
    end
   else
-   OSErrorWatch (RC);
+   begin
+    OSErrorWatch (RC);
+    if FileRec (F).Name [0] = #0 then
+     RC := 3; (* Align the returned error value to TP/BP *)
+   end;
   DosError := integer (RC);
 end;
 

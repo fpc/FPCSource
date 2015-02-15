@@ -302,7 +302,9 @@ unit cpupara;
           usedef:=forcetempdef;
         { on darwin/i386, if a record has only one field and that field is a
           single or double, it has to be returned like a single/double }
-        if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
+        if (target_info.system in [system_i386_darwin,system_i386_iphonesim,
+                                   system_i386_freebsd,system_i386_openbsd,
+                                   system_i386_os2,system_i386_emx]) and
            ((usedef.typ=recorddef) or
             is_object(usedef)) and
            tabstractrecordsymtable(tabstractrecorddef(usedef).symtable).has_single_field(sym) and

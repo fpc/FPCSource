@@ -104,6 +104,7 @@ begin
   Writeln('  build             Build package');
   Writeln('  compile           Compile package');
   Writeln('  install           Install package');
+  Writeln('  uninstall         Uninstall package');
   Writeln('  clean             Clean package');
   Writeln('  archive           Create archive of package');
   Writeln('  download          Download package');

@@ -15,7 +15,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Author :=  'Library:  University of Southern California + Red Hat Inc., header: Luiz AmXrico Pereira CXmara';
     P.License := 'Library: MPL 1.1 + LGPL-2.1, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

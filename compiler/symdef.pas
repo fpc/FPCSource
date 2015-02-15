@@ -1244,8 +1244,12 @@ implementation
                        crc:=UpdateCrc32(crc,hs[1],length(hs));
                      end;
                  end;
-               hs:=hp.vardef.mangledparaname;
-               crc:=UpdateCrc32(crc,hs[1],length(hs));
+               if not is_void(tprocdef(st.defowner).returndef) then
+                 begin
+                   { add a little prefix so that x(integer; integer) is different from x(integer):integer }
+                   hs:='$$'+tprocdef(st.defowner).returndef.mangledparaname;
+                   crc:=UpdateCrc32(crc,hs[1],length(hs));
+                 end;
                s:=Copy(s,1,oldlen)+'$crc'+hexstr(crc,8);
              end;
            if prefix<>'' then
@@ -2032,8 +2036,7 @@ implementation
               recsize:=size;
               is_intregable:=
                 ispowerof2(recsize,temp) and
-                { sizeof(asizeint)*2 records in int registers is currently broken for endian_big targets }
-                (((recsize <= sizeof(asizeint)*2) and (target_info.endian=endian_little)
+                (((recsize <= sizeof(asizeint)*2)
                  { records cannot go into registers on 16 bit targets for now }
                   and (sizeof(asizeint)>2)
                   and not trecorddef(self).contains_float_field) or
@@ -5244,7 +5247,9 @@ implementation
            not(is_void(returndef)) then
           s:=s+':'+returndef.GetTypeName;
         if owner.symtabletype=localsymtable then
-          s:=s+' is nested';
+          s:=s+' is nested'
+        else if po_is_block in procoptions then
+          s:=s+' is block';
         s:=s+';';
         { forced calling convention? }
         if (po_hascallingconvention in procoptions) then
@@ -5507,8 +5512,12 @@ implementation
                     crc:=UpdateCrc32(crc,hs[1],length(hs));
                   end;
               end;
-            hs:=hp.vardef.mangledparaname;
-            crc:=UpdateCrc32(crc,hs[1],length(hs));
+            if not is_void(returndef) then
+              begin
+                { add a little prefix so that x(integer; integer) is different from x(integer):integer }
+                hs:='$$'+returndef.mangledparaname;
+                crc:=UpdateCrc32(crc,hs[1],length(hs));
+              end;
             defaultmangledname:=Copy(defaultmangledname,1,oldlen)+'$crc'+hexstr(crc,8);
           end;
       end;
@@ -5886,7 +5895,11 @@ implementation
            s := s+' of object';
          if is_nested_pd(self) then
            s := s+' is nested';
-         GetTypeName := s+';'+ProcCallOptionStr[proccalloption]+'>';
+         { calling convention doesn't matter for blocks }
+         if po_is_block in procoptions then
+           GetTypeName := s+' is block;'
+         else
+           GetTypeName := s+';'+ProcCallOptionStr[proccalloption]+'>';
       end;
 
 
@@ -6300,7 +6313,7 @@ implementation
          inherited derefimpl;
          { the procdefs are not owned by the class helper procsyms, so they
            are not stored/restored either -> re-add them here }
-         if (objecttype=odt_objcclass) or
+         if (objecttype in [odt_objcclass,odt_objcprotocol]) or
             (oo_is_classhelper in objectoptions) then
            symtable.DefList.ForEachCall(@create_class_helper_for_procdef,nil);
       end;
