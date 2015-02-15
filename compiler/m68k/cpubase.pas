@@ -89,7 +89,7 @@ unit cpubase;
          { (this may include 68040 mmu instructions)          }
          a_frestore,a_fsave,a_pflush,a_pflusha,a_pload,a_pmove,a_ptest,
          { useful for assembly language output }
-         a_label,a_dbxx,a_sxx,a_bxx,a_fbxx);
+         a_label,a_dbxx,a_sxx,a_bxx,a_fsxx,a_fbxx);
 
       {# This should define the array of instructions as string }
       op2strtable=array[tasmop] of string[11];

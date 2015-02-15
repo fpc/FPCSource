@@ -161,6 +161,9 @@ implementation
 
 
     procedure t68kaddnode.second_cmpfloat;
+      var
+        tmpreg : tregister;
+        ai: taicpu;
       begin
         pass_left_right;
         if (nf_swapped in flags) then
@@ -180,6 +183,15 @@ implementation
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCMP,S_FX,right.location.register,left.location.register));
 
               location.resflags:=getresflags(false);
+
+              // temporary(?) hack, move condition result back to the CPU from the FPU.
+              // 6888x has its own FBcc branch instructions and FScc flags->reg instruction,
+              // which we don't support yet in the rest of the cg. (KB)
+              tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_8);
+              ai:=taicpu.op_reg(A_FSxx,S_B,tmpreg);
+              ai.SetCondition(flags_to_cond(location.resflags));
+              current_asmdata.CurrAsmList.concat(ai);
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_B,tmpreg));
             end;
           else
             // softfpu should be handled in pass1, others are not yet supported...

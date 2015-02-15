@@ -239,7 +239,7 @@ interface
          A_SNE,A_SPL,A_ST,A_SVC,A_SVS,A_SF]) then
          s:=gas_op2str[op]
         else
-        if op = A_SXX then
+        if op in [A_SXX, A_FSXX] then
          s:=gas_op2str[op]+cond2str[taicpu(hp).condition]
         else
         { size of DBRA is always WORD, doesn't need opsize (KB) }

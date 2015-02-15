@@ -494,6 +494,8 @@ type
             begin end; { Do nothing, default operand_read is fine here. }
 
           // FPU opcodes
+          A_FSXX, A_FSEQ, A_FSNE, A_FSLT, A_FSLE, A_FSGT, A_FSGE:
+             result:=operand_write;
           A_FMOVE:
              if opnr=1 then
                result:=operand_write;
