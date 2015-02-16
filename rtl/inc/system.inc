@@ -398,7 +398,7 @@ end;
 {$i gencurr.inc}
 
 
-function aligntoptr(p : pointer) : pointer;inline;
+function RTTIAlign(p : pointer) : pointer;inline;
   begin
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
     result:=align(p,sizeof(p));
@@ -557,8 +557,6 @@ const
 
 VAR
   mt : tMT19937StateArray;
-
-const
   mti: longint=MT19937N+1; // mti=MT19937N+1 means mt[] is not initialized
 
 { Initializing the array with a seed }
@@ -973,8 +971,6 @@ Begin
      exitProc:=nil;
      current_exit();
    End;
-  { Finalize units }
-  FinalizeUnits;
 
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
   { the embedded system unit itself contains no routines for console i/o
@@ -994,6 +990,9 @@ Begin
   SysFlushStdIO;
 {$endif EMBEDDED}
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
+
+  { Finalize units }
+  FinalizeUnits;
 
 {$if defined(MSWINDOWS) or defined(OS2)}
   { finally release the heap if possible, especially
