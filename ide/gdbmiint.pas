@@ -272,6 +272,8 @@ end;
 procedure TGDBInterface.WaitForProgramStop;
 var
   Line: LongInt;
+  FileName: string = '';
+  LineNumber: LongInt = 0;
 begin
   GDB.WaitForProgramStop;
   if not GDB.Alive then
@@ -283,26 +285,20 @@ begin
   end;
   ProcessResponse;
   case GDB.ExecAsyncOutput.Parameters['reason'].AsString of
-    'breakpoint-hit':
-      begin
-        stop_breakpoint_number := GDB.ExecAsyncOutput.Parameters['bkptno'].AsLongInt;
-        DebuggerScreen;
-        Debuggee_started := True;
-        DoSelectSourceLine(GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['fullname'].AsString, GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['line'].AsLongInt);
-      end;
-    'end-stepping-range':
-      begin
-        DebuggerScreen;
-        Debuggee_started := True;
-        current_pc := GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['addr'].AsPtrInt;
-        DoSelectSourceLine(GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['fullname'].AsString, GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['line'].AsLongInt);
-      end;
+    'breakpoint-hit',
+    'end-stepping-range',
     'function-finished':
       begin
+        if Assigned(GDB.ExecAsyncOutput.Parameters['bkptno']) then
+          stop_breakpoint_number := GDB.ExecAsyncOutput.Parameters['bkptno'].AsLongInt;
         DebuggerScreen;
         Debuggee_started := True;
         current_pc := GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['addr'].AsPtrInt;
-        DoSelectSourceLine(GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['fullname'].AsString, GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['line'].AsLongInt);
+        if Assigned(GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['fullname']) then
+          FileName := GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['fullname'].AsString;
+        if Assigned(GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['line']) then
+          LineNumber := GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['line'].AsLongInt;
+        DoSelectSourceLine(FileName, LineNumber);
       end;
     'exited':
       begin
