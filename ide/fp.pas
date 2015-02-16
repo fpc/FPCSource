@@ -63,7 +63,11 @@ uses
   Dos,Objects,
   BrowCol,Version,
 {$ifndef NODEBUG}
-  gdbint,
+  {$ifdef GDBMI}
+    gdbmiint,
+  {$else GDBMI}
+    gdbint,
+  {$endif GDBMI}
 {$endif NODEBUG}
   FVConsts,
   Drivers,Views,App,Dialogs,HistList,

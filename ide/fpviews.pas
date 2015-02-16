@@ -557,7 +557,11 @@ uses
    fpintf, { superseeds version_string of version unit }
 {$endif USE_EXTERNAL_COMPILER}
 {$ifndef NODEBUG}
-  gdbint,
+  {$ifdef GDBMI}
+    gdbmiint,
+  {$else GDBMI}
+    gdbint,
+  {$endif GDBMI}
 {$endif NODEBUG}
   {$ifdef VESA}Vesa,{$endif}
   FPSwitch,FPSymbol,FPDebug,FPVars,FPUtils,FPCompil,FPHelp,

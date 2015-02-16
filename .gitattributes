@@ -915,6 +915,10 @@ ide/fputils.pas svneol=native#text/plain
 ide/fpvars.pas svneol=native#text/plain
 ide/fpviews.pas svneol=native#text/plain
 ide/fpw32.rc -text
+ide/gdbmicon.pas svneol=native#text/plain
+ide/gdbmiint.pas svneol=native#text/plain
+ide/gdbmiproc.pas svneol=native#text/plain
+ide/gdbmiwrap.pas svneol=native#text/plain
 ide/globdir.inc svneol=native#text/plain
 ide/gplprog.pt -text
 ide/gplunit.pt -text

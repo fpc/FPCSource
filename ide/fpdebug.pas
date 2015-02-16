@@ -26,7 +26,11 @@ uses
 {$endif Windows}
   Objects,Dialogs,Drivers,Views,
 {$ifndef NODEBUG}
-  GDBCon,GDBInt,
+  {$ifdef GDBMI}
+    GDBMICon,GDBMIInt,
+  {$else GDBMI}
+    GDBCon,GDBInt,
+  {$endif GDBMI}
 {$endif NODEBUG}
   Menus,
   WViews,WEditor,

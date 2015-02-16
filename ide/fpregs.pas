@@ -212,7 +212,11 @@ implementation
 uses
   Strings,
 {$ifndef NODEBUG}
-  GDBCon,GDBInt,
+  {$ifdef GDBMI}
+    GDBMICon, GDBMIInt,
+  {$else GDBMI}
+    GDBCon,GDBInt,
+  {$endif GDBMI}
 {$endif NODEBUG}
   App,Menus,
   WViews,WEditor,
