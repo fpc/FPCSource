@@ -465,6 +465,7 @@ begin
           CType:=SQL_C_TYPE_TIMESTAMP;
           SqlType:=SQL_TYPE_TIMESTAMP;
           ColumnSize:=23;
+          DecimalDigits:=3; // fractional seconds
         end;
       ftBoolean:
         begin
