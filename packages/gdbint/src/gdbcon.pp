@@ -47,6 +47,7 @@ type
     procedure TraceStepI;virtual;
     procedure TraceNextI;virtual;
     procedure Continue;virtual;
+    procedure UntilReturn;virtual;
     { needed for dos because newlines are only #10 (PM) }
     procedure WriteErrorBuf;
     procedure WriteOutputBuf;
@@ -292,6 +293,12 @@ end;
 procedure TGDBController.Continue;
 begin
   Command('continue');
+end;
+
+
+procedure TGDBController.UntilReturn;
+begin
+  Command('finish');
 end;
 
 

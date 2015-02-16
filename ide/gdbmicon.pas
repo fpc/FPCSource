@@ -47,6 +47,7 @@ type
     procedure TraceStepI;
     procedure TraceNextI;
     procedure Continue; virtual;
+    procedure UntilReturn; virtual;
     function LoadFile(var fn: string): Boolean;
     procedure SetDir(const s: string);
     procedure SetArgs(const s: string);
@@ -152,6 +153,13 @@ procedure TGDBController.Continue;
 begin
   UserScreen;
   Command('-exec-continue');
+  WaitForProgramStop;
+end;
+
+procedure TGDBController.UntilReturn;
+begin
+  UserScreen;
+  Command('-exec-finish');
   WaitForProgramStop;
 end;
 

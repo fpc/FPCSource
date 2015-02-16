@@ -291,6 +291,13 @@ begin
         current_pc := GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['addr'].AsPtrInt;
         DoSelectSourceLine(GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['fullname'].AsString, GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['line'].AsLongInt);
       end;
+    'function-finished':
+      begin
+        DebuggerScreen;
+        Debuggee_started := True;
+        current_pc := GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['addr'].AsPtrInt;
+        DoSelectSourceLine(GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['fullname'].AsString, GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['line'].AsLongInt);
+      end;
     'exited':
       begin
         DebuggerScreen;

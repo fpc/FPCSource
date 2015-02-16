@@ -1014,7 +1014,7 @@ end;
 
 procedure TDebugController.UntilReturn;
 begin
-  Command('finish');
+  inherited UntilReturn;
   UpdateDebugViews;
   { We could try to get the return value !
     Not done yet }
