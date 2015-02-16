@@ -30,6 +30,7 @@ type
     progname,
     progdir,
     progargs   : pchar;
+    TBreakNumber,
     start_break_number,
     in_command,
     init_count : longint;
@@ -48,6 +49,7 @@ type
     procedure TraceNextI;virtual;
     procedure Continue;virtual;
     procedure UntilReturn;virtual;
+    procedure SetTBreak(tbreakstring : string);
     { needed for dos because newlines are only #10 (PM) }
     procedure WriteErrorBuf;
     procedure WriteOutputBuf;
@@ -299,6 +301,12 @@ end;
 procedure TGDBController.UntilReturn;
 begin
   Command('finish');
+end;
+
+procedure TGDBController.SetTBreak(tbreakstring : string);
+begin
+  Command('tbreak '+tbreakstring);
+  TBreakNumber:=Last_breakpoint_number;
 end;
 
 

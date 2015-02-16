@@ -27,6 +27,7 @@ uses
 type
   TGDBController = object(TGDBInterface)
   protected
+    TBreakNumber,
     start_break_number: LongInt;
     in_command: LongInt;
 
@@ -48,6 +49,7 @@ type
     procedure TraceNextI;
     procedure Continue; virtual;
     procedure UntilReturn; virtual;
+    procedure SetTBreak(tbreakstring : string);
     function LoadFile(var fn: string): Boolean;
     procedure SetDir(const s: string);
     procedure SetArgs(const s: string);
@@ -161,6 +163,12 @@ begin
   UserScreen;
   Command('-exec-finish');
   WaitForProgramStop;
+end;
+
+procedure TGDBController.SetTBreak(tbreakstring : string);
+begin
+  Command('-break-insert -t ' + tbreakstring);
+  TBreakNumber := GDB.ResultRecord.Parameters['bkpt'].AsTuple['number'].AsLongInt;
 end;
 
 function TGDBController.LoadFile(var fn: string): Boolean;

@@ -55,7 +55,6 @@ type
      HasExe   : boolean;
      RunCount : longint;
      WindowWidth : longint;
-     TBreakNumber : longint;
      FPCBreakErrorNumber : longint;
 {$ifdef SUPPORT_REMOTE}
      isRemoteDebugging,
@@ -65,7 +64,6 @@ type
 {$endif SUPPORT_REMOTE}
     constructor Init;
     procedure SetExe(const exefn:string);
-    procedure SetTBreak(tbreakstring : string);
     procedure SetWidth(AWidth : longint);
     procedure SetSourceDirs;
     destructor  Done;
@@ -710,12 +708,6 @@ begin
     end;
 end;
 
-
-procedure TDebugController.SetTBreak(tbreakstring : string);
-begin
-  Command('tbreak '+tbreakstring);
-  TBreakNumber:=Last_breakpoint_number;
-end;
 
 procedure TDebugController.SetWidth(AWidth : longint);
 begin
