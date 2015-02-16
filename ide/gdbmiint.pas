@@ -118,7 +118,13 @@ var
   gdb_file: Text;
 
 function GDBVersion: string;
+function inferior_pid : longint;
 
+{$ifdef windows}
+{ We need to do some path conversions if we are using Cygwin GDB }
+var
+  using_cygwin_gdb : boolean;
+{$endif windows}
 implementation
 
 uses
@@ -426,12 +432,22 @@ begin
   AllowQuit := True;
 end;
 
+function inferior_pid : longint;
+begin
+  inferior_pid:=0; {inferior_ptid.pid; }
+end;
+
+
 var
   CachedGDBVersion: string;
 
 function GDBVersion: string;
 var
   GDB: TGDBWrapper;
+{$ifdef windows}
+  i : longint;
+  line :string;
+{$endif windows}
 begin
   if CachedGDBVersion <> '' then
   begin
@@ -445,6 +461,17 @@ begin
     GDBVersion := GDB.ConsoleStream[0];
   if (GDBVersion <> '') and (GDBVersion[Length(GDBVersion)]=#10) then
     Delete(GDBVersion, Length(GDBVersion), 1);
+{$ifdef windows}
+  i:=0;
+  using_cygwin_gdb:=false;
+  while i < GDB.ConsoleStream.Count do
+    begin
+      line:=GDB.ConsoleStream[i];
+      if pos('This GDB was configured',line) > 0 then
+        using_cygwin_gdb:=pos('cygwin',line) > 0;
+      inc(i);
+    end;
+{$endif windows}
   GDB.Free;
   CachedGDBVersion := GDBVersion;
   if GDBVersion = '' then
