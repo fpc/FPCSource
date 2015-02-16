@@ -830,6 +830,12 @@ end;
 
 
 procedure TDebugController.Run;
+const
+{$ifdef GDBMI}
+  SetTTYCommand = '-inferior-tty-set';
+{$else GDBMI}
+  SetTTYCommand = 'tty';
+{$endif GDBMI}
 {$ifdef Unix}
 var
   Debuggeefile : text;
@@ -941,12 +947,12 @@ begin
       ResetOK:=IOResult=0;
       If ResetOK and (IsATTY(textrec(Debuggeefile).handle)<>-1) then
         begin
-          Command('tty '+DebuggeeTTY);
+          Command(SetTTYCommand+' '+DebuggeeTTY);
           TTYUsed:=true;
         end
       else
         begin
-          Command('tty ');
+          Command(SetTTYCommand+' ');
           TTYUsed:=false;
         end;
       if ResetOK then
@@ -959,7 +965,7 @@ begin
   else
     begin
       if TTYName(input)<>'' then
-        Command('tty '+TTYName(input));
+        Command(SetTTYCommand+' '+TTYName(input));
       NoSwitch := false;
     end;
 {$endif Unix}
