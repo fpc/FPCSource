@@ -565,7 +565,11 @@ begin
 {$ifdef Windows}
   {$ifndef USE_MINGW_GDB} // see mantis 11968 because of mingw build. MvdV
 { for Windows we should convert e:\ into //e/ PM }
-  if (length(st)>2) and (st[2]=':') and (st[3]='/') then
+  if
+    {$ifdef GDBMI}
+     using_cygwin_gdb and
+    {$endif}
+     (length(st)>2) and (st[2]=':') and (st[3]='/') then
     st:=CygDrivePrefix+'/'+st[1]+copy(st,3,length(st));
   {$endif}
 { support spaces in the name by escaping them but without changing '\ ' into '\\ ' }
