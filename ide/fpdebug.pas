@@ -724,6 +724,12 @@ begin
 end;
 
 procedure TDebugController.SetSourceDirs;
+  const
+{$ifdef GDBMI}
+    AddSourceDirCommand = '-environment-directory';
+{$else GDBMI}
+    AddSourceDirCommand = 'dir';
+{$endif GDBMI}
   var f,s: ansistring;
       i : longint;
       Dir : SearchRec;
@@ -740,7 +746,7 @@ begin
       end;
     DefaultReplacements(s);
     if (pos('*',s)=0) and ExistsDir(s) then
-      Command('dir '+GDBFileName(GetShortName(s)))
+      Command(AddSourceDirCommand+' '+GDBFileName(GetShortName(s)))
     { we should also handle the /* cases of -Fu option }
     else if pos('*',s)>0 then
       begin
@@ -750,7 +756,7 @@ begin
         while Dos.DosError=0 do
           begin
             if ((Dir.attr and Directory) <> 0) and ExistsDir(s+Dir.Name) then
-              Command('dir '+GDBFileName(GetShortName(s+Dir.Name)));
+              Command(AddSourceDirCommand+' '+GDBFileName(GetShortName(s+Dir.Name)));
             Dos.FindNext(Dir);
           end;
         Dos.FindClose(Dir);
