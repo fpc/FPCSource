@@ -703,7 +703,11 @@ begin
     begin
       HasExe:=false;
       reset_command:=true;
+{$ifdef GDBMI}
+      Command('-file-exec-and-symbols');
+{$else GDBMI}
       Command('file');
+{$endif GDBMI}
       reset_command:=false;
     end;
 end;
