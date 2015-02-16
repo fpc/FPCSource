@@ -59,11 +59,20 @@ begin
   while FProcess.Running do
   begin
     FProcess.Output.Read(C, 1);
-    if C = #10 then
-    begin
-      DebugLn(Result);
-      exit;
-    end;
+    {$ifdef windows}
+    { On windows we expect both #13 and #10 }
+    if C = #13 then
+      begin
+        FPRocess.Output.Read(C,1);
+    {$endif windows}
+        if C = #10 then
+        begin
+          DebugLn(Result);
+          exit;
+        end;
+    {$ifdef windows}
+      end;
+    {$endif windows}
     Result := Result + C;
   end;
 end;
