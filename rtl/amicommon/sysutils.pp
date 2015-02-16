@@ -615,6 +615,7 @@ begin
         AddDisk(Str);
     end;
   until List = nil;
+  UnLockDosList(LDF_DEVICES or LDF_READ);
   RefreshDeviceList := NumDevices;
 end;
 
@@ -683,7 +684,7 @@ begin
   DiskFree := -1;
   if (Drive < 0) or (Drive >= NumDevices) then
     Exit;
-  DiskFree := DiskSize(DeviceList[Drive]);
+  DiskFree := DiskFree(DeviceList[Drive]);
 end;
 
 function DirectoryExists(const Directory: RawByteString): Boolean;
