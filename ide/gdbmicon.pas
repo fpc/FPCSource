@@ -57,23 +57,25 @@ type
 
 implementation
 
+{$ifdef Windows}
+  uses
+    Windebug;
+{$endif Windows}
 procedure UnixDir(var s : string);
 var i : longint;
 begin
   for i:=1 to length(s) do
     if s[i]='\' then
-{$ifdef win32}
+{$ifdef windows}
   { Don't touch at '\ ' used to escapes spaces in windows file names PM }
      if (i=length(s)) or (s[i+1]<>' ') then
-{$endif win32}
+{$endif windows}
       s[i]:='/';
-{$ifdef win32}
-{$ifndef USE_MINGW_GDB}
-{ for win32 we should convert e:\ into //e/ PM }
-  if (length(s)>2) and (s[2]=':') and (s[3]='/') then
+{$ifdef windows}
+  { if we are using cygwin, we need to convert e:\ into /cygdriveprefix/e/ PM }
+  if using_cygwin_gdb and (length(s)>2) and (s[2]=':') and (s[3]='/') then
     s:=CygDrivePrefix+'/'+s[1]+copy(s,3,length(s));
-{$endif USE_MINGW_GDB}
-{$endif win32}
+{$endif windows}
 end;
 
 constructor TGDBController.Init;
