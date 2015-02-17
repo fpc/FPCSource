@@ -357,10 +357,21 @@ end;
 
 function TGDBInterface.get_current_frame: PtrInt;
 begin
+  i_gdb_command('-stack-info-frame');
+  if GDB.ResultRecord.Success then
+    get_current_frame := GDB.ResultRecord.Parameters['frame'].AsTuple['level'].AsLongInt
+  else
+    get_current_frame := 0;
 end;
 
 function TGDBInterface.set_current_frame(level: LongInt): Boolean;
+var
+  s: string;
 begin
+  str(level,s);
+  { Note: according to the gdb docs, '-stack-select-frame' is deprecated in favor of passing the '--frame' option to every command }
+  i_gdb_command('-stack-select-frame '+s);
+  set_current_frame := GDB.ResultRecord.Success;
 end;
 
 procedure TGDBInterface.clear_frames;
