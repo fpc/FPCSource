@@ -49,6 +49,7 @@ type
     procedure TraceNextI;virtual;
     procedure Continue;virtual;
     procedure UntilReturn;virtual;
+    function BreakpointInsert(const location: string): LongInt;
     procedure SetTBreak(tbreakstring : string);
     procedure Backtrace;
     { needed for dos because newlines are only #10 (PM) }
@@ -302,6 +303,12 @@ end;
 procedure TGDBController.UntilReturn;
 begin
   Command('finish');
+end;
+
+function TGDBController.BreakpointInsert(const location: string): LongInt;
+begin
+  Command('break '+location);
+  BreakpointInsert:=Last_breakpoint_number;
 end;
 
 procedure TGDBController.SetTBreak(tbreakstring : string);

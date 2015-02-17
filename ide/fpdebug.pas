@@ -685,10 +685,8 @@ begin
       HasExe:=true;
       { Procedure HandleErrorAddrFrame
          (Errno : longint;addr,frame : longint);
-         [public,alias:'FPC_BREAK_ERROR'];
-      Command('b HANDLEERRORADDRFRAME'); }
-      Command('b FPC_BREAK_ERROR');
-      FPCBreakErrorNumber:=last_breakpoint_number;
+         [public,alias:'FPC_BREAK_ERROR'];}
+      FPCBreakErrorNumber:=BreakpointInsert('FPC_BREAK_ERROR');
 {$ifdef FrameNameKnown}
       { this fails in GDB 5.1 because
         GDB replies that there is an attempt to dereference

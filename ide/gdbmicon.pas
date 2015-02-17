@@ -51,6 +51,7 @@ type
     procedure TraceNextI;
     procedure Continue; virtual;
     procedure UntilReturn; virtual;
+    function BreakpointInsert(const location: string): LongInt;
     procedure SetTBreak(tbreakstring : string);
     procedure Backtrace;
     function LoadFile(var fn: string): Boolean;
@@ -163,6 +164,15 @@ end;
 procedure TGDBController.UntilReturn;
 begin
   RunExecCommand('-exec-finish');
+end;
+
+function TGDBController.BreakpointInsert(const location: string): LongInt;
+begin
+  Command('-break-insert ' + location);
+  if GDB.ResultRecord.Success then
+    BreakpointInsert := GDB.ResultRecord.Parameters['bkpt'].AsTuple['number'].AsLongInt
+  else
+    BreakpointInsert := 0;
 end;
 
 procedure TGDBController.SetTBreak(tbreakstring : string);
