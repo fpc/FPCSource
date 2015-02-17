@@ -4956,6 +4956,46 @@ xmmreg,xmmreg,xmmrm                  \361\362\371\1\x45\75\120            AVX2
 ymmreg,ymmreg,ymmrm                  \361\362\363\364\371\1\x45\75\120    AVX2
 xmmreg,xmmreg,xmmrm                  \361\362\363\371\1\x45\75\120        AVX2
 
+[VGATHERDPD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmem64,xmmreg                 \361\362\363\371\1\x92\76\110        AVX2
+ymmreg,xmem64,ymmreg                 \361\362\363\364\371\1\x92\76\110    AVX2
+
+[VGATHERDPS]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmem32,xmmreg                 \361\362\371\1\x92\76\110            AVX2
+ymmreg,ymem32,ymmreg                 \361\362\364\371\1\x92\76\110        AVX2
+
+[VGATHERQPD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmem64,xmmreg                 \361\362\363\371\1\x93\76\110        AVX2
+ymmreg,ymem64,ymmreg                 \361\362\363\364\371\1\x93\76\110    AVX2
+
+[VGATHERQPS]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmem32,xmmreg                 \361\362\371\1\x93\76\110            AVX2
+xmmreg,ymem32,xmmreg                 \361\362\364\371\1\x93\76\110        AVX2
+
+[VPGATHERDD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmem32,xmmreg                 \361\362\371\1\x90\76\110            AVX2
+ymmreg,ymem32,ymmreg                 \361\362\364\371\1\x90\76\110        AVX2
+
+[VPGATHERDQ]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmem64,xmmreg                 \361\362\363\371\1\x90\76\110        AVX2
+ymmreg,xmem64,ymmreg                 \361\362\363\364\371\1\x90\76\110    AVX2
+
+[VPGATHERQD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmem32,xmmreg                 \361\362\371\1\x91\76\110            AVX2
+xmmreg,ymem32,xmmreg                 \361\362\364\371\1\x91\76\110        AVX2
+
+[VPGATHERQQ]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmem64,xmmreg                 \361\362\363\371\1\x91\76\110        AVX2
+ymmreg,ymem64,ymmreg                 \361\362\363\364\371\1\x91\76\110    AVX2
+
 ;*******************************************************************************
 ;********** NEC V20/V30 ********************************************************
 ;*******************************************************************************
