@@ -4071,8 +4071,13 @@ implementation
         result:=nil;
         { Passing a class type to an "as" expression cannot result in a class
           of that type to be constructed.
+
+          We could put this inside the if-block below, but this way it is
+          safe for sure even if the code below changes
         }
-        include(right.flags,nf_ignore_for_wpo);
+        if assigned(right) then
+          include(right.flags,nf_ignore_for_wpo);
+
         if not assigned(call) then
           begin
             if is_class(left.resultdef) and
