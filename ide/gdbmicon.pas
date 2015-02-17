@@ -26,6 +26,8 @@ uses
 
 type
   TGDBController = object(TGDBInterface)
+  private
+    procedure RunExecCommand(const Cmd: string);
   protected
     TBreakNumber,
     start_break_number: LongInt;
@@ -121,53 +123,46 @@ begin
   Run;
 end;
 
-procedure TGDBController.Run;
+procedure TGDBController.RunExecCommand(const Cmd: string);
 begin
   UserScreen;
-  Command('-exec-run');
+  Command(Cmd);
   WaitForProgramStop;
+end;
+
+procedure TGDBController.Run;
+begin
+  RunExecCommand('-exec-run');
 end;
 
 procedure TGDBController.TraceStep;
 begin
-  UserScreen;
-  Command('-exec-step');
-  WaitForProgramStop;
+  RunExecCommand('-exec-step');
 end;
 
 procedure TGDBController.TraceNext;
 begin
-  UserScreen;
-  Command('-exec-next');
-  WaitForProgramStop;
+  RunExecCommand('-exec-next');
 end;
 
 procedure TGDBController.TraceStepI;
 begin
-  UserScreen;
-  Command('-exec-step-instruction');
-  WaitForProgramStop;
+  RunExecCommand('-exec-step-instruction');
 end;
 
 procedure TGDBController.TraceNextI;
 begin
-  UserScreen;
-  Command('-exec-next-instruction');
-  WaitForProgramStop;
+  RunExecCommand('-exec-next-instruction');
 end;
 
 procedure TGDBController.Continue;
 begin
-  UserScreen;
-  Command('-exec-continue');
-  WaitForProgramStop;
+  RunExecCommand('-exec-continue');
 end;
 
 procedure TGDBController.UntilReturn;
 begin
-  UserScreen;
-  Command('-exec-finish');
-  WaitForProgramStop;
+  RunExecCommand('-exec-finish');
 end;
 
 procedure TGDBController.SetTBreak(tbreakstring : string);
