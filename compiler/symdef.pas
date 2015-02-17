@@ -3420,8 +3420,10 @@ implementation
 
     constructor tarraydef.create_from_pointer(def:tpointerdef);
       begin
-         { use -1 so that the elecount will not overflow }
-         self.create(0,high(asizeint)-1,ptrsinttype);
+         { divide by the element size and do -1 so the array will have a valid size,
+           further, the element size might be 0 e.g. for empty records, so use max(...,1)
+           to avoid a division by zero }
+         self.create(0,(high(asizeint) div max(def.pointeddef.size,1))-1,ptrsinttype);
          arrayoptions:=[ado_IsConvertedPointer];
          setelementdef(def.pointeddef);
       end;
