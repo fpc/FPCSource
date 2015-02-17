@@ -1770,28 +1770,28 @@ procedure TBreakpoint.Insert;
   var
     p,p2 : pchar;
     st : string;
+    bkpt_no: LongInt = 0;
 begin
 {$ifndef NODEBUG}
   If not assigned(Debugger) then Exit;
   Remove;
-  Debugger^.last_breakpoint_number:=0;
   if (GDBState=bs_deleted) and (state=bs_enabled) then
     begin
       if (typ=bt_file_line) and assigned(FileName) then
-        Debugger^.Command('break '+GDBFileName(NameAndExtOf(GetStr(FileName)))+':'+IntToStr(Line))
+        bkpt_no := Debugger^.BreakpointInsert(GDBFileName(NameAndExtOf(GetStr(FileName)))+':'+IntToStr(Line))
       else if (typ=bt_function) and assigned(name) then
-        Debugger^.Command('break '+name^)
+        bkpt_no := Debugger^.BreakpointInsert(name^)
       else if (typ=bt_address) and assigned(name) then
-        Debugger^.Command('break *0x'+name^)
+        bkpt_no := Debugger^.BreakpointInsert('*0x'+name^)
       else if (typ=bt_watch) and assigned(name) then
-        Debugger^.Command('watch '+name^)
+        bkpt_no := Debugger^.WatchpointInsert(name^, wtWrite)
       else if (typ=bt_awatch) and assigned(name) then
-        Debugger^.Command('awatch '+name^)
+        bkpt_no := Debugger^.WatchpointInsert(name^, wtReadWrite)
       else if (typ=bt_rwatch) and assigned(name) then
-        Debugger^.Command('rwatch '+name^);
-      if Debugger^.last_breakpoint_number<>0 then
+        bkpt_no := Debugger^.WatchpointInsert(name^, wtRead);
+      if bkpt_no<>0 then
         begin
-          GDBIndex:=Debugger^.last_breakpoint_number;
+          GDBIndex:=bkpt_no;
           GDBState:=bs_enabled;
           Debugger^.Command('cond '+IntToStr(GDBIndex)+' '+GetStr(Conditions));
           If IgnoreCount>0 then

@@ -25,6 +25,8 @@ uses
   GDBInt;
 
 type
+  TWatchpointType = (wtWrite, wtReadWrite, wtRead);
+
   PGDBController=^TGDBController;
   TGDBController=object(TGDBInterface)
     progname,
@@ -50,6 +52,7 @@ type
     procedure Continue;virtual;
     procedure UntilReturn;virtual;
     function BreakpointInsert(const location: string): LongInt;
+    function WatchpointInsert(const location: string; WatchpointType: TWatchpointType): LongInt;
     procedure SetTBreak(tbreakstring : string);
     procedure Backtrace;
     { needed for dos because newlines are only #10 (PM) }
@@ -307,12 +310,28 @@ end;
 
 function TGDBController.BreakpointInsert(const location: string): LongInt;
 begin
+  Last_breakpoint_number:=0;
   Command('break '+location);
+  BreakpointInsert:=Last_breakpoint_number;
+end;
+
+function TGDBController.WatchpointInsert(const location: string; WatchpointType: TWatchpointType): LongInt;
+begin
+  Last_breakpoint_number:=0;
+  case WatchpointType of
+    wtWrite:
+      Command('watch ' + location);
+    wtReadWrite:
+      Command('awatch ' + location);
+    wtRead:
+      Command('rwatch ' + location);
+  end;
   BreakpointInsert:=Last_breakpoint_number;
 end;
 
 procedure TGDBController.SetTBreak(tbreakstring : string);
 begin
+  Last_breakpoint_number:=0;
   Command('tbreak '+tbreakstring);
   TBreakNumber:=Last_breakpoint_number;
 end;

@@ -25,6 +25,8 @@ uses
   gdbmiint, gdbmiwrap;
 
 type
+  TWatchpointType = (wtWrite, wtReadWrite, wtRead);
+
   TGDBController = object(TGDBInterface)
   private
     procedure RunExecCommand(const Cmd: string);
@@ -52,6 +54,7 @@ type
     procedure Continue; virtual;
     procedure UntilReturn; virtual;
     function BreakpointInsert(const location: string): LongInt;
+    function WatchpointInsert(const location: string; WatchpointType: TWatchpointType): LongInt;
     procedure SetTBreak(tbreakstring : string);
     procedure Backtrace;
     function LoadFile(var fn: string): Boolean;
@@ -173,6 +176,22 @@ begin
     BreakpointInsert := GDB.ResultRecord.Parameters['bkpt'].AsTuple['number'].AsLongInt
   else
     BreakpointInsert := 0;
+end;
+
+function TGDBController.WatchpointInsert(const location: string; WatchpointType: TWatchpointType): LongInt;
+begin
+  case WatchpointType of
+    wtWrite:
+      Command('-break-watch ' + location);
+    wtReadWrite:
+      Command('-break-watch -a ' + location);
+    wtRead:
+      Command('-break-watch -r ' + location);
+  end;
+  if GDB.ResultRecord.Success then
+    WatchpointInsert := GDB.ResultRecord.Parameters['wpt'].AsTuple['number'].AsLongInt
+  else
+    WatchpointInsert := 0;
 end;
 
 procedure TGDBController.SetTBreak(tbreakstring : string);
