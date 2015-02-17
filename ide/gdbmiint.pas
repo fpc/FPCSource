@@ -226,6 +226,13 @@ begin
   GDBOutputBuf.Init;
   GDB := TGDBWrapper.Create;
   command_level := 0;
+{ other standard commands used for fpc debugging }
+  i_gdb_command('-gdb-set print demangle off');
+  i_gdb_command('-gdb-set gnutarget auto');
+  i_gdb_command('-gdb-set language auto');
+  i_gdb_command('-gdb-set print vtbl on');
+  i_gdb_command('-gdb-set print object on');
+  i_gdb_command('-gdb-set print null-stop');
 end;
 
 destructor TGDBInterface.Done;
