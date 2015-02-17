@@ -50,6 +50,7 @@ type
     procedure Continue;virtual;
     procedure UntilReturn;virtual;
     procedure SetTBreak(tbreakstring : string);
+    procedure Backtrace;
     { needed for dos because newlines are only #10 (PM) }
     procedure WriteErrorBuf;
     procedure WriteOutputBuf;
@@ -307,6 +308,14 @@ procedure TGDBController.SetTBreak(tbreakstring : string);
 begin
   Command('tbreak '+tbreakstring);
   TBreakNumber:=Last_breakpoint_number;
+end;
+
+procedure TGDBController.Backtrace;
+begin
+  { forget all old frames }
+  clear_frames;
+
+  Command('backtrace');
 end;
 
 

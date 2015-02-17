@@ -63,6 +63,12 @@ type
 
   { [] or [value,value,value] or [variable=value,variable=value,variable=value] }
   TGDBMI_ListValue = class(TGDBMI_TupleOrListValue)
+  private
+    function GetCount: LongInt;
+    function GetValueAt(AIndex: LongInt): TGDBMI_Value;
+  public
+    property Count: LongInt read GetCount;
+    property ValueAt [AIndex: LongInt]: TGDBMI_Value read GetValueAt;
   end;
 
   TGDBMI_AsyncOutput = class
@@ -76,6 +82,11 @@ type
     property Parameters: TGDBMI_TupleValue read FParameters;
   end;
 
+  TGDBMI_ResultRecord = class(TGDBMI_AsyncOutput)
+  public
+    function Success: Boolean;
+  end;
+
   TGDBMI_AsyncOutput_List = array of TGDBMI_AsyncOutput;
 
   TGDBWrapper = class
@@ -84,7 +95,7 @@ type
     FRawResponse: TStringList;
     FConsoleStream: TStringList;
     FExecAsyncOutput: TGDBMI_AsyncOutput;
-    FResultRecord: TGDBMI_AsyncOutput;
+    FResultRecord: TGDBMI_ResultRecord;
 
     function IsAlive: Boolean;
     procedure ReadResponse;
@@ -98,7 +109,7 @@ type
     property RawResponse: TStringList read FRawResponse;
     property ConsoleStream: TStringList read FConsoleStream;
     property ExecAsyncOutput: TGDBMI_AsyncOutput read FExecAsyncOutput;
-    property ResultRecord: TGDBMI_AsyncOutput read FResultRecord write FResultRecord;
+    property ResultRecord: TGDBMI_ResultRecord read FResultRecord write FResultRecord;
     property Alive: Boolean read IsAlive;
   end;
 
@@ -190,6 +201,17 @@ begin
   Result := nil;
 end;
 
+function TGDBMI_ListValue.GetCount: LongInt;
+begin
+  Result := Length(FValues);
+end;
+
+function TGDBMI_ListValue.GetValueAt(AIndex: LongInt): TGDBMI_Value;
+begin
+  Assert((AIndex >= Low(FValues)) and (AIndex <= High(FValues)));
+  Result := FValues[AIndex];
+end;
+
 constructor TGDBMI_AsyncOutput.Create;
 begin
   FParameters := TGDBMI_TupleValue.Create;
@@ -205,6 +227,12 @@ procedure TGDBMI_AsyncOutput.Clear;
 begin
   AsyncClass := '';
   Parameters.Clear;
+end;
+
+function TGDBMI_ResultRecord.Success: Boolean;
+begin
+  { according to the GDB docs, 'done' and 'running' should be treated identically by clients }
+  Result := (AsyncClass='done') or (AsyncClass='running');
 end;
 
 function ParseCString(const CStr: string; var NextCharPos: LongInt): string;
@@ -418,7 +446,7 @@ begin
   FConsoleStream := TStringList.Create;
   FProcess := TGDBProcess.Create;
   FExecAsyncOutput := TGDBMI_AsyncOutput.Create;
-  FResultRecord := TGDBMI_AsyncOutput.Create;
+  FResultRecord := TGDBMI_ResultRecord.Create;
   ReadResponse;
 end;
 

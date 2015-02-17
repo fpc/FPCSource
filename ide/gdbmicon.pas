@@ -50,6 +50,7 @@ type
     procedure Continue; virtual;
     procedure UntilReturn; virtual;
     procedure SetTBreak(tbreakstring : string);
+    procedure Backtrace;
     function LoadFile(var fn: string): Boolean;
     procedure SetDir(const s: string);
     procedure SetArgs(const s: string);
@@ -57,10 +58,12 @@ type
 
 implementation
 
+uses
 {$ifdef Windows}
-  uses
-    Windebug;
+  Windebug,
 {$endif Windows}
+  strings;
+
 procedure UnixDir(var s : string);
 var i : longint;
 begin
@@ -171,6 +174,36 @@ procedure TGDBController.SetTBreak(tbreakstring : string);
 begin
   Command('-break-insert -t ' + tbreakstring);
   TBreakNumber := GDB.ResultRecord.Parameters['bkpt'].AsTuple['number'].AsLongInt;
+end;
+
+procedure TGDBController.Backtrace;
+var
+  FrameList: TGDBMI_ListValue;
+  I: LongInt;
+begin
+  { forget all old frames }
+  clear_frames;
+
+  Command('-stack-list-frames');
+  if not GDB.ResultRecord.Success then
+    exit;
+
+  FrameList := GDB.ResultRecord.Parameters['stack'].AsList;
+  frame_count := FrameList.Count;
+  frames := AllocMem(SizeOf(PFrameEntry) * frame_count);
+  for I := 0 to frame_count - 1 do
+    frames[I] := New(PFrameEntry, Init);
+  for I := 0 to FrameList.Count - 1 do
+  begin
+    frames[I]^.address := FrameList.ValueAt[I].AsTuple['addr'].AsPtrInt;
+    frames[I]^.level := FrameList.ValueAt[I].AsTuple['level'].AsLongInt;
+    if Assigned(FrameList.ValueAt[I].AsTuple['line']) then
+      frames[I]^.line_number := FrameList.ValueAt[I].AsTuple['line'].AsLongInt;
+    if Assigned(FrameList.ValueAt[I].AsTuple['func']) then
+      frames[I]^.function_name := StrNew(PChar(FrameList.ValueAt[I].AsTuple['func'].AsString));
+    if Assigned(FrameList.ValueAt[I].AsTuple['fullname']) then
+      frames[I]^.file_name := StrNew(PChar(FrameList.ValueAt[I].AsTuple['fullname'].AsString));
+  end;
 end;
 
 function TGDBController.LoadFile(var fn: string): Boolean;

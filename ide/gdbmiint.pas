@@ -39,6 +39,7 @@ type
     args: PChar;
     line_number: LongInt;
     address: PtrInt;
+    level : longint;
     constructor Init;
     destructor Done;
   end;
@@ -59,7 +60,6 @@ type
   TGDBInterface = object
   private
     user_screen_shown: Boolean;
-    frame_size: LongInt;
   protected
     GDB: TGDBWrapper;
 
@@ -147,6 +147,7 @@ begin
   args := nil;
   line_number := 0;
   address := 0;
+  level := 0;
 end;
 
 procedure TFrameEntry.Clear;
@@ -229,6 +230,7 @@ end;
 
 destructor TGDBInterface.Done;
 begin
+  clear_frames;
   GDB.Free;
   GDBErrorBuf.Done;
   GDBOutputBuf.Done;
@@ -358,15 +360,14 @@ procedure TGDBInterface.clear_frames;
 var
   I: LongInt;
 begin
-  for I := 0 to frame_size - 1 do
+  for I := 0 to frame_count - 1 do
     Dispose(frames[I], Done);
   if Assigned(frames) then
   begin
-    FreeMem(frames, SizeOf(Pointer) * frame_size);
+    FreeMem(frames, SizeOf(Pointer) * frame_count);
     frames := nil;
   end;
   frame_count := 0;
-  frame_size := 0;
 end;
 
 procedure TGDBInterface.DebuggerScreen;

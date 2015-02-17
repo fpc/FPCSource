@@ -3539,12 +3539,10 @@ end;
         exit;
       DeskTop^.Lock;
       Clear;
-      { forget all old frames }
-      Debugger^.clear_frames;
 
       if Debugger^.WindowWidth<>-1 then
         Debugger^.Command('set width 0xffffffff');
-      Debugger^.Command('backtrace');
+      Debugger^.Backtrace;
       { generate list }
       { all is in tframeentry }
       for i:=0 to Debugger^.frame_count-1 do

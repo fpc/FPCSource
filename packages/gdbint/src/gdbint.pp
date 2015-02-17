@@ -1876,6 +1876,7 @@ begin
   args:=nil;
   line_number:=0;
   address:=0;
+  level:=0;
 end;
 
 procedure tframeentry.clear;
