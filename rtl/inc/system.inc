@@ -398,7 +398,7 @@ end;
 {$i gencurr.inc}
 
 
-function RTTIAlign(p : pointer) : pointer;inline;
+function aligntoptr(p : pointer) : pointer;inline;
   begin
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
     result:=align(p,sizeof(p));
