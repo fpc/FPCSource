@@ -326,7 +326,7 @@ begin
     wtRead:
       Command('rwatch ' + location);
   end;
-  BreakpointInsert:=Last_breakpoint_number;
+  WatchpointInsert:=Last_breakpoint_number;
 end;
 
 procedure TGDBController.SetTBreak(tbreakstring : string);
