@@ -280,6 +280,7 @@ end;
 
 procedure TGDBInterface.WaitForProgramStop;
 var
+  StopReason: string;
   Line: LongInt;
   FileName: string = '';
   LineNumber: LongInt = 0;
@@ -293,13 +294,17 @@ begin
     exit;
   end;
   ProcessResponse;
-  case GDB.ExecAsyncOutput.Parameters['reason'].AsString of
+  StopReason := GDB.ExecAsyncOutput.Parameters['reason'].AsString;
+  case StopReason of
     'breakpoint-hit',
+    'watchpoint-trigger',
     'end-stepping-range',
     'function-finished':
       begin
-        if Assigned(GDB.ExecAsyncOutput.Parameters['bkptno']) then
+        if StopReason = 'breakpoint-hit' then
           stop_breakpoint_number := GDB.ExecAsyncOutput.Parameters['bkptno'].AsLongInt;
+        if StopReason = 'watchpoint-trigger' then
+          stop_breakpoint_number := GDB.ExecAsyncOutput.Parameters['wpt'].AsTuple['number'].AsLongInt;
         DebuggerScreen;
         Debuggee_started := True;
         current_pc := GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['addr'].AsPtrInt;
