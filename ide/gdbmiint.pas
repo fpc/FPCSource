@@ -60,6 +60,7 @@ type
   TGDBInterface = object
   private
     user_screen_shown: Boolean;
+    output_raw : boolean;
   protected
     GDB: TGDBWrapper;
 
@@ -225,6 +226,11 @@ begin
   GDBOutputBuf.Init;
   GDB := TGDBWrapper.Create;
   command_level := 0;
+{$ifdef DEBUG}
+  output_raw:=true;
+{$else}
+  output_raw:=false;
+{$endif}
 { other standard commands used for fpc debugging }
   i_gdb_command('-gdb-set print demangle off');
   i_gdb_command('-gdb-set gnutarget auto');
@@ -270,6 +276,10 @@ begin
   else
     prev_stop_breakpoint_number := stop_breakpoint_number;
   GDB.Command(S);
+  if output_raw then
+    for I := 0 to GDB.RawResponse.Count - 1 do
+      GDBOutputBuf.Append(PChar(GDB.RawResponse[I]));
+
   for I := 0 to GDB.ConsoleStream.Count - 1 do
     GDBOutputBuf.Append(PChar(GDB.ConsoleStream[I]));
   ProcessResponse;
