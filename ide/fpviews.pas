@@ -2579,7 +2579,10 @@ begin
   While assigned(p) and (p^<>#0) do
     begin
        pe:=strscan(p,#10);
-       if pe<>nil then
+       { if pe-p is more than High(s), discard for this round }
+       if (pe<>nil) and (pe-p > high(s)) then
+         pe:=nil;
+       if (pe<>nil)  then
          pe^:=#0;
        s:=strpas(p);
        If IsError then
@@ -2590,16 +2593,16 @@ begin
        if pe<>nil then
          pe^:=#10;
        if pe=nil then
-         p:=nil
+         begin
+           if strlen(p)<High(s) then
+             p:=nil
+           else
+             p:=p+High(s);
+         end
        else
          begin
-           if pe-p > High(s) then
-             p:=p+High(s)-1
-           else
-             begin
-               p:=pe;
-               inc(p);
-             end;
+           p:=pe;
+           inc(p);
          end;
     end;
   DeskTop^.Unlock;
@@ -4390,7 +4393,7 @@ begin
               Message(W,evCommand,cmAddChar,pointer(ptrint(ord(Report^.AsciiChar))));
             ClearEvent(Event);
           end;
-        
+
         cmSearchWindow+1..cmSearchWindow+99 :
           if (Event.Command-cmSearchWindow=Number) then
               ClearEvent(Event);
