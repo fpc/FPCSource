@@ -80,7 +80,6 @@ type
     signal_name: PChar;
     signal_string: PChar;
     current_pc: CORE_ADDR;
-    last_breakpoint_number: LongInt;
     switch_to_user: Boolean;
 
     { init }
@@ -336,22 +335,19 @@ begin
 end;
 
 procedure TGDBInterface.ProcessResponse;
-var
-  NAO: TGDBMI_AsyncOutput;
-  Code: LongInt;
+//var
+//  NAO: TGDBMI_AsyncOutput;
+//  Code: LongInt;
 begin
-  for NAO in GDB.NotifyAsyncOutput do
-  begin
-    if NAO.AsyncClass = 'breakpoint-created' then
-    begin
+//  for NAO in GDB.NotifyAsyncOutput do
+//  begin
+//    if NAO.AsyncClass = 'breakpoint-created' then
+//    begin
 //      Writeln('BREAKPOINT created!');
-      Val(NAO.Parameters['bkpt'].AsTuple['number'].AsString, last_breakpoint_number, Code);
+//      Val(NAO.Parameters['bkpt'].AsTuple['number'].AsString, last_breakpoint_number, Code);
 //      Writeln('last_breakpoint_number=', last_breakpoint_number);
-//      if Assigned(NAO.Parameters['bkpt'].AsTuple['file']) then
-//        Writeln('file = ', NAO.Parameters['bkpt'].AsTuple['file'].AsString);
-//      Readln;
-    end;
-  end;
+//    end;
+//  end;
 end;
 
 function TGDBInterface.error: Boolean;
