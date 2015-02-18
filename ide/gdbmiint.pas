@@ -301,11 +301,15 @@ begin
     'end-stepping-range',
     'function-finished':
       begin
+        { this resets stop_breakpoint_number to zero, so it's important to set it *afterwards* }
+        DebuggerScreen;
+
+        { now, set stop_breakpoint_number (if applicable) }
         if StopReason = 'breakpoint-hit' then
           stop_breakpoint_number := GDB.ExecAsyncOutput.Parameters['bkptno'].AsLongInt;
         if StopReason = 'watchpoint-trigger' then
           stop_breakpoint_number := GDB.ExecAsyncOutput.Parameters['wpt'].AsTuple['number'].AsLongInt;
-        DebuggerScreen;
+
         Debuggee_started := True;
         current_pc := GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['addr'].AsPtrInt;
         if Assigned(GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['fullname']) then
