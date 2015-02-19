@@ -686,7 +686,7 @@ begin
       { Procedure HandleErrorAddrFrame
          (Errno : longint;addr,frame : longint);
          [public,alias:'FPC_BREAK_ERROR'];}
-      FPCBreakErrorNumber:=BreakpointInsert('FPC_BREAK_ERROR');
+      FPCBreakErrorNumber:=BreakpointInsert('FPC_BREAK_ERROR', []);
 {$ifdef FrameNameKnown}
       { this fails in GDB 5.1 because
         GDB replies that there is an attempt to dereference
@@ -1778,11 +1778,11 @@ begin
   if (GDBState=bs_deleted) and (state=bs_enabled) then
     begin
       if (typ=bt_file_line) and assigned(FileName) then
-        bkpt_no := Debugger^.BreakpointInsert(GDBFileName(NameAndExtOf(GetStr(FileName)))+':'+IntToStr(Line))
+        bkpt_no := Debugger^.BreakpointInsert(GDBFileName(NameAndExtOf(GetStr(FileName)))+':'+IntToStr(Line), [])
       else if (typ=bt_function) and assigned(name) then
-        bkpt_no := Debugger^.BreakpointInsert(name^)
+        bkpt_no := Debugger^.BreakpointInsert(name^, [])
       else if (typ=bt_address) and assigned(name) then
-        bkpt_no := Debugger^.BreakpointInsert('*0x'+name^)
+        bkpt_no := Debugger^.BreakpointInsert('*0x'+name^, [])
       else if (typ=bt_watch) and assigned(name) then
         bkpt_no := Debugger^.WatchpointInsert(name^, wtWrite)
       else if (typ=bt_awatch) and assigned(name) then

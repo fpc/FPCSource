@@ -25,6 +25,7 @@ uses
   gdbmiint, gdbmiwrap;
 
 type
+  TBreakpointFlags = set of (bfTemporary, bfHardware);
   TWatchpointType = (wtWrite, wtReadWrite, wtRead);
 
   TGDBController = object(TGDBInterface)
@@ -53,7 +54,7 @@ type
     procedure TraceNextI;
     procedure Continue; virtual;
     procedure UntilReturn; virtual;
-    function BreakpointInsert(const location: string): LongInt;
+    function BreakpointInsert(const location: string; BreakpointFlags: TBreakpointFlags): LongInt;
     function WatchpointInsert(const location: string; WatchpointType: TWatchpointType): LongInt;
     procedure SetTBreak(tbreakstring : string);
     procedure Backtrace;
@@ -169,9 +170,15 @@ begin
   RunExecCommand('-exec-finish');
 end;
 
-function TGDBController.BreakpointInsert(const location: string): LongInt;
+function TGDBController.BreakpointInsert(const location: string; BreakpointFlags: TBreakpointFlags): LongInt;
+var
+  Options: string = '';
 begin
-  Command('-break-insert ' + location);
+  if bfTemporary in BreakpointFlags then
+    Options := Options + '-t ';
+  if bfHardware in BreakpointFlags then
+    Options := Options + '-h ';
+  Command('-break-insert ' + Options + location);
   if GDB.ResultRecord.Success then
     BreakpointInsert := GDB.ResultRecord.Parameters['bkpt'].AsTuple['number'].AsLongInt
   else

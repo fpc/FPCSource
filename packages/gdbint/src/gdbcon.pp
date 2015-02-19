@@ -25,6 +25,7 @@ uses
   GDBInt;
 
 type
+  TBreakpointFlags = set of (bfTemporary, bfHardware);
   TWatchpointType = (wtWrite, wtReadWrite, wtRead);
 
   PGDBController=^TGDBController;
@@ -51,7 +52,7 @@ type
     procedure TraceNextI;virtual;
     procedure Continue;virtual;
     procedure UntilReturn;virtual;
-    function BreakpointInsert(const location: string): LongInt;
+    function BreakpointInsert(const location: string; BreakpointFlags: TBreakpointFlags): LongInt;
     function WatchpointInsert(const location: string; WatchpointType: TWatchpointType): LongInt;
     procedure SetTBreak(tbreakstring : string);
     procedure Backtrace;
@@ -308,10 +309,16 @@ begin
   Command('finish');
 end;
 
-function TGDBController.BreakpointInsert(const location: string): LongInt;
+function TGDBController.BreakpointInsert(const location: string; BreakpointFlags: TBreakpointFlags): LongInt;
+var
+  Prefix: string = '';
 begin
+  if bfTemporary in BreakpointFlags then
+    Prefix:=Prefix+'t';
+  if bfHardware in BreakpointFlags then
+    Prefix:=Prefix+'h';
   Last_breakpoint_number:=0;
-  Command('break '+location);
+  Command(Prefix+'break '+location);
   BreakpointInsert:=Last_breakpoint_number;
 end;
 
