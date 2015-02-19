@@ -637,6 +637,7 @@ type
     procedure SetCurrency(const AValue: Boolean);
     procedure SetPrecision(const AValue: Longint);
   protected
+    function GetAsBCD: TBCD; override;
     function GetAsFloat: Double; override;
     function GetAsLargeInt: LargeInt; override;
     function GetAsInteger: Longint; override;
@@ -644,6 +645,7 @@ type
     function GetAsString: string; override;
     function GetDataSize: Integer; override;
     procedure GetText(var theText: string; ADisplayText: Boolean); override;
+    procedure SetAsBCD(const AValue: TBCD); override;
     procedure SetAsFloat(AValue: Double); override;
     procedure SetAsLargeInt(AValue: LargeInt); override;
     procedure SetAsInteger(AValue: Longint); override;
