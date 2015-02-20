@@ -89,7 +89,8 @@ interface
     function consume_sym(var srsym:tsym;var srsymtable:TSymtable):boolean;
     function consume_sym_orgid(var srsym:tsym;var srsymtable:TSymtable;var s : string):boolean;
 
-    function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;consume_id:boolean):boolean;
+    function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;consume_id,allow_specialize:boolean;out is_specialize:boolean):boolean;
+    function try_consume_unitsym_no_specialize(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;consume_id:boolean):boolean;
 
     function try_consume_hintdirective(var symopt:tsymoptions; var deprecatedmsg:pshortstring):boolean;
 
@@ -204,7 +205,7 @@ implementation
           end;
         searchsym(pattern,srsym,srsymtable);
         { handle unit specification like System.Writeln }
-        try_consume_unitsym(srsym,srsymtable,t,true);
+        try_consume_unitsym_no_specialize(srsym,srsymtable,t,true);
         { if nothing found give error and return errorsym }
         if assigned(srsym) then
           check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg)
@@ -237,7 +238,7 @@ implementation
           end;
         searchsym(pattern,srsym,srsymtable);
         { handle unit specification like System.Writeln }
-        try_consume_unitsym(srsym,srsymtable,t,true);
+        try_consume_unitsym_no_specialize(srsym,srsymtable,t,true);
         { if nothing found give error and return errorsym }
         if assigned(srsym) then
           check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg)
@@ -253,7 +254,7 @@ implementation
       end;
 
 
-    function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;consume_id:boolean):boolean;
+    function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;consume_id,allow_specialize:boolean;out is_specialize:boolean):boolean;
       var
         hmodule: tmodule;
         ns:ansistring;
@@ -261,6 +262,7 @@ implementation
       begin
         result:=false;
         tokentoconsume:=_ID;
+        is_specialize:=false;
 
         if assigned(srsym) and (srsym.typ in [unitsym,namespacesym]) then
           begin
@@ -320,7 +322,15 @@ implementation
                           searchsym_in_module(tunitsym(srsym).module,'ANSICHAR',srsym,srsymtable)
                       end
                     else
-                      searchsym_in_module(tunitsym(srsym).module,pattern,srsym,srsymtable);
+                      if allow_specialize and (idtoken=_SPECIALIZE) then
+                        begin
+                          consume(_ID);
+                          is_specialize:=true;
+                          if token=_ID then
+                            searchsym_in_module(tunitsym(srsym).module,pattern,srsym,srsymtable);
+                        end
+                      else
+                        searchsym_in_module(tunitsym(srsym).module,pattern,srsym,srsymtable);
                   _STRING:
                     begin
                       { system.string? }
@@ -349,6 +359,13 @@ implementation
           end;
       end;
 
+
+    function try_consume_unitsym_no_specialize(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume:ttoken;consume_id:boolean):boolean;
+      var
+        dummy: Boolean;
+      begin
+        result:=try_consume_unitsym(srsym,srsymtable,tokentoconsume,consume_id,false,dummy);
+      end;
 
     function try_consume_hintdirective(var symopt:tsymoptions; var deprecatedmsg:pshortstring):boolean;
       var
