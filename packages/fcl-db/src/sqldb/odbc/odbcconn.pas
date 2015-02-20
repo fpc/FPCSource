@@ -60,6 +60,7 @@ type
       TDBMSInfo = record
         GetLastInsertIDSQL: string; // SQL statement for get last insert value for autoincrement column
       end;
+
     var
       FDriver: string;
       FEnvironment:TODBCEnvironment;
@@ -312,6 +313,74 @@ begin
   end;
 end;
 
+(*
+function BCDToNumericStruct(const bcd: TBCD): SQL_NUMERIC_STRUCT;
+var i, j, p: integer;
+    nibble: Byte;
+    a, m, carry: DWord;
+    BigInt: array[0..3] of QWord;
+    qw: QWord;
+    pdw: PDWord;
+begin
+  Result.precision := BCDPrecision(bcd);
+  if Result.precision = 0 then Result.precision := 1; // if bcd is NULL
+  Result.scale := BCDScale(bcd);
+  if IsBCDNegative(bcd) then
+    Result.sign := 0
+  else
+    Result.sign := 1;
+  // BigInt := 0
+  FillByte(BigInt, sizeof(BigInt), 0);
+  // process BCD nibbles (high nibble is at 0)
+  p := Result.precision;
+  i := 0;
+  while p > 0 do
+  begin
+    nibble := bcd.Fraction[i];
+    if p = 1 then
+      begin
+      a := nibble shr 4;
+      m := 10;
+      end
+    else
+      begin
+      a := (nibble shr 4)*10 + nibble and $0F;
+      m := 100;
+      end;
+
+    // BigInt := BigInt * m + a
+    // big multiplication
+    j := 0; carry := 0;
+    repeat
+      qw := BigInt[j] * m + carry;
+      BigInt[j] := qw and $FFFFFFFF;
+      carry := qw shr 32;
+      inc(j);
+    until j>high(BigInt);
+
+    // big addition
+    j := 0; carry := 0;
+    repeat
+      qw := BigInt[j] + a + carry;
+      BigInt[j] := qw and $FFFFFFFF;
+      carry := qw shr 32;
+      inc(j);
+    until (carry = 0) or (j>high(BigInt));
+
+    dec(p,2);
+    inc(i);
+  end;
+
+  // SQL_NUMERIC_STRUCT.val size must be 16 bytes (128bit integer)
+  pdw := @Result.val;
+  for j:=0 to high(BigInt) do
+    begin
+    pdw^ := NtoLE(BigInt[j]);
+    inc(pdw);
+    end;
+end;
+*)
+
 procedure TODBCConnection.SetParameters(ODBCCursor: TODBCCursor; AParams: TParams);
 var
   ParamIndex: integer;
@@ -319,7 +388,7 @@ var
   I, Size: integer;
   IntVal: clong;
   LargeVal: clonglong;
-  StrVal: string;
+  StrVal: ansistring;
   WideStrVal: widestring;
   FloatVal: cdouble;
   DateVal: SQL_DATE_STRUCT;
@@ -445,6 +514,18 @@ begin
           SqlType:=SQL_NUMERIC;
           ColumnSize:=NumericVal.precision;
           DecimalDigits:=NumericVal.scale;
+        end;
+      ftFmtBCD:
+        begin
+          // bind FmtBCD parameter as string to support higher precision than 10^38 (supported by SQL_NUMERIC_STRUCT)
+          StrVal:=GetAsSQLText(AParams[ParamIndex]);
+          StrLenOrInd:=Length(StrVal);
+          PVal:=@StrVal[1];
+          Size:=Length(StrVal);
+          CType:=SQL_C_CHAR;
+          SqlType:=SQL_CHAR;
+          ColumnSize:=Size;
+          BufferLength:=Size;
         end;
       ftDate:
         begin
@@ -1053,7 +1134,7 @@ begin
   if Res<>SQL_NO_DATA then
     ODBCCheckResult(Res,SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not fetch new row from result set.');
 
-  // result is true iff a new row was available
+  // result is true if a new row was available
   Result:=Res<>SQL_NO_DATA;
 end;
 
@@ -1382,7 +1463,7 @@ begin
                 IndexDef.Options:=IndexDef.Options+[ixDescending];
               end;
             end else if (OrdinalPos=1) or not Assigned(IndexDef) then begin
-              // create new IndexDef iff OrdinalPos=1 or not Assigned(IndexDef) (the latter should not occur though)
+              // create new IndexDef if OrdinalPos=1 or not Assigned(IndexDef) (the latter should not occur though)
               IndexDef:=IndexDefs.AddIndexDef;
               IndexDef.Name:=PChar(@IndexName[1]); // treat ansistring as zero terminated string
               IndexDef.Fields:=PChar(@ColName[1]);
