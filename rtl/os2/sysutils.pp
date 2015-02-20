@@ -80,9 +80,9 @@ Var
   Rc, Action: cardinal;
 begin
   SystemFileName:=ToSingleByteFileSystemEncodedFileName(FileName);
-(* DenyNone if sharing not specified. *)
+(* DenyReadWrite if sharing not specified. *)
   if (Mode and 112 = 0) or (Mode and 112 > 64) then
-   Mode := Mode or 64;
+   Mode := Mode or doDenyRW;
   Rc:=Sys_DosOpenL(PChar (SystemFileName), Handle, Action, 0, 0, 1, Mode, nil);
   If Rc=0 then
     FileOpen:=Handle
@@ -135,9 +135,13 @@ Var
   RC: cardinal;
 begin
   RC := DosRead (Handle, Buffer, Count, T);
-  FileRead := longint (T);
-  if RC <> 0 then
-   OSErrorWatch (RC);
+  if RC = 0 then
+   FileRead := longint (T)
+  else
+   begin
+    FileRead := -1;
+    OSErrorWatch (RC);
+   end;
 end;
 
 function FileWrite (Handle: THandle; const Buffer; Count: longint): longint;
@@ -146,9 +150,13 @@ Var
   RC: cardinal;
 begin
   RC := DosWrite (Handle, Buffer, Count, T);
-  FileWrite := longint (T);
-  if RC <> 0 then
-   OSErrorWatch (RC);
+  if RC = 0 then
+   FileWrite := longint (T)
+  else
+   begin
+    FileWrite := -1;
+    OSErrorWatch (RC);
+   end;
 end;
 
 function FileSeek (Handle: THandle; FOffset, Origin: longint): longint;
