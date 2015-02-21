@@ -639,7 +639,7 @@ implementation
           Intel 64 and IA-32 Architectures Software Developer’s Manual
             Volume 2B: Instruction Set Reference, N-Z, January 2015
         }
-        alignarray:array[0..10] of string[11]=(
+        alignarray_cmovcpus:array[0..10] of string[11]=(
           #$66#$66#$66#$0F#$1F#$84#$00#$00#$00#$00#$00,
           #$66#$66#$0F#$1F#$84#$00#$00#$00#$00#$00,
           #$66#$0F#$1F#$84#$00#$00#$00#$00#$00,
@@ -650,6 +650,13 @@ implementation
           #$0F#$1F#$40#$00,
           #$0F#$1F#$00,
           #$66#$90,
+          #$90);
+        alignarray:array[0..5] of string[8]=(
+          #$8D#$B4#$26#$00#$00#$00#$00,
+          #$8D#$B6#$00#$00#$00#$00,
+          #$8D#$74#$26#$00,
+          #$8D#$76#$00,
+          #$89#$F6,
           #$90);
       var
         bufptr : pchar;
@@ -665,12 +672,24 @@ implementation
            localsize:=fillsize;
            while (localsize>0) do
             begin
-              for j:=low(alignarray) to high(alignarray) do
-               if (localsize>=length(alignarray[j])) then
-                break;
-              move(alignarray[j][1],bufptr^,length(alignarray[j]));
-              inc(bufptr,length(alignarray[j]));
-              dec(localsize,length(alignarray[j]));
+              if CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype] then
+                begin
+                  for j:=low(alignarray_cmovcpus) to high(alignarray_cmovcpus) do
+                   if (localsize>=length(alignarray_cmovcpus[j])) then
+                    break;
+                  move(alignarray_cmovcpus[j][1],bufptr^,length(alignarray_cmovcpus[j]));
+                  inc(bufptr,length(alignarray_cmovcpus[j]));
+                  dec(localsize,length(alignarray_cmovcpus[j]));
+                end
+              else
+                begin
+                  for j:=low(alignarray) to high(alignarray) do
+                   if (localsize>=length(alignarray[j])) then
+                    break;
+                  move(alignarray[j][1],bufptr^,length(alignarray[j]));
+                  inc(bufptr,length(alignarray[j]));
+                  dec(localsize,length(alignarray[j]));
+                end
             end;
          end;
         calculatefillbuf:=pchar(@buf);
