@@ -869,7 +869,7 @@ type  key_sequence=packed record
         st:string[7];
       end;
 
-const key_sequences:array[0..277] of key_sequence=(
+const key_sequences:array[0..289] of key_sequence=(
        (char:0;scan:kbAltA;st:#27'A'),
        (char:0;scan:kbAltA;st:#27'a'),
        (char:0;scan:kbAltB;st:#27'B'),
@@ -1034,6 +1034,14 @@ const key_sequences:array[0..277] of key_sequence=(
        (char:0;scan:kbShiftF2;st:#27'O2Q'),      {konsole,xterm}
        (char:0;scan:kbShiftF3;st:#27'O2R'),      {konsole,xterm}
        (char:0;scan:kbShiftF4;st:#27'O2S'),      {konsole,xterm}
+       (char:0;scan:kbShiftF1;st:#27'[1;2P'),    {xterm,gnome3}
+       (char:0;scan:kbShiftF2;st:#27'[1;2Q'),    {xterm,gnome3}
+       (char:0;scan:kbShiftF3;st:#27'[1;2R'),    {xterm,gnome3}
+       (char:0;scan:kbShiftF4;st:#27'[1;2S'),    {xterm,gnome3}
+       (char:0;scan:kbCtrlF1;st:#27'[1;5P'),     {xterm,gnome3}
+       (char:0;scan:kbCtrlF2;st:#27'[1;5Q'),     {xterm,gnome3}
+       (char:0;scan:kbCtrlF3;st:#27'[1;5R'),     {xterm,gnome3}
+       (char:0;scan:kbCtrlF4;st:#27'[1;5S'),     {xterm,gnome3}
        (char:0;scan:kbCtrlF1;st:#27'[11;5~'),    {none, but expected}
        (char:0;scan:kbCtrlF2;st:#27'[12;5~'),    {none, but expected}
        (char:0;scan:kbCtrlF3;st:#27'[13;5~'),    {none, but expected}
@@ -1096,6 +1104,10 @@ const key_sequences:array[0..277] of key_sequence=(
        (char:0;scan:kbAltF10;st:#27#27'Ox'),     {xterm}
        (char:0;scan:kbAltF11;st:#27#27'Oy'),     {xterm}
        (char:0;scan:kbAltF12;st:#27#27'Oz'),     {xterm}
+       (char:0;scan:kbAltF1;st:#27'[1;3P'),      {xterm,gnome3}
+       (char:0;scan:kbAltF2;st:#27'[1;3Q'),      {xterm,gnome3}
+       (char:0;scan:kbAltF3;st:#27'[1;3R'),      {xterm,gnome3}
+       (char:0;scan:kbAltF4;st:#27'[1;3S'),      {xterm,gnome3}
        (char:0;scan:kbAltF1;st:#27'O3P'),        {xterm on FreeBSD}
        (char:0;scan:kbAltF2;st:#27'O3Q'),        {xterm on FreeBSD}
        (char:0;scan:kbAltF3;st:#27'O3R'),        {xterm on FreeBSD}
