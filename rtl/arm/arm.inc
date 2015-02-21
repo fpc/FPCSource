@@ -217,7 +217,10 @@ procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];
 procedure Move_pld(const source;var dest;count:longint);assembler;nostackframe;
 {$endif CPUARM_HAS_EDSP}
 asm
-  pld [r0]
+  // pld [r0]
+  // encode this using .long so the rtl assembles also with instructions sets not supporting pld
+  .long 0xf5d0f000
+
   // count <=0 ?
   cmp r2,#0
 {$ifdef CPUARM_HAS_BX}
@@ -237,11 +240,18 @@ asm
   tsteq r1, #3         //    (dest and 3) <> 0 then
   bne   .Lbyteloop     //   DoForwardByteCopy;
 
-  pld   [r0,#32]
+  // pld   [r0,#32]
+  // encode this using .long so the rtl assembles also with instructions sets not supporting pld
+  .long 0xf5d0f020
+
 .Ldwordloop:
   ldmia r0!, {r3, ip}
+
   // preload
-  pld   [r0,#64]
+  // pld   [r0,#64]
+  // encode this using .long so the rtl assembles also with instructions sets not supporting pld
+  .long 0xf5d0f040
+
   sub   r2,r2,#8
   cmp   r2, #8
   stmia r1!, {r3, ip}
@@ -526,11 +536,11 @@ asm
 {$endif}
   stmfd   sp!, {r1, lr}
   sub     r0, r1, #8
-{$ifdef CPUARM_HAS_BLX}
+{$if defined(CPUARM_HAS_BX) and not(defined(WINCE))}
   blx     InterLockedDecrement
-{$else}
+{$else defined(CPUARM_HAS_BX) and not(defined(WINCE))}
   bl      InterLockedDecrement
-{$endif}
+{$endif defined(CPUARM_HAS_BX) and not(defined(WINCE))}
   // InterLockedDecrement is a nice guy and sets the z flag for us
   // if the reference count dropped to 0
   ldmnefd sp!, {r1, pc}
@@ -962,7 +972,10 @@ begin
   in_edsp_test:=true;
   asm
     bic r0,sp,#7
-    ldrd r0,r1,[r0]
+
+    // ldrd r0,r1,[r0]
+    // encode this using .long so the rtl assembles also with instructions sets not supporting pld
+    .long 0xe1c000d0
   end;
   in_edsp_test:=false;
   if cpu_has_edsp then
