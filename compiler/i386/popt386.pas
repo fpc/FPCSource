@@ -2076,7 +2076,7 @@ begin
                             end;
                         end;
                     end;
-                  if (current_settings.cputype>=cpu_Pentium2) then
+                  if CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype] then
                     begin
                        { check for
                               jCC   xxx
