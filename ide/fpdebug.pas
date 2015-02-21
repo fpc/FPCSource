@@ -972,9 +972,6 @@ begin
 {$endif SUPPORT_REMOTE}
   { Switch to user screen to get correct handles }
   UserScreen;
-  { Don't try to print GDB messages while in User Screen mode }
-  If assigned(GDBWindow) then
-    GDBWindow^.Editor^.Lock;
 {$ifdef SUPPORT_REMOTE}
   if isRemoteDebugging then
     begin
@@ -996,8 +993,6 @@ begin
       SetDir(StartupDir);
     end;
   DebuggerScreen;
-  If assigned(GDBWindow) then
-    GDBWindow^.Editor^.UnLock;
   IDEApp.SetCmdState([cmResetDebugger,cmUntilReturn],true);
   IDEApp.UpdateRunMenu(true);
   UpdateDebugViews;
@@ -1556,6 +1551,8 @@ begin
      end;
    ChangeDebuggeeWindowTitleTo(Stopped_State);
 {$endif Windows}
+  If assigned(GDBWindow) then
+    GDBWindow^.Editor^.UnLock;
 end;
 
 
@@ -1595,6 +1592,9 @@ begin
      end;
    ChangeDebuggeeWindowTitleTo(Running_State);
 {$endif Windows}
+  { Don't try to print GDB messages while in User Screen mode }
+  If assigned(GDBWindow) then
+    GDBWindow^.Editor^.Lock;
 end;
 
 {$endif NODEBUG}
