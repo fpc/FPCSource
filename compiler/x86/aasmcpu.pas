@@ -633,22 +633,24 @@ implementation
 
     function tai_align.calculatefillbuf(var buf : tfillbuffer;executable : boolean):pchar;
       const
-{$ifdef x86_64}
-        alignarray:array[0..3] of string[4]=(
-          #$66#$66#$66#$90,
-          #$66#$66#$90,
+        { Updated according to
+          Software Optimization Guide for AMD Family 15h Processors, Verison 3.08, January 2014
+          and
+          Intel 64 and IA-32 Architectures Software Developer’s Manual
+            Volume 2B: Instruction Set Reference, N-Z, January 2015
+        }
+        alignarray:array[0..10] of string[11]=(
+          #$66#$66#$66#$0F#$1F#$84#$00#$00#$00#$00#$00,
+          #$66#$66#$0F#$1F#$84#$00#$00#$00#$00#$00,
+          #$66#$0F#$1F#$84#$00#$00#$00#$00#$00,
+          #$0F#$1F#$84#$00#$00#$00#$00#$00,
+          #$0F#$1F#$80#$00#$00#$00#$00,
+          #$66#$0F#$1F#$44#$00#$00,
+          #$0F#$1F#$44#$00#$00,
+          #$0F#$1F#$40#$00,
+          #$0F#$1F#$00,
           #$66#$90,
-          #$90
-        );
-{$else x86_64}
-        alignarray:array[0..5] of string[8]=(
-          #$8D#$B4#$26#$00#$00#$00#$00,
-          #$8D#$B6#$00#$00#$00#$00,
-          #$8D#$74#$26#$00,
-          #$8D#$76#$00,
-          #$89#$F6,
           #$90);
-{$endif x86_64}
       var
         bufptr : pchar;
         j : longint;
