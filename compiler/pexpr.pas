@@ -2196,6 +2196,7 @@ implementation
                      if isspecialize or (token=_ID) then
                        begin
                          erroroutp1:=true;
+                         srsym:=nil;
                          structh:=tabstractrecorddef(p1.resultdef);
                          if isspecialize then
                            begin
@@ -2368,6 +2369,7 @@ implementation
                       if isspecialize or (token=_ID) then
                         begin
                           erroroutp1:=true;
+                          srsym:=nil;
                           structh:=tobjectdef(p1.resultdef);
                           if isspecialize then
                             begin
