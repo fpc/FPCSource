@@ -1026,10 +1026,6 @@ const key_sequences:array[0..289] of key_sequence=(
        (char:0;scan:kbShiftF10;st:#27'[21;2~'),  {xterm}
        (char:0;scan:kbShiftF11;st:#27'[23;2~'),  {xterm}
        (char:0;scan:kbShiftF12;st:#27'[24;2~'),  {xterm}
-       (char:0;scan:kbShiftF1;st:#27'O5P'),      {xterm}
-       (char:0;scan:kbShiftF2;st:#27'O5Q'),      {xterm}
-       (char:0;scan:kbShiftF3;st:#27'O5R'),      {xterm}
-       (char:0;scan:kbShiftF4;st:#27'O5S'),      {xterm}
        (char:0;scan:kbShiftF1;st:#27'O2P'),      {konsole,xterm}
        (char:0;scan:kbShiftF2;st:#27'O2Q'),      {konsole,xterm}
        (char:0;scan:kbShiftF3;st:#27'O2R'),      {konsole,xterm}
@@ -1038,6 +1034,10 @@ const key_sequences:array[0..289] of key_sequence=(
        (char:0;scan:kbShiftF2;st:#27'[1;2Q'),    {xterm,gnome3}
        (char:0;scan:kbShiftF3;st:#27'[1;2R'),    {xterm,gnome3}
        (char:0;scan:kbShiftF4;st:#27'[1;2S'),    {xterm,gnome3}
+       (char:0;scan:kbCtrlF1;st:#27'O5P'),       {konsole,xterm}
+       (char:0;scan:kbCtrlF2;st:#27'O5Q'),       {konsole,xterm}
+       (char:0;scan:kbCtrlF3;st:#27'O5R'),       {konsole,xterm}
+       (char:0;scan:kbCtrlF4;st:#27'O5S'),       {konsole,xterm}
        (char:0;scan:kbCtrlF1;st:#27'[1;5P'),     {xterm,gnome3}
        (char:0;scan:kbCtrlF2;st:#27'[1;5Q'),     {xterm,gnome3}
        (char:0;scan:kbCtrlF3;st:#27'[1;5R'),     {xterm,gnome3}
