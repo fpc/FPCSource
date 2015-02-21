@@ -207,12 +207,14 @@ begin
         gpm_fs:=-1000;
         {write(#27'[?1001s');} { save old hilit tracking }
         write(#27'[?1000h'); { enable mouse tracking }
+        write(#27'[?1006h'); { try to enable Extended/SGH 1006 mouse tracking }
       end;
     1003:
       begin
         {Use the xterm mouse, report all mouse events.}
         gpm_fs:=-1003;
         write(#27'[?1003h'); { enable mouse tracking }
+        write(#27'[?1006h'); { try to enable Extended/SGH 1006 mouse tracking }
       end;
   end;
 {$ifndef NOGPM}
@@ -247,9 +249,13 @@ begin
         {xterm mouse}
         write(#27'[?1000l'); { disable mouse tracking }
         {write(#27'[?1001r');} { Restore old hilit tracking }
+        write(#27'[?1006l'); { disable Extended/SGH 1006 mouse tracking }
       end;
     -1003:
-      write(#27'[?1003l'); { disable mouse tracking }
+      begin
+        write(#27'[?1003l'); { disable mouse tracking }
+        write(#27'[?1006l'); { disable Extended/SGH 1006 mouse tracking }
+      end;
 {$ifndef NOGPM}
     else
       gpm_close;

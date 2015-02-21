@@ -572,6 +572,123 @@ const
      LastMouseEvent:=MouseEvent;
   end;
 
+
+  { The Extended/SGR 1006 mouse protocol, supported by xterm 277 and newer.
+    Message format: Esc [<0;123;456M  - mouse button press
+                or: Esc [<0;123;456m  - mouse button release
+    Advantages:
+      - can report X and Y coordinates larger than 223
+      - mouse release event informs us of *which* mouse button was released, so
+        we can track buttons more accurately
+      - messages use a different prefix (Esc [< instead of Esc [M) than the
+        regular mouse event messages, so there's no need to detect if the
+        terminal supports it - we can always try to enable it and then be
+        prepared to handle both types of messages }
+  procedure GenMouseEvent_ExtendedSGR1006;
+  var MouseEvent: TMouseEvent;
+      ch : char;
+      fdsin : tfdSet;
+      buttonval: LongInt;
+      tempstr: string;
+      code: LongInt;
+      X, Y: LongInt;
+      ButtonMask: Word;
+  begin
+    fpFD_ZERO(fdsin);
+    fpFD_SET(StdInputHandle,fdsin);
+
+    { read buttonval }
+    tempstr:='';
+    repeat
+      if inhead=intail then
+        fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
+      ch:=ttyRecvChar;
+      if (ch>='0') and (ch<='9') then
+        tempstr:=tempstr+ch
+      else if ch<>';' then
+        exit;
+    until ch=';';
+    Val(tempstr,buttonval,code);
+
+    { read X }
+    tempstr:='';
+    repeat
+      if inhead=intail then
+        fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
+      ch:=ttyRecvChar;
+      if (ch>='0') and (ch<='9') then
+        tempstr:=tempstr+ch
+      else if ch<>';' then
+        exit;
+    until ch=';';
+    Val(tempstr,X,code);
+
+    { read Y }
+    tempstr:='';
+    repeat
+      if inhead=intail then
+        fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
+      ch:=ttyRecvChar;
+      if (ch>='0') and (ch<='9') then
+        tempstr:=tempstr+ch
+      else if (ch<>'M') and (ch<>'m') then
+        exit;
+    until (ch='M') or (ch='m');
+    Val(tempstr,Y,code);
+
+{$ifdef DebugMouse}
+    Writeln(System.StdErr, 'SGR1006:', buttonval:3, X:5, Y:5, ' ', ch);
+{$endif DebugMouse}
+
+    { let's range check X and Y just in case }
+    if (X<(Low(MouseEvent.X)+1)) or (X>(High(MouseEvent.X)+1)) then
+      exit;
+    if (Y<(Low(MouseEvent.Y)+1)) or (Y>(High(MouseEvent.Y)+1)) then
+      exit;
+    MouseEvent.X:=X-1;
+    MouseEvent.Y:=Y-1;
+    if (buttonval and 32)<>0 then
+    begin
+      MouseEvent.Action:=MouseActionMove;
+      MouseEvent.Buttons:=LastMouseEvent.Buttons;
+    end
+    else
+    begin
+      case buttonval and 67 of
+        0 : {left button press}
+          ButtonMask:=1;
+        1 : {middle button pressed }
+          ButtonMask:=2;
+        2 : { right button pressed }
+          ButtonMask:=4;
+        3 : { no button pressed }
+          ButtonMask:=0;
+        64: { button 4 pressed }
+          ButtonMask:=8;
+        65: { button 5 pressed }
+          ButtonMask:=16;
+      end;
+      if ch='M' then
+      begin
+        MouseEvent.Action:=MouseActionDown;
+        MouseEvent.Buttons:=LastMouseEvent.Buttons or ButtonMask;
+      end
+      else
+      begin
+        MouseEvent.Action:=MouseActionUp;
+        MouseEvent.Buttons:=LastMouseEvent.Buttons and not ButtonMask;
+      end;
+    end;
+    PutMouseEvent(MouseEvent);
+    if (ButtonMask and (8+16)) <> 0 then // 'M' escape sequence cannot map button 4&5 release, so fake one.
+    begin
+      MouseEvent.Action:=MouseActionUp;
+      MouseEvent.Buttons:=LastMouseEvent.Buttons and not ButtonMask;
+      PutMouseEvent(MouseEvent);
+    end;
+    LastMouseEvent:=MouseEvent;
+  end;
+
 var roottree:array[char] of PTreeElement;
 
 procedure FreeElement (PT:PTreeElement);
@@ -1060,6 +1177,7 @@ var i:cardinal;
 
 begin
   AddSpecialSequence(#27'[M',@GenMouseEvent);
+  AddSpecialSequence(#27'[<',@GenMouseEvent_ExtendedSGR1006);
   {Unix backspace/delete hell... Is #127 a backspace or delete?}
   if copy(fpgetenv('TERM'),1,4)='cons' then
     begin
