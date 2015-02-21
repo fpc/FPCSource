@@ -640,7 +640,9 @@ unit cgcpu;
         sym : TAsmSymbol;
       begin
         { check not really correct: should only be used for non-Thumb cpus }
-        if CPUARM_HAS_BLX_LABEL in cpu_capabilities[current_settings.cputype] then
+        if (CPUARM_HAS_BLX_LABEL in cpu_capabilities[current_settings.cputype]) and
+          { WinCE GNU AS (not sure if this applies in general) does not support BLX imm }
+          (target_info.system<>system_arm_wince) then
           branchopcode:=A_BLX
         else
           branchopcode:=A_BL;
