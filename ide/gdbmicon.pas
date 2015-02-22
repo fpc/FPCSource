@@ -30,6 +30,10 @@ type
 
   TGDBController = object(TGDBInterface)
   private
+    FRegisterNames: array of AnsiString;
+    procedure UpdateRegisterNames;
+    function GetGdbRegisterNo(const RegName: string): LongInt;
+    function GetRegisterAsString(const RegName, Format: string; var Value: string): Boolean;
     procedure RunExecCommand(const Cmd: string);
   protected
     TBreakNumber,
@@ -54,6 +58,12 @@ type
     procedure TraceNextI;
     procedure Continue; virtual;
     procedure UntilReturn; virtual;
+    { registers }
+    function GetIntRegister(const RegName: string; var Value: UInt64): Boolean;
+    function GetIntRegister(const RegName: string; var Value: Int64): Boolean;
+    function GetIntRegister(const RegName: string; var Value: UInt32): Boolean;
+    function GetIntRegister(const RegName: string; var Value: Int32): Boolean;
+    { breakpoints }
     function BreakpointInsert(const location: string; BreakpointFlags: TBreakpointFlags): LongInt;
     function WatchpointInsert(const location: string; WatchpointType: TWatchpointType): LongInt;
     function BreakpointDelete(BkptNo: LongInt): Boolean;
@@ -122,6 +132,34 @@ procedure TGDBController.CommandEnd(const s: string);
 begin
 end;
 
+procedure TGDBController.UpdateRegisterNames;
+var
+  I: LongInt;
+  ResultList: TGDBMI_ListValue;
+begin
+  SetLength(FRegisterNames, 0);
+  Command('-data-list-register-names');
+  if not GDB.ResultRecord.Success then
+    exit;
+  ResultList := GDB.ResultRecord.Parameters['register-names'].AsList;
+  SetLength(FRegisterNames, ResultList.Count);
+  for I := 0 to ResultList.Count - 1 do
+    FRegisterNames[I] := ResultList.ValueAt[I].AsString;
+end;
+
+function TGDBController.GetGdbRegisterNo(const RegName: string): LongInt;
+var
+  I: LongInt;
+begin
+  for I := Low(FRegisterNames) to High(FRegisterNames) do
+    if FRegisterNames[I] = RegName then
+    begin
+      GetGdbRegisterNo := I;
+      exit;
+    end;
+  GetGdbRegisterNo := -1;
+end;
+
 procedure TGDBController.Reset;
 begin
 end;
@@ -173,6 +211,66 @@ end;
 procedure TGDBController.UntilReturn;
 begin
   RunExecCommand('-exec-finish');
+end;
+
+function TGDBController.GetRegisterAsString(const RegName, Format: string; var Value: string): Boolean;
+var
+  RegNo: LongInt;
+  RegNoStr: string;
+begin
+  GetRegisterAsString := False;
+  Value := '';
+
+  RegNo := GetGdbRegisterNo(RegName);
+  if RegNo = -1 then
+    exit;
+  Str(RegNo, RegNoStr);
+  Command('-data-list-register-values ' + Format + ' ' + RegNoStr);
+  if not GDB.ResultRecord.Success then
+    exit;
+  Value := GDB.ResultRecord.Parameters['register-values'].AsList.ValueAt[0].AsTuple['value'].AsString;
+  GetRegisterAsString := True;
+end;
+
+function TGDBController.GetIntRegister(const RegName: string; var Value: UInt64): Boolean;
+var
+  RegValueStr: string;
+  Code: LongInt;
+begin
+  GetIntRegister := False;
+  Value := 0;
+  if not GetRegisterAsString(RegName, 'd', RegValueStr) then
+    exit;
+  Val(RegValueStr, Value, Code);
+  if Code <> 0 then
+    exit;
+  GetIntRegister := True;
+end;
+
+function TGDBController.GetIntRegister(const RegName: string; var Value: Int64): Boolean;
+var
+  U64Value: UInt64;
+begin
+  GetIntRegister := GetIntRegister(RegName, U64Value);
+  Value := Int64(U64Value);
+end;
+
+function TGDBController.GetIntRegister(const RegName: string; var Value: UInt32): Boolean;
+var
+  U64Value: UInt64;
+begin
+  GetIntRegister := GetIntRegister(RegName, U64Value);
+  Value := UInt32(U64Value);
+  if (U64Value shr 32) <> 0 then
+    GetIntRegister := False;
+end;
+
+function TGDBController.GetIntRegister(const RegName: string; var Value: Int32): Boolean;
+var
+  U32Value: UInt32;
+begin
+  GetIntRegister := GetIntRegister(RegName, U32Value);
+  Value := UInt32(U32Value);
 end;
 
 function TGDBController.BreakpointInsert(const location: string; BreakpointFlags: TBreakpointFlags): LongInt;
@@ -306,6 +404,9 @@ begin
   GDBErrorBuf.Reset;
   UnixDir(fn);
   Command('-file-exec-and-symbols ' + fn);
+  { the register list may change *after* loading a file, because there }
+  { are gdb versions that support multiple archs, e.g. i386 and x86_64 }
+  UpdateRegisterNames;               { so that's why we update it here }
   LoadFile := True;
 end;
 
