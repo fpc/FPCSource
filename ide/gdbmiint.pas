@@ -282,6 +282,8 @@ begin
 
   for I := 0 to GDB.ConsoleStream.Count - 1 do
     GDBOutputBuf.Append(PChar(GDB.ConsoleStream[I]));
+  if (GDB.ResultRecord.AsyncClass='error') and Assigned(GDB.ResultRecord.Parameters['msg']) then
+    GDBErrorBuf.Append(PChar(GDB.ResultRecord.Parameters['msg'].AsString));
   ProcessResponse;
   Dec(command_level);
   stop_breakpoint_number := prev_stop_breakpoint_number;
