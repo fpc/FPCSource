@@ -332,6 +332,8 @@ Ignore:
       end;
     'breakpoint-hit',
     'watchpoint-trigger',
+    'access-watchpoint-trigger',
+    'read-watchpoint-trigger',
     'end-stepping-range',
     'function-finished':
       begin
@@ -343,6 +345,10 @@ Ignore:
           stop_breakpoint_number := GDB.ExecAsyncOutput.Parameters['bkptno'].AsLongInt;
         if StopReason = 'watchpoint-trigger' then
           stop_breakpoint_number := GDB.ExecAsyncOutput.Parameters['wpt'].AsTuple['number'].AsLongInt;
+        if StopReason = 'access-watchpoint-trigger' then
+          stop_breakpoint_number := GDB.ExecAsyncOutput.Parameters['hw-awpt'].AsTuple['number'].AsLongInt;
+        if StopReason = 'read-watchpoint-trigger' then
+          stop_breakpoint_number := GDB.ExecAsyncOutput.Parameters['hw-rwpt'].AsTuple['number'].AsLongInt;
 
         Debuggee_started := True;
         current_pc := GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['addr'].AsPtrInt;

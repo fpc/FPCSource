@@ -196,7 +196,14 @@ begin
       Command('-break-watch -r ' + location);
   end;
   if GDB.ResultRecord.Success then
-    WatchpointInsert := GDB.ResultRecord.Parameters['wpt'].AsTuple['number'].AsLongInt
+    case WatchpointType of
+      wtWrite:
+        WatchpointInsert := GDB.ResultRecord.Parameters['wpt'].AsTuple['number'].AsLongInt;
+      wtReadWrite:
+        WatchpointInsert := GDB.ResultRecord.Parameters['hw-awpt'].AsTuple['number'].AsLongInt;
+      wtRead:
+        WatchpointInsert := GDB.ResultRecord.Parameters['hw-rwpt'].AsTuple['number'].AsLongInt;
+    end
   else
     WatchpointInsert := 0;
 end;
