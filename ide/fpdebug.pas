@@ -1367,10 +1367,7 @@ begin
             Command('continue');
             exit;
           end;
-        { forget all old frames }
-        clear_frames;
-        { record new frames }
-        Command('backtrace');
+        Backtrace;
         for i:=0 to frame_count-1 do
           begin
             with frames[i]^ do
