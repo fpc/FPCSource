@@ -40,6 +40,9 @@ type
 {$ifndef NODEBUG}
   PDebugController=^TDebugController;
   TDebugController=object(TGDBController)
+  private
+    function  GetFPCBreakErrorParameters(var ExitCode: LongInt; var ExitAddr, ExitFrame: CORE_ADDR): Boolean;
+  public
      InvalidSourceLine : boolean;
 
      { if true the current debugger raw will stay in middle of
@@ -1299,6 +1302,29 @@ begin
   Val('$'+st,GetPointerAt,code);
 end;
 
+function TDebugController.GetFPCBreakErrorParameters(var ExitCode: LongInt; var ExitAddr, ExitFrame: CORE_ADDR): Boolean;
+const
+  { try to find the parameters }
+  FirstArgOffset = -sizeof(pointer);
+  SecondArgOffset = 2*-sizeof(pointer);
+  ThirdArgOffset = 3*-sizeof(pointer);
+begin
+  // Procedure HandleErrorAddrFrame (Errno : longint;addr : CodePointer; frame : Pointer);
+  //  [public,alias:'FPC_BREAK_ERROR']; {$ifdef cpui386} register; {$endif}
+  {TODO: handle archs with register calling conventions}
+{$if defined(FrameNameKnown)}
+  ExitCode:=GetLongintAt(GetFramePointer+FirstArgOffset);
+  ExitAddr:=GetPointerAt(GetFramePointer+SecondArgOffset);
+  ExitFrame:=GetPointerAt(GetFramePointer+ThirdArgOffset);
+  GetFPCBreakErrorParameters := True;
+{$else}
+  ExitCode := 0;
+  ExitAddr := 0;
+  ExitFrame := 0;
+  GetFPCBreakErrorParameters := False;
+{$endif}
+end;
+
 procedure TDebugController.DoSelectSourceLine(const fn:string;line:longint);
 var
   W: PSourceWindow;
@@ -1309,12 +1335,6 @@ var
   stop_addr : CORE_ADDR;
   i,ExitCode : longint;
   ExitAddr,ExitFrame : CORE_ADDR;
-const
-  { try to find the parameters }
-  FirstArgOffset = -sizeof(pointer);
-  SecondArgOffset = 2*-sizeof(pointer);
-  ThirdArgOffset = 3*-sizeof(pointer);
-
 begin
   BreakIndex:=stop_breakpoint_number;
   Desktop^.Lock;
@@ -1327,41 +1347,36 @@ begin
 
   if (BreakIndex=FPCBreakErrorNumber) then
     begin
-      { Procedure HandleErrorAddrFrame
-         (Errno : longint;addr,frame : longint);
-         [public,alias:'FPC_BREAK_ERROR']; }
-{$ifdef FrameNameKnown}
-      ExitCode:=GetLongintAt(GetFramePointer+FirstArgOffset);
-      ExitAddr:=GetPointerAt(GetFramePointer+SecondArgOffset);
-      ExitFrame:=GetPointerAt(GetFramePointer+ThirdArgOffset);
-      if (ExitCode=0) and (ExitAddr=0) then
-        begin
-          Desktop^.Unlock;
-          Command('continue');
-          exit;
-        end;
-      { forget all old frames }
-      clear_frames;
-      { record new frames }
-      Command('backtrace');
-      for i:=0 to frame_count-1 do
-        begin
-          with frames[i]^ do
-            begin
-              if ExitAddr=address then
-                begin
-                  Command('f '+IntToStr(i));
-                  if assigned(file_name) then
-                    begin
-                      s:=strpas(file_name);
-                      line:=line_number;
-                      stop_addr:=address;
-                    end;
-                  break;
-                end;
-            end;
-        end;
-{$endif FrameNameKnown}
+      if GetFPCBreakErrorParameters(ExitCode, ExitAddr, ExitFrame) then
+      begin
+        if (ExitCode=0) and (ExitAddr=0) then
+          begin
+            Desktop^.Unlock;
+            Command('continue');
+            exit;
+          end;
+        { forget all old frames }
+        clear_frames;
+        { record new frames }
+        Command('backtrace');
+        for i:=0 to frame_count-1 do
+          begin
+            with frames[i]^ do
+              begin
+                if ExitAddr=address then
+                  begin
+                    Command('f '+IntToStr(i));
+                    if assigned(file_name) then
+                      begin
+                        s:=strpas(file_name);
+                        line:=line_number;
+                        stop_addr:=address;
+                      end;
+                    break;
+                  end;
+              end;
+          end;
+      end;
     end;
   { Update Disassembly position }
   if Assigned(DisassemblyWindow) then
