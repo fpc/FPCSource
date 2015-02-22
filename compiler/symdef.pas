@@ -214,9 +214,6 @@ interface
           function alignment:shortint;override;
        end;
 
-
-       { tpointerdef }
-
        tpointerdef = class(tabstractpointerdef)
           has_pointer_math : boolean;
           constructor create(def:tdef);virtual;
@@ -577,6 +574,7 @@ interface
           procedure buildderef;override;
           procedure deref;override;
           procedure calcparas;
+          function mangledprocparanames(oldlen : longint) : string;
           function  typename_paras(pno: tprocnameoptions): ansistring;
           function  is_methodpointer:boolean;virtual;
           function  is_addressonly:boolean;virtual;
@@ -1220,38 +1218,7 @@ implementation
              conflicts with 2 overloads having both a nested procedure
              with the same name, see tb0314 (PFV) }
            s:=tprocdef(st.defowner).procsym.name;
-           oldlen:=length(s);
-           for i:=0 to tprocdef(st.defowner).paras.count-1 do
-            begin
-              hp:=tparavarsym(tprocdef(st.defowner).paras[i]);
-              if not(vo_is_hidden_para in hp.varoptions) then
-                s:=s+'$'+hp.vardef.mangledparaname;
-            end;
-           if not is_void(tprocdef(st.defowner).returndef) then
-             s:=s+'$$'+tprocdef(st.defowner).returndef.mangledparaname;
-           newlen:=length(s);
-           { Replace with CRC if the parameter line is very long }
-           if (newlen-oldlen>12) and
-              ((newlen+length(prefix)>100) or (newlen-oldlen>32)) then
-             begin
-               crc:=0;
-               for i:=0 to tprocdef(st.defowner).paras.count-1 do
-                 begin
-                   hp:=tparavarsym(tprocdef(st.defowner).paras[i]);
-                   if not(vo_is_hidden_para in hp.varoptions) then
-                     begin
-                       hs:=hp.vardef.mangledparaname;
-                       crc:=UpdateCrc32(crc,hs[1],length(hs));
-                     end;
-                 end;
-               if not is_void(tprocdef(st.defowner).returndef) then
-                 begin
-                   { add a little prefix so that x(integer; integer) is different from x(integer):integer }
-                   hs:='$$'+tprocdef(st.defowner).returndef.mangledparaname;
-                   crc:=UpdateCrc32(crc,hs[1],length(hs));
-                 end;
-               s:=Copy(s,1,oldlen)+'$crc'+hexstr(crc,8);
-             end;
+           s:=s+tprocdef(st.defowner).mangledprocparanames(Length(s));
            if prefix<>'' then
              prefix:=s+'_'+prefix
            else
@@ -4342,6 +4309,53 @@ implementation
       end;
 
 
+    function tabstractprocdef.mangledprocparanames(oldlen : longint) : string;
+      var
+        crc  : dword;
+        hp   : TParavarsym;
+        hs   : TSymStr;
+        newlen,
+        i    : integer;
+      begin
+        result:='';
+        hp:=nil;
+        { add parameter types }
+        for i:=0 to paras.count-1 do
+         begin
+           hp:=tparavarsym(paras[i]);
+           if not(vo_is_hidden_para in hp.varoptions) then
+             result:=result+'$'+hp.vardef.mangledparaname;
+         end;
+        { add resultdef, add $$ as separator to make it unique from a
+          parameter separator }
+        if not is_void(returndef) then
+          result:=result+'$$'+returndef.mangledparaname;
+        newlen:=length(result)+oldlen;
+        { Replace with CRC if the parameter line is very long }
+        if (newlen-oldlen>12) and
+           ((newlen>100) or (newlen-oldlen>64)) then
+          begin
+            crc:=0;
+            for i:=0 to paras.count-1 do
+              begin
+                hp:=tparavarsym(paras[i]);
+                if not(vo_is_hidden_para in hp.varoptions) then
+                  begin
+                    hs:=hp.vardef.mangledparaname;
+                    crc:=UpdateCrc32(crc,hs[1],length(hs));
+                  end;
+              end;
+            if not is_void(returndef) then
+              begin
+                { add a little prefix so that x(integer; integer) is different from x(integer):integer }
+                hs:='$$'+returndef.mangledparaname;
+                crc:=UpdateCrc32(crc,hs[1],length(hs));
+              end;
+            result:='$crc'+hexstr(crc,8);
+          end;
+      end;
+
+
     procedure tabstractprocdef.buildderef;
       begin
          { released procdef? }
@@ -5475,53 +5489,11 @@ implementation
 
 
     function tprocdef.defaultmangledname: TSymStr;
-      var
-        hp   : TParavarsym;
-        hs   : TSymStr;
-        crc  : dword;
-        newlen,
-        oldlen,
-        i    : integer;
       begin
-        hp:=nil;
         { we need to use the symtable where the procsym is inserted,
           because that is visible to the world }
         defaultmangledname:=make_mangledname('',procsym.owner,procsym.name);
-        oldlen:=length(defaultmangledname);
-        { add parameter types }
-        for i:=0 to paras.count-1 do
-         begin
-           hp:=tparavarsym(paras[i]);
-           if not(vo_is_hidden_para in hp.varoptions) then
-             defaultmangledname:=defaultmangledname+'$'+hp.vardef.mangledparaname;
-         end;
-        { add resultdef, add $$ as separator to make it unique from a
-          parameter separator }
-        if not is_void(returndef) then
-          defaultmangledname:=defaultmangledname+'$$'+returndef.mangledparaname;
-        newlen:=length(defaultmangledname);
-        { Replace with CRC if the parameter line is very long }
-        if (newlen-oldlen>12) and
-           ((newlen>100) or (newlen-oldlen>64)) then
-          begin
-            crc:=0;
-            for i:=0 to paras.count-1 do
-              begin
-                hp:=tparavarsym(paras[i]);
-                if not(vo_is_hidden_para in hp.varoptions) then
-                  begin
-                    hs:=hp.vardef.mangledparaname;
-                    crc:=UpdateCrc32(crc,hs[1],length(hs));
-                  end;
-              end;
-            if not is_void(returndef) then
-              begin
-                { add a little prefix so that x(integer; integer) is different from x(integer):integer }
-                hs:='$$'+returndef.mangledparaname;
-                crc:=UpdateCrc32(crc,hs[1],length(hs));
-              end;
-            defaultmangledname:=Copy(defaultmangledname,1,oldlen)+'$crc'+hexstr(crc,8);
-          end;
+        defaultmangledname:=defaultmangledname+mangledprocparanames(Length(defaultmangledname))
       end;
 
 
@@ -5858,7 +5830,11 @@ implementation
           if not is_nested_pd(self) then
             result:='procvar'
           else
-            result:='nestedprovar'
+            { we need the manglednames here, because nestedprocvars can be anonymous, e.g.
+              having not a type name or not an unique one, see webtbs/tw27515.pp
+
+              Further, use $_ ... _$ delimiters to avoid ambiguous names, see webtbs/tw27515.pp }
+            result:='$_nestedprovar'+mangledprocparanames(0)+'_$'
         else
           result:='procvarofobj'
       end;
