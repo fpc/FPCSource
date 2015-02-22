@@ -270,7 +270,7 @@ var
   U32Value: UInt32;
 begin
   GetIntRegister := GetIntRegister(RegName, U32Value);
-  Value := UInt32(U32Value);
+  Value := Int32(U32Value);
 end;
 
 function TGDBController.BreakpointInsert(const location: string; BreakpointFlags: TBreakpointFlags): LongInt;
