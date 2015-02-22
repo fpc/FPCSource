@@ -54,6 +54,7 @@ type
     procedure UntilReturn;virtual;
     function BreakpointInsert(const location: string; BreakpointFlags: TBreakpointFlags): LongInt;
     function WatchpointInsert(const location: string; WatchpointType: TWatchpointType): LongInt;
+    function BreakpointDelete(BkptNo: LongInt): Boolean;
     procedure SetTBreak(tbreakstring : string);
     procedure Backtrace;
     { needed for dos because newlines are only #10 (PM) }
@@ -334,6 +335,15 @@ begin
       Command('rwatch ' + location);
   end;
   WatchpointInsert:=Last_breakpoint_number;
+end;
+
+function TGDBController.BreakpointDelete(BkptNo: LongInt): Boolean;
+var
+  BkptNoStr: string;
+begin
+  Str(BkptNo, BkptNoStr);
+  Command('delete ' + BkptNoStr);
+  BreakpointDelete := not Error;
 end;
 
 procedure TGDBController.SetTBreak(tbreakstring : string);

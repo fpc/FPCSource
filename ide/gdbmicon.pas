@@ -56,6 +56,7 @@ type
     procedure UntilReturn; virtual;
     function BreakpointInsert(const location: string; BreakpointFlags: TBreakpointFlags): LongInt;
     function WatchpointInsert(const location: string; WatchpointType: TWatchpointType): LongInt;
+    function BreakpointDelete(BkptNo: LongInt): Boolean;
     procedure SetTBreak(tbreakstring : string);
     procedure Backtrace;
     function LoadFile(var fn: string): Boolean;
@@ -206,6 +207,15 @@ begin
     end
   else
     WatchpointInsert := 0;
+end;
+
+function TGDBController.BreakpointDelete(BkptNo: LongInt): Boolean;
+var
+  BkptNoStr: string;
+begin
+  Str(BkptNo, BkptNoStr);
+  Command('-break-delete ' + BkptNoStr);
+  BreakpointDelete := GDB.ResultRecord.Success;
 end;
 
 procedure TGDBController.SetTBreak(tbreakstring : string);

@@ -1856,7 +1856,7 @@ begin
 {$ifndef NODEBUG}
   If not assigned(Debugger) then Exit;
   if GDBIndex>0 then
-    Debugger^.Command('delete '+IntToStr(GDBIndex));
+    Debugger^.BreakpointDelete(GDBIndex);
   GDBIndex:=0;
   GDBState:=bs_deleted;
 {$endif NODEBUG}
