@@ -310,6 +310,16 @@ Ignore:
   ProcessResponse;
   StopReason := GDB.ExecAsyncOutput.Parameters['reason'].AsString;
   case StopReason of
+    'watchpoint-scope':
+      begin
+        { A watchpoint has gone out of scope (e.g. if it was a local variable). TODO: should we stop
+          the program and notify the user or maybe silently disable it in the breakpoint list and
+          continue execution? The libgdb.a version of the debugger just silently ignores this case.
+
+          We have: GDB.ExecAsyncOutput.Parameters['wpnum'].AsLongInt }
+        i_gdb_command('-exec-continue');
+        goto Ignore;
+      end;
     'signal-received':
       begin
         {    TODO: maybe show information to the user about the signal
