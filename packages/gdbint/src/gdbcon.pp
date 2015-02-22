@@ -58,6 +58,7 @@ type
     function BreakpointEnable(BkptNo: LongInt): Boolean;
     function BreakpointDisable(BkptNo: LongInt): Boolean;
     function BreakpointCondition(BkptNo: LongInt; const ConditionExpr: string): Boolean;
+    function BreakpointSetIgnoreCount(BkptNo: LongInt; const IgnoreCount: LongInt): Boolean;
     procedure SetTBreak(tbreakstring : string);
     procedure Backtrace;
     { needed for dos because newlines are only #10 (PM) }
@@ -374,6 +375,16 @@ begin
   Str(BkptNo, BkptNoStr);
   Command('condition ' + BkptNoStr + ' ' + ConditionExpr);
   BreakpointCondition := not Error;
+end;
+
+function TGDBController.BreakpointSetIgnoreCount(BkptNo: LongInt; const IgnoreCount: LongInt): Boolean;
+var
+  BkptNoStr, IgnoreCountStr: string;
+begin
+  Str(BkptNo, BkptNoStr);
+  Str(IgnoreCount, IgnoreCountStr);
+  Command('ignore ' + BkptNoStr + ' ' + IgnoreCountStr);
+  BreakpointSetIgnoreCount := not Error;
 end;
 
 procedure TGDBController.SetTBreak(tbreakstring : string);

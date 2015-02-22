@@ -60,6 +60,7 @@ type
     function BreakpointEnable(BkptNo: LongInt): Boolean;
     function BreakpointDisable(BkptNo: LongInt): Boolean;
     function BreakpointCondition(BkptNo: LongInt; const ConditionExpr: string): Boolean;
+    function BreakpointSetIgnoreCount(BkptNo: LongInt; const IgnoreCount: LongInt): Boolean;
     procedure SetTBreak(tbreakstring : string);
     procedure Backtrace;
     function LoadFile(var fn: string): Boolean;
@@ -246,6 +247,16 @@ begin
   Str(BkptNo, BkptNoStr);
   Command('-break-condition ' + BkptNoStr + ' ' + ConditionExpr);
   BreakpointCondition := GDB.ResultRecord.Success;
+end;
+
+function TGDBController.BreakpointSetIgnoreCount(BkptNo: LongInt; const IgnoreCount: LongInt): Boolean;
+var
+  BkptNoStr, IgnoreCountStr: string;
+begin
+  Str(BkptNo, BkptNoStr);
+  Str(IgnoreCount, IgnoreCountStr);
+  Command('-break-after ' + BkptNoStr + ' ' + IgnoreCountStr);
+  BreakpointSetIgnoreCount := GDB.ResultRecord.Success;
 end;
 
 procedure TGDBController.SetTBreak(tbreakstring : string);

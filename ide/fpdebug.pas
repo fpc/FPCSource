@@ -1795,7 +1795,7 @@ begin
           GDBState:=bs_enabled;
           Debugger^.BreakpointCondition(GDBIndex, GetStr(Conditions));
           If IgnoreCount>0 then
-            Debugger^.Command('ignore '+IntToStr(GDBIndex)+' '+IntToStr(IgnoreCount));
+            Debugger^.BreakpointSetIgnoreCount(GDBIndex, IgnoreCount);
           If Assigned(Commands) then
             begin
               {Commands are not handled yet }
