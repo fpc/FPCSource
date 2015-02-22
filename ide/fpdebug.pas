@@ -1867,7 +1867,7 @@ begin
 {$ifndef NODEBUG}
   If not assigned(Debugger) then Exit;
   if GDBIndex>0 then
-    Debugger^.Command('enable '+IntToStr(GDBIndex))
+    Debugger^.BreakpointEnable(GDBIndex)
   else
     Insert;
   GDBState:=bs_disabled;
@@ -1879,7 +1879,7 @@ begin
 {$ifndef NODEBUG}
   If not assigned(Debugger) then Exit;
   if GDBIndex>0 then
-    Debugger^.Command('disable '+IntToStr(GDBIndex));
+    Debugger^.BreakpointDisable(GDBIndex);
   GDBState:=bs_disabled;
 {$endif NODEBUG}
 end;
