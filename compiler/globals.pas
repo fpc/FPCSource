@@ -445,8 +445,8 @@ interface
         fputype : fpu_hard;
   {$endif sparc}
   {$ifdef arm}
-        cputype : cpu_armv3;
-        optimizecputype : cpu_armv3;
+        cputype : cpu_armv4;
+        optimizecputype : cpu_armv4;
         fputype : fpu_fpa;
   {$endif arm}
   {$ifdef x86_64}
