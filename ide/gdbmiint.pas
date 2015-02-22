@@ -290,12 +290,15 @@ begin
 end;
 
 procedure TGDBInterface.WaitForProgramStop;
+label
+  Ignore;
 var
   StopReason: string;
   Line: LongInt;
   FileName: string = '';
   LineNumber: LongInt = 0;
 begin
+Ignore:
   GDB.WaitForProgramStop;
   if not GDB.Alive then
   begin
@@ -307,6 +310,16 @@ begin
   ProcessResponse;
   StopReason := GDB.ExecAsyncOutput.Parameters['reason'].AsString;
   case StopReason of
+    'signal-received':
+      begin
+        {    TODO: maybe show information to the user about the signal
+          we have:
+               GDB.ExecAsyncOutput.Parameters['signal-name'].AsString (e.g. 'SIGTERM')
+               GDB.ExecAsyncOutput.PArameters['signal-meaning'].AsString (e.g. 'Terminated')
+          }
+        i_gdb_command('-exec-continue');
+        goto Ignore;
+      end;
     'breakpoint-hit',
     'watchpoint-trigger',
     'end-stepping-range',
@@ -328,6 +341,18 @@ begin
         if Assigned(GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['line']) then
           LineNumber := GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['line'].AsLongInt;
         DoSelectSourceLine(FileName, LineNumber);
+      end;
+    'exited-signalled':
+      begin
+        DebuggerScreen;
+        current_pc := 0;
+        Debuggee_started := False;
+        {    TODO: maybe show information to the user about the signal
+          we have:
+               GDB.ExecAsyncOutput.Parameters['signal-name'].AsString (e.g. 'SIGTERM')
+               GDB.ExecAsyncOutput.PArameters['signal-meaning'].AsString (e.g. 'Terminated')
+          }
+        DoEndSession(1);
       end;
     'exited':
       begin
