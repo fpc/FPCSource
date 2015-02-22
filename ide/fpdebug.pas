@@ -1793,7 +1793,7 @@ begin
         begin
           GDBIndex:=bkpt_no;
           GDBState:=bs_enabled;
-          Debugger^.Command('cond '+IntToStr(GDBIndex)+' '+GetStr(Conditions));
+          Debugger^.BreakpointCondition(GDBIndex, GetStr(Conditions));
           If IgnoreCount>0 then
             Debugger^.Command('ignore '+IntToStr(GDBIndex)+' '+IntToStr(IgnoreCount));
           If Assigned(Commands) then

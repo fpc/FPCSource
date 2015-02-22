@@ -59,6 +59,7 @@ type
     function BreakpointDelete(BkptNo: LongInt): Boolean;
     function BreakpointEnable(BkptNo: LongInt): Boolean;
     function BreakpointDisable(BkptNo: LongInt): Boolean;
+    function BreakpointCondition(BkptNo: LongInt; const ConditionExpr: string): Boolean;
     procedure SetTBreak(tbreakstring : string);
     procedure Backtrace;
     function LoadFile(var fn: string): Boolean;
@@ -236,6 +237,15 @@ begin
   Str(BkptNo, BkptNoStr);
   Command('-break-disable ' + BkptNoStr);
   BreakpointDisable := GDB.ResultRecord.Success;
+end;
+
+function TGDBController.BreakpointCondition(BkptNo: LongInt; const ConditionExpr: string): Boolean;
+var
+  BkptNoStr: string;
+begin
+  Str(BkptNo, BkptNoStr);
+  Command('-break-condition ' + BkptNoStr + ' ' + ConditionExpr);
+  BreakpointCondition := GDB.ResultRecord.Success;
 end;
 
 procedure TGDBController.SetTBreak(tbreakstring : string);
