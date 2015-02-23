@@ -92,9 +92,8 @@ interface
         procedure g_maybe_got_init(list: TAsmList); override;
         procedure g_restore_registers(list: TAsmList);override;
         procedure g_save_registers(list: TAsmList);override;
+        procedure g_concatcopy_move(list: TAsmList; const source, dest: treference; len: tcgint);
         procedure g_concatcopy(list: TAsmList; const source, dest: treference; len: tcgint);override;
-        procedure g_concatcopy_unaligned(list: TAsmList; const source, dest: treference; len: tcgint);override;
-        procedure g_concatcopy_move(list: TAsmList; const source, dest: treference; len : tcgint);
         procedure g_adjust_self_value(list: TAsmList; procdef: tprocdef; ioffset: tcgint);override;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
        private
@@ -1468,7 +1467,6 @@ implementation
       end;
 
 
-
     procedure tcgaarch64.g_proc_entry(list: TAsmList; localsize: longint; nostackframe: boolean);
       var
         ref: treference;
@@ -1676,152 +1674,433 @@ implementation
       end;
 
 
-    procedure tcgaarch64.g_concatcopy(list:TAsmList;const source,dest:treference;len:tcgint);
-(*
+    procedure tcgaarch64.g_concatcopy(list: TAsmList; const source, dest: treference; len: tcgint);
+
       var
-        tmpreg1,
-        hreg,
-        countreg: tregister;
-        src, dst: treference;
-        lab: tasmlabel;
-        count, count2: aint;
-*)
-      begin
-(*
-        { anybody wants to determine a good value here :)? }
-        if len>100 then
-*)
-          g_concatcopy_move(list,source,dest,len)
-(*
-        else
-          begin
-            count:=len div 4;
-            if (count<=4) and reference_is_reusable(source) then
-              src:=source
-            else
+        sourcebasereplaced, destbasereplaced: boolean;
+
+      { get optimal memory operation to use for loading/storing data
+        in an unrolled loop }
+      procedure getmemop(scaledop, unscaledop: tasmop; const startref, endref: treference; opsize: tcgsize; postfix: toppostfix; out memop: tasmop; out needsimplify: boolean);
+        begin
+          if (simple_ref_type(scaledop,opsize,postfix,startref)=sr_simple) and
+             (simple_ref_type(scaledop,opsize,postfix,endref)=sr_simple) then
+            begin
+              memop:=unscaledop;
+              needsimplify:=true;
+            end
+          else if (unscaledop<>A_NONE) and
+             (simple_ref_type(unscaledop,opsize,postfix,startref)=sr_simple) and
+             (simple_ref_type(unscaledop,opsize,postfix,endref)=sr_simple) then
+            begin
+              memop:=unscaledop;
+              needsimplify:=false;
+            end
+          else
+            begin
+              memop:=scaledop;
+              needsimplify:=true;
+            end;
+        end;
+
+      { adjust the offset and/or addressing mode after a load/store so it's
+        correct for the next one of the same size }
+      procedure updaterefafterloadstore(var ref: treference; oplen: longint);
+        begin
+          case ref.addressmode of
+            AM_OFFSET:
+              inc(ref.offset,oplen);
+            AM_POSTINDEXED:
+              { base register updated by instruction, next offset can remain
+                the same }
+              ;
+            AM_PREINDEXED:
               begin
-                reference_reset_base(src,getintregister(list,OS_ADDR),0,sizeof(aint));
-                a_loadaddr_ref_reg(list,source,src.base);
-              end;
-            if (count<=4) and reference_is_reusable(dest) then
-              dst:=dest
-            else
-              begin
-                reference_reset_base(dst,getintregister(list,OS_ADDR),0,sizeof(aint));
-                a_loadaddr_ref_reg(list,dest,dst.base);
-              end;
-            { generate a loop }
-            if count>4 then
-              begin
-                countreg:=GetIntRegister(list,OS_INT);
-                tmpreg1:=GetIntRegister(list,OS_INT);
-                a_load_const_reg(list,OS_INT,count,countreg);
-                current_asmdata.getjumplabel(lab);
-                a_label(list, lab);
-                list.concat(taicpu.op_ref_reg(A_LD,src,tmpreg1));
-                list.concat(taicpu.op_reg_ref(A_ST,tmpreg1,dst));
-                list.concat(taicpu.op_reg_const_reg(A_ADD,src.base,4,src.base));
-                list.concat(taicpu.op_reg_const_reg(A_ADD,dst.base,4,dst.base));
-                list.concat(taicpu.op_reg_const_reg(A_SUBcc,countreg,1,countreg));
-                a_jmp_cond(list,OC_NE,lab);
-                len := len mod 4;
-              end;
-            { unrolled loop }
-            count:=len div 4;
-            if count>0 then
-              begin
-                tmpreg1:=GetIntRegister(list,OS_INT);
-                for count2 := 1 to count do
-                  begin
-                    list.concat(taicpu.op_ref_reg(A_LD,src,tmpreg1));
-                    list.concat(taicpu.op_reg_ref(A_ST,tmpreg1,dst));
-                    inc(src.offset,4);
-                    inc(dst.offset,4);
-                  end;
-                len := len mod 4;
-              end;
-            if (len and 4) <> 0 then
-              begin
-                hreg:=GetIntRegister(list,OS_INT);
-                a_load_ref_reg(list,OS_32,OS_32,src,hreg);
-                a_load_reg_ref(list,OS_32,OS_32,hreg,dst);
-                inc(src.offset,4);
-                inc(dst.offset,4);
-              end;
-            { copy the leftovers }
-            if (len and 2) <> 0 then
-              begin
-                hreg:=GetIntRegister(list,OS_INT);
-                a_load_ref_reg(list,OS_16,OS_16,src,hreg);
-                a_load_reg_ref(list,OS_16,OS_16,hreg,dst);
-                inc(src.offset,2);
-                inc(dst.offset,2);
-              end;
-            if (len and 1) <> 0 then
-              begin
-                hreg:=GetIntRegister(list,OS_INT);
-                a_load_ref_reg(list,OS_8,OS_8,src,hreg);
-                a_load_reg_ref(list,OS_8,OS_8,hreg,dst);
+                { base register updated by instruction -> next instruction can
+                  use post-indexing with offset = sizeof(operation) }
+                ref.offset:=0;
+                ref.addressmode:=AM_OFFSET;
               end;
           end;
-*)
-      end;
+        end;
+
+      { generate a load/store and adjust the reference offset to the next
+        memory location if necessary }
+      procedure genloadstore(list: TAsmList; op: tasmop; reg: tregister; var ref: treference; postfix: toppostfix; opsize: tcgsize);
+        begin
+          list.concat(setoppostfix(taicpu.op_reg_ref(op,reg,ref),postfix));
+          updaterefafterloadstore(ref,tcgsize2size[opsize]);
+        end;
+
+      { generate a dual load/store (ldp/stp) and adjust the reference offset to
+        the next memory location if necessary }
+      procedure gendualloadstore(list: TAsmList; op: tasmop; reg1, reg2: tregister; var ref: treference; postfix: toppostfix; opsize: tcgsize);
+        begin
+          list.concat(setoppostfix(taicpu.op_reg_reg_ref(op,reg1,reg2,ref),postfix));
+          updaterefafterloadstore(ref,tcgsize2size[opsize]*2);
+        end;
+
+      { turn a reference into a pre- or post-indexed reference for use in a
+        load/store of a particular size }
+      procedure makesimpleforcopy(list: TAsmList; var scaledop: tasmop; opsize: tcgsize; postfix: toppostfix; forcepostindexing: boolean; var ref: treference; var basereplaced: boolean);
+        var
+          tmpreg: tregister;
+          scaledoffset: longint;
+          orgaddressmode: taddressmode;
+        begin
+          scaledoffset:=tcgsize2size[opsize];
+          if scaledop in [A_LDP,A_STP] then
+            scaledoffset:=scaledoffset*2;
+          { can we use the reference as post-indexed without changes? }
+          if forcepostindexing then
+            begin
+              orgaddressmode:=ref.addressmode;
+              ref.addressmode:=AM_POSTINDEXED;
+              if (orgaddressmode=AM_POSTINDEXED) or
+                 ((ref.offset=0) and
+                  (simple_ref_type(scaledop,opsize,postfix,ref)=sr_simple)) then
+                begin
+                  { just change the post-indexed offset to the access size }
+                  ref.offset:=scaledoffset;
+                  { and replace the base register if that didn't happen yet
+                    (could be sp or a regvar) }
+                  if not basereplaced then
+                    begin
+                      tmpreg:=getaddressregister(list);
+                      a_load_reg_reg(list,OS_ADDR,OS_ADDR,ref.base,tmpreg);
+                      ref.base:=tmpreg;
+                      basereplaced:=true;
+                    end;
+                  exit;
+                end;
+              ref.addressmode:=orgaddressmode;
+            end;
+{$ifdef dummy}
+          This could in theory be useful in case you have a concatcopy from
+          e.g. x1+255 to x1+267 *and* the reference is aligned, but this seems
+          very unlikely. Disabled because it still needs fixes, as it
+          also generates pre-indexed loads right now at the very end for the
+          left-over gencopies
+
+          { can we turn it into a pre-indexed reference for free? (after the
+            first operation, it will be turned into an offset one) }
+          if not forcepostindexing and
+             (ref.offset<>0) then
+            begin
+              orgaddressmode:=ref.addressmode;
+              ref.addressmode:=AM_PREINDEXED;
+              tmpreg:=ref.base;
+              if not basereplaced and
+                 (ref.base=tmpreg) then
+                begin
+                  tmpreg:=getaddressregister(list);
+                  a_load_reg_reg(list,OS_ADDR,OS_ADDR,ref.base,tmpreg);
+                  ref.base:=tmpreg;
+                  basereplaced:=true;
+                end;
+              if simple_ref_type(scaledop,opsize,postfix,ref)<>sr_simple then
+                make_simple_ref(list,scaledop,opsize,postfix,ref,NR_NO);
+              exit;
+            end;
+{$endif dummy}
+          if not forcepostindexing then
+            begin
+              ref.addressmode:=AM_OFFSET;
+              make_simple_ref(list,scaledop,opsize,postfix,ref,NR_NO);
+              { this may still cause problems if the final offset is no longer
+                a simple ref; it's a bit complicated to pass all information
+                through at all places and check that here, so play safe: we
+                currently never generate unrolled copies for more than 64
+                bytes (32 with non-double-register copies) }
+              if ref.index=NR_NO then
+                begin
+                  if ((scaledop in [A_LDP,A_STP]) and
+                      (ref.offset<((64-8)*tcgsize2size[opsize]))) or
+                     ((scaledop in [A_LDUR,A_STUR]) and
+                      (ref.offset<(255-8*tcgsize2size[opsize]))) or
+                     ((scaledop in [A_LDR,A_STR]) and
+                      (ref.offset<((4096-8)*tcgsize2size[opsize]))) then
+                    exit;
+                end;
+            end;
+          tmpreg:=getaddressregister(list);
+          a_loadaddr_ref_reg(list,ref,tmpreg);
+          basereplaced:=true;
+          if forcepostindexing then
+            begin
+              reference_reset_base(ref,tmpreg,scaledoffset,ref.alignment);
+              ref.addressmode:=AM_POSTINDEXED;
+            end
+          else
+            begin
+              reference_reset_base(ref,tmpreg,0,ref.alignment);
+              ref.addressmode:=AM_OFFSET;
+            end
+        end;
+
+      { prepare a reference for use by gencopy. This is done both after the
+        unrolled and regular copy loop -> get rid of post-indexing mode, make
+        sure ref is valid }
+      procedure preparecopy(list: tasmlist; scaledop, unscaledop: tasmop; var ref: treference; opsize: tcgsize; postfix: toppostfix; out op: tasmop; var basereplaced: boolean);
+        var
+          simplify: boolean;
+        begin
+          if ref.addressmode=AM_POSTINDEXED then
+            ref.offset:=tcgsize2size[opsize];
+          getmemop(scaledop,scaledop,ref,ref,opsize,postfix,op,simplify);
+          if simplify then
+            begin
+              makesimpleforcopy(list,scaledop,opsize,postfix,false,ref,basereplaced);
+              op:=scaledop;
+            end;
+        end;
+
+      { generate a copy from source to dest of size opsize/postfix }
+      procedure gencopy(list: TAsmList; var source, dest: treference; postfix: toppostfix; opsize: tcgsize);
+        var
+          reg: tregister;
+          loadop, storeop: tasmop;
+        begin
+          preparecopy(list,A_LDR,A_LDUR,source,opsize,postfix,loadop,sourcebasereplaced);
+          preparecopy(list,A_STR,A_STUR,dest,opsize,postfix,storeop,destbasereplaced);
+          reg:=getintregister(list,opsize);
+          genloadstore(list,loadop,reg,source,postfix,opsize);
+          genloadstore(list,storeop,reg,dest,postfix,opsize);
+        end;
 
 
-    procedure tcgaarch64.g_concatcopy_unaligned(list : TAsmList;const source,dest : treference;len : tcgint);
-(*
+      { copy the leftovers after an unrolled or regular copy loop }
+      procedure gencopyleftovers(list: TAsmList; var source, dest: treference; len: longint);
+        begin
+          { stop post-indexing if we did so in the loop, since in that case all
+            offsets definitely can be represented now }
+          if source.addressmode=AM_POSTINDEXED then
+            begin
+              source.addressmode:=AM_OFFSET;
+              source.offset:=0;
+            end;
+          if dest.addressmode=AM_POSTINDEXED then
+            begin
+              dest.addressmode:=AM_OFFSET;
+              dest.offset:=0;
+            end;
+          { transfer the leftovers }
+          if len>=8 then
+            begin
+              dec(len,8);
+              gencopy(list,source,dest,PF_NONE,OS_64);
+            end;
+          if len>=4 then
+            begin
+              dec(len,4);
+              gencopy(list,source,dest,PF_NONE,OS_32);
+            end;
+          if len>=2 then
+            begin
+              dec(len,2);
+              gencopy(list,source,dest,PF_H,OS_16);
+            end;
+          if len>=1 then
+            begin
+              dec(len);
+              gencopy(list,source,dest,PF_B,OS_8);
+            end;
+        end;
+
+
+      const
+        { load_length + loop dec + cbnz }
+        loopoverhead=12;
+        { loop overhead + load + store }
+        totallooplen=loopoverhead + 8;
       var
-        src, dst: treference;
-        tmpreg1,
+        totalalign: longint;
+        maxlenunrolled: tcgint;
+        loadop, storeop: tasmop;
+        opsize: tcgsize;
+        postfix: toppostfix;
+        tmpsource, tmpdest: treference;
+        scaledstoreop, unscaledstoreop,
+        scaledloadop, unscaledloadop: tasmop;
+        regs: array[1..8] of tregister;
         countreg: tregister;
-        i : aint;
-        lab: tasmlabel;
-*)
+        i, regcount: longint;
+        hl: tasmlabel;
+        simplifysource, simplifydest: boolean;
       begin
-(*
-        if len>31 then
-*)
-          g_concatcopy_move(list,source,dest,len)
-(*
+        if len=0 then
+          exit;
+        sourcebasereplaced:=false;
+        destbasereplaced:=false;
+        { maximum common alignment }
+        totalalign:=max(1,newalignment(source.alignment,dest.alignment));
+        { use a simple load/store? }
+        if (len in [1,2,4,8]) and
+           ((totalalign>=(len div 2)) or
+            (source.alignment=len) or
+            (dest.alignment=len)) then
+          begin
+            opsize:=int_cgsize(len);
+            a_load_ref_ref(list,opsize,opsize,source,dest);
+            exit;
+          end;
+
+        { alignment > length is not useful, and would break some checks below }
+        while totalalign>len do
+          totalalign:=totalalign div 2;
+
+        { operation sizes to use based on common alignment }
+        case totalalign of
+          1:
+            begin
+              postfix:=PF_B;
+              opsize:=OS_8;
+            end;
+          2:
+            begin
+              postfix:=PF_H;
+              opsize:=OS_16;
+            end;
+          4:
+            begin
+              postfix:=PF_None;
+              opsize:=OS_32;
+            end
+          else
+            begin
+              totalalign:=8;
+              postfix:=PF_None;
+              opsize:=OS_64;
+            end;
+        end;
+        { maximum length to handled with an unrolled loop (4 loads + 4 stores) }
+        maxlenunrolled:=min(totalalign,8)*4;
+        { ldp/stp -> 2 registers per instruction }
+        if (totalalign>=4) and
+           (len>=totalalign*2) then
+          begin
+            maxlenunrolled:=maxlenunrolled*2;
+            scaledstoreop:=A_STP;
+            scaledloadop:=A_LDP;
+            unscaledstoreop:=A_NONE;
+            unscaledloadop:=A_NONE;
+          end
         else
           begin
-            reference_reset(src,source.alignment);
-            reference_reset(dst,dest.alignment);
-            { load the address of source into src.base }
-            src.base:=GetAddressRegister(list);
-            a_loadaddr_ref_reg(list,source,src.base);
-            { load the address of dest into dst.base }
-            dst.base:=GetAddressRegister(list);
-            a_loadaddr_ref_reg(list,dest,dst.base);
-            { generate a loop }
-            if len>4 then
+            scaledstoreop:=A_STR;
+            scaledloadop:=A_LDR;
+            unscaledstoreop:=A_STUR;
+            unscaledloadop:=A_LDUR;
+          end;
+        { we only need 4 instructions extra to call FPC_MOVE }
+        if cs_opt_size in current_settings.optimizerswitches then
+          maxlenunrolled:=maxlenunrolled div 2;
+        if (len>maxlenunrolled) and
+           (len>totalalign*8) then
+          begin
+            g_concatcopy_move(list,source,dest,len);
+            exit;
+          end;
+
+        simplifysource:=true;
+        simplifydest:=true;
+        tmpsource:=source;
+        tmpdest:=dest;
+        { can we directly encode all offsets in an unrolled loop? }
+        if len<=maxlenunrolled then
+          begin
+{$ifdef extdebug}
+            list.concat(tai_comment.Create(strpnew('concatcopy unrolled loop; len/opsize/align: '+tostr(len)+'/'+tostr(tcgsize2size[opsize])+'/'+tostr(totalalign))));
+{$endif extdebug}
+            { the leftovers will be handled separately -> -(len mod opsize) }
+            inc(tmpsource.offset,len-(len mod tcgsize2size[opsize]));
+            { additionally, the last regular load/store will be at
+              offset+len-opsize (if len-(len mod opsize)>len) }
+            if tmpsource.offset>source.offset then
+              dec(tmpsource.offset,tcgsize2size[opsize]);
+            getmemop(scaledloadop,unscaledloadop,source,tmpsource,opsize,postfix,loadop,simplifysource);
+            inc(tmpdest.offset,len-(len mod tcgsize2size[opsize]));
+            if tmpdest.offset>dest.offset then
+              dec(tmpdest.offset,tcgsize2size[opsize]);
+            getmemop(scaledstoreop,unscaledstoreop,dest,tmpdest,opsize,postfix,storeop,simplifydest);
+            tmpsource:=source;
+            tmpdest:=dest;
+            { if we can't directly encode all offsets, simplify }
+            if simplifysource then
               begin
-                countreg:=GetIntRegister(list,OS_INT);
-                tmpreg1:=GetIntRegister(list,OS_INT);
-                a_load_const_reg(list,OS_INT,len,countreg);
-                current_asmdata.getjumplabel(lab);
-                a_label(list, lab);
-                list.concat(taicpu.op_ref_reg(A_LDUB,src,tmpreg1));
-                list.concat(taicpu.op_reg_ref(A_STB,tmpreg1,dst));
-                list.concat(taicpu.op_reg_const_reg(A_ADD,src.base,1,src.base));
-                list.concat(taicpu.op_reg_const_reg(A_ADD,dst.base,1,dst.base));
-                list.concat(taicpu.op_reg_const_reg(A_SUBcc,countreg,1,countreg));
-                a_jmp_cond(list,OC_NE,lab);
+                loadop:=scaledloadop;
+                makesimpleforcopy(list,loadop,opsize,postfix,false,tmpsource,sourcebasereplaced);
+              end;
+            if simplifydest then
+              begin
+                storeop:=scaledstoreop;
+                makesimpleforcopy(list,storeop,opsize,postfix,false,tmpdest,destbasereplaced);
+              end;
+            regcount:=len div tcgsize2size[opsize];
+            { in case we transfer two registers at a time, we copy an even
+              number of registers }
+            if loadop=A_LDP then
+              regcount:=regcount and not(1);
+            { max 4 loads/stores -> max 8 registers (in case of ldp/stdp) }
+            for i:=1 to regcount do
+              regs[i]:=getintregister(list,opsize);
+            if loadop=A_LDP then
+              begin
+                { load registers }
+                for i:=1 to (regcount div 2) do
+                  gendualloadstore(list,loadop,regs[i*2-1],regs[i*2],tmpsource,postfix,opsize);
+                { store registers }
+                for i:=1 to (regcount div 2) do
+                  gendualloadstore(list,storeop,regs[i*2-1],regs[i*2],tmpdest,postfix,opsize);
               end
             else
               begin
-                { unrolled loop }
-                tmpreg1:=GetIntRegister(list,OS_INT);
-                for i:=1 to len do
-                  begin
-                    list.concat(taicpu.op_ref_reg(A_LDUB,src,tmpreg1));
-                    list.concat(taicpu.op_reg_ref(A_STB,tmpreg1,dst));
-                    inc(src.offset);
-                    inc(dst.offset);
-                  end;
+                for i:=1 to regcount do
+                  genloadstore(list,loadop,regs[i],tmpsource,postfix,opsize);
+                for i:=1 to regcount do
+                  genloadstore(list,storeop,regs[i],tmpdest,postfix,opsize);
               end;
+            { leftover }
+            len:=len-regcount*tcgsize2size[opsize];
+{$ifdef extdebug}
+            list.concat(tai_comment.Create(strpnew('concatcopy unrolled loop leftover: '+tostr(len))));
+{$endif extdebug}
+          end
+        else
+          begin
+{$ifdef extdebug}
+            list.concat(tai_comment.Create(strpnew('concatcopy regular loop; len/align: '+tostr(len)+'/'+tostr(totalalign))));
+{$endif extdebug}
+            { regular loop -> definitely use post-indexing }
+            loadop:=scaledloadop;
+            makesimpleforcopy(list,loadop,opsize,postfix,true,tmpsource,sourcebasereplaced);
+            storeop:=scaledstoreop;
+            makesimpleforcopy(list,storeop,opsize,postfix,true,tmpdest,destbasereplaced);
+            current_asmdata.getjumplabel(hl);
+            countreg:=getintregister(list,OS_32);
+            if loadop=A_LDP then
+              a_load_const_reg(list,OS_32,len div tcgsize2size[opsize]*2,countreg)
+            else
+              a_load_const_reg(list,OS_32,len div tcgsize2size[opsize],countreg);
+            a_label(list,hl);
+            a_op_const_reg(list,OP_SUB,OS_32,1,countreg);
+            if loadop=A_LDP then
+              begin
+                regs[1]:=getintregister(list,opsize);
+                regs[2]:=getintregister(list,opsize);
+                gendualloadstore(list,loadop,regs[1],regs[2],tmpsource,postfix,opsize);
+                gendualloadstore(list,storeop,regs[1],regs[2],tmpdest,postfix,opsize);
+              end
+            else
+              begin
+                regs[1]:=getintregister(list,opsize);
+                genloadstore(list,loadop,regs[1],tmpsource,postfix,opsize);
+                genloadstore(list,storeop,regs[1],tmpdest,postfix,opsize);
+              end;
+            list.concat(taicpu.op_reg_sym_ofs(A_CBNZ,countreg,hl,0));
+            len:=len mod tcgsize2size[opsize];
           end;
-*)
+        gencopyleftovers(list,tmpsource,tmpdest,len);
       end;
 
 
