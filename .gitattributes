@@ -24,6 +24,7 @@ compiler/aarch64/cpuinfo.pas svneol=native#text/plain
 compiler/aarch64/cpunode.pas svneol=native#text/plain
 compiler/aarch64/cpupara.pas svneol=native#text/plain
 compiler/aarch64/cpupi.pas svneol=native#text/plain
+compiler/aarch64/hlcgcpu.pas svneol=native#text/plain
 compiler/aarch64/itcpugas.pas svneol=native#text/plain
 compiler/aarch64/ncpuadd.pas svneol=native#text/plain
 compiler/aarch64/ncpucnv.pas svneol=native#text/plain
