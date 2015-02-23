@@ -3214,9 +3214,9 @@ begin
 
 { abs(long) is handled internally on all CPUs }
   def_system_macro('FPC_HAS_INTERNAL_ABS_LONG');
-{$if defined(x86_64) or defined(powerpc64)}
+{$if defined(x86_64) or defined(powerpc64) or defined(cpuaarch64)}
   def_system_macro('FPC_HAS_INTERNAL_ABS_INT64');
-{$endif x86_64 or powerpc64}
+{$endif x86_64 or powerpc64 or aarch64}
 
   def_system_macro('FPC_HAS_UNICODESTRING');
   def_system_macro('FPC_RTTI_PACKSET1');
