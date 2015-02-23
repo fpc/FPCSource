@@ -1,7 +1,7 @@
 {
     Copyright (c) 2003-2012 by Florian Klaempfl and others
 
-    Contains the assembler object for ARM64
+    Contains the assembler object for Aarch64
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
