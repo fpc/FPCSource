@@ -2005,12 +2005,12 @@ implementation
               recsize:=size;
               is_intregable:=
                 ispowerof2(recsize,temp) and
-                (((recsize <= sizeof(asizeint)*2)
+                (((recsize <= sizeof(asizeint)*2) and
                  { records cannot go into registers on 16 bit targets for now }
-                  and (sizeof(asizeint)>2)
-                  and not trecorddef(self).contains_float_field) or
-                  (recsize <= sizeof(asizeint)))
-                and not needs_inittable;
+                  (sizeof(asizeint)>2) and
+                  not trecorddef(self).contains_float_field) or
+                  (recsize <= sizeof(asizeint))) and
+                not needs_inittable;
             end;
         end;
      end;
