@@ -165,6 +165,7 @@ uses
          constructor op_reg_reg(op : tasmop;_op1,_op2 : tregister);
          constructor op_reg_ref(op : tasmop;_op1 : tregister;const _op2 : treference);
          constructor op_reg_const(op:tasmop; _op1: tregister; _op2: aint);
+         constructor op_reg_const_shifterop(op : tasmop;_op1: tregister; _op2: aint;_op3 : tshifterop);
 
          constructor op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
          constructor op_reg_reg_reg_reg(op : tasmop;_op1,_op2,_op3,_op4 : tregister);
@@ -308,6 +309,16 @@ implementation
          ops:=2;
          loadreg(0,_op1);
          loadconst(1,aint(_op2));
+      end;
+
+
+    constructor taicpu.op_reg_const_shifterop(op: tasmop; _op1: tregister; _op2: aint; _op3: tshifterop);
+      begin
+        inherited create(op);
+        ops:=3;
+        loadreg(0,_op1);
+        loadconst(1,_op2);
+        loadshifterop(2,_op3);
       end;
 
 
