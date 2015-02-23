@@ -227,3 +227,6 @@ RS_S31 = $1F;
 RS_D31 = $1F;
 RS_Q31 = $1F;
 RS_NZCV = $00;
+RS_FPCR = $01;
+RS_FPSR = $02;
+RS_TPIDR_EL0 = $03;

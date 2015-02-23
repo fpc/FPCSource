@@ -226,4 +226,7 @@
 's31',
 'd31',
 'q31',
-'nzcv'
+'nzcv',
+'fpcr',
+'fpsr',
+'tpidr_el0'
