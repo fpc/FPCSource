@@ -192,6 +192,7 @@ uses
          function is_same_reg_move(regtype: Tregistertype):boolean; override;
 
          function spilling_get_operation_type(opnr: longint): topertype;override;
+         function spilling_get_operation_type_ref(opnr: longint; reg: tregister): topertype;override;
 
          { assembler }
       public
@@ -722,7 +723,8 @@ implementation
                   else
                     result:=sr_complex;
                 end;
-              A_LDP,A_STP:
+              A_LDP,A_LDNP,
+              A_STP,A_STNP:
                 begin
                   { only supported for 32/64 bit }
                   if not(oppostfix in [PF_W,PF_SW,PF_None]) then
@@ -750,6 +752,20 @@ implementation
               A_LD1,A_LD2,A_LD3,A_LD4,
               A_ST1,A_ST2,A_ST3,A_ST4:
                 internalerror(2014110907);
+              A_LDAR,
+              A_LDAXR,
+              A_LDXR,
+              A_LDXP,
+              A_STLR,
+              A_STLXR,
+              A_STLXP,
+              A_STXP,
+              A_STXR:
+                begin
+                  if (ref.addressmode=AM_OFFSET) and
+                     (ref.offset=0) then
+                    result:=sr_simple;
+                end
               else
                 { nothing: result is already sr_internal_illegal };
             end;
@@ -866,29 +882,57 @@ implementation
     function taicpu.spilling_get_operation_type(opnr: longint): topertype;
       begin
         case opcode of
-          A_ADC,A_ADD,A_AND,A_BIC,
-          A_EOR,A_CLZ,A_RBIT,
-          A_LDR,
-          A_MOV,A_MVN,A_MUL,
-          A_ORR,A_SBC,A_SUB,
-          A_UXT,A_SXT:
+          A_B,A_BL,
+          A_CMN,A_CMP,
+          A_CCMN,A_CCMP,
+          A_TST:
+            result:=operand_read;
+          A_STR,A_STUR:
+            if opnr=0 then
+              result:=operand_read
+            else
+              { check for pre/post indexed in spilling_get_operation_type_ref }
+              result:=operand_read;
+          A_STLXP,
+          A_STLXR,
+          A_STXP,
+          A_STXR:
             if opnr=0 then
               result:=operand_write
             else
               result:=operand_read;
-          A_B,A_BL,
-          A_CMN,A_CMP,A_TST:
-            result:=operand_read;
-          A_STR:
-            { important is what happens with the involved registers }
-            if opnr=0 then
-              result := operand_read
-            else
-              { check for pre/post indexed }
-              result := operand_read;
-          else
-            internalerror(200403151);
+          A_STP:
+            begin
+              if opnr in [0,1] then
+                result:=operand_read
+              else
+                { check for pre/post indexed in spilling_get_operation_type_ref }
+                result:=operand_read;
+            end;
+           A_LDP,
+           A_LDXP:
+             begin
+               if opnr in [0,1] then
+                 result:=operand_write
+               else
+                 { check for pre/post indexed in spilling_get_operation_type_ref }
+                 result:=operand_read;
+             end;
+           else
+             if opnr=0 then
+               result:=operand_write
+             else
+               result:=operand_read;
         end;
+      end;
+
+
+    function taicpu.spilling_get_operation_type_ref(opnr: longint; reg: tregister): topertype;
+      begin
+        result:=operand_read;
+        if (oper[opnr]^.ref^.base = reg) and
+          (oper[opnr]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) then
+           result:=operand_readwrite;
       end;
 
 
