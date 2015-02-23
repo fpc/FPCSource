@@ -76,7 +76,8 @@ const
     { 12 } 'avr',
     { 13 } 'mipsel',
     { 14 } 'jvm',
-    { 15 } 'i8086'
+    { 15 } 'i8086',
+    { 16 } 'aarch64'
     );
 
 { List of all supported system-cpu couples }
