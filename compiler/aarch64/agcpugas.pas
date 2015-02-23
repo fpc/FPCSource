@@ -41,6 +41,7 @@ unit agcpugas;
 
       TAArch64AppleAssembler=class(TAppleGNUassembler)
         constructor create(smart: boolean); override;
+        function MakeCmdLine: TCmdStr; override;
       end;
 
 
@@ -75,6 +76,18 @@ unit agcpugas;
       begin
         inherited create(smart);
         InstrWriter := TAArch64InstrWriter.create(self);
+      end;
+
+    function TAArch64AppleAssembler.MakeCmdLine: TCmdStr;
+      begin
+        { 'as' calls through to clang for aarch64, and that one only supports
+          reading from standard input in case "-" is specified as input file
+          (in which case you also have to specify the language via -x) }
+        result:=inherited;
+{$ifdef hasunix}
+        if DoPipe then
+          result:=result+' -x assembler -'
+{$endif}
       end;
 
 
