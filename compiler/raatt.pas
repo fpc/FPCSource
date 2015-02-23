@@ -305,6 +305,18 @@ unit raatt;
                end
            end;
 {$endif ARM}
+{$ifdef aarch64}
+           { b.cond }
+           case c of
+             '.':
+               begin
+                 repeat
+                   actasmpattern:=actasmpattern+c;
+                   c:=current_scanner.asmgetchar;
+                 until not(c in ['a'..'z','A'..'Z']);
+               end;
+           end;
+{$endif aarch64}
            { Opcode ? }
            If is_asmopcode(upper(actasmpattern)) then
             Begin
