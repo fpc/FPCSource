@@ -329,7 +329,7 @@ override PACKAGE_NAME=compiler
 override PACKAGE_VERSION=3.1.1
 unexport FPC_VERSION FPC_COMPILERINFO
 CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr jvm i8086
-ALLTARGETS=$(CYCLETARGETS)
+ALLTARGETS=$(CYCLETARGETS) aarch64
 ifdef ALPHA
 PPC_TARGET=alpha
 endif
@@ -371,6 +371,9 @@ PPC_TARGET=jvm
 endif
 ifdef I8086
 PPC_TARGET=i8086
+endif
+ifdef AARCH64
+PPC_TARGET=aarch64
 endif
 ifndef PPC_TARGET
 PPC_TARGET=$(CPU_TARGET)
@@ -468,6 +471,9 @@ CPUSUF=jvm
 endif
 ifeq ($(CPC_TARGET),i8086)
 CPUSUF=8086
+endif
+ifeq ($(CPC_TARGET),aarch64)
+CPUSUF=aarch64
 endif
 NOCPUDEF=1
 MSGFILE=msg/error$(FPCLANG).msg
@@ -612,9 +618,6 @@ ifeq ($(FULL_TARGET),i386-iphonesim)
 override TARGET_DIRS+=utils
 endif
 ifeq ($(FULL_TARGET),i386-android)
-override TARGET_DIRS+=utils
-endif
-ifeq ($(FULL_TARGET),i386-aros)
 override TARGET_DIRS+=utils
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
@@ -843,9 +846,6 @@ ifeq ($(FULL_TARGET),i386-iphonesim)
 override TARGET_PROGRAMS+=pp
 endif
 ifeq ($(FULL_TARGET),i386-android)
-override TARGET_PROGRAMS+=pp
-endif
-ifeq ($(FULL_TARGET),i386-aros)
 override TARGET_PROGRAMS+=pp
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
@@ -1077,9 +1077,6 @@ endif
 ifeq ($(FULL_TARGET),i386-android)
 override COMPILER_INCLUDEDIR+=$(CPC_TARGET)
 endif
-ifeq ($(FULL_TARGET),i386-aros)
-override COMPILER_INCLUDEDIR+=$(CPC_TARGET)
-endif
 ifeq ($(FULL_TARGET),m68k-linux)
 override COMPILER_INCLUDEDIR+=$(CPC_TARGET)
 endif
@@ -1306,9 +1303,6 @@ ifeq ($(FULL_TARGET),i386-iphonesim)
 override COMPILER_UNITDIR+=$(COMPILERSOURCEDIR)
 endif
 ifeq ($(FULL_TARGET),i386-android)
-override COMPILER_UNITDIR+=$(COMPILERSOURCEDIR)
-endif
-ifeq ($(FULL_TARGET),i386-aros)
 override COMPILER_UNITDIR+=$(COMPILERSOURCEDIR)
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
@@ -1539,9 +1533,6 @@ endif
 ifeq ($(FULL_TARGET),i386-android)
 override COMPILER_TARGETDIR+=.
 endif
-ifeq ($(FULL_TARGET),i386-aros)
-override COMPILER_TARGETDIR+=.
-endif
 ifeq ($(FULL_TARGET),m68k-linux)
 override COMPILER_TARGETDIR+=.
 endif
@@ -1768,9 +1759,6 @@ ifeq ($(FULL_TARGET),i386-iphonesim)
 override COMPILER_UNITTARGETDIR+=$(CPU_UNITDIR)/units/$(FULL_TARGET)
 endif
 ifeq ($(FULL_TARGET),i386-android)
-override COMPILER_UNITTARGETDIR+=$(CPU_UNITDIR)/units/$(FULL_TARGET)
-endif
-ifeq ($(FULL_TARGET),i386-aros)
 override COMPILER_UNITTARGETDIR+=$(CPU_UNITDIR)/units/$(FULL_TARGET)
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
@@ -2225,11 +2213,6 @@ EXEEXT=
 SHAREDLIBEXT=.library
 SHORTSUFFIX=amg
 endif
-ifeq ($(OS_TARGET),aros)
-EXEEXT=
-SHAREDLIBEXT=.library
-SHORTSUFFIX=aros
-endif
 ifeq ($(OS_TARGET),morphos)
 EXEEXT=
 SHAREDLIBEXT=.library
@@ -2649,9 +2632,6 @@ ifeq ($(FULL_TARGET),i386-iphonesim)
 REQUIRE_PACKAGES_RTL=1
 endif
 ifeq ($(FULL_TARGET),i386-android)
-REQUIRE_PACKAGES_RTL=1
-endif
-ifeq ($(FULL_TARGET),i386-aros)
 REQUIRE_PACKAGES_RTL=1
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
@@ -3514,9 +3494,6 @@ endif
 ifeq ($(FULL_TARGET),i386-android)
 TARGET_DIRS_UTILS=1
 endif
-ifeq ($(FULL_TARGET),i386-aros)
-TARGET_DIRS_UTILS=1
-endif
 ifeq ($(FULL_TARGET),m68k-linux)
 TARGET_DIRS_UTILS=1
 endif
@@ -3804,7 +3781,7 @@ INSTALLEXEFILE=$(PPCROSSNAME)
 else
 INSTALLEXEFILE=$(EXENAME)
 endif
-PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 alpha vis ia64 mips mipsel avr jvm i8086
+PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 alpha vis ia64 mips mipsel avr jvm i8086 aarch64
 INSTALL_TARGETS=$(addsuffix _exe_install,$(sort $(CYCLETARGETS) $(PPC_TARGETS)))
 .PHONY: $(PPC_TARGETS) $(INSTALL_TARGETS)
 $(PPC_TARGETS):
@@ -3839,11 +3816,11 @@ ppuclean:
 tempclean:
 	-$(DEL) $(PPCROSSNAME) $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3) $(MSG2INC) pp1.wpo pp2.wpo
 execlean :
-	-$(DEL) ppc386$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) ppcppc64$(EXEEXT) ppcarm$(EXEEXT) ppcmips$(EXEEXT) ppcmipsel$(EXEEXT) ppcjvm$(EXEEXT) ppc8086$(EXEEXT) $(EXENAME) $(TEMPWPONAME1) $(TEMPWPONAME2)
+	-$(DEL) ppc386$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) ppcppc64$(EXEEXT) ppcarm$(EXEEXT) ppcmips$(EXEEXT) ppcmipsel$(EXEEXT) ppcjvm$(EXEEXT) ppc8086$(EXEEXT) ppcaarch64$EXEEXT) $(EXENAME) $(TEMPWPONAME1) $(TEMPWPONAME2)
 $(addsuffix _clean,$(ALLTARGETS)):
 	-$(DELTREE) $(addprefix $(subst _clean,,$@),/units)
 	-$(DEL) $(addprefix $(subst _clean,,$@)/,*$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT))
-	-$(DEL) $(addprefix $(subst _clean,,$@)/,ppc386$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) ppcppc64$(EXEEXT) ppcarm$(EXEEXT) ppcmips$(EXEEXT) ppcmipsel$(EXEEXT) ppcjvm$(EXEEXT) ppc8086$(EXEEXT) $(EXENAME))
+	-$(DEL) $(addprefix $(subst _clean,,$@)/,ppc386$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) ppcppc64$(EXEEXT) ppcarm$(EXEEXT) ppcmips$(EXEEXT) ppcmipsel$(EXEEXT) ppcjvm$(EXEEXT) ppc8086$(EXEEXT) ppcaarch64$(EXEEXT) $(EXENAME))
 cycleclean: cleanall $(addsuffix _clean,$(CPC_TARGET))
 	-$(DEL) $(EXENAME)
 clean: tempclean execlean cleanall $(addsuffix _clean,$(CPC_TARGET)) $(addsuffix _clean,$(TARGET_DIRS))
