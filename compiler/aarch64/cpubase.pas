@@ -182,7 +182,18 @@ unit cpubase;
 *****************************************************************************}
 
       taddressmode = (AM_OFFSET,AM_PREINDEXED,AM_POSTINDEXED);
-      tshiftmode = (SM_None,SM_LSL,SM_LSR,SM_ASR);
+
+      tshiftmode = (SM_None,
+                    { shifted register instructions. LSL can also be used for
+                      the index register of certain loads/stores }
+                    SM_LSL,SM_LSR,SM_ASR,
+                    { extended register instructions: zero/sign extension +
+                        optional shift (interpreted as LSL after extension)
+                       -- the index register of certain loads/stores can be
+                          extended via (s|u)xtw with a shiftval of either 0 or
+                          log2(transfer size of the load/store)
+                    }
+                    SM_UXTB,SM_UXTH,SM_UXTW,SM_UXTX,SM_SXTB,SM_SXTH,SM_SXTW,SM_SXTX);
 
       tupdatereg = (UR_None,UR_Update);
 
