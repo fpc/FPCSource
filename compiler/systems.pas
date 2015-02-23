@@ -932,6 +932,22 @@ begin
 {$ifdef i8086}
   default_target(system_i8086_msdos);
 {$endif i8086}
+
+{$ifdef aarch64}
+  {$ifdef cpuaarch64}
+    default_target(source_info.system);
+  {$else cpuaarch64}
+    {$ifdef darwin}
+      {$define default_target_set}
+      default_target(system_aarch64_darwin);
+    {$endif darwin}
+    {$ifndef default_target_set}
+      { change to Linux once aarch64 Linux support has been implemented }
+      default_target(system_aarch64_darwin);
+      {$define default_target_set}
+    {$endif}
+  {$endif cpuaarch64}
+{$endif aarch64}
 end;
 
 
