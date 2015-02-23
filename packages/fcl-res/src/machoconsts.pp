@@ -48,6 +48,7 @@ const
   CPU_TYPE_I386      = 7;
   CPU_TYPE_X86_64    = CPU_TYPE_I386 or CPU_ARCH_ABI64;
   CPU_TYPE_ARM       = 12;
+  CPU_TYPE_ARM64     = CPU_TYPE_ARM or CPU_ARCH_ABI64;
   CPU_TYPE_POWERPC   = 18;
   CPU_TYPE_POWERPC64 = CPU_TYPE_POWERPC or CPU_ARCH_ABI64;
 
@@ -61,6 +62,8 @@ const
   CPU_SUBTYPE_ARM_V5TEJ   = 7;
   CPU_SUBTYPE_ARM_XSCALE  = 8;
   CPU_SUBTYPE_ARM_V7      = 9;
+  CPU_SUBTYPE_ARM64_ALL   = 0;
+  CPU_SUBTYPE_ARM64_V8    = 1;
 
   //Mach-O object types
   MH_OBJECT      = $1;            // relocatable object file
@@ -205,6 +208,9 @@ const
 
   // relocation types - ARM
   ARM_RELOC_VANILLA = 0; // generic relocation
+
+  // relocation types - AARCH64
+  ARM64_RELOC_UNSIGNED = 0; // for pointers
 
 implementation
 

@@ -37,6 +37,7 @@ type
       msm386_all: (f386SubType: TMachOSubMachineType386);
       msmx64_all: (fX64SubType: TMachOSubMachineTypex64);
       mmtarm: (fArmSubType: TMachOSubMachineTypeArm);
+      mmtarm64: (fArm64SubType: TMachOSubMachineTypeAarch64);
   end;
 
   TMachOResourceWriter = class(TAbstractResourceWriter)
@@ -301,6 +302,11 @@ begin
                      fRelocType:=ARM_RELOC_VANILLA;
                      fRelocSize:=2;
                    end;
+    mmtarm64    : begin
+                    fEndianess:=MACH_LITTLE_ENDIAN;
+                    fRelocType:=ARM64_RELOC_UNSIGNED;
+                    fRelocSize:=3;
+                  end;
   end;
   fOppositeEndianess:=aOppositeEndianess;
 end;
@@ -491,6 +497,7 @@ const
   armsm2int: array[TMachOSubMachineTypeArm] of longint = (CPU_SUBTYPE_ARM_ALL,
     CPU_SUBTYPE_ARM_V4T,CPU_SUBTYPE_ARM_V6,CPU_SUBTYPE_ARM_V5TEJ,
     CPU_SUBTYPE_ARM_XSCALE,CPU_SUBTYPE_ARM_V7);
+  arm64sm2int: array[TMachOSubMachineTypeAarch64] of longint = (CPU_SUBTYPE_ARM64_ALL);
 begin
   aStream.Position:=0;
   case fMachineType of
@@ -519,6 +526,11 @@ begin
                      fHeader.cputype:=CPU_TYPE_ARM;
                      fHeader.cpusubtype:=armsm2int[fSubMachineType.fArmSubType];
                    end;
+    mmtarm64    : begin
+                    fHeader.magic:=MH_MAGIC_64;
+                    fHeader.cputype:=CPU_TYPE_ARM64;
+                    fHeader.cpusubtype:=arm64sm2int[fSubMachineType.fArm64SubType];
+                  end;
   end;
   fHeader.filetype:=MH_OBJECT;
   fHeader.ncmds:=3;
@@ -559,7 +571,6 @@ begin
   WriteMachOStringTable(aStream);
   FixHeader(aStream);
   FixLoadCommands(aStream,aResources);
-  FixResHeader(aStream);
 end;
 
 constructor TAbstractMachOSubWriter.Create(aParent : TMachOResourceWriter;
@@ -602,6 +613,7 @@ begin
     mmti386      : begin fBits:=MACH_32BIT; fEndianess:=MACH_LITTLE_ENDIAN; end;
     mmtx86_64    : begin fBits:=MACH_64BIT; fEndianess:=MACH_LITTLE_ENDIAN; end;
     mmtarm       : begin fBits:=MACH_32BIT; fEndianess:=MACH_LITTLE_ENDIAN; end;
+    mmtarm64     : begin fBits:=MACH_64BIT; fEndianess:=MACH_LITTLE_ENDIAN; end;
   end;
   fMachineType:=aMachineType;
   fOppositeEndianess:=fNativeEndianess<>fEndianess;
