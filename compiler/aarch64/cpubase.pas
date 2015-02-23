@@ -165,6 +165,8 @@ unit cpubase;
       TAsmConds = set of TAsmCond;
 
     const
+      C_CS = C_HS;
+      C_CC = C_LO;
       cond2str : array[TAsmCond] of string[2]=('',
         'eq','ne','hs','lo','mi','pl','vs','vc','hi','ls',
         'ge','lt','gt','le','al','nv'
@@ -183,10 +185,15 @@ unit cpubase;
       TResFlags = (F_EQ,F_NE,F_CS,F_CC,F_MI,F_PL,F_VS,F_VC,F_HI,F_LS,
         F_GE,F_LT,F_GT,F_LE);
 
+    const
+      F_HS = F_CS;
+      F_LO = F_CC;
+
 {*****************************************************************************
                                 Operands
 *****************************************************************************}
 
+    type
       taddressmode = (AM_OFFSET,AM_PREINDEXED,AM_POSTINDEXED);
 
       tshiftmode = (SM_None,
