@@ -109,7 +109,7 @@ unit cpubase;
         {$i ra64dwa.inc}
       );
       { registers which may be destroyed by calls }
-      VOLATILE_INTREGISTERS = [RS_X0..RS_X18,RS_X29..RS_X30];
+      VOLATILE_INTREGISTERS = [RS_X0..RS_X18,RS_X30];
       VOLATILE_MMREGISTERS =  [RS_D0..RS_D7,RS_D16..RS_D31];
 
     type
