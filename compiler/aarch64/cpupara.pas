@@ -208,7 +208,7 @@ unit cpupara;
       end;
 
 
-    function taarch64paramanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
+    function taarch64paramanager.push_addr_param(varspez: tvarspez; def :tdef; calloption: tproccalloption): boolean;
       var
         hfabasedef: tdef;
       begin
@@ -220,19 +220,34 @@ unit cpupara;
           end;
         case def.typ of
           objectdef:
-            result:=not(Is_HFA(def,hfabasedef) and (is_object(def) and ((varspez=vs_const) or (def.size=0))));
+            result:=
+              is_object(def) and
+              not is_hfa(def,hfabasedef) and
+              (def.size>16);
           recorddef:
-            { note: should this ever be changed, make sure that const records
-                are always passed by reference for calloption=pocall_mwpascal }
-            result:=(varspez=vs_const) or (def.size=0);
+            { ABI: any composite > 16 bytes that not a hfa/hva
+              Special case: MWPascal, which passes all const parameters by
+                reference for compatibility reasons
+            }
+            result:=
+              ((varspez=vs_const) and
+               (calloption=pocall_mwpascal)) or
+              (not is_hfa(def,hfabasedef) and
+               (def.size>16));
           variantdef,
           formaldef:
             result:=true;
+          { arrays are composites and hence treated the same as records by the
+            ABI (watch out for C, where an array is a pointer) }
           arraydef:
-            result:=(tarraydef(def).highrange>=tarraydef(def).lowrange) or
-                             is_open_array(def) or
-                             is_array_of_const(def) or
-                             is_array_constructor(def);
+            result:=
+              (calloption in cdecl_pocalls) or
+              is_open_array(def) or
+              is_array_of_const(def) or
+              is_array_constructor(def) or
+              ((tarraydef(def).highrange>=tarraydef(def).lowrange) and
+               not is_hfa(def,hfabasedef) and
+               (def.size>16));
           setdef :
             result:=def.size>16;
           stringdef :
