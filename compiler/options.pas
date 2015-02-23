@@ -3799,7 +3799,7 @@ if (target_info.abi = abi_eabihf) then
 {$endif}
       def_system_macro('FPC_HAS_TYPE_SINGLE');
       def_system_macro('FPC_HAS_TYPE_DOUBLE');
-{$if not defined(i386) and not defined(x86_64) and not defined(i8086)}
+{$if not defined(i386) and not defined(x86_64) and not defined(i8086) and not defined(aarch64)}
       def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
 {$endif}
 {$if defined(m68k)}
