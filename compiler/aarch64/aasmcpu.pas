@@ -222,8 +222,8 @@ uses
         { nothing to add }
       end;
 
-    function spilling_create_load(const ref:treference;r:tregister):Taicpu;
-    function spilling_create_store(r:tregister; const ref:treference):Taicpu;
+    function spilling_create_load(const ref: treference; r: tregister): taicpu;
+    function spilling_create_store(r: tregister; const ref: treference): taicpu;
 
     function setoppostfix(i : taicpu;pf : toppostfix) : taicpu;
     function setcondition(i : taicpu;c : tasmcond) : taicpu;
@@ -474,53 +474,57 @@ implementation
       end;
 
 
-    function spilling_create_load(const ref:treference;r:tregister):Taicpu;
+    function spilling_create_op(op: tasmop; const ref: treference; r: tregister): taicpu;
+      const
+        { invalid sizes for aarch64 are 0 }
+        subreg2bytesize: array[TSubRegister] of byte =
+          (0,0,0,0,4,8,0,0,0,4,8,0,0,0);
       var
-        op: tasmop;
+        scalefactor: byte;
       begin
+        scalefactor:=subreg2bytesize[getsubreg(r)];
+        if scalefactor=0 then
+          internalerror(2014120301);
+        if (ref.offset>4095*scalefactor) or
+           ((ref.offset>255) and
+            ((ref.offset mod scalefactor)<>0)) or
+           (ref.offset<-256) then
+          internalerror(2014120302);
         case getregtype(r) of
-          R_INTREGISTER :
-            result:=taicpu.op_reg_ref(A_LDR,r,ref);
-          R_MMREGISTER :
-            begin
-              case getsubreg(r) of
-                R_SUBFD:
-                  op:=A_LDR;
-                R_SUBFS:
-                  op:=A_LDR;
-                else
-                  internalerror(2009112905);
-              end;
-              result:=taicpu.op_reg_ref(op,r,ref);
-            end;
+          R_INTREGISTER,
+          R_MMREGISTER:
+            result:=taicpu.op_reg_ref(op,r,ref);
           else
             internalerror(200401041);
         end;
       end;
 
 
-    function spilling_create_store(r:tregister; const ref:treference):Taicpu;
+    function spilling_create_load(const ref: treference; r: tregister): taicpu;
       var
         op: tasmop;
       begin
-        case getregtype(r) of
-          R_INTREGISTER :
-            result:=taicpu.op_reg_ref(A_STR,r,ref);
-          R_MMREGISTER :
-            begin
-              case getsubreg(r) of
-                R_SUBFD:
-                  op:=A_STR;
-                R_SUBFS:
-                  op:=A_STR;
-                else
-                  internalerror(2009112904);
-              end;
-              result:=taicpu.op_reg_ref(op,r,ref);
-            end;
-          else
-            internalerror(200401041);
-        end;
+        if (ref.index<>NR_NO) or
+           (ref.offset<-256) or
+           (ref.offset>255) then
+          op:=A_LDR
+        else
+          op:=A_LDUR;
+        result:=spilling_create_op(op,ref,r);
+      end;
+
+
+    function spilling_create_store(r: tregister; const ref: treference): taicpu;
+      var
+        op: tasmop;
+      begin
+        if (ref.index<>NR_NO) or
+           (ref.offset<-256) or
+           (ref.offset>255) then
+          op:=A_STR
+        else
+          op:=A_STUR;
+        result:=spilling_create_op(op,ref,r);
       end;
 
 
