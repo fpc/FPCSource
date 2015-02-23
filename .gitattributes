@@ -7875,6 +7875,7 @@ rtl/aarch64/mathu.inc svneol=native#text/plain
 rtl/aarch64/set.inc svneol=native#text/plain
 rtl/aarch64/setjump.inc svneol=native#text/plain
 rtl/aarch64/setjumph.inc svneol=native#text/plain
+rtl/aarch64/strings.inc svneol=native#text/plain
 rtl/aarch64/stringss.inc svneol=native#text/plain
 rtl/aix/Makefile svneol=native#text/plain
 rtl/aix/Makefile.fpc svneol=native#text/plain
