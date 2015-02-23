@@ -41,6 +41,7 @@ interface
         procedure second_abs_long; override;
         procedure second_round_real; override;
         procedure second_trunc_real; override;
+        procedure second_get_frame; override;
       private
         procedure load_fpu_location;
       end;
@@ -165,6 +166,17 @@ implementation
         location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
         { convert to signed integer rounding towards zero }
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCVTZS,location.register,left.location.register));
+      end;
+
+
+    procedure taarch64inlinenode.second_get_frame;
+      begin
+        location_reset(location,LOC_CREGISTER,OS_ADDR);
+        { this routine is used to get the frame pointer for backtracing
+          purposes. current_procinfo.framepointer is set to SP because that one
+          is used to access temps. On most platforms these two frame pointers
+          are the same, but not on AArch64. }
+        location.register:=NR_FRAME_POINTER_REG;
       end;
 
 begin

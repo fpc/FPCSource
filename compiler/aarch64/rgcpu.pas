@@ -40,6 +40,10 @@ unit rgcpu;
         procedure do_spill_op(list: tasmlist; op: tasmop; pos: tai; const spilltemp: treference; tempreg: tregister);
       end;
 
+      trgintcpu=class(trgcpu)
+        procedure add_cpu_interferences(p: tai); override;
+      end;
+
 
 implementation
 
@@ -96,5 +100,63 @@ implementation
           inherited do_spill_written(list,pos,spilltemp,tempreg)
       end;
 
+
+    procedure trgintcpu.add_cpu_interferences(p: tai);
+     var
+       i: longint;
+     begin
+       if p.typ=ait_instruction then
+         begin
+           { add interferences for instructions that can have SP as a register
+             operand }
+           case taicpu(p).opcode of
+             A_MOV:
+               { all operands can be SP }
+               exit;
+             A_ADD,
+             A_SUB,
+             A_CMP,
+             A_CMN:
+               { ok as destination or first source in immediate or extended
+                 register form }
+               if (taicpu(p).oper[taicpu(p).ops-1]^.typ<>top_shifterop) or
+                  valid_shifter_operand(taicpu(p).opcode,false,true,
+                    reg_cgsize(taicpu(p).oper[0]^.reg) in [OS_64,OS_S64],
+                    taicpu(p).oper[taicpu(p).ops-1]^.shifterop^.shiftmode,
+                    taicpu(p).oper[taicpu(p).ops-1]^.shifterop^.shiftimm) then
+                 begin
+                   if taicpu(p).oper[taicpu(p).ops-1]^.typ=top_shifterop then
+                     i:=taicpu(p).ops-2
+                   else
+                     i:=taicpu(p).ops-1;
+                   if (taicpu(p).oper[i]^.typ=top_reg) then
+                     add_edge(getsupreg(taicpu(p).oper[i]^.reg),RS_SP);
+                   exit;
+                 end;
+             A_AND,
+             A_EOR,
+             A_ORR,
+             A_TST:
+               { ok in immediate form }
+               if taicpu(p).oper[taicpu(p).ops-1]^.typ=top_const then
+                 exit;
+           end;
+           { add interferences for other registers }
+           for i:=0 to taicpu(p).ops-1 do
+             begin
+               case taicpu(p).oper[i]^.typ of
+                 top_reg:
+                   if getregtype(taicpu(p).oper[i]^.reg)=R_INTREGISTER then
+                     add_edge(getsupreg(taicpu(p).oper[i]^.reg),RS_SP);
+                 top_ref:
+                   begin
+                     { sp can always be base, never be index }
+                     if taicpu(p).oper[i]^.ref^.index<>NR_NO then
+                       add_edge(getsupreg(taicpu(p).oper[i]^.ref^.index),RS_SP);
+                   end;
+               end;
+             end;
+         end;
+     end;
 
 end.

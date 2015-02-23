@@ -31,7 +31,7 @@ implementation
 
   uses
     ncgbas,ncgflw,ncgcal,ncgcnv,ncgld,ncgmem,ncgcon,ncgset,ncgobjc,
-    ncpuadd,ncpumat,ncpuinl,ncpucnv,{ncpuset,}
+    ncpuadd,ncpumat,ncpumem,ncpuinl,ncpucnv,{ncpuset,}
     { this not really a node }
     rgcpu,
     { symtable }

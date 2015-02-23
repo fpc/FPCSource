@@ -26,18 +26,42 @@ unit cpupi;
 interface
 
   uses
+    procinfo,
     psub;
 
   type
     taarch64procinfo=class(tcgprocinfo)
-      { no need to override anything, as the ABI requires us to use a frame
-        pointer at all times }
+      constructor create(aparent: tprocinfo); override;
+      procedure set_first_temp_offset; override;
     end;
 
 implementation
 
   uses
-    procinfo;
+    tgobj,
+    cpubase;
+
+  constructor taarch64procinfo.create(aparent: tprocinfo);
+    begin
+      inherited;
+      { use the stack pointer as framepointer, because
+         1) we exactly know the offsets of the temps from the stack pointer
+            after pass 1 (based on the require parameter stack size for called
+            routines), while we don't know it for the frame pointer (it depends
+            on the number of saved registers)
+         2) temp offsets from the stack pointer are positive while those from
+            the frame pointer are negative, and we can directly encode much
+            bigger positive offsets in the instructions
+      }
+      framepointer:=NR_STACK_POINTER_REG;
+    end;
+
+  procedure taarch64procinfo.set_first_temp_offset;
+    begin
+     { leave room for allocated parameters }
+     tg.setfirsttemp(align(maxpushedparasize,16));
+    end;
+
 
 begin
   cprocinfo:=taarch64procinfo;

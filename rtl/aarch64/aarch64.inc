@@ -82,12 +82,6 @@ procedure fpc_cpuinit;
                                  String
 ****************************************************************************}
 
-{$define FPC_SYSTEM_HAS_GET_FRAME}
-function get_frame:pointer;assembler; nostackframe;
-  asm
-    mov x0, x29
-  end;
-
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer;addr:pointer=nil):pointer;assembler; nostackframe;
   asm

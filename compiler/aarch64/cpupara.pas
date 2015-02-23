@@ -535,10 +535,6 @@ unit cpupara;
                begin
                   paraloc^.size:=paracgsize;
                   paraloc^.loc:=LOC_REFERENCE;
-                  if side=callerside then
-                    paraloc^.reference.index:=NR_STACK_POINTER_REG
-                  else
-                    paraloc^.reference.index:=NR_FRAME_POINTER_REG;
 
                   { the current stack offset may not be properly aligned in
                     case we're on Darwin have allocated a non-variadic argument
@@ -563,6 +559,13 @@ unit cpupara;
                     paraloc^.reference.offset:=curstackoffset
                   else
                     paraloc^.reference.offset:=curstackoffset+stackslotlen-paralen;
+                  if side=callerside then
+                    paraloc^.reference.index:=NR_STACK_POINTER_REG
+                  else
+                    begin
+                      paraloc^.reference.index:=NR_FRAME_POINTER_REG;
+                      inc(paraloc^.reference.offset,16);
+                    end;
                   inc(curstackoffset,stackslotlen);
                   paralen:=0
                end;

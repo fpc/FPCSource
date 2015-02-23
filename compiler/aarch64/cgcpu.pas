@@ -95,7 +95,7 @@ interface
         procedure g_adjust_self_value(list: TAsmList; procdef: tprocdef; ioffset: tcgint);override;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
        private
-        procedure save_regs(list: TAsmList; rt: tregistertype; lowsr, highsr: tsuperregister; sub: tsubregister);
+        function save_regs(list: TAsmList; rt: tregistertype; lowsr, highsr: tsuperregister; sub: tsubregister): longint;
         procedure load_regs(list: TAsmList; rt: tregistertype; lowsr, highsr: tsuperregister; sub: tsubregister);
       end;
 
@@ -519,7 +519,7 @@ implementation
       begin
         inherited init_register_allocators;
 
-        rg[R_INTREGISTER]:=Trgcpu.create(R_INTREGISTER,R_SUBWHOLE,
+        rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
             [RS_X0,RS_X1,RS_X2,RS_X3,RS_X4,RS_X5,RS_X6,RS_X7,RS_X8,
              RS_X9,RS_X10,RS_X11,RS_X12,RS_X13,RS_X14,RS_X15,RS_X16,RS_X17,
              RS_X19,RS_X20,RS_X21,RS_X22,RS_X23,RS_X24,RS_X25,RS_X26,RS_X27,RS_X28
@@ -1399,12 +1399,13 @@ implementation
 
   { *********** entry/exit code and address loading ************ }
 
-    procedure tcgaarch64.save_regs(list: TAsmList; rt: tregistertype; lowsr, highsr: tsuperregister; sub: tsubregister);
+    function tcgaarch64.save_regs(list: TAsmList; rt: tregistertype; lowsr, highsr: tsuperregister; sub: tsubregister): longint;
       var
         ref: treference;
         sr: tsuperregister;
         pairreg: tregister;
       begin
+        result:=0;
         reference_reset_base(ref,NR_SP,-16,16);
         ref.addressmode:=AM_PREINDEXED;
         pairreg:=NR_NO;
@@ -1415,18 +1416,38 @@ implementation
               pairreg:=newreg(rt,sr,sub)
             else
               begin
+                inc(result,16);
                 list.concat(taicpu.op_reg_reg_ref(A_STP,pairreg,newreg(rt,sr,sub),ref));
                 pairreg:=NR_NO
               end;
         { one left -> store twice (stack must be 16 bytes aligned) }
         if pairreg<>NR_NO then
-          list.concat(taicpu.op_reg_reg_ref(A_STP,pairreg,pairreg,ref));
+          begin
+            list.concat(taicpu.op_reg_reg_ref(A_STP,pairreg,pairreg,ref));
+            inc(result,16);
+          end;
       end;
+
+
+    procedure FixupOffsets(p:TObject;arg:pointer);
+      var
+        sym: tabstractnormalvarsym absolute p;
+      begin
+        if (tsym(p).typ in [paravarsym,localvarsym]) and
+          (sym.localloc.loc=LOC_REFERENCE) and
+          (sym.localloc.reference.base=NR_STACK_POINTER_REG) then
+          begin
+            sym.localloc.reference.base:=NR_FRAME_POINTER_REG;
+            dec(sym.localloc.reference.offset,PLongint(arg)^);
+          end;
+      end;
+
 
 
     procedure tcgaarch64.g_proc_entry(list: TAsmList; localsize: longint; nostackframe: boolean);
       var
         ref: treference;
+        totalstackframesize: longint;
       begin
         if nostackframe then
           exit;
@@ -1440,12 +1461,15 @@ implementation
         { initialise frame pointer }
         a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_SP,NR_FP);
 
+        totalstackframesize:=localsize;
         { save modified integer registers }
-        save_regs(list,R_INTREGISTER,RS_X19,RS_X28,R_SUBWHOLE);
+        inc(totalstackframesize,
+          save_regs(list,R_INTREGISTER,RS_X19,RS_X28,R_SUBWHOLE));
         { only the lower 64 bits of the modified vector registers need to be
           saved; if the caller needs the upper 64 bits, it has to save them
           itself }
-        save_regs(list,R_MMREGISTER,RS_D8,RS_D15,R_SUBMMD);
+        inc(totalstackframesize,
+          save_regs(list,R_MMREGISTER,RS_D8,RS_D15,R_SUBMMD));
 
         { allocate stack space }
         if localsize<>0 then
@@ -1453,6 +1477,37 @@ implementation
             localsize:=align(localsize,16);
             current_procinfo.final_localsize:=localsize;
             handle_reg_imm12_reg(list,A_SUB,OS_ADDR,NR_SP,localsize,NR_SP,NR_IP0,false,true);
+          end;
+        { By default, we use the frame pointer to access parameters passed via
+          the stack and the stack pointer to address local variables and temps
+          because
+           a) we can use bigger positive than negative offsets (so accessing
+              locals via negative offsets from the frame pointer would be less
+              efficient)
+           b) we don't know the local size while generating the code, so
+              accessing the parameters via the stack pointer is not possible
+              without copying them
+          The problem with this is the get_frame() intrinsic:
+           a) it must return the same value as what we pass as parentfp
+              parameter, since that's how it's used in the TP-style objects unit
+           b) its return value must usable to access all local data from a
+              routine (locals and parameters), since it's all the nested
+              routines have access to
+           c) its return value must be usable to construct a backtrace, as it's
+              also used by the exception handling routines
+
+          The solution we use here, based on something similar that's done in
+          the MIPS port, is to generate all accesses to locals in the routine
+          itself SP-relative, and then after the code is generated and the local
+          size is known (namely, here), we change all SP-relative variables/
+          parameters into FP-relative ones. This means that they'll be accessed
+          less efficiently from nested routines, but those accesses are indirect
+          anyway and at least this way they can be accessed at all
+        }
+        if current_procinfo.has_nestedprocs then
+          begin
+            current_procinfo.procdef.localst.SymList.ForEachCall(@FixupOffsets,@totalstackframesize);
+            current_procinfo.procdef.parast.SymList.ForEachCall(@FixupOffsets,@totalstackframesize);
           end;
       end;
 
