@@ -159,7 +159,9 @@ unit cpupara;
       end;
 
 
-    function getparaloc(calloption : tproccalloption; p : tdef; isvariadic: boolean) : tcgloc;
+    function getparaloc(calloption: tproccalloption; p: tdef): tcgloc;
+      var
+        hfabasedef: tdef;
       begin
          { Later, the LOC_REFERENCE is in most cases changed into LOC_REGISTER
            if push_addr_param for the def is true
@@ -178,9 +180,16 @@ unit cpupara;
             classrefdef:
               getparaloc:=LOC_REGISTER;
             recorddef:
-              getparaloc:=LOC_REGISTER;
+              if not is_hfa(p,hfabasedef) then
+                getparaloc:=LOC_REGISTER
+              else
+                getparaloc:=LOC_MMREGISTER;
             objectdef:
-              getparaloc:=LOC_REGISTER;
+              if not is_object(p) or
+                 not is_hfa(p,hfabasedef) then
+                getparaloc:=LOC_REGISTER
+              else
+                getparaloc:=LOC_MMREGISTER;
             stringdef:
               if is_shortstring(p) or is_longstring(p) then
                 getparaloc:=LOC_REFERENCE
@@ -191,12 +200,12 @@ unit cpupara;
             filedef:
               getparaloc:=LOC_REGISTER;
             arraydef:
-              getparaloc:=LOC_REFERENCE;
-            setdef:
-              if is_smallset(p) then
+              if not is_hfa(p,hfabasedef) then
                 getparaloc:=LOC_REGISTER
               else
-                getparaloc:=LOC_REFERENCE;
+                getparaloc:=LOC_MMREGISTER;
+            setdef:
+              getparaloc:=LOC_REGISTER;
             variantdef:
               getparaloc:=LOC_REGISTER;
             { avoid problems with errornous definitions }
