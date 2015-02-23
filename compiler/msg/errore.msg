@@ -3727,6 +3727,7 @@ F*2P<x>_Set target CPU (arm,avr,i386,jvm,m68k,mips,mipsel,powerpc,powerpc64,spar
 3*2Twince_Windows CE
 4*2Tdarwin_Darwin/Mac OS X
 4*2Tfreebsd_FreeBSD
+4*2Tiphonesim_ iPhoneSimulator
 4*2Tlinux_Linux
 4*2Tnetbsd_NetBSD
 4*2Topenbsd_OpenBSD
@@ -3845,6 +3846,7 @@ A*2Wpxxxx_Specify the controller type; see fpc -i or fpc -iu for possible values
 m*2Wpxxxx_Specify the controller type; see fpc -i or fpc -iu for possible values
 V*2Wpxxxx_Specify the controller type; see fpc -i or fpc -iu for possible values
 3*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (iphonesim)
+4*2WP<x>_Minimum iOS deployment version: 8.0, 8.0.2, ... (iphonesim)
 a*2WP<x>_Minimum iOS deployment version: 7.0, 7.1.2, ... (Darwin)
 A*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (Darwin)
 3*2WR_Generate relocation code (Windows)
