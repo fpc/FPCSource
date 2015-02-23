@@ -4458,6 +4458,7 @@ packages/iosxlocale/Makefile.fpc svneol=native#text/plain
 packages/iosxlocale/Makefile.fpc.fpcmake svneol=native#text/plain
 packages/iosxlocale/fpmake.pp svneol=native#text/plain
 packages/iosxlocale/src/iosxlocale.pp svneol=native#text/plain
+packages/iosxlocale/src/iosxwstr.pp svneol=native#text/plain
 packages/jni/Makefile svneol=native#text/plain
 packages/jni/Makefile.fpc svneol=native#text/plain
 packages/jni/fpmake.pp svneol=native#text/plain
