@@ -10505,6 +10505,13 @@ tests/test/cg/obj/beos/i386/tcext4.o -text
 tests/test/cg/obj/beos/i386/tcext5.o -text
 tests/test/cg/obj/cpptcl1.cpp svneol=native#text/plain
 tests/test/cg/obj/cpptcl2.cpp svneol=native#text/plain
+tests/test/cg/obj/darwin/aarch64/cpptcl1.o -text
+tests/test/cg/obj/darwin/aarch64/cpptcl2.o -text
+tests/test/cg/obj/darwin/aarch64/ctest.o -text
+tests/test/cg/obj/darwin/aarch64/tcext3.o -text
+tests/test/cg/obj/darwin/aarch64/tcext4.o -text
+tests/test/cg/obj/darwin/aarch64/tcext5.o -text
+tests/test/cg/obj/darwin/aarch64/tcext6.o -text
 tests/test/cg/obj/darwin/arm/cpptcl1.o -text
 tests/test/cg/obj/darwin/arm/cpptcl2.o -text
 tests/test/cg/obj/darwin/arm/ctest.o -text
