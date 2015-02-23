@@ -27,6 +27,7 @@ interface
 
   uses
     globtype,
+    cgbase,
     node,nmem,ncgmem;
 
   type
@@ -34,10 +35,16 @@ interface
       procedure pass_generate_code; override;
     end;
 
+    taarch64vecnode = class(tcgvecnode)
+      procedure update_reference_reg_mul(maybe_const_reg: tregister; l: aint); override;
+    end;
+
 implementation
 
   uses
-    aasmdata,cgbase,cpubase,
+    cutils,verbose,
+    aasmdata,cpubase,
+    cgutils,
     cgobj;
 
   { taarch64loadparentfpnode }
@@ -61,6 +68,44 @@ implementation
           end;
     end;
 
+
+  { taarch64vecnode }
+
+  procedure taarch64vecnode.update_reference_reg_mul(maybe_const_reg: tregister; l: aint);
+    var
+      base: tregister;
+      oldoffset: asizeint;
+      shift: byte;
+    begin
+      { we can only scale the index by shl 1..4 }
+      if not(l in [2,4,8,16]) then
+        begin
+          inherited;
+          exit;
+        end;
+      { we need a base set and an index available }
+      if (location.reference.base=NR_NO) or
+         (location.reference.index<>NR_NO) then
+        begin
+          { don't integrate the offset yet, make_simple_ref() may be able to
+            handle it more efficiently later (unless an offset is all we have
+            -> optimization for someone that wants to add support for AArch64
+            embedded targets) }
+          oldoffset:=location.reference.offset;
+          location.reference.offset:=0;
+          base:=cg.getaddressregister(current_asmdata.CurrAsmList);
+          cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,location.reference,base);
+          reference_reset_base(location.reference,base,oldoffset,location.reference.alignment);
+        end;
+      shift:=BsfDWord(l);
+      location.reference.index:=maybe_const_reg;
+      location.reference.shiftmode:=SM_LSL;
+      location.reference.shiftimm:=shift;
+      location.reference.alignment:=newalignment(location.reference.alignment,l);
+    end;
+
+
 begin
   cloadparentfpnode:=taarch64loadparentfpnode;
+  cvecnode:=taarch64vecnode;
 end.
