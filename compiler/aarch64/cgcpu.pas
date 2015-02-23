@@ -508,10 +508,6 @@ implementation
              ,RS_X29 }],
             first_int_imreg,[]);
 
-        { needs at least one element for rgobj not to crash }
-        rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
-            [RS_B0],first_fpu_imreg,[]);
-
         rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBMMD,
             [RS_Q0,RS_Q1,RS_Q2,RS_Q3,RS_Q4,RS_Q5,RS_Q6,RS_Q7,
              RS_Q8,RS_Q9,RS_Q10,RS_Q11,RS_Q12,RS_Q13,RS_Q14,RS_Q15,
