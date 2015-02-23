@@ -1,6 +1,6 @@
 {$ifdef UNIX}
 uses
-  cwstring;
+  {$ifdef darwin}iosxwstr{$else}cwstring{$endif};
 {$endif UNIX}
 
 var

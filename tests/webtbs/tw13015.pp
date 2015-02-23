@@ -9,7 +9,7 @@ program test;
 
 uses
 {$ifdef unix}
- cwstring,
+ {$ifdef darwin}iosxwstr{$else}cwstring{$endif},
 {$endif}
  Classes,SysUtils,uw13015;
 
