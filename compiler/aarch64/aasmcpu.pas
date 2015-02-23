@@ -149,9 +149,6 @@ uses
 
       pinsentry=^tinsentry;
 
-{    const
-      InsTab : array[0..instabentries-1] of TInsEntry={$i a64tab.inc} }
-
     var
       InsTabCache : PInsTabCache;
 
@@ -1145,6 +1142,7 @@ implementation
 
     function taicpu.Matches(p:PInsEntry):longint;
       begin
+        result:=0; { unimplemented }
       end;
 
 
@@ -1167,6 +1165,7 @@ implementation
 
     function taicpu.FindInsentry(objdata:TObjData):boolean;
       begin
+        result:=false;
       end;
 
 
