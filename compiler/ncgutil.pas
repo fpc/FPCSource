@@ -864,12 +864,11 @@ implementation
         end;
 
       var
-        paraloc  : pcgparalocation;
-        href     : treference;
-        sizeleft : aint;
-{$if defined(sparc) or defined(arm) or defined(mips)}
-        tempref  : treference;
-{$endif defined(sparc) or defined(arm) or defined(mips)}
+        paraloc   : pcgparalocation;
+        href      : treference;
+        sizeleft  : aint;
+        alignment : longint;
+        tempref   : treference;
 {$ifdef mips}
         tmpreg   : tregister;
 {$endif mips}
@@ -1085,7 +1084,38 @@ implementation
                         end
 {$endif defined(cpu8bitalu)}
                       else
-                        internalerror(200410105);
+                        begin
+                          { this can happen if a parameter is spread over
+                            multiple paralocs, e.g. if a record with two single
+                            fields must be passed in two single precision
+                            registers }
+                          { does it fit in the register of destloc? }
+                          sizeleft:=para.intsize;
+                          if sizeleft<>vardef.size then
+                            internalerror(2014122806);
+                          if sizeleft<>tcgsize2size[destloc.size] then
+                            internalerror(200410105);
+                          { store everything first to memory, then load it in
+                            destloc }
+                          tg.gettemp(list,sizeleft,sizeleft,tt_persistent,tempref);
+                          gen_alloc_regloc(list,destloc);
+                          while sizeleft>0 do
+                            begin
+                              if not assigned(paraloc) then
+                                internalerror(2014122807);
+                              unget_para(paraloc^);
+                              cg.a_load_cgparaloc_ref(list,paraloc^,tempref,sizeleft,newalignment(para.alignment,para.intsize-sizeleft));
+                              if (paraloc^.size=OS_NO) and
+                                 assigned(paraloc^.next) then
+                                internalerror(2014122805);
+                              inc(tempref.offset,tcgsize2size[paraloc^.size]);
+                              dec(sizeleft,tcgsize2size[paraloc^.size]);
+                              paraloc:=paraloc^.next;
+                            end;
+                          dec(tempref.offset,para.intsize);
+                          cg.a_load_ref_reg(list,para.size,para.size,tempref,destloc.register);
+                          tg.ungettemp(list,tempref);
+                        end;
                     end
                   else
                     begin
