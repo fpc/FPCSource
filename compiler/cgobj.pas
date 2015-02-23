@@ -865,7 +865,14 @@ implementation
          ref : treference;
          tmpreg : tregister;
       begin
-         cgpara.check_simple_location;
+         if assigned(cgpara.location^.next) then
+           begin
+             tg.gethltemp(list,cgpara.def,cgpara.def.size,tt_persistent,ref);
+             a_load_reg_ref(list,size,size,r,ref);
+             a_load_ref_cgpara(list,size,ref,cgpara);
+             tg.ungettemp(list,ref);
+             exit;
+           end;
          paramanager.alloccgpara(list,cgpara);
          if cgpara.location^.shiftval<0 then
            begin
