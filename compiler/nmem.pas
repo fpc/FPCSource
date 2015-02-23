@@ -45,10 +45,18 @@ interface
        end;
        tloadvmtaddrnodeclass = class of tloadvmtaddrnode;
 
+       tloadparentfpkind = (
+         { as parameter to a nested routine (current routine's frame) }
+         lpf_forpara,
+         { to load a local from a parent routine in the current nested routine
+           (some parent routine's frame) }
+         lpf_forload
+       );
        tloadparentfpnode = class(tunarynode)
           parentpd : tprocdef;
           parentpdderef : tderef;
-          constructor create(pd:tprocdef);virtual;
+          kind: tloadparentfpkind;
+          constructor create(pd: tprocdef; fpkind: tloadparentfpkind);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -306,7 +314,7 @@ implementation
                         TLOADPARENTFPNODE
 *****************************************************************************}
 
-    constructor tloadparentfpnode.create(pd:tprocdef);
+    constructor tloadparentfpnode.create(pd: tprocdef; fpkind: tloadparentfpkind);
       begin
         inherited create(loadparentfpn,nil);
         if not assigned(pd) then
@@ -314,6 +322,7 @@ implementation
         if (pd.parast.symtablelevel>current_procinfo.procdef.parast.symtablelevel) then
           internalerror(200309284);
         parentpd:=pd;
+        kind:=fpkind;
       end;
 
 
@@ -321,6 +330,7 @@ implementation
       begin
         inherited ppuload(t,ppufile);
         ppufile.getderef(parentpdderef);
+        kind:=tloadparentfpkind(ppufile.getbyte);
       end;
 
 
@@ -328,6 +338,7 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putderef(parentpdderef);
+        ppufile.putbyte(byte(kind));
       end;
 
 
@@ -349,7 +360,8 @@ implementation
       begin
         result:=
           inherited docompare(p) and
-          (tloadparentfpnode(p).parentpd=parentpd);
+          (tloadparentfpnode(p).parentpd=parentpd) and
+          (tloadparentfpnode(p).kind=kind);
       end;
 
 
@@ -359,6 +371,7 @@ implementation
       begin
          p:=tloadparentfpnode(inherited dogetcopy);
          p.parentpd:=parentpd;
+         p.kind:=kind;
          dogetcopy:=p;
       end;
 

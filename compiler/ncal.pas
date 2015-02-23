@@ -2813,10 +2813,10 @@ implementation
                      if not assigned(right) then
                        begin
                          if assigned(procdefinition.owner.defowner) then
-                           para.left:=cloadparentfpnode.create(tprocdef(procdefinition.owner.defowner))
+                           para.left:=cloadparentfpnode.create(tprocdef(procdefinition.owner.defowner),lpf_forpara)
                          { exceptfilters called from main level are not owned }
                          else if procdefinition.proctypeoption=potype_exceptfilter then
-                           para.left:=cloadparentfpnode.create(current_procinfo.procdef)
+                           para.left:=cloadparentfpnode.create(current_procinfo.procdef,lpf_forpara)
                          else
                            internalerror(200309287);
                        end
