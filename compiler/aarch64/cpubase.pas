@@ -175,7 +175,7 @@ unit cpubase;
 *****************************************************************************}
 
       taddressmode = (AM_OFFSET,AM_PREINDEXED,AM_POSTINDEXED);
-      tshiftmode = (SM_None,SM_LSL,SM_LSR,SM_ASR,SM_ROR);
+      tshiftmode = (SM_None,SM_LSL,SM_LSR,SM_ASR);
 
       tupdatereg = (UR_None,UR_Update);
 
