@@ -429,7 +429,7 @@ unit cpubase;
 
     function flags_to_cond(const f: TResFlags) : TAsmCond;
       const
-        flag_2_cond: array[F_EQ..F_LE] of TAsmCond =
+        flag_2_cond: array[TResFlags] of TAsmCond =
           (C_EQ,C_NE,C_HI,C_LO,C_MI,C_PL,C_VS,C_VC,C_HI,C_LS,
            C_GE,C_LT,C_GT,C_LE);
       begin
