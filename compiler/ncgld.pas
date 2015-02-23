@@ -768,9 +768,17 @@ implementation
                            (right.resultdef.typ=floatdef) and
                            (left.location.size<>right.location.size) then
                           begin
-                            hlcg.a_loadfpu_ref_ref(current_asmdata.CurrAsmList,
-                              right.resultdef,left.resultdef,
-                              right.location.reference,left.location.reference)
+                            { assume that all float types can be handed by the
+                              fpu if one can be handled by the fpu }
+                            if not use_vectorfpu(left.resultdef) or
+                               not use_vectorfpu(right.resultdef) then
+                              hlcg.a_loadfpu_ref_ref(current_asmdata.CurrAsmList,
+                                right.resultdef,left.resultdef,
+                                right.location.reference,left.location.reference)
+                            else
+                              hlcg.a_loadmm_ref_ref(current_asmdata.CurrAsmList,
+                                right.resultdef,left.resultdef,
+                                right.location.reference,left.location.reference,mms_movescalar)
                           end
                         else
                           begin
