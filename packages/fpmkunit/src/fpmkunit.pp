@@ -210,7 +210,7 @@ Const
     { embedded }( false, true,  true,  true,  true,  true,  true,  true,  true,  true , false, false, false, false, false),
     { symbian } ( false, true,  false, false, false, false, true,  false, false, false, false, false, false, false, false),
     { haiku }   ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
-    { iphonesim}( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
+    { iphonesim}( false, true,  false, false, false, true, false, false, false, false, false, false, false, false, false),
     { aix    }  ( false, false, false, true,  false, false, false, true,  false, false, false, false, false, false, false),
     { java }    ( false, false, false, false, false, false, false, false, false, false, false, false, true , false, false),
     { android } ( false, true,  false, false, false, false, true,  false, false, false, false, true,  true , false, false),
