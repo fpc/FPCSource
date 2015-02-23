@@ -646,6 +646,9 @@ begin
 {$ifdef i8086}
       '8',
 {$endif}
+{$ifdef aarch64}
+      'a',
+{$endif}
 {$ifdef arm}
       'A',
 {$endif}
