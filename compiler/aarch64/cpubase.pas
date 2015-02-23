@@ -324,6 +324,17 @@ unit cpubase;
     function cgsize2subreg(regtype: tregistertype; s:Tcgsize):Tsubregister;
       begin
         case regtype of
+          R_INTREGISTER:
+            begin
+              case s of
+                { there's only Wn and Xn }
+                OS_32,
+                OS_S32:
+                  cgsize2subreg:=R_SUBD;
+                else
+                  cgsize2subreg:=R_SUBWHOLE;
+                end;
+            end;
           R_MMREGISTER:
             begin
               case s of
@@ -344,8 +355,13 @@ unit cpubase;
     function reg_cgsize(const reg: tregister): tcgsize;
       begin
         case getregtype(reg) of
-          R_INTREGISTER :
-            reg_cgsize:=OS_32;
+          R_INTREGISTER:
+            case getsubreg(reg) of
+              R_SUBD:
+                result:=OS_32
+              else
+                result:=OS_64;
+            end;
           R_MMREGISTER :
             begin
               case getsubreg(reg) of
