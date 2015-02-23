@@ -532,6 +532,7 @@ implementation
          system_powerpc64_darwin,
          system_x86_64_darwin,
          system_arm_darwin,
+         system_aarch64_darwin,
          system_powerpc_aix,
          system_powerpc64_aix:
            begin
