@@ -74,6 +74,9 @@ interface
         procedure a_loadmm_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister;shuffle : pmmshuffle);override;
         procedure a_loadmm_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: TReference; reg: tregister; shuffle: pmmshuffle);override;
         procedure a_loadmm_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: TReference; shuffle: pmmshuffle);override;
+
+        procedure a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize: tcgsize; intreg, mmreg: tregister; shuffle: pmmshuffle); override;
+        procedure a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize: tcgsize; mmreg, intreg: tregister; shuffle: pmmshuffle); override;
         { comparison operations }
         procedure a_cmp_const_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel);override;
         procedure a_cmp_reg_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);override;
@@ -993,6 +996,28 @@ implementation
              reg:=tmpreg;
            end;
          handle_load_store(list,A_STR,tosize,PF_NONE,reg,ref);
+       end;
+
+
+     procedure tcgaarch64.a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize: tcgsize; intreg, mmreg: tregister; shuffle: pmmshuffle);
+       begin
+         if not shufflescalar(shuffle) then
+           internalerror(2014122801);
+         if not(tcgsize2size[fromsize] in [4,8]) or
+            (tcgsize2size[fromsize]<>tcgsize2size[tosize]) then
+           internalerror(2014122803);
+         list.concat(taicpu.op_reg_reg(A_INS,mmreg,intreg));
+       end;
+
+
+     procedure tcgaarch64.a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize: tcgsize; mmreg, intreg: tregister; shuffle: pmmshuffle);
+       begin
+         if not shufflescalar(shuffle) then
+           internalerror(2014122802);
+         if not(tcgsize2size[fromsize] in [4,8]) or
+            (tcgsize2size[fromsize]<>tcgsize2size[tosize]) then
+           internalerror(2014122804);
+         list.concat(taicpu.op_reg_reg(A_UMOV,intreg,mmreg));
        end;
 
 
