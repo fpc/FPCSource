@@ -37,6 +37,7 @@ interface
   type
     thlcgaarch64 = class(thlcg2ll)
       procedure a_load_subsetreg_reg(list: TAsmList; subsetsize, tosize: tdef; const sreg: tsubsetregister; destreg: tregister); override;
+      procedure a_load_subsetreg_subsetreg(list: TAsmlist; fromsubsetsize, tosubsetsize: tdef; const fromsreg, tosreg: tsubsetregister); override;
     end;
 
   procedure create_hlcodegen;
@@ -84,6 +85,43 @@ implementation
         end
       else
         cg.a_load_reg_reg(list,def_cgsize(subsetsize),tocgsize,sreg.subsetreg,destreg);
+    end;
+
+
+  procedure thlcgaarch64.a_load_subsetreg_subsetreg(list: TAsmlist; fromsubsetsize, tosubsetsize: tdef; const fromsreg, tosreg: tsubsetregister);
+    var
+      fromreg, toreg: tregister;
+
+    procedure getfromtoregs;
+      begin
+        if (fromsreg.subsetregsize in [OS_S64,OS_64])<>
+           (tosreg.subsetregsize in [OS_S64,OS_64]) then
+          begin
+            fromreg:=cg.makeregsize(list,fromsreg.subsetreg,OS_64);
+            toreg:=cg.makeregsize(list,tosreg.subsetreg,OS_64);
+          end
+        else
+          begin
+            fromreg:=fromsreg.subsetreg;
+            toreg:=tosreg.subsetreg;
+          end;
+      end;
+
+    begin
+      if (tosreg.startbit=0) and
+         (fromsreg.bitlen>=tosreg.bitlen) then
+        begin
+          getfromtoregs;
+          list.concat(taicpu.op_reg_reg_const_const(A_BFXIL,toreg,fromreg,fromsreg.startbit,tosreg.bitlen))
+        end
+      else if (fromsreg.startbit=0) and
+         (fromsreg.bitlen>=tosreg.bitlen) then
+        begin
+          getfromtoregs;
+          list.concat(taicpu.op_reg_reg_const_const(A_BFI,toreg,fromreg,tosreg.startbit,tosreg.bitlen))
+        end
+      else
+        inherited;
     end;
 
 
