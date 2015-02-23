@@ -1341,12 +1341,8 @@ implementation
 
 
     procedure tcgaarch64.g_flags2reg(list: TAsmList; size: tcgsize; const f: tresflags; reg: tregister);
-      var
-        ai: taicpu;
       begin
-        ai:=taicpu.op_reg(A_CSET,reg)
-        ai.SetCondition(flags_to_cond(f));
-        list.concat(ai);
+        list.concat(taicpu.op_reg_cond(A_CSET,reg,flags_to_cond(f)));
       end;
 
 

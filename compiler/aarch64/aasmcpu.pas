@@ -156,6 +156,7 @@ uses
       taicpu = class(tai_cpu_abstract_sym)
          oppostfix : TOpPostfix;
          procedure loadshifterop(opidx:longint;const so:tshifterop);
+         procedure loadconditioncode(opidx: longint; const c: tasmcond);
          constructor op_none(op : tasmop);
 
          constructor op_reg(op : tasmop;_op1 : tregister);
@@ -164,6 +165,7 @@ uses
 
          constructor op_reg_reg(op : tasmop;_op1,_op2 : tregister);
          constructor op_reg_ref(op : tasmop;_op1 : tregister;const _op2 : treference);
+         constructor op_reg_cond(op: tasmop; _op1: tregister; _op2: tasmcond);
          constructor op_reg_const(op:tasmop; _op1: tregister; _op2: aint);
          constructor op_reg_const_shifterop(op : tasmop;_op1: tregister; _op2: aint;_op3 : tshifterop);
 
@@ -275,6 +277,21 @@ implementation
       end;
 
 
+    procedure taicpu.loadconditioncode(opidx: longint; const c: tasmcond);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+          begin
+            if typ<>top_conditioncode then
+              begin
+                clearop(opidx);
+              end;
+            condition:=c;
+            typ:=top_conditioncode;
+          end;
+      end;
+
+
 {*****************************************************************************
                                  taicpu Constructors
 *****************************************************************************}
@@ -344,6 +361,15 @@ implementation
          ops:=2;
          loadreg(0,_op1);
          loadref(1,_op2);
+      end;
+
+
+    constructor taicpu.op_reg_cond(op: tasmop; _op1: tregister; _op2: tasmcond);
+      begin
+        inherited create(op);
+        ops:=2;
+        loadreg(0,_op1);
+        loadconditioncode(1,_op2);
       end;
 
 
