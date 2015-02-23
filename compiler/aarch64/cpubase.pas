@@ -1,7 +1,8 @@
 {
     Copyright (c) 1998-2012 by Florian Klaempfl and Peter Vreman
+    Copyright (c) 2014 by Jonas Maebe and Florian Klaempfl
 
-    Contains the base types for ARM64
+    Contains the base types for Aarch64
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -100,7 +101,7 @@ unit cpubase;
         The value of this constant is equal to the constant
         PARM_BOUNDARY / BITS_PER_UNIT in the GCC source.
       }
-      std_param_align = 4;
+      std_param_align = 8;
 
       { TODO: Calculate bsstart}
       regnumber_count_bsstart = 128;
