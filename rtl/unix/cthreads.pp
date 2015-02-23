@@ -140,6 +140,10 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         threadvarblocksize:=align(threadvarblocksize,16);
         {$endif cpupowerpc64}
 
+        {$ifdef cpuaarch64}
+        threadvarblocksize:=align(threadvarblocksize,16);
+        {$endif cpuaarch64}
+
         offset:=threadvarblocksize;
 
         inc(threadvarblocksize,size);
