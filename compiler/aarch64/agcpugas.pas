@@ -123,9 +123,13 @@ unit agcpugas;
                 case ref.shiftmode of
                   SM_None: ;
                   SM_LSL,
-                  SM_UXTB, SM_UXTH, SM_UXTW, SM_UXTX,
-                  SM_SXTB, SM_SXTH, SM_SXTW, SM_SXTX:
-                    result:=result+', lsl #'+tostr(ref.shiftimm);
+                  SM_UXTW, SM_UXTX, SM_SXTW, SM_SXTX:
+                    begin
+                      result:=result+', '+gas_shiftmode2str[ref.shiftmode];
+                      if (ref.shiftmode=SM_LSL) or
+                         (ref.shiftimm<>0) then
+                        result:=result+' #'+tostr(ref.shiftimm);
+                    end
                   else
                     internalerror(2014121505);
                 end;
