@@ -217,9 +217,6 @@ unit cpubase;
         shiftimm : byte;
       end;
 
-      tspecialregflag = (srC, srX, srS, srF);
-      tspecialregflags = set of tspecialregflag;
-
 {*****************************************************************************
                                  Constants
 *****************************************************************************}
