@@ -184,6 +184,29 @@ implementation
         end;
       end;
 
+      { ideas for second_abs_long (KB) }
+
+      { This is probably faster on 68000 than the generic implementation,
+        because shifting is slow on the original 68000, maybe also on the 68020?
+        Also needs to be tested on 040/060. This can also work on a CF.
+        input - d0, output - d2
+        move.l d0,d2
+        btst   #31,d2
+        sne    d1
+        extb.l d1 (or ext.w + ext.l on 68000)
+        eor.l  d1,d2
+        sub.l  d1,d2
+      }
+
+      { Solution using bitfield extraction, we don't support the necessary asm
+        construct for this yet, probably this is the fastest on 020, slower on
+        040/060 than the one above, doesn't work on '000 or CF.
+        input - d0, output - d2
+        move.l  d0,d2
+        bfexts  d0[0:1],d1
+        eor.l   d1,d2
+        sub.l   d1,d2
+      }
 begin
   cinlinenode:=t68kinlinenode;
 end.
