@@ -251,13 +251,29 @@ implementation
              if is_objcclass(left.resultdef) and
                 (left.nodetype<>typen) then
                begin
-                 { don't use the ISA field name, assume this field is at offset
-                   0 (just like gcc/clang) }
-                 result:=ctypeconvnode.create_internal(left,voidpointertype);
-                 result:=cderefnode.create(result);
-                 inserttypeconv_internal(result,resultdef);
-                 { reused }
-                 left:=nil;
+                 if target_info.system<>system_aarch64_darwin then
+                   begin
+                     { don't use the ISA field name, assume this field is at offset
+                       0 (just like gcc/clang) }
+                     result:=ctypeconvnode.create_internal(left,voidpointertype);
+                     result:=cderefnode.create(result);
+                     inserttypeconv_internal(result,resultdef);
+                     { reused }
+                     left:=nil;
+                   end
+                 else
+                   begin
+                     { Darwin/AArch64, the isa field is opaque and we must call
+                       _class to obtain the actual ISA pointer }
+                     vs:=search_struct_member(tobjectdef(left.resultdef),'_CLASS');
+                     if not assigned(vs) or
+                        (tsym(vs).typ<>procsym) then
+                       internalerror(2011041901);
+                     result:=ccallnode.create(nil,tprocsym(vs),vs.owner,left,[]);
+                     inserttypeconv_explicit(result,resultdef);
+                     { reused }
+                     left:=nil;
+                   end;
                end
              else if is_javaclass(left.resultdef) and
                 (left.nodetype<>typen) and
