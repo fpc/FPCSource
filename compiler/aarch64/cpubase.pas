@@ -68,10 +68,16 @@ unit cpubase;
       { Available Superregisters }
       {$i ra64sup.inc}
 
+      RS_IP0 = RS_X16;
+      RS_IP1 = RS_X17;
+
       R_SUBWHOLE = R_SUBQ;
 
       { Available Registers }
       {$i ra64con.inc}
+
+      NR_IP0 = NR_X16;
+      NR_IP1 = NR_X17;
 
       { Integer Super registers first and last }
       first_int_supreg = RS_X0;
