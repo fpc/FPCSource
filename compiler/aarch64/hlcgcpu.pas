@@ -38,6 +38,8 @@ interface
     thlcgaarch64 = class(thlcg2ll)
       procedure a_load_subsetreg_reg(list: TAsmList; subsetsize, tosize: tdef; const sreg: tsubsetregister; destreg: tregister); override;
       procedure a_load_subsetreg_subsetreg(list: TAsmlist; fromsubsetsize, tosubsetsize: tdef; const fromsreg, tosreg: tsubsetregister); override;
+     protected
+      procedure a_load_regconst_subsetreg_intern(list: TAsmList; fromsize, subsetsize: tdef; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt); override;
     end;
 
   procedure create_hlcodegen;
@@ -88,40 +90,59 @@ implementation
     end;
 
 
+  procedure makeregssamesize(list: tasmlist; fromsize, tosize: tcgsize; orgfromreg, orgtoreg: tregister; out newfromreg, newtoreg: tregister);
+    begin
+      if (fromsize in [OS_S64,OS_64])<>
+         (tosize in [OS_S64,OS_64]) then
+        begin
+          newfromreg:=cg.makeregsize(list,orgfromreg,OS_64);
+          newtoreg:=cg.makeregsize(list,orgtoreg,OS_64);
+        end
+      else
+        begin
+          newfromreg:=orgfromreg;
+          newtoreg:=orgtoreg;
+        end;
+    end;
+
+
   procedure thlcgaarch64.a_load_subsetreg_subsetreg(list: TAsmlist; fromsubsetsize, tosubsetsize: tdef; const fromsreg, tosreg: tsubsetregister);
     var
       fromreg, toreg: tregister;
 
-    procedure getfromtoregs;
-      begin
-        if (fromsreg.subsetregsize in [OS_S64,OS_64])<>
-           (tosreg.subsetregsize in [OS_S64,OS_64]) then
-          begin
-            fromreg:=cg.makeregsize(list,fromsreg.subsetreg,OS_64);
-            toreg:=cg.makeregsize(list,tosreg.subsetreg,OS_64);
-          end
-        else
-          begin
-            fromreg:=fromsreg.subsetreg;
-            toreg:=tosreg.subsetreg;
-          end;
-      end;
-
     begin
+      { BFM can only insert a bitfield that starts at position 0 in the source
+        source or destination register }
       if (tosreg.startbit=0) and
          (fromsreg.bitlen>=tosreg.bitlen) then
         begin
-          getfromtoregs;
+          makeregssamesize(list,fromsreg.subsetregsize,tosreg.subsetregsize,fromsreg.subsetreg,tosreg.subsetreg,fromreg,toreg);
           list.concat(taicpu.op_reg_reg_const_const(A_BFXIL,toreg,fromreg,fromsreg.startbit,tosreg.bitlen))
         end
       else if (fromsreg.startbit=0) and
          (fromsreg.bitlen>=tosreg.bitlen) then
         begin
-          getfromtoregs;
+          makeregssamesize(list,fromsreg.subsetregsize,tosreg.subsetregsize,fromsreg.subsetreg,tosreg.subsetreg,fromreg,toreg);
           list.concat(taicpu.op_reg_reg_const_const(A_BFI,toreg,fromreg,tosreg.startbit,tosreg.bitlen))
         end
       else
         inherited;
+    end;
+
+
+  procedure thlcgaarch64.a_load_regconst_subsetreg_intern(list: TAsmList; fromsize, subsetsize: tdef; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt);
+    var
+      toreg: tregister;
+    begin
+      if slopt in [SL_SETZERO,SL_SETMAX] then
+        inherited
+      else if not(sreg.bitlen in [32,64]) then
+        begin
+          makeregssamesize(list,def_cgsize(fromsize),sreg.subsetregsize,fromreg,sreg.subsetreg,fromreg,toreg);
+          list.concat(taicpu.op_reg_reg_const_const(A_BFI,toreg,fromreg,sreg.startbit,sreg.bitlen))
+        end
+      else
+        a_load_reg_reg(list,fromsize,subsetsize,fromreg,sreg.subsetreg);
     end;
 
 
