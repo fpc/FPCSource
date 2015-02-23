@@ -885,7 +885,7 @@ begin
   if MacVersionSet then
     exit;
   { check for deployment target set via environment variable }
-  if not(target_info.system in [system_i386_iphonesim,system_arm_darwin]) then
+  if not(target_info.system in [system_i386_iphonesim,system_arm_darwin,system_aarch64_darwin]) then
     begin
       envstr:=GetEnvironmentVariable('MACOSX_DEPLOYMENT_TARGET');
       if envstr<>'' then
@@ -2240,7 +2240,7 @@ begin
                       end;
                     'P':
                       begin
-                        if (target_info.system in [system_i386_iphonesim,system_arm_darwin]) and
+                        if (target_info.system in [system_i386_iphonesim,system_arm_darwin,system_aarch64_darwin]) and
                            ParseMacVersionMin(iPhoneOSVersionMin,MacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED',copy(More,2,255),true) then
                           begin
                             break;
@@ -3399,6 +3399,12 @@ begin
     mm_huge:    def_system_macro('FPC_MM_HUGE');
   end;
 {$endif i8086}
+{$ifdef aarch64}
+  def_system_macro('CPUAARCH64');
+  def_system_macro('CPU64');
+  def_system_macro('FPC_CURRENCY_IS_INT64');
+  def_system_macro('FPC_COMP_IS_INT64');
+{$endif aarch64}
 
   if tf_cld in target_info.flags then
     if not UpdateTargetSwitchStr('CLD', init_settings.targetswitches, true) then
