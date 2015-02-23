@@ -17,6 +17,7 @@ compiler/aarch64/aasmcpu.pas svneol=native#text/plain
 compiler/aarch64/aoptcpu.pas svneol=native#text/plain
 compiler/aarch64/aoptcpub.pas svneol=native#text/plain
 compiler/aarch64/aoptcpud.pas svneol=native#text/plain
+compiler/aarch64/cgcpu.pas svneol=native#text/plain
 compiler/aarch64/cpubase.pas svneol=native#text/plain
 compiler/aarch64/cpuinfo.pas svneol=native#text/plain
 compiler/aarch64/cpupara.pas svneol=native#text/plain
