@@ -250,6 +250,16 @@ unit cpubase;
 *****************************************************************************}
 
 
+      NR_FP = NR_X29;
+      RS_FP = RS_X29;
+      NR_WFP = NR_W29;
+      RS_WFP = RS_W29;
+
+      NR_LR = NR_X30;
+      RS_LR = RS_X30;
+      NR_WLR = NR_W30;
+      RS_WLR = RS_W30;
+
       { Stack pointer register }
       NR_STACK_POINTER_REG = NR_SP;
       RS_STACK_POINTER_REG = RS_SP;
