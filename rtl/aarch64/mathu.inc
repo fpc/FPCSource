@@ -129,8 +129,29 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
 
 
 procedure ClearExceptions(RaisePending: Boolean);
+  var
+    fpsr: dword;
+    f: TFPUException;
   begin
-    { todo: RaisePending = true }
+    fpsr:=getfpsr;
+    if raisepending then
+      begin
+        if (fpsr and (fpu_dze shr fpu_exception_mask_to_status_mask_shift)) <> 0 then
+          float_raise(exZeroDivide);
+        if (fpsr and (fpu_ofe shr fpu_exception_mask_to_status_mask_shift)) <> 0 then
+          float_raise(exOverflow);
+        if (fpsr and (fpu_ufe shr fpu_exception_mask_to_status_mask_shift)) <> 0 then
+          float_raise(exUnderflow);
+        if (fpsr and (fpu_ioe shr fpu_exception_mask_to_status_mask_shift)) <> 0 then
+          float_raise(exInvalidOp);
+        if (fpsr and (fpu_ixe shr fpu_exception_mask_to_status_mask_shift)) <> 0 then
+          float_raise(exPrecision);
+        if (fpsr and (fpu_ide shr fpu_exception_mask_to_status_mask_shift)) <> 0 then
+          float_raise(exDenormalized);
+        { now the soft float exceptions }
+        for f in  softfloat_exception_flags do
+          float_raise(f);
+      end;
     softfloat_exception_flags:=[];
-    setfpsr(getfpsr and not(fpu_exception_mask shr fpu_exception_mask_to_status_mask_shift));
+    setfpsr(fpsr and not(fpu_exception_mask shr fpu_exception_mask_to_status_mask_shift));
   end;
