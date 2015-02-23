@@ -308,6 +308,11 @@ Unit racpugas;
                         consume(actasmtoken);
                         oper.opr.ref.refaddr:=addr_gotpageoffset;
                       end
+                    else if actasmpattern='PAGEOFF' then
+                      begin
+                        consume(actasmtoken);
+                        oper.opr.ref.refaddr:=addr_pageoffset;
+                      end
                     else
                       begin
                         do_error;
@@ -532,6 +537,10 @@ Unit racpugas;
                   oper.opr.ref.refaddr:=addr_gotpage
                 else if actasmpattern='GOTPAGEOFF' then
                   oper.opr.ref.refaddr:=addr_gotpageoffset
+                else if actasmpattern='PAGE' then
+                  oper.opr.ref.refaddr:=addr_page
+                else if actasmpattern='PAGEOFF' then
+                  oper.opr.ref.refaddr:=addr_pageoffset
                 else
                   Message(asmr_e_expr_illegal);
                 consume(actasmtoken);

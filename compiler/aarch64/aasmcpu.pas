@@ -569,7 +569,7 @@ implementation
       begin
         result:=sr_complex;
         if not assigned(ref.symboldata) and
-           not(ref.refaddr in [addr_pic,addr_gotpageoffset,addr_gotpage]) then
+           not(ref.refaddr in [addr_gotpageoffset,addr_gotpage,addr_pageoffset,addr_page]) then
           exit;
         { can't use pre-/post-indexed mode here (makes no sense either) }
         if ref.addressmode<>AM_OFFSET then
@@ -580,9 +580,9 @@ implementation
             not(oppostfix in [PF_NONE,PF_W,PF_SW]) or
             not assigned(ref.symbol)) then
           exit;
-        { if this is a got offset load, we must have a base register and a
+        { if this is a (got) page offset load, we must have a base register and a
           symbol }
-        if (ref.refaddr=addr_gotpageoffset) and
+        if (ref.refaddr in [addr_gotpageoffset,addr_pageoffset]) and
            (not assigned(ref.symbol) or
             (ref.base=NR_NO) or
             (ref.index<>NR_NO) or
@@ -594,7 +594,7 @@ implementation
         { cannot have base or index register (we generate these kind of
           references internally, they should never end up here with an
           extra base or offset) }
-        if (ref.refaddr in [addr_gotpage,addr_pic]) and
+        if (ref.refaddr in [addr_gotpage,addr_page]) and
            (ref.base<>NR_NO) or
            (ref.index<>NR_NO) then
           begin
@@ -647,7 +647,7 @@ implementation
           end;
 
         { any other reference cannot be gotpage/gotpageoffset/pic }
-        if ref.refaddr in [addr_gotpage,addr_gotpageoffset,addr_pic] then
+        if ref.refaddr in [addr_gotpage,addr_gotpageoffset,addr_page,addr_pageoffset,addr_pic] then
           exit;
 
         { base & index:

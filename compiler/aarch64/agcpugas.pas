@@ -83,76 +83,85 @@ unit agcpugas;
 {****************************************************************************}
 
     function getreferencestring(var ref : treference) : string;
+      const
+        darwin_addrpage2str: array[addr_page..addr_gotpageoffset] of string[11] =
+           ('@PAGE','@PAGEOFF','@GOTPAGE','@GOTPAGEOFF');
       begin
-        case ref.refaddr of
-          addr_gotpage:
-            begin
-              if not assigned(ref.symbol) or
-                 (ref.base<>NR_NO) or
-                 (ref.index<>NR_NO) or
-                 (ref.shiftmode<>SM_None) or
-                 (ref.offset<>0) then
-                internalerror(2014121501);
-              if target_asm.id=as_darwin then
-                result:=ref.symbol.name+'@GOTPAGE'
-              else
-                { todo }
-                internalerror(2014121502);
-            end
-          else
-            begin
-              if ref.base=NR_NO then
-                internalerror(2014121503);
-              result:='['+gas_regname(ref.base);
-              if ref.addressmode=AM_POSTINDEXED then
-                result:=result+']';
-              if ref.index<>NR_NO then
+        if ref.base=NR_NO then
+          begin
+            case ref.refaddr of
+              addr_gotpage,
+              addr_page,
+              addr_gotpageoffset,
+              addr_pageoffset:
                 begin
-                  if (ref.offset<>0) or
-                     assigned(ref.symbol) then
-                    internalerror(2014121504);
-                  result:=result+', '+gas_regname(ref.index);
-                  case ref.shiftmode of
-                    SM_None: ;
-                    SM_LSL,
-                    SM_UXTB, SM_UXTH, SM_UXTW, SM_UXTX,
-                    SM_SXTB, SM_SXTH, SM_SXTW, SM_SXTX:
-                      result:=result+', lsl #'+tostr(ref.shiftimm);
-                    else
-                      internalerror(2014121505);
-                  end;
-                end
-              else
-                begin
-                  if assigned(ref.symbol) then
-                    begin
-                      case ref.refaddr of
-                        addr_gotpageoffset:
-                          begin
-                            if target_asm.id=as_darwin then
-                              result:=result+', '+ref.symbol.name+'@GOTPAGEOFF'
-                            else
-                              result:=result+', #:lo12:'+ref.symbol.name;
-                          end
-                        else
-                          { todo: not yet generated/don't know syntax }
-                          internalerror(2014121506);
-                      end;
-                    end
+                  if not assigned(ref.symbol) or
+                     (ref.base<>NR_NO) or
+                     (ref.index<>NR_NO) or
+                     (ref.shiftmode<>SM_None) or
+                     (ref.offset<>0) then
+                    internalerror(2014121501);
+                  if target_asm.id=as_darwin then
+                    result:=ref.symbol.name+darwin_addrpage2str[ref.refaddr]
                   else
-                    begin
-                      if ref.refaddr<>addr_no then
-                        internalerror(2014121506);
-                      if (ref.offset<>0) then
-                        result:=result+', #'+tostr(ref.offset);
-                    end;
+                    { todo }
+                    internalerror(2014121502);
+                end
+            end
+          end
+        else
+          begin
+            result:='['+gas_regname(ref.base);
+            if ref.addressmode=AM_POSTINDEXED then
+              result:=result+']';
+            if ref.index<>NR_NO then
+              begin
+                if (ref.offset<>0) or
+                   assigned(ref.symbol) then
+                  internalerror(2014121504);
+                result:=result+', '+gas_regname(ref.index);
+                case ref.shiftmode of
+                  SM_None: ;
+                  SM_LSL,
+                  SM_UXTB, SM_UXTH, SM_UXTW, SM_UXTX,
+                  SM_SXTB, SM_SXTH, SM_SXTW, SM_SXTX:
+                    result:=result+', lsl #'+tostr(ref.shiftimm);
+                  else
+                    internalerror(2014121505);
                 end;
-              case ref.addressmode of
-                AM_OFFSET:
-                  result:=result+']';
-                AM_PREINDEXED:
-                  result:=result+']!';
+              end
+            else
+              begin
+                if assigned(ref.symbol) then
+                  begin
+                    case ref.refaddr of
+                      addr_gotpageoffset,
+                      addr_pageoffset:
+                        begin
+                          if target_asm.id=as_darwin then
+                            result:=result+', '+ref.symbol.name+darwin_addrpage2str[ref.refaddr]
+                          else
+                            { todo }
+                            internalerror(2014122510);
+                        end
+                      else
+                        { todo: not yet generated/don't know syntax }
+                        internalerror(2014121506);
+                    end;
+                  end
+                else
+                  begin
+                    if ref.refaddr<>addr_no then
+                      internalerror(2014121506);
+                    if (ref.offset<>0) then
+                      result:=result+', #'+tostr(ref.offset);
+                  end;
               end;
+            case ref.addressmode of
+              AM_OFFSET:
+                result:=result+']';
+              AM_PREINDEXED:
+                result:=result+']!';
             end;
           end;
       end;
