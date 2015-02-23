@@ -1244,10 +1244,17 @@ implementation
               else
 {$endif not cpu64bitalu}
                 begin
-                  unget_para(paraloc^);
-                  gen_alloc_regloc(list,destloc);
-                  { from register to register -> alignment is irrelevant }
-                  cg.a_load_cgparaloc_anyreg(list,destloc.size,paraloc^,destloc.register,0);
+                  if not assigned(paraloc^.next) then
+                    begin
+                      unget_para(paraloc^);
+                      gen_alloc_regloc(list,destloc);
+                      { from register to register -> alignment is irrelevant }
+                      cg.a_load_cgparaloc_anyreg(list,destloc.size,paraloc^,destloc.register,0);
+                    end
+                  else
+                    begin
+                      internalerror(200410108);
+                    end;
                   { data could come in two memory locations, for now
                     we simply ignore the sanity check (FK)
                   if assigned(paraloc^.next) then
