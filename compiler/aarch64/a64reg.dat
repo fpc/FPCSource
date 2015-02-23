@@ -70,6 +70,11 @@ W30,$01,$04,$1E,w30,30,30
 X30,$01,$05,$1E,x30,30,30
 WZR,$01,$04,$1F,wzr,31,31
 XZR,$01,$05,$1F,xzr,31,31
+; sp and zr share the same register number, but we still have to be able to
+; differentiate them because some instructions can be encoded with both ->
+; use a different superregister after all
+WSP,$01,$04,$20,wsp,31,31
+SP,$01,$05,$20,sp,31,31
 
 
 ; vfp registers

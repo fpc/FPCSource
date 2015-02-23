@@ -75,7 +75,9 @@ unit cpubase;
 
       { Integer Super registers first and last }
       first_int_supreg = RS_X0;
-      first_int_imreg = $20;
+      { xzr and sp take up a separate super register because some instructions
+        are ambiguous otherwise }
+      first_int_imreg = $21;
 
       { Integer Super registers first and last }
       first_fpu_supreg = RS_S0;
@@ -232,10 +234,6 @@ unit cpubase;
                           Generic Register names
 *****************************************************************************}
 
-      NR_SP = NR_XZR;
-      RS_SP = RS_XZR;
-      NR_WSP = NR_WZR;
-      RS_WSP = RS_WZR;
 
       { Stack pointer register }
       NR_STACK_POINTER_REG = NR_SP;
