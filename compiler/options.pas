@@ -2207,7 +2207,7 @@ begin
                       end;
                     'M':
                       begin
-                        if (target_info.system in (systems_darwin-[system_i386_iphonesim])) and
+                        if (target_info.system in (systems_darwin-[system_i386_iphonesim,system_arm_darwin,system_aarch64_darwin])) and
                            ParseMacVersionMin(MacOSXVersionMin,iPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED',copy(More,2,255),false) then
                           begin
                             break;
