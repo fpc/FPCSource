@@ -3600,123 +3600,131 @@ implementation
 
       var
         para: tcallparanode;
+        oldcallnode: tcallnode;
       begin
          result:=nil;
 
-         { as pass_1 is never called on the methodpointer node, we must check
-           here that it's not a helper type }
-         if assigned(methodpointer) and
-             (methodpointer.nodetype=typen) and
-             is_objectpascal_helper(ttypenode(methodpointer).typedef) and
-             not ttypenode(methodpointer).helperallowed then
-           Message(parser_e_no_category_as_types);
+         oldcallnode:=aktcallnode;
+         aktcallnode:=self;
 
-         { can we get rid of the call? }
-         if (cs_opt_remove_emtpy_proc in current_settings.optimizerswitches) and
-            not(cnf_return_value_used in callnodeflags) and
-           (procdefinition.typ=procdef) and
-           tprocdef(procdefinition).isempty and
-           { allow only certain proc options }
-           ((tprocdef(procdefinition).procoptions-[po_none,po_classmethod,po_staticmethod,
-             po_interrupt,po_iocheck,po_assembler,po_msgstr,po_msgint,po_exports,po_external,po_overload,
-             po_nostackframe,po_has_mangledname,po_has_public_name,po_forward,po_global,
-             po_inline,po_compilerproc,po_has_importdll,po_has_importname,po_kylixlocal,po_dispid,po_delphi_nested_cc,
-             po_rtlproc,po_ignore_for_overload_resolution,po_auto_raised_visibility])=[]) then
-           begin
-             { check parameters for side effects }
-             para:=tcallparanode(left);
-             while assigned(para) do
-               begin
-                 if (para.parasym.typ = paravarsym) and
-                    ((para.parasym.refs>0) or
-                    { array of consts are converted later on so we need to skip them here
-                      else no error detection is done }
-                     is_array_of_const(para.parasym.vardef) or
-                     not(cs_opt_dead_values in current_settings.optimizerswitches) or
-                     might_have_sideeffects(para.left)) then
-                     break;
-                  para:=tcallparanode(para.right);
-               end;
-             { finally, remove it if no parameter with side effect has been found }
-             if para=nil then
-               begin
-                 result:=cnothingnode.create;
-                 exit;
-               end;
-           end;
+         try
+           { as pass_1 is never called on the methodpointer node, we must check
+             here that it's not a helper type }
+           if assigned(methodpointer) and
+               (methodpointer.nodetype=typen) and
+               is_objectpascal_helper(ttypenode(methodpointer).typedef) and
+               not ttypenode(methodpointer).helperallowed then
+             Message(parser_e_no_category_as_types);
 
-         { convert Objective-C calls into a message call }
-         if (procdefinition.typ=procdef) and
-            (po_objc in tprocdef(procdefinition).procoptions) then
-           begin
-             if not(cnf_objc_processed in callnodeflags) then
-               objc_convert_to_message_send;
-           end
-         else
-           begin
-             { The following don't apply to obj-c: obj-c methods can never be
-               inlined because they're always virtual and the destination can
-               change at run, and for the same reason we also can't perform
-               WPO on them (+ they have no constructors) }
+           { can we get rid of the call? }
+           if (cs_opt_remove_emtpy_proc in current_settings.optimizerswitches) and
+              not(cnf_return_value_used in callnodeflags) and
+             (procdefinition.typ=procdef) and
+             tprocdef(procdefinition).isempty and
+             { allow only certain proc options }
+             ((tprocdef(procdefinition).procoptions-[po_none,po_classmethod,po_staticmethod,
+               po_interrupt,po_iocheck,po_assembler,po_msgstr,po_msgint,po_exports,po_external,po_overload,
+               po_nostackframe,po_has_mangledname,po_has_public_name,po_forward,po_global,
+               po_inline,po_compilerproc,po_has_importdll,po_has_importname,po_kylixlocal,po_dispid,po_delphi_nested_cc,
+               po_rtlproc,po_ignore_for_overload_resolution,po_auto_raised_visibility])=[]) then
+             begin
+               { check parameters for side effects }
+               para:=tcallparanode(left);
+               while assigned(para) do
+                 begin
+                   if (para.parasym.typ = paravarsym) and
+                      ((para.parasym.refs>0) or
+                      { array of consts are converted later on so we need to skip them here
+                        else no error detection is done }
+                       is_array_of_const(para.parasym.vardef) or
+                       not(cs_opt_dead_values in current_settings.optimizerswitches) or
+                       might_have_sideeffects(para.left)) then
+                       break;
+                    para:=tcallparanode(para.right);
+                 end;
+               { finally, remove it if no parameter with side effect has been found }
+               if para=nil then
+                 begin
+                   result:=cnothingnode.create;
+                   exit;
+                 end;
+             end;
 
-             { Check if the call can be inlined, sets the cnf_do_inline flag }
-             check_inlining;
+           { convert Objective-C calls into a message call }
+           if (procdefinition.typ=procdef) and
+              (po_objc in tprocdef(procdefinition).procoptions) then
+             begin
+               if not(cnf_objc_processed in callnodeflags) then
+                 objc_convert_to_message_send;
+             end
+           else
+             begin
+               { The following don't apply to obj-c: obj-c methods can never be
+                 inlined because they're always virtual and the destination can
+                 change at run, and for the same reason we also can't perform
+                 WPO on them (+ they have no constructors) }
 
-             { must be called before maybe_load_in_temp(methodpointer), because
-               it converts the methodpointer into a temp in case it's a call
-               (and we want to know the original call)
-             }
-             register_created_object_types;
-           end;
+               { Check if the call can be inlined, sets the cnf_do_inline flag }
+               check_inlining;
 
-         { Maybe optimize the loading of the methodpointer using a temp. When the methodpointer
-           is a calln this is even required to not execute the calln twice.
-           This needs to be done after the resulttype pass, because in the resulttype we can still convert the
-           calln to a loadn (PFV) }
-         if assigned(methodpointer) then
-           maybe_load_in_temp(methodpointer);
+               { must be called before maybe_load_in_temp(methodpointer), because
+                 it converts the methodpointer into a temp in case it's a call
+                 (and we want to know the original call)
+               }
+               register_created_object_types;
+             end;
 
-         { Create destination (temp or assignment-variable reuse) for function result if it not yet set }
-         maybe_create_funcret_node;
+           { Maybe optimize the loading of the methodpointer using a temp. When the methodpointer
+             is a calln this is even required to not execute the calln twice.
+             This needs to be done after the resulttype pass, because in the resulttype we can still convert the
+             calln to a loadn (PFV) }
+           if assigned(methodpointer) then
+             maybe_load_in_temp(methodpointer);
 
-         { Insert the self,vmt,function result in the parameters }
-         gen_hidden_parameters;
+           { Create destination (temp or assignment-variable reuse) for function result if it not yet set }
+           maybe_create_funcret_node;
 
-         { Remove useless nodes from init/final blocks }
-         { (simplify depends on typecheck info)        }
-         if assigned(callinitblock) then
-           begin
-             typecheckpass(tnode(callinitblock));
-             doinlinesimplify(tnode(callinitblock));
-           end;
-         if assigned(callcleanupblock) then
-           begin
-             typecheckpass(tnode(callcleanupblock));
-             doinlinesimplify(tnode(callcleanupblock));
-           end;
+           { Insert the self,vmt,function result in the parameters }
+           gen_hidden_parameters;
 
-         { If a constructor calls another constructor of the same or of an
-           inherited class, some targets (jvm) have to generate different
-           entry code for the constructor. }
-         if (current_procinfo.procdef.proctypeoption=potype_constructor) and
-            (procdefinition.typ=procdef) and
-            (tprocdef(procdefinition).proctypeoption=potype_constructor) and
-            ([cnf_member_call,cnf_inherited] * callnodeflags <> []) then
-           current_procinfo.ConstructorCallingConstructor:=true;
+           { Remove useless nodes from init/final blocks }
+           { (simplify depends on typecheck info)        }
+           if assigned(callinitblock) then
+             begin
+               typecheckpass(tnode(callinitblock));
+               doinlinesimplify(tnode(callinitblock));
+             end;
+           if assigned(callcleanupblock) then
+             begin
+               typecheckpass(tnode(callcleanupblock));
+               doinlinesimplify(tnode(callcleanupblock));
+             end;
 
-         { object check helper will load VMT -> needs GOT }
-         if (cs_check_object in current_settings.localswitches) and
-            (cs_create_pic in current_settings.moduleswitches) then
-           include(current_procinfo.flags,pi_needs_got);
+           { If a constructor calls another constructor of the same or of an
+             inherited class, some targets (jvm) have to generate different
+             entry code for the constructor. }
+           if (current_procinfo.procdef.proctypeoption=potype_constructor) and
+              (procdefinition.typ=procdef) and
+              (tprocdef(procdefinition).proctypeoption=potype_constructor) and
+              ([cnf_member_call,cnf_inherited] * callnodeflags <> []) then
+             current_procinfo.ConstructorCallingConstructor:=true;
 
-         { Continue with checking a normal call or generate the inlined code }
-         if cnf_do_inline in callnodeflags then
-           result:=pass1_inline
-         else
-           begin
-             mark_unregable_parameters;
-             result:=pass1_normal;
-           end;
+           { object check helper will load VMT -> needs GOT }
+           if (cs_check_object in current_settings.localswitches) and
+              (cs_create_pic in current_settings.moduleswitches) then
+             include(current_procinfo.flags,pi_needs_got);
+
+           { Continue with checking a normal call or generate the inlined code }
+           if cnf_do_inline in callnodeflags then
+             result:=pass1_inline
+           else
+             begin
+               mark_unregable_parameters;
+               result:=pass1_normal;
+             end;
+         finally
+           aktcallnode:=oldcallnode;
+         end;
       end;
 
 
