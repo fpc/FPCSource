@@ -30,7 +30,7 @@ the behaviour of such a unit having just a USES clause! }
 implementation
 
   uses
-    ncgbas,ncgflw,ncgcal,ncgcnv,ncgld,ncgmem,ncgcon,ncgset,
+    ncgbas,ncgflw,ncgcal,ncgcnv,ncgld,ncgmem,ncgcon,ncgset,ncgobjc,
     ncpuadd{,ncpucal},ncpumat,ncpuinl,ncpucnv,{ncpuset,}
     { this not really a node }
     rgcpu,
