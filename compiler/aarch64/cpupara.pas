@@ -42,6 +42,7 @@ unit cpupara;
           function create_paraloc_info(p: tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p: tabstractprocdef; varargspara: tvarargsparalist):longint;override;
           function get_funcretloc(p: tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
+          function param_use_paraloc(const cgpara: tcgpara): boolean; override;
          private
           curintreg,
           curmmreg: tsuperregister;
@@ -329,6 +330,15 @@ unit cpupara;
          if not assigned(result.location) or
             not(result.location^.loc in [LOC_REGISTER,LOC_MMREGISTER,LOC_VOID]) then
            internalerror(2014113001);
+      end;
+
+    function taarch64paramanager.param_use_paraloc(const cgpara: tcgpara): boolean;
+      begin
+        { we always set up a stack frame -> we can always access the parameters
+          this way }
+        result:=
+          (cgpara.location^.loc=LOC_REFERENCE) and
+          not assigned(cgpara.location^.next);
       end;
 
 
