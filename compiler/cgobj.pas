@@ -247,7 +247,7 @@ unit cgobj;
           procedure a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);virtual; abstract;
 
           { bit scan instructions }
-          procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tcgsize; src, dst: TRegister); virtual;
+          procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister); virtual;
 
           { Multiplication with doubling result size.
             dstlo or dsthi may be NR_NO, in which case corresponding half of result is discarded. }
@@ -2528,7 +2528,7 @@ implementation
       end;
 
 
-    procedure tcg.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tcgsize; src, dst: TRegister);
+    procedure tcg.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister);
       begin
         internalerror(2014070601);
       end;

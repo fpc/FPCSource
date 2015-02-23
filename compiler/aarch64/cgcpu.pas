@@ -81,7 +81,7 @@ interface
 
         procedure a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size: tcgsize; src, dst: tregister; shuffle: pmmshuffle); override;
 
-        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tcgsize; src, dst: TRegister); override;
+        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister); override;
         { comparison operations }
         procedure a_cmp_const_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel);override;
         procedure a_cmp_reg_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);override;
@@ -1078,12 +1078,12 @@ implementation
       end;
 
 
-    procedure tcgaarch64.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tcgsize; src, dst: TRegister);
+    procedure tcgaarch64.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister);
       var
         bitsize,
         signbit: longint;
       begin
-        if size in [OS_64,OS_S64] then
+        if srcsize in [OS_64,OS_S64] then
           begin
             bitsize:=64;
             signbit:=6;
@@ -1097,18 +1097,18 @@ implementation
         list.concat(taicpu.op_reg_const(A_CMP,src,0));
         if reverse then
           begin
-            list.Concat(taicpu.op_reg_reg(A_CLZ,dst,src));
+            list.Concat(taicpu.op_reg_reg(A_CLZ,makeregsize(dst,srcsize),src));
             { xor 31/63 is the same as setting the lower 5/6 bits to
               "31/63-(lower 5/6 bits of dst)" }
             list.Concat(taicpu.op_reg_reg_const(A_EOR,dst,dst,bitsize-1));
           end
         else
           begin
-            list.Concat(taicpu.op_reg_reg(A_RBIT,dst,src));
+            list.Concat(taicpu.op_reg_reg(A_RBIT,makeregsize(dst,srcsize),src));
             list.Concat(taicpu.op_reg_reg(A_CLZ,dst,dst));
           end;
         { set dst to -1 if src was 0 }
-        list.Concat(taicpu.op_reg_reg_reg_cond(A_CSINV,dst,dst,src,C_NE));
+        list.Concat(taicpu.op_reg_reg_reg_cond(A_CSINV,dst,dst,makeregsize(NR_XZR,dstsize),C_NE));
         { mask the -1 to 255 if src was 0 (anyone find a two-instruction
           branch-free version? All of mine are 3...) }
         list.Concat(setoppostfix(taicpu.op_reg_reg(A_UXT,dst,dst),PF_B));

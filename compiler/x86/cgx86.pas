@@ -82,7 +82,7 @@ unit cgx86;
         procedure a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);override;
 
         { bit scan instructions }
-        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
+        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: TCGSize; src, dst: TRegister); override;
 
         { fpu move instructions }
         procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister); override;
@@ -2029,20 +2029,36 @@ unit cgx86;
         end;
       end;
 
-     procedure tcgx86.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister);
+     procedure tcgx86.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: TCGSize; src, dst: TRegister);
      var
+       tmpreg: tregister;
        opsize: topsize;
        l : TAsmLabel;
      begin
-       opsize:=tcgsize2opsize[size];
-       if not reverse then
-         list.concat(taicpu.op_reg_reg(A_BSF,opsize,src,dst))
+       { no bsf/bsr for byte }
+       if srcsize in [OS_8,OS_S8] then
+         begin
+           tmpreg:=getintregister(list,OS_INT);
+           a_load_reg_reg(list,srcsize,OS_INT,src,tmpreg);
+           src:=tmpreg;
+           srcsize:=OS_INT;
+         end;
+       { source and destination register must have the same size }
+       if tcgsize2size[srcsize]<>tcgsize2size[dstsize] then
+         tmpreg:=getintregister(list,srcsize)
        else
-         list.concat(taicpu.op_reg_reg(A_BSR,opsize,src,dst));
+         tmpreg:=dst;
+       opsize:=tcgsize2opsize[srcsize];
+       if not reverse then
+         list.concat(taicpu.op_reg_reg(A_BSF,opsize,src,tmpreg))
+       else
+         list.concat(taicpu.op_reg_reg(A_BSR,opsize,src,tmpreg));
        current_asmdata.getjumplabel(l);
        a_jmp_cond(list,OC_NE,l);
-       list.concat(taicpu.op_const_reg(A_MOV,opsize,$ff,dst));
+       list.concat(taicpu.op_const_reg(A_MOV,opsize,$ff,tmpreg));
        a_label(list,l);
+       if tmpreg<>dst then
+         a_load_reg_reg(list,srcsize,dstsize,tmpreg,dst);
      end;
 
 {*************** compare instructructions ****************}
