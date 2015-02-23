@@ -28,6 +28,7 @@ interface
   uses
     globtype,
     cgbase,
+    symtype,
     node,nmem,ncgmem;
 
   type
@@ -36,7 +37,7 @@ interface
     end;
 
     taarch64vecnode = class(tcgvecnode)
-      procedure update_reference_reg_mul(maybe_const_reg: tregister; l: aint); override;
+      procedure update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint); override;
     end;
 
 implementation
@@ -71,7 +72,7 @@ implementation
 
   { taarch64vecnode }
 
-  procedure taarch64vecnode.update_reference_reg_mul(maybe_const_reg: tregister; l: aint);
+  procedure taarch64vecnode.update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint);
     var
       base: tregister;
       oldoffset: asizeint;
