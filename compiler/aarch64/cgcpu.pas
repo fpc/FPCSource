@@ -61,6 +61,7 @@ interface
         procedure a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: topcg; size: tcgsize; src1, src2, dst: tregister; setflags : boolean; var ovloc : tlocation);override;
         { move instructions }
         procedure a_load_const_reg(list: TAsmList; size: tcgsize; a: tcgint; reg: tregister);override;
+        procedure a_load_const_ref(list: TAsmList; size: tcgsize; a: tcgint; const ref: treference); override;
         procedure a_load_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister;const ref: TReference);override;
         procedure a_load_reg_ref_unaligned(list: TAsmList; fromsize, tosize: tcgsize; register: tregister; const ref: treference); override;
         procedure a_load_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: TReference; reg: tregister);override;
@@ -678,6 +679,24 @@ implementation
         until word(preva)=preva;
         if not reginited then
           internalerror(2014102702);
+      end;
+
+
+    procedure tcgaarch64.a_load_const_ref(list: TAsmList; size: tcgsize; a: tcgint; const ref: treference);
+      var
+        reg: tregister;
+      begin
+        { use the zero register if possible }
+        if a=0 then
+          begin
+            if size in [OS_64,OS_S64] then
+              reg:=NR_XZR
+            else
+              reg:=NR_WZR;
+            a_load_reg_ref(list,size,size,reg,ref);
+          end
+        else
+          inherited;
       end;
 
 
