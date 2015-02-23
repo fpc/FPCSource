@@ -2552,6 +2552,9 @@ implementation
 {$ifdef ARM}
               and not(r.base=NR_R15)
 {$endif ARM}
+{$ifdef aarch64}
+              and not(r.refaddr in [addr_full,addr_gotpageoffset,addr_gotpage])
+{$endif aarch64}
               then
               internalerror(200502052);
             typ:=top_ref;
