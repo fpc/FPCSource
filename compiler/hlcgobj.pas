@@ -536,9 +536,9 @@ unit hlcgobj;
          public
 
           procedure gen_load_para_value(list:TAsmList);virtual;
-         protected
           { helpers called by gen_load_para_value }
           procedure g_copyvalueparas(p:TObject;arg:pointer);virtual;
+         protected
           procedure gen_loadfpu_loc_cgpara(list: TAsmList; size: tdef; const l: tlocation;const cgpara: tcgpara;locintsize: longint);virtual;
           procedure init_paras(p:TObject;arg:pointer);
          protected

@@ -598,84 +598,6 @@ implementation
                             Init/Finalize Code
 ****************************************************************************}
 
-    procedure copyvalueparas(p:TObject;arg:pointer);
-      var
-        href : treference;
-        hreg : tregister;
-        list : TAsmList;
-        hsym : tparavarsym;
-        l    : longint;
-        localcopyloc : tlocation;
-        sizedef : tdef;
-      begin
-        list:=TAsmList(arg);
-        if (tsym(p).typ=paravarsym) and
-           ((vo_has_local_copy in tparavarsym(p).varoptions) or
-            ((is_open_array(tparavarsym(p).vardef) or
-              is_array_of_const(tparavarsym(p).vardef)) and
-             (tparavarsym(p).varspez=vs_value))) then
-          begin
-            { we have no idea about the alignment at the caller side }
-            hlcg.location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,true,1);
-            if is_open_array(tparavarsym(p).vardef) or
-               is_array_of_const(tparavarsym(p).vardef) then
-              begin
-                { cdecl functions don't have a high pointer so it is not possible to generate
-                  a local copy }
-                if not(current_procinfo.procdef.proccalloption in cdecl_pocalls) then
-                  begin
-                    hsym:=tparavarsym(get_high_value_sym(tparavarsym(p)));
-                    if not assigned(hsym) then
-                      internalerror(200306061);
-                    sizedef:=getpointerdef(tparavarsym(p).vardef);
-                    hreg:=hlcg.getaddressregister(list,sizedef);
-                    if not is_packed_array(tparavarsym(p).vardef) then
-                      hlcg.g_copyvaluepara_openarray(list,href,hsym.initialloc,tarraydef(tparavarsym(p).vardef),hreg)
-                    else
-                      internalerror(2006080401);
-//                      cg.g_copyvaluepara_packedopenarray(list,href,hsym.intialloc,tarraydef(tparavarsym(p).vardef).elepackedbitsize,hreg);
-                    hlcg.a_load_reg_loc(list,sizedef,sizedef,hreg,tparavarsym(p).initialloc);
-                  end;
-              end
-            else
-              begin
-                { Allocate space for the local copy }
-                l:=tparavarsym(p).getsize;
-                localcopyloc.loc:=LOC_REFERENCE;
-                localcopyloc.size:=int_cgsize(l);
-                tg.GetLocal(list,l,tparavarsym(p).vardef,localcopyloc.reference);
-                { Copy data }
-                if is_shortstring(tparavarsym(p).vardef) then
-                  begin
-                    { this code is only executed before the code for the body and the entry/exit code is generated
-                      so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
-                    }
-                    include(current_procinfo.flags,pi_do_call);
-                    hlcg.g_copyshortstring(list,href,localcopyloc.reference,tstringdef(tparavarsym(p).vardef));
-                  end
-                else if tparavarsym(p).vardef.typ = variantdef then
-                  begin
-                    { this code is only executed before the code for the body and the entry/exit code is generated
-                      so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
-                    }
-                    include(current_procinfo.flags,pi_do_call);
-                    hlcg.g_copyvariant(list,href,localcopyloc.reference,tvariantdef(tparavarsym(p).vardef))
-                  end
-                else
-                  begin
-                    { pass proper alignment info }
-                    localcopyloc.reference.alignment:=tparavarsym(p).vardef.alignment;
-                    cg.g_concatcopy(list,href,localcopyloc.reference,tparavarsym(p).vardef.size);
-                  end;
-                { update localloc of varsym }
-                tg.Ungetlocal(list,tparavarsym(p).localloc.reference);
-                tparavarsym(p).localloc:=localcopyloc;
-                tparavarsym(p).initialloc:=localcopyloc;
-              end;
-          end;
-      end;
-
-
     { generates the code for incrementing the reference count of parameters and
       initialize out parameters }
     procedure init_paras(p:TObject;arg:pointer);
@@ -1337,7 +1259,7 @@ implementation
           the initialization and body is parsed because the refcounts are
           incremented using the local copies }
         if not(target_info.system in systems_caller_copy_addr_value_para) then
-          current_procinfo.procdef.parast.SymList.ForEachCall(@copyvalueparas,list);
+          current_procinfo.procdef.parast.SymList.ForEachCall(@hlcg.g_copyvalueparas,list);
 {$ifdef powerpc}
         { unget the register that contains the stack pointer before the procedure entry, }
         { which is used to access the parameters in their original callee-side location  }
