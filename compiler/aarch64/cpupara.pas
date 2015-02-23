@@ -291,8 +291,27 @@ unit cpupara;
           begin
             hp:=tparavarsym(paras[i]);
             { hidden function result parameter is passed in X8 (doesn't have to
-              be valid on return) }
-            if vo_is_funcret in hp.varoptions then
+              be valid on return) according to the ABI
+
+              -- don't follow the ABI for managed types, because
+               a) they are passed in registers as parameters, so we should also
+                  return them in a register to be ABI-compliant (which we can't
+                  because the entire compiler is built around the idea that
+                  they are returned by reference, for ref-counting performance
+                  and Delphi-compatibility reasons)
+               b) there are hacks in the system unit that expect that you can
+                  call
+                    function f: com_interface;
+                  as
+                    procedure p(out o: obj);
+                  That can only work in case we do not use x8 to return them
+                  from the function, but the regular first parameter register.
+
+              As the ABI says this behaviour is ok for C++ classes with a
+              non-trivial copy constructor or destructor, it seems reasonable
+              for us to do this for managed types as well.}
+            if (vo_is_funcret in hp.varoptions) and
+               not is_managed_type(hp.vardef) then
               begin
                 hp.paraloc[side].reset;
                 hp.paraloc[side].size:=OS_ADDR;
