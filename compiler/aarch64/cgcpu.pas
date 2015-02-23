@@ -850,8 +850,7 @@ implementation
           we have to truncate/sign extend inside the (32 or 64 bit) register
           holding the value, and when we sign extend from a 32 to a 64 bit
           register }
-        if ((tcgsize2size[fromsize]>tcgsize2size[tosize]) and
-            not(tosize in [OS_32,OS_S32])) or
+        if (tcgsize2size[fromsize]>tcgsize2size[tosize]) or
            ((tcgsize2size[fromsize]=tcgsize2size[tosize]) and
             (fromsize<>tosize) and
             not(fromsize in [OS_32,OS_S32,OS_64,OS_S64])) or
@@ -870,6 +869,18 @@ implementation
                 list.concat(setoppostfix(taicpu.op_reg_reg(A_SXT,reg2,makeregsize(reg1,OS_32)),PF_B));
               OS_S16:
                 list.concat(setoppostfix(taicpu.op_reg_reg(A_SXT,reg2,makeregsize(reg1,OS_32)),PF_H));
+              { while "mov wN, wM" automatically inserts a zero-extension and
+                hence we could encode a 64->32 bit move like that, the problem
+                is that we then can't distinguish 64->32 from 32->32 moves, and
+                the 64->32 truncation could be removed altogether... So use a
+                different instruction }
+              OS_32,
+              OS_S32:
+                { in theory, reg1 should be 64 bit here (since fromsize>tosize),
+                  but because of the way location_force_register() tries to
+                  avoid superfluous zero/sign extensions, it's not always the
+                  case -> also force reg1 to to 64 bit }
+                list.concat(taicpu.op_reg_reg_const_const(A_UBFIZ,makeregsize(reg2,OS_64),makeregsize(reg1,OS_64),0,32));
               OS_64,
               OS_S64:
                 list.concat(setoppostfix(taicpu.op_reg_reg(A_SXT,reg2,makeregsize(reg1,OS_32)),PF_W));
