@@ -186,9 +186,6 @@ unit cpubase;
         shiftimm : byte;
       end;
 
-      tcpumodeflag = (mfA, mfI, mfF);
-      tcpumodeflags = set of tcpumodeflag;
-
       tspecialregflag = (srC, srX, srS, srF);
       tspecialregflags = set of tspecialregflag;
 
@@ -238,9 +235,9 @@ unit cpubase;
       { Stack pointer register }
       NR_STACK_POINTER_REG = NR_SP;
       RS_STACK_POINTER_REG = RS_SP;
-      { Frame pointer register (initialized in tarmprocinfo.init_framepointer) }
-      RS_FRAME_POINTER_REG: tsuperregister = RS_X29;
-      NR_FRAME_POINTER_REG: tregister = NR_X29;
+      { Frame pointer register }
+      NR_FRAME_POINTER_REG = NR_X29;
+      RS_FRAME_POINTER_REG = RS_X29;
       { Register for addressing absolute data in a position independant way,
         such as in PIC code. The exact meaning is ABI specific. For
         further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
@@ -349,8 +346,6 @@ unit cpubase;
         case getregtype(reg) of
           R_INTREGISTER :
             reg_cgsize:=OS_32;
-          R_FPUREGISTER :
-            reg_cgsize:=OS_F80;
           R_MMREGISTER :
             begin
               case getsubreg(reg) of
@@ -371,8 +366,6 @@ unit cpubase;
 
     function is_calljmp(o:tasmop):boolean;{$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
-        { This isn't 100% perfect because the arm allows jumps also by writing to PC=R15.
-          To overcome this problem we simply forbid that FPC generates jumps by loading R15 }
         is_calljmp:= o in [A_B,A_BLR,A_RET];
       end;
 
