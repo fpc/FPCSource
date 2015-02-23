@@ -672,6 +672,7 @@ implementation
            localsize:=fillsize;
            while (localsize>0) do
             begin
+{$ifndef i8086}
               if CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype] then
                 begin
                   for j:=low(alignarray_cmovcpus) to high(alignarray_cmovcpus) do
@@ -682,6 +683,7 @@ implementation
                   dec(localsize,length(alignarray_cmovcpus[j]));
                 end
               else
+{$endif not i8086}
                 begin
                   for j:=low(alignarray) to high(alignarray) do
                    if (localsize>=length(alignarray[j])) then
