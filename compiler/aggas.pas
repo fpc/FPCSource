@@ -568,7 +568,8 @@ implementation
                     AsmWriteln('__TEXT,__picsymbolstub4,symbol_stubs,none,16')
                   else
                     AsmWriteln('__TEXT,__symbol_stub4,symbol_stubs,none,12')
-                { darwin/x86-64 uses RIP-based GOT addressing, no symbol stubs }
+                { darwin/(x86-64/AArch64) uses PC-based GOT addressing, no
+                  explicit symbol stubs }
                 else
                   internalerror(2006031101);
               end;
