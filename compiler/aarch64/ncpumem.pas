@@ -37,13 +37,17 @@ interface
     end;
 
     taarch64vecnode = class(tcgvecnode)
-      procedure update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint); override;
+     protected
+      function valid_index_size(size: tcgsize): boolean; override;
+     public
+       procedure update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint); override;
     end;
 
 implementation
 
   uses
     cutils,verbose,
+    defutil,
     aasmdata,cpubase,
     cgutils,
     cgobj;
@@ -72,14 +76,27 @@ implementation
 
   { taarch64vecnode }
 
+  function taarch64vecnode.valid_index_size(size: tcgsize): boolean;
+    begin
+      { all sizes are ok if we handle the "reference reg mul", because
+         a) we use a 64 bit register for 64 bit values, and a 32 bit one (that
+            we can sign/zero-extend inside the reference) for smaller values
+         b) for values < 32 bit, the entire 32 bit register always contains the
+            sign/zero-extended version of the value }
+      result:=
+        not is_packed_array(left.resultdef) and
+        (get_mul_size in [1,2,4,8,16]);
+    end;
+
+
   procedure taarch64vecnode.update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint);
     var
       base: tregister;
       oldoffset: asizeint;
       shift: byte;
     begin
-      { we can only scale the index by shl 1..4 }
-      if not(l in [2,4,8,16]) then
+      { we can only scale the index by shl 0..4 }
+      if not(l in [1,2,4,8,16]) then
         begin
           inherited;
           exit;
@@ -100,7 +117,20 @@ implementation
         end;
       shift:=BsfDWord(l);
       location.reference.index:=maybe_const_reg;
-      location.reference.shiftmode:=SM_LSL;
+      { sign/zero-extend? }
+      if regsize.size=8 then
+        if shift<>0 then
+          location.reference.shiftmode:=SM_LSL
+        else
+          location.reference.shiftmode:=SM_NONE
+      else if is_signed(regsize) then
+        location.reference.shiftmode:=SM_SXTW
+      else if shift<>0 then
+        location.reference.shiftmode:=SM_UXTW
+      else
+        { the upper 32 bits are always already zero-extended -> just use 64 bit
+          register }
+        location.reference.index:=cg.makeregsize(current_asmdata.CurrAsmList,location.reference.index,OS_64);
       location.reference.shiftimm:=shift;
       location.reference.alignment:=newalignment(location.reference.alignment,l);
     end;
