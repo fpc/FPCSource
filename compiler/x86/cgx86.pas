@@ -524,7 +524,7 @@ unit cgx86;
               end
             else
               { Always use RIP relative symbol addressing for Windows and Darwin targets. }
-              if (target_info.system in (systems_all_windows+[system_x86_64_darwin])) and (ref.base<>NR_RIP) then
+              if (target_info.system in (systems_all_windows+[system_x86_64_darwin,system_x86_64_iphonesim])) and (ref.base<>NR_RIP) then
                 begin
                   if (ref.refaddr=addr_no) and (ref.base=NR_NO) and (ref.index=NR_NO) then
                     begin
@@ -827,7 +827,7 @@ unit cgx86;
             reference_reset_symbol(r,sym,0,sizeof(pint));
             if (cs_create_pic in current_settings.moduleswitches) and
                { darwin's assembler doesn't want @PLT after call symbols }
-               not(target_info.system in [system_x86_64_darwin,system_i386_iphonesim]) then
+               not(target_info.system in [system_x86_64_darwin,system_i386_iphonesim,system_x86_64_iphonesim]) then
               begin
 {$ifdef i386}
                 include(current_procinfo.flags,pi_needs_got);
@@ -1065,7 +1065,7 @@ unit cgx86;
                           a_op_const_reg(list,OP_ADD,OS_ADDR,offset,r);
                       end
 {$ifdef x86_64}
-                    else if (target_info.system in (systems_all_windows+[system_x86_64_darwin]))
+                    else if (target_info.system in (systems_all_windows+[system_x86_64_darwin,system_x86_64_iphonesim]))
 			 or (cs_create_pic in current_settings.moduleswitches)
 			 then
                       begin
@@ -2707,7 +2707,8 @@ unit cgx86;
                a_call_name(list,'MCOUNT',false);
              end;
            system_x86_64_linux,
-           system_x86_64_darwin:
+           system_x86_64_darwin,
+           system_x86_64_iphonesim:
              begin
                a_call_name(list,'mcount',false);
              end;

@@ -167,7 +167,8 @@
              system_i386_aros,          { 83 }
              system_x86_64_aros,        { 84 }
              system_x86_64_dragonfly,   { 85 }
-             system_aarch64_darwin      { 85 }
+             system_aarch64_darwin,     { 85 }
+             system_x86_64_iphonesim    { 86 }
        );
 
      type

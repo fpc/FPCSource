@@ -417,7 +417,8 @@ begin
           LinkRes.Add('i386');
         system_powerpc64_darwin:
           LinkRes.Add('ppc64');
-        system_x86_64_darwin:
+        system_x86_64_darwin,
+        system_x86_64_iphonesim:
           LinkRes.Add('x86_64');
         system_arm_darwin:
           { current versions of the linker require the sub-architecture type
@@ -938,6 +939,9 @@ initialization
   RegisterImport(system_x86_64_darwin,timportlibdarwin);
   RegisterExport(system_x86_64_darwin,texportlibdarwin);
   RegisterTarget(system_x86_64_darwin_info);
+  RegisterImport(system_x86_64_iphonesim,timportlibdarwin);
+  RegisterExport(system_x86_64_iphonesim,texportlibdarwin);
+  RegisterTarget(system_x86_64_iphonesim_info);
 {$endif}
 {$ifdef i386}
   RegisterImport(system_i386_freebsd,timportlibbsd);

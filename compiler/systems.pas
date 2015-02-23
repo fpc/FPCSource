@@ -243,7 +243,7 @@ interface
        systems_darwin = [system_powerpc_darwin,system_i386_darwin,
                          system_powerpc64_darwin,system_x86_64_darwin,
                          system_arm_darwin,system_i386_iphonesim,
-                         system_aarch64_darwin];
+                         system_aarch64_darwin,system_x86_64_iphonesim];
 
        {all solaris systems }
        systems_solaris = [system_sparc_solaris, system_i386_solaris,
@@ -286,7 +286,7 @@ interface
        systems_objc_supported = systems_darwin;
 
        { systems using the non-fragile Objective-C ABI }
-       systems_objc_nfabi = [system_powerpc64_darwin,system_x86_64_darwin,system_arm_darwin,system_i386_iphonesim,system_aarch64_darwin];
+       systems_objc_nfabi = [system_powerpc64_darwin,system_x86_64_darwin,system_arm_darwin,system_i386_iphonesim,system_aarch64_darwin,system_x86_64_iphonesim];
 
        { systems supporting "blocks" }
        systems_blocks_supported = systems_darwin;

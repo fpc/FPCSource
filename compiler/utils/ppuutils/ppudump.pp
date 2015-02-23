@@ -169,7 +169,8 @@ const
   { 83 }  'AROS-i386',
   { 84 }  'AROS-x86-64',
   { 85 }  'DragonFly-x86-64',
-  { 85 }  'Darwin-AArch64'
+  { 85 }  'Darwin-AArch64',
+  { 86 }  'iPhoneSim-x86-64'
   );
 
 const
