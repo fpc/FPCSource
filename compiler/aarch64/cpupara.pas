@@ -144,9 +144,8 @@ unit cpupara;
     { Returns whether a def is a "homogeneous float array" at the machine level.
       This means that in the memory layout, the def only consists of maximally
       4 floating point values that appear consecutively in memory }
-    function is_hfa(p: tdef) : boolean;
+    function is_hfa(p: tdef; out basedef: tdef) : boolean;
       var
-        basedef: tdef;
         elecount: longint;
       begin
         result:=false;
@@ -210,6 +209,8 @@ unit cpupara;
 
 
     function taarch64paramanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
+      var
+        hfabasedef: tdef;
       begin
         result:=false;
         if varspez in [vs_var,vs_out,vs_constref] then
@@ -219,7 +220,7 @@ unit cpupara;
           end;
         case def.typ of
           objectdef:
-            result:=not(Is_HFA(def) and (is_object(def) and ((varspez=vs_const) or (def.size=0))));
+            result:=not(Is_HFA(def,hfabasedef) and (is_object(def) and ((varspez=vs_const) or (def.size=0))));
           recorddef:
             { note: should this ever be changed, make sure that const records
                 are always passed by reference for calloption=pocall_mwpascal }
