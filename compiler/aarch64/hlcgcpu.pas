@@ -28,18 +28,70 @@ unit hlcgcpu;
 
 interface
 
+  uses
+    symtype,
+    aasmdata,
+    cgbase,cgutils,
+    hlcgobj, hlcg2ll;
+
+  type
+    thlcgaarch64 = class(thlcg2ll)
+      procedure a_load_subsetreg_reg(list: TAsmList; subsetsize, tosize: tdef; const sreg: tsubsetregister; destreg: tregister); override;
+    end;
+
   procedure create_hlcodegen;
 
 implementation
 
   uses
-    hlcgobj, hlcg2ll,
-    cgcpu;
+    defutil,
+    cpubase,aasmcpu,
+    cgobj,cgcpu;
+
+  procedure thlcgaarch64.a_load_subsetreg_reg(list: TAsmList; subsetsize, tosize: tdef; const sreg: tsubsetregister; destreg: tregister);
+    var
+      op: tasmop;
+      tocgsize: tcgsize;
+      tmpdestreg: tregister;
+    begin
+      tocgsize:=def_cgsize(tosize);
+      if (sreg.startbit<>0) or
+         not(sreg.bitlen in [32,64]) then
+        begin
+          if is_signed(subsetsize) then
+            op:=A_SBFX
+          else
+            op:=A_UBFX;
+          { source and destination register of SBFX/UBFX have to be the same size }
+          if (sreg.subsetregsize in [OS_64,OS_S64]) and
+             not(tocgsize in [OS_64,OS_S64]) then
+            tmpdestreg:=cg.getintregister(list,OS_64)
+          else if not(sreg.subsetregsize in [OS_64,OS_S64]) and
+             (tocgsize in [OS_64,OS_S64]) then
+            tmpdestreg:=cg.getintregister(list,OS_32)
+          else
+            tmpdestreg:=destreg;
+          list.concat(taicpu.op_reg_reg_const_const(op,tmpdestreg,sreg.subsetreg,sreg.startbit,sreg.bitlen));
+          { need to sign extend further or truncate? }
+          if (sreg.subsetregsize=OS_S64) and
+             not(tocgsize in [OS_64,OS_S64]) then
+            cg.a_load_reg_reg(list,OS_S64,tocgsize,tmpdestreg,destreg)
+          else if is_signed(subsetsize) and
+             (tocgsize in [OS_8,OS_16]) then
+            cg.a_load_reg_reg(list,OS_32,tocgsize,tmpdestreg,destreg)
+          else if tmpdestreg<>destreg then
+            cg.a_load_reg_reg(list,def_cgsize(subsetsize),tocgsize,tmpdestreg,destreg)
+        end
+      else
+        cg.a_load_reg_reg(list,def_cgsize(subsetsize),tocgsize,sreg.subsetreg,destreg);
+    end;
+
 
   procedure create_hlcodegen;
     begin
-      hlcg:=thlcg2ll.create;
+      hlcg:=thlcgaarch64.create;
       create_codegen;
     end;
+
 
 end.
