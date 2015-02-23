@@ -31,6 +31,7 @@ compiler/aarch64/ra64sri.inc svneol=native#text/plain
 compiler/aarch64/ra64sta.inc svneol=native#text/plain
 compiler/aarch64/ra64std.inc svneol=native#text/plain
 compiler/aarch64/ra64sup.inc svneol=native#text/plain
+compiler/aarch64/rgcpu.pas svneol=native#text/plain
 compiler/aarch64/symcpu.pas svneol=native#text/plain
 compiler/aasmbase.pas svneol=native#text/plain
 compiler/aasmdata.pas svneol=native#text/plain
