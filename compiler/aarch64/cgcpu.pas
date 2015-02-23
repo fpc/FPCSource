@@ -78,6 +78,8 @@ interface
 
         procedure a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize: tcgsize; intreg, mmreg: tregister; shuffle: pmmshuffle); override;
         procedure a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize: tcgsize; mmreg, intreg: tregister; shuffle: pmmshuffle); override;
+
+        procedure a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size: tcgsize; src, dst: tregister; shuffle: pmmshuffle); override;
         { comparison operations }
         procedure a_cmp_const_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; a: tcgint; reg: tregister; l: tasmlabel);override;
         procedure a_cmp_reg_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);override;
@@ -1048,6 +1050,30 @@ implementation
            internalerror(2014122804);
          list.concat(taicpu.op_reg_reg(A_UMOV,intreg,mmreg));
        end;
+
+
+    procedure tcgaarch64.a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size: tcgsize; src, dst: tregister; shuffle: pmmshuffle);
+      begin
+        case op of
+          { "xor Vx,Vx" is used to initialize global regvars to 0 }
+          OP_XOR:
+            begin
+              if (src<>dst) or
+                 (reg_cgsize(src)<>size) or
+                 assigned(shuffle) then
+                internalerror(2015011401);
+              case size of
+                OS_F32,
+                OS_F64:
+                  list.concat(taicpu.op_reg_const(A_MOVI,makeregsize(dst,OS_F64),0));
+                else
+                  internalerror(2015011402);
+              end;
+            end
+          else
+            internalerror(2015011403);
+        end;
+      end;
 
 
     procedure tcgaarch64.a_load_reg_ref_unaligned(list: TAsmList; fromsize, tosize: tcgsize; register: tregister; const ref: treference);
