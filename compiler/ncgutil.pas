@@ -610,8 +610,10 @@ implementation
       begin
         list:=TAsmList(arg);
         if (tsym(p).typ=paravarsym) and
-           (tparavarsym(p).varspez=vs_value) and
-          (paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
+           ((vo_has_local_copy in tparavarsym(p).varoptions) or
+            ((is_open_array(tparavarsym(p).vardef) or
+              is_array_of_const(tparavarsym(p).vardef)) and
+             (tparavarsym(p).varspez=vs_value))) then
           begin
             { we have no idea about the alignment at the caller side }
             hlcg.location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,true,1);

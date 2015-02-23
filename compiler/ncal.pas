@@ -949,6 +949,8 @@ implementation
              (parasym.varspez=vs_value)) or
             (cpf_varargs_para in callparaflags)) and
            (left.nodetype<>nothingn) and
+           (not(aktcallnode.procdefinition.proccalloption in cdecl_pocalls) or
+            (left.resultdef.typ<>arraydef)) and
            paramanager.push_addr_param(vs_value,left.resultdef,
                       aktcallnode.procdefinition.proccalloption) then
           copy_value_by_ref_para;
