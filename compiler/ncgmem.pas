@@ -71,6 +71,7 @@ interface
          procedure update_reference_reg_packed(maybe_const_reg:tregister;l:aint);virtual;
          procedure second_wideansistring;virtual;
          procedure second_dynamicarray;virtual;
+         function valid_index_size(size: tcgsize): boolean;virtual;
        public
          procedure pass_generate_code;override;
        end;
@@ -708,6 +709,13 @@ implementation
        end;
 
 
+     function tcgvecnode.valid_index_size(size: tcgsize): boolean;
+       begin
+         result:=
+           tcgsize2signed[size]=tcgsize2signed[OS_ADDR];
+       end;
+
+
      procedure tcgvecnode.rangecheck_array;
        var
          hightree : tnode;
@@ -1067,7 +1075,8 @@ implementation
               secondpass(right);
 
               { if mulsize = 1, we won't have to modify the index }
-              if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or (right.location.size<>OS_ADDR) then
+              if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
+                 not valid_index_size(right.location.size) then
                 hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,ptruinttype,true);
 
               if isjump then

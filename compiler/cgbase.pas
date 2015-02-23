@@ -329,6 +329,13 @@ interface
           OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_M256,OS_M8,OS_M16,OS_M32,
           OS_M64,OS_M128,OS_M256);
 
+       tcgsize2signed : array[tcgsize] of tcgsize = (OS_NO,
+          OS_S8,OS_S16,OS_S32,OS_S64,OS_S128,OS_S8,OS_S16,OS_S32,OS_S64,OS_S128,
+          OS_F32,OS_F64,OS_F80,OS_C64,OS_F128,
+          OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_M256,OS_M8,OS_M16,OS_M32,
+          OS_M64,OS_M128,OS_M256);
+
+
        tcgloc2str : array[TCGLoc] of string[12] = (
             'LOC_INVALID',
             'LOC_VOID',
