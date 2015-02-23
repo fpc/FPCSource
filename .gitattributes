@@ -7870,6 +7870,7 @@ rtl/Makefile.fpc svneol=native#text/plain
 rtl/README.txt svneol=native#text/plain
 rtl/aarch64/aarch64.inc svneol=native#text/plain
 rtl/aarch64/int64p.inc svneol=native#text/plain
+rtl/aarch64/makefile.cpu svneol=native#text/plain
 rtl/aarch64/math.inc svneol=native#text/plain
 rtl/aarch64/mathu.inc svneol=native#text/plain
 rtl/aarch64/set.inc svneol=native#text/plain
