@@ -131,12 +131,8 @@ unit cpupara;
               inc(elecount);
               result:=true;
             end;
-          recorddef,
-          objectdef:
+          recorddef:
             begin
-              if (p.typ=objectdef) and
-                 not is_object(p) then
-                exit;
               for i:=0 to tabstractrecorddef(p).symtable.symlist.count-1 do
                 begin
                   sym:=tsym(tabstractrecorddef(p).symtable.symlist[i]);
@@ -197,11 +193,7 @@ unit cpupara;
               else
                 getparaloc:=LOC_MMREGISTER;
             objectdef:
-              if not is_object(p) or
-                 not is_hfa(p,hfabasedef) then
-                getparaloc:=LOC_REGISTER
-              else
-                getparaloc:=LOC_MMREGISTER;
+              getparaloc:=LOC_REGISTER;
             stringdef:
               if is_shortstring(p) or is_longstring(p) then
                 getparaloc:=LOC_REFERENCE
@@ -241,10 +233,7 @@ unit cpupara;
           end;
         case def.typ of
           objectdef:
-            result:=
-              is_object(def) and
-              not is_hfa(def,hfabasedef) and
-              (def.size>16);
+            result:=is_object(def);
           recorddef:
             { ABI: any composite > 16 bytes that not a hfa/hva
               Special case: MWPascal, which passes all const parameters by
