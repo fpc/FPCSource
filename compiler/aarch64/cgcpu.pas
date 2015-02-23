@@ -2136,6 +2136,8 @@ implementation
               number of registers }
             if loadop=A_LDP then
               regcount:=regcount and not(1);
+            { initialise for dfa }
+            regs[low(regs)]:=NR_NO;
             { max 4 loads/stores -> max 8 registers (in case of ldp/stdp) }
             for i:=1 to regcount do
               regs[i]:=getintregister(list,opsize);

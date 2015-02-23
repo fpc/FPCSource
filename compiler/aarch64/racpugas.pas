@@ -511,6 +511,8 @@ Unit racpugas;
               if (is_operand<>(actopcode=A_B)) and
                  (length(hs)>1) then
                 begin
+                  { workaround for DFA bug }
+                  result:=low(tasmcond);
                   for result:=low(tasmcond) to high(tasmcond) do
                     begin
                       if hs=uppercond2str[result] then

@@ -120,6 +120,8 @@ unit agcpugas;
                     { todo }
                     internalerror(2014121502);
                 end
+              else
+                internalerror(2015022301);
             end
           end
         else

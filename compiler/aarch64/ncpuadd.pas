@@ -278,7 +278,10 @@ interface
               op:=A_CMP
             else
               op:=A_CMN;
-          end;
+          end
+        else
+          { for DFA }
+          op:=A_NONE;
 
         case nodetype of
           equaln,
