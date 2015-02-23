@@ -20,6 +20,7 @@ compiler/aarch64/aoptcpud.pas svneol=native#text/plain
 compiler/aarch64/cgcpu.pas svneol=native#text/plain
 compiler/aarch64/cpubase.pas svneol=native#text/plain
 compiler/aarch64/cpuinfo.pas svneol=native#text/plain
+compiler/aarch64/cpunode.pas svneol=native#text/plain
 compiler/aarch64/cpupara.pas svneol=native#text/plain
 compiler/aarch64/itcpugas.pas svneol=native#text/plain
 compiler/aarch64/ncpuadd.pas svneol=native#text/plain
