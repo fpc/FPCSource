@@ -282,6 +282,7 @@
             ,abi_powerpc_sysv,abi_powerpc_aix
             ,abi_eabi,abi_armeb,abi_eabihf
             ,abi_old_win32_gnu
+            ,abi_aarch64_darwin
        );
 
 
