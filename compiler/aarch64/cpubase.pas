@@ -446,7 +446,7 @@ unit cpubase;
     function flags_to_cond(const f: TResFlags) : TAsmCond;
       const
         flag_2_cond: array[TResFlags] of TAsmCond =
-          (C_EQ,C_NE,C_HI,C_LO,C_MI,C_PL,C_VS,C_VC,C_HI,C_LS,
+          (C_EQ,C_NE,C_HS,C_LO,C_MI,C_PL,C_VS,C_VC,C_HI,C_LS,
            C_GE,C_LT,C_GT,C_LE);
       begin
         if f>high(flag_2_cond) then
@@ -488,7 +488,7 @@ unit cpubase;
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       const
         inverse: array[TAsmCond] of TAsmCond=(C_None,
-          C_NE,C_EQ,C_LO,C_HI,C_PL,C_MI,C_VC,C_VS,C_LS,C_HI,
+          C_NE,C_EQ,C_LO,C_HS,C_PL,C_MI,C_VC,C_VS,C_LS,C_HI,
           C_LT,C_GE,C_LE,C_GT,C_None,C_None
         );
       begin
