@@ -7420,7 +7420,7 @@ implementation
       begin
         if assigned(objc_fastenumeration) then
           exit;
-        if not(target_info.system in [system_arm_darwin,system_i386_iphonesim]) then
+        if not(target_info.system in [system_arm_darwin,system_i386_iphonesim,system_aarch64_darwin]) then
           cocoaunit:='COCOAALL'
         else
           cocoaunit:='IPHONEALL';
