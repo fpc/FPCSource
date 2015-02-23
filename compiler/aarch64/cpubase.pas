@@ -320,6 +320,9 @@ unit cpubase;
 
     function dwarf_reg(r:tregister):shortint;
 
+    function is_shifter_const(d: aint; size: tcgsize): boolean;
+
+
   implementation
 
     uses
@@ -480,5 +483,113 @@ unit cpubase;
           internalerror(200603251);
       end;
 
+
+    function is_shifter_const(d: aint; size: tcgsize): boolean;
+      var
+         pattern, checkpattern: qword;
+         patternlen, maxbits, replicatedlen: longint;
+         rightmostone, rightmostzero, checkbit, secondrightmostbit: longint;
+      begin
+        result:=false;
+        { patterns with all bits 0 or 1 cannot be represented this way }
+        if (d=0) then
+          exit;
+        case size of
+          OS_64,
+          OS_S64:
+            begin
+              if d=-1 then
+                exit;
+              maxbits:=64;
+            end
+          else
+            begin
+              if longint(d)=-1 then
+                exit;
+              { we'll generate a 32 bit pattern -> ignore upper sign bits in
+                case of negative longint value }
+              d:=cardinal(d);
+              maxbits:=32;
+            end;
+        end;
+        { "The Logical (immediate) instructions accept a bitmask immediate value
+          that is a 32-bit pattern or a 64-bit pattern viewed as a vector of
+          identical elements of size e = 2, 4, 8, 16, 32 or, 64 bits. Each
+          element contains the same sub-pattern, that is a single run of
+          1 to (e - 1) nonzero bits from bit 0 followed by zero bits, then
+          rotated by 0 to (e - 1) bits." (ARMv8 ARM)
+
+          Rather than generating all possible patterns and checking whether they
+          match our constant, we check whether the lowest 2/4/8/... bits are
+          a valid pattern, and if so whether the constant consists of a
+          replication of this pattern. Such a valid pattern has the form of
+          either (regexp notation)
+            * 1+0+1*
+            * 0+1+0* }
+        patternlen:=2;
+        while patternlen<=maxbits do
+          begin
+            { try lowest <patternlen> bits of d as pattern }
+            if patternlen<>64 then
+              pattern:=qword(d) and ((qword(1) shl patternlen)-1)
+            else
+              pattern:=qword(d);
+            { valid pattern? If it contains too many 1<->0 transitions, larger
+              parts of d cannot be a valid pattern either }
+            rightmostone:=BsfQWord(pattern);
+            rightmostzero:=BsfQWord(not(pattern));
+            { pattern all ones or zeroes -> not a valid pattern (but larger ones
+              can still be valid, since we have too few transitions) }
+            if (rightmostone<patternlen) and
+               (rightmostzero<patternlen) then
+              begin
+                if rightmostone>rightmostzero then
+                  begin
+                    { we have .*1*0* -> check next zero position by shifting
+                      out the existing zeroes (shr rightmostone), inverting and
+                      then again looking for the rightmost one position }
+                    checkpattern:=not(pattern);
+                    checkbit:=rightmostone;
+                  end
+                else
+                  begin
+                    { same as above, but for .*0*1* }
+                    checkpattern:=pattern;
+                    checkbit:=rightmostzero;
+                  end;
+                secondrightmostbit:=BsfQWord(checkpattern shr checkbit)+checkbit;
+                { if this position is >= patternlen -> ok (1 transition),
+                  otherwise we now have 2 transitions and have to check for a
+                  third (if there is one, abort)
+
+                  bsf returns 255 if no 1 bit is found, so in that case it's
+                  also ok
+                  }
+                if secondrightmostbit<patternlen then
+                  begin
+                    secondrightmostbit:=BsfQWord(not(checkpattern) shr secondrightmostbit)+secondrightmostbit;
+                    if secondrightmostbit<patternlen then
+                      exit;
+                  end;
+                { ok, this is a valid pattern, now does d consist of a
+                  repetition of this pattern? }
+                replicatedlen:=patternlen;
+                checkpattern:=pattern;
+                while replicatedlen<maxbits do
+                  begin
+                    { douplicate current pattern }
+                    checkpattern:=checkpattern or (checkpattern shl replicatedlen);
+                    replicatedlen:=replicatedlen*2;
+                  end;
+                if qword(d)=checkpattern then
+                  begin
+                    { yes! }
+                    result:=true;
+                    exit;
+                  end;
+              end;
+            patternlen:=patternlen*2;
+          end;
+      end;
 
 end.
