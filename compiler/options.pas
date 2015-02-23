@@ -1473,10 +1473,16 @@ begin
                    Message2(option_obsolete_switch_use_new,'-Fg','-Fl');
                  'l' :
                    begin
-                     if ispara then
-                       ParaLibraryPath.AddPath(sysrootpath,More,false)
+                     if path_absolute(More) then
+                       if ispara then
+                         ParaLibraryPath.AddPath(sysrootpath,More,false)
+                       else
+                         LibrarySearchPath.AddPath(sysrootpath,More,true)
                      else
-                       LibrarySearchPath.AddPath(sysrootpath,More,true);
+                       if ispara then
+                         ParaLibraryPath.AddPath('',More,false)
+                       else
+                         LibrarySearchPath.AddPath('',More,true);
                    end;
                  'L' :
                    begin
