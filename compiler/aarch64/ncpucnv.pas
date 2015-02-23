@@ -46,7 +46,7 @@ interface
         { procedure second_cord_to_pointer;override; }
         { procedure second_proc_to_procvar;override; }
         { procedure second_bool_to_int;override; }
-        { procedure second_int_to_bool;override; }
+         procedure second_int_to_bool;override;
         { procedure second_load_smallset;override;  }
         { procedure second_ansistring_to_pchar;override; }
         { procedure second_pchar_to_string;override; }
@@ -57,12 +57,12 @@ interface
 implementation
 
   uses
-    verbose,
-    symdef,aasmdata,
+    verbose,globals,
+    symdef,aasmdata,aasmbase,
     defutil,
-    cgbase,cgutils,
+    cgbase,cgutils,procinfo,
     cpubase,aasmcpu,
-    cgobj,
+    pass_2,cgobj,
     hlcgobj;
 
 
@@ -136,6 +136,63 @@ implementation
       end;
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,location.register,left.location.register));
       { no scaling for currency, that's handled in pass_typecheck }
+    end;
+
+
+  procedure taarch64typeconvnode.second_int_to_bool;
+    var
+      resflags: tresflags;
+      hlabel,oldTrueLabel,oldFalseLabel : tasmlabel;
+    begin
+      if (nf_explicit in flags) and
+         not(left.expectloc in [LOC_FLAGS,LOC_JUMP]) then
+        begin
+          inherited;
+          exit;
+        end;
+
+      { can't use the generic code, as it assumes that OP_OR automatically sets
+        the flags. We can also do things more efficiently directly }
+
+      oldTrueLabel:=current_procinfo.CurrTrueLabel;
+      oldFalseLabel:=current_procinfo.CurrFalseLabel;
+      current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
+      current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
+      secondpass(left);
+      if codegenerror then
+       exit;
+
+      case left.location.loc of
+        LOC_CREFERENCE,
+        LOC_REFERENCE,
+        LOC_REGISTER,
+        LOC_CREGISTER,
+        LOC_JUMP:
+          begin
+             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+             current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,left.location.register,0));
+             resflags:=F_NE;
+          end;
+        LOC_FLAGS :
+          resflags:=left.location.resflags;
+        else
+          internalerror(2014122902);
+      end;
+      { load flags to register }
+      location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+      location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+      if is_cbool(resultdef) then
+        begin
+          current_asmdata.CurrAsmList.concat(taicpu.op_reg_cond(A_CSETM,location.register,flags_to_cond(resflags)));
+            { truncate? (in case cbools are ever made unsigned) }
+            if resultdef.size<4 then
+              cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,location.size,location.register,location.register);
+        end
+      else
+        cg.g_flags2reg(current_asmdata.CurrAsmList,location.size,resflags,location.register);
+      cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
+      current_procinfo.CurrTrueLabel:=oldTrueLabel;
+      current_procinfo.CurrFalseLabel:=oldFalseLabel;
     end;
 
 
