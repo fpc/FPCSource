@@ -241,85 +241,12 @@ unit cpupara;
 
 
     function taarch64paramanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
-      var
-        i: longint;
-        sym: tsym;
-        fpufield: boolean;
       begin
         if handle_common_ret_in_param(def,pd,result) then
           exit;
-        case def.typ of
-          recorddef:
-            begin
-              result:=def.size>4;
-              if not result and
-                 (target_info.abi in [abi_default,abi_armeb]) then
-                begin
-                  { in case of the old ARM abi (APCS), a struct is returned in
-                    a register only if it is simple. And what is a (non-)simple
-                    struct:
-
-                    "A non-simple type is any non-floating-point type of size
-                     greater than one word (including structures containing only
-                     floating-point fields), and certain single-word structured
-                     types."
-                       (-- ARM APCS documentation)
-
-                    So only floating point types or more than one word ->
-                    definitely non-simple (more than one word is already
-                    checked above). This includes unions/variant records with
-                    overlaid floating point and integer fields.
-
-                    Smaller than one word struct types are simple if they are
-                    "integer-like", and:
-
-                    "A structure is termed integer-like if its size is less than
-                    or equal to one word, and the offset of each of its
-                    addressable subfields is zero."
-                      (-- ARM APCS documentation)
-
-                    An "addressable subfield" is a field of which you can take
-                    the address, which in practive means any non-bitfield.
-                    In Pascal, there is no way to express the difference that
-                    you can have in C between "char" and "int :8". In this
-                    context, we use the fake distinction that a type defined
-                    inside the record itself (such as "a: 0..255;") indicates
-                    a bitpacked field while a field using a different type
-                    (such as "a: byte;") is not.
-                  }
-                  for i:=0 to trecorddef(def).symtable.SymList.count-1 do
-                    begin
-                      sym:=tsym(trecorddef(def).symtable.SymList[i]);
-                      if sym.typ<>fieldvarsym then
-                        continue;
-                      { bitfield -> ignore }
-                      if (trecordsymtable(trecorddef(def).symtable).usefieldalignment=bit_alignment) and
-                         (tfieldvarsym(sym).vardef.typ in [orddef,enumdef]) and
-                         (tfieldvarsym(sym).vardef.owner.defowner=def) then
-                        continue;
-                      { all other fields must be at offset zero }
-                      if tfieldvarsym(sym).fieldoffset<>0 then
-                        begin
-                          result:=true;
-                          exit;
-                        end;
-                      { floating point field -> also by reference }
-                      if tfieldvarsym(sym).vardef.typ=floatdef then
-                        begin
-                          result:=true;
-                          exit;
-                        end;
-                    end;
-                end;
-            end;
-          procvardef:
-            if not tprocvardef(def).is_addressonly then
-              result:=true
-            else
-              result:=false
-          else
-            result:=inherited ret_in_param(def,pd);
-        end;
+        { ABI: if the parameter would be passed in registers, it is returned
+            in those registers; otherwise, it's returned by reference }
+        result:=push_addr_param(vs_value,def,pd.proccalloption);
       end;
 
 
