@@ -2319,6 +2319,8 @@ implementation
 
         { A) set the appropriate objc_msgSend* variant to call }
 
+        { The AArch64 abi does not require special handling for struct returns }
+{$ifndef aarch64}
         { record returned via implicit pointer }
         if paramanager.ret_in_param(resultdef,procdefinition) then
           begin
@@ -2337,11 +2339,13 @@ implementation
         else if (resultdef.typ=floatdef) and
                 not(cnf_inherited in callnodeflags) then
           msgsendname:='OBJC_MSGSEND_FPRET'
-{$endif}
+{$endif i386}
         { default }
-        else if not(cnf_inherited in callnodeflags) then
+        else
+{$endif aarch64}
+             if not(cnf_inherited in callnodeflags) then
           msgsendname:='OBJC_MSGSEND'
-{$if defined(onlymacosx10_6) or defined(arm) }
+{$if defined(onlymacosx10_6) or defined(arm) or defined(aarch64)}
         else if (target_info.system in systems_objc_nfabi) then
           msgsendname:='OBJC_MSGSENDSUPER2'
 {$endif onlymacosx10_6 or arm}
