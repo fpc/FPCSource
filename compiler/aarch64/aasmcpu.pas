@@ -170,10 +170,11 @@ uses
          constructor op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
          constructor op_reg_reg_reg_reg(op : tasmop;_op1,_op2,_op3,_op4 : tregister);
          constructor op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: aint);
+         constructor op_reg_reg_const_shifterop(op : tasmop;_op1,_op2 : tregister; _op3: aint; const _op4 : tshifterop);
          constructor op_reg_reg_sym_ofs(op : tasmop;_op1,_op2 : tregister; _op3: tasmsymbol;_op3ofs: longint);
          constructor op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister; const _op3: treference);
          constructor op_reg_reg_shifterop(op : tasmop;_op1,_op2 : tregister;_op3 : tshifterop);
-         constructor op_reg_reg_reg_shifterop(op : tasmop;_op1,_op2,_op3 : tregister;_op4 : tshifterop);
+         constructor op_reg_reg_reg_shifterop(op : tasmop;_op1,_op2,_op3 : tregister; const _op4 : tshifterop);
 
          { this is for Jmp instructions }
          constructor op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
@@ -362,6 +363,17 @@ implementation
       end;
 
 
+     constructor taicpu.op_reg_reg_const_shifterop(op: tasmop; _op1, _op2: tregister; _op3: aint; const _op4: tshifterop);
+       begin
+         inherited create(op);
+         ops:=4;
+         loadreg(0,_op1);
+         loadreg(1,_op2);
+         loadconst(2,aint(_op3));
+         loadshifterop(3,_op4);
+       end;
+
+
      constructor taicpu.op_reg_reg_sym_ofs(op : tasmop;_op1,_op2 : tregister; _op3: tasmsymbol;_op3ofs: longint);
        begin
          inherited create(op);
@@ -392,7 +404,7 @@ implementation
       end;
 
 
-     constructor taicpu.op_reg_reg_reg_shifterop(op : tasmop;_op1,_op2,_op3 : tregister;_op4 : tshifterop);
+     constructor taicpu.op_reg_reg_reg_shifterop(op : tasmop;_op1,_op2,_op3 : tregister; const _op4 : tshifterop);
       begin
          inherited create(op);
          ops:=4;
