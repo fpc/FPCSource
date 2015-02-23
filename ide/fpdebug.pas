@@ -1311,8 +1311,12 @@ const
 begin
   // Procedure HandleErrorAddrFrame (Errno : longint;addr : CodePointer; frame : Pointer);
   //  [public,alias:'FPC_BREAK_ERROR']; {$ifdef cpui386} register; {$endif}
-  {TODO: handle archs with register calling conventions}
-{$if defined(x86_64)}
+{$if defined(i386)}
+  GetFPCBreakErrorParameters :=
+    GetIntRegister('eax', ExitCode) and
+    GetIntRegister('edx', ExitAddr) and
+    GetIntRegister('ecx', ExitFrame);
+{$elseif defined(x86_64)}
   {$ifdef Win64}
     GetFPCBreakErrorParameters :=
       GetIntRegister('rcx', ExitCode) and
