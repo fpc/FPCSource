@@ -4665,8 +4665,7 @@ implementation
       { generate copies of call by value parameters, must be done before
         the initialization and body is parsed because the refcounts are
         incremented using the local copies }
-      if not(target_info.system in systems_caller_copy_addr_value_para) then
-        current_procinfo.procdef.parast.SymList.ForEachCall(@g_copyvalueparas,list);
+      current_procinfo.procdef.parast.SymList.ForEachCall(@g_copyvalueparas,list);
 
       if not(po_assembler in current_procinfo.procdef.procoptions) then
         begin
@@ -4693,7 +4692,8 @@ implementation
       list:=TAsmList(arg);
       if (tsym(p).typ=paravarsym) and
          ((vo_has_local_copy in tparavarsym(p).varoptions) or
-          ((is_open_array(tparavarsym(p).vardef) or
+          (not(target_info.system in systems_caller_copy_addr_value_para) and
+           (is_open_array(tparavarsym(p).vardef) or
             is_array_of_const(tparavarsym(p).vardef)) and
            (tparavarsym(p).varspez=vs_value))) then
         begin

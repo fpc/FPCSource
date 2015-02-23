@@ -1258,8 +1258,7 @@ implementation
         { generate copies of call by value parameters, must be done before
           the initialization and body is parsed because the refcounts are
           incremented using the local copies }
-        if not(target_info.system in systems_caller_copy_addr_value_para) then
-          current_procinfo.procdef.parast.SymList.ForEachCall(@hlcg.g_copyvalueparas,list);
+        current_procinfo.procdef.parast.SymList.ForEachCall(@hlcg.g_copyvalueparas,list);
 {$ifdef powerpc}
         { unget the register that contains the stack pointer before the procedure entry, }
         { which is used to access the parameters in their original callee-side location  }
