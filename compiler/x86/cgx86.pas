@@ -3083,7 +3083,7 @@ unit cgx86;
         { create pic'ed? }
         if (cs_create_pic in current_settings.moduleswitches) and
            { darwin/x86_64's assembler doesn't want @PLT after call symbols }
-           not(target_info.system in [system_x86_64_darwin,system_i386_iphonesim]) then
+           not(target_info.system in [system_x86_64_darwin,system_i386_iphonesim,system_x86_64_iphonesim]) then
           ref.refaddr:=addr_pic
         else
           ref.refaddr:=addr_full;
