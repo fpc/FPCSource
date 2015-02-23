@@ -328,8 +328,8 @@ endif
 override PACKAGE_NAME=compiler
 override PACKAGE_VERSION=3.1.1
 unexport FPC_VERSION FPC_COMPILERINFO
-CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr jvm i8086
-ALLTARGETS=$(CYCLETARGETS) aarch64
+CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr jvm i8086 aarch64
+ALLTARGETS=$(CYCLETARGETS)
 ifdef ALPHA
 PPC_TARGET=alpha
 endif
@@ -473,7 +473,7 @@ ifeq ($(CPC_TARGET),i8086)
 CPUSUF=8086
 endif
 ifeq ($(CPC_TARGET),aarch64)
-CPUSUF=aarch64
+CPUSUF=a64
 endif
 NOCPUDEF=1
 MSGFILE=msg/error$(FPCLANG).msg
@@ -3869,11 +3869,11 @@ ppuclean:
 tempclean:
 	-$(DEL) $(PPCROSSNAME) $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3) $(MSG2INC) pp1.wpo pp2.wpo
 execlean :
-	-$(DEL) ppc386$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) ppcppc64$(EXEEXT) ppcarm$(EXEEXT) ppcmips$(EXEEXT) ppcmipsel$(EXEEXT) ppcjvm$(EXEEXT) ppc8086$(EXEEXT) ppcaarch64$EXEEXT) $(EXENAME) $(TEMPWPONAME1) $(TEMPWPONAME2)
+	-$(DEL) ppc386$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) ppcppc64$(EXEEXT) ppcarm$(EXEEXT) ppcmips$(EXEEXT) ppcmipsel$(EXEEXT) ppcjvm$(EXEEXT) ppc8086$(EXEEXT) ppca64$EXEEXT) $(EXENAME) $(TEMPWPONAME1) $(TEMPWPONAME2)
 $(addsuffix _clean,$(ALLTARGETS)):
 	-$(DELTREE) $(addprefix $(subst _clean,,$@),/units)
 	-$(DEL) $(addprefix $(subst _clean,,$@)/,*$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT))
-	-$(DEL) $(addprefix $(subst _clean,,$@)/,ppc386$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) ppcppc64$(EXEEXT) ppcarm$(EXEEXT) ppcmips$(EXEEXT) ppcmipsel$(EXEEXT) ppcjvm$(EXEEXT) ppc8086$(EXEEXT) ppcaarch64$(EXEEXT) $(EXENAME))
+	-$(DEL) $(addprefix $(subst _clean,,$@)/,ppc386$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) ppcppc64$(EXEEXT) ppcarm$(EXEEXT) ppcmips$(EXEEXT) ppcmipsel$(EXEEXT) ppcjvm$(EXEEXT) ppc8086$(EXEEXT) ppca64$(EXEEXT) $(EXENAME))
 cycleclean: cleanall $(addsuffix _clean,$(CPC_TARGET))
 	-$(DEL) $(EXENAME)
 clean: tempclean execlean cleanall $(addsuffix _clean,$(CPC_TARGET)) $(addsuffix _clean,$(TARGET_DIRS))

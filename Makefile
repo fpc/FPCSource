@@ -380,7 +380,7 @@ ifeq ($(CPU_TARGET),avr)
 PPSUF=avr
 endif
 ifeq ($(CPU_TARGET),aarch64)
-PPSUF=aarch64
+PPSUF=a64
 endif
 ifdef CROSSCOMPILE
 ifneq ($(CPU_TARGET),jvm)
