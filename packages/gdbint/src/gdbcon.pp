@@ -359,7 +359,7 @@ begin
   end;
   strlcopy(buffer,p,p1-p);
   RegValueStr:=strpas(buffer);
-  Dispose(po);
+  StrDispose(po);
 
   { replace the $? }
   if copy(RegValueStr,1,2)='0x' then
