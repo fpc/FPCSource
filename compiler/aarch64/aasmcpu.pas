@@ -210,7 +210,6 @@ uses
       private
          { next fields are filled in pass1, so pass2 is faster }
          inssize   : shortint;
-         insoffset : longint;
          LastInsOffset : longint; { need to be public to be reset }
          insentry  : PInsEntry;
          function  InsEnd:longint;
