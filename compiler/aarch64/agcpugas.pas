@@ -188,7 +188,23 @@ unit agcpugas;
       begin
         case o.typ of
           top_reg:
-            getopstr:=gas_regname(o.reg);
+            { we cannot yet represent "umov w0, v4.s[0]" or "ins v4.d[0], x1",
+              so for now we use "s4" or "d4" instead -> translate here }
+            if ((hp.opcode=A_INS) or
+                (hp.opcode=A_UMOV)) and
+               (getregtype(hp.oper[opnr]^.reg)=R_MMREGISTER) then
+              begin
+                case getsubreg(hp.oper[opnr]^.reg) of
+                  R_SUBMMS:
+                    getopstr:='v'+tostr(getsupreg(hp.oper[opnr]^.reg))+'.S[0]';
+                  R_SUBMMD:
+                    getopstr:='v'+tostr(getsupreg(hp.oper[opnr]^.reg))+'.D[0]';
+                  else
+                    internalerror(2014122907);
+                end;
+              end
+            else
+              getopstr:=gas_regname(o.reg);
           top_shifterop:
             begin
               getopstr:=gas_shiftmode2str[o.shifterop^.shiftmode];
