@@ -103,7 +103,7 @@ implementation
 
     procedure trgintcpu.add_cpu_interferences(p: tai);
      var
-       i: longint;
+       i, j: longint;
      begin
        if p.typ=ait_instruction then
          begin
@@ -153,6 +153,15 @@ implementation
                      { sp can always be base, never be index }
                      if taicpu(p).oper[i]^.ref^.index<>NR_NO then
                        add_edge(getsupreg(taicpu(p).oper[i]^.ref^.index),RS_SP);
+                     { in case of write back, the base register must be
+                       different from the loaded/stored register }
+                     if (taicpu(p).oper[i]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) and
+                        (taicpu(p).oper[i]^.ref^.base<>NR_NO) then
+                       begin
+                         for j:=pred(i) downto 0 do
+                           if taicpu(p).oper[j]^.typ=TOP_REG then
+                             add_edge(getsupreg(taicpu(p).oper[j]^.reg),getsupreg(taicpu(p).oper[i]^.ref^.base));
+                       end;
                    end;
                end;
              end;
