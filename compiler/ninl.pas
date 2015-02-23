@@ -2631,6 +2631,10 @@ implementation
                   if (left.resultdef.typ<>undefineddef) and
                       paramanager.push_high_param(vs_value,left.resultdef,current_procinfo.procdef.proccalloption) then
                    begin
+                     { this should be an open array or array of const, both of
+                       which can only be simple load nodes of parameters }
+                     if left.nodetype<>loadn then
+                       internalerror(2014120701);
                      hightree:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
                      if assigned(hightree) then
                       begin
