@@ -242,7 +242,8 @@ interface
        { all darwin systems }
        systems_darwin = [system_powerpc_darwin,system_i386_darwin,
                          system_powerpc64_darwin,system_x86_64_darwin,
-                         system_arm_darwin,system_i386_iphonesim];
+                         system_arm_darwin,system_i386_iphonesim,
+                         system_aarch64_darwin];
 
        {all solaris systems }
        systems_solaris = [system_sparc_solaris, system_i386_solaris,
