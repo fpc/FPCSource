@@ -32,6 +32,7 @@ compiler/aarch64/ncpucnv.pas svneol=native#text/plain
 compiler/aarch64/ncpuinl.pas svneol=native#text/plain
 compiler/aarch64/ncpumat.pas svneol=native#text/plain
 compiler/aarch64/ncpumem.pas svneol=native#text/plain
+compiler/aarch64/ncpuset.pas svneol=native#text/plain
 compiler/aarch64/ra64con.inc svneol=native#text/plain
 compiler/aarch64/ra64dwa.inc svneol=native#text/plain
 compiler/aarch64/ra64nor.inc svneol=native#text/plain
