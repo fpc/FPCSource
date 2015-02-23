@@ -1,5 +1,5 @@
 {
-    Copyright (c) 2003-2012 by Florian Klaempfl and others
+    Copyright (c) 2013-2014 by Jonas Maebe, Florian Klaempfl and others
 
     AArch64 specific calling conventions
 
