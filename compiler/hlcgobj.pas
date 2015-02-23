@@ -4523,7 +4523,11 @@ implementation
          if (tparavarsym(p).varspez=vs_value) then
           begin
             include(current_procinfo.flags,pi_needs_implicit_finally);
-            location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).localloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
+            location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).localloc,href,
+              is_open_array(tparavarsym(p).vardef) or
+              ((target_info.system in systems_caller_copy_addr_value_para) and
+               paramanager.push_addr_param(vs_value,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)),
+              sizeof(pint));
             if is_open_array(tparavarsym(p).vardef) then
               begin
                 if paramanager.push_high_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption) then
@@ -4543,7 +4547,8 @@ implementation
           end;
        end;
       { open arrays can contain elements requiring init/final code, so the else has been removed here }
-      if (tparavarsym(p).varspez=vs_value) and
+      if not(target_info.system in systems_caller_copy_addr_value_para) and
+         (tparavarsym(p).varspez=vs_value) and
          (is_open_array(tparavarsym(p).vardef) or
           is_array_of_const(tparavarsym(p).vardef)) then
         begin
@@ -4581,7 +4586,11 @@ implementation
                  if not((tparavarsym(p).vardef.typ=variantdef) and
                    paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
                    begin
-                     location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
+                     location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,
+                       is_open_array(tparavarsym(p).vardef) or
+                       ((target_info.system in systems_caller_copy_addr_value_para) and
+                        paramanager.push_addr_param(vs_value,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)),
+                       sizeof(pint));
                      if is_open_array(tparavarsym(p).vardef) then
                        begin
                          if paramanager.push_high_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption) then
@@ -4656,7 +4665,8 @@ implementation
       { generate copies of call by value parameters, must be done before
         the initialization and body is parsed because the refcounts are
         incremented using the local copies }
-      current_procinfo.procdef.parast.SymList.ForEachCall(@g_copyvalueparas,list);
+      if not(target_info.system in systems_caller_copy_addr_value_para) then
+        current_procinfo.procdef.parast.SymList.ForEachCall(@g_copyvalueparas,list);
 
       if not(po_assembler in current_procinfo.procdef.procoptions) then
         begin

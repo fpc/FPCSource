@@ -335,7 +335,8 @@ implementation
            if (varspez=vs_value) and
               paramanager.push_addr_param(varspez,vardef,pd.proccalloption) and
               not(is_open_array(vardef) or
-                  is_array_of_const(vardef)) then
+                  is_array_of_const(vardef)) and
+              not(target_info.system in systems_caller_copy_addr_value_para) then
              include(varoptions,vo_has_local_copy);
 
            { needs high parameter ? }

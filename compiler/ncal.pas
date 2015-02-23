@@ -201,6 +201,10 @@ interface
           fparainit,
           fparacopyback: tnode;
           procedure handlemanagedbyrefpara(orgparadef: tdef);virtual;abstract;
+          { on some targets, value parameters that are passed by reference must
+            be copied to a temp location by the caller (and then a reference to
+            this temp location must be passed) }
+          procedure copy_value_by_ref_para;
        public
           callparaflags : tcallparaflags;
           parasym       : tparavarsym;
@@ -592,6 +596,208 @@ implementation
                              TCALLPARANODE
  ****************************************************************************}
 
+    procedure tcallparanode.copy_value_by_ref_para;
+      var
+        initstat,
+        copybackstat,
+        finistat: tstatementnode;
+        finiblock: tblocknode;
+        paratemp: ttempcreatenode;
+        arraysize,
+        arraybegin: tnode;
+        lefttemp: ttempcreatenode;
+        vardatatype,
+        temparraydef: tdef;
+      begin
+        { this routine is for targets where by-reference value parameters need
+          to be copied by the caller. It's basically the node-level equivalent
+          of thlcgobj.g_copyvalueparas }
+
+        { in case of an array constructor, we don't need a copy since the array
+          constructor itself is already constructed on the fly (and hence if
+          it's modified by the caller, that's no problem) }
+        if not is_array_constructor(left.resultdef) then
+          begin
+            fparainit:=internalstatements(initstat);
+            fparacopyback:=internalstatements(copybackstat);
+            finiblock:=internalstatements(finistat);
+            paratemp:=nil;
+
+            { making a copy of an open array, an array of const or a dynamic
+              array requires dynamic memory allocation since we don't know the
+              size at compile time }
+            if is_open_array(left.resultdef) or
+               is_array_of_const(left.resultdef) or
+               (is_dynamic_array(left.resultdef) and
+                is_open_array(parasym.vardef)) then
+              begin
+                 paratemp:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
+                 if is_dynamic_array(left.resultdef) then
+                   begin
+                      { note that in insert_typeconv, this dynamic array was
+                        already converted into an open array (-> dereferenced)
+                        and then its resultdef was restored to the original
+                        dynamic array one -> get the address before treating it
+                        as a dynamic array here }
+                     { first restore the actual resultdef of left }
+                     temparraydef:=left.resultdef;
+                     left.resultdef:=parasym.vardef;
+                     { get its address }
+                     lefttemp:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
+                     addstatement(initstat,lefttemp);
+                     addstatement(finistat,ctempdeletenode.create(lefttemp));
+                     addstatement(initstat,
+                       cassignmentnode.create(
+                         ctemprefnode.create(lefttemp),
+                         caddrnode.create_internal(left)
+                       )
+                     );
+                     { restore the resultdef }
+                     left.resultdef:=temparraydef;
+                     { now treat that address (correctly) as the original
+                       dynamic array to get its start and length }
+                     arraybegin:=cvecnode.create(
+                       ctypeconvnode.create_explicit(ctemprefnode.create(lefttemp),
+                         left.resultdef),
+                       genintconstnode(0)
+                     );
+                     arraysize:=caddnode.create(muln,
+                       geninlinenode(in_length_x,false,
+                         ctypeconvnode.create_explicit(ctemprefnode.create(lefttemp),
+                           left.resultdef)
+                       ),
+                       genintconstnode(tarraydef(left.resultdef).elementdef.size)
+                     );
+                   end
+                 else
+                   begin
+                     { no problem here that left is used multiple times, as
+                       sizeof() will simply evaluate to the high parameter }
+                     arraybegin:=left.getcopy;
+                     arraysize:=geninlinenode(in_sizeof_x,false,left);
+                   end;
+                 addstatement(initstat,paratemp);
+                 { paratemp:=getmem(sizeof(para)) }
+                 addstatement(initstat,
+                   cassignmentnode.create(
+                     ctemprefnode.create(paratemp),
+                     ccallnode.createintern('fpc_getmem',
+                       ccallparanode.create(
+                         arraysize.getcopy,nil
+                       )
+                     )
+                   )
+                 );
+                 { move(para,temp,sizeof(arr)) (no "left.getcopy" below because
+                   we replace left afterwards) }
+                 addstatement(initstat,
+                   ccallnode.createintern('MOVE',
+                     ccallparanode.create(
+                       arraysize,
+                       ccallparanode.create(
+                         cderefnode.create(ctemprefnode.create(paratemp)),
+                         ccallparanode.create(
+                           arraybegin,nil
+                         )
+                       )
+                     )
+                   )
+                 );
+                 { no reference count increases, that's still done on the callee
+                   side because for compatibility with targets that perform this
+                   copy on the callee side, that should only be done for non-
+                   assember functions (and we can't know that 100% certain here,
+                   e.g. in case of external declarations) (*) }
+
+                 { free the memory again after the call: freemem(paratemp) }
+                 addstatement(finistat,
+                   ccallnode.createintern('fpc_freemem',
+                     ccallparanode.create(
+                       ctemprefnode.create(paratemp),nil
+                     )
+                   )
+                 );
+                 { replace the original parameter with a dereference of the
+                   temp typecasted to the same type as the original parameter
+                   (don't free left, it has been reused above) }
+                 left:=ctypeconvnode.create_internal(
+                   cderefnode.create(ctemprefnode.create(paratemp)),
+                   left.resultdef);
+              end
+            else if is_shortstring(parasym.vardef) then
+              begin
+                { the shortstring parameter may have a different size than the
+                  parameter type -> assign and truncate/extend }
+                paratemp:=ctempcreatenode.create(parasym.vardef,parasym.vardef.size,tt_persistent,false);
+                addstatement(initstat,paratemp);
+                { assign shortstring }
+                addstatement(initstat,
+                  cassignmentnode.create(
+                    ctemprefnode.create(paratemp),left
+                  )
+                );
+                { replace parameter with temp (don't free left, it has been
+                  reused above) }
+                left:=ctemprefnode.create(paratemp);
+              end
+            else if parasym.vardef.typ=variantdef then
+              begin
+                vardatatype:=search_system_type('TVARDATA').typedef;
+                paratemp:=ctempcreatenode.create(vardatatype,vardatatype.size,tt_persistent,false);
+                addstatement(initstat,paratemp);
+                addstatement(initstat,
+                  ccallnode.createintern('fpc_variant_copy_overwrite',
+                    ccallparanode.create(
+                      ctypeconvnode.create_explicit(ctemprefnode.create(paratemp),
+                          vardatatype
+                        ),
+                      ccallparanode.create(ctypeconvnode.create_explicit(left,
+                        vardatatype),
+                        nil
+                      )
+                    )
+                  )
+                );
+                { replace parameter with temp (don't free left, it has been
+                  reused above) }
+                left:=ctypeconvnode.create_explicit(ctemprefnode.create(paratemp),parasym.vardef);
+              end
+            else if is_managed_type(left.resultdef) then
+              begin
+                { don't increase/decrease the reference count here, will be done by
+                  the callee (see (*) above) -> typecast to array of byte
+                  for the assignment to the temp }
+                temparraydef:=getarraydef(u8inttype,left.resultdef.size);
+                paratemp:=ctempcreatenode.create(temparraydef,temparraydef.size,tt_persistent,false);
+                addstatement(initstat,paratemp);
+                addstatement(initstat,
+                  cassignmentnode.create(
+                    ctemprefnode.create(paratemp),
+                    ctypeconvnode.create_internal(left,temparraydef)
+                  )
+                );
+                left:=ctypeconvnode.create_explicit(ctemprefnode.create(paratemp),left.resultdef);
+              end
+            else
+              begin
+                paratemp:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,false);
+                addstatement(initstat,paratemp);
+                addstatement(initstat,
+                  cassignmentnode.create(ctemprefnode.create(paratemp),left)
+                );
+                { replace parameter with temp (don't free left, it has been
+                  reused above) }
+                left:=ctemprefnode.create(paratemp);
+              end;
+            addstatement(finistat,ctempdeletenode.create(paratemp));
+            addstatement(copybackstat,finiblock);
+            firstpass(fparainit);
+            firstpass(left);
+            firstpass(fparacopyback);
+          end;
+      end;
+
+
     constructor tcallparanode.create(expr,next : tnode);
 
       begin
@@ -721,6 +927,7 @@ implementation
           tcallparanode(right).firstcallparan;
         if not assigned(left.resultdef) then
           get_paratype;
+
         if assigned(parasym) and
            (target_info.system in systems_managed_vm) and
            (parasym.varspez in [vs_var,vs_out,vs_constref]) and
@@ -728,6 +935,23 @@ implementation
            { for record constructors }
            (left.nodetype<>nothingn) then
           handlemanagedbyrefpara(left.resultdef);
+
+        { for targets that have to copy "value parameters by reference" on the
+          caller side
+
+          aktcallnode may not be assigned in case firstcallparan is called for
+          fake parameters to inline nodes (in that case, we don't have a real
+          call and hence no "caller side" either)
+          }
+        if assigned(aktcallnode) and
+           (target_info.system in systems_caller_copy_addr_value_para) and
+           ((assigned(parasym) and
+             (parasym.varspez=vs_value)) or
+            (cpf_varargs_para in callparaflags)) and
+           (left.nodetype<>nothingn) and
+           paramanager.push_addr_param(vs_value,left.resultdef,
+                      aktcallnode.procdefinition.proccalloption) then
+          copy_value_by_ref_para;
 
         { does it need to load RTTI? }
         if assigned(parasym) and (parasym.varspez=vs_out) and

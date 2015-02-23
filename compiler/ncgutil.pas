@@ -698,7 +698,11 @@ implementation
                  if not((tparavarsym(p).vardef.typ=variantdef) and
                     paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
                    begin
-                     hlcg.location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
+                     hlcg.location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,
+                       is_open_array(tparavarsym(p).vardef) or
+                       ((target_info.system in systems_caller_copy_addr_value_para) and
+                        paramanager.push_addr_param(vs_value,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)),
+                        sizeof(pint));
                      if is_open_array(tparavarsym(p).vardef) then
                        begin
                          { open arrays do not contain correct element count in their rtti,
@@ -1330,7 +1334,8 @@ implementation
         { generate copies of call by value parameters, must be done before
           the initialization and body is parsed because the refcounts are
           incremented using the local copies }
-        current_procinfo.procdef.parast.SymList.ForEachCall(@copyvalueparas,list);
+        if not(target_info.system in systems_caller_copy_addr_value_para) then
+          current_procinfo.procdef.parast.SymList.ForEachCall(@copyvalueparas,list);
 {$ifdef powerpc}
         { unget the register that contains the stack pointer before the procedure entry, }
         { which is used to access the parameters in their original callee-side location  }

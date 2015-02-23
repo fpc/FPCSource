@@ -338,6 +338,10 @@ interface
          system_jvm_android32
        ];
 
+       { all systems where a value parameter passed by reference must be copied
+         on the caller side rather than on the callee side }
+       systems_caller_copy_addr_value_para = [system_aarch64_darwin];
+
        { pointer checking (requires special code in FPC_CHECKPOINTER,
          and can never work for libc-based targets or any other program
          linking to an external library)
