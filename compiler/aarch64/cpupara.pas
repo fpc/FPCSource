@@ -109,9 +109,89 @@ unit cpupara;
       end;
 
 
-    function Is_HFA(p : tdef) : boolean;
+    function is_hfa_internal(p: tdef; var basedef: tdef; var elecount: longint): boolean;
+      var
+        i: longint;
+        sym: tsym;
+        tmpelecount: longint;
       begin
         result:=false;
+        case p.typ of
+          arraydef:
+            begin
+              if is_special_array(p) then
+                exit;
+              case tarraydef(p).elementdef.typ of
+                floatdef:
+                  begin
+                    { an array of empty records has no influence }
+                    if tarraydef(p).elementdef.size=0 then
+                      begin
+                        result:=true;
+                        exit
+                      end;
+                    tmpelecount:=0;
+                    if not is_hfa_internal(tarraydef(p).elementdef,basedef,tmpelecount) then
+                      exit;
+                    { tmpelecount now contains the number of hfa elements in a
+                      single array element (e.g. 2 if it's an array of a record
+                      containing two singles) -> multiply by number of elements
+                      in the array }
+                    inc(elecount,tarraydef(p).elecount*tmpelecount);
+                    if elecount>4 then
+                      exit;
+                  end;
+                else
+                  result:=is_hfa_internal(tarraydef(p).elementdef,basedef,elecount);
+                end;
+            end;
+          floatdef:
+            begin
+              if not assigned(basedef) then
+                basedef:=p
+              else if basedef<>p then
+                exit;
+              inc(elecount);
+              result:=true;
+            end;
+          recorddef,
+          objectdef:
+            begin
+              if (p.typ=objectdef) and
+                 not is_object(p) then
+                exit;
+              for i:=0 to tabstractrecorddef(p).symtable.symlist.count-1 do
+                begin
+                  sym:=tsym(tabstractrecorddef(p).symtable.symlist[i]);
+                  if sym.typ<>fieldvarsym then
+                    continue;
+                  if not is_hfa_internal(tfieldvarsym(sym).vardef,basedef,elecount) then
+                    exit
+                end;
+              result:=true;
+            end;
+          else
+            exit
+        end;
+      end;
+
+
+    { Returns whether a def is a "homogeneous float array" at the machine level.
+      This means that in the memory layout, the def only consists of maximally
+      4 floating point values that appear consecutively in memory }
+    function is_hfa(p: tdef) : boolean;
+      var
+        basedef: tdef;
+        elecount: longint;
+      begin
+        result:=false;
+        basedef:=nil;
+        elecount:=0;
+        result:=is_hfa_internal(p,basedef,elecount);
+        result:=
+          result and
+          (elecount>0) and
+          (p.size=basedef.size*elecount)
       end;
 
 
