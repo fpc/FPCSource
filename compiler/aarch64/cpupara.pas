@@ -259,7 +259,11 @@ unit cpupara;
           formaldef:
             result:=true;
           { arrays are composites and hence treated the same as records by the
-            ABI (watch out for C, where an array is a pointer) }
+            ABI (watch out for C, where an array is a pointer)
+            Also: all other platforms pass const arrays by reference. Do the
+              same here, because there is too much hacky code out there that
+              relies on this ("array[0..0] of x" passed as const parameter and
+              then indexed beyond its bounds) }
           arraydef:
             result:=
               (calloption in cdecl_pocalls) or
@@ -267,8 +271,9 @@ unit cpupara;
               is_array_of_const(def) or
               is_array_constructor(def) or
               ((tarraydef(def).highrange>=tarraydef(def).lowrange) and
-               not is_hfa(def,hfabasedef) and
-               (def.size>16));
+               ((varspez=vs_const) or
+                (not is_hfa(def,hfabasedef) and
+                 (def.size>16))));
           setdef :
             result:=def.size>16;
           stringdef :
