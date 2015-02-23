@@ -285,7 +285,7 @@ interface
        systems_objc_supported = systems_darwin;
 
        { systems using the non-fragile Objective-C ABI }
-       systems_objc_nfabi = [system_powerpc64_darwin,system_x86_64_darwin,system_arm_darwin,system_i386_iphonesim];
+       systems_objc_nfabi = [system_powerpc64_darwin,system_x86_64_darwin,system_arm_darwin,system_i386_iphonesim,system_aarch64_darwin];
 
        { systems supporting "blocks" }
        systems_blocks_supported = systems_darwin;
