@@ -346,11 +346,11 @@ unit cpubase;
             begin
               case s of
                 { there's only Wn and Xn }
-                OS_32,
-                OS_S32:
-                  cgsize2subreg:=R_SUBD;
-                else
+                OS_64,
+                OS_S64:
                   cgsize2subreg:=R_SUBWHOLE;
+                else
+                  cgsize2subreg:=R_SUBD;
                 end;
             end;
           R_MMREGISTER:
