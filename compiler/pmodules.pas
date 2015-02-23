@@ -947,6 +947,8 @@ type
          { All units are read, now give them a number }
          current_module.updatemaps;
 
+         { further, changing the globalsymtable is not allowed anymore }
+         current_module.globalsymtable.sealed:=true;
          symtablestack.push(current_module.localsymtable);
 
          if not current_module.interface_only then
