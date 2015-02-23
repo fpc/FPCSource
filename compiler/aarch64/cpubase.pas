@@ -129,15 +129,15 @@ unit cpubase;
         { update condition flags }
         PF_S,
         { load/store sizes }
-        PF_B,PF_SB,PF_H,PF_SH,PF_SW
+        PF_B,PF_SB,PF_H,PF_SH,PF_W,PF_SW
       );
 
       TOpPostfixes = set of TOpPostfix;
 
     const
-      oppostfix2str : array[TOpPostfix] of string[2] = ('',
+      oppostfix2str: array[TOpPostfix] of string[2] = ('',
         's',
-        'b','sb','h','sh','sw');
+        'b','sb','h','sh','w','sw');
 
 {*****************************************************************************
                                 Conditions
