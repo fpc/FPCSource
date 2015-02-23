@@ -165,7 +165,7 @@ unit cpubase;
       );
 
       uppercond2str : array[TAsmCond] of string[2]=('',
-        'EQ','NE','hs','LO','MI','PL','VS','VC','HI','LS',
+        'EQ','NE','HS','LO','MI','PL','VS','VC','HI','LS',
         'GE','LT','GT','LE','AL','NV'
       );
 
