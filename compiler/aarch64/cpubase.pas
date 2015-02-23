@@ -384,9 +384,9 @@ unit cpubase;
             begin
               case s of
                 OS_F32:
-                  cgsize2subreg:=R_SUBFS;
+                  cgsize2subreg:=R_SUBMMS;
                 OS_F64:
-                  cgsize2subreg:=R_SUBFD;
+                  cgsize2subreg:=R_SUBMMD;
                 else
                   internalerror(2009112701);
               end;
@@ -410,11 +410,12 @@ unit cpubase;
           R_MMREGISTER :
             begin
               case getsubreg(reg) of
-                R_SUBFD,
-                R_SUBWHOLE:
+                R_SUBMMD:
                   result:=OS_F64;
-                R_SUBFS:
+                R_SUBMMS:
                   result:=OS_F32;
+                R_SUBMMWHOLE:
+                  result:=OS_M128;
                 else
                   internalerror(2009112903);
               end;
