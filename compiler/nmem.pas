@@ -153,7 +153,7 @@ implementation
       globtype,systems,constexp,
       cutils,verbose,globals,
       symconst,symbase,defutil,defcmp,
-      nbas,nutils,
+      nbas,ninl,nutils,
       wpobase,
 {$ifdef i8086}
       cpuinfo,
@@ -258,6 +258,10 @@ implementation
                      result:=ctypeconvnode.create_internal(left,voidpointertype);
                      result:=cderefnode.create(result);
                      inserttypeconv_internal(result,resultdef);
+                     { the ISA pointer is guaranteed to be aligned, while
+                       dereferencing a void pointer is normally not aligned at
+                       all }
+                     result:=geninlinenode(in_aligned_x,false,result);
                      { reused }
                      left:=nil;
                    end
