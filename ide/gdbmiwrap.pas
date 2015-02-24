@@ -398,6 +398,7 @@ var
 begin
   FRawResponse.Clear;
   FConsoleStream.Clear;
+  ExecAsyncOutput.Clear;
   for I := Low(NotifyAsyncOutput) to High(NotifyAsyncOutput) do
     FreeAndNil(NotifyAsyncOutput[I]);
   SetLength(NotifyAsyncOutput, 0);
