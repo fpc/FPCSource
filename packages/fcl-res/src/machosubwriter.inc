@@ -257,7 +257,7 @@ begin
   symcommand.symoff:=fSymbolTable.StartOfs;
   symcommand.nsyms:=fSymbolTable.Count;
   symcommand.stroff:=fMachOStringTable.StartOfs;
-  symcommand.strsize:=NextAligned(fDataAlignment,fMachOStringTable.Size);
+  symcommand.strsize:=NextAligned(4,fMachOStringTable.Size);
 
   if fOppositeEndianess then
   begin
