@@ -167,6 +167,8 @@ end;
 procedure TGDBController.StartTrace;
 begin
   Command('-break-insert -t PASCALMAIN');
+  if not GDB.ResultRecord.Success then
+    exit;
   start_break_number := GDB.ResultRecord.Parameters['bkpt'].AsTuple['number'].AsLongInt;
   Run;
 end;
@@ -404,6 +406,11 @@ begin
   GDBErrorBuf.Reset;
   UnixDir(fn);
   Command('-file-exec-and-symbols ' + fn);
+  if not GDB.ResultRecord.Success then
+    begin
+      LoadFile:=false;
+      exit;
+    end;
   { the register list may change *after* loading a file, because there }
   { are gdb versions that support multiple archs, e.g. i386 and x86_64 }
   UpdateRegisterNames;               { so that's why we update it here }
