@@ -183,6 +183,8 @@ const
   N_SECT = $e;             // defined in section number n_sect
   N_PBUD = $c;             // prebound undefined (defined in a dylib)
   N_INDR = $a;             // indirect
+
+  NO_SECT = $0;            // symbol is not in any section
   
   //Relocations: masks for flag
   R_SYMBOLNUM_BE = $FFFFFF00;

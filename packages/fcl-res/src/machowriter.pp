@@ -25,6 +25,7 @@ uses
 type
   EMachOResourceWriterException = class(EResourceWriterException);
   EMachOResourceWriterUnknownBitSizeException = class(EMachOResourceWriterException);
+  EMachOResourceWriterSymbolTableWrongOrderException = class(EMachOResourceWriterException);
 
 type
 
@@ -86,7 +87,7 @@ type
   public
     constructor Create(aMachineType : TMachOMachineType; aOppositeEndianess : boolean);
     destructor Destroy; override;
-    procedure Add(addr : longword; sectnum : longword);
+    procedure Add(addr: longword; symnum: longword);
     procedure Clear;
     procedure WriteToStream(aStream : TStream);
     property Count : integer read GetCount;
@@ -105,15 +106,17 @@ type
     fOppositeEndianess : boolean;
     function GetCount : integer;
     function AddSymbol(aName : string; sect : byte; addr : longword;
-      glob : boolean) : integer; virtual; abstract;
+      glob, undef : boolean) : integer; virtual; abstract;
   protected
   public
     constructor Create(aStringTable : TObjectStringTable);
     destructor Destroy; override;
-    function AddLocal(aName : string; sect : byte; addr : longword) : integer;
-    function AddGlobal(aName : string; sect : byte; addr : longword) : integer;
+    function AddLocal(const aName : string; sect : byte; addr : longword) : integer;
+    function AddGlobal(const aName : string; sect : byte; addr : longword) : integer;
+    function AddExternal(const aName : string) : integer;
     procedure Clear;
     procedure WriteToStream(aStream : TStream); virtual; abstract;
+    procedure SetSymbolOffset(symbolnum : integer; offset: longword); virtual; abstract;
     property Count : integer read GetCount;
     property LocalCount : integer read fLocalCount;
     property GlobalCount : integer read fGlobalCount;
@@ -141,6 +144,8 @@ type
     fCurOfs : longword;
     fDataCurOfs : longword;
     fSectionStart : longword;
+    ffpcresourcessym,
+    ffpcreshandlessym : integer;
 
     function NextAligned(aBound, aValue : longword) : longword;
     procedure Align(aBound : integer; aStream : TStream);
@@ -241,17 +246,23 @@ begin
   fList.Free;
 end;
 
-function TMachOSymbolTable.AddLocal(aName: string; sect: byte; addr: longword
+function TMachOSymbolTable.AddLocal(const aName: string; sect: byte; addr: longword
   ): integer;
 begin
-  Result:=AddSymbol(aName,sect,addr,false);
+  Result:=AddSymbol(aName,sect,addr,false,false);
   inc(fLocalCount);
 end;
 
-function TMachOSymbolTable.AddGlobal(aName: string; sect: byte; addr: longword
+function TMachOSymbolTable.AddGlobal(const aName: string; sect: byte; addr: longword
   ): integer;
 begin
-  Result:=AddSymbol(aName,sect,addr,true);
+  Result:=AddSymbol(aName,sect,addr,true,false);
+  inc(fGlobalCount);
+end;
+
+function TMachOSymbolTable.AddExternal(const aName: string): integer;
+begin
+  Result:=AddSymbol(aName,NO_SECT,0,false,true);
   inc(fGlobalCount);
 end;
 
@@ -317,7 +328,7 @@ begin
   fList.Free;
 end;
 
-procedure TMachORelocations.Add(addr: longword; sectnum: longword);
+procedure TMachORelocations.Add(addr: longword; symnum: longword);
 var p : PRelocationInfo;
 begin
   p:=GetMem(sizeof(TRelocationInfo));
@@ -325,15 +336,19 @@ begin
   //bit fields make things difficult...
   if fEndianess=MACH_BIG_ENDIAN then
   begin
-    p^.flags:=sectnum shl 8;
+    p^.flags:=symnum shl 8;
     p^.flags:=p^.flags or (fRelocSize shl 5); //length
     p^.flags:=p^.flags or fRelocType;
+    { reference via symbol }
+    p^.flags:=p^.flags or R_EXTERN_BE;
   end
   else
   begin
-    p^.flags:=sectnum and R_SYMBOLNUM_LE;
+    p^.flags:=symnum and R_SYMBOLNUM_LE;
     p^.flags:=p^.flags or (fRelocSize shl 25); //length
     p^.flags:=p^.flags or (fRelocType shl 28);
+    { reference via symbol }
+    p^.flags:=p^.flags or R_EXTERN_LE;
   end;
   fList.Add(p);
 end;
@@ -556,15 +571,33 @@ begin
   AllocateSpaceForLoadCommands(aStream);
   fSectionStart:=aStream.Position;
   fRoot:=TRootResTreeNode(fParent.GetTree(aResources));
+  { on AArch64, if you want to refer to a section from another one, you
+    have to do it via an explicit symbol reference.
+
+  }
+  { dummy text section symbol }
+  fSymbolTable.AddLocal('ltmp0',1,0);
+  { dummy fpc.resources symbol }
+  fSymbolTable.AddLocal('ltmp1',2,0);
+  { the offset needs to be the offset in the file, *not* relative to the start
+    of the section. We don't know here yet how large the fpcresources section
+    will be -> fix up later }
+  ffpcreshandlessym:=fSymbolTable.AddGlobal('__fpc_reshandles_internal',3,0);
+  { don't add this before any local symbols, as local symbols must be written
+    first. We can't reorder while writing the symbol table, because we already
+    need the symbol numbers above }
+  ffpcresourcessym:=fSymbolTable.AddGlobal('FPC_RESSYMBOL',2,0);
+
   PrescanResourceTree;
   WriteResHeader(aStream,aResources);
   WriteNodeInfos(aStream);
   WriteResStringTable(aStream);
   WriteRawData(aStream);
-//  fSymbolTable.AddGlobal('FPCRES_SECTION',1,0);
-  fSymbolTable.AddGlobal('FPC_RESSYMBOL',1,0);
   fRelocations.StartOfs:=aStream.Position;
   WriteRelocations(aStream);
+
+  { fix up offset of fpcreshandles symbol }
+  fSymbolTable.SetSymbolOffset(ffpcreshandlessym,fDataCurOfs);
   fSymbolTable.StartOfs:=aStream.Position;
   WriteSymbolTable(aStream);
   fMachOStringTable.StartOfs:=aStream.Position;
