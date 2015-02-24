@@ -1212,7 +1212,7 @@ implementation
                           currsym:=objdata.symbolref(ref^.symbol);
                           l:=ref^.offset;
 {$push}
-{$r-}
+{$r-,q-} { disable also overflow as address returns a qword for x86_64 }
                           if assigned(currsym) then
                             inc(l,currsym.address);
 {$pop}
@@ -1267,7 +1267,7 @@ implementation
                   begin
                     { allow 2nd, 3rd or 4th operand being a constant and expect no size for shuf* etc. }
                     { further, allow AAD and AAM with imm. operand }
-                    if (opsize=S_NO) and not((i in [1,2,3]) 
+                    if (opsize=S_NO) and not((i in [1,2,3])
 {$ifndef x86_64}
                       or ((i=0) and (opcode in [A_AAD,A_AAM]))
 {$endif x86_64}
@@ -2786,7 +2786,7 @@ implementation
                 getvalsym(c-40);
                 data:=currval-insend;
 {$push}
-{$r-}
+{$r-,q-} { disable also overflow as address returns a qword for x86_64 }
                 if assigned(currsym) then
                  inc(data,currsym.address);
 {$pop}
