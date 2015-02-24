@@ -42,6 +42,14 @@ uses
        cs,ds,es,ss,fs,gs : word;
        eflags : dword;
 {$endif i386}
+{$ifdef x86_64}
+{$define cpu_known}
+       rax,rbx,rcx,rdx,rsi,rdi,rbp,rsp,
+       r8,r9,r10,r11,r12,r13,r14,r15,
+       rip : qword;
+       cs,ds,es,ss,fs,gs : word;
+       eflags : dword;
+{$endif x86_64}
 {$ifdef m68k}
 {$define cpu_known}
        d0,d1,d2,d3,d4,d5,d6,d7 : dword;
@@ -90,11 +98,11 @@ uses
 
     TFPURegs = record
 {$ifndef test_generic_cpu}
-{$ifdef i386}
+{$if defined(i386) or defined(x86_64)}
       st0,st1,st2,st3,st4,st5,st6,st7 :string;
       ftag,fop,fctrl,fstat,fiseg,foseg : word;
       fioff,fooff : cardinal;
-{$endif i386}
+{$endif i386 or x86_64}
 {$ifdef m68k}
       fp0,fp1,fp2,fp3,fp4,fp5,fp6,fp7 : string;
       fpcontrol,fpstatus,fpiaddr : dword;
@@ -157,11 +165,11 @@ uses
 
     TVectorRegs = record
 {$ifndef test_generic_cpu}
-{$ifdef i386}
+{$if defined(i386) or defined(x86_64)}
       xmm : array[0..7] of string;
       mmx : array[0..7] of string;
       mxcsr : string;
-{$endif i386}
+{$endif i386 or x86_64}
 {$ifdef powerpc}
       m : array[0..31] of string;
 {$endif powerpc}
@@ -281,7 +289,7 @@ const
        p1 : pchar;
        reg,value : string;
        buffer : array[0..255] of char;
-       v : dword;
+       v : qword;
        code : word;
        i : byte;
 
@@ -365,6 +373,57 @@ const
                       else if reg='ss' then
                         rs.ss:=v;
 {$endif i386}
+{$ifdef x86_64}
+                      if reg='rax' then
+                        rs.rax:=v
+                      else if reg='rbx' then
+                        rs.rbx:=v
+                      else if reg='rcx' then
+                        rs.rcx:=v
+                      else if reg='rdx' then
+                        rs.rdx:=v
+                      else if reg='rsi' then
+                        rs.rsi:=v
+                      else if reg='rdi' then
+                        rs.rdi:=v
+                      else if reg='rbp' then
+                        rs.rbp:=v
+                      else if reg='rsp' then
+                        rs.rsp:=v
+                      else if reg='r8' then
+                        rs.r8:=v
+                      else if reg='r9' then
+                        rs.r9:=v
+                      else if reg='r10' then
+                        rs.r10:=v
+                      else if reg='r11' then
+                        rs.r11:=v
+                      else if reg='r12' then
+                        rs.r12:=v
+                      else if reg='r13' then
+                        rs.r13:=v
+                      else if reg='r14' then
+                        rs.r14:=v
+                      else if reg='r15' then
+                        rs.r15:=v
+                      else if reg='rip' then
+                        rs.rip:=v
+                      { under Windows flags are on a register named ps !! PM }
+                      else if (reg='eflags') or (reg='ps') then
+                        rs.eflags:=v
+                      else if reg='cs' then
+                        rs.cs:=v
+                      else if reg='ds' then
+                        rs.ds:=v
+                      else if reg='es' then
+                        rs.es:=v
+                      else if reg='fs' then
+                        rs.fs:=v
+                      else if reg='gs' then
+                        rs.gs:=v
+                      else if reg='ss' then
+                        rs.ss:=v;
+{$endif x86_64}
 {$ifdef m68k}
                       if reg='d0' then
                         rs.d0:=v
@@ -518,6 +577,14 @@ const
         color:=8;
     end;
 
+    procedure SetColor(x,y : qword);
+    begin
+      if x=y then
+        color:=7
+      else
+        color:=8;
+    end;
+
     procedure SetStrColor(const x,y : string);
     begin
       if x=y then
@@ -607,6 +674,70 @@ const
             SetColor(rs.eflags and $400,OldReg.eflags and $400);
             WriteStr(22,7,'d='+chr(byte((rs.eflags and $400)<>0)+48),color);
 {$endif i386}
+{$ifdef x86_64}
+            SetColor(rs.rax,OldReg.rax);
+            WriteStr(1,0,'RAX '+HexStr(rs.rax,16),color);
+            SetColor(rs.rbx,OldReg.rbx);
+            WriteStr(1,1,'RBX '+HexStr(rs.rbx,16),color);
+            SetColor(rs.rcx,OldReg.rcx);
+            WriteStr(1,2,'RCX '+HexStr(rs.rcx,16),color);
+            SetColor(rs.rdx,OldReg.rdx);
+            WriteStr(1,3,'RDX '+HexStr(rs.rdx,16),color);
+            SetColor(rs.rsi,OldReg.rsi);
+            WriteStr(1,4,'RSI '+HexStr(rs.rsi,16),color);
+            SetColor(rs.rdi,OldReg.rdi);
+            WriteStr(1,5,'RDI '+HexStr(rs.rdi,16),color);
+            SetColor(rs.rbp,OldReg.rbp);
+            WriteStr(1,6,'RBP '+HexStr(rs.rbp,16),color);
+            SetColor(rs.rsp,OldReg.rsp);
+            WriteStr(1,7,'RSP '+HexStr(rs.rsp,16),color);
+            SetColor(rs.r8,OldReg.r8);
+            WriteStr(1,8,'R8  '+HexStr(rs.r8,16),color);
+            SetColor(rs.r9,OldReg.r9);
+            WriteStr(1,9,'R9  '+HexStr(rs.r9,16),color);
+            SetColor(rs.r10,OldReg.r10);
+            WriteStr(1,10,'R10 '+HexStr(rs.r10,16),color);
+            SetColor(rs.r11,OldReg.r11);
+            WriteStr(1,11,'R11 '+HexStr(rs.r11,16),color);
+            SetColor(rs.r12,OldReg.r12);
+            WriteStr(1,12,'R12 '+HexStr(rs.r12,16),color);
+            SetColor(rs.r13,OldReg.r13);
+            WriteStr(1,13,'R13 '+HexStr(rs.r13,16),color);
+            SetColor(rs.r14,OldReg.r14);
+            WriteStr(1,14,'R14 '+HexStr(rs.r14,16),color);
+            SetColor(rs.r15,OldReg.r15);
+            WriteStr(1,15,'R15 '+HexStr(rs.r15,16),color);
+            SetColor(rs.rip,OldReg.rip);
+            WriteStr(1,16,'RIP '+HexStr(rs.rip,16),color);
+            SetColor(rs.cs,OldReg.cs);
+            WriteStr(22,0,'CS '+HexStr(rs.cs,4),color);
+            SetColor(rs.ds,OldReg.ds);
+            WriteStr(22,1,'DS '+HexStr(rs.ds,4),color);
+            SetColor(rs.es,OldReg.es);
+            WriteStr(22,2,'ES '+HexStr(rs.es,4),color);
+            SetColor(rs.fs,OldReg.fs);
+            WriteStr(22,3,'FS '+HexStr(rs.fs,4),color);
+            SetColor(rs.gs,OldReg.gs);
+            WriteStr(22,4,'GS '+HexStr(rs.gs,4),color);
+            SetColor(rs.ss,OldReg.ss);
+            WriteStr(22,5,'SS '+HexStr(rs.ss,4),color);
+            SetColor(rs.eflags and $1,OldReg.eflags and $1);
+            WriteStr(30,0,'c='+chr(byte((rs.eflags and $1)<>0)+48),color);
+            SetColor(rs.eflags and $20,OldReg.eflags and $20);
+            WriteStr(30,1,'z='+chr(byte((rs.eflags and $20)<>0)+48),color);
+            SetColor(rs.eflags and $80,OldReg.eflags and $80);
+            WriteStr(30,2,'s='+chr(byte((rs.eflags and $80)<>0)+48),color);
+            SetColor(rs.eflags and $800,OldReg.eflags and $800);
+            WriteStr(30,3,'o='+chr(byte((rs.eflags and $800)<>0)+48),color);
+            SetColor(rs.eflags and $4,OldReg.eflags and $4);
+            WriteStr(30,4,'p='+chr(byte((rs.eflags and $4)<>0)+48),color);
+            SetColor(rs.eflags and $200,OldReg.eflags and $200);
+            WriteStr(30,5,'i='+chr(byte((rs.eflags and $200)<>0)+48),color);
+            SetColor(rs.eflags and $10,OldReg.eflags and $10);
+            WriteStr(30,6,'a='+chr(byte((rs.eflags and $10)<>0)+48),color);
+            SetColor(rs.eflags and $400,OldReg.eflags and $400);
+            WriteStr(30,7,'d='+chr(byte((rs.eflags and $400)<>0)+48),color);
+{$endif x86_64}
 {$ifdef m68k}
             SetColor(rs.d0,OldReg.d0);
             WriteStr(1,0,'d0 '+HexStr(longint(rs.d0),8),color);
@@ -747,6 +878,10 @@ const
        R.A.X:=R.B.X-28;
        R.B.Y:=R.A.Y+11;
 {$endif i386}
+{$ifdef x86_64}
+       R.A.X:=R.B.X-28-8;
+       R.B.Y:=R.A.Y+11+8;
+{$endif x86_64}
 {$ifdef m68k}
        R.A.X:=R.B.X-28;
        R.B.Y:=R.A.Y+11;
@@ -887,7 +1022,7 @@ const
                         if v[i]=#9 then
                           v[i]:=' ';
                       val(v,res,err);
-{$ifdef i386}
+{$if defined(i386) or defined(x86_64)}
                       if reg='st0' then
                         rs.st0:=v
                       else if reg='st1' then
@@ -920,7 +1055,7 @@ const
                         rs.fooff:=res
                       else if reg='fop' then
                         rs.fop:=res;
-{$endif i386}
+{$endif i386 or x86_64}
 {$ifdef m68k}
                       if reg='fp0' then
                         rs.fp0:=v
@@ -1060,7 +1195,7 @@ const
        if OK then
          begin
 {$ifdef cpu_known}
-{$ifdef i386}
+{$if defined(i386) or defined(x86_64)}
             top:=(rs.fstat shr 11) and 7;
             SetColor(rs.st0,OldReg.st0);
             WriteStr(1,0,'ST0 '+TypeStr[(rs.ftag shr (2*((0+top) and 7))) and 3]+rs.st0,color);
@@ -1098,7 +1233,7 @@ const
             else
               color:=7;
             WriteStr(1,11,'FO    '+hexstr(rs.foseg,4)+':'+hexstr(rs.fooff,8),color);
-{$endif i386}
+{$endif i386 or x86_64}
 {$ifdef m68k}
             SetColor(rs.fp0,OldReg.fp0);
             WriteStr(1,0,'fp0 '+rs.fp0,color);
@@ -1174,10 +1309,10 @@ const
 
     begin
        Desktop^.GetExtent(R);
-{$ifdef i386}
+{$if defined(i386) or defined(x86_64)}
        R.A.X:=R.B.X-44;
        R.B.Y:=R.A.Y+14;
-{$endif i386}
+{$endif i386 or x86_64}
 {$ifdef m68k}
        R.A.X:=R.B.X-44;
        R.B.Y:=R.A.Y+14;
@@ -1316,7 +1451,7 @@ const
                         if v[i]=#9 then
                           v[i]:=' ';
                       val(v,res,err);
-{$ifdef i386}
+{$if defined(i386) or defined(x86_64)}
                       if reg[1]='x' then
                         for i:=0 to 7 do
                           begin
@@ -1331,7 +1466,7 @@ const
                             if reg='mm'+inttostr(i) then
                               rs.mmx[i]:=v;
                           end;
-{$endif i386}
+{$endif i386 or x86_64}
 {$ifdef powerpc}
                       { !!!! fixme }
                       if reg[1]='v' then
@@ -1444,7 +1579,7 @@ const
        if OK then
          begin
 {$ifdef cpu_known}
-{$ifdef i386}
+{$if defined(i386) or defined(x86_64)}
             for i:=0 to 7 do
               begin
                 SetColor(rs.xmm[i],OldReg.xmm[i]);
@@ -1459,7 +1594,7 @@ const
                 SetColor(rs.mmx[i],OldReg.mmx[i]);
                 WriteStr(1,i+9,'mmx'+IntToStr(i)+'  '+rs.mmx[i],color);
               end;
-{$endif i386}
+{$endif i386 or x86_64}
 {$ifdef powerpc}
             for i:=0 to 31 do
               begin
@@ -1504,10 +1639,10 @@ const
 
     begin
        Desktop^.GetExtent(R);
-{$ifdef i386}
+{$if defined(i386) or defined(x86_64)}
        R.A.X:=R.B.X-60;
        R.B.Y:=R.A.Y+20;
-{$endif i386}
+{$endif i386 or x86_64}
 {$ifdef m68k}
        R.A.X:=R.B.X-60;
        R.B.Y:=R.A.Y+14;
