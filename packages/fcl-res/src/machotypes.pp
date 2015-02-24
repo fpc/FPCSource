@@ -19,6 +19,8 @@ unit machotypes;
 
 interface
 
+{$packrecords c}
+
 type
   TMachOMachineType = (mmtpowerpc, mmtpowerpc64, mmti386, mmtx86_64, mmtarm, mmtarm64);
   TMachOSubMachineTypePowerPC = (msmppc_all);
@@ -30,7 +32,7 @@ type
   TSegSectName = array[0..15] of char;
 
 type
-  TMachHdr = packed record
+  TMachHdr = record
     magic : longword;
     cputype : longint;
     cpusubtype : longint;
@@ -40,14 +42,14 @@ type
     flags : longword;
   end;
 
-  TLoadCommand = packed record
+  TLoadCommand = record
     cmd : longword;
     cmdsize : longword;
   end;
 
   //note: all commands don't include first two longwords
 
-  TSegmentCommand32 = packed record
+  TSegmentCommand32 = record
     name     : TSegSectName;
     vmaddr   : longword;
     vmsize   : longword;
@@ -59,7 +61,7 @@ type
     flags    : longword;
   end;
 
-  TSegmentCommand64 = packed record
+  TSegmentCommand64 = record
     name     : TSegSectName;
     vmaddr   : qword;
     vmsize   : qword;
@@ -71,7 +73,7 @@ type
     flags    : longword;
   end;
   
-  TSection32 = packed record
+  TSection32 = record
     sectname : TSegSectName;
     segname  : TSegSectName;
     addr : longword;
@@ -85,7 +87,7 @@ type
     reserved2 : longword;
   end;
 
-  TSection64 = packed record
+  TSection64 = record
     sectname : TSegSectName;
     segname  : TSegSectName;
     addr : qword;
@@ -100,14 +102,14 @@ type
     reserved3 : longword;
   end;
 
-  TSymtabCommand = packed record
+  TSymtabCommand = record
     symoff : longword;
     nsyms : longword;
     stroff : longword;
     strsize : longword;
   end;
   
-  TDySymtabCommand = packed record
+  TDySymtabCommand = record
     ilocalsym : longword;
     nlocalsym : longword;
     iextdefsym : longword;
@@ -128,7 +130,7 @@ type
     nlocrel : longword;
   end;
   
-  TNList32 = packed record
+  TNList32 = record
     strx : longword;
     _type : byte;
     sect : byte;
@@ -137,7 +139,7 @@ type
   end;
   PNList32 = ^TNList32;
   
-  TNList64 = packed record
+  TNList64 = record
     strx : longword;
     _type : byte;
     sect : byte;
@@ -146,7 +148,7 @@ type
   end;
   PNList64 = ^TNList64;
 
-  TRelocationInfo = packed record
+  TRelocationInfo = record
     address : longword;
     flags : longword;
   end;
