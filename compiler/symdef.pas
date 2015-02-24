@@ -3102,7 +3102,6 @@ implementation
       begin
         inherited create(pointerdef,def);
         has_pointer_math:=cs_pointermath in current_settings.localswitches;
-        // Dump_Stack(Output,get_frame);
       end;
 
 
