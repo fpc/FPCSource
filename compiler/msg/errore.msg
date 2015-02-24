@@ -1531,6 +1531,9 @@ parser_w_ptr_type_ignored=03338_W_Pointer type "$1" ignored
 parser_e_global_generic_references_static=03339_E_Global Generic template references static symtable
 % A generic declared in the interface section of a unit must not reference symbols that belong
 % solely to the implementation section of that unit.
+parser_u_already_compiled=03340_UL_Unit $1 has been already compiled meanwhile.
+% This tells you that the recursive reading of the uses clauses triggered already
+% a compilation of the current unit, so the current compilation can be aborded.
 %
 %
 %

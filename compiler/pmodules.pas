@@ -849,7 +849,11 @@ type
              loadunits(nil);
              { has it been compiled at a higher level ?}
              if current_module.state=ms_compiled then
-               exit;
+               begin
+                 Message1(parser_u_already_compiled,current_module.realmodulename^);
+                 exit;
+               end;
+
              consume_semicolon_after_uses:=true;
            end
          else
