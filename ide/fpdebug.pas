@@ -684,7 +684,12 @@ begin
   f := GDBFileName(GetShortName(exefn));
   if (f<>'') and ExistsFile(exefn) then
     begin
-      LoadFile(f);
+      if not LoadFile(f) then
+        begin
+          HasExe:=false;
+          MessageBox(#3'Failed to load file '#13#3+f,nil,mfOKbutton);
+          exit;
+        end;
       HasExe:=true;
       { Procedure HandleErrorAddrFrame
          (Errno : longint;addr,frame : longint);
@@ -2960,7 +2965,8 @@ procedure TWatch.Get_new_value;
 {$else not  FrameNameKnown}
                s2:='/x $ebp';
 {$endif FrameNameKnown}
-               getValue(s2);
+               if not getValue(s2) then
+                 loop_higher:=false;
                j:=pos('=',s2);
                if j>0 then
                  s2:=copy(s2,j+1,length(s2));
