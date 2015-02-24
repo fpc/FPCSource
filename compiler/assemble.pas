@@ -83,6 +83,7 @@ interface
         lastsectype : TAsmSectionType;
         procedure WriteSourceLine(hp: tailineinfo);
         procedure WriteTempalloc(hp: tai_tempalloc);
+        Function DoPipe:boolean;
       public
         {# Returns the complete path and executable name of the assembler
            program.
@@ -271,7 +272,7 @@ Implementation
                                  TExternalAssembler
 *****************************************************************************}
 
-    Function DoPipe:boolean;
+    Function TExternalAssembler.DoPipe:boolean;
       begin
         DoPipe:=(cs_asm_pipe in current_settings.globalswitches) and
                 (([cs_asm_extern,cs_asm_leave,cs_link_on_target] * current_settings.globalswitches) = []) and
@@ -1736,7 +1737,8 @@ Implementation
         if not(tf_section_threadvars in target_info.flags) then
           exclude(to_do,al_threadvars);
         for i:=low(TasmlistType) to high(TasmlistType) do
-          if (i in to_do) and (current_asmdata.asmlists[i]<>nil) then
+          if (i in to_do) and (current_asmdata.asmlists[i]<>nil) and
+             (not current_asmdata.asmlists[i].empty) then
             addlist(current_asmdata.asmlists[i]);
 
         if SmartAsm then

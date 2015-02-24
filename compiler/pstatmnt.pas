@@ -948,7 +948,7 @@ implementation
                                  with "e: Exception" the e is not necessary }
 
                                { support unit.identifier }
-                               unit_found:=try_consume_unitsym(srsym,srsymtable,t,false);
+                               unit_found:=try_consume_unitsym_no_specialize(srsym,srsymtable,t,false);
                                if srsym=nil then
                                  begin
                                    identifier_not_found(orgpattern);
@@ -961,7 +961,7 @@ implementation
                                if (srsym.typ=typesym) then
                                  begin
                                    ot:=ttypesym(srsym).typedef;
-                                   parse_nested_types(ot,false,nil);
+                                   parse_nested_types(ot,false,false,nil);
                                    check_type_valid(ot);
                                  end
                                else

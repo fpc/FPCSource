@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
 
     P.Author := 'Nikolay Nikolov, Glenn Fiedler, Christian Nentwich';
     P.License := 'LGPL with modification, ';

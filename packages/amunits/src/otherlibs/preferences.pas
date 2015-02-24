@@ -160,7 +160,7 @@ var
 IMPLEMENTATION
 
 {$ifndef dont_use_openlib}
-uses msgbox;
+uses amsgbox;
 {$endif dont_use_openlib}
 
 FUNCTION AllocPrefsHandle(name : pCHAR) : POINTER;

@@ -81,6 +81,7 @@ interface
         function parse_single_packed_const(def: tdef; var bp: tbitpackedval): boolean;
        protected
         list: tasmlist;
+        datalist: tasmlist;
 
         procedure parse_packed_array_def(def: tarraydef);
         procedure parse_arraydef(def:tarraydef);override;
@@ -97,7 +98,7 @@ interface
         procedure tc_emit_stringdef(def: tstringdef; var node: tnode);override;
        public
         constructor create(sym: tstaticvarsym);virtual;
-        function parse_into_asmlist: tasmlist;
+        procedure parse_into_asmlist(out res, data: tasmlist);
       end;
       tasmlisttypedconstbuilderclass = class of tasmlisttypedconstbuilder;
 
@@ -428,6 +429,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
       begin
         inherited;
         list:=tasmlist.create;
+        datalist:=tasmlist.create;
         curoffset:=0;
       end;
 
@@ -545,7 +547,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                        ll.ofs:=0;
                      end
                    else
-                     ll:=emit_ansistring_const(current_asmdata.asmlists[al_const],strval,strlength,def.encoding);
+                     ll:=emit_ansistring_const(datalist,strval,strlength,def.encoding);
                    list.concat(Tai_const.Create_sym_offset(ll.lab,ll.ofs));
                 end;
               st_unicodestring,
@@ -560,7 +562,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                    else
                      begin
                        winlike:=(def.stringtype=st_widestring) and (tf_winlikewidestring in target_info.flags);
-                       ll:=emit_unicodestring_const(current_asmdata.asmlists[al_const],
+                       ll:=emit_unicodestring_const(datalist,
                               strval,
                               def.encoding,
                               winlike);
@@ -833,8 +835,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               else
                varalign:=0;
               varalign:=const_align(varalign);
-              new_section(current_asmdata.asmlists[al_const], sec_rodata, ll.name, varalign);
-              current_asmdata.asmlists[al_const].concat(Tai_label.Create(ll));
+              new_section(datalist, sec_rodata, ll.name, varalign);
+              datalist.concat(Tai_label.Create(ll));
               if node.nodetype=stringconstn then
                 begin
                   len:=tstringconstnode(node).len;
@@ -844,11 +846,11 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                    len:=255;
                   getmem(ca,len+2);
                   move(tstringconstnode(node).value_str^,ca^,len+1);
-                  current_asmdata.asmlists[al_const].concat(Tai_string.Create_pchar(ca,len+1));
+                  datalist.concat(Tai_string.Create_pchar(ca,len+1));
                 end
               else
                 if is_constcharnode(node) then
-                  current_asmdata.asmlists[al_const].concat(Tai_string.Create(char(byte(tordconstnode(node).value.svalue))+#0))
+                  datalist.concat(Tai_string.Create(char(byte(tordconstnode(node).value.svalue))+#0))
               else
                 IncompatibleTypes(node.resultdef, def);
           end
@@ -859,8 +861,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             begin
               current_asmdata.getdatalabel(ll);
               list.concat(Tai_const.Create_sym(ll));
-              current_asmdata.asmlists[al_typedconsts].concat(tai_align.create(const_align(sizeof(pint))));
-              current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(ll));
+              new_section(datalist,sec_rodata_norel,ll.name,const_align(sizeof(pint)));
+              datalist.concat(Tai_label.Create(ll));
               if (node.nodetype in [stringconstn,ordconstn]) then
                 begin
                   { convert to unicodestring stringconstn }
@@ -870,9 +872,9 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                    begin
                      pw:=pcompilerwidestring(tstringconstnode(node).value_str);
                      for i:=0 to tstringconstnode(node).len-1 do
-                       current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(pw^.data[i]));
+                       datalist.concat(Tai_const.Create_16bit(pw^.data[i]));
                      { ending #0 }
-                     current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(0))
+                     datalist.concat(Tai_const.Create_16bit(0))
                    end;
                 end
               else
@@ -1060,8 +1062,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
            (not equal_defs(node.resultdef,def) and
             not is_subequal(node.resultdef,def)) then
           begin
-            node.free;
             incompatibletypes(node.resultdef,def);
+            node.free;
             consume_all_until(_SEMICOLON);
             result:=false;
             exit;
@@ -1107,21 +1109,40 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
           begin
             oldoffset:=curoffset;
             curoffset:=0;
-            for i:=def.lowrange to def.highrange-1 do
+            { in case of a generic subroutine, it might be we cannot
+              determine the size yet }
+            if assigned(current_procinfo) and (df_generic in current_procinfo.procdef.defoptions) then
               begin
-                read_typed_const_data(def.elementdef);
-                Inc(curoffset,def.elementdef.size);
-                if token=_RKLAMMER then
+                while true do
                   begin
-                    Message1(parser_e_more_array_elements_expected,tostr(def.highrange-i));
-                    consume(_RKLAMMER);
-                    exit;
-                  end
-                else
-                  consume(_COMMA);
+                    read_typed_const_data(def.elementdef);
+                    if token=_RKLAMMER then
+                      begin
+                        consume(_RKLAMMER);
+                        break;
+                      end
+                    else
+                      consume(_COMMA);
+                  end;
+              end
+            else
+              begin
+                for i:=def.lowrange to def.highrange-1 do
+                  begin
+                    read_typed_const_data(def.elementdef);
+                    Inc(curoffset,def.elementdef.size);
+                    if token=_RKLAMMER then
+                      begin
+                        Message1(parser_e_more_array_elements_expected,tostr(def.highrange-i));
+                        consume(_RKLAMMER);
+                        exit;
+                      end
+                    else
+                      consume(_COMMA);
+                  end;
+                read_typed_const_data(def.elementdef);
+                consume(_RKLAMMER);
               end;
-            read_typed_const_data(def.elementdef);
-            consume(_RKLAMMER);
             curoffset:=oldoffset;
           end
         { if array of char then we allow also a string }
@@ -1235,6 +1256,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
       var
         tmpn,n : tnode;
         pd   : tprocdef;
+        havepd,
+        haveblock: boolean;
       begin
         { Procvars and pointers are no longer compatible.  }
         { under tp:  =nil or =var under fpc: =nil or =@var }
@@ -1284,18 +1307,35 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             n.free;
             n:=tmpn;
           end;
+        pd:=nil;
         { we now need to have a loadn with a procsym }
-        if (n.nodetype=loadn) and
-           (tloadnode(n).symtableentry.typ=procsym) then
+        havepd:=
+          (n.nodetype=loadn) and
+          (tloadnode(n).symtableentry.typ=procsym);
+        { or a staticvarsym representing a block }
+        haveblock:=
+          (n.nodetype=loadn) and
+          (tloadnode(n).symtableentry.typ=staticvarsym) and
+          (sp_internal in tloadnode(n).symtableentry.symoptions);
+        if havepd or
+           haveblock then
           begin
-            pd:=tloadnode(n).procdef;
-            list.concat(Tai_const.createname(pd.mangledname,0));
+            if havepd then
+              begin
+                pd:=tloadnode(n).procdef;
+                list.concat(Tai_const.createname(pd.mangledname,0));
+              end
+            else
+              begin
+                list.concat(Tai_const.Createname(tstaticvarsym(tloadnode(n).symtableentry).mangledname,0));
+              end;
             { nested procvar typed consts can only be initialised with nil
               (checked above) or with a global procedure (checked here),
               because in other cases we need a valid frame pointer }
             if is_nested_pd(def) then
               begin
-                if is_nested_pd(pd) then
+                if haveblock or
+                   is_nested_pd(pd) then
                   Message(parser_e_no_procvarnested_const);
                 list.concat(Tai_const.Create_sym(nil));
               end
@@ -1671,10 +1711,11 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
       end;
 
 
-    function tasmlisttypedconstbuilder.parse_into_asmlist: tasmlist;
+    procedure tasmlisttypedconstbuilder.parse_into_asmlist(out res,data: tasmlist);
       begin
         read_typed_const_data(tcsym.vardef);
-        result:=list;
+        res:=list;
+        data:=datalist;
       end;
 
 

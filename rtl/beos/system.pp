@@ -435,9 +435,7 @@ begin
 { Reset IO Error }
   InOutRes:=0;
   InitSystemThreads;
-{$ifdef HASVARIANT}
-  initvariantmanager;
-{$endif HASVARIANT}
+  InitSystemDynLibs;
   setupexecname;
   { restore original signal handlers in case this is a library }
   if IsLibrary then

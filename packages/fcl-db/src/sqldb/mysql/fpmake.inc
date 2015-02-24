@@ -6,4 +6,4 @@
 Targets.ResetDefaults;
 Targets.DefaultDir:='db/sqldb/mysql';
 { Drivers only for the following OSes }
-Targets.DefaultOS:=[win32,openbsd,netbsd,freebsd,darwin,linux,haiku];
+Targets.DefaultOS:=[win32,openbsd,netbsd,freebsd,darwin,linux,haiku,dragonfly];

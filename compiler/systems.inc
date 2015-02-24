@@ -49,7 +49,8 @@
              cpu_avr,                      { 12 }
              cpu_mipsel,                   { 13 }
              cpu_jvm,                      { 14 }
-             cpu_i8086                     { 15 }
+             cpu_i8086,                    { 15 }
+             cpu_aarch64                   { 16 }
        );
 
        tasmmode= (asmmode_none
@@ -162,7 +163,12 @@
              system_i8086_msdos,        { 79 }
              system_mipsel_android,     { 80 }
              system_mipseb_embedded,    { 81 }
-             system_mipsel_embedded     { 82 }
+             system_mipsel_embedded,    { 82 }
+             system_i386_aros,          { 83 }
+             system_x86_64_aros,        { 84 }
+             system_x86_64_dragonfly,   { 85 }
+             system_aarch64_darwin,     { 85 }
+             system_x86_64_iphonesim    { 86 }
        );
 
      type
@@ -213,6 +219,7 @@
        tlink = (ld_none,
              ld_aix,           { external linkers (one per OS, handles all CPUs) }
              ld_amiga,
+             ld_aros,
              ld_atari,
              ld_android,
              ld_beos,
@@ -270,13 +277,15 @@
 
        tscripttype = (script_none
             ,script_dos,script_unix,script_amiga,
-            script_mpw
+            script_mpw,
+            script_fpcres
        );
 
        tabi = (abi_default
             ,abi_powerpc_sysv,abi_powerpc_aix
             ,abi_eabi,abi_armeb,abi_eabihf
             ,abi_old_win32_gnu
+            ,abi_aarch64_darwin
        );
 
 

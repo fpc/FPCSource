@@ -461,6 +461,7 @@ begin
       CurSize := CreateSize (aSize,aResolution)
     else
       CurSize := PMgrSize(CurFont.FSizes[r]);
+    SetPixelSize(CurSize^.Size, CurSize^.resolution);
     CurFont.LastSize := CurSize;
     end;
 end;

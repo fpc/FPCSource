@@ -373,6 +373,7 @@ function TRegistry.ReadString(const Name: string): string;
 
 Var
   Info : TRegDataInfo;
+  ReadDataSize: Integer;
 
 begin
   GetDataInfo(Name,Info);
@@ -381,11 +382,19 @@ begin
      If Not (Info.RegData in [rdString,rdExpandString]) then
        Raise ERegistryException.CreateFmt(SInvalidRegType, [Name]);
      SetLength(Result,Info.DataSize);
-     If StringSizeIncludesNull then
-       SetLength(Result, Info.DataSize-1)
+     ReadDataSize := GetData(Name,PChar(Result),Info.DataSize,Info.RegData);
+     if ReadDataSize > 0 then
+     begin
+       // If the data has the REG_SZ, REG_MULTI_SZ or REG_EXPAND_SZ type,
+       // the size includes any terminating null character or characters
+       // unless the data was stored without them! (RegQueryValueEx @ MSDN)
+       if StringSizeIncludesNull then
+         if Result[ReadDataSize] = #0 then
+           Dec(ReadDataSize);
+       SetLength(Result, ReadDataSize);
+     end
      else
-       SetLength(Result, Info.DataSize);
-     GetData(Name,PChar(Result),Info.DataSize,Info.RegData);
+       Result := '';
    end
   else
     result:='';

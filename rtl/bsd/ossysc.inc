@@ -212,6 +212,10 @@ begin
   dispose(dirp);
 end;
 
+var
+  use_openbsd_getdirentries_49 : boolean = false;
+  use_getdirentries_syscall : boolean = true;
+
 function Fpreaddir(dirp : pdir) : pdirent; [public, alias : 'FPC_SYSC_READDIR'];
 
 {Different from Linux, Readdir on BSD is based on Getdents, due to the
@@ -223,18 +227,29 @@ with blockmode have this higher?}
 function readbuffer:longint;
 
 var retval :longint;
-{$ifdef USE_GETDIRENTRIES_I49_SYSCALL}
+{$ifdef FPC_USE_GETDIRENTRIES_SYSCALL}
+    basepp : pointer;
+{$ifdef FPC_USE_GETDIRENTRIES_I49_SYSCALL}
   { OpenBSD i49 getDirEntries system call uses off_t type for last parameter }
-    basep : off_t;
-{$else not USE_GETDIRENTRIES_I49_SYSCALL}
+    basep_off_t : off_t;
+{$endif not FPC_USE_GETDIRENTRIES_I49_SYSCALL}
     basep : clong;
-{$endif not USE_GETDIRENTRIES_I49_SYSCALL}
+{$endif FPC_USE_GETDIRENTRIES_SYSCALL}
 begin
-{$ifdef USE_GETDIRENTRIES_SYSCALL}
- Retval:=do_syscall(syscall_nr_getdirentries,TSysParam(dirp^.dd_fd),TSysParam(@dirp^.dd_buf^),DIRBLKSIZ {sizeof(getdentsbuffer)},TSysParam(@basep));
-{$else not USE_GETDIRENTRIES_SYSCALL}
+{$ifdef FPC_USE_GETDIRENTRIES_SYSCALL}
+{$ifdef FPC_USE_GETDIRENTRIES_I49_SYSCALL}
+ if use_openbsd_getdirentries_49 then
+   basepp:=@basep_off_t
+ else
+{$endif FPC_USE_GETDIRENTRIES_I49_SYSCALL}
+   basepp:=@basep;
+ if use_getdirentries_syscall then
+   Retval:=do_syscall(syscall_nr_getdirentries,TSysParam(dirp^.dd_fd),TSysParam(@dirp^.dd_buf^),DIRBLKSIZ {sizeof(getdentsbuffer)},TSysParam(basepp))
+ else
  Retval:=do_syscall(syscall_nr_getdents,TSysParam(dirp^.dd_fd),TSysParam(@dirp^.dd_buf^),DIRBLKSIZ {sizeof(getdentsbuffer)});
-{$endif not USE_GETDIRENTRIES_SYSCALL}
+{$else not FPC_USE_GETDIRENTRIES_SYSCALL}
+ Retval:=do_syscall(syscall_nr_getdents,TSysParam(dirp^.dd_fd),TSysParam(@dirp^.dd_buf^),DIRBLKSIZ {sizeof(getdentsbuffer)});
+{$endif not FPC_USE_GETDIRENTRIES_SYSCALL}
    dirp^.dd_rewind:=TSysParam(dirp^.dd_buf);
    if retval=0 then
     begin

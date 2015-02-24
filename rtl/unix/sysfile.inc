@@ -20,6 +20,8 @@ Begin
   repeat
     res:=Fpclose(cint(Handle));
   until (res<>-1) or (geterrno<>ESysEINTR);
+  if res<>0 then
+    Errno2Inoutres;
 End;
 
 Procedure Do_Erase(p: pchar; pchangeable: boolean);
@@ -226,7 +228,10 @@ Begin
      until (FileRec(f).Handle<>-1) or (geterrno<>ESysEINTR);
    end;
   If Filerec(f).Handle<0 Then
-   Errno2Inoutres
+   begin
+     Errno2Inoutres;
+     FileRec(f).mode:=fmclosed;
+   end
   else
    InOutRes:=0;
 End;

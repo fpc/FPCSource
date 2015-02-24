@@ -37,6 +37,7 @@ interface
          function first_seg: tnode; override;
          procedure second_seg; override;
          procedure second_get_frame;override;
+         function first_IncDec: tnode;override;
          procedure second_incdec;override;
        end;
 
@@ -52,9 +53,9 @@ implementation
     defutil,
     aasmbase,aasmtai,aasmdata,aasmcpu,
     symtype,symdef,
-    cgbase,pass_2,
+    cgbase,pass_1,pass_2,
     cpuinfo,cpubase,paramgr,
-    nbas,ncon,ncal,ncnv,nld,ncgutil,
+    nbas,nadd,ncon,ncal,ncnv,nld,ncgutil,
     tgobj,
     cga,cgutils,cgx86,cgobj,hlcgobj,
     htypechk,procinfo;
@@ -136,6 +137,45 @@ implementation
            end
          else
            inherited second_get_frame;
+       end;
+
+     function ti8086inlinenode.first_IncDec: tnode;
+       var
+         procname:string;
+         elesize: Tconstexprint;
+         hp: tnode;
+       begin
+         if is_hugepointer(tcallparanode(left).left.resultdef) then
+           begin
+             case inlinenumber of
+               in_inc_x:
+                 procname:='fpc_hugeptr_inc_longint';
+               in_dec_x:
+                 procname:='fpc_hugeptr_dec_longint';
+               else
+                 internalerror(2014121001);
+             end;
+             if cs_hugeptr_arithmetic_normalization in current_settings.localswitches then
+               procname:=procname+'_normalized';
+
+             if is_void(tpointerdef(tcallparanode(left).left.resultdef).pointeddef) then
+               elesize:=1
+             else
+               elesize:=tpointerdef(tcallparanode(left).left.resultdef).pointeddef.size;
+
+             hp := cordconstnode.create(elesize,s32inttype,false);
+             { extra parameter? }
+             if assigned(tcallparanode(left).right) then
+               hp:=caddnode.create(muln,hp,tcallparanode(tcallparanode(left).right).left.getcopy);
+
+             result:=ccallnode.createintern(procname,
+                       ccallparanode.create(hp,
+                       ccallparanode.create(tcallparanode(left).left.getcopy,nil)));
+             typecheckpass(result);
+             firstpass(result);
+           end
+         else
+           result:=inherited;
        end;
 
      procedure ti8086inlinenode.second_incdec;

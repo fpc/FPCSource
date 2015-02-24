@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
 
     P.Author := 'FreePascal development team';
     P.License := 'LGPL with modification, ';
@@ -24,7 +24,7 @@ begin
     P.Email := '';
     P.Description := 'FastCGI header translation to Pascal';
     P.NeedLibC:= false;
-    P.OSes := AllUnixOSes+AllWindowsOSes-[qnx];
+    P.OSes := AllUnixOSes+AllWindowsOSes-[qnx]+[amiga,aros];
 
     P.SourcePath.Add('src');
 

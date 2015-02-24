@@ -612,13 +612,13 @@ begin
             end;
         end;
     end;
-    roundBits := absZ and $7F;
+    roundBits := lo(absZ) and $7F;
     absZ := ( absZ + roundIncrement ) shr 7;
-    absZ := absZ and not( ord( ( roundBits xor  $40 ) = 0 ) and ord(roundNearestEven) );
+    absZ := absZ and not( bits64( ord( ( roundBits xor  $40 ) = 0 ) and ord(roundNearestEven) ));
     z := absZ;
     if ( zSign<>0 ) then
       z := - z;
-    if ( ( absZ shr 32 ) or ( z and ( ord( z < 0 ) xor  zSign ) ) )<>0 then
+    if ( longint(hi( absZ )) or ( z and ( ord( z < 0 ) xor  zSign ) ) )<>0 then
     begin
         float_raise( float_flag_invalid );
         if zSign<>0 then
@@ -1323,9 +1323,9 @@ Var
     aHigh, aLow, bHigh, bLow: bits16;
     z0, zMiddleA, zMiddleB, z1: bits32;
 Begin
-    aLow := a and $ffff;
+    aLow := bits16(a);
     aHigh := a shr 16;
-    bLow := b and $ffff;
+    bLow := bits16(b);
     bHigh := b shr 16;
     z1 := ( bits32( aLow) ) * bLow;
     zMiddleA := ( bits32 (aLow) ) * bHigh;
@@ -1602,7 +1602,7 @@ Begin
           z := ( z shl 15 );
         if ( z <= a ) then
         Begin
-           estimateSqrt32 := bits32 ( ( sbits32 (a )) shr 1 );
+           estimateSqrt32 := bits32 ( SarLongint( sbits32 (a)) );
            exit;
         End;
     End;

@@ -28,6 +28,7 @@
 
   nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
+{$PACKRECORDS 2}
 
 {$I useamigasmartlink.inc}
 {$ifdef use_amiga_smartlink}
@@ -171,7 +172,7 @@ IMPLEMENTATION
 
 uses
 {$ifndef dont_use_openlib}
-msgbox,
+amsgbox,
 {$endif dont_use_openlib}
 tagsarray;
 

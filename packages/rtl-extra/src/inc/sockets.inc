@@ -235,30 +235,12 @@ end;
 
 type thostaddr= packed array[1..4] of byte;
 
-function htonl( host : longint):longint; inline;overload;deprecated;
-begin
-{$ifdef FPC_BIG_ENDIAN}
-  htonl:=host;
-{$else}
-  htonl:=SwapEndian(host);
-{$endif}
-end;
-
 function htonl( host : cardinal):cardinal; inline;overload;
 begin
 {$ifdef FPC_BIG_ENDIAN}
   htonl:=host;
 {$else}
   htonl:=SwapEndian(host);
-{$endif}
-end;
-
-Function NToHl (Net : longint) : longint; inline;overload;deprecated;
-begin
-{$ifdef FPC_BIG_ENDIAN}
-  ntohl:=net;
-{$else}
-  ntohl:=SwapEndian(net);
 {$endif}
 end;
 

@@ -74,8 +74,8 @@ begin
     FQuoteChar:='"';
     FDelimiter:=',';
     FNameValueSeparator:='=';
-    FSpecialCharsInited:=true;
     FLBS:=DefaultTextLineBreakStyle;
+    FSpecialCharsInited:=true;
     end;
 end;
 
@@ -97,6 +97,12 @@ begin
   FDelimiter:=c;
 end;
 
+Function TStrings.GetDelimiter : Char;
+begin
+  CheckSpecialChars;
+  Result:=FDelimiter;
+end;
+
 
 procedure TStrings.SetQuoteChar(c:Char);
 begin
@@ -104,10 +110,22 @@ begin
   FQuoteChar:=c;
 end;
 
+Function TStrings.GetQuoteChar :Char;
+begin
+  CheckSpecialChars;
+  Result:=FQuoteChar;
+end;
+
 procedure TStrings.SetNameValueSeparator(c:Char);
 begin
   CheckSpecialChars;
   FNameValueSeparator:=c;
+end;
+
+Function TStrings.GetNameValueSeparator :Char;
+begin
+  CheckSpecialChars;
+  Result:=FNameValueSeparator;
 end;
 
 

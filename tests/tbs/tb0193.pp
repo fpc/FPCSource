@@ -57,6 +57,12 @@ end;
  end;
 {$define implemented}
 {$endif cpumips}
+{$ifdef cpuaarch64}
+  adrp x0,stacksize@PAGE
+  ldr  x0,[x0,stacksize@PAGEOFF]
+end;
+{$define implemented}   
+{$endif cpuaarch64}
 {$ifndef implemented}
  {$error This test does not supported this CPU}
 end;

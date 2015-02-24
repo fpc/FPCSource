@@ -18,12 +18,12 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
 
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
 
     P.Author := 'header:Aleš Katona, library: Kevin Atkinson';
     P.License := 'header: LGPL with modification, library: LGPL 2.0 or 2.1';
     P.HomepageURL := 'www.freepascal.org';
-    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,netbsd,openbsd,linux,win32,aix];
+    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,netbsd,openbsd,linux,win32,aix,dragonfly];
     P.Email := '';
     P.Description := 'The New Aspell, spelling library';
     P.NeedLibC:= true;

@@ -165,7 +165,7 @@ implementation
         secondpass(right);
         location_copy(location,left.location);
 
-{
+{$ifdef dummy}
         { put numerator in register }
         size:=def_cgsize(left.resultdef);
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,
@@ -201,7 +201,7 @@ implementation
         {  simple comparison with 0)                                             }
         if is_signed(right.resultdef) then
           cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resultdef);
-}
+{$endif dummy}
       end;
 
 {*****************************************************************************

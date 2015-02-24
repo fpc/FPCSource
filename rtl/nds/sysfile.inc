@@ -97,7 +97,7 @@ begin
   if res <> 0 then
     SetFileError(res)
   else
-    InOutRes := 0;  
+    InOutRes := 0;
 end;
 
 procedure do_rename(p1, p2: pchar; p1changeable, p2changeable: boolean);
@@ -109,7 +109,7 @@ begin
   if res <> 0 then
     SetFileError(res)
   else
-    InOutRes := 0;  
+    InOutRes := 0;
 end;
 
 function do_write(h: THandle; addr: pointer; len: longint) : longint;
@@ -122,7 +122,7 @@ begin
     InOutRes := 0
   else
     SetFileError(res);
-  do_write := res;  
+  do_write := res;
 end;
 
 function do_read(h: THandle; addr: pointer; len: longint) : longint;
@@ -143,14 +143,14 @@ var
   res: longint;
 begin
   InOutRes := 0;
-  
+
   //result := ftell(P_FILE(handle));
   res := _tell(handle);
   if res < 0 then
     SetFileError(res)
   else
     InOutRes := 0;
-  do_filepos := res;  
+  do_filepos := res;
 end;
 
 procedure do_seek(handle: THandle; pos: longint);
@@ -175,7 +175,7 @@ begin
     SetFileError(res)
   else
     InOutRes := 0;
-  do_seekend := res;  
+  do_seekend := res;
 end;
 
 function do_filesize(handle: THandle): longint;
@@ -206,7 +206,7 @@ begin
   if res <> 0 then
     SetFileError(res)
   else
-    InOutRes := 0;  
+    InOutRes := 0;
 end;
 
 procedure do_open(var f;p:pchar;flags:longint; pchangeable: boolean);
@@ -284,7 +284,10 @@ begin
       FileRec(f).Handle := _open(p,oflags,438);
     end;
   if (errno^ <> 0) or (longint(FileRec(f).Handle) < 0) then
-    Errno2Inoutres
+    begin
+      Errno2Inoutres;
+      FileRec(f).mode:=fmclosed;
+    end
   else
     InOutRes := 0;
 end;

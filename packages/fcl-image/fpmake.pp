@@ -13,10 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('fcl-image');
+    P.ShortName:='fcli';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Dependencies.Add('pasjpeg');
     P.Dependencies.Add('paszlib');
     P.Dependencies.Add('fcl-base');
@@ -222,14 +223,14 @@ begin
         begin
           AddUnit('fpimage');
         end;
-    T:=P.Targets.AddUnit('freetypeh.pp',[solaris,iphonesim,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix]);
-    T:=P.Targets.AddUnit('freetype.pp',[solaris,iphonesim,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix]);
+    T:=P.Targets.AddUnit('freetypeh.pp',[solaris,iphonesim,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
+    T:=P.Targets.AddUnit('freetype.pp',[solaris,iphonesim,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
       with T.Dependencies do
         begin
           AddUnit('freetypeh');
           AddUnit('fpimgcmn');
         end;
-    T:=P.Targets.AddUnit('ftfont.pp',[solaris,iphonesim,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix]);
+    T:=P.Targets.AddUnit('ftfont.pp',[solaris,iphonesim,darwin,freebsd,openbsd,netbsd,linux,haiku,beos,win32,win64,aix,dragonfly]);
       with T.Dependencies do
         begin
           AddUnit('fpcanvas');

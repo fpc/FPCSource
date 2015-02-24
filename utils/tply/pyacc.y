@@ -55,7 +55,7 @@
   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-$Revision: 1.3 $
+$Revision: 1.5 $
 $Modtime: 96-08-01 11:24 $
 
 
@@ -129,16 +129,6 @@ $History: YACC.PAS $
 
 *)
 
-{$IFDEF MsDos}
-{$M 16384,0,655360}
-{$ENDIF}
-{$IFDEF DPMI}
-{$M 32768}
-{$ENDIF}
-{$IFDEF Windows}
-{$M 32768,0}
-{$ENDIF}
-
 {$X+}
 {$I-}
 program Yacc;
@@ -146,15 +136,11 @@ program Yacc;
 uses
 {$IFDEF Debug}
 {$IFDEF DPMI}
-  YaccChk,
+  { YaccChk, removed as obsolete,
+    YaccChk source not available anymore PM }
 {$ENDIF}
 {$ENDIF}
-{$IFDEF Windows}
-{$IFNDEF Console}
-  WinCrt,
-{$ENDIF}
-{$ENDIF}
-  YaccLib, YaccBase, YaccMsgs, YaccSem, YaccTabl, YaccPars;
+  YaccLib, YaccBase, YaccMsgs, YaccSem, YaccTabl, YaccPars, SysUtils;
 
 %}
 
@@ -725,13 +711,11 @@ var i : Integer;
 
 begin
 {$ifdef Unix}
- {$ifdef BSD}
-  codfilepath:='/usr/local/lib/fpc/lexyacc/';
- {$else}
-  codfilepath:='/usr/lib/fpc/lexyacc/';
- {$endif}
+  codfilepath1:='/usr/local/lib/fpc/lexyacc/';
+  codfilepath2:='/usr/lib/fpc/lexyacc/';
 {$else}
-  codfilepath:=path(paramstr(0));
+  codfilepath1:=path(paramstr(0));
+  codfilepath2:='';
 {$endif}
 
   (* sign-on: *)
@@ -790,17 +774,29 @@ begin
   rewrite(yyout); if ioresult<>0 then fatal(cannot_open_file+pasfilename);
   rewrite(yylst); if ioresult<>0 then fatal(cannot_open_file+lstfilename);
 
-  (* search code template in current directory, then on path where Yacc
-     was executed from: *)
+  (* search code template *)
   codfilename := 'yyparse.cod';
   assign(yycod, codfilename);
   reset(yycod);
   if ioresult<>0 then
     begin
-      codfilename := codfilepath+'yyparse.cod';
+      codfilename := IncludeTrailingPathDelimiter(GetEnvironmentVariable('FPCDIR'))+'lexyacc'+DirectorySeparator+'yyparse.cod';
       assign(yycod, codfilename);
       reset(yycod);
-      if ioresult<>0 then fatal(cannot_open_file+codfilename);
+      if ioresult<>0 then
+        begin
+          codfilename := codfilepath1+'yyparse.cod';
+          assign(yycod, codfilename);
+          reset(yycod);
+          if (codfilepath2<>'') and (ioresult<>0) then 
+            begin
+              codfilename := codfilepath2+'yyparse.cod';
+              assign(yycod, codfilename);
+              reset(yycod);
+              if ioresult<>0 then 
+                fatal(cannot_open_file+codfilename);
+            end;
+        end;
     end;
 
   (* parse source grammar: *)

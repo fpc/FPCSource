@@ -141,6 +141,12 @@ const
 {$elseif defined(aix)}
   CODESET = 49;
   LC_ALL = -1;
+{$elseif defined(dragonfly)}
+  CODESET = 0;
+  LC_ALL = 0;
+  __LC_CTYPE = 0;
+  _NL_CTYPE_CLASS = (__LC_CTYPE shl 16);
+  _NL_CTYPE_CODESET_NAME = (_NL_CTYPE_CLASS)+14;
 {$else not aix}
 {$error lookup the value of CODESET in /usr/include/langinfo.h, and the value of LC_ALL in /usr/include/locale.h for your OS }
 // and while doing it, check if iconv is in libc, and if the symbols are prefixed with iconv_ or libiconv_
@@ -223,12 +229,12 @@ procedure InitThread;
 var
   transliterate: cint;
   iconvindex: longint;
-{$if not(defined(darwin) and defined(cpuarm)) and not defined(iphonesim)}
+{$if not(defined(darwin) and (defined(cpuarm) or defined(cpuaarch64))) and not defined(iphonesim)}
   iconvname: rawbytestring;
 {$endif}
 begin
   current_DefaultSystemCodePage:=DefaultSystemCodePage;
-{$if not(defined(darwin) and defined(cpuarm)) and not defined(iphonesim)}
+{$if not(defined(darwin) and (defined(cpuarm) or defined(cpuaarch64))) and not defined(iphonesim)}
   iconvindex:=GetCodepageData(DefaultSystemCodePage);
   if iconvindex<>-1 then
     iconvname:=UnixCpMap[iconvindex].name
@@ -803,6 +809,10 @@ function CompareTextWideString(const s1, s2 : WideString): PtrInt;
   end;
 
 
+{ return value: number of code points in the string. Whenever an invalid
+  code point is encountered, all characters part of this invalid code point
+  are considered to form one "character" and the next character is
+  considered to be the start of a new (possibly also invalid) code point }
 function CharLengthPChar(const Str: PChar): PtrInt;
   var
     nextlen: ptrint;
@@ -818,14 +828,14 @@ function CharLengthPChar(const Str: PChar): PtrInt;
 {$endif not beos}
     repeat
 {$ifdef beos}
-      nextlen:=ptrint(mblen(str,MB_CUR_MAX));
+      nextlen:=ptrint(mblen(s,MB_CUR_MAX));
 {$else beos}
-      nextlen:=ptrint(mbrlen(str,MB_CUR_MAX,@mbstate));
+      nextlen:=ptrint(mbrlen(s,MB_CUR_MAX,@mbstate));
 {$endif beos}
       { skip invalid/incomplete sequences }
       if (nextlen<0) then
         nextlen:=1;
-      inc(result,nextlen);
+      inc(result,1);
       inc(s,nextlen);
     until (nextlen=0);
   end;
@@ -987,6 +997,18 @@ begin
   ansi2pchar(temp,str,result);
 end;
 
+
+function envvarset(const varname: pchar): boolean;
+var
+  varval: pchar;
+begin
+  varval:=fpgetenv(varname);
+  result:=
+    assigned(varval) and
+    (varval[0]<>#0);
+end;
+
+
 function GetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystemCodePage;
 var
   langinfo: pchar;
@@ -998,15 +1020,25 @@ begin
       exit;
     end;
 {$endif}
-  langinfo:=nl_langinfo(CODESET);
-  { there's a bug in the Mac OS X 10.5 libc (based on FreeBSD's)
-    that causes it to return an empty string of UTF-8 locales
-    -> patch up (and in general, UTF-8 is a good default on
-    Unix platforms) }
-  if not assigned(langinfo) or
-     (langinfo^=#0) then
-    langinfo:='UTF-8';
-  Result := GetCodepageByName(ansistring(langinfo));
+  { if none of the relevant LC_* environment variables are set, fall back to
+    UTF-8 (this happens under some versions of OS X for GUI applications, which
+    otherwise get CP_ASCII) }
+  if envvarset('LC_ALL') or
+     envvarset('LC_CTYPE') or
+     envvarset('LANG') then
+    begin
+      langinfo:=nl_langinfo(CODESET);
+      { there's a bug in the Mac OS X 10.5 libc (based on FreeBSD's)
+        that causes it to return an empty string of UTF-8 locales
+        -> patch up (and in general, UTF-8 is a good default on
+        Unix platforms) }
+      if not assigned(langinfo) or
+         (langinfo^=#0) then
+        langinfo:='UTF-8';
+      Result:=GetCodepageByName(ansistring(langinfo));
+    end
+  else
+    Result:=unixcp.GetSystemCodepage;
 end;
 
 {$ifdef FPC_HAS_CPSTRING}

@@ -5,7 +5,7 @@ unit pkgcommands;
 interface
 
 uses
-  Classes, SysUtils,pkghandler;
+  Classes, SysUtils, pkghandler, fpmkunit;
 
 implementation
 
@@ -16,6 +16,7 @@ uses
   pkgoptions,
   pkgdownload,
   pkgrepos,
+  fpxmlrep,
   fprepos;
 
 type
@@ -82,6 +83,13 @@ type
     Procedure Execute;override;
   end;
 
+  { TCommandUnInstall }
+
+  TCommandUnInstall = Class(TPackagehandler)
+  Public
+    Procedure Execute;override;
+  end;
+
   { TCommandClean }
 
   TCommandClean = Class(TPackagehandler)
@@ -119,6 +127,43 @@ type
 
 var
   DependenciesDepth: integer;
+
+{ TCommandUnInstall }
+
+procedure TCommandUnInstall.Execute;
+var
+  AvailP: TFPPackage;
+  APackage: TFPPackage;
+begin
+  if PackageName<>'' then
+    begin
+      if (PackageName=CmdLinePackageName) then
+        begin
+          ExecuteAction(PackageName,'unzip');
+        end
+      else if (PackageName<>CurrentDirPackageName) then
+        begin
+          AvailP:=AvailableRepository.FindPackage(PackageName);
+          if not assigned(AvailP) then
+            begin
+              APackage := InstalledRepository.FindPackage(PackageName);
+              if assigned(APackage) and (APackage.SourcePath<>'') then
+                begin
+                  AvailP := AvailableRepository.AddPackage(PackageName);
+                  AvailP.Assign(APackage);
+                  // The package won't be recompiled, but should be handled as such.
+                  AvailP.RecompileBroken:=true;
+                end
+              else
+                begin
+                  // The package is not available locally, download and unzip it.
+                  ExecuteAction(PackageName,'unzip');
+                end;
+            end;
+        end;
+    end;
+  ExecuteAction(PackageName,'fpmakeuninstall');
+end;
 
 { TCommandListSettings }
 
@@ -279,9 +324,64 @@ end;
 
 
 procedure TCommandInstall.Execute;
+
 var
-  UFN,S : String;
+  S : String;
   P   : TFPPackage;
+
+  function GetUnitConfigFilename: string;
+  begin
+    if P.RecompileBroken then
+      begin
+        // If the package is recompiled, the installation-location is dependent on where
+        // the package was installed originally.
+        if P.InstalledLocally then
+          Result:=CompilerOptions.LocalUnitDir
+        else
+          Result:=CompilerOptions.GlobalUnitDir;
+        // Setting RecompileBroken to false is in a strict sense not needed. But it is better
+        // to clean this temporary flag, to avoid problems with changes in the future
+        P.RecompileBroken := false;
+        AvailableRepository.FindPackage(P.Name).RecompileBroken:=false;
+      end
+    else
+      begin
+        if (IsSuperUser or GlobalOptions.InstallGlobal) then
+          Result:=CompilerOptions.GlobalUnitDir
+        else
+          Result:=CompilerOptions.LocalUnitDir;
+      end;
+    Result:=IncludeTrailingPathDelimiter(Result)+S+PathDelim+UnitConfigFileName;
+  end;
+
+  function GetFpmFilename: string;
+  begin
+    if P.RecompileBroken then
+      begin
+        // If the package is recompiled, the installation-location is dependent on where
+        // the package was installed originally.
+        if P.InstalledLocally then
+          Result:=CompilerOptions.LocalInstallDir
+        else
+          Result:=CompilerOptions.GlobalInstallDir;
+        // Setting RecompileBroken to false is in a strict sense not needed. But it is better
+        // to clean this temporary flag, to avoid problems with changes in the future
+        P.RecompileBroken := false;
+        AvailableRepository.FindPackage(P.Name).RecompileBroken:=false;
+      end
+    else
+      begin
+        if (IsSuperUser or GlobalOptions.InstallGlobal) then
+          Result:=CompilerOptions.GlobalInstallDir
+        else
+          Result:=CompilerOptions.LocalInstallDir;
+      end;
+    Result:=IncludeTrailingPathDelimiter(Result)+'fpmkinst'+PathDelim+CompilerOptions.CompilerTarget+PathDelim+s+FpmkExt;
+  end;
+
+
+var
+  UFN : String;
 begin
   if PackageName<>'' then
     begin
@@ -301,27 +401,13 @@ begin
       P:=InstalledRepository.FindPackage(S);
       if not assigned(P) then
         P:=InstalledRepository.AddPackage(S);
-      if P.RecompileBroken then
-        begin
-          // If the package is recompiled, the installation-location is dependent on where
-          // the package was installed originally.
-          if P.InstalledLocally then
-            UFN:=CompilerOptions.LocalUnitDir
-          else
-            UFN:=CompilerOptions.GlobalUnitDir;
-          // Setting RecompileBroken to false is in a strict sense not needed. But it is better
-          // to clean this temporary flag, to avoid problems with changes in the future
-          P.RecompileBroken := false;
-          AvailableRepository.FindPackage(P.Name).RecompileBroken:=false;
-        end
-      else
-        begin
-          if (IsSuperUser or GlobalOptions.InstallGlobal) then
-            UFN:=CompilerOptions.GlobalUnitDir
-          else
-            UFN:=CompilerOptions.LocalUnitDir;
-        end;
-      UFN:=IncludeTrailingPathDelimiter(UFN)+S+PathDelim+UnitConfigFileName;
+
+      UFN:=GetFpmFilename;
+      // If there is no fpm-file, search for an (obsolete, pre-2.7.x)
+      // fpunits.cfg-file
+      if not FileExists(ufn) then
+        UFN:=GetUnitConfigFilename;
+
       P.LoadUnitConfigFromFile(UFN);
       if P.IsFPMakeAddIn then
         AddFPMakeAddIn(P);
@@ -351,65 +437,93 @@ var
   P,
   InstalledP,
   AvailP : TFPPackage;
+  PackNr: integer;
+  ManifestPackages : TFPPackages;
+  X : TFPXMLRepositoryHandler;
   L : TStringList;
   status : string;
-  FreeManifest : boolean;
 begin
   if PackageName='' then
     Error(SErrNoPackageSpecified);
-  FreeManifest:=false;
+  ManifestPackages:=nil;
   // Load dependencies for local packages
   if (PackageName=CmdLinePackageName) or (PackageName=CurrentDirPackageName) then
     begin
       ExecuteAction(PackageName,'fpmakemanifest');
-      P:=LoadManifestFromFile(ManifestFileName);
-      FreeManifest:=true;
+      ManifestPackages:=TFPPackages.Create(TFPPackage);
+      X:=TFPXMLRepositoryHandler.Create;
+      try
+        X.LoadFromXml(ManifestPackages,ManifestFileName);
+      finally
+        X.Free;
+      end;
+      if ManifestPackages.Count>0 then
+        begin
+          PackNr:=0;
+          P := ManifestPackages[PackNr];
+        end
+      else
+        begin
+          ManifestPackages.Free;
+          Error(SErrManifestNoSinglePackage,[ManifestFileName]);
+        end;
     end
   else
     P:=AvailableRepository.PackageByName(PackageName);
-  // Find and List dependencies
+
   MissingDependency:=nil;
-  L:=TStringList.Create;
-  for i:=0 to P.Dependencies.Count-1 do
+  while assigned(P) do
     begin
-      D:=P.Dependencies[i];
-      if (CompilerOptions.CompilerOS in D.OSes) and
-         (CompilerOptions.CompilerCPU in D.CPUs) then
+      // Find and List dependencies
+      L:=TStringList.Create;
+      for i:=0 to P.Dependencies.Count-1 do
         begin
-          InstalledP:=InstalledRepository.FindPackage(D.PackageName);
-          // Need installation?
-          if not assigned(InstalledP) or
-             (InstalledP.Version.CompareVersion(D.MinVersion)<0) then
+          D:=P.Dependencies[i];
+          if not ((CompilerOptions.CompilerOS in D.OSes) and (CompilerOptions.CompilerCPU in D.CPUs)) then
+            Log(llDebug,SDbgPackageDependencyOtherTarget,[D.PackageName,MakeTargetString(CompilerOptions.CompilerCPU,CompilerOptions.CompilerOS)])
+          // Skip dependencies that are available within the fpmake-file itself
+          else if not (assigned(ManifestPackages) and assigned(ManifestPackages.FindPackage(D.PackageName))) then
             begin
-              AvailP:=AvailableRepository.FindPackage(D.PackageName);
-              if not assigned(AvailP) or
-                 (AvailP.Version.CompareVersion(D.MinVersion)<0) then
+              InstalledP:=InstalledRepository.FindPackage(D.PackageName);
+              // Need installation?
+              if not assigned(InstalledP) or
+                 (InstalledP.Version.CompareVersion(D.MinVersion)<0) then
                 begin
-                  status:='Not Available!';
-                  MissingDependency:=D;
+                  AvailP:=AvailableRepository.FindPackage(D.PackageName);
+                  if not assigned(AvailP) or
+                     (AvailP.Version.CompareVersion(D.MinVersion)<0) then
+                    begin
+                      status:='Not Available!';
+                      MissingDependency:=D;
+                    end
+                  else
+                    begin
+                      status:='Updating';
+                      L.Add(D.PackageName);
+                    end;
                 end
               else
                 begin
-                  status:='Updating';
-                  L.Add(D.PackageName);
+                  if PackageIsBroken(InstalledP, True) then
+                    begin
+                      status:='Broken, recompiling';
+                      L.Add(D.PackageName);
+                    end
+                  else
+                    status:='OK';
                 end;
+              Log(llInfo,SLogPackageDependency,
+                  [D.PackageName,D.MinVersion.AsString,PackageInstalledVersionStr(D.PackageName),
+                   PackageAvailableVersionStr(D.PackageName),status])
             end
-          else
-            begin
-              if PackageIsBroken(InstalledP, True) then
-                begin
-                  status:='Broken, recompiling';
-                  L.Add(D.PackageName);
-                end
-              else
-                status:='OK';
-            end;
-          Log(llInfo,SLogPackageDependency,
-              [D.PackageName,D.MinVersion.AsString,PackageInstalledVersionStr(D.PackageName),
-               PackageAvailableVersionStr(D.PackageName),status]);
+        end;
+      if assigned(ManifestPackages) and (PackNr<ManifestPackages.Count-1)  then
+        begin
+          inc(PackNr);
+          P := ManifestPackages[PackNr]
         end
       else
-        Log(llDebug,SDbgPackageDependencyOtherTarget,[D.PackageName,MakeTargetString(CompilerOptions.CompilerCPU,CompilerOptions.CompilerOS)]);
+        p := nil;
     end;
   // Give error on first missing dependency
   if assigned(MissingDependency) then
@@ -429,8 +543,8 @@ begin
         pkgglobals.Log(llProgres,SProgrDependenciesInstalled);
     end;
   FreeAndNil(L);
-  if FreeManifest then
-    FreeAndNil(P);
+  if assigned(ManifestPackages) then
+    ManifestPackages.Free;
 end;
 
 
@@ -465,6 +579,7 @@ initialization
   RegisterPkgHandler('compile',TCommandCompile);
   RegisterPkgHandler('build',TCommandBuild);
   RegisterPkgHandler('install',TCommandInstall);
+  RegisterPkgHandler('uninstall',TCommandUnInstall);
   RegisterPkgHandler('clean',TCommandClean);
   RegisterPkgHandler('archive',TCommandArchive);
   RegisterPkgHandler('installdependencies',TCommandInstallDependencies);

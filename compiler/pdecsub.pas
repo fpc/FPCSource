@@ -548,6 +548,8 @@ implementation
         orgsp,sp : TIDString;
         srsym : tsym;
         checkstack : psymtablestackitem;
+        oldfilepos,
+        classstartfilepos,
         procstartfilepos : tfileposinfo;
         i,
         index : longint;
@@ -734,7 +736,8 @@ implementation
               begin
                 str(genparalist.count,gencount);
                 genname:=sp+'$'+gencount;
-                genname:=generate_generic_name(genname,specializename);
+                { ToDo: handle nested interfaces }
+                genname:=generate_generic_name(genname,specializename,'');
                 ugenname:=upper(genname);
 
                 srsym:=search_object_name(ugenname,false);
@@ -822,9 +825,16 @@ implementation
            try_to_consume(_POINT) then
          begin
            repeat
+             classstartfilepos:=procstartfilepos;
              searchagain:=false;
+
+             { throw the error at the right location }
+             oldfilepos:=current_filepos;
+             current_filepos:=procstartfilepos;
              if not assigned(astruct) and not assigned(srsym) then
                srsym:=search_object_name(sp,true);
+             current_filepos:=oldfilepos;
+
              { consume proc name }
              procstartfilepos:=current_tokenpos;
              consume_proc_name;
@@ -837,7 +847,7 @@ implementation
                   if (potype in [potype_class_constructor,potype_class_destructor]) then
                     sp:=lower(sp)
                   else
-                  if (potype=potype_operator)and(optoken=NOTOKEN) then
+                  if (potype=potype_operator) and (optoken=NOTOKEN) then
                     parse_operator_name;
                 srsym:=tsym(astruct.symtable.Find(sp));
                 if assigned(srsym) then
@@ -865,13 +875,13 @@ implementation
                  end
                 else
                  begin
-                   Message(parser_e_methode_id_expected);
+                   MessagePos(procstartfilepos,parser_e_methode_id_expected);
                    { recover by making it a normal procedure instead of method }
                    astruct:=nil;
                  end;
               end
              else
-              Message(parser_e_class_id_expected);
+              MessagePos(classstartfilepos,parser_e_class_id_expected);
            until not searchagain;
          end
         else
@@ -1125,7 +1135,7 @@ implementation
               end;
             single_type(pd.returndef,[stoAllowSpecialization]);
 
-// Issue #24863, commented out for now because it breaks building of RTL and needs extensive
+            // Issue #24863, enabled only for the main progra commented out for now because it breaks building of RTL and needs extensive
 // testing and/or RTL patching.
 {
             if ((pd.returndef=cvarianttype) or (pd.returndef=colevarianttype)) and
@@ -1349,7 +1359,7 @@ implementation
         { support procedure proc stdcall export; }
         if not(check_proc_directive(false)) then
           begin
-            if (token=_COLON) then
+            if (token=_COLON) and not(Assigned(pd) and is_void(pd.returndef)) then
               begin
                 message(parser_e_field_not_allowed_here);
                 consume_all_until(_SEMICOLON);
@@ -1792,13 +1802,13 @@ end;
 
 
 procedure pd_syscall(pd:tabstractprocdef);
-{$if defined(powerpc) or defined(m68k)}
+{$if defined(powerpc) or defined(m68k) or defined(i386)}
 var
   vs  : tparavarsym;
   sym : tsym;
   symtable : TSymtable;
   v: Tconstexprint;
-{$endif defined(powerpc) or defined(m68k)}
+{$endif defined(powerpc) or defined(m68k) or defined(i386)}
 begin
   if (pd.typ<>procdef) and (target_info.system <> system_powerpc_amiga) then
     internalerror(2003042614);
@@ -1816,6 +1826,7 @@ begin
               is_32bitint(tabstractvarsym(sym).vardef)
              ) then
             begin
+              include(pd.procoptions,po_syscall_has_libsym);
               tcpuprocdef(pd).libsym:=sym;
               if po_syscall_legacy in tprocdef(pd).procoptions then
                 begin
@@ -1827,8 +1838,8 @@ begin
           else
             Message(parser_e_32bitint_or_pointer_variable_expected);
         end;
-      (paramanager as tm68kparamanager).create_funcretloc_info(pd,calleeside);
-      (paramanager as tm68kparamanager).create_funcretloc_info(pd,callerside);
+      paramanager.create_funcretloc_info(pd,calleeside);
+      paramanager.create_funcretloc_info(pd,callerside);
 
       v:=get_intconst;
       if (v<low(Tprocdef(pd).extnumber)) or (v>high(Tprocdef(pd).extnumber)) then
@@ -1850,6 +1861,7 @@ begin
               is_32bitint(tabstractvarsym(sym).vardef)
              ) then
             begin
+              include(pd.procoptions,po_syscall_has_libsym);
               tcpuprocdef(pd).libsym:=sym;
               vs:=cparavarsym.create('$syscalllib',paranr_syscall_basesysv,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para]);
               pd.parast.insert(vs);
@@ -1858,8 +1870,8 @@ begin
             Message(parser_e_32bitint_or_pointer_variable_expected);
         end;
 
-      (paramanager as tppcparamanager).create_funcretloc_info(pd,calleeside);
-      (paramanager as tppcparamanager).create_funcretloc_info(pd,callerside);
+      paramanager.create_funcretloc_info(pd,calleeside);
+      paramanager.create_funcretloc_info(pd,callerside);
 
       v:=get_intconst;
       if (v<low(Tprocdef(pd).extnumber)) or (v>high(Tprocdef(pd).extnumber)) then
@@ -1917,6 +1929,7 @@ begin
               is_32bitint(tabstractvarsym(sym).vardef)
              ) then
             begin
+              include(pd.procoptions,po_syscall_has_libsym);
               tcpuprocdef(pd).libsym:=sym;
               if po_syscall_legacy in tprocdef(pd).procoptions then
                 begin
@@ -1950,8 +1963,8 @@ begin
           else
             Message(parser_e_32bitint_or_pointer_variable_expected);
         end;
-      (paramanager as tppcparamanager).create_funcretloc_info(pd,calleeside);
-      (paramanager as tppcparamanager).create_funcretloc_info(pd,callerside);
+      paramanager.create_funcretloc_info(pd,calleeside);
+      paramanager.create_funcretloc_info(pd,callerside);
 
       v:=get_intconst;
       if (v<low(Tprocdef(pd).extnumber)) or (v>high(Tprocdef(pd).extnumber)) then
@@ -1960,6 +1973,38 @@ begin
         Tprocdef(pd).extnumber:=v.uvalue;
     end;
 {$endif powerpc}
+{$ifdef i386}
+   if target_info.system = system_i386_aros then
+    begin
+      include(pd.procoptions,po_syscall_sysvbase);
+
+      if consume_sym(sym,symtable) then
+        begin
+          if (sym.typ=staticvarsym) and
+             (
+              (tabstractvarsym(sym).vardef.typ=pointerdef) or
+              is_32bitint(tabstractvarsym(sym).vardef)
+             ) then
+            begin
+              include(pd.procoptions,po_syscall_has_libsym);
+              tcpuprocdef(pd).libsym:=sym;
+              vs:=cparavarsym.create('$syscalllib',paranr_syscall_sysvbase,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para]);
+              pd.parast.insert(vs);
+            end
+          else
+            Message(parser_e_32bitint_or_pointer_variable_expected);
+        end;
+
+      paramanager.create_funcretloc_info(pd,calleeside);
+      paramanager.create_funcretloc_info(pd,callerside);
+
+      v:=get_intconst;
+      if (v<low(Tprocdef(pd).extnumber)) or (v>high(Tprocdef(pd).extnumber)) then
+        message(parser_e_range_check_error)
+      else
+        Tprocdef(pd).extnumber:=v.uvalue * 4; { sizeof Pointer for the target }
+    end;
+{$endif}
 end;
 
 
@@ -2061,6 +2106,13 @@ begin
     pd_external(pd);
 end;
 
+procedure pd_winapi(pd:tabstractprocdef);
+begin
+  if not(target_info.system in systems_wince) then
+    pd.proccalloption:=pocall_cdecl
+  else
+    pd.proccalloption:=pocall_stdcall;
+end;
 
 type
    pd_handler=procedure(pd:tabstractprocdef);
@@ -2076,7 +2128,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=44;
+  num_proc_directives=45;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -2443,7 +2495,7 @@ const
       handler  : nil;
       pocall   : pocall_none;
       pooption : [po_varargs];
-      mutexclpocall : [pocall_internproc,pocall_stdcall,pocall_register,
+      mutexclpocall : [pocall_internproc,pocall_register,
                        pocall_far16,pocall_oldfpccall,pocall_mwpascal];
       mutexclpotype : [];
       mutexclpo     : [po_assembler,po_interrupt,po_inline]
@@ -2469,6 +2521,15 @@ const
       { allowed for external cpp classes }
       mutexclpotype : [{potype_constructor,potype_destructor}potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_public,po_exports,po_interrupt,po_assembler,po_inline]
+    ),(
+      idtok:_WINAPI;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
+      handler  : @pd_winapi;
+      pocall   : pocall_none;
+      pooption : [];
+      mutexclpocall : [pocall_stdcall,pocall_cdecl];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
+      mutexclpo     : [po_external]
     ),(
       idtok:_ENUMERATOR;
       pd_flags : [pd_interface,pd_object,pd_record];
@@ -2565,7 +2626,7 @@ const
               next variable !! }
             if ((pdflags * [pd_procvar,pd_object,pd_record,pd_objcclass,pd_objcprot])=[]) and
                not(idtoken=_PROPERTY) then
-              Message1(parser_w_unknown_proc_directive_ignored,name);
+              Message1(parser_w_unknown_proc_directive_ignored,pattern);
             exit;
          end;
 
@@ -2876,7 +2937,7 @@ const
                          { for objcclasses this is checked later, because the entire
                            class may be external.  }
                          is_objc_class_or_protocol(tprocdef(pd).struct)) and
-                     not(pd.proccalloption in (cdecl_pocalls + [pocall_mwpascal])) then
+                     not(pd.proccalloption in (cdecl_pocalls + [pocall_mwpascal,pocall_stdcall])) then
                     Message(parser_e_varargs_need_cdecl_and_external);
                 end
                else
@@ -2884,7 +2945,7 @@ const
                   { both must be defined now }
                   if not((po_external in pd.procoptions) or
                          (pd.typ=procvardef)) or
-                     not(pd.proccalloption in (cdecl_pocalls + [pocall_mwpascal])) then
+                     not(pd.proccalloption in (cdecl_pocalls + [pocall_mwpascal,pocall_stdcall])) then
                     Message(parser_e_varargs_need_cdecl_and_external);
                 end;
              end;

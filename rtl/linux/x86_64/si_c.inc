@@ -33,6 +33,9 @@
          argc <--- esp
 }
 
+{$asmmode gas}
+
+{$L abitag.o}
 var
   libc_environ: pchar; external name '__environ';
   libc_fpu_control: word; external name '__fpu_control';
@@ -134,30 +137,12 @@ procedure _FPC_libc_start; assembler; nostackframe; public name '_start';
     call libc_start_main
 
     hlt                     { Crash if somehow `exit' does return.  }
-
-    { We need this stuff to make gdb behave itself, otherwise
-      gdb will chokes with SIGILL when trying to debug apps.
-    }
-(*
-    .section ".note.ABI-tag", "a"
-    .align 4
-    .long 1f - 0f
-    .long 3f - 2f
-    .long  1
-0:  .asciz "GNU"
-1:  .align 4
-2:  .long 0
-    .long 2,4,0
-3:  .align 4
- *)
   end;
 
 
-procedure _FPC_libc_haltproc; assembler; nostackframe; public name '_haltproc';
+procedure _FPC_libc_haltproc(e:longint); assembler; nostackframe; public name '_haltproc';
   asm
-    movq      ExitCode@GOTPCREL(%rip),%rax
-    movzwq    (%rax),%rax { load and save exitcode }
-
+    movl      %edi,%eax
     movq fpc_ret(%rip),%rdx         { return to libc }
     movq fpc_ret_rbp(%rip),%rbp
     pushq %rdx

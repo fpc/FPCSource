@@ -1,10 +1,8 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2001 by Free Pascal development team
+    Copyright (c) 2001-2014 by Free Pascal development team
 
-    This file implements all the base types and limits required
-    for a minimal POSIX compliant subset required to port the compiler
-    to a new OS.
+    This file implements heap management for OS/2.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -87,6 +85,7 @@ begin
   else
    begin
     SysOSAlloc := nil;
+    OSErrorWatch (RC);
 {$IFDEF EXTDUMPGROW}
     if Int_HeapSize <> high (cardinal) then
      begin
@@ -104,25 +103,23 @@ end;
 {$define HAS_SYSOSFREE}
 
 procedure SysOSFree (P: pointer; Size: ptruint);
-{$IFDEF EXTDUMPGROW}
 var
   RC: cardinal;
-{$ENDIF EXTDUMPGROW}
 begin
 {$IFDEF EXTDUMPGROW}
   WriteLn ('Trying to free memory!');
   WriteLn ('Total allocated memory is ', Int_HeapSize);
   Dec (Int_HeapSize, Size);
-  RC :=
 {$ENDIF EXTDUMPGROW}
-        DosFreeMem (P);
-{$IFDEF EXTDUMPGROW}
+  RC := DosFreeMem (P);
   if RC <> 0 then
    begin
+    OSErrorWatch (RC);
+{$IFDEF EXTDUMPGROW}
     WriteLn ('Error ', RC, ' during memory deallocation (DosFreeMem)!');
     WriteLn ('Total allocated memory is ', Int_HeapSize);
-   end;
 {$ENDIF EXTDUMPGROW}
+   end;
 end;
 
 

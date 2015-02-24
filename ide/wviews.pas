@@ -2342,7 +2342,8 @@ end;
 
 procedure AddFormatParam(P: pointer);
 begin
-  AddFormatParamInt(ptrint(P));
+  Inc(FormatParamCount);
+  FormatParams[FormatParamCount]:=ptrint(P);
 end;
 
 procedure AddFormatParamInt(L: longint);

@@ -47,7 +47,7 @@ UNIT REQTOOLS;
 
 INTERFACE
 
-USES Exec, intuition, amigados, diskfont, graphics, utility;
+USES Exec, intuition, amigados, diskfont, agraphics, utility;
 
 
 
@@ -689,7 +689,7 @@ IMPLEMENTATION
 
 uses
 {$ifndef dont_use_openlib}
-msgbox,
+amsgbox,
 {$endif dont_use_openlib}
 tagsarray,pastoc;
 

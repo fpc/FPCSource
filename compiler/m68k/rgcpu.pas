@@ -48,6 +48,73 @@ unit rgcpu;
       end;
 
 
+    procedure trgcpu.do_spill_read(list:tasmlist;pos:tai;const spilltemp:treference;tempreg:tregister);
+      var
+        helpins  : tai;
+        tmpref   : treference;
+        helplist : tasmlist;
+        hreg     : tregister;
+      begin
+        if (abs(spilltemp.offset)>32767) and (current_settings.cputype in (cpu_coldfire + [cpu_mc68000])) then
+          begin
+            helplist:=tasmlist.create;
+
+            if getregtype(tempreg)=R_INTREGISTER then
+              hreg:=tempreg
+            else
+              hreg:=cg.getintregister(helplist,OS_ADDR);
+{$ifdef DEBUG_SPILLING}
+            helplist.concat(tai_comment.Create(strpnew('Spilling: Read, large offset')));
+{$endif}
+
+            helplist.concat(taicpu.op_const_reg(A_MOVE,S_L,spilltemp.offset,hreg));
+            reference_reset_base(tmpref,spilltemp.base,0,sizeof(aint));
+            tmpref.index:=hreg;
+
+            helpins:=spilling_create_load(tmpref,tempreg);
+            helplist.concat(helpins);
+            list.insertlistafter(pos,helplist);
+            helplist.free;
+          end
+        else
+          inherited do_spill_read(list,pos,spilltemp,tempreg);
+      end;
+
+
+    procedure trgcpu.do_spill_written(list:tasmlist;pos:tai;const spilltemp:treference;tempreg:tregister);
+      var
+        tmpref   : treference;
+        helplist : tasmlist;
+        hreg     : tregister;
+      begin
+        if (abs(spilltemp.offset)>32767) and (current_settings.cputype in (cpu_coldfire + [cpu_mc68000])) then
+          begin
+            helplist:=tasmlist.create;
+
+            if getregtype(tempreg)=R_INTREGISTER then
+              hreg:=getregisterinline(helplist,[R_SUBWHOLE])
+            else
+              hreg:=cg.getintregister(helplist,OS_ADDR);
+{$ifdef DEBUG_SPILLING}
+            helplist.concat(tai_comment.Create(strpnew('Spilling: Write, large offset')));
+{$endif}
+
+            helplist.concat(taicpu.op_const_reg(A_MOVE,S_L,spilltemp.offset,hreg));
+            reference_reset_base(tmpref,spilltemp.base,0,sizeof(aint));
+            tmpref.index:=hreg;
+
+            helplist.concat(spilling_create_store(tempreg,tmpref));
+            if getregtype(tempreg)=R_INTREGISTER then
+              ungetregisterinline(helplist,hreg);
+
+            list.insertlistafter(pos,helplist);
+            helplist.free;
+          end
+        else
+          inherited do_spill_written(list,pos,spilltemp,tempreg);
+    end;
+
+
     function trgcpu.do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;
       var
         opidx: longint;

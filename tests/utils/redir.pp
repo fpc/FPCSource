@@ -30,7 +30,7 @@ Interface
 {$define implemented}
 {$endif}
 {$ifdef OS2}
-{$define shell_implemented}
+{$define implemented}
 {$endif}
 {$ifdef windows}
 {$define implemented}
@@ -104,6 +104,11 @@ Uses
 {$ifdef windows}
   windows,
 {$endif windows}
+{$IFDEF OS2}
+ {$IFNDEF EMX}
+  DosCalls,
+ {$ENDIF EMX}
+{$ENDIF OS2}
 {$ifdef unix}
     baseunix,
     unix,
@@ -328,13 +333,78 @@ begin
 end;
 {$endif}
 
-{$ifdef os2}
-Function fpclose (Handle : Longint) : boolean;
-begin
-  { Do we need this ?? }
-  fpclose:=true;
+{$IFDEF OS2}
+ {$IFDEF EMX}
+{$ASMMODE INTEL}
+function fpDup (FH: longint): longint; assembler;
+asm
+  mov ebx, eax
+  mov ah, 45h
+  call syscall
+  jnc @fpdup_end
+  mov eax, -1
+@fpdup_end:
 end;
-{$endif}
+
+function fpDup2 (FH, NH: longint): longint; assembler;
+asm
+  cmp eax, edx
+  jnz @fpdup2_go
+  mov eax, 0
+  jmp @fpdup2_end
+@fpdup2_go:
+  push ebx
+  mov ebx, eax
+  mov ecx, edx
+  mov ah, 46h
+  call syscall
+  pop ebx
+  jnc @fpdup2_end
+  mov eax, -1
+@fpdup2_end:
+end;
+
+function fpClose (Handle: longint): boolean; assembler;
+asm
+  push ebx
+  mov ebx, eax
+  mov ah, 3Eh
+  call syscall
+  pop ebx
+  mov eax, 1
+  jnc @fpclose_end
+  dec eax
+end;
+
+{$ASMMODE DEFAULT}
+ {$ELSE EMX}
+
+function fpDup (FH: longint): longint;
+var
+  NH: THandle;
+begin
+  NH := THandle (-1);
+  if DosDupHandle (THandle (FH), NH) = 0 then
+   fpDup := longint (NH)
+  else
+   fpDup := -1;
+end;
+
+function fpDup2 (FH, NH: longint): longint;
+begin
+  if FH = NH then
+   fpDup2 := 0
+  else
+   if DosDupHandle (THandle (FH), THandle (NH)) <> 0 then
+    fpDup2 := -1;
+end;
+
+function fpClose (Handle: longint): boolean;
+begin
+  fpClose := DosClose (THandle (Handle)) = 0;
+end;
+ {$ENDIF EMX}
+{$ENDIF OS2}
 
 
 {$I-}

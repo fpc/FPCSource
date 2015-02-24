@@ -37,15 +37,18 @@ type
    private
     FItems: array of Char;
     FIndex: Byte;
+    FAllowInflation: Boolean;
     FOnFull: TLOnFull;
     function GetFull: Boolean;
     function GetItem(const i: Byte): Char;
     procedure SetItem(const i: Byte; const Value: Char);
+    procedure SetAllowInflation(const b: boolean);
    public
     constructor Create;
     procedure Clear;
     procedure Push(const Value: Char);
     property ItemIndex: Byte read FIndex;
+    property AllowInflation: Boolean read FAllowInflation write SetAllowInflation;
     property Items[i: Byte]: Char read GetItem write SetItem; default;
     property Full: Boolean read GetFull;
     property OnFull: TLOnFull read FOnFull write FOnFull;
@@ -55,47 +58,80 @@ implementation
 
 uses
   lTelnet;
+
+(* The normal situation is that there are up to TL_CSLENGTH items on the stack. *)
+(* However this may be relaxed in cases (assumed to be rare) where subcommand   *)
+(* parameters are being accumulated.                                            *)
   
 constructor TLControlStack.Create;
 begin
   FOnFull:=nil;
-  FIndex:=0;
+  FIndex:=0;                            (* Next insertion point, [0] when empty *)
+  FAllowInflation := false;
   SetLength(FItems, TL_CSLENGTH);
 end;
 
 function TLControlStack.GetFull: Boolean;
 begin
-  Result:=False;
-  if FIndex >= TL_CSLENGTH then
-    Result:=True;
+  Result:=False;                        (* It's full when it has a complete     *)
+  if FIndex >= TL_CSLENGTH then         (* command, irrespective of whether the *)
+    Result:=True;                       (* stack's inflated by a subcommand.    *)
 end;
 
 function TLControlStack.GetItem(const i: Byte): Char;
 begin
   Result:=TS_NOP;
-  if i < TL_CSLENGTH then
-    Result:=FItems[i];
+  if not FAllowInflation then begin
+    if i < TL_CSLENGTH then
+      Result:=FItems[i]
+  end else
+    if i < Length(FItems) then
+      Result:=FItems[i]
 end;
 
 procedure TLControlStack.SetItem(const i: Byte; const Value: Char);
 begin
-  if i < TL_CSLENGTH then
-    FItems[i]:=Value;
+  if not FAllowInflation then begin
+    if i < TL_CSLENGTH then
+      FItems[i]:=Value
+  end else begin
+    while i >= Length(FItems) do begin
+      SetLength(FItems, Length(FItems) + 1);
+      FItems[Length(FItems) - 1] := TS_NOP
+    end;
+    FItems[i] := Value
+  end
+end;
+
+procedure TLControlStack.SetAllowInflation(const b: boolean);
+
+begin
+  FAllowInflation := b;
+  if not b then                         (* No more funny stuff please           *)
+    Clear
 end;
 
 procedure TLControlStack.Clear;
 begin
   FIndex:=0;
+  FAllowInflation := false;
+  SetLength(FItems, TL_CSLENGTH)        (* In case inflation was allowed        *)
 end;
 
 procedure TLControlStack.Push(const Value: Char);
 begin
-  if FIndex < TL_CSLENGTH then begin
-    FItems[FIndex]:=Value;
-    Inc(FIndex);
-    if Full and Assigned(FOnFull) then
-      FOnFull;
+  if not FAllowInflation then
+    if FIndex < TL_CSLENGTH then begin
+      FItems[FIndex]:=Value;
+      Inc(FIndex)
+    end else begin end
+  else begin
+    SetLength(FItems, Length(FItems) + 1);
+    FItems[Length(FItems) - 1] := Value;
+    FIndex := Length(FItems)
   end;
+  if Full and Assigned(FOnFull) then
+    FOnFull;
 end;
 
 end.

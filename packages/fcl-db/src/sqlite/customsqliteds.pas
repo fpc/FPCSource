@@ -45,15 +45,12 @@ const
   DefaultStringSize = 255;
 
 type
-  {$if defined(ver2_6_0) or defined(ver2_4)}
-  TRecordBuffer = PAnsiChar;
-  {$endif}
   TCustomSqliteDataset = class;
 
   PDataRecord = ^DataRecord;
   PPDataRecord = ^PDataRecord;
   DataRecord = record
-    Row: PPChar;
+    Row: PPAnsiChar;
     BookmarkFlag: TBookmarkFlag;
     Next: PDataRecord;
     Previous: PDataRecord;
@@ -65,7 +62,7 @@ type
   private
     FEditItem: PDataRecord;
     FDataset: TCustomSqliteDataset;
-    FFieldRow: PChar;
+    FFieldRow: PAnsiChar;
     FField: TField;
     FFieldOffset: Integer;
     FRowSize: Int64;
@@ -84,8 +81,8 @@ type
   end;
 
   //callback types
-  TSqliteCdeclCallback = function(UserData: Pointer; Count: LongInt; Values: PPChar; Names: PPChar): LongInt; cdecl;
-  TSqliteCallback = function(UserData: Pointer; Count: LongInt; Values: PPChar; Names: PPChar): LongInt of object;
+  TSqliteCdeclCallback = function(UserData: Pointer; Count: LongInt; Values: PPAnsiChar; Names: PPAnsiChar): LongInt; cdecl;
+  TSqliteCallback = function(UserData: Pointer; Count: LongInt; Values: PPAnsiChar; Names: PPAnsiChar): LongInt of object;
   TCallbackInfo = record
     Proc: TSqliteCallback;
     Data: Pointer;
@@ -94,9 +91,9 @@ type
   
   TRecordState = (rsAdded, rsDeleted, rsUpdated);
   TRecordStateSet = set of TRecordState;
-  TQueryUpdatesCallback = procedure(UserData: Pointer; Values: PPChar; ABookmark: TBookmark; RecordState: TRecordState) of object;
+  TQueryUpdatesCallback = procedure(UserData: Pointer; Values: PPAnsiChar; ABookmark: TBookmark; RecordState: TRecordState) of object;
 
-  TGetSqlStrFunction = function(APChar: PChar): String;
+  TGetSqlStrFunction = function(APChar: PAnsiChar): String;
 
   TSqliteOption = (soWildcardKey);
   TSqliteOptions = set of TSqliteOption;
@@ -132,7 +129,7 @@ type
   protected
     FPrimaryKey: String;
     FPrimaryKeyNo: Integer;
-    FFileName: String;
+    FFileName: UTF8String;
     FSQL: String;
     FEffectiveSQL: String;
     FTableName: String;
@@ -156,7 +153,7 @@ type
     FSaveOnRefetch: Boolean;
     FAutoIncrementKey: Boolean;
     FDataAllocated: Boolean;
-    function SqliteExec(Sql: PChar; ACallback: TSqliteCdeclCallback; Data: Pointer): Integer; virtual; abstract;
+    function SqliteExec(Sql: PAnsiChar; ACallback: TSqliteCdeclCallback; Data: Pointer): Integer; virtual; abstract;
     procedure InternalCloseHandle; virtual; abstract;
     function InternalGetHandle: Pointer; virtual; abstract;
     function FieldDefsStored: Boolean;
@@ -171,7 +168,7 @@ type
     function GetMasterFields: String;
     procedure SetMasterSource(Value: TDataSource);
     function GetMasterSource: TDataSource;
-    procedure SetFileName(const Value: String);
+    procedure SetFileName(const Value: UTF8String);
     function GetRowsAffected: Integer; virtual; abstract;
     procedure RetrieveFieldDefs; virtual; abstract;
     //TDataSet overrides
@@ -231,7 +228,7 @@ type
     procedure ExecSQL(ASqlList: TStrings);
     procedure ExecSQLList;
     procedure ExecuteDirect(const ASql: String); virtual; abstract;
-    function GetSQLValue(Values: PPChar; FieldIndex: Integer): String;
+    function GetSQLValue(Values: PPAnsiChar; FieldIndex: Integer): String;
     procedure QueryUpdates(RecordStates: TRecordStateSet; Callback: TQueryUpdatesCallback; UserData: Pointer = nil);
     function QuickQuery(const ASql: String):String;overload;
     function QuickQuery(const ASql: String; const AStrList: TStrings): String; overload;
@@ -258,7 +255,7 @@ type
    published
     property AutoIncrementKey: Boolean read FAutoIncrementKey write FAutoIncrementKey default False;
     property IndexFieldNames: string read FIndexFieldNames write FIndexFieldNames;
-    property FileName: String read FFileName write SetFileName;
+    property FileName: UTF8String read FFileName write SetFileName;
     property OnCallback: TSqliteCallback read FOnCallback write FOnCallback;
     property OnGetHandle: TDataSetNotifyEvent read FOnGetHandle write FOnGetHandle;
     property Options: TSqliteOptions read FOptions write SetOptions default [];
@@ -299,8 +296,8 @@ type
     property OnPostError;
   end;
   
-  function Num2SQLStr(APChar: PChar): String;
-  function Char2SQLStr(APChar: PChar): String;
+  function Num2SQLStr(APChar: PAnsiChar): String;
+  function Char2SQLStr(APChar: PAnsiChar): String;
 
 
 implementation
@@ -316,13 +313,13 @@ const
   NullString = 'NULL';
   
 
-function CallbackDispatcher(UserData: Pointer; Count: LongInt; Values: PPchar; Names: PPchar): LongInt; cdecl;
+function CallbackDispatcher(UserData: Pointer; Count: LongInt; Values: PPAnsiChar; Names: PPAnsiChar): LongInt; cdecl;
 begin
   with PCallbackInfo(UserData)^ do
     Result:= Proc(Data, Count, Values, Names);
 end;
   
-function Num2SQLStr(APChar: PChar): String;
+function Num2SQLStr(APChar: PAnsiChar): String;
 begin
   if APChar = nil then
   begin
@@ -332,14 +329,14 @@ begin
   Result := String(APChar);
 end;
 
-function Char2SQLStr(APChar: PChar): String;
+function Char2SQLStr(APChar: PAnsiChar): String;
 begin
   if APChar = nil then
   begin
     Result := NullString;
     Exit;
   end;
-  //todo: create custom routine to directly transform PChar -> SQL str
+  //todo: create custom routine to directly transform PAnsiChar -> SQL str
   Result := String(APChar);
   if Pos('''', Result) > 0 then
     Result := AnsiReplaceStr(Result, '''', '''''');
@@ -394,7 +391,7 @@ end;
 
 function TDSStream.Write(const Buffer; Count: LongInt): LongInt;
 var
-  NewRow: PChar;
+  NewRow: PAnsiChar;
 begin
   Result := Count;
   if Count > 0 then
@@ -703,7 +700,7 @@ function TCustomSqliteDataset.GetFieldData(Field: TField; Buffer: Pointer;
   NativeFormat: Boolean): Boolean;
 var
   ValError: Word;
-  FieldRow: PChar;
+  FieldRow: PAnsiChar;
   FieldOffset: Integer;
 begin
   if Field.FieldNo >= 0 then
@@ -722,7 +719,7 @@ begin
     case Field.Datatype of
     ftString:
       begin
-        Move(FieldRow^, PChar(Buffer)^, StrLen(FieldRow) + 1);
+        Move(FieldRow^, PAnsiChar(Buffer)^, StrLen(FieldRow) + 1);
       end;
     ftInteger, ftAutoInc:
       begin
@@ -1023,7 +1020,7 @@ begin
 end;
 
 type
-  TLocateCompareFunction = function (Value: PChar; const Key: String): Boolean;
+  TLocateCompareFunction = function (Value: PAnsiChar; const Key: String): Boolean;
   
   TLocateFieldInfo = record
     Index: Integer;
@@ -1031,7 +1028,7 @@ type
     CompFunction: TLocateCompareFunction;
   end;
 
-function CompInsensitivePartial(UTF8Value: PChar; const AnsiKey: String): Boolean;
+function CompInsensitivePartial(UTF8Value: PAnsiChar; const AnsiKey: String): Boolean;
 var
   AnsiValue: AnsiString;
 begin
@@ -1039,21 +1036,21 @@ begin
   if UTF8Value <> nil then
   begin
     AnsiValue := UTF8Decode(UTF8Value);
-    Result := AnsiStrLIComp(PChar(AnsiValue), PChar(AnsiKey), Length(AnsiKey)) = 0;
+    Result := AnsiStrLIComp(PAnsiChar(AnsiValue), PAnsiChar(AnsiKey), Length(AnsiKey)) = 0;
   end
   else
     Result := False;
 end;
 
-function CompSensitivePartial(UTF8Value: PChar; const UTF8Key: String): Boolean;
+function CompSensitivePartial(UTF8Value: PAnsiChar; const UTF8Key: String): Boolean;
 begin
   if UTF8Value <> nil then
-    Result := StrLComp(UTF8Value, PChar(UTF8Key), Length(UTF8Key)) = 0
+    Result := StrLComp(UTF8Value, PAnsiChar(UTF8Key), Length(UTF8Key)) = 0
   else
     Result := False;
 end;
 
-function CompInsensitive(UTF8Value: PChar; const AnsiKey: String): Boolean;
+function CompInsensitive(UTF8Value: PAnsiChar; const AnsiKey: String): Boolean;
 begin
   //fpc does not provide a function to compare UTF8 directly, so convert the
   //UTF8Value string to ansi through a temporary widestring and compare with the
@@ -1067,15 +1064,15 @@ begin
     Result := False;
 end;
 
-function CompSensitive(UTF8Value: PChar; const UTF8Key: String): Boolean;
+function CompSensitive(UTF8Value: PAnsiChar; const UTF8Key: String): Boolean;
 begin
   if UTF8Value <> nil then
-    Result := StrComp(UTF8Value, PChar(UTF8Key)) = 0
+    Result := StrComp(UTF8Value, PAnsiChar(UTF8Key)) = 0
   else
     Result := False;
 end;
 
-function CompSensitiveWild(UTF8Value: PChar; const UTF8Key: String): Boolean;
+function CompSensitiveWild(UTF8Value: PAnsiChar; const UTF8Key: String): Boolean;
 begin
   if UTF8Value <> nil then
     Result := IsWild(String(UTF8Value), UTF8Key, False)
@@ -1083,7 +1080,7 @@ begin
     Result := False;
 end;
 
-function CompDouble(UTF8Value: PChar; const UTF8Key: String): Boolean;
+function CompDouble(UTF8Value: PAnsiChar; const UTF8Key: String): Boolean;
 var e1,e2:double;
 begin
   if UTF8Value <> nil then
@@ -1096,7 +1093,7 @@ begin
     Result := False;
 end;
 
-function CompInsensitiveWild(UTF8Value: PChar; const AnsiKey: String): Boolean;
+function CompInsensitiveWild(UTF8Value: PAnsiChar; const AnsiKey: String): Boolean;
 begin
   //IsWild does not work with UTF8 encoded strings for case insensitive searches,
   //so convert UTF8Value to the system ansi encoding before passing to IsWild.
@@ -1363,13 +1360,13 @@ begin
     case Field.Datatype of
     ftString:
       begin            
-        EditItem^.Row[FieldOffset] := StrNew(PChar(Buffer));
+        EditItem^.Row[FieldOffset] := StrNew(PAnsiChar(Buffer));
       end;
     ftInteger:
       begin          
         Str(LongInt(Buffer^), TempStr);
         EditItem^.Row[FieldOffset] := StrAlloc(Length(TempStr) + 1);
-        Move(PChar(TempStr)^, (EditItem^.Row[FieldOffset])^, Length(TempStr) + 1);
+        Move(PAnsiChar(TempStr)^, (EditItem^.Row[FieldOffset])^, Length(TempStr) + 1);
       end;
     ftBoolean, ftWord:
       begin
@@ -1379,19 +1376,19 @@ begin
         else
           Str(Word(Buffer^), TempStr);
         EditItem^.Row[FieldOffset] := StrAlloc(Length(TempStr) + 1);
-        Move(PChar(TempStr)^, (EditItem^.Row[FieldOffset])^, Length(TempStr) + 1);
+        Move(PAnsiChar(TempStr)^, (EditItem^.Row[FieldOffset])^, Length(TempStr) + 1);
       end;  
     ftFloat, ftDateTime, ftDate, ftTime, ftCurrency:
       begin
         Str(Double(Buffer^), TempStr);
         EditItem^.Row[FieldOffset] := StrAlloc(Length(TempStr) + 1);
-        Move(PChar(TempStr)^, (EditItem^.Row[FieldOffset])^, Length(TempStr) + 1);
+        Move(PAnsiChar(TempStr)^, (EditItem^.Row[FieldOffset])^, Length(TempStr) + 1);
       end;
     ftLargeInt:
       begin
         Str(Int64(Buffer^), TempStr);
         EditItem^.Row[FieldOffset] := StrAlloc(Length(TempStr) + 1);
-        Move(PChar(TempStr)^, (EditItem^.Row[FieldOffset])^, Length(TempStr) + 1);
+        Move(PAnsiChar(TempStr)^, (EditItem^.Row[FieldOffset])^, Length(TempStr) + 1);
       end;        
     end;// case
   end//if
@@ -1517,7 +1514,7 @@ begin
   Result := FMasterLink.DataSource;
 end;
 
-procedure TCustomSqliteDataset.SetFileName(const Value: String);
+procedure TCustomSqliteDataset.SetFileName(const Value: UTF8String);
 begin
   if Value <> FFileName then
   begin
@@ -1545,7 +1542,7 @@ procedure TCustomSqliteDataset.ExecSQL(ASqlList: TStrings);
 begin
   if FSqliteHandle = nil then
     GetSqliteHandle;
-  FReturnCode := SqliteExec(PChar(ASQLList.Text), nil, nil);
+  FReturnCode := SqliteExec(PAnsiChar(ASQLList.Text), nil, nil);
   if FReturnCode <> SQLITE_OK then
     DatabaseError(ReturnString, Self);
 end;
@@ -1555,7 +1552,7 @@ begin
   ExecSQL(SQLList);
 end;
 
-function TCustomSqliteDataset.GetSQLValue(Values: PPChar; FieldIndex: Integer): String;
+function TCustomSqliteDataset.GetSQLValue(Values: PPAnsiChar; FieldIndex: Integer): String;
 begin
   if (State = dsInactive) or (FieldIndex < 0) or (FieldIndex >= FieldDefs.Count) then
     DatabaseError('Error retrieving SQL value: dataset inactive or field out of range', Self);
@@ -1615,7 +1612,7 @@ begin
       if StatementsCounter = 400 then
       begin
         SQLTemp := SQLTemp + 'COMMIT;';
-        FReturnCode := SqliteExec(PChar(SQLTemp), nil, nil);
+        FReturnCode := SqliteExec(PAnsiChar(SQLTemp), nil, nil);
         StatementsCounter := 0;
         SQLTemp := 'BEGIN;';
         if FReturnCode <> SQLITE_OK then
@@ -1649,7 +1646,7 @@ begin
       if StatementsCounter = 400 then
       begin
         SQLTemp := SQLTemp + 'COMMIT;';
-        FReturnCode := SqliteExec(PChar(SQLTemp), nil, nil);
+        FReturnCode := SqliteExec(PAnsiChar(SQLTemp), nil, nil);
         StatementsCounter := 0;
         SQLTemp := 'BEGIN;';
         if FReturnCode <> SQLITE_OK then
@@ -1681,7 +1678,7 @@ begin
       if StatementsCounter = 400 then
       begin
         SQLTemp := SQLTemp + 'COMMIT;';
-        FReturnCode := SqliteExec(PChar(SQLTemp), nil, nil);
+        FReturnCode := SqliteExec(PAnsiChar(SQLTemp), nil, nil);
         StatementsCounter := 0;
         SQLTemp := 'BEGIN;';
         if FReturnCode <> SQLITE_OK then
@@ -1698,7 +1695,7 @@ begin
   if FReturnCode = SQLITE_OK then
   begin
     SQLTemp := SQLTemp + 'COMMIT;';
-    FReturnCode := SqliteExec(PChar(SQLTemp), nil, nil);
+    FReturnCode := SqliteExec(PAnsiChar(SQLTemp), nil, nil);
     if FReturnCode <> SQLITE_OK then
       SqliteExec('ROLLBACK;', nil, nil);
   end;
@@ -1802,7 +1799,7 @@ begin
     GetSqliteHandle;
   CallbackInfo.Data := UserData;
   CallbackInfo.Proc := FOnCallback;
-  SqliteExec(PChar(ASQL), @CallbackDispatcher, @CallbackInfo);
+  SqliteExec(PAnsiChar(ASQL), @CallbackDispatcher, @CallbackInfo);
 end;
 
 

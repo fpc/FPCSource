@@ -295,5 +295,4 @@ begin
   { threading }
   InitSystemThreads;
 {$endif FPC_HAS_FEATURE_THREADING}
-  initvariantmanager;
 end.

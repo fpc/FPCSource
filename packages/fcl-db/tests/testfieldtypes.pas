@@ -24,7 +24,10 @@ type
     procedure TestSQLFieldType(ADatatype: TFieldType; ASQLTypeDecl: string;
       ADataSize: integer; AGetSQLTextProc: TGetSQLTextProc;
       ACheckFieldValueProc: TCheckFieldValueProc);
-    procedure TestXXParamQuery(ADatatype : TFieldType; ASQLTypeDecl : string; testValuesCount : integer; Cross : boolean = false);
+    procedure TestXXParamQuery(ADataType : TFieldType; ASQLTypeDecl : string;
+      ParamValuesCount : integer); overload;
+    procedure TestXXParamQuery(ADataType : TFieldType; ASQLTypeDecl : string;
+      ParamValuesCount : integer; const ParamValues: array of string; Cross : boolean = False); overload;
     procedure TestSetBlobAsParam(asWhat : integer);
   protected
     procedure SetUp; override;
@@ -83,6 +86,7 @@ type
     procedure TestTimeParamQuery;
     procedure TestDateTimeParamQuery;
     procedure TestFmtBCDParamQuery;
+    Procedure TestFmtBCDParamQuery2; // Bug 27077
     procedure TestFloatParamQuery;
     procedure TestCurrencyParamQuery;
     procedure TestBCDParamQuery;
@@ -829,7 +833,7 @@ begin
       begin
       datatype:='INTEGER PRIMARY KEY';
       values:='DEFAULT VALUES';
-      fieldtype:=ftInteger;
+      fieldtype:=ftAutoInc;
       updatable:=true;
       end;
     ssPostgreSQL:
@@ -1488,7 +1492,14 @@ end;
 
 procedure TTestFieldTypes.TestFmtBCDParamQuery;
 begin
-  TestXXParamQuery(ftFMTBcd,FieldtypeDefinitions[ftFMTBcd],testValuesCount);
+  TestXXParamQuery(ftFMTBcd, FieldtypeDefinitions[ftFMTBcd], testValuesCount, testFmtBCDValues);
+end;
+
+Procedure TTestFieldTypes.TestFmtBCDParamQuery2;
+begin
+  // This test tests FmtBCD params with smaller precision, which fits into INT32
+  // TestFmtBCDParamQuery tests FmtBCD params with bigger precision, which fits into INT64
+  TestXXParamQuery(ftFMTBcd, 'NUMERIC(9,5)', 2, ['1234','1234.56781']);
 end;
 
 procedure TTestFieldTypes.TestDateParamQuery;
@@ -1498,7 +1509,7 @@ end;
 
 procedure TTestFieldTypes.TestCrossStringDateParam;
 begin
-  TestXXParamQuery(ftDate,FieldtypeDefinitions[ftDate],testDateValuesCount,True);
+  TestXXParamQuery(ftDate,FieldtypeDefinitions[ftDate],testDateValuesCount,[],True);
 end;
 
 procedure TTestFieldTypes.TestTimeParamQuery;
@@ -1529,12 +1540,12 @@ end;
 
 procedure TTestFieldTypes.TestBytesParamQuery;
 begin
-  TestXXParamQuery(ftBytes, FieldtypeDefinitions[ftBytes], testBytesValuesCount, true);
+  TestXXParamQuery(ftBytes, FieldtypeDefinitions[ftBytes], testBytesValuesCount, [], True);
 end;
 
 procedure TTestFieldTypes.TestVarBytesParamQuery;
 begin
-  TestXXParamQuery(ftVarBytes, FieldtypeDefinitions[ftVarBytes], testVarBytesValuesCount, not(SQLServerType in [ssMSSQL, ssSybase]));
+  TestXXParamQuery(ftVarBytes, FieldtypeDefinitions[ftVarBytes], testVarBytesValuesCount, [], not(SQLServerType in [ssMSSQL, ssSybase]));
 end;
 
 procedure TTestFieldTypes.TestBooleanParamQuery;
@@ -1548,7 +1559,6 @@ begin
 end;
 
 procedure TTestFieldTypes.TestStringParamQuery;
-
 begin
   TestXXParamQuery(ftString,'VARCHAR(10)',testValuesCount);
 end;
@@ -1558,8 +1568,14 @@ begin
   TestXXParamQuery(ftFixedChar,'CHAR(10)',testValuesCount);
 end;
 
+procedure TTestFieldTypes.TestXXParamQuery(ADataType : TFieldType; ASQLTypeDecl : string;
+  ParamValuesCount : integer);
+begin
+  TestXXParamQuery(ADataType, ASQLTypeDecl, ParamValuesCount, [], False);
+end;
 
-procedure TTestFieldTypes.TestXXParamQuery(ADatatype : TFieldType; ASQLTypeDecl : string; testValuesCount : integer; Cross : boolean = false);
+procedure TTestFieldTypes.TestXXParamQuery(ADataType : TFieldType; ASQLTypeDecl : string;
+  ParamValuesCount : integer; const ParamValues: array of string; Cross : boolean = False);
 
 var i : integer;
 
@@ -1581,7 +1597,7 @@ begin
     if ADataType=ftFixedChar then
       Params.ParamByName('field1').DataType := ftFixedChar;
 
-    for i := 0 to testValuesCount -1 do
+    for i := 0 to ParamValuesCount-1 do
       begin
       Params.ParamByName('id').AsInteger := i;
       case ADataType of
@@ -1600,7 +1616,7 @@ begin
                    else
                       Params.ParamByName('field1').AsDate := StrToDate(testDateValues[i],'yyyy/mm/dd','-');
         ftDateTime: Params.ParamByName('field1').AsDateTime := StrToDateTime(testValues[ADataType,i], DBConnector.FormatSettings);
-        ftFMTBcd  : Params.ParamByName('field1').AsFMTBCD := StrToBCD(testFmtBCDValues[i], DBConnector.FormatSettings);
+        ftFMTBcd  : Params.ParamByName('field1').AsFMTBCD := StrToBCD(ParamValues[i], DBConnector.FormatSettings);
         ftBlob    : Params.ParamByName('field1').AsBlob := testBlobValues[i];
         ftBytes   : if cross then
                       Params.ParamByName('field1').Value := StringToByteArray(testBytesValues[i])
@@ -1616,7 +1632,7 @@ begin
       ExecSQL;
       end;
     // test NULL parameter value
-    Params.ParamByName('id').AsInteger := testValuesCount;
+    Params.ParamByName('id').AsInteger := ParamValuesCount;
     Params.ParamByName('field1').Clear;
     ExecSQL;
 
@@ -1626,7 +1642,7 @@ begin
     sql.append('select * from FPDEV2 order by ID');
     open;
 
-    for i := 0 to testValuesCount -1 do
+    for i := 0 to ParamValuesCount-1 do
       begin
       AssertEquals(i,FieldByName('ID').AsInteger);
       case ADataType of
@@ -1642,7 +1658,7 @@ begin
         ftTime     : AssertEquals(testTimeValues[i],DateTimeToTimeString(FieldByName('FIELD1').AsDateTime));
         ftDate     : AssertEquals(testDateValues[i],DateTimeToStr(FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
         ftDateTime : AssertEquals(testValues[ADataType,i], DateTimeToStr(FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
-        ftFMTBcd   : AssertEquals(testFmtBCDValues[i], BCDToStr(FieldByName('FIELD1').AsBCD, DBConnector.FormatSettings));
+        ftFMTBcd   : AssertEquals(ParamValues[i], BCDToStr(FieldByName('FIELD1').AsBCD, DBConnector.FormatSettings));
         ftBlob     : AssertEquals(testBlobValues[i], FieldByName('FIELD1').AsString);
         ftVarBytes,
         ftBytes    : AssertEquals(testBytesValues[i], shortstring(FieldByName('FIELD1').AsString));

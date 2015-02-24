@@ -115,8 +115,18 @@ const
       hint_editcut           = 'Remove the selected text and put it in the clipboard';
       hint_editcopy          = 'Copy the selected text in the clipboard';
       hint_editpaste         = 'Insert selected text from the clipboard at the cursor position';
+      {$ifdef HASAMIGA}
+      {$ifdef AROS}
+      hint_editcopywin       = 'Copy the selected text in AROS clipboard';
+      hint_editpastewin      = 'Insert selected text from AROS clipboard at the cursor position';
+      {$else}
+      hint_editcopywin       = 'Copy the selected text to the system clipboard';
+      hint_editpastewin      = 'Insert selected text from the system clipboard at the cursor position';
+      {$endif}
+      {$else}
       hint_editcopywin       = 'Copy the selected text in windows clipboard';
       hint_editpastewin      = 'Insert selected text from windows clipboard at the cursor position';
+      {$endif}
       hint_editclear         = 'Delete the selected text';
       hint_editselectall     = 'Select the whole text';
       hint_editunselect      = 'Unselect everything';

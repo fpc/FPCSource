@@ -15,7 +15,8 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('lexyacc');
+    P:=AddPackage('utils-lexyacc');
+    P.ShortName:='tply';
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';
@@ -25,7 +26,7 @@ begin
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
 
     P.Options.Add('-Sg');
 
@@ -70,9 +71,6 @@ begin
     P.Targets.AddUnit('yaccsem.pas').install:=false;
     P.Targets.AddUnit('yacclr0.pas').install:=false;
     P.Targets.AddUnit('yacctabl.pas').install:=false;
-
-    P.Sources.AddSrc('fpcmake.ini');
-    P.Sources.AddSrc('fpcmake.inc');
 
      if (OSToString(defaults.OS)=lowercase({$I %FPCTARGETOS%})) and
        (CPUToString(defaults.CPU)=lowercase({$I %FPCTARGETCPU%})) then

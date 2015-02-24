@@ -76,7 +76,10 @@ Procedure CheckDosError(err: Integer);
   11 : s := '(11) : Invalid format.';
   18 : s := '(18) : No more files.';
   else
-    s := 'INVALID DOSERROR';
+   begin
+    Str (X, S);
+    s := '(' + s + ') - INVALID DOSERROR';
+   end
   end;
   if err <> x then
     Begin

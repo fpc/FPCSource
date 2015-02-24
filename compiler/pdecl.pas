@@ -787,6 +787,28 @@ implementation
                            consume(_SEMICOLON);
                          end;
                        parse_var_proc_directives(tsym(newtype));
+                       if po_is_function_ref in tprocvardef(hdef).procoptions then
+                         begin
+                           { these always support everything, no "of object" or
+                             "is_nested" is allowed }
+                           if is_nested_pd(tprocvardef(hdef)) or
+                              is_methodpointer(hdef) then
+                             cgmessage(type_e_function_reference_kind)
+                           else
+                             begin
+                               if (po_hascallingconvention in tprocvardef(hdef).procoptions) and
+                                  (tprocvardef(hdef).proccalloption=pocall_cdecl) then
+                                 begin
+                                   include(tprocvardef(hdef).procoptions,po_is_block);
+                                   { can't check yet whether the parameter types
+                                     are valid for a block, since some of them
+                                     may still be forwarddefs }
+                                 end
+                               else
+                                 { a regular anonymous function type: not yet supported }
+                                 cgmessage(type_e_anonymous_function_unsupported);
+                             end
+                         end;
                        handle_calling_convention(tprocvardef(hdef));
                        if try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg) then
                          consume(_SEMICOLON);
@@ -915,7 +937,7 @@ implementation
           read_var_decls([vd_threadvar])
         else
           begin
-            Message(parser_f_unsupported_feature);
+            Message1(parser_f_unsupported_feature,featurestr[f_threading]);
             read_var_decls([]);
           end;
       end;

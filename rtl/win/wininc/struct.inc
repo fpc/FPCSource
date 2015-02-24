@@ -689,6 +689,7 @@ Const
      _LOGFONTA  = LOGFONTA;
      TLOGFONTA  = LOGFONTA;
      PLOGFONTA  = LPLOGFONTA;
+     tagLOGFONTA= LOGFONTA;
 
      LOGFONTW = record
        lfHeight: LONG;
@@ -711,6 +712,7 @@ Const
      _LOGFONTW  = LOGFONTW;
      TLogFontW  = LOGFONTW;
      PLogFontW  = ^TLOGFONTW;
+     tagLOGFONTW= LOGFONTW;
 
    {$IFNDEF UNICODE}
      LOGFONT    = LOGFONTA;
@@ -718,12 +720,14 @@ Const
      _LOGFONT   = LOGFONTA;
      TLOGFONT   = LOGFONTA;
      PLOGFONT   = ^LOGFONTA;
+     tagLOGFONT = LOGFONTA;
    {$ELSE}
      LOGFONT    = LOGFONTW;
      LPLOGFONT  = ^LOGFONTW;
      _LOGFONT   = LOGFONTW;
      TLOGFONT   = LOGFONTW;
      PLOGFONT   = ^LOGFONTW;
+     tagLOGFONT = LOGFONTW;
     {$ENDIF}
 
      {CHOOSEFONT = record conflicts with ChosseFont function }
@@ -1481,7 +1485,7 @@ Const
      SECURITY_QUALITY_OF_SERVICE = record
           Length : DWORD;
           ImpersonationLevel : SECURITY_IMPERSONATION_LEVEL;
-          ContextTrackingMode : WINBOOL;    // SECURITY_CONTEXT_TRACKING_MODE
+          ContextTrackingMode : BOOLEAN;    // SECURITY_CONTEXT_TRACKING_MODE
           EffectiveOnly : BOOLEAN;
        end;
      PSECURITY_QUALITY_OF_SERVICE = ^SECURITY_QUALITY_OF_SERVICE;
@@ -2219,7 +2223,7 @@ Const
         case byte of
           0: (LowPart : DWORD;
               HighPart : DWORD);
-          1: (QuadPart : LONGLONG);
+          1: (QuadPart : ULONGLONG);
        end;
      PULARGE_INTEGER = ^ULARGE_INTEGER;
      _ULARGE_INTEGER = ULARGE_INTEGER;

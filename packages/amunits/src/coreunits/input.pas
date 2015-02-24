@@ -34,20 +34,9 @@ const
 
 VAR InputBase : pDevice;
 
-FUNCTION PeekQualifier : WORD;
+FUNCTION PeekQualifier : WORD; syscall InputBase 042;
 
 IMPLEMENTATION
-
-FUNCTION PeekQualifier : WORD;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L InputBase,A6
-    JSR -042(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
 
 END. (* UNIT INPUT *)
 

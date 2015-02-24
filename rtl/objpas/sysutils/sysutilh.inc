@@ -210,6 +210,7 @@ type
    ESafecallException = class(Exception);
    ENoThreadSupport = Class(Exception);
    ENoWideStringSupport = Class(Exception);
+   ENoDynLibsSupport = class(Exception);
    ENotImplemented = class(Exception);
 
    EArgumentException = class(Exception);

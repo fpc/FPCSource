@@ -507,7 +507,7 @@ function fpc_variant_to_idispatch(const v : variant) : idispatch;compilerproc;
 function fpc_idispatch_to_variant(const i : idispatch) : variant;compilerproc;
 procedure fpc_vararray_get(var d : variant;const s : variant;indices : plongint;len : sizeint);compilerproc;
 procedure fpc_vararray_put(var d : variant;const s : variant;indices : plongint;len : sizeint);compilerproc;
-procedure fpc_dispinvoke_variant(dest : pvardata;const source : tvardata;  calldesc : pcalldesc;params : pointer);compilerproc;
+procedure fpc_dispinvoke_variant(dest : pvardata;var source : tvardata;  calldesc : pcalldesc;params : pointer);compilerproc;
 {$endif FPC_HAS_FEATURE_VARIANTS}
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}

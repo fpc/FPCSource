@@ -52,3 +52,20 @@ begin
   FpFcntl:=real_FpFcntl(fildes, cmd, @arg);
 end;
 
+
+{ ********************************************************************* }
+{ fpopen                                                                }
+{ ********************************************************************* }
+
+function  real_FpOpen(path: pchar; flags : cint):cint; varargs; cdecl; external clib name 'open'{$ifdef aix}+suffix64bit{$endif};
+
+function  FpOpen    (path: pchar; flags : cint; mode: TMode):cint;
+begin
+{$if defined(linux) and defined(fs32bit)}
+  flags:=flags or O_LARGEFILE;
+{$endif}
+  { emulate what the bunxovl(h).inc version of fpopen does. Required because
+    existing code depends on this (it doesn't always pass a valid mode when
+    using fmCreate) }
+  FpOpen:=real_FpOpen(path,flags,mode);
+end;

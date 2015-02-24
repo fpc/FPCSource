@@ -106,6 +106,9 @@ const
  syscall_nr_munmap                      =  73;
  syscall_nr_getsockopt                  = 118;
  syscall_nr_rfork                       = 251;
+ syscall_nr_clock_gettime               = 232;
+ syscall_nr_clock_settime               = 233;
+ syscall_nr_clock_getres                = 234;
  syscall_nr_nanosleep                   = 240;
  syscall_nr_getrusage                   = 117;
  syscall_nr_uuidgen			= 392; { 5.x+}

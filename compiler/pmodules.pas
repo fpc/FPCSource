@@ -348,6 +348,10 @@ implementation
         if m_iso in current_settings.modeswitches then
           AddUnit('iso7185');
 
+        { blocks support? }
+        if m_blocks in current_settings.modeswitches then
+          AddUnit('blockrtl');
+
         { default char=widechar? }
         if m_default_unicodestring in current_settings.modeswitches then
           AddUnit('uuchar');
@@ -374,11 +378,10 @@ implementation
           end;
 
         { CPU targets with microcontroller support can add a controller specific unit }
-{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
-        if (target_info.system in systems_embedded) and (current_settings.controllertype<>ct_none) and
+        if ControllerSupport and (target_info.system in systems_embedded) and
+          (current_settings.controllertype<>ct_none) and
           (embedded_controllers[current_settings.controllertype].controllerunitstr<>'') then
           AddUnit(embedded_controllers[current_settings.controllertype].controllerunitstr);
-{$endif ARM AVR MIPSEL}
       end;
 
 
@@ -944,6 +947,8 @@ type
          { All units are read, now give them a number }
          current_module.updatemaps;
 
+         { further, changing the globalsymtable is not allowed anymore }
+         current_module.globalsymtable.sealed:=true;
          symtablestack.push(current_module.localsymtable);
 
          if not current_module.interface_only then

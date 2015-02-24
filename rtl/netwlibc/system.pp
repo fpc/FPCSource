@@ -552,5 +552,5 @@ Begin
   IsConsole := TRUE;
   ExitCode  := 0;
   InitSystemThreads;
-  initvariantmanager;
+  InitSystemDynLibs;
 End.

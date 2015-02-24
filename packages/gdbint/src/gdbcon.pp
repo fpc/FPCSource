@@ -12,17 +12,28 @@
 
  **********************************************************************}
 unit GDBCon;
+
+{$ifdef USE_GDBLIBINC}
+  {$i gdblib.inc}
+{$else not USE_GDBLIBINC}
+  {$i gdbver.inc}
+{$endif not USE_GDBLIBINC}
+
 interface
 
 uses
   GDBInt;
 
 type
+  TBreakpointFlags = set of (bfTemporary, bfHardware);
+  TWatchpointType = (wtWrite, wtReadWrite, wtRead);
+
   PGDBController=^TGDBController;
   TGDBController=object(TGDBInterface)
     progname,
     progdir,
     progargs   : pchar;
+    TBreakNumber,
     start_break_number,
     in_command,
     init_count : longint;
@@ -40,6 +51,22 @@ type
     procedure TraceStepI;virtual;
     procedure TraceNextI;virtual;
     procedure Continue;virtual;
+    procedure UntilReturn;virtual;
+    { registers }
+    function GetIntRegister(const RegName: string; var Value: UInt64): Boolean;
+    function GetIntRegister(const RegName: string; var Value: Int64): Boolean;
+    function GetIntRegister(const RegName: string; var Value: UInt32): Boolean;
+    function GetIntRegister(const RegName: string; var Value: Int32): Boolean;
+    { breakpoints }
+    function BreakpointInsert(const location: string; BreakpointFlags: TBreakpointFlags): LongInt;
+    function WatchpointInsert(const location: string; WatchpointType: TWatchpointType): LongInt;
+    function BreakpointDelete(BkptNo: LongInt): Boolean;
+    function BreakpointEnable(BkptNo: LongInt): Boolean;
+    function BreakpointDisable(BkptNo: LongInt): Boolean;
+    function BreakpointCondition(BkptNo: LongInt; const ConditionExpr: string): Boolean;
+    function BreakpointSetIgnoreCount(BkptNo: LongInt; const IgnoreCount: LongInt): Boolean;
+    procedure SetTBreak(tbreakstring : string);
+    procedure Backtrace;
     { needed for dos because newlines are only #10 (PM) }
     procedure WriteErrorBuf;
     procedure WriteOutputBuf;
@@ -285,6 +312,177 @@ end;
 procedure TGDBController.Continue;
 begin
   Command('continue');
+end;
+
+
+procedure TGDBController.UntilReturn;
+begin
+  Command('finish');
+end;
+
+function TGDBController.GetIntRegister(const RegName: string; var Value: UInt64): Boolean;
+var
+  RegValueStr: string;
+  Code: LongInt;
+  p, po, p1: PChar;
+  buffer: array [0..255] of char;
+begin
+  GetIntRegister := False;
+  Value := 0;
+  Command('info registers ' + RegName);
+  if Error then
+    exit;
+
+  po:=StrNew(GetOutput);
+  p:=po;
+  if not assigned(p) then
+    exit;
+
+  p1:=strscan(p,' ');
+  if not assigned(p1) then
+  begin
+    StrDispose(po);
+    exit;
+  end;
+
+  p1:=strscan(p,'$');
+  { some targets use 0x instead of $ }
+  if p1=nil then
+    p:=strpos(p,'0x')
+  else
+    p:=p1;
+  p1:=strscan(p,#9);
+  if p1=nil then
+  begin
+    StrDispose(po);
+    exit;
+  end;
+  strlcopy(buffer,p,p1-p);
+  RegValueStr:=strpas(buffer);
+  StrDispose(po);
+
+  { replace the $? }
+  if copy(RegValueStr,1,2)='0x' then
+    RegValueStr:='$'+copy(RegValueStr,3,length(RegValueStr)-2);
+
+  Val(RegValueStr, Value, Code);
+  if Code <> 0 then
+    exit;
+  GetIntRegister := True;
+end;
+
+function TGDBController.GetIntRegister(const RegName: string; var Value: Int64): Boolean;
+var
+  U64Value: UInt64;
+begin
+  GetIntRegister := GetIntRegister(RegName, U64Value);
+  Value := Int64(U64Value);
+end;
+
+function TGDBController.GetIntRegister(const RegName: string; var Value: UInt32): Boolean;
+var
+  U64Value: UInt64;
+begin
+  GetIntRegister := GetIntRegister(RegName, U64Value);
+  Value := UInt32(U64Value);
+  if (U64Value shr 32) <> 0 then
+    GetIntRegister := False;
+end;
+
+function TGDBController.GetIntRegister(const RegName: string; var Value: Int32): Boolean;
+var
+  U32Value: UInt32;
+begin
+  GetIntRegister := GetIntRegister(RegName, U32Value);
+  Value := Int32(U32Value);
+end;
+
+function TGDBController.BreakpointInsert(const location: string; BreakpointFlags: TBreakpointFlags): LongInt;
+var
+  Prefix: string = '';
+begin
+  if bfTemporary in BreakpointFlags then
+    Prefix:=Prefix+'t';
+  if bfHardware in BreakpointFlags then
+    Prefix:=Prefix+'h';
+  Last_breakpoint_number:=0;
+  Command(Prefix+'break '+location);
+  BreakpointInsert:=Last_breakpoint_number;
+end;
+
+function TGDBController.WatchpointInsert(const location: string; WatchpointType: TWatchpointType): LongInt;
+begin
+  Last_breakpoint_number:=0;
+  case WatchpointType of
+    wtWrite:
+      Command('watch ' + location);
+    wtReadWrite:
+      Command('awatch ' + location);
+    wtRead:
+      Command('rwatch ' + location);
+  end;
+  WatchpointInsert:=Last_breakpoint_number;
+end;
+
+function TGDBController.BreakpointDelete(BkptNo: LongInt): Boolean;
+var
+  BkptNoStr: string;
+begin
+  Str(BkptNo, BkptNoStr);
+  Command('delete ' + BkptNoStr);
+  BreakpointDelete := not Error;
+end;
+
+function TGDBController.BreakpointEnable(BkptNo: LongInt): Boolean;
+var
+  BkptNoStr: string;
+begin
+  Str(BkptNo, BkptNoStr);
+  Command('enable ' + BkptNoStr);
+  BreakpointEnable := not Error;
+end;
+
+function TGDBController.BreakpointDisable(BkptNo: LongInt): Boolean;
+var
+  BkptNoStr: string;
+begin
+  Str(BkptNo, BkptNoStr);
+  Command('disable ' + BkptNoStr);
+  BreakpointDisable := not Error;
+end;
+
+function TGDBController.BreakpointCondition(BkptNo: LongInt; const ConditionExpr: string): Boolean;
+var
+  BkptNoStr: string;
+begin
+  Str(BkptNo, BkptNoStr);
+  Command('condition ' + BkptNoStr + ' ' + ConditionExpr);
+  BreakpointCondition := not Error;
+end;
+
+function TGDBController.BreakpointSetIgnoreCount(BkptNo: LongInt; const IgnoreCount: LongInt): Boolean;
+var
+  BkptNoStr, IgnoreCountStr: string;
+begin
+  Str(BkptNo, BkptNoStr);
+  Str(IgnoreCount, IgnoreCountStr);
+  Command('ignore ' + BkptNoStr + ' ' + IgnoreCountStr);
+  BreakpointSetIgnoreCount := not Error;
+end;
+
+procedure TGDBController.SetTBreak(tbreakstring : string);
+begin
+  Last_breakpoint_number:=0;
+  Command('tbreak '+tbreakstring);
+  TBreakNumber:=Last_breakpoint_number;
+end;
+
+procedure TGDBController.Backtrace;
+begin
+  { forget all old frames }
+  clear_frames;
+
+  Command('backtrace');
 end;
 
 

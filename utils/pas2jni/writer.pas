@@ -793,10 +793,16 @@ begin
           s:='__objvar.';
         end;
         s:=s + Variable.Name;
-        if Variable.IndexType <> nil then begin
+        if Variable.Count > 0 then begin
           ASSERT(Count >= 1);
-          i:=1;
-          s:=Format('%s[%s]', [s, JniToPasType(TVarDef(Items[0]).VarType, Items[0].Name, False)]);
+          i:=Variable.Count;
+          ss:='';
+          for j:=0 to Variable.Count - 1 do begin
+            if ss <> '' then
+              ss:=ss + ', ';
+            ss:=ss + JniToPasType(TVarDef(Items[j]).VarType, Items[j].Name, False);
+          end;
+          s:=Format('%s[%s]', [s, ss]);
         end
         else
           i:=0;
@@ -899,8 +905,10 @@ end;
 procedure TWriter.WriteVar(d: TVarDef; AParent: TDef);
 var
   pd: TProcDef;
+  vd: TVarDef;
   t: TTypeDef;
   s: string;
+  i: integer;
 begin
   if not d.IsUsed then
     exit;
@@ -914,7 +922,7 @@ begin
         s:='';
     end;
     s:=Trim(s + ' ' + d.Name);
-    if d.IndexType <> nil then
+    if d.Count > 0 then
       s:=s + '[]';
     Fjs.WriteLn(Format('// %s: %s', [s, d.VarType.Name]));
   end;
@@ -927,13 +935,16 @@ begin
       pd.ProcType:=ptFunction;
       pd.Name:='get' + d.Name;
       pd.ReturnType:=d.VarType;
-      if d.IndexType <> nil then
-        with TVarDef.Create(pd, dtParam) do begin
-          Name:='_Index';
-          AliasName:='Index';
-          VarType:=d.IndexType;
-          VarOpt:=[voRead];
+      if d.DefType = dtProp then begin
+        for i:=0 to d.Count - 1 do begin
+          vd:=TVarDef(d.Items[i]);
+          with TVarDef.Create(pd, dtParam) do begin
+            Name:=vd.Name;
+            VarType:=vd.VarType;
+            VarOpt:=[voRead];
+          end;
         end;
+      end;
       WriteProc(pd, d, AParent);
     finally
       pd.Free;
@@ -947,16 +958,33 @@ begin
       pd.Parent:=d.Parent;
       pd.ProcType:=ptProcedure;
       pd.Name:='set' + d.Name;
-      if d.IndexType <> nil then
-        with TVarDef.Create(pd, dtParam) do begin
-          Name:='_Index';
-          AliasName:='Index';
-          VarType:=d.IndexType;
-          VarOpt:=[voRead];
+
+      s:='Value';
+      if d.DefType = dtProp then begin
+        for i:=0 to d.Count - 1 do begin
+          vd:=TVarDef(d.Items[i]);
+          with TVarDef.Create(pd, dtParam) do begin
+            Name:=vd.Name;
+            VarType:=vd.VarType;
+            VarOpt:=[voRead];
+          end;
         end;
+
+        // Check if the name of value parameter is unique
+        i:=0;
+        while i < d.Count do begin
+          if AnsiCompareText(s, d.Items[i].Name) = 0 then begin
+            i:=0;
+            s:='_' + s;
+            continue;
+          end;
+          Inc(i);
+        end;
+      end;
+
       with TVarDef.Create(pd, dtParam) do begin
-        Name:='_Value';
-        AliasName:='Value';
+        Name:='_' + s;
+        AliasName:=s;
         VarType:=d.VarType;
         VarOpt:=[voRead];
       end;
@@ -1046,7 +1074,7 @@ procedure TWriter.WriteProcType(d: TProcDef; PreInfo: boolean);
 var
   vd: TVarDef;
   i: integer;
-  s, ss: string;
+  s, ss, hclass: string;
   err: boolean;
 begin
   if not d.IsUsed or not (poMethodPtr in d.ProcOpt) then
@@ -1056,21 +1084,14 @@ begin
     WriteClassInfoVar(d);
 
     // Handler proc
+    hclass:=GetClassPrefix(d) + 'Class';
     Fps.WriteLn;
-    vd:=TVarDef.Create(nil, dtParam);
-    try
-      vd.Name:='_data';
-      vd.VarType:=TTypeDef.Create(nil, dtType);
-      with TTypeDef(vd.VarType) do begin
-        Name:='pointer';
-        BasicType:=btPointer;
-      end;
-      d.Insert(0, vd);
-      Fps.WriteLn(GetProcDeclaration(d, Format('%sHandler', [GetClassPrefix(d)]), True) + ';');
-    finally
-      vd.VarType.Free;
-      vd.Free;
-    end;
+    Fps.WriteLn(Format('type %s = class', [hclass]));
+    Fps.WriteLn(Format('private %s;', [ GetProcDeclaration(d, 'Handler', True)]), 1);
+    Fps.WriteLn('end;');
+    Fps.WriteLn;
+    Fps.WriteLn(GetProcDeclaration(d, Format('%s.Handler', [hclass]), True) + ';');
+
     Fps.WriteLn('var');
     Fps.IncI;
     Fps.WriteLn('_env: PJNIEnv;');
@@ -1090,7 +1111,7 @@ begin
     Fps.WriteLn('CurJavaVM^^.GetEnv(CurJavaVM, @_env, JNI_VERSION_1_6);');
     Fps.WriteLn('_MethodPointersCS.Enter;');
     Fps.WriteLn('try');
-    Fps.WriteLn('_mpi:=_TMethodPtrInfo(_MethodPointers[-integer(ptruint(_data)) - 1]);', 1);
+    Fps.WriteLn('_mpi:=_TMethodPtrInfo(_MethodPointers[-integer(ptruint(Self)) - 1]);', 1);
     Fps.WriteLn('finally');
     Fps.WriteLn('_MethodPointersCS.Leave;', 1);
     Fps.WriteLn('end;');
@@ -1162,7 +1183,7 @@ begin
     Fps.WriteLn('else');
     Fps.WriteLn('with TMethod(Result) do begin', 1);
     Fps.WriteLn('Data:=pointer(ptruint(-integer(mpi.Index)));', 2);
-    Fps.WriteLn(Format('Code:=@%sHandler;', [GetClassPrefix(d)]), 2);
+    Fps.WriteLn(Format('Code:=@%s.Handler;', [hclass]), 2);
     Fps.WriteLn('end;', 1);
     Fps.DecI;
     Fps.WriteLn('end;');
@@ -1222,6 +1243,36 @@ begin
 end;
 
 procedure TWriter.WriteUnit(u: TUnitDef);
+
+  procedure _ExcludeClasses(AAncestorClass: TClassDef);
+  var
+    i: integer;
+    d: TDef;
+    s: string;
+    excl: boolean;
+  begin
+    for i:=0 to u.Count - 1 do begin
+      d:=u[i];
+      if d.DefType = dtClass then begin
+        s:=u.Name + '.' + d.Name;
+        if AAncestorClass = nil then begin
+          excl:=DoCheckItem(s) = crExclude;
+          if not excl then
+            with TClassDef(d).AncestorClass do
+              excl:=DoCheckItem(Parent.Name + '.' + Name) = crExclude;
+        end
+        else
+          excl:=TClassDef(d).AncestorClass = AAncestorClass;
+
+        if excl then begin
+          d.SetNotUsed;
+          ExcludeList.Add(s);
+          _ExcludeClasses(TClassDef(d));
+        end;
+      end;
+    end;
+  end;
+
 var
   d: TDef;
   i: integer;
@@ -1233,6 +1284,9 @@ begin
 
   if not u.IsUsed then
     exit;
+
+  if AnsiCompareText(u.Name, 'system') <> 0 then
+    _ExcludeClasses(nil);
 
   for i:=0 to High(u.UsedUnits) do
     WriteUnit(u.UsedUnits[i]);
@@ -2067,6 +2121,10 @@ begin
     Fps.WriteLn;
     Fps.WriteLn('procedure _HandleJNIException(env: PJNIEnv);');
     Fps.WriteLn('begin');
+    if p.OnExceptionProc <> nil then begin
+      Fps.WriteLn(Format('%s.%s;', [p.OnExceptionProc.Parent.Name, p.OnExceptionProc.Name]), 1);
+      p.OnExceptionProc.SetNotUsed;
+    end;
     Fps.WriteLn('env^^.ThrowNew(env, env^^.FindClass(env, ''java/lang/Exception''), PAnsiChar(Utf8Encode(Exception(ExceptObject).Message)));', 1);
     Fps.WriteLn('end;');
 

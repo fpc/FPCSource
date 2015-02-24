@@ -82,7 +82,7 @@ unit cgx86;
         procedure a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);override;
 
         { bit scan instructions }
-        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
+        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: TCGSize; src, dst: TRegister); override;
 
         { fpu move instructions }
         procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister); override;
@@ -128,6 +128,8 @@ unit cgx86;
         procedure g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string); override;
 
         procedure make_simple_ref(list:TAsmList;var ref: treference);
+
+        procedure generate_leave(list : TAsmList);
       protected
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
         procedure check_register_size(size:tcgsize;reg:tregister);
@@ -175,6 +177,9 @@ unit cgx86;
 
     function UseIncDec: boolean;
 
+    { returns true, if the compiler should use leave instead of mov/pop }
+    function UseLeave: boolean;
+
   implementation
 
     uses
@@ -202,6 +207,18 @@ unit cgx86;
 {$endif}
       end;
 
+
+    function UseLeave: boolean;
+      begin
+{$if defined(x86_64)}
+        { Modern processors should be happy with mov;pop, maybe except older AMDs }
+        Result:=cs_opt_size in current_settings.optimizerswitches;
+{$elseif defined(i386)}
+        Result:=(cs_opt_size in current_settings.optimizerswitches) or (current_settings.optimizecputype<cpu_Pentium2);
+{$elseif defined(i8086)}
+        Result:=current_settings.cputype>=cpu_186;
+{$endif}
+      end;
 
     const
       TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_MOV,A_ADD,A_AND,A_DIV,
@@ -507,7 +524,7 @@ unit cgx86;
               end
             else
               { Always use RIP relative symbol addressing for Windows and Darwin targets. }
-              if (target_info.system in (systems_all_windows+[system_x86_64_darwin])) and (ref.base<>NR_RIP) then
+              if (target_info.system in (systems_all_windows+[system_x86_64_darwin,system_x86_64_iphonesim])) and (ref.base<>NR_RIP) then
                 begin
                   if (ref.refaddr=addr_no) and (ref.base=NR_NO) and (ref.index=NR_NO) then
                     begin
@@ -810,7 +827,7 @@ unit cgx86;
             reference_reset_symbol(r,sym,0,sizeof(pint));
             if (cs_create_pic in current_settings.moduleswitches) and
                { darwin's assembler doesn't want @PLT after call symbols }
-               not(target_info.system in [system_x86_64_darwin,system_i386_iphonesim]) then
+               not(target_info.system in [system_x86_64_darwin,system_i386_iphonesim,system_x86_64_iphonesim]) then
               begin
 {$ifdef i386}
                 include(current_procinfo.flags,pi_needs_got);
@@ -1048,7 +1065,7 @@ unit cgx86;
                           a_op_const_reg(list,OP_ADD,OS_ADDR,offset,r);
                       end
 {$ifdef x86_64}
-                    else if (target_info.system in (systems_all_windows+[system_x86_64_darwin]))
+                    else if (target_info.system in (systems_all_windows+[system_x86_64_darwin,system_x86_64_iphonesim]))
 			 or (cs_create_pic in current_settings.moduleswitches)
 			 then
                       begin
@@ -2012,20 +2029,36 @@ unit cgx86;
         end;
       end;
 
-     procedure tcgx86.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister);
+     procedure tcgx86.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: TCGSize; src, dst: TRegister);
      var
+       tmpreg: tregister;
        opsize: topsize;
        l : TAsmLabel;
      begin
-       opsize:=tcgsize2opsize[size];
-       if not reverse then
-         list.concat(taicpu.op_reg_reg(A_BSF,opsize,src,dst))
+       { no bsf/bsr for byte }
+       if srcsize in [OS_8,OS_S8] then
+         begin
+           tmpreg:=getintregister(list,OS_INT);
+           a_load_reg_reg(list,srcsize,OS_INT,src,tmpreg);
+           src:=tmpreg;
+           srcsize:=OS_INT;
+         end;
+       { source and destination register must have the same size }
+       if tcgsize2size[srcsize]<>tcgsize2size[dstsize] then
+         tmpreg:=getintregister(list,srcsize)
        else
-         list.concat(taicpu.op_reg_reg(A_BSR,opsize,src,dst));
+         tmpreg:=dst;
+       opsize:=tcgsize2opsize[srcsize];
+       if not reverse then
+         list.concat(taicpu.op_reg_reg(A_BSF,opsize,src,tmpreg))
+       else
+         list.concat(taicpu.op_reg_reg(A_BSR,opsize,src,tmpreg));
        current_asmdata.getjumplabel(l);
        a_jmp_cond(list,OC_NE,l);
-       list.concat(taicpu.op_const_reg(A_MOV,opsize,$ff,dst));
+       list.concat(taicpu.op_const_reg(A_MOV,opsize,$ff,tmpreg));
        a_label(list,l);
+       if tmpreg<>dst then
+         a_load_reg_reg(list,srcsize,dstsize,tmpreg,dst);
      end;
 
 {*************** compare instructructions ****************}
@@ -2266,7 +2299,8 @@ unit cgx86;
         REGCX=NR_CX;
         REGSI=NR_SI;
         REGDI=NR_DI;
-        copy_len_sizes = [1, 2];
+        copy_len_sizes = [1, 2, 4]; { 4 is included here, because it's still more
+          efficient to use copy_move instead of copy_string for copying 4 bytes }
         push_segment_size = S_W;
 {$endif}
 
@@ -2689,7 +2723,8 @@ unit cgx86;
                a_call_name(list,'MCOUNT',false);
              end;
            system_x86_64_linux,
-           system_x86_64_darwin:
+           system_x86_64_darwin,
+           system_x86_64_iphonesim:
              begin
                a_call_name(list,'mcount',false);
              end;
@@ -2999,6 +3034,26 @@ unit cgx86;
       end;
 
 
+    procedure tcgx86.generate_leave(list: TAsmList);
+      begin
+        if UseLeave then
+          list.concat(taicpu.op_none(A_LEAVE,S_NO))
+        else
+          begin
+{$if defined(x86_64)}
+            list.Concat(taicpu.op_reg_reg(A_MOV,S_Q,NR_RBP,NR_RSP));
+            list.Concat(taicpu.op_reg(A_POP,S_Q,NR_RBP));
+{$elseif defined(i386)}
+            list.Concat(taicpu.op_reg_reg(A_MOV,S_L,NR_EBP,NR_ESP));
+            list.Concat(taicpu.op_reg(A_POP,S_L,NR_EBP));
+{$elseif defined(i8086)}
+            list.Concat(taicpu.op_reg_reg(A_MOV,S_W,NR_BP,NR_SP));
+            list.Concat(taicpu.op_reg(A_POP,S_W,NR_BP));
+{$endif}
+          end;
+      end;
+
+
     { produces if necessary overflowcode }
     procedure tcgx86.g_overflowcheck(list: TAsmList; const l:tlocation;def:tdef);
       var
@@ -3025,6 +3080,7 @@ unit cgx86;
          a_label(list,hl);
       end;
 
+
     procedure tcgx86.g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string);
       var
         ref : treference;
@@ -3043,7 +3099,7 @@ unit cgx86;
         { create pic'ed? }
         if (cs_create_pic in current_settings.moduleswitches) and
            { darwin/x86_64's assembler doesn't want @PLT after call symbols }
-           not(target_info.system in [system_x86_64_darwin,system_i386_iphonesim]) then
+           not(target_info.system in [system_x86_64_darwin,system_i386_iphonesim,system_x86_64_iphonesim]) then
           ref.refaddr:=addr_pic
         else
           ref.refaddr:=addr_full;

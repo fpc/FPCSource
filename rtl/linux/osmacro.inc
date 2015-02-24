@@ -102,26 +102,19 @@ function __xmknod(__ver : cint; Pathname: PChar; Mode: mode_t; var Device: dev_t
 {$define FPC_HAS_BASEUNIX_STAT}
 function  FpFstat(fd : cint; var sb : stat): cint;inline;
   begin
-    __fxstat(_STAT_VER,fd,sb);
+    FpFstat:=__fxstat(_STAT_VER,fd,sb);
   end;
 
 
 function  fpLstat(path:pchar;Info:pstat):cint;inline;
   begin
-    __lxstat(_STAT_VER,path,Info^);
+    fpLstat:=__lxstat(_STAT_VER,path,Info^);
   end;
 
 
 function  FpStat(path: pchar; var buf : stat): cint;inline;
   begin
-    __xstat(_STAT_VER,path,buf);
+    FpStat:=__xstat(_STAT_VER,path,buf);
   end;
-
-{$ifndef fs32bit}
-function  FpOpen    (path: pchar; flags : cint; mode: TMode):cint; inline;
-  begin
-    FpOpen:=__fpopen(path, flags or O_LARGEFILE, mode);
-  end;
-{$endif}
 
 {$endif FPC_USE_LIBC}

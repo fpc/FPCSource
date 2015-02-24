@@ -21,14 +21,10 @@ unit types;
        Windows;
 {$endif Windows}
 
-  {$ifdef wince}
-  //roozbeh:the reason is currently RT_RCDATA is defines in windows for wince as constant,
-  //        but in win32 it is function so here is required to redeclared.
-  //RT_RCDATA = PWideChar(10);
-  {$else}
- const
-  RT_RCDATA = PChar(10);
-  {$endif}
+{$ifdef mswindows}
+const
+  RT_RCDATA = Windows.RT_RCDATA deprecated 'Use Windows.RT_RCDATA instead';
+{$endif mswindows}
 
 type
   DWORD = LongWord;

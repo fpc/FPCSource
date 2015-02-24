@@ -20,12 +20,13 @@ unit machotypes;
 interface
 
 type
-  TMachOMachineType = (mmtpowerpc, mmtpowerpc64, mmti386, mmtx86_64, mmtarm);
+  TMachOMachineType = (mmtpowerpc, mmtpowerpc64, mmti386, mmtx86_64, mmtarm, mmtarm64);
   TMachOSubMachineTypePowerPC = (msmppc_all);
   TMachOSubMachineTypePowerPC64 = (msmppc64_all);
   TMachOSubMachineType386 = (msm386_all);
   TMachOSubMachineTypex64 = (msmx64_all);
   TMachOSubMachineTypeArm = (msmarm_all,msmarm_v4t,msmarm_v6,msmarm_v5tej,msmarm_xscale,msmarm_v7);
+  TMachOSubMachineTypeAarch64 = (msmaarch64_all);
   TSegSectName = array[0..15] of char;
 
 type

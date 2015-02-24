@@ -85,6 +85,7 @@ CPU_UNITS=atmega128
 endif
 
 ifeq ($(ARCH),i386)
+CPU_SPECIFIC_COMMON_UNITS=sysutils sysconst
 CPU_UNITS=multiboot
 endif
 

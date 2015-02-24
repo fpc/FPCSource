@@ -168,6 +168,7 @@ type
     Procedure TestCreateString;
     Procedure TestCreatePchar;
     procedure TestCreateStrings;
+    procedure TestCreateStringsCompressed;
     procedure TestCreateInteger;
     procedure TestCreateInt64;
     procedure TestCreateFloat;
@@ -213,15 +214,25 @@ type
   published
     Procedure TestCreate;
     Procedure TestCreateString;
+    Procedure TestCreateStringUnquoted;
     Procedure TestCreatePchar;
+    Procedure TestCreatePcharUnquoted;
     procedure TestCreateStrings;
+    procedure TestCreateStringsCompressed;
+    procedure TestCreateStringsCompressedUnquoted;
     procedure TestCreateInteger;
+    procedure TestCreateIntegerUnquoted;
     procedure TestCreateInt64;
+    procedure TestCreateInt64Unquoted;
     procedure TestCreateFloat;
+    procedure TestCreateFloatUnquoted;
     procedure TestCreateBoolean;
+    procedure TestCreateBooleanUnquoted;
     procedure TestCreateObject;
     procedure TestCreateJSONString;
+    procedure TestCreateJSONStringUnquoted;
     procedure TestCreateJSONObject;
+    procedure TestCreateJSONObjectUnquoted;
     procedure TestCreateNilPointer;
     procedure TestCreatePointer;
     procedure TestAddInteger;
@@ -1042,6 +1053,8 @@ Procedure TTestJSON.SetUp;
 begin
   inherited SetUp;
   SetDefaultInstanceTypes;
+  TJSONData.CompressedJSON:=False;
+  TJSONObject.UnquotedMemberNames:=False;
 end;
 
 Procedure TTestJSON.TestItemCount(J: TJSONData; Expected: Integer);
@@ -2183,6 +2196,29 @@ begin
   end;
 end;
 
+procedure TTestArray.TestCreateStringsCompressed;
+Const
+  S = 'A string';
+  T = 'B string';
+
+Var
+  J : TJSONArray;
+
+begin
+  TJSONData.CompressedJSON:=True;
+  J:=TJSONArray.Create([S,T]);
+  try
+    TestJSONType(J,jtArray);
+    TestItemCount(J,2);
+    TestJSONType(J[0],jtString);
+    TestJSONType(J[1],jtString);
+    TestJSON(J,'["'+S+'","'+T+'"]');
+    TestIsNull(J,False);
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
 procedure TTestArray.TestCreateInteger;
 
 Const
@@ -2958,10 +2994,10 @@ begin
     TestJSONType(J[2],jtNumber);
     TestJSON(J,'[0, 1, 2]');
     AssertEquals('FormatJSON, single line',J.AsJSON,J.FormatJSON([foSingleLineArray],1));
-    AssertEquals('FormatJSON, single line','['+sLinebreak+'  0,'+sLinebreak+'  1,'+sLinebreak+'  2'+sLinebreak+']',J.FormatJSON());
-    AssertEquals('FormatJSON, single line','['+sLinebreak+#9'0,'+sLinebreak+#9'1,'+sLinebreak+#9'2'+sLinebreak+']',J.FormatJSON([foUseTabChar],1));
+    AssertEquals('FormatJSON, default','['+sLinebreak+'  0,'+sLinebreak+'  1,'+sLinebreak+'  2'+sLinebreak+']',J.FormatJSON());
+    AssertEquals('FormatJSON, use tab','['+sLinebreak+#9'0,'+sLinebreak+#9'1,'+sLinebreak+#9'2'+sLinebreak+']',J.FormatJSON([foUseTabChar],1));
     J.Add(TJSONObject.Create(['x',1,'y',2]));
-    AssertEquals('FormatJSON, single line','['+sLinebreak+#9'0,'+sLinebreak+#9'1,'+sLinebreak+#9'2,'+sLinebreak+#9'{'+sLineBreak+#9#9'"x" : 1,'+sLineBreak+#9#9'"y" : 2'+sLinebreak+#9'}'+sLineBreak+']',J.FormatJSON([foUseTabChar],1));
+    AssertEquals('FormatJSON, use tab indentsize 1','['+sLinebreak+#9'0,'+sLinebreak+#9'1,'+sLinebreak+#9'2,'+sLinebreak+#9'{'+sLineBreak+#9#9'"x" : 1,'+sLineBreak+#9#9'"y" : 2'+sLinebreak+#9'}'+sLineBreak+']',J.FormatJSON([foUseTabChar],1));
   finally
     J.Free
   end;
@@ -3404,6 +3440,8 @@ begin
   try
     TestJSON(O,'{ "x" : 1, "y" : 2 }');
     AssertEquals('Format equals JSON',O.AsJSON,O.FormatJSON([foSingleLineObject]));
+    AssertEquals('Format using SkipWhiteSpace','{"x":1,"y":2}',O.FormatJSON([foSingleLineObject,foSkipWhiteSpace]));
+    AssertEquals('Format using SkipWhiteSpace,unquotednames','{x:1,y:2}',O.FormatJSON([foSingleLineObject,foSkipWhiteSpace,foDoNotQuoteMembers]));
     AssertEquals('Format 1','{'+sLineBreak+'  "x" : 1,'+sLineBreak+'  "y" : 2'+sLineBreak+'}',O.FormatJSON([]));
     AssertEquals('Format 1','{'+sLineBreak+'  x : 1,'+sLineBreak+'  y : 2'+sLineBreak+'}',O.FormatJSON([foDoNotQuoteMembers]));
     AssertEquals('Format 1','{'+sLineBreak+#9'x : 1,'+sLineBreak+#9'y : 2'+sLineBreak+'}',O.FormatJSON([foUseTabChar,foDoNotQuoteMembers],1));
@@ -3472,6 +3510,28 @@ begin
   end;
 end;
 
+procedure TTestObject.TestCreateStringUnquoted;
+Const
+  A = 'A';
+  S = 'A string';
+
+Var
+  J : TJSONObject;
+
+begin
+  TJSONObject.UnquotedMemberNames:=True;
+  J:=TJSONObject.Create([A,S]);
+  try
+    TestJSONType(J,jtObject);
+    TestItemCount(J,1);
+    TestJSONType(J[A],jtString);
+    TestJSON(J,'{ A : "'+S+'" }');
+    TestIsNull(J,False);
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
 procedure TTestObject.TestCreatePchar;
 
 Const
@@ -3488,6 +3548,29 @@ begin
     TestItemCount(J,1);
     TestJSONType(J[A],jtString);
     TestJSON(J,'{ "A" : "'+S+'" }');
+    TestIsNull(J,False);
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
+procedure TTestObject.TestCreatePcharUnquoted;
+
+Const
+  A = 'A';
+  S = 'A string';
+
+Var
+  J : TJSONObject;
+
+begin
+  TJSONObject.UnQuotedMemberNames:=True;
+  J:=TJSONObject.Create([A,Pchar(S)]);
+  try
+    TestJSONType(J,jtObject);
+    TestItemCount(J,1);
+    TestJSONType(J[A],jtString);
+    TestJSON(J,'{ A : "'+S+'" }');
     TestIsNull(J,False);
   finally
     FreeAndNil(J);
@@ -3519,6 +3602,59 @@ begin
   end;
 end;
 
+procedure TTestObject.TestCreateStringsCompressed;
+
+Const
+  A = 'A';
+  B = 'B';
+  S = 'A string';
+  T = 'B string';
+
+Var
+  J : TJSONObject;
+
+begin
+  TJSONData.CompressedJSON:=True;
+  J:=TJSONObject.Create([A,S,B,T]);
+  try
+    TestJSONType(J,jtObject);
+    TestItemCount(J,2);
+    TestJSONType(J[A],jtString);
+    TestJSONType(J[B],jtString);
+    TestJSON(J,'{"A":"'+S+'","B":"'+T+'"}');
+    TestIsNull(J,False);
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
+procedure TTestObject.TestCreateStringsCompressedUnquoted;
+
+Const
+  A = 'A';
+  B = 'B';
+  S = 'A string';
+  T = 'B string';
+
+Var
+  J : TJSONObject;
+
+begin
+  TJSONData.CompressedJSON:=True;
+  TJSONObject.UnQuotedMemberNames:=True;
+  J:=TJSONObject.Create([A,S,B,T]);
+  try
+    TestJSONType(J,jtObject);
+    TestItemCount(J,2);
+    TestJSONType(J[A],jtString);
+    TestJSONType(J[B],jtString);
+    TestJSON(J,'{A:"'+S+'",B:"'+T+'"}');
+    TestIsNull(J,False);
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
 procedure TTestObject.TestCreateInteger;
 
 Const
@@ -3535,6 +3671,27 @@ begin
     TestItemCount(J,1);
     TestJSONType(J[A],jtNumber);
     TestJSON(J,'{ "A" : 3 }');
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
+procedure TTestObject.TestCreateIntegerUnquoted;
+Const
+  A = 'A';
+  S = 3;
+
+Var
+  J : TJSONObject;
+
+begin
+  TJSONObject.UnQuotedMemberNames:=True;
+  J:=TJSONObject.Create([A,S]);
+  try
+    TestJSONType(J,jtObject);
+    TestItemCount(J,1);
+    TestJSONType(J[A],jtNumber);
+    TestJSON(J,'{ A : 3 }');
   finally
     FreeAndNil(J);
   end;
@@ -3563,6 +3720,29 @@ begin
   end;
 end;
 
+procedure TTestObject.TestCreateFloatUnquoted;
+Const
+  A = 'A';
+  S : double = 1.2;
+
+Var
+  J : TJSONObject;
+  r : String;
+
+begin
+  TJSONObject.UnQuotedMemberNames:=True;
+  J:=TJSONObject.Create([A,S]);
+  try
+    TestJSONType(J,jtObject);
+    TestItemCount(J,1);
+    TestJSONType(J[A],jtNumber);
+    Str(S,R);
+    TestJSON(J,'{ A :'+R+' }');
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
 procedure TTestObject.TestCreateInt64;
 
 Const
@@ -3579,6 +3759,27 @@ begin
     TestItemCount(J,1);
     TestJSONType(J[A],jtNumber);
     TestJSON(J,'{ "A" : '+IntToStr(S)+' }');
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
+procedure TTestObject.TestCreateInt64Unquoted;
+Const
+  A = 'A';
+  S : Int64 = $FFFFFFFFFFFFF;
+
+Var
+  J : TJSONObject;
+
+begin
+  TJSONObject.UnQuotedMemberNames:=True;
+  J:=TJSONObject.Create([A,S]);
+  try
+    TestJSONType(J,jtObject);
+    TestItemCount(J,1);
+    TestJSONType(J[A],jtNumber);
+    TestJSON(J,'{ A : '+IntToStr(S)+' }');
   finally
     FreeAndNil(J);
   end;
@@ -3605,6 +3806,27 @@ begin
   end;
 end;
 
+procedure TTestObject.TestCreateBooleanUnquoted;
+Const
+  A = 'A';
+  S = True;
+
+Var
+  J : TJSONObject;
+
+begin
+  TJSONObject.UnQuotedMemberNames:=True;
+  J:=TJSONObject.Create([A,S]);
+  try
+    TestJSONType(J,jtObject);
+    TestItemCount(J,1);
+    TestJSONType(J[A],jtBoolean);
+    TestJSON(J,'{ A : true }');
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
 procedure TTestObject.TestCreateJSONObject;
 
 Const
@@ -3623,6 +3845,26 @@ begin
     FreeAndNil(J);
   end;
 end;
+
+procedure TTestObject.TestCreateJSONObjectUnquoted;
+Const
+  A = 'A';
+
+Var
+  J : TJSONObject;
+
+begin
+  TJSONObject.UnQuotedMemberNames:=True;
+  J:=TJSONObject.Create([A,TJSONObject.Create]);
+  try
+    TestItemCount(J,1);
+    TestJSONType(J[A],jtObject);
+    TestJSON(J,'{ A : {} }');
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
 procedure TTestObject.TestCreateJSONString;
 
 Const
@@ -3638,6 +3880,27 @@ begin
     TestItemCount(J,1);
     TestJSONType(J[A],jtString);
     TestJSON(J,'{ "A" : "'+S+'" }');
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
+procedure TTestObject.TestCreateJSONStringUnquoted;
+
+Const
+  A = 'A';
+  S = 'A string';
+
+Var
+  J : TJSONObject;
+
+begin
+  TJSONObject.UnQuotedMemberNames:=True;
+  J:=TJSONObject.Create([A,TJSONString.Create(S)]);
+  try
+    TestItemCount(J,1);
+    TestJSONType(J[A],jtString);
+    TestJSON(J,'{ A : "'+S+'" }');
   finally
     FreeAndNil(J);
   end;

@@ -633,14 +633,24 @@ implementation
 
     function tai_align.calculatefillbuf(var buf : tfillbuffer;executable : boolean):pchar;
       const
-{$ifdef x86_64}
-        alignarray:array[0..3] of string[4]=(
-          #$66#$66#$66#$90,
-          #$66#$66#$90,
+        { Updated according to
+          Software Optimization Guide for AMD Family 15h Processors, Verison 3.08, January 2014
+          and
+          Intel 64 and IA-32 Architectures Software Developer’s Manual
+            Volume 2B: Instruction Set Reference, N-Z, January 2015
+        }
+        alignarray_cmovcpus:array[0..10] of string[11]=(
+          #$66#$66#$66#$0F#$1F#$84#$00#$00#$00#$00#$00,
+          #$66#$66#$0F#$1F#$84#$00#$00#$00#$00#$00,
+          #$66#$0F#$1F#$84#$00#$00#$00#$00#$00,
+          #$0F#$1F#$84#$00#$00#$00#$00#$00,
+          #$0F#$1F#$80#$00#$00#$00#$00,
+          #$66#$0F#$1F#$44#$00#$00,
+          #$0F#$1F#$44#$00#$00,
+          #$0F#$1F#$40#$00,
+          #$0F#$1F#$00,
           #$66#$90,
-          #$90
-        );
-{$else x86_64}
+          #$90);
         alignarray:array[0..5] of string[8]=(
           #$8D#$B4#$26#$00#$00#$00#$00,
           #$8D#$B6#$00#$00#$00#$00,
@@ -648,7 +658,6 @@ implementation
           #$8D#$76#$00,
           #$89#$F6,
           #$90);
-{$endif x86_64}
       var
         bufptr : pchar;
         j : longint;
@@ -663,12 +672,26 @@ implementation
            localsize:=fillsize;
            while (localsize>0) do
             begin
-              for j:=low(alignarray) to high(alignarray) do
-               if (localsize>=length(alignarray[j])) then
-                break;
-              move(alignarray[j][1],bufptr^,length(alignarray[j]));
-              inc(bufptr,length(alignarray[j]));
-              dec(localsize,length(alignarray[j]));
+{$ifndef i8086}
+              if CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype] then
+                begin
+                  for j:=low(alignarray_cmovcpus) to high(alignarray_cmovcpus) do
+                   if (localsize>=length(alignarray_cmovcpus[j])) then
+                    break;
+                  move(alignarray_cmovcpus[j][1],bufptr^,length(alignarray_cmovcpus[j]));
+                  inc(bufptr,length(alignarray_cmovcpus[j]));
+                  dec(localsize,length(alignarray_cmovcpus[j]));
+                end
+              else
+{$endif not i8086}
+                begin
+                  for j:=low(alignarray) to high(alignarray) do
+                   if (localsize>=length(alignarray[j])) then
+                    break;
+                  move(alignarray[j][1],bufptr^,length(alignarray[j]));
+                  inc(bufptr,length(alignarray[j]));
+                  dec(localsize,length(alignarray[j]));
+                end
             end;
          end;
         calculatefillbuf:=pchar(@buf);
@@ -1189,7 +1212,7 @@ implementation
                           currsym:=objdata.symbolref(ref^.symbol);
                           l:=ref^.offset;
 {$push}
-{$r-}
+{$r-,q-} { disable also overflow as address returns a qword for x86_64 }
                           if assigned(currsym) then
                             inc(l,currsym.address);
 {$pop}
@@ -1244,7 +1267,7 @@ implementation
                   begin
                     { allow 2nd, 3rd or 4th operand being a constant and expect no size for shuf* etc. }
                     { further, allow AAD and AAM with imm. operand }
-                    if (opsize=S_NO) and not((i in [1,2,3]) 
+                    if (opsize=S_NO) and not((i in [1,2,3])
 {$ifndef x86_64}
                       or ((i=0) and (opcode in [A_AAD,A_AAM]))
 {$endif x86_64}
@@ -2763,7 +2786,7 @@ implementation
                 getvalsym(c-40);
                 data:=currval-insend;
 {$push}
-{$r-}
+{$r-,q-} { disable also overflow as address returns a qword for x86_64 }
                 if assigned(currsym) then
                  inc(data,currsym.address);
 {$pop}

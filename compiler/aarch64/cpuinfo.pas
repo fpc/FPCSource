@@ -21,6 +21,9 @@ Interface
 
 Type
    bestreal = double;
+{$if FPC_FULLVERSION>20700}
+   bestrealrec = TDoubleRec;
+{$endif FPC_FULLVERSION>20700}
    ts32real = single;
    ts64real = double;
    ts80real = type extended;
@@ -47,12 +50,24 @@ Type
 
 
 Const
+   { Is there support for dealing with multiple microcontrollers available }
+   { for this platform? }
+   ControllerSupport = false; (* Not yet at least ;-) *)
    {# Size of native extended floating point type }
    extended_size = 8;
    {# Size of a multimedia register               }
    mmreg_size = 16;
    { target cpu string (used by compiler options) }
    target_cpu_string = 'aarch64';
+
+   { We know that there are fields after sramsize
+     but we don't care about this warning }
+   {$PUSH}
+    {$WARN 3177 OFF}
+   embedded_controllers : array [tcontrollertype] of tcontrollerdatatype =
+   (
+      (controllertypestr:''; controllerunitstr:''; flashbase:0; flashsize:0; srambase:0; sramsize:0));
+   {$POP}
 
    { calling conventions supported by the code generator }
    supported_calling_conventions : tproccalloptions = [
@@ -88,12 +103,12 @@ Const
                                  { no need to write info about those }
                                  [cs_opt_level1,cs_opt_level2,cs_opt_level3]+
                                  [cs_opt_regvar,cs_opt_loopunroll,cs_opt_tailrecursion,
-				  cs_opt_stackframe,cs_opt_nodecse,cs_opt_reorder_fields,cs_opt_fastmath];
+				  cs_opt_nodecse,cs_opt_reorder_fields,cs_opt_fastmath];
 
    level1optimizerswitches = genericlevel1optimizerswitches;
    level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches +
      [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion,cs_opt_nodecse];
-   level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [cs_opt_scheduler{,cs_opt_loopunroll}];
+   level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [];
 
 Implementation

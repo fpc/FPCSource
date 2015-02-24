@@ -36,14 +36,17 @@ type
   TFormatOption = (foSingleLineArray,   // Array without CR/LF : all on one line
                    foSingleLineObject,  // Object without CR/LF : all on one line
                    foDoNotQuoteMembers, // Do not quote object member names.
-                   foUseTabchar);       // Use tab characters instead of spaces.
+                   foUseTabchar,        // Use tab characters instead of spaces.
+                   foSkipWhiteSpace);   // Do not use whitespace at all
   TFormatOptions = set of TFormatOption;
 
 Const
   DefaultIndentSize = 2;
   DefaultFormat     = [];
   AsJSONFormat      = [foSingleLineArray,foSingleLineObject]; // These options make FormatJSON behave as AsJSON
-  
+  AsCompressedJSON  = [foSingleLineArray,foSingleLineObject,foskipWhiteSpace]; // These options make FormatJSON behave as AsJSON with TJSONData.CompressedJSON=True
+  AsCompactJSON     = [foSingleLineArray,foSingleLineObject,foskipWhiteSpace,foDoNotQuoteMembers]; // These options make FormatJSON behave as AsJSON with TJSONData.CompressedJSON=True and TJSONObject.UnquotedMemberNames=True
+
 Type
   TJSONData = Class;
 
@@ -67,6 +70,14 @@ Type
   { TJSONData }
   
   TJSONData = class(TObject)
+  private
+    Const
+      ElementSeps  : Array[Boolean] of TJSONStringType = (', ',',');
+    Class Var FCompressedJSON : Boolean;
+    Class Var FElementSep : TJSONStringType;
+    class procedure DetermineElementSeparators;
+    class function GetCompressedJSON: Boolean; static;
+    class procedure SetCompressedJSON(AValue: Boolean); static;
   protected
     Class Procedure DoError(Const Msg : String);
     Class Procedure DoError(Const Fmt : String; const Args : Array of const);
@@ -91,10 +102,13 @@ Type
     procedure SetItem(Index : Integer; const AValue: TJSONData); virtual;
     Function DoFormatJSON(Options : TFormatOptions; CurrentIndent, Indent : Integer) : TJSONStringType; virtual;
     function GetCount: Integer; virtual;
+  Public
+    Class function JSONType: TJSONType; virtual;
+    Class Property CompressedJSON : Boolean Read GetCompressedJSON Write SetCompressedJSON;
   public
     Constructor Create; virtual;
-    Class function JSONType: TJSONType; virtual;
     Procedure Clear;  virtual; Abstract;
+    Procedure DumpJSON(S : TStream);
     // Get enumerator
     function GetEnumerator: TBaseJSONEnumerator; virtual;
     Function FindPath(Const APath : TJSONStringType) : TJSONdata;
@@ -434,6 +448,16 @@ Type
 
   TJSONObject = class(TJSONData)
   private
+    Const
+      ElementStart   : Array[Boolean] of TJSONStringType = ('"','');
+      SpacedQuoted   : Array[Boolean] of TJSONStringType = ('" : ',' : ');
+      UnSpacedQuoted : Array[Boolean] of TJSONStringType = ('":',':');
+      ObjStartSeps   : Array[Boolean] of TJSONStringType = ('{ ','{');
+      ObjEndSeps     : Array[Boolean] of TJSONStringType = (' }','}');
+    Class var FUnquotedMemberNames: Boolean;
+    Class var FObjStartSep,FObjEndSep,FElementEnd,FElementStart : TJSONStringType;
+    Class procedure DetermineElementQuotes;
+  Private
     FHash : TFPHashObjectList; // Careful : Names limited to 255 chars.
     function GetArrays(const AName : String): TJSONArray;
     function GetBooleans(const AName : String): Boolean;
@@ -457,6 +481,8 @@ Type
     procedure SetObjects(const AName : String; const AValue: TJSONObject);
     procedure SetQWords(AName : String; AValue: QWord);
     procedure SetStrings(const AName : String; const AValue: TJSONStringType);
+    class function GetUnquotedMemberNames: Boolean; static;
+    class procedure SetUnquotedMemberNames(AValue: Boolean); static;
   protected
     Function DoFindPath(Const APath : TJSONStringType; Out NotFound : TJSONStringType) : TJSONdata; override;
     Procedure Converterror(From : Boolean);
@@ -464,10 +490,12 @@ Type
     function GetAsFloat: TJSONFloat; override;
     function GetAsInteger: Integer; override;
     function GetAsInt64: Int64; override;
+    function GetAsQWord: QWord; override;
     procedure SetAsBoolean(const AValue: Boolean); override;
     procedure SetAsFloat(const AValue: TJSONFloat); override;
     procedure SetAsInteger(const AValue: Integer); override;
     procedure SetAsInt64(const AValue: Int64); override;
+    procedure SetAsQword(const AValue: QWord); override;
     function GetAsJSON: TJSONStringType; override;
     function GetAsString: TJSONStringType; override;
     procedure SetAsString(const AValue: TJSONStringType); override;
@@ -482,6 +510,7 @@ Type
     Constructor Create(const Elements : Array of Const); overload;
     destructor Destroy; override;
     class function JSONType: TJSONType; override;
+    Class Property UnquotedMemberNames : Boolean Read GetUnquotedMemberNames Write SetUnquotedMemberNames;
     Function Clone : TJSONData; override;
     function GetEnumerator: TBaseJSONEnumerator; override;
     // Examine
@@ -994,12 +1023,81 @@ begin
   Clear;
 end;
 
+procedure TJSONData.DumpJSON(S: TStream);
+
+  Procedure W(T : String);
+
+  begin
+    if (T<>'') then
+      S.WriteBuffer(T[1],Length(T)*SizeOf(Char));
+  end;
+
+Var
+  I,C : Integer;
+  O : TJSONObject;
+
+begin
+  Case JSONType of
+    jtObject :
+      begin
+      O:=TJSONObject(Self);
+      W('{');
+      For I:=0 to O.Count-1 do
+        begin
+        if (I>0) then
+          W(',');
+        W('"');
+        W(StringToJSONString(O.Names[i]));
+        W('":');
+        O.Items[I].DumpJSON(S);
+        end;
+      W('}');
+      end;
+    jtArray :
+      begin
+      W('[');
+      For I:=0 to Count-1 do
+        begin
+        if (I>0) then
+          W(',');
+        Items[I].DumpJSON(S);
+        end;
+      W(']');
+      end
+  else
+    W(AsJSON)
+  end;
+end;
+
+class function TJSONData.GetCompressedJSON: Boolean; static;
+begin
+  Result:=FCompressedJSON;
+end;
+
+class procedure TJSONData.DetermineElementSeparators;
+
+
+begin
+  FElementSep:=ElementSeps[FCompressedJSON];
+end;
+
+class procedure TJSONData.SetCompressedJSON(AValue: Boolean); static;
+
+
+begin
+  if AValue=FCompressedJSON then exit;
+  FCompressedJSON:=AValue;
+  DetermineElementSeparators;
+  TJSONObject.DetermineElementQuotes;
+end;
+
 class procedure TJSONData.DoError(const Msg: String);
 begin
   Raise EJSON.Create(Msg);
 end;
 
-class procedure TJSONData.DoError(const Fmt: String; Const Args: array of const);
+class procedure TJSONData.DoError(const Fmt: String;
+  const Args: array of const);
 begin
   Raise EJSON.CreateFmt(Fmt,Args);
 end;
@@ -1886,18 +1984,21 @@ end;
 
 {$warnings on}
 
+
 function TJSONArray.GetAsJSON: TJSONStringType;
 
 Var
   I : Integer;
+  Sep : String;
 
 begin
+  Sep:=TJSONData.FElementSep;
   Result:='[';
   For I:=0 to Count-1 do
     begin
     Result:=Result+Items[i].AsJSON;
     If (I<Count-1) then
-      Result:=Result+', '
+      Result:=Result+Sep;
     end;
   Result:=Result+']';
 end;
@@ -1918,25 +2019,31 @@ function TJSONArray.DoFormatJSON(Options: TFormatOptions; CurrentIndent,
 
 Var
   I : Integer;
+  MultiLine : Boolean;
+  SkipWhiteSpace : Boolean;
+  Ind : String;
   
 begin
   Result:='[';
-  if not (foSingleLineArray in Options) then
+  MultiLine:=Not (foSingleLineArray in Options);
+  SkipWhiteSpace:=foSkipWhiteSpace in Options;
+  Ind:=IndentString(Options, CurrentIndent+Indent);
+  if MultiLine then
     Result:=Result+sLineBreak;
   For I:=0 to Count-1 do
     begin
-    if not (foSingleLineArray in Options) then
-      Result:=Result+IndentString(Options, CurrentIndent+Indent);
+    if MultiLine then
+      Result:=Result+Ind;
     Result:=Result+Items[i].DoFormatJSON(Options,CurrentIndent+Indent,Indent);
     If (I<Count-1) then
-      if (foSingleLineArray in Options) then
-        Result:=Result+', '
+      if MultiLine then
+        Result:=Result+','
       else
-        Result:=Result+',';
-    if not (foSingleLineArray in Options) then
+        Result:=Result+ElementSeps[SkipWhiteSpace];
+    if MultiLine then
       Result:=Result+sLineBreak
     end;
- if not (foSingleLineArray in Options) then
+  if MultiLine then
     Result:=Result+IndentString(Options, CurrentIndent);
   Result:=Result+']';
 end;
@@ -2292,6 +2399,11 @@ begin
   Result:=Getelements(Aname).JSONType;
 end;
 
+class function TJSONObject.GetUnquotedMemberNames: Boolean; static;
+begin
+  Result:=FUnquotedMemberNames;
+end;
+
 procedure TJSONObject.SetArrays(const AName : String; const AValue: TJSONArray);
 
 begin
@@ -2350,6 +2462,26 @@ end;
 procedure TJSONObject.SetStrings(const AName : String; const AValue: TJSONStringType);
 begin
   SetElements(AName,CreateJSON(AVAlue));
+end;
+
+class procedure TJSONObject.DetermineElementQuotes;
+
+begin
+  FObjStartSep:=ObjStartSeps[TJSONData.FCompressedJSON];
+  FObjEndSep:=ObjEndSeps[TJSONData.FCompressedJSON];
+  if TJSONData.FCompressedJSON then
+    FElementEnd:=UnSpacedQuoted[FUnquotedMemberNames]
+  else
+    FElementEnd:=SpacedQuoted[FUnquotedMemberNames];
+  FElementStart:=ElementStart[FUnquotedMemberNames]
+end;
+
+class procedure TJSONObject.SetUnquotedMemberNames(AValue: Boolean); static;
+
+begin
+  if FUnquotedMemberNames=AValue then exit;
+  FUnquotedMemberNames:=AValue;
+  DetermineElementQuotes;
 end;
 
 function TJSONObject.DoFindPath(const APath: TJSONStringType; out
@@ -2415,6 +2547,11 @@ begin
   ConvertError(True);
 end;
 
+function TJSONObject.GetAsQWord: QWord;
+begin
+  ConvertError(True);
+end;
+
 procedure TJSONObject.SetAsBoolean(const AValue: Boolean);
 begin
   ConvertError(False);
@@ -2434,23 +2571,32 @@ procedure TJSONObject.SetAsInt64(const AValue: Int64);
 begin
   ConvertError(False);
 end;
+
+procedure TJSONObject.SetAsQword(const AValue: QWord);
+begin
+  ConvertError(False);
+end;
+
 {$warnings on}
 
 function TJSONObject.GetAsJSON: TJSONStringType;
 
+
 Var
   I : Integer;
+  Sep : String;
 
 begin
+  Sep:=TJSONData.FElementSep;
   Result:='';
   For I:=0 to Count-1 do
     begin
     If (Result<>'') then
-      Result:=Result+', ';
-    Result:=Result+'"'+StringToJSONString(Names[i])+'" : '+Items[I].AsJSON;
+      Result:=Result+Sep;
+    Result:=Result+FElementStart+StringToJSONString(Names[i])+FElementEnd+Items[I].AsJSON;
     end;
   If (Result<>'') then
-    Result:='{ '+Result+' }'
+    Result:=FObjStartSep+Result+FObjEndSep
   else
     Result:='{}';
 end;
@@ -2573,33 +2719,42 @@ function TJSONObject.DoFormatJSON(Options: TFormatOptions; CurrentIndent,
 Var
   i : Integer;
   S : TJSONStringType;
-
-
+  MultiLine,UseQuotes, SkipWhiteSpace : Boolean;
+  NSep,Sep,Ind : String;
 begin
   Result:='';
-  CurrentIndent:=CurrentIndent+Indent;  
+  UseQuotes:=Not (foDoNotQuoteMembers in options);
+  MultiLine:=Not (foSingleLineObject in Options);
+  SkipWhiteSpace:=foSkipWhiteSpace in Options;
+  CurrentIndent:=CurrentIndent+Indent;
+  Ind:=IndentString(Options, CurrentIndent);
+  If SkipWhiteSpace then
+    NSep:=':'
+  else
+    NSep:=' : ';
+  If MultiLine then
+    Sep:=','+SLineBreak+Ind
+  else if SkipWhiteSpace then
+    Sep:=','
+  else
+    Sep:=', ';
   For I:=0 to Count-1 do
     begin
-    If (Result<>'') then
-      begin
-      If (foSingleLineObject in Options) then
-        Result:=Result+', '
-      else
-        Result:=Result+','+SLineBreak;
-      end;
-    If not (foSingleLineObject in Options) then    
-      Result:=Result+IndentString(Options,CurrentIndent);
+    If (I>0) then
+      Result:=Result+Sep
+    else If MultiLine then
+      Result:=Result+Ind;
     S:=StringToJSONString(Names[i]);
-    If not (foDoNotQuoteMembers in options) then
+    If UseQuotes then
       S:='"'+S+'"';
-    Result:=Result+S+' : '+Items[I].DoFormatJSON(Options,CurrentIndent,Indent);
+    Result:=Result+S+NSep+Items[I].DoFormatJSON(Options,CurrentIndent,Indent);
     end;
   If (Result<>'') then
     begin
-    if (foSingleLineObject in Options) then
-      Result:='{ '+Result+' }'
-    else  
+    if MultiLine then
       Result:='{'+sLineBreak+Result+sLineBreak+indentString(options,CurrentIndent-Indent)+'}'
+    else
+      Result:=ObjStartSeps[SkipWhiteSpace]+Result+ObjEndSeps[SkipWhiteSpace]
     end
   else
     Result:='{}';
@@ -2867,5 +3022,9 @@ begin
     Result:=Nil;
 end;
 
+initialization
+  // Need to force initialization;
+  TJSONData.DetermineElementSeparators;
+  TJSONObject.DetermineElementQuotes;
 end.
 

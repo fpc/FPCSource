@@ -353,7 +353,7 @@ Var Sr : PSearchrec;
 begin
   //!! Sr := New(PSearchRec);
   getmem(sr,sizeof(searchrec));
-  Rslt.FindHandle := longint(Sr);
+  Rslt.FindHandle := Sr;
   DOS.FindFirst(Path, Attr, Sr^);
   result := -DosError;
   if result = 0 then
@@ -388,7 +388,7 @@ begin
 end;
 
 
-Procedure InternalFindClose(var Handle: THandle);
+Procedure InternalFindClose(var Handle: Pointer);
 var
   Sr: PSearchRec;
 begin
@@ -400,7 +400,7 @@ begin
       DOS.FindClose(SR^);
       freemem(sr,sizeof(searchrec));
     end;
-  Handle := 0;
+  Handle := nil;
 end;
 
 

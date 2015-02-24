@@ -351,8 +351,16 @@ begin
           child borrows the execution thread of the parent
           unit it either exits or execs -> potential 
           deadlock depending on how quickly the SIGSTOP
-          signal is delivered }
-        if not(poRunSuspended in Options) then
+          signal is delivered
+
+          We also can't use vfork in case we have to change the working
+          directory, use pipes or not use a console since calling anything but
+          exec* or _exit after vfork is unsupported. For the same reason, also
+          don't use vfork in case there is a forkevent (since we don't know
+          what that one will call) }
+        if (([poRunSuspended,PoUsePipes,poNoConsole] * Options) = []) and
+           (FCurrentDirectory='') and
+           not assigned(FForkEvent) then
           Pid:=fpvfork
         else
           Pid:=fpfork;
@@ -373,7 +381,17 @@ begin
           begin
             { We're in the child }
             if (FCurrentDirectory<>'') then
-               ChDir(FCurrentDirectory);
+               begin
+{$push}{$i-}
+                 ChDir(FCurrentDirectory);
+                 { exit if the requested working directory does not exist (can
+                   use DirectoryExists, that would not be atomic; cannot change
+                   before forking because that would also change the CWD of the
+                   parent, which could influence other threads }
+                 if ioresult<>0 then
+                   fpexit(127);
+{$pop}
+               end;
             if PoUsePipes in Options then
               begin
                 FileClose(HI[peWrite]);

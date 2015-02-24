@@ -24,7 +24,7 @@ uses
   CustApp,Classes,SysUtils, httpdefs, fphttp, eventlog;
 
 Const
-  CGIVarCount = 37;
+  CGIVarCount = 44 ;
 
 Type
   TCGIVarArray = Array[1..CGIVarCount] of String;
@@ -69,7 +69,15 @@ Const
     { 34 } 'REQUEST_URI',
     { 35 } 'CONTENT',
     { 36 } 'HTTP_X_REQUESTED_WITH',
-    { 37 } 'HTTP_AUTHORIZATION'
+    { 37 } 'HTTP_AUTHORIZATION',
+    { 38 } 'SCRIPT_URI',
+    { 39 } 'SCRIPT_URL',
+    { 40 } 'CONTEXT_DOCUMENT_ROOT',
+    { 41 } 'CONTEXT_PREFIX',
+    { 42 } 'HTTP_CACHE_CONTROL',
+    { 43 } 'HTTP_PRAGMA',
+    { 44 } 'REQUEST_SCHEME'
+
     );
 
 Type

@@ -31,11 +31,9 @@
   {$define SignalIsCdecl}
   {$define FSCaseInsensitive}
   {$define HasSysMsgUnit}
-  {$ifdef DEBUG}
-    {$ifndef NOVESA}
-      {$define USE_GRAPH_SWITCH}
-    {$endif not NOVESA}
-  {$endif DEBUG}
+  {$ifndef NOVESA}
+    {$define USE_GRAPH_SWITCH}
+  {$endif not NOVESA}
 {$endif}
 
 {$ifdef Linux}
@@ -102,10 +100,17 @@
 
 {$ifdef Amiga}
   {$define FSCaseInsensitive}
+  {$define WinClipSupported}
 {$endif}
 
 {$ifdef MorphOS}
   {$define FSCaseInsensitive}
+  {$define WinClipSupported}
+{$endif}
+
+{$ifdef AROS}
+  {$define FSCaseInsensitive}
+  {$define WinClipSupported}
 {$endif}
 
 { --- Exclude debugger support --- }
@@ -177,3 +182,16 @@
 {$ifdef CROSSGDB}
   {$define SUPPORT_REMOTE}
 {$endif CROSSGDB}
+
+{$ifdef FPC_ARMEL}
+  {$define FPC_ARMEL32}
+{$endif FPC_ARMEL}
+{$ifdef FPC_ARMEB}
+  {$define FPC_ARMEB32}
+{$endif FPC_ARMEB}
+{$ifdef FPC_OARM}
+  {$define FPC_ARMEL32}
+{$endif FPC_OARM}
+{$ifdef FPC_ARMHF}
+  {$define FPC_ARMEL32}
+{$endif FPC_ARMHF}

@@ -21,6 +21,9 @@ Interface
 
 Type
    bestreal = double;
+{$if FPC_FULLVERSION>20700}
+   bestrealrec = TDoubleRec;
+{$endif FPC_FULLVERSION>20700}
    ts32real = single;
    ts64real = double;
    ts80real = type double;
@@ -87,7 +90,7 @@ Const
 
    fputypestr : array[tfputype] of string[9] = ('',
      'SOFT',
-     'FPU_MIPS2','FPU_MIPS3'
+     'MIPS2','MIPS3'
    );
 
    { abi strings as accepted by 
@@ -104,23 +107,49 @@ Const
 
    mips_abi : tabitype = abi_default;
 
-{$ifdef MIPSEL}
 type
-   tcpuflags=(CPUMIPS_HAS_XXXX); //Todo: Does this need to be filled?
+   tcpuflags=(
+     CPUMIPS_HAS_CMOV,             { conditional move instructions (mips4+) }
+     CPUMIPS_HAS_ISA32R2           { mips32r2 instructions (also on PIC32)  }
+   );
 
 const
   cpu_capabilities : array[tcputype] of set of tcpuflags =
-    ( { cpu_none } [],
-      { cpu_mips1 } [],
-      { cpu_mips2 } [],
-      { cpu_mips3 } [],
-      { cpu_mips4 } [],
-      { cpu_mips5 } [],
-      { cpu_mips32 } [],
-      { cpu_mips32r2 } [],
-      { cpu_pic32mx } []
+    ( { cpu_none }     [],
+      { cpu_mips1 }    [],
+      { cpu_mips2 }    [],
+      { cpu_mips3 }    [],
+      { cpu_mips4 }    [CPUMIPS_HAS_CMOV],
+      { cpu_mips5 }    [CPUMIPS_HAS_CMOV],
+      { cpu_mips32 }   [CPUMIPS_HAS_CMOV],
+      { cpu_mips32r2 } [CPUMIPS_HAS_CMOV,CPUMIPS_HAS_ISA32R2],
+      { cpu_pic32mx }  [CPUMIPS_HAS_CMOV,CPUMIPS_HAS_ISA32R2]
     );
 
+{$ifndef MIPSEL}
+type
+   tcontrollertype =
+     (ct_none
+     );
+
+
+Const
+   { Is there support for dealing with multiple microcontrollers available }
+   { for this platform? }
+   ControllerSupport = false;
+
+   { We know that there are fields after sramsize
+     but we don't care about this warning }
+   {$PUSH}
+    {$WARN 3177 OFF}
+   embedded_controllers : array [tcontrollertype] of tcontrollerdatatype =
+   (
+      (controllertypestr:''; controllerunitstr:''; flashbase:0; flashsize:0; srambase:0; sramsize:0));
+   {$POP}
+{$ELSE MIPSEL}
+   { Is there support for dealing with multiple microcontrollers available }
+   { for this platform? }
+   ControllerSupport = true;
 
 type
    tcontrollertype =

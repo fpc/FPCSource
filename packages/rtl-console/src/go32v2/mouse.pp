@@ -21,10 +21,6 @@ interface
 { tells the mouse unit to draw the mouse cursor itself }
 procedure DoCustomMouse(b : boolean);
 
-const
-  MouseIsVisible: boolean = false;
-
-
 implementation
 
 uses
@@ -51,6 +47,9 @@ var
   ActionRegs    : TRealRegs;external name '___v2prt0_rmcb_regs';
   v2prt0_ds_alias : word;external name '___v2prt0_ds_alias';
 const
+  { indicates whether the mouse cursor is visible when the mouse cursor is
+    drawn by this unit (i.e. drawmousecursor=true) }
+  CustomMouse_MouseIsVisible: boolean = false;
   MousePresent : boolean = false;
   First_try    : boolean = true;
 {$ifdef DEBUG}
@@ -58,6 +57,16 @@ const
   CallCounter  : longint = 0;
 {$endif DEBUG}
   drawmousecursor : boolean = false;
+
+  { CustomMouse_HideCount holds the hide count for the custom drawn mouse
+    cursor. Normally, when the mouse cursor is drawn by the int 33h mouse
+    driver (and not by this unit), the driver internally maintains a 'hide
+    counter', so that if you call HideMouse multiple times, you need to call
+    ShowMouse the same number of times. When the mouse cursor is customly
+    drawn by this unit, we use this variable in order to maintain the same
+    behaviour. }
+  CustomMouse_HideCount: longint = 1;
+
   { position where the mouse was drawn the last time }
   oldmousex : longint = -1;
   oldmousey : longint = -1;
@@ -92,10 +101,14 @@ asm
         movw    %dx,mousewherey
         shrw    $3,%cx
         shrw    $3,%dx
+        cmpw    $40,ScreenWidth
+        jne     .Lmorethan40cols
+        shrw    $1,%cx
+.Lmorethan40cols:
         { should we draw the mouse cursor? }
         cmpb    $0,drawmousecursor
         je      .Lmouse_nocursor
-        cmpb    $0,mouseisvisible
+        cmpb    $0,CustomMouse_MouseIsVisible
         je      .Lmouse_nocursor
         pushw   %fs
         pushl   %eax
@@ -441,7 +454,7 @@ begin
   Unlock_Data(MouseWhereX,SizeOf(word));
   Unlock_Data(MouseWhereY,SizeOf(word));
   Unlock_Data(drawmousecursor,SizeOf(boolean));
-  Unlock_Data(mouseisvisible,SizeOf(boolean));
+  Unlock_Data(CustomMouse_MouseIsVisible,SizeOf(boolean));
   Unlock_Data(mouselock,SizeOf(boolean));
   Unlock_Data(videoseg,SizeOf(word));
   Unlock_Data(dosmemselector,SizeOf(word));
@@ -505,7 +518,7 @@ begin
       Lock_Data(MouseWhereX,SizeOf(word));
       Lock_Data(MouseWhereY,SizeOf(word));
       Lock_Data(drawmousecursor,SizeOf(boolean));
-      Lock_Data(mouseisvisible,SizeOf(boolean));
+      Lock_Data(CustomMouse_MouseIsVisible,SizeOf(boolean));
       Lock_Data(mouselock,SizeOf(boolean));
       Lock_Data(videoseg,SizeOf(word));
       Lock_Data(dosmemselector,SizeOf(word));
@@ -526,7 +539,7 @@ begin
   If MouseCallBack=Nil then
     Mouse_Action($ffff, @MouseInt);                    { Set masks/interrupt }
   drawmousecursor:=false;
-  mouseisvisible:=false;
+  CustomMouse_MouseIsVisible:=false;
   if (screenwidth>80) or (screenheight>50) then
     DoCustomMouse(true);
   ShowMouse;
@@ -568,13 +581,15 @@ begin
    if drawmousecursor then
      begin
         lockmouse;
-        if not(mouseisvisible) then
+        if CustomMouse_HideCount>0 then
+          Dec(CustomMouse_HideCount);
+        if (CustomMouse_HideCount=0) and not(CustomMouse_MouseIsVisible) then
           begin
              oldmousex:=getmousex-1;
              oldmousey:=getmousey-1;
              mem[videoseg:(((screenwidth*oldmousey)+oldmousex)*2)+1]:=
                mem[videoseg:(((screenwidth*oldmousey)+oldmousex)*2)+1] xor $7f;
-             mouseisvisible:=true;
+             CustomMouse_MouseIsVisible:=true;
           end;
         unlockmouse;
      end
@@ -588,7 +603,6 @@ begin
              popl    %ebp
      .LShowMouseExit:
      end;
-  MouseIsVisible := true;
 end;
 
 
@@ -598,9 +612,10 @@ begin
    if drawmousecursor then
      begin
         lockmouse;
-        if mouseisvisible then
+        Inc(CustomMouse_HideCount);
+        if CustomMouse_MouseIsVisible then
           begin
-             mouseisvisible:=false;
+             CustomMouse_MouseIsVisible:=false;
              mem[videoseg:(((screenwidth*oldmousey)+oldmousex)*2)+1]:=
                mem[videoseg:(((screenwidth*oldmousey)+oldmousex)*2)+1] xor $7f;
              oldmousex:=-1;
@@ -618,7 +633,6 @@ begin
              popl    %ebp
      .LHideMouseExit:
      end;
-  MouseIsVisible := false;
 end;
 
 
@@ -633,6 +647,10 @@ asm
         popl    %ebp
         movzwl  %cx,%eax
         shrl    $3,%eax
+        cmpw    $40,ScreenWidth
+        jne     .Lmorethan40cols
+        shrl    $1,%eax
+.Lmorethan40cols:
         incl    %eax
         jmp .Lexit
 .LGetMouseXError:
@@ -724,15 +742,18 @@ end;
 procedure DoCustomMouse(b : boolean);
 
   begin
-     HideMouse;
      lockmouse;
+     CustomMouse_HideCount:=1;
      oldmousex:=-1;
      oldmousey:=-1;
-     SetMouseXRange(0,(screenwidth-1)*8);
+     if ScreenWidth=40 then
+       SetMouseXRange(0,(screenwidth-1)*16)
+     else
+       SetMouseXRange(0,(screenwidth-1)*8);
      SetMouseYRange(0,(screenheight-1)*8);
      if b then
        begin
-          mouseisvisible:=false;
+          CustomMouse_MouseIsVisible:=false;
           drawmousecursor:=true;
        end
      else

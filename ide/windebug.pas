@@ -36,7 +36,11 @@ implementation
 {$ifndef NODEBUG}
 
 uses
-  gdbint,
+  {$ifdef GDBMI}
+    gdbmiint,
+  {$else GDBMI}
+    gdbint,
+  {$endif GDBMI}
   strings,
   windows;
 

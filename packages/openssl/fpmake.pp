@@ -13,13 +13,15 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('openssl');
+    P.ShortName:='ossl';
+    P.Description := 'Interface units for OpenSSL libraries supporting SSL-encrypted network communication.';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.SourcePath.Add('src');
     P.OSes := AllUnixOSes+AllWindowsOSes+[OS2,EMX]-[qnx];
-//    P.Dependencies.Add('x11');
+    P.Dependencies.Add('rtl-extra',[OS2,EMX]);
 
     T:=P.Targets.AddUnit('openssl.pas');
     T:=P.Targets.AddUnit('fpopenssl.pp');

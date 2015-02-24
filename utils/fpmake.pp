@@ -47,8 +47,6 @@ Var
   T : TTarget;
 
 begin
-{$include fpmake_add.inc}
-
   With Installer do
     begin
     P:=AddPackage('utils');
@@ -67,8 +65,9 @@ begin
     P.Dependencies.Add('paszlib');
     P.Dependencies.Add('hash');
     P.Dependencies.Add('univint',[darwin,iphonesim]);
-
-    P.Version:='2.7.1';
+    P.Dependencies.Add('rtl-extra');
+	
+    P.Version:='3.1.1';
 
     T:=P.Targets.AddProgram('ptop.pp');
     T.Dependencies.AddUnit('ptopu');
@@ -79,6 +78,7 @@ begin
     P.Targets.AddProgram('data2inc.pp');
     P.Targets.AddProgram('delp.pp');
     P.Targets.AddProgram('bin2obj.pp');
+    P.Targets.AddProgram('mkinsadd.pp');
     P.Targets.AddProgram('postw32.pp');
     P.Targets.AddProgram('rmcvsdir.pp');
     P.Targets.AddProgram('grab_vcsa.pp',[linux]);
@@ -87,6 +87,8 @@ begin
     P.Targets.AddUnit('usubst.pp').install:=false;
     P.Targets.AddUnit('ptopu.pp').install:=false;
     end;
+
+  {$include fpmake_add.inc}
 end;
 
 {$ifdef NO_PARENT}

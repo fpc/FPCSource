@@ -13,10 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('winunits-base');
+    P.ShortName:='win';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.OSes:=[win32,win64];
     P.Author := 'Florian Klaempfl, Marco van de Voort';
     P.License := 'LGPL with modification, ';

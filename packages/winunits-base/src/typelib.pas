@@ -234,6 +234,7 @@ begin
     VT_SAFEARRAY:Result:='PSafeArray';
     VT_LPWSTR:Result:='PWideChar';
     VT_LPSTR:Result:='PChar';
+    VT_DECIMAL:Result:='TDecimal';
   else
     Result := 'Unknown (' + IntToStr(ParamType) + ')';
   end;

@@ -35,6 +35,7 @@ interface
     function new_function : tnode;
 
     function inline_setlength : tnode;
+    function inline_setstring : tnode;
     function inline_initialize : tnode;
     function inline_finalize : tnode;
     function inline_copy : tnode;
@@ -375,11 +376,13 @@ implementation
                                    end;
                                  if found then
                                    begin
-                                     { setup variant selector }
-                                     addstatement(newstatement,cassignmentnode.create(
-                                         csubscriptnode.create(variantselectsymbol,
-                                           cderefnode.create(ctemprefnode.create(temp))),
-                                         p2));
+                                     { if no tag-field is given, do not create an assignment statement for it }
+                                     if assigned(variantselectsymbol) then
+                                       { setup variant selector }
+                                       addstatement(newstatement,cassignmentnode.create(
+                                           csubscriptnode.create(variantselectsymbol,
+                                             cderefnode.create(ctemprefnode.create(temp))),
+                                           p2));
                                    end
                                  else
                                    Message(parser_e_illegal_expression);
@@ -509,6 +512,55 @@ implementation
            exit;
          end;
         result:=cinlinenode.create(in_setlength_x,false,paras);
+      end;
+
+
+    function inline_setstring : tnode;
+      var
+        paras, strpara, pcharpara: tnode;
+        procname: string;
+      begin
+        consume(_LKLAMMER);
+        paras:=parse_paras(false,false,_RKLAMMER);
+        consume(_RKLAMMER);
+        procname:='';
+        if assigned(paras) and
+           assigned(tcallparanode(paras).right) and
+           assigned(tcallparanode(tcallparanode(paras).right).right) then
+          begin
+            do_typecheckpass(tcallparanode(tcallparanode(paras).right).left);
+            do_typecheckpass(tcallparanode(tcallparanode(tcallparanode(paras).right).right).left);
+            pcharpara:=tcallparanode(tcallparanode(paras).right).left;
+            strpara:=tcallparanode(tcallparanode(tcallparanode(paras).right).right).left;
+            if strpara.resultdef.typ=stringdef then
+              begin
+                { if there are three parameters and the first parameter
+                  ( = paras.right.right) is an ansistring, add a codepage
+                  parameter }
+                if is_ansistring(strpara.resultdef) then
+                  paras:=ccallparanode.create(genintconstnode(tstringdef(strpara.resultdef).encoding),paras);
+                procname:='fpc_setstring_'+tstringdef(strpara.resultdef).stringtypname;
+                { decide which version to call based on the second parameter }
+                if not is_shortstring(strpara.resultdef) then
+                  if is_pwidechar(pcharpara.resultdef) or
+                     is_widechar(pcharpara.resultdef) or
+                     ((pcharpara.resultdef.typ=arraydef) and
+                      is_widechar(tarraydef(pcharpara.resultdef).elementdef)) then
+                    procname:=procname+'_pwidechar'
+                  else
+                    procname:=procname+'_pansichar';
+              end;
+          end;
+        { default version (for error message) in case of missing or wrong
+          parameters }
+        if procname='' then
+          if m_default_unicodestring in current_settings.modeswitches then
+            procname:='fpc_setstring_unicodestr_pwidechar'
+          else if m_default_ansistring in current_settings.modeswitches then
+            procname:='fpc_setstring_ansistr_pansichar'
+          else
+            procname:='fpc_setstring_shortstr';
+        result:=ccallnode.createintern(procname,paras)
       end;
 
 

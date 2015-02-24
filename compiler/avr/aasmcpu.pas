@@ -246,11 +246,11 @@ implementation
       begin
         result:=operand_read;
         case opcode of
-          A_CLR,
-          A_MOV, A_MOVW:
-           if opnr=0 then
-             result:=operand_write;
-          A_CP,A_CPC,A_CPI,A_PUSH :
+          A_CLR,A_LDD,A_LD,A_LDI,A_LDS,
+          A_MOV,A_MOVW:
+            if opnr=0 then
+              result:=operand_write;
+          A_CP,A_CPC,A_CPI,A_PUSH,A_ST,A_STD,A_STS:
             ;
           else
             begin

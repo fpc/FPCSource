@@ -138,7 +138,6 @@ type
   public
     VarOpt: TVarOptions;
     VarType: TDef;
-    IndexType: TDef;
     constructor Create; override;
     procedure ResolveDefs; override;
     function IsReplacedBy(d: TReplDef): boolean; override;

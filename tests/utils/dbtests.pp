@@ -74,7 +74,7 @@ Var
   PortNb : longint;
   Error : word;
 begin
-  Verbose(V_DEBUG,'Connection params : '+DatabaseName+' '+Host+' '+User+' '+Password+' '+Port);
+  Verbose(V_SQL,'Connection params : '+DatabaseName+' '+Host+' '+User+' '+Port);
   if Port<>'' then
     begin
       Val(Port,PortNb,Error);
@@ -123,16 +123,48 @@ end;
 Function RunSilentQuery (Qry : String; Var res : TQueryResult) : Boolean ;
 
 begin
-  Verbose(V_DEBUG,'Running silent query:'+Qry);
-  Result:=mysql_query(Connection,PChar(qry))=0;
-  If Not Result then
-    Verbose(V_DEBUG,'Silent query : '+Qry+'Failed : '+Strpas(mysql_error(connection)))
-  else
-    Res:=Mysql_store_result(connection);
+  Verbose(V_SQL,'Executing query:'+Qry);
+  Result:=False;
+  try
+    With CreateQuery(Qry) do
+      try
+        ExecSQL;
+        Result:=True;
+        (Transaction as TSQLTransaction).Commit;
+      finally
+        Free;
+      end;
+  except
+    On E : exception do
+      begin
+      Connection.Transaction.RollBack;
+      if not Silent then
+        Verbose(V_WARNING,'Query : '+Qry+'Failed : '+E.Message);
+      end;
+  end;
 end;
 
 
-Function GetResultField (Res : TQueryResult; Id : Integer) : String;
+begin
+  Result:=False;
+  Verbose(V_SQL,'Running query:'+Qry);
+  Res:=CreateQuery(Qry);
+  try
+    Res.Open;
+    Result:=True;
+  except
+    On E : exception do
+      begin
+      FreeAndNil(Res);
+      Try
+        Connection.Transaction.RollBack;
+      except
+      end;
+      if not Silent then
+        Verbose(V_WARNING,'Query : '+Qry+'Failed : '+E.Message);
+      end;
+  end;
+end;
 
 Var
   Row : PPchar;
@@ -148,7 +180,7 @@ begin
     else
       Result:=strpas(Row[ID]);
     end;
-  Verbose(V_DEBUG,'Field value '+Result);
+  Verbose(V_SQL,'Field value '+Result);
 end;
 
 Procedure FreeQueryResult (Res : TQueryResult);
@@ -188,9 +220,9 @@ end;
 Function EscapeSQL( S : String) : String;
 
 begin
-  Result:=StringReplace(S,'\','\\',[rfReplaceAll]);
-  Result:=StringReplace(Result,'"','\"',[rfReplaceAll]);
-  Verbose(V_DEBUG,'EscapeSQL : "'+S+'" -> "'+Result+'"');
+//  Result:=StringReplace(S,'\','\\',[rfReplaceAll]);
+  Result:=StringReplace(S,'''','''''',[rfReplaceAll]);
+  Verbose(V_SQL,'EscapeSQL : "'+S+'" -> "'+Result+'"');
 end;
 
 
@@ -337,7 +369,7 @@ begin
     FileName := FileName + '.pp'
   else exit;
 
-  Verbose(V_Debug,'Reading '+FileName);
+  Verbose(V_Debug,'Reading: '+FileName);
   assign(t,FileName);
   {$I-}
    reset(t);

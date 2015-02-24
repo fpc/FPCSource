@@ -21,7 +21,7 @@ program talign2;
 {$ifdef fpc}
 {$ifdef unix}
 uses
-  cwstring;
+  {$ifdef darwin}iosxwstr{$else}cwstring{$endif};
 {$endif}
 {$endif}
 

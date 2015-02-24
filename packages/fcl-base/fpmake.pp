@@ -13,10 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('fcl-base');
+    P.ShortName:='fclb';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Dependencies.Add('univint',[Darwin,iPhoneSim]);
     P.Dependencies.Add('fcl-res');
     p.Dependencies.Add('rtl-objpas');
@@ -24,7 +25,7 @@ begin
     P.Author := '<various>';
     P.License := 'LGPL with modification, ';
     P.Email := '';
-    P.Description := 'Base library of Free Component Libraries(FCL), FPC''s OOP library.';
+    P.Description := 'Base library of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
     P.OSes:=AllOSes-[embedded,msdos];
 

@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.OSes := [freebsd,linux,win32];
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
@@ -62,7 +62,7 @@ begin
       AddInclude('xmlschemas.inc');
       AddInclude('hash.inc');
       AddInclude('nanohttp.inc');
-      AddInclude('parser.inc');
+      AddInclude('libxmlparser.inc');
       AddInclude('tree.inc');
       AddInclude('dict.inc');
       AddInclude('xlink.inc');

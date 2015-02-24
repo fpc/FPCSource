@@ -22,7 +22,7 @@ interface
 
 type
   TMachineType = (mtnone, mti386,mtx86_64,mtppc,mtppc64,mtarm,mtarmeb,mtm68k,
-                  mtsparc,mtalpha,mtia64,mtmips,mtmipsel,
+                  mtsparc,mtalpha,mtia64,mtmips,mtmipsel,mtaarch64,
                   mtBigEndian,mtLittleEndian);
   TMachineTypes = set of TMachineType;
 
@@ -34,7 +34,7 @@ type
       mtarm,mtarmeb:
         (subarm: TSubMachineTypeArm);
       mtnone, mti386,mtx86_64,mtppc,mtppc64,mtm68k,
-      mtsparc,mtalpha,mtia64,mtmips,mtmipsel,
+      mtsparc,mtalpha,mtia64,mtmips,mtmipsel,mtaarch64,
       mtBigEndian,mtLittleEndian:
         (subgen: TSubMachineTypeGeneric);
   end;
@@ -74,7 +74,7 @@ var
     (name : 'i386';         formats : [ofElf, ofCoff, ofMachO]),  //mti386
     (name : 'x86_64';       formats : [ofElf, ofCoff, ofMachO]),  //mtx86_64
     (name : 'powerpc';      formats : [ofElf, ofXCoff, ofMachO]), //mtppc
-    (name : 'powerpc64';    formats : [ofElf, ofMachO]),          //mtppc64
+    (name : 'powerpc64';    formats : [ofElf, {ofXCoff,} ofMachO]), //mtppc64
     (name : 'arm';          formats : [ofElf, ofCoff, ofMachO]),  //mtarm
     (name : 'armeb';        formats : [ofElf]),                   //mtarmeb
     (name : 'm68k';         formats : [ofElf]),                   //mtm68k
@@ -83,6 +83,7 @@ var
     (name : 'ia64';         formats : [ofElf]),                   //mtia64
     (name : 'mips';         formats : [ofElf]; alias : 'mipseb'), //mtmips
     (name : 'mipsel';       formats : [ofElf]),                   //mtmipsel
+    (name : 'aarch64';      formats : [ofMachO]),                 //mtaarch64
     (name : 'bigendian';    formats : [ofExt]),                   //mtBigEndian
     (name : 'littleendian'; formats : [ofExt])                    //mtLittleEndian
   );
@@ -104,30 +105,26 @@ var
                                                      mtppc,mtppc64]),
     (name : 'xcoff';    ext : '.o';      machines : [mtppc{,mtppc64}]),
     (name : 'mach-o';   ext : '.or';     machines : [mti386,mtx86_64,mtppc,
-                                                     mtppc64,mtarm]),
+                                                     mtppc64,mtarm,mtaarch64]),
     (name : 'external'; ext : '.fpcres'; machines : [mtBigEndian,mtLittleEndian])
   );
 
 
   CurrentTarget : TResTarget =
   (
-  {$IFDEF CPUI386}
+  {$if defined(CPUI386)}
     machine : mti386;
     submachine : (subgen: smtgen_all);
-  {$ELSE}
-  {$IFDEF CPUX86_64}
+  {$elseif defined(CPUX86_64)}
     machine : mtx86_64;
     submachine : (subgen: smtgen_all);
-  {$ELSE}
-  {$IFDEF CPUPOWERPC32}
+  {$elseif defined(CPUPOWERPC32)}
     machine : mtppc;
     submachine : (subgen: smtgen_all);
-  {$ELSE}
-  {$IFDEF CPUPOWERPC64}
+  {$elseif defined(CPUPOWERPC64)}
     machine : mtppc64;
     submachine : (subgen: smtgen_all);
-  {$ELSE}
-  {$IFDEF CPUARM}
+  {$elseif defined(CPUARM)}
     {$IFDEF ENDIAN_LITTLE}
     machine : mtarm;
     submachine : (subarm: smtarm_all);
@@ -135,44 +132,31 @@ var
     machine : mtarmeb;
     submachine : (subarm: smtarm_all);
     {$ENDIF}
-  {$ELSE}
-  {$IFDEF CPU68K}
+  {$elseif defined(CPU68K)}
     machine : mtm68k;
     submachine : (subgen: smtgen_all);
-  {$ELSE}
-  {$IFDEF CPUSPARC}
+  {$elseif defined(CPUSPARC)}
     machine : mtsparc;
     submachine : (subgen: smtgen_all);
-  {$ELSE}
-  {$IFDEF CPUALPHA}
+  {$elseif defined(CPUALPHA)}
     machine : mtalpha;
     submachine : (subgen: smtgen_all);
-  {$ELSE}
-  {$IFDEF CPUIA64}
+  {$elseif defined(CPUIA64)}
     machine : mtia64;
     submachine : (subgen: smtgen_all);
-  {$ELSE}
-  {$IFDEF CPUMIPSEL}
+  {$elseif defined(CPUMIPSEL)}
     machine : mtmipsel;
     submachine : (subgen: smtgen_all);
-  {$ELSE}
-  {$IFDEF CPUMIPS}
+  {$elseif defined(CPUMIPS)}
     machine : mtmips;
     submachine : (subgen: smtgen_all);
-  {$ELSE}
+  {$elseif defined(CPUAARCH64)}
+    machine : mtaarch64;
+    submachine : (subgen: smtgen_all);
+  {$else}
     machine : mti386;  //default i386
     submachine : (subgen: smtgen_all);
-  {$ENDIF}
-  {$ENDIF}
-  {$ENDIF}
-  {$ENDIF}
-  {$ENDIF}
-  {$ENDIF}
-  {$ENDIF}
-  {$ENDIF}
-  {$ENDIF}
-  {$ENDIF}
-  {$ENDIF}
+  {$endif}
 
   {$IFDEF WINDOWS}
     objformat : ofCoff;

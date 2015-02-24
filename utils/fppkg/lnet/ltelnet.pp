@@ -27,7 +27,7 @@ unit lTelnet;
 interface
 
 uses
-  Classes, lNet, lControlStack;
+  Classes, SysUtils, lNet, lControlStack;
   
 const
   // Telnet printer signals
@@ -72,9 +72,11 @@ type
   TLSubcommandCallback= function(command: char; const parameters, defaultResponse: string): string;
   TLSubcommandEntry= record
                        callback: TLSubcommandCallback;
-                       defaultResponse: string
+                       defaultResponse: string;
+                       requiredParams: integer
                      end;
   TLSubcommandArray= array[#$00..#$ff] of TLSubcommandEntry;
+  EInsufficientSubcommandParameters= class(Exception);
 
   { TLTelnet }
 
@@ -117,7 +119,7 @@ type
     procedure StackFull;
     procedure DoubleIAC(var s: string);
     function TelnetParse(const msg: string): Integer;
-    procedure React(const Operation, Command: Char); virtual; abstract;
+    function React(const Operation, Command: Char): boolean; virtual; abstract;
     procedure SendCommand(const Command: Char; const Value: Boolean); virtual; abstract;
 
     procedure OnCs(aSocket: TLSocket);
@@ -136,7 +138,8 @@ type
     procedure SetOption(const Option: Char);
     procedure UnSetOption(const Option: Char);
 
-    function RegisterSubcommand(aOption: char; callback: TLSubcommandCallback; const defaultResponse: string= ''): boolean;
+    function RegisterSubcommand(aOption: char; callback: TLSubcommandCallback;
+                const defaultResponse: string= ''; requiredParams: integer= 0): boolean;
 
     procedure Disconnect(const Forced: Boolean = True); override;
     
@@ -164,7 +167,7 @@ type
     procedure OnRe(aSocket: TLSocket);
     procedure OnCo(aSocket: TLSocket);
 
-    procedure React(const Operation, Command: Char); override;
+    function React(const Operation, Command: Char): boolean; override;
     
     procedure SendCommand(const Command: Char; const Value: Boolean); override;
    public
@@ -190,7 +193,9 @@ function LTelnetSubcommandCallback(command: char; const parameters, defaultRespo
 implementation
 
 uses
-  SysUtils, Math;
+  Math;
+
+const   subcommandEndLength= 2;
 
 var
   zz: Char;
@@ -306,8 +311,10 @@ begin
     begin
       FOutput.WriteByte(Byte(FStack[1]));
       FOutput.WriteByte(Byte(FStack[2]));
-    end else React(FStack[1], FStack[2]);
-  FStack.Clear;
+      FStack.Clear
+    end else
+      if React(FStack[1], FStack[2]) then
+        FStack.Clear
 end;
 
 procedure TLTelnet.DoubleIAC(var s: string);
@@ -394,15 +401,22 @@ end;
 
 (* If already set, the callback can be reverted to nil but it can't be changed  *)
 (* in a single step. The default response, if specified, is used by the         *)
-(* LTelnetSubcommandCallback() function and is available to others.             *)
+(* LTelnetSubcommandCallback() function and is available to others; the         *)
+(* callback will not be invoked until there is at least the indicated number of *)
+(* parameter bytes available.                                                   *)
 //
-function TLTelnet.RegisterSubcommand(aOption: char; callback: TLSubcommandCallback; const defaultResponse: string= ''): boolean;
+function TLTelnet.RegisterSubcommand(aOption: char; callback: TLSubcommandCallback;
+            const defaultResponse: string= ''; requiredParams: integer= 0): boolean;
 
 begin
   result := (not Assigned(FSubcommandCallbacks[aOption].callback)) or (@callback = nil);
   if result then begin
     FSubcommandCallbacks[aOption].callback := callback;
-    FSubcommandCallbacks[aOption].defaultResponse := defaultResponse
+    FSubcommandCallbacks[aOption].defaultResponse := defaultResponse;
+    Inc(requiredParams, subcommandEndLength);
+    if requiredParams < 0 then          (* Assume -subcommandEndLength is a     *)
+      requiredParams := 0;              (* valid parameter.                     *)
+    FSubcommandCallbacks[aOption].requiredParams := requiredParams;
   end
 end { TLTelnet.RegisterSubcommand } ;
 
@@ -464,7 +478,7 @@ begin
     FOnConnect(aSocket);
 end;
 
-procedure TLTelnetClient.React(const Operation, Command: Char);
+function TLTelnetClient.React(const Operation, Command: Char): boolean;
 
   procedure Accept(const Operation, Command: Char);
   begin
@@ -487,17 +501,28 @@ procedure TLTelnetClient.React(const Operation, Command: Char);
   end;
 
 (* Retrieve the parameters from the current instance, and pass them explicitly  *)
-(* to the callback.                                                             *)
+(* to the callback. Return false if there are insufficient parameters on the    *)
+(* stack.                                                                       *)
 //
-  procedure subcommand(command: char);
+  function subcommand(command: char): boolean;
 
   var   parameters, response: string;
         i: integer;
 
   begin
-    if FStack.ItemIndex > 5 then begin
-      SetLength(parameters, FStack.ItemIndex - 5);
-      Move(FStack[3], parameters[1], FStack.ItemIndex - 5);
+    FStack.AllowInflation := true;      (* We might need more than the standard *)
+    if FStack.ItemIndex > 65536 then    (* command, but protect against parse   *)
+      {%H- 6018 } exit(true);           (* failure which could be a DoS attack. *)
+    i := FStack.ItemIndex - TL_CSLENGTH; (* Number of parameter bytes available.*)
+    if i < FSubcommandCallbacks[command].requiredParams then
+      exit(false);                      (* Early insufficient-parameters decision *)
+    result := true;
+    if FStack.ItemIndex > TL_CSLENGTH then begin
+      SetLength(parameters, FStack.ItemIndex - TL_CSLENGTH );
+      Move(FStack[3], parameters[1], FStack.ItemIndex - TL_CSLENGTH );
+      if (Length(parameters) >= 2) and (parameters[Length(parameters)] = TS_IAC) and
+                                (parameters[Length(parameters) - 1] <> TS_IAC) then
+        exit(false);                    (* Special case: need at least one more *)
       i := 1;
       while i <= Length(parameters) - 1 do      (* Undouble IACs                *)
         if (parameters[i] = TS_IAC) and (parameters[i + 1] = TS_IAC) then
@@ -506,13 +531,27 @@ procedure TLTelnetClient.React(const Operation, Command: Char);
           Inc(i)
     end else
       parameters := '';
-    response := FSubcommandCallbacks[command].callback(command, parameters, FSubcommandCallbacks[command].defaultResponse);
+    if Length(parameters) < FSubcommandCallbacks[command].requiredParams then
+      exit(false);                      (* Insufficient params after IAC undouble *)
+    if (FSubcommandCallbacks[command].requiredParams >= subcommandEndLength) and
+                                (Length(parameters) >= subcommandEndLength) then
+      SetLength(parameters, Length(parameters) - subcommandEndLength);
+    try
+      response := FSubcommandCallbacks[command].callback(command, parameters,
+                                FSubcommandCallbacks[command].defaultResponse)
+    except
+      on e: EInsufficientSubcommandParameters do
+        Exit(false)                     (* Late insufficient-parameters decision *)
+      else
+        Raise                           (* Application-specific error           *)
+    end;
     DoubleIAC(response);
     AddToBuffer(TS_IAC + TS_SB + command + response + TS_IAC + TS_SE);
     OnCs(nil)
   end { subcommand } ;
 
 begin
+  result := true;                       (* Stack will normally be cleared       *)
   {$ifdef debug}
   Writeln('**GOT** ', TNames[Operation], ' ', TNames[Command]);
   {$endif}
@@ -529,7 +568,12 @@ begin
     TS_SB   : if not Assigned(FSubcommandCallbacks[command].callback) then
                 refuse(TS_WONT, command)
               else
-                subcommand(command)
+                result := subcommand(command)
+
+(* In the final case above, the stack will not be cleared if sufficient         *)
+(* parameters to keep the subcommand happy have not yet been parsed out of the  *)
+(* message.                                                                     *)
+
   end;
 end;
 
@@ -559,7 +603,7 @@ end;
 
 function TLTelnetClient.Get(out aData; const aSize: Integer; aSocket: TLSocket): Integer;
 begin
-  Result := FOutput.Read(aData, aSize);
+  Result := FOutput.Read(aData {%H- 5058 } , aSize);
   if FOutput.Position = FOutput.Size then
     FOutput.Clear;
 end;

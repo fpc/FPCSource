@@ -40,7 +40,7 @@ interface
 
     { Encode a method's parameters and result type into the format used by the
       run time (for generating protocol and class rtti).  }
-    function objcencodemethod(pd: tprocdef): ansistring;
+    function objcencodemethod(pd: tabstractprocdef): ansistring;
 
     { Exports all assembler symbols related to the obj-c class }
     procedure exportobjcclass(def: tobjectdef);
@@ -138,16 +138,19 @@ end;
                 { in case we are in a category method, we need the metaclass of the
                   superclass class extended by this category (= metaclass of superclass of superclass)
                   for the fragile abi, and the metaclass of the superclass for the non-fragile ABI }
-{$if defined(onlymacosx10_6) or defined(arm) }
+{$if defined(onlymacosx10_6) or defined(arm) or defined(aarch64)}
                 { NOTE: those send2 methods are only available on Mac OS X 10.6 and later!
                     (but also on all iPhone SDK revisions we support) }
                 if (target_info.system in systems_objc_nfabi) then
                   result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(tclassrefdef(def).pointeddef).childof))
                 else
-{$endif onlymacosx10_6 or arm}
+{$endif onlymacosx10_6 or arm aarch64}
                   result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(tclassrefdef(def).pointeddef).childof.childof));
                 tloadvmtaddrnode(result).forcall:=true;
-                result:=objcloadbasefield(result,'ISA');
+                if target_info.system<>system_aarch64_darwin then
+                  result:=objcloadbasefield(result,'ISA')
+                else
+                  result:=cloadvmtaddrnode.create(result);
                 typecheckpass(result);
                 { we're done }
                 exit;
@@ -168,14 +171,14 @@ end;
             tloadvmtaddrnode(result).forcall:=true;
           end;
 
-{$if defined(onlymacosx10_6) or defined(arm) }
+{$if defined(onlymacosx10_6) or defined(arm) or defined(aarch64)}
         { For the non-fragile ABI, the superclass send2 method itself loads the
           superclass. For the fragile ABI, we have to do this ourselves.
 
           NOTE: those send2 methods are only available on Mac OS X 10.6 and later!
             (but also on all iPhone SDK revisions we support) }
         if not(target_info.system in systems_objc_nfabi) then
-{$endif onlymacosx10_6 or arm}
+{$endif onlymacosx10_6 or arm or aarch64}
           result:=objcloadbasefield(result,'SUPERCLASS');
         typecheckpass(result);
       end;
@@ -196,7 +199,7 @@ end;
       end;
 
 
-    function objcencodemethod(pd: tprocdef): ansistring;
+    function objcencodemethod(pd: tabstractprocdef): ansistring;
       var
         parasize,
         totalsize: aint;
@@ -230,7 +233,11 @@ end;
                (vs.varspez in [vs_var,vs_out,vs_constref]) then
               result:=result+'^';
             { Add the parameter type.  }
-            if not objcaddencodedtype(vs.vardef,ris_initial,false,result,founderror) then
+            if (vo_is_parentfp in vs.varoptions) and
+               (po_is_block in pd.procoptions) then
+              { special case: self parameter of block procvars has to be @? }
+              result:=result+'@?'
+            else if not objcaddencodedtype(vs.vardef,ris_initial,false,result,founderror) then
               { should be checked earlier on }
               internalerror(2009081701);
             { And the total size of the parameters coming before this one

@@ -45,10 +45,11 @@ Const
 
 //Forward declarations
 Type
- IEnumVARIANT = interface;
- IFont = interface;
+ // for activex aliases see mantis 25907
+ IEnumVARIANT = ActiveX.IEnumVariant;
+ IFont = ActiveX.IFont;
  Font = dispinterface;
- IPicture = interface;
+ IPicture =  ActiveX.IPicture;
  Picture = dispinterface;
  FontEvents = dispinterface;
 
@@ -93,71 +94,6 @@ Type
 
 //interface declarations
 
-// IEnumVARIANT :
-
- IEnumVARIANT = interface(IUnknown)
-   ['{00020404-0000-0000-C000-000000000046}']
-    // Next :  
-   procedure Next(celt:LongWord;var rgvar:OleVariant;out pceltFetched:LongWord);stdcall;
-    // Skip :  
-   procedure Skip(celt:LongWord);stdcall;
-    // Reset_ :  
-   procedure Reset_;stdcall;
-    // Clone :  
-   procedure Clone(out ppenum:IEnumVARIANT);stdcall;
-  end;
-
-// IFont : Font Object
-
- IFont = interface(IUnknown)
-   ['{BEF6E002-A874-101A-8BBA-00AA00300CAB}']
-   function Get_Name : WideString; stdcall;
-   procedure Set_Name(const pname:WideString); stdcall;
-   function Get_Size : Currency; stdcall;
-   procedure Set_Size(const psize:Currency); stdcall;
-   function Get_Bold : WordBool; stdcall;
-   procedure Set_Bold(const pbold:WordBool); stdcall;
-   function Get_Italic : WordBool; stdcall;
-   procedure Set_Italic(const pitalic:WordBool); stdcall;
-   function Get_Underline : WordBool; stdcall;
-   procedure Set_Underline(const punderline:WordBool); stdcall;
-   function Get_Strikethrough : WordBool; stdcall;
-   procedure Set_Strikethrough(const pstrikethrough:WordBool); stdcall;
-   function Get_Weight : Smallint; stdcall;
-   procedure Set_Weight(const pweight:Smallint); stdcall;
-   function Get_Charset : Smallint; stdcall;
-   procedure Set_Charset(const pcharset:Smallint); stdcall;
-   function Get_hFont : OLE_HANDLE; stdcall;
-    // Clone :  
-   procedure Clone(out ppfont:IFont);stdcall;
-    // IsEqual :  
-   procedure IsEqual(pfontOther:IFont);stdcall;
-    // SetRatio :  
-   procedure SetRatio(cyLogical:Integer;cyHimetric:Integer);stdcall;
-    // AddRefHfont :  
-   procedure AddRefHfont(hFont:OLE_HANDLE);stdcall;
-    // ReleaseHfont :  
-   procedure ReleaseHfont(hFont:OLE_HANDLE);stdcall;
-    // Name :  
-   property Name:WideString read Get_Name write Set_Name;
-    // Size :  
-   property Size:Currency read Get_Size write Set_Size;
-    // Bold :  
-   property Bold:WordBool read Get_Bold write Set_Bold;
-    // Italic :  
-   property Italic:WordBool read Get_Italic write Set_Italic;
-    // Underline :  
-   property Underline:WordBool read Get_Underline write Set_Underline;
-    // Strikethrough :  
-   property Strikethrough:WordBool read Get_Strikethrough write Set_Strikethrough;
-    // Weight :  
-   property Weight:Smallint read Get_Weight write Set_Weight;
-    // Charset :  
-   property Charset:Smallint read Get_Charset write Set_Charset;
-    // hFont :  
-   property hFont:OLE_HANDLE read Get_hFont ;
-  end;
-
 // Font : 
 
  Font = dispinterface
@@ -178,48 +114,6 @@ Type
    property Weight:Smallint  dispid 7;
     // Charset :  
    property Charset:Smallint  dispid 8;
-  end;
-
-// IPicture : Picture Object
-
- IPicture = interface(IUnknown)
-   ['{7BF80980-BF32-101A-8BBB-00AA00300CAB}']
-   function Get_Handle : OLE_HANDLE; stdcall;
-   function Get_hPal : OLE_HANDLE; stdcall;
-   function Get_Type_ : Smallint; stdcall;
-   function Get_Width : OLE_XSIZE_HIMETRIC; stdcall;
-   function Get_Height : OLE_YSIZE_HIMETRIC; stdcall;
-    // Render :  
-   procedure Render(hdc:SYSINT;x:Integer;y:Integer;cx:Integer;cy:Integer;xSrc:OLE_XPOS_HIMETRIC;ySrc:OLE_YPOS_HIMETRIC;cxSrc:OLE_XSIZE_HIMETRIC;cySrc:OLE_YSIZE_HIMETRIC;var prcWBounds:pointer);stdcall;
-   procedure Set_hPal(const phpal:OLE_HANDLE); stdcall;
-   function Get_CurDC : SYSINT; stdcall;
-    // SelectPicture :  
-   procedure SelectPicture(hdcIn:SYSINT;out phdcOut:SYSINT;out phbmpOut:OLE_HANDLE);stdcall;
-   function Get_KeepOriginalFormat : WordBool; stdcall;
-   procedure Set_KeepOriginalFormat(const pfkeep:WordBool); stdcall;
-    // PictureChanged :  
-   procedure PictureChanged;stdcall;
-    // SaveAsFile :  
-   procedure SaveAsFile(var pstm:pointer;fSaveMemCopy:WordBool;out pcbSize:Integer);stdcall;
-   function Get_Attributes : Integer; stdcall;
-    // SetHdc :  
-   procedure SetHdc(hdc:OLE_HANDLE);stdcall;
-    // Handle :  
-   property Handle:OLE_HANDLE read Get_Handle ;
-    // hPal :  
-   property hPal:OLE_HANDLE read Get_hPal write Set_hPal;
-    // Type :  
-   property Type_:Smallint read Get_Type_ ;
-    // Width :  
-   property Width:OLE_XSIZE_HIMETRIC read Get_Width ;
-    // Height :  
-   property Height:OLE_YSIZE_HIMETRIC read Get_Height ;
-    // CurDC :  
-   property CurDC:SYSINT read Get_CurDC ;
-    // KeepOriginalFormat :  
-   property KeepOriginalFormat:WordBool read Get_KeepOriginalFormat write Set_KeepOriginalFormat;
-    // Attributes :  
-   property Attributes:Integer read Get_Attributes ;
   end;
 
 // Picture : 

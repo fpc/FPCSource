@@ -81,7 +81,8 @@ TConfigOpt = (
   coComment,
   coTestSrcDir,
   coRelSrcDir,
-  coVerbose
+  coVerbose,
+  coSQL
  );
 
 { Additional options only for dbdigest.cfg file }
@@ -115,7 +116,8 @@ ConfigStrings : Array [TConfigOpt] of string = (
   'comment',
   'testsrcdir',
   'relsrcdir',
-  'verbose'
+  'verbose',
+  'sql'
 );
 
 ConfigOpts : Array[TConfigOpt] of char =(
@@ -136,7 +138,8 @@ ConfigOpts : Array[TConfigOpt] of char =(
  'C', {  coComment }
  'S', {  coTestSrcDir }
  'r', {  coRelSrcDir }
- 'V'  {  coVerbose }
+ 'V', {  coVerbose }
+ 'Q'  {  coSQL }
 );
 
 ConfigAddStrings : Array [TConfigAddOpt] of string = (
@@ -215,6 +218,7 @@ begin
     coCPU          : TestCPU:=Value;
     coCategory     : TestCategory:=Value;
     coVersion      : TestVersion:=Value;
+    coSQL          : DoSQL:=True;
     coDate         :
       begin
         { Formated like YYYYMMDDhhmm }
@@ -369,7 +373,13 @@ begin
       Verbose(V_ERROR,'Illegal command-line option : '+O)
     else
       begin
-      Found:=(I<ParamCount);
+      if c=coverbose then
+        begin
+          Found:=true;
+          o:='';
+        end
+      else
+        Found:=(I<ParamCount);
       If Not found then
         Verbose(V_ERROR,'Option requires argument : '+O)
       else

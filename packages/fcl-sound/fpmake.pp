@@ -13,10 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('fcl-sound');
+    P.ShortName:='fsnd';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Dependencies.Add('fcl-base');
 
     P.Author := 'Abou Al Montacir of the Free Pascal development team';

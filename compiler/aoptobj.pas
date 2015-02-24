@@ -361,7 +361,7 @@ Unit AoptObj;
 
     function JumpTargetOp(ai: taicpu): poper; inline;
       begin
-{$ifdef MIPS}
+{$if defined(MIPS)}
         { MIPS branches can have 1,2 or 3 operands, target label is the last one. }
         result:=ai.oper[ai.ops-1];
 {$else MIPS}
@@ -1041,6 +1041,9 @@ Unit AoptObj;
         Repeat
           While Assigned(StartPai) And
                 ((StartPai.typ in (SkipInstr - [ait_regAlloc])) Or
+{$if defined(MIPS) or defined(SPARC)}
+                ((startpai.typ=ait_instruction) and (taicpu(startpai).opcode=A_NOP)) or
+{$endif MIPS or SPARC}
                  ((StartPai.typ = ait_label) and
                   Not(Tai_Label(StartPai).labsym.Is_Used))) Do
             StartPai := Tai(StartPai.Next);
@@ -1176,9 +1179,9 @@ Unit AoptObj;
     function IsJumpToLabel(hp: taicpu): boolean;
       begin
         result:=(hp.opcode=aopt_uncondjmp) and
-{$ifdef arm}
+{$if defined(arm) or defined(aarch64)}
           (hp.condition=c_None) and
-{$endif arm}
+{$endif arm or aarch64}
           (JumpTargetOp(hp)^.typ = top_ref) and
           (JumpTargetOp(hp)^.ref^.symbol is TAsmLabel);
       end;
@@ -1257,6 +1260,14 @@ Unit AoptObj;
                     exit;
                   if not GetFinalDestination(taicpu(p1),succ(level)) then
                     exit;
+{$if defined(aarch64)}
+                  { can't have conditional branches to
+                    global labels on AArch64, because the
+                    offset may become too big }
+                  if not(taicpu(hp).condition in [C_None,C_AL,C_NV]) and
+                     (tasmlabel(JumpTargetOp(taicpu(p1))^.ref^.symbol).bind<>AB_LOCAL) then
+                    exit;
+{$endif aarch64}
                   tasmlabel(JumpTargetOp(hp)^.ref^.symbol).decrefs;
                   JumpTargetOp(hp)^.ref^.symbol:=JumpTargetOp(taicpu(p1))^.ref^.symbol;
                   tasmlabel(JumpTargetOp(hp)^.ref^.symbol).increfs;
@@ -1395,9 +1406,15 @@ Unit AoptObj;
                                     FindLabel(tasmlabel(JumpTargetOp(taicpu(p))^.ref^.symbol), hp2) then
                                   begin
                                     if (taicpu(p).opcode=aopt_condjmp)
-  {$ifdef arm}
+  {$if defined(arm) or defined(aarch64)}
                                       and (taicpu(p).condition<>C_None)
-  {$endif arm}
+  {$endif arm or aarch64}
+  {$if defined(aarch64)}
+                                      { can't have conditional branches to
+                                        global labels on AArch64, because the
+                                        offset may become too big }
+                                      and (tasmlabel(JumpTargetOp(taicpu(hp1))^.ref^.symbol).bind=AB_LOCAL)
+  {$endif aarch64}
                                     then
                                       begin
                                         taicpu(p).condition:=inverse_cond(taicpu(p).condition);

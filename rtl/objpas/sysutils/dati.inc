@@ -1380,24 +1380,12 @@ end;
 
 function TryStrToDateTime(const S: ShortString; out Value: TDateTime): Boolean;
   begin
-    result:=true;
-    try
-      value:=StrToDateTime(s);
-    except
-      on EConvertError do
-        result:=false
-    end;
+    result := TryStrToDateTime(S, Value, DefaultFormatSettings);
   end;
 
 function TryStrToDateTime(const S: AnsiString; out Value: TDateTime): Boolean;
   begin
-    result:=true;
-    try
-      value:=StrToDateTime(s);
-    except
-      on EConvertError do
-        result:=false
-    end;
+    result := TryStrToDateTime(S, Value, DefaultFormatSettings);
   end;
 
 function TryStrToDateTime(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;

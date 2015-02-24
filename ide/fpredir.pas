@@ -56,6 +56,7 @@ Var
 procedure InitRedir;
 function ExecuteRedir (Const ProgName, ComLine, RedirStdIn, RedirStdOut, RedirStdErr : String) : boolean;
 procedure DosExecute(ProgName, ComLine : String);
+function MaybeQuoted(const s:string):string;
 
 function  ChangeRedirOut(Const Redir : String; AppendToFile : Boolean) : Boolean;
 procedure RestoreRedirOut;
@@ -788,8 +789,12 @@ end;
 
 
 {............................................................................}
-
   procedure DosExecute(ProgName, ComLine : String);
+{$ifdef HASAMIGA}
+  begin
+    Dos.Exec(ProgName, ComLine);
+  end;
+{$else}
 {$ifdef Windows}
     var
       StoreInherit : BOOL;
@@ -845,6 +850,7 @@ end;
     end;
 {$endif CPU86}
 End;
+{$endif HASAMIGA}
 
 {*****************************************************************************
                                   Initialize

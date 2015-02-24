@@ -264,6 +264,13 @@ function do_isdevice(handle:thandle):boolean;forward;
 {$endif cpumips}
 {$endif not cpumipsel}
 
+{$ifdef cpuaarch64}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i aarch64.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpuaarch64}
 
 {$ifndef SYSPROCDEFINED}
   {$Error Can't determine processor type !}
@@ -352,22 +359,22 @@ End;
 
 Function Swap (X : Longint) : Longint;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
-  Swap:=(X and $ffff) shl 16 + (X shr 16)
+  Swap:=(X shl 16) + (X shr 16);
 End;
 
 Function Swap (X : Cardinal) : Cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
-  Swap:=(X and $ffff) shl 16 + (X shr 16)
+  Swap:=(X shl 16) + (X shr 16);
 End;
 
 Function Swap (X : QWord) : QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
-  Swap:=(X and $ffffffff) shl 32 + (X shr 32);
+  Swap:=(X shl 32) + (X shr 32);
 End;
 
-Function swap (X : Int64) : Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Swap (X : Int64) : Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
-  Swap:=(X and $ffffffff) shl 32 + (X shr 32);
+  Swap:=(X shl 32) + (X shr 32);
 End;
 
 {$ifdef SUPPORT_DOUBLE}
@@ -557,8 +564,6 @@ const
 
 VAR
   mt : tMT19937StateArray;
-
-const
   mti: longint=MT19937N+1; // mti=MT19937N+1 means mt[] is not initialized
 
 { Initializing the array with a seed }
@@ -973,8 +978,6 @@ Begin
      exitProc:=nil;
      current_exit();
    End;
-  { Finalize units }
-  FinalizeUnits;
 
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
   { the embedded system unit itself contains no routines for console i/o
@@ -994,6 +997,9 @@ Begin
   SysFlushStdIO;
 {$endif EMBEDDED}
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
+
+  { Finalize units }
+  FinalizeUnits;
 
 {$if defined(MSWINDOWS) or defined(OS2)}
   { finally release the heap if possible, especially
@@ -1067,6 +1073,7 @@ begin
 end;
 
 
+{$ifndef FPC_SYSTEM_HAS_CAPTUREBACKTRACE}
 function CaptureBacktrace(skipframes,count:sizeint;frames:PCodePointer):sizeint;
 var
   curr_frame,prev_frame: pointer;
@@ -1081,20 +1088,21 @@ begin
   while (i<count) and (curr_frame>prev_frame) and
      (curr_frame<StackTop) do
     begin
-      prev_frame:=curr_frame;
-      get_caller_stackinfo(curr_frame,curr_addr);
       if (curr_addr=nil) or
          (curr_frame=nil) then
         break;
       if (i>=0) then
         frames[i]:=curr_addr;
       inc(i);
+      prev_frame:=curr_frame;
+      get_caller_stackinfo(curr_frame,curr_addr);
     end;
   if i<0 then
     result:=0
   else
     result:=i;
 end;
+{$endif FPC_SYSTEM_HAS_CAPTUREBACKTRACE}
 
 
 Procedure HandleErrorAddrFrame (Errno : longint;addr : CodePointer; frame : Pointer);[public,alias:'FPC_BREAK_ERROR']; {$ifdef CPUI386} register; {$endif}
@@ -1208,6 +1216,28 @@ Begin
    end;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
 End;
+
+
+procedure dump_stack(var f: text; skipframes: longint);
+var
+  i,count: longint;
+  frames: array [0..255] of codepointer;
+begin
+  if do_isdevice(textrec(f).handle) then
+    count:=max_frame_dump
+  else
+    count:=255;
+{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
+  try
+{$endif FPC_HAS_FEATURE_EXCEPTIONS}
+    count:=CaptureBacktrace(skipframes+1,count,@frames[0]);
+    for i:=0 to count-1 do
+      writeln(f,BackTraceStrFunc(frames[i]));
+{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
+  except
+  end;
+{$endif FPC_HAS_FEATURE_EXCEPTIONS}
+end;
 
 
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
@@ -1458,8 +1488,25 @@ end;
 
 
 {*****************************************************************************
+                          Dynamic library support
+*****************************************************************************}
+
+
+{$ifdef FPC_HAS_FEATURE_DYNLIBS}
+{$i dynlib.inc}
+
+{$ifdef DISABLE_NO_DYNLIBS_MANAGER}
+{ OS Dependant implementation }
+{$i sysdl.inc}
+{$endif DISABLE_NO_DYNLIBS_MANAGER}
+{$endif FPC_HAS_FEATURE_DYNLIBS}
+
+
+{*****************************************************************************
                             File Handling
 *****************************************************************************}
+
+
 
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
@@ -1519,6 +1566,7 @@ begin
 end;
 
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 procedure DoDirSeparators(var ps:RawByteString);
 var
   i : longint;
@@ -1538,7 +1586,10 @@ begin
         p[i-1]:=DirectorySeparator;
       end;
 end;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
+
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
 procedure DoDirSeparators(var ps:UnicodeString);
 var
   i : longint;
@@ -1558,6 +1609,7 @@ begin
         p[i-1]:=DirectorySeparator;
       end;
 end;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
 
 {$endif FPC_HAS_FEATURE_FILEIO}
 
@@ -1642,8 +1694,20 @@ end;
 
 {$endif FPC_HAS_FEATURE_FILEIO}
 
+{ helper for targets supporting no ansistrings, it is used
+  by non-ansistring code }
+function min(v1,v2 : SizeInt) : SizeInt;
+  begin
+    if v1<v2 then
+      result:=v1
+    else
+      result:=v2;
+  end;
+
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
 { Text file }
 {$i text.inc}
+{$endif FPC_HAS_FEATURE_TEXTIO}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 { Untyped file }

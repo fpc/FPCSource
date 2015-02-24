@@ -623,6 +623,9 @@ type
     procedure SetNameValueSeparator(c:Char);
     procedure WriteData(Writer: TWriter);
     procedure DoSetTextStr(const Value: string; DoClear : Boolean);
+    Function GetDelimiter : Char;
+    Function GetNameValueSeparator : Char;
+    Function GetQuoteChar: Char;
   protected
     procedure DefineProperties(Filer: TFiler); override;
     procedure Error(const Msg: string; Data: Integer);
@@ -677,11 +680,11 @@ type
     procedure GetNameValue(Index : Integer; Out AName,AValue : String);
     function  ExtractName(Const S:String):String;
     Property TextLineBreakStyle : TTextLineBreakStyle Read GetLBS Write SetLBS;
-    property Delimiter: Char read FDelimiter write SetDelimiter;
+    property Delimiter: Char read GetDelimiter write SetDelimiter;
     property DelimitedText: string read GetDelimitedText write SetDelimitedText;
     Property StrictDelimiter : Boolean Read FStrictDelimiter Write FStrictDelimiter;
-    property QuoteChar: Char read FQuoteChar write SetQuoteChar;
-    Property NameValueSeparator : Char Read FNameValueSeparator Write SetNameValueSeparator;
+    property QuoteChar: Char read GetQuoteChar write SetQuoteChar;
+    Property NameValueSeparator : Char Read GetNameValueSeparator Write SetNameValueSeparator;
     property ValueFromIndex[Index: Integer]: string read GetValueFromIndex write SetValueFromIndex;
     property Capacity: Integer read GetCapacity write SetCapacity;
     property CommaText: string read GetCommaText write SetCommaText;
@@ -1599,16 +1602,15 @@ type
     procedure Queue(aMethod: TThreadMethod);
     property ReturnValue: Integer read FReturnValue write FReturnValue;
     property Terminated: Boolean read FTerminated;
-{$ifdef windows}
+{$if defined(windows) or defined(OS2)}
   private
     FInitialSuspended: boolean;
 {$endif}
 {$ifdef Unix}
   private
     // see tthread.inc, ThreadFunc and TThread.Resume
-    FSem: Pointer;
+    FSuspendEvent: PRTLEvent;
     FInitialSuspended: boolean;
-    FSuspendedExternal: boolean;
     FSuspendedInternal: longbool;
     FThreadReaped: boolean;
 {$endif}
@@ -1619,6 +1621,13 @@ type
     FInitialSuspended: boolean;
     FSuspendedExternal: boolean;
     FPid: LongInt;
+{$endif}
+{$ifdef aros}
+  private
+    // see tthread.inc, ThreadFunc and TThread.Resume
+    FSem: Pointer;
+    FCond: Pointer;
+    FInitialSuspended: boolean;
 {$endif}
   public
     constructor Create(CreateSuspended: Boolean;

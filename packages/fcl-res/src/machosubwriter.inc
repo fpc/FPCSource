@@ -34,7 +34,6 @@ type
     procedure AllocateSpaceForLoadCommands(aStream : TStream); override;
 
     procedure FixLoadCommands(aStream : TStream; aResources : TResources); override;
-    procedure FixResHeader(aStream : TStream); override;
   public
     constructor Create(aParent : TMachOResourceWriter; const aMachineType
       : TMachOMachineType; const aSubMachineType: TMachoSubMachineType;
@@ -323,17 +322,6 @@ begin
 
   aStream.WriteBuffer(ldcommand,sizeof(ldcommand));
   aStream.WriteBuffer(dysymcommand,sizeof(dysymcommand));
-end;
-
-procedure _TMachOSubWriter_.FixResHeader(aStream : TStream);
-var hdr : _TResHdr_;
-begin
-  hdr.handles:=fDataCurOfs;
-  if fOppositeEndianess then
-    hdr.handles:=SwapEndian(hdr.handles);
-  aStream.Seek(sizeof(hdr.rootptr)+sizeof(hdr.count)+sizeof(hdr.usedhandles),
-    soFromCurrent);
-  aStream.WriteBuffer(hdr.handles,sizeof(hdr.handles));
 end;
 
 constructor _TMachOSubWriter_.Create(aParent : TMachOResourceWriter;

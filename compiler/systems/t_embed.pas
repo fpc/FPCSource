@@ -581,6 +581,7 @@ begin
       Add('     . = 0x100000;');
       Add('     .text ALIGN (0x1000) :');
       Add('    {');
+      Add('    _text = .;');
       Add('    KEEP(*(.init, .init.*))');
       Add('    *(.text, .text.*)');
       Add('    *(.strings)');

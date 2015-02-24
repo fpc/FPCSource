@@ -14,6 +14,7 @@ interface
   $mode switch is not effective }
 
 {$I systemh.inc}
+{$I tnyheaph.inc}
 
 const
   LineEnding = #13#10;
@@ -312,7 +313,7 @@ end;
 procedure InitNearHeap;
 begin
   SetMemoryManager(TinyHeapMemoryManager);
-  RegisterTinyHeapBlock(__nearheap_start, ptruint(__nearheap_end) - ptruint(__nearheap_start));
+  RegisterTinyHeapBlock_Simple_Prealigned(__nearheap_start, TPointerArithmeticType(__nearheap_end) - TPointerArithmeticType(__nearheap_start));
 end;
 
 function CheckLFN:boolean;
@@ -382,5 +383,4 @@ begin
    AllFilesMask := '*.*';
 { Reset IO Error }
   InOutRes:=0;
-  initvariantmanager;
 end.

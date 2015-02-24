@@ -314,6 +314,13 @@ unit cgcpu;
         end;
 
       begin
+        { Release PIC register }
+        if (cs_create_pic in current_settings.moduleswitches) and
+           (tf_pic_uses_got in target_info.flags) and
+           (pi_needs_got in current_procinfo.flags) and
+           not(target_info.system in systems_darwin) then
+          list.concat(tai_regalloc.dealloc(NR_PIC_OFFSET_REG,nil));
+
         { MMX needs to call EMMS }
         if assigned(rg[R_MMXREGISTER]) and
            (rg[R_MMXREGISTER].uses_registers) then
@@ -336,7 +343,7 @@ unit cgcpu;
               begin
                 if (not paramanager.use_fixed_stack) then
                   internal_restore_regs(list,not (pi_has_stack_allocs in current_procinfo.flags));
-                list.concat(Taicpu.op_none(A_LEAVE,S_NO));
+                generate_leave(list);
               end;
             list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
           end;

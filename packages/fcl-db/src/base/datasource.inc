@@ -36,7 +36,7 @@ Var
   B : Boolean;
 
 begin
-  B:=Assigned(DataSource) and (DataSource.State<>dsInactive);
+  B:=Assigned(DataSource) and Not (DataSource.State in [dsInactive,dsOpening]);
   If B<>FActive then
     begin
     FActive:=B;
@@ -360,12 +360,12 @@ Procedure TMasterDataLink.ActiveChanged;
 begin
   FFields.Clear;
   if Active then
-  try
-    DataSet.GetFieldList(FFields, FFieldNames);
-  except
-    FFields.Clear;
-    raise;
-  end;
+    try
+      DataSet.GetFieldList(FFields, FFieldNames);
+    except
+      FFields.Clear;
+      raise;
+    end;
   if FDetailDataSet.Active and not (csDestroying in FDetailDataSet.ComponentState) then
     if Active and (FFields.Count > 0) then
       DoMasterChange
@@ -502,8 +502,8 @@ Procedure TMasterParamsDataLink.DoMasterDisable;
 
 begin
   Inherited;
-  If Assigned(DetailDataset) and DetailDataset.Active then
-    DetailDataset.Close;
+  // If master dataset is closing, leave detail dataset intact (Delphi compatible behavior)
+  // If master dataset is reopened, relationship will be reestablished
 end;
 
 Procedure TMasterParamsDataLink.DoMasterChange; 
@@ -667,7 +667,7 @@ begin
     else
       FState:=dsInactive;
     // Don't do events if nothing changed.
-    If FState=FlastState then
+    If FState=FLastState then
       exit;
     end
   else

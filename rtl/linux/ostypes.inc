@@ -75,10 +75,15 @@ TYPE
 { include /include/asm-<cpu>/posix-types.h                       }
 
 const
+{$ifndef cpux86_64}
   _STAT_VER_LINUX_OLD = 1;
   _STAT_VER_KERNEL = 1;
   _STAT_VER_SVR4 = 2;
   _STAT_VER_LINUX = 3;
+{$else}
+  _STAT_VER_KERNEL = 0;
+  _STAT_VER_LINUX = 1;
+{$endif}
   _STAT_VER = _STAT_VER_LINUX;
 
 type

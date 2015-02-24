@@ -749,16 +749,12 @@ implementation
       secondpass(left);
 
       opsize:=tcgsize2unsigned[left.location.size];
-      if opsize < OS_32 then
-        opsize:=OS_32;
-
-      if (left.location.loc <> LOC_REGISTER) or
-         (left.location.size <> opsize) then
+      if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(opsize),true);
 
-      location_reset(location,LOC_REGISTER,opsize);
-      location.register := cg.getintregister(current_asmdata.CurrAsmList,opsize);
-      cg.a_bit_scan_reg_reg(current_asmdata.CurrAsmList,reverse,opsize,left.location.register,location.register);
+      location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+      location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+      cg.a_bit_scan_reg_reg(current_asmdata.CurrAsmList,reverse,opsize,location.size,left.location.register,location.register);
     end;
 
 

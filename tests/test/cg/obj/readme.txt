@@ -44,3 +44,19 @@ Android-mipsel : GCC 4.7
 haiku-i386 : gcc 2.95.3-haiku-100818
 aix-powerpc64 : gcc (GCC) 4.8.1 using "gcc -maix64" for TEST_CCOMPILER
                 on (AIX power-aix 1 7 00F84C0C4C00)
+OS/2 (os2-i386): original EMX port of GCC (GCC 2.8.1) except for tcext6.c which
+      cannot be compiled using version 2.8.1 and thus GCC 3.0.4 was used for
+      compiling it (but FPC doesn't pass this test under OS/2 yet anyway)
+
+Data retieved from .comment or similar section:
+beos-i386 : GCC: (GNU) 2.95v.3-beos-060710
+android-arm-eabi : GCC: (GNU) 4.7.A*
+solaris-sparc : .acomp: WorkShop Compilers 4.2 30 Oct 1996 C 4.2
+linux-arm : GCC: (GNU) 2.95.1 19990816 (release)
+linux-arm-eabi : GCC: (Debian 4.3.2-1) 4.3.2
+linux-powerpc : GCC: (GNU) 2.95.4 20011002 (Debian prerelease)
+linux-powerpc64 : GCC: (GNU) 3.3.3 (SuSE Linux)
+linux-x86_64 : GCC: (GNU) 3.3.5 (Debian 1:3.3.5-8)
+Data retrieved from Dwarf producer information:
+darwin-x86_64 : GNU C 4.0.1 (Apple Inc. build 5465)
+

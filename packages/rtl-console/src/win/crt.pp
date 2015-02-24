@@ -30,6 +30,7 @@ uses
 
 var
     SaveCursorSize: Longint;
+    Win32Platform : Longint; // pulling in sysutils changes exception behaviour
 
 {****************************************************************************
                            Low level Routines
@@ -478,7 +479,36 @@ begin
     ScanCode := #0;
   end;
 end;
+//----Windows 9x Sound Helper ---
+{$ASMMODE INTEL}
+function InPort(PortAddr:word): byte; assembler; stdcall;
+asm
+  mov dx,PortAddr
+  in al,dx
+end;
 
+procedure OutPort(PortAddr: word; Databyte: byte); assembler; stdcall;
+asm
+  mov al,Databyte
+  mov dx,PortAddr
+  out dx,al
+end;
+
+//----Windows 2000/XP Sound Helper ---
+const IOCTL_BEEP_SET={CTL_CODE(FILE_DEVICE_BEEP, 0, METHOD_BUFFERED, FILE_ANY_ACCESS)}1 shl 16;
+type TBeepSetParams=record
+  Frequency:longint;
+  Duration:longint;
+end;
+type TDefineDosDeviceFunction=function (dwFlags:DWORD; lpDeviceName:LPCSTR; lpTargetPath:LPCSTR):WINBOOL; stdcall;
+var defineDosDevice: TDefineDosDeviceFunction = nil;  //not supported on 9x
+    beeperDevice: THandle = INVALID_HANDLE_VALUE;
+{*************************************************************************
+                                   Sound
+*************************************************************************}
+
+var opt: TBeepSetParams;
+    result:longword;
 
 {*************************************************************************
                                    Delay
@@ -492,12 +522,47 @@ end; { proc. Delay }
 
 procedure sound(hz : word);
 begin
-  MessageBeep(0); { lame ;-) }
+  if Win32Platform = VER_PLATFORM_WIN32_NT then begin
+    if beeperDevice = INVALID_HANDLE_VALUE then begin
+      if defineDosDevice = nil then begin
+        defineDosDevice:=TDefineDosDeviceFunction(GetProcAddress(GetModuleHandle('kernel32.dll'),'DefineDosDeviceA'));
+        if defineDosDevice=nil then begin
+          windows.Beep(hz,1000); //fallback
+          exit;
+        end;
+        DefineDosDevice(DDD_RAW_TARGET_PATH,'DosBeep','\Device\Beep');
+      end;
+      beeperDevice:=CreateFile('\\.\DosBeep',0,0,nil,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0);
+      if beeperDevice = INVALID_HANDLE_VALUE then begin
+        windows.Beep(hz,1000); //fallback
+        exit;
+      end;
+    end;
+    opt.Frequency:=hz;
+    opt.Duration:=-1; //very long
+    DeviceIoControl(beeperDevice,IOCTL_BEEP_SET,@opt,sizeof(opt),nil,0,@result,nil);
+  end else begin
+    OutPort($43,182);
+    OutPort($61,InPort($61) or 3);
+    OutPort($42,lo(1193180 div hz));
+    OutPort($42, hi(1193180 div hz));
+  end;
 end;
 
 
 procedure nosound;
+var opt: TBeepSetParams;
+    result:longword;
 begin
+  if Win32Platform = VER_PLATFORM_WIN32_NT then begin
+    if beeperDevice = INVALID_HANDLE_VALUE then exit;
+    opt.Frequency:=0; //stop
+    opt.Duration:=0;
+    DeviceIoControl(beeperDevice,IOCTL_BEEP_SET,@opt,sizeof(opt),nil,0,@result,nil);
+  end else begin
+    OutPort($43,182);
+    OutPort($61,InPort($61) and 3);
+  end;
 end;
 
 
@@ -861,8 +926,20 @@ var
   CursorInfo  : TConsoleCursorInfo;
   ConsoleInfo : TConsoleScreenBufferinfo;
 
-// ts
+procedure LoadVersionInfo;
+Var
+   versioninfo : TOSVERSIONINFO;
 begin
+  versioninfo.dwOSVersionInfoSize:=sizeof(versioninfo);
+  GetVersionEx(versioninfo);
+  Win32Platform:=versionInfo.dwPlatformId;
+end;
+// ts
+
+Initialization
+  LoadVersionInfo;
+
+
   { Initialize the output handles }
   LastMode := 3;
 
@@ -877,6 +954,12 @@ begin
   FillChar(ConsoleInfo, SizeOf(ConsoleInfo), 0);
   GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), ConsoleInfo);
 
+finalization
+  if beeperDevice <> INVALID_HANDLE_VALUE then begin
+    nosound;
+    CloseHandle(beeperDevice);
+    DefineDosDevice(DDD_REMOVE_DEFINITION,'DosBeep','\Device\Beep');
+  end;
   TextAttr := ConsoleInfo.wAttributes;
 
   { Not required, the dos crt does also not touch the mouse }

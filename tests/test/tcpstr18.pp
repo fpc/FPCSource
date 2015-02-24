@@ -8,7 +8,7 @@ program tcpstr17;
 
 {$ifdef unix}
 uses
-  cwstring;
+  {$ifdef darwin}iosxwstr{$else}cwstring{$endif};
 {$endif}
 
 procedure TestRawByte(const Source: RawByteString; cp: word; const reason: integer);

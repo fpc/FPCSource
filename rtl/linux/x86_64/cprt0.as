@@ -104,8 +104,7 @@ main_stub:
         .globl _haltproc
         .type _haltproc,@function
 _haltproc:
-        movq    operatingsystem_result@GOTPCREL(%rip),%rax
-        movzwl  (%rax),%eax
+        movl    %edi,%eax
 
         /* return to libc */
 	movq    ___fpc_ret_rbp@GOTPCREL(%rip),%rcx

@@ -603,6 +603,8 @@ unit nx86add;
         pass_left_right;
 
         cmpop:=false;
+        op:=A_NOP;
+
         mmxbase:=mmx_type(left.resultdef);
         location_reset(location,LOC_MMXREGISTER,def_cgsize(resultdef));
         case nodetype of
@@ -678,6 +680,9 @@ unit nx86add;
           else
             internalerror(2003042214);
         end;
+
+        if op = A_NOP then
+          internalerror(201408201);
 
         { left and right no register?  }
         { then one must be demanded    }

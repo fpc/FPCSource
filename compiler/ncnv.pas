@@ -296,7 +296,7 @@ implementation
       symconst,symdef,symsym,symcpu,symtable,
       ncon,ncal,nset,nadd,nmem,nmat,nbas,nutils,ninl,
       cgbase,procinfo,
-      htypechk,pass_1,cpuinfo;
+      htypechk,blockutl,pass_1,cpuinfo;
 
 
 {*****************************************************************************
@@ -1992,6 +1992,7 @@ implementation
     function ttypeconvnode.typecheck_proc_to_procvar : tnode;
       var
         pd : tabstractprocdef;
+        source: pnode;
       begin
         result:=nil;
         pd:=tabstractprocdef(left.resultdef);
@@ -2002,7 +2003,36 @@ implementation
           real procvartype that we are converting to) }
         if assigned(totypedef) and
            (totypedef.typ=procvardef) then
-          resultdef:=totypedef
+          begin
+            { have to do this in typecheckpass so that it's triggered for
+              typed constant declarations }
+            if po_is_block in tprocvardef(totypedef).procoptions then
+              begin
+                { can only convert from procdef to procvardef, but in the mean
+                  time other type conversions may have been inserted (pointers,
+                  proc2procvar, ...) }
+                source:=actualtargetnode(@left);
+                while (source^.nodetype=typeconvn) and
+                      (ttypeconvnode(source^).convtype=tc_proc_2_procvar) and
+                      (is_void(source^.resultdef) or
+                       (source^.resultdef.typ=procvardef)) do
+                  begin
+                    { won't skip proc2procvar }
+                    source:=actualtargetnode(@ttypeconvnode(source^).left);
+                  end;
+                if (source^.nodetype=loadn) and
+                   (source^.resultdef.typ=procdef) and
+                   not is_nested_pd(tprocdef(source^.resultdef)) and
+                   not is_objcclass(tdef(source^.resultdef.owner.defowner)) then
+                  begin
+                    result:=generate_block_for_procaddr(tloadnode(source^));
+                    exit;
+                  end
+                else
+                  CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
+              end;
+            resultdef:=totypedef;
+          end
         else
          begin
            resultdef:=pd.getcopyas(procvardef,pc_normal);
@@ -2241,7 +2271,9 @@ implementation
                        the procvar, is compatible with the procvar's type }
                      if not(nf_explicit in flags) and
                         (proc_to_procvar_equal(currprocdef,tprocvardef(resultdef),false)=te_incompatible) then
-                       IncompatibleTypes(left.resultdef,resultdef);
+                       IncompatibleTypes(left.resultdef,resultdef)
+                     else
+                       result:=typecheck_call_helper(convtype);
                      exit;
                    end
                   else if maybe_global_proc_to_nested(left,resultdef) then
@@ -2361,6 +2393,10 @@ implementation
                                   (left.resultdef.typ=objectdef))) or
 {$endif}
                                 (
+                                 is_void(left.resultdef)  and
+                                 (left.nodetype=derefn)
+                                ) or
+                                (
                                  not(is_open_array(left.resultdef)) and
                                  not(is_array_constructor(left.resultdef)) and
                                  not(is_array_of_const(left.resultdef)) and
@@ -2374,10 +2410,6 @@ implementation
                                    { the softfloat code generates casts <const. float> to record }
                                    (nf_internal in flags)
                                  ))
-                                ) or
-                                (
-                                 is_void(left.resultdef)  and
-                                 (left.nodetype=derefn)
                                 )
                                ) then
                            CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename)
@@ -2560,6 +2592,27 @@ implementation
       end;
 {$endif not CPUNO32BITOPS}
 
+    procedure swap_const_value (var val : TConstExprInt; size : longint);
+      begin
+        case size of
+          1 : {do nothing };
+          2 : if val.signed then
+                val.svalue:=swapendian(smallint(val.svalue))
+              else
+                val.uvalue:=swapendian(word(val.uvalue));
+          4 : if val.signed then
+                val.svalue:=swapendian(longint(val.svalue))
+              else
+                val.uvalue:=swapendian(qword(val.uvalue));
+          8 : if val.signed then
+                val.svalue:=swapendian(int64(val.svalue))
+              else
+                val.uvalue:=swapendian(qword(val.uvalue));
+	  else
+            internalerror(2014111201);
+        end;
+      end;
+
     function ttypeconvnode.simplify(forinline : boolean): tnode;
       var
         hp: tnode;
@@ -2675,7 +2728,7 @@ implementation
                       not(convtype=tc_char_2_char) then
                 begin
                    { replace the resultdef and recheck the range }
-                   if ([nf_explicit,nf_internal] * flags <> []) then
+                   if ([nf_explicit,nf_absolute, nf_internal] * flags <> []) then
                      include(left.flags, nf_explicit)
                    else
                      { no longer an ordconst with an explicit typecast }
@@ -2694,7 +2747,16 @@ implementation
                          tordconstnode(left).value:=-ord(tordconstnode(left).value<>0);
                      end
                    else
-                     testrange(resultdef,tordconstnode(left).value,(nf_explicit in flags),false);
+                     begin
+                       { for constant values on absolute variables, swaping is required }
+                       if (target_info.endian = endian_big) and (nf_absolute in flags) then
+                         swap_const_value(tordconstnode(left).value,tordconstnode(left).resultdef.size);
+                       testrange(resultdef,tordconstnode(left).value,(nf_explicit in flags)
+                                 or (nf_absolute in flags),false);
+                       { swap value back, but according to new type }
+                       if (target_info.endian = endian_big) and (nf_absolute in flags) then
+                         swap_const_value(tordconstnode(left).value,resultdef.size);
+                     end;
                    left.resultdef:=resultdef;
                    tordconstnode(left).typedef:=resultdef;
                    if is_signed(resultdef) then
@@ -4009,8 +4071,13 @@ implementation
         result:=nil;
         { Passing a class type to an "as" expression cannot result in a class
           of that type to be constructed.
+
+          We could put this inside the if-block below, but this way it is
+          safe for sure even if the code below changes
         }
-        include(right.flags,nf_ignore_for_wpo);
+        if assigned(right) then
+          include(right.flags,nf_ignore_for_wpo);
+
         if not assigned(call) then
           begin
             if is_class(left.resultdef) and

@@ -16,7 +16,7 @@ packages_iphonesim=x11
 
 [package]
 name=cairo
-version=2.7.1
+version=3.1.1
 
 [target]
 units=cairo cairoft

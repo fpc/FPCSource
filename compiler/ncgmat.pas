@@ -50,6 +50,7 @@ interface
 {$endif not cpu64bitalu}
          procedure second_integer;virtual;
          procedure second_float;virtual;
+         procedure second_float_emulated;virtual;
       public
          procedure pass_generate_code;override;
       end;
@@ -206,6 +207,23 @@ implementation
       end;
 {$endif not cpu64bitalu}
 
+
+    procedure tcgunaryminusnode.second_float_emulated;
+      begin
+        secondpass(left);
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+        location:=left.location;
+        case location.size of
+          OS_32:
+            cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,tcgint($80000000),location.register);
+          OS_64:
+            cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,tcgint($80000000),location.registerhi);
+        else
+          internalerror(2014033101);
+        end;
+      end;
+
+
     procedure tcgunaryminusnode.second_float;
       begin
         secondpass(left);
@@ -282,7 +300,12 @@ implementation
          else
 {$endif SUPPORT_MMX}
            if (left.resultdef.typ=floatdef) then
-             second_float
+             begin
+               if (cs_fp_emulation in current_settings.moduleswitches) then
+                 second_float_emulated
+               else
+                 second_float;
+             end
          else
            second_integer;
       end;
@@ -434,9 +457,9 @@ implementation
     procedure tcgshlshrnode.second_integer;
       var
          op : topcg;
-         opdef,right_opdef : tdef;
+         opdef: tdef;
          hcountreg : tregister;
-         opsize,right_opsize : tcgsize;
+         opsize : tcgsize;
          shiftval : longint;
       begin
          { determine operator }
@@ -449,44 +472,51 @@ implementation
 {$ifdef cpunodefaultint}
         opsize:=left.location.size;
         opdef:=left.resultdef;
-        right_opsize:=opsize;
-        right_opdef:=opdef;
 {$else cpunodefaultint}
-         { load left operators in a register }
-         if is_signed(left.resultdef) then
-           begin
-             right_opsize:=OS_SINT;
-             right_opdef:=ossinttype;
-             {$ifdef cpu16bitalu}
-               if left.resultdef.size > 2 then
-                 begin
-                   opsize:=OS_S32;
-                   opdef:=s32inttype;
-                 end
-               else
-             {$endif cpu16bitalu}
-                 begin
-                   opsize:=OS_SINT;
-                   opdef:=ossinttype
-                 end;
-           end
-         else
-           begin
-             right_opsize:=OS_INT;
-             right_opdef:=osuinttype;
-             {$ifdef cpu16bitalu}
-               if left.resultdef.size > 2 then
-                 begin
-                   opsize:=OS_32;
-                   opdef:=u32inttype;
-                 end
-               else
-             {$endif cpu16bitalu}
-                 begin
-                   opsize:=OS_INT;
-                   opdef:=osuinttype;
-                 end;
-             end;
+        if left.resultdef.size<=4 then
+          begin
+            if is_signed(left.resultdef) then
+              begin
+                if (sizeof(aint)<4) and
+                   (left.resultdef.size<=sizeof(aint)) then
+                  begin
+                    opsize:=OS_SINT;
+                    opdef:=sinttype;
+                  end
+                else
+                  begin
+                    opdef:=s32inttype;
+                    opsize:=OS_S32
+                  end
+              end
+            else
+              begin
+                if (sizeof(aint)<4) and
+                   (left.resultdef.size<=sizeof(aint)) then
+                  begin
+                    opsize:=OS_INT;
+                    opdef:=uinttype;
+                  end
+                else
+                  begin
+                    opdef:=u32inttype;
+                    opsize:=OS_32;
+                  end
+              end
+          end
+        else
+          begin
+            if is_signed(left.resultdef) then
+              begin
+                opdef:=s64inttype;
+                opsize:=OS_S64;
+              end
+            else
+              begin
+                opdef:=u64inttype;
+                opsize:=OS_64;
+              end;
+          end;
 {$endif cpunodefaultint}
 
          if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
@@ -515,14 +545,8 @@ implementation
                 is done since most target cpu which will use this
                 node do not support a shift count in a mem. location (cec)
               }
-              if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
-                begin
-                  hcountreg:=hlcg.getintregister(current_asmdata.CurrAsmList,right_opdef);
-                  hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,right_opdef,right.location,hcountreg);
-                end
-              else
-                hcountreg:=right.location.register;
-              hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,opdef,hcountreg,left.location.register,location.register);
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,opdef,true);
+              hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,opdef,right.location.register,left.location.register,location.register);
            end;
          { shl/shr nodes return the same type as left, which can be different
            from opdef }
