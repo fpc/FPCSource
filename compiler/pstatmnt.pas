@@ -1045,6 +1045,7 @@ implementation
         reg     : tregister;
         asmreader : tbaseasmreader;
         entrypos : tfileposinfo;
+        hl : TAsmList;
       begin
          Inside_asm_statement:=true;
          asmstat:=nil;
@@ -1052,7 +1053,14 @@ implementation
            begin
              asmreader:=asmmodeinfos[current_settings.asmmode]^.casmreader.create;
              entrypos:=current_filepos;
-             asmstat:=casmnode.create(asmreader.assemble as TAsmList);
+             hl:=asmreader.assemble as TAsmList;
+             if (not hl.empty) then
+               begin
+                 { mark boundaries of assembler block, this is necessary for optimizer }
+                 hl.insert(tai_marker.create(mark_asmblockstart));
+                 hl.concat(tai_marker.create(mark_asmblockend));
+               end;
+             asmstat:=casmnode.create(hl);
              asmstat.fileinfo:=entrypos;
              asmreader.free;
            end
@@ -1068,11 +1076,6 @@ implementation
          { END is read, got a list of changed registers? }
          if try_to_consume(_LECKKLAMMER) then
            begin
-{$ifdef cpunofpu}
-             asmstat.used_regs_fpu:=[0..first_int_imreg-1];
-{$else cpunofpu}
-             asmstat.used_regs_fpu:=[0..first_fpu_imreg-1];
-{$endif cpunofpu}
              if token<>_RECKKLAMMER then
               begin
                 if po_assembler in current_procinfo.procdef.procoptions then
@@ -1082,8 +1085,12 @@ implementation
                   reg:=std_regnum_search(lower(cstringpattern));
                   if reg<>NR_NO then
                     begin
-                      if (getregtype(reg)=R_INTREGISTER) and not(po_assembler in current_procinfo.procdef.procoptions) then
-                        include(asmstat.used_regs_int,getsupreg(reg));
+                      if not(po_assembler in current_procinfo.procdef.procoptions) then
+                        begin
+                          hl.Insert(tai_regalloc.alloc(reg,nil));
+                          hl.Insert(tai_regalloc.markused(reg));
+                          hl.Concat(tai_regalloc.dealloc(reg,nil));
+                        end;
                     end
                   else
                     Message(asmr_e_invalid_register);
@@ -1091,24 +1098,11 @@ implementation
                   if not try_to_consume(_COMMA) then
                     break;
                 until false;
+                asmstat.has_registerlist:=true;
               end;
              consume(_RECKKLAMMER);
-           end
-         else
-           begin
-              asmstat.used_regs_int:=paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption);
-              asmstat.used_regs_fpu:=paramanager.get_volatile_registers_fpu(current_procinfo.procdef.proccalloption);
            end;
 
-         { mark the start and the end of the assembler block
-           this is needed for the optimizer }
-         If Assigned(AsmStat.p_asm) Then
-           Begin
-             Marker := Tai_Marker.Create(mark_AsmBlockStart);
-             AsmStat.p_asm.Insert(Marker);
-             Marker := Tai_Marker.Create(mark_AsmBlockEnd);
-             AsmStat.p_asm.Concat(Marker);
-           End;
          Inside_asm_statement:=false;
          _asm_statement:=asmstat;
       end;
