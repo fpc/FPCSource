@@ -1,7 +1,8 @@
 {
     Copyright (c) 1998-2012 by Florian Klaempfl and Peter Vreman
+    Copyright (c) 2014 by Jonas Maebe and Florian Klaempfl
 
-    Contains the base types for ARM64
+    Contains the base types for Aarch64
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -68,14 +69,22 @@ unit cpubase;
       { Available Superregisters }
       {$i ra64sup.inc}
 
+      RS_IP0 = RS_X16;
+      RS_IP1 = RS_X17;
+
       R_SUBWHOLE = R_SUBQ;
 
       { Available Registers }
       {$i ra64con.inc}
 
+      NR_IP0 = NR_X16;
+      NR_IP1 = NR_X17;
+
       { Integer Super registers first and last }
       first_int_supreg = RS_X0;
-      first_int_imreg = $20;
+      { xzr and sp take up a separate super register because some instructions
+        are ambiguous otherwise }
+      first_int_imreg = $21;
 
       { Integer Super registers first and last }
       first_fpu_supreg = RS_S0;
@@ -92,7 +101,7 @@ unit cpubase;
         The value of this constant is equal to the constant
         PARM_BOUNDARY / BITS_PER_UNIT in the GCC source.
       }
-      std_param_align = 4;
+      std_param_align = 8;
 
       { TODO: Calculate bsstart}
       regnumber_count_bsstart = 128;
@@ -109,7 +118,7 @@ unit cpubase;
         {$i ra64dwa.inc}
       );
       { registers which may be destroyed by calls }
-      VOLATILE_INTREGISTERS = [RS_X0..RS_X18,RS_X29..RS_X30];
+      VOLATILE_INTREGISTERS = [RS_X0..RS_X18,RS_X30];
       VOLATILE_MMREGISTERS =  [RS_D0..RS_D7,RS_D16..RS_D31];
 
     type
@@ -126,16 +135,23 @@ unit cpubase;
       TOpPostfix = (PF_None,
         { update condition flags }
         PF_S,
-        { load/store }
-        PF_B,PF_SB,PF_H,PF_SH
+        { load/store sizes }
+        PF_B,PF_SB,PF_H,PF_SH,PF_W,PF_SW
       );
 
       TOpPostfixes = set of TOpPostfix;
 
     const
-      oppostfix2str : array[TOpPostfix] of string[2] = ('',
+      tcgsizep2size: array[OS_NO..OS_F128] of byte =
+        {OS_NO }
+        (0,
+        {OS_8,OS_16,OS_32,OS_64,OS_128,OS_S8,OS_S16,OS_S32,OS_S64,OS_S128}
+            0,    1,    2,    3,     4,    0,     1,     2,     3,      4,
+        {OS_F32,OS_F64,OS_F80,OS_C64,OS_F128,}
+             2,      3,     0,     3,      4);
+      oppostfix2str: array[TOpPostfix] of string[2] = ('',
         's',
-        'b','sb','h','sh');
+        'b','sb','h','sh','w','sw');
 
 {*****************************************************************************
                                 Conditions
@@ -150,13 +166,15 @@ unit cpubase;
       TAsmConds = set of TAsmCond;
 
     const
+      C_CS = C_HS;
+      C_CC = C_LO;
       cond2str : array[TAsmCond] of string[2]=('',
         'eq','ne','hs','lo','mi','pl','vs','vc','hi','ls',
         'ge','lt','gt','le','al','nv'
       );
 
       uppercond2str : array[TAsmCond] of string[2]=('',
-        'EQ','NE','hs','LO','MI','PL','VS','VC','HI','LS',
+        'EQ','NE','HS','LO','MI','PL','VS','VC','HI','LS',
         'GE','LT','GT','LE','AL','NV'
       );
 
@@ -168,12 +186,28 @@ unit cpubase;
       TResFlags = (F_EQ,F_NE,F_CS,F_CC,F_MI,F_PL,F_VS,F_VC,F_HI,F_LS,
         F_GE,F_LT,F_GT,F_LE);
 
+    const
+      F_HS = F_CS;
+      F_LO = F_CC;
+
 {*****************************************************************************
                                 Operands
 *****************************************************************************}
 
+    type
       taddressmode = (AM_OFFSET,AM_PREINDEXED,AM_POSTINDEXED);
-      tshiftmode = (SM_None,SM_LSL,SM_LSR,SM_ASR,SM_ROR);
+
+      tshiftmode = (SM_None,
+                    { shifted register instructions. LSL can also be used for
+                      the index register of certain loads/stores }
+                    SM_LSL,SM_LSR,SM_ASR,
+                    { extended register instructions: zero/sign extension +
+                        optional shift (interpreted as LSL after extension)
+                       -- the index register of certain loads/stores can be
+                          extended via (s|u)xtw with a shiftval of either 0 or
+                          log2(transfer size of the load/store)
+                    }
+                    SM_UXTB,SM_UXTH,SM_UXTW,SM_UXTX,SM_SXTB,SM_SXTH,SM_SXTW,SM_SXTX);
 
       tupdatereg = (UR_None,UR_Update);
 
@@ -183,12 +217,6 @@ unit cpubase;
         shiftmode : tshiftmode;
         shiftimm : byte;
       end;
-
-      tcpumodeflag = (mfA, mfI, mfF);
-      tcpumodeflags = set of tcpumodeflag;
-
-      tspecialregflag = (srC, srX, srS, srF);
-      tspecialregflags = set of tspecialregflag;
 
 {*****************************************************************************
                                  Constants
@@ -200,6 +228,10 @@ unit cpubase;
       maxintregs = 32;
       maxfpuregs = 32;
       maxaddrregs = 0;
+
+      shiftedregmodes = [SM_LSL,SM_UXTB,SM_UXTH,SM_UXTW,SM_UXTX,SM_SXTB,SM_SXTH,SM_SXTW,SM_SXTX];
+      extendedregmodes = [SM_LSL,SM_LSR,SM_ASR];
+
 
 {*****************************************************************************
                                 Operand Sizes
@@ -232,17 +264,23 @@ unit cpubase;
                           Generic Register names
 *****************************************************************************}
 
-      NR_SP = NR_XZR;
-      RS_SP = RS_XZR;
-      NR_WSP = NR_WZR;
-      RS_WSP = RS_WZR;
+
+      NR_FP = NR_X29;
+      RS_FP = RS_X29;
+      NR_WFP = NR_W29;
+      RS_WFP = RS_W29;
+
+      NR_LR = NR_X30;
+      RS_LR = RS_X30;
+      NR_WLR = NR_W30;
+      RS_WLR = RS_W30;
 
       { Stack pointer register }
       NR_STACK_POINTER_REG = NR_SP;
       RS_STACK_POINTER_REG = RS_SP;
-      { Frame pointer register (initialized in tarmprocinfo.init_framepointer) }
-      RS_FRAME_POINTER_REG: tsuperregister = RS_X29;
-      NR_FRAME_POINTER_REG: tregister = NR_X29;
+      { Frame pointer register }
+      NR_FRAME_POINTER_REG = NR_X29;
+      RS_FRAME_POINTER_REG = RS_X29;
       { Register for addressing absolute data in a position independant way,
         such as in PIC code. The exact meaning is ABI specific. For
         further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
@@ -307,6 +345,9 @@ unit cpubase;
 
     function dwarf_reg(r:tregister):shortint;
 
+    function is_shifter_const(d: aint; size: tcgsize): boolean;
+
+
   implementation
 
     uses
@@ -329,13 +370,24 @@ unit cpubase;
     function cgsize2subreg(regtype: tregistertype; s:Tcgsize):Tsubregister;
       begin
         case regtype of
+          R_INTREGISTER:
+            begin
+              case s of
+                { there's only Wn and Xn }
+                OS_64,
+                OS_S64:
+                  cgsize2subreg:=R_SUBWHOLE;
+                else
+                  cgsize2subreg:=R_SUBD;
+                end;
+            end;
           R_MMREGISTER:
             begin
               case s of
                 OS_F32:
-                  cgsize2subreg:=R_SUBFS;
+                  cgsize2subreg:=R_SUBMMS;
                 OS_F64:
-                  cgsize2subreg:=R_SUBFD;
+                  cgsize2subreg:=R_SUBMMD;
                 else
                   internalerror(2009112701);
               end;
@@ -349,18 +401,22 @@ unit cpubase;
     function reg_cgsize(const reg: tregister): tcgsize;
       begin
         case getregtype(reg) of
-          R_INTREGISTER :
-            reg_cgsize:=OS_32;
-          R_FPUREGISTER :
-            reg_cgsize:=OS_F80;
+          R_INTREGISTER:
+            case getsubreg(reg) of
+              R_SUBD:
+                result:=OS_32
+              else
+                result:=OS_64;
+            end;
           R_MMREGISTER :
             begin
               case getsubreg(reg) of
-                R_SUBFD,
-                R_SUBWHOLE:
+                R_SUBMMD:
                   result:=OS_F64;
-                R_SUBFS:
+                R_SUBMMS:
                   result:=OS_F32;
+                R_SUBMMWHOLE:
+                  result:=OS_M128;
                 else
                   internalerror(2009112903);
               end;
@@ -373,9 +429,7 @@ unit cpubase;
 
     function is_calljmp(o:tasmop):boolean;{$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
-        { This isn't 100% perfect because the arm allows jumps also by writing to PC=R15.
-          To overcome this problem we simply forbid that FPC generates jumps by loading R15 }
-        is_calljmp:= o in [A_B,A_BLR,A_RET];
+        is_calljmp:=o in [A_B,A_BL,A_BLR,A_RET,A_CBNZ,A_CBZ];
       end;
 
 
@@ -391,8 +445,8 @@ unit cpubase;
 
     function flags_to_cond(const f: TResFlags) : TAsmCond;
       const
-        flag_2_cond: array[F_EQ..F_LE] of TAsmCond =
-          (C_EQ,C_NE,C_HI,C_LO,C_MI,C_PL,C_VS,C_VC,C_HI,C_LS,
+        flag_2_cond: array[TResFlags] of TAsmCond =
+          (C_EQ,C_NE,C_HS,C_LO,C_MI,C_PL,C_VS,C_VC,C_HI,C_LS,
            C_GE,C_LT,C_GT,C_LE);
       begin
         if f>high(flag_2_cond) then
@@ -434,7 +488,7 @@ unit cpubase;
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       const
         inverse: array[TAsmCond] of TAsmCond=(C_None,
-          C_NE,C_EQ,C_LO,C_HI,C_PL,C_MI,C_VC,C_VS,C_LS,C_HI,
+          C_NE,C_EQ,C_LO,C_HS,C_PL,C_MI,C_VC,C_VS,C_LS,C_HI,
           C_LT,C_GE,C_LE,C_GT,C_None,C_None
         );
       begin
@@ -455,5 +509,113 @@ unit cpubase;
           internalerror(200603251);
       end;
 
+
+    function is_shifter_const(d: aint; size: tcgsize): boolean;
+      var
+         pattern, checkpattern: qword;
+         patternlen, maxbits, replicatedlen: longint;
+         rightmostone, rightmostzero, checkbit, secondrightmostbit: longint;
+      begin
+        result:=false;
+        { patterns with all bits 0 or 1 cannot be represented this way }
+        if (d=0) then
+          exit;
+        case size of
+          OS_64,
+          OS_S64:
+            begin
+              if d=-1 then
+                exit;
+              maxbits:=64;
+            end
+          else
+            begin
+              if longint(d)=-1 then
+                exit;
+              { we'll generate a 32 bit pattern -> ignore upper sign bits in
+                case of negative longint value }
+              d:=cardinal(d);
+              maxbits:=32;
+            end;
+        end;
+        { "The Logical (immediate) instructions accept a bitmask immediate value
+          that is a 32-bit pattern or a 64-bit pattern viewed as a vector of
+          identical elements of size e = 2, 4, 8, 16, 32 or, 64 bits. Each
+          element contains the same sub-pattern, that is a single run of
+          1 to (e - 1) nonzero bits from bit 0 followed by zero bits, then
+          rotated by 0 to (e - 1) bits." (ARMv8 ARM)
+
+          Rather than generating all possible patterns and checking whether they
+          match our constant, we check whether the lowest 2/4/8/... bits are
+          a valid pattern, and if so whether the constant consists of a
+          replication of this pattern. Such a valid pattern has the form of
+          either (regexp notation)
+            * 1+0+1*
+            * 0+1+0* }
+        patternlen:=2;
+        while patternlen<=maxbits do
+          begin
+            { try lowest <patternlen> bits of d as pattern }
+            if patternlen<>64 then
+              pattern:=qword(d) and ((qword(1) shl patternlen)-1)
+            else
+              pattern:=qword(d);
+            { valid pattern? If it contains too many 1<->0 transitions, larger
+              parts of d cannot be a valid pattern either }
+            rightmostone:=BsfQWord(pattern);
+            rightmostzero:=BsfQWord(not(pattern));
+            { pattern all ones or zeroes -> not a valid pattern (but larger ones
+              can still be valid, since we have too few transitions) }
+            if (rightmostone<patternlen) and
+               (rightmostzero<patternlen) then
+              begin
+                if rightmostone>rightmostzero then
+                  begin
+                    { we have .*1*0* -> check next zero position by shifting
+                      out the existing zeroes (shr rightmostone), inverting and
+                      then again looking for the rightmost one position }
+                    checkpattern:=not(pattern);
+                    checkbit:=rightmostone;
+                  end
+                else
+                  begin
+                    { same as above, but for .*0*1* }
+                    checkpattern:=pattern;
+                    checkbit:=rightmostzero;
+                  end;
+                secondrightmostbit:=BsfQWord(checkpattern shr checkbit)+checkbit;
+                { if this position is >= patternlen -> ok (1 transition),
+                  otherwise we now have 2 transitions and have to check for a
+                  third (if there is one, abort)
+
+                  bsf returns 255 if no 1 bit is found, so in that case it's
+                  also ok
+                  }
+                if secondrightmostbit<patternlen then
+                  begin
+                    secondrightmostbit:=BsfQWord(not(checkpattern) shr secondrightmostbit)+secondrightmostbit;
+                    if secondrightmostbit<patternlen then
+                      exit;
+                  end;
+                { ok, this is a valid pattern, now does d consist of a
+                  repetition of this pattern? }
+                replicatedlen:=patternlen;
+                checkpattern:=pattern;
+                while replicatedlen<maxbits do
+                  begin
+                    { douplicate current pattern }
+                    checkpattern:=checkpattern or (checkpattern shl replicatedlen);
+                    replicatedlen:=replicatedlen*2;
+                  end;
+                if qword(d)=checkpattern then
+                  begin
+                    { yes! }
+                    result:=true;
+                    exit;
+                  end;
+              end;
+            patternlen:=patternlen*2;
+          end;
+      end;
 
 end.

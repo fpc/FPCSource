@@ -27,6 +27,7 @@ interface
 
     uses
       globtype,
+      symtype,
       cgbase,cpuinfo,cpubase,
       node,nmem,ncgmem,nx86mem,ni86mem;
 
@@ -45,7 +46,7 @@ interface
        ti8086vecnode = class(tcgvecnode)
         protected
          function first_arraydef: tnode;override;
-         procedure update_reference_reg_mul(maybe_const_reg:tregister;l:aint);override;
+         procedure update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint);override;
        end;
 
 implementation
@@ -53,7 +54,7 @@ implementation
     uses
       systems,globals,constexp,
       cutils,verbose,
-      symbase,symconst,symdef,symtable,symtype,symsym,symx86,symcpu,
+      symbase,symconst,symdef,symtable,symsym,symx86,symcpu,
       parabase,paramgr,
       aasmtai,aasmdata,
       nld,ncon,nadd,ncal,ncnv,
@@ -212,13 +213,13 @@ implementation
       end;
 
 
-    procedure ti8086vecnode.update_reference_reg_mul(maybe_const_reg:tregister;l:aint);
+    procedure ti8086vecnode.update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint);
       var
         saveseg: TRegister;
       begin
         saveseg:=location.reference.segment;
         location.reference.segment:=NR_NO;
-        inherited update_reference_reg_mul(maybe_const_reg,l);
+        inherited;
         location.reference.segment:=saveseg;
       end;
 

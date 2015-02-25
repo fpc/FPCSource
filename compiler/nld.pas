@@ -326,7 +326,7 @@ implementation
                  begin
                    if assigned(left) then
                      internalerror(200309289);
-                   left:=cloadparentfpnode.create(tprocdef(symtable.defowner));
+                   left:=cloadparentfpnode.create(tprocdef(symtable.defowner),lpf_forload);
                    { we can't inline the referenced parent procedure }
                    exclude(tprocdef(symtable.defowner).procoptions,po_inline);
                    { reference in nested procedures, variable needs to be in memory }
@@ -488,7 +488,7 @@ implementation
               begin
                 { parent frame pointer pointer as "self" }
                 left.free;
-                left:=cloadparentfpnode.create(tprocdef(p.owner.defowner));
+                left:=cloadparentfpnode.create(tprocdef(p.owner.defowner),lpf_forpara);
               end;
           end
         { we should never go from nested to non-nested }

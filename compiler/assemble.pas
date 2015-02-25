@@ -83,6 +83,7 @@ interface
         lastsectype : TAsmSectionType;
         procedure WriteSourceLine(hp: tailineinfo);
         procedure WriteTempalloc(hp: tai_tempalloc);
+        Function DoPipe:boolean;
       public
         {# Returns the complete path and executable name of the assembler
            program.
@@ -271,7 +272,7 @@ Implementation
                                  TExternalAssembler
 *****************************************************************************}
 
-    Function DoPipe:boolean;
+    Function TExternalAssembler.DoPipe:boolean;
       begin
         DoPipe:=(cs_asm_pipe in current_settings.globalswitches) and
                 (([cs_asm_extern,cs_asm_leave,cs_link_on_target] * current_settings.globalswitches) = []) and

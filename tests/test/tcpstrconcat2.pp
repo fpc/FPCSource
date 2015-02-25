@@ -1,7 +1,7 @@
 {$APPTYPE CONSOLE}
 uses
 {$ifdef unix}
-  cwstring,
+  {$ifdef darwin}iosxwstr{$else}cwstring{$endif},
 {$endif unix}
   SysUtils;
 

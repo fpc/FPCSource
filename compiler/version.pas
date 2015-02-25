@@ -77,6 +77,9 @@ interface
 {$ifdef cpumipsel}
         source_cpu_string = 'mipsel';
 {$endif cpumipsel}
+{$ifdef cpuaarch64}
+        source_cpu_string = 'aarch64';
+{$endif cpuaarch64}
 
 function version_string:string;
 function full_version_string:string;

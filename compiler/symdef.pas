@@ -2033,12 +2033,12 @@ implementation
               is_intregable:=
                 ispowerof2(recsize,temp) and
                 { sizeof(asizeint)*2 records in int registers is currently broken for endian_big targets }
-                (((recsize <= sizeof(asizeint)*2) and (target_info.endian=endian_little)
+                (((recsize <= sizeof(asizeint)*2) and (target_info.endian=endian_little) and
                  { records cannot go into registers on 16 bit targets for now }
-                  and (sizeof(asizeint)>2)
-                  and not trecorddef(self).contains_float_field) or
-                  (recsize <= sizeof(asizeint)))
-                and not needs_inittable;
+                  (sizeof(asizeint)>2) and
+                  not trecorddef(self).contains_float_field) or
+                  (recsize <= sizeof(asizeint))) and
+                not needs_inittable;
             end;
         end;
      end;
@@ -2800,6 +2800,7 @@ implementation
            sc80real:
              if target_info.system in [system_i386_darwin,
                   system_i386_iphonesim,system_x86_64_darwin,
+                  system_x86_64_iphonesim,
                   system_x86_64_linux,system_x86_64_freebsd,
                   system_x86_64_openbsd,system_x86_64_netbsd,
                   system_x86_64_solaris,system_x86_64_embedded,
@@ -7426,7 +7427,7 @@ implementation
       begin
         if assigned(objc_fastenumeration) then
           exit;
-        if not(target_info.system in [system_arm_darwin,system_i386_iphonesim]) then
+        if not(target_info.system in [system_arm_darwin,system_i386_iphonesim,system_aarch64_darwin,system_x86_64_iphonesim]) then
           cocoaunit:='COCOAALL'
         else
           cocoaunit:='IPHONEALL';
@@ -7454,6 +7455,11 @@ implementation
 {$define use_vectorfpuimplemented}
         use_vectorfpu:=(current_settings.fputype in vfp_scalar);
 {$endif arm}
+{$ifdef aarch64}
+{$define use_vectorfpuimplemented}
+        use_vectorfpu:=true;
+{$endif aarch64}
+
 {$ifndef use_vectorfpuimplemented}
         use_vectorfpu:=false;
 {$endif}

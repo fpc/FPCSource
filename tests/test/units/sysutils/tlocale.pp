@@ -2,7 +2,7 @@
 
 uses
 {$ifdef unix}
-  cwstring,
+  {$ifdef darwin}iosxwstr{$else}cwstring{$endif},
   clocale,
 {$endif}
   SysUtils;

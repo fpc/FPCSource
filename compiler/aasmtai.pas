@@ -221,11 +221,11 @@ interface
 {$ifdef arm}
        { ARM only }
        ,top_regset
-       ,top_conditioncode
        ,top_modeflags
        ,top_specialreg
 {$endif arm}
 {$if defined(arm) or defined(aarch64)}
+       ,top_conditioncode
        ,top_shifterop
 {$endif defined(arm) or defined(aarch64)}
 {$ifdef m68k}
@@ -268,12 +268,12 @@ interface
           top_local  : (localoper:plocaloper);
       {$ifdef arm}
           top_regset : (regset:^tcpuregisterset; regtyp: tregistertype; subreg: tsubregister; usermode: boolean);
-          top_conditioncode : (cc : TAsmCond);
           top_modeflags : (modeflags : tcpumodeflags);
           top_specialreg : (specialreg:tregister; specialflags:tspecialregflags);
       {$endif arm}
       {$if defined(arm) or defined(aarch64)}
           top_shifterop : (shifterop : pshifterop);
+          top_conditioncode : (cc : TAsmCond);
       {$endif defined(arm) or defined(aarch64)}
       {$ifdef m68k}
           top_regset : (dataregset,addrregset:^tcpuregisterset);
@@ -356,7 +356,9 @@ interface
         { for Jasmin }
         asd_jclass,asd_jinterface,asd_jsuper,asd_jfield,asd_jlimit,asd_jline,
         { .ent/.end for MIPS and Alpha }
-        asd_ent,asd_ent_end
+        asd_ent,asd_ent_end,
+        { supported by recent clang-based assemblers for data-in-code  }
+        asd_data_region, asd_end_data_region
       );
 
       TAsmSehDirective=(
@@ -385,7 +387,9 @@ interface
         { for Jasmin }
         'class','interface','super','field','limit','line',
         { .ent/.end for MIPS and Alpha }
-        'ent','end'
+        'ent','end',
+        { supported by recent clang-based assemblers for data-in-code }
+        'data_region','end_data_region'
       );
       sehdirectivestr : array[TAsmSehDirective] of string[16]=(
         '.seh_proc','.seh_endproc',
@@ -2552,6 +2556,9 @@ implementation
 {$ifdef ARM}
               and not(r.base=NR_R15)
 {$endif ARM}
+{$ifdef aarch64}
+              and not(r.refaddr in [addr_full,addr_gotpageoffset,addr_gotpage])
+{$endif aarch64}
               then
               internalerror(200502052);
             typ:=top_ref;

@@ -301,7 +301,7 @@ unit hlcgobj;
          public
 
           { bit scan instructions (still need transformation to thlcgobj) }
-          procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tdef; src, dst: tregister); virtual; abstract;
+          procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tdef; src, dst: tregister); virtual; abstract;
 
           { fpu move instructions }
           procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister); virtual; abstract;
@@ -536,9 +536,9 @@ unit hlcgobj;
          public
 
           procedure gen_load_para_value(list:TAsmList);virtual;
-         protected
           { helpers called by gen_load_para_value }
           procedure g_copyvalueparas(p:TObject;arg:pointer);virtual;
+         protected
           procedure gen_loadfpu_loc_cgpara(list: TAsmList; size: tdef; const l: tlocation;const cgpara: tcgpara;locintsize: longint);virtual;
           procedure init_paras(p:TObject;arg:pointer);
          protected
@@ -4523,7 +4523,11 @@ implementation
          if (tparavarsym(p).varspez=vs_value) then
           begin
             include(current_procinfo.flags,pi_needs_implicit_finally);
-            location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).localloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
+            location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).localloc,href,
+              is_open_array(tparavarsym(p).vardef) or
+              ((target_info.system in systems_caller_copy_addr_value_para) and
+               paramanager.push_addr_param(vs_value,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)),
+              sizeof(pint));
             if is_open_array(tparavarsym(p).vardef) then
               begin
                 if paramanager.push_high_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption) then
@@ -4543,7 +4547,8 @@ implementation
           end;
        end;
       { open arrays can contain elements requiring init/final code, so the else has been removed here }
-      if (tparavarsym(p).varspez=vs_value) and
+      if not(target_info.system in systems_caller_copy_addr_value_para) and
+         (tparavarsym(p).varspez=vs_value) and
          (is_open_array(tparavarsym(p).vardef) or
           is_array_of_const(tparavarsym(p).vardef)) then
         begin
@@ -4581,7 +4586,11 @@ implementation
                  if not((tparavarsym(p).vardef.typ=variantdef) and
                    paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
                    begin
-                     location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
+                     location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,
+                       is_open_array(tparavarsym(p).vardef) or
+                       ((target_info.system in systems_caller_copy_addr_value_para) and
+                        paramanager.push_addr_param(vs_value,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)),
+                       sizeof(pint));
                      if is_open_array(tparavarsym(p).vardef) then
                        begin
                          if paramanager.push_high_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption) then
@@ -4682,8 +4691,11 @@ implementation
     begin
       list:=TAsmList(arg);
       if (tsym(p).typ=paravarsym) and
-         (tparavarsym(p).varspez=vs_value) and
-        (paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
+         ((vo_has_local_copy in tparavarsym(p).varoptions) or
+          (not(target_info.system in systems_caller_copy_addr_value_para) and
+           (is_open_array(tparavarsym(p).vardef) or
+            is_array_of_const(tparavarsym(p).vardef)) and
+           (tparavarsym(p).varspez=vs_value))) then
         begin
           { we have no idea about the alignment at the caller side }
           location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,true,1);

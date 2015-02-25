@@ -242,6 +242,7 @@
   {$define cpurox}
   {$define cputargethasfixedstack}
   {$define cpurefshaveindexreg}
+  {$define SUPPORT_GET_FRAME}
 {$endif aarch64}
 
 {$IFDEF MACOS}

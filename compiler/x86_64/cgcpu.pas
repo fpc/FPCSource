@@ -476,7 +476,7 @@ unit cgcpu;
             reference_reset_symbol(r,sym,0,sizeof(pint));
             if (cs_create_pic in current_settings.moduleswitches) and
                { darwin/x86_64's assembler doesn't want @PLT after call symbols }
-               (target_info.system<>system_x86_64_darwin) then
+               not(target_info.system in systems_darwin) then
               r.refaddr:=addr_pic
             else
               r.refaddr:=addr_full;

@@ -2361,6 +2361,10 @@ implementation
                                   (left.resultdef.typ=objectdef))) or
 {$endif}
                                 (
+                                 is_void(left.resultdef)  and
+                                 (left.nodetype=derefn)
+                                ) or
+                                (
                                  not(is_open_array(left.resultdef)) and
                                  not(is_array_constructor(left.resultdef)) and
                                  not(is_array_of_const(left.resultdef)) and
@@ -2374,10 +2378,6 @@ implementation
                                    { the softfloat code generates casts <const. float> to record }
                                    (nf_internal in flags)
                                  ))
-                                ) or
-                                (
-                                 is_void(left.resultdef)  and
-                                 (left.nodetype=derefn)
                                 )
                                ) then
                            CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename)

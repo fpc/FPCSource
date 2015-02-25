@@ -7,7 +7,7 @@ name=univint
 version=3.0.1
 
 [target]
-units=iosxlocale
+units=iosxlocale iosxwstr
 
 [libs]
 libversion=2.0.0

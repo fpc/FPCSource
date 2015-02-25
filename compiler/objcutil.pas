@@ -138,16 +138,19 @@ end;
                 { in case we are in a category method, we need the metaclass of the
                   superclass class extended by this category (= metaclass of superclass of superclass)
                   for the fragile abi, and the metaclass of the superclass for the non-fragile ABI }
-{$if defined(onlymacosx10_6) or defined(arm) }
+{$if defined(onlymacosx10_6) or defined(arm) or defined(aarch64)}
                 { NOTE: those send2 methods are only available on Mac OS X 10.6 and later!
                     (but also on all iPhone SDK revisions we support) }
                 if (target_info.system in systems_objc_nfabi) then
                   result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(tclassrefdef(def).pointeddef).childof))
                 else
-{$endif onlymacosx10_6 or arm}
+{$endif onlymacosx10_6 or arm aarch64}
                   result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(tclassrefdef(def).pointeddef).childof.childof));
                 tloadvmtaddrnode(result).forcall:=true;
-                result:=objcloadbasefield(result,'ISA');
+                if target_info.system<>system_aarch64_darwin then
+                  result:=objcloadbasefield(result,'ISA')
+                else
+                  result:=cloadvmtaddrnode.create(result);
                 typecheckpass(result);
                 { we're done }
                 exit;
@@ -168,14 +171,14 @@ end;
             tloadvmtaddrnode(result).forcall:=true;
           end;
 
-{$if defined(onlymacosx10_6) or defined(arm) }
+{$if defined(onlymacosx10_6) or defined(arm) or defined(aarch64)}
         { For the non-fragile ABI, the superclass send2 method itself loads the
           superclass. For the fragile ABI, we have to do this ourselves.
 
           NOTE: those send2 methods are only available on Mac OS X 10.6 and later!
             (but also on all iPhone SDK revisions we support) }
         if not(target_info.system in systems_objc_nfabi) then
-{$endif onlymacosx10_6 or arm}
+{$endif onlymacosx10_6 or arm or aarch64}
           result:=objcloadbasefield(result,'SUPERCLASS');
         typecheckpass(result);
       end;

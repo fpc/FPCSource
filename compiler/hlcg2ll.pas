@@ -171,7 +171,7 @@ unit hlcg2ll;
           procedure a_loadaddr_ref_reg(list : TAsmList;fromsize, tosize : tdef;const ref : treference;r : tregister);override;
 
           { bit scan instructions }
-          procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tdef; src, dst: tregister); override;
+          procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tdef; src, dst: tregister); override;
 
           { fpu move instructions }
           procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister); override;
@@ -586,9 +586,9 @@ implementation
       cg.a_loadaddr_ref_reg(list,ref,r);
     end;
 
-  procedure thlcg2ll.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tdef; src, dst: tregister);
+  procedure thlcg2ll.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tdef; src, dst: tregister);
     begin
-      cg.a_bit_scan_reg_reg(list,reverse,def_cgsize(size),src,dst);
+      cg.a_bit_scan_reg_reg(list,reverse,def_cgsize(srcsize),def_cgsize(dstsize),src,dst);
     end;
 
   procedure thlcg2ll.a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister);

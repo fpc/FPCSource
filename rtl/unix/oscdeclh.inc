@@ -91,13 +91,9 @@ const
     Function  FpReaddir (var dirp : Dir) : pDirent;cdecl; external clib name 'readdir'+suffix64bit;
     Function  FpClosedir (var dirp : Dir): cInt; cdecl; external clib name 'closedir'{$ifdef aix}+suffix64bit{$endif};
     function  FpChdir   (path : pchar): cint; cdecl; external clib name 'chdir';
-    function  FpOpen    (path: pchar; flags : cint; mode: TMode):cint;
-{$if defined(linux) and not defined(fs32bit)}
-    { we need a wrapper for linux to automatically pass O_LARGEFILE with flags }
-                                              {$ifdef FPC_IS_SYSTEM}forward;{$endif} inline;
-    function  __FpOpen  (path: pchar; flags : cint; mode: TMode):cint; 
-{$endif}
-                                                                        cdecl; external clib name 'open'{$ifdef aix}+suffix64bit{$endif};
+    { emulate the bunxovl version that automatically passes
+     638 as mode }
+    function  FpOpen    (path: pchar; flags : cint; mode: TMode):cint; {$ifdef FPC_IS_SYSTEM}forward;{$endif}
     function  FpMkdir   (path : pchar; mode: TMode):cint; cdecl; external clib name 'mkdir';
     function  FpUnlink  (path: pchar): cint; cdecl; external clib name 'unlink';
     function  FpRmdir   (path : pchar): cint; cdecl; external clib name 'rmdir';

@@ -30,8 +30,8 @@
   {$endif}
 {$endif}
 
-{$if (defined(darwin) and defined(cpuarm)) or defined(iphonesim)}
-  {$define darwinarm}
+{$if (defined(darwin) and (defined(cpuarm) or defined(cpuaarch64))) or defined(iphonesim)}
+  {$define darwin_new_iostructs}
 {$endif}
 
 //      CONST SYS_NMLN=65;
@@ -88,7 +88,7 @@ TYPE
         st_qspare2    : cint64;
 {$else dragonfly}
         st_dev        : dev_t;             // inode's device
-{$ifdef darwinarm}
+{$ifdef darwin_new_iostructs}
         st_mode       : mode_t;            // inode protection mode
         st_nlink      : nlink_t;           // number of hard links
         st_ino        : ino_t;             // inode's number
@@ -115,7 +115,7 @@ TYPE
         st_mtimensec  : clong;             // nsec of last data modification
         st_ctime      : time_t;            // time of last file status change
         st_ctimensec  : clong;             // nsec of last file status change
-{$ifdef darwinarm}
+{$ifdef darwin_new_iostructs}
         st_birthtime  : time_t;            // File creation time
         st_birthtimensec : clong;          // nsec of file creation time
 {$endif}
@@ -144,7 +144,7 @@ TYPE
    pStat = ^stat;
 
   { directory services }
-{$ifndef darwinarm}
+{$ifndef darwin_new_iostructs}
    dirent  = record
         d_fileno      : cuint32;                        // file number of entry
         d_reclen      : cuint16;                        // length of this record
@@ -152,7 +152,7 @@ TYPE
         d_namlen      : cuint8;                         // length of string in d_name
         d_name        : array[0..(255 + 1)-1] of char;  // name must be no longer than this
    end;
-{$else not darwinarm}
+{$else not darwin_new_iostructs}
    {$packrecords 4}
    { available on Mac OS X 10.6 and later, and used by all iPhoneOS versions }
    dirent  = record
@@ -164,7 +164,7 @@ TYPE
         d_name        : array[0..PATH_MAX-1] of char;        // name must be no longer than this
    end;
    {$packrecords c}
-{$endif darwinarm}
+{$endif darwin_new_iostructs}
    TDirent = dirent;
    pDirent = ^dirent;
 
