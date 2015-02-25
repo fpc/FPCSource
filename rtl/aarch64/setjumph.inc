@@ -16,8 +16,6 @@
 
 type
    jmp_buf = record
-     magic: qword;
-     xsp: qword;
      x19: qword;
      x20: qword;
      x21: qword;
@@ -30,7 +28,7 @@ type
      x28: qword;
      x29: qword;
      x30: qword;
-     tpidr: qword;
+     xsp: qword;
      d8: qword;
      d9: qword;
      d10: qword;
