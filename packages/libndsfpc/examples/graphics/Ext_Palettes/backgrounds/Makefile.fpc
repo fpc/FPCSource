@@ -8,7 +8,7 @@ programs=backgrounds
 
 [require]
 packages=libndsfpc
-tools=bin2s mmutil grit rmdir mv
+tools=bin2s mmutil grit_fpc rmdir mv ndstool
 nortl=y
 
 [install]
@@ -20,27 +20,37 @@ target=nds
 fpcdir=../../../../../..
 
 [compiler]
-options=-g -Xm  
+options=-Xm
+targetdir=$(BIN)  
+unittargetdir=$(BUILD)
 
 [clean]
 files=*.elf *.o *.s *.nds *.nef *.h *.bin *.map \
        $(BUILD)/* \
-       $(INC)/*
+       $(INC)/* \
+       $(BIN)/*
 units=*
 
+
 [prerules]
+BIN = bin
 BUILD = build
 DATA = data
+FILESYSTEM = filesystem
 GFX = gfx
 INC = inc
 AUDIO_FILES = $(foreach dir, $(notdir $(wildcard audio/*.*)), $(CURDIR)/audio/$(dir))
-GFX_FILES =   $(foreach dir, $(GFX), $(notdir $(wildcard $(dir)/*.bmp $(dir)/*.png)))
-BIN_FILES =   $(foreach dir, $(DATA), $(notdir $(wildcard $(dir)/*)))
+GFX_FILES   = $(foreach dir, $(GFX), $(notdir $(wildcard $(dir)/*.bmp $(dir)/*.png)))
+BIN_FILES   = $(foreach dir, $(DATA), $(notdir $(wildcard $(dir)/*)))
+GBFS_FILES  = $(foreach dir, GBFS, $(notdir $(wildcard $(dir)/*)))
 
 [rules]
 .NOTPARALLEL:
 clean: dir_delete fpc_clean fpc_cleanall
 all: dir_make $(BIN_FILES) $(GFX_FILES) fpc_all 
+filesystem: all make_filesystem
+
+
 
 #
 # Delete temp directories
@@ -48,7 +58,8 @@ all: dir_make $(BIN_FILES) $(GFX_FILES) fpc_all
 dir_delete:
         @$(DELTREE) $(CURDIR)/$(BUILD) 
         @$(DELTREE) $(CURDIR)/$(INC) 
-        
+        @$(DELTREE) $(CURDIR)/$(BIN) 
+                
 #
 # Create temp directories
 #
@@ -58,6 +69,9 @@ ifneq ($(BUILD), $(CURDIR))
 endif
 ifneq ($(INC), $(CURDIR))
         @$(MKDIR) $(INC)
+endif
+ifneq ($(BIN), $(CURDIR))
+        @$(MKDIR) $(BIN)
 endif
 
 #
@@ -76,7 +90,7 @@ $(GFX_FILES): $(wildcard %.bmp %.png)
         $(GRIT) $(GFX)/$(@) -fp -fts -ff $(GFX)/$(basename $(@)).grit -o$(BUILD)/$(@)
         @echo 'Assembling $(@).s file...'
         $(AS) -o $(BUILD)/$(basename $(@)).o $(BUILD)/$(basename $(@)).s
-        $(MV) -f $(BUILD)/$(basename $(@)).inc $(INC)/$(basename $(@)).inc         
+        $(MV) -f $(BUILD)/$(basename $(@)).inc $(INC)/$(basename $(@)).inc           
         @echo 'Done!'
 
 #
@@ -93,3 +107,18 @@ $(BIN_FILES): $(wildcard %.*)
         @echo 'Assembling $(@).s file...'
         @$(AS) -o $(BUILD)/$(@).o $(BUILD)/$(@).s
         @echo 'Done!'
+
+
+#
+# GBFS files processing rule
+#
+data.gbfs.o:
+        @cd GBFS && gbfs ../$(BUILD)/data.gbfs $(GBFS_FILES)
+        $(BIN2S) $(BUILD)/data.gbfs > $(BUILD)/data.gbfs.s
+        $(AS) -o $(BUILD)/data.gbfs.o $(BUILD)/data.gbfs.s
+
+#
+# Nitro Filesystem processing rule
+# 
+make_filesystem:
+	@$(NDSTOOL) -c $(BIN)/$(TARGET_PROGRAMS).fs.nds -9 $(BIN)/$(TARGET_PROGRAMS).nef.bin -d $(CURDIR)/$(FILESYSTEM)

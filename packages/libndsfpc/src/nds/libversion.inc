@@ -2,9 +2,9 @@
 const
   _LIBNDS_MAJOR_ = 1;
   _LIBNDS_MINOR_ = 5;
-  _LIBNDS_PATCH_ = 8;
+  _LIBNDS_PATCH_ = 10;
 
-  _LIBNDS_STRING = 'libNDS Release 1.5.8';
+  _LIBNDS_STRING = 'libNDS Release 1.5.10';
 {$endif NDS_INTERFACE}
 
 {$ifdef NDS_IMPLEMENTATION}
