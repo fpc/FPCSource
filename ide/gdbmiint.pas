@@ -76,8 +76,7 @@ type
     { frames and frame info while recording a frame }
     frames: PPFrameEntry;
     frame_count: LongInt;
-    command_level,
-    stop_breakpoint_number: LongInt;
+    command_level: LongInt;
     signal_name: PChar;
     signal_string: PChar;
     current_pc: CORE_ADDR;
@@ -101,7 +100,7 @@ type
     procedure FlushAll; virtual;
     function Query(question: PChar; args: PChar): LongInt; virtual;
     { Hooks }
-    procedure DoSelectSourceline(const fn: string; line: LongInt); virtual;
+    procedure DoSelectSourceline(const fn: string; line, BreakIndex: longint);virtual;
     procedure DoStartSession; virtual;
     procedure DoBreakSession; virtual;
     procedure DoEndSession(code: LongInt); virtual;
@@ -266,15 +265,10 @@ end;
 
 procedure TGDBInterface.i_gdb_command(const S: string);
 var
-  prev_stop_breakpoint_number: LongInt;
   I: LongInt;
 begin
   Inc(command_level);
   got_error := False;
-  if command_level = 1 then
-    prev_stop_breakpoint_number := 0
-  else
-    prev_stop_breakpoint_number := stop_breakpoint_number;
   GDB.Command(S);
   if output_raw then
     for I := 0 to GDB.RawResponse.Count - 1 do
@@ -290,7 +284,6 @@ begin
   end;
   ProcessResponse;
   Dec(command_level);
-  stop_breakpoint_number := prev_stop_breakpoint_number;
 end;
 
 procedure TGDBInterface.WaitForProgramStop;
@@ -353,7 +346,7 @@ Ignore:
         else if StopReason = 'read-watchpoint-trigger' then
           BreakpointNo := GDB.ExecAsyncOutput.Parameters['hw-rwpt'].AsTuple['number'].AsLongInt
         else
-          BreakpointNo := -1;
+          BreakpointNo := 0;
 
         Addr := GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['addr'].AsPtrInt;
         if Assigned(GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['fullname']) then
@@ -361,18 +354,13 @@ Ignore:
         if Assigned(GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['line']) then
           LineNumber := GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['line'].AsLongInt;
 
-        { this resets stop_breakpoint_number to zero, so it's important to set it *afterwards* }
-        { this also kills GDB.ExecAsyncOutput, because it may execute other gdb commands, so
+        { this kills GDB.ExecAsyncOutput, because it may execute other gdb commands, so
           make sure we have read all parameters that we need to local variables before that }
         DebuggerScreen;
 
-        { now, set stop_breakpoint_number (if applicable) }
-        if BreakpointNo <> -1 then
-          stop_breakpoint_number := BreakpointNo;
-
         Debuggee_started := True;
         current_pc := Addr;
-        DoSelectSourceLine(FileName, LineNumber);
+        DoSelectSourceLine(FileName, LineNumber, BreakpointNo);
       end;
     'exited-signalled':
       begin
@@ -489,7 +477,7 @@ begin
   Query := 0;
 end;
 
-procedure TGDBInterface.DoSelectSourceline(const fn: string; line: LongInt);
+procedure TGDBInterface.DoSelectSourceline(const fn: string; line, BreakIndex: LongInt);
 begin
 end;
 

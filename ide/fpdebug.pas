@@ -70,7 +70,7 @@ type
     procedure SetWidth(AWidth : longint);
     procedure SetSourceDirs;
     destructor  Done;
-    procedure DoSelectSourceline(const fn:string;line:longint);virtual;
+    procedure DoSelectSourceline(const fn:string;line,BreakIndex:longint);virtual;
 {    procedure DoStartSession;virtual;
     procedure DoBreakSession;virtual;}
     procedure DoEndSession(code:longint);virtual;
@@ -1346,18 +1346,16 @@ begin
 {$endif}
 end;
 
-procedure TDebugController.DoSelectSourceLine(const fn:string;line:longint);
+procedure TDebugController.DoSelectSourceLine(const fn:string;line,BreakIndex:longint);
 var
   W: PSourceWindow;
   Found : boolean;
   PB : PBreakpoint;
   S : String;
-  BreakIndex : longint;
   stop_addr : CORE_ADDR;
   i,ExitCode : longint;
   ExitAddr,ExitFrame : CORE_ADDR;
 begin
-  BreakIndex:=stop_breakpoint_number;
   Desktop^.Lock;
   { 0 based line count in Editor }
   if Line>0 then

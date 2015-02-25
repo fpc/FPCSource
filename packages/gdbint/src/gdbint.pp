@@ -870,6 +870,9 @@ type
 
   pgdbinterface=^tgdbinterface;
   tgdbinterface=object
+  private
+    stop_breakpoint_number : longint;
+  public
     gdberrorbuf,
     gdboutputbuf  : tgdbbuffer;
     got_error,
@@ -885,7 +888,6 @@ type
     frame_begin_seen : boolean;
     frame_level,
     command_level,
-    stop_breakpoint_number,
     current_line_number,
     signal_start,
     signal_end,
@@ -931,7 +933,7 @@ type
     procedure clear_frames;
     { Highlevel }
     procedure GetAddrSyminfo(addr:ptrint;var si:tsyminfo);
-    procedure SelectSourceline(fn:pchar;line:longint);
+    procedure SelectSourceline(fn:pchar;line,BreakIndex:longint);
     procedure StartSession;
     procedure BreakSession;
     procedure EndSession(code:longint);
@@ -940,7 +942,7 @@ type
     procedure FlushAll; virtual;
     function Query(question : pchar; args : pchar) : longint; virtual;
     { Hooks }
-    procedure DoSelectSourceline(const fn:string;line:longint);virtual;
+    procedure DoSelectSourceline(const fn:string;line,BreakIndex:longint);virtual;
     procedure DoStartSession;virtual;
     procedure DoBreakSession;virtual;
     procedure DoEndSession(code:longint);virtual;
@@ -2151,7 +2153,7 @@ begin
       fname:=sym.symtab^.filename
      else
       fname:=nil;
-     SelectSourceLine(fname,sym.line);
+     SelectSourceLine(fname,sym.line,stop_breakpoint_number);
    end;
 end;
 
@@ -3205,12 +3207,12 @@ begin
 end;
 
 
-procedure tgdbinterface.SelectSourceLine(fn:pchar;line:longint);
+procedure tgdbinterface.SelectSourceLine(fn:pchar;line,BreakIndex:longint);
 begin
   if assigned(fn) then
-   DoSelectSourceLine(StrPas(fn),line)
+   DoSelectSourceLine(StrPas(fn),line,BreakIndex)
   else
-   DoSelectSourceLine('',line);
+   DoSelectSourceLine('',line,BreakIndex);
 end;
 
 
@@ -3272,15 +3274,16 @@ end;
           Default Hooks
 ---------------------------------------}
 
-procedure tgdbinterface.DoSelectSourceLine(const fn:string;line:longint);
+procedure tgdbinterface.DoSelectSourceLine(const fn:string;line,BreakIndex:longint);
 {$ifdef Verbose}
 var
-  s : string;
+  s,bs : string;
 {$endif}
 begin
 {$ifdef Verbose}
   Str(line,S);
-  Debug('|SelectSource '+fn+':'+s+'|');
+  Str(BreakIndex,BS);
+  Debug('|SelectSource '+fn+':'+s+','+bs+'|');
 {$endif}
 end;
 
