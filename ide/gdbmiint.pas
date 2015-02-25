@@ -301,6 +301,9 @@ var
   Line: LongInt;
   FileName: string = '';
   LineNumber: LongInt = 0;
+  Addr: CORE_ADDR;
+  BreakpointNo: LongInt;
+  ExitCode: LongInt;
 begin
 Ignore:
   GDB.WaitForProgramStop;
@@ -341,25 +344,34 @@ Ignore:
     'end-stepping-range',
     'function-finished':
       begin
-        { this resets stop_breakpoint_number to zero, so it's important to set it *afterwards* }
-        DebuggerScreen;
-
-        { now, set stop_breakpoint_number (if applicable) }
         if StopReason = 'breakpoint-hit' then
-          stop_breakpoint_number := GDB.ExecAsyncOutput.Parameters['bkptno'].AsLongInt;
-        if StopReason = 'watchpoint-trigger' then
-          stop_breakpoint_number := GDB.ExecAsyncOutput.Parameters['wpt'].AsTuple['number'].AsLongInt;
-        if StopReason = 'access-watchpoint-trigger' then
-          stop_breakpoint_number := GDB.ExecAsyncOutput.Parameters['hw-awpt'].AsTuple['number'].AsLongInt;
-        if StopReason = 'read-watchpoint-trigger' then
-          stop_breakpoint_number := GDB.ExecAsyncOutput.Parameters['hw-rwpt'].AsTuple['number'].AsLongInt;
+          BreakpointNo := GDB.ExecAsyncOutput.Parameters['bkptno'].AsLongInt
+        else if StopReason = 'watchpoint-trigger' then
+          BreakpointNo := GDB.ExecAsyncOutput.Parameters['wpt'].AsTuple['number'].AsLongInt
+        else if StopReason = 'access-watchpoint-trigger' then
+          BreakpointNo := GDB.ExecAsyncOutput.Parameters['hw-awpt'].AsTuple['number'].AsLongInt
+        else if StopReason = 'read-watchpoint-trigger' then
+          BreakpointNo := GDB.ExecAsyncOutput.Parameters['hw-rwpt'].AsTuple['number'].AsLongInt
+        else
+          BreakpointNo := -1;
 
-        Debuggee_started := True;
-        current_pc := GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['addr'].AsPtrInt;
+        Addr := GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['addr'].AsPtrInt;
         if Assigned(GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['fullname']) then
           FileName := GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['fullname'].AsString;
         if Assigned(GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['line']) then
           LineNumber := GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['line'].AsLongInt;
+
+        { this resets stop_breakpoint_number to zero, so it's important to set it *afterwards* }
+        { this also kills GDB.ExecAsyncOutput, because it may execute other gdb commands, so
+          make sure we have read all parameters that we need to local variables before that }
+        DebuggerScreen;
+
+        { now, set stop_breakpoint_number (if applicable) }
+        if BreakpointNo <> -1 then
+          stop_breakpoint_number := BreakpointNo;
+
+        Debuggee_started := True;
+        current_pc := Addr;
         DoSelectSourceLine(FileName, LineNumber);
       end;
     'exited-signalled':
@@ -376,10 +388,11 @@ Ignore:
       end;
     'exited':
       begin
+        ExitCode := GDB.ExecAsyncOutput.Parameters['exit-code'].AsLongInt;
         DebuggerScreen;
         current_pc := 0;
         Debuggee_started := False;
-        DoEndSession(GDB.ExecAsyncOutput.Parameters['exit-code'].AsLongInt);
+        DoEndSession(ExitCode);
       end;
     'exited-normally':
       begin
