@@ -334,7 +334,7 @@ interface
         mark_Position
       );
 
-      TRegAllocType = (ra_alloc,ra_dealloc,ra_sync,ra_resize);
+      TRegAllocType = (ra_alloc,ra_dealloc,ra_sync,ra_resize,ra_markused);
 
       TStabType = (stab_stabs,stab_stabn,stab_stabd,
                    { AIX/XCOFF stab types }
@@ -371,7 +371,7 @@ interface
 
 
     const
-      regallocstr : array[tregalloctype] of string[10]=('allocated','released','sync','resized');
+      regallocstr : array[tregalloctype] of string[10]=('allocated','released','sync','resized','used');
       tempallocstr : array[boolean] of string[10]=('released','allocated');
       stabtypestr : array[TStabType] of string[8]=(
         'stabs','stabn','stabd',
@@ -714,6 +714,7 @@ interface
           constructor dealloc(r : tregister;ainstr:tai);
           constructor sync(r : tregister);
           constructor resize(r : tregister);
+          constructor markused(r : tregister);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
@@ -2420,6 +2421,15 @@ implementation
         inherited create;
         typ:=ait_regalloc;
         ratype:=ra_resize;
+        reg:=r;
+      end;
+
+
+    constructor tai_regalloc.markused(r : tregister);
+      begin
+        inherited create;
+        typ:=ait_regalloc;
+        ratype:=ra_markused;
         reg:=r;
       end;
 
