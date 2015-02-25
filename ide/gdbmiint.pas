@@ -291,7 +291,6 @@ label
   Ignore;
 var
   StopReason: string;
-  Line: LongInt;
   FileName: string = '';
   LineNumber: LongInt = 0;
   Addr: CORE_ADDR;
