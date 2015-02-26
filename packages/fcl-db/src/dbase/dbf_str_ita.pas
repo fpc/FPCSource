@@ -13,7 +13,7 @@ initialization
   STRING_FILE_NOT_FOUND               := 'Apertura: file non trovato: "%s"';
   STRING_VERSION                      := 'TDbf V%d.%d';
   // todo: translate me
-  STRING_FEATURE_NOT_SUPPORTED_THIS_TABLELEVEL: string; := 'This feature is not supported in tablelevel %d'; 
+  STRING_FEATURE_NOT_SUPPORTED_THIS_TABLELEVEL := 'This feature is not supported in tablelevel %d'; 
 
   STRING_RECORD_LOCKED                := 'Record già in uso.';
 

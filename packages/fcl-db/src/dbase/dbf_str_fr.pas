@@ -11,7 +11,7 @@ initialization
 
   STRING_FILE_NOT_FOUND               := 'Ouverture: fichier non trouvé: "%s"';
   STRING_VERSION                      := 'TDbf V%d.%d';
-  STRING_FEATURE_NOT_SUPPORTED_THIS_TABLELEVEL: string; := 'Cette fonctionnalité n'est pas supporté dans tablelevel %d'; 
+  STRING_FEATURE_NOT_SUPPORTED_THIS_TABLELEVEL := 'Cette fonctionnalité n''est pas supporté dans tablelevel %d';
   
   STRING_RECORD_LOCKED                := 'Enregistrement verrouillé.';
   STRING_KEY_VIOLATION                := 'Violation de clé. (doublon dans un index).'+#13+#10+
