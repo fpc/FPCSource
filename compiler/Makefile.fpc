@@ -329,6 +329,9 @@ endif
 ifeq ($(OS_TARGET),msdos)
 NoNativeBinaries=1
 endif
+ifeq ($(OS_TARGET),nds)
+NoNativeBinaries=1
+endif
 
 [rules]
 #####################################################################
@@ -688,12 +691,8 @@ cycle:
 # ppc<ARCH> (target native)
 ifndef CROSSINSTALL
         $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' rtlclean rtl CYCLELEVEL=3
-# building a native compiler for embedded targets is not possible
-ifneq ($(OS_TARGET),embedded)
-# building a native compiler for the arm-gba target is not possible
-ifneq ($(OS_TARGET),gba)
+ifneq NoNativeBinaries
         $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' cycleclean compiler CYCLELEVEL=3
-endif
 endif
 endif
 
@@ -721,7 +720,6 @@ cycle:
 # ppc<ARCH> (target native)
 ifndef CROSSINSTALL
         $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' 'OPT=$(RTLOPT) $(CROSSOPT)' rtlclean rtl CYCLELEVEL=3
-# building a native compiler for JVM and embedded targets is not possible
 ifndef NoNativeBinaries
         $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' 'OPT=$(strip $(LOCALOPT) $(CROSSOPT))' cycleclean compiler CYCLELEVEL=3
 endif
