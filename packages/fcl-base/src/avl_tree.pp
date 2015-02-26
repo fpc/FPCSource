@@ -77,7 +77,7 @@ type
     Root: TAVLTreeNode;
     function Find(Data: Pointer): TAVLTreeNode;
     function FindKey(Key: Pointer;
-      OnCompareKeyWithData: TListSortCompare): TAVLTreeNode;
+      const OnCompareKeyWithData: TListSortCompare): TAVLTreeNode;
     function FindSuccessor(ANode: TAVLTreeNode): TAVLTreeNode;
     function FindPrecessor(ANode: TAVLTreeNode): TAVLTreeNode;
     function FindLowest: TAVLTreeNode;
@@ -87,11 +87,13 @@ type
     function FindLeftMost(Data: Pointer): TAVLTreeNode;
     function FindRightMost(Data: Pointer): TAVLTreeNode;
     function FindLeftMostKey(Key: Pointer;
-      OnCompareKeyWithData: TListSortCompare): TAVLTreeNode;
+      const OnCompareKeyWithData: TListSortCompare): TAVLTreeNode;
     function FindRightMostKey(Key: Pointer;
-      OnCompareKeyWithData: TListSortCompare): TAVLTreeNode;
-    function FindLeftMostSameKey(ANode: TAVLTreeNode): TAVLTreeNode;
-    function FindRightMostSameKey(ANode: TAVLTreeNode): TAVLTreeNode;
+      const OnCompareKeyWithData: TListSortCompare): TAVLTreeNode;
+    function FindLeftMostSameKey(ANode: TAVLTreeNode;
+      OnCompareKeyWithData: TListSortCompare = nil): TAVLTreeNode;
+    function FindRightMostSameKey(ANode: TAVLTreeNode;
+      OnCompareKeyWithData: TListSortCompare = nil): TAVLTreeNode;
     procedure Add(ANode: TAVLTreeNode);
     function Add(Data: Pointer): TAVLTreeNode;
     procedure Delete(ANode: TAVLTreeNode);
@@ -109,7 +111,7 @@ type
     function ReportAsString: string;
     procedure SetNodeManager(NewMgr: TBaseAVLTreeNodeManager;
                              AutoFree: boolean = false);
-    constructor Create(OnCompareMethod: TListSortCompare);
+    constructor Create(const OnCompareMethod: TListSortCompare);
     constructor Create;
     destructor Destroy; override;
     function GetEnumerator: TAVLTreeNodeEnumerator;
@@ -520,7 +522,7 @@ begin
   FCount:=0;
 end;
 
-constructor TAVLTree.Create(OnCompareMethod: TListSortCompare);
+constructor TAVLTree.Create(const OnCompareMethod: TListSortCompare);
 begin
   inherited Create;
   fNodeMgr:=NodeMemManager;
@@ -700,7 +702,7 @@ begin
   end;
 end;
 
-function TAVLTree.FindKey(Key: Pointer; OnCompareKeyWithData: TListSortCompare
+function TAVLTree.FindKey(Key: Pointer; const OnCompareKeyWithData: TListSortCompare
   ): TAVLTreeNode;
 var Comp: integer;
 begin
@@ -717,28 +719,30 @@ begin
 end;
 
 function TAVLTree.FindLeftMostKey(Key: Pointer;
-  OnCompareKeyWithData: TListSortCompare): TAVLTreeNode;
+  const OnCompareKeyWithData: TListSortCompare): TAVLTreeNode;
 begin
-  Result:=FindLeftMostSameKey(FindKey(Key,OnCompareKeyWithData));
+  Result:=FindLeftMostSameKey(FindKey(Key,OnCompareKeyWithData),OnCompareKeyWithData);
 end;
 
 function TAVLTree.FindRightMostKey(Key: Pointer;
-  OnCompareKeyWithData: TListSortCompare): TAVLTreeNode;
+  const OnCompareKeyWithData: TListSortCompare): TAVLTreeNode;
 begin
-  Result:=FindRightMostSameKey(FindKey(Key,OnCompareKeyWithData));
+  Result:=FindRightMostSameKey(FindKey(Key,OnCompareKeyWithData),OnCompareKeyWithData);
 end;
 
-function TAVLTree.FindLeftMostSameKey(ANode: TAVLTreeNode): TAVLTreeNode;
+function TAVLTree.FindLeftMostSameKey(ANode: TAVLTreeNode;
+  OnCompareKeyWithData: TListSortCompare): TAVLTreeNode;
 var
   LeftNode: TAVLTreeNode;
   Data: Pointer;
 begin
   if ANode<>nil then begin
+    if OnCompareKeyWithData=nil then OnCompareKeyWithData:=FOnCompare;
     Data:=ANode.Data;
     Result:=ANode;
     repeat
       LeftNode:=FindPrecessor(Result);
-      if (LeftNode=nil) or (fOnCompare(Data,LeftNode.Data)<>0) then break;
+      if (LeftNode=nil) or (OnCompareKeyWithData(Data,LeftNode.Data)<>0) then break;
       Result:=LeftNode;
     until false;
   end else begin
@@ -746,17 +750,19 @@ begin
   end;
 end;
 
-function TAVLTree.FindRightMostSameKey(ANode: TAVLTreeNode): TAVLTreeNode;
+function TAVLTree.FindRightMostSameKey(ANode: TAVLTreeNode;
+  OnCompareKeyWithData: TListSortCompare): TAVLTreeNode;
 var
   RightNode: TAVLTreeNode;
   Data: Pointer;
 begin
   if ANode<>nil then begin
+    if OnCompareKeyWithData=nil then OnCompareKeyWithData:=FOnCompare;
     Data:=ANode.Data;
     Result:=ANode;
     repeat
       RightNode:=FindSuccessor(Result);
-      if (RightNode=nil) or (fOnCompare(Data,RightNode.Data)<>0) then break;
+      if (RightNode=nil) or (OnCompareKeyWithData(Data,RightNode.Data)<>0) then break;
       Result:=RightNode;
     until false;
   end else begin
