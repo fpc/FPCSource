@@ -248,36 +248,16 @@ implementation
            include(current_procinfo.flags,pi_needs_got);
          if left.nodetype<>typen then
            begin
-             if is_objcclass(left.resultdef) and
-                (left.nodetype<>typen) then
+             if (target_info.system=system_aarch64_darwin) and
+                (is_objc_class_or_protocol(left.resultdef) or
+                 is_objcclassref(left.resultdef)) then
                begin
-                 if target_info.system<>system_aarch64_darwin then
-                   begin
-                     { don't use the ISA field name, assume this field is at offset
-                       0 (just like gcc/clang) }
-                     result:=ctypeconvnode.create_internal(left,voidpointertype);
-                     result:=cderefnode.create(result);
-                     inserttypeconv_internal(result,resultdef);
-                     { the ISA pointer is guaranteed to be aligned, while
-                       dereferencing a void pointer is normally not aligned at
-                       all }
-                     result:=geninlinenode(in_aligned_x,false,result);
-                     { reused }
-                     left:=nil;
-                   end
-                 else
-                   begin
-                     { Darwin/AArch64, the isa field is opaque and we must call
-                       _class to obtain the actual ISA pointer }
-                     vs:=search_struct_member(tobjectdef(left.resultdef),'_CLASS');
-                     if not assigned(vs) or
-                        (tsym(vs).typ<>procsym) then
-                       internalerror(2011041901);
-                     result:=ccallnode.create(nil,tprocsym(vs),vs.owner,left,[]);
-                     inserttypeconv_explicit(result,resultdef);
-                     { reused }
-                     left:=nil;
-                   end;
+                 { on Darwin/AArch64, the isa field is opaque and we must
+                   call Object_getClass to obtain the actual ISA pointer }
+                 result:=ccallnode.createinternfromunit('OBJC','OBJECT_GETCLASS',ccallparanode.create(left,nil));
+                 inserttypeconv_explicit(result,resultdef);
+                 { reused }
+                 left:=nil;
                end
              else if is_javaclass(left.resultdef) and
                 (left.nodetype<>typen) and
