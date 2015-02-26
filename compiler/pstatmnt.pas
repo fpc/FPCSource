@@ -1049,6 +1049,7 @@ implementation
       begin
          Inside_asm_statement:=true;
          asmstat:=nil;
+         hl:=nil;
          if assigned(asmmodeinfos[current_settings.asmmode]) then
            begin
              asmreader:=asmmodeinfos[current_settings.asmmode]^.casmreader.create;
@@ -1085,7 +1086,7 @@ implementation
                   reg:=std_regnum_search(lower(cstringpattern));
                   if reg<>NR_NO then
                     begin
-                      if not(po_assembler in current_procinfo.procdef.procoptions) then
+                      if not(po_assembler in current_procinfo.procdef.procoptions) and assigned(hl) then
                         begin
                           hl.Insert(tai_regalloc.alloc(reg,nil));
                           hl.Insert(tai_regalloc.markused(reg));
