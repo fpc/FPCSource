@@ -100,7 +100,7 @@ type
     procedure FlushAll; virtual;
     function Query(question: PChar; args: PChar): LongInt; virtual;
     { Hooks }
-    procedure DoSelectSourceline(const fn: string; line, BreakIndex: longint);virtual;
+    function DoSelectSourceline(const fn: string; line, BreakIndex: longint): Boolean;virtual;
     procedure DoStartSession; virtual;
     procedure DoBreakSession; virtual;
     procedure DoEndSession(code: LongInt); virtual;
@@ -359,7 +359,12 @@ Ignore:
 
         Debuggee_started := True;
         current_pc := Addr;
-        DoSelectSourceLine(FileName, LineNumber, BreakpointNo);
+        if not DoSelectSourceLine(FileName, LineNumber, BreakpointNo) then
+        begin
+          UserScreen;
+          i_gdb_command('-exec-continue');
+          goto Ignore;
+        end;
       end;
     'exited-signalled':
       begin
@@ -476,7 +481,7 @@ begin
   Query := 0;
 end;
 
-procedure TGDBInterface.DoSelectSourceline(const fn: string; line, BreakIndex: LongInt);
+function TGDBInterface.DoSelectSourceline(const fn: string; line, BreakIndex: LongInt): Boolean;
 begin
 end;
 

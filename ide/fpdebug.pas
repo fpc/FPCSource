@@ -70,7 +70,7 @@ type
     procedure SetWidth(AWidth : longint);
     procedure SetSourceDirs;
     destructor  Done;
-    procedure DoSelectSourceline(const fn:string;line,BreakIndex:longint);virtual;
+    function DoSelectSourceline(const fn:string;line,BreakIndex:longint): Boolean;virtual;
 {    procedure DoStartSession;virtual;
     procedure DoBreakSession;virtual;}
     procedure DoEndSession(code:longint);virtual;
@@ -1346,7 +1346,7 @@ begin
 {$endif}
 end;
 
-procedure TDebugController.DoSelectSourceLine(const fn:string;line,BreakIndex:longint);
+function TDebugController.DoSelectSourceLine(const fn:string;line,BreakIndex:longint): Boolean;
 var
   W: PSourceWindow;
   Found : boolean;
@@ -1368,12 +1368,6 @@ begin
     begin
       if GetFPCBreakErrorParameters(ExitCode, ExitAddr, ExitFrame) then
       begin
-        if (ExitCode=0) and (ExitAddr=0) then
-          begin
-            Desktop^.Unlock;
-            Command('continue');
-            exit;
-          end;
         Backtrace;
         for i:=0 to frame_count-1 do
           begin
@@ -1392,6 +1386,12 @@ begin
                   end;
               end;
           end;
+      end
+      else
+      begin
+        Desktop^.Unlock;
+        DoSelectSourceLine := False;
+        exit;
       end;
     end;
   { Update Disassembly position }
@@ -1520,6 +1520,7 @@ begin
                #3+' value = '+GetStr(PB^.CurrentValue),nil);
         end;
     end;
+  DoSelectSourceLine := True;
 end;
 
 procedure TDebugController.DoUserSignal;

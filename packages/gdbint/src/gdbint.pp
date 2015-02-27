@@ -933,7 +933,7 @@ type
     procedure clear_frames;
     { Highlevel }
     procedure GetAddrSyminfo(addr:ptrint;var si:tsyminfo);
-    procedure SelectSourceline(fn:pchar;line,BreakIndex:longint);
+    function SelectSourceline(fn:pchar;line,BreakIndex:longint): Boolean;
     procedure StartSession;
     procedure BreakSession;
     procedure EndSession(code:longint);
@@ -942,7 +942,7 @@ type
     procedure FlushAll; virtual;
     function Query(question : pchar; args : pchar) : longint; virtual;
     { Hooks }
-    procedure DoSelectSourceline(const fn:string;line,BreakIndex:longint);virtual;
+    function DoSelectSourceline(const fn:string;line,BreakIndex:longint): Boolean;virtual;
     procedure DoStartSession;virtual;
     procedure DoBreakSession;virtual;
     procedure DoEndSession(code:longint);virtual;
@@ -2153,7 +2153,8 @@ begin
       fname:=sym.symtab^.filename
      else
       fname:=nil;
-     SelectSourceLine(fname,sym.line,stop_breakpoint_number);
+     if not SelectSourceLine(fname,sym.line,stop_breakpoint_number) then
+       gdb_command('continue');
    end;
 end;
 
@@ -3207,12 +3208,12 @@ begin
 end;
 
 
-procedure tgdbinterface.SelectSourceLine(fn:pchar;line,BreakIndex:longint);
+function tgdbinterface.SelectSourceLine(fn:pchar;line,BreakIndex:longint): Boolean;
 begin
   if assigned(fn) then
-   DoSelectSourceLine(StrPas(fn),line,BreakIndex)
+    SelectSourceLine:=DoSelectSourceLine(StrPas(fn),line,BreakIndex)
   else
-   DoSelectSourceLine('',line,BreakIndex);
+    SelectSourceLine:=DoSelectSourceLine('',line,BreakIndex);
 end;
 
 
@@ -3274,7 +3275,7 @@ end;
           Default Hooks
 ---------------------------------------}
 
-procedure tgdbinterface.DoSelectSourceLine(const fn:string;line,BreakIndex:longint);
+function tgdbinterface.DoSelectSourceLine(const fn:string;line,BreakIndex:longint): Boolean;
 {$ifdef Verbose}
 var
   s,bs : string;
