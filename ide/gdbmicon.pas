@@ -177,6 +177,12 @@ procedure TGDBController.RunExecCommand(const Cmd: string);
 begin
   UserScreen;
   Command(Cmd);
+  if not GDB.ResultRecord.Success then
+  begin
+    DebuggerScreen;
+    got_error := True;
+    exit;
+  end;
   WaitForProgramStop;
 end;
 
