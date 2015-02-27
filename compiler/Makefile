@@ -4052,7 +4052,7 @@ cycle:
 	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) EXENAME=$(PPCROSSNAME) CROSSBINDIR= BINUTILSPREFIX= CROSSCYCLEBOOTSTRAP=1 cycleclean compiler CYCLELEVEL=2
 ifndef CROSSINSTALL
 	$(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' rtlclean rtl CYCLELEVEL=3
-ifneq NoNativeBinaries
+ifndef NoNativeBinaries
 	$(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' cycleclean compiler CYCLELEVEL=3
 endif
 endif
