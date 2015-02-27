@@ -63,6 +63,8 @@ unit widestr;
       d : pchar; dcp : tstringencoding
     );
     function codepagebyname(const s : string) : tstringencoding;
+    function CharLength (P: PChar; L: SizeInt): SizeInt;
+    function CharLength (const S: string): SizeInt;
 
   implementation
 
@@ -340,6 +342,29 @@ unit widestr;
         p:=getmap(s);
         if (p<>nil) then
           Result:=p^.cp;
+      end;
+
+    function CharLength (P: PChar; L: SizeInt): SizeInt;
+      var
+        P2: PChar;
+      begin
+        if L = 0 then
+         begin
+          Result := 0;
+          Exit;
+         end;
+        GetMem (P2, Succ (L));
+{ Length of the string converted to a SBCS codepage (e.g. ISO 8859-1)
+  should be equal to the amount of characters in the source string. }
+        ChangeCodePage (P, L, DefaultSystemCodepage, P2, 28591);
+        P2 [L] := #0;
+        Result := StrLen (P2);
+        FreeMem (P2, Succ (L));
+      end;
+
+    function CharLength (const S: string): SizeInt;
+      begin
+        Result := CharLength (@S [1], Length (S));
       end;
 
 end.

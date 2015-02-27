@@ -96,6 +96,7 @@ uses
 
 const
   page_size = 24;
+  page_width = 80;
 
 var
   option     : toption;
@@ -603,10 +604,12 @@ var
   lastident,
   j,outline,
   ident,
+  HelpLineHeight,
   lines : longint;
   show  : boolean;
   opt   : string[32];
   input,
+  HelpLine,
   s     : string;
   p     : pchar;
 begin
@@ -730,8 +733,13 @@ begin
            Comment(V_Normal,'');
            inc(Lines);
          end;
+        HelpLine := PadEnd('',ident)+opt+Copy(s,j+1,255);
+        if HelpLine = '' then
+         HelpLineHeight := 1
+        else
+         HelpLineHeight := Succ (CharLength (HelpLine) div Page_Width);
       { page full ? }
-        if (lines >= page_size - 1) then
+        if (lines + HelpLineHeight >= page_size - 1) then
          begin
            if not NoPressEnter then
             begin
@@ -742,9 +750,9 @@ begin
             end;
            lines:=0;
          end;
-        Comment(V_Normal,PadEnd('',ident)+opt+Copy(s,j+1,255));
+        Comment(V_Normal,HelpLine);
         LastIdent:=Ident;
-        inc(Lines);
+        Inc (Lines, HelpLineHeight);
       end;
    end;
   StopOptions(0);
