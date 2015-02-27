@@ -909,8 +909,8 @@ type
     current_pc      : CORE_ADDR;
     { breakpoint }
     last_breakpoint_number,
-    last_breakpoint_address,
     last_breakpoint_line : longint;
+    last_breakpoint_address : CORE_ADDR;
     last_breakpoint_file : pchar;
     invalid_breakpoint_line : boolean;
     user_screen_shown,
