@@ -393,14 +393,16 @@ unit widestr;
            end;
           Result := J;
          end
-        else
+        else if CPAvailable (DefaultSystemCodepage) then
          begin
           GetMem (P2, Succ (L));
           FillChar (P2^, Succ (L), 0);
           ChangeCodePage (P, L, DefaultSystemCodepage, P2, 28591);
           Result := StrLen (P2);
           FreeMem (P2, Succ (L));
-         end;
+         end
+        else
+         Result := L;
 {$ELSE FPC_HAS_CPSTRING}
         Result := L;
 {$ENDIF FPC_HAS_CPSTRING}
