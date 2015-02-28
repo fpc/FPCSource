@@ -345,21 +345,65 @@ unit widestr;
       end;
 
     function CharLength (P: PChar; L: SizeInt): SizeInt;
+
+      function UTF8CodePointLength(firstbyte: byte): SizeInt;
+      var
+        firstzerobit: SizeInt;
+      begin
+        result:=1;
+        { bsr searches for the leftmost 1 bit. We are interested in the
+          leftmost 0 bit, so first invert the value
+        }
+        firstzerobit:=BsrByte(not(firstbyte));
+        { if there is no zero bit or the first zero bit is the rightmost bit
+          (bit 0), this is an invalid UTF-8 byte ($ff cannot appear in an
+          UTF-8-encoded string, and in the worst case bit 1 has to be zero)
+        }
+        if (firstzerobit=0) or (firstzerobit=7)  then
+          exit;
+        { the number of bytes belonging to this code point is
+          7-(pos first 0-bit).
+        }
+        result:=7-firstzerobit;
+      end;
+
       var
         P2: PChar;
+        I, J, K: SizeInt;
       begin
+{$IFDEF FPC_HAS_CPSTRING}
         if L = 0 then
          begin
           Result := 0;
           Exit;
          end;
-        GetMem (P2, Succ (L));
 { Length of the string converted to a SBCS codepage (e.g. ISO 8859-1)
   should be equal to the amount of characters in the source string. }
-        ChangeCodePage (P, L, DefaultSystemCodepage, P2, 28591);
-        P2 [L] := #0;
-        Result := StrLen (P2);
-        FreeMem (P2, Succ (L));
+        if DefaultSystemCodepage = CP_UTF8 then
+{ ChangeCodePage does not work for UTF-8 apparently... :-( }
+         begin
+          I := 1;
+          J := 0;
+          while I <= L do
+           begin
+            K := Utf8CodePointLength (byte (P^));
+            Inc (I, K);
+            Inc (P, K);
+            Inc (J);
+           end;
+          Result := J;
+         end
+        else
+         begin
+          GetMem (P2, Succ (L));
+          FillChar (P2^, Succ (L), 0);
+          ChangeCodePage (P, L, DefaultSystemCodepage, P2, 28591);
+          Result := StrLen (P2);
+          FreeMem (P2, Succ (L));
+         end;
+{$ELSE FPC_HAS_CPSTRING}
+        Result := L;
+{$ENDIF FPC_HAS_CPSTRING}
       end;
 
     function CharLength (const S: string): SizeInt;
