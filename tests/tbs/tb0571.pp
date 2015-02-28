@@ -17,7 +17,7 @@ type
   private
     refcount: integer;
   public
-    function QueryInterface(const iid : tguid;out obj) : Hresult;stdcall;
+    function QueryInterface(constref iid : tguid;out obj) : Hresult;stdcall;
     function _AddRef : longint;stdcall;
     function _Release : longint;stdcall;
   end;
@@ -25,7 +25,7 @@ type
 var
   called: Boolean = False;
 
-function TTest.QueryInterface(const IID: TGUID; out Obj): Hresult; stdcall;
+function TTest.QueryInterface(constref IID: TGUID; out Obj): Hresult; stdcall;
 begin
   called := true;
   if getinterface(iid,obj) then
