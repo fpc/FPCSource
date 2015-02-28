@@ -317,6 +317,12 @@ Ignore:
 
           We have: GDB.ExecAsyncOutput.Parameters['wpnum'].AsLongInt }
         i_gdb_command('-exec-continue');
+        if not GDB.ResultRecord.Success then
+        begin
+          DebuggerScreen;
+          got_error := True;
+          exit;
+        end;
         goto Ignore;
       end;
     'signal-received':
@@ -327,6 +333,12 @@ Ignore:
                GDB.ExecAsyncOutput.PArameters['signal-meaning'].AsString (e.g. 'Terminated')
           }
         i_gdb_command('-exec-continue');
+        if not GDB.ResultRecord.Success then
+        begin
+          DebuggerScreen;
+          got_error := True;
+          exit;
+        end;
         goto Ignore;
       end;
     'breakpoint-hit',
@@ -363,6 +375,12 @@ Ignore:
         begin
           UserScreen;
           i_gdb_command('-exec-continue');
+          if not GDB.ResultRecord.Success then
+          begin
+            DebuggerScreen;
+            got_error := True;
+            exit;
+          end;
           goto Ignore;
         end;
       end;
