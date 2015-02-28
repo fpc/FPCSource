@@ -30,6 +30,7 @@ interface
 
     type
       taarch64moddivnode = class(tmoddivnode)
+         function pass_1: tnode; override;
          procedure pass_generate_code;override;
       end;
 
@@ -57,6 +58,14 @@ implementation
 {*****************************************************************************
                              taarch64moddivnode
 *****************************************************************************}
+
+    function taarch64moddivnode.pass_1: tnode;
+      begin
+        result:=inherited pass_1;
+        if not assigned(result) then
+          include(current_procinfo.flags,pi_do_call);
+      end;
+
 
     procedure taarch64moddivnode.pass_generate_code;
       var
