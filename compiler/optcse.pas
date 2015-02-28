@@ -317,7 +317,13 @@ unit optcse;
                    { for sets, we can do this always }
                    (is_set(n.resultdef))
                    ) then
-                  while n.nodetype=tbinarynode(n).left.nodetype do
+                  while (n.nodetype=tbinarynode(n).left.nodetype) and
+                        { the resulttypes of the operands we'll swap must be equal,
+                          required in case of a 32x32->64 multiplication, then we
+                          cannot swap out one of the 32 bit operands for a 64 bit one
+                        }
+                        (tbinarynode(tbinarynode(n).left).left.resultdef=tbinarynode(n).left.resultdef) and
+                        (tbinarynode(n).left.resultdef=tbinarynode(n).right.resultdef) do
                     begin
                       csedomain:=true;
                       foreachnodestatic(pm_postprocess,tbinarynode(n).right,@searchsubdomain,@csedomain);
