@@ -116,7 +116,7 @@ var
 begin
   Len := StrLen(S);
   SetLength(Res, Len);
-  Move(S, Res[1], Len);
+  Move(S^, Res[1], Len);
   AnsiStrPas := Res;
 end;
 
