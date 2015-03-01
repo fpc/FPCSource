@@ -603,93 +603,30 @@ begin
 end;
 
 
+{ assumes that pattern and name have the same code page }
 Function FNMatch(const Pattern,Name:string):Boolean;
 Var
   LenPat,LenName : longint;
 
-  { assumes that pattern and name have the same code page }
   function NameUtf8CodePointLen(index: longint): longint;
     var
-      bytes: longint;
-      firstzerobit: byte;
+      MaxLookAhead,
+      CodePointLen: longint;
     begin
-      { see https://en.wikipedia.org/wiki/UTF-8#Description for details }
-      Result:=1;
-      { multiple byte UTF-8 code point? }
-      if Name[index]>#127 then
-        begin
-          { bsr searches for the leftmost 1 bit. We are interested in the
-            leftmost 0 bit, so first invert the value
-          }
-          firstzerobit:=BsrByte(not(byte(Name[index])));
-          { if there is no zero bit or the first zero bit is the rightmost bit
-            (bit 0), this is an invalid UTF-8 byte ($ff cannot appear in an
-            UTF-8-encoded string, and in the worst case bit 1 has to be zero)
-          }
-          if (firstzerobit=0) or (firstzerobit=255)  then
-            exit;
-          { the number of bytes belonging to this code point is
-            7-(pos first 0-bit). Subtract 1 since we're already at the first
-            byte. All subsequent bytes of the same sequence must have their
-            highest bit set and the next one unset. We stop when we detect an
-            invalid sequence.
-          }
-          bytes:=6-firstzerobit;
-          while (index+Result<=LenName) and
-                (bytes>0) and
-                ((ord(Name[index+Result]) and %10000000) = %10000000) do
-            begin
-              inc(Result);
-              dec(bytes);
-            end;
-          { stopped because of invalid sequence -> exit }
-          if bytes<>0 then
-            exit;
-        end;
-      { combining diacritics?
-          1) U+0300 - U+036F in UTF-8 = %11001100 10000000 - %11001101 10101111
-          2) U+1DC0 - U+1DFF in UTF-8 = %11100001 10110111 10000000 - %11100001 10110111 10111111
-          3) U+20D0 - U+20FF in UTF-8 = %11100010 10000011 10010000 - %11100010 10000011 10111111
-          4) U+FE20 - U+FE2F in UTF-8 = %11101111 10111000 10100000 - %11101111 10111000 10101111
-      }
-      repeat
-        bytes:=Result;
-        if (index+Result+1<=LenName) then
-          begin
-               { case 1) }
-            if ((ord(Name[index+Result]) and %11001100 = %11001100)) and
-                (ord(Name[index+Result+1]) >= %10000000) and
-                (ord(Name[index+Result+1]) <= %10101111) then
-              inc(Result,2)
-                { case 2), 3), 4) }
-            else if (index+Result+2<=LenName) and
-               (ord(Name[index+Result])>=%11100001) then
-              begin
-                   { case 2) }
-                if ((ord(Name[index+Result])=%11100001) and
-                    (ord(Name[index+Result+1])=%10110111) and
-                    (ord(Name[index+Result+2])>=%10000000)) or
-                   { case 3) }
-                   ((ord(Name[index+Result])=%11100010) and
-                    (ord(Name[index+Result+1])=%10000011) and
-                    (ord(Name[index+Result+2])>=%10010000)) or
-                   { case 4) }
-                   ((ord(Name[index+Result])=%11101111) and
-                    (ord(Name[index+Result+1])=%10111000) and
-                    (ord(Name[index+Result+2])>=%10100000) and
-                    (ord(Name[index+Result+2])<=%10101111)) then
-                  inc(Result,3);
-              end;
-          end;
-      until bytes=Result;
+      MaxLookAhead:=LenName-Index+1;
+      { abs so that in case of an invalid sequence, we count this as one
+        codepoint }
+      CodePointLen:=abs(Utf8CodePointLen(pansichar(@Name[index]),MaxLookAhead,true));
+      { if the sequence was incomplete, use the incomplete sequence as
+        codepoint }
+      if CodePointLen=0 then
+        CodePointLen:=MaxLookAhead;
     end;
 
     procedure GoToLastByteOfUtf8CodePoint(var j: longint);
-    begin
-      { Take one less, because we have to stop at the last byte of the sequence.
-      }
-      inc(j,NameUtf8CodePointLen(j)-1);
-    end;
+      begin
+        inc(j,NameUtf8CodePointLen(j)-1);
+      end;
 
   { input:
       i: current position in pattern (start of utf-8 code point)
