@@ -58,6 +58,8 @@ type
     function GetIntRegister(const RegName: string; var Value: Int64): Boolean;
     function GetIntRegister(const RegName: string; var Value: UInt32): Boolean;
     function GetIntRegister(const RegName: string; var Value: Int32): Boolean;
+    { set command }
+    function SetCommand(Const SetExpr : string) : boolean;
     { print }
     function InternalGetValue(Const expr : string) : pchar;
     function PrintCommand(const expr : string): pchar;
@@ -325,6 +327,8 @@ begin
   Command('finish');
 end;
 
+{ Register functions }
+
 function TGDBController.GetIntRegister(const RegName: string; var Value: UInt64): Boolean;
 var
   RegValueStr: string;
@@ -400,6 +404,16 @@ var
 begin
   GetIntRegister := GetIntRegister(RegName, U32Value);
   Value := Int32(U32Value);
+end;
+
+{ set command }
+function TGDBController.SetCommand(Const SetExpr : string) : boolean;
+begin
+  SetCommand:=false;
+  Command('set '+SetExpr);
+  if error then
+    exit;
+  SetCommand:=true;
 end;
 
 { print }

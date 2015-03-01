@@ -668,12 +668,12 @@ begin
   WindowWidth:=-1;
   switch_to_user:=true;
   GetDir(0,OrigPwd);
-  Command('set print object off');
+  SetCommand('print object off');
 {$ifdef SUPPORT_REMOTE}
   isFirstRemote:=true;
 {$ifdef FPC_ARMEL32}
   { GDB needs advice on exact file type }
-  Command('set gnutarget elf32-littlearm');
+  SetCommand('gnutarget elf32-littlearm');
 {$endif FPC_ARMEL32}
 {$endif SUPPORT_REMOTE}
 end;
@@ -728,7 +728,7 @@ end;
 procedure TDebugController.SetWidth(AWidth : longint);
 begin
   WindowWidth:=AWidth;
-  Command('set width '+inttostr(WindowWidth));
+  SetCommand('width '+inttostr(WindowWidth));
 end;
 
 procedure TDebugController.SetSourceDirs;
@@ -940,9 +940,9 @@ begin
 {$ifdef Windows}
   { Run the debugge in another console }
   if DebuggeeTTY<>'' then
-    Command('set new-console on')
+    SetCommand('new-console on')
   else
-    Command('set new-console off');
+    SetCommand('new-console off');
   NoSwitch:=DebuggeeTTY<>'';
 {$endif Windows}
 {$ifdef Unix}
@@ -3538,7 +3538,7 @@ end;
       Clear;
 
       if Debugger^.WindowWidth<>-1 then
-        Debugger^.Command('set width 0xffffffff');
+        Debugger^.SetCommand('width 0xffffffff');
       Debugger^.Backtrace;
       { generate list }
       { all is in tframeentry }
@@ -3580,7 +3580,7 @@ end;
       if Assigned(list) and (List^.Count > 0) then
         FocusItem(0);
       if Debugger^.WindowWidth<>-1 then
-        Debugger^.Command('set width '+IntToStr(Debugger^.WindowWidth));
+        Debugger^.SetCommand('width '+IntToStr(Debugger^.WindowWidth));
       DeskTop^.Unlock;
 {$endif NODEBUG}
     end;

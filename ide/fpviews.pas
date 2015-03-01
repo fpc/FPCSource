@@ -2764,8 +2764,8 @@ var
 begin
 {$ifndef NODEBUG}
   If not assigned(Debugger) then Exit;
-  Debugger^.Command('set print sym on');
-  Debugger^.Command('set width 0xffffffff');
+  Debugger^.SetCommand('print sym on');
+  Debugger^.SetCommand('width 0xffffffff');
   Debugger^.Command('disas '+FuncName);
   p:=StrNew(Debugger^.GetOutput);
   ProcessPChar(p);
@@ -2780,8 +2780,8 @@ var
 begin
 {$ifndef NODEBUG}
   If not assigned(Debugger) then Exit;
-  Debugger^.Command('set print sym on');
-  Debugger^.Command('set width 0xffffffff');
+  Debugger^.SetCommand('print sym on');
+  Debugger^.SetCommand('width 0xffffffff');
   Debugger^.Command('disas 0x'+HexStr(Addr,8));
   p:=StrNew(Debugger^.GetOutput);
   ProcessPChar(p);
