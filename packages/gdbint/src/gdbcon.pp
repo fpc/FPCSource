@@ -61,9 +61,9 @@ type
     { set command }
     function SetCommand(Const SetExpr : string) : boolean;
     { print }
-    function InternalGetValue(Const expr : string) : pchar;
-    function PrintCommand(const expr : string): pchar;
-    function PrintFormattedCommand(const expr : string; Format : TPrintFormatType): pchar;
+    function InternalGetValue(Const expr : string) : AnsiString;
+    function PrintCommand(const expr : string): AnsiString;
+    function PrintFormattedCommand(const expr : string; Format : TPrintFormatType): AnsiString;
     { breakpoints }
     function BreakpointInsert(const location: string; BreakpointFlags: TBreakpointFlags): LongInt;
     function WatchpointInsert(const location: string; WatchpointType: TWatchpointType): LongInt;
@@ -172,6 +172,17 @@ begin
     s:=CygDrivePrefix+'/'+s[1]+copy(s,3,length(s));
 {$endif USE_MINGW_GDB}
 {$endif win32}
+end;
+
+function AnsiStrPas(S: PChar): AnsiString;
+var
+  Res: AnsiString;
+  Len: LongInt;
+begin
+  Len := StrLen(S);
+  SetLength(Res, Len);
+  Move(S, Res[1], Len);
+  AnsiStrPas := Res;
 end;
 
 constructor TGDBController.Init;
@@ -418,7 +429,7 @@ end;
 
 { print }
 
-function TGDBController.InternalGetValue(Const expr : string) : pchar;
+function TGDBController.InternalGetValue(Const expr : string) : AnsiString;
 var
   p,p2,p3 : pchar;
   st : string;
@@ -470,9 +481,9 @@ begin
   while p^ in [' ',#9] do
     inc(p);
   if assigned(p) then
-    InternalGetValue:=StrNew(p)
+    InternalGetValue:=AnsiStrPas(p)
   else
-    InternalGetValue:=StrNew(GetError);
+    InternalGetValue:=AnsiStrPas(GetError);
   if assigned(p3) then
     p3^:=#10;
   got_error:=false;
@@ -484,7 +495,7 @@ begin
 end;
 
 
-function TGDBController.PrintCommand(const expr : string): pchar;
+function TGDBController.PrintCommand(const expr : string): AnsiString;
 begin
   PrintCommand:=InternalGetValue(expr);
 end;
@@ -493,7 +504,7 @@ const
   PrintFormatName : Array[TPrintFormatType] of string[11] =
   (' /b ', ' /d ', ' /x ', ' /o ', '');
 
-function TGDBController.PrintFormattedCommand(const expr : string; Format : TPrintFormatType): pchar;
+function TGDBController.PrintFormattedCommand(const expr : string; Format : TPrintFormatType): AnsiString;
 begin
   PrintFormattedCommand:=InternalGetValue(PrintFormatName[Format]+expr);
 end;

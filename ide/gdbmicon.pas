@@ -67,8 +67,8 @@ type
     { set command }
     function SetCommand(Const SetExpr : string) : boolean;
     { print }
-    function PrintCommand(const expr : string): pchar;
-    function PrintFormattedCommand(const expr : string; Format : TPrintFormatType): pchar;
+    function PrintCommand(const expr : string): AnsiString;
+    function PrintFormattedCommand(const expr : string; Format : TPrintFormatType): AnsiString;
     { breakpoints }
     function BreakpointInsert(const location: string; BreakpointFlags: TBreakpointFlags): LongInt;
     function WatchpointInsert(const location: string; WatchpointType: TWatchpointType): LongInt;
@@ -107,6 +107,17 @@ begin
   if using_cygwin_gdb and (length(s)>2) and (s[2]=':') and (s[3]='/') then
     s:=CygDrivePrefix+'/'+s[1]+copy(s,3,length(s));
 {$endif windows}
+end;
+
+function AnsiStrPas(S: PChar): AnsiString;
+var
+  Res: AnsiString;
+  Len: LongInt;
+begin
+  Len := StrLen(S);
+  SetLength(Res, Len);
+  Move(S, Res[1], Len);
+  AnsiStrPas := Res;
 end;
 
 constructor TGDBController.Init;
@@ -300,26 +311,26 @@ end;
 
 
 { print }
-function TGDBController.PrintCommand(const expr : string): pchar;
+function TGDBController.PrintCommand(const expr : string): AnsiString;
 begin
   Command('-data-evaluate-expression '+expr);
   if GDB.ResultRecord.Success then
-    PrintCommand:=strnew(pchar(GDB.ResultRecord.Parameters['value'].AsString))
+    PrintCommand:=GDB.ResultRecord.Parameters['value'].AsString
   else
-    PrintCommand:=strnew(GetError);
+    PrintCommand:=AnsiStrPas(GetError);
 end;
 
 const
   PrintFormatName : Array[TPrintFormatType] of string[11] =
   ('binary', 'decimal', 'hexadecimal', 'octal', 'natural');
 
-function TGDBController.PrintFormattedCommand(const expr : string; Format : TPrintFormatType): pchar;
+function TGDBController.PrintFormattedCommand(const expr : string; Format : TPrintFormatType): ansistring;
 begin
   Command('-var-evaluate-expression -f '+PrintFormatName[Format]+' '+expr);
   if GDB.ResultRecord.Success then
-    PrintFormattedCommand:=strnew(pchar(GDB.ResultRecord.Parameters['value'].AsString))
+    PrintFormattedCommand:=GDB.ResultRecord.Parameters['value'].AsString
   else
-    PrintFormattedCommand:=strnew(GetError);
+    PrintFormattedCommand:=AnsiStrPas(GetError);
 end;
 
 function TGDBController.BreakpointInsert(const location: string; BreakpointFlags: TBreakpointFlags): LongInt;

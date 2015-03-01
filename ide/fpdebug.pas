@@ -1212,7 +1212,7 @@ end;
 
 function TDebugController.GetValue(Const expr : string) : pchar;
 begin
-  GetValue:=PrintCommand(expr);
+  GetValue:=StrNew(PChar(PrintCommand(expr)));
 end;
 
 function TDebugController.GetFramePointer : CORE_ADDR;
@@ -1221,7 +1221,7 @@ var
   p : longint;
 begin
 {$ifdef FrameNameKnown}
-  st:=strpas(PrintFormattedCommand(FrameName,pfdecimal));
+  st:=PrintFormattedCommand(FrameName,pfdecimal);
   p:=pos('=',st);
   while (p<length(st)) and (st[p+1] in [' ',#9]) do
     inc(p);
