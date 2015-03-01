@@ -1076,6 +1076,144 @@ function strpas(p:pchar):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 {$endif not cpujvm}
 
+
+function Utf8CodePointLen(P: PAnsiChar; MaxLookAhead: SizeInt; IncludeCombiningDiacriticalMarks: Boolean): SizeInt;
+  var
+    bytes: sizeint;
+    firstzerobit: byte;
+  begin
+    { see https://en.wikipedia.org/wiki/UTF-8#Description for details }
+
+    if maxlookahead<=0 then
+      begin
+        { incomplete }
+        result:=0;
+        exit;
+      end;
+    { inlcude the first byte }
+    result:=1;
+    { multiple byte utf-8 code point? }
+    if p[0]>#127 then
+      begin
+        { bsr searches for the leftmost 1 bit. We are interested in the
+          leftmost 0 bit, so first invert the value
+        }
+        firstzerobit:=bsrbyte(not(byte(p[0])));
+        { if there is no zero bit or the first zero bit is the rightmost bit
+          (bit 0), this is an invalid UTF-8 byte ($ff cannot appear in an
+          UTF-8-encoded string, and in the worst case bit 1 has to be zero)
+          Additionally, 5-byte UTF-8 sequences don't exist either, so bit 1
+          cannot be the first zero-bit either. And bits 6 and 7 can't be 0
+          either in the first byte.
+        }
+        if (firstzerobit<=1) or (firstzerobit>=6)  then
+          begin
+            result:=-result;
+            exit;
+          end;
+        { the number of bytes belonging to this code point is
+          7-(pos first 0-bit). Subtract 1 since we're already at the first
+          byte. All subsequent bytes of the same sequence must have their
+          highest bit set and the next one unset. We stop when we detect an
+          invalid sequence.
+        }
+        bytes:=6-firstzerobit;
+        while (result<maxlookahead) and
+              (bytes>0) and
+              ((ord(p[result]) and %11000000)=%10000000) do
+          begin
+            inc(result);
+            dec(bytes);
+          end;
+        { stopped because of invalid/incomplete sequence -> exit }
+        if bytes<>0 then
+          begin
+            if result>=maxlookahead then
+              result:=0
+            else
+              result:=-result;
+            exit;
+          end;
+      end;
+    if includecombiningdiacriticalmarks then
+      begin
+        { combining diacritical marks?
+            1) U+0300 - U+036F in UTF-8 = %11001100 10000000 - %11001101 10101111
+            2) U+1AB0 - U+1AFF in UTF-8 = %11100001 10101010 10110000 - %11100001 10101011 10111111
+            3) U+1DC0 - U+1DFF in UTF-8 = %11100001 10110111 10000000 - %11100001 10110111 10111111
+            4) U+20D0 - U+20FF in UTF-8 = %11100010 10000011 10010000 - %11100010 10000011 10111111
+            5) U+FE20 - U+FE2F in UTF-8 = %11101111 10111000 10100000 - %11101111 10111000 10101111
+        }
+        repeat
+          bytes:=result;
+          if result+1<maxlookahead then
+            begin
+              { case 1) }
+              if ((ord(p[result]) and %11001100=%11001100)) and
+                  (ord(p[result+1])>=%10000000) and
+                  (ord(p[result+1])<=%10101111) then
+                inc(result,2)
+                  { case 2), 3), 4), 5) }
+              else if (result+2<maxlookahead) and
+                 (ord(p[result])>=%11100001) then
+                begin
+                     { case 2) }
+                  if ((ord(p[result])=%11100001) and
+                      (ord(p[result+1])=%10101010) and
+                      (ord(p[result+2])>=%10110000) and
+                      (ord(p[result+2])<=%10111111)) or
+                     { case 3) }
+                     ((ord(p[result])=%11100001) and
+                      (ord(p[result+1])=%10110111) and
+                      (ord(p[result+2])>=%10000000) and
+                      (ord(p[result+2])<=%10111111)) or
+                     { case 4) }
+                     ((ord(p[result])=%11100010) and
+                      (ord(p[result+1])=%10000011) and
+                      (ord(p[result+2])>=%10010000) and
+                      (ord(p[result+2])<=%10111111)) or
+                     { case 5) }
+                     ((ord(p[result])=%11101111) and
+                      (ord(p[result+1])=%10111000) and
+                      (ord(p[result+2])>=%10100000) and
+                      (ord(p[result+2])<=%10101111)) then
+                    inc(result,3);
+                end;
+            end;
+        until bytes=result;
+        { is there an incomplete diacritical mark? (invalid makes little sense:
+          either a sequence is a combining diacritical mark, or it's not ; if
+          it's invalid, it may also not have been a combining diacritical mark)
+        }
+        if result<maxlookahead then
+          begin
+               { case 1) }
+            if (((ord(p[result]) and %11001100=%11001100)) and
+                (result+1>=maxlookahead)) or
+               { case 2) and 3)}
+               ((ord(p[result])=%11100001) and
+                ((result+1>=maxlookahead) or
+                 (((ord(p[result+1])=%10101010) or
+                   (ord(p[result+1])=%10110111)) and
+                  (result+2>=maxlookahead)))) or
+               { case 4 }
+               ((ord(p[result])=%11100010) and
+                ((result+1>=maxlookahead) or
+                 ((ord(p[result+1])=%10000011) and
+                  (result+2>=maxlookahead)))) or
+               { case 5 }
+               ((ord(p[result])=%11101111) and
+                ((result+1>=maxlookahead) or
+                 ((ord(p[result+1])=%10111000) and
+                  (result+2>=maxlookahead)))) then
+              begin
+                result:=0;
+                exit;
+              end;
+          end;
+      end;
+  end;
+
 {$ifndef FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
 
 procedure fpc_chararray_to_shortstr(out res : shortstring;const arr: array of char; zerobased: boolean = true);[public,alias:'FPC_CHARARRAY_TO_SHORTSTR']; compilerproc;

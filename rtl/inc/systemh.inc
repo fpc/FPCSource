@@ -1081,6 +1081,14 @@ Function  Sseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 function strpas(p:pchar):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
 function strlen(p:pchar):sizeint;external name 'FPC_PCHAR_LENGTH';
 
+{ result:
+  <0: invalid sequence detected after processing "-result" bytes
+  0: incomplete (may still be valid if MaxLookAhead is increased)
+  >0: sequence of result bytes forms a codepoint (+ combining diacritics if that
+      parameter was true)
+}
+function Utf8CodePointLen(P: PAnsiChar; MaxLookAhead: SizeInt; IncludeCombiningDiacriticalMarks: Boolean): SizeInt;
+
 { Shortstring functions }
 Procedure Delete(var s:shortstring;index:SizeInt;count:SizeInt);
 Procedure Insert(const source:shortstring;var s:shortstring;index:SizeInt);
