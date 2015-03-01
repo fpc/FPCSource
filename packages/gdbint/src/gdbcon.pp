@@ -27,6 +27,7 @@ uses
 type
   TBreakpointFlags = set of (bfTemporary, bfHardware);
   TWatchpointType = (wtWrite, wtReadWrite, wtRead);
+  TPrintFormatType = (pfbinary, pfdecimal, pfhexadecimal, pfoctal, pfnatural);
 
   PGDBController=^TGDBController;
   TGDBController=object(TGDBInterface)
@@ -57,6 +58,10 @@ type
     function GetIntRegister(const RegName: string; var Value: Int64): Boolean;
     function GetIntRegister(const RegName: string; var Value: UInt32): Boolean;
     function GetIntRegister(const RegName: string; var Value: Int32): Boolean;
+    { print }
+    function InternalGetValue(Const expr : string) : pchar;
+    function PrintCommand(const expr : string): pchar;
+    function PrintFormattedCommand(const expr : string; Format : TPrintFormatType): pchar;
     { breakpoints }
     function BreakpointInsert(const location: string; BreakpointFlags: TBreakpointFlags): LongInt;
     function WatchpointInsert(const location: string; WatchpointType: TWatchpointType): LongInt;
@@ -396,6 +401,89 @@ begin
   GetIntRegister := GetIntRegister(RegName, U32Value);
   Value := Int32(U32Value);
 end;
+
+{ print }
+
+function TGDBController.InternalGetValue(Const expr : string) : pchar;
+var
+  p,p2,p3 : pchar;
+  st : string;
+  WindowWidth : longint;
+begin
+  Command('show width');
+  p:=GetOutput;
+
+  p3:=nil;
+  if assigned(p) and (p[strlen(p)-1]=#10) then
+   begin
+     p3:=p+strlen(p)-1;
+     p3^:=#0;
+   end;
+  if assigned(p) then
+    p2:=strpos(p,' in a line is ')
+  else
+    p2:=nil;
+  if assigned(p2) then
+    p:=p2+length(' in a line is ');
+  while p^ in [' ',#9] do
+    inc(p);
+  p3:=strpos(p,'.');
+  if assigned(p3) then
+    p3^:=#0;
+  WindowWidth:=-1;
+  val(strpas(p),WindowWidth);
+  if WindowWidth<>-1 then
+    Command('set width 0xffffffff');
+  Command('p '+expr);
+  p:=GetOutput;
+  p3:=nil;
+  if assigned(p) and (p[strlen(p)-1]=#10) then
+   begin
+     p3:=p+strlen(p)-1;
+     p3^:=#0;
+   end;
+  if assigned(p) then
+    p2:=strpos(p,'=')
+  else
+    p2:=nil;
+  if assigned(p2) then
+    p:=p2+1;
+  while p^ in [' ',#9] do
+    inc(p);
+  { get rid of type }
+  if p^ = '(' then
+    p:=strpos(p,')')+1;
+  while p^ in [' ',#9] do
+    inc(p);
+  if assigned(p) then
+    InternalGetValue:=StrNew(p)
+  else
+    InternalGetValue:=StrNew(GetError);
+  if assigned(p3) then
+    p3^:=#10;
+  got_error:=false;
+  if WindowWidth<>-1 then
+    begin
+      str(WindowWidth,st);
+      Command('set width '+St);
+    end;
+end;
+
+
+function TGDBController.PrintCommand(const expr : string): pchar;
+begin
+  PrintCommand:=InternalGetValue(expr);
+end;
+
+const
+  PrintFormatName : Array[TPrintFormatType] of string[11] =
+  (' /b ', ' /d ', ' /x ', ' /o ', '');
+
+function TGDBController.PrintFormattedCommand(const expr : string; Format : TPrintFormatType): pchar;
+begin
+  PrintFormattedCommand:=InternalGetValue(PrintFormatName[Format]+expr);
+end;
+
 
 function TGDBController.BreakpointInsert(const location: string; BreakpointFlags: TBreakpointFlags): LongInt;
 var

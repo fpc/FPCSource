@@ -27,6 +27,7 @@ uses
 type
   TBreakpointFlags = set of (bfTemporary, bfHardware);
   TWatchpointType = (wtWrite, wtReadWrite, wtRead);
+  TPrintFormatType = (pfbinary, pfdecimal, pfhexadecimal, pfoctal, pfnatural);
 
   TGDBController = object(TGDBInterface)
   private
@@ -63,6 +64,9 @@ type
     function GetIntRegister(const RegName: string; var Value: Int64): Boolean;
     function GetIntRegister(const RegName: string; var Value: UInt32): Boolean;
     function GetIntRegister(const RegName: string; var Value: Int32): Boolean;
+    { print }
+    function PrintCommand(const expr : string): pchar;
+    function PrintFormattedCommand(const expr : string; Format : TPrintFormatType): pchar;
     { breakpoints }
     function BreakpointInsert(const location: string; BreakpointFlags: TBreakpointFlags): LongInt;
     function WatchpointInsert(const location: string; WatchpointType: TWatchpointType): LongInt;
@@ -279,6 +283,30 @@ var
 begin
   GetIntRegister := GetIntRegister(RegName, U32Value);
   Value := Int32(U32Value);
+end;
+
+
+{ print }
+function TGDBController.PrintCommand(const expr : string): pchar;
+begin
+  Command('-var-evaluate-expression '+expr);
+  if GDB.ResultRecord.Success then
+    PrintCommand:=strnew(pchar(GDB.ResultRecord.Parameters['value'].AsString))
+  else
+    PrintCommand:=strnew(GetError);
+end;
+
+const
+  PrintFormatName : Array[TPrintFormatType] of string[11] =
+  ('binary', 'decimal', 'hexadecimal', 'octal', 'natural');
+
+function TGDBController.PrintFormattedCommand(const expr : string; Format : TPrintFormatType): pchar;
+begin
+  Command('-var-evaluate-expression -f '+PrintFormatName[Format]+' '+expr);
+  if GDB.ResultRecord.Success then
+    PrintFormattedCommand:=strnew(pchar(GDB.ResultRecord.Parameters['value'].AsString))
+  else
+    PrintFormattedCommand:=strnew(GetError);
 end;
 
 function TGDBController.BreakpointInsert(const location: string; BreakpointFlags: TBreakpointFlags): LongInt;

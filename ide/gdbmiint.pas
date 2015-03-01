@@ -73,6 +73,7 @@ type
     got_error: Boolean;
     reset_command: Boolean;
     Debuggee_started: Boolean;
+    init_count : longint;
     { frames and frame info while recording a frame }
     frames: PPFrameEntry;
     frame_count: LongInt;
@@ -89,6 +90,7 @@ type
     function GetOutput: PChar;
     function GetError: PChar;
     { Lowlevel }
+    procedure Set_debuggee_started;
     function error: Boolean;
     function error_num: LongInt;
     function get_current_frame: PtrInt;
@@ -225,6 +227,8 @@ begin
   GDBOutputBuf.Init;
   GDB := TGDBWrapper.Create;
   command_level := 0;
+  Debuggee_started:=false;
+  init_count:=0;
 {$ifdef DEBUG}
   output_raw:=true;
 {$else}
@@ -261,6 +265,15 @@ begin
     GetError := PChar(PtrInt(GDBOutputBuf.buf) + GDBOutputBuf.idx)
   else
     GetError := p;
+end;
+
+procedure TGDBInterface.Set_debuggee_started;
+begin
+  if not Debuggee_started then
+    begin
+      inc(init_count);
+      Debuggee_started:=true;
+    end;
 end;
 
 procedure TGDBInterface.i_gdb_command(const S: string);
@@ -369,7 +382,7 @@ Ignore:
           make sure we have read all parameters that we need to local variables before that }
         DebuggerScreen;
 
-        Debuggee_started := True;
+        set_debuggee_started;
         current_pc := Addr;
         if not DoSelectSourceLine(FileName, LineNumber, BreakpointNo) then
         begin

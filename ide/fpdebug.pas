@@ -687,6 +687,8 @@ begin
       if not LoadFile(f) then
         begin
           HasExe:=false;
+          if GetError<>'' then
+            f:=GetError;
           MessageBox(#3'Failed to load file '#13#3+f,nil,mfOKbutton);
           exit;
         end;
@@ -1209,41 +1211,8 @@ begin
 end;
 
 function TDebugController.GetValue(Const expr : string) : pchar;
-var
-  p,p2,p3 : pchar;
 begin
-  if WindowWidth<>-1 then
-    Command('set width 0xffffffff');
-  Command('p '+expr);
-  p:=GetOutput;
-  p3:=nil;
-  if assigned(p) and (p[strlen(p)-1]=#10) then
-   begin
-     p3:=p+strlen(p)-1;
-     p3^:=#0;
-   end;
-  if assigned(p) then
-    p2:=strpos(p,'=')
-  else
-    p2:=nil;
-  if assigned(p2) then
-    p:=p2+1;
-  while p^ in [' ',TAB] do
-    inc(p);
-  { get rid of type }
-  if p^ = '(' then
-    p:=strpos(p,')')+1;
-  while p^ in [' ',TAB] do
-    inc(p);
-  if assigned(p) then
-    GetValue:=StrNew(p)
-  else
-    GetValue:=StrNew(GetError);
-  if assigned(p3) then
-    p3^:=#10;
-  got_error:=false;
-  if WindowWidth<>-1 then
-    Command('set width '+IntToStr(WindowWidth));
+  GetValue:=PrintCommand(expr);
 end;
 
 function TDebugController.GetFramePointer : CORE_ADDR;
@@ -1252,8 +1221,7 @@ var
   p : longint;
 begin
 {$ifdef FrameNameKnown}
-  Command('p /d '+FrameName);
-  st:=strpas(GetOutput);
+  st:=strpas(PrintFormattedCommand(FrameName,pfdecimal));
   p:=pos('=',st);
   while (p<length(st)) and (st[p+1] in [' ',#9]) do
     inc(p);
@@ -1495,8 +1463,7 @@ begin
          (PB^.typ<>bt_file_line) and (PB^.typ<>bt_function) and
          (PB^.typ<>bt_address) then
         begin
-           Command('p '+GetStr(PB^.Name));
-           S:=GetPChar(GetOutput);
+           S:=PrintCommand(GetStr(PB^.Name));
            got_error:=false;
            If Pos('=',S)>0 then
              S:=Copy(S,Pos('=',S)+1,255);
@@ -2898,15 +2865,14 @@ procedure TWatch.Get_new_value;
 
     function GetValue(var s : string) : boolean;
       begin
-        Debugger^.command('p '+s);
+        s:=Debugger^.PrintCommand(s);
         if not Debugger^.Error then
           begin
-            s:=StrPas(Debugger^.GetOutput);
             GetValue:=true;
           end
         else
           begin
-            s:=StrPas(Debugger^.GetError);
+            // Is always done now s:=StrPas(Debugger^.GetError);
             GetValue:=false;
             { do not open a messagebox for such errors }
             Debugger^.got_error:=false;
