@@ -2859,11 +2859,11 @@ procedure TWatch.Get_new_value;
 {$ifndef NODEBUG}
   var p, q : pchar;
       i, j, curframe, startframe : longint;
-      s,s2 : string;
+      s,s2,orig_s_result : AnsiString;
       loop_higher, found : boolean;
       last_removed : char;
 
-    function GetValue(var s : string) : boolean;
+    function GetValue(var s : AnsiString) : boolean;
       begin
         s:=Debugger^.PrintCommand(s);
         if not Debugger^.Error then
@@ -2904,6 +2904,7 @@ procedure TWatch.Get_new_value;
           end;
       end;
     found:=GetValue(s);
+    orig_s_result:=s;
     Debugger^.got_error:=false;
     loop_higher:=not found;
     if not found then
@@ -2949,14 +2950,9 @@ procedure TWatch.Get_new_value;
            loop_higher:=false;
       end;
     if found then
-      p:=StrNew(Debugger^.GetOutput)
+      p:=StrNew(PChar(s))
     else
-      begin
-        { get a reasonable output at least }
-        s:=GetStr(expr);
-        GetValue(s);
-        p:=StrNew(Debugger^.GetError);
-      end;
+      p:=StrNew(PChar(orig_s_result));
     Debugger^.got_error:=false;
     { We should try here to find the expr in parent
       procedure if there are
