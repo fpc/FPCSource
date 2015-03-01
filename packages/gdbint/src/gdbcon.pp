@@ -31,6 +31,10 @@ type
 
   PGDBController=^TGDBController;
   TGDBController=object(TGDBInterface)
+  private
+    { print }
+    function InternalGetValue(Const expr : string) : AnsiString;
+  public
     progname,
     progdir,
     progargs   : pchar;
@@ -61,7 +65,6 @@ type
     { set command }
     function SetCommand(Const SetExpr : string) : boolean;
     { print }
-    function InternalGetValue(Const expr : string) : AnsiString;
     function PrintCommand(const expr : string): AnsiString;
     function PrintFormattedCommand(const expr : string; Format : TPrintFormatType): AnsiString;
     { breakpoints }
