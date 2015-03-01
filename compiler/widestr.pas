@@ -63,8 +63,8 @@ unit widestr;
       d : pchar; dcp : tstringencoding
     );
     function codepagebyname(const s : string) : tstringencoding;
-    function CharLength (P: PChar; L: SizeInt): SizeInt;
-    function CharLength (const S: string): SizeInt;
+    function charlength(p: pchar; len: sizeint): sizeint;
+    function charlength(const s: string): sizeint;
 
   implementation
 
@@ -344,73 +344,52 @@ unit widestr;
           Result:=p^.cp;
       end;
 
-    function CharLength (P: PChar; L: SizeInt): SizeInt;
 
-      function UTF8CodePointLength(firstbyte: byte): SizeInt;
+    function charlength(p: pchar; len: sizeint): sizeint;
       var
-        firstzerobit: SizeInt;
-      begin
-        result:=1;
-        { bsr searches for the leftmost 1 bit. We are interested in the
-          leftmost 0 bit, so first invert the value
-        }
-        firstzerobit:=BsrByte(not(firstbyte));
-        { if there is no zero bit or the first zero bit is the rightmost bit
-          (bit 0), this is an invalid UTF-8 byte ($ff cannot appear in an
-          UTF-8-encoded string, and in the worst case bit 1 has to be zero)
-        }
-        if (firstzerobit=0) or (firstzerobit=7)  then
-          exit;
-        { the number of bytes belonging to this code point is
-          7-(pos first 0-bit).
-        }
-        result:=7-firstzerobit;
-      end;
-
-      var
-        P2: PChar;
-        I, J, K: SizeInt;
+        p2: pchar;
+        i, chars, codepointlen: sizeint;
       begin
 {$IFDEF FPC_HAS_CPSTRING}
-        if L = 0 then
-         begin
-          Result := 0;
-          Exit;
-         end;
+        if len=0 then
+          begin
+            result:=0;
+            exit;
+          end;
 { Length of the string converted to a SBCS codepage (e.g. ISO 8859-1)
   should be equal to the amount of characters in the source string. }
-        if DefaultSystemCodepage = CP_UTF8 then
+        if defaultsystemcodepage=cp_utf8 then
 { ChangeCodePage does not work for UTF-8 apparently... :-( }
-         begin
-          I := 1;
-          J := 0;
-          while I <= L do
-           begin
-            K := Utf8CodePointLength (byte (P^));
-            Inc (I, K);
-            Inc (P, K);
-            Inc (J);
-           end;
-          Result := J;
-         end
-        else if CPAvailable (DefaultSystemCodepage) then
-         begin
-          GetMem (P2, Succ (L));
-          FillChar (P2^, Succ (L), 0);
-          ChangeCodePage (P, L, DefaultSystemCodepage, P2, 28591);
-          Result := StrLen (P2);
-          FreeMem (P2, Succ (L));
-         end
+          begin
+            i:=1;
+            chars:=0;
+            while i<=len do
+              begin
+                codepointlen:=utf8codepointlen(p,len-i+1,true);
+                inc(i,codepointlen);
+                inc(p,codepointlen);
+                inc(chars);
+              end;
+            result:=chars;
+          end
+        else if cpavailable(defaultsystemcodepage) then
+          begin
+            getmem(p2,succ(len));
+            fillchar(p2^,succ(len),0);
+            changecodepage(p,len,defaultsystemcodepage,p2,28591);
+            result:=strlen(p2);
+            freemem(p2,succ(len));
+          end
         else
-         Result := L;
+          result:=len;
 {$ELSE FPC_HAS_CPSTRING}
-        Result := L;
+        result:=len;
 {$ENDIF FPC_HAS_CPSTRING}
       end;
 
-    function CharLength (const S: string): SizeInt;
+    function charlength(const s: string): sizeint;
       begin
-        Result := CharLength (@S [1], Length (S));
+        result:=charlength(@s[1],length(s));
       end;
 
 end.
