@@ -302,7 +302,7 @@ end;
 { print }
 function TGDBController.PrintCommand(const expr : string): pchar;
 begin
-  Command('-var-evaluate-expression '+expr);
+  Command('-data-evaluate-expression '+expr);
   if GDB.ResultRecord.Success then
     PrintCommand:=strnew(pchar(GDB.ResultRecord.Parameters['value'].AsString))
   else
