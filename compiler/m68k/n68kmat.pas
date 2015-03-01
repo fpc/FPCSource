@@ -186,8 +186,7 @@ implementation
       begin
         secondpass(left);
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-
-        current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('unaryminus second_float called!')));
+        //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('unaryminus second_float called!')));
 
         case left.location.loc of
           LOC_REFERENCE,
