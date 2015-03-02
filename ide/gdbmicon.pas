@@ -109,17 +109,6 @@ begin
 {$endif windows}
 end;
 
-function AnsiStrPas(S: PChar): AnsiString;
-var
-  Res: AnsiString;
-  Len: LongInt;
-begin
-  Len := StrLen(S);
-  SetLength(Res, Len);
-  Move(S^, Res[1], Len);
-  AnsiStrPas := Res;
-end;
-
 constructor TGDBController.Init;
 begin
   inherited Init;
@@ -317,7 +306,7 @@ begin
   if GDB.ResultRecord.Success then
     PrintCommand:=GDB.ResultRecord.Parameters['value'].AsString
   else
-    PrintCommand:=AnsiStrPas(GetError);
+    PrintCommand:=AnsiString(GetError);
 end;
 
 const
@@ -330,7 +319,7 @@ begin
   if GDB.ResultRecord.Success then
     PrintFormattedCommand:=GDB.ResultRecord.Parameters['value'].AsString
   else
-    PrintFormattedCommand:=AnsiStrPas(GetError);
+    PrintFormattedCommand:=AnsiString(GetError);
 end;
 
 function TGDBController.BreakpointInsert(const location: string; BreakpointFlags: TBreakpointFlags): LongInt;

@@ -177,17 +177,6 @@ begin
 {$endif win32}
 end;
 
-function AnsiStrPas(S: PChar): AnsiString;
-var
-  Res: AnsiString;
-  Len: LongInt;
-begin
-  Len := StrLen(S);
-  SetLength(Res, Len);
-  Move(S^, Res[1], Len);
-  AnsiStrPas := Res;
-end;
-
 constructor TGDBController.Init;
 begin
   inherited init;
@@ -484,9 +473,9 @@ begin
   while p^ in [' ',#9] do
     inc(p);
   if assigned(p) then
-    InternalGetValue:=AnsiStrPas(p)
+    InternalGetValue:=AnsiString(p)
   else
-    InternalGetValue:=AnsiStrPas(GetError);
+    InternalGetValue:=AnsiString(GetError);
   if assigned(p3) then
     p3^:=#10;
   got_error:=false;
