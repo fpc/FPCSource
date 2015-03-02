@@ -715,6 +715,15 @@ interface
 {$packrecords C}
 
 type
+{$if defined(CPUSPARC) and defined(LINUX)}
+  {$define GDB_CORE_ADDR_FORCE_64BITS}
+{$endif}
+{$ifdef GDB_CORE_ADDR_FORCE_64BITS}
+  CORE_ADDR = qword;
+{$else}
+  CORE_ADDR = ptrint; { might be target dependent PM }
+{$endif}
+
   psyminfo=^tsyminfo;
   tsyminfo=record
     address  : ptrint;
@@ -746,14 +755,6 @@ const
  k=1;
 
 type
-{$if defined(CPUSPARC) and defined(LINUX)}
-  {$define GDB_CORE_ADDR_FORCE_64BITS}
-{$endif}
-{$ifdef GDB_CORE_ADDR_FORCE_64BITS}
-  CORE_ADDR = qword;
-{$else}
-  CORE_ADDR = ptrint; { might be target dependent PM }
-{$endif}
   streamtype = (afile,astring);
   C_FILE     = ptrint; { at least under DJGPP }
   P_C_FILE   = ^C_FILE;
