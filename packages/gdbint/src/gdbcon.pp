@@ -423,11 +423,26 @@ end;
 
 { print }
 
+function TrimEnd(s: AnsiString): AnsiString;
+var
+  I: LongInt;
+begin
+  if (s<>'') and (s[Length(s)]=#10) then
+  begin
+    I:=Length(s);
+    while (i>1) and ((s[i-1]=' ') or (s[i-1]=#9)) do
+      dec(i);
+	delete(s,i,Length(s)-i+1);
+  end;
+  TrimEnd:=s;
+end;
+
 function TGDBController.InternalGetValue(Const expr : string) : AnsiString;
 var
   p,p2,p3 : pchar;
   st : string;
   WindowWidth : longint;
+  saved_got_error: Boolean;
 begin
   Command('show width');
   p:=GetOutput;
@@ -454,13 +469,8 @@ begin
   if WindowWidth<>-1 then
     Command('set width 0xffffffff');
   Command('p '+expr);
+  saved_got_error:=got_error;
   p:=GetOutput;
-  p3:=nil;
-  if assigned(p) and (p[strlen(p)-1]=#10) then
-   begin
-     p3:=p+strlen(p)-1;
-     p3^:=#0;
-   end;
   if assigned(p) then
     p2:=strpos(p,'=')
   else
@@ -474,18 +484,16 @@ begin
     p:=strpos(p,')')+1;
   while p^ in [' ',#9] do
     inc(p);
-  if assigned(p) then
-    InternalGetValue:=AnsiString(p)
+  if assigned(p) and not saved_got_error then
+    InternalGetValue:=TrimEnd(AnsiString(p))
   else
-    InternalGetValue:=AnsiString(GetError);
-  if assigned(p3) then
-    p3^:=#10;
-  got_error:=false;
+    InternalGetValue:=TrimEnd(AnsiString(GetError));
   if WindowWidth<>-1 then
     begin
       str(WindowWidth,st);
       Command('set width '+St);
     end;
+  got_error:=saved_got_error;
 end;
 
 
