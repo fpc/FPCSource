@@ -195,3 +195,20 @@
 {$ifdef FPC_ARMHF}
   {$define FPC_ARMEL32}
 {$endif FPC_ARMHF}
+
+{ Set TARGET_IS_64BIT for corresponding compilation targets }
+{$ifdef X86_64}
+  {$define TARGET_IS_64BIT}
+{$endif}
+{$ifdef IA64}
+  {$define TARGET_IS_64BIT}
+{$endif}
+{$ifdef ALPHA}
+  {$define TARGET_IS_64BIT}
+{$endif}
+{$ifdef POWERPC64}
+  {$define TARGET_IS_64BIT}
+{$endif}
+{$ifdef AARCH64}
+  {$define TARGET_IS_64BIT}
+{$endif}
