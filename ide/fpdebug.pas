@@ -2857,11 +2857,9 @@ procedure TWatch.rename(s : string);
 
 procedure TWatch.Get_new_value;
 {$ifndef NODEBUG}
-  var p, q : pchar;
-      i, j, curframe, startframe : longint;
+  var i, j, curframe, startframe : longint;
       s,s2,orig_s_result : AnsiString;
       loop_higher, found : boolean;
-      last_removed : char;
 
     function GetValue(var s : AnsiString) : boolean;
       begin
@@ -2950,9 +2948,9 @@ procedure TWatch.Get_new_value;
            loop_higher:=false;
       end;
     if found then
-      p:=StrNew(PChar(s))
+      current_value:=StrNew(PChar(s))
     else
-      p:=StrNew(PChar(orig_s_result));
+      current_value:=StrNew(PChar(orig_s_result));
     Debugger^.got_error:=false;
     { We should try here to find the expr in parent
       procedure if there are
@@ -2964,31 +2962,6 @@ procedure TWatch.Get_new_value;
     if curframe<>startframe then
       Debugger^.set_current_frame(startframe);
 
-    q:=nil;
-    if assigned(p) and (p[0]='$') then
-      q:=StrPos(p,'=');
-    if not assigned(q) then
-      q:=p;
-    if assigned(q) then
-      i:=strlen(q)
-    else
-      i:=0;
-    if (i>0) and (q[i-1]=#10) then
-      begin
-        while (i>1) and ((q[i-2]=' ') or (q[i-2]=#9)) do
-          dec(i);
-        last_removed:=q[i-1];
-        q[i-1]:=#0;
-      end
-    else
-      last_removed:=#0;
-    if assigned(q) then
-      current_value:=strnew(q)
-    else
-      current_value:=strnew('');
-    if last_removed<>#0 then
-      q[i-1]:=last_removed;
-    strdispose(p);
     GDBRunCount:=Debugger^.RunCount;
   end;
 {$else NODEBUG}
