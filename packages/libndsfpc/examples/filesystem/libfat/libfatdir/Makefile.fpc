@@ -84,7 +84,7 @@ soundbank.bin.o : $(AUDIO_FILES)
 #
 $(GFX_FILES): $(wildcard %.bmp %.png)
         @echo 'Converting $(@) file to asm...'
-        $(GRIT) $(GFX)/$(@) -fp -fts -ff $(GFX)/$(basename $(@)).grit -o$(BUILD)/$(@)
+        $(GRIT_FPC) $(GFX)/$(@) -fp -fts -ff $(GFX)/$(basename $(@)).grit -o$(BUILD)/$(@)
         @echo 'Assembling $(@).s file...'
         $(AS) -o $(BUILD)/$(basename $(@)).o $(BUILD)/$(basename $(@)).s
         $(MV) -f $(BUILD)/$(basename $(@)).inc $(INC)/$(basename $(@)).inc           
