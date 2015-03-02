@@ -610,17 +610,16 @@ Var
 
   function NameUtf8CodePointLen(index: longint): longint;
     var
-      MaxLookAhead,
-      CodePointLen: longint;
+      MaxLookAhead: longint;
     begin
       MaxLookAhead:=LenName-Index+1;
       { abs so that in case of an invalid sequence, we count this as one
         codepoint }
-      CodePointLen:=abs(Utf8CodePointLen(pansichar(@Name[index]),MaxLookAhead,true));
+      NameUtf8CodePointLen:=abs(Utf8CodePointLen(pansichar(@Name[index]),MaxLookAhead,true));
       { if the sequence was incomplete, use the incomplete sequence as
         codepoint }
-      if CodePointLen=0 then
-        CodePointLen:=MaxLookAhead;
+      if NameUtf8CodePointLen=0 then
+        NameUtf8CodePointLen:=MaxLookAhead;
     end;
 
     procedure GoToLastByteOfUtf8CodePoint(var j: longint);
