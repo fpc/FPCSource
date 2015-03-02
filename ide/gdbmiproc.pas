@@ -17,6 +17,8 @@ unit GDBMIProc;
 
 {$MODE objfpc}{$H+}
 
+{$I globdir.inc}
+
 interface
 
 uses

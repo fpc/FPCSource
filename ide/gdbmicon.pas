@@ -19,6 +19,8 @@ unit gdbmicon;
 
 {$MODE fpc}{$H-}
 
+{$I globdir.inc}
+
 interface
 
 uses

@@ -19,6 +19,8 @@ unit gdbmiint;
 
 {$MODE fpc}{$H-}
 
+{$I globdir.inc}
+
 interface
 
 uses

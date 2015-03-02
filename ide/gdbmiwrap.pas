@@ -18,6 +18,8 @@ unit gdbmiwrap;
 {$MODE objfpc}{$H+}
 {$ASSERTIONS on}
 
+{$I globdir.inc}
+
 interface
 
 uses
