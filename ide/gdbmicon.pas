@@ -302,7 +302,7 @@ end;
 { print }
 function TGDBController.PrintCommand(const expr : string): AnsiString;
 begin
-  Command('-data-evaluate-expression '+expr);
+  Command('-data-evaluate-expression '+QuoteString(expr));
   if GDB.ResultRecord.Success then
     PrintCommand:=GDB.ResultRecord.Parameters['value'].AsString
   else
@@ -315,7 +315,7 @@ const
 
 function TGDBController.PrintFormattedCommand(const expr : string; Format : TPrintFormatType): ansistring;
 begin
-  Command('-var-evaluate-expression -f '+PrintFormatName[Format]+' '+expr);
+  Command('-var-evaluate-expression -f '+PrintFormatName[Format]+' '+QuoteString(expr));
   if GDB.ResultRecord.Success then
     PrintFormattedCommand:=GDB.ResultRecord.Parameters['value'].AsString
   else

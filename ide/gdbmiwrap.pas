@@ -113,7 +113,37 @@ type
     property Alive: Boolean read IsAlive;
   end;
 
+function QuoteString(S: string): string;
+
 implementation
+
+function QuoteString(S: string): string;
+var
+  I: LongInt;
+begin
+  I := 1;
+  Result := '';
+  while I <= Length(S) do
+  begin
+    case S[I] of
+      '''': Result := Result + '\''';
+      '"':  Result := Result + '\"';
+      #10:  Result := Result + '\n';
+      #13:  Result := Result + '\r';
+      #9:   Result := Result + '\t';
+      #11:  Result := Result + '\v';
+      #8:   Result := Result + '\b';
+      #12:  Result := Result + '\f';
+      #7:   Result := Result + '\a';
+      '\':  Result := Result + '\\';
+      '?':  Result := Result + '\?';
+      else
+        Result := Result + S[I];
+    end;
+    Inc(I);
+  end;
+  Result := '"' + Result + '"';
+end;
 
 function TGDBMI_Value.AsString: string;
 begin
