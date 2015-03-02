@@ -26,6 +26,14 @@ uses
   WEditor,WCEdit,
   WUtils,WHelp,WHlpView,WViews,WANSI,
   Comphook,
+{$ifndef NODEBUG}
+  { Needed here for CORE_ADDR definition }
+  {$ifdef GDBMI}
+    gdbmiint,
+  {$else GDBMI}
+    gdbint,
+  {$endif GDBMI}
+{$endif NODEBUG}
   FPConst,FPUsrScr;
 
 type
@@ -224,7 +232,7 @@ type
 
     PDisasLine = ^TDisasLine;
     TDisasLine = object(TLine)
-      address : cardinal;{ should be target size of address for cross debuggers }
+      address : CORE_ADDR;{ should be target size of address for cross debuggers }
     end;
 
     PDisasLineCollection = ^TDisasLineCollection;
@@ -241,13 +249,13 @@ type
       procedure  ReleaseSource;
       destructor Done;virtual;
       procedure  AddSourceLine(const AFileName: string;line : longint); virtual;
-      procedure  AddAssemblyLine(const S: string;AAddress : cardinal); virtual;
-      function   GetCurrentLine(address : cardinal) : PDisasLine;
+      procedure  AddAssemblyLine(const S: string;AAddress : CORE_ADDR); virtual;
+      function   GetCurrentLine(address : CORE_ADDR) : PDisasLine;
       private
         Source : PSourceWindow;
         OwnsSource : Boolean;
         DisasLines : PDisasLineCollection;
-        MinAddress,MaxAddress : cardinal;
+        MinAddress,MaxAddress : CORE_ADDR;
         CurL : PDisasLine;
       end;
 
@@ -257,12 +265,12 @@ type
       Indicator : PIndicator;
       constructor Init(var Bounds: TRect);
       procedure   LoadFunction(Const FuncName : string);
-      procedure   LoadAddress(Addr : cardinal);
+      procedure   LoadAddress(Addr : CORE_ADDR);
       function    ProcessPChar(p : pchar) : boolean;
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   WriteSourceString(Const S : string;line : longint);
-      procedure   WriteDisassemblyString(Const S : string;address : cardinal);
-      procedure   SetCurAddress(address : cardinal);
+      procedure   WriteDisassemblyString(Const S : string;address : CORE_ADDR);
+      procedure   SetCurAddress(address : CORE_ADDR);
       procedure   UpdateCommands; virtual;
       function    GetPalette: PPalette;virtual;
       destructor  Done; virtual;
@@ -556,13 +564,6 @@ uses
 {$ifdef USE_EXTERNAL_COMPILER}
    fpintf, { superseeds version_string of version unit }
 {$endif USE_EXTERNAL_COMPILER}
-{$ifndef NODEBUG}
-  {$ifdef GDBMI}
-    gdbmiint,
-  {$else GDBMI}
-    gdbint,
-  {$endif GDBMI}
-{$endif NODEBUG}
   {$ifdef VESA}Vesa,{$endif}
   FPSwitch,FPSymbol,FPDebug,FPVars,FPUtils,FPCompil,FPHelp,
   FPTools,FPIDE,FPCodTmp,FPCodCmp;
@@ -2689,7 +2690,7 @@ begin
    LimitsChanged;
 end;
 
-procedure  TDisassemblyEditor.AddAssemblyLine(const S: string;AAddress : cardinal);
+procedure  TDisassemblyEditor.AddAssemblyLine(const S: string;AAddress : CORE_ADDR);
 var
   PL : PDisasLine;
   LI : PEditorLineInfo;
@@ -2710,7 +2711,7 @@ begin
      MaxAddress:=AAddress;
 end;
 
-function   TDisassemblyEditor.GetCurrentLine(address : cardinal) : PDisasLine;
+function   TDisassemblyEditor.GetCurrentLine(address : CORE_ADDR) : PDisasLine;
 
   function IsCorrectLine(PL : PDisasLine) : boolean;
     begin
@@ -2774,7 +2775,7 @@ begin
 {$endif NODEBUG}
 end;
 
-procedure   TDisassemblyWindow.LoadAddress(Addr : cardinal);
+procedure   TDisassemblyWindow.LoadAddress(Addr : CORE_ADDR);
 var
    p : pchar;
 begin
@@ -2798,7 +2799,7 @@ var
   p1: pchar;
   pline : pchar;
   pos1, pos2, CurLine, PrevLine : longint;
-  CurAddr : cardinal;
+  CurAddr : CORE_ADDR;
   err : word;
   curaddress, cursymofs, CurFile,
   PrevFile, line : string;
@@ -2833,7 +2834,7 @@ begin
       pos1:=pos('<',line);
       if pos1>0 then
         begin
-          curaddress:=copy(line,1,pos1-1);
+          curaddress:=trim(copy(line,1,pos1-1));
           if copy(curaddress,1,2)='0x' then
             curaddress:='$'+copy(curaddress,3,length(curaddress)-2);
           val(curaddress,CurAddr,err);
@@ -2890,12 +2891,12 @@ begin
   Editor^.AddSourceLine(S,line);
 end;
 
-procedure   TDisassemblyWindow.WriteDisassemblyString(Const S : string;address : cardinal);
+procedure   TDisassemblyWindow.WriteDisassemblyString(Const S : string;address : CORE_ADDR);
 begin
   Editor^.AddAssemblyLine(S,address);
 end;
 
-procedure   TDisassemblyWindow.SetCurAddress(address : cardinal);
+procedure   TDisassemblyWindow.SetCurAddress(address : CORE_ADDR);
 begin
   if (address<Editor^.MinAddress) or (address>Editor^.MaxAddress) then
     LoadAddress(address);
