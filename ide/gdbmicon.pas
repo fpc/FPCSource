@@ -78,7 +78,9 @@ type
     function BreakpointCondition(BkptNo: LongInt; const ConditionExpr: string): Boolean;
     function BreakpointSetIgnoreCount(BkptNo: LongInt; const IgnoreCount: LongInt): Boolean;
     procedure SetTBreak(tbreakstring : string);
+    { frame commands }
     procedure Backtrace;
+    function SelectFrameCommand(level :longint) : boolean;
     function LoadFile(var fn: string): Boolean;
     procedure SetDir(const s: string);
     procedure SetArgs(const s: string);
@@ -440,6 +442,15 @@ begin
     if Assigned(FrameList.ValueAt[I].AsTuple['fullname']) then
       frames[I]^.file_name := StrNew(PChar(FrameList.ValueAt[I].AsTuple['fullname'].AsString));
   end;
+end;
+
+function TGDBController.SelectFrameCommand(level :longint) : boolean;
+var
+  LevelStr : String;
+begin
+  Str(Level, LevelStr);
+  Command('-stack-select-frame '+LevelStr);
+  SelectFrameCommand:=not error;
 end;
 
 function TGDBController.LoadFile(var fn: string): Boolean;

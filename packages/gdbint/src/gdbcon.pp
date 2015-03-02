@@ -76,7 +76,9 @@ type
     function BreakpointCondition(BkptNo: LongInt; const ConditionExpr: string): Boolean;
     function BreakpointSetIgnoreCount(BkptNo: LongInt; const IgnoreCount: LongInt): Boolean;
     procedure SetTBreak(tbreakstring : string);
+    { frame commands }
     procedure Backtrace;
+    function SelectFrameCommand(level :longint) : boolean;
     { needed for dos because newlines are only #10 (PM) }
     procedure WriteErrorBuf;
     procedure WriteOutputBuf;
@@ -588,6 +590,15 @@ begin
   clear_frames;
 
   Command('backtrace');
+end;
+
+function TGDBController.SelectFrameCommand(level :longint) : boolean;
+var
+  LevelStr : String;
+begin
+  Str(Level, LevelStr);
+  Command('frame '+LevelStr);
+  SelectFrameCommand:=not error;
 end;
 
 
