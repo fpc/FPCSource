@@ -435,7 +435,7 @@ begin
     frames[I] := New(PFrameEntry, Init);
   for I := 0 to FrameList.Count - 1 do
   begin
-    frames[I]^.address := FrameList.ValueAt[I].AsTuple['addr'].AsPtrInt;
+    frames[I]^.address := FrameList.ValueAt[I].AsTuple['addr'].AsCoreAddr;
     frames[I]^.level := FrameList.ValueAt[I].AsTuple['level'].AsLongInt;
     if Assigned(FrameList.ValueAt[I].AsTuple['line']) then
       frames[I]^.line_number := FrameList.ValueAt[I].AsTuple['line'].AsLongInt;

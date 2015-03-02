@@ -374,7 +374,7 @@ Ignore:
         else
           BreakpointNo := 0;
 
-        Addr := GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['addr'].AsPtrInt;
+        Addr := GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['addr'].AsCoreAddr;
         if Assigned(GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['fullname']) then
           FileName := GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['fullname'].AsString;
         if Assigned(GDB.ExecAsyncOutput.Parameters['frame'].AsTuple['line']) then

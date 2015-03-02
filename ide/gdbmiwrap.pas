@@ -38,7 +38,7 @@ type
   TGDBMI_Value = class
     function AsString: string;
     function AsLongInt: LongInt;
-    function AsPtrInt: PtrInt;
+    function AsCoreAddr: CORE_ADDR;
     function AsTuple: TGDBMI_TupleValue;
     function AsList: TGDBMI_ListValue;
   end;
@@ -164,9 +164,11 @@ begin
   Result := StrToInt(AsString);
 end;
 
-function TGDBMI_Value.AsPtrInt: PtrInt;
+function TGDBMI_Value.AsCoreAddr: CORE_ADDR;
 begin
-{$ifdef CPU64}
+{$if defined(TARGET_IS_64BIT)}
+  Result := StrToQWord(AsString);
+{$elseif defined(CPU64)}
   Result := StrToInt64(AsString);
 {$else}
   Result := StrToInt(AsString);
