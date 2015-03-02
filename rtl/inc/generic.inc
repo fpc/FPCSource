@@ -1090,7 +1090,7 @@ function Utf8CodePointLen(P: PAnsiChar; MaxLookAhead: SizeInt; IncludeCombiningD
         result:=0;
         exit;
       end;
-    { inlcude the first byte }
+    { include the first byte }
     result:=1;
     { multiple byte utf-8 code point? }
     if p[0]>#127 then
