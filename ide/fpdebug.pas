@@ -3519,7 +3519,7 @@ end;
                 AddItem(new(PMessageItem,init(0,GetPChar(function_name)+GetPChar(args),
                   AddModuleName(GetPChar(file_name)),line_number,1)))
               else
-                AddItem(new(PMessageItem,init(0,HexStr(address,8)+' '+GetPChar(function_name)+GetPChar(args),
+                AddItem(new(PMessageItem,init(0,HexStr(address,SizeOf(address)*2)+' '+GetPChar(function_name)+GetPChar(args),
                   AddModuleName(''),line_number,1)));
               W:=SearchOnDesktop(GetPChar(file_name),false);
               { First reset all Debugger rows }
