@@ -90,10 +90,8 @@ type
       const OnCompareKeyWithData: TListSortCompare): TAVLTreeNode;
     function FindRightMostKey(Key: Pointer;
       const OnCompareKeyWithData: TListSortCompare): TAVLTreeNode;
-    function FindLeftMostSameKey(ANode: TAVLTreeNode;
-      OnCompareKeyWithData: TListSortCompare = nil): TAVLTreeNode;
-    function FindRightMostSameKey(ANode: TAVLTreeNode;
-      OnCompareKeyWithData: TListSortCompare = nil): TAVLTreeNode;
+    function FindLeftMostSameKey(ANode: TAVLTreeNode): TAVLTreeNode;
+    function FindRightMostSameKey(ANode: TAVLTreeNode): TAVLTreeNode;
     procedure Add(ANode: TAVLTreeNode);
     function Add(Data: Pointer): TAVLTreeNode;
     procedure Delete(ANode: TAVLTreeNode);
@@ -720,29 +718,43 @@ end;
 
 function TAVLTree.FindLeftMostKey(Key: Pointer;
   const OnCompareKeyWithData: TListSortCompare): TAVLTreeNode;
+var
+  LeftNode: TAVLTreeNode;
 begin
-  Result:=FindLeftMostSameKey(FindKey(Key,OnCompareKeyWithData),OnCompareKeyWithData);
+  Result:=FindKey(Key,OnCompareKeyWithData);
+  if Result=nil then exit;
+  repeat
+    LeftNode:=FindPrecessor(Result);
+    if (LeftNode=nil) or (OnCompareKeyWithData(Key,LeftNode.Data)<>0) then exit;
+    Result:=LeftNode;
+  until false;
 end;
 
 function TAVLTree.FindRightMostKey(Key: Pointer;
   const OnCompareKeyWithData: TListSortCompare): TAVLTreeNode;
+var
+  RightNode: TAVLTreeNode;
 begin
-  Result:=FindRightMostSameKey(FindKey(Key,OnCompareKeyWithData),OnCompareKeyWithData);
+  Result:=FindKey(Key,OnCompareKeyWithData);
+  if Result=nil then exit;
+  repeat
+    RightNode:=FindSuccessor(Result);
+    if (RightNode=nil) or (OnCompareKeyWithData(Key,RightNode.Data)<>0) then exit;
+    Result:=RightNode;
+  until false;
 end;
 
-function TAVLTree.FindLeftMostSameKey(ANode: TAVLTreeNode;
-  OnCompareKeyWithData: TListSortCompare): TAVLTreeNode;
+function TAVLTree.FindLeftMostSameKey(ANode: TAVLTreeNode): TAVLTreeNode;
 var
   LeftNode: TAVLTreeNode;
   Data: Pointer;
 begin
   if ANode<>nil then begin
-    if OnCompareKeyWithData=nil then OnCompareKeyWithData:=FOnCompare;
     Data:=ANode.Data;
     Result:=ANode;
     repeat
       LeftNode:=FindPrecessor(Result);
-      if (LeftNode=nil) or (OnCompareKeyWithData(Data,LeftNode.Data)<>0) then break;
+      if (LeftNode=nil) or (FOnCompare(Data,LeftNode.Data)<>0) then break;
       Result:=LeftNode;
     until false;
   end else begin
@@ -750,19 +762,17 @@ begin
   end;
 end;
 
-function TAVLTree.FindRightMostSameKey(ANode: TAVLTreeNode;
-  OnCompareKeyWithData: TListSortCompare): TAVLTreeNode;
+function TAVLTree.FindRightMostSameKey(ANode: TAVLTreeNode): TAVLTreeNode;
 var
   RightNode: TAVLTreeNode;
   Data: Pointer;
 begin
   if ANode<>nil then begin
-    if OnCompareKeyWithData=nil then OnCompareKeyWithData:=FOnCompare;
     Data:=ANode.Data;
     Result:=ANode;
     repeat
       RightNode:=FindSuccessor(Result);
-      if (RightNode=nil) or (OnCompareKeyWithData(Data,RightNode.Data)<>0) then break;
+      if (RightNode=nil) or (FOnCompare(Data,RightNode.Data)<>0) then break;
       Result:=RightNode;
     until false;
   end else begin
