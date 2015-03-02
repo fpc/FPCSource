@@ -26,6 +26,13 @@ uses
   SysUtils, Classes, GDBMIProc;
 
 type
+{$ifdef TARGET_IS_64BIT}
+  { force 64bit if target compilation CPU is 64-bit address CPU }
+  CORE_ADDR = Qword;
+{$else}
+  CORE_ADDR = PtrInt;
+{$endif}
+
   TGDBMI_TupleValue = class;
   TGDBMI_ListValue = class;
   TGDBMI_Value = class

@@ -27,12 +27,7 @@ uses
   gdbmiwrap;
 
 type
-{$ifdef TARGET_IS_64BIT}
-  { force 64bit if target compilation CPU is 64-bit address CPU }
-  CORE_ADDR = Qword;
-{$else}
-  CORE_ADDR = PtrInt;
-{$endif}
+  CORE_ADDR = gdbmiwrap.CORE_ADDR;
 
   PPFrameEntry = ^PFrameEntry;
   PFrameEntry = ^TFrameEntry;
