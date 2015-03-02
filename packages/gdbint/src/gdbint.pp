@@ -721,7 +721,7 @@ type
 {$ifdef GDB_CORE_ADDR_FORCE_64BITS}
   CORE_ADDR = qword;
 {$else}
-  CORE_ADDR = ptrint; { might be target dependent PM }
+  CORE_ADDR = ptruint; { might be target dependent PM }
 {$endif}
 
   psyminfo=^tsyminfo;

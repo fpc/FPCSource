@@ -30,7 +30,7 @@ type
   { force 64bit if target compilation CPU is 64-bit address CPU }
   CORE_ADDR = Qword;
 {$else}
-  CORE_ADDR = PtrInt;
+  CORE_ADDR = PtrUInt;
 {$endif}
 
   TGDBMI_TupleValue = class;
