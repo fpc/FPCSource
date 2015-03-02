@@ -40,7 +40,7 @@ type
     function_name: PChar;
     args: PChar;
     line_number: LongInt;
-    address: PtrInt;
+    address: CORE_ADDR;
     level : longint;
     constructor Init;
     destructor Done;

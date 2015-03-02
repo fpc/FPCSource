@@ -729,7 +729,7 @@ type
     function_name : pchar;
     args : pchar;
     line_number : longint;
-    address : ptrint;
+    address : CORE_ADDR;
     level : longint;
     constructor init;
     destructor done;
