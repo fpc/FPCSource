@@ -947,7 +947,7 @@ implementation
                  callref:=can_call_ref(href);
                  if not callref then
                    begin
-                     pvreg:=cg.getintregister(current_asmdata.CurrAsmList,proc_addr_size);
+                     pvreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,proc_addr_voidptrdef);
                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,proc_addr_size,proc_addr_size,href,pvreg);
                    end;
 
@@ -1026,7 +1026,7 @@ implementation
               secondpass(right);
               callref:=false;
 
-              pvreg:=cg.getintregister(current_asmdata.CurrAsmList,proc_addr_size);
+              pvreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,proc_addr_voidptrdef);
               { Only load OS_ADDR from the reference (when converting to hlcg:
                 watch out with procedure of object) }
               if po_is_block in procdefinition.procoptions then
