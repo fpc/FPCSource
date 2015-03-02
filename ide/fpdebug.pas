@@ -2948,7 +2948,7 @@ procedure TWatch.Get_new_value;
            loop_higher:=false;
       end;
     if found then
-      current_value:=StrNew(PChar(s))
+      current_value:=StrNew(PChar('= ' + s))
     else
       current_value:=StrNew(PChar(orig_s_result));
     Debugger^.got_error:=false;
