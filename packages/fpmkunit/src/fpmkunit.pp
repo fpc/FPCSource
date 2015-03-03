@@ -51,6 +51,10 @@ Interface
  {$DEFINE NO_THREADING}
 {$ENDIF GO32V2}
 
+{$IFDEF NDS}
+ {$DEFINE NO_THREADING}
+{$ENDIF NDS}
+
 {$IFDEF NETBSD}
  { NetBSD pthreads are not yet working, try to use fpmake without threads }
   {$DEFINE NO_THREADING}
@@ -210,7 +214,7 @@ Const
     { embedded }( false, true,  true,  true,  true,  true,  true,  true,  true,  true , false, false, false, false, false),
     { symbian } ( false, true,  false, false, false, false, true,  false, false, false, false, false, false, false, false),
     { haiku }   ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
-    { iphonesim}( false, true,  false, false, false, true, false, false, false, false, false, false, false, false, false),
+    { iphonesim}( false, true,  false, false, false, true,  false, false, false, false, false, false, false, false, false),
     { aix    }  ( false, false, false, true,  false, false, false, true,  false, false, false, false, false, false, false),
     { java }    ( false, false, false, false, false, false, false, false, false, false, false, false, true , false, false),
     { android } ( false, true,  false, false, false, false, true,  false, false, false, false, true,  true , false, false),
