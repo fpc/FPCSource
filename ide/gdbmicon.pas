@@ -133,6 +133,9 @@ begin
   CommandBegin(s);
   GDBOutputBuf.Reset;
   GDBErrorBuf.Reset;
+{$ifdef GDB_RAW_OUTPUT}
+  GDBRawBuf.reset;
+{$endif GDB_RAW_OUTPUT}
   i_gdb_command(s);
   CommandEnd(s);
   Dec(in_command);
@@ -464,6 +467,9 @@ begin
   Command('-environment-cd ' + cmd);
   GDBOutputBuf.Reset;
   GDBErrorBuf.Reset;
+{$ifdef GDB_RAW_OUTPUT}
+  GDBRawBuf.reset;
+{$endif GDB_RAW_OUTPUT}
   UnixDir(fn);
   Command('-file-exec-and-symbols ' + fn);
   if not GDB.ResultRecord.Success then
@@ -483,7 +489,9 @@ var
 begin
   hs:=s;
   UnixDir(hs);
-  Command('-environment-cd ' + hs);
+  { Avoid error message if s is empty }
+  if hs<>'' then
+    Command('-environment-cd ' + hs);
 end;
 
 procedure TGDBController.SetArgs(const s: string);
