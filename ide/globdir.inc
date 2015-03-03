@@ -212,3 +212,9 @@
 {$ifdef AARCH64}
   {$define TARGET_IS_64BIT}
 {$endif}
+
+{$ifdef GDBMI}
+  {$ifdef DEBUG}
+    {$define GDB_RAW_OUTPUT}
+  {$endif DEBUG}
+{$endif GDBMI}
