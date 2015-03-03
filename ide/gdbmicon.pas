@@ -421,8 +421,9 @@ end;
 
 procedure TGDBController.Backtrace;
 var
-  FrameList: TGDBMI_ListValue;
-  I: LongInt;
+  FrameList,FrameArgList,ArgList: TGDBMI_ListValue;
+  I,J,arg_count: LongInt;
+  s : ansistring;
 begin
   { forget all old frames }
   clear_frames;
@@ -446,6 +447,28 @@ begin
       frames[I]^.function_name := StrNew(PChar(FrameList.ValueAt[I].AsTuple['func'].AsString));
     if Assigned(FrameList.ValueAt[I].AsTuple['fullname']) then
       frames[I]^.file_name := StrNew(PChar(FrameList.ValueAt[I].AsTuple['fullname'].AsString));
+  end;
+  Command('-stack-list-arguments 1');
+  if not GDB.ResultRecord.Success then
+    exit;
+
+  FrameArgList := GDB.ResultRecord.Parameters['stack-args'].AsList;
+  arg_count:=FrameArgList.Count;
+  if arg_count>frame_count then
+    arg_count:=frame_count;
+  for I := 0 to arg_count - 1 do
+  begin
+    ArgList:=FrameArgList.ValueAt[I].AsTuple['args'].AsList;
+    s:='(';
+    for J:=0 to ArgList.Count-1 do
+      begin
+        if J>0 then s:=s+', ';
+        s:=s+ArgList.ValueAt[J].AsTuple['name'].AsString;
+        if Assigned(ArgList.ValueAt[J].AsTuple['value']) then
+          s:=s+':='+ArgList.ValueAt[J].AsTuple['value'].ASString;
+      end;
+    s:=s+')';
+    frames[I]^.args:=StrNew(pchar(s));
   end;
 end;
 
