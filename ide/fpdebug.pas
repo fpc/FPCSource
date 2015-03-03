@@ -1253,7 +1253,7 @@ var
   st : string;
   p : longint;
 begin
-  Command('x /wd 0x'+hexstr(longint(addr),8));
+  Command('x /wd 0x'+hexstr(longint(addr),sizeof(CORE_ADDR)*2));
   st:=strpas(GetOutput);
   p:=pos(':',st);
   while (p<length(st)) and (st[p+1] in [' ',#9]) do
@@ -1272,7 +1272,7 @@ var
   p : longint;
   code : integer;
 begin
-  Command('x /wx 0x'+hexstr(PtrInt(addr),sizeof(PtrInt)*2));
+  Command('x /wx 0x'+hexstr(PtrInt(addr),sizeof(CORE_ADDR)*2));
   st:=strpas(GetOutput);
   p:=pos(':',st);
   while (p<length(st)) and (st[p+1] in [' ',#9]) do
