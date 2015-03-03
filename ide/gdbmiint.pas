@@ -62,7 +62,9 @@ type
   TGDBInterface = object
   private
     user_screen_shown: Boolean;
+{$ifdef DEBUG}
     output_raw : boolean;
+{$endif DEBUG}
   protected
     GDB: TGDBWrapper;
 
@@ -72,6 +74,9 @@ type
   public
     GDBErrorBuf: TGDBBuffer;
     GDBOutputBuf: TGDBBuffer;
+{$ifdef DEBUG}
+    GDBRawBuf: TGDBBuffer;
+{$endif DEBUG}
     got_error: Boolean;
     reset_command: Boolean;
     Debuggee_started: Boolean;
@@ -91,6 +96,9 @@ type
     { from gdbcon }
     function GetOutput: PChar;
     function GetError: PChar;
+{$ifdef DEBUG}
+    function GetRaw: PChar;
+{$endif DEBUG}
     { Lowlevel }
     procedure Set_debuggee_started;
     function error: Boolean;
@@ -233,6 +241,7 @@ begin
   init_count:=0;
 {$ifdef DEBUG}
   output_raw:=true;
+  GDBRawBuf.Init;
 {$else}
   output_raw:=false;
 {$endif}
@@ -251,12 +260,22 @@ begin
   GDB.Free;
   GDBErrorBuf.Done;
   GDBOutputBuf.Done;
+{$ifdef DEBUG}
+  GDBRawBuf.Done;
+{$endif DEBUG}
 end;
 
 function TGDBInterface.GetOutput: PChar;
 begin
   GetOutput := GDBOutputBuf.buf;
 end;
+
+{$ifdef DEBUG}
+function TGDBInterface.GetRaw: PChar;
+begin
+  GetRaw := GDBRawBuf.buf;
+end;
+{$endif DEBUG}
 
 function TGDBInterface.GetError: PChar;
 var
@@ -285,9 +304,11 @@ begin
   Inc(command_level);
   got_error := False;
   GDB.Command(S);
+{$ifdef DEBUG}
   if output_raw then
     for I := 0 to GDB.RawResponse.Count - 1 do
-      GDBOutputBuf.Append(PChar(GDB.RawResponse[I]));
+      GDBRawBuf.Append(PChar(GDB.RawResponse[I]));
+{$endif DEBUG}
 
   for I := 0 to GDB.ConsoleStream.Count - 1 do
     GDBOutputBuf.Append(PChar(GDB.ConsoleStream[I]));
