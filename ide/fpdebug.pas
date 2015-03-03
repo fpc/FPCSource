@@ -1106,6 +1106,14 @@ begin
             gdberrorbuf.reset;
         end;
 
+{$ifdef GDB_RAW_OUTPUT}
+      If StrLen(GetRaw)>0 then
+        begin
+          GDBWindow^.WriteOutputText(GetRaw);
+          if in_command=0 then
+            gdbrawbuf.reset;
+        end;
+{$endif GDB_RAW_OUTPUT}
       If StrLen(GetOutput)>0 then
         begin
           GDBWindow^.WriteOutputText(GetOutput);
@@ -1126,6 +1134,10 @@ begin
       { We should do something special for errors !! }
       If StrLen(GetError)>0 then
         GDBWindow^.WriteErrorText(GetError);
+{$ifdef GDB_RAW_OUTPUT}
+      If StrLen(GetRaw)>0 then
+        GDBWindow^.WriteOutputText(GetRaw);
+{$endif GDB_RAW_OUTPUT}
       GDBWindow^.WriteOutputText(GetOutput);
       GDBWindow^.Editor^.TextEnd;
     end;
@@ -1343,8 +1355,8 @@ begin
               begin
                 if ExitAddr=address then
                   begin
-                    Command('f '+IntToStr(i));
-                    if assigned(file_name) then
+                    if SelectFrameCommand(i) and
+                       assigned(file_name) then
                       begin
                         s:=strpas(file_name);
                         line:=line_number;
@@ -2925,9 +2937,9 @@ procedure TWatch.Get_new_value;
                if not Debugger^.set_current_frame(curframe) then
                  loop_higher:=false;
 {$ifdef FrameNameKnown}
-               s2:='/x '+FrameName;
+               s2:=FrameName;
 {$else not  FrameNameKnown}
-               s2:='/x $ebp';
+               s2:='$ebp';
 {$endif FrameNameKnown}
                if not getValue(s2) then
                  loop_higher:=false;
@@ -3565,7 +3577,7 @@ end;
       { select frame for watches }
       If not assigned(Debugger) then
         exit;
-      Debugger^.Command('f '+IntToStr(Focused));
+      Debugger^.SelectFrameCommand(Focused);
       { for local vars }
       Debugger^.RereadWatches;
 {$endif NODEBUG}
@@ -3579,7 +3591,7 @@ end;
       { select frame for watches }
       If not assigned(Debugger) then
         exit;
-      Debugger^.Command('f '+IntToStr(Focused));
+      Debugger^.SelectFrameCommand(Focused);
       { for local vars }
       Debugger^.RereadWatches;
 {$endif}

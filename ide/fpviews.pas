@@ -2696,7 +2696,7 @@ var
   LI : PEditorLineInfo;
 begin
    if AAddress<>0 then
-     inherited AddLine('$'+hexstr(AAddress,sizeof(PtrUInt)*2)+S)
+     inherited AddLine('$'+hexstr(AAddress,sizeof(CORE_ADDR)*2)+S)
    else
      inherited AddLine(S);
    PL:=DisasLines^.At(DisasLines^.count-1);
@@ -2765,9 +2765,9 @@ var
 begin
 {$ifndef NODEBUG}
   If not assigned(Debugger) then Exit;
-  Debugger^.SetCommand('print sym on');
+  Debugger^.SetCommand('print symbol on');
   Debugger^.SetCommand('width 0xffffffff');
-  Debugger^.Command('disas '+FuncName);
+  Debugger^.Command('disas /m '+FuncName);
   p:=StrNew(Debugger^.GetOutput);
   ProcessPChar(p);
   if (Debugger^.IsRunning) and (FuncName='') then
@@ -2781,9 +2781,9 @@ var
 begin
 {$ifndef NODEBUG}
   If not assigned(Debugger) then Exit;
-  Debugger^.SetCommand('print sym on');
+  Debugger^.SetCommand('print symbol on');
   Debugger^.SetCommand('width 0xffffffff');
-  Debugger^.Command('disas 0x'+HexStr(Addr,8));
+  Debugger^.Command('disas /m 0x'+HexStr(Addr,sizeof(Addr)*2));
   p:=StrNew(Debugger^.GetOutput);
   ProcessPChar(p);
   if Debugger^.IsRunning and
@@ -2820,7 +2820,7 @@ begin
       pline:=strscan(p,#10);
       if assigned(pline) then
         pline^:=#0;
-      line:=strpas(p);
+      line:=trim(strpas(p));
       CurAddr:=0;
       if assigned(pline) then
         begin
@@ -2830,6 +2830,12 @@ begin
       else
         p:=nil;
       { now process the line }
+      { Remove current position marker }
+      if copy(line,1,3)='=> ' then
+        begin
+          system.delete(line,1,3);
+        end;
+
       { line is hexaddr <symbol+sym_offset at filename:line> assembly }
       pos1:=pos('<',line);
       if pos1>0 then
