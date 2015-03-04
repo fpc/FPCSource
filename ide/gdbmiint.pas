@@ -62,9 +62,9 @@ type
   TGDBInterface = object
   private
     user_screen_shown: Boolean;
-{$ifdef DEBUG}
+{$ifdef GDB_RAW_OUTPUT}
     output_raw : boolean;
-{$endif DEBUG}
+{$endif GDB_RAW_OUTPUT}
   protected
     GDB: TGDBWrapper;
 
@@ -74,9 +74,11 @@ type
   public
     GDBErrorBuf: TGDBBuffer;
     GDBOutputBuf: TGDBBuffer;
-{$ifdef DEBUG}
+{$ifdef GDB_RAW_OUTPUT}
+    { Separate Raw buffer to display everything inside GDB Window
+      but without parsing it twice }
     GDBRawBuf: TGDBBuffer;
-{$endif DEBUG}
+{$endif GDB_RAW_OUTPUT}
     got_error: Boolean;
     reset_command: Boolean;
     Debuggee_started: Boolean;
@@ -239,12 +241,10 @@ begin
   command_level := 0;
   Debuggee_started:=false;
   init_count:=0;
-{$ifdef DEBUG}
+{$ifdef GDB_RAW_OUTPUT}
   output_raw:=true;
   GDBRawBuf.Init;
-{$else}
-  output_raw:=false;
-{$endif}
+{$endif GDB_RAW_OUTPUT}
 { other standard commands used for fpc debugging }
   i_gdb_command('-gdb-set print demangle off');
   i_gdb_command('-gdb-set gnutarget auto');
@@ -260,9 +260,9 @@ begin
   GDB.Free;
   GDBErrorBuf.Done;
   GDBOutputBuf.Done;
-{$ifdef DEBUG}
+{$ifdef GDB_RAW_OUTPUT}
   GDBRawBuf.Done;
-{$endif DEBUG}
+{$endif GDB_RAW_OUTPUT}
 end;
 
 function TGDBInterface.GetOutput: PChar;
@@ -270,12 +270,12 @@ begin
   GetOutput := GDBOutputBuf.buf;
 end;
 
-{$ifdef DEBUG}
+{$ifdef GDB_RAW_OUTPUT}
 function TGDBInterface.GetRaw: PChar;
 begin
   GetRaw := GDBRawBuf.buf;
 end;
-{$endif DEBUG}
+{$endif GDB_RAW_OUTPUT}
 
 function TGDBInterface.GetError: PChar;
 var
@@ -304,11 +304,11 @@ begin
   Inc(command_level);
   got_error := False;
   GDB.Command(S);
-{$ifdef DEBUG}
+{$ifdef GDB_RAW_OUTPUT}
   if output_raw then
     for I := 0 to GDB.RawResponse.Count - 1 do
       GDBRawBuf.Append(PChar(GDB.RawResponse[I]));
-{$endif DEBUG}
+{$endif GDB_RAW_OUTPUT}
 
   for I := 0 to GDB.ConsoleStream.Count - 1 do
     GDBOutputBuf.Append(PChar(GDB.ConsoleStream[I]));
