@@ -215,6 +215,7 @@ interface
   {$define GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
   {$define GDB_HAS_BP_NONE}
   {$define GDB_USE_XSTRVPRINTF}
+  {$define GDB_ANNOTATE_FRAME_BEGIN_HAS_GDBARCH_FIELD}
 {$endif def GDB_V7}
 
 
@@ -2272,7 +2273,11 @@ begin
 end;
 
 
-procedure annotate_frame_begin(level:longint;pc:CORE_ADDR);cdecl;public;
+procedure annotate_frame_begin(level:longint;
+{$ifdef GDB_ANNOTATE_FRAME_BEGIN_HAS_GDBARCH_FIELD}
+  gdbarch : pointer;
+{$endif GDB_ANNOTATE_FRAME_BEGIN_HAS_GDBARCH_FIELD}
+pc:CORE_ADDR);cdecl;public;
 begin
 {$ifdef Verbose}
   Debug('|frame_begin(%d,%ld)|');
@@ -2430,6 +2435,10 @@ begin
         begin
           if (gdboutputbuf.buf[args_end-1]=#10) then
            dec(args_end);
+          { Flushing is not always correct for args,
+            try to move on to next closing brace }
+          while (args_end<file_start) and (gdboutputbuf.buf[args_end-1]<>')') do
+            inc(args_end);
           c:=gdboutputbuf.buf[args_end];
           gdboutputbuf.buf[args_end]:=#0;
           fe^.args:=strnew(gdboutputbuf.buf+args_start);
