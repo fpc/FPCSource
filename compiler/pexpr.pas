@@ -889,6 +889,11 @@ implementation
               { consume the right bracket here for a nicer error position }
               consume(_RKLAMMER);
             end;
+
+          in_setstring_x_y_z:
+            begin
+              statement_syssym := inline_setstring;
+            end;
           else
             internalerror(15);
 
@@ -1356,10 +1361,37 @@ implementation
            end;
       end;
 
+
+    function handle_specialize_inline_specialization(var srsym:tsym;out srsymtable:tsymtable):boolean;
+      var
+        spezdef : tdef;
+      begin
+        result:=false;
+        if not assigned(srsym) then
+          message1(sym_e_id_no_member,orgpattern)
+        else
+          if srsym.typ<>typesym then
+            message(type_e_type_id_expected)
+          else
+            begin
+              spezdef:=ttypesym(srsym).typedef;
+              generate_specialization(spezdef,false,'');
+              if spezdef<>generrordef then
+                begin
+                  srsym:=spezdef.typesym;
+                  srsymtable:=srsym.owner;
+                  check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                  result:=true;
+                end
+            end;
+      end;
+
+
     function handle_factor_typenode(hdef:tdef;getaddr:boolean;var again:boolean;sym:tsym;typeonly:boolean):tnode;
       var
         srsym : tsym;
         srsymtable : tsymtable;
+        isspecialize : boolean;
       begin
          if sym=nil then
            sym:=hdef.typesym;
@@ -1391,12 +1423,37 @@ implementation
                begin
                  result:=ctypenode.create(hdef);
                  ttypenode(result).typesym:=sym;
+                 if not (m_delphi in current_settings.modeswitches) and
+                     (block_type in [bt_type,bt_var_type,bt_const_type]) and
+                     (token=_ID) and
+                     (idtoken=_SPECIALIZE) then
+                   begin
+                     consume(_ID);
+                     if token<>_ID then
+                       message(type_e_type_id_expected);
+                     isspecialize:=true;
+                   end
+                 else
+                   isspecialize:=false;
                  { search also in inherited methods }
                  searchsym_in_class(tobjectdef(hdef),tobjectdef(current_structdef),pattern,srsym,srsymtable,[ssf_search_helper]);
-                 if assigned(srsym) then
-                   check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
-                 consume(_ID);
-                 do_member_read(tabstractrecorddef(hdef),false,srsym,result,again,[]);
+                 if isspecialize then
+                   begin
+                     consume(_ID);
+                     if not handle_specialize_inline_specialization(srsym,srsymtable) then
+                       begin
+                         result.free;
+                         result:=cerrornode.create;
+                       end;
+                   end
+                 else
+                   begin
+                     if assigned(srsym) then
+                       check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                     consume(_ID);
+                   end;
+                 if result.nodetype<>errorn then
+                   do_member_read(tabstractrecorddef(hdef),false,srsym,result,again,[]);
                end
              else
               begin
@@ -1405,17 +1462,42 @@ implementation
                     * static methods and variables }
                 result:=ctypenode.create(hdef);
                 ttypenode(result).typesym:=sym;
+                if not (m_delphi in current_settings.modeswitches) and
+                    (block_type in [bt_type,bt_var_type,bt_const_type]) and
+                    (token=_ID) and
+                    (idtoken=_SPECIALIZE) then
+                  begin
+                    consume(_ID);
+                    if token<>_ID then
+                      message(type_e_type_id_expected);
+                    isspecialize:=true;
+                  end
+                else
+                  isspecialize:=false;
                 { TP allows also @TMenu.Load if Load is only }
                 { defined in an anchestor class              }
                 srsym:=search_struct_member(tabstractrecorddef(hdef),pattern);
-                if assigned(srsym) then
+                if isspecialize then
                   begin
-                    check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                     consume(_ID);
-                    do_member_read(tabstractrecorddef(hdef),getaddr,srsym,result,again,[]);
+                    if not handle_specialize_inline_specialization(srsym,srsymtable) then
+                      begin
+                        result.free;
+                        result:=cerrornode.create;
+                      end;
                   end
                 else
-                  Message1(sym_e_id_no_member,orgpattern);
+                  begin
+                    if assigned(srsym) then
+                      begin
+                        check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                        consume(_ID);
+                      end
+                    else
+                      Message1(sym_e_id_no_member,orgpattern);
+                  end;
+                if (result.nodetype<>errorn) and assigned(srsym) then
+                  do_member_read(tabstractrecorddef(hdef),getaddr,srsym,result,again,[]);
               end;
            end
          else
@@ -1711,7 +1793,7 @@ implementation
           extdef : tdef;
         begin
           result:=false;
-          if (token=_ID) and (block_type in [bt_body,bt_general,bt_except]) then
+          if (token=_ID) and (block_type in [bt_body,bt_general,bt_except,bt_const]) then
             begin
               if not assigned(def) then
                 if node.nodetype=addrn then
@@ -1756,6 +1838,9 @@ implementation
      { shouldn't be used that often, so the extra overhead is ok to save
        stack space }
      dispatchstring : ansistring;
+     erroroutp1,
+     allowspecialize,
+     isspecialize,
      found,
      haderror,
      nodechanged    : boolean;
@@ -1968,6 +2053,14 @@ implementation
           _POINT :
              begin
                consume(_POINT);
+               allowspecialize:=not (m_delphi in current_settings.modeswitches) and (block_type in [bt_type,bt_var_type,bt_const_type]);
+               if allowspecialize and (token=_ID) and (idtoken=_SPECIALIZE) then
+                 begin
+                   //consume(_ID);
+                   isspecialize:=true;
+                 end
+               else
+                 isspecialize:=false;
                if (p1.resultdef.typ=pointerdef) and
                   (m_autoderef in current_settings.modeswitches) and
                   { don't auto-deref objc.id, because then the code
@@ -2100,24 +2193,48 @@ implementation
                case p1.resultdef.typ of
                  recorddef:
                    begin
-                     if token=_ID then
+                     if isspecialize or (token=_ID) then
                        begin
+                         erroroutp1:=true;
+                         srsym:=nil;
                          structh:=tabstractrecorddef(p1.resultdef);
-                         searchsym_in_record(structh,pattern,srsym,srsymtable);
-                         if assigned(srsym) then
+                         if isspecialize then
                            begin
-                             check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                             { consume the specialize }
                              consume(_ID);
-                             do_member_read(structh,getaddr,srsym,p1,again,[]);
+                             if token<>_ID then
+                               consume(_ID)
+                             else
+                               begin
+                                 searchsym_in_record(structh,pattern,srsym,srsymtable);
+                                 consume(_ID);
+                                 if handle_specialize_inline_specialization(srsym,srsymtable) then
+                                   erroroutp1:=false;
+                               end;
                            end
                          else
                            begin
-                             Message1(sym_e_id_no_member,orgpattern);
-                             p1.destroy;
-                             p1:=cerrornode.create;
-                             { try to clean up }
-                             consume(_ID);
+                             searchsym_in_record(structh,pattern,srsym,srsymtable);
+                             if assigned(srsym) then
+                               begin
+                                 check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                                 consume(_ID);
+                                 erroroutp1:=false;
+                               end
+                             else
+                               begin
+                                 Message1(sym_e_id_no_member,orgpattern);
+                                 { try to clean up }
+                                 consume(_ID);
+                               end;
                            end;
+                         if erroroutp1 then
+                           begin
+                             p1.free;
+                             p1:=cerrornode.create;
+                           end
+                         else
+                           do_member_read(structh,getaddr,srsym,p1,again,[]);
                        end
                      else
                      consume(_ID);
@@ -2249,24 +2366,48 @@ implementation
                     end;
                   objectdef:
                     begin
-                      if token=_ID then
+                      if isspecialize or (token=_ID) then
                         begin
+                          erroroutp1:=true;
+                          srsym:=nil;
                           structh:=tobjectdef(p1.resultdef);
-                          searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable,[ssf_search_helper]);
-                          if assigned(srsym) then
+                          if isspecialize then
                             begin
-                               check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
-                               consume(_ID);
-                               do_member_read(structh,getaddr,srsym,p1,again,[]);
+                              { consume the "specialize" }
+                              consume(_ID);
+                              if token<>_ID then
+                                consume(_ID)
+                              else
+                                begin
+                                  searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable,[ssf_search_helper]);
+                                  consume(_ID);
+                                  if handle_specialize_inline_specialization(srsym,srsymtable) then
+                                    erroroutp1:=false;
+                                end;
                             end
                           else
                             begin
-                               Message1(sym_e_id_no_member,orgpattern);
-                               p1.destroy;
-                               p1:=cerrornode.create;
-                               { try to clean up }
-                               consume(_ID);
+                              searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable,[ssf_search_helper]);
+                              if assigned(srsym) then
+                                begin
+                                   check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                                   consume(_ID);
+                                   erroroutp1:=false;
+                                end
+                              else
+                                begin
+                                   Message1(sym_e_id_no_member,orgpattern);
+                                   { try to clean up }
+                                   consume(_ID);
+                                end;
                             end;
+                          if erroroutp1 then
+                            begin
+                              p1.free;
+                              p1:=cerrornode.create;
+                            end
+                          else
+                            do_member_read(structh,getaddr,srsym,p1,again,[]);
                         end
                       else { Error }
                         Consume(_ID);
@@ -2444,6 +2585,8 @@ implementation
            storedpattern: string;
            callflags: tcallnodeflags;
            t : ttoken;
+           allowspecialize,
+           isspecialize,
            unit_found : boolean;
            tokenpos: tfileposinfo;
          begin
@@ -2453,6 +2596,15 @@ implementation
            { preinitalize tokenpos }
            tokenpos:=current_filepos;
            p1:=nil;
+
+           allowspecialize:=not (m_delphi in current_settings.modeswitches) and (block_type in [bt_type,bt_var_type,bt_const_type]);
+           if allowspecialize and (token=_ID) and (idtoken=_SPECIALIZE) then
+             begin
+               consume(_ID);
+               isspecialize:=true;
+             end
+           else
+             isspecialize:=false;
 
            { first check for identifier }
            if token<>_ID then
@@ -2469,7 +2621,13 @@ implementation
                else
                  searchsym(pattern,srsym,srsymtable);
                { handle unit specification like System.Writeln }
-               unit_found:=try_consume_unitsym(srsym,srsymtable,t,true);
+               if not isspecialize then
+                 unit_found:=try_consume_unitsym(srsym,srsymtable,t,true,allowspecialize,isspecialize)
+               else
+                 begin
+                   unit_found:=false;
+                   t:=_ID;
+                 end;
                storedpattern:=pattern;
                orgstoredpattern:=orgpattern;
                { store the position of the token before consuming it }
@@ -2479,6 +2637,7 @@ implementation
                found_arg_name:=false;
 
                if not(unit_found) and
+                   not isspecialize and
                   named_args_allowed and
                   (token=_ASSIGNMENT) then
                   begin
@@ -2487,6 +2646,32 @@ implementation
                     consume(_ASSIGNMENT);
                     exit;
                   end;
+
+               if isspecialize then
+                 begin
+                   if not assigned(srsym) or
+                       (srsym.typ<>typesym) then
+                     begin
+                       identifier_not_found(orgstoredpattern,tokenpos);
+                       srsym:=generrorsym;
+                       srsymtable:=nil;
+                     end
+                   else
+                     begin
+                       hdef:=ttypesym(srsym).typedef;
+                       generate_specialization(hdef,false,'');
+                       if hdef=generrordef then
+                         begin
+                           srsym:=generrorsym;
+                           srsymtable:=nil;
+                         end
+                       else
+                         begin
+                           srsym:=hdef.typesym;
+                           srsymtable:=srsym.owner;
+                         end;
+                     end;
+                 end;
 
                { check hints, but only if it isn't a potential generic symbol;
                  that is checked in sub_expr if it isn't a generic }

@@ -13,10 +13,12 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('libpng');
+    P.ShortName:='lpng';
+    P.Description := 'Interface unit for libpng - working with PNG image format.';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Dependencies.Add('zlib');
     P.SourcePath.Add('src');
     P.OSes := AllUnixOSes-[qnx]+[win32,os2,emx];

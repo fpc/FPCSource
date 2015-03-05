@@ -13,7 +13,7 @@
 
  **********************************************************************}
 
-unit system;
+unit System;
 
 INTERFACE
 
@@ -787,5 +787,4 @@ Begin
   InitDPMIExcp;
   InstallDefaultHandlers;
 {$endif  EXCEPTIONS_IN_SYSTEM}
-  initvariantmanager;
 End.

@@ -195,16 +195,9 @@ begin
 
       { PIC global symbol }
       ref.symbol:=nil;
-      if (ref.offset=0) then
-        exit;
-
       if (ref.offset>=simm16lo) and
         (ref.offset<=simm16hi-sizeof(pint)) then
-        begin
-          list.concat(taicpu.op_reg_reg_const(A_ADDIU,ref.base,ref.base,ref.offset));
-          ref.offset:=0;
-          exit;
-        end;
+        exit;
       { fallthrough to the case of large offset }
     end;
 
@@ -293,10 +286,6 @@ begin
     [RS_F0,RS_F2,RS_F4,RS_F6, RS_F8,RS_F10,RS_F12,RS_F14,
      RS_F16,RS_F18,RS_F20,RS_F22, RS_F24,RS_F26,RS_F28,RS_F30],
     first_fpu_imreg, []);
-
-  { needs at least one element for rgobj not to crash }
-  rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBNONE,
-      [RS_R0],first_mm_imreg,[]);
 end;
 
 
@@ -305,7 +294,6 @@ procedure TCGMIPS.done_register_allocators;
 begin
   rg[R_INTREGISTER].Free;
   rg[R_FPUREGISTER].Free;
-  rg[R_MMREGISTER].Free;
   inherited done_register_allocators;
 end;
 
@@ -439,7 +427,7 @@ end;
 procedure TCGMIPS.a_load_const_reg(list: tasmlist; size: TCGSize; a: tcgint; reg: TRegister);
 begin
   if (a = 0) then
-    list.concat(taicpu.op_reg_reg(A_MOVE, reg, NR_R0))
+    a_load_reg_reg(list, OS_INT, OS_INT, NR_R0, reg)
   else if (a >= simm16lo) and (a <= simm16hi) then
     list.concat(taicpu.op_reg_reg_const(A_ADDIU, reg, NR_R0, a))
   else if (a>=0) and (a <= 65535) then
@@ -544,13 +532,23 @@ begin
         done:=false;
       OS_S8:
       begin
-        list.concat(taicpu.op_reg_reg_const(A_SLL, reg2, reg1, 24));
-        list.concat(taicpu.op_reg_reg_const(A_SRA, reg2, reg2, 24));
+        if (CPUMIPS_HAS_ISA32R2 in cpu_capabilities[current_settings.cputype]) then
+          list.concat(taicpu.op_reg_reg(A_SEB,reg2,reg1))
+        else
+          begin
+            list.concat(taicpu.op_reg_reg_const(A_SLL, reg2, reg1, 24));
+            list.concat(taicpu.op_reg_reg_const(A_SRA, reg2, reg2, 24));
+          end;
       end;
       OS_S16:
       begin
-        list.concat(taicpu.op_reg_reg_const(A_SLL, reg2, reg1, 16));
-        list.concat(taicpu.op_reg_reg_const(A_SRA, reg2, reg2, 16));
+        if (CPUMIPS_HAS_ISA32R2 in cpu_capabilities[current_settings.cputype]) then
+          list.concat(taicpu.op_reg_reg(A_SEH,reg2,reg1))
+        else
+          begin
+            list.concat(taicpu.op_reg_reg_const(A_SLL, reg2, reg1, 16));
+            list.concat(taicpu.op_reg_reg_const(A_SRA, reg2, reg2, 16));
+          end;
       end;
       else
         internalerror(2002090901);
@@ -818,6 +816,7 @@ var
   hreg: TRegister;
   asmop: TAsmOp;
 begin
+  a:=aint(a);
   ovloc.loc := LOC_VOID;
   optimize_op_const(size,op,a);
   signed:=(size in [OS_S8,OS_S16,OS_S32]);
@@ -933,23 +932,30 @@ begin
       end;
     OP_MUL,OP_IMUL:
       begin
-        list.concat(taicpu.op_reg_reg(TOpCg2AsmOp[op], src2, src1));
-        list.concat(taicpu.op_reg(A_MFLO, dst));
-        if setflags then
+        if (CPUMIPS_HAS_ISA32R2 in cpu_capabilities[current_settings.cputype]) and
+           (not setflags) then
+          { NOTE: MUL is actually mips32r1 instruction; on older cores it is handled as macro }
+          list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src2,src1))
+        else
           begin
-            current_asmdata.getjumplabel(hl);
-            hreg:=GetIntRegister(list,OS_INT);
-            list.concat(taicpu.op_reg(A_MFHI,hreg));
-            if (op=OP_IMUL) then
+            list.concat(taicpu.op_reg_reg(TOpCg2AsmOp[op], src2, src1));
+            list.concat(taicpu.op_reg(A_MFLO, dst));
+            if setflags then
               begin
-                hreg2:=GetIntRegister(list,OS_INT);
-                list.concat(taicpu.op_reg_reg_const(A_SRA,hreg2,dst,31));
-                a_cmp_reg_reg_label(list,OS_INT,OC_EQ,hreg2,hreg,hl);
-              end
-            else
-              a_cmp_reg_reg_label(list,OS_INT,OC_EQ,hreg,NR_R0,hl);
-            list.concat(taicpu.op_const(A_BREAK,6));
-            a_label(list,hl);
+                current_asmdata.getjumplabel(hl);
+                hreg:=GetIntRegister(list,OS_INT);
+                list.concat(taicpu.op_reg(A_MFHI,hreg));
+                if (op=OP_IMUL) then
+                  begin
+                    hreg2:=GetIntRegister(list,OS_INT);
+                    list.concat(taicpu.op_reg_reg_const(A_SRA,hreg2,dst,31));
+                    a_cmp_reg_reg_label(list,OS_INT,OC_EQ,hreg2,hreg,hl);
+                  end
+                else
+                  a_cmp_reg_reg_label(list,OS_INT,OC_EQ,hreg,NR_R0,hl);
+                list.concat(taicpu.op_const(A_BREAK,6));
+                a_label(list,hl);
+              end;
           end;
       end;
     OP_AND,OP_OR,OP_XOR:
@@ -1069,7 +1075,28 @@ end;
 
 
 procedure TCGMIPS.a_jmp_flags(list: tasmlist; const f: TResFlags; l: tasmlabel);
+  var
+    ai: taicpu;
   begin
+    case f.reg1 of
+      NR_FCC0..NR_FCC7:
+        begin
+          if (f.reg1=NR_FCC0) then
+            ai:=taicpu.op_sym(A_BC,l)
+          else
+            ai:=taicpu.op_reg_sym(A_BC,f.reg1,l);
+          list.concat(ai);
+          { delay slot }
+          list.concat(taicpu.op_none(A_NOP));
+          case f.cond of
+            OC_NE: ai.SetCondition(C_COP1TRUE);
+            OC_EQ: ai.SetCondition(C_COP1FALSE);
+          else
+            InternalError(2014082901);
+          end;
+          exit;
+        end;
+    end;
     if f.use_const then
       a_cmp_const_reg_label(list,OS_INT,f.cond,f.value,f.reg1,l)
     else
@@ -1081,7 +1108,33 @@ procedure TCGMIPS.g_flags2reg(list: tasmlist; size: tcgsize; const f: tresflags;
   var
     left,right: tregister;
     unsigned: boolean;
+    hl: tasmlabel;
   begin
+    case f.reg1 of
+      NR_FCC0..NR_FCC7:
+        begin
+          if (current_settings.cputype>=cpu_mips4) then
+            begin
+              a_load_const_reg(list,size,1,reg);
+              case f.cond of
+                OC_NE: list.concat(taicpu.op_reg_reg_reg(A_MOVF,reg,NR_R0,f.reg1));
+                OC_EQ: list.concat(taicpu.op_reg_reg_reg(A_MOVT,reg,NR_R0,f.reg1));
+              else
+                InternalError(2014082902);
+              end;
+            end
+          else
+            begin
+              { TODO: still possible to do branchless by extracting appropriate bit from FCSR? }
+              current_asmdata.getjumplabel(hl);
+              a_load_const_reg(list,size,1,reg);
+              a_jmp_flags(list,f,hl);
+              a_load_const_reg(list,size,0,reg);
+              a_label(list,hl);
+            end;
+          exit;
+        end;
+    end;
     if (f.cond in [OC_EQ,OC_NE]) then
       begin
         left:=reg;
@@ -1210,7 +1263,6 @@ var
   largeoffs : boolean;
 begin
   list.concat(tai_directive.create(asd_ent,current_procinfo.procdef.mangledname));
-  a_reg_alloc(list,NR_STACK_POINTER_REG);
 
   if nostackframe then
     begin
@@ -1218,9 +1270,6 @@ begin
       list.concat(taicpu.op_none(A_P_SET_NOREORDER));
       exit;
     end;
-
-  if (pi_needs_stackframe in current_procinfo.flags) then
-    a_reg_alloc(list,NR_FRAME_POINTER_REG);
 
   helplist:=TAsmList.Create;
 

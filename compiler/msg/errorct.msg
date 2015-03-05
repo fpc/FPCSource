@@ -264,7 +264,7 @@ scan_e_unsupported_asmmode_specifier=02050_E_L'estil d'assemblador especificat "
 % the compiler didn't recognize the mode you specified.
 scan_w_no_asm_reader_switch_inside_asm=02051_W_No es permet el commutador de lector d'ASM dins d'una declaració ASM, "$1" serà efectiu a continuació
 % It is not possible to switch from one assembler reader to another
-% inside an assmebler block. The new reader will be used for next
+% inside an assembler block. The new reader will be used for next
 % assembler statements only.
 scan_e_wrong_switch_toggle=02052_E_El modificador del commutador és erroni, utilitzeu ON/OFF o +/-
 % You need to use ON or OFF or a + or - to toggle the switch
@@ -2100,7 +2100,7 @@ option_code_page_not_available=11039_E_La pàgina del codi no està disponible
 #
 option_logo=11023_[
 Free Pascal Compiler versió $FPCFULLVERSION [$FPCDATE] per $FPCCPU
-Copyright (c) 1993-2014 per Florian Klaempfl
+Copyright (c) 1993-2015 per Florian Klaempfl and others
 ]
 
 #

@@ -1,0 +1,23 @@
+#
+#   Makefile.fpc for Free Pascal Amiga-like Extra Units
+#
+
+[package]
+name=ami-extra
+version=3.1.1
+
+[target]
+units=cliputils
+
+[compiler]
+includedir=src
+sourcedir=src
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:

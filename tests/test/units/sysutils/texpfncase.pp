@@ -57,8 +57,9 @@ var
   Match: TFilenameCaseMatch;
 begin
   FN2 := ExpandFileNameCase (FN1, Match);
-  if ((ExpReturn <> '') and (FN2 <> ExpReturn) or (Match <> ExpMatch)) and
-     not(FileNameCaseSensitive and (Match=mkAmbiguous) and (UpperCase(FN2)<>UpperCase(ExpReturn)))  then
+  if (Match <> ExpMatch) or ((ExpReturn <> '') and (FN2 <> ExpReturn) and
+     ((Match <> mkAmbiguous) or not (FileNameCaseSensitive) or
+                               (UpperCase (FN2) <> UpperCase (ExpReturn)))) then
    begin
     Inc (Failed);
     WriteLn ('Error: Input = ', FN1, ', Output = ', FN2, ' (expected ', ExpReturn, '), MatchFound = ',

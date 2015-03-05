@@ -47,8 +47,15 @@ begin
                   res:=207;  {'Coprocessor Error'}
               end;
             with ucontext^.uc_mcontext.fpstate^ do
-              sw:=sw and not FPU_ExceptionMask;
-          end;
+              begin
+                { Reset Status word }
+                sw:=sw and not FPU_ExceptionMask;
+                { Restoree default control word }
+                cw:=Default8087CW;
+                { Reset Tag word to $ffff for all empty }
+                tag:=$ffff;
+              end;
+           end;
       end;
     SIGBUS:
       res:=214;

@@ -107,8 +107,11 @@ var
   Flags: cardinal;
 begin
   AddThread;
-  Flags := dtStack_Commited;
+  { Always start in suspended state, will be resumed in AfterConstruction if necessary
+    See Mantis #16884 }
+  Flags := dtStack_Commited or dtSuspended;
   FSuspended := CreateSuspended;
+  FInitialSuspended := CreateSuspended;
   if FSuspended then Flags := Flags or dtSuspended;
   FHandle := BeginThread (nil, StackSize, @ThreadProc, pointer (Self),
                                                              Flags, FThreadID);
@@ -166,13 +169,16 @@ procedure TThread.SetPriority(Value: TThreadPriority);
 var
  PTIB: PThreadInfoBlock;
  PPIB: PProcessInfoBlock;
+ RC: cardinal;
 begin
  DosGetInfoBlocks (@PTIB, @PPIB);
 (*
  PTIB^.TIB2^.Priority := Priorities [Value];
 *)
- DosSetPriority (2, High (Priorities [Value]),
+ RC := DosSetPriority (2, High (Priorities [Value]),
                      Low (Priorities [Value]) - PTIB^.TIB2^.Priority, FHandle);
+ if RC <> 0 then
+  OSErrorWatch (RC);
 end;
 
 
@@ -213,9 +219,13 @@ end;
 function TThread.WaitFor: Integer;
 var
  FH: cardinal;
+ RC: cardinal;
 begin
  if GetCurrentThreadID = MainThreadID then
   while not (FFinished) do
    CheckSynchronize (1000);
- WaitFor := DosWaitThread (FH, dtWait);
+ RC := DosWaitThread (FH, dtWait);
+ if RC <> 0 then
+  OSErrorWatch (RC);
+ WaitFor := RC;
 end;

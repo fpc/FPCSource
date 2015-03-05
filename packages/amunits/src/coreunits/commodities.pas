@@ -269,7 +269,7 @@ PROCEDURE SetFilter(filter : pCxObj; text : string);
 
 IMPLEMENTATION
 
-uses pastoc,msgbox;
+uses pastoc,amsgbox;
 
 FUNCTION ActivateCxObj(co : pCxObj; tru : LONGINT) : LONGINT;
 BEGIN

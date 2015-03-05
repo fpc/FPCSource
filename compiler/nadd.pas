@@ -409,8 +409,7 @@ implementation
           end;
 
         { both are int constants }
-        if (
-            (
+        if  (
              is_constintnode(left) and
              is_constintnode(right)
             ) or
@@ -422,7 +421,7 @@ implementation
             (
              is_constenumnode(left) and
              is_constenumnode(right) and
-             allowenumop(nodetype))
+             (allowenumop(nodetype) or (nf_internal in flags))
             ) or
             (
              (lt = pointerconstn) and
@@ -684,6 +683,50 @@ implementation
              result:=t;
              exit;
           end;
+{$if FPC_FULLVERSION>20700}
+        { bestrealrec is 2.7.1+ only }
+
+        { replace .../const by a multiplication, but only if fastmath is enabled or
+          the division is done by a power of 2, do not mess with special floating point values like Inf etc.
+
+          do this after constant folding to avoid unnecessary precision loss if
+          an slash expresion would be first converted into a multiplication and later
+          folded }
+        if (nodetype=slashn) and
+          { do not mess with currency types }
+          (not(is_currency(right.resultdef))) and
+          (((cs_opt_fastmath in current_settings.optimizerswitches) and (rt=ordconstn)) or
+           ((cs_opt_fastmath in current_settings.optimizerswitches) and (rt=realconstn) and
+            (bestrealrec(trealconstnode(right).value_real).SpecialType in [fsPositive,fsNegative])
+           ) or
+           ((rt=realconstn) and
+            (bestrealrec(trealconstnode(right).value_real).SpecialType in [fsPositive,fsNegative]) and
+            { mantissa returns the mantissa/fraction without the hidden 1, so power of two means only the hidden
+              bit is set => mantissa must be 0 }
+            (bestrealrec(trealconstnode(right).value_real).Mantissa=0)
+           )
+          ) then
+          case rt of
+            ordconstn:
+              begin
+                { the normal code handles div/0 }
+                if (tordconstnode(right).value<>0) then
+                  begin
+                    nodetype:=muln;
+                    t:=crealconstnode.create(1/tordconstnode(right).value,resultdef);
+                    right.free;
+                    right:=t;
+                    exit;
+                  end;
+              end;
+            realconstn:
+              begin
+                nodetype:=muln;
+                trealconstnode(right).value_real:=1.0/trealconstnode(right).value_real;
+                exit;
+              end;
+          end;
+{$endif FPC_FULLVERSION>20700}
 
         { first, we handle widestrings, so we can check later for }
         { stringconstn only                                       }
@@ -2096,7 +2139,7 @@ implementation
          { enums }
          else if (ld.typ=enumdef) and (rd.typ=enumdef) then
           begin
-            if allowenumop(nodetype) then
+            if allowenumop(nodetype) or (nf_internal in flags) then
               inserttypeconv(right,left.resultdef)
             else
               CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
@@ -2776,10 +2819,6 @@ implementation
 
         if try_make_mul32to64 then
           begin
-            { if the code generator can handle 32 to 64-bit muls, we're done here }
-            if not use_generic_mul32to64 then
-              exit;
-
             { this uses the same criteria for signedness as the 32 to 64-bit mul
               handling in the i386 code generator }
             if is_signed(left.resultdef) and is_signed(right.resultdef) then
@@ -3080,6 +3119,14 @@ implementation
                  if nodetype=addn then
                   internalerror(200103291);
                  expectloc:=LOC_FLAGS;
+               end
+             else if (nodetype=muln) and
+                is_64bitint(resultdef) and
+                not use_generic_mul32to64 and
+                try_make_mul32to64 then
+               begin
+                 { if the code generator can handle 32 to 64-bit muls,
+                   we're done here }
                end
 {$ifndef cpu64bitalu}
               { is there a 64 bit type ? }

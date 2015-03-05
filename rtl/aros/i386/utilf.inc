@@ -13,24 +13,6 @@
 
  **********************************************************************}
 
-procedure Amiga2Date(date_amiga: longword; cd: PClockData);
-type
-  TAmiga2Date = procedure(date_amiga: longword; cd: PClockData; Base: Pointer); cdecl;
-var
-  Call: TAmiga2Date;
-begin
-  Call := TAmiga2Date(GetLibAdress(AOS_UtilityBase, 20));
-  Call(date_amiga, cd, AOS_UtilityBase);
-end;
-
-function Date2Amiga(date: PClockData): longword;
-type
-  TDate2Amiga = function(date: PClockData; Base: Pointer): longword; cdecl;
-var
-  Call: TDate2Amiga;
-begin
-  Call := TDate2Amiga(GetLibAdress(AOS_UtilityBase, 21));
-  Date2Amiga := Call(date, AOS_UtilityBase);
-end;
-
+procedure Amiga2Date(date_amiga: longword; cd: PClockData); syscall AOS_UtilityBase 20;
+function Date2Amiga(date: PClockData): longword; syscall AOS_UtilityBase 21;
 

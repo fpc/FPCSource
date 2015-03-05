@@ -34,13 +34,6 @@ Const
   RPNMax = 10;             { I think you only need 4, but just to be safe }
   OpMax  = 25;
 
-{$if max_operands = 2}
-  {$define MAX_OPER_2}
-{$endif}
-{$if max_operands = 3}
-  {$define MAX_OPER_3}
-{$endif}
-
 Function SearchLabel(const s: string; var hl: tasmlabel;emit:boolean): boolean;
 
 
@@ -61,7 +54,7 @@ type
       OPR_LOCAL     : (localvarsize, localconstoffset: asizeint;localsym:tabstractnormalvarsym;localsymofs:aint;localindexreg:tregister;localscale:byte;localgetoffset,localforceref:boolean);
       OPR_REGISTER  : (reg:tregister);
 {$ifdef m68k}
-      OPR_REGSET   : (regsetdata,regsetaddr : tcpuregisterset);
+      OPR_REGSET   : (regsetdata,regsetaddr,regsetfpu : tcpuregisterset);
 {$endif m68k}
 {$ifdef powerpc}
       OPR_COND      : (cond : tasmcond);
@@ -76,6 +69,10 @@ type
       OPR_MODEFLAGS : (flags : tcpumodeflags);
       OPR_SPECIALREG: (specialreg : tregister; specialregflags : tspecialregflags);
 {$endif arm}
+{$ifdef aarch64}
+      OPR_SHIFTEROP : (shifterop : tshifterop);
+      OPR_COND      : (cc : tasmcond);
+{$endif aarch64}
   end;
 
   TOperand = class
@@ -110,7 +107,6 @@ type
       and concats it to the passed list. The newly created item is returned if the
       instruction was valid, otherwise nil is returned }
     function ConcatInstruction(p:TAsmList) : tai;virtual;
-    Procedure Swapoperands;
   end;
 
   {---------------------------------------------------------------------}
@@ -905,14 +901,20 @@ Begin
       end;
     procsym :
       begin
-        if opr.typ<>OPR_NONE then
-          Message(asmr_e_invalid_operand_type);
         if Tprocsym(sym).ProcdefList.Count>1 then
           Message(asmr_w_calling_overload_func);
-        l:=opr.ref.offset;
-        opr.typ:=OPR_SYMBOL;
-        opr.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname);
-        opr.symofs:=l;
+        case opr.typ of
+          OPR_REFERENCE:
+            opr.ref.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname);
+          OPR_NONE:
+            begin
+              opr.typ:=OPR_SYMBOL;
+              opr.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname);
+              opr.symofs:=0;
+            end;
+        else
+          Message(asmr_e_invalid_operand_type);
+        end;
         hasvar:=true;
         SetupVar:=TRUE;
         Exit;
@@ -1030,44 +1032,6 @@ Begin
 end;
 
 
-  Procedure TInstruction.Swapoperands;
-    Var
-      p : toperand;
-    Begin
-      case ops of
-        0,1:
-          ;
-        2 : begin
-              { 0,1 -> 1,0 }
-              p:=Operands[1];
-              Operands[1]:=Operands[2];
-              Operands[2]:=p;
-            end;
-{$ifndef MAX_OPER_2}
-        3 : begin
-              { 0,1,2 -> 2,1,0 }
-              p:=Operands[1];
-              Operands[1]:=Operands[3];
-              Operands[3]:=p;
-            end;
-{$ifndef MAX_OPER_3}
-        4 : begin
-              { 0,1,2,3 -> 3,2,1,0 }
-              p:=Operands[1];
-              Operands[1]:=Operands[4];
-              Operands[4]:=p;
-              p:=Operands[2];
-              Operands[2]:=Operands[3];
-              Operands[3]:=p;
-            end;
-{$endif}
-{$endif}
-        else
-          internalerror(201108142);
-      end;
-    end;
-
-
   function TInstruction.ConcatInstruction(p:TAsmList) : tai;
     var
       ai   : taicpu;
@@ -1097,20 +1061,22 @@ end;
                 ai.loadref(i-1,ref);
 {$ifdef m68k}
               OPR_REGSET:
-                ai.loadregset(i-1,regsetdata,regsetaddr);
+                ai.loadregset(i-1,regsetdata,regsetaddr,regsetfpu);
 {$endif}
 {$ifdef ARM}
               OPR_REGSET:
                 ai.loadregset(i-1,regtype,subreg,regset,usermode);
-              OPR_SHIFTEROP:
-                ai.loadshifterop(i-1,shifterop);
-              OPR_COND:
-                ai.loadconditioncode(i-1,cc);
               OPR_MODEFLAGS:
                 ai.loadmodeflags(i-1,flags);
               OPR_SPECIALREG:
                 ai.loadspecialreg(i-1,specialreg,specialregflags);
 {$endif ARM}
+{$if defined(arm) or defined(aarch64)}
+             OPR_SHIFTEROP:
+               ai.loadshifterop(i-1,shifterop);
+             OPR_COND:
+               ai.loadconditioncode(i-1,cc);
+{$endif arm or aarch64}
               { ignore wrong operand }
               OPR_NONE:
                 ;
@@ -1245,7 +1211,7 @@ Begin
          begin
            if tconstsym(srsym).consttyp=constord then
             Begin
-              l:=tconstsym(srsym).value.valueord.svalue;
+              l:=aint(tconstsym(srsym).value.valueord.svalue);
               SearchIConstant:=TRUE;
               exit;
             end;

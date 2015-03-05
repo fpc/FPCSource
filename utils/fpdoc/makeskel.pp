@@ -356,8 +356,9 @@ Var
   N : TDocNode;
      
 begin
-  if not(FileExists(AFileName)) then
-    raise Exception.CreateFmt('Cannot find source file %s to document.',[AFileName]);
+// wrong because afilename is a cmdline with other options. Straight testing filename is therefore wrong.
+//  if not(FileExists(AFileName)) then
+//    raise Exception.CreateFmt('Cannot find source file %s to document.',[AFileName]);
   FNodeList:=TStringList.Create;
   Try
     FEmittedList:=TStringList.Create;

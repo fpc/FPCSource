@@ -4714,7 +4714,7 @@ xmmreg,xmmrm                         \362\370\1\x51\110                   AVX,SA
 ymmreg,ymmrm                         \362\364\370\1\x51\110               AVX,SANDYBRIDGE
 
 [VSQRTSD]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmreg,mem64                  \334\362\370\1\x51\75\120            AVX,SANDYBRIDGE
 xmmreg,xmmreg,xmmreg                 \334\362\370\1\x51\75\120            AVX,SANDYBRIDGE
 
@@ -4955,6 +4955,46 @@ xmmreg,xmmreg,xmmrm                  \361\362\371\1\x45\75\120            AVX2
 (Ch_All, Ch_None, Ch_None)
 ymmreg,ymmreg,ymmrm                  \361\362\363\364\371\1\x45\75\120    AVX2
 xmmreg,xmmreg,xmmrm                  \361\362\363\371\1\x45\75\120        AVX2
+
+[VGATHERDPD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmem64,xmmreg                 \361\362\363\371\1\x92\76\110        AVX2
+ymmreg,xmem64,ymmreg                 \361\362\363\364\371\1\x92\76\110    AVX2
+
+[VGATHERDPS]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmem32,xmmreg                 \361\362\371\1\x92\76\110            AVX2
+ymmreg,ymem32,ymmreg                 \361\362\364\371\1\x92\76\110        AVX2
+
+[VGATHERQPD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmem64,xmmreg                 \361\362\363\371\1\x93\76\110        AVX2
+ymmreg,ymem64,ymmreg                 \361\362\363\364\371\1\x93\76\110    AVX2
+
+[VGATHERQPS]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmem32,xmmreg                 \361\362\371\1\x93\76\110            AVX2
+xmmreg,ymem32,xmmreg                 \361\362\364\371\1\x93\76\110        AVX2
+
+[VPGATHERDD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmem32,xmmreg                 \361\362\371\1\x90\76\110            AVX2
+ymmreg,ymem32,ymmreg                 \361\362\364\371\1\x90\76\110        AVX2
+
+[VPGATHERDQ]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmem64,xmmreg                 \361\362\363\371\1\x90\76\110        AVX2
+ymmreg,xmem64,ymmreg                 \361\362\363\364\371\1\x90\76\110    AVX2
+
+[VPGATHERQD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmem32,xmmreg                 \361\362\371\1\x91\76\110            AVX2
+xmmreg,ymem32,xmmreg                 \361\362\364\371\1\x91\76\110        AVX2
+
+[VPGATHERQQ]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmem64,xmmreg                 \361\362\363\371\1\x91\76\110        AVX2
+ymmreg,ymem64,ymmreg                 \361\362\363\364\371\1\x91\76\110    AVX2
 
 ;*******************************************************************************
 ;********** NEC V20/V30 ********************************************************

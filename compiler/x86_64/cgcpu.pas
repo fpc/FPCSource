@@ -36,6 +36,9 @@ unit cgcpu;
       tcgx86_64 = class(tcgx86)
         procedure init_register_allocators;override;
 
+        procedure a_loadfpu_ref_cgpara(list: TAsmList; size: tcgsize; const ref: treference; const cgpara: TCGPara); override;
+        procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); override;
+
         procedure g_proc_entry(list : TAsmList;localsize:longint; nostackframe:boolean);override;
         procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
         procedure g_local_unwind(list: TAsmList; l: TAsmLabel);override;
@@ -112,6 +115,30 @@ unit cgcpu;
         rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBWHOLE,[RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5,RS_XMM6,RS_XMM7,
           RS_XMM8,RS_XMM9,RS_XMM10,RS_XMM11,RS_XMM12,RS_XMM13,RS_XMM14,RS_XMM15],first_mm_imreg,[]);
         rgfpu:=Trgx86fpu.create;
+      end;
+
+
+    procedure tcgx86_64.a_loadfpu_ref_cgpara(list: TAsmList; size: tcgsize; const ref: treference; const cgpara: TCGPara);
+      begin
+        { a record containing an extended value is returned on the x87 stack
+          -> size will be OS_F128 (if not packed), while cgpara.paraloc^.size
+          contains the proper size
+
+          In the future we should probably always use cgpara.location^.size, but
+          that should only be tested/done after 2.8 is branched }
+        if size in [OS_128,OS_F128] then
+          size:=cgpara.location^.size;
+        inherited;
+      end;
+
+
+    procedure tcgx86_64.a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference);
+      begin
+        { same as with a_loadfpu_ref_cgpara() above, but on the callee side
+          when the value is moved from the fpu register into a memory location }
+        if tosize in [OS_128,OS_F128] then
+          tosize:=OS_F80;
+        inherited;
       end;
 
 
@@ -329,10 +356,6 @@ unit cgcpu;
         hreg : tregister;
         r : longint;
       begin
-        { Release PIC register }
-        if cs_create_pic in current_settings.moduleswitches then
-          list.concat(tai_regalloc.dealloc(NR_PIC_OFFSET_REG,nil));
-
         { Prevent return address from a possible call from ending up in the epilogue }
         { (restoring registers happens before epilogue, providing necessary padding) }
         if (current_procinfo.flags*[pi_has_unwind_info,pi_do_call,pi_has_saved_regs])=[pi_has_unwind_info,pi_do_call] then
@@ -374,7 +397,7 @@ unit cgcpu;
                 list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],current_procinfo.framepointer));
               end
             else
-              list.concat(Taicpu.op_none(A_LEAVE,S_NO));
+              generate_leave(list);
             list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
           end;
 

@@ -11,7 +11,7 @@ loaders=
 units=$(SYSTEMUNIT) uuchar unixtype ctypes objpas macpas iso7185 \
       strings sysctl baseunix unixutil \
       unix initc cmem dynlibs $(CPU_UNITS) \
-      dos dl \
+      dos dl blockrtl \
       sysutils typinfo fgl classes math types \
       charset cpall character getopts heaptrc lineinfo lnfodwrf lnfogdb \
       errors termio \
@@ -142,6 +142,8 @@ objc$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) ctypes$(PPUEXT) unixtype$(PPUEXT) $(INC)/
 
 objcbase$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(INC)/objcbase.pp objc$(PPUEXT)
 
+blockrtl$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) initc$(PPUEXT) ctypes$(PPUEXT) $(INC)/blockrtl.pp
+
 #
 # System Dependent Units
 #
@@ -228,9 +230,9 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 #
 
 ifeq ($(ARCH),x86_64)
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
 else
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 endif
 
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

@@ -453,6 +453,8 @@ implementation
          system_powerpc64_darwin,
          system_x86_64_darwin,
          system_arm_darwin,
+         system_aarch64_darwin,
+         system_x86_64_iphonesim,
          system_powerpc_aix,
          system_powerpc64_aix:
            begin
@@ -488,7 +490,8 @@ implementation
                     AsmWriteln('__TEXT,__picsymbolstub4,symbol_stubs,none,16')
                   else
                     AsmWriteln('__TEXT,__symbol_stub4,symbol_stubs,none,12')
-                { darwin/x86-64 uses RIP-based GOT addressing, no symbol stubs }
+                { darwin/(x86-64/AArch64) uses PC-based GOT addressing, no
+                  explicit symbol stubs }
                 else
                   internalerror(2006031101);
               end;
@@ -1072,6 +1075,11 @@ implementation
                     end;
                   if tai_label(hp).labsym.bind in [AB_GLOBAL,AB_PRIVATE_EXTERN] then
                    begin
+{$ifdef arm}
+                     { do no change arm mode accidently, .globl seems to reset the mode }
+                     if GenerateThumbCode or GenerateThumb2Code then
+                       AsmWriteln(#9'.thumb_func'#9);
+{$endif arm}
                      AsmWrite('.globl'#9);
                      if replaceforbidden then
                        AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_label(hp).labsym.name))
@@ -1275,7 +1283,12 @@ implementation
              begin
                WriteDirectiveName(tai_directive(hp).directive);
                if tai_directive(hp).name <>'' then
-                 AsmWrite(tai_directive(hp).name);
+                 begin
+                   if replaceforbidden then
+                     AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_directive(hp).name))
+                   else
+                     AsmWrite(tai_directive(hp).name);
+                 end;
                AsmLn;
              end;
 
@@ -1541,7 +1554,7 @@ implementation
 
       { "no executable stack" marker }
       { TODO: used by OpenBSD/NetBSD as well? }
-      if (target_info.system in (systems_linux + systems_android + systems_freebsd)) and
+      if (target_info.system in (systems_linux + systems_android + systems_freebsd + systems_dragonfly)) and
          not(cs_executable_stack in current_settings.moduleswitches) then
         begin
           AsmWriteLn('.section .note.GNU-stack,"",%progbits');

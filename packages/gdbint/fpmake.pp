@@ -16,7 +16,7 @@ var
   P : TPackage;
   GdbLibDir, GdbLibFile: string;
   GdbLibFound: boolean;
-  GdbVerTarget: TTarget;
+  GdbintTarget, GdbVerTarget: TTarget;
 begin
   P := Sender as TPackage;
   // Search for a libgdb file.
@@ -60,17 +60,31 @@ begin
     end;
 
   GdbVerTarget:=TTarget(p.Targets.ItemByName('gdbver'));
+  GdbintTarget:=TTarget(p.Targets.ItemByName('gdbint'));
 
   if GdbLibFound then
     Installer.BuildEngine.Log(vlCommand,'File libgdb.a found ('+GdbLibFile+')')
   else
     Installer.BuildEngine.Log(vlCommand,'File libgdb.a not found');
-  // When we're cross-compiling, running the gdbver executable to detect the
-  // gdb-version is not possible, unless a i386-win32 to i386-go32v2 compilation
-  // is performed.
-  if GdbLibFound and
-     (not Defaults.IsBuildDifferentFromTarget
-       or ((Defaults.CPU=i386) and (Defaults.OS=go32v2) and (Defaults.BuildOS=win32) and (Defaults.BuildCPU=i386))) then
+  if GdbLibFound then
+    begin
+      // Detect if gdblib.inc is available
+      if FileExists(GDBLibDir+PathDelim+'gdblib.inc') then
+        begin
+          P.Options.Add('-dUSE_GDBLIBINC');
+          P.Options.Add('-Fi'+GdbLibDir);
+          P.Options.Add('-Fl'+GdbLibDir);
+          // No need to use gdbver in this case
+          p.Targets.Delete(GdbVerTarget.Index);
+          Installer.BuildEngine.Log(vlCommand,'Using gdblib.inc include file')
+        end
+     // When we're cross-compiling, running the gdbver executable to detect the
+     // gdb-version is not possible, unless a i386-win32 to
+     // i386-go32v2 compilation is performed.
+     else if (not Defaults.IsBuildDifferentFromTarget
+       or ((Defaults.CPU=i386) and (Defaults.OS=go32v2) and
+           (Defaults.BuildOS=win32) and (Defaults.BuildCPU=i386))
+     ) then
     begin
       P.Options.Add('-Fl'+GdbLibDir);
       Installer.BuildEngine.CreateOutputDir(p);
@@ -81,6 +95,8 @@ begin
         AddProgramExtension('gdbver',Defaults.BuildOS),'-o ' +
         Installer.BuildEngine.AddPathPrefix(p,'src'+PathDelim+'gdbver.inc'));
 
+      with GdbintTarget.Dependencies do
+        AddInclude('gdbver.inc');
       // Pass -dUSE_MINGW_GDB to the compiler when a MinGW gdb is used
       if FileExists(GdbLibDir+PathDelim+MinGWGdbLibName) then
         begin
@@ -91,13 +107,7 @@ begin
         begin
           Installer.BuildEngine.Log(vlCommand,'Using GDB')
         end;
-  // Detect if gdblib.inc is available
-      if FileExists(GDBLibDir+PathDelim+'gdblib.inc') then
-        begin
-          P.Options.Add('-dUSE_GDBLIBINC');
-          P.Options.Add('-Fi'+GdbLibDir);
-          Installer.BuildEngine.Log(vlCommand,'Using gdblib.inc include file')
-        end;
+    end
     end
   else
     begin
@@ -108,10 +118,12 @@ begin
       L := TStringList.Create;
       try
         if P.Directory<>'' then
-          L.values[Installer.BuildEngine.AddPathPrefix(P,'src')+DirectorySeparator+'gdbver_nogdb.inc'] := IncludeTrailingPathDelimiter(P.Directory) +'src'+DirectorySeparator+'gdbver.inc'
+          L.values['src'+DirectorySeparator+'gdbver_nogdb.inc'] := IncludeTrailingPathDelimiter(P.Directory) +'src'+DirectorySeparator+'gdbver.inc'
         else
-          L.values[Installer.BuildEngine.AddPathPrefix(P,'src')+DirectorySeparator+'gdbver_nogdb.inc'] := 'src'+DirectorySeparator+'gdbver.inc';
-        Installer.BuildEngine.cmdcopyfiles(L, Installer.BuildEngine.StartDir);
+          L.values['src'+DirectorySeparator+'gdbver_nogdb.inc'] := 'src'+DirectorySeparator+'gdbver.inc';
+        Installer.BuildEngine.cmdcopyfiles(L, Installer.BuildEngine.StartDir, nil);
+        with GdbintTarget.Dependencies do
+          AddInclude('gdbver.inc');
       finally
         L.Free;
       end;
@@ -142,8 +154,9 @@ begin
   With Installer do
     begin
     P:=AddPackage('gdbint');
+    P.ShortName:='gdb';
     P.Directory:=ADirectory;
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Author := 'Library : Cygnus, header: Peter Vreman';
     P.License := 'Library: GPL2 or later, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -154,7 +167,7 @@ begin
     // file within the BeforeCompile event.
     P.SupportBuildModes:= [bmOneByOne];
 
-    P.OSes:=[beos,haiku,freebsd,netbsd,openbsd,linux,win32,win64,go32v2];
+    P.OSes:=[aix,beos,haiku,freebsd,netbsd,openbsd,linux,win32,win64,go32v2,dragonfly,solaris];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
@@ -162,7 +175,8 @@ begin
     P.BeforeCompileProc:=@BeforeCompile_gdbint;
     P.AfterCompileProc:=@AfterCompile_gdbint;
 
-    p.Targets.AddProgram('src'+PathDelim+'gdbver.pp');
+    T := p.Targets.AddProgram('src'+PathDelim+'gdbver.pp');
+    T.Install := false;
     //
     // NOTE: the gdbver.inc dependancies gives warnings because the makefile.fpc
     // does a "cp src/gdbver_nogdb.inc src/gdbver.inc" to create it
@@ -173,13 +187,10 @@ begin
           AddUnit('gdbint');
         end;
     T:=P.Targets.AddUnit('gdbint.pp');
-      with T.Dependencies do
-        begin
-          AddInclude('gdbver.inc');
-        end;
-    P.ExamplePath.add('tests');
+    P.ExamplePath.add('examples');
     P.Targets.AddExampleProgram('testgdb.pp');
-    P.Targets.AddExampleProgram('simify.pp');
+    P.Targets.AddExampleProgram('symify.pp');
+    P.Targets.AddExampleUnit('mingw.pas');
     end;
 end;
 

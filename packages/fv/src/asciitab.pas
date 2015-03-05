@@ -306,7 +306,7 @@ end;
 
 procedure TASCIIChart.HandleEvent(var Event:TEvent);
 begin
-  writeln(stderr,'ascii cmd',event.what, ' ', event.command);
+  {writeln(stderr,'ascii cmd',event.what, ' ', event.command);}
   if (Event.what=evCommand) and
      (Event.Command =  AsciiTableCommandBase) then
     begin

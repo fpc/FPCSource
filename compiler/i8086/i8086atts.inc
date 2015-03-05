@@ -1030,5 +1030,13 @@ attsufNONE,
 attsufNONE,
 attsufNONE,
 attsufNONE,
+attsufNONE,
+attsufNONE,
+attsufNONE,
+attsufNONE,
+attsufNONE,
+attsufNONE,
+attsufNONE,
+attsufNONE,
 attsufNONE
 );

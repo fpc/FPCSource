@@ -2060,9 +2060,9 @@ end;
 procedure TDataSet.Post;
 
 begin
+  UpdateRecord;
   if State in [dsEdit,dsInsert] then
     begin
-    DataEvent(deUpdateRecord,0);
     DataEvent(deCheckBrowseMode,0);
 {$ifdef dsdebug}
     writeln ('Post: checking required fields');
@@ -2083,7 +2083,7 @@ begin
 {$endif}
     DoAfterPost;
     end
-  else
+  else if State<>dsSetKey then
     DatabaseErrorFmt(SNotEditing, [Name], Self);
 end;
 

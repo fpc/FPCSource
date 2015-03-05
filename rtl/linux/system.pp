@@ -368,7 +368,8 @@ begin
   InOutRes:=0;
   { threading }
   InitSystemThreads;
-  initvariantmanager;
+  { dynamic libraries }
+  InitSystemDynLibs;
   { restore original signal handlers in case this is a library }
   if IsLibrary then
     RestoreOldSignalHandlers;

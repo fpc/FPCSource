@@ -658,7 +658,7 @@ implementation
      var
        prelist: tasmlist;
      begin
-       prelist:=tasmlist.create_without_marker;
+       prelist:=tasmlist.create;
        { only now add items based on the symbolname, because it may be
          modified by the "section" specifier in case of a typed constant }
        if tcalo_new_section in options then
@@ -748,7 +748,7 @@ implementation
    constructor ttai_typedconstbuilder.create;
      begin
        inherited create;
-       fasmlist:=tasmlist.create_without_marker;
+       fasmlist:=tasmlist.create;
        { queue is empty }
        fqueue_offset:=low(fqueue_offset);
      end;

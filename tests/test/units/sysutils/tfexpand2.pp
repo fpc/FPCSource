@@ -28,7 +28,7 @@ uses
  PopupErr,
 {$endif FPC}
 {$ifdef unix}
- cwstring,
+ {$ifdef darwin}iosxwstr{$else}cwstring{$endif},
 {$endif}
  SysUtils;
 

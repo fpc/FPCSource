@@ -16,14 +16,14 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Author := 'Library: ?, header: Sebastian Guenther';
     P.License := 'Library: ?, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'a project that aims to develop a reliable, stable and fast graphics system that works everywhere.';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
-    P.OSes := [beos,haiku,freebsd,solaris,netbsd,openbsd,linux];
+    P.OSes := [beos,haiku,freebsd,solaris,netbsd,openbsd,linux,dragonfly];
    
     // note that this package may be severely outdated. Header copyright
     // lists 1999, and ggi itself is still developed, and major releases

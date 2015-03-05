@@ -42,7 +42,7 @@ unit i_nativent;
                             tf_dwarf_only_local_labels];
             cpu          : cpu_i386;
             unit_env     : 'NTUNITS';
-            extradefines : 'NATIVENT,FPC_OS_UNICODE';
+            extradefines : 'NATIVENT;FPC_OS_UNICODE';
             exeext       : '.exe';
             defext       : '.def';
             scriptext    : '.bat';

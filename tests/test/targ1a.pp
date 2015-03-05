@@ -23,10 +23,10 @@ begin
     begin
       GetMem(MemArray[i],Size(i));
     end;
-  for i:=1 to MAX_SIZE div SIZE_INC do
+  for i:=0 to MAX_SIZE div SIZE_INC do
     begin
       FreeMem(MemArray[i],Size(i));
     end;
-  Writeln(stderr,'Everthing is fine');
+  Writeln(stderr,'Everything is fine');
 
 end.

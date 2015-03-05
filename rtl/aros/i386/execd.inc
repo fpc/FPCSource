@@ -85,8 +85,8 @@ const  // Checked OK 05.08.2011 ALB
 
 
 type  // Checked OK 05.08.2011 ALB
-  PList = ^TList;
-  TList = record
+  PList = ^TEList;
+  TEList = record
     lh_Head    : PNode;
     lh_Tail    : PNode;
     lh_TailPred: PNode;
@@ -574,7 +574,7 @@ type  // Checked OK 05.08.2011 ALB
     mp_Flags  : Byte;
     mp_SigBit : Byte;
     mp_SigTask: Pointer;
-    mp_MsgList: TList;
+    mp_MsgList: TEList;
   end;
 
 
@@ -627,7 +627,7 @@ type
     tc_SPUpper   : Pointer;
     tc_Switch    : Pointer; { *** OBSOLETE *** }
     tc_Launch    : Pointer; { *** OBSOLETE *** }
-    tc_MemEntry  : TList;
+    tc_MemEntry  : TEList;
     tc_UserData  : Pointer;
   end;
 
@@ -876,7 +876,7 @@ type
   PStackSwapStruct = ^TStackSwapStruct;
   TStackSwapStruct = record
     stk_Lower  : Pointer; { * Lowest byte of stack * }
-    stk_Upper  : Pointer; { * Upper end of stack (size + Lowert) * }
+    stk_Upper  : Pointer; { * Upper end of stack (size + Lowert) * }
     stk_Pointer: Pointer; { * Stack pointer at switch point * }
   end;
 
@@ -1012,7 +1012,7 @@ type  // Checked OK 05.08.2011 ALB
 type  // Checked OK 05.08.2011 ALB
   PSoftIntList = ^TSoftIntList;
   TSoftIntList = record
-    sh_List: TList;
+    sh_List: TEList;
     sh_Pad : Word;
   end;
 
@@ -1566,14 +1566,14 @@ type  // Checked OK 05.08.2011 ALB
 
     // Private Lists
 
-    MemList     : TList;
-    ResourceList: TList;
-    DeviceList  : TList;
-    IntrList    : TList;
-    LibList     : TList;
-    PortList    : TList;
-    TaskReady   : TList;
-    TaskWait    : TList;
+    MemList     : TEList;
+    ResourceList: TEList;
+    DeviceList  : TEList;
+    IntrList    : TEList;
+    LibList     : TEList;
+    PortList    : TEList;
+    TaskReady   : TEList;
+    TaskWait    : TEList;
     SoftInts    : Array[0..4] Of TSoftIntList;
     
     //stuff
@@ -1582,7 +1582,7 @@ type  // Checked OK 05.08.2011 ALB
 
     VBlankFrequency     : Byte;
     PowerSupplyFrequency: Byte;  // AROS PRIVATE: VBlankFreq * PowerSupplyFreq = Timer Tick Rate
-    SemaphoreList       : TList;
+    SemaphoreList       : TEList;
     
     // Kickstart
     

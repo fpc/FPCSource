@@ -207,6 +207,8 @@ implementation
           result:=R_MIPS_NONE;
         RELOC_ABSOLUTE:
           result:=R_MIPS_32;
+        RELOC_GOTOFF:               {For case jumptables only }
+          result:=R_MIPS_GPREL32;
       else
         result:=0;
         InternalError(2012110602);
@@ -739,15 +741,15 @@ implementation
                     if (lowreloc.ftype=R_MIPS_LO16) then
                       begin;
                         found:=true;
+                        objsec.Data.Seek(objreloc.DataOffset);
+                        objsec.Data.Read(hipart,sizeof(hipart));
+                        objsec.Data.Seek(lowreloc.DataOffset);
+                        objsec.Data.Read(lopart,sizeof(lopart));
                         break;
                       end;
                   end;
                 if not found then
                   InternalError(2013030102);
-                objsec.Data.Seek(objreloc.DataOffset);
-                objsec.Data.Read(hipart,sizeof(hipart));
-                objsec.Data.Seek(lowreloc.DataOffset);
-                objsec.Data.Read(lopart,sizeof(lopart));
                 if (source_info.endian<>target_info.endian) then
                   begin
                     hipart:=swapendian(hipart);
@@ -809,7 +811,7 @@ implementation
           else
             reltyp:=objreloc.ftype;
 
-          if ElfTarget.relocs_use_addend then
+          if (oso_rela_relocs in objsec.SecOptions) then
             address:=objreloc.orgsize
           else
             begin

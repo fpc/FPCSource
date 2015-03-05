@@ -392,3 +392,19 @@ procedure fpc_decref_array(data,typeinfo: pointer; count: SizeInt); [public,alia
     int_finalizeArray(data,typeinfo,count);
   end;
 
+procedure InitializeArray(p, typeInfo: Pointer; count: SizeInt);
+  external name 'FPC_INITIALIZE_ARRAY';
+
+procedure FinalizeArray(p, typeInfo: Pointer; count: SizeInt);
+  external name 'FPC_FINALIZE_ARRAY';
+
+procedure CopyArray(dest, source, typeInfo: Pointer; count: SizeInt);
+  var
+    i, size: SizeInt;
+  begin
+    size:=RTTISize(typeInfo);
+    if size>0 then
+      for i:=0 to count-1 do
+        fpc_Copy_internal(source+size*i, dest+size*i, typeInfo);
+  end;
+

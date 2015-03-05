@@ -68,6 +68,7 @@ type
     FIndex         : TCHMSiteMap;
     FTocStream,
     FIndexStream   : TMemoryStream;
+    FCores	   : integer;
   protected
     function GetData(const DataName: String; out PathInChm: String; out FileName: String; var Stream: TStream): Boolean;
     procedure LastFileAdded(Sender: TObject);
@@ -112,6 +113,7 @@ type
     property ScanHtmlContents  : Boolean read fScanHtmlContents write fScanHtmlContents;
     property ReadmeMessage : String read FReadmeMessage write FReadmeMessage;
     property AllowedExtensions : TStringList read FAllowedExtensions;
+    property Cores : integer read fcores write fcores; 
   end;
 
   TChmContextNode = Class
@@ -168,6 +170,7 @@ var
 begin
   // Assign the TOC and index files
   Writer := TChmWriter(Sender);
+  writer.cores:=fcores;
   {$ifdef chmindex}
     Writeln('binindex filename ',IndexFileName);
   {$endif}

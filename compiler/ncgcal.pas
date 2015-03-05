@@ -107,6 +107,8 @@ interface
           function load_complex_procvar_codeptr: tregister; virtual;
           { loads the procvar code pointer into a register }
           function load_procvar_codeptr: tregister;
+
+          procedure load_block_invoke(toreg: tregister);virtual;
        public
           procedure pass_generate_code;override;
           destructor destroy;override;
@@ -119,11 +121,11 @@ implementation
       systems,
       cutils,verbose,globals,
       cpuinfo,
-      symconst,symtable,symtype,symsym,defutil,paramgr,
+      symconst,symbase,symtable,symtype,symsym,defutil,paramgr,
       pass_2,
       aasmbase,aasmtai,aasmdata,
       nbas,nmem,nld,ncnv,nutils,
-      ncgutil,
+      ncgutil,blockutl,
       cgobj,tgobj,hlcgobj,
       procinfo,
       wpobase;
@@ -258,6 +260,7 @@ implementation
          href    : treference;
          otlabel,
          oflabel : tasmlabel;
+         pushaddr: boolean;
       begin
          if not(assigned(parasym)) then
            internalerror(200304242);
@@ -315,7 +318,7 @@ implementation
                begin
                  { don't push a node that already generated a pointer type
                    by address for implicit hidden parameters }
-                 if (vo_is_funcret in parasym.varoptions) or
+                 pushaddr:=(vo_is_funcret in parasym.varoptions) or
                    { pass "this" in C++ classes explicitly as pointer
                      because push_addr_param might not be true for them }
                    (is_cppclass(parasym.vardef) and (vo_is_self in parasym.varoptions)) or
@@ -333,8 +336,15 @@ implementation
                         )
                       ) and
                      paramanager.push_addr_param(parasym.varspez,parasym.vardef,
-                         aktcallnode.procdefinition.proccalloption)) then
-                   push_addr_para
+                         aktcallnode.procdefinition.proccalloption));
+
+                 if pushaddr then
+                   begin
+                     { objects or advanced records could be located in registers if they are the result of a type case, see e.g. webtbs\tw26075.pp }
+                     if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
+                       hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);
+                     push_addr_para
+                   end
                  else
                    push_value_para;
                end
@@ -451,6 +461,26 @@ implementation
         InternalError(2014012901);
         { silence warning }
         result.init;
+      end;
+
+
+    procedure tcgcallnode.load_block_invoke(toreg: tregister);
+      var
+        href: treference;
+        srsym: tsym;
+        srsymtable: tsymtable;
+        literaldef: trecorddef;
+      begin
+        literaldef:=get_block_literal_type_for_proc(tabstractprocdef(right.resultdef));
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,getpointerdef(literaldef),true);
+        { load the invoke pointer }
+        hlcg.reference_reset_base(href,right.resultdef,right.location.register,0,right.resultdef.alignment);
+        if not searchsym_in_record(literaldef,'INVOKE',srsym,srsymtable) or
+           (srsym.typ<>fieldvarsym) or
+           (tfieldvarsym(srsym).vardef<>voidpointertype) then
+          internalerror(2014071506);
+        href.offset:=tfieldvarsym(srsym).fieldoffset;
+        hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,tfieldvarsym(srsym).vardef,procdefinition,href,toreg);
       end;
 
 
@@ -800,7 +830,12 @@ implementation
 
      function tcgcallnode.load_procvar_codeptr: tregister;
        begin
-         if not(procdefinition.is_addressonly) then
+         if po_is_block in procdefinition.procoptions then
+           begin
+             result:=hlcg.getaddressregister(current_asmdata.CurrAsmList,procdefinition);
+             load_block_invoke(result);
+           end
+         else if not(procdefinition.is_addressonly) then
            result:=load_complex_procvar_codeptr
          else
            begin
@@ -964,8 +999,7 @@ implementation
                  else
                    begin
                      { Load VMT value in register }
-                     { todo: fix vmt type for high level cg }
-                     hlcg.location_force_reg(current_asmdata.CurrAsmList,methodpointer.location,proc_addr_voidptrdef,proc_addr_voidptrdef,false);
+                     hlcg.location_force_reg(current_asmdata.CurrAsmList,methodpointer.location,methodpointer.resultdef,methodpointer.resultdef,false);
                      vmtreg:=methodpointer.location.register;
                      { test validity of VMT }
                      if not(is_interface(tprocdef(procdefinition).struct)) and
@@ -986,7 +1020,7 @@ implementation
                  callref:=can_call_ref(href);
                  if not callref then
                    begin
-                     pvreg:=cg.getintregister(current_asmdata.CurrAsmList,proc_addr_size);
+                     pvreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,proc_addr_voidptrdef);
                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,proc_addr_size,proc_addr_size,href,pvreg);
                    end;
 
@@ -1067,7 +1101,8 @@ implementation
 
               { can we directly call the procvar in a memory location? }
               callref:=false;
-              if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+              if not(po_is_block in procdefinition.procoptions) and
+                 (right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                 begin
                   href:=right.location.reference;
                   callref:=can_call_ref(href);
@@ -1083,6 +1118,7 @@ implementation
                 correct parameter register }
               if assigned(left) then
                 begin
+                  reorder_parameters;
                   pushparas;
                   { free the resources allocated for the parameters }
                   freeparas;

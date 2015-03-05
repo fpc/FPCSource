@@ -674,7 +674,8 @@ implementation
         asmbin : '';
         asmcmd : '';
         supported_targets : [system_x86_64_linux,system_x86_64_freebsd,
-                             system_x86_64_openbsd,system_x86_64_netbsd];
+                             system_x86_64_openbsd,system_x86_64_netbsd,
+                             system_x86_64_dragonfly,system_x86_64_solaris];
         flags : [af_outputbinary,af_smartlink_sections,af_supports_dwarf];
         labelprefix : '.L';
         comment : '';

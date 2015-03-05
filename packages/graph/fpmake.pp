@@ -13,10 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('graph');
+    P.ShortName:='grph';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Author := 'FPC team';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

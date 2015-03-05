@@ -331,6 +331,9 @@ interface
     { returns true of def is a methodpointer }
     function is_methodpointer(def : tdef) : boolean;
 
+    { returns true if def is a C "block" }
+    function is_block(def: tdef): boolean;
+
 implementation
 
     uses
@@ -1423,6 +1426,12 @@ implementation
     function is_methodpointer(def: tdef): boolean;
       begin
         result:=(def.typ=procvardef) and (po_methodpointer in tprocvardef(def).procoptions);
+      end;
+
+
+    function is_block(def: tdef): boolean;
+      begin
+        result:=(def.typ=procvardef) and (po_is_block in tprocvardef(def).procoptions)
       end;
 
 end.

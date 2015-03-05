@@ -1485,7 +1485,7 @@ Const
      SECURITY_QUALITY_OF_SERVICE = record
           Length : DWORD;
           ImpersonationLevel : SECURITY_IMPERSONATION_LEVEL;
-          ContextTrackingMode : WINBOOL;    // SECURITY_CONTEXT_TRACKING_MODE
+          ContextTrackingMode : BOOLEAN;    // SECURITY_CONTEXT_TRACKING_MODE
           EffectiveOnly : BOOLEAN;
        end;
      PSECURITY_QUALITY_OF_SERVICE = ^SECURITY_QUALITY_OF_SERVICE;
@@ -2223,7 +2223,7 @@ Const
         case byte of
           0: (LowPart : DWORD;
               HighPart : DWORD);
-          1: (QuadPart : LONGLONG);
+          1: (QuadPart : ULONGLONG);
        end;
      PULARGE_INTEGER = ^ULARGE_INTEGER;
      _ULARGE_INTEGER = ULARGE_INTEGER;

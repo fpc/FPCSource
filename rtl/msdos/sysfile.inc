@@ -344,6 +344,7 @@ begin
 {$endif RTLLITE}
   if (regs.Flags and fCarry) <> 0 then
     begin
+      FileRec(f).mode:=fmclosed;
       GetInOutRes(regs.AX);
       if oldp<>p then
         freemem(p);
@@ -381,6 +382,7 @@ begin
      do_seekend(filerec(f).handle);
      filerec(f).mode:=fmoutput; {fool fmappend}
    end;
+
   if oldp<>p then
     freemem(p);
 end;

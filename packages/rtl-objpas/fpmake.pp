@@ -15,7 +15,7 @@ Const
 //  AllUnixOSes  = [Linux,FreeBSD,NetBSD,OpenBSD,Darwin,QNX,BeOS,Solaris,Haiku,iphonesim,aix,Android];
 //    unixlikes-[beos];
 // 
-  StrUtilsOSes  = [amiga,aros,emx,gba,go32v2,msdos,netware,wince,morphos,nativent,os2,netwlibc,win32,win64]+UnixLikes;
+  StrUtilsOSes  = [amiga,aros,emx,gba,go32v2,msdos,nds,netware,wince,morphos,nativent,os2,netwlibc,win32,win64]+UnixLikes;
   VarUtilsOSes  = [amiga,aros,emx,gba,go32v2,msdos,nds,netware,wince,morphos,nativent,os2,netwlibc,watcom,wii,win32,win64]+UnixLikes;
   ConvUtilsOSes = [nativent,netware,netwlibc,win32,win64,wince]+UnixLikes-[BeOS];
   ConvUtilOSes  = [Go32v2,msdos,os2,emx];
@@ -36,8 +36,9 @@ begin
   With Installer do
     begin
     P:=AddPackage('rtl-objpas');
+    P.ShortName:='rtlo';
     P.Directory:=ADirectory;
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Author := 'FPC core team';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -99,7 +100,10 @@ begin
     T:=P.Targets.AddUnit('stdconvs.pp',StdConvsOSes);
     T.ResourceStrings:=true;
     with T.Dependencies do
-      AddUnit('convutils');
+     begin
+      AddUnit('convutils',ConvUtilsOSes);
+      AddUnit('convutil',ConvUtilOSes);
+     end;
 
     T:=P.Targets.AddUnit('fmtbcd.pp',FmtBCDOSes);
     with T.Dependencies do

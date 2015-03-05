@@ -27,8 +27,8 @@ interface
 
     uses
       globtype,
-      cgbase,cpuinfo,cpubase,
       symtype,
+      cgbase,cpuinfo,cpubase,
       node,nmem,ncgmem,nx86mem,ni86mem;
 
     type
@@ -219,7 +219,7 @@ implementation
       begin
         saveseg:=location.reference.segment;
         location.reference.segment:=NR_NO;
-        inherited update_reference_reg_mul(maybe_const_reg,regsize,l);
+        inherited;
         location.reference.segment:=saveseg;
       end;
 

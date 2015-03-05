@@ -63,7 +63,11 @@ uses
   Dos,Objects,
   BrowCol,Version,
 {$ifndef NODEBUG}
-  gdbint,
+  {$ifdef GDBMI}
+    gdbmiint,
+  {$else GDBMI}
+    gdbint,
+  {$endif GDBMI}
 {$endif NODEBUG}
   FVConsts,
   Drivers,Views,App,Dialogs,HistList,
@@ -328,15 +332,23 @@ procedure InitCompilerSwitches;
     default_settings.localswitches:=[cs_typed_const_writable];
   end;
 
-
+{$IFDEF HASAMIGA}
+procedure SetAmigaWindowTitle;
+begin
+  { window title first, then screen title, shown when the window is active }
+  Video.SetWindowTitle(
+     'Free Pascal IDE',
+     'Free Pascal IDE '+VersionStr+' ['+{$i %date%}+'] - Compiler '+Full_Version_String);
+end;
+{$ENDIF}
 {The square bullet needs an MS-DOS code page. On Unix it is for sure the code
  page is not available before video is initialized. (And only in certain
  circumstances after that, so, use a plain ascii character as bullet on Unix.)}
 
-{$if defined(unix) or defined(amiga) or defined(morphos)}
+{$if defined(unix) or defined(HASAMIGA)}
 const bullet='*';
 {$else}
-const bullet='þ';
+const bullet=#254;
 {$endif}
 
 BEGIN
@@ -355,8 +367,14 @@ BEGIN
   writeln(bullet+' GDB Version '+GDBVersion);
  {$ifdef Windows}
   {$ifndef USE_MINGW_GDB}
-   writeln(bullet+' Cygwin "',GetCygwinFullName,'" version ',GetCygwinVersionString);
-   CheckCygwinVersion;
+   {$ifdef GDBMI}
+   { No reason to talk about cygwin DLL if we don't use it }
+   if using_cygwin_gdb then
+   {$endif GDBMI}
+     begin
+       writeln(bullet+' Cygwin "',GetCygwinFullName,'" version ',GetCygwinVersionString);
+       CheckCygwinVersion;
+     end;
   {$endif}
  {$endif Windows}
 {$endif NODEBUG}
@@ -423,6 +441,10 @@ BEGIN
     to be able to find location of error in last compilation
     from command line PM }
   ParseUserScreen;
+
+{$IFDEF HASAMIGA}
+  SetAmigaWindowTitle;
+{$ENDIF}
 
   { Update IDE }
   IDEApp.Update;

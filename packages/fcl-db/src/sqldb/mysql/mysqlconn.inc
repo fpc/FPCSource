@@ -59,6 +59,12 @@ Const
 {$endif}
 {$endif}
 {$ENDIF}
+  MariaDBVersion =
+{$IFDEF mysql56}   // MariaDB 10.0 is compatible with MySQL 5.6
+    '10.0';
+{$ELSE} // MariaDB 5.1..5.5 presumably report the same version number as MySQL
+     MySQLVersion;
+{$ENDIF}
 
 Type
   TTransactionName = Class(TSQLHandle)
@@ -93,11 +99,11 @@ Type
     procedure ExecuteDirectMySQL(const query : string);
     function EscapeString(const Str : string) : string;
   protected
-    function StrToStatementType(s : string) : TStatementType; override;
     Procedure ConnectToServer; virtual;
     Procedure SelectDatabase; virtual;
     function MySQLDataType(AField: PMYSQL_FIELD; var NewType: TFieldType; var NewSize: Integer): Boolean;
     function MySQLWriteData(AField: PMYSQL_FIELD; FieldDef: TFieldDef; Source, Dest: PChar; Len: integer; out CreateBlob : boolean): Boolean;
+
     // SQLConnection methods
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
@@ -110,6 +116,7 @@ Type
     Procedure DeAllocateCursorHandle(var cursor : TSQLCursor); override;
     Function AllocateTransactionHandle : TSQLHandle; override;
 
+    function StrToStatementType(s : string) : TStatementType; override;
     procedure PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLTransaction;buf : string; AParams : TParams); override;
     procedure UnPrepareStatement(cursor:TSQLCursor); override;
     procedure FreeFldBuffers(cursor : TSQLCursor); override;
@@ -127,6 +134,7 @@ Type
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
     procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); override;
     function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
+    function RefreshLastInsertID(Query : TCustomSQLQuery; Field : TField): Boolean; override;
   Public
     constructor Create(AOwner : TComponent); override;
     procedure GetFieldNames(const TableName : string; List :  TStrings); override;
@@ -323,7 +331,7 @@ begin
   Result := mysql_stat(FMYSQL);
 end;
 
-function TConnectionName.GetInsertID: Int64;
+Function TConnectionName.GetInsertID: int64;
 begin
   CheckConnected;
   Result:=mysql_insert_id(GetHandle);
@@ -398,14 +406,14 @@ begin
 end;
 
 
-procedure TConnectionName.ConnectToServer;
+Procedure TConnectionName.ConnectToServer;
 begin
   ConnectMySQL(FMySQL);
   FServerInfo := strpas(mysql_get_server_info(FMYSQL));
   FHostInfo := strpas(mysql_get_host_info(FMYSQL));
 end;
 
-procedure TConnectionName.SelectDatabase;
+Procedure TConnectionName.SelectDatabase;
 begin
   if mysql_select_db(FMySQL,pchar(DatabaseName))<>0 then
     MySQLError(FMySQL,SErrDatabaseSelectFailed,Self);
@@ -459,13 +467,15 @@ end;
 
 procedure TConnectionName.DoInternalConnect;
 var
-  FullVersion, 
-  ClientVerStr: string;
+  FullVersion: string;
 begin
   InitialiseMysql;
   Fullversion:=strpas(mysql_get_client_info());
-  ClientVerStr := copy(FullVersion,1,3);
-  If (ClientVerStr<>MySQLVersion) then
+  // Version string should start with version number:
+  // Note: in case of MariaDB version mismatch: tough luck, we report MySQL
+  // version only.
+  if (pos(MySQLVersion, Fullversion) <> 1) and
+    (pos(MariaDBVersion, Fullversion) <> 1) then
     Raise EInOutError.CreateFmt(SErrVersionMisMatch,[ClassName,MySQLVersion,FullVersion]);
   inherited DoInternalConnect;
   ConnectToServer;
@@ -485,7 +495,7 @@ begin
   Result:=FMySQL;
 end;
 
-function TConnectionName.AllocateCursorHandle: TSQLCursor;
+Function TConnectionName.AllocateCursorHandle: TSQLCursor;
 begin
   {$IFDEF mysql56}
     Result:=TMySQL56Cursor.Create;
@@ -516,7 +526,7 @@ begin
   FreeAndNil(cursor);
 end;
 
-function TConnectionName.AllocateTransactionHandle: TSQLHandle;
+Function TConnectionName.AllocateTransactionHandle: TSQLHandle;
 begin
 //  Result:=TTransactionName.Create;
   Result := nil;
@@ -1110,11 +1120,17 @@ begin
     Result := -1;
 end;
 
+function TConnectionName.RefreshLastInsertID(Query: TCustomSQLQuery; Field: TField): Boolean;
+begin
+  Field.AsLargeInt:=GetInsertID;
+  Result := True;
+end;
+
 constructor TConnectionName.Create(AOwner: TComponent);
 const SingleBackQoutes: TQuoteChars = ('`','`');
 begin
   inherited Create(AOwner);
-  FConnOptions := FConnOptions + [sqEscapeRepeat] + [sqEscapeSlash];
+  FConnOptions := [sqEscapeRepeat, sqEscapeSlash, sqImplicitTransaction, sqLastInsertID];
   FieldNameQuoteChars:=SingleBackQoutes;
   FMySQL := Nil;
 end;

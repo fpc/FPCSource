@@ -509,7 +509,7 @@ asm
   strex r3, ip, [r0]
   cmp r3, #0
   bne .Lloop
-  
+
   mov r0, ip
 end;
 
@@ -522,7 +522,7 @@ asm
   strex r3, ip, [r0]
   cmp r3, #0
   bne .Lloop
-  
+
   mov r0, ip
 end;
 
@@ -534,7 +534,7 @@ asm
   strex r3, r1, [r0]
   cmp r3, #0
   bne .Lloop
-  
+
   mov r0, ip
 end;
 
@@ -546,7 +546,7 @@ asm
   strex r3, r2, [r0]
   cmp r3, #0
   bne .Lloop
-  
+
   mov r0, ip
 end;
 
@@ -560,7 +560,7 @@ asm
   movne r3, #0
   cmp r3, #0
   bne .Lloop
-  
+
   mov r0, ip
 end;
 
@@ -584,7 +584,7 @@ begin
   asm
     mov r1,sp
     bic r0,r1,#7
-    ldrd r0,[r0]
+    ldrd r0,r1,[r0]
   end;
   in_edsp_test:=false;
   if cpu_has_edsp then

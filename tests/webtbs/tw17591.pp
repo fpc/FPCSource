@@ -4,7 +4,7 @@ program comparetext;
 uses
  sysutils
 {$ifdef unix}
- ,cwstring
+ ,{$ifdef darwin}iosxwstr{$else}cwstring{$endif}
 {$endif}
 ;
 var

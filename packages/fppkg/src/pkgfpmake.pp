@@ -15,7 +15,8 @@ uses
   pkgoptions,
   pkgglobals,
   pkgmessages,
-  pkgrepos;
+  pkgrepos,
+  fpxmlrep;
 
 type
   { TFPMakeCompiler }
@@ -57,6 +58,12 @@ type
     Procedure Execute;override;
   end;
 
+  { TFPMakeRunnerUnInstall }
+
+  TFPMakeRunnerUnInstall = Class(TFPMakeRunner)
+  Public
+    Procedure Execute;override;
+  end;
 
   { TFPMakeRunnerClean }
 
@@ -269,6 +276,29 @@ Var
       AddOption(Name+'='+Value);
   end;
 
+  procedure ObtainSupportedTargetsFromManifest(p:TFPPackage);
+  var
+    X : TFPXMLRepositoryHandler;
+    ManifestPackages : TFPPackages;
+    i: integer;
+  begin
+    p.OSes:=[];
+    p.CPUs:=[];
+    ManifestPackages:=TFPPackages.Create(TFPPackage);
+    X:=TFPXMLRepositoryHandler.Create;
+    try
+      X.LoadFromXml(ManifestPackages,ManifestFileName);
+      for i := 0 to ManifestPackages.Count-1 do
+        begin
+          p.OSes:=p.OSes+ManifestPackages[i].OSes;
+          p.CPUs:=p.CPUs+ManifestPackages[i].CPUs;
+        end;
+    finally
+      X.Free;
+      ManifestPackages.Free;
+    end;
+  end;
+
 begin
   OOptions:='';
   // Does the current package support this CPU-OS?
@@ -276,12 +306,7 @@ begin
     begin
       P:=AvailableRepository.PackageByName(PackageName);
       if (PackageName=CurrentDirPackageName) and (FileExists(ManifestFileName)) then
-        begin
-          ManifestPackage:=LoadManifestFromFile(ManifestFileName);
-          P.OSes:=ManifestPackage.OSes;
-          P.CPUs:=ManifestPackage.CPUs;
-          ManifestPackage.Free;
-        end;
+        ObtainSupportedTargetsFromManifest(p);
     end
   else
     P:=nil;
@@ -308,30 +333,33 @@ begin
     end
   else
     begin
-      AddOption('--nofpccfg');
-      AddOption('--compiler='+CompilerOptions.Compiler);
-      AddOption('--cpu='+CPUToString(CompilerOptions.CompilerCPU));
-      AddOption('--os='+OSToString(CompilerOptions.CompilerOS));
       if CompilerOptions.HasOptions then
         AddOption('--options='+CompilerOptions.Options.DelimitedText);
-      if IsSuperUser or GlobalOptions.InstallGlobal then
-        begin
-          CondAddOption('--prefix',CompilerOptions.GlobalPrefix);
-          CondAddOption('--baseinstalldir',CompilerOptions.GlobalInstallDir);
-        end
-      else
-        begin
-          CondAddOption('--prefix',CompilerOptions.LocalPrefix);
-          CondAddOption('--baseinstalldir',CompilerOptions.LocalInstallDir);
-        end;
-      CondAddOption('--localunitdir',CompilerOptions.LocalUnitDir);
-      CondAddOption('--globalunitdir',CompilerOptions.GlobalUnitDir);
+
       if GlobalOptions.CustomFPMakeOptions<>'' then
         begin
         AddOption('--ignoreinvalidoption');
         AddOption(GlobalOptions.CustomFPMakeOptions);
         end;
     end;
+
+  AddOption('--nofpccfg');
+  AddOption('--compiler='+CompilerOptions.Compiler);
+  AddOption('--cpu='+CPUToString(CompilerOptions.CompilerCPU));
+  AddOption('--os='+OSToString(CompilerOptions.CompilerOS));
+  if IsSuperUser or GlobalOptions.InstallGlobal then
+    begin
+      CondAddOption('--prefix',CompilerOptions.GlobalPrefix);
+      CondAddOption('--baseinstalldir',CompilerOptions.GlobalInstallDir);
+    end
+  else
+    begin
+      CondAddOption('--prefix',CompilerOptions.LocalPrefix);
+      CondAddOption('--baseinstalldir',CompilerOptions.LocalInstallDir);
+    end;
+  CondAddOption('--localunitdir',CompilerOptions.LocalInstallDir);
+  CondAddOption('--globalunitdir',CompilerOptions.GlobalInstallDir);
+
   { Run FPMake }
   FPMakeBin:='fpmake'+ExeExt;
   SetCurrentDir(PackageBuildPath(P));
@@ -359,6 +387,12 @@ begin
 end;
 
 
+procedure TFPMakeRunnerUnInstall.Execute;
+begin
+  RunFPMake('uninstall');
+end;
+
+
 procedure TFPMakeRunnerClean.Execute;
 begin
   RunFPMake('clean');
@@ -382,6 +416,7 @@ initialization
   RegisterPkgHandler('fpmakecompile',TFPMakeRunnerCompile);
   RegisterPkgHandler('fpmakebuild',TFPMakeRunnerBuild);
   RegisterPkgHandler('fpmakeinstall',TFPMakeRunnerInstall);
+  RegisterPkgHandler('fpmakeuninstall',TFPMakeRunnerUnInstall);
   RegisterPkgHandler('fpmakeclean',TFPMakeRunnerClean);
   RegisterPkgHandler('fpmakemanifest',TFPMakeRunnerManifest);
   RegisterPkgHandler('fpmakearchive',TFPMakeRunnerArchive);

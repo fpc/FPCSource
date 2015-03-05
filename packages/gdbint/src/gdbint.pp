@@ -59,6 +59,30 @@ interface
 
 {$undef GDB_VERSION_RECOGNIZED}
 
+{ 7.9.x }
+{$ifdef GDB_V709}
+  {$info using gdb 7.9.x}
+  {$define GDB_VERSION_RECOGNIZED}
+  {$define GDB_VER_GE_709}
+{$endif}
+
+{$ifdef GDB_VER_GE_709}
+  {$define GDB_VER_GE_708}
+{$endif}
+
+{ 7.8.x }
+{$ifdef GDB_V708}
+  {$info using gdb 7.8.x}
+  {$define GDB_VERSION_RECOGNIZED}
+  {$define GDB_VER_GE_708}
+{$endif}
+
+{$ifdef GDB_VER_GE_708}
+  {$define USE_CATCH_EXCEPTIONS}
+  {$define USE_LOCAL_SET_GDB_DATA_DIRECTORY}
+  {$define GDB_VER_GE_707}
+{$endif}
+
 { 7.7.x }
 {$ifdef GDB_V707}
   {$info using gdb 7.7.x}
@@ -78,6 +102,7 @@ interface
 {$endif}
 
 {$ifdef GDB_VER_GE_706}
+  {$define GDB_UI_FILE_HAS_FSEEK}
   {$define GDB_VER_GE_705}
 {$endif}
 
@@ -190,6 +215,7 @@ interface
   {$define GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
   {$define GDB_HAS_BP_NONE}
   {$define GDB_USE_XSTRVPRINTF}
+  {$define GDB_ANNOTATE_FRAME_BEGIN_HAS_GDBARCH_FIELD}
 {$endif def GDB_V7}
 
 
@@ -227,7 +253,7 @@ interface
   {$define GDB_USES_BP_LOCATION}
   {$define GDB_NEEDS_NO_ERROR_INIT}
   {$define GDB_USES_EXPAT_LIB}
-  {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
+  {Official 6.6 release doesn't have GDB_HAS_DEBUG_FILE_DIRECTORY}
 {$endif def GDB_V606}
 
 { 6.5.x }
@@ -365,6 +391,41 @@ interface
   {$LINKLIB c}
   {$LINKLIB gcc}
 {$endif linux}
+
+{$ifdef dragonfly}
+{$ifdef NotImplemented}
+  {$linklib kvm}
+  {$undef NotImplemented}
+  {$LINKLIB libgdb.a}
+  {$ifdef GDB_HAS_SIM}
+    {$LINKLIB libsim.a}
+  {$endif GDB_HAS_SIM}
+  {$LINKLIB libbfd.a}
+  {$LINKLIB libreadline.a}
+  {$LINKLIB libopcodes.a}
+  {$LINKLIB libhistory.a}
+  {$LINKLIB libiberty.a}
+  {$LINKLIB libgnu.a}
+  {$LINKLIB ncurses}
+  {$LINKLIB z}
+  {$LINKLIB m}
+  {$LINKLIB iberty}
+  {$ifndef GDB_DISABLE_INTL}
+    {$LINKLIB intl}
+  {$endif ndef GDB_DISABLE_INTL}
+  {$ifdef GDB_USES_LIBDECNUMBER}
+    {$LINKLIB decnumber}
+  {$endif GDB_USES_LIBDECNUMBER}
+  {$ifdef GDB_USES_EXPAT_LIB}
+    {$LINKLIB expat}
+  {$endif GDB_USES_EXPAT_LIB}
+  {$ifdef GDB_USES_LIBPYTHON}
+    {$LINKLIB python}
+  {$endif GDB_USES_LIBPYTHON}
+{$endif NotImplemented}
+  {$LINKLIB c}
+  {$LINKLIB gcc}
+{$endif freebsd}
 
 {$ifdef freebsd}
 {$ifdef NotImplemented}
@@ -631,6 +692,11 @@ interface
   {$LINKLIB gcc}
 {$endif beos}
 
+{$ifdef aix}
+  { AIX linker requires more precise external/public separation }
+  {$define NEED_EXTERNAL_CVAR}
+  {$undef NotImplemented}
+{$endif aix}
 
 {$ifdef go32v2}
   {$define supportexceptions}
@@ -650,6 +716,15 @@ interface
 {$packrecords C}
 
 type
+{$if defined(CPUSPARC) and defined(LINUX)}
+  {$define GDB_CORE_ADDR_FORCE_64BITS}
+{$endif}
+{$ifdef GDB_CORE_ADDR_FORCE_64BITS}
+  CORE_ADDR = qword;
+{$else}
+  CORE_ADDR = ptruint; { might be target dependent PM }
+{$endif}
+
   psyminfo=^tsyminfo;
   tsyminfo=record
     address  : ptrint;
@@ -664,7 +739,7 @@ type
     function_name : pchar;
     args : pchar;
     line_number : longint;
-    address : ptrint;
+    address : CORE_ADDR;
     level : longint;
     constructor init;
     destructor done;
@@ -681,14 +756,6 @@ const
  k=1;
 
 type
-{$if defined(CPUSPARC) and defined(LINUX)}
-  {$define GDB_CORE_ADDR_FORCE_64BITS}
-{$endif}
-{$ifdef GDB_CORE_ADDR_FORCE_64BITS}
-  CORE_ADDR = qword;
-{$else}
-  CORE_ADDR = ptrint; { might be target dependent PM }
-{$endif}
   streamtype = (afile,astring);
   C_FILE     = ptrint; { at least under DJGPP }
   P_C_FILE   = ^C_FILE;
@@ -710,6 +777,9 @@ type
   {$ifdef GDB_V6}
   ui_file_read_ftype = function (stream : pui_file; buffer : pchar; len : longint):longint;cdecl;
   {$endif}
+  {$ifdef GDB_UI_FILE_HAS_FSEEK}
+  ui_file_fseek_ftype = function (stream : pui_file; offset : longint{clong}; whence : longint {cint}) : longint{cint};cdecl;
+  {$endif GDB_UI_FILE_HAS_FSEEK}
 
   ui_file = record
       magic : plongint;
@@ -726,6 +796,9 @@ type
       to_isatty : ui_file_isatty_ftype;
       to_rewind : ui_file_rewind_ftype;
       to_put    : ui_file_put_ftype;
+     {$ifdef GDB_UI_FILE_HAS_FSEEK}
+     to_fseek   : ui_file_fseek_ftype;
+     {$endif GDB_UI_FILE_HAS_FSEEK}
       to_data   : pointer;
     end;
 
@@ -799,6 +872,9 @@ type
 
   pgdbinterface=^tgdbinterface;
   tgdbinterface=object
+  private
+    stop_breakpoint_number : longint;
+  public
     gdberrorbuf,
     gdboutputbuf  : tgdbbuffer;
     got_error,
@@ -814,7 +890,6 @@ type
     frame_begin_seen : boolean;
     frame_level,
     command_level,
-    stop_breakpoint_number,
     current_line_number,
     signal_start,
     signal_end,
@@ -836,8 +911,8 @@ type
     current_pc      : CORE_ADDR;
     { breakpoint }
     last_breakpoint_number,
-    last_breakpoint_address,
     last_breakpoint_line : longint;
+    last_breakpoint_address : CORE_ADDR;
     last_breakpoint_file : pchar;
     invalid_breakpoint_line : boolean;
     user_screen_shown,
@@ -860,7 +935,7 @@ type
     procedure clear_frames;
     { Highlevel }
     procedure GetAddrSyminfo(addr:ptrint;var si:tsyminfo);
-    procedure SelectSourceline(fn:pchar;line:longint);
+    function SelectSourceline(fn:pchar;line,BreakIndex:longint): Boolean;
     procedure StartSession;
     procedure BreakSession;
     procedure EndSession(code:longint);
@@ -869,7 +944,7 @@ type
     procedure FlushAll; virtual;
     function Query(question : pchar; args : pchar) : longint; virtual;
     { Hooks }
-    procedure DoSelectSourceline(const fn:string;line:longint);virtual;
+    function DoSelectSourceline(const fn:string;line,BreakIndex:longint): Boolean;virtual;
     procedure DoStartSession;virtual;
     procedure DoBreakSession;virtual;
     procedure DoEndSession(code:longint);virtual;
@@ -901,6 +976,8 @@ var
 var
   cli_uiout : ui_out;cvar;external;
   current_uiout : ui_out;cvar;external;
+  { out local copy for catch_exceptions call }
+  our_uiout : ui_out;
 {$endif GDB_NO_UIOUT}
 function cli_out_new (stream : pui_file):ui_out;cdecl;external;
 {$endif GDB_V6}
@@ -1217,6 +1294,8 @@ type
           explicit_line : longint;
           { New field added in GDB 7.5 version }
           probe : pointer;{struct probe *probe; }
+          { New field added in GDB 7.8? version }
+          objfile : pointer; { struct objfile * }
        end;
 
      symtabs_and_lines = record
@@ -1672,7 +1751,8 @@ var
 { external variables }
   error_return : jmp_buf;cvar;public;
   quit_return  : jmp_buf;cvar;public;
-  deprecated_query_hook : pointer;cvar;public;
+  deprecated_query_hook : pointer;cvar;
+{$ifdef NEED_EXTERNAL_CVAR}external;{$else}public;{$endif}
 
   {$ifndef GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
     {$ifdef GDB_HAS_DEPRECATED_CBPH}
@@ -1800,6 +1880,7 @@ begin
   args:=nil;
   line_number:=0;
   address:=0;
+  level:=0;
 end;
 
 procedure tframeentry.clear;
@@ -2074,7 +2155,8 @@ begin
       fname:=sym.symtab^.filename
      else
       fname:=nil;
-     SelectSourceLine(fname,sym.line);
+     if not SelectSourceLine(fname,sym.line,stop_breakpoint_number) then
+       gdb_command('continue');
    end;
 end;
 
@@ -2196,7 +2278,11 @@ begin
 end;
 
 
-procedure annotate_frame_begin(level:longint;pc:CORE_ADDR);cdecl;public;
+procedure annotate_frame_begin(level:longint;
+{$ifdef GDB_ANNOTATE_FRAME_BEGIN_HAS_GDBARCH_FIELD}
+  gdbarch : pointer;
+{$endif GDB_ANNOTATE_FRAME_BEGIN_HAS_GDBARCH_FIELD}
+pc:CORE_ADDR);cdecl;public;
 begin
 {$ifdef Verbose}
   Debug('|frame_begin(%d,%ld)|');
@@ -2354,6 +2440,10 @@ begin
         begin
           if (gdboutputbuf.buf[args_end-1]=#10) then
            dec(args_end);
+          { Flushing is not always correct for args,
+            try to move on to next closing brace }
+          while (args_end<file_start) and (gdboutputbuf.buf[args_end-1]<>')') do
+            inc(args_end);
           c:=gdboutputbuf.buf[args_end];
           gdboutputbuf.buf[args_end]:=#0;
           fe^.args:=strnew(gdboutputbuf.buf+args_start);
@@ -2879,6 +2969,16 @@ end;
 var
    top_level_val : longint;
 
+{$ifdef USE_CATCH_EXCEPTIONS}
+function catch_exceptions(uiout : ui_out; func : pointer; command : pchar; mask : longint) : longint;cdecl;external;
+
+function gdbint_execute_command(uiout : ui_out; command : pchar) : longint;cdecl;
+begin
+  gdbint_execute_command:=1;
+  execute_command(command,1);
+  gdbint_execute_command:=0;
+end;
+{$else not USE_CATCH_EXCEPTIONS}
 function catch_command_errors(func : pointer; command : pchar; from_tty,mask : longint) : longint;cdecl;external;
 
 function gdbint_execute_command(command : pchar; from_tty : longint) : longint;cdecl;
@@ -2887,6 +2987,7 @@ begin
   execute_command(command,from_tty);
   gdbint_execute_command:=0;
 end;
+{$endif not USE_CATCH_EXCEPTIONS}
 
 {$ifdef cpui386}
 type
@@ -2988,8 +3089,12 @@ begin
    begin
      quit_return:=error_return;
      mask:=longint($ffffffff);
+{$ifdef USE_CATCH_EXCEPTIONS}
+     catch_exceptions(our_uiout, @gdbint_execute_command,@command,mask);
+{$else i.e. not USE_CATCH_EXCEPTIONS}
      catch_command_errors(@gdbint_execute_command,@command,
        1,mask);
+{$endif not def USE_CATCH_EXCEPTIONS}
 {$ifdef go32v2}
      reload_fs;
 {$endif go32v2}
@@ -3113,12 +3218,12 @@ begin
 end;
 
 
-procedure tgdbinterface.SelectSourceLine(fn:pchar;line:longint);
+function tgdbinterface.SelectSourceLine(fn:pchar;line,BreakIndex:longint): Boolean;
 begin
   if assigned(fn) then
-   DoSelectSourceLine(StrPas(fn),line)
+    SelectSourceLine:=DoSelectSourceLine(StrPas(fn),line,BreakIndex)
   else
-   DoSelectSourceLine('',line);
+    SelectSourceLine:=DoSelectSourceLine('',line,BreakIndex);
 end;
 
 
@@ -3180,15 +3285,16 @@ end;
           Default Hooks
 ---------------------------------------}
 
-procedure tgdbinterface.DoSelectSourceLine(const fn:string;line:longint);
+function tgdbinterface.DoSelectSourceLine(const fn:string;line,BreakIndex:longint): Boolean;
 {$ifdef Verbose}
 var
-  s : string;
+  s,bs : string;
 {$endif}
 begin
 {$ifdef Verbose}
   Str(line,S);
-  Debug('|SelectSource '+fn+':'+s+'|');
+  Str(BreakIndex,BS);
+  Debug('|SelectSource '+fn+':'+s+','+bs+'|');
 {$endif}
 end;
 
@@ -3429,6 +3535,7 @@ begin
 {$ifdef GDB_NO_UIOUT}
   cli_uiout := cli_out_new (gdb_stdout);
   current_uiout:=cli_uiout;
+  our_uiout:=cli_uiout;
 {$endif GDB_NO_UIOUT}
 {$endif GDB_NEEDS_INTERPRETER_SETUP}
 {$ifdef supportexceptions}
@@ -3489,6 +3596,15 @@ var
 var
   debug_file_directory : pchar; cvar; external;
 {$endif GDB_HAS_DEBUG_FILE_DIRECTORY}
+
+{$ifdef USE_LOCAL_SET_GDB_DATA_DIRECTORY}
+{ Avoid loading of main.o object by providing a
+  stripped down version of relocate_gdb_directory function }
+procedure set_gdb_data_directory(path : pchar); cdecl; public;
+begin
+  gdb_datadir:=path;
+end;
+{$endif USE_LOCAL_SET_GDB_DATA_DIRECTORY}
 
 begin
 {$ifdef GDB_HAS_SYSROOT}

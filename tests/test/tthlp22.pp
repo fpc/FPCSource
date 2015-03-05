@@ -1,8 +1,8 @@
-{ %FAIL }
+{ %NORUN }
 
 { type helpers are not parsed if modeswitch typehelpers is not set (mode Delphi) }
 
-program tthlp20;
+program tthlp22;
 
 {$mode delphi}
 

@@ -71,6 +71,8 @@ unit cgcpu;
 
         procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags; reg: TRegister); override;
 
+        procedure g_profilecode(list : TAsmList); override;
+
         procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);override;
         procedure g_proc_exit(list : TAsmList;parasize : longint;nostackframe:boolean); override;
         procedure g_maybe_got_init(list : TAsmList); override;
@@ -100,7 +102,7 @@ unit cgcpu;
 
         procedure a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size : tcgsize;src,dst: tregister;shuffle : pmmshuffle); override;
         { Transform unsupported methods into Internal errors }
-        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
+        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: TCGSize; src, dst: TRegister); override;
 
         { try to generate optimized 32 Bit multiplication, returns true if successful generated }
         function try_optimized_mul32_const_reg_reg(list: TAsmList; a: tcgint; src, dst: tregister) : boolean;
@@ -634,7 +636,9 @@ unit cgcpu;
         sym : TAsmSymbol;
       begin
         { check not really correct: should only be used for non-Thumb cpus }
-        if CPUARM_HAS_BLX_LABEL in cpu_capabilities[current_settings.cputype] then
+        if (CPUARM_HAS_BLX_LABEL in cpu_capabilities[current_settings.cputype]) and
+          { WinCE GNU AS (not sure if this applies in general) does not support BLX imm }
+          (target_info.system<>system_arm_wince) then
           branchopcode:=A_BLX
         else
           branchopcode:=A_BL;
@@ -1698,7 +1702,7 @@ unit cgcpu;
       end;
 
 
-    procedure tbasecgarm.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister);
+    procedure tbasecgarm.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: TCGSize; src, dst: TRegister);
       begin
         if reverse then
           begin
@@ -1792,6 +1796,16 @@ unit cgcpu;
         list.concat(setcondition(taicpu.op_reg_const(A_MOV,reg,0),inverse_cond(flags_to_cond(f))));
       end;
 
+    procedure tbasecgarm.g_profilecode(list : TAsmList);
+      begin
+        if target_info.system = system_arm_linux then
+          begin
+            list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R14]));
+            a_call_name(list,'__gnu_mcount_nc',false);
+          end
+        else
+          internalerror(2014091201);
+      end;
 
     procedure tbasecgarm.g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);
       var
@@ -3885,18 +3899,36 @@ unit cgcpu;
         tmpreg : TRegister;
       begin
         href:=ref;
-        if (op in [A_STR,A_STRB,A_STRH]) and
-           (abs(ref.offset)>124) then
-          begin
-            tmpreg:=getintregister(list,OS_ADDR);
-            a_loadaddr_ref_reg(list,ref,tmpreg);
-
-            reference_reset_base(href,tmpreg,0,ref.alignment);
-          end
-        else if (op=A_LDR) and
-           (oppostfix in [PF_None]) and
-           (ref.base<>NR_STACK_POINTER_REG)  and
-           (abs(ref.offset)>124) then
+        if { LDR/STR limitations }
+           (
+            (((op=A_LDR) and (oppostfix=PF_None)) or
+             ((op=A_STR) and (oppostfix=PF_None))) and
+            (ref.base<>NR_STACK_POINTER_REG) and
+            (abs(ref.offset)>124)
+           ) or
+           { LDRB/STRB limitations }
+           (
+           (((op=A_LDR) and (oppostfix=PF_B)) or
+            ((op=A_LDRB) and (oppostfix=PF_None)) or
+            ((op=A_STR) and (oppostfix=PF_B)) or
+            ((op=A_STRB) and (oppostfix=PF_None))) and
+            ((ref.base=NR_STACK_POINTER_REG) or
+             (ref.index=NR_STACK_POINTER_REG) or
+             (abs(ref.offset)>31)
+            )
+           ) or
+           { LDRH/STRH limitations }
+           (
+            (((op=A_LDR) and (oppostfix=PF_H)) or
+             ((op=A_LDRH) and (oppostfix=PF_None)) or
+             ((op=A_STR) and (oppostfix=PF_H)) or
+             ((op=A_STRH) and (oppostfix=PF_None))) and
+            ((ref.base=NR_STACK_POINTER_REG) or
+             (ref.index=NR_STACK_POINTER_REG) or
+             (abs(ref.offset)>62) or
+             ((abs(ref.offset) mod 2)<>0)
+            )
+           ) then
           begin
             tmpreg:=getintregister(list,OS_ADDR);
             a_loadaddr_ref_reg(list,ref,tmpreg);

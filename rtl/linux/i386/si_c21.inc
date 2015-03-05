@@ -132,9 +132,8 @@ asm
 	hlt
 end;
 
-procedure _FPC_libc21_haltproc; assembler; nostackframe; public name '_haltproc';
+procedure _FPC_libc21_haltproc(e: longint); cdecl; assembler; public name '_haltproc';
 asm
-.Lhaltproc:
   {$ifdef FPC_PIC}
         call  .Lpiclab
 .Lpiclab:
@@ -150,49 +149,12 @@ asm
   call    *%eax
 .Lnodlexitproc:
   movl    syscall_nr_exit_group,%eax
-
-{$ifdef FPC_PIC}
-  call    .Lpiclab2
-.Lpiclab2:
-  popl    %ebx
-  addl    $_GLOBAL_OFFSET_TABLE_+1,%ebx
-  movl    ExitCode@GOT(%ebx),%ebx
- {$if sizeof(ExitCode)=2}
-  movzwl  (%ebx),%ebx
- {$else}
-  mov     (%ebx),%ebx
- {$endif}
-{$else FPC_PIC}
- {$if sizeof(ExitCode)=2}
-  movzwl  ExitCode,%ebx
- {$else}
-  mov     ExitCode,%ebx
- {$endif}
-{$endif FPC_PIC}
-
+  movl    e,%ebx
   int     $0x80
+
   movl    syscall_nr_exit,%eax
-
-{$ifdef FPC_PIC}
-  call    .Lpiclab3
-.Lpiclab3:
-  popl    %ebx
-  addl    $_GLOBAL_OFFSET_TABLE_+1,%ebx
-  movl    ExitCode@GOT(%ebx),%ebx
- {$if sizeof(ExitCode)=2}
-  movzwl  (%ebx),%ebx
- {$else}
-  mov     (%ebx),%ebx
- {$endif}
-{$else FPC_PIC}
-
- {$if sizeof(ExitCode)=2}
-  movzwl  ExitCode,%ebx
- {$else}
-  mov     ExitCode,%ebx
- {$endif}
-{$endif FPC_PIC}
+  movl    e,%ebx
 
   int     $0x80
-  jmp     .Lhaltproc
+  jmp     .Lnodlexitproc
 end;

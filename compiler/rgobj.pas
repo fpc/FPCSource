@@ -1726,6 +1726,9 @@ unit rgobj;
 {$endif DEBUG_REGISTERLIFE}
                             add_edges_used(supreg);
                           end;
+                        ra_markused :
+                          if (supreg<first_imaginary) then
+                            include(used_in_proc,supreg);
                       end;
                       { constraints needs always to be updated }
                       add_constraints(reg);

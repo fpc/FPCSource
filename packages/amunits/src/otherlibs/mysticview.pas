@@ -36,7 +36,7 @@
 UNIT MYSTICVIEW;
 
 INTERFACE
-USES Exec,graphics,utility,intuition;
+USES Exec,agraphics,utility,intuition;
 
 VAR MysticBase : pLibrary;
 
@@ -183,7 +183,7 @@ IMPLEMENTATION
 
 uses
 {$ifndef dont_use_openlib}
-msgbox,
+amsgbox,
 {$endif dont_use_openlib}
 tagsarray;
 

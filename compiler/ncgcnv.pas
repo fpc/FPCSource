@@ -176,6 +176,11 @@ interface
         if (nf_explicit in flags) and
            not(left.location.loc in [LOC_FLAGS,LOC_JUMP]) then
           begin
+             { overriding methods must be able to know in advance whether this
+               code path will be taken by checking expectloc, so they can call
+               the inherited method in that case }
+             if left.expectloc in [LOC_FLAGS,LOC_JUMP] then
+               internalerror(2014122901);
              location_copy(location,left.location);
              newsize:=def_cgsize(resultdef);
              { change of size? change sign only if location is LOC_(C)REGISTER? Then we have to sign/zero-extend }

@@ -535,6 +535,8 @@ implementation
          first : boolean;
          last : TConstExprInt;
          scratch_reg: tregister;
+         newsize: tcgsize;
+         newdef: tdef;
 
       procedure genitem(t : pcaselabel);
 
@@ -600,6 +602,23 @@ implementation
            genlinearcmplist(hp)
          else
            begin
+              { sign/zero extend the value to a full register before starting to
+                subtract values, so that on platforms that don't have
+                subregisters of the same size as the value we don't generate
+                sign/zero-extensions after every subtraction
+
+                make newsize always signed, since we only do this if the size in
+                bytes of the register is larger than the original opsize, so
+                the value can always be represented by a larger signed type }
+              newsize:=tcgsize2signed[reg_cgsize(hregister)];
+              if tcgsize2size[newsize]>opsize.size then
+                begin
+                  newdef:=cgsize_orddef(newsize);
+                  scratch_reg:=hlcg.getintregister(current_asmdata.CurrAsmList,newdef);
+                  hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,newdef,hregister,scratch_reg);
+                  hregister:=scratch_reg;
+                  opsize:=newdef;
+                end;
               last:=0;
               first:=true;
               scratch_reg:=hlcg.getintregister(current_asmdata.CurrAsmList,opsize);

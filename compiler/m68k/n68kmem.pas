@@ -27,13 +27,13 @@ interface
 
     uses
       globtype,
-      cgbase,cpuinfo,cpubase,
       symtype,
+      cgbase,cpuinfo,cpubase,
       node,nmem,ncgmem;
 
     type
        t68kvecnode = class(tcgvecnode)
-          procedure update_reference_reg_mul(maybe_const_reg: tregister;regsize: tdef; l: aint);override;
+          procedure update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint);override;
           //procedure pass_generate_code;override;
        end;
 
@@ -60,7 +60,7 @@ implementation
     { the live range of the LOC_CREGISTER will most likely overlap the   }
     { the live range of the target LOC_(C)REGISTER)                      }
     { The passed register may be a LOC_CREGISTER as well.                }
-    procedure t68kvecnode.update_reference_reg_mul(maybe_const_reg: tregister;regsize: tdef; l: aint);
+    procedure t68kvecnode.update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint);
       var
         hreg: tregister;
         scaled: boolean;

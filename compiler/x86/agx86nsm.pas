@@ -41,7 +41,7 @@ interface
         procedure WriteReference(var ref : treference);
         procedure WriteOper(const o:toper;s : topsize; opcode: tasmop;ops:longint;dest : boolean);
         procedure WriteOper_jmp(const o:toper; ai : taicpu);
-        procedure WriteSection(atype:TAsmSectiontype;const aname:string);
+        procedure WriteSection(atype:TAsmSectiontype;const aname:string;alignment : byte);
       protected
         function single2str(d: single): string; override;
         function double2str(d: double): string; override;
@@ -455,7 +455,8 @@ interface
         #9'DW'#9,#9'DD'#9,#9'FIXME_64BIT_UNALIGNED'#9
       );
 
-    procedure TX86NasmAssembler.WriteSection(atype:TAsmSectiontype;const aname:string);
+    procedure TX86NasmAssembler.WriteSection(atype : TAsmSectiontype;
+      const aname : string; alignment : byte);
       const
         secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
           '.text',
@@ -546,6 +547,12 @@ interface
           begin
             AsmWrite('.');
             AsmWrite(aname);
+            if atype in [sec_init, sec_fini, sec_stub, sec_code] then
+              AsmWrite(' code align='+tostr(alignment))
+            else if  atype in [sec_rodata, sec_rodata_norel] then
+              AsmWrite(' rdata align='+tostr(alignment))
+            else
+              AsmWrite(' data align='+tostr(alignment))
           end;
         AsmLn;
         LastSecType:=atype;
@@ -574,6 +581,7 @@ interface
 {$endif cpuextended}
       fixed_opcode: TAsmOp;
       prefix, LastSecName  : string;
+      LastAlign : Byte;
     begin
       if not assigned(p) then
        exit;
@@ -618,7 +626,7 @@ interface
            ait_section :
              begin
                if tai_section(hp).sectype<>sec_none then
-                 WriteSection(tai_section(hp).sectype,tai_section(hp).name^);
+                 WriteSection(tai_section(hp).sectype,tai_section(hp).name^,tai_section(hp).secalign);
                LastSecType:=tai_section(hp).sectype;
              end;
 
@@ -966,17 +974,19 @@ interface
                { avoid empty files }
                  LastSecType:=sec_none;
                  LastSecName:='';
+                 LastAlign:=4;
                  while assigned(hp.next) and (tai(hp.next).typ in [ait_cutobject,ait_section,ait_comment]) do
                   begin
                     if tai(hp.next).typ=ait_section then
                       begin
                         LastSecType:=tai_section(hp.next).sectype;
                         LastSecName:=tai_section(hp.next).name^;
+                        LastAlign:=tai_section(hp.next).secalign;
                       end;
                     hp:=tai(hp.next);
                   end;
                  if LastSecType<>sec_none then
-                   WriteSection(LastSecType,LastSecName);
+                   WriteSection(LastSecType,LastSecName,LastAlign);
                  AsmStartSize:=AsmSize;
                end;
              end;
@@ -1155,6 +1165,8 @@ interface
         case target_info.system of
           system_i8086_msdos:
             FormatName:='obj';
+          else
+            internalerror(2014082060);
         end;
 {$endif i8086}
 {$ifdef i386}
@@ -1243,7 +1255,7 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f win32 -o $OBJ -w-orphan-labels $EXTRAOPT $ASM';
             supported_targets : [system_i386_win32];
-            flags : [af_needar,af_no_debug];
+            flags : [af_needar,af_no_debug,af_smartlink_sections];
             labelprefix : '..@';
             comment : '; ';
             dollarsign: '$';

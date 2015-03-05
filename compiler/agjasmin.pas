@@ -516,6 +516,8 @@ implementation
         i: longint;
         toplevelowner: tsymtable;
       begin
+        superclass:=nil;
+
         { JVM 1.5+ }
         AsmWriteLn('.bytecode 49.0');
         // include files are not support by Java, and the directory of the main
@@ -753,6 +755,8 @@ implementation
               2:result:=tostr(smallint(csym.value.valueord.svalue));
               4:result:=tostr(longint(csym.value.valueord.svalue));
               8:result:=tostr(csym.value.valueord.svalue);
+              else
+                internalerror(2014082050);
             end;
           conststring:
             result:=constastr(pchar(csym.value.valueptr),csym.value.len);

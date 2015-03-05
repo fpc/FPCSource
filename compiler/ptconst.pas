@@ -46,6 +46,8 @@ implementation
         storefilepos : tfileposinfo;
         section      : ansistring;
         tcbuilder    : ttypedconstbuilder;
+        reslist,
+        datalist     : tasmlist;
         restree,
         previnit     : tnode;
       begin
@@ -125,7 +127,12 @@ implementation
           begin
             { only now get the final asmlist, because inserting the symbol
               information depends on potential section information set above }
-            list.concatlist(tasmlisttypedconstbuilder(tcbuilder).final_asmlist);
+            tasmlisttypedconstbuilder(tcbuilder).get_final_asmlists(reslist,datalist);
+             { add the parsed value }
+            list.concatlist(reslist);
+            { and pointed data, if any }
+            current_asmdata.asmlists[al_const].concatlist(datalist);
+            { the (empty) lists themselves are freed by tcbuilder }
           end
         else
           begin

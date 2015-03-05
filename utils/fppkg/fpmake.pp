@@ -17,7 +17,8 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('fppkg-util');
+    P:=AddPackage('utils-fppkg');
+    P.ShortName:='fppkg';
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';
@@ -27,7 +28,7 @@ begin
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
 
     P.SourcePath.Add('lnet',lnetOSes);
     P.IncludePath.Add('lnet/sys',lnetOSes);

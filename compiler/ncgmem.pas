@@ -76,6 +76,7 @@ interface
          procedure update_reference_offset(var ref: treference; index, mulsize: aint); virtual;
          procedure second_wideansistring;virtual;
          procedure second_dynamicarray;virtual;
+         function valid_index_size(size: tcgsize): boolean;virtual;
        public
          procedure pass_generate_code;override;
        end;
@@ -305,7 +306,7 @@ implementation
             pd:=tprocdef(tprocsym(sym).ProcdefList[0]);
             paraloc1.init;
             paramanager.getintparaloc(pd,1,paraloc1);
-            hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,resultdef,location.reference.base,paraloc1);
+            hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,left.resultdef,location.reference.base,paraloc1);
             paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
             paraloc1.done;
             hlcg.allocallcpuregisters(current_asmdata.CurrAsmList);
@@ -393,7 +394,7 @@ implementation
                       internalerror(2012010602);
                     pd:=tprocdef(tprocsym(sym).ProcdefList[0]);
                     paramanager.getintparaloc(pd,1,paraloc1);
-                    hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,resultdef,location.reference.base,paraloc1);
+                    hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,left.resultdef,location.reference.base,paraloc1);
                     paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                     hlcg.allocallcpuregisters(current_asmdata.CurrAsmList);
                     hlcg.a_call_name(current_asmdata.CurrAsmList,pd,'FPC_CHECKPOINTER',[@paraloc1],nil,false);
@@ -456,13 +457,13 @@ implementation
                        offsetcorrection:=0;
                        if (left.location.size in [OS_PAIR,OS_SPAIR]) then
                          begin
-                           if (vs.fieldoffset>=sizeof(aword)) then
-                             begin
-                               location.sreg.subsetreg := left.location.registerhi;
-                               offsetcorrection:=sizeof(aword)*8;
-                             end
+                           if (vs.fieldoffset>=sizeof(aword)) xor (target_info.endian=endian_big) then
+                             location.sreg.subsetreg := left.location.registerhi
                            else
                              location.sreg.subsetreg := left.location.register;
+
+                           if (vs.fieldoffset>=sizeof(aword)) then
+                             offsetcorrection:=sizeof(aword)*8;
 
                            location.sreg.subsetregsize := OS_INT;
                          end
@@ -718,6 +719,13 @@ implementation
        end;
 
 
+     function tcgvecnode.valid_index_size(size: tcgsize): boolean;
+       begin
+         result:=
+           tcgsize2signed[size]=tcgsize2signed[OS_ADDR];
+       end;
+
+
      procedure tcgvecnode.rangecheck_array;
        var
          hightree : tnode;
@@ -863,6 +871,7 @@ implementation
          paraloc2 : tcgpara;
          subsetref : tsubsetreference;
          temp : longint;
+         indexdef : tdef;
       begin
          paraloc1.init;
          paraloc2.init;
@@ -1076,8 +1085,14 @@ implementation
               secondpass(right);
 
               { if mulsize = 1, we won't have to modify the index }
-              if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or (right.location.size<>OS_ADDR) then
-                hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,ptruinttype,true);
+              if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
+                 not valid_index_size(right.location.size) then
+                begin
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,ptruinttype,true);
+                  indexdef:=ptruinttype
+                end
+              else
+                indexdef:=right.resultdef;
 
               if isjump then
                begin
@@ -1099,9 +1114,9 @@ implementation
               { insert the register and the multiplication factor in the
                 reference }
               if not is_packed_array(left.resultdef) then
-                update_reference_reg_mul(right.location.register,right.resultdef,mulsize)
+                update_reference_reg_mul(right.location.register,indexdef,mulsize)
               else
-                update_reference_reg_packed(right.location.register,right.resultdef,mulsize);
+                update_reference_reg_packed(right.location.register,indexdef,mulsize);
            end;
 
         location.size:=newsize;

@@ -141,7 +141,7 @@ end;
 
 function UnescapeHTML ( const S : String ) : String;
 begin
-  Result := StringsReplace(result,['&amp;','&lt;','&gt;','&quot;','&apos;','&#39;'],['&','<','>','"',#39,#39],[rfReplaceAll]);
+  Result := StringsReplace(s,['&amp;','&lt;','&gt;','&quot;','&apos;','&#39;'],['&','<','>','"',#39,#39],[rfReplaceAll]);
 end;
 
 

@@ -82,12 +82,14 @@ Var
   linklibc,
   linklibgcc : boolean;
   found1,
-  found2   : boolean;  
+  found2   : boolean;
 begin
   WriteResponseFile:=False;
   linklibc:=(SharedLibFiles.Find('c')<>nil);
   linklibgcc:=(SharedLibFiles.Find('gcc')<>nil);
-  
+
+  prtobj:='';
+  cprtobj:='';
   case apptype of
     app_arm9:
       begin
@@ -702,6 +704,8 @@ begin
   StripStr:='';
   MapStr:='';
   DynLinkStr:='';
+  GCSectionsStr:='';
+  preName:='';
   case apptype of
    app_arm9: preName:='.nef';
    app_arm7: preName:='.nlf';

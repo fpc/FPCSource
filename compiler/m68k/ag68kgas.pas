@@ -173,6 +173,11 @@ interface
                   if i in o.addrregset^ then
                    hs:=hs+gas_regname(newreg(R_ADDRESSREGISTER,i,R_SUBWHOLE))+'/';
                 end;
+              for i:=RS_FP0 to RS_FP7 do
+                begin
+                  if i in o.fpuregset^ then
+                   hs:=hs+gas_regname(newreg(R_FPUREGISTER,i,R_SUBWHOLE))+'/';
+                end;
               delete(hs,length(hs),1);
               getopstr := hs;
             end;
@@ -234,7 +239,7 @@ interface
          A_SNE,A_SPL,A_ST,A_SVC,A_SVS,A_SF]) then
          s:=gas_op2str[op]
         else
-        if op = A_SXX then
+        if op in [A_SXX, A_FSXX] then
          s:=gas_op2str[op]+cond2str[taicpu(hp).condition]
         else
         { size of DBRA is always WORD, doesn't need opsize (KB) }

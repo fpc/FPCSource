@@ -342,7 +342,7 @@ begin
         Inc(TokenStr);
         Result := tkSquaredBraceClose;
       end;
-    'a'..'z','_':
+    'a'..'z','A'..'Z','_':
       begin
         TokenStart := TokenStr;
         repeat

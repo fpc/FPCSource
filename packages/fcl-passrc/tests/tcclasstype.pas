@@ -60,12 +60,14 @@ type
     Property Const2 : TPasConst Index 1 Read GetC;
   published
     procedure TestEmpty;
+    procedure TestEmptyComment;
     procedure TestEmptyDeprecated;
     procedure TestEmptyEnd;
     procedure TestEmptyEndNoParent;
     Procedure TestOneInterface;
     Procedure TestTwoInterfaces;
     Procedure TestOneField;
+    Procedure TestOneFieldComment;
     Procedure TestOneVarField;
     Procedure TestOneClassField;
     Procedure TestOneFieldVisibility;
@@ -83,7 +85,9 @@ type
     procedure TestHintFieldLibraryError;
     procedure TestHintFieldUninmplemented;
     Procedure TestMethodSimple;
+    Procedure TestMethodSimpleComment;
     Procedure TestClassMethodSimple;
+    Procedure TestClassMethodSimpleComment;
     Procedure TestConstructor;
     Procedure TestClassConstructor;
     Procedure TestDestructor;
@@ -108,6 +112,7 @@ type
     Procedure Test2Methods;
     Procedure Test2MethodsDifferentVisibility;
     Procedure TestPropertyRedeclare;
+    Procedure TestPropertyRedeclareComment;
     Procedure TestPropertyRedeclareDefault;
     Procedure TestPropertyReadOnly;
     Procedure TestPropertyReadWrite;
@@ -306,11 +311,17 @@ Procedure TTestClassType.ParseClass;
 begin
   EndClass;
   Add('Type');
+  if AddComment then
+    begin
+    Add('// A comment');
+    engine.NeedComments:=True;
+    end;
   Add('  '+TrimRight(FDecl.Text)+';');
   ParseDeclarations;
   AssertEquals('One class type definition',1,Declarations.Classes.Count);
   AssertEquals('First declaration is type definition.',TPasClassType,TObject(Declarations.Classes[0]).ClassType);
   FClass:=TObject(Declarations.Classes[0]) as TPasClassType;
+  TheType:=FClass; // So assertcomment can get to it
   if (FParent<>'') then
      begin
      AssertNotNull('Have parent class',TheClass.AncestorType);
@@ -323,6 +334,7 @@ begin
     AssertNull('No helperfortype if not helper',TheClass.HelperForType);
   if TheClass.Members.Count>0 then
     FMember1:=TObject(TheClass.Members[0]) as TPaselement;
+
 end;
 
 procedure TTestClassType.SetUp;
@@ -385,6 +397,13 @@ begin
   AssertEquals('No members',0,TheClass.Members.Count);
 end;
 
+procedure TTestClassType.TestEmptyComment;
+begin
+  AddComment:=True;
+  TestEmpty;
+  AssertComment;
+end;
+
 procedure TTestClassType.TestEmptyDeprecated;
 begin
   EndClass('end deprecated');
@@ -435,6 +454,16 @@ begin
   ParseClass;
   AssertNotNull('Have 1 field',Field1);
   AssertMemberName('a');
+  AssertVisibility;
+end;
+
+Procedure TTestClassType.TestOneFieldComment;
+begin
+  AddComment:=true;
+  AddMember('{c}a : integer');
+  ParseClass;
+  AssertNotNull('Have 1 field',Field1);
+  AssertEquals('field comment','c'+sLineBreak,Field1.DocComment);
   AssertVisibility;
 end;
 
@@ -640,6 +669,18 @@ begin
   AssertEquals('No arguments',0,Method1.ProcType.Args.Count)
 end;
 
+Procedure TTestClassType.TestMethodSimpleComment;
+begin
+  AddComment:=True;
+  AddMember('{c} Procedure DoSomething');
+  ParseClass;
+  AssertEquals('1 members',1,TheClass.members.Count);
+  AssertEquals('Default visibility',visDefault,Method1.Visibility);
+  AssertNotNull('Have method',Method1);
+  AssertMemberName('DoSomething');
+  AssertEquals('Comment','c'+sLineBreak,Method1.DocComment);
+end;
+
 Procedure TTestClassType.TestClassMethodSimple;
 begin
   AddMember('Class Procedure DoSomething');
@@ -652,6 +693,14 @@ begin
   AssertEquals('Default calling convention',ccDefault, TPasClassProcedure(Members[0]).ProcType.CallingConvention);
   AssertNotNull('Method proc type',TPasClassProcedure(Members[0]).ProcType);
   AssertEquals('No arguments',0,TPasClassProcedure(Members[0]).ProcType.Args.Count)
+end;
+
+Procedure TTestClassType.TestClassMethodSimpleComment;
+begin
+  AddComment:=True;
+  AddMember('{c} Class Procedure DoSomething');
+  ParseClass;
+  AssertEquals('Comment','c'+sLineBreak,Members[0].DocComment);
 end;
 
 Procedure TTestClassType.TestConstructor;
@@ -965,6 +1014,16 @@ begin
   AssertNull('No Index expression',Property1.IndexExpr);
   AssertNull('No Default expression',Property1.DefaultExpr);
   Assertequals('No default value','',Property1.DefaultValue);
+end;
+
+Procedure TTestClassType.TestPropertyRedeclareComment;
+begin
+  StartVisibility(visPublished);
+  AddComment:=True;
+  AddMember('{p} Property Something');
+  ParseClass;
+  AssertProperty(Property1,visPublished,'Something','','','','',0,False,False);
+  AssertEquals('comment','p'+sLineBreak,Property1.DocComment);
 end;
 
 Procedure TTestClassType.TestPropertyRedeclareDefault;

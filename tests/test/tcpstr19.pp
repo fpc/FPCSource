@@ -12,7 +12,7 @@ program tcpstr19;
 {$endif}
 
 uses
-  {$ifdef unix} cwstring, {$endif}
+  {$ifdef unix} {$ifdef darwin}iosxwstr{$else}cwstring{$endif}, {$endif}
   SysUtils;
 var
   S: AnsiString;

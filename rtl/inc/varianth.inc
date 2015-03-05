@@ -204,7 +204,7 @@ type
       varcast : procedure(var dest : variant;const source : variant;vartype : longint);
       varcastole : procedure(var dest : variant; const source : variant;vartype : longint);
 
-      dispinvoke: procedure(dest : pvardata;const source : tvardata;
+      dispinvoke: procedure(dest : pvardata;var source : tvardata;
         calldesc : pcalldesc;params : pointer);cdecl;
 
       vararrayredim : procedure(var a : variant;highbound : SizeInt);

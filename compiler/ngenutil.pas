@@ -615,9 +615,14 @@ implementation
       StructList: TFPList absolute arg;
     begin
       if (tdef(p).typ in [objectdef,recorddef]) and
-         not (df_generic in tdef(p).defoptions) and
-         ([oo_has_class_constructor,oo_has_class_destructor] * tabstractrecorddef(p).objectoptions <> []) then
-        StructList.Add(p);
+         not (df_generic in tdef(p).defoptions) then
+        begin
+          { first add the class... }
+          if ([oo_has_class_constructor,oo_has_class_destructor] * tabstractrecorddef(p).objectoptions <> []) then
+            StructList.Add(p);
+          { ... and then also add all subclasses }
+          tabstractrecorddef(p).symtable.deflist.foreachcall(@AddToStructInits,arg);
+        end;
     end;
 
 
@@ -700,7 +705,7 @@ implementation
       unitinits.insert(Tai_const.Create_pint(count));
       { Add to data segment }
       maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-      new_section(current_asmdata.asmlists[al_globals],sec_data,'INITFINAL',sizeof(pint));
+      new_section(current_asmdata.asmlists[al_globals],sec_data,'INITFINAL',const_align(sizeof(pint)));
       current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('INITFINAL',AT_DATA,0));
       current_asmdata.asmlists[al_globals].concatlist(unitinits);
       current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname('INITFINAL'));
@@ -738,7 +743,7 @@ implementation
       ltvTables.insert(Tai_const.Create_32bit(count));
       { insert in data segment }
       maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-      new_section(current_asmdata.asmlists[al_globals],sec_data,'FPC_THREADVARTABLES',sizeof(pint));
+      new_section(current_asmdata.asmlists[al_globals],sec_data,'FPC_THREADVARTABLES',const_align(sizeof(pint)));
       current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('FPC_THREADVARTABLES',AT_DATA,0));
       current_asmdata.asmlists[al_globals].concatlist(ltvTables);
       current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname('FPC_THREADVARTABLES'));
@@ -819,7 +824,7 @@ implementation
       hlist.insert(Tai_const.Create_pint(count));
       { insert in data segment }
       maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-      new_section(current_asmdata.asmlists[al_globals],sec_data,tablename,sizeof(pint));
+      new_section(current_asmdata.asmlists[al_globals],sec_data,tablename,const_align(sizeof(pint)));
       current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global(tablename,AT_DATA,0));
       current_asmdata.asmlists[al_globals].concatlist(hlist);
       current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname(tablename));
@@ -904,7 +909,7 @@ implementation
       ResourceStringTables.insert(Tai_const.Create_pint(count));
       { Add to data segment }
       maybe_new_object_file(current_asmdata.AsmLists[al_globals]);
-      new_section(current_asmdata.AsmLists[al_globals],sec_data,'FPC_RESOURCESTRINGTABLES',sizeof(pint));
+      new_section(current_asmdata.AsmLists[al_globals],sec_data,'FPC_RESOURCESTRINGTABLES',const_align(sizeof(pint)));
       current_asmdata.AsmLists[al_globals].concat(Tai_symbol.Createname_global('FPC_RESOURCESTRINGTABLES',AT_DATA,0));
       current_asmdata.AsmLists[al_globals].concatlist(ResourceStringTables);
       current_asmdata.AsmLists[al_globals].concat(Tai_symbol_end.Createname('FPC_RESOURCESTRINGTABLES'));
@@ -918,7 +923,7 @@ implementation
     begin
       if (target_res.id in [res_elf,res_macho,res_xcoff]) then
         begin
-        ResourceInfo:=TAsmList.Create;
+        ResourceInfo:=current_asmdata.asmlists[al_globals];
 
         maybe_new_object_file(ResourceInfo);
         new_section(ResourceInfo,sec_data,'FPC_RESLOCATION',sizeof(aint));
@@ -933,9 +938,6 @@ implementation
           {$ELSE}
           ResourceInfo.Concat(Tai_const.Create_64bit(0));
           {$ENDIF}
-        maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-        current_asmdata.asmlists[al_globals].concatlist(ResourceInfo);
-        ResourceInfo.free;
         end;
     end;
 
@@ -975,7 +977,7 @@ implementation
 {$ENDIF POWERPC}
       { Initial heapsize }
       maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-      new_section(current_asmdata.asmlists[al_globals],sec_data,'__heapsize',sizeof(pint));
+      new_section(current_asmdata.asmlists[al_globals],sec_data,'__heapsize',const_align(sizeof(pint)));
       current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__heapsize',AT_DATA,sizeof(pint)));
       current_asmdata.asmlists[al_globals].concat(Tai_const.Create_pint(heapsize));
 
@@ -989,7 +991,7 @@ implementation
 
       { Valgrind usage }
       maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-      new_section(current_asmdata.asmlists[al_globals],sec_data,'__fpc_valgrind',sizeof(boolean));
+      new_section(current_asmdata.asmlists[al_globals],sec_data,'__fpc_valgrind',const_align(sizeof(pint)));
       current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__fpc_valgrind',AT_DATA,sizeof(boolean)));
       current_asmdata.asmlists[al_globals].concat(Tai_const.create_8bit(byte(cs_gdb_valgrind in current_settings.globalswitches)));
     end;

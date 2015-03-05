@@ -141,6 +141,9 @@ interface
     }
     function get_open_const_array(p : tnode) : tnode;
 
+    { excludes the flags passed in nf from the node tree passed }
+    procedure node_reset_flags(p : tnode;nf : tnodeflags);
+
 implementation
 
     uses
@@ -1043,6 +1046,41 @@ implementation
 
 
     function handle_staticfield_access(sym: tsym; nested: boolean; var p1: tnode): boolean;
+
+      function handle_generic_staticfield_access:boolean;
+        var
+          tmp : tstoreddef;
+          pd : tprocdef;
+        begin
+          { in case we have a specialization inside a generic (thus the static var sym does not
+            exist) we simply simulate a non static access to avoid unnecessary errors }
+          if assigned(sym.owner.defowner) and (df_specialization in tstoreddef(sym.owner.defowner).defoptions) then
+            begin
+              tmp:=tstoreddef(sym.owner.defowner);
+              while assigned(tmp) do
+                begin
+                  if df_generic in tmp.defoptions then
+                    begin
+                      p1.free;
+                      if assigned(current_procinfo) then
+                        begin
+                          pd:=current_procinfo.get_normal_proc.procdef;
+                          if assigned(pd) and pd.no_self_node then
+                            p1:=cloadvmtaddrnode.create(ctypenode.create(pd.struct))
+                          else
+                            p1:=load_self_node;
+                        end
+                      else
+                        p1:=load_self_node;
+                      p1:=csubscriptnode.create(sym,p1);
+                      exit(true);
+                    end;
+                  tmp:=tstoreddef(tmp.owner.defowner);
+                end;
+            end;
+          result:=false;
+        end;
+
       var
         static_name: shortstring;
         srsymtable: tsymtable;
@@ -1052,6 +1090,8 @@ implementation
         if (sp_static in sym.symoptions) then
           begin
             result:=true;
+            if handle_generic_staticfield_access then
+              exit;
             if not nested then
               static_name:=lower(sym.owner.name^)+'_'+sym.name
             else
@@ -1153,7 +1193,6 @@ implementation
           result:=fen_norecurse_true;
       end;
 
-
     function might_have_sideeffects(n : tnode) : boolean;
       begin
         result:=foreachnodestatic(n,@check_for_sideeffect,nil);
@@ -1212,6 +1251,19 @@ implementation
         result:=p;
         if (p.nodetype=derefn) and (tderefnode(p).left.nodetype=addrn) then
           result:=get_open_const_array(taddrnode(tderefnode(result).left).left);
+      end;
+
+
+    function do_node_reset_flags(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        result:=fen_false;
+        n.flags:=n.flags-tnodeflags(arg^);
+      end;
+
+
+    procedure node_reset_flags(p : tnode; nf : tnodeflags);
+      begin
+        foreachnodestatic(p,@do_node_reset_flags,@nf);
       end;
 
 end.

@@ -23,6 +23,8 @@ unit fppu;
 
 {$i fpcdefs.inc}
 
+{ $define DEBUG_UNIT_CRC_CHANGES}
+
 { close ppufiles on system that are
   short on file handles like DOS system PM }
 {$ifdef GO32V2}
@@ -836,7 +838,13 @@ var
                 end;
              end
            else
-             temp:=' not available';
+             begin
+               { still register the source module for proper error messages
+                 since source_avail for the module is still false, this should not hurt }
+               sourcefiles.register_file(tdosinputfile.create(hs));
+
+               temp:=' not available';
+             end;
            if is_main then
              begin
                mainsource:=hs;
@@ -1471,7 +1479,7 @@ var
         { we can now derefence all pointers to the implementation parts }
         tstoredsymtable(globalsymtable).derefimpl;
         if assigned(localsymtable) then
-          tstoredsymtable(localsymtable).derefimpl;
+            tstoredsymtable(localsymtable).derefimpl;
 
          { read whole program optimisation-related information }
          wpoinfo:=tunitwpoinfo.ppuload(ppufile);

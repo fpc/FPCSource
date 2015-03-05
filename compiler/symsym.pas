@@ -229,6 +229,9 @@ interface
           currentregloc  : TLocation;
           { migrated to a parentfpstruct because of nested access (not written to ppu, because not important and would change interface crc) }
           inparentfpstruct : boolean;
+          { the variable is not living at entry of the scope, so it does not need to be initialized if it is a reg. var
+            (not written to ppu, because not important and would change interface crc) }
+          noregvarinitneeded : boolean;
           constructor create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           function globalasmsym: boolean;
@@ -2148,15 +2151,8 @@ implementation
          paraloc[calleeside].init;
          paraloc[callerside].init;
          if vo_has_explicit_paraloc in varoptions then
-           begin
-             paraloc[callerside].alignment:=ppufile.getbyte;
-             b:=ppufile.getbyte;
-             if b<>sizeof(paraloc[callerside].location^) then
-               internalerror(200411154);
-             ppufile.getdata(paraloc[callerside].add_location^,sizeof(paraloc[callerside].location^));
-             paraloc[callerside].size:=paraloc[callerside].location^.size;
-             paraloc[callerside].intsize:=tcgsize2size[paraloc[callerside].size];
-           end;
+           paraloc[callerside].ppuload(ppufile);
+
          ppuload_platform(ppufile);
       end;
 
@@ -2184,9 +2180,7 @@ implementation
          if vo_has_explicit_paraloc in varoptions then
            begin
              paraloc[callerside].check_simple_location;
-             ppufile.putbyte(sizeof(paraloc[callerside].alignment));
-             ppufile.putbyte(sizeof(paraloc[callerside].location^));
-             ppufile.putdata(paraloc[callerside].location^,sizeof(paraloc[callerside].location^));
+             paraloc[callerside].ppuwrite(ppufile);
            end;
          writeentry(ppufile,ibparavarsym);
       end;

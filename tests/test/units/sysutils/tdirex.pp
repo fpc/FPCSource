@@ -9,7 +9,8 @@ uses
 
 const
   HasErrors : boolean = false;
-  AllowTrailingSeparators: boolean = false;
+  AllowOneTrailingSeparator: boolean = false;
+  AllowMultipleTrailingSeparators: boolean = false;
 
 procedure TestDirectoryExists(Const DirName : string; ExpectedResult : boolean);
 var
@@ -26,32 +27,22 @@ end;
 
 procedure TestParents(var dir : string);
 var
-  backslashpos,slashpos,maxpos,i : longint;
+  sep_pos,maxpos,i : longint;
 begin
   while true do
     begin
-      backslashpos:=0;
+      sep_pos:=0;
       for i:=length(dir) downto 1 do
-        if dir[i]='\' then
+        if dir[i] in AllowDirectorySeparators then
           begin
-            backslashpos:=i;
+            sep_pos:=i;
             break;
           end;
-      slashpos:=0;
-      for i:=length(dir) downto 1 do
-        if dir[i]='/' then
-          begin
-            slashpos:=i;
-            break;
-          end;
-      if (backslashpos=0) and (slashpos=0) then
+      if (sep_pos=0) then
         exit;
-      if slashpos>backslashpos then
-        maxpos:=slashpos
-      else
-        maxpos:=backslashpos;
+      maxpos:=sep_pos;
       dir:=copy(dir,1,maxpos);
-      TestDirectoryExists(dir,AllowTrailingSeparators);
+      TestDirectoryExists(dir,AllowOneTrailingSeparator);
       if length(dir)>1 then
         begin
           dir:=copy(dir,1,maxpos-1);
@@ -66,41 +57,78 @@ end;
 var
   dir,dir1,dir2,StoredDir : string;
   P,N,E : shortstring;
+  ch : char;
 begin
   Dos.FSplit(paramstr(0),P,N,E);
   Writeln('Path="',P,'"');
   Writeln('Name="',N,'"');
   Writeln('Ext="',E,'"');
   Writeln('DirectorySeparator="',DirectorySeparator,'"');
+  Write('AllowDirectorySeparators="');
+  for ch:=low(char) to high(char) do
+    if ch in AllowDirectorySeparators then
+      Write(ch);
+  Writeln('"');
+
+{ The following would be already tested at the beginning of TestParents
   TestDirectoryExists(P,true);
-  if DirectoryExists(P+DirectorySeparator) and
-     DirectoryExists(P+DirectorySeparator+DirectorySeparator) then
-    AllowTrailingSeparators:=true;
+}
+{ The following check wouldn't work correctly if running the test executable
+  from a root drive - not a typical case, but still worth mentioning... }
+  if DirectoryExists(P) then
+   AllowOneTrailingSeparator:=true
+  else
+   WriteLn ('Warning: Some code may expect support for a trailing directory separator!');
+  if DirectoryExists(P+DirectorySeparator) then
+    AllowMultipleTrailingSeparators:=true;
 
   dir:=P;
+  Writeln('Calling TestParents with dir="',dir,'"');
   TestParents(dir);
   dir:=P;
-  if (length(dir)>2) and (dir[2]=':') and (dir[3]=DirectorySeparator) then
+{$IFDEF MACOS}
+ {$WARNING The following test is wrong for Mac OS!}
+{$ENDIF MACOS}
+{$IFDEF AMIGA}
+ {$WARNING The following test is wrong for Amiga (volumes are not detected properly)!}
+{$ENDIF AMIGA}
+{$IFDEF NETWARE}
+ {$WARNING The following test is wrong for Amiga (volumes are not detected properly)!}
+{$ENDIF NETWARE}
+{$IFNDEF UNIX}
+  if (length(dir)>2) and (dir[2]= DriveSeparator) and (dir[3]=DirectorySeparator) then
     begin
       GetDir(0,StoredDir);
-      Writeln('Testing from Root drive');
       ChDir(Copy(Dir,1,3));
+      Writeln('Calling TestParents with dir="',dir,'" from directory '
+                                               + Copy (Dir, 1, 3) + ' (root)');
       TestParents(dir);
       ChDir(StoredDir);
     end;
+{$ELSE UNIX}
+  GetDir(0,StoredDir);
+  ChDir(DirectorySeparator);
+  Writeln('Calling TestParents with dir="',dir,'" from directory '
+                                             + DirectorySeparator + ' (root)');
+  TestParents(dir);
+  ChDir(StoredDir);
+{$ENDIF UNIX}
   dir:=P+'_Dummy';
   TestDirectoryExists(dir,false);
   dir1:=P+'_Dummy'+DirectorySeparator;
   TestDirectoryExists(dir1,false);
   mkdir(dir);
   TestDirectoryExists(dir,true);
-  TestDirectoryExists(dir1,true);
+  TestDirectoryExists(dir1,AllowOneTrailingSeparator);
   { Check that using two directory separators fails }
-  TestDirectoryExists(dir1+DirectorySeparator,AllowTrailingSeparators);
-  TestDirectoryExists(dir1+'/',AllowTrailingSeparators);
-  TestDirectoryExists(dir1+'//',AllowTrailingSeparators);
-  if DirectorySeparator='\' then
-    TestDirectoryExists(dir1+'\\',AllowTrailingSeparators);
+  TestDirectoryExists(dir1+DirectorySeparator,AllowMultipleTrailingSeparators);
+  if ('/' in AllowDirectorySeparators) and ('/' <> DirectorySeparator) then
+   begin
+    TestDirectoryExists(dir+'/',AllowOneTrailingSeparator);
+    TestDirectoryExists(dir1+'/',AllowMultipleTrailingSeparators);
+    TestDirectoryExists(dir1+'//',AllowMultipleTrailingSeparators)
+   end;
+  TestDirectoryExists (dir1 + DirectorySeparator + DirectorySeparator, AllowMultipleTrailingSeparators);
   dir2:=dir1+'_Dummy2';
   TestDirectoryExists(dir2,false);
   mkdir(dir2);
@@ -113,7 +141,9 @@ begin
     begin
       Writeln('Program encountered errors');
       Halt(1);
-    end;
+    end
+  else
+   WriteLn ('All OK');
 end.
 
 

@@ -2080,7 +2080,7 @@ end;
 
 {$ifndef FPC_HAS_SETSTRING_SHORTSTR}
 {$define FPC_HAS_SETSTRING_SHORTSTR}
-Procedure SetString (Out S : Shortstring; Buf : PChar; Len : SizeInt);
+Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_shortstr{$else}SetString{$endif}(Out S : Shortstring; Buf : PChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
 begin
   If Len > High(S) then
     Len := High(S);

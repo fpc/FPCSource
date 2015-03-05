@@ -248,7 +248,7 @@ unit cgobj;
           procedure a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);virtual; abstract;
 
           { bit scan instructions }
-          procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tcgsize; src, dst: TRegister); virtual;
+          procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister); virtual;
 
           { Multiplication with doubling result size.
             dstlo or dsthi may be NR_NO, in which case corresponding half of result is discarded. }
@@ -785,8 +785,15 @@ implementation
 
 
     procedure tcg.translate_register(var reg : tregister);
+      var
+        rt: tregistertype;
       begin
-        rg[getregtype(reg)].translate_register(reg);
+        { Getting here without assigned rg is possible for an "assembler nostackframe"
+          function returning x87 float, compiler tries to translate NR_ST which is used for
+          result.  }
+        rt:=getregtype(reg);
+        if assigned(rg[rt]) then
+          rg[rt].translate_register(reg);
       end;
 
 
@@ -798,7 +805,8 @@ implementation
 
     procedure tcg.a_reg_dealloc(list : TAsmList;r : tregister);
       begin
-         list.concat(tai_regalloc.dealloc(r,nil));
+        if (r<>NR_NO) then
+          list.concat(tai_regalloc.dealloc(r,nil));
       end;
 
 
@@ -827,7 +835,14 @@ implementation
          ref : treference;
          tmpreg : tregister;
       begin
-         cgpara.check_simple_location;
+         if assigned(cgpara.location^.next) then
+           begin
+             tg.gethltemp(list,cgpara.def,cgpara.def.size,tt_persistent,ref);
+             a_load_reg_ref(list,size,size,r,ref);
+             a_load_ref_cgpara(list,size,ref,cgpara);
+             tg.ungettemp(list,ref);
+             exit;
+           end;
          paramanager.alloccgpara(list,cgpara);
          if cgpara.location^.shiftval<0 then
            begin
@@ -1295,8 +1310,10 @@ implementation
                       dec(tmpref.offset)
                     else
                       inc(tmpref.offset);
-                    a_load_ref_reg(list,OS_8,OS_16,tmpref,register);
-                    a_op_reg_reg(list,OP_OR,OS_16,tmpreg,register);
+                    tmpreg2:=makeregsize(list,register,OS_16);
+                    a_load_ref_reg(list,OS_8,OS_16,tmpref,tmpreg2);
+                    a_op_reg_reg(list,OP_OR,OS_16,tmpreg,tmpreg2);
+                    a_load_reg_reg(list,OS_16,tosize,tmpreg2,register);
                   end;
               OS_32,OS_S32:
                 if ref.alignment=2 then
@@ -1310,8 +1327,10 @@ implementation
                       dec(tmpref.offset,2)
                     else
                       inc(tmpref.offset,2);
-                    a_load_ref_reg(list,OS_16,OS_32,tmpref,register);
-                    a_op_reg_reg(list,OP_OR,OS_32,tmpreg,register);
+                    tmpreg2:=makeregsize(list,register,OS_32);
+                    a_load_ref_reg(list,OS_16,OS_32,tmpref,tmpreg2);
+                    a_op_reg_reg(list,OP_OR,OS_32,tmpreg,tmpreg2);
+                    a_load_reg_reg(list,OS_32,tosize,tmpreg2,register);
                   end
                 else
                   begin
@@ -1330,7 +1349,7 @@ implementation
                         a_load_ref_reg(list,OS_8,OS_32,tmpref,tmpreg2);
                         a_op_reg_reg(list,OP_OR,OS_32,tmpreg2,tmpreg);
                       end;
-                    a_load_reg_reg(list,OS_32,OS_32,tmpreg,register);
+                    a_load_reg_reg(list,OS_32,tosize,tmpreg,register);
                   end
               else
                 a_load_ref_reg(list,fromsize,tosize,tmpref,register);
@@ -2454,7 +2473,7 @@ implementation
       end;
 
 
-    procedure tcg.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tcgsize; src, dst: TRegister);
+    procedure tcg.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister);
       begin
         internalerror(2014070601);
       end;

@@ -44,6 +44,11 @@ begin
   SetString(S, PAnsiChar(Bytes), Length(Bytes));
   if not CompareMem(Pointer(S), Pointer(Cp866String), Length(S)) then
     halt(1);
+  if StringCodePage(S)<>CP_ACP then
+    halt(11);
+  SetString(Cp1251String,pchar(Cp1251String),length(Cp1251String));
+  if StringCodePage(Cp1251String)<>1251 then
+    halt(12);
   U1 := Cp866Encoding.GetString(Bytes);
   U2 := TEncoding.Unicode.GetString(TEncoding.Convert(Cp866Encoding, TEncoding.Unicode, Bytes));
   if U1 <> U2 then

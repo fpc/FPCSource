@@ -4,21 +4,21 @@
 
 [package]
 name=amunits
-version=2.7.1
+version=3.1.1
 
 [target]
-units= msgbox amigautils wbargs vartags pastoc tagsarray systemvartags         \
-       deadkeys consoleio pcq longarray linklist hisoft timerutils easyasl     \
-       doublebuffer intuition graphics amigalib nonvolatile iffparse hardware  \
+units= amsgbox amigautils wbargs vartags pastoc tagsarray systemvartags deadkeys \
+       deadkeys consoleio pcq longarray linklist hisoft exec timerutils easyasl \
+       doublebuffer intuition agraphics amigalib nonvolatile iffparse hardware  \
        expansion diskfont conunit amigados configvars keyboard bootblock icon  \
-       cd realtime rexx translator scsidisk lowlevel configregs prefs parallel \ 
+       cd realtime rexx translator scsidisk lowlevel configregs prefs parallel \
        gadtools prtgfx romboot_base trackdisk expansionbase amigaguide         \
        amigaprinter bullet clipboard keymap utility timer workbench colorwheel \
        prtbase console locale tapedeck serial gameport gradientslider input    \
        audio datatypes asl commodities hardblocks layers inputevent identify   \
        gtlayout tritonmacros render mui picasso96api guigfx preferences        \
        xadmaster cybergraphics ptreplay reqtools amarquee ttengine triton zlib \
-       mysticview ahi lucyplay ahi_sub 
+       mysticview ahi lucyplay ahi_sub
 
 [compiler]
 includedir=src

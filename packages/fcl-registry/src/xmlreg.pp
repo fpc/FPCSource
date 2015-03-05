@@ -426,10 +426,10 @@ Var
   Node : TDOMNode;
 
 begin
+  Result:=Nil;
   If FCurrentElement<>Nil then
     begin
     Node:=FCurrentElement.FirstChild;
-    Result:=Nil;
     While (Result=Nil) and (Assigned(Node)) do
       begin
       If (Node.NodeType=ELEMENT_NODE) and (Node.NodeName=SValue) then

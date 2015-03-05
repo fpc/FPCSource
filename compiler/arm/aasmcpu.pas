@@ -212,7 +212,7 @@ uses
          function is_same_reg_move(regtype: Tregistertype):boolean; override;
 
          function spilling_get_operation_type(opnr: longint): topertype;override;
-
+         function spilling_get_operation_type_ref(opnr: longint; reg: tregister): topertype;override;
          { assembler }
       public
          { the next will reset all instructions that can change in pass 2 }
@@ -777,6 +777,15 @@ implementation
       end;
 
 
+    function taicpu.spilling_get_operation_type_ref(opnr: longint; reg: tregister): topertype;
+      begin
+        result := operand_read;
+        if (oper[opnr]^.ref^.base = reg) and
+          (oper[opnr]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) then
+           result := operand_readwrite;
+      end;
+
+
     procedure BuildInsTabCache;
       var
         i : longint;
@@ -889,6 +898,20 @@ implementation
               limit:=254;
         end;
 
+      function is_case_dispatch(hp: taicpu): boolean;
+        begin
+          result:=
+            ((taicpu(hp).opcode in [A_ADD,A_LDR]) and
+             not(GenerateThumbCode or GenerateThumb2Code) and
+             (taicpu(hp).oper[0]^.typ=top_reg) and
+             (taicpu(hp).oper[0]^.reg=NR_PC)) or
+             ((taicpu(hp).opcode=A_MOV) and (GenerateThumbCode) and
+              (taicpu(hp).oper[0]^.typ=top_reg) and
+              (taicpu(hp).oper[0]^.reg=NR_PC)) or
+             (taicpu(hp).opcode=A_TBH) or
+             (taicpu(hp).opcode=A_TBB);
+        end;
+
       var
         curinspos,
         penalty,
@@ -897,7 +920,8 @@ implementation
         currentsize,
         extradataoffset,
         curop : longint;
-        curtai : tai;
+        curtai,
+        inserttai : tai;
         ai_label : tai_label;
         curdatatai,hp,hp2 : tai;
         curdata : TAsmList;
@@ -1041,16 +1065,13 @@ implementation
               (tai(hp).typ=ait_instruction) then
               begin
                 case taicpu(hp).opcode of
-                  A_BX,
+                  A_MOV,
                   A_LDR,
-                  A_ADD:
+                  A_ADD,
+                  A_TBH,
+                  A_TBB:
                     { approximation if we hit a case jump table }
-                    if ((taicpu(hp).opcode in [A_ADD,A_LDR]) and not(GenerateThumbCode or GenerateThumb2Code) and
-                       (taicpu(hp).oper[0]^.typ=top_reg) and
-                      (taicpu(hp).oper[0]^.reg=NR_PC)) or
-                      ((taicpu(hp).opcode=A_BX) and (GenerateThumbCode) and
-                       (taicpu(hp).oper[0]^.typ=top_reg))
-                       then
+                    if is_case_dispatch(taicpu(hp)) then
                       begin
                         penalty:=multiplier;
                         hp:=tai(hp.next);
@@ -1144,12 +1165,34 @@ implementation
                 else
                   limit:=1016;
 
+                { if this is an add/tbh/tbb-based jumptable, go back to the
+                  previous instruction, because inserting data between the
+                  dispatch instruction and the table would mess up the
+                  addresses }
+                inserttai:=curtai;
+                if is_case_dispatch(taicpu(inserttai)) and
+                   ((taicpu(inserttai).opcode=A_ADD) or
+                    (taicpu(inserttai).opcode=A_TBH) or
+                    (taicpu(inserttai).opcode=A_TBB)) then
+                  begin
+                    repeat
+                      inserttai:=tai(inserttai.previous);
+                    until inserttai.typ=ait_instruction;
+                    { if it's an add-based jump table, then also skip the
+                      pc-relative load }
+                    if taicpu(curtai).opcode=A_ADD then
+                      repeat
+                        inserttai:=tai(inserttai.previous);
+                      until inserttai.typ=ait_instruction;
+                  end
+                else
+
                 { on arm thumb, insert the data always after all labels etc. following an instruction so it
                   is prevent that a bxx yyy; bl xxx; yyyy: sequence gets separated ( we never insert on arm thumb after
                   bxx) and the distance of bxx gets too long }
                 if GenerateThumbCode then
-                  while assigned(tai(curtai.Next)) and (tai(curtai.Next).typ in SkipInstr+[ait_label]) do
-                    curtai:=tai(curtai.next);
+                  while assigned(tai(inserttai.Next)) and (tai(inserttai.Next).typ in SkipInstr+[ait_label]) do
+                    inserttai:=tai(inserttai.next);
 
                 doinsert:=false;
                 current_asmdata.getjumplabel(l);
@@ -1176,7 +1219,7 @@ implementation
                   is then equal curdata.last.previous) we could over see one
                   instruction }
                 hp:=tai(curdata.Last);
-                list.insertlistafter(curtai,curdata);
+                list.insertlistafter(inserttai,curdata);
                 curtai:=hp;
               end
             else
@@ -1572,6 +1615,12 @@ implementation
                      s:=s+' am2 ';
                  end
                else
+                 if (ot and OT_SHIFTEROP)=OT_SHIFTEROP then
+                  begin
+                    s:=s+'shifterop';
+                    addsize:=false;
+                  end
+                else
                  s:=s+'???';
                { size }
                if addsize then
@@ -1843,8 +1892,10 @@ implementation
                 begin
                   ot:=OT_SHIFTEROP;
                 end;
+              top_conditioncode:
+                ot:=OT_CONDITION;
               else
-                internalerror(200402261);
+                internalerror(2004022623);
             end;
           end;
       end;
@@ -1876,7 +1927,6 @@ implementation
         {siz : array[0..3] of longint;}
       begin
         Matches:=100;
-        writeln(getstring,'---');
 
         { Check the opcode and operands }
         if (p^.opcode<>opcode) or (p^.ops<>ops) then
@@ -1918,7 +1968,7 @@ implementation
         { update condition flags
           or floating point single }
       if (oppostfix=PF_S) and
-        not(p^.code[0] in [#$04]) then
+        not(p^.code[0] in [#$04..#$0B]) then
         begin
           Matches:=0;
           exit;
@@ -2089,60 +2139,316 @@ implementation
 
 
     procedure taicpu.gencode(objdata:TObjData);
+      const
+        CondVal : array[TAsmCond] of byte=(
+         $E, $0, $1, $2, $3, $4, $5, $6, $7, $8, $9, $A,
+         $B, $C, $D, $E, 0);
       var
         bytes : dword;
         i_field : byte;
+        currsym : TObjSymbol;
+        offset : longint;
 
       procedure setshifterop(op : byte);
+        var
+          r : byte;
+          imm : dword;
         begin
           case oper[op]^.typ of
             top_const:
               begin
                 i_field:=1;
-                bytes:=bytes or dword(oper[op]^.val and $fff);
+                if oper[op]^.val and $ff=oper[op]^.val then
+                  bytes:=bytes or dword(oper[op]^.val)
+                else
+                  begin
+                    { calc rotate and adjust imm }
+                    r:=0;
+                    imm:=dword(oper[op]^.val);
+                    repeat
+                      imm:=RolDWord(imm, 2);
+                      inc(r)
+                    until imm and $ff=imm;
+                    bytes:=bytes or (r shl 8) or imm;
+                  end;
               end;
             top_reg:
               begin
                 i_field:=0;
-                bytes:=bytes or (getsupreg(oper[op]^.reg) shl 16);
+                bytes:=bytes or getsupreg(oper[op]^.reg);
 
                 { does a real shifter op follow? }
-                if (op+1<=op) and (oper[op+1]^.typ=top_shifterop) then
-                  begin
-                  end;
+                if (op+1<opercnt) and (oper[op+1]^.typ=top_shifterop) then
+                  with oper[op+1]^.shifterop^ do
+                    begin
+                      bytes:=bytes or (shiftimm shl 7);
+                      if shiftmode<>SM_RRX then
+                        bytes:=bytes or (ord(shiftmode) - ord(SM_LSL)) shl 5
+                      else
+                        bytes:=bytes or (3 shl 5);
+                      if getregtype(rs) <> R_INVALIDREGISTER then
+                        begin
+                          bytes:=bytes or (1 shl 4);
+                          bytes:=bytes or (getsupreg(rs) shl 8);
+                        end
+                    end;
               end;
           else
             internalerror(2005091103);
           end;
         end;
 
+      function MakeRegList(reglist: tcpuregisterset): word;
+        var
+          i, w: word;
+        begin
+          result:=0;
+          w:=1;
+          for i:=RS_R0 to RS_R15 do
+            begin
+              if i in reglist then
+                result:=result or w;
+              w:=w shl 1
+            end;
+        end;
+
       begin
         bytes:=$0;
         i_field:=0;
         { evaluate and set condition code }
+        bytes:=bytes or (CondVal[condition] shl 28);
 
         { condition code allowed? }
 
         { setup rest of the instruction }
         case insentry^.code[0] of
-          #$08:
+          #$01: // B/BL
             begin
               { set instruction code }
-              bytes:=bytes or (ord(insentry^.code[1]) shl 26);
-              bytes:=bytes or (ord(insentry^.code[2]) shl 21);
-
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              { set offset }
+              currsym:=objdata.symbolref(oper[0]^.ref^.symbol);
+              if (currsym.bind<>AB_LOCAL) and (currsym.objsection<>objdata.CurrObjSec) then
+                objdata.writereloc(oper[0]^.ref^.offset,0,currsym,RELOC_RELATIVE_24)
+              else
+                bytes:=bytes or (((currsym.offset-insoffset-8) shr 2) and $ffffff);
+            end;
+          #$04..#$07: // SUB
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
               { set destination }
               bytes:=bytes or (getsupreg(oper[0]^.reg) shl 12);
-
+              { set Rn }
+              bytes:=bytes or (getsupreg(oper[1]^.reg) shl 16);
               { create shifter op }
-              setshifterop(1);
-
-              { set i field }
+              setshifterop(2);
+              { set I field }
               bytes:=bytes or (i_field shl 25);
-
-              { set s if necessary }
+              { set S if necessary }
               if oppostfix=PF_S then
                 bytes:=bytes or (1 shl 20);
+            end;
+          #$08,#$0A,#$0B: // MOV
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              { set destination }
+              bytes:=bytes or (getsupreg(oper[0]^.reg) shl 12);
+              { create shifter op }
+              setshifterop(1);
+              { set I field }
+              bytes:=bytes or (i_field shl 25);
+              { set S if necessary }
+              if oppostfix=PF_S then
+                bytes:=bytes or (1 shl 20);
+            end;
+          #$0C,#$0E,#$0F: // CMP
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              { set destination }
+              bytes:=bytes or (getsupreg(oper[0]^.reg) shl 16);
+              { create shifter op }
+              setshifterop(1);
+              { set I field }
+              bytes:=bytes or (i_field shl 25);
+              { always set S bit }
+              bytes:=bytes or (1 shl 20);
+            end;
+          #$14: // MUL/MLA r1,r2,r3
+            begin
+              { set instruction code }
+              bytes:=bytes or ord(insentry^.code[1]) shl 24;
+              bytes:=bytes or ord(insentry^.code[2]) shl 16;
+              bytes:=bytes or ord(insentry^.code[3]);
+              { set regs }
+              bytes:=bytes or getsupreg(oper[0]^.reg) shl 16;
+              bytes:=bytes or getsupreg(oper[1]^.reg);
+              bytes:=bytes or getsupreg(oper[2]^.reg) shl 8;
+            end;
+          #$15: // MUL/MLA r1,r2,r3,r4
+            begin
+              { set instruction code }
+              bytes:=bytes or ord(insentry^.code[1]) shl 24;
+              bytes:=bytes or ord(insentry^.code[2]) shl 16;
+              bytes:=bytes or ord(insentry^.code[3]);
+              { set regs }
+              bytes:=bytes or getsupreg(oper[0]^.reg) shl 16;
+              bytes:=bytes or getsupreg(oper[1]^.reg);
+              bytes:=bytes or getsupreg(oper[2]^.reg) shl 8;
+              bytes:=bytes or getsupreg(oper[3]^.reg) shl 12;
+            end;
+          #$16: // MULL r1,r2,r3,r4
+            begin
+              { set instruction code }
+              bytes:=bytes or ord(insentry^.code[1]) shl 24;
+              bytes:=bytes or ord(insentry^.code[2]) shl 16;
+              bytes:=bytes or ord(insentry^.code[3]);
+              { set regs }
+              bytes:=bytes or getsupreg(oper[0]^.reg) shl 12;
+              bytes:=bytes or getsupreg(oper[1]^.reg) shl 16;
+              bytes:=bytes or getsupreg(oper[2]^.reg);
+              bytes:=bytes or getsupreg(oper[3]^.reg) shl 8;
+            end;
+          #$17: // LDR/STR
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 24);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 16);
+              { set Rn and Rd }
+              bytes:=bytes or getsupreg(oper[0]^.reg) shl 12;
+              bytes:=bytes or getsupreg(oper[1]^.ref^.base) shl 16;
+              if getregtype(oper[1]^.ref^.index)=R_INVALIDREGISTER then
+                begin
+                  { set offset }
+                  offset:=0;
+                  currsym:=objdata.symbolref(oper[1]^.ref^.symbol);
+                  if assigned(currsym) then
+                    offset:=currsym.offset-insoffset-8;
+                  offset:=offset+oper[1]^.ref^.offset;
+                  if offset>=0 then
+                    begin
+                      { set U flag }
+                      bytes:=bytes or (1 shl 23);
+                      bytes:=bytes or offset
+                    end
+                  else
+                    begin
+                      offset:=-offset;
+                      bytes:=bytes or offset
+                    end;
+                end
+              else
+                begin
+                  { set U flag }
+                  if oper[1]^.ref^.signindex>0 then
+                    bytes:=bytes or (1 shl 23);
+                  { set I flag }
+                  bytes:=bytes or (1 shl 25);
+                  bytes:=bytes or getsupreg(oper[1]^.ref^.index);
+                  { set shift }
+                  with oper[1]^.ref^ do
+                    if shiftmode<>SM_None then
+                      begin
+                        bytes:=bytes or (shiftimm shl 7);
+                        if shiftmode<>SM_RRX then
+                          bytes:=bytes or (ord(shiftmode) - ord(SM_LSL)) shl 5
+                        else
+                          bytes:=bytes or (3 shl 5);
+                      end
+                end;
+              { set W bit }
+              if oper[1]^.ref^.addressmode=AM_PREINDEXED then
+                bytes:=bytes or (1 shl 21);
+              { set P bit if necessary }
+              if oper[1]^.ref^.addressmode<>AM_POSTINDEXED then
+                bytes:=bytes or (1 shl 24);
+            end;
+          #$22: // LDRH/STRH
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 16);
+              bytes:=bytes or ord(insentry^.code[2]);
+              { src/dest register (Rd) }
+              bytes:=bytes or getsupreg(oper[0]^.reg) shl 12;
+              { base register (Rn) }
+              bytes:=bytes or getsupreg(oper[1]^.ref^.base) shl 16;
+              if getregtype(oper[1]^.ref^.index)=R_INVALIDREGISTER then
+                begin
+                  bytes:=bytes or (1 shl 22); // with immediate offset
+                  if oper[1]^.ref^.offset < 0 then
+                    begin
+                      bytes:=bytes or ((-oper[1]^.ref^.offset) and $f0 shl 4);
+                      bytes:=bytes or ((-oper[1]^.ref^.offset) and $f);
+                    end
+                  else
+                    begin
+                      { set U bit }
+                      bytes:=bytes or (1 shl 23);
+                      bytes:=bytes or (oper[1]^.ref^.offset and $f0 shl 4);
+                      bytes:=bytes or (oper[1]^.ref^.offset and $f);
+                    end;
+                end
+              else
+                begin
+                  { set U flag }
+                  bytes:=bytes or (1 shl 23);
+                  bytes:=bytes or getsupreg(oper[1]^.ref^.index);
+                end;
+              { set W bit }
+              if oper[1]^.ref^.addressmode=AM_PREINDEXED then
+                bytes:=bytes or (1 shl 21);
+              { set P bit if necessary }
+              if oper[1]^.ref^.addressmode<>AM_POSTINDEXED then
+                bytes:=bytes or (1 shl 24);
+            end;
+          #$26: // LDM/STM
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 20);
+              if oper[0]^.typ=top_ref then
+                begin
+                  { set W bit }
+                  if oper[0]^.ref^.addressmode=AM_PREINDEXED then
+                    bytes:=bytes or (1 shl 21);
+                  { set Rn }
+                  bytes:=bytes or (getsupreg(oper[0]^.ref^.index) shl 16);
+                end
+              else { typ=top_reg }
+                begin
+                  { set Rn }
+                  bytes:=bytes or (getsupreg(oper[0]^.reg) shl 16);
+                end;
+              { reglist }
+              bytes:=bytes or MakeRegList(oper[1]^.regset^);
+              { set P bit }
+              if (opcode=A_LDM) and (oppostfix in [PF_ED,PF_EA,PF_IB,PF_DB])
+              or (opcode=A_STM) and (oppostfix in [PF_FA,PF_FD,PF_IB,PF_DB]) then
+                bytes:=bytes or (1 shl 24);
+              { set U bit }
+              if (opcode=A_LDM) and (oppostfix in [PF_ED,PF_FD,PF_IB,PF_IA])
+              or (opcode=A_STM) and (oppostfix in [PF_FA,PF_EA,PF_IB,PF_IA]) then
+                bytes:=bytes or (1 shl 23);
+            end;
+          #$27: // SWP/SWPB
+            begin
+              { set instruction code }
+              bytes:=bytes or (ord(insentry^.code[1]) shl 20);
+              bytes:=bytes or (ord(insentry^.code[2]) shl 4);
+              { set regs }
+              bytes:=bytes or (getsupreg(oper[0]^.reg) shl 12);
+              bytes:=bytes or getsupreg(oper[1]^.reg);
+              bytes:=bytes or (getsupreg(oper[2]^.ref^.base) shl 16);
+            end;
+          #$03:  // BX
+            begin
+              writeln(objdata.CurrObjSec.fullname);
+              Comment(v_warning,'BX instruction');
+              // TBD
             end;
           #$ff:
             internalerror(2005091101);

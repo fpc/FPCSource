@@ -1,5 +1,5 @@
 { %cpu=x86_64,i386,powerpc,powerpc64}
-{ %skiptarget=linux,freebsd,netbsd,openbsd,win32,os2,go32v2}
+{ %skiptarget=linux,freebsd,netbsd,openbsd,win32,os2,emx,go32v2}
 
 { should actually only skip i386-variants of win32/linux/.. for now, but that can't be specified }
 

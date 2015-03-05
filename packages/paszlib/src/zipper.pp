@@ -33,6 +33,38 @@ Const
   CENTRAL_FILE_HEADER_SIGNATURE              = $02014B50;
   ZIP64_HEADER_ID                            = $0001;
 
+const
+  OS_FAT  = 0; //MS-DOS and OS/2 (FAT/VFAT/FAT32)
+  OS_UNIX = 3;
+  OS_OS2  = 6; //OS/2 HPFS
+  OS_NTFS = 10;
+  OS_VFAT = 14;
+  OS_OSX  = 19;
+
+  UNIX_MASK = $F000;
+  UNIX_FIFO = $1000;
+  UNIX_CHAR = $2000;
+  UNIX_DIR  = $4000;
+  UNIX_BLK  = $6000;
+  UNIX_FILE = $8000;
+  UNIX_LINK = $A000;
+  UNIX_SOCK = $C000;
+
+
+  UNIX_RUSR = $0100;
+  UNIX_WUSR = $0080;
+  UNIX_XUSR = $0040;
+
+  UNIX_RGRP = $0020;
+  UNIX_WGRP = $0010;
+  UNIX_XGRP = $0008;
+
+  UNIX_ROTH = $0004;
+  UNIX_WOTH = $0002;
+  UNIX_XOTH = $0001;
+
+  UNIX_DEFAULT = UNIX_RUSR or UNIX_WUSR or UNIX_XUSR or UNIX_RGRP or UNIX_ROTH;
+
 Type
    Local_File_Header_Type = Packed Record //1 per zipped file
      Signature              :  LongInt; //4 bytes
@@ -55,9 +87,9 @@ Type
      // after central directory header
      Header_ID              :  Word;
      //e.g. $0001 (ZIP64_HEADER_ID) Zip64 extended information extra field
-     //$0009 OS/2: extended attributes
-     //$000a NTFS: (Win32 really)
-     //$000d UNIX: uid, gid etc
+     //     $0009 OS/2: extended attributes
+     //     $000a NTFS: (Win32 really)
+     //     $000d UNIX: uid, gid etc
      Data_Size              :  Word; //size of following field data
      //... field data should follow...
    end;
@@ -692,37 +724,6 @@ begin
   DT:=ComposeDateTime(EncodeDate(Y,M,D),EncodeTime(H,N,S,MS));
 end;
 
-const
-  OS_FAT  = 0; //MS-DOS and OS/2 (FAT/VFAT/FAT32)
-  OS_UNIX = 3;
-  OS_OS2  = 6; //OS/2 HPFS
-  OS_NTFS = 10;
-  OS_VFAT = 14;
-  OS_OSX  = 19;
-
-  UNIX_MASK = $F000;
-  UNIX_FIFO = $1000;
-  UNIX_CHAR = $2000;
-  UNIX_DIR  = $4000;
-  UNIX_BLK  = $6000;
-  UNIX_FILE = $8000;
-  UNIX_LINK = $A000;
-  UNIX_SOCK = $C000;
-
-
-  UNIX_RUSR = $0100;
-  UNIX_WUSR = $0080;
-  UNIX_XUSR = $0040;
-
-  UNIX_RGRP = $0020;
-  UNIX_WGRP = $0010;
-  UNIX_XGRP = $0008;
-
-  UNIX_ROTH = $0004;
-  UNIX_WOTH = $0002;
-  UNIX_XOTH = $0001;
-
-  UNIX_DEFAULT = UNIX_RUSR or UNIX_WUSR or UNIX_XUSR or UNIX_RGRP or UNIX_ROTH;
 
 
 function ZipUnixAttrsToFatAttrs(const Name: String; Attrs: Longint): Longint;
@@ -1357,17 +1358,20 @@ Begin
         Raise EZipError.CreateFmt(SErrFileDoesNotExist,[F.DiskFileName]);
       end
     else
-      begin
+    begin
       If (F.ArchiveFileName='') then
         Raise EZipError.CreateFmt(SErrMissingArchiveName,[I]);
       F.Size:=F.Stream.Size;
-    {$IFDEF UNIX}
-      F.Attributes := UNIX_FILE or UNIX_DEFAULT;
-    {$ELSE}
-      F.Attributes := faArchive;
-    {$ENDIF}
-      end;
+      if (F.Attributes = 0) then
+      begin
+      {$IFDEF UNIX}
+        F.Attributes := UNIX_FILE or UNIX_DEFAULT;
+      {$ELSE}
+        F.Attributes := faArchive;
+      {$ENDIF}
+      end;	
     end;
+  end;
 end;
 
 
@@ -1526,6 +1530,7 @@ Var
   Zip64ECDL : Zip64_End_of_Central_Dir_Locator_type;
 Begin
   ACount := 0;
+  MinReqdVersion:=0;
   CenDirPos := FOutStream.Position;
   FOutStream.Seek(0,soBeginning);             { Rewind output file }
   HdrPos := FOutStream.Position;
@@ -2633,6 +2638,8 @@ begin
   FCompressionLevel:=cldefault;
   FDateTime:=now;
   FNeedsZip64:=false;
+  FAttributes:=0;
+
   inherited create(ACollection);
 end;
 

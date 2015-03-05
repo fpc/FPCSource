@@ -4,7 +4,7 @@
 
 [package]
 name=fcl-res
-version=2.7.1
+version=3.1.1
 
 [target]
 units=acceleratorsresource bitmapresource coffconsts coffreader cofftypes \
@@ -13,7 +13,7 @@ units=acceleratorsresource bitmapresource coffconsts coffreader cofftypes \
       groupresource icocurtypes machoconsts machoreader machotypes machowriter \
       resdatastream resfactory resmerger resource resourcetree resreader reswriter \
       stringtableresource strtable tlbreader versionconsts versionresource versiontypes \
-      winpeimagereader
+      winpeimagereader xcoffwriter
 rsts=versiontypes stringtableresource resource resfactory
 
 

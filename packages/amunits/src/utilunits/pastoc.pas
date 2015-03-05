@@ -77,31 +77,8 @@ var
     myrememberkey : pRemember;
     remember_exit : pointer;
 
-FUNCTION fpcAllocRemember(VAR rememberKey : pRemember; size : ULONG; flags : ULONG) : POINTER;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L rememberKey,A0
-    MOVE.L  size,D0
-    MOVE.L  flags,D1
-    MOVEA.L _IntuitionBase,A6
-    JSR -396(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-PROCEDURE fpcFreeRemember(VAR rememberKey : pRemember; reallyForget : LONGINT);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L rememberKey,A0
-    MOVE.L  reallyForget,D0
-    MOVEA.L _IntuitionBase,A6
-    JSR -408(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
+FUNCTION fpcAllocRemember(VAR rememberKey : pRemember location 'a0'; size : ULONG location 'd0'; flags : ULONG location 'd1') : POINTER; syscall _IntuitionBase 396;
+PROCEDURE fpcFreeRemember(VAR rememberKey : pRemember location 'a0'; reallyForget : LONGINT location 'd0'); syscall _IntuitionBase 408;
 
 Function StringPcharCopy(Dest: PChar; Source: String):PChar;
 var

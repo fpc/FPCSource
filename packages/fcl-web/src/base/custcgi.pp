@@ -178,7 +178,14 @@ Const
     { 34: 'REQUEST_URI'            } '',
     { 35: 'CONTENT'                } '',
     { 36: 'XHTTPREQUESTEDWITH'     } '',
-    { 37: 'XHTTPREQUESTEDWITH'     } FieldAuthorization
+    { 37: 'HTTP_AUTHORIZATION'     } FieldAuthorization,
+    { 38: 'SCRIPT_URI'             } '',
+    { 39: 'SCRIPT_URL'             } '',
+    { 40: 'CONTEXT_DOCUMENT_ROOT'  } '',
+    { 41: 'CONTEXT_PREFIX'         } '',
+    { 42: 'HTTP_CACHE_CONTROL'     } '',
+    { 43: 'HTTP_PRAGMA'            } '',
+    { 44: 'REQUEST_SCHEME'         } ''
   );
 
 procedure TCgiHandler.GetCGIVarList(List: TStrings);

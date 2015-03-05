@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.SourcePath.Add('src');
     P.OSes := AllUnixOSes+[win32]-[qnx];
     P.Dependencies.Add('rtl-extra');

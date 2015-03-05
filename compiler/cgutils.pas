@@ -63,6 +63,12 @@ unit cgutils;
          addressmode : taddressmode;
          shiftmode   : tshiftmode;
 {$endif arm}
+{$ifdef aarch64}
+         symboldata  : tlinkedlistitem;
+         shiftimm    : byte;
+         addressmode : taddressmode;
+         shiftmode   : tshiftmode;
+{$endif aarch64}
 {$ifdef avr}
          addressmode : taddressmode;
 {$endif avr}

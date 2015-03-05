@@ -5911,7 +5911,7 @@ const
     IMAGE_FILE_MACHINE_AMD64             = $8664;  // AMD64 (K8)
     IMAGE_FILE_MACHINE_M32R              = $9041;  // M32R little-endian
     IMAGE_FILE_MACHINE_CEE               = $C0EE;
-
+    IMAGE_FILE_LARGE_ADDRESS_AWARE       = $20;    // for peflags.
 
     GWLP_WNDPROC        		 = -4; 
     GWLP_HINSTANCE      		 = -6; 

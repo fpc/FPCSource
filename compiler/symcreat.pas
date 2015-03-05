@@ -916,6 +916,20 @@ implementation
     end;
 
 
+  procedure implement_block_invoke_procvar(pd: tprocdef);
+    var
+      str: ansistring;
+    begin
+      str:='';
+      str:='begin ';
+      if pd.returndef<>voidtype then
+        str:=str+'result:=';
+      str:=str+'__FPC_BLOCK_INVOKE_PV_TYPE(PFPC_Block_literal_complex_procvar(FPC_Block_Self)^.pv)(';
+      addvisibibleparameters(str,pd);
+      str:=str+') end;';
+      str_parse_method_impl(str,pd,false);
+    end;
+
   procedure add_synthetic_method_implementations_for_st(st: tsymtable);
     var
       i   : longint;
@@ -986,6 +1000,8 @@ implementation
               implement_field_getter(pd);
             tsk_field_setter:
               implement_field_setter(pd);
+            tsk_block_invoke_procvar:
+              implement_block_invoke_procvar(pd);
             else
               internalerror(2011032801);
           end;
@@ -999,9 +1015,6 @@ implementation
       def: tdef;
       sstate: tscannerstate;
     begin
-      { only necessary for the JVM target currently }
-      if not (target_info.system in systems_jvm) then
-        exit;
       { skip if any errors have occurred, since then this can only cause more
         errors }
       if ErrorCount<>0 then

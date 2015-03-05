@@ -609,7 +609,7 @@ implementation
         hp : taicpu;
       begin
 {$ifdef i386}
-        if current_settings.cputype<cpu_Pentium2 then
+        if not(CPUX86_HAS_CMOV in cpu_capabilities[current_settings.cputype]) then
           begin
             opsize:=def_cgsize(left.resultdef);
             secondpass(left);

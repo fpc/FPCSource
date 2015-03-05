@@ -58,6 +58,7 @@ unit cgcpu;
         procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister); override;
         procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); override;
         procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); override;
+        procedure a_loadfpu_reg_cgpara(list : TAsmList; size : tcgsize;const reg : tregister;const cgpara : TCGPara); override;
         procedure a_loadfpu_ref_cgpara(list : TAsmList; size : tcgsize;const ref : treference;const cgpara : TCGPara);override;
 
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tcgsize; a: tcgint; reg: TRegister); override;
@@ -377,8 +378,9 @@ unit cgcpu;
         if use_push(cgpara) then
           begin
             { Record copy? }
-            if (cgpara.size in [OS_NO,OS_F64]) or (size=OS_NO) then
+            if (cgpara.size in [OS_NO,OS_F64]) or (size in [OS_NO,OS_F64]) then
               begin
+                //list.concat(tai_comment.create(strpnew('a_load_ref_cgpara: g_concatcopy')));
                 cgpara.check_simple_location;
                 len:=align(cgpara.intsize,cgpara.alignment);
                 g_stackpointer_alloc(list,len);
@@ -643,11 +645,15 @@ unit cgcpu;
         paramanager.freecgpara(list,paraloc3);
         paramanager.freecgpara(list,paraloc2);
         paramanager.freecgpara(list,paraloc1);
+        if current_settings.fputype in [fpu_68881] then
+          alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
         alloccpuregisters(list,R_ADDRESSREGISTER,paramanager.get_volatile_registers_address(pocall_default));
         alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         a_call_name(list,name,false);
         dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         dealloccpuregisters(list,R_ADDRESSREGISTER,paramanager.get_volatile_registers_address(pocall_default));
+        if current_settings.fputype in [fpu_68881] then
+          dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
         cg.a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
         cg.a_load_reg_reg(list,OS_32,OS_32,NR_FUNCTION_RESULT_REG,reg);
         paraloc3.done;
@@ -674,11 +680,15 @@ unit cgcpu;
         paramanager.freecgpara(list,paraloc3);
         paramanager.freecgpara(list,paraloc2);
         paramanager.freecgpara(list,paraloc1);
+        if current_settings.fputype in [fpu_68881] then
+          alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
         alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         alloccpuregisters(list,R_ADDRESSREGISTER,paramanager.get_volatile_registers_address(pocall_default));
         a_call_name(list,name,false);
         dealloccpuregisters(list,R_ADDRESSREGISTER,paramanager.get_volatile_registers_address(pocall_default));
         dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        if current_settings.fputype in [fpu_68881] then
+          dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
         cg.a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
         cg.a_load_reg_reg(list,OS_32,OS_32,NR_FUNCTION_RESULT_REG,reg2);
         paraloc3.done;
@@ -913,10 +923,13 @@ unit cgcpu;
       var
         instr : taicpu;
       begin
-         { move to destination register }
-         instr:=taicpu.op_reg_reg(A_MOVE,TCGSize2OpSize[fromsize],reg1,reg2);
-         add_move_instruction(instr);
-         list.concat(instr);
+        { move to destination register }
+        if (reg1<>reg2) then
+          begin
+            instr:=taicpu.op_reg_reg(A_MOVE,TCGSize2OpSize[fromsize],reg1,reg2);
+            add_move_instruction(instr);
+            list.concat(instr);
+          end;
          sign_extend(list, fromsize, reg2);
       end;
 
@@ -941,10 +954,18 @@ unit cgcpu;
     procedure tcg68k.a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);
       var
         href : treference;
+        hreg : tregister;
       begin
         href:=ref;
         fixref(list, href);
-        list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,r));
+        if not isaddressregister(r) then
+          begin
+            hreg:=getaddressregister(list);
+            list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,hreg));
+            a_load_reg_reg(list, OS_ADDR, OS_ADDR, hreg, r);
+          end
+        else
+          list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,r));
       end;
 
 
@@ -952,20 +973,16 @@ unit cgcpu;
       var
         instr : taicpu;
       begin
-        { in emulation mode, only 32-bit single is supported }
-        if (cs_fp_emulation in current_settings.moduleswitches) or (current_settings.fputype=fpu_soft) then
-          instr:=taicpu.op_reg_reg(A_MOVE,S_L,reg1,reg2)
-        else
-          instr:=taicpu.op_reg_reg(A_FMOVE,tcgsize2opsize[tosize],reg1,reg2);
-         add_move_instruction(instr);
-         list.concat(instr);
+        instr:=taicpu.op_reg_reg(A_FMOVE,S_FX,reg1,reg2);
+        add_move_instruction(instr);
+        list.concat(instr);
       end;
 
 
     procedure tcg68k.a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister);
-     var
-      opsize : topsize;
-      href : treference;
+      var
+        opsize : topsize;
+        href : treference;
       begin
         opsize := tcgsize2opsize[fromsize];
         { extended is not supported, since it is not available on Coldfire }
@@ -973,50 +990,79 @@ unit cgcpu;
           internalerror(20020729);
         href := ref;
         fixref(list,href);
-        { in emulation mode, only 32-bit single is supported }
-        if (cs_fp_emulation in current_settings.moduleswitches) or (current_settings.fputype=fpu_soft) then
-           list.concat(taicpu.op_ref_reg(A_MOVE,S_L,href,reg))
-        else
-           begin
-             list.concat(taicpu.op_ref_reg(A_FMOVE,opsize,href,reg));
-             if (tosize < fromsize) then
-               a_loadfpu_reg_reg(list,fromsize,tosize,reg,reg);
-           end;
+        list.concat(taicpu.op_ref_reg(A_FMOVE,opsize,href,reg));
       end;
 
     procedure tcg68k.a_loadfpu_reg_ref(list: TAsmList; fromsize,tosize: tcgsize; reg: tregister; const ref: treference);
       var
-       opsize : topsize;
+        opsize : topsize;
+        href : treference;
       begin
         opsize := tcgsize2opsize[tosize];
         { extended is not supported, since it is not available on Coldfire }
         if opsize = S_FX then
           internalerror(20020729);
-        { in emulation mode, only 32-bit single is supported }
-        if (cs_fp_emulation in current_settings.moduleswitches) or (current_settings.fputype=fpu_soft) then
-          list.concat(taicpu.op_reg_ref(A_MOVE,S_L,reg, ref))
-        else
-          list.concat(taicpu.op_reg_ref(A_FMOVE,opsize,reg, ref));
+        href := ref;
+        fixref(list,href);
+        list.concat(taicpu.op_reg_ref(A_FMOVE,opsize,reg,href));
       end;
 
+    procedure tcg68k.a_loadfpu_reg_cgpara(list : TAsmList;size : tcgsize;const reg : tregister;const cgpara : tcgpara);
+      var
+        ref : treference;
+      begin
+        if use_push(cgpara) and (current_settings.fputype in [fpu_68881]) then
+          begin
+            cgpara.check_simple_location;
+            { FIXME: 68k cg really needs to support 2 byte stack alignment, otherwise the "Extended"
+              floating point type cannot work (KB) }
+            reference_reset_base(ref, NR_STACK_POINTER_REG, 0, cgpara.alignment);
+            ref.direction := dir_dec;
+            list.concat(taicpu.op_reg_ref(A_FMOVE,tcgsize2opsize[cgpara.location^.size],reg,ref));
+          end
+        else
+          inherited a_loadfpu_reg_cgpara(list,size,reg,cgpara);
+      end;
 
     procedure tcg68k.a_loadfpu_ref_cgpara(list : TAsmList; size : tcgsize;const ref : treference;const cgpara : TCGPara);
+      var
+        href : treference;
+        fref : treference;
+        freg : tregister;
       begin
-        case cgpara.location^.loc of
-          LOC_REFERENCE,LOC_CREFERENCE:
-            begin
-              case size of
-                OS_F64:
-                  cg64.a_load64_ref_cgpara(list,ref,cgpara);
-                OS_F32:
-                  a_load_ref_cgpara(list,size,ref,cgpara);
-                else
-                  internalerror(2013021201);
+        if current_settings.fputype = fpu_soft then
+          case cgpara.location^.loc of
+            LOC_REFERENCE,LOC_CREFERENCE:
+              begin
+                case size of
+                  OS_F64:
+                    cg64.a_load64_ref_cgpara(list,ref,cgpara);
+                  OS_F32:
+                    a_load_ref_cgpara(list,size,ref,cgpara);
+                  else
+                    internalerror(2013021201);
+                end;
               end;
-            end;
+            else
+              inherited a_loadfpu_ref_cgpara(list,size,ref,cgpara);
+          end
+        else
+          if use_push(cgpara) and (current_settings.fputype in [fpu_68881]) then
+            begin
+              fref:=ref;
+              fixref(list,fref);
+              { fmove can't do <ea> -> <ea>, so move it to an fpreg first }
+              freg:=getfpuregister(list,size);
+              a_loadfpu_ref_reg(list,size,size,fref,freg);
+              reference_reset_base(href, NR_STACK_POINTER_REG, 0, cgpara.alignment);
+              href.direction := dir_dec;
+              list.concat(taicpu.op_reg_ref(A_FMOVE,tcgsize2opsize[cgpara.location^.size],freg,href));
+            end
           else
-            inherited a_loadfpu_ref_cgpara(list,size,ref,cgpara);
-        end;
+            begin
+              //list.concat(tai_comment.create(strpnew('a_loadfpu_ref_cgpara inherited')));
+              inherited a_loadfpu_ref_cgpara(list,size,ref,cgpara);
+            end;
       end;
 
 
@@ -1111,9 +1157,40 @@ unit cgcpu;
               begin
                 scratch_reg := force_to_dataregister(list, size, reg);
                 sign_extend(list, size, scratch_reg);
-                if (a >= 1) and (a <= 8) then
+
+                { some special cases which can generate smarter code 
+                  using the SWAP instruction }
+                if (a = 16) then
+                  begin
+                    if (op = OP_SHL) then
+                      begin
+                        list.concat(taicpu.op_reg(A_SWAP,S_NO,scratch_reg));
+                        list.concat(taicpu.op_reg(A_CLR,S_W,scratch_reg));
+                      end
+                    else if (op = OP_SHR) then
+                      begin
+                        list.concat(taicpu.op_reg(A_CLR,S_W,scratch_reg));
+                        list.concat(taicpu.op_reg(A_SWAP,S_NO,scratch_reg));
+                      end
+                    else if (op = OP_SAR) then
+                      begin
+                        list.concat(taicpu.op_reg(A_SWAP,S_NO,scratch_reg));
+                        list.concat(taicpu.op_reg(A_EXT,S_L,scratch_reg));
+                      end
+                    else if (op = OP_ROR) or (op = OP_ROL) then
+                      list.concat(taicpu.op_reg(A_SWAP,S_NO,scratch_reg))
+                  end
+                else if (a >= 1) and (a <= 8) then
                   begin
                     list.concat(taicpu.op_const_reg(opcode, S_L, a, scratch_reg));
+                  end
+                else if (a >= 9) and (a < 16) then
+                  begin
+                    { Use two ops instead of const -> reg + shift with reg, because
+                      this way is the same in length and speed but has less register
+                      pressure }
+                    list.concat(taicpu.op_const_reg(opcode, S_L, 8, scratch_reg));
+                    list.concat(taicpu.op_const_reg(opcode, S_L, a-8, scratch_reg));
                   end
                 else
                   begin
@@ -1491,10 +1568,8 @@ unit cgcpu;
          hp2 : treference;
          hl : tasmlabel;
          srcref,dstref : treference;
-         orglen : tcgint;
       begin
          hregister := getintregister(list,OS_INT);
-         orglen:=len;
 
          { from 12 bytes movs is being used }
          if ((len<=8) or (not(cs_opt_size in current_settings.optimizerswitches) and (len<=12))) then
@@ -1721,9 +1796,12 @@ unit cgcpu;
       var
         dataregs: tcpuregisterset;
         addrregs: tcpuregisterset;
+        fpuregs: tcpuregisterset;
         href : treference;
         hreg : tregister;
+        hfreg : tregister;
         size : longint;
+        fsize : longint;
         r : integer;
       begin
         { The code generated by the section below, particularly the movem.l
@@ -1734,9 +1812,13 @@ unit cgcpu;
           AS version instead. (KB) }
         dataregs:=[];
         addrregs:=[];
+        fpuregs:=[];
 
         { calculate temp. size }
         size:=0;
+        fsize:=0;
+        hreg:=NR_NO;
+        hfreg:=NR_NO;
         for r:=low(saved_standard_registers) to high(saved_standard_registers) do
           if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
             begin
@@ -1752,14 +1834,22 @@ unit cgcpu;
                 inc(size,sizeof(aint));
                 addrregs:=addrregs + [saved_address_registers[r]];
               end;
+        if uses_registers(R_FPUREGISTER) then
+          for r:=low(saved_fpu_registers) to high(saved_fpu_registers) do
+            if saved_fpu_registers[r] in rg[R_FPUREGISTER].used_in_proc then
+              begin
+                hfreg:=newreg(R_FPUREGISTER,saved_fpu_registers[r],R_SUBWHOLE);
+                inc(fsize,12{sizeof(extended)});
+                fpuregs:=fpuregs + [saved_fpu_registers[r]];
+              end;
 
         { 68k has no MM registers }
         if uses_registers(R_MMREGISTER) then
           internalerror(2014030201);
 
-        if size>0 then
+        if (size+fsize) > 0 then
           begin
-            tg.GetTemp(list,size,sizeof(aint),tt_noreuse,current_procinfo.save_regs_ref);
+            tg.GetTemp(list,size+fsize,sizeof(aint),tt_noreuse,current_procinfo.save_regs_ref);
             include(current_procinfo.flags,pi_has_saved_regs);
 
             { Copy registers to temp }
@@ -1771,10 +1861,22 @@ unit cgcpu;
                 list.concat(taicpu.op_const_reg(A_ADDA,S_L,href.offset,NR_A0));
                 reference_reset_base(href,NR_A0,0,sizeof(pint));
               end;
-            if size = sizeof(aint) then
-              list.concat(taicpu.op_reg_ref(A_MOVE,S_L,hreg,href))
-            else
-              list.concat(taicpu.op_regset_ref(A_MOVEM,S_L,dataregs,addrregs,href));
+
+            if size > 0 then
+              if size = sizeof(aint) then
+                list.concat(taicpu.op_reg_ref(A_MOVE,S_L,hreg,href))
+              else
+                list.concat(taicpu.op_regset_ref(A_MOVEM,S_L,dataregs,addrregs,[],href));
+
+            if fsize > 0 then
+              begin
+                { size is always longword aligned, while fsize is not }
+                inc(href.offset,size);
+                if fsize = 12{sizeof(extended)} then
+                  list.concat(taicpu.op_reg_ref(A_FMOVE,S_FX,hfreg,href))
+                else
+                  list.concat(taicpu.op_regset_ref(A_FMOVEM,S_FX,[],[],fpuregs,href));
+              end;
           end;
       end;
 
@@ -1783,19 +1885,26 @@ unit cgcpu;
       var
         dataregs: tcpuregisterset;
         addrregs: tcpuregisterset;
+        fpuregs : tcpuregisterset;
         href    : treference;
         r       : integer;
         hreg    : tregister;
+        hfreg   : tregister;
         size    : longint;
+        fsize   : longint;
       begin
         { see the remark about buggy GNU AS versions in g_save_registers() (KB) }
         dataregs:=[];
         addrregs:=[];
+        fpuregs:=[];
 
         if not(pi_has_saved_regs in current_procinfo.flags) then
           exit;
         { Copy registers from temp }
         size:=0;
+        fsize:=0;
+        hreg:=NR_NO;
+        hfreg:=NR_NO;
         for r:=low(saved_standard_registers) to high(saved_standard_registers) do
           if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
             begin
@@ -1817,6 +1926,17 @@ unit cgcpu;
                 addrregs:=addrregs + [saved_address_registers[r]];
               end;
 
+        if uses_registers(R_FPUREGISTER) then
+          for r:=low(saved_address_registers) to high(saved_address_registers) do
+            if saved_fpu_registers[r] in rg[R_FPUREGISTER].used_in_proc then
+              begin
+                inc(fsize,12{sizeof(extended)});
+                hfreg:=newreg(R_FPUREGISTER,saved_address_registers[r],R_SUBWHOLE);
+                { Allocate register so the optimizer does not remove the load }
+                a_reg_alloc(list,hfreg);
+                fpuregs:=fpuregs + [saved_fpu_registers[r]];
+              end;
+
         { 68k has no MM registers }
         if uses_registers(R_MMREGISTER) then
           internalerror(2014030202);
@@ -1829,10 +1949,22 @@ unit cgcpu;
             list.concat(taicpu.op_const_reg(A_ADDA,S_L,href.offset,NR_A0));
             reference_reset_base(href,NR_A0,0,sizeof(pint));
           end;
-        if size = sizeof(aint) then
-          list.concat(taicpu.op_ref_reg(A_MOVE,S_L,href,hreg))
-        else
-          list.concat(taicpu.op_ref_regset(A_MOVEM,S_L,href,dataregs,addrregs));
+
+        if size > 0 then
+          if size = sizeof(aint) then
+            list.concat(taicpu.op_ref_reg(A_MOVE,S_L,href,hreg))
+          else
+            list.concat(taicpu.op_ref_regset(A_MOVEM,S_L,href,dataregs,addrregs,[]));
+
+        if fsize > 0 then
+          begin
+            { size is always longword aligned, while fsize is not }
+            inc(href.offset,size);
+            if fsize = 12{sizeof(extended)} then
+              list.concat(taicpu.op_ref_reg(A_FMOVE,S_FX,href,hfreg))
+            else
+              list.concat(taicpu.op_ref_regset(A_FMOVEM,S_FX,href,[],[],fpuregs));
+          end;
 
         tg.UnGetTemp(list,current_procinfo.save_regs_ref);
       end;

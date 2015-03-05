@@ -18,12 +18,8 @@
 program FPDoc;
 
 uses
-{$ifdef LZX_USETHREADS}
  {$ifdef Unix}
-   CThreads,
- {$endif}
-{$endif}
-{$ifdef unix}
+  CThreads,
   cwstring,
 {$endif}
   SysUtils, Classes, Gettext, custapp,

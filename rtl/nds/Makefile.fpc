@@ -6,18 +6,17 @@
 main=rtl
 
 [target]
-loaders=prt07 prt09 cprt07 cprt09
+loaders=$(LOADERS)
 units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
 #      dos \
       sysutils \
       classes math typinfo ctypes \
       charset cpall getopts \
-      types rtlconsts sysconst lineinfo fgl \
+      types rtlconsts sysconst lineinfo fgl
 #      exec timer doslib utility hardware inputevent graphics layers \
 # these can be moved to packages later
 #      clipboard datatypes asl ahi tinygl get9 muihelper \
 #rsts=math rtlconsts varutils typinfo variants classes sysconst dateutil fpmkunit
-#implicitunits=exeinfo \
 implicitunits=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
       cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
 
@@ -44,10 +43,9 @@ COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
+LOADERS=prt07 prt09 cprt07 cprt09
+override FPCOPT+=@rtl.cfg
 
-# Use new feature from 1.0.5 version
-# that generates release PPU files
-# which will not be recompiled
 ifdef RELEASE
 override FPCOPT+=-Ur
 endif
@@ -98,6 +96,7 @@ $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS) $(INC)/softfpu.pp
         $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp $(REDIR)
 
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
+        $(COMPILER) $(INC)/uuchar.pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp $(REDIR)
@@ -105,6 +104,10 @@ objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
                    $(SYSTEMUNIT)$(PPUEXT)
+                   $(COMPILER) $(INC)/strings.pp
+
+iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/iso7185.pp
 
 #
 # System Dependent Units
@@ -119,7 +122,7 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 #
 
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
-               $(SYSTEMUNIT)$(PPUEXT)
+        $(SYSTEMUNIT)$(PPUEXT)
 
 #printer$(PPUEXT) : printer.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
 
@@ -168,11 +171,14 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 #
 
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/getopts.pp
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
 
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/lineinfo.pp
+
 #lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
 
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
@@ -222,3 +228,4 @@ get9$(PPUEXT): get9.pas exec$(PPUEXT)
 muihelper$(PPUEXT): muihelper.pas intuition$(PPUEXT) mui$(PPUEXT) doslib$(PPUEXT) utility$(PPUEXT)
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/ctypes.pp

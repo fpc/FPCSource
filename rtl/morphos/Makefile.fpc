@@ -11,15 +11,16 @@ units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
       dos heaptrc ctypes \
       sysutils classes fgl math typinfo \
       charset cpall getopts \
-      types rtlconsts sysconst \
-      exec timer doslib utility hardware inputevent keymap graphics layers \
-      intuition aboxlib mui \
+      types rtlconsts sysconst
+
+#      exec timer doslib utility hardware inputevent keymap graphics layers 
+#      intuition aboxlib mui 
 # these units are here, because they depend on system interface units above
-      kvm \
+#      kvm \
 # disabled temporarily because it doesn't build
 #     sockets \
 # these can be moved to packages later
-      clipboard datatypes asl ahi tinygl get9 muihelper
+#      clipboard datatypes asl ahi tinygl get9 muihelper
 #implicitunits=exeinfo\
 implicitunits=cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
       cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852
@@ -38,8 +39,8 @@ target=morphos
 cpu=powerpc
 
 [compiler]
-includedir=$(INC) $(PROCINC)
-sourcedir=$(INC) $(PROCINC) $(COMMON)
+includedir=$(INC) $(PROCINC) $(AMIINC)
+sourcedir=$(INC) $(PROCINC) $(AMIINC) $(COMMON)
 
 
 [prerules]
@@ -47,6 +48,7 @@ RTL=..
 INC=$(RTL)/inc
 COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
+AMIINC=$(RTL)/amicommon
 UNITPREFIX=rtl
 SYSTEMUNIT=system
 
@@ -121,11 +123,11 @@ dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
 
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
                     objpas$(PPUEXT) dos$(PPUEXT) sysconst$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
+        $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(AMIINC)/sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) rtlconsts$(PPUEXT) typinfo$(PPUEXT) types$(PPUEXT) fgl$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
+        $(COMPILER) -Fi$(OBJPASDIR)/classes $(AMIINC)/classes.pp
 
 fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fgl.pp

@@ -1,8 +1,8 @@
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 2004-2006 by Karoly Balogh
-    
-    AROS conversation
+
+    AROS conversion
     Copyright (c) 2011 by Marcus Sackrow
 
     System unit for AROS
@@ -25,9 +25,10 @@ interface
 
 {$define FPC_IS_SYSTEM}
 
-{.$define DISABLE_NO_THREAD_MANAGER}
+{$define DISABLE_NO_THREAD_MANAGER}
 
 {$I systemh.inc}
+{$I osdebugh.inc}
 
 const
   LineEnding = #10;
@@ -63,15 +64,13 @@ var
   AOS_ExecBase   : Pointer; external name '_ExecBase';
   AOS_DOSBase    : Pointer;
   AOS_UtilityBase: Pointer;
-  
+  AROS_ThreadLib : Pointer; public name 'AROS_THREADLIB';
 
-  AOS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
-  AOS_origDir  : LongInt; { original directory on startup }
+  ASYS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
+  ASYS_origDir  : LongInt; { original directory on startup }
   AOS_wbMsg    : Pointer;
   AOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
   AOS_ConHandle: THandle;
-
-  AOS_ThreadBase: Pointer;
 
   argc: LongInt;
   argv: PPChar;
@@ -85,6 +84,7 @@ procedure Debugln(s: string);
 implementation
 
 {$I system.inc}
+{$I osdebug.inc}
 type
     PWBArg = ^TWBArg;
     TWBArg = record
@@ -114,33 +114,33 @@ procedure haltproc(e:longint); cdecl; external name '_haltproc';
 
 procedure System_exit;
 var
-  a: LongInt;
+  oldDirLock: LongInt;
 begin
   if Killed then
     Exit;
   Killed := True;
   { Closing opened files }
-  CloseList(AOS_fileList);
+  CloseList(ASYS_fileList);
   //
   if AOS_wbMsg <> nil then
     ReplyMsg(AOS_wbMsg);
   { Changing back to original directory if changed }
-  if AOS_OrigDir <> 0 then begin
-    CurrentDir(AOS_origDir);
+  if ASYS_OrigDir <> 0 then begin
+    oldDirLock:=CurrentDir(ASYS_origDir);
+    { unlock our lock if its safe, so we won't leak the lock }
+    if (oldDirLock<>0) and (oldDirLock<>ASYS_origDir) then
+      Unlock(oldDirLock);
   end;
   if AOS_UtilityBase <> nil then
     CloseLibrary(AOS_UtilityBase);
-  if AOS_heapPool <> nil then
-    DeletePool(AOS_heapPool);
+  if ASYS_heapPool <> nil then
+    DeletePool(ASYS_heapPool);
   AOS_UtilityBase := nil;
-  AOS_HeapPool := nil;
+  ASYS_HeapPool := nil;
   //
   if AOS_DOSBase<>nil then
     CloseLibrary(AOS_DOSBase);
   AOS_DOSBase := nil;
-  if AOS_ThreadBase <> nil then
-    CloseLibrary(AOS_ThreadBase);
-  AOS_ThreadBase := nil;
   //
   HaltProc(ExitCode);
 end;
@@ -246,6 +246,7 @@ var
   counter: Byte;
 begin
   GetProgDir:='';
+  SetLength(s1, 256);
   FillChar(s1,255,#0);
   { GetLock of program directory }
 
@@ -254,7 +255,7 @@ begin
     if NameFromLock(alock,@s1[1],255) then begin
       counter:=1;
       while (s1[counter]<>#0) and (counter<>0) do Inc(counter);
-      s1[0]:=Char(counter-1);
+      SetLength(s1, counter-1);
       GetProgDir:=s1;
     end;
   end;
@@ -267,13 +268,14 @@ var
   counter: Byte;
 begin
   GetProgramName:='';
+  SetLength(s1, 256);
   FillChar(s1,255,#0);
 
   if GetProgramName(@s1[1],255) then begin
     { now check out and assign the length of the string }
     counter := 1;
     while (s1[counter]<>#0) and (counter<>0) do Inc(counter);
-    s1[0]:=Char(counter-1);
+    SetLength(s1, counter-1);
 
     { now remove any component path which should not be there }
     for counter:=length(s1) downto 1 do
@@ -394,22 +396,22 @@ begin
   AOS_UtilityBase := OpenLibrary('utility.library', 0);
   if AOS_UtilityBase = nil then
     Halt(1);
-  if AOS_ThreadBase = nil then
-    AOS_ThreadBase := OpenLibrary('thread.library', 0);
     
   { Creating the memory pool for growing heap }
-  AOS_heapPool := CreatePool(MEMF_ANY or MEMF_SEM_PROTECTED, growheapsize2, growheapsize1);
-  if AOS_heapPool = nil then
+  ASYS_heapPool := CreatePool(MEMF_ANY or MEMF_SEM_PROTECTED, growheapsize2, growheapsize1);
+  if ASYS_heapPool = nil then
     Halt(1);
   
   if AOS_wbMsg = nil then begin
     StdInputHandle := THandle(dosInput);
     StdOutputHandle := THandle(dosOutput);
+    StdErrorHandle := THandle(DosError1);
   end else begin
     AOS_ConHandle := Open(AOS_ConName, MODE_OLDFILE);
     if AOS_ConHandle <> 0 then begin
       StdInputHandle := AOS_ConHandle;
       StdOutputHandle := AOS_ConHandle;
+      StdErrorHandle := AOS_ConHandle;
     end else
       Halt(1);
   end;
@@ -421,12 +423,7 @@ begin
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-
-  { * AmigaOS doesn't have a separate stderr * }
-
-  StdErrorHandle:=StdOutputHandle;
-  //OpenStdIO(StdErr,fmOutput,StdErrorHandle);
-  //OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
+  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 end;
 
 function GetProcessID: SizeUInt;
@@ -448,8 +445,8 @@ begin
   StackBottom := Sptr - StackLength;
 { OS specific startup }
   AOS_wbMsg := nil;
-  AOS_origDir := 0;
-  AOS_fileList := nil;
+  ASYS_origDir := 0;
+  ASYS_fileList := nil;
   envp := nil;
   SysInitAmigaOS;
 { Set up signals handlers }
@@ -465,5 +462,5 @@ begin
   { Arguments }
   GenerateArgs;
   InitSystemThreads;
-  initvariantmanager;
+  InitSystemDynLibs;
 end.

@@ -156,12 +156,11 @@ begin
     current_asmdata.getdatalabel(l1);
     current_asmdata.getjumplabel(l2);
     reference_reset_symbol(href, l1, 0, sizeof(aint));
-    hregister := cg.getintregister(current_asmdata.CurrAsmList, OS_32);
-    hlcg.a_load_loc_reg(current_asmdata.CurrAsmList, left.resultdef, u32inttype, left.location, hregister);
+    hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
 
     { Always load into 64-bit FPU register }
     loadsigned(s64real);
-    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_INT, OC_GTE, 0, hregister, l2);
+    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_INT, OC_GTE, 0, left.location.register, l2);
 
     case tfloatdef(resultdef).floattype of
       { converting dword to s64real first and cut off at the end avoids precision loss }

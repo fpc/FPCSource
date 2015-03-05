@@ -76,7 +76,8 @@ const
     { 12 } 'avr',
     { 13 } 'mipsel',
     { 14 } 'jvm',
-    { 15 } 'i8086'
+    { 15 } 'i8086',
+    { 16 } 'aarch64'
     );
 
 { List of all supported system-cpu couples }
@@ -109,7 +110,7 @@ const
   { 24 }  'OpenBSD-i386',
   { 25 }  'OpenBSD-m68k',
   { 26 }  'Linux-x86-64',
-  { 27 }  'MacOSX-ppc',
+  { 27 }  'Darwin-ppc',
   { 28 }  'OS/2 via EMX',
   { 29 }  'NetBSD-powerpc',
   { 30 }  'OpenBSD-powerpc',
@@ -128,7 +129,7 @@ const
   { 43 }  'Linux-powerpc64',
   { 44 }  'Darwin-i386',
   { 45 }  'PalmOS-arm',
-  { 46 }  'MacOSX-powerpc64',
+  { 46 }  'Darwin-powerpc64',
   { 47 }  'NDS-arm',
   { 48 }  'Embedded-i386',
   { 49 }  'Embedded-m68k',
@@ -143,7 +144,7 @@ const
   { 58 }  'Embedded-powerpc64',
   { 59 }  'Symbian-i386',
   { 60 }  'Symbian-arm',
-  { 61 }  'MacOSX-x64',
+  { 61 }  'Darwin-x64',
   { 62 }  'Embedded-avr',
   { 63 }  'Haiku-i386',
   { 64 }  'Darwin-ARM',
@@ -166,7 +167,10 @@ const
   { 81 }  'Embedded-mipseb',
   { 82 }  'Embedded-mipsel',
   { 83 }  'AROS-i386',
-  { 84 }  'AROS-x86-64'
+  { 84 }  'AROS-x86-64',
+  { 85 }  'DragonFly-x86-64',
+  { 85 }  'Darwin-AArch64',
+  { 86 }  'iPhoneSim-x86-64'
   );
 
 const
@@ -288,7 +292,31 @@ const
   end;
 
 const has_errors : boolean = false;
+      has_warnings : boolean = false;
       has_more_infos : boolean = false;
+
+procedure SetHasErrors;
+begin
+  has_errors:=true;
+end;
+
+Procedure WriteError(const S : string);
+Begin
+  system.Writeln(StdErr, S);
+  SetHasErrors;
+End;
+
+Procedure WriteWarning(const S : string);
+var
+  ss: string;
+Begin
+  ss:='!! Warning: ' + S;
+  if nostdout then
+    system.Writeln(StdErr, ss)
+  else
+    system.Writeln(ss);
+  has_warnings:=true;
+End;
 
 procedure Write(const s: string);
 begin
@@ -299,20 +327,84 @@ end;
 procedure Write(const params: array of const);
 var
   i: integer;
+  { Last vtType define in rtl/inc/objpash.inc }
+const
+  max_vttype = vtUnicodeString;
 begin
   if nostdout then exit;
   for i:=Low(params) to High(params) do
+  { All vtType in
+        vtInteger       = 0;
+        vtBoolean       = 1;
+        vtChar          = 2;
+        vtExtended      = 3;
+        vtString        = 4;
+        vtPointer       = 5;
+        vtPChar         = 6;
+        vtObject        = 7;
+        vtClass         = 8;
+        vtWideChar      = 9;
+        vtPWideChar     = 10;
+        vtAnsiString32  = 11; called vtAnsiString in objpas unit
+        vtCurrency      = 12;
+        vtVariant       = 13;
+        vtInterface     = 14;
+        vtWideString    = 15;
+        vtInt64         = 16;
+        vtQWord         = 17;
+        vtUnicodeString = 18;
+        // vtAnsiString16  = 19; not yet used
+        // vtAnsiString64  = 20; not yet used
+    }
     with TVarRec(params[i]) do
       case VType of
         vtInteger: system.write(VInteger);
+        vtBoolean: system.write(VBoolean);
+        vtChar: system.write(VChar);
+        vtExtended: system.write(VExtended^);
+        vtString: system.write(VString^);
+        vtPointer:
+          begin
+            { Not sure the display will be correct
+              if sizeof pointer is not native }
+            WriteWarning('Pointer constant');
+          end;
+        vtPChar: system.write(VPChar);
+        vtObject:
+          begin
+            { Not sure the display will be correct
+              if sizeof pointer is not native }
+            WriteWarning('Object constant');
+          end;
+        vtClass:
+          begin
+            { Not sure the display will be correct
+              if sizeof pointer is not native }
+            WriteWarning('Class constant');
+          end;
+        vtWideChar: system.write(VWideChar);
+        vtPWideChar:
+          begin
+            WriteWarning('PWideChar constant');
+          end;
+        vtAnsiString: system.write(ansistring(VAnsiString));
+        vtCurrency : system.write(VCurrency^);
+        vtVariant :
+          begin
+            { Not sure the display will be correct
+              if sizeof pointer is not native }
+            WriteWarning('Variant constant');
+          end;
+        vtInterface :
+          begin
+            { Not sure the display will be correct
+              if sizeof pointer is not native }
+            WriteWarning('Interface constant');
+          end;
+        vtWideString : system.write(widestring(VWideString));
         vtInt64: system.write(VInt64^);
         vtQWord: system.write(VQWord^);
-        vtString: system.write(VString^);
-        vtAnsiString: system.write(ansistring(VAnsiString));
-        vtPChar: system.write(VPChar);
-        vtChar: system.write(VChar);
-        vtBoolean: system.write(VBoolean);
-        vtExtended: system.write(VExtended^);
+        vtUnicodeString : system.write(unicodestring(VUnicodeString));
         else
           begin
             system.writeln;
@@ -340,28 +432,6 @@ begin
   Writeln('!! Entry has more information stored');
   has_more_infos:=true;
 end;
-
-procedure SetHasErrors;
-begin
-  has_errors:=true;
-end;
-
-Procedure WriteError(const S : string);
-Begin
-  system.Writeln(StdErr, S);
-  SetHasErrors;
-End;
-
-Procedure WriteWarning(const S : string);
-var
-  ss: string;
-Begin
-  ss:='!! Warning: ' + S;
-  if nostdout then
-    system.Writeln(StdErr, ss)
-  else
-    system.Writeln(ss);
-End;
 
 function Unknown(const st : string; val :longint) : string;
 Begin
@@ -462,7 +532,7 @@ const
       'jvm enum fpcvalueof', 'jvm enum long2set',
       'jvm enum bitset2set', 'jvm enum set2set',
       'jvm procvar invoke', 'jvm procvar intf constructor',
-      'jvm virtual class method', 'jvm field getter', 'jvm field setter');
+      'jvm virtual class method', 'jvm field getter', 'jvm field setter', 'block invoke');
 begin
   if w<=ord(high(syntheticName)) then
     result:=syntheticName[tsynthetickind(w)]
@@ -1102,9 +1172,7 @@ end;
          disabledircache : boolean;
 
         { CPU targets with microcontroller support can add a controller specific unit }
-{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
         controllertype   : tcontrollertype;
-{$endif defined(ARM) or defined(AVR) or defined(MIPSEL)}
          { WARNING: this pointer cannot be written as such in record token }
          pmessage : pmessagestaterecord;
        end;
@@ -1201,7 +1269,9 @@ const
          (mask:pi_has_stack_allocs;
          str:' allocates memory on stack, so stack may be unbalanced on exit '),
          (mask:pi_estimatestacksize;
-         str:' stack size is estimated before subroutine is compiled ')
+         str:' stack size is estimated before subroutine is compiled '),
+         (mask:pi_calls_c_varargs;
+         str:' calls function with C-style varargs ')
   );
 var
   procinfooptions : tprocinfoflags;
@@ -1528,6 +1598,19 @@ begin
         end;
     end;
 
+  if [df_generic,df_specialization]*defoptions<>[] then
+    begin
+      nb:=ppufile.getlongint;
+      writeln([space,'has ',nb,' parameters']);
+      if nb>0 then
+        begin
+          for i:=0 to nb-1 do
+            begin
+              writeln([space,'parameter ',i,': ',ppufile.getstring]);
+              readderef(space);
+            end;
+        end;
+    end;
   if df_generic in defoptions then
     begin
       tokenbufsize:=ppufile.getlongint;
@@ -1726,6 +1809,7 @@ const
      (mask:po_syscall_basesysv;str:'SyscallBaseSysV'),
      (mask:po_syscall_sysvbase;str:'SyscallSysVBase'),
      (mask:po_syscall_r12base; str:'SyscallR12Base'),
+     (mask:po_syscall_has_libsym; str:'Has LibSym'),
      (mask:po_inline;          str:'Inline'),
      (mask:po_compilerproc;    str:'CompilerProc'),
      (mask:po_has_importdll;   str:'HasImportDLL'),
@@ -1742,7 +1826,9 @@ const
      (mask:po_rtlproc;         str: 'RTL procedure'),
      (mask:po_auto_raised_visibility; str: 'Visibility raised by compiler'),
      (mask:po_far;             str: 'Far'),
-     (mask:po_noreturn;             str: 'No return')
+     (mask:po_noreturn;        str: 'No return'),
+     (mask:po_is_function_ref; str: 'Function reference'),
+     (mask:po_is_block;        str: 'C "Block"')
   );
 var
   proctypeoption  : tproctypeoption;
@@ -1804,6 +1890,8 @@ begin
       i:=ppufile.getbyte;
       ppufile.getdata(tempbuf,i);
     end;
+  if po_syscall_has_libsym in procoptions then
+      readderef(space);
 end;
 
 
@@ -2531,9 +2619,8 @@ begin
          ibmacrosym :
            begin
              readcommonsym('Macro symbol ');
-             writeln([space,'          Name: ',getstring]);
-             writeln([space,'       Defined: ',getbyte]);
-             writeln([space,'  Compiler var: ',getbyte]);
+             writeln([space,'       Defined: ',boolean(getbyte)]);
+             writeln([space,'  Compiler var: ',boolean(getbyte)]);
              len:=getlongint;
              writeln([space,'  Value length: ',len]);
              if len > 0 then
@@ -3776,7 +3863,8 @@ begin
   end;
   if has_errors then
     Halt(1);
-  if error_on_more and has_more_infos then
+  if error_on_more and
+    (has_more_infos or has_warnings) then
     Halt(2);
 end.
 

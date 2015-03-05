@@ -12,6 +12,7 @@
  
  **********************************************************************}
 
+{$asmmode gas}
 
 procedure PASCALMAIN; external name 'PASCALMAIN';
 

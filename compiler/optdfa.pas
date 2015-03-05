@@ -59,7 +59,7 @@ unit optdfa;
       symconst,symdef,symsym,
       defutil,
       procinfo,
-      nutils,
+      nutils,htypechk,
       nbas,nflw,ncon,ninl,ncal,nset,nld,nadd,
       optbase;
 
@@ -517,6 +517,10 @@ unit optdfa;
                   end;
               end;
 
+{$ifdef JVM}
+            { all other platforms except jvm translate raise nodes into call nodes during pass_1 }
+            raisen,
+{$endif JVM}
             asn,
             inlinen,
             calln:
@@ -700,7 +704,10 @@ unit optdfa;
                     begin
                       { issue only a hint for var, when encountering the node passed as out, we need only to stop searching }
                       if tcallparanode(n).parasym.varspez=vs_var then
-                        MessagePos1(hpt.fileinfo,sym_h_uninitialized_local_variable,tloadnode(hpt).symtableentry.RealName);
+                        UninitializedVariableMessage(hpt.fileinfo,false,
+                          tloadnode(hpt).symtable.symtabletype=localsymtable,
+                          is_managed_type(tloadnode(hpt).resultdef),
+                          tloadnode(hpt).symtableentry.RealName);
                       AddFilepos(hpt.fileinfo);
                       result:=fen_norecurse_true;
                     end
@@ -778,7 +785,10 @@ unit optdfa;
                     begin
                       if (vo_is_funcret in varsym.varoptions) and not(WarnedForLocation(n.fileinfo)) then
                         begin
-                          MessagePos(n.fileinfo,sym_w_function_result_uninitialized);
+                          if is_managed_type(varsym.vardef) then
+                            MessagePos(n.fileinfo,sym_w_managed_function_result_uninitialized)
+                          else
+                            MessagePos(n.fileinfo,sym_w_function_result_uninitialized);
                           AddFilepos(n.fileinfo);
                           result:=fen_norecurse_true;
                         end
@@ -787,10 +797,7 @@ unit optdfa;
                           { typed consts are initialized, further, warn only once per location }
                           if not (vo_is_typed_const in varsym.varoptions) and not(WarnedForLocation(n.fileinfo)) then
                             begin
-                              if varsym.typ=paravarsym then
-                                MessagePos1(n.fileinfo,sym_w_uninitialized_variable,varsym.realname)
-                              else
-                                MessagePos1(n.fileinfo,sym_w_uninitialized_local_variable,varsym.realname);
+                              UninitializedVariableMessage(n.fileinfo,true,varsym.typ=localvarsym,is_managed_type(varsym.vardef),varsym.realname);
                               AddFilepos(n.fileinfo);
                               result:=fen_norecurse_true;
                             end;
@@ -905,13 +912,20 @@ unit optdfa;
                   { don't warn about constructors }
                   not(current_procinfo.procdef.proctypeoption in [potype_class_constructor,potype_constructor]) then
                   begin
-                    MessagePos(node.fileinfo,sym_w_function_result_uninitialized);
+                    if is_managed_type(current_procinfo.procdef.returndef) then
+                      MessagePos(node.fileinfo,sym_w_managed_function_result_uninitialized)
+                    else
+                      MessagePos(node.fileinfo,sym_w_function_result_uninitialized);
 
                     Setlength(SearchNodeInfo.warnedfilelocs,length(SearchNodeInfo.warnedfilelocs)+1);
                     SearchNodeInfo.warnedfilelocs[high(SearchNodeInfo.warnedfilelocs)]:=node.fileinfo;
                   end
               end;
             { could be the implicitly generated load node for the result }
+{$ifdef JVM}
+            { all other platforms except jvm translate raise nodes into call nodes during pass_1 }
+            raisen,
+{$endif JVM}
             loadn,
             assignn,
             calln,

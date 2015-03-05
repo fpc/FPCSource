@@ -34,7 +34,7 @@ $History: YACCLIB.PAS $
 
 
 {$I-}
-
+{$H+}
 unit h2pYaccLib;
 
 (* Yacc Library Unit for TP Yacc Version 3.0, 6-17-91 AG *)

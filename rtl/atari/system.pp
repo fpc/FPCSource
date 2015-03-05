@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit system;
+unit System;
 
 {--------------------------------------------------------------------}
 { LEFT TO DO:                                                        }
@@ -358,5 +358,4 @@ begin
   errno := 0;
 { Setup command line arguments }
   argc:=GetParamCount(args);
-  InitVariantManager;
 end.

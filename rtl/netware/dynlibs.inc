@@ -14,29 +14,9 @@
  **********************************************************************}
 
 
-{$ifdef readinterface}
-
-{ ---------------------------------------------------------------------
-    Interface declarations
-  ---------------------------------------------------------------------}
-
-Type
-  TLibHandle = System.THandle;
-
-Const
-  NilHandle = 0;
-// these are for easier crossplatform construction of dll names in dynloading libs.
-  SharedSuffix = 'nlm';
-
-{$else}
-
-{ ---------------------------------------------------------------------
-    Implementation section
-  ---------------------------------------------------------------------}
-
 Uses nwserv;
 
-Function DoLoadLibrary(const Name : RawByteString) : TlibHandle;
+Function SysLoadLibraryA(const Name : RawByteString) : TlibHandle;
 var args : array[0..1] of PAnsiChar;
 begin
   args[0] := PAnsiChar(Name);
@@ -44,23 +24,43 @@ begin
   Result:=spawnvp(P_NOWAIT,@args,nil);
 end;
 
-Function GetProcedureAddress(Lib : TLibHandle; const ProcName : AnsiString) : Pointer;
+Function SysLoadLibraryU(const Name: UnicodeString) : TLibHandle;
+begin
+  Result := SysLoadLibraryA(ToSingleByteFileSystemEncodedFileName(Name));
+end;
+
+Function SysGetProcedureAddress(Lib : TLibHandle; const ProcName : AnsiString) : Pointer;
 
 begin
   Result:=ImportSymbol(GetNlmHandle, pchar(ProcName));
 end;
 
-Function UnloadLibrary(Lib : TLibHandle) : Boolean;
+Function SysUnloadLibrary(Lib : TLibHandle) : Boolean;
 
 begin
   Result:=false;
 end;
 
 
-Function GetLoadErrorStr: string;
+Function SysGetLoadErrorStr: string;
 
 begin  
   Result:='';
 end;
-{$endif}
+
+
+const
+  SysDynLibsManager: TDynLibsManager = (
+    LoadLibraryU: @SysLoadLibraryU;
+    LoadLibraryA: @SysLoadLibraryA;
+    GetProcAddress: @SysGetProcedureAddress;
+    GetProcAddressOrdinal: Nil;
+    UnloadLibrary: @SysUnloadLibrary;
+    GetLoadErrorStr: @SysGetLoadErrorStr;
+  );
+
+procedure InitDynLibs;
+begin
+  SetDynLibsManager(SysDynLibsManager);
+end;
 

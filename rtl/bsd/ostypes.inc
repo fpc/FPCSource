@@ -30,8 +30,8 @@
   {$endif}
 {$endif}
 
-{$if (defined(darwin) and defined(cpuarm)) or defined(iphonesim)}
-  {$define darwinarm}
+{$if (defined(darwin) and (defined(cpuarm) or defined(cpuaarch64))) or defined(iphonesim)}
+  {$define darwin_new_iostructs}
 {$endif}
 
 //      CONST SYS_NMLN=65;
@@ -63,8 +63,32 @@ TYPE
 
   { file characteristics services }
    stat    = record { the types are real}
+{$ifdef dragonfly}
+        st_ino        : ino_t;             // inode's number
+        st_nlink      : nlink_t;           // number of hard links
         st_dev        : dev_t;             // inode's device
-{$ifdef darwinarm}
+        st_mode       : mode_t;            // inode protection mode
+        st_padd1      : cuint16;
+        st_uid        : uid_t;             // user ID of the file's owner
+        st_gid        : gid_t;             // group ID of the file's group
+        st_rdev       : dev_t;             // device type
+        st_atime      : time_t;            // time of last access (half timespec)
+        st_atimensec  : clong;             // nsec of last access (half timespec)
+        st_mtime      : time_t;            // time of last data modification
+        st_mtimensec  : clong;             // nsec of last data modification
+        st_ctime      : time_t;            // time of last file status change
+        st_ctimensec  : clong;             // nsec of last file status change
+        st_size       : off_t;             // file size, in bytes
+        st_blocks     : cint64;            // blocks allocated for file
+        st_blksize    : cuint32;           // optimal blocksize for I/O
+        st_flags      : cuint32;           // user defined flags for file
+        st_gen        : cuint32;           // file generation number
+        st_lspare     : cint32;
+        st_qspare1    : cint64;            // was recursive change detect
+        st_qspare2    : cint64;
+{$else dragonfly}
+        st_dev        : dev_t;             // inode's device
+{$ifdef darwin_new_iostructs}
         st_mode       : mode_t;            // inode protection mode
         st_nlink      : nlink_t;           // number of hard links
         st_ino        : ino_t;             // inode's number
@@ -91,7 +115,7 @@ TYPE
         st_mtimensec  : clong;             // nsec of last data modification
         st_ctime      : time_t;            // time of last file status change
         st_ctimensec  : clong;             // nsec of last file status change
-{$ifdef darwinarm}
+{$ifdef darwin_new_iostructs}
         st_birthtime  : time_t;            // File creation time
         st_birthtimensec : clong;          // nsec of file creation time
 {$endif}
@@ -114,12 +138,13 @@ TYPE
         st_birthtimensec : clong;          // nsec of file creation time
 {$endif}
         st_qspare     : array[0..1] Of cint64;
+{$endif dragonfly}
    end;
    TStat = stat;
    pStat = ^stat;
 
   { directory services }
-{$ifndef darwinarm}
+{$ifndef darwin_new_iostructs}
    dirent  = record
         d_fileno      : cuint32;                        // file number of entry
         d_reclen      : cuint16;                        // length of this record
@@ -127,7 +152,7 @@ TYPE
         d_namlen      : cuint8;                         // length of string in d_name
         d_name        : array[0..(255 + 1)-1] of char;  // name must be no longer than this
    end;
-{$else not darwinarm}
+{$else not darwin_new_iostructs}
    {$packrecords 4}
    { available on Mac OS X 10.6 and later, and used by all iPhoneOS versions }
    dirent  = record
@@ -139,7 +164,7 @@ TYPE
         d_name        : array[0..PATH_MAX-1] of char;        // name must be no longer than this
    end;
    {$packrecords c}
-{$endif darwinarm}
+{$endif darwin_new_iostructs}
    TDirent = dirent;
    pDirent = ^dirent;
 
@@ -221,7 +246,7 @@ CONST
     O_APPEND    =     8;        { Writes append to the file.        }
     O_NONBLOCK  =     4;        { Non-blocking I/O.                 }
 
-{$ifdef freebsd}
+{$if defined(freebsd) or defined(dragonfly)}
     { Other }
     O_SHLOCK    =   $10;        { Open with shared file lock }
     O_EXLOCK    =   $20;        { Open with exclusive file lock }
@@ -268,6 +293,13 @@ CONST
   F_SetLk          = 12;          { set record locking information }
   F_SetLkW         = 13;          { F_SETLK; wait if blocked }
   F_SetLkRemote    = 14;          { debugging support for remote locks }
+{$endif}
+{$ifdef dragonfly}
+  F_GetLk          = 7;           { get record locking information}
+  F_SetLk          = 8;           { set record locking information }
+  F_SetLkW         = 9;           { F_SETLK; wait if blocked }
+  F_Dup2Fd         = 10;          { duplicate file descriptor to arg }
+  F_DupFd_CloExec  = 17;	  { close on exec duplicated fd }
 {$endif}
 {$ifdef netbsd}
   F_GetLk          = 7;           { get record locking information}
@@ -358,19 +390,18 @@ type
 // #define      ru_last         ru_nivcsw
 // #define      ru_first        ru_ixrss
 
-{ auto generated by a c prog, statmacr.c}
 
 Const
-  S_IFMT  = 61440;
-  S_IFIFO = 4096;
-  S_IFCHR = 8192;
-  S_IFDIR = 16384;
-  S_IFBLK = 24576;
-  S_IFREG = 32768;
-  S_IFLNK = 40960;
-  S_IFSOCK= 49152;
-  S_IFWHT = 57344;
-  S_ISVTX = 512;
+  S_IFMT  = &170000;
+  S_IFIFO =  &10000;
+  S_IFCHR =  &20000;
+  S_IFDIR =  &40000;
+  S_IFBLK =  &60000;
+  S_IFREG = &100000;
+  S_IFLNK = &120000;
+  S_IFSOCK= &140000;
+  S_IFWHT = &160000;
+  S_ISVTX =   &1000;
 
 {
  * Resource limits from FreeBSD5. To be checked for the others.
@@ -384,7 +415,7 @@ Const
   RLIMIT_MEMLOCK  = 6;              { locked-in-memory address space }
   RLIMIT_NPROC    = 7;              { number of processes }
   RLIMIT_NOFILE   = 8;              { number of open files }
-{$IFDEF FreeBSD}
+{$if defined(freebsd) or defined(dragonfly)}
   RLIMIT_SBSIZE   = 9;              { maximum size of all socket buffers }
   RLIMIT_VMEM     =10;              { virtual process size (inclusive of mmap) }
   RLIMIT_AS       = RLIMIT_VMEM;
@@ -394,6 +425,9 @@ Const
 
   {$ifdef FreeBSD}
   RLIM_NLIMITS    =11;              { number of resource limits }
+  {$endif}
+  {$ifdef dragonfly}
+  RLIM_NLIMITS    =12;              { number of resource limits }
   {$endif}
 
   {$ifdef Darwin}   // OS X 10.3

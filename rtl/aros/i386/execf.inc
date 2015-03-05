@@ -16,11 +16,14 @@
 var
   LocalExecBase   : Pointer; external name '_ExecBase';
 
-
+procedure Forbid; syscall AOS_ExecBase 22;
+procedure Permit; syscall AOS_ExecBase 23;
 function execAllocMem(byteSize: Cardinal; requirements: Cardinal): Pointer; syscall LocalExecBase 33;
 procedure execFreeMem(memoryBlock: Pointer; byteSize: Cardinal); syscall LocalExecBase 35;
 function FindTask(name: PChar): PTask; syscall LocalExecBase 49;
 function SetSignal(newSignals: Cardinal; signalSet : Cardinal): Cardinal; syscall LocalExecBase 51;
+function Wait(SignalSet: LongWord): LongWord; syscall AOS_ExecBase 53;
+procedure Signal(Task: PTask; SignalSet: LongWord); syscall AOS_ExecBase 54;
 function AllocSignal(signalNum: LongInt): ShortInt; syscall LocalExecBase 55;
 procedure FreeSignal(signalNum: LongInt); syscall LocalExecBase 56;
 procedure AddPort(port: PMsgPort); syscall LocalExecBase 59;
@@ -33,10 +36,16 @@ function OpenDevice(devName: PChar; numunit: Cardinal; ioRequest: pIORequest; fl
 procedure CloseDevice(ioRequest: PIORequest); syscall LocalExecBase 75;
 function DoIO(ioRequest: PIORequest): ShortInt; syscall LocalExecBase 76;
 function OpenLibrary(libname: PChar; libver : Cardinal): Pointer; syscall LocalExecBase 92;
+procedure InitSemaphore(SigSem: PSignalSemaphore); syscall AOS_ExecBase 93;
+procedure ObtainSemaphore(SigSem: PSignalSemaphore); syscall AOS_ExecBase 94;
+procedure ReleaseSemaphore(SigSem: PSignalSemaphore); syscall AOS_ExecBase 95;
+function AttemptSemaphore(SigSem: PSignalSemaphore): LongWord; syscall AOS_ExecBase 96;
 function CreatePool(requirements: Cardinal; puddleSize: Cardinal; threshSize: Cardinal): Pointer; syscall LocalExecBase 116;
 procedure DeletePool(poolHeader: Pointer); syscall LocalExecBase 117;
 function AllocPooled(poolHeader: Pointer; memSize: Cardinal): Pointer; syscall LocalExecBase 118;
 function FreePooled(poolHeader: Pointer; memory: Pointer; memSize: Cardinal): Pointer; syscall LocalExecBase 119;
+procedure StackSwap(NewStack: PStackSwapStruct); syscall AOS_ExecBase 122;
+procedure RawPutChar(c: Char); syscall AOS_ExecBase 86;
 
 //function RawDoFmt(const formatString : pCHAR;const dataStream : POINTER; putChProc : tPROCEDURE; putChData : POINTER): pointer;
 function RawDoFmt(const formatString : pCHAR;const dataStream : POINTER; putChProc : POINTER; putChData : POINTER): pointer; syscall LocalExecBase 87;

@@ -45,10 +45,18 @@ interface
        end;
        tloadvmtaddrnodeclass = class of tloadvmtaddrnode;
 
+       tloadparentfpkind = (
+         { as parameter to a nested routine (current routine's frame) }
+         lpf_forpara,
+         { to load a local from a parent routine in the current nested routine
+           (some parent routine's frame) }
+         lpf_forload
+       );
        tloadparentfpnode = class(tunarynode)
           parentpd : tprocdef;
           parentpdderef : tderef;
-          constructor create(pd:tprocdef);virtual;
+          kind: tloadparentfpkind;
+          constructor create(pd: tprocdef; fpkind: tloadparentfpkind);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -145,7 +153,7 @@ implementation
       globtype,systems,constexp,
       cutils,verbose,globals,
       symconst,symbase,defutil,defcmp,
-      nbas,nutils,
+      nbas,ninl,nutils,
       wpobase,
 {$ifdef i8086}
       cpuinfo,
@@ -240,14 +248,14 @@ implementation
            include(current_procinfo.flags,pi_needs_got);
          if left.nodetype<>typen then
            begin
-             if is_objcclass(left.resultdef) and
-                (left.nodetype<>typen) then
+             if (target_info.system=system_aarch64_darwin) and
+                (is_objc_class_or_protocol(left.resultdef) or
+                 is_objcclassref(left.resultdef)) then
                begin
-                 { don't use the ISA field name, assume this field is at offset
-                   0 (just like gcc/clang) }
-                 result:=ctypeconvnode.create_internal(left,voidpointertype);
-                 result:=cderefnode.create(result);
-                 inserttypeconv_internal(result,resultdef);
+                 { on Darwin/AArch64, the isa field is opaque and we must
+                   call Object_getClass to obtain the actual ISA pointer }
+                 result:=ccallnode.createinternfromunit('OBJC','OBJECT_GETCLASS',ccallparanode.create(left,nil));
+                 inserttypeconv_explicit(result,resultdef);
                  { reused }
                  left:=nil;
                end
@@ -306,7 +314,7 @@ implementation
                         TLOADPARENTFPNODE
 *****************************************************************************}
 
-    constructor tloadparentfpnode.create(pd:tprocdef);
+    constructor tloadparentfpnode.create(pd: tprocdef; fpkind: tloadparentfpkind);
       begin
         inherited create(loadparentfpn,nil);
         if not assigned(pd) then
@@ -314,6 +322,7 @@ implementation
         if (pd.parast.symtablelevel>current_procinfo.procdef.parast.symtablelevel) then
           internalerror(200309284);
         parentpd:=pd;
+        kind:=fpkind;
       end;
 
 
@@ -321,6 +330,7 @@ implementation
       begin
         inherited ppuload(t,ppufile);
         ppufile.getderef(parentpdderef);
+        kind:=tloadparentfpkind(ppufile.getbyte);
       end;
 
 
@@ -328,6 +338,7 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putderef(parentpdderef);
+        ppufile.putbyte(byte(kind));
       end;
 
 
@@ -349,7 +360,8 @@ implementation
       begin
         result:=
           inherited docompare(p) and
-          (tloadparentfpnode(p).parentpd=parentpd);
+          (tloadparentfpnode(p).parentpd=parentpd) and
+          (tloadparentfpnode(p).kind=kind);
       end;
 
 
@@ -359,6 +371,7 @@ implementation
       begin
          p:=tloadparentfpnode(inherited dogetcopy);
          p.parentpd:=parentpd;
+         p.kind:=kind;
          dogetcopy:=p;
       end;
 
@@ -573,7 +586,7 @@ implementation
         else
           begin
             hp:=left;
-            while assigned(hp) and (hp.nodetype in [typeconvn,vecn,derefn,subscriptn]) do
+            while assigned(hp) and (hp.nodetype in [typeconvn,derefn,subscriptn]) do
               hp:=tunarynode(hp).left;
             if not assigned(hp) then
               internalerror(200412042);

@@ -237,11 +237,11 @@ interface
 {$ifdef arm}
        { ARM only }
        ,top_regset
-       ,top_conditioncode
        ,top_modeflags
        ,top_specialreg
 {$endif arm}
 {$if defined(arm) or defined(aarch64)}
+       ,top_conditioncode
        ,top_shifterop
 {$endif defined(arm) or defined(aarch64)}
 {$ifdef m68k}
@@ -334,7 +334,7 @@ interface
         mark_Position
       );
 
-      TRegAllocType = (ra_alloc,ra_dealloc,ra_sync,ra_resize);
+      TRegAllocType = (ra_alloc,ra_dealloc,ra_sync,ra_resize,ra_markused);
 
       TStabType = (stab_stabs,stab_stabn,stab_stabd,
                    { AIX/XCOFF stab types }
@@ -356,7 +356,9 @@ interface
         { for Jasmin }
         asd_jclass,asd_jinterface,asd_jsuper,asd_jfield,asd_jlimit,asd_jline,
         { .ent/.end for MIPS and Alpha }
-        asd_ent,asd_ent_end
+        asd_ent,asd_ent_end,
+        { supported by recent clang-based assemblers for data-in-code  }
+        asd_data_region, asd_end_data_region
       );
 
       TAsmSehDirective=(
@@ -369,7 +371,7 @@ interface
 
 
     const
-      regallocstr : array[tregalloctype] of string[10]=('allocated','released','sync','resized');
+      regallocstr : array[tregalloctype] of string[10]=('allocated','released','sync','resized','used');
       tempallocstr : array[boolean] of string[10]=('released','allocated');
       stabtypestr : array[TStabType] of string[8]=(
         'stabs','stabn','stabd',
@@ -385,7 +387,9 @@ interface
         { for Jasmin }
         'class','interface','super','field','limit','line',
         { .ent/.end for MIPS and Alpha }
-        'ent','end'
+        'ent','end',
+        { supported by recent clang-based assemblers for data-in-code }
+        'data_region','end_data_region'
       );
       sehdirectivestr : array[TAsmSehDirective] of string[16]=(
         '.seh_proc','.seh_endproc',
@@ -411,15 +415,15 @@ interface
             top_local  : (localoper:plocaloper);
         {$ifdef arm}
             top_regset : (regset:^tcpuregisterset; regtyp: tregistertype; subreg: tsubregister; usermode: boolean);
-            top_conditioncode : (cc : TAsmCond);
             top_modeflags : (modeflags : tcpumodeflags);
             top_specialreg : (specialreg:tregister; specialflags:tspecialregflags);
         {$endif arm}
         {$if defined(arm) or defined(aarch64)}
             top_shifterop : (shifterop : pshifterop);
+            top_conditioncode : (cc : TAsmCond);
         {$endif defined(arm) or defined(aarch64)}
         {$ifdef m68k}
-            top_regset : (dataregset,addrregset:^tcpuregisterset);
+            top_regset : (dataregset,addrregset,fpuregset:^tcpuregisterset);
         {$endif m68k}
         {$ifdef jvm}
             top_single : (sval:single);
@@ -625,6 +629,8 @@ interface
           constructor Create_type_name(_typ:taiconst_type;const name:string;_symtyp:Tasmsymtype;ofs:aint);
           constructor Create_nil_codeptr;
           constructor Create_nil_dataptr;
+          constructor Create_int_codeptr(_value: int64);
+          constructor Create_int_dataptr(_value: int64);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure derefimpl;override;
@@ -731,6 +737,7 @@ interface
           constructor dealloc(r : tregister;ainstr:tai);
           constructor sync(r : tregister);
           constructor resize(r : tregister);
+          constructor markused(r : tregister);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
@@ -1771,6 +1778,18 @@ implementation
 
     constructor tai_const.Create_nil_codeptr;
       begin
+        self.Create_int_codeptr(0);
+      end;
+
+
+    constructor tai_const.Create_nil_dataptr;
+      begin
+        self.Create_int_dataptr(0);
+      end;
+
+
+    constructor tai_const.Create_int_codeptr(_value: int64);
+      begin
         inherited Create;
         typ:=ait_const;
 {$ifdef i8086}
@@ -1782,11 +1801,11 @@ implementation
         sym:=nil;
         endsym:=nil;
         symofs:=0;
-        value:=0;
+        value:=_value;
       end;
 
 
-    constructor tai_const.Create_nil_dataptr;
+    constructor tai_const.Create_int_dataptr(_value: int64);
       begin
         inherited Create;
         typ:=ait_const;
@@ -1799,7 +1818,7 @@ implementation
         sym:=nil;
         endsym:=nil;
         symofs:=0;
-        value:=0;
+        value:=_value;
       end;
 
 
@@ -2192,7 +2211,10 @@ implementation
          typ:=ait_stab;
          stabtype:=_stabtype;
          getmem(str,length(s)+1);
-         move(s[1],str^,length(s)+1);
+         if length(s)>0 then
+           move(s[1],str^,length(s)+1)
+         else
+           str^:=#0;
       end;
 
     destructor tai_stab.destroy;
@@ -2422,6 +2444,15 @@ implementation
       end;
 
 
+    constructor tai_regalloc.markused(r : tregister);
+      begin
+        inherited create;
+        typ:=ait_regalloc;
+        ratype:=ra_markused;
+        reg:=r;
+      end;
+
+
     constructor tai_regalloc.ppuload(t:taitype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
@@ -2555,6 +2586,9 @@ implementation
 {$ifdef ARM}
               and not(r.base=NR_R15)
 {$endif ARM}
+{$ifdef aarch64}
+              and not(r.refaddr in [addr_full,addr_gotpageoffset,addr_gotpage])
+{$endif aarch64}
               then
               internalerror(200502052);
 {$endif not llvm}
@@ -2657,6 +2691,7 @@ implementation
                 begin
                   dispose(dataregset);
                   dispose(addrregset);
+                  dispose(fpuregset);
                 end;
 {$endif m68k}
 {$ifdef jvm}

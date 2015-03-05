@@ -17,7 +17,7 @@ initialization
   STRING_FILE_NOT_FOUND               := 'Файл "%s" не существует. Открыть невозможно.';
   STRING_VERSION                      := 'TDbf V%d.%d';
   //todo: translate me
-  STRING_FEATURE_NOT_SUPPORTED_THIS_TABLELEVEL: string; := 'This feature is not supported in tablelevel %d';
+  STRING_FEATURE_NOT_SUPPORTED_THIS_TABLELEVEL := 'This feature is not supported in tablelevel %d';
 
   STRING_RECORD_LOCKED                := 'Запись (строка таблицы) заблокирована.';
   STRING_WRITE_ERROR                  := 'Ошибка записи на диск (Диск заполнен?)';

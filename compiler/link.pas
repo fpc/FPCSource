@@ -620,8 +620,8 @@ Implementation
         FillChar(Info,sizeof(Info),0);
         if cs_link_on_target in current_settings.globalswitches then
           begin
-            Info.ResName:=outputexedir+ChangeFileExt(inputfilename,'_link.res');
-            Info.ScriptName:=outputexedir+ChangeFileExt(inputfilename,'_script.res');
+            Info.ResName:=ChangeFileExt(inputfilename,'_link.res');
+            Info.ScriptName:=ChangeFileExt(inputfilename,'_script.res');
           end
         else
           begin

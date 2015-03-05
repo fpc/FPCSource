@@ -40,7 +40,7 @@ uses
     function parse_generic_specialization_types(genericdeflist:tfpobjectlist;poslist:tfplist;out prettyname,specializename:ansistring):boolean;
     procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:tfphashobjectlist);
     procedure maybe_insert_generic_rename_symbol(const name:tidstring;genericlist:tfphashobjectlist);
-    function generate_generic_name(const name:tidstring;specializename:ansistring):tidstring;
+    function generate_generic_name(const name:tidstring;specializename:ansistring;owner_hierarchy:string):tidstring;
     procedure split_generic_name(const name:tidstring;out nongeneric:string;out count:longint);
     function resolve_generic_dummysym(const name:tidstring):tsym;
     function could_be_generic(const name:tidstring):boolean;inline;
@@ -182,11 +182,26 @@ uses
                           odt_interfacecorba,
                           odt_interfacejava,
                           odt_dispinterface:
-                            if not def_is_related(paraobjdef,formalobjdef.childof) then
-                              begin
-                                MessagePos2(filepos,type_e_incompatible_types,paraobjdef.typename,formalobjdef.childof.typename);
-                                result:=false;
-                              end;
+                            begin
+                              if (oo_is_forward in paraobjdef.objectoptions) and
+                                  (paraobjdef.objecttype=formalobjdef.objecttype) and
+                                  (df_genconstraint in formalobjdef.defoptions) and
+                                  (
+                                    (formalobjdef.objecttype=odt_interfacecom) and
+                                    (formalobjdef.childof=interface_iunknown)
+                                  )
+                                  or
+                                  (
+                                    (formalobjdef.objecttype=odt_interfacecorba) and
+                                    (formalobjdef.childof=nil)
+                                  ) then
+                                continue;
+                              if not def_is_related(paraobjdef,formalobjdef.childof) then
+                                begin
+                                  MessagePos2(filepos,type_e_incompatible_types,paraobjdef.typename,formalobjdef.childof.typename);
+                                  result:=false;
+                                end;
+                            end;
                           odt_class,
                           odt_javaclass:
                             begin
@@ -224,6 +239,14 @@ uses
                             MessagePos1(filepos,type_e_class_type_expected,paraobjdef.typename);
                             result:=false;
                             continue;
+                          end;
+                        { for forward declared classes we allow pure TObject/class declarations }
+                        if (oo_is_forward in paraobjdef.objectoptions) and
+                            (df_genconstraint in formaldef.defoptions) then
+                          begin
+                            if (formalobjdef.childof=class_tobject) and
+                                not formalobjdef.implements_any_interfaces then
+                              continue;
                           end;
                         if assigned(formalobjdef.childof) and
                             not def_is_related(paradef,formalobjdef.childof) then
@@ -627,7 +650,7 @@ uses
           end;
 
         { build the new type's name }
-        finalspecializename:=generate_generic_name(genname,specializename);
+        finalspecializename:=generate_generic_name(genname,specializename,genericdef.ownerhierarchyname);
         ufinalspecializename:=upper(finalspecializename);
         prettyname:=genericdef.typesym.prettyname+'<'+prettyname+'>';
 
@@ -666,39 +689,6 @@ uses
            (current_structdef.objname^=ufinalspecializename) then
           tt:=current_structdef;
 
-        { decide in which symtable to put the specialization }
-        if parse_generic then
-          begin
-            if not assigned(current_genericdef) then
-              internalerror(2014050901);
-            if assigned(current_procinfo) and (df_generic in current_procinfo.procdef.defoptions) then
-              { if we are parsing the definition of a method we specialize into
-                the local symtable of it }
-              specializest:=current_procinfo.procdef.getsymtable(gs_local)
-            else
-              { we specialize the partial specialization into the symtable of the currently parsed
-                generic }
-              case current_genericdef.typ of
-                procvardef,
-                procdef:
-                  specializest:=current_genericdef.getsymtable(gs_local);
-                objectdef,
-                recorddef:
-                  specializest:=current_genericdef.getsymtable(gs_record);
-                arraydef:
-                  specializest:=tarraydef(current_genericdef).symtable;
-                else
-                  internalerror(2014050902);
-              end;
-          end
-        else
-          if current_module.is_unit and current_module.in_interface then
-            specializest:=current_module.globalsymtable
-          else
-            specializest:=current_module.localsymtable;
-        if not assigned(specializest) then
-          internalerror(2014050910);
-
         { Can we reuse an already specialized type? }
 
         { for this first check whether we are currently specializing a nested
@@ -735,6 +725,39 @@ uses
                 def:=tstoreddef(def.owner.defowner);
               end;
           end;
+
+        { decide in which symtable to put the specialization }
+        if parse_generic and not assigned(tt) then
+          begin
+            if not assigned(current_genericdef) then
+              internalerror(2014050901);
+            if assigned(current_procinfo) and (df_generic in current_procinfo.procdef.defoptions) then
+              { if we are parsing the definition of a method we specialize into
+                the local symtable of it }
+              specializest:=current_procinfo.procdef.getsymtable(gs_local)
+            else
+              { we specialize the partial specialization into the symtable of the currently parsed
+                generic }
+              case current_genericdef.typ of
+                procvardef,
+                procdef:
+                  specializest:=current_genericdef.getsymtable(gs_local);
+                objectdef,
+                recorddef:
+                  specializest:=current_genericdef.getsymtable(gs_record);
+                arraydef:
+                  specializest:=tarraydef(current_genericdef).symtable;
+                else
+                  internalerror(2014050902);
+              end;
+          end
+        else
+          if current_module.is_unit and current_module.in_interface then
+            specializest:=current_module.globalsymtable
+          else
+            specializest:=current_module.localsymtable;
+        if not assigned(specializest) then
+          internalerror(2014050910);
 
         { now check whether there is a specialization somewhere else }
         if not assigned(tt) then
@@ -968,6 +991,8 @@ uses
           if token=_ID then
             begin
               generictype:=ctypesym.create(orgpattern,cundefinedtype);
+              { type parameters need to be added as strict private }
+              generictype.visibility:=vis_strictprivate;
               include(generictype.symoptions,sp_generic_para);
               result.add(orgpattern,generictype);
             end;
@@ -1105,7 +1130,11 @@ uses
               firstidx:=result.count;
 
               constraintdata.free;
-            end;
+            end
+          else
+            if token=_SEMICOLON then
+              { a semicolon terminates a type parameter group }
+              firstidx:=result.count;
         until not (try_to_consume(_COMMA) or try_to_consume(_SEMICOLON));
         block_type:=old_block_type;
       end;
@@ -1143,6 +1172,8 @@ uses
             if assigned(generictype.owner) then
               begin
                 sym:=ctypesym.create(genericlist.nameofindex(i),generictype.typedef);
+                { type parameters need to be added as strict private }
+                sym.visibility:=vis_strictprivate;
                 st.insert(sym);
                 include(sym.symoptions,sp_generic_para);
               end
@@ -1189,7 +1220,7 @@ uses
           end;
       end;
 
-    function generate_generic_name(const name:tidstring;specializename:ansistring):tidstring;
+    function generate_generic_name(const name:tidstring;specializename:ansistring;owner_hierarchy:string):tidstring;
     var
       crc : cardinal;
     begin
@@ -1198,6 +1229,11 @@ uses
       { build the new type's name }
       crc:=UpdateCrc32(0,specializename[1],length(specializename));
       result:=name+'$crc'+hexstr(crc,8);
+      if owner_hierarchy<>'' then
+        begin
+          crc:=UpdateCrc32(0,owner_hierarchy[1],length(owner_hierarchy));
+          result:=result+'$crc'+hexstr(crc,8);
+        end;
     end;
 
     procedure split_generic_name(const name:tidstring;out nongeneric:string;out count:longint);
@@ -1298,7 +1334,8 @@ uses
       if assigned(hmodule.globalsymtable) then
         symtablestack.push(hmodule.globalsymtable);
       { push the localsymtable if needed }
-      if (hmodule<>current_module) or not current_module.in_interface then
+      if ((hmodule<>current_module) or not current_module.in_interface)
+          and assigned(hmodule.localsymtable) then
         symtablestack.push(hmodule.localsymtable);
     end;
 

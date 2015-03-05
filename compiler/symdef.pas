@@ -214,9 +214,6 @@ interface
           function alignment:shortint;override;
        end;
 
-
-       { tpointerdef }
-
        tpointerdef = class(tabstractpointerdef)
           has_pointer_math : boolean;
           constructor create(def:tdef);virtual;
@@ -243,6 +240,9 @@ interface
        tprocdef = class;
 
        tabstractrecorddef= class(tstoreddef)
+       private
+          rttistring     : string;
+       public
           objname,
           objrealname    : PShortString;
           { for C++ classes: name of the library this class is imported from }
@@ -582,6 +582,7 @@ interface
           procedure buildderef;override;
           procedure deref;override;
           procedure calcparas;
+          function mangledprocparanames(oldlen : longint) : string;
           function  typename_paras(pno: tprocnameoptions): ansistring;
           function  is_methodpointer:boolean;virtual;
           function  is_addressonly:boolean;virtual;
@@ -1178,7 +1179,7 @@ implementation
             if not assigned(current_module.ansistrdef) then
               begin
                 { if we did not create it yet we need to do this now }
-                if current_module.is_unit then
+                if current_module.in_interface then
                   symtable:=current_module.globalsymtable
                 else
                   symtable:=current_module.localsymtable;
@@ -1228,34 +1229,7 @@ implementation
              conflicts with 2 overloads having both a nested procedure
              with the same name, see tb0314 (PFV) }
            s:=tprocdef(st.defowner).procsym.name;
-           oldlen:=length(s);
-           for i:=0 to tprocdef(st.defowner).paras.count-1 do
-            begin
-              hp:=tparavarsym(tprocdef(st.defowner).paras[i]);
-              if not(vo_is_hidden_para in hp.varoptions) then
-                s:=s+'$'+hp.vardef.mangledparaname;
-            end;
-           if not is_void(tprocdef(st.defowner).returndef) then
-             s:=s+'$$'+tprocdef(st.defowner).returndef.mangledparaname;
-           newlen:=length(s);
-           { Replace with CRC if the parameter line is very long }
-           if (newlen-oldlen>12) and
-              ((newlen+length(prefix)>100) or (newlen-oldlen>32)) then
-             begin
-               crc:=0;
-               for i:=0 to tprocdef(st.defowner).paras.count-1 do
-                 begin
-                   hp:=tparavarsym(tprocdef(st.defowner).paras[i]);
-                   if not(vo_is_hidden_para in hp.varoptions) then
-                     begin
-                       hs:=hp.vardef.mangledparaname;
-                       crc:=UpdateCrc32(crc,hs[1],length(hs));
-                     end;
-                 end;
-               hs:=hp.vardef.mangledparaname;
-               crc:=UpdateCrc32(crc,hs[1],length(hs));
-               s:=Copy(s,1,oldlen)+'$crc'+hexstr(crc,8);
-             end;
+           s:=s+tprocdef(st.defowner).mangledprocparanames(Length(s));
            if prefix<>'' then
              prefix:=s+'_'+prefix
            else
@@ -1681,6 +1655,8 @@ implementation
                insertstack:=insertstack^.next;
              if not assigned(insertstack) then
                internalerror(200602044);
+             if insertstack^.symtable.sealed then
+               internalerror(2015022301);
              insertstack^.symtable.insertdef(self);
            end;
       end;
@@ -1788,7 +1764,7 @@ implementation
           end;
         if assigned(typesym) and
            (owner.symtabletype in [staticsymtable,globalsymtable]) then
-          result:=make_mangledname(prefix,owner,typesym.name)
+          result:=make_mangledname(prefix,typesym.owner,typesym.name)
         else
           result:=make_mangledname(prefix,findunitsymtable(owner),'DEF'+tostr(DefId))
       end;
@@ -2040,13 +2016,12 @@ implementation
               recsize:=size;
               is_intregable:=
                 ispowerof2(recsize,temp) and
-                { sizeof(asizeint)*2 records in int registers is currently broken for endian_big targets }
-                (((recsize <= sizeof(asizeint)*2) and (target_info.endian=endian_little)
+                (((recsize <= sizeof(asizeint)*2) and
                  { records cannot go into registers on 16 bit targets for now }
-                  and (sizeof(asizeint)>2)
-                  and not trecorddef(self).contains_float_field) or
-                  (recsize <= sizeof(asizeint)))
-                and not needs_inittable;
+                  (sizeof(asizeint)>2) and
+                  not trecorddef(self).contains_float_field) or
+                  (recsize <= sizeof(asizeint))) and
+                not needs_inittable;
             end;
         end;
      end;
@@ -2124,7 +2099,7 @@ implementation
                sym:=tsym(genericparas[i]);
                if sym.typ<>symconst.typesym then
                  internalerror(2014050904);
-               if sym.owner.defowner=self then
+               if sym.owner.defowner<>self then
                  exit(true);
              end;
            result:=false;
@@ -2806,10 +2781,13 @@ implementation
            s32real : savesize:=4;
            s80real : savesize:=10;
            sc80real:
-             if target_info.system in [system_i386_darwin,system_i386_iphonesim,system_x86_64_darwin,
+             if target_info.system in [system_i386_darwin,
+                  system_i386_iphonesim,system_x86_64_darwin,
+                  system_x86_64_iphonesim,
                   system_x86_64_linux,system_x86_64_freebsd,
                   system_x86_64_openbsd,system_x86_64_netbsd,
-                  system_x86_64_solaris,system_x86_64_embedded] then
+                  system_x86_64_solaris,system_x86_64_embedded,
+                  system_x86_64_dragonfly] then
                savesize:=16
              else
                savesize:=12;
@@ -3423,8 +3401,10 @@ implementation
 
     constructor tarraydef.create_from_pointer(def:tpointerdef);
       begin
-         { use -1 so that the elecount will not overflow }
-         self.create(0,high(asizeint)-1,ptrsinttype);
+         { divide by the element size and do -1 so the array will have a valid size,
+           further, the element size might be 0 e.g. for empty records, so use max(...,1)
+           to avoid a division by zero }
+         self.create(0,(high(asizeint) div max(def.pointeddef.size,1))-1,ptrsinttype);
          arrayoptions:=[ado_IsConvertedPointer];
          setelementdef(def.pointeddef);
       end;
@@ -3775,8 +3755,104 @@ implementation
       end;
 
     function tabstractrecorddef.RttiName: string;
+
+        function generate_full_paramname(maxlength:longint):string;
+          const
+            commacount : array[boolean] of longint = (0,1);
+          var
+            fullparas,
+            paramname : ansistring;
+            module : tmodule;
+            sym : ttypesym;
+            i : longint;
+          begin
+            { we want at least enough space for an ellipsis }
+            if maxlength<3 then
+              internalerror(2014121203);
+            fullparas:='';
+            for i:=0 to genericparas.count-1 do
+              begin
+                sym:=ttypesym(genericparas[i]);
+                module:=find_module_from_symtable(sym.owner);
+                if not assigned(module) then
+                  internalerror(2014121202);
+                paramname:=module.realmodulename^;
+                if sym.typedef.typ in [objectdef,recorddef] then
+                  paramname:=paramname+'.'+tabstractrecorddef(sym.typedef).rttiname
+                else
+                  paramname:=paramname+'.'+sym.typedef.typename;
+                if length(fullparas)+commacount[i>0]+length(paramname)>maxlength then
+                  begin
+                    if i>0 then
+                      fullparas:=fullparas+',...'
+                    else
+                      fullparas:=fullparas+'...';
+                    break;
+                  end;
+                { could we fit an ellipsis after this parameter if it should be too long? }
+                if (maxlength-(length(fullparas)+commacount[i>0]+length(paramname))<4) and (i<genericparas.count-1) then
+                  begin
+                    { then omit already this parameter }
+                    if i>0 then
+                      fullparas:=fullparas+',...'
+                    else
+                      fullparas:=fullparas+'...';
+                    break;
+                  end;
+                if i>0 then
+                  fullparas:=fullparas+',';
+                fullparas:=fullparas+paramname;
+              end;
+            result:=fullparas;
+          end;
+
+      var
+        nongeneric,
+        basename : string;
+        i,
+        remlength,
+        paramcount,
+        crcidx : longint;
       begin
-        Result:=OwnerHierarchyName+objrealname^;
+        if rttistring='' then
+          begin
+            if is_specialization then
+              begin
+                rttistring:=OwnerHierarchyName;
+                { there should be two $ characters, one before the CRC and one before the count }
+                crcidx:=-1;
+                for i:=length(objrealname^) downto 1 do
+                  if objrealname^[i]='$' then
+                    begin
+                      crcidx:=i;
+                      break;
+                    end;
+                if crcidx<0 then
+                  internalerror(2014121201);
+                basename:=copy(objrealname^,1,crcidx-1);
+                split_generic_name(basename,nongeneric,paramcount);
+                rttistring:=rttistring+nongeneric+'<';
+                remlength:=255-length(rttistring)-1;
+                if remlength<4 then
+                  rttistring:=rttistring+'>'
+                else
+                  rttistring:=rttistring+generate_full_paramname(remlength)+'>';
+              end
+            else
+              if is_generic then
+                begin
+                  rttistring:=OwnerHierarchyName;
+                  split_generic_name(objrealname^,nongeneric,paramcount);
+                  rttistring:=rttistring+nongeneric+'<';
+                  { we don't want any ',' if there is only one parameter }
+                  for i:=0 to paramcount-0 do
+                    rttistring:=rttistring+',';
+                  rttistring:=rttistring+'>';
+                end
+              else
+                rttistring:=OwnerHierarchyName+objrealname^;
+          end;
+        result:=rttistring;
       end;
 
     function tabstractrecorddef.search_enumerator_get: tprocdef;
@@ -4309,6 +4385,53 @@ implementation
         parast.SymList.ForEachCall(@insert_para,nil);
         { Order parameters }
         paras.sortparas;
+      end;
+
+
+    function tabstractprocdef.mangledprocparanames(oldlen : longint) : string;
+      var
+        crc  : dword;
+        hp   : TParavarsym;
+        hs   : TSymStr;
+        newlen,
+        i    : integer;
+      begin
+        result:='';
+        hp:=nil;
+        { add parameter types }
+        for i:=0 to paras.count-1 do
+         begin
+           hp:=tparavarsym(paras[i]);
+           if not(vo_is_hidden_para in hp.varoptions) then
+             result:=result+'$'+hp.vardef.mangledparaname;
+         end;
+        { add resultdef, add $$ as separator to make it unique from a
+          parameter separator }
+        if not is_void(returndef) then
+          result:=result+'$$'+returndef.mangledparaname;
+        newlen:=length(result)+oldlen;
+        { Replace with CRC if the parameter line is very long }
+        if (newlen-oldlen>12) and
+           ((newlen>100) or (newlen-oldlen>64)) then
+          begin
+            crc:=0;
+            for i:=0 to paras.count-1 do
+              begin
+                hp:=tparavarsym(paras[i]);
+                if not(vo_is_hidden_para in hp.varoptions) then
+                  begin
+                    hs:=hp.vardef.mangledparaname;
+                    crc:=UpdateCrc32(crc,hs[1],length(hs));
+                  end;
+              end;
+            if not is_void(returndef) then
+              begin
+                { add a little prefix so that x(integer; integer) is different from x(integer):integer }
+                hs:='$$'+returndef.mangledparaname;
+                crc:=UpdateCrc32(crc,hs[1],length(hs));
+              end;
+            result:='$crc'+hexstr(crc,8);
+          end;
       end;
 
 
@@ -5222,7 +5345,9 @@ implementation
            not(is_void(returndef)) then
           s:=s+':'+returndef.GetTypeName;
         if owner.symtabletype=localsymtable then
-          s:=s+' is nested';
+          s:=s+' is nested'
+        else if po_is_block in procoptions then
+          s:=s+' is block';
         s:=s+';';
         { forced calling convention? }
         if (po_hascallingconvention in procoptions) then
@@ -5450,49 +5575,11 @@ implementation
 
 
     function tprocdef.defaultmangledname: TSymStr;
-      var
-        hp   : TParavarsym;
-        hs   : TSymStr;
-        crc  : dword;
-        newlen,
-        oldlen,
-        i    : integer;
       begin
-        hp:=nil;
         { we need to use the symtable where the procsym is inserted,
           because that is visible to the world }
         defaultmangledname:=make_mangledname('',procsym.owner,procsym.name);
-        oldlen:=length(defaultmangledname);
-        { add parameter types }
-        for i:=0 to paras.count-1 do
-         begin
-           hp:=tparavarsym(paras[i]);
-           if not(vo_is_hidden_para in hp.varoptions) then
-             defaultmangledname:=defaultmangledname+'$'+hp.vardef.mangledparaname;
-         end;
-        { add resultdef, add $$ as separator to make it unique from a
-          parameter separator }
-        if not is_void(returndef) then
-          defaultmangledname:=defaultmangledname+'$$'+returndef.mangledparaname;
-        newlen:=length(defaultmangledname);
-        { Replace with CRC if the parameter line is very long }
-        if (newlen-oldlen>12) and
-           ((newlen>100) or (newlen-oldlen>64)) then
-          begin
-            crc:=0;
-            for i:=0 to paras.count-1 do
-              begin
-                hp:=tparavarsym(paras[i]);
-                if not(vo_is_hidden_para in hp.varoptions) then
-                  begin
-                    hs:=hp.vardef.mangledparaname;
-                    crc:=UpdateCrc32(crc,hs[1],length(hs));
-                  end;
-              end;
-            hs:=hp.vardef.mangledparaname;
-            crc:=UpdateCrc32(crc,hs[1],length(hs));
-            defaultmangledname:=Copy(defaultmangledname,1,oldlen)+'$crc'+hexstr(crc,8);
-          end;
+        defaultmangledname:=defaultmangledname+mangledprocparanames(Length(defaultmangledname))
       end;
 
 
@@ -5829,7 +5916,11 @@ implementation
           if not is_nested_pd(self) then
             result:='procvar'
           else
-            result:='nestedprovar'
+            { we need the manglednames here, because nestedprocvars can be anonymous, e.g.
+              having not a type name or not an unique one, see webtbs/tw27515.pp
+
+              Further, use $_ ... _$ delimiters to avoid ambiguous names, see webtbs/tw27515.pp }
+            result:='$_nestedprovar'+mangledprocparanames(0)+'_$'
         else
           result:='procvarofobj'
       end;
@@ -5868,7 +5959,11 @@ implementation
            s := s+' of object';
          if is_nested_pd(self) then
            s := s+' is nested';
-         GetTypeName := s+';'+ProcCallOptionStr[proccalloption]+'>';
+         { calling convention doesn't matter for blocks }
+         if po_is_block in procoptions then
+           GetTypeName := s+' is block;'
+         else
+           GetTypeName := s+';'+ProcCallOptionStr[proccalloption]+'>';
       end;
 
 
@@ -6283,7 +6378,7 @@ implementation
          inherited derefimpl;
          { the procdefs are not owned by the class helper procsyms, so they
            are not stored/restored either -> re-add them here }
-         if (objecttype=odt_objcclass) or
+         if (objecttype in [odt_objcclass,odt_objcprotocol]) or
             (oo_is_classhelper in objectoptions) then
            symtable.DefList.ForEachCall(@create_class_helper_for_procdef,nil);
       end;
@@ -7413,7 +7508,7 @@ implementation
       begin
         if assigned(objc_fastenumeration) then
           exit;
-        if not(target_info.system in [system_arm_darwin,system_i386_iphonesim]) then
+        if not(target_info.system in [system_arm_darwin,system_i386_iphonesim,system_aarch64_darwin,system_x86_64_iphonesim]) then
           cocoaunit:='COCOAALL'
         else
           cocoaunit:='IPHONEALL';
@@ -7441,6 +7536,11 @@ implementation
 {$define use_vectorfpuimplemented}
         use_vectorfpu:=(current_settings.fputype in vfp_scalar);
 {$endif arm}
+{$ifdef aarch64}
+{$define use_vectorfpuimplemented}
+        use_vectorfpu:=true;
+{$endif aarch64}
+
 {$ifndef use_vectorfpuimplemented}
         use_vectorfpu:=false;
 {$endif}

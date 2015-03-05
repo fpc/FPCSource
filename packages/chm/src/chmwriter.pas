@@ -20,10 +20,9 @@
 }
 unit chmwriter;
 {$MODE OBJFPC}{$H+}
-{ $DEFINE LZX_USETHREADS}
 
 interface
-uses Classes, ChmBase, chmtypes, chmspecialfiles, HtmlIndexer, chmsitemap, contnrs, StreamEx, Avl_Tree{$IFDEF LZX_USETHREADS}, lzxcompressthread{$ENDIF};
+uses Classes, ChmBase, chmtypes, chmspecialfiles, HtmlIndexer, chmsitemap, contnrs, StreamEx, Avl_Tree, lzxcompressthread;
 
 Const
    DefaultHHC = 'Default.hhc';
@@ -79,6 +78,7 @@ Type
     HeaderSection0: TITSPHeaderPrefix;
     HeaderSection1: TITSPHeader; // DirectoryListings header
     FReadmeMessage : String;
+    FCores	: integer;
     // DirectoryListings
     // CONTENT Section 0 (section 1 is contained in section 0)
     // EOF
@@ -105,13 +105,11 @@ Type
     function  WriteCompressedData(Count: Longint; Buffer: Pointer): LongInt;
     procedure MarkFrame(UnCompressedTotal, CompressedTotal: LongWord);
     // end callbacks
-    {$IFDEF LZX_USETHREADS}
     // callbacks for lzx compress threads
     function  LTGetData(Sender: TLZXCompressor; WantedByteCount: Integer; Buffer: Pointer): Integer;
     function  LTIsEndOfFile(Sender: TLZXCompressor): Boolean;
     procedure LTChunkDone(Sender: TLZXCompressor; CompressedSize: Integer; UncompressedSize: Integer; Buffer: Pointer);
     procedure LTMarkFrame(Sender: TLZXCompressor; CompressedTotal: Integer; UncompressedTotal: Integer);
-    {$ENDIF}
     // end callbacks
   public
     constructor Create(AOutStream: TStream; FreeStreamOnDestroy: Boolean); virtual;
@@ -127,6 +125,7 @@ Type
     property OutStream: TStream read FOutStream;
     property TempRawStream: TStream read FTempStream write SetTempRawStream;
     property ReadmeMessage : String read fReadmeMessage write fReadmeMessage;
+    property Cores : integer read fcores write fcores;
     //property LocaleID: dword read ITSFHeader.LanguageID write ITSFHeader.LanguageID;
   end;
 
@@ -757,7 +756,6 @@ begin
   // We have to trim the last entry off when we are done because there is no next block in that case
 end;
 
-{$IFDEF LZX_USETHREADS}
 function TITSFWriter.LTGetData(Sender: TLZXCompressor; WantedByteCount: Integer;
   Buffer: Pointer): Integer;
 begin
@@ -782,8 +780,6 @@ begin
   MarkFrame(UncompressedTotal, CompressedTotal);
   //WriteLn('Mark Frame C = ', CompressedTotal, ' U = ', UncompressedTotal);
 end;
-{$ENDIF}
-
 
 constructor TITSFWriter.Create(AOutStream: TStream; FreeStreamOnDestroy: Boolean);
 begin
@@ -910,37 +906,38 @@ end;
 
 procedure TITSFWriter.StartCompressingStream;
 var
-  {$IFNDEF LZX_USETHREADS}
   LZXdata: Plzx_data;
   WSize: LongInt;
-  {$ELSE}
   Compressor: TLZXCompressor;
-  {$ENDIF}
 begin
- {$IFNDEF LZX_USETHREADS}
-  lzx_init(@LZXdata, LZX_WINDOW_SIZE, @_GetData, Self, @_AtEndOfData,
+ if fcores=0 then
+   begin
+     lzx_init(@LZXdata, LZX_WINDOW_SIZE, @_GetData, Self, @_AtEndOfData,
               @_WriteCompressedData, Self, @_MarkFrame, Self);
 
-  WSize := 1 shl LZX_WINDOW_SIZE;
-  while not AtEndOfData do begin
-    lzx_reset(LZXdata);
-    lzx_compress_block(LZXdata, WSize, True);
-  end;
+     WSize := 1 shl LZX_WINDOW_SIZE;
+     while not AtEndOfData do begin
+       lzx_reset(LZXdata);
+       lzx_compress_block(LZXdata, WSize, True);
+     end;
 
-  //we have to mark the last frame manually
-  MarkFrame(LZXdata^.len_uncompressed_input, LZXdata^.len_compressed_output);
+     //we have to mark the last frame manually
+     MarkFrame(LZXdata^.len_uncompressed_input, LZXdata^.len_compressed_output);
 
-  lzx_finish(LZXdata, nil);
-  {$ELSE}
-  Compressor := TLZXCompressor.Create(4);
-  Compressor.OnChunkDone  :=@LTChunkDone;
-  Compressor.OnGetData    :=@LTGetData;
-  Compressor.OnIsEndOfFile:=@LTIsEndOfFile;
-  Compressor.OnMarkFrame  :=@LTMarkFrame;
-  Compressor.Execute(True);
-  //Sleep(20000);
-  Compressor.Free;
-  {$ENDIF}
+     lzx_finish(LZXdata, nil);
+   end
+ else
+   begin
+     if fcores=0 then fcores:=4;
+     Compressor := TLZXCompressor.Create(fcores);
+     Compressor.OnChunkDone  :=@LTChunkDone;
+     Compressor.OnGetData    :=@LTGetData;
+     Compressor.OnIsEndOfFile:=@LTIsEndOfFile;
+     Compressor.OnMarkFrame  :=@LTMarkFrame;
+     Compressor.Execute(True);
+     //Sleep(20000);
+     Compressor.Free;
+   end;
 end;
 
 

@@ -25,10 +25,13 @@ interface
 
 {$define DISABLE_NO_THREAD_MANAGER}
 {$define HAS_WIDESTRINGMANAGER}
+{$define DISABLE_NO_DYNLIBS_MANAGER}
+{$define FPC_SYSTEM_HAS_SYSDLH}
 
 {$ifdef FPC_USE_WIN64_SEH}
   {$define FPC_SYSTEM_HAS_RAISEEXCEPTION}
   {$define FPC_SYSTEM_HAS_RERAISE}
+  {$define FPC_SYSTEM_HAS_CAPTUREBACKTRACE}
 {$endif FPC_USE_WIN64_SEH}
 
 { include system-independent routine headers }
@@ -99,6 +102,8 @@ Const
   fmShareDenyNoneFlags : DWord = 3;
 
 implementation
+
+{$asmmode att}
 
 var
   SysInstance : qword;public;
@@ -605,15 +610,14 @@ begin
     InitSystemThreads;
   end;
   SysInitExceptions;
-  initwidestringmanager;
   initunicodestringmanager;
   InitWin32Widestrings;
   SysInitStdIO;
   { Arguments }
   setup_arguments;
+  InitSystemDynLibs;
   { Reset IO Error }
   InOutRes:=0;
   ProcessID := GetCurrentProcessID;
-  initvariantmanager;
   DispCallByIDProc:=@DoDispCallByIDError;
 end.

@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2002-2011 by Tomas Hajny,
+    Copyright (c) 2002-2014 by Tomas Hajny,
     member of the Free Pascal development team.
 
     OS/2 threading support implementation
@@ -17,6 +17,9 @@
 {*****************************************************************************
                            Local Api imports
 *****************************************************************************}
+
+var
+  OS2ThreadManager: TThreadManager;
 
 const
  pag_Read = 1;
@@ -98,12 +101,27 @@ type
     PFSRec: pointer;
   end;
 
+  TDosAllocThreadLocalMemory = function (Count: cardinal; var P: pointer):
+                                                               cardinal; cdecl;
+
+  TDosFreeThreadLocalMemory = function (P: pointer): cardinal; cdecl;
+
+
+const
+  DosAllocThreadLocalMemory: TDosAllocThreadLocalMemory = nil;
+  DosFreeThreadLocalMemory: TDosFreeThreadLocalMemory = nil;
+  OrdDosAllocThreadLocalMemory = 454;
+  OrdDosFreeThreadLocalMemory = 455;
+  TLSAPISupported: boolean = false;
+
 { import the necessary stuff from the OS }
+(*
 function DosAllocThreadLocalMemory (Count: cardinal; var P: pointer): cardinal;
                                           cdecl; external 'DOSCALLS' index 454;
 
 function DosFreeThreadLocalMemory (P: pointer): cardinal; cdecl;
                                                  external 'DOSCALLS' index 455;
+*)
 
 function DosCreateThread (var TID: cardinal; Address: pointer;
 (* TThreadFunc *)
@@ -177,15 +195,23 @@ function DosQuerySysState (EntityList, EntityLevel, PID, TID: cardinal;
 *****************************************************************************}
 
 const
- ThreadVarBlockSize: dword = 0;
+  ThreadVarBlockSize: dword = 0;
 
 
 const
 (* Pointer to an allocated dword space within the local thread *)
 (* memory area. Pointer to the real memory block allocated for *)
 (* thread vars in this block is then stored in this dword.     *)
- DataIndex: PPointer = nil;
+  DataIndex: PPointer = nil;
 
+
+type
+(* If Thread Local Memory Area (TLMA) and the respective API functions are *)
+(* not available (OS/2 version 2.x) then handle the memory using array     *)
+(* of pointers indexed by Thread ID - pointer to this array is then stored *)
+(* in DataIndex (typecasted using the following types).                    *)
+  TTLSPointers = array [0..4095] of pointer;
+  PTLSPointers = ^TTLSPointers;
 
 procedure SysInitThreadvar (var Offset: dword; Size: dword);
 begin
@@ -195,36 +221,67 @@ end;
 
 
 procedure SysAllocateThreadVars;
+var
+ RC: cardinal;
 begin
  { we've to allocate the memory from the OS }
  { because the FPC heap management uses     }
  { exceptions which use threadvars but      }
  { these aren't allocated yet ...           }
  { allocate room on the heap for the thread vars }
- if DosAllocMem (DataIndex^, ThreadVarBlockSize, pag_Read or pag_Write
-                                                       or pag_Commit) <> 0 then
-  HandleError (8);
+ if TLSAPISupported then
+  RC := DosAllocMem (DataIndex^, ThreadVarBlockSize, pag_Read or pag_Write
+                                                                 or pag_Commit)
+ else
+  begin
+   if PTLSPointers (DataIndex)^ [ThreadID] <> nil then
+    begin
+     RC := DosFreeMem (PTLSPointers (DataIndex)^ [ThreadID]);
+     if RC <> 0 then
+      OSErrorWatch (RC);
+    end;
+   RC := DosAllocMem (PTLSPointers (DataIndex)^ [ThreadID], ThreadVarBlockSize,
+                                          pag_Read or pag_Write or pag_Commit);
+  end;
+ if RC <> 0 then
+  begin
+   OSErrorWatch (RC);
+   HandleError (8);
+  end;
 { The Windows API apparently provides a way to fill the allocated memory with }
 { zeros; we probably need to do it ourselves for compatibility. }
  FillChar (DataIndex^^, 0, ThreadVarBlockSize);
 end;
 
-
 function SysRelocateThreadVar (Offset: dword): pointer;
 begin
 { DataIndex itself not checked for not being nil - expected that this should }
 { not be necessary because the equivalent check (i.e. TlsKey not being set)  }
-{ is note performed by the Windows implementation.                           }
+{ is not performed by the Windows implementation.                            }
+  if PTLSPointers (DataIndex)^ [ThreadID] = nil then
+   begin
+    SysAllocateThreadVars;
+    InitThread ($1000000);
+   end;
+  SysRelocateThreadVar := PTLSPointers (DataIndex)^ [ThreadID] + Offset;
+end;
+
+function OS2RelocateThreadVar (Offset: dword): pointer;
+begin
+{ DataIndex itself not checked for not being nil - expected that this should }
+{ not be necessary because the equivalent check (i.e. TlsKey not being set)  }
+{ is not performed by the Windows implementation.                            }
   if DataIndex^ = nil then
    begin
     SysAllocateThreadVars;
     InitThread ($1000000);
    end;
-  SysRelocateThreadVar := DataIndex^ + Offset;
+  OS2RelocateThreadVar := DataIndex^ + Offset;
 end;
 
-
 procedure SysInitMultithreading;
+var
+  RC: cardinal;
 begin
   { do not check IsMultiThread, as program could have altered it, out of Delphi habit }
 
@@ -232,20 +289,49 @@ begin
   if DataIndex = nil then
    begin
     { We're still running in single thread mode, setup the TLS }
-    if DosAllocThreadLocalMemory (1, DataIndex) <> 0 then RunError (8);
-    InitThreadVars (@SysRelocateThreadvar);
+    RC := DosAllocThreadLocalMemory (1, DataIndex);
+    if RC = 0 then
+     begin
+(* Avoid the need for checking TLSAPISupported on every call *)
+(* to RelocateThreadVar - ensure using the right version.    *)
+      OS2ThreadManager.RelocateThreadVar := @OS2RelocateThreadVar;
+      CurrentTM.RelocateThreadVar := @OS2RelocateThreadVar;
+      InitThreadVars (@OS2RelocateThreadvar);
+     end
+    else
+     begin
+      OSErrorWatch (RC);
+(* We can still try using the internal solution for older OS/2 versions... *)
+      TLSAPISupported := false;
+      RC := DosAllocMem (DataIndex, SizeOf (TTLSPointers),
+                                          pag_Read or pag_Write or pag_Commit);
+      if RC = 0 then
+       InitThreadVars (@SysRelocateThreadvar)
+      else
+       begin
+        OSErrorWatch (RC);
+        RunError (8);
+       end;
+     end;
     IsMultiThread := true;
    end;
 end;
 
 
 procedure SysFiniMultithreading;
+var
+ RC: cardinal;
 begin
   if IsMultiThread then
    begin
-    if DosFreeThreadLocalMemory (DataIndex) <> 0 then
+    if TLSAPISupported then
+     RC := DosFreeThreadLocalMemory (DataIndex)
+    else
+     RC := DosFreeMem (DataIndex);
+    if RC <> 0 then
      begin
 {??? What to do if releasing fails?}
+      OSErrorWatch (RC);
      end;
     DataIndex := nil;
    end;
@@ -253,9 +339,25 @@ end;
 
 
 procedure SysReleaseThreadVars;
+var
+ RC: cardinal;
+(* TID serves for storing ThreadID before freeing the memory allocated *)
+(* to threadvars to avoid accessing a threadvar ThreadID afterwards.   *)
+ TID: cardinal;
 begin
-  DosFreeMem (DataIndex^);
-  DataIndex^ := nil;
+ if TLSAPISupported then
+  begin
+   RC := DosFreeMem (DataIndex^);
+   DataIndex^ := nil;
+  end
+ else
+  begin
+   TID := ThreadID;
+   RC := DosFreeMem (PTLSPointers (DataIndex)^ [TID]);
+   PTLSPointers (DataIndex)^ [TID] := nil;
+  end;
+ if RC <> 0 then
+  OSErrorWatch (RC);
 end;
 
 
@@ -334,6 +436,7 @@ function SysBeginThread (SA: pointer; StackSize : PtrUInt;
                          CreationFlags: cardinal; var ThreadId: TThreadID): DWord;
 var
   TI: PThreadInfo;
+  RC: cardinal;
 begin
 { WriteLn is not a good idea before thread initialization...
   $ifdef DEBUG_MT
@@ -351,8 +454,9 @@ begin
 {$ifdef DEBUG_MT}
   WriteLn ('Starting new thread');
 {$endif DEBUG_MT}
-  if DosCreateThread (cardinal (ThreadID), @ThreadMain, TI,
-                                             CreationFlags, StackSize) = 0 then
+  RC := DosCreateThread (cardinal (ThreadID), @ThreadMain, TI,
+                                                     CreationFlags, StackSize);
+  if RC = 0 then
    SysBeginThread := ThreadID
   else
    begin
@@ -361,6 +465,7 @@ begin
     WriteLn ('Thread creation failed');
 {$ENDIF DEBUG_MT}
     Dispose (TI);
+    OSErrorWatch (RC);
    end;
 end;
 
@@ -379,40 +484,62 @@ end;
 
 
 function SysSuspendThread (ThreadHandle: dword): dword;
+var
+  RC: cardinal;
 begin
 {$WARNING Check expected return value}
-  SysSuspendThread := DosSuspendThread (ThreadHandle);
+  RC := DosSuspendThread (ThreadHandle);
+  SysSuspendThread := RC;
+  if RC <> 0 then
+   OSErrorWatch (RC);
 end;
 
 
 function SysResumeThread (ThreadHandle: dword): dword;
+var
+  RC: cardinal;
 begin
 {$WARNING Check expected return value}
-  SysResumeThread := DosResumeThread (ThreadHandle);
+  RC := DosResumeThread (ThreadHandle);
+  SysResumeThread := RC;
+  if RC <> 0 then
+   OSErrorWatch (RC);
 end;
 
 
 function SysKillThread (ThreadHandle: dword): dword;
+var
+  RC: cardinal;
 begin
-  SysKillThread := DosKillThread (ThreadHandle);
+  RC := DosKillThread (ThreadHandle);
+  SysKillThread := RC;
+  if RC <> 0 then
+   OSErrorWatch (RC);
 end;
 
+{$PUSH}
+{$WARNINGS OFF}
 function SysCloseThread (ThreadHandle: TThreadID): dword;
 begin
 { Probably not relevant under OS/2? }
 //      SysCloseThread:=CloseHandle(threadHandle);
 end;
+{$POP}
 
 function SysWaitForThreadTerminate (ThreadHandle: dword;
                                                     TimeoutMs: longint): dword;
 var
-  RC: cardinal;
+  RC, RC2: cardinal;
 const
 { Wait at most 100 ms before next check for thread termination }
   WaitTime = 100;
 begin
   if TimeoutMs = 0 then
-   RC := DosWaitThread (ThreadHandle, dcWW_Wait)
+   begin
+    RC := DosWaitThread (ThreadHandle, dcWW_Wait);
+    if RC <> 0 then
+     OSErrorWatch (RC);
+   end
   else
    repeat
     RC := DosWaitThread (ThreadHandle, dcWW_NoWait);
@@ -423,10 +550,14 @@ begin
       else
        begin
         DosSleep (TimeoutMs);
-        DosWaitThread (ThreadHandle, dcWW_NoWait);
+        RC2 := DosWaitThread (ThreadHandle, dcWW_NoWait);
+        if RC2 <> 0 then
+         OSErrorWatch (RC2);
        end;
       Dec (TimeoutMs, WaitTime);
-     end;
+     end
+    else if RC <> 0 then
+     OSErrorWatch (RC);
    until (RC <> 294) or (TimeoutMs <= 0);
   SysWaitForThreadTerminate := RC;
 end;
@@ -451,7 +582,9 @@ begin
   else
    begin
     RC := DosQuerySysState (qs_Process, 0, ProcessID, 0, PPtrRec^, BufSize);
-    if (RC = 0) and (PPtrRec^.PProcRec <> nil)
+    if RC <> 0 then
+     OSErrorWatch (RC)
+    else if (PPtrRec^.PProcRec <> nil)
                                   and (PPtrRec^.PProcRec^.PThrdRec <> nil) then
      begin
       BufEnd := PtrUInt (PPtrRec) + BufSize;
@@ -480,6 +613,7 @@ function SysThreadSetPriority (ThreadHandle: dword; Prio: longint): boolean;
 var
   Delta: longint;
   Priority: cardinal;
+  RC: cardinal;
 begin
   Priority := GetOS2ThreadPriority (ThreadHandle);
   if Priority > High (word) then
@@ -491,8 +625,10 @@ begin
      Delta := - TPrio (Priority).PrioLevel
     else if Delta + TPrio (Priority).PrioLevel > 31 then
      Delta := 31 - TPrio (Priority).PrioLevel;
-    SysThreadSetPriority :=
-               DosSetPriority (dpThread, dpSameClass, Delta, ThreadHandle) = 0;
+    RC := DosSetPriority (dpThread, dpSameClass, Delta, ThreadHandle);
+    if RC <> 0 then
+     OSErrorWatch (RC);
+    SysThreadSetPriority := RC = 0;
    end;
 end;
 
@@ -529,25 +665,43 @@ end;
 *****************************************************************************}
 
 procedure SysInitCriticalSection (var CS);
+var
+  RC: cardinal;
 begin
-  if DosCreateMutExSem (nil, THandle (CS), 0, 0) <> 0 then
-   FPC_ThreadError;
+  RC := DosCreateMutExSem (nil, THandle (CS), 0, 0);
+  if RC <> 0 then
+   begin
+    OSErrorWatch (RC);
+    FPC_ThreadError;
+   end;
 end;
 
 procedure SysDoneCriticalSection (var CS);
+var
+  RC: cardinal;
 begin
 (* Trying to release first since this might apparently be the expected  *)
 (* behaviour in Delphi according to comment in the Unix implementation. *)
   repeat
   until DosReleaseMutExSem (THandle (CS)) <> 0;
-  if DosCloseMutExSem (THandle (CS)) <> 0 then
-   FPC_ThreadError;
+  RC := DosCloseMutExSem (THandle (CS));
+  if RC <> 0 then
+   begin
+    OSErrorWatch (RC);
+    FPC_ThreadError;
+   end;
 end;
 
 procedure SysEnterCriticalSection (var CS);
+var
+  RC: cardinal;
 begin
-  if DosRequestMutExSem (THandle (CS), cardinal (-1)) <> 0 then
-   FPC_ThreadError;
+  RC := DosRequestMutExSem (THandle (CS), cardinal (-1));
+  if RC <> 0 then
+   begin
+    OSErrorWatch (RC);
+    FPC_ThreadError;
+   end;
 end;
 
 function SysTryEnterCriticalSection (var CS): longint;
@@ -559,9 +713,15 @@ begin
 end;
 
 procedure SysLeaveCriticalSection (var CS);
+var
+  RC: cardinal;
 begin
-  if DosReleaseMutExSem (THandle (CS)) <> 0 then
-   FPC_ThreadError;
+  RC := DosReleaseMutExSem (THandle (CS));
+  if RC <> 0 then
+   begin
+    OSErrorWatch (RC);
+    FPC_ThreadError;
+   end;
 end;
 
 
@@ -607,18 +767,23 @@ begin
   if RC <> 0 then
    begin
     Dispose (PLocalEventRec (Result));
+    OSErrorWatch (RC);
     FPC_ThreadError;
    end;
 end;
 
 
 procedure SysBasicEventDestroy (State: PEventState);
+var
+  RC: cardinal;
 begin
   if State = nil then
    FPC_ThreadError
   else
    begin
-    DosCloseEventSem (PLocalEventRec (State)^.FHandle);
+    RC := DosCloseEventSem (PLocalEventRec (State)^.FHandle);
+    if RC <> 0 then
+     OSErrorWatch (RC);
     Dispose (PLocalEventRec (State));
    end;
 end;
@@ -627,22 +792,33 @@ end;
 procedure SysBasicEventResetEvent (State: PEventState);
 var
   PostCount: cardinal;
+  RC: cardinal;
 begin
   if State = nil then
    FPC_ThreadError
   else
+   begin
 (* In case of later addition of error checking:    *)
 (* RC 300 = Error_Already_Reset which would be OK. *)
-   DosResetEventSem (PLocalEventRec (State)^.FHandle, PostCount);
+    RC := DosResetEventSem (PLocalEventRec (State)^.FHandle, PostCount);
+    if (RC <> 0) and (RC <> 300) then
+     OSErrorWatch (RC);
+   end;
 end;
 
 
 procedure SysBasicEventSetEvent (State: PEventState);
+var
+  RC: cardinal;
 begin
   if State = nil then
    FPC_ThreadError
   else
-   DosPostEventSem (PLocalEventRec (State)^.FHandle);
+   begin
+    RC := DosPostEventSem (PLocalEventRec (State)^.FHandle);
+    if RC <> 0 then
+     OSErrorWatch (RC);
+   end;
 end;
 
 
@@ -661,6 +837,7 @@ begin
     else
      begin
       Result := wrError;
+      OSErrorWatch (RC);
       PLocalEventRec (State)^.FLastError := RC;
      end;
     end;
@@ -669,41 +846,64 @@ end;
 
 
 function SysRTLEventCreate: PRTLEvent;
+var
+  RC: cardinal;
 begin
   Result := PRTLEvent (-1);
-  DosCreateEventSem (nil, THandle (Result), dce_AutoReset, 0);
+  RC := DosCreateEventSem (nil, THandle (Result), dce_AutoReset, 0);
+  if RC <> 0 then
+   OSErrorWatch (RC);
 end;
 
 
 procedure SysRTLEventDestroy (AEvent: PRTLEvent);
+var
+  RC: cardinal;
 begin
-  DosCloseEventSem (THandle (AEvent));
+  RC := DosCloseEventSem (THandle (AEvent));
+  if RC <> 0 then
+   OSErrorWatch (RC);
 end;
 
 
 procedure SysRTLEventSetEvent (AEvent: PRTLEvent);
+var
+  RC: cardinal;
 begin
-  DosPostEventSem (THandle (AEvent));
+  RC := DosPostEventSem (THandle (AEvent));
+  if RC <> 0 then
+   OSErrorWatch (RC);
 end;
 
 
 procedure SysRTLEventWaitFor (AEvent: PRTLEvent);
+var
+  RC: cardinal;
 begin
-  DosWaitEventSem (THandle (AEvent), cardinal (-1));
+  RC := DosWaitEventSem (THandle (AEvent), cardinal (-1));
+  if RC <> 0 then
+   OSErrorWatch (RC);
 end;
 
 
 procedure SysRTLEventWaitForTimeout (AEvent: PRTLEvent; Timeout: longint);
+var
+  RC: cardinal;
 begin
-  DosWaitEventSem (THandle (AEvent), Timeout);
+  RC := DosWaitEventSem (THandle (AEvent), Timeout);
+  if RC <> 0 then
+   OSErrorWatch (RC);
 end;
 
 
 procedure SysRTLEventResetEvent (AEvent: PRTLEvent);
 var
   PostCount: cardinal;
+  RC: cardinal;
 begin
-  DosResetEventSem (THandle (AEvent), PostCount);
+  RC := DosResetEventSem (THandle (AEvent), PostCount);
+  if RC <> 0 then
+   OSErrorWatch (RC);
 end;
 
 
@@ -713,16 +913,16 @@ const
   svNumProcessors = 26;
 var
   ProcNum: cardinal;
+  RC: cardinal;
 begin
   GetCPUCount := 1;
-  if DosQuerySysInfo (svNumProcessors, svNumProcessors, ProcNum,
-                                                     SizeOf (ProcNum)) = 0 then
-   GetCPUCount := ProcNum;
+  RC := DosQuerySysInfo (svNumProcessors, svNumProcessors, ProcNum,
+                                                             SizeOf (ProcNum));
+  if RC = 0 then
+   GetCPUCount := ProcNum
+  else
+   OSErrorWatch (RC);
 end;
-
-
-var
-  OS2ThreadManager: TThreadManager;
 
 
 procedure InitSystemThreads;

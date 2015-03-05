@@ -34,8 +34,15 @@ interface
     hlcg2ll;
 
   type
-    thlcgcpu = class(thlcg2ll)
-     procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
+    tbasehlcgarm = class(thlcg2ll)
+      procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
+    end;
+
+    tarmhlcgcpu = class(tbasehlcgarm)
+    end;
+
+    tthumbhlcgcpu = class(tbasehlcgarm)
+      procedure g_external_wrapper(list : TAsmList; procdef : tprocdef; const externalname : string); override;
     end;
 
   procedure create_hlcodegen;
@@ -43,14 +50,14 @@ interface
 implementation
 
   uses
-    globtype,verbose,
+    globals,globtype,verbose,
     procinfo,fmodule,
     symconst,
-    aasmbase,aasmtai,aasmcpu,
+    aasmbase,aasmtai,aasmcpu, cpuinfo,
     hlcgobj,
     cgbase, cgutils, cpubase, cgobj, cgcpu;
 
-  procedure thlcgcpu.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
+  procedure tbasehlcgarm.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
 
     procedure loadvmttor12;
       var
@@ -93,6 +100,7 @@ implementation
           cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R12);
       end;
 
+
     procedure op_onr12methodaddr;
       var
         tmpref,
@@ -107,6 +115,7 @@ implementation
             if (href.offset in [0..124]) and ((href.offset mod 4)=0) then
               begin
                 list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
+                list.concat(taicpu.op_reg_reg(A_MOV,NR_R0,NR_R12));
                 cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R0);
                 list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_R0));
                 list.concat(taicpu.op_regset(A_POP,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
@@ -124,20 +133,24 @@ implementation
                 tmpref.symbol:=l;
                 tmpref.base:=NR_PC;
                 list.concat(taicpu.op_reg_ref(A_LDR,NR_R1,tmpref));
+                list.concat(taicpu.op_reg_reg(A_MOV,NR_R0,NR_R12));
                 href.offset:=0;
+                href.base:=NR_R0;
                 href.index:=NR_R1;
                 cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R0);
                 list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_R0));
                 list.concat(taicpu.op_regset(A_POP,R_INTREGISTER,R_SUBWHOLE,[RS_R0,RS_R1]));
               end;
-            list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R12));
           end
         else
           begin
             reference_reset_base(href,voidpointertype,NR_R12,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R12);
-            list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R12));
           end;
+        if not(CPUARM_HAS_BX in cpu_capabilities[current_settings.cputype]) then
+          list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R12))
+        else
+          list.concat(taicpu.op_reg(A_BX,NR_R12));
       end;
 
     var
@@ -153,6 +166,9 @@ implementation
         Internalerror(200006138);
       if procdef.owner.symtabletype<>ObjectSymtable then
         Internalerror(200109191);
+
+        if GenerateThumbCode or GenerateThumb2Code then
+          list.concat(tai_thumb_func.create);
 
       make_global:=false;
       if (not current_module.is_unit) or
@@ -199,7 +215,7 @@ implementation
           cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,NR_R0);
           list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_R0));
           list.concat(taicpu.op_regset(A_POP,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
-          list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R12));
+          list.concat(taicpu.op_reg(A_BX,NR_R12));
         end
       else
         list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname)));
@@ -212,12 +228,44 @@ implementation
     end;
 
 
+  { tthumbhlcgcpu }
+
+  procedure tthumbhlcgcpu.g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string);
+    var
+      tmpref : treference;
+      l : tasmlabel;
+    begin
+      { there is no branch instruction on thumb which allows big distances and which leaves LR as it is
+        and which allows to switch the instruction set }
+
+      { create const entry }
+      reference_reset(tmpref,4);
+      current_asmdata.getjumplabel(l);
+      tmpref.symbol:=l;
+      tmpref.base:=NR_PC;
+      list.concat(taicpu.op_regset(A_PUSH,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
+      list.concat(taicpu.op_reg_ref(A_LDR,NR_R0,tmpref));
+      list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_R0));
+      list.concat(taicpu.op_regset(A_POP,R_INTREGISTER,R_SUBWHOLE,[RS_R0]));
+      list.concat(taicpu.op_reg(A_BX,NR_R12));
+
+      { append const entry }
+      list.Concat(tai_align.Create(4));
+      list.Concat(tai_label.create(l));
+      list.concat(tai_const.Create_sym(current_asmdata.RefAsmSymbol(externalname)));
+    end;
+
+
+
   procedure create_hlcodegen;
     begin
-      hlcg:=thlcgcpu.create;
+      if GenerateThumbCode then
+        hlcg:=tthumbhlcgcpu.create
+      else
+        hlcg:=tarmhlcgcpu.create;
       create_codegen;
     end;
 
 begin
-  chlcgobj:=thlcgcpu;
+  chlcgobj:=tbasehlcgarm;
 end.

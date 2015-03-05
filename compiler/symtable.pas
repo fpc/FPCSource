@@ -43,6 +43,7 @@ interface
           init_final_check_done : boolean;
           procedure _needs_init_final(sym:TObject;arg:pointer);
           procedure check_forward(sym:TObject;arg:pointer);
+          procedure check_block_valid(def: TObject;arg:pointer);
           procedure labeldefined(sym:TObject;arg:pointer);
           procedure varsymbolused(sym:TObject;arg:pointer);
           procedure TestPrivate(sym:TObject;arg:pointer);
@@ -284,7 +285,7 @@ interface
     function generate_objectpascal_helper_key(def:tdef):string;
     procedure incompatibletypes(def1,def2:tdef);
     procedure hidesym(sym:TSymEntry);
-    procedure duplicatesym(var hashedid:THashedIDString;dupsym,origsym:TSymEntry);
+    procedure duplicatesym(var hashedid: THashedIDString; dupsym, origsym:TSymEntry; warn: boolean);
     function handle_generic_dummysym(sym:TSymEntry;var symoptions:tsymoptions):boolean;
 
 {*** Search ***}
@@ -414,7 +415,7 @@ implementation
       { global }
       verbose,globals,
       { symtable }
-      symutil,defutil,defcmp,
+      symutil,defutil,defcmp,objcdef,
       { module }
       fmodule,
       { codegen }
@@ -684,7 +685,7 @@ implementation
       begin
         hsym:=tsym(FindWithHash(hashedid));
         if assigned(hsym) then
-          DuplicateSym(hashedid,sym,hsym);
+          DuplicateSym(hashedid,sym,hsym,false);
         result:=assigned(hsym);
       end;
 
@@ -707,6 +708,21 @@ implementation
              (ttypesym(sym).typedef.typesym=ttypesym(sym)) and
              (ttypesym(sym).typedef.typ in [objectdef,recorddef]) then
            tabstractrecorddef(ttypesym(sym).typedef).check_forwards;
+      end;
+
+
+    procedure tstoredsymtable.check_block_valid(def: TObject; arg: pointer);
+      var
+        founderrordef: tdef;
+      begin
+        { all parameters passed to a block must be handled by the Objective-C
+          runtime }
+        if is_block(tdef(def)) and
+           not objcchecktype(tdef(def),founderrordef) then
+          if assigned(tdef(def).typesym) then
+            MessagePos1(tdef(def).typesym.fileinfo,type_e_objc_type_unsupported,founderrordef.typename)
+          else
+            Message1(type_e_objc_type_unsupported,tprocvardef(def).typename)
       end;
 
 
@@ -750,6 +766,7 @@ implementation
                      { don't warn about the result of constructors }
                      if ((tsym(sym).owner.symtabletype<>localsymtable) or
                         (tprocdef(tsym(sym).owner.defowner).proctypeoption<>potype_constructor)) and
+                        not (po_noreturn in tprocdef(tsym(sym).owner.defowner).procoptions) and
                         not(cs_opt_nodedfa in current_settings.optimizerswitches) then
                        MessagePos(tsym(sym).fileinfo,sym_w_function_result_not_set)
                    end
@@ -854,6 +871,9 @@ implementation
     procedure tstoredsymtable.check_forwards;
       begin
          SymList.ForEachCall(@check_forward,nil);
+         { check whether all block definitions contain valid Objective-C types
+           (now that all forward definitions have been resolved) }
+         DefList.ForEachCall(@check_block_valid,nil);
       end;
 
 
@@ -1469,9 +1489,9 @@ implementation
             if tfieldvarsym(sym).fieldoffset=0 then
               include(tfieldvarsym(sym).varoptions,vo_is_first_field);
 
-            { add to this record symtable }
+            { add to this record symtable, checking for duplicate names }
 //            unionst.SymList.List.List^[i].Data:=nil;
-            sym.ChangeOwner(self);
+            insert(sym);
             varalign:=tfieldvarsym(sym).vardef.alignment;
             if varalign=0 then
               varalign:=size_2_align(tfieldvarsym(sym).getsize);
@@ -1556,7 +1576,8 @@ implementation
 
     function tObjectSymtable.checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;
       var
-         hsym : tsym;
+         hsym: tsym;
+         warn: boolean;
       begin
          result:=false;
          if not assigned(defowner) then
@@ -1587,7 +1608,15 @@ implementation
                   )
                  ) then
                 begin
-                  DuplicateSym(hashedid,sym,hsym);
+                  { only watn when a parameter/local variable in a method
+                    conflicts with a category method, because this can easily
+                    happen due to all possible categories being imported via
+                    CocoaAll }
+                  warn:=
+                    (is_objccategory(tdef(hsym.owner.defowner)) or
+                     is_classhelper(tdef(hsym.owner.defowner))) and
+                    (sym.typ in [paravarsym,localvarsym,fieldvarsym]);
+                  DuplicateSym(hashedid,sym,hsym,warn);
                   result:=true;
                 end;
            end
@@ -1994,7 +2023,7 @@ implementation
                    (vo_is_result in tabstractvarsym(hsym).varoptions)) then
               HideSym(hsym)
             else
-              DuplicateSym(hashedid,sym,hsym);
+              DuplicateSym(hashedid,sym,hsym,false);
             result:=true;
             exit;
           end;
@@ -2014,7 +2043,7 @@ implementation
                    (vo_is_result in tabstractvarsym(sym).varoptions)) then
               Hidesym(sym)
             else
-              DuplicateSym(hashedid,sym,hsym);
+              DuplicateSym(hashedid,sym,hsym,false);
             result:=true;
             exit;
           end;
@@ -2120,7 +2149,7 @@ implementation
                   tnamespacesym(sym).unitsym:=tsym(hsym);
               end
             else
-              DuplicateSym(hashedid,sym,hsym);
+              DuplicateSym(hashedid,sym,hsym,false);
             result:=true;
             exit;
           end;
@@ -2463,11 +2492,15 @@ implementation
       end;
 
 
-    procedure duplicatesym(var hashedid:THashedIDString;dupsym,origsym:TSymEntry);
+    procedure duplicatesym(var hashedid: THashedIDString; dupsym, origsym: TSymEntry; warn: boolean);
       var
         st : TSymtable;
+        filename : TIDString;
       begin
-        Message1(sym_e_duplicate_id,tsym(origsym).realname);
+        if not warn then
+          Message1(sym_e_duplicate_id,tsym(origsym).realname)
+        else
+         Message1(sym_w_duplicate_id,tsym(origsym).realname);
         { Write hint where the original symbol was found }
         st:=finduniTSymtable(origsym.owner);
         with tsym(origsym).fileinfo do
@@ -2477,7 +2510,13 @@ implementation
                st.iscurrentunit then
               Message2(sym_h_duplicate_id_where,current_module.sourcefiles.get_file_name(fileindex),tostr(line))
             else if assigned(st.name) then
-              Message2(sym_h_duplicate_id_where,'unit '+st.name^,tostr(line));
+              begin
+                filename:=find_module_from_symtable(st).sourcefiles.get_file_name(fileindex);
+                if filename<>'' then
+                  Message2(sym_h_duplicate_id_where,'unit '+st.name^+': '+filename,tostr(line))
+                else
+                  Message2(sym_h_duplicate_id_where,'unit '+st.name^,tostr(line))
+              end;
           end;
         { Rename duplicate sym to an unreachable name, but it can be
           inserted in the symtable without errors }
@@ -2614,6 +2653,7 @@ implementation
     function is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tabstractrecorddef):boolean;
       var
         symownerdef : tabstractrecorddef;
+        nonlocalst : tsymtable;
       begin
         result:=false;
 
@@ -2622,17 +2662,22 @@ implementation
            not (symst.symtabletype in [objectsymtable,recordsymtable]) then
           internalerror(200810285);
         symownerdef:=tabstractrecorddef(symst.defowner);
+        { specializations might belong to a localsymtable or parasymtable }
+        nonlocalst:=symownerdef.owner;
+        if tstoreddef(symst.defowner).is_specialization then
+          while nonlocalst.symtabletype in [localsymtable,parasymtable] do
+            nonlocalst:=nonlocalst.defowner.owner;
         case symvisibility of
           vis_private :
             begin
               { private symbols are allowed when we are in the same
                 module as they are defined }
               result:=(
-                       (symownerdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
-                       (symownerdef.owner.iscurrentunit)
+                       (nonlocalst.symtabletype in [globalsymtable,staticsymtable]) and
+                       (nonlocalst.iscurrentunit)
                       ) or
                       ( // the case of specialize inside the generic declaration and nested types
-                       (symownerdef.owner.symtabletype in [objectsymtable,recordsymtable]) and
+                       (nonlocalst.symtabletype in [objectsymtable,recordsymtable]) and
                        (
                          assigned(current_structdef) and
                          (
@@ -2684,8 +2729,8 @@ implementation
                 in the current module }
               result:=(
                        (
-                        (symownerdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
-                        (symownerdef.owner.iscurrentunit)
+                        (nonlocalst.symtabletype in [globalsymtable,staticsymtable]) and
+                        (nonlocalst.iscurrentunit)
                        ) or
                        (
                         assigned(contextobjdef) and
@@ -2694,7 +2739,7 @@ implementation
                         def_is_related(contextobjdef,symownerdef)
                        ) or
                        ( // the case of specialize inside the generic declaration and nested types
-                        (symownerdef.owner.symtabletype in [objectsymtable,recordsymtable]) and
+                        (nonlocalst.symtabletype in [objectsymtable,recordsymtable]) and
                         (
                           assigned(current_structdef) and
                           (

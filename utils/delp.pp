@@ -149,7 +149,12 @@ begin
   until s='';
 end;
 
-Var quiet: boolean;
+Var
+  quiet : boolean = False;
+  Recurse : Boolean = False;
+  Verbose : Boolean = False;
+  NoDelete : Boolean = False;
+  MaxDepth : Integer = 0;
 
 procedure usage;
 
@@ -157,8 +162,13 @@ begin
   Writeln('Delp [options] <directory> [<directory2> [<directory3> ...]');
   Writeln('Where options is one of:');
   writeln('  -e    Delete executables also (Not on Unix)');
+  writeln('  -x ext Add extension to list of extensions to delete (no dot)');
   writeln('  -h    Display (this) help message.');
+  writeln('  -r    Recurse into directories.');
+  writeln('  -n    Do not actually delete files.');
+  writeln('  -m N  Maximum depth to recurse into directories (1 based, zero is no max).');
   writeln('  -q    Quietly perfoms deleting.');
+  writeln('  -v    Verbose (print names of deleted files).');
   Halt(1);
 end;
 
@@ -169,21 +179,95 @@ Var c : char;
 begin
   quiet:=false;
   Repeat
-    C:=Getopt('ehq');
+    C:=Getopt('ehvnqrm:x:');
     Case C of
       'e' : AddMAsk('*.exe *.so *.dll');
+      'x' : if (optarg<>'') then
+              AddMask('*.'+optarg);
       'h' : Usage;
-      'q' : Quiet:=True;
+      'r' : Recurse:=True;
+      'n' : NoDelete:=True;
+      'm' : MaxDepth:=StrToInt(optarg);
+      'q' : begin
+            Quiet:=True;
+            verbose:=False;
+            end;
+      'v' : Verbose:=True;
       EndOfOptions : ;
     end;
   Until C=EndOfOptions;
 end;
 
+Procedure DoDir(basedir : string; ALevel : Integer);
+
 var
   Dir    : TSearchrec;
-  Total  : longint;
   hp     : pmaskitem;
+
+begin
+  if Verbose and not Quiet then
+    Writeln('Cleaning directory "',BaseDir,'".');
+  if FindFirst(basedir+'*.*',faanyfile,Dir)=0 then
+   begin
+     repeat
+       hp:=masklist;
+       while assigned(hp) do
+         begin
+           if ((Dir.Attr and faDirectory)=0) and MatchesMask(Dir.Name,hp^.mask) then
+             begin
+               if Verbose then
+                 Writeln('Deleting "',BaseDir+Dir.Name,'"');
+               if not NoDelete then
+                 DeleteFile(BaseDir+Dir.Name);
+               inc(hp^.Files);
+               inc(hp^.Size,Dir.Size);
+               break;
+             end;
+           hp:=hp^.next;
+         end;
+      until FindNext(Dir)<>0;
+      FindClose(Dir);
+    end;
+  if Recurse and ((MaxDepth=0) or (ALevel<=MaxDepth)) then
+    if FindFirst(basedir+allfilesmask,faanyfile,Dir)=0 then
+      begin
+      Repeat
+        if ((Dir.Attr and faDirectory)=faDirectory) and Not ((Dir.Name='.') or (Dir.Name='..')) then
+           DoDir(IncludeTrailingPathDelimiter(BaseDir+Dir.Name),ALevel+1);
+      until FindNext(Dir)<>0;
+      FindClose(Dir);
+      end;
+end;
+
+Procedure PrintResults;
+
+var
+  Total  : longint;
   found  : boolean;
+  hp     : pmaskitem;
+
+begin
+  { Write Results }
+  Total:=0;
+  found:=false;
+  hp:=masklist;
+  while assigned(hp) do
+    begin
+    if hp^.Files>0 then
+      begin
+      WriteLn(' - Removed ',hp^.Files:2,' ',hp^.Mask,' (',DStr(hp^.Size)+' Bytes)');
+      inc(Total,hp^.Size);
+      found:=true;
+      end;
+    hp:=hp^.next;
+    end;
+  if not found then
+    WriteLn(' - No Redundant Files Found!')
+  else
+    WriteLn(' - Total ',DStr(Total),' Bytes Freed');
+end;
+
+var
   basedir : string;
   i : Integer;
 
@@ -212,49 +296,12 @@ begin
       writeln(Copyright);
       Writeln;
     end;
-  Total:=0;
   While (I<=ParamCount) do
     begin
-    BaseDir:=Paramstr(I);
-    If BaseDir[Length(BaseDir)]<>DirectorySeparator then
-      BaseDir:=BaseDir+DirectorySeparator;
-    if FindFirst(basedir+'*.*',faanyfile,Dir)=0 then
-     begin
-       repeat
-         hp:=masklist;
-         while assigned(hp) do
-           begin
-             if MatchesMask(Dir.Name,hp^.mask) then
-               begin
-                 DeleteFile(BaseDir+Dir.Name);
-                 inc(hp^.Files);
-                 inc(hp^.Size,Dir.Size);
-                 break;
-               end;
-             hp:=hp^.next;
-           end;
-        until FindNext(Dir)<>0;
-        FindClose(Dir);
-      end;
+    BaseDir:=IncludeTrailingPathDelimiter(Paramstr(I));
+    DoDir(Basedir,1);
     Inc(I);
     end;
-  { Write Results }
-  found:=false;
-  hp:=masklist;
-  while assigned(hp) do
-    begin
-    if hp^.Files>0 then
-      begin
-      if not quiet then
-        WriteLn(' - Removed ',hp^.Files:2,' ',hp^.Mask,' (',DStr(hp^.Size)+' Bytes)');
-      inc(Total,hp^.Size);
-      found:=true;
-      end;
-    hp:=hp^.next;
-    end;
-  if not quiet then
-    if not found then
-      WriteLn(' - No Redundant Files Found!')
-    else
-      WriteLn(' - Total ',DStr(Total),' Bytes Freed');
+  if Not Quiet then
+    PrintResults;
 end.

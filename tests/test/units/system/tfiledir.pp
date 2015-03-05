@@ -3,7 +3,7 @@
 
 uses
 {$ifdef unix}
-  cwstring,
+  {$ifdef darwin}iosxwstr{$else}cwstring{$endif},
 {$endif}
   sysutils;
 
@@ -82,7 +82,12 @@ end;
 
 
 begin
-  DefaultFileSystemCodePage:=CP_UTF8;
+{ Changing the DefaultFileSystemCodepage without instructing the operating
+  system to expect UTF-8 parameters to its API functions (if that is possible
+  for the particular operating system at all) is wrong and it cannot work
+  correctly on any operating system not using UTF-8 without this setting anyway
+  and not providing direct possibility of Unicode (UTF-16) parameters }
+{DefaultFileSystemCodePage:=CP_UTF8;}
   testsinglebyte;
 //  testtwobyte;
 end.

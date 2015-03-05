@@ -13,10 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('libtar');
+    P.ShortName:='ltar';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
 
     P.Author := 'Stefan Heymann';
     P.License := 'LGPL with modification, ';

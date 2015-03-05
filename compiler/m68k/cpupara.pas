@@ -50,6 +50,7 @@ unit cpupara;
           function parsefuncretloc(p : tabstractprocdef; const s : string) : boolean;override;
           function get_volatile_registers_int(calloption:tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_address(calloption:tproccalloption):tcpuregisterset;override;
+          function get_volatile_registers_fpu(calloption:tproccalloption):tcpuregisterset;override;
          private
           function parse_loc_string_to_register(var locreg: tregister; const s : string): boolean;
           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
@@ -79,6 +80,11 @@ unit cpupara;
         Result:=VOLATILE_ADDRESSREGISTERS;
       end;
 
+    function tcpuparamanager.get_volatile_registers_fpu(calloption:tproccalloption):tcpuregisterset;
+      begin
+        { fp0 and fp1 are considered volatile }
+        Result:=VOLATILE_FPUREGISTERS;
+      end;
 
     function tcpuparamanager.param_use_paraloc(const cgpara:tcgpara):boolean;
       var

@@ -27,13 +27,16 @@ rm fpmake_proc.inc fpmake_add.inc ; /bin/ls -1 */fpmake.pp| while read file; do 
 procedure add_packages(const ADirectory: string);
 
 begin
+  AddCustomFpmakeCommandlineOption('data2inc', 'Use indicated data2inc executable.');
+  AddCustomFpmakeCommandlineOption('genfpmkunit', 'Regenerate the fpmkunitsrc.inc file (fppkg).');
+
 {$include fpmake_add.inc}
 
   With Installer do
     begin
       // Create fpc-all package
       PBuild:=AddPackage('fpc-all');
-      PBuild.Version:='2.7.1';
+      PBuild.Version:='3.1.1';
     end;
 end;
 

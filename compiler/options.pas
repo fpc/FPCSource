@@ -52,7 +52,7 @@ Type
     Constructor Create;
     Destructor Destroy;override;
     procedure WriteLogo;
-    procedure WriteInfo;
+    procedure WriteInfo (More: string);
     procedure WriteHelpPages;
     procedure WriteQuickInfo;
     procedure IllegalPara(const opt:TCmdStr);
@@ -100,6 +100,7 @@ uses
 
 const
   page_size = 24;
+  page_width = 80;
 
 var
   option     : toption;
@@ -116,7 +117,7 @@ var
 
 const
   { gprof (requires implementation of g_profilecode in the code generator) }
-  supported_targets_pg = [system_i386_linux,system_x86_64_linux,system_mipseb_linux,system_mipsel_linux]
+  supported_targets_pg = [system_i386_linux,system_x86_64_linux,system_mipseb_linux,system_mipsel_linux,system_arm_linux]
                         + [system_i386_win32]
                         + [system_powerpc_darwin,system_x86_64_darwin]
                         + [system_i386_GO32V2]
@@ -140,6 +141,9 @@ begin
   undef_system_macro('FPC_LINK_DYNAMIC');
   init_settings.globalswitches:=init_settings.globalswitches+[cs_link_static];
   init_settings.globalswitches:=init_settings.globalswitches-[cs_link_shared,cs_link_smart];
+{$ifdef AIX}
+  init_settings.globalswitches:=init_settings.globalswitches+[cs_link_native];
+{$endif}
 end;
 
 
@@ -186,185 +190,403 @@ begin
 end;
 
 
-procedure Toption.WriteInfo;
+procedure Toption.WriteInfo (More: string);
 var
   p : pchar;
-  hs,hs1,s : TCmdStr;
-  target : tsystem;
-  cpu : tcputype;
-  fpu : tfputype;
-  opt : toptimizerswitch;
-  wpopt: twpoptimizerswitch;
-  abi : tabi;
-  asmmode : tasmmode;
-{$if defined(arm) or defined(avr) or defined(mipsel)}
-  controllertype : tcontrollertype;
-{$endif defined(arm) or defined(avr) or defined(mipsel)}
-begin
-  p:=MessagePchar(option_info);
-  while assigned(p) do
-   begin
-     s:=GetMsgLine(p);
-     { list OS Targets }
-     if pos('$OSTARGETS',s)>0 then
+  hs,hs1,hs3,s : TCmdStr;
+  J: longint;
+const
+  NewLineStr = '$\n';
+  OSTargetsPlaceholder = '$OSTARGETS';
+  CPUListPlaceholder = '$INSTRUCTIONSETS';
+  FPUListPlaceholder = '$FPUINSTRUCTIONSETS';
+  ABIListPlaceholder = '$ABITARGETS';
+  OptListPlaceholder = '$OPTIMIZATIONS';
+  WPOListPlaceholder = '$WPOPTIMIZATIONS';
+  AsmModeListPlaceholder = '$ASMMODES';
+  ControllerListPlaceholder = '$CONTROLLERTYPES';
+  FeatureListPlaceholder = '$FEATURELIST';
+
+  procedure SplitLine (var OrigString: TCmdStr; const Placeholder: TCmdStr;
+                                                 var RemainderString: TCmdStr);
+  var
+    I, L: longint;
+    HS2: TCmdStr;
+  begin
+    RemainderString := '';
+    if OrigString = '' then
+     Exit;
+    repeat
+     I := Pos (NewLineStr, OrigString);
+     if I > 0 then
       begin
-        for target:=low(tsystem) to high(tsystem) do
-         if assigned(targetinfos[target]) then
-          begin
-            hs:=s;
-            hs1:=targetinfos[target]^.name;
-            if tf_under_development in targetinfos[target]^.flags then
-             hs1:=hs1+' (under development)';
-            Replace(hs,'$OSTARGETS',hs1);
-            Comment(V_Normal,hs);
-          end;
-      end
-     else if pos('$INSTRUCTIONSETS',s)>0 then
-      begin
-        hs1:='';
-        for cpu:=low(tcputype) to high(tcputype) do
-          begin
-            if length(hs1+cputypestr[cpu])>70 then
-              begin
-                hs:=s;
-                Replace(hs,'$INSTRUCTIONSETS',hs1);
-                Comment(V_Normal,hs);
-                hs1:=''
-              end
-            else
-              if hs1<>'' then
-                hs1:=hs1+',';
-            if cputypestr[cpu]<>'' then
-              hs1:=hs1+cputypestr[cpu];
-          end;
+       HS2 := Copy (OrigString, 1, Pred (I));
+{ Stop if this line contains the placeholder for list replacement }
+       if Pos (Placeholder, HS2) > 0 then
+        begin
+         RemainderString := Copy (OrigString, I + Length (NewLineStr),
+                                Length (OrigString) - I - Length (NewLineStr));
+{ Special case - NewLineStr at the end of the line }
+         if RemainderString = '' then
+          RemainderString := NewLineStr;
+         OrigString := HS2;
+         Exit;
+        end;
+       Comment (V_Normal, HS2);
+       Delete (OrigString, 1, Pred (I) + Length (NewLineStr));
+      end;
+    until I = 0;
+    if (OrigString <> '') and (Pos (Placeholder, OrigString) = 0) then
+     Comment (V_Normal, OrigString);
+  end;
+
+  procedure ListOSTargets (OrigString: TCmdStr);
+  var
+    target : tsystem;
+  begin
+    SplitLine (OrigString, OSTargetsPlaceholder, HS3);
+    for target:=low(tsystem) to high(tsystem) do
+    if assigned(targetinfos[target]) then
+     begin
+      hs1:=targetinfos[target]^.shortname;
+      if OrigString = '' then
+       WriteLn (hs1)
+      else
+       begin
+        hs := OrigString;
+        hs1:=hs1 + ': ' + targetinfos[target]^.name;
+        if tf_under_development in targetinfos[target]^.flags then
+         hs1:=hs1+' {*}';
+        Replace(hs,OSTargetsPlaceholder,hs1);
+        Comment(V_Normal,hs);
+       end;
+     end;
+    OrigString := HS3;
+    SplitLine (OrigString, OSTargetsPlaceholder, HS3);
+  end;
+
+  procedure ListCPUInstructionSets (OrigString: TCmdStr);
+  var
+    cpu : tcputype;
+  begin
+    SplitLine (OrigString, CPUListPlaceholder, HS3);
+    hs1:='';
+    for cpu:=low(tcputype) to high(tcputype) do
+     begin
+      if (OrigString = '') then
+       begin
+        if CPUTypeStr [CPU] <> '' then
+         WriteLn (CPUTypeStr [CPU]);
+       end
+      else
+       begin
+        if length(hs1+cputypestr[cpu])>70 then
+         begin
+          hs:=OrigString;
+          Replace(hs,CPUListPlaceholder,hs1);
+          Comment(V_Normal,hs);
+          hs1:=''
+         end
+        else if hs1<>'' then
+         hs1:=hs1+',';
+        if cputypestr[cpu]<>'' then
+         hs1:=hs1+cputypestr[cpu];
+       end;
+     end;
+    if (OrigString <> '') and (hs1 <> '') then
+     begin
+      hs:=OrigString;
+      Replace(hs,CPUListPlaceholder,hs1);
+      Comment(V_Normal,hs);
+      hs1:=''
+     end;
+    OrigString := HS3;
+    SplitLine (OrigString, CPUListPlaceholder, HS3);
+  end;
+
+  procedure ListFPUInstructionSets (OrigString: TCmdStr);
+  var
+    fpu : tfputype;
+  begin
+    SplitLine (OrigString, FPUListPlaceholder, HS3);
+    hs1:='';
+    for fpu:=low(tfputype) to high(tfputype) do
+     begin
+      if (OrigString = '') then
+       begin
+        if FPUTypeStr [FPU] <> '' then
+         WriteLn (FPUTypeStr [FPU]);
+       end
+      else
+       begin
+        if length(hs1+fputypestr[fpu])>70 then
+         begin
+          hs:=OrigString;
+          Replace(hs,FPUListPlaceholder,hs1);
+          Comment(V_Normal,hs);
+          hs1:=''
+         end
+        else if hs1<>'' then
+         hs1:=hs1+',';
+        if fputypestr[fpu]<>'' then
+         hs1:=hs1+fputypestr[fpu];
+       end;
+     end;
+    if (OrigString <> '') and (hs1 <> '') then
+     begin
+      hs:=OrigString;
+      Replace(hs,FPUListPlaceholder,hs1);
+      Comment(V_Normal,hs);
+      hs1:=''
+     end;
+    OrigString := HS3;
+    SplitLine (OrigString, FPUListPlaceholder, HS3);
+  end;
+
+  procedure ListABITargets (OrigString: TCmdStr);
+  var
+    abi : tabi;
+  begin
+    SplitLine (OrigString, ABIListPlaceholder, HS3);
+    for abi:=low(abi) to high(abi) do
+     begin
+      if not abiinfo[abi].supported then
+       continue;
+      hs1:=abiinfo[abi].name;
+      if hs1<>'' then
+       begin
+        if OrigString = '' then
+         WriteLn (HS1)
+        else
+         begin
+          hs:=OrigString;
+          Replace(hs,ABIListPlaceholder,hs1);
+          Comment(V_Normal,hs);
+         end;
+       end;
+     end;
+    OrigString := HS3;
+    SplitLine (OrigString, ABIListPlaceholder, HS3);
+  end;
+
+  procedure ListOptimizations (OrigString: TCmdStr);
+  var
+    opt : toptimizerswitch;
+  begin
+    SplitLine (OrigString, OptListPlaceholder, HS3);
+    for opt:=low(toptimizerswitch) to high(toptimizerswitch) do
+     begin
+      if opt in supported_optimizerswitches then
+       begin
+        hs1:=OptimizerSwitchStr[opt];
         if hs1<>'' then
-          begin
-            hs:=s;
-            Replace(hs,'$INSTRUCTIONSETS',hs1);
-            Comment(V_Normal,hs);
-            hs1:=''
-          end;
-      end
-     else if pos('$FPUINSTRUCTIONSETS',s)>0 then
-      begin
-        hs1:='';
-        for fpu:=low(tfputype) to high(tfputype) do
-          begin
-            if length(hs1+fputypestr[fpu])>70 then
-              begin
-                hs:=s;
-                Replace(hs,'$FPUINSTRUCTIONSETS',hs1);
-                Comment(V_Normal,hs);
-                hs1:=''
-              end
-            else
-              if hs1<>'' then
-                hs1:=hs1+',';
-            if fputypestr[fpu]<>'' then
-              hs1:=hs1+fputypestr[fpu];
-          end;
-        if hs1<>'' then
-          begin
-            hs:=s;
-            Replace(hs,'$FPUINSTRUCTIONSETS',hs1);
-            Comment(V_Normal,hs);
-            hs1:=''
-          end;
-      end
-     else if pos('$ABITARGETS',s)>0 then
-      begin
-        for abi:=low(abi) to high(abi) do
-          begin
-            if not abiinfo[abi].supported then
-              continue;
-            hs:=s;
-            hs1:=abiinfo[abi].name;
-            if hs1<>'' then
-              begin
-                Replace(hs,'$ABITARGETS',hs1);
-                Comment(V_Normal,hs);
-              end;
-          end;
-      end
-     else if pos('$OPTIMIZATIONS',s)>0 then
-      begin
-        for opt:=low(toptimizerswitch) to high(toptimizerswitch) do
-          begin
-            if opt in supported_optimizerswitches then
-              begin
-                hs:=s;
-                hs1:=OptimizerSwitchStr[opt];
-                if hs1<>'' then
-                  begin
-                    Replace(hs,'$OPTIMIZATIONS',hs1);
-                    Comment(V_Normal,hs);
-                  end;
-              end;
-          end;
-      end
-     else if pos('$WPOPTIMIZATIONS',s)>0 then
-      begin
-        for wpopt:=low(twpoptimizerswitch) to high(twpoptimizerswitch) do
-          begin
-{           currently all whole program optimizations are platform-independent
-            if opt in supported_wpoptimizerswitches then
-}
-              begin
-                hs:=s;
-                hs1:=WPOptimizerSwitchStr[wpopt];
-                if hs1<>'' then
-                  begin
-                    Replace(hs,'$WPOPTIMIZATIONS',hs1);
-                    Comment(V_Normal,hs);
-                  end;
-              end;
-          end
-      end
-     else if pos('$ASMMODES',s)>0 then
-      begin
-        for asmmode:=low(tasmmode) to high(tasmmode) do
-         if assigned(asmmodeinfos[asmmode]) then
+         begin
+          if OrigString = '' then
+           WriteLn (hs1)
+          else
            begin
-             hs:=s;
-             hs1:=asmmodeinfos[asmmode]^.idtxt;
-             if hs1<>'' then
-               begin
-                 Replace(hs,'$ASMMODES',hs1);
-                 Comment(V_Normal,hs);
-               end;
+            hs:=OrigString;
+            Replace(hs,OptListPlaceholder,hs1);
+            Comment(V_Normal,hs);
            end;
-      end
-     else if pos('$CONTROLLERTYPES',s)>0 then
-      begin
-        {$if defined(arm) or defined(avr) or defined(mipsel)}
-        hs1:='';
-        for controllertype:=low(tcontrollertype) to high(tcontrollertype) do
-          begin
-            if length(hs1+embedded_controllers[controllertype].ControllerTypeStr)>70 then
-              begin
-                hs:=s;
-                Replace(hs,'$CONTROLLERTYPES',hs1);
-                Comment(V_Normal,hs);
-                hs1:=''
-              end
-            else
-              if hs1<>'' then
-                hs1:=hs1+',';
-            if embedded_controllers[controllertype].ControllerTypeStr<>'' then
-              hs1:=hs1+embedded_controllers[controllertype].ControllerTypeStr;
-          end;
+         end;
+       end;
+     end;
+    OrigString := HS3;
+    SplitLine (OrigString, OptListPlaceholder, HS3);
+  end;
+
+  procedure ListWPOptimizations (OrigString: TCmdStr);
+  var
+    wpopt: twpoptimizerswitch;
+  begin
+    SplitLine (OrigString, WPOListPlaceholder, HS3);
+    for wpopt:=low(twpoptimizerswitch) to high(twpoptimizerswitch) do
+     begin
+{     currently all whole program optimizations are platform-independent
+      if opt in supported_wpoptimizerswitches then
+}
+       begin
+        hs1:=WPOptimizerSwitchStr[wpopt];
         if hs1<>'' then
-          begin
-            hs:=s;
-            Replace(hs,'$CONTROLLERTYPES',hs1);
+         begin
+          if OrigString = '' then
+           WriteLn (hs1)
+          else
+           begin
+            hs:=OrigString;
+            Replace(hs,WPOListPlaceholder,hs1);
+            Comment(V_Normal,hs);
+           end;
+         end;
+       end;
+     end;
+    OrigString := HS3;
+    SplitLine (OrigString, WPOListPlaceholder, HS3);
+  end;
+
+  procedure ListAsmModes (OrigString: TCmdStr);
+  var
+    asmmode : tasmmode;
+  begin
+    SplitLine (OrigString, AsmModeListPlaceholder, HS3);
+    for asmmode:=low(tasmmode) to high(tasmmode) do
+    if assigned(asmmodeinfos[asmmode]) then
+     begin
+      hs1:=asmmodeinfos[asmmode]^.idtxt;
+      if hs1<>'' then
+       begin
+        if OrigString = '' then
+         WriteLn (hs1)
+        else
+         begin
+          hs:=OrigString;
+          Replace(hs,AsmModeListPlaceholder,hs1);
+          Comment(V_Normal,hs);
+         end;
+       end;
+     end;
+    OrigString := HS3;
+    SplitLine (OrigString, AsmModeListPlaceholder, HS3);
+  end;
+
+  procedure ListControllerTypes (OrigString: TCmdStr);
+  var
+    controllertype : tcontrollertype;
+  begin
+{$PUSH}
+ {$WARN 6018 OFF} (* Unreachable code due to compile time evaluation *)
+    if (ControllerSupport) then
+     begin
+      SplitLine (OrigString, ControllerListPlaceholder, HS3);
+      hs1:='';
+      for controllertype:=low(tcontrollertype) to high(tcontrollertype) do
+       begin
+        if (OrigString = '') then
+         begin
+          if Embedded_Controllers [ControllerType].ControllerTypeStr <> '' then
+           WriteLn (Embedded_Controllers [ControllerType].ControllerTypeStr);
+         end
+        else
+         begin
+          if length(hs1+embedded_controllers[controllertype].ControllerTypeStr)
+                                                                       >70 then
+           begin
+            hs:=OrigString;
+            Replace(hs,ControllerListPlaceholder,hs1);
             Comment(V_Normal,hs);
             hs1:=''
-          end;
-        {$else defined(arm) or defined(avr) or defined(mipsel)}
-        {$endif defined(arm) or defined(avr) or defined(mipsel)}
-      end
-     else
-      Comment(V_Normal,s);
+           end
+          else if hs1<>'' then
+           hs1:=hs1+',';
+          if embedded_controllers[controllertype].ControllerTypeStr<>'' then
+           hs1:=hs1+embedded_controllers[controllertype].ControllerTypeStr;
+         end;
+       end;
+      if (OrigString <> '') and (hs1<>'') then
+       begin
+        hs:=OrigString;
+        Replace(hs,ControllerListPlaceholder,hs1);
+        Comment(V_Normal,hs);
+        hs1:=''
+       end;
+      OrigString := HS3;
+      SplitLine (OrigString, ControllerListPlaceholder, HS3);
+     end;
+{$POP}
+  end;
+
+  procedure ListFeatures (OrigString: TCmdStr);
+  var
+    Feature: TFeature;
+  begin
+    SplitLine (OrigString, FeatureListPlaceholder, HS3);
+    HS1 := '';
+    for Feature := Low (TFeature) to High (TFeature) do
+     begin
+      if (OrigString = '') then
+       begin
+        if FeatureStr [Feature] <> '' then
+         WriteLn (FeatureStr [Feature]);
+       end
+      else
+       begin
+        if Length (HS1 + FeatureStr [Feature]) > 70 then
+         begin
+          HS := OrigString;
+          Replace (HS, FeatureListPlaceholder, HS1);
+          Comment (V_Normal, HS);
+          HS1 := ''
+         end
+        else if HS1 <> '' then
+         HS1 := HS1 + ',';
+        if FeatureStr [Feature] <> '' then
+         HS1 := HS1 + FeatureStr [Feature];
+       end;
+     end;
+    if (OrigString <> '') and (HS1 <> '') then
+     begin
+      HS := OrigString;
+      Replace (HS, FeatureListPlaceholder, HS1);
+      Comment (V_Normal, HS);
+      HS1 := ''
+     end;
+    OrigString := HS3;
+    SplitLine (OrigString, FeatureListPlaceholder, HS3);
+  end;
+
+begin
+  if More = '' then
+   begin
+    p:=MessagePchar(option_info);
+    while assigned(p) do
+     begin
+      s:=GetMsgLine(p);
+      { list permitted values for certain options }
+      if pos(OSTargetsPlaceholder,s)>0 then
+       ListOSTargets (S)
+      else if pos(CPUListPlaceholder,s)>0 then
+       ListCPUInstructionSets (S)
+      else if pos(FPUListPlaceholder,s)>0 then
+       ListFPUInstructionSets (S)
+      else if pos(ABIListPlaceholder,s)>0 then
+       ListABITargets (S)
+      else if pos(OptListPlaceholder,s)>0 then
+       ListOptimizations (S)
+      else if pos(WPOListPlaceholder,s)>0 then
+       ListWPOptimizations (S)
+      else if pos(AsmModeListPlaceholder,s)>0 then
+       ListAsmModes (S)
+      else if pos(ControllerListPlaceholder,s)>0 then
+       ListControllerTypes (S)
+      else if pos(FeatureListPlaceholder,s)>0 then
+       ListFeatures (S)
+      else
+       Comment(V_Normal,s);
+     end;
+   end
+  else
+   begin
+    J := 1;
+    while J <= Length (More) do
+     begin
+      if J > 1 then
+       WriteLn;  (* Put empty line between multiple sections *)
+      case More [J] of
+       'a': ListABITargets ('');
+       'c': ListCPUInstructionSets ('');
+       'f': ListFPUInstructionSets ('');
+       'i': ListAsmModes ('');
+       'o': ListOptimizations ('');
+       'r': ListFeatures ('');
+       't': ListOSTargets ('');
+       'u': ListControllerTypes ('');
+       'w': ListWPOptimizations ('');
+      else
+       IllegalPara ('-i' + More);
+      end;
+      Inc (J);
+     end;
    end;
   StopOptions(0);
 end;
@@ -386,10 +608,12 @@ var
   lastident,
   j,outline,
   ident,
+  HelpLineHeight,
   lines : longint;
   show  : boolean;
   opt   : string[32];
   input,
+  HelpLine,
   s     : string;
   p     : pchar;
 begin
@@ -429,8 +653,17 @@ begin
 {$ifdef i8086}
       '8',
 {$endif}
+{$ifdef aarch64}
+      'a',
+{$endif}
 {$ifdef arm}
       'A',
+{$endif}
+{$ifdef mipsel}
+      'm',
+{$endif}
+{$ifdef mipseb}
+      'M',
 {$endif}
 {$ifdef powerpc}
       'P',
@@ -504,8 +737,13 @@ begin
            Comment(V_Normal,'');
            inc(Lines);
          end;
+        HelpLine := PadEnd('',ident)+opt+Copy(s,j+1,255);
+        if HelpLine = '' then
+         HelpLineHeight := 1
+        else
+         HelpLineHeight := Succ (CharLength (HelpLine) div Page_Width);
       { page full ? }
-        if (lines >= page_size - 1) then
+        if (lines + HelpLineHeight >= page_size - 1) then
          begin
            if not NoPressEnter then
             begin
@@ -516,9 +754,9 @@ begin
             end;
            lines:=0;
          end;
-        Comment(V_Normal,PadEnd('',ident)+opt+Copy(s,j+1,255));
+        Comment(V_Normal,HelpLine);
         LastIdent:=Ident;
-        inc(Lines);
+        Inc (Lines, HelpLineHeight);
       end;
    end;
   StopOptions(0);
@@ -662,7 +900,7 @@ begin
   if MacVersionSet then
     exit;
   { check for deployment target set via environment variable }
-  if not(target_info.system in [system_i386_iphonesim,system_arm_darwin]) then
+  if not(target_info.system in [system_i386_iphonesim,system_arm_darwin,system_aarch64_darwin,system_x86_64_iphonesim]) then
     begin
       envstr:=GetEnvironmentVariable('MACOSX_DEPLOYMENT_TARGET');
       if envstr<>'' then
@@ -706,6 +944,12 @@ begin
         set_system_compvar('IPHONE_OS_VERSION_MIN_REQUIRED','30000');
         iPhoneOSVersionMin:='3.0';
       end;
+    system_aarch64_darwin,
+    system_x86_64_iphonesim:
+      begin
+        set_system_compvar('IPHONE_OS_VERSION_MIN_REQUIRED','70000');
+        iPhoneOSVersionMin:='7.0';
+      end
     else
       internalerror(2012031001);
   end;
@@ -750,6 +994,7 @@ begin
          (
           ((length(opt)>1) and (opt[2] in ['i','d','v','T','u','n','X','l'])) or
           ((length(opt)>3) and (opt[2]='F') and (opt[3]='e')) or
+          ((length(opt)>3) and (opt[2]='C') and (opt[3]='p')) or
           ((length(opt)>3) and (opt[2]='W') and (opt[3]='m'))
          )
         ) then
@@ -974,24 +1219,46 @@ begin
                     'P':
                       begin
                         delete(more,1,1);
-                        if upper(copy(more,1,pos('=',more)-1))='PACKSET' then
-                          begin
-                            delete(more,1,pos('=',more));
-                            if (more='0') or (more='DEFAULT') or (more='NORMAL') then
-                              init_settings.setalloc:=0
-                            else if  more='1' then
-                              init_settings.setalloc:=1
-                            else if more='2' then
-                              init_settings.setalloc:=2
-                            else if more='4' then
-                              init_settings.setalloc:=4
-                            else if more='8' then
-                              init_settings.setalloc:=8
-                            else
-                              IllegalPara(opt);
-                          end
-                        else
-                          IllegalPara(opt);
+                        case upper(copy(more,1,pos('=',more)-1)) of
+                          'PACKSET':
+                            begin
+                              delete(more,1,pos('=',more));
+                              case more of
+                                '0','DEFAULT','NORMAL':
+                                  init_settings.setalloc:=0;
+                                '1','2','4','8':
+                                  init_settings.setalloc:=StrToInt(more);
+                                else
+                                  IllegalPara(opt);
+                              end
+                            end;
+                          'PACKENUM':
+                            begin
+                              delete(more,1,pos('=',more));
+                              case more of
+                                '0','DEFAULT','NORMAL':
+                                  init_settings.packenum:=4;
+                                '1','2','4':
+                                  init_settings.packenum:=StrToInt(more);
+                                else
+                                  IllegalPara(opt);
+                              end;
+                            end;
+                          'PACKRECORD':
+                            begin
+                              delete(more,1,pos('=',more));
+                              case more of
+                                '0','DEFAULT','NORMAL':
+                                  init_settings.packrecords:=default_settings.packrecords;
+                                '1','2','4','8','16','32':
+                                  init_settings.packrecords:=StrToInt(more);
+                                else
+                                  IllegalPara(opt);
+                              end;
+                            end
+                          else
+                            IllegalPara(opt);
+                        end;
                       end;
                     'r' :
                       If UnsetBool(More, j, opt, false) then
@@ -1227,10 +1494,16 @@ begin
                    Message2(option_obsolete_switch_use_new,'-Fg','-Fl');
                  'l' :
                    begin
-                     if ispara then
-                       ParaLibraryPath.AddPath(sysrootpath,More,false)
+                     if path_absolute(More) then
+                       if ispara then
+                         ParaLibraryPath.AddPath(sysrootpath,More,false)
+                       else
+                         LibrarySearchPath.AddPath(sysrootpath,More,true)
                      else
-                       LibrarySearchPath.AddPath(sysrootpath,More,true);
+                       if ispara then
+                         ParaLibraryPath.AddPath('',More,false)
+                       else
+                         LibrarySearchPath.AddPath('',More,true);
                    end;
                  'L' :
                    begin
@@ -1393,8 +1666,9 @@ begin
 
            'i' :
              begin
-               if More='' then
-                 WriteInfo
+               if (More='') or
+                    (More [1] in ['a', 'c', 'f', 'i', 'o', 'r', 't', 'u', 'w']) then
+                 WriteInfo (More)
                else
                  QuickInfo:=QuickInfo+More;
              end;
@@ -1418,8 +1692,10 @@ begin
            'l' :
              ParaLogo:=not UnSetBool(more,0,opt,true);
 
+{$ifdef PREPROCWRITE}
            'm' :
              parapreprocess:=not UnSetBool(more,0,opt,true);
+{$endif PREPROCWRITE}
 
            'M' :
              begin
@@ -1947,7 +2223,7 @@ begin
                       end;
                     'M':
                       begin
-                        if (target_info.system in (systems_darwin-[system_i386_iphonesim])) and
+                        if (target_info.system in (systems_darwin-[system_i386_iphonesim,system_arm_darwin,system_aarch64_darwin,system_x86_64_iphonesim])) and
                            ParseMacVersionMin(MacOSXVersionMin,iPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED',copy(More,2,255),false) then
                           begin
                             break;
@@ -1967,8 +2243,8 @@ begin
                       end;
                     'p':
                       begin
-{$if defined(arm) or defined(avr) or defined(mipsel)}
-                        if (target_info.system in systems_embedded) then
+                        if (target_info.system in systems_embedded) and
+                                                         ControllerSupport then
                           begin
                             s:=upper(copy(more,j+1,length(more)-j));
                             if not(SetControllerType(s,init_settings.controllertype)) then
@@ -1976,12 +2252,11 @@ begin
                             break;
                           end
                         else
-{$endif defined(arm) or defined(avr) or defined(mipsel)}
                           IllegalPara(opt);
                       end;
                     'P':
                       begin
-                        if (target_info.system in [system_i386_iphonesim,system_arm_darwin]) and
+                        if (target_info.system in [system_i386_iphonesim,system_arm_darwin,system_aarch64_darwin,system_x86_64_iphonesim]) and
                            ParseMacVersionMin(iPhoneOSVersionMin,MacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED',copy(More,2,255),true) then
                           begin
                             break;
@@ -2688,11 +2963,11 @@ begin
       undef_system_macro('FPC_SECTION_THREADVARS');
 
   { Code generation flags }
-  if def and
-     (tf_pic_default in target_info.flags) then
-    include(init_settings.moduleswitches,cs_create_pic)
-  else
-    exclude(init_settings.moduleswitches,cs_create_pic);
+  if (tf_pic_default in target_info.flags) then
+    if def then
+      include(init_settings.moduleswitches,cs_create_pic)
+    else
+      exclude(init_settings.moduleswitches,cs_create_pic);
 
   { Resources support }
   if (tf_has_winlike_resources in target_info.flags) then
@@ -2954,9 +3229,9 @@ begin
 
 { abs(long) is handled internally on all CPUs }
   def_system_macro('FPC_HAS_INTERNAL_ABS_LONG');
-{$if defined(x86_64) or defined(powerpc64)}
+{$if defined(x86_64) or defined(powerpc64) or defined(cpuaarch64)}
   def_system_macro('FPC_HAS_INTERNAL_ABS_INT64');
-{$endif x86_64 or powerpc64}
+{$endif x86_64 or powerpc64 or aarch64}
 
   def_system_macro('FPC_HAS_UNICODESTRING');
   def_system_macro('FPC_RTTI_PACKSET1');
@@ -3140,6 +3415,12 @@ begin
     mm_huge:    def_system_macro('FPC_MM_HUGE');
   end;
 {$endif i8086}
+{$ifdef aarch64}
+  def_system_macro('CPUAARCH64');
+  def_system_macro('CPU64');
+  def_system_macro('FPC_CURRENCY_IS_INT64');
+  def_system_macro('FPC_COMP_IS_INT64');
+{$endif aarch64}
 
   if tf_cld in target_info.flags then
     if not UpdateTargetSwitchStr('CLD', init_settings.targetswitches, true) then
@@ -3513,6 +3794,16 @@ if (target_info.abi = abi_eabihf) then
         if not option.FPUSetExplicitly then
           init_settings.fputype:=fpu_mips2;
       end;
+    system_mipsel_embedded:
+      begin
+        { set default cpu type to PIC32MX and softfloat for MIPSEL-EMBEDDED target unless specified otherwise }
+        if not option.CPUSetExplicitly then
+          init_settings.cputype:=cpu_pic32mx;
+        if not option.OptCPUSetExplicitly then
+          init_settings.optimizecputype:=cpu_pic32mx;
+        if not option.FPUSetExplicitly then
+          init_settings.fputype:=fpu_soft;
+      end;
   end;
 {$endif mipsel}
 
@@ -3539,7 +3830,7 @@ if (target_info.abi = abi_eabihf) then
 {$endif}
       def_system_macro('FPC_HAS_TYPE_SINGLE');
       def_system_macro('FPC_HAS_TYPE_DOUBLE');
-{$if not defined(i386) and not defined(x86_64) and not defined(i8086)}
+{$if not defined(i386) and not defined(x86_64) and not defined(i8086) and not defined(aarch64)}
       def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
 {$endif}
 {$if defined(m68k)}
@@ -3579,7 +3870,7 @@ if (target_info.abi = abi_eabihf) then
 {$endif ARM}
 
 { inline bsf/bsr implementation }
-{$if not defined(llvm) and (defined(i386) or defined(x86_64))}
+{$if not defined(llvm) and (defined(i386) or defined(x86_64) or defined(aarch64))}
   def_system_macro('FPC_HAS_INTERNAL_BSF');
   def_system_macro('FPC_HAS_INTERNAL_BSR');
 {$endif}
@@ -3621,11 +3912,16 @@ if (target_info.abi = abi_eabihf) then
     2. override with generic optimizer setting (little size)
     3. override with the user specified -Oa }
   UpdateAlignment(init_settings.alignment,target_info.alignment);
-  if (cs_opt_size in current_settings.optimizerswitches) then
+  if (cs_opt_size in init_settings.optimizerswitches) then
    begin
      init_settings.alignment.procalign:=1;
      init_settings.alignment.jumpalign:=1;
      init_settings.alignment.loopalign:=1;
+{$ifdef x86}
+     { constalignmax=1 keeps the executable and thus the memory foot print small but
+       all processors except x86 are really hurt by this or might even crash }
+     init_settings.alignment.constalignmax:=1;
+{$endif x86}
    end;
 
   UpdateAlignment(init_settings.alignment,option.paraalignment);

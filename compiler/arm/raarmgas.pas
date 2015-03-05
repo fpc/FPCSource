@@ -1043,6 +1043,7 @@ Unit raarmgas;
         hreg : tregister;
         flags : tspecialregflags;
       begin
+        hreg:=NR_NO;
         case actasmtoken of
           AS_REGISTER:
             begin
@@ -1219,7 +1220,7 @@ Unit raarmgas;
                   end;
               end;
           end;
-        maxlen:=max(length(hs),5);
+        maxlen:=min(length(hs),5);
         actopcode:=A_NONE;
         for j:=maxlen downto 1 do
           begin

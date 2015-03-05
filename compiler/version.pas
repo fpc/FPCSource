@@ -27,8 +27,8 @@ interface
 
     const
        { version string }
-       version_nr = '2';
-       release_nr = '7';
+       version_nr = '3';
+       release_nr = '1';
        patch_nr   = '1';
        minorpatch = '';
 
@@ -77,6 +77,9 @@ interface
 {$ifdef cpumipsel}
         source_cpu_string = 'mipsel';
 {$endif cpumipsel}
+{$ifdef cpuaarch64}
+        source_cpu_string = 'aarch64';
+{$endif cpuaarch64}
 
 function version_string:string;
 function full_version_string:string;

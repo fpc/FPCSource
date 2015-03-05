@@ -13,10 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('httpd22');
+    P.ShortName:='hd22';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Author := 'Library: Apache Foundation, header: Felipe Monteiro de Carvalho';
     P.License := 'Library: Apache License 2, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';

@@ -85,6 +85,8 @@ interface
                       GetResFlags:=F_LT;
                     gten:
                       GetResFlags:=F_LE;
+                    else
+                      internalerror(201408203);
                   end
                 else
                   case NodeType of
@@ -96,6 +98,8 @@ interface
                       GetResFlags:=F_GT;
                     gten:
                       GetResFlags:=F_GE;
+                    else
+                      internalerror(201408204);
                   end;
               end
             else
@@ -110,6 +114,8 @@ interface
                       GetResFlags:=F_CC;
                     gten:
                       GetResFlags:=F_LS;
+                    else
+                      internalerror(201408205);
                   end
                 else
                   case NodeType of
@@ -121,6 +127,8 @@ interface
                       GetResFlags:=F_HI;
                     gten:
                       GetResFlags:=F_CS;
+                    else
+                      internalerror(201408206);
                   end;
               end;
         end;
@@ -144,6 +152,8 @@ interface
             result:=F_GT;
           gten:
             result:=F_GE;
+          else
+            internalerror(201408207);
         end;
       end;
 
@@ -379,13 +389,13 @@ interface
               tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
               if right.location.loc = LOC_CONSTANT then
                 begin
-                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_AND,tmpreg,left.location.register,right.location.value));
+                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_AND,OS_32,right.location.value,left.location.register,tmpreg);
                   cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,tmpreg,right.location.value));
                 end
               else
                 begin
-                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_AND,tmpreg,left.location.register,right.location.register));
+                  cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,OS_32,left.location.register,right.location.register,tmpreg);
                   cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,tmpreg,right.location.register));
                 end;

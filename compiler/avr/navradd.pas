@@ -77,6 +77,8 @@ interface
                       GetResFlags:=F_LT;
                     gten:
                       GetResFlags:=F_NotPossible;
+                    else
+                      internalerror(2014082020);
                   end
                 else
                   case NodeType of
@@ -88,6 +90,8 @@ interface
                       GetResFlags:=F_NotPossible;
                     gten:
                       GetResFlags:=F_GE;
+                    else
+                      internalerror(2014082021);
                   end;
               end
             else
@@ -102,6 +106,8 @@ interface
                       GetResFlags:=F_CC;
                     gten:
                       GetResFlags:=F_NotPossible;
+                    else
+                      internalerror(2014082022);
                   end
                 else
                   case NodeType of
@@ -113,6 +119,8 @@ interface
                       GetResFlags:=F_NotPossible;
                     gten:
                       GetResFlags:=F_CS;
+                    else
+                      internalerror(2014082023);
                   end;
               end;
         end;

@@ -22,7 +22,7 @@ unit db;
 
 interface
 
-uses Classes,Sysutils,Variants,FmtBCD,MaskUtils;
+uses Classes,SysUtils,Variants,FmtBCD,MaskUtils;
 
 const
 
@@ -48,7 +48,7 @@ type
 
   TDataSetState = (dsInactive, dsBrowse, dsEdit, dsInsert, dsSetKey,
     dsCalcFields, dsFilter, dsNewValue, dsOldValue, dsCurValue, dsBlockRead,
-    dsInternalCalc, dsOpening);
+    dsInternalCalc, dsOpening, dsRefreshFields);
 
   TDataEvent = (deFieldChange, deRecordChange, deDataSetChange,
     deDataSetScroll, deLayoutChange, deUpdateRecord, deUpdateState,
@@ -61,7 +61,7 @@ type
   TUpdateMode = (upWhereAll, upWhereChanged, upWhereKeyOnly);
   TResolverResponse = (rrSkip, rrAbort, rrMerge, rrApply, rrIgnore);
 
-  TProviderFlag = (pfInUpdate, pfInWhere, pfInKey, pfHidden);
+  TProviderFlag = (pfInUpdate, pfInWhere, pfInKey, pfHidden, pfRefreshOnInsert,pfRefreshOnUpdate);
   TProviderFlags = set of TProviderFlag;
 
 { Forward declarations }
@@ -79,6 +79,7 @@ type
 { Exception classes }
 
   EDatabaseError = class(Exception);
+
   EUpdateError   = class(EDatabaseError)
   private
     FContext           : String;
@@ -327,7 +328,7 @@ type
     function GetAsBoolean: Boolean; virtual;
     function GetAsBytes: TBytes; virtual;
     function GetAsCurrency: Currency; virtual;
-    function GetAsLargeInt: LargeInt; virtual;
+    function GetAsLargeInt: Largeint; virtual;
     function GetAsDateTime: TDateTime; virtual;
     function GetAsFloat: Double; virtual;
     function GetAsLongint: Longint; virtual;
@@ -358,7 +359,7 @@ type
     procedure SetAsFloat(AValue: Double); virtual;
     procedure SetAsLongint(AValue: Longint); virtual;
     procedure SetAsInteger(AValue: Longint); virtual;
-    procedure SetAsLargeint(AValue: Largeint); virtual;
+    procedure SetAsLargeInt(AValue: Largeint); virtual;
     procedure SetAsVariant(const AValue: variant); virtual;
     procedure SetAsString(const AValue: string); virtual;
     procedure SetAsWideString(const AValue: WideString); virtual;
@@ -461,6 +462,7 @@ type
     function GetAsDateTime: TDateTime; override;
     function GetAsFloat: Double; override;
     function GetAsInteger: Longint; override;
+    function GetAsLargeInt: Largeint; override;
     function GetAsString: string; override;
     function GetAsVariant: variant; override;
     function GetDataSize: Integer; override;
@@ -471,6 +473,7 @@ type
     procedure SetAsDateTime(AValue: TDateTime); override;
     procedure SetAsFloat(AValue: Double); override;
     procedure SetAsInteger(AValue: Longint); override;
+    procedure SetAsLargeInt(AValue: Largeint); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
   public
@@ -551,8 +554,8 @@ type
     procedure SetAsInteger(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
-    function GetAsLargeint: Largeint; override;
-    procedure SetAsLargeint(AValue: Largeint); override;
+    function GetAsLargeInt: Largeint; override;
+    procedure SetAsLargeInt(AValue: Largeint); override;
   public
     constructor Create(AOwner: TComponent); override;
     Function CheckRange(AValue : Longint) : Boolean;
@@ -576,7 +579,7 @@ type
   protected
     function GetAsFloat: Double; override;
     function GetAsInteger: Longint; override;
-    function GetAsLargeint: Largeint; override;
+    function GetAsLargeInt: Largeint; override;
     function GetAsString: string; override;
     function GetAsVariant: variant; override;
     function GetDataSize: Integer; override;
@@ -584,13 +587,13 @@ type
     function GetValue(var AValue: Largeint): Boolean;
     procedure SetAsFloat(AValue: Double); override;
     procedure SetAsInteger(AValue: Longint); override;
-    procedure SetAsLargeint(AValue: Largeint); override;
+    procedure SetAsLargeInt(AValue: Largeint); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
   public
     constructor Create(AOwner: TComponent); override;
-    Function CheckRange(AValue : largeint) : Boolean;
-    property Value: Largeint read GetAsLargeint write SetAsLargeint;
+    Function CheckRange(AValue : Largeint) : Boolean;
+    property Value: Largeint read GetAsLargeInt write SetAsLargeInt;
   published
     property MaxValue: Largeint read FMaxValue write SetMaxValue default 0;
     property MinValue: Largeint read FMinValue write SetMinValue default 0;
@@ -634,6 +637,7 @@ type
     procedure SetCurrency(const AValue: Boolean);
     procedure SetPrecision(const AValue: Longint);
   protected
+    function GetAsBCD: TBCD; override;
     function GetAsFloat: Double; override;
     function GetAsLargeInt: LargeInt; override;
     function GetAsInteger: Longint; override;
@@ -641,6 +645,7 @@ type
     function GetAsString: string; override;
     function GetDataSize: Integer; override;
     procedure GetText(var theText: string; ADisplayText: Boolean); override;
+    procedure SetAsBCD(const AValue: TBCD); override;
     procedure SetAsFloat(AValue: Double); override;
     procedure SetAsLargeInt(AValue: LargeInt); override;
     procedure SetAsInteger(AValue: Longint); override;
@@ -1231,6 +1236,19 @@ type
   end;
   TParamClass = Class of TParam;
 
+  { TParamsEnumerator }
+
+  TParamsEnumerator = class
+  private
+    FPosition: Integer;
+    FParams: TParams;
+    function GetCurrent: TParam;
+  public
+    constructor Create(AParams: TParams);
+    function MoveNext: Boolean;
+    property Current: TParam read GetCurrent;
+  end;
+
 { TParams }
 
   TParams = class(TCollection)
@@ -1255,6 +1273,7 @@ type
     Function  FindParam(const Value: string): TParam;
     Procedure GetParamList(List: TList; const ParamNames: string);
     Function  IsEqual(Value: TParams): Boolean;
+    Function GetEnumerator: TParamsEnumerator;
     Function  ParamByName(const Value: string): TParam;
     Function  ParseSQL(SQL: String; DoCreate: Boolean): String; overload;
     Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle): String; overload;
@@ -1607,7 +1626,7 @@ type
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; virtual;
     procedure CursorPosChanged;
     procedure DataConvert(aField: TField; aSource, aDest: Pointer; aToNative: Boolean); virtual;
-    procedure Delete;
+    procedure Delete; virtual;
     procedure DisableControls;
     procedure Edit;
     procedure EnableControls;
@@ -1878,6 +1897,7 @@ type
     procedure RemoveDataSets;
     procedure SetActive(Value : boolean);
   Protected
+    Function AllowClose(DS: TDBDataset): Boolean; virtual;
     Procedure SetDatabase (Value : TDatabase); virtual;
     procedure CloseTrans;
     procedure openTrans;
@@ -2141,7 +2161,7 @@ const
 
   dsEditModes = [dsEdit, dsInsert, dsSetKey];
   dsWriteModes = [dsEdit, dsInsert, dsSetKey, dsCalcFields, dsFilter,
-    dsNewValue, dsInternalCalc];
+                  dsNewValue, dsInternalCalc, dsRefreshFields];
   // Correct list of all field types that are BLOB types.
   // Please use this instead of checking TBlobType which will give
   // incorrect results
@@ -2213,6 +2233,7 @@ begin
   if (i<=FieldsLength) and (Fields[i]=';') then Inc(i);
   Pos:=i;
 end;
+
 
 { EUpdateError }
 constructor EUpdateError.Create(NativeError, Context : String;

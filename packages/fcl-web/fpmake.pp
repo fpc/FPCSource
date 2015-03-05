@@ -13,11 +13,12 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('fcl-web');
+    P.ShortName:='fclw';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
-    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,wince,aix];
+    P.Version:='3.1.1';
+    P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,dragonfly];
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-db');
     P.Dependencies.Add('fcl-xml');
@@ -25,8 +26,8 @@ begin
     P.Dependencies.Add('fcl-net');
     P.Dependencies.Add('fcl-process');
     P.Dependencies.Add('fastcgi');
-    P.Dependencies.Add('httpd22');
-    P.Dependencies.Add('httpd24');
+    P.Dependencies.Add('httpd22', AllOses - [amiga,aros]);
+    P.Dependencies.Add('httpd24', AllOses - [amiga,aros]);
     // (Temporary) indirect dependencies, not detected by fpcmake:
     P.Dependencies.Add('univint',[MacOSX,iphonesim]);
 
@@ -115,24 +116,26 @@ begin
       end;
     with P.Targets.AddUnit('fpfcgi.pp') do
       begin
-        OSes:=AllOses-[wince,darwin,iphonesim,aix];
+        OSes:=AllOses-[wince,darwin,iphonesim,aix,amiga,aros];
         Dependencies.AddUnit('custfcgi');
       end;
     with P.Targets.AddUnit('custfcgi.pp') do
       begin
-        OSes:=AllOses-[wince,darwin,iphonesim,aix];
+        OSes:=AllOses-[wince,darwin,iphonesim,aix,amiga,aros];
         Dependencies.AddUnit('httpdefs');
         Dependencies.AddUnit('custweb');
         ResourceStrings:=true;
       end;
     with P.Targets.AddUnit('fpapache.pp') do
       begin
+        OSes:=AllOses-[amiga,aros];
         Dependencies.AddUnit('fphttp');
         Dependencies.AddUnit('custweb');
         ResourceStrings:=true;
       end;
     with P.Targets.AddUnit('fpapache24.pp') do
       begin
+        OSes:=AllOses-[amiga,aros];
         Dependencies.AddUnit('fphttp');
         Dependencies.AddUnit('custweb');
         ResourceStrings:=true;

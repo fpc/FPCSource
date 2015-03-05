@@ -1,5 +1,7 @@
   add_a52(ADirectory+IncludeTrailingPathDelimiter('a52'));
+  add_ami_extra(ADirectory+IncludeTrailingPathDelimiter('ami-extra'));
   add_amunits(ADirectory+IncludeTrailingPathDelimiter('amunits'));
+  add_arosunits(ADirectory+IncludeTrailingPathDelimiter('arosunits'));
   add_aspell(ADirectory+IncludeTrailingPathDelimiter('aspell'));
   add_bfd(ADirectory+IncludeTrailingPathDelimiter('bfd'));
   add_bzip2(ADirectory+IncludeTrailingPathDelimiter('bzip2'));
@@ -71,6 +73,7 @@
   add_lua(ADirectory+IncludeTrailingPathDelimiter('lua'));
   add_mad(ADirectory+IncludeTrailingPathDelimiter('mad'));
   add_modplug(ADirectory+IncludeTrailingPathDelimiter('modplug'));
+  add_morphunits(ADirectory+IncludeTrailingPathDelimiter('morphunits'));
   add_mysql(ADirectory+IncludeTrailingPathDelimiter('mysql'));
   add_ncurses(ADirectory+IncludeTrailingPathDelimiter('ncurses'));
   add_newt(ADirectory+IncludeTrailingPathDelimiter('newt'));

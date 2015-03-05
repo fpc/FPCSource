@@ -12,11 +12,10 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 
-#AROS Startup Code
-#
+# AROS Startup Code
    .text
    .align 4
-   .section .aros.startup, "ax"		
+   .section .aros.startup, "ax"
    .globl _start
    .globl start
    .globl _haltproc
@@ -24,65 +23,140 @@
 _start:
 start:
 
-  /* Save the exec library base */
-  movl     12(%esp), %ecx
-  movl     %ecx, _ExecBase
+    /* Save the exec library base */
+    movl     12(%esp),%eax
+    movl     %eax,_ExecBase
 
-  /* Save the command line pointer length to CommandLineLen */
-  movl     8(%esp),%ecx
-  movl     %ecx,CommandLineLen
+    /* Save the command line pointer length to CommandLineLen */
+    movl     8(%esp),%eax
+    movl     %eax,CommandLineLen
 
-  /* Save the command line pointer to CommandLine */
-  movl     4(%esp),%eax
-  movl     %eax,CommandLine
+    /* Save the command line pointer to CommandLine */
+    movl     4(%esp),%eax
+    movl     %eax,CommandLine
 
-  /* save all register */
-  pushal
+    /* save all registers */
+    pushal
 
-  /* Save stack pointer for exit() routine */
-  movl	   %esp,STKPTR
+    /* get the pointer to current stack */
+    movl     _ExecBase,%eax
+    pushl    %eax
+    pushl    $0
+    movl     -196(%eax),%eax    /* FindTask(nil) */
+    call     *%eax
+    addl     $8,%esp
 
-  call   PASCALMAIN
-  /* if returns from here set an empty returncode */
-  xorl   %eax, %eax
-  pushl  %eax
-  pushl  %eax
+    movl     64(%eax),%ecx      /* SPUpper */
+    subl     60(%eax),%ecx      /* SPLower */
 
+/* Uncomment the symbol line below to force system stack use,
+   and do not attempt to reallocate stack if the system-provided
+   stack is smaller than the user specified */
+# FORCE_USE_SYSTEM_STACK:
 
-  /* entry for stop the program*/
-_haltproc:
-haltproc:
+.ifndef FORCE_USE_SYSTEM_STACK
+    /* Check if we need a new stack
+       Only allocate a new stack if the system-provided
+       stack is smaller than the one set compile time */
+    cmpl     __stklen,%ecx
+    jl       _allocStack
+.endif
 
-    /* get retun code from stack */
-    movl   4(%esp),%eax
+    movl     %ecx,__stklen      /* Store the new stack size */
+    xorl     %eax,%eax
+    movl     %eax,StackAreaPtr  /* Clear the stackAreaPtr for exit test */
+    jmp      _noAllocStack
 
-    /* save for later use */
-    movl   %eax,_returncode
+_allocStack:
+    /* Allocating new stack */
+    movl     _ExecBase,%eax
+    pushl    %eax
+    pushl    $0                 /* MEMF_ANY */
+    pushl    __stklen
+    movl     -456(%eax),%eax    /* AllocVec() */
+    call     *%eax
+    addl     $12,%esp
 
-    /* get back my stack */
-    movl   STKPTR,%esp
+    testl    %eax,%eax
+    je       __exit
+    movl     %eax,StackAreaPtr
 
+    /* Setting up StackSwap structure, and do the StackSwap */
+    lea      StackSwapStruct,%ecx
+    movl     %eax,(%ecx)            /* Bottom of the stack */
+    addl     __stklen,%eax
+    movl     %eax,4(%ecx)           /* Top of the stack */
+    movl     %eax,8(%ecx)           /* Initial stackpointer */
+    movl     _ExecBase,%eax
+    pushl    %eax
+    lea      StackSwapArgs,%ebx
+    pushl    %ebx
+    lea      _initProc,%ebx
+    pushl    %ebx
+    pushl    %ecx
+    movl     -536(%eax),%eax        /* NewStackSwap() */
+    call     *%eax
+    addl     $16,%esp
+    jmp      _afterMain
+
+_noAllocStack:
+    call     _initProc
+
+_afterMain:
+    /* check if we have a StackArea to free */
+    movl     StackAreaPtr,%eax
+    testl    %eax,%eax
+    je       __exit
+
+_freeStack:
+    /* Freeing up stack area */
+    movl     _ExecBase,%eax
+    pushl    %eax
+    pushl    StackAreaPtr
+    movl     -460(%eax),%eax        /* FreeVec() */
+    call     *%eax
+    addl     $8,%esp
+
+__exit:
     /* get back all registers */
     popal
-
-    /* reset returncode */
-    movl  _returncode, %eax
-
+    /* get returncode */
+    movl     operatingsystem_result,%eax
     /* bye bye */
+    ret
+
+    /* This function is getting called from NewStackSwap() or
+       as standalone if we don't do stackswap */
+_initProc:
+    pushal
+    /* Save stack pointer */
+    movl     %esp,STKPTR
+
+    /* call the main function */
+    call     PASCALMAIN
+
+    /* entry to stop the program */
+_haltproc:
+haltproc:
+    /* restore the old stackPtr and return */
+    movl     STKPTR,%esp
+    popal
     ret
 
   /*----------------------------------------------------*/
 
-    .data
+    .bss
     .global CommandLineLen      # byte length of command line
     .global CommandLine         # comandline as PChar
     .global STKPTR              # Used to terminate the program, initial SP
     .global _ExecBase           # exec library base
     .align 4
 
-_returncode:    .long   0
-CommandLine:    .long   0
-CommandLineLen: .long   0
-STKPTR:         .long   0
-_ExecBase:      .long   0
+CommandLine:    .skip   4
+CommandLineLen: .skip   4
+STKPTR:         .skip   4
+_ExecBase:      .skip   4
 
+StackAreaPtr:    .skip   4
+StackSwapStruct: .skip   12
+StackSwapArgs:   .skip   32

@@ -12,11 +12,9 @@ var
 const
 {$ifdef unix}
 libname = './libtw6822a.'+SharedSuffix;
+{$else unix}
+libname = 'tw6822a.' + SharedSuffix;
 {$endif unix}
-
-{$ifdef windows}
-libname = 'tw6822a.dll';
-{$endif windows}
 
 begin
   writeln('hello from loader program');

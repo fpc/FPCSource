@@ -12,7 +12,7 @@ initialization
   STRING_FILE_NOT_FOUND               := 'Apertura: archivo no encontrado: "%s".';
   STRING_VERSION                      := 'TDbf V%d.%d';
   // todo: translate me
-  STRING_FEATURE_NOT_SUPPORTED_THIS_TABLELEVEL: string; := 'This feature is not supported in tablelevel %d';
+  STRING_FEATURE_NOT_SUPPORTED_THIS_TABLELEVEL := 'This feature is not supported in tablelevel %d';
 
   STRING_RECORD_LOCKED                := 'Registro bloqueado.';
   STRING_WRITE_ERROR                  := 'Error de escritura. (Disco lleno?)';

@@ -100,6 +100,8 @@ interface
           tableoptions : tsymtableoptions;
           { level of symtable, used for nested procedures }
           symtablelevel : byte;
+          { do not allow to add new definitions, can be extended to symbols probably }
+          sealed : boolean;
           symtabletype  : TSymtabletype;
           constructor Create(const s:string);
           destructor  destroy;override;

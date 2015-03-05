@@ -293,21 +293,25 @@ const
 { Constants from bseord.h header file (ordinal numbers of API functions) }
 
     const
+(* ANSICALL.DLL *)
        Ord_AnsiINJECT = 1;
        Ord_AnsiKEYDEF = 2;
        Ord_AnsiINTERP = 3;
+(* PMBIDI.DLL *)
        Ord_NlsCONVERTBIDINUMERICS = 1;
        Ord_NlsCONVERTBIDISTRING = 2;
+       Ord_NlsINTSETBIDIATT = 3;
+       Ord_NlsINTQUERYBIDIATT = 4;
        Ord_NlsSETBIDIATT = 5;
        Ord_NlsQUERYBIDIATT = 6;
        Ord_NlsINVERSESTRING = 7;
        Ord_NlsSETBIDIPRINT = 8;
        Ord_NlsEDITSHAPE = 9;
        Ord_NlsSHAPEBIDISTRING = 10;
-       Ord_NlsINTSETBIDIATT = 3;
-       Ord_NlsINTQUERYBIDIATT = 4;
        Ord_NLPOPUP = 11;
+(* BKSCALLS.DLL *)
        Ord_BksMAIN = 1;
+(* PMDRAG.DLL *)
        Ord_DrgACCESSDRAGINFO = 1;
        Ord_DrgADDSTRHANDLE = 2;
        Ord_DrgALLOCDRAGINFO = 3;
@@ -339,8 +343,6 @@ const
        Ord_DrgVERIFYTRUETYPE = 29;
        Ord_DrgVERIFYTYPE = 30;
        Ord_DrgVERIFYTYPESET = 31;
-       Ord_DrgDRAGFILES = 63;
-       Ord_DrgACCEPTDROPPEDFILES = 64;
        Ord_Drg32ACCESSDRAGINFO = 32;
        Ord_Drg32ADDSTRHANDLE = 33;
        Ord_Drg32ALLOCDRAGINFO = 34;
@@ -372,17 +374,11 @@ const
        Ord_Drg32VERIFYTRUETYPE = 60;
        Ord_Drg32VERIFYTYPE = 61;
        Ord_Drg32VERIFYTYPESET = 62;
+       Ord_DrgDRAGFILES = 63;
+       Ord_DrgACCEPTDROPPEDFILES = 64;
        Ord_Drg32DRAGFILES = 65;
        Ord_Drg32ACCEPTDROPPEDFILES = 66;
-       Ord_FKAINIT = 64;
-       Ord_QUERYFKADISPLAYDETAILS = 65;
-       Ord_WinFKAWNDPROC = 66;
-       Ord_WinLOADFKA = 67;
-       Ord_WinCREATEFKA = 68;
-       Ord_WinSETFKAFORM = 69;
-       Ord_WinQUERYFKAFORM = 70;
-       Ord_WinGOTOFKA = 71;
-       Ord_WinGOFROMFKA = 72;
+(* HELPMGR.DLL *)
        Ord_WinCREATEHELPINSTANCE = 1;
        Ord_WinDESTROYHELPINSTANCE = 2;
        Ord_WinQUERYHELPINSTANCE = 3;
@@ -395,6 +391,15 @@ const
        Ord_Win32ASSOCIATEHELPINSTANCE = 54;
        Ord_Win32LOADHELPTABLE = 55;
        Ord_Win32CREATEHELPTABLE = 56;
+       Ord_FKAINIT = 64;
+       Ord_QUERYFKADISPLAYDETAILS = 65;
+       Ord_WinFKAWNDPROC = 66;
+       Ord_WinLOADFKA = 67;
+       Ord_WinCREATEFKA = 68;
+       Ord_WinSETFKAFORM = 69;
+       Ord_WinQUERYFKAFORM = 70;
+       Ord_WinGOTOFKA = 71;
+       Ord_WinGOFROMFKA = 72;
        Ord_DDFINITIALIZE = 74;
        Ord_DDFPARA = 75;
        Ord_DDFSETFORMAT = 76;
@@ -410,6 +415,7 @@ const
        Ord_DDFMETAFILE = 86;
        Ord_DDFSETFONT = 87;
        Ord_DDFBITMAP = 88;
+(* KBDCALLS.DLL *)
        Ord_KbdSETCUSTXT = 1;
        Ord_KbdGETCP = 3;
        Ord_KbdCHARIN = 4;
@@ -430,11 +436,13 @@ const
        Ord_KbdOPEN = 23;
        Ord_KbdGETHWID = 24;
        Ord_KbdSETHWID = 25;
-       Ord_DosMONOPEN = 4;
-       Ord_DosMONCLOSE = 3;
-       Ord_DosMONREAD = 2;
+(* MONCALLS.DLL *)
        Ord_DosMONWRITE = 1;
+       Ord_DosMONREAD = 2;
+       Ord_DosMONCLOSE = 3;
+       Ord_DosMONOPEN = 4;
        Ord_DosMONREG = 5;
+(* MOUCALLS.DLL *)
        Ord_MouGETPTRSHAPE = 1;
        Ord_MouSETPTRSHAPE = 2;
        Ord_MouGETNUMMICKEYS = 3;
@@ -462,6 +470,7 @@ const
        Ord_MouINITREAL = 27;
        Ord_MouGETTHRESHOLD = 29;
        Ord_MouSETTHRESHOLD = 30;
+(* MSG.DLL *)
        Ord_DosPUTMESSAGE = 1;
        Ord_DosTRUEGETMESSAGE = 2;
        Ord_DosINSMESSAGE = 3;
@@ -470,6 +479,7 @@ const
        Ord_Dos32TRUEGETMESSAGE = 6;
        Ord_DosIQUERYMESSAGECP = 7;
        Ord_Dos32IQUERYMESSAGECP = 8;
+(* NLS.DLL *)
        Ord_DosCASEMAP = 1;
        Ord_DosGETCOLLATE = 2;
        Ord_DosGETCTRYINFO = 3;
@@ -478,6 +488,7 @@ const
        Ord_Dos32QUERYDBCSENV = 6;
        Ord_Dos32MAPCASE = 7;
        Ord_Dos32QUERYCOLLATE = 8;
+(* NAMPIPES.DLL *)
        Ord_DosMAKENMPIPE = 1;
        Ord_DosQNMPIPEINFO = 2;
        Ord_DosCONNECTNMPIPE = 3;
@@ -492,109 +503,149 @@ const
        Ord_DosRAWWRITENMPIPE = 12;
        Ord_DosSETNMPIPESEM = 13;
        Ord_DosQNMPIPESEMSTATE = 14;
-       Ord_DosCWAIT = 2;
-       Ord_DosENTERCRITSEC = 3;
-       Ord_DosEXIT = 5;
-       Ord_DosEXITCRITSEC = 6;
-       Ord_DosEXITLIST = 7;
-       Ord_DosGETINFOSEG = 8;
-       Ord_DosGETPRTY = 9;
-       Ord_DosKILLPROCESS = 10;
-       Ord_DosSETPRTY = 11;
-       Ord_DosPTRACE = 12;
-       Ord_DosHOLDSIGNAL = 13;
-       Ord_DosSETSIGHANDLER = 14;
-       Ord_DosFLAGPROCESS = 15;
-       Ord_DosMAKEPIPE = 16;
-       Ord_DosSEMSETWAIT = 20;
-       Ord_DosMUXSEMWAIT = 22;
-       Ord_DosCLOSESEM = 23;
-       Ord_DosCREATESEM = 24;
-       Ord_DosOPENSEM = 25;
-       Ord_DosRESUMETHREAD = 26;
-       Ord_DosSUSPENDTHREAD = 27;
-       Ord_DosSETDATETIME = 28;
+(* DOSCALLS.DLL *)
+{
+xxx       Ord_DosICreateThread = 1;
+}
+       Ord_DosCWAIT = 2; (* callgate *)
+       Ord_DosENTERCRITSEC = 3; (* callgate *)
+       Ord_DosIExecPgm = 4; (* callgate *)
+       Ord_DosEXIT = 5; (* callgate *)
+       Ord_DosEXITCRITSEC = 6; (* callgate *)
+       Ord_DosEXITLIST = 7; (* callgate *)
+       Ord_DosGETINFOSEG = 8; (* callgate *)
+       Ord_DosGETPRTY = 9; (* callgate *)
+       Ord_DosKILLPROCESS = 10; (* callgate *)
+       Ord_DosSETPRTY = 11; (* callgate *)
+       Ord_DosPTRACE = 12; (* callgate *)
+       Ord_DosHOLDSIGNAL = 13; (* callgate *)
+       Ord_DosSETSIGHANDLER = 14; (* callgate *)
+       Ord_DosFLAGPROCESS = 15; (* callgate *)
+       Ord_DosMAKEPIPE = 16; (* callgate *)
+       Ord_DosISysSemClear = 17; (* callgate *)
+       Ord_DosISemRequest = 18; (* callgate *)
+       Ord_DosISysSemSet = 19; (* callgate *)
+       Ord_DosSEMSETWAIT = 20; (* callgate *)
+       Ord_DosISemWait = 21; (* callgate *)
+       Ord_DosMUXSEMWAIT = 22; (* callgate *)
+       Ord_DosCLOSESEM = 23; (* callgate *)
+       Ord_DosCREATESEM = 24; (* callgate *)
+       Ord_DosOPENSEM = 25; (* callgate *)
+       Ord_DosRESUMETHREAD = 26; (* callgate *)
+       Ord_DosSUSPENDTHREAD = 27; (* callgate *)
+       Ord_DosSETDATETIME = 28; (* callgate *)
        Ord_DosTIMERASYNC = 29;
        Ord_DosTIMERSTART = 30;
        Ord_DosTIMERSTOP = 31;
-       Ord_DosSLEEP = 32;
-       Ord_DosGETDATETIME = 33;
-       Ord_DosALLOCSEG = 34;
-       Ord_DosALLOCSHRSEG = 35;
-       Ord_DosGETSHRSEG = 36;
-       Ord_DosGIVESEG = 37;
-       Ord_DosREALLOCSEG = 38;
-       Ord_DosFREESEG = 39;
-       Ord_DosALLOCHUGE = 40;
-       Ord_DosGETHUGESHIFT = 41;
-       Ord_DosREALLOCHUGE = 42;
-       Ord_DosCREATECSALIAS = 43;
-       Ord_DosLOADMODULE = 44;
-       Ord_DosGETPROCADDR = 45;
-       Ord_DosFREEMODULE = 46;
-       Ord_DosGETMODHANDLE = 47;
-       Ord_DosGETMODNAME = 48;
-       Ord_DosGETMACHINEMODE = 49;
-       Ord_DosBEEP = 50;
-       Ord_DosCLIACCESS = 51;
-       Ord_DosDEVCONFIG = 52;
-       Ord_DosDEVIOCTL = 53;
-       Ord_DosBUFRESET = 56;
-       Ord_DosCHDIR = 57;
-       Ord_DosCHGFILEPTR = 58;
-       Ord_DosCLOSE = 59;
-       Ord_DosDELETE = 60;
-       Ord_DosDUPHANDLE = 61;
-       Ord_DosFILELOCKS = 62;
-       Ord_DosFINDCLOSE = 63;
-       Ord_DosFINDFIRST = 64;
-       Ord_DosFINDNEXT = 65;
-       Ord_DosMKDIR = 66;
-       Ord_DosMOVE = 67;
-       Ord_DosNEWSIZE = 68;
-       Ord_DosPORTACCESS = 69;
-       Ord_DosOPEN = 70;
-       Ord_DosQCURDIR = 71;
-       Ord_DosQCURDISK = 72;
-       Ord_DosQFHANDSTATE = 73;
-       Ord_DosQFILEINFO = 74;
-       Ord_DosQFILEMODE = 75;
-       Ord_DosQFSINFO = 76;
-       Ord_DosQHANDTYPE = 77;
-       Ord_DosQVERIFY = 78;
-       Ord_DosRMDIR = 80;
-       Ord_DosSELECTDISK = 81;
-       Ord_DosSETFHANDSTATE = 82;
-       Ord_DosSETFILEINFO = 83;
-       Ord_DosSETFILEMODE = 84;
-       Ord_DosSETMAXFH = 85;
-       Ord_DosSETVERIFY = 86;
-       Ord_DosSYSTEMSERVICE = 88;
-       Ord_DosSETVEC = 89;
-       Ord_DosSYSTRACE = 90;
-       Ord_DosGETENV = 91;
-       Ord_DosGETVERSION = 92;
-       Ord_DosGETPID = 94;
-       Ord_DosOPEN2 = 95;
-       Ord_DosLIBINIT = 96;
-       Ord_DosSETFSINFO = 97;
-       Ord_DosQPATHINFO = 98;
-       Ord_DosDEVIOCTL2 = 99;
-       Ord_DosSETPATHINFO = 104;
-       Ord_DosISETRELMAXFH = 108;
-       Ord_DosIDEVIOCTL = 109;
+       Ord_DosSLEEP = 32; (* callgate *)
+       Ord_DosGETDATETIME = 33; (* callgate *)
+       Ord_DosALLOCSEG = 34; (* callgate *)
+       Ord_DosALLOCSHRSEG = 35; (* callgate *)
+       Ord_DosGETSHRSEG = 36; (* callgate *)
+       Ord_DosGIVESEG = 37; (* callgate *)
+       Ord_DosREALLOCSEG = 38; (* callgate *)
+       Ord_DosFREESEG = 39; (* callgate *)
+       Ord_DosALLOCHUGE = 40; (* callgate *)
+       Ord_DosGETHUGESHIFT = 41; (* callgate *)
+       Ord_DosREALLOCHUGE = 42; (* callgate *)
+       Ord_DosCREATECSALIAS = 43; (* callgate *)
+       Ord_DosLOADMODULE = 44; (* callgate *)
+       Ord_DosGETPROCADDR = 45; (* callgate *)
+       Ord_DosFREEMODULE = 46; (* callgate *)
+       Ord_DosGETMODHANDLE = 47; (* callgate *)
+       Ord_DosGETMODNAME = 48; (* callgate *)
+       Ord_DosGETMACHINEMODE = 49; (* callgate *)
+       Ord_DosBEEP = 50; (* callgate *)
+       Ord_DosCLIACCESS = 51; (* callgate *)
+       Ord_DosDEVCONFIG = 52; (* callgate *)
+       Ord_DosDEVIOCTL = 53; (* callgate *)
+       Ord_DosSGSwitch = 54; (* callgate *)
+       Ord_DosSGSwitchMe = 55; (* callgate *)
+       Ord_DosBUFRESET = 56; (* callgate *)
+       Ord_DosCHDIR = 57; (* callgate *)
+       Ord_DosCHGFILEPTR = 58; (* callgate *)
+       Ord_DosCLOSE = 59; (* callgate *)
+       Ord_DosDELETE = 60; (* callgate *)
+       Ord_DosDUPHANDLE = 61; (* callgate *)
+       Ord_DosFILELOCKS = 62; (* callgate *)
+       Ord_DosFINDCLOSE = 63; (* callgate *)
+       Ord_DosFINDFIRST = 64; (* callgate *)
+       Ord_DosFINDNEXT = 65; (* callgate *)
+       Ord_DosMKDIR = 66; (* callgate *)
+       Ord_DosMOVE = 67; (* callgate *)
+       Ord_DosNEWSIZE = 68; (* callgate *)
+       Ord_DosPORTACCESS = 69; (* callgate *)
+       Ord_DosOPEN = 70; (* callgate *)
+       Ord_DosQCURDIR = 71; (* callgate *)
+       Ord_DosQCURDISK = 72; (* callgate *)
+       Ord_DosQFHANDSTATE = 73; (* callgate *)
+       Ord_DosQFILEINFO = 74; (* callgate *)
+       Ord_DosQFILEMODE = 75; (* callgate *)
+       Ord_DosQFSINFO = 76; (* callgate *)
+       Ord_DosQHANDTYPE = 77; (* callgate *)
+       Ord_DosQVERIFY = 78; (* callgate *)
+       Ord_DosIRead = 79; (* callgate *)
+       Ord_DosRMDIR = 80; (* callgate *)
+       Ord_DosSELECTDISK = 81; (* callgate *)
+       Ord_DosSETFHANDSTATE = 82; (* callgate *)
+       Ord_DosSETFILEINFO = 83; (* callgate *)
+       Ord_DosSETFILEMODE = 84; (* callgate *)
+       Ord_DosSETMAXFH = 85; (* callgate *)
+       Ord_DosSETVERIFY = 86; (* callgate *)
+       Ord_DosIWrite = 87; (* callgate *)
+       Ord_DosSYSTEMSERVICE = 88; (* callgate *)
+       Ord_DosSETVEC = 89; (* callgate *)
+       Ord_DosSYSTRACE = 90; (* callgate *)
+       Ord_DosGETENV = 91; (* callgate *)
+       Ord_DosGETVERSION = 92; (* callgate *)
+       Ord_DosQTraceInfo = 93; (* callgate *)
+       Ord_DosGETPID = 94; (* callgate *)
+       Ord_DosOPEN2 = 95; (* callgate *)
+       Ord_DosLIBINIT = 96; (* callgate *)
+       Ord_DosSETFSINFO = 97; (* callgate *)
+       Ord_DosQPATHINFO = 98; (* callgate *)
+       Ord_DosDEVIOCTL2 = 99; (* callgate *)
+       Ord_DosICanonicalize = 100; (* callgate *)
+       Ord_DosSetFgnd = 101; (* callgate *)
+{
+xxx       Ord_DosSwapTaskInit = 102;
+xxx       Ord_DosReadPhys = 103;
+}
+       Ord_DosSETPATHINFO = 104; (* callgate *)
+       Ord_DosSGSwitchProc2 = 105; (* callgate *)
+       Ord_STRUCHECK = 106; (* callgate *)
+       Ord_STRURESUPDATE = 107; (* callgate *)
+       Ord_DosISETRELMAXFH = 108; (* callgate *)
+       Ord_DosIDEVIOCTL = 109; (* callgate *)
        Ord_Dos32FORCEDELETE = 110;
        Ord_Dos32KILLTHREAD = 111;
        Ord_DosQUERYRASINFO = 112;
-       Ord_DosERROR = 120;
-       Ord_DosGETSEG = 121;
-       Ord_DosLOCKSEG = 122;
-       Ord_DosUNLOCKSEG = 123;
-       Ord_DosSIZESEG = 126;
-       Ord_DosMEMAVAIL = 127;
-       Ord_DosPHYSICALDISK = 129;
-       Ord_DosGETCP = 130;
-       Ord_DosSENDSIGNAL = 134;
+       Ord_Dos32DumpProcess  = 113;
+       Ord_Dos32SuppressPopUps = 114;
+       Ord_THK32ALLOCMEM = 115;
+       Ord_THK32FREEMEM = 116;
+       Ord_THK32ALLOCSTACK = 117;
+       Ord_DosOpen2Compt = 118; (* callgate *)
+       Ord_DosGetSTDA = 119; (* callgate *)
+       Ord_DosERROR = 120; (* callgate *)
+       Ord_DosGETSEG = 121; (* callgate *)
+       Ord_DosLOCKSEG = 122; (* callgate *)
+       Ord_DosUNLOCKSEG = 123; (* callgate *)
+{
+xxx       Ord_DosSGSwitchProc = 124;
+}
+       Ord_DosIRamSemWake = 125; (* callgate *)
+       Ord_DosSIZESEG = 126; (* callgate *)
+       Ord_DosMEMAVAIL = 127; (* callgate *)
+       Ord_DosIRamSemRequest = 128; (* callgate *)
+       Ord_DosPHYSICALDISK = 129; (* callgate *)
+       Ord_DosGETCP = 130; (* callgate *)
+       Ord_DosISetCP = 131; (* callgate *)
+{
+xxx       Ord_DosGlobalSeg = 132;
+xxx       Ord_DosProfile = 133;
+}
+       Ord_DosSENDSIGNAL = 134; (* callgate *)
        Ord_DosHUGESHIFT = 135;
        Ord_DosHUGEINCR = 136;
        Ord_DosREAD = 137;
@@ -605,45 +656,75 @@ const
        Ord_DosSEMWAIT = 142;
        Ord_DosSEMSET = 143;
        Ord_DosEXECPGM = 144;
-       Ord_DosCREATETHREAD = 145;
-       Ord_DosSUBSET = 146;
-       Ord_DosSUBALLOC = 147;
-       Ord_DosSUBFREE = 148;
+       Ord_DosCREATETHREAD = 145; (* callgate *)
+       Ord_DosSUBSET = 146; (* callgate *)
+       Ord_DosSUBALLOC = 147; (* callgate *)
+       Ord_DosSUBFREE = 148; (* callgate *)
        Ord_DosREADASYNC = 149;
        Ord_DosWRITEASYNC = 150;
        Ord_DosSEARCHPATH = 151;
        Ord_DosSCANENV = 152;
        Ord_DosSETCP = 153;
-       Ord_DosGETRESOURCE = 155;
-       Ord_DosGETPPID = 156;
-       Ord_DosCALLBACK = 157;
-       Ord_DosR2STACKREALLOC = 160;
-       Ord_DosFSRAMSEMREQUEST = 161;
-       Ord_DosFSRAMSEMCLEAR = 162;
+       Ord_DosQProcStatus = 154; (* callgate *)
+       Ord_DosGETRESOURCE = 155; (* callgate *)
+       Ord_DosGETPPID = 156; (* callgate *)
+       Ord_DosCALLBACK = 157; (* callgate *)
+       Ord_DosICallBack = 158; (* callgate *)
+       Ord_DosRetForward = 159; (* callgate *)
+       Ord_DosR2STACKREALLOC = 160; (* callgate *)
+       Ord_DosFSRAMSEMREQUEST = 161; (* callgate *)
+       Ord_DosFSRAMSEMCLEAR = 162; (* callgate *)
        Ord_DosQAPPTYPE = 163;
        Ord_DosSETPROCCP = 164;
-       Ord_DosDYNAMICTRACE = 165;
-       Ord_DosQSYSINFO = 166;
-       Ord_DosFSATTACH = 181;
-       Ord_DosQFSATTACH = 182;
-       Ord_DosFSCTL = 183;
-       Ord_DosFINDFIRST2 = 184;
-       Ord_DosMKDIR2 = 185;
-       Ord_DosFILEIO = 186;
-       Ord_DosFINDNOTIFYCLOSE = 187;
-       Ord_DosFINDNOTIFYFIRST = 188;
-       Ord_DosFINDNOTIFYNEXT = 189;
-       Ord_DosEDITNAME = 191;
+       Ord_DosDYNAMICTRACE = 165; (* callgate *)
+       Ord_DosQSYSINFO = 166; (* callgate *)
+       Ord_DosIMakeNmPipe = 167; (* callgate *)
+       Ord_DosICallNmPipe = 168; (* callgate *)
+       Ord_DosIConnectNmPipe = 169; (* callgate *)
+       Ord_DosIDisconnectNmPipe = 170; (* callgate *)
+       Ord_DosIPeekNmPipe = 171; (* callgate *)
+       Ord_DosIQNmPipeInfo = 172; (* callgate *)
+       Ord_DosIQNmPHandState = 173; (* callgate *)
+       Ord_DosISetNmPHandState = 174; (* callgate *)
+       Ord_DosITransactNmPipe = 175; (* callgate *)
+       Ord_DosIWaitNmPipe = 176; (* callgate *)
+       Ord_DosISetNmPipeSem = 177; (* callgate *)
+       Ord_DosIQNmPipeSemState = 178; (* callgate *)
+       Ord_DosIRawReadNmPipe = 179; (* callgate *)
+       Ord_DosIRawWriteNmPipe = 180; (* callgate *)
+       Ord_DosFSATTACH = 181; (* callgate *)
+       Ord_DosQFSATTACH = 182; (* callgate *)
+       Ord_DosFSCTL = 183; (* callgate *)
+       Ord_DosFINDFIRST2 = 184; (* callgate *)
+       Ord_DosMKDIR2 = 185; (* callgate *)
+       Ord_DosFILEIO = 186; (* callgate *)
+       Ord_DosFINDNOTIFYCLOSE = 187; (* callgate *)
+       Ord_DosFINDNOTIFYFIRST = 188; (* callgate *)
+       Ord_DosFINDNOTIFYNEXT = 189; (* callgate *)
+       Ord_DosSetTraceInfo = 190; (* callgate *)
+       Ord_DosEDITNAME = 191; (* callgate *)
+       Ord_DosLogMode = 192; (* callgate *)
+       Ord_DosLogEntry = 193; (* callgate *)
+       Ord_DosGetLogBuffer = 194; (* callgate *)
+       Ord_DosLogRegister = 195;
+       Ord_DosLogRead = 196;
+       Ord_DosFindFromName = 197; (* callgate *)
+       Ord_DosOPLockRelease = 198; (* callgate *)
+       Ord_DosOPLockWait = 199; (* callgate *)
+       Ord_DosICopy = 200; (* callgate *)
        Ord_DosCOPY = 201;
-       Ord_DosFORCEDELETE = 203;
-       Ord_DosENUMATTRIBUTE = 204;
-       Ord_DosSHUTDOWN = 206;
-       Ord_DosGETRESOURCE2 = 207;
-       Ord_DosFREERESOURCE = 208;
+       Ord_DosIQAppType = 202; (* callgate *)
+       Ord_DosFORCEDELETE = 203; (* callgate *)
+       Ord_DosENUMATTRIBUTE = 204; (* callgate *)
+       Ord_DosOPLockShutdown = 205; (* callgate *)
+       Ord_DosSHUTDOWN = 206; (* callgate *)
+       Ord_DosGETRESOURCE2 = 207; (* callgate *)
+       Ord_DosFREERESOURCE = 208; (* callgate *)
        Ord_Dos32SETMAXFH = 209;
        Ord_Dos32SETVERIFY = 210;
        Ord_Dos32ERRCLASS = 211;
        Ord_Dos32ERROR = 212;
+       Ord_DosCreateVDM = 213; (* callgate *)
        Ord_DosMAXPATHLEN = 214;
        Ord_DosPAGESIZE = 215;
        Ord_DosLOCALINFO = 216;
@@ -692,6 +773,7 @@ const
        Ord_Dos32DELETE = 259;
        Ord_Dos32DUPHANDLE = 260;
        Ord_Dos32EDITNAME = 261;
+       Ord_THK32FREESTACK = 262;
        Ord_Dos32FINDCLOSE = 263;
        Ord_Dos32FINDFIRST = 264;
        Ord_Dos32FINDNEXT = 265;
@@ -722,7 +804,12 @@ const
        Ord_Dos32STOPTIMER = 290;
        Ord_Dos32QUERYCP = 291;
        Ord_Dos32SETDATETIME = 292;
+       Ord_THK32AllocBlock = 293;
+       Ord_THK32FreeBlock = 294;
+       Ord_THK32R3DS = 295;
        Ord_Dos32EXITLIST = 296;
+       Ord_Dos32AllocProtectedMem = 297;
+       Ord_Dos32AliasMem = 298;
        Ord_Dos32ALLOCMEM = 299;
        Ord_Dos32ALLOCSHAREDMEM = 300;
        Ord_Dos32GETNAMEDSHAREDMEM = 301;
@@ -731,11 +818,15 @@ const
        Ord_Dos32FREEMEM = 304;
        Ord_Dos32SETMEM = 305;
        Ord_Dos32QUERYMEM = 306;
+       Ord_Dos32QueryMemState = 307;
        Ord_Dos32OPENVDD = 308;
        Ord_Dos32REQUESTVDD = 309;
        Ord_Dos32CLOSEVDD = 310;
        Ord_Dos32CREATETHREAD = 311;
        Ord_Dos32GETINFOBLOCKS = 312;
+       Ord_DosAllocProtSeg = 313; (* callgate *)
+       Ord_DosAllocShrProtSeg = 314; (* callgate *)
+       Ord_DosAllocProtHuge = 315; (* callgate *)
        Ord_Dos32DYNAMICTRACE = 316;
        Ord_Dos32DEBUG = 317;
        Ord_Dos32LOADMODULE = 318;
@@ -778,9 +869,20 @@ const
        Ord_Dos32UNSETEXCEPTIONHANDLER = 355;
        Ord_Dos32RAISEEXCEPTION = 356;
        Ord_Dos32UNWINDEXCEPTION = 357;
+       Ord_Dos32QueryPageUsage = 358;
+       Ord_DosQueryModFromCS = 359; (* callgate *)
+       Ord_Dos32QueryModFromEIP = 360;
+       Ord_DosFPDataArea = 361;
        Ord_Dos32TMRQUERYFREQ = 362;
        Ord_Dos32TMRQUERYTIME = 363;
+       Ord_Dos32AliasPerfCtrs = 364;
+       Ord_Dos32ConfigPerf = 365;
+       Ord_Dos32DeconPerf = 366;
        Ord_Dos32REGISTERPERFCTRS = 367;
+       Ord_Dos32QuerySysState = 368;
+       Ord_Dos32FlatCS = 369;
+       Ord_Dos32FlatDS = 370;
+       Ord_Dos32QueryABIOSSupport = 371;
        Ord_Dos32ENUMATTRIBUTE = 372;
        Ord_Dos32QUERYDOSPROPERTY = 373;
        Ord_Dos32SETDOSPROPERTY = 374;
@@ -792,7 +894,42 @@ const
        Ord_Dos32ENTERMUSTCOMPLETE = 380;
        Ord_Dos32EXITMUSTCOMPLETE = 381;
        Ord_Dos32SETRELMAXFH = 382;
+       Ord_MsgPutMessage = 383;
+       Ord_MsgTrueGetMessage = 384;
+       Ord_MsgInsMessage = 385;
+       Ord_Msg32InsertMessage = 386;
+       Ord_Msg32PutMessage = 387;
+       Ord_Msg32TrueGetMessage = 388;
+       Ord_MsgIQueryMessageCP = 389;
+       Ord_Msg32IQueryMessageCP = 390;
+       Ord_NLSCaseMap = 391;
+       Ord_NLSGetCollate = 392;
+       Ord_NLSGetCtryInfo = 393;
+       Ord_NLSGetDBCSEv = 394;
+       Ord_NLS32QueryCtryInfo = 395;
+       Ord_NLS32QueryDBCSEnv = 396;
+       Ord_NLS32MapCase = 397;
+       Ord_NLS32QueryCollate = 398;
+       Ord_NPipeMakeNmPipe = 399;
+       Ord_NPipeQNmPipeInfo = 400;
+       Ord_NPipeConnectNmPipe = 401;
+       Ord_NPipeDisconnectNmPipe = 402;
+       Ord_NPipeQNmPHandState = 403;
+       Ord_NPipeSetNmPHandState = 404;
+       Ord_NPipePeekNmPipe = 405;
+       Ord_NPipeWaitNmPipe = 406;
+       Ord_NPipeTransactNmPipe = 407;
+       Ord_NPipeCallNmPipe = 408;
+       Ord_NPipeRawReadNmPipe = 409;
+       Ord_NPipeRawWriteNmPipe = 410;
+       Ord_NPipeSetNmPipeSem = 411;
+       Ord_NPipeQNmPipeSemState = 412;
+       Ord_StartLazyWriter = 413;
+       Ord_HPFSStartLazyWriter = 413;
+       Ord__QueInst_Data = 414;
+       Ord_QueInstanceData = 414;
        Ord_Dos32SHUTDOWN = 415;
+       Ord_Dos32ICacheModule = 416;
        Ord_Dos32REPLACEMODULE = 417;
        Ord_Dos32ACKNOWLEDGESIGNALEXC = 418;
        Ord_Dos32TIB = 419;
@@ -803,22 +940,588 @@ const
        Ord_DosSELTOFLAT = 424;
        Ord_Dos32FLATTOSEL = 425;
        Ord_Dos32SELTOFLAT = 426;
+       Ord_DosIODelayCnt = 427;
        Ord_Dos32SETFILELOCKS = 428;
        Ord_Dos32CANCELLOCKREQUEST = 429;
-       Ord_DosOPENCHANGENOTIFY = 437;
-       Ord_DosRESETCHANGENOTIFY = 438;
-       Ord_DosCLOSECHANGENOTIFY = 439;
+       Ord_DosOPENCHANGENOTIFY = 437; (* callgate *)
+       Ord_DosRESETCHANGENOTIFY = 438; (* callgate *)
+       Ord_DosCLOSECHANGENOTIFY = 439; (* callgate *)
        Ord_Dos32OPENCHANGENOTIFY = 440;
        Ord_Dos32RESETCHANGENOTIFY = 441;
        Ord_Dos32CLOSECHANGENOTIFY = 442;
+       Ord_DosQueryABIOSSupport = 443; (* callgate *)
+       Ord_Dos32ForceSystemDump = 444;
+       Ord_Dos32GetProcessorStatus = 447;
+       Ord_Dos32SetProcessorStatus = 448;
+       Ord_DosCreateSpinLock = 449; (* callgate *)
+       Ord_DosAcquireSpinLock = 450; (* callgate *)
+       Ord_DosReleaseSpinLock = 451; (* callgate *)
+       Ord_DosFreeSpinLock = 452; (* callgate *)
+       Ord_Dos32TestPSD = 453;
+       Ord_Dos32AllocThreadLocalMemory = 454;
+       Ord_Dos32FreeThreadLocalMemory = 455;
+       Ord_Dos32VerifyPIDTID = 460;
+{
+xxx       Ord_PTDA_LANMAN_SEC = 464;
+xxx       Ord_PTDA_PID = 465;
+xxx       Ord_SAS_SEL = 466;
+xxx       Ord_TCB_OPCOOKIE = 467;
+xxx       Ord_TCB_OPFLAGS = 468;
+xxx       Ord_TCB_NEWFLAGS = 469;
+xxx       Ord_TCB_USER_ID = 470;
+xxx       Ord_TCB_PROC_ID = 471;
+xxx       Ord_TCB_FSHARING = 472;
+xxx       Ord_TCB_SRVATTRIB = 473;
+xxx       Ord_TCB_ALLOWED = 474;
+xxx       Ord_TCB_PRTCB = 475;
+xxx       Ord_TCB_NUMBER = 476;
+xxx       Ord_TCB_THISSFT = 477;
+xxx       Ord_TCB_THISCDS = 478;
+xxx       Ord_TKOPTDA = 479;
+xxx       Ord_PTDA_CRITSEC = 480;
+xxx       Ord_PTDA_HOLDSIGCNT = 481;
+xxx       Ord_PTDA_PPTDAPARENT = 482;
+xxx       Ord_PTDA_PGDATA = 483;
+xxx       Ord_PTDA_HANDLE = 484;
+xxx       Ord_PTDA_MODULE = 485;
+xxx       Ord_PTDA_LDTHANDLE = 486;
+xxx       Ord_PTDA_CODEPAGE_TAG = 487;
+xxx       Ord_PTDA_JFN_LENGTH = 488;
+xxx       Ord_PTDA_JFN_PTABLE = 489;
+xxx       Ord_PTDA_JFN_FLG_PTR = 490;
+xxx       Ord_PTDA_EXTERR_LOCUS = 491;
+xxx       Ord_PTDA_EXTERR = 492;
+xxx       Ord_PTDA_EXTERR_ACTION = 493;
+xxx       Ord_PTDA_EXTERR_CLASS = 494;
+xxx       Ord_PTDA_PPID = 495;
+xxx       Ord_PTDA_PROCTYPE = 496;
+xxx       Ord_PTDA_CURRTCB = 497;
+xxx       Ord_PTDA_CURRTSD = 498;
+xxx       Ord_PTDA_SIGNATURE = 499;
+xxx   500 T32EXITLIST 
+xxx   501 T32ALLOCPROTECTEDMEM 
+xxx   502 T32ALIASMEM 
+xxx   503 T32ALLOCMEM 
+xxx   504 T32ALLOCSHAREDMEM 
+xxx   505 T32GETNAMEDSHAREDMEM 
+xxx   506 T32GETSHAREDMEM 
+xxx   507 T32GIVESHAREDMEM 
+xxx   508 T32FREEMEM 
+xxx   509 T32SETMEM 
+xxx   510 T32QUERYMEM 
+xxx   511 T32QUERYMEMSTATE 
+xxx   512 T32OPENVDD 
+xxx   513 T32REQUESTVDD 
+xxx   514 T32CLOSEVDD 
+xxx   515 T32CREATETHREAD 
+xxx   516 T32DYNAMICTRACE 
+xxx   517 T32DEBUG 
+xxx   518 T32QUERYPROCADDR 
+xxx   519 T32CREATEEVENTSEM 
+xxx   520 T32OPENEVENTSEM 
+xxx   521 T32CLOSEEVENTSEM 
+xxx   522 T32RESETEVENTSEM 
+xxx   523 T32POSTEVENTSEM 
+xxx   524 T32WAITEVENTSEM 
+xxx   525 T32QUERYEVENTSEM 
+xxx   526 T32CREATEMUTEXSEM 
+xxx   527 T32OPENMUTEXSEM 
+xxx   528 T32CLOSEMUTEXSEM 
+xxx   529 T32REQUESTMUTEXSEM 
+xxx   530 T32RELEASEMUTEXSEM 
+xxx   531 T32QUERYMUTEXSEM 
+xxx   532 T32CREATEMUXWAITSEM 
+xxx   533 T32OPENMUXWAITSEM 
+xxx   534 T32CLOSEMUXWAITSEM 
+xxx   535 T32WAITMUXWAITSEM 
+xxx   536 T32ADDMUXWAITSEM 
+xxx   537 T32DELETEMUXWAITSEM 
+xxx   538 T32QUERYMUXWAITSEM 
+xxx   539 T32QUERYSYSINFO 
+xxx   540 T32WAITTHREAD
+}
+       Ord_DosIOpenL = 541; (* callgate *)
+       Ord_DosIProtectOpenL = 542; (* callgate *)
+       Ord_DosISetFileSizeL = 543; (* callgate *)
+       Ord_DosIProtectSetFileSizeL = 544; (* callgate *)
+{
+xxx       Ord_Dos32ExceptionCallBack = 545;
+}
+       Ord_THK32STRLEN = 546;
+       Ord_THK32_UNITHUNK = 547;
+       Ord_Dos32R3ExceptionDispatcher = 548;
+       Ord_DosLibiDisp = 549;
+       Ord_DosLibiDisp16 = 550;
+       Ord_DosLibiDisp32 = 551;
+       Ord_DosR3ExitAddr = 552;
+       Ord_Dos32R3ExitAddr = 553;
+{
+xxx       Ord_Dos32IRead = 554;
+xxx       Ord_Dos32IWrite = 556;
+}
+       Ord_Dos32CreateSpinLock = 557;
+       Ord_Dos32AcquireSpinLock = 558;
+       Ord_Dos32ReleaseSpinLock = 559;
+       Ord_Dos32FreeSpinLock = 560;
+       Ord_Dos32PMR3WaitEventSem = 561;
+       Ord_Dos32PMR3PostEventSem = 562;
+       Ord_Dos32QueryThreadAffinity = 563;
+       Ord_Dos32SetThreadAffinity = 564;
+       Ord_DosISetFileInfo = 565; (* callgate *)
+       Ord_DosISetPathInfo = 566; (* callgate *)
+       Ord_DosOpenL = 567; (* callgate *)
+       Ord_DosSetFilePtrL = 568;
+       Ord_DosIFindNext = 569; (* callgate *)
+       Ord_DosSetFileSizeL = 570;
        Ord_Dos32QUERYRESOURCESIZE = 572;
        Ord_DosQUERYRESOURCESIZE = 573;
+       Ord_DosPMSemWait = 574;
+       Ord_DosPMMuxSemWait = 575;
+       Ord_THK16_UNITHUNK = 576;
+       Ord_HT16_STARTUP = 577;
+       Ord_HT16_CLEANUP = 578;
+       Ord_HT32_STARTUP = 579;
        Ord_Dos32INITIALIZEPORTHOLE = 580;
+       Ord_HT32_CLEANUP = 581;
        Ord_Dos32QUERYHEADERINFO = 582;
        Ord_DosINITIALIZEPORTHOLE = 583;
        Ord_DosQUERYHEADERINFO = 584;
+       Ord__Dos32IMonRead = 585;
+       Ord_Mon32IMonRead = 585;
        Ord_Dos32QUERYPROCTYPE = 586;
        Ord_DosQUERYPROCTYPE = 587;
+       Ord__Dos32IMonWrite = 588;
+       Ord_Mon32IMonWrite = 588;
+       Ord_DosISigDispatch = 589;
+       Ord_Dos32PMPOSTEVENTSEM = 590;
+       Ord_Dos32PMWAITEVENTSEM = 591;
+       Ord_Dos32DllTermDisp = 592;
+       Ord_Dos32PMREQUESTMUTEXSEM = 593;
+       Ord_Dos32IRaiseException = 594;
+       Ord_Dos32PMWAITMUXWAITSEM = 595;
+       Ord_Dos32PM16SEMCHK = 596;
+       Ord_Dos32IQueryFHState = 597; (* callgate *)
+       Ord_Dos32ISetFHState = 598; (* callgate *)
+       Ord_Dos32LDTSel = 599;
+       Ord_Dos32R3Frestor = 600;
+       Ord_DosIFindFirst = 601; (* callgate *)
+{
+xxx   606 MonDosMonOpen
+xxx   607 MonDosMonClose
+xxx   608 MonDosMonRead
+xxx   609 MonDosMonWrite
+xxx   610 MonDosMonReg
+xxx       Ord_Dos32IProtectWrite = 615;
+}
+       Ord_DosIProtectSetFileInfo = 617; (* callgate *)
+{
+xxx       Ord_Dos32IProtectSetFileInfo = 618;
+}
+       Ord_Dos32IProtectSetFHState = 619; (* callgate *)
+       Ord_Dos32IProtectQueryFHState = 620; (* callgate *)
+       Ord_Dos32PROTECTSETFILEPTR = 621;
+       Ord_DosPROTECTCLOSE = 622; (* callgate *)
+       Ord_DosPROTECTFILEIO = 623; (* callgate *)
+       Ord_DosPROTECTFILELOCKS = 624; (* callgate *)
+       Ord_DosIProtectRead = 625; (* callgate *)
+       Ord_DosIProtectWrite = 626; (* callgate *)
+       Ord_DosPROTECTNEWSIZE = 627; (* callgate *)
+       Ord_DosPROTECTOPEN = 628; (* callgate *)
+       Ord_DosPROTECTQFHANDSTATE = 629; (* callgate *)
+       Ord_DosPROTECTSETFHANDSTATE = 630; (* callgate *)
+       Ord_DosPROTECTQFILEINFO = 631; (* callgate *)
+       Ord_DosPROTECTSETFILEINFO = 632; (* callgate *)
+       Ord_DosPROTECTCHGFILEPTR = 634; (* callgate *)
+       Ord_DosPROTECTENUMATTRIBUTE = 635; (* callgate *)
+       Ord_Dos32PROTECTENUMATTRIBUTE = 636;
+       Ord_Dos32PROTECTOPEN = 637;
+       Ord_Dos32PROTECTCLOSE = 638;
+       Ord_Dos32PROTECTSETFILELOCKS = 639;
+       Ord_Dos32PROTECTSETFILESIZE = 640;
+       Ord_Dos32PROTECTREAD = 641;
+       Ord_Dos32PROTECTWRITE = 642;
+       Ord_Dos32PROTECTSETFILEINFO = 643;
+       Ord_Dos32PROTECTSETFHSTATE = 644;
+       Ord_Dos32PROTECTQUERYFHSTATE = 645;
+       Ord_Dos32PROTECTQUERYFILEINFO = 646;
+{
+xxx       Ord_Dos32IProtectRead = 647;
+}
+       Ord_DosCloseMessageFile = 649;
+       Ord_DosLDRDirtyWorker = 650; (* callgate *)
+       Ord_Dos16LDRDirtyWorker = 651; (* callgate *)
+{
+xxx 652 Ord_Dos32IGetInfoBlocks
+}
+       Ord_T32IGETINFOBLOCKS = 653; (* callgate *)
+       Ord_T32GETPROCESSORSTATUS = 656; (* callgate *)
+       Ord_T32SETPROCESSORSTATUS = 657; (* callgate *)
+       Ord_T32TESTPSD = 658; (* callgate *)
+       Ord_T32QUERYTHREADAFFINITY = 659; (* callgate *)
+       Ord_T32SETTHREADAFFINITY = 660; (* callgate *)
+       Ord_QueDos32READQUEUE = 661;
+       Ord_QueDos32PURGEQUEUE = 662;
+       Ord_QueDos32CLOSEQUEUE = 663;
+       Ord_QueDos32QUERYQUEUE = 664;
+       Ord_QueDos32PEEKQUEUE = 665;
+       Ord_QueDos32WRITEQUEUE = 666;
+       Ord_QueDos32OPENQUEUE = 667;
+       Ord_QueDos32CREATEQUEUE = 668;
+       Ord_SMGDos32STARTSESSION = 669;
+       Ord_SMGDos32SELECTSESSION = 670;
+       Ord_SMGDos32SETSESSION = 671;
+       Ord_SMGDos32STOPSESSION = 672;
+       Ord_SMGREGISTERNOTIFICATION = 673;
+       Ord_QueDosREADQUEUE = 674;
+       Ord_QueDosPURGEQUEUE = 675;
+       Ord_QueDosCLOSEQUEUE = 676;
+       Ord_QueDosQUERYQUEUE = 677;
+       Ord_QueDosPEEKQUEUE = 678;
+       Ord_QueDosWRITEQUEUE = 679;
+       Ord_QueDosOPENQUEUE = 680;
+       Ord_QueDosCREATEQUEUE = 681;
+       Ord_CHRDosSMGETME = 682;
+       Ord_CHRDosSMFREEMEM = 683;
+       Ord_CHRDosSMGETSGCB = 684;
+       Ord_CHRDosSMINITSGCB = 685;
+       Ord_SMGDosSMSGDOPOPUP = 686;
+       Ord_SMGDosSMSWITCH = 687;
+       Ord_SMGDosSMSERVEAPPREQ = 688;
+       Ord_SMGDosGETTIMES = 689;
+       Ord_SMGDosSMSETTITLE = 690;
+       Ord_SMGDosSCRUNLOCK = 691;
+       Ord_SMGDosSMDOAPPREQ = 692;
+       Ord_SMGDosSTOPSESSION = 693;
+       Ord_SMGDosSELECTSESSION = 694;
+       Ord_SMGDosSCRLOCK = 695;
+       Ord_SMGDosSAVREDRAWWAIT = 696;
+       Ord_SMGDosSAVREDRAWUNDO = 697;
+       Ord_SMGDosSMSGENDPOPUP = 698;
+       Ord_SMGDosSETSESSION = 699;
+       Ord_SMGDosSETMNLOCKTIME = 700;
+       Ord_SMGDosMODEUNDO = 701;
+       Ord_SMGDosSTARTSESSION = 702;
+       Ord_SMGDosSMGETSTATUS = 703;
+       Ord_SMGDosSMMODEWAIT = 704;
+       Ord_SMGDosSMTERMINATE = 705;
+       Ord_SMGDosSMGETAPPREQ = 706;
+       Ord_SMGDosSMINITIALIZE = 707;
+       Ord_SMGDosSMSTART = 708;
+       Ord_SMGDosSMPARENTSWITCH = 709;
+       Ord_SMGDosSMPAUSE = 710;
+       Ord_SMGDosSMHDEINIT = 711;
+       Ord_SMGDosSMPMPRESENT = 712;
+       Ord_SMGDosSMREGISTERDD = 713;
+       Ord_SMGDosSMNOTIFYDD = 714;
+       Ord_SMGDosSMNOTIFYDD2 = 715;
+       Ord_SMGDosSMOPENDD = 716;
+       Ord_SMGDosSMSETSESSIONTYPE = 717;
+       Ord_CHRBASEINIT = 718;
+       Ord_OS2BASEINIT = 718;
+       Ord_MouDosGETPTRSHAPE = 719;
+       Ord_MouDosSETPTRSHAPE = 720;
+       Ord_MouDosGETNUMMICKEYS = 721;
+       Ord_MouDosGETTHRESHOLD = 722;
+       Ord_MouDosSHELLINIT = 723;
+       Ord_MouDosGETSCALEFACT = 724;
+       Ord_MouDosFLUSHQUE = 725;
+       Ord_MouDosGETNUMBUTTONS = 726;
+       Ord_MouDosCLOSE = 727;
+       Ord_MouDosSETTHRESHOLD = 728;
+       Ord_MouDosSETSCALEFACT = 729;
+       Ord_MouDosGETNUMQUEEL = 730;
+       Ord_MouDosDEREGISTER = 731;
+       Ord_MouDosGETEVENTMASK = 732;
+       Ord_MouDosSETEVENTMASK = 733;
+       Ord_MouDosOPEN = 734;
+       Ord_MouDosREMOVEPTR = 735;
+       Ord_MouDosGETPTRPOS = 736;
+       Ord_MouDosREADEVENTQUE = 737;
+       Ord_MouDosSETPTRPOS = 738;
+       Ord_MouDosGETDEVSTATUS = 739;
+       Ord_MouDosSYNCH = 740;
+       Ord_MouDosREGISTER = 741;
+       Ord_MouDosSETDEVSTATUS = 742;
+       Ord_MouDosDRAWPTR = 743;
+       Ord_MouDosINITREAL = 744;
+       Ord_KbdDosSETCUSTXT = 745;
+       Ord_KbdDosPROCESSINIT = 746;
+       Ord_KbdDosGETCP = 747;
+       Ord_KbdDosCHARIN = 748;
+       Ord_KbdDosSETCP = 749;
+       Ord_KbdDosLOADINSTANCE = 750;
+       Ord_KbdDosSYNCH = 751;
+       Ord_KbdDosREGISTER = 752;
+       Ord_KbdDosSTRINGIN = 753;
+       Ord_KbdDosGETSTATUS = 754;
+       Ord_KbdDosSETSTATUS = 755;
+       Ord_KbdDosGETFOCUS = 756;
+       Ord_KbdDosFLUSHBUFFER = 757;
+       Ord_KbdDosXLATE = 758;
+       Ord_KbdDosSWITCHFGND = 759;
+       Ord_KbdDosSHELLINIT = 760;
+       Ord_KbdDosCLOSE = 761;
+       Ord_KbdDosFREEFOCUS = 762;
+       Ord_KbdDosFREE = 763;
+       Ord_KbdDosDEREGISTER = 764;
+       Ord_KbdDosSETFGND = 765;
+       Ord_KbdDosPEEK = 766;
+       Ord_KbdDosOPEN = 767;
+       Ord_KbdDosGETHWID = 768;
+       Ord_KbdDosSETHWID = 769;
+       Ord_VioDosENDPOPUP = 770;
+       Ord_VioDosGETPHYSBUF = 771;
+       Ord_VioDosGETANSI = 772;
+       Ord_VioDosFREE = 773;
+       Ord_VioDosSETANSI = 774;
+       Ord_VioDosDEREGISTER = 775;
+       Ord_VioDosSCROLLUP = 776;
+       Ord_VioDosPRTSC = 777;
+       Ord_VioDosGETCURPOS = 778;
+       Ord_VioDosWRTCELLSTR = 779;
+       Ord_VioDosPOPUP = 780;
+       Ord_VioDosSCROLLRT = 781;
+       Ord_VioDosWRTCHARSTR = 782;
+       Ord_VioDosAVS_PRTSC = 783;
+       Ord_VioDosSETCURPOS = 784;
+       Ord_VioDosSRFUNBLOCK = 785;
+       Ord_VioDosSRFBLOCK = 786;
+       Ord_VioDosSCRUNLOCK = 787;
+       Ord_VioDosWRTTTY = 788;
+       Ord_VioDosSAVE = 789;
+       Ord_VioDosGETMODE = 790;
+       Ord_VioDosSETMODE = 791;
+       Ord_VioDosSCRLOCK = 792;
+       Ord_VioDosREADCELLSTR = 793;
+       Ord_VioDosSAVREDRAWWAIT = 794;
+       Ord_VioDosWRTNATTR = 795;
+       Ord_VioDosGETCURTYPE = 796;
+       Ord_VioDosSAVREDRAWUNDO = 797;
+       Ord_VioDosGETFONT = 798;
+       Ord_VioDosREADCHARSTR = 799;
+       Ord_VioDosGETBUF = 800;
+       Ord_VioDosSETCURTYPE = 801;
+       Ord_VioDosSETFONT = 802;
+       Ord_VioDosHETINIT = 803;
+       Ord_VioDosMODEUNDO = 804;
+       Ord_VioDosSSWSWITCH = 805;
+       Ord_VioDosMODEWAIT = 806;
+       Ord_VioDosAVS_PRTSCTOGGLE = 807;
+       Ord_VioDosGETCP = 808;
+       Ord_VioDosRESTORE = 809;
+       Ord_VioDosSETCP = 810;
+       Ord_VioDosSHOWBUF = 811;
+       Ord_VioDosSCROLLLF = 812;
+       Ord_VioDosREGISTER = 813;
+       Ord_VioDosGETCONFIG = 814;
+       Ord_VioDosSCROLLDN = 815;
+       Ord_VioDosWRTCHARSTRATT = 816;
+       Ord_VioDosGETSTATE = 817;
+       Ord_VioDosPRTSCTOGGLE = 818;
+       Ord_VioDosSETSTATE = 819;
+       Ord_VioDosWRTNCELL = 820;
+       Ord_VioDosWRTNCHAR = 821;
+       Ord_VioDosSHELLINIT = 822;
+       Ord_VioDosASSOCIATE = 823;
+       Ord_VioDosCREATEPS = 824;
+       Ord_VioDosDELETESETID = 825;
+       Ord_VioDosGETDEVICECELLSIZE = 826;
+       Ord_VioDosGETORG = 827;
+       Ord_VioDosCREATELOGFONT = 828;
+       Ord_VioDosDESTROYPS = 829;
+       Ord_VioDosQUERYSETIDS = 830;
+       Ord_VioDosSETORG = 831;
+       Ord_VioDosQUERYFONTS = 832;
+       Ord_VioDosSETDEVICECELLSIZE = 833;
+       Ord_VioDosSHOWPS = 834;
+       Ord_VioDosGETPSADDRESS = 835;
+       Ord_VioDosQUERYCONSOLE = 836;
+       Ord_VioDosREDRAWSIZE = 837;
+       Ord_VioDosGLOBALREG = 838;
+       Ord_XVioDosSETCASTATE = 839;
+       Ord_XVioDosCHECKCHARTYPE = 840;
+       Ord_XVioDosDESTROYCA = 841;
+       Ord_XVioDosCREATECA = 842;
+       Ord_VioDosCHECKCHARTYPE = 843;
+       Ord_XVioDosGETCASTATE = 844;
+       Ord_BvsDosMAIN = 845;
+       Ord_BvsDosREDRAWSIZE = 846;
+       Ord_BvsDosGETPTRDRAWNAME = 847;
+       Ord_AnsiDosINJECT = 848;
+       Ord_AnsiDosKEYDEF = 849;
+       Ord_AnsiDosINTERP = 850;
+       Ord_BksDosMAIN = 851;
+       Ord_BmsDosMAIN = 852;
+       Ord_MouDosGETHOTKEY = 853;
+       Ord_MouDosSETHOTKEY = 854;
+       Ord_SMGDosSMSYSINIT = 855;
+       Ord_SMGQHKEYBDHANDLE = 856;
+       Ord_SMGQHMOUSEHANDLE = 857;
+       Ord_CHRQueueRamSem = 858;
+       Ord_SMQueueRamSem = 858;
+       Ord_CHRArray = 859;
+       Ord_SMArray = 859;
+       Ord_CHRPIDArray = 860;
+       Ord_SMPIDArray = 860;
+       Ord_CHRInitialized = 861;
+       Ord_SMInitialized = 861;
+       Ord_CHRArraySize = 862;
+       Ord_SMArraySize = 862;
+       Ord_CHRBVSGLOBAL = 863;
+       Ord_BVSGLOBAL = 863;
+       Ord_CHRSMGINSTANCE = 864;
+       Ord_SMGINSTANCE = 864;
+       Ord_CHRBVHINSTANCE = 865;
+       Ord_BVHINSTANCE = 865;
+       Ord_THK32ALIASMEM = 866;
+       Ord_THK32FREEALIAS = 867;
+       Ord_THK32ALLOCVARLEN = 868;
+       Ord_THK32HANDLEBOUNDARY = 869;
+       Ord_THK32HANDLESTRING = 870;
+       Ord_THK32DEALLOC = 871;
+       Ord_THK32XHNDLR = 872;
+       Ord_Dos32SETEXTLIBPATH = 873;
+       Ord_Dos32QUERYEXTLIBPATH = 874;
+       Ord_Dos32PM16SEMRST = 875;
+       Ord_Dos32SYSCTL = 876;
+       Ord_Dos32QUERYTHREADCONTEXT = 877;
+       Ord_DosSGQUERYTOPMOST = 878;
+       Ord_Dos32PERFSYSCALL = 976;
+       Ord_Dos32OPENL = 981;
+       Ord_Dos32PROTECTOPENL = 982;
+       Ord_Dos32PROTECTSETFILELOCKSL = 983;
+       Ord_Dos32PROTECTSETFILEPTRL = 984;
+       Ord_Dos32PROTECTSETFILESIZEL = 985;
+       Ord_Dos32SETFILELOCKSL = 986;
+       Ord_Dos32CANCELLOCKREQUESTL = 987;
+       Ord_Dos32SETFILEPTRL = 988;
+       Ord_Dos32SETFILESIZEL = 989;
+       Ord_Dos32LISTIOL = 990;
+{
+xxx       Ord_DosFSRAMSEMREQUEST2 = 991;
+xxx       Ord_DosFSRAMSEMCLEAR2 = 992;
+}
+       Ord_Dos32SystemService = 995;
+       Ord_Dos32LISTIO = 996;
+       Ord_Dos32CREATETHREAD2 = 997;
+       Ord_DosSETEXTLIBPATH = 998;
+       Ord_DosQUERYEXTLIBPATH = 999;
+{
+xxx  1000 T32EXITLIST 
+xxx  1001 T32ALLOCPROTECTEDMEM 
+xxx  1002 T32ALIASMEM 
+xxx  1003 T32ALLOCMEM 
+xxx  1004 T32ALLOCSHAREDMEM 
+xxx  1005 T32GETNAMEDSHAREDMEM 
+xxx  1006 T32GETSHAREDMEM 
+xxx  1007 T32GIVESHAREDMEM 
+xxx  1008 T32FREEMEM 
+xxx  1009 T32SETMEM 
+xxx  1010 T32QUERYMEM 
+xxx  1011 T32QUERYMEMSTATE 
+xxx  1012 T32OPENVDD 
+xxx  1013 T32REQUESTVDD 
+xxx  1014 T32CLOSEVDD 
+xxx  1015 T32CREATETHREAD 
+xxx  1016 T32DYNAMICTRACE 
+xxx  1017 T32DEBUG 
+xxx  1018 T32QUERYPROCADDR 
+xxx  1019 T32CREATEEVENTSEM 
+xxx  1020 T32OPENEVENTSEM 
+xxx  1021 T32CLOSEEVENTSEM 
+xxx  1022 T32RESETEVENTSEM 
+xxx  1023 T32POSTEVENTSEM 
+xxx  1024 T32WAITEVENTSEM 
+xxx  1025 T32QUERYEVENTSEM 
+xxx  1026 T32CREATEMUTEXSEM 
+xxx  1027 T32OPENMUTEXSEM 
+xxx  1028 T32CLOSEMUTEXSEM 
+xxx  1029 T32REQUESTMUTEXSEM 
+xxx  1030 T32RELEASEMUTEXSEM 
+xxx  1031 T32QUERYMUTEXSEM 
+xxx  1032 T32CREATEMUXWAITSEM 
+xxx  1033 T32OPENMUXWAITSEM 
+xxx  1034 T32CLOSEMUXWAITSEM 
+xxx  1035 T32WAITMUXWAITSEM 
+xxx  1036 T32ADDMUXWAITSEM 
+xxx  1037 T32DELETEMUXWAITSEM 
+xxx  1038 T32QUERYMUXWAITSEM 
+xxx  1039 T32QUERYSYSINFO 
+xxx  1040 T32WAITTHREAD 
+xxx  1041 T32GETRESOURCE 
+xxx  1042 T32FREERESOURCE 
+xxx  1043 T32EXCEPTIONCALLBACK 
+xxx  1044 T32QUERYPAGEUSAGE 
+xxx  1045 T32FORCESYSTEMDUMP 
+xxx  1046 TI32ASYNCTIMER 
+xxx  1047 TI32STARTTIMER 
+xxx  1048 T32QUERYABIOSSUPPORT 
+xxx  1049 T32QUERYMODFROMEIP 
+xxx  1050 T32ALIASPERFCTRS 
+xxx  1051 T32CONFIGUREPERF 
+xxx  1052 T32DECONPERF 
+xxx  1053 T32REGISTERPERFCTRS 
+xxx  1054 T32QUERYSYSSTATE 
+xxx  1055 T32IREAD 
+xxx  1056 T32IWRITE 
+xxx  1057 T32TMRQUERYFREQ 
+xxx  1058 T32TMRQUERYTIME 
+xxx  1059 T32IMONREAD 
+xxx  1060 T32IMONWRITE 
+xxx  1061 T32QUERYRESOURCESIZE 
+xxx  1062 T32PROFILE 
+xxx  1063 T32SETSIGNALEXCEPTIONFOCUS 
+xxx  1064 T32SENDSIGNALEXCEPTION 
+xxx  1065 T32STARTTIMER 
+xxx  1066 T32STOPTIMER 
+xxx  1067 T32ASYNCTIMER 
+xxx  1068 T32INITIALIZEPORTHOLE 
+xxx  1069 T32QUERYHEADERINFO 
+xxx  1070 T32QUERYPROCTYPE 
+xxx  1071 T32IEXITMUSTCOMPLETE 
+xxx  1072 T32ICACHEMODULE 
+xxx  1073 T32DLLTERM 
+xxx  1074 T32IRAISEEXCEPTION 
+xxx  1075 T32ACKNOWLEDGESIGNALEXCEPTION 
+xxx  1076 T32QUERYDOSPROPERTY 
+xxx  1077 T32SETDOSPROPERTY 
+xxx  1078 T32SETFILELOCKS 
+xxx  1079 T32CANCELLOCKREQUEST 
+xxx  1080 T32KILLTHREAD 
+xxx  1081 TQUERYRASINFO 
+xxx  1082 T32DUMPPROCESS 
+xxx  1083 T32SUPPRESSPOPUPS 
+xxx  1084 T32IPROTECTWRITE 
+xxx  1085 T32PROTECTSETFILELOCKS 
+xxx  1086 T32IPROTECTREAD 
+xxx  1087 T32PMPOSTEVENTSEM 
+xxx  1088 T32PMWAITEVENTSEM 
+xxx  1089 T32PMREQUESTMUTEXSEM 
+xxx  1090 T32PMWAITMUXWAITSEM 
+xxx  1091 T32PM16SEMCHK 
+xxx  1092 T32ALLOCTHREADLOCALMEMORY 
+xxx  1093 T32FREETHREADLOCALMEMORY 
+xxx  1094 T32SETEXTLIBPATH 
+xxx  1095 T32QUERYEXTLIBPATH 
+xxx  1096 T32PM16SEMRST 
+xxx  1097 T32VERIFYPIDTID 
+xxx  1098 T32SYSCTL 
+xxx  1099 T32QUERYTHREADCONTEXT 
+xxx  1101 T32PERFSYSCALL 
+xxx  1102 T32LISTIO 
+xxx  1103 T32PMR3WAITEVENTSEM 
+xxx  1104 T32PMR3POSTEVENTSEM 
+xxx  1105 T32CREATETHREAD2 
+xxx  1106 T32PROTECTSETFILELOCKSL 
+xxx  1107 T32IPROTECTSETFILEPTRL 
+xxx  1108 T32SETFILELOCKSL 
+xxx  1109 T32CANCELLOCKREQUESTL 
+xxx  1110 T32ISETFILEPTRL 
+xxx  1111 T32LISTIOL 
+xxx  1116 T32ISETFILEPTR 
+xxx  1117 T32IPROTECTSETFILEPTR
+}
+(* PMGPI.DLL *)
        Ord_DevOPENDC = 1;
        Ord_DevCLOSEDC = 2;
        Ord_DevPOSTDEVICEMODES = 3;
@@ -1367,6 +2070,7 @@ const
        Ord_Gpi32CONVERTWITHMATRIX = 618;
        Ord_Gpi32LOADPUBLICFONTS = 622;
        Ord_Gpi32UNLOADPUBLICFONTS = 623;
+(* PMWIN.DLL *)
        Ord_WinQUERYDESKTOPWINDOW = 1;
        Ord_WinQUERYOBJECTWINDOW = 2;
        Ord_WinREGISTERCLASS = 3;
@@ -1607,16 +2311,12 @@ const
        Ord_DumWinCREATEHELPTABLE = 314;
        Ord_DumWinLOADHELPTABLE = 315;
        Ord_DumWinQUERYHELPINSTANCE = 316;
-       Ord_DummyHelpEntry = 322;
-       Ord_WinSETCLASSTHUNKPROC = 959;
-       Ord_WinQUERYCLASSTHUNKPROC = 960;
-       Ord_WinSETWINDOWTHUNKPROC = 961;
-       Ord_WinQUERYWINDOWTHUNKPROC = 962;
        Ord_WinQUERYWINDOWMODEL = 317;
        Ord_WinSETDESKTOPBKGND = 318;
        Ord_WinQUERYDESKTOPBKGND = 319;
        Ord_WinPOPUPMENU = 320;
        Ord_WinREALIZEPALETTE = 321;
+       Ord_DummyHelpEntry = 322;
        Ord_WinDELETELIBRARY = 602;
        Ord_WinLOADPROCEDURE = 603;
        Ord_WinDELETEPROCEDURE = 604;
@@ -1874,17 +2574,23 @@ const
        Ord_Win32SAVEWINDOWPOS = 943;
        Ord_Win32GETERASEPS = 952;
        Ord_Win32RELEASEERASEPS = 953;
-       Ord_Win32SETPOINTEROWNER = 971;
+       Ord_WinSETCLASSTHUNKPROC = 959;
+       Ord_WinQUERYCLASSTHUNKPROC = 960;
+       Ord_WinSETWINDOWTHUNKPROC = 961;
+       Ord_WinQUERYWINDOWTHUNKPROC = 962;
        Ord_Win32STRETCHPOINTER = 968;
+       Ord_Win32SETPOINTEROWNER = 971;
        Ord_Win32SETERRORINFO = 977;
        Ord_Win32WAITEVENTSEM = 978;
        Ord_Win32REQUESTMUTEXSEM = 979;
        Ord_Win32WAITMUXWAITSEM = 980;
+(* PMPIC.DLL *)
        Ord_PicPRINT = 1;
        Ord_PicICHG = 2;
        Ord_Pic32PRINT = 11;
        Ord_Pic32ICHG = 12;
        Ord_Prf32PIF2MET = 13;
+(* PMSHAPI.DLL *)
        Ord_WinQUERYPROFILEINT = 2;
        Ord_WinQUERYPROFILESTRING = 3;
        Ord_WinWRITEPROFILESTRING = 4;
@@ -1987,6 +2693,7 @@ const
        Ord_WinSTARTAPP = 201;
        Ord_WinHAPPFROMPID = 208;
        Ord_WinHSWITCHFROMHAPP = 209;
+(* QUECALLS.DLL *)
        Ord_DosREADQUEUE = 1;
        Ord_DosPURGEQUEUE = 2;
        Ord_DosCLOSEQUEUE = 3;
@@ -2003,6 +2710,7 @@ const
        Ord_Dos32WRITEQUEUE = 14;
        Ord_Dos32OPENQUEUE = 15;
        Ord_Dos32CREATEQUEUE = 16;
+(* SESMGR.DLL *)
        Ord_DosSTOPSESSION = 8;
        Ord_DosSELECTSESSION = 9;
        Ord_DosSETSESSION = 14;
@@ -2012,11 +2720,13 @@ const
        Ord_Dos32SELECTSESSION = 38;
        Ord_Dos32SETSESSION = 39;
        Ord_Dos32STOPSESSION = 40;
+
        Ord_WinFONTDLG = 2;
        Ord_WinDEFFONTDLGPROC = 3;
        Ord_WinFILEDLG = 4;
        Ord_WinDEFFILEDLGPROC = 5;
        Ord_WinFREEFILEDLGLIST = 6;
+(* VIOCALLS.DLL *)
        Ord_VioENDPOPUP = 1;
        Ord_VioGETPHYSBUF = 2;
        Ord_VioGETANSI = 3;
@@ -2080,6 +2790,7 @@ const
        Ord_XVioCREATECA = 74;
        Ord_VioCHECKCHARTYPE = 75;
        Ord_XVioGETCASTATE = 76;
+(* PMVIOP.DLL *)
        Ord_WinDefAVioWindowProc = 30;
 
 { Declarations from bsedev.h header file (low-level device access) }

@@ -209,13 +209,17 @@ endif
 #
 
 tstunits:
+ifdef inOS2
+        $(MAKE) -C tstunits FPC_VERSION= FPC=$(TEST_FPC) CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET) "OPT=$(TEST_OPT)" CCOMPILER=$(TEST_CCOMPILER) BINUTILSPREFIX=$(TEST_BINUTILSPREFIX)
+else
         $(MAKE) -C tstunits FPC_VERSION= FPC=$(TEST_FPC) CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET) 'OPT=$(TEST_OPT)' CCOMPILER=$(TEST_CCOMPILER) BINUTILSPREFIX=$(TEST_BINUTILSPREFIX)
+endif
 
 ################################
 # Copy test environment dependent files ctest.o, cext3.o, cext4.o to test/cg etc
 #
 
-.PHONY: create_c_objects delete_c_objects copyfiles
+.PHONY: create_c_objects delete_c_objects copyfiles test_c_objects
 
 C_SOURCE_DIR=test/cg/obj
 C_SOURCES=ctest.c tcext3.c tcext4.c tcext5.c tcext6.c
@@ -260,6 +264,7 @@ copyfiles: $(TEST_OUTPUTDIR)
         -$(COPY) $(C_OBJECTS) $(TEST_OUTPUTDIR)/test/cg
         -$(COPY) $(CPP_OBJECTS) $(TEST_OUTPUTDIR)/test/cg
         -$(MKDIRTREE) $(TEST_OUTPUTDIR)/test/units/system
+
 
 ################################
 # Preparation for tests
@@ -429,6 +434,12 @@ endif
 
 alltests: alltest alltbs alltbf allwebtbs allwebtbf
 
+test_c_objects: testprep
+	$(MAKE) $(patsubst %.pp,%.log, $(wildcard test/cg/cdecl/tcalext*.pp)))
+	$(MAKE) $(patsubst %.pp,%.elg, $(wildcard test/cg/cdecl/tcalext*.pp)))
+	$(MAKE) $(patsubst %.pp,%.log, $(wildcard test/cg/cdecl/tcppcl*.pp)))
+	$(MAKE) $(patsubst %.pp,%.elg, $(wildcard test/cg/cdecl/tcppcl*.pp)))
+	
 ################################
 # Compile and Run tests
 #
@@ -467,7 +478,11 @@ $(TEST_OUTPUTDIR)/%.testlog : $(TESTREQ)
 	$(Q)$(ECHO) -n >> $(TEST_OUTPUTDIR)/longlog.testlog
 
 # run all tests, then merge log files
-allexectests:  $(TEST_OUTPUTDIR)/log.testlog $(TEST_OUTPUTDIR)/log.tbslog $(TEST_OUTPUTDIR)/log.tbflog $(TEST_OUTPUTDIR)/log.webtbslog $(TEST_OUTPUTDIR)/log.webtbflog $(addprefix $(TEST_OUTPUTDIR)/,$(foreach EXT, $(LOGEXT), $(addsuffix $(EXT), faillist longlog))) $(addsuffix .mergedlog, $(LOGFILES))
+allexectests:  $(TEST_OUTPUTDIR)/log.testlog $(TEST_OUTPUTDIR)/log.tbslog \
+	$(TEST_OUTPUTDIR)/log.tbflog $(TEST_OUTPUTDIR)/log.webtbslog \
+	$(TEST_OUTPUTDIR)/log.webtbflog \
+	$(addprefix $(TEST_OUTPUTDIR)/,$(foreach EXT, $(LOGEXT), $(addsuffix $(EXT), faillist longlog))) \
+	$(addsuffix .mergedlog, $(LOGFILES))
 
 # SINGLEDOTESTRUNS
 else
@@ -480,7 +495,7 @@ $(GPARMAKE): $(COMPILER_UNITTARGETDIR) utils/gparmake.pp
         $(FPC) $(FPCOPT) -FE. utils/gparmake.pp $(OPT)
 
 # Can't have testprep as prerequisite, because that is a phony target and
-# phony targets are always remade. Since the makefile will be reparsed 
+# phony targets are always remade. Since the makefile will be reparsed
 # after making the MakeChunks file (because it has to be included) and all
 # up-to-date checks will be re-evaluated, this means that the testprep rule
 # (or testprep timestamp file, which depends on phony rules and hence has
@@ -493,7 +508,7 @@ $(GPARMAKE): $(COMPILER_UNITTARGETDIR) utils/gparmake.pp
 # building it via the utils Makefile
 $(MAKEINC): $(GPARMAKE) $(TEST_OUTPUTDIR)
 # generate rules for parallel executions of dotest
-# gparmake now also needs an additional parameter for the name of the 
+# gparmake now also needs an additional parameter for the name of the
 # used subdirectory. Note also that the index must be increasing for each
 # new call with a gap insuring that all the previous files have lower index
 # even if CHUNKSIZE is equal to 1.
@@ -527,7 +542,7 @@ allexectests: $(MAKEINC)
 
 # SINGLEDOTESTRUNS
 endif
-  
+
 
 ################################
 # Clean
@@ -541,7 +556,7 @@ clean_sources:
 
 clean_test:
         -$(DELTREE) $(TEST_OUTPUTDIR)
-        -$(DEL) core gmon.out testprep-stamp.$(TEST_FULL_TARGET) dotgz.bat
+        -$(DEL) core gmon.out testprep-stamp.$(TEST_FULL_TARGET) dotgz$(SRCBATCHEXT)
 
 clean: clean_sources fpc_clean
         $(MAKE) clean_test CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET)
@@ -579,6 +594,9 @@ $(TEST_OUTPUTDIR)/dbdigest.cfg:
         $(ECHOREDIR) CPU=$(TEST_CPU_TARGET) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
         $(ECHOREDIR) Version=$(TEST_FPC_VERSION) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
         $(ECHOREDIR) LogFile=log >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+ifneq ($(TEST_USE_LONGLOG),)
+        $(ECHOREDIR) LongLogFile=longlog >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+endif
         $(ECHOREDIR) Submitter=$(TEST_USER) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
         $(ECHOREDIR) Machine=$(TEST_HOSTNAME) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
 	$(ECHOREDIR) Comment=$(TEST_OPT) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
@@ -606,29 +624,56 @@ else
 TARFROM=--files-from=tar.lst
 endif
 
+# Pass option -ll to perpup if we use longlog file
+# instead of add all *.log and *.elg files to DB_TARGZ
+ifneq ($(TEST_USE_LONGLOG),)
+PREPUP_OPT=-ll
+else
+PREPUP_OPT=
+endif
+
 ifndef inWinDOS
 $(TEST_OUTPUTDIR)/tar.lst:
+ifdef inOS2
+        cd $(subst /,\,$(TEST_OUTPUTDIR)) && gnufind . -name "*.log" -o -name "*.elg" > tar.lst
+        $(ECHOREDIR) log>> $(TEST_OUTPUTDIR)/tar.lst
+        $(ECHOREDIR) dbdigest.cfg>> $(TEST_OUTPUTDIR)/tar.lst
+else
+ifeq ($(TEST_USE_LONGLOG),)
         cd $(TEST_OUTPUTDIR) && find . -name '*.log' -o -name '*.elg' > tar.lst
+else
+        $(ECHOREDIR) "longlog" > $(TEST_OUTPUTDIR)/tar.lst
+endif
         $(ECHOREDIR) "log" >> $(TEST_OUTPUTDIR)/tar.lst
         $(ECHOREDIR) "dbdigest.cfg" >> $(TEST_OUTPUTDIR)/tar.lst
+endif
 
 $(TEST_OUTPUTDIR)/$(DB_TARGZ): $(TEST_OUTPUTDIR)/tar.lst $(TEST_OUTPUTDIR)/dbdigest.cfg
 ifdef inCygWin
         dos2unix $(TEST_OUTPUTDIR)/tar.lst
 endif
+ifdef inOS2
+        dos2unix $(TEST_OUTPUTDIR)/tar.lst
+        cd $(subst /,\,$(TEST_OUTPUTDIR)) && $(TARPROG) czf $(DB_TARGZ) $(TARFROM)
+else
         cd $(TEST_OUTPUTDIR) && $(TARPROG) czf $(DB_TARGZ) $(TARFROM)
+endif
 
 else
 $(TEST_OUTPUTDIR)/$(DB_TARGZ): $(TEST_OUTPUTDIR)/dbdigest.cfg
 ifdef inDOS
-        $(ECHOREDIR) @echo off > dotgz.bat
-        $(ECHOREDIR) cd $(subst /,\,$(TEST_OUTPUTDIR)) >> dotgz.bat
-        $(ECHOREDIR) $(subst /,\,../../$(PREPUP)) $(DB_TARGZ) >> dotgz.bat
-        $(ECHOREDIR) if errorlevel 1 $(DEL) $(DB_TARGZ) >> dotgz.bat
-        $(ECHOREDIR) cd $(subst /,\,../../) >> dotgz.bat
-        $(RUNBATCH) dotgz.bat
+        $(ECHOREDIR) @echo off > dotgz$(SRCBATCHEXT)
+        $(ECHOREDIR) cd $(subst /,\,$(TEST_OUTPUTDIR)) >> dotgz$(SRCBATCHEXT)
+        $(ECHOREDIR) $(subst /,\,../../$(PREPUP)) $(DB_TARGZ) >> dotgz$(SRCBATCHEXT)
+        $(ECHOREDIR) if errorlevel 1 $(DEL) $(DB_TARGZ) >> dotgz$(SRCBATCHEXT)
+        $(ECHOREDIR) cd $(subst /,\,../../) >> dotgz$(SRCBATCHEXT)
+        $(RUNBATCH) dotgz$(SRCBATCHEXT)
+else
+ifdef inOS2
+        cd "$(subst /,\,$(TEST_OUTPUTDIR))" && "..\..\$(PREPUP)" $(DB_TARGZ)
 else
         cd "$(TEST_OUTPUTDIR)" && "../../$(PREPUP)" $(DB_TARGZ)
+endif
 endif
 endif
 
@@ -647,7 +692,11 @@ ifdef UsePutty
         plink -load "fpc@www.freepascal.org" "mv $(DB_UPLOADDIR)/$(DB_TARGZ).part $(DB_UPLOADDIR)/$(DB_TARGZ)"
 else
         scp $(DB_SSH_EXTRA) $(TEST_OUTPUTDIR)/$(DB_TARGZ) $(DB_HOST):$(DB_UPLOADDIR)/$(DB_TARGZ).part
+ifdef inOS2
+        $(ECHOREDIR) . | ssh $(DB_SSH_EXTRA) $(DB_HOST) "mv $(DB_UPLOADDIR)/$(DB_TARGZ).part $(DB_UPLOADDIR)/$(DB_TARGZ)"
+else
         ssh $(DB_SSH_EXTRA) $(DB_HOST) "mv $(DB_UPLOADDIR)/$(DB_TARGZ).part $(DB_UPLOADDIR)/$(DB_TARGZ)"
+endif
 endif
 
 all : allexectests

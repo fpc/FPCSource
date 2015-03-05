@@ -201,13 +201,13 @@ unit cpupara;
         begin
           { In case of po_delphi_nested_cc, the parent frame pointer
             is always passed on the stack. }
-           if (nextintreg>RS_R8) and
+           if (nextintreg>RS_R7) and
               (not(vo_is_parentfp in hp.varoptions) or
                not(po_delphi_nested_cc in p.procoptions)) then
              begin
                paraloc^.loc:=LOC_REGISTER;
                paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
-               inc(nextintreg);
+               dec(nextintreg);
              end
            else
              begin
@@ -251,8 +251,8 @@ unit cpupara;
               begin
                 paradef:=getpointerdef(paradef);
                 loc:=LOC_REGISTER;
-                paracgsize := OS_ADDR;
-                paralen := tcgsize2size[OS_ADDR];
+                paracgsize:=OS_ADDR;
+                paralen:=tcgsize2size[OS_ADDR];
               end
             else
               begin

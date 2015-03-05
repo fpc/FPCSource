@@ -441,6 +441,7 @@ Begin
 End;
 
 
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 Procedure Rename(var f : File; const S : UnicodeString);[IOCheck];
 {$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
 var
@@ -471,8 +472,10 @@ Begin
 {$endif FPC_ANSI_TEXTFILEREC}
 {$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
 End;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure Rename(var f : File;const s : RawByteString);[IOCheck];
 var
 {$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
@@ -517,6 +520,7 @@ Begin
     FileRec(f).Name:=fs
 {$endif FPC_ANSI_TEXTFILEREC and not FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
 End;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 
 Procedure Rename(var f : File;const s : ShortString);[IOCheck];
@@ -542,7 +546,7 @@ Begin
 End;
 {$else FPC_HAS_FEATURE_ANSISTRINGS}
 var
-  len: SizeInt
+  len: SizeInt;
 Begin
   if InOutRes<>0 then
     exit;
@@ -551,7 +555,7 @@ Begin
       InOutRes:=102;
       exit;
     end;
-  Do_Rename(PFileTextRecChar(@FileRec(f).Name),p,false);
+  Do_Rename(PFileTextRecChar(@FileRec(f).Name),p,false,false);
   { check error code of do_rename }
   if InOutRes=0 then
     begin

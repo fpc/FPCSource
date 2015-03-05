@@ -8,7 +8,7 @@ uses fpmkunit, sysutils;
 procedure add_fppkg(const ADirectory: string);
 
 const
-  TargetsWithWGet = [linux,beos,haiku,freebsd,netbsd,openbsd,darwin,iphonesim,solaris,win32,win64,wince,aix];
+  TargetsWithWGet = [linux,beos,haiku,freebsd,netbsd,openbsd,darwin,iphonesim,solaris,win32,win64,wince,aix,dragonfly];
   TargetsWithfpWeb = TargetsWithWGet;
 
 Var
@@ -23,9 +23,10 @@ begin
     begin
 
     P:=AddPackage('fppkg');
+    P.ShortName:='fppk';
     P.Directory:=ADirectory;
 
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-process');

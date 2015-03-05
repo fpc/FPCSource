@@ -14,7 +14,8 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('fpcreslipo');
+    P:=AddPackage('utils-fpcreslipo');
+    P.ShortName:='fpcreslipo';
 
     P.Author := 'Giulio Bernardi';
     P.License := 'LGPL with modification';
@@ -22,7 +23,7 @@ begin
     P.Email := '';
 
     P.Directory:=ADirectory;
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Dependencies.Add('fcl-res');
 
     P.OSes:=[darwin, iphonesim];

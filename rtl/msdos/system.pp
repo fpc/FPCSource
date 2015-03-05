@@ -1,4 +1,4 @@
-unit system;
+unit System;
 
 interface
 
@@ -319,7 +319,7 @@ type
 {$endif}
 begin
   SetMemoryManager(TinyHeapMemoryManager);
-  RegisterTinyHeapBlock(__nearheap_start, TPointerArithmeticType(__nearheap_end) - TPointerArithmeticType(__nearheap_start));
+  RegisterTinyHeapBlock_Simple_Prealigned(__nearheap_start, TPointerArithmeticType(__nearheap_end) - TPointerArithmeticType(__nearheap_start));
 end;
 
 function CheckLFN:boolean;
@@ -389,5 +389,4 @@ begin
    AllFilesMask := '*.*';
 { Reset IO Error }
   InOutRes:=0;
-  initvariantmanager;
 end.

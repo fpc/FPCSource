@@ -14,7 +14,7 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('pas2js');
+    P:=AddPackage('utils-pas2js');
 
     P.Author := 'Free Pascal Team';
     P.License := 'LGPL with modification';
@@ -24,7 +24,7 @@ begin
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Dependencies.Add('fcl-js');
     P.Dependencies.Add('fcl-passrc');
     P.Dependencies.Add('pastojs');
