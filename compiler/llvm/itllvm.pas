@@ -71,9 +71,9 @@ interface
         'sle',
         'ne',
         'ule',
-        'ul',
+        'ult',
         'uge',
-        'ug'
+        'ugt'
       );
 
       llvm_fpcond2str: array[tllvmfpcmp] of ansistring = (
