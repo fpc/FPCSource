@@ -123,6 +123,7 @@ type
   end;
 
 function QuoteString(S: string): string;
+function C2PascalNumberPrefix(const S: string): string;
 
 implementation
 
@@ -154,6 +155,19 @@ begin
   Result := '"' + Result + '"';
 end;
 
+function C2PascalNumberPrefix(const S: string): string;
+begin
+  { hex: 0x -> $ }
+  if (Length(S) >= 3) and (s[1] = '0') and ((s[2] = 'x') or (s[2] = 'X')) then
+    exit('$' + Copy(S, 3, Length(S) - 2));
+
+  { oct: 0 -> & }
+  if (Length(S) >= 2) and (s[1] = '0') and ((s[2] >= '0') and (s[2] <= '7')) then
+    exit('&' + Copy(S, 2, Length(S) - 1));
+
+  Result := S;
+end;
+
 function TGDBMI_Value.AsString: string;
 begin
   Result := (self as TGDBMI_StringValue).StringValue;
@@ -161,17 +175,17 @@ end;
 
 function TGDBMI_Value.AsLongInt: LongInt;
 begin
-  Result := StrToInt(AsString);
+  Result := StrToInt(C2PascalNumberPrefix(AsString));
 end;
 
 function TGDBMI_Value.AsCoreAddr: CORE_ADDR;
 begin
 {$if defined(TARGET_IS_64BIT)}
-  Result := StrToQWord(AsString);
+  Result := StrToQWord(C2PascalNumberPrefix(AsString));
 {$elseif defined(CPU64)}
-  Result := StrToInt64(AsString);
+  Result := StrToInt64(C2PascalNumberPrefix(AsString));
 {$else}
-  Result := StrToInt(AsString);
+  Result := StrToInt(C2PascalNumberPrefix(AsString));
 {$endif}
 end;
 
