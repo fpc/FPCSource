@@ -117,7 +117,7 @@ uses
 {$endif cpuflags}
 
       { unimplemented or unnecessary routines }
-      procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tdef; src, dst: tregister); override;
+      procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tdef; src, dst: tregister); override;
       procedure g_stackpointer_alloc(list: TAsmList; size: longint); override;
       procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint); override;
       procedure g_adjust_self_value(list: TAsmList; procdef: tprocdef; ioffset: aint); override;
@@ -1114,7 +1114,7 @@ implementation
     var
       hreg: tregister;
     begin
-      hreg:=getaddresregister(list,todef);
+      hreg:=getaddressregister(list,todef);
       a_loadaddr_ref_reg(list,fromdef.pointeddef,todef,ref,hreg);
       reference_reset_base(ref,todef,hreg,0,ref.alignment);
     end;
@@ -1373,7 +1373,7 @@ implementation
     end;
 
 
-  procedure thlcgllvm.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tdef; src, dst: tregister);
+  procedure thlcgllvm.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tdef; src, dst: tregister);
     begin
       internalerror(2012090201);
     end;

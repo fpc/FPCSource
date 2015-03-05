@@ -122,7 +122,8 @@ implementation
        'avr',
        'mipsel',
        'unknown',
-       'unknown'
+       'unknown',
+       'aarch64'
       );
 
   function llvm_target_name: ansistring;

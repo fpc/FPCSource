@@ -118,7 +118,7 @@ implementation
       { todo }
       if section = sec_user then
         internalerror(2014052904);
-      newasmlist:=tasmlist.create_without_marker;
+      newasmlist:=tasmlist.create;
       { llvm declaration with as initialisation data all the elements from the
         original asmlist }
       newasmlist.concat(taillvmdecl.create(sym,def,fasmlist,section,alignment));
