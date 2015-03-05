@@ -33,6 +33,7 @@ interface
       tllvmaddnode = class(tcgaddnode)
        public
         function pass_1: tnode; override;
+        procedure force_reg_left_right(allow_swap, allow_constant: boolean); override;
        protected
         procedure second_cmpsmallset; override;
         procedure second_cmpordinal; override;
@@ -48,7 +49,7 @@ implementation
      uses
        verbose,globtype,
        aasmdata,
-       symtype,symdef,defutil,
+       symconst,symtype,symdef,defutil,
        llvmbase,aasmllvm,
        cgbase,cgutils,
        hlcgobj,
@@ -63,6 +64,23 @@ implementation
       { there are no flags in LLVM }
       if expectloc=LOC_FLAGS then
         expectloc:=LOC_REGISTER;
+    end;
+
+
+  procedure tllvmaddnode.force_reg_left_right(allow_swap, allow_constant: boolean);
+    begin
+      inherited;
+      { pointer +/- integer -> make defs the same since a_op_* only gets a
+        single type as argument }
+      if (left.resultdef.typ=pointerdef)<>(right.resultdef.typ=pointerdef) then
+        begin
+          { the result is a pointerdef -> typecast both arguments to pointer;
+            a_op_*_reg will convert them back to integer as needed }
+          if left.resultdef.typ<>pointerdef then
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
+          if right.resultdef.typ<>pointerdef then
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,resultdef,true);
+        end;
     end;
 
 
