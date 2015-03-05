@@ -1502,15 +1502,17 @@ Implementation
     function TInternalAssembler.TreePass2(hp:Tai):Tai;
       var
         fillbuffer : tfillbuffer;
-{$ifdef x86}
-        co : comp;
-{$endif x86}
         leblen : byte;
         lebbuf : array[0..63] of byte;
         objsym,
         objsymend : TObjSymbol;
         zerobuf : array[0..63] of byte;
         relative_reloc: boolean;
+        pdata : pointer;
+        ssingle : single;
+        ddouble : double;
+        eextended : extended;
+        ccomp : comp;
       begin
         fillchar(zerobuf,sizeof(zerobuf),0);
         fillchar(objsym,sizeof(objsym),0);
@@ -1559,7 +1561,34 @@ Implementation
                end;
              ait_realconst:
                begin
-                 ObjData.writebytes(tai_realconst(hp).value,tai_realconst(hp).datasize);
+                 case tai_realconst(hp).realtyp of
+                   aitrealconst_s32bit:
+                     begin
+                       ssingle:=single(tai_realconst(hp).value.s32val);
+                       pdata:=@ssingle;
+                     end;
+                   aitrealconst_s64bit:
+                     begin
+                       ddouble:=double(tai_realconst(hp).value.s64val);
+                       pdata:=@ddouble;
+                     end;
+         {$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
+                   { can't write full 80 bit floating point constants yet on non-x86 }
+                   aitrealconst_s80bit:
+                     begin
+                       eextended:=extended(tai_realconst(hp).value.s80val);
+                       pdata:=@eextended;
+                     end;
+         {$endif cpuextended}
+                   aitrealconst_s64comp:
+                     begin
+                       ccomp:=comp(tai_realconst(hp).value.s64compval);
+                       pdata:=@ccomp;
+                     end;
+                   else
+                     internalerror(2015030501);
+                 end;
+                 ObjData.writebytes(pdata^,tai_realconst(hp).datasize);
                  ObjData.writebytes(zerobuf,tai_realconst(hp).savesize-tai_realconst(hp).datasize);
                end;
              ait_string :
