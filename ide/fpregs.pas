@@ -710,33 +710,33 @@ const
             SetColor(rs.rip,OldReg.rip);
             WriteStr(1,16,'RIP '+HexStr(rs.rip,16),color);
             SetColor(rs.cs,OldReg.cs);
-            WriteStr(22,0,'CS '+HexStr(rs.cs,4),color);
+            WriteStr(22,11,'CS '+HexStr(rs.cs,4),color);
             SetColor(rs.ds,OldReg.ds);
-            WriteStr(22,1,'DS '+HexStr(rs.ds,4),color);
+            WriteStr(22,12,'DS '+HexStr(rs.ds,4),color);
             SetColor(rs.es,OldReg.es);
-            WriteStr(22,2,'ES '+HexStr(rs.es,4),color);
+            WriteStr(22,13,'ES '+HexStr(rs.es,4),color);
             SetColor(rs.fs,OldReg.fs);
-            WriteStr(22,3,'FS '+HexStr(rs.fs,4),color);
+            WriteStr(22,14,'FS '+HexStr(rs.fs,4),color);
             SetColor(rs.gs,OldReg.gs);
-            WriteStr(22,4,'GS '+HexStr(rs.gs,4),color);
+            WriteStr(22,15,'GS '+HexStr(rs.gs,4),color);
             SetColor(rs.ss,OldReg.ss);
-            WriteStr(22,5,'SS '+HexStr(rs.ss,4),color);
+            WriteStr(22,16,'SS '+HexStr(rs.ss,4),color);
             SetColor(rs.eflags and $1,OldReg.eflags and $1);
-            WriteStr(30,0,'c='+chr(byte((rs.eflags and $1)<>0)+48),color);
+            WriteStr(24,0,'c='+chr(byte((rs.eflags and $1)<>0)+48),color);
             SetColor(rs.eflags and $20,OldReg.eflags and $20);
-            WriteStr(30,1,'z='+chr(byte((rs.eflags and $20)<>0)+48),color);
+            WriteStr(24,1,'z='+chr(byte((rs.eflags and $20)<>0)+48),color);
             SetColor(rs.eflags and $80,OldReg.eflags and $80);
-            WriteStr(30,2,'s='+chr(byte((rs.eflags and $80)<>0)+48),color);
+            WriteStr(24,2,'s='+chr(byte((rs.eflags and $80)<>0)+48),color);
             SetColor(rs.eflags and $800,OldReg.eflags and $800);
-            WriteStr(30,3,'o='+chr(byte((rs.eflags and $800)<>0)+48),color);
+            WriteStr(24,3,'o='+chr(byte((rs.eflags and $800)<>0)+48),color);
             SetColor(rs.eflags and $4,OldReg.eflags and $4);
-            WriteStr(30,4,'p='+chr(byte((rs.eflags and $4)<>0)+48),color);
+            WriteStr(24,4,'p='+chr(byte((rs.eflags and $4)<>0)+48),color);
             SetColor(rs.eflags and $200,OldReg.eflags and $200);
-            WriteStr(30,5,'i='+chr(byte((rs.eflags and $200)<>0)+48),color);
+            WriteStr(24,5,'i='+chr(byte((rs.eflags and $200)<>0)+48),color);
             SetColor(rs.eflags and $10,OldReg.eflags and $10);
-            WriteStr(30,6,'a='+chr(byte((rs.eflags and $10)<>0)+48),color);
+            WriteStr(24,6,'a='+chr(byte((rs.eflags and $10)<>0)+48),color);
             SetColor(rs.eflags and $400,OldReg.eflags and $400);
-            WriteStr(30,7,'d='+chr(byte((rs.eflags and $400)<>0)+48),color);
+            WriteStr(24,7,'d='+chr(byte((rs.eflags and $400)<>0)+48),color);
 {$endif x86_64}
 {$ifdef m68k}
             SetColor(rs.d0,OldReg.d0);
@@ -879,8 +879,8 @@ const
        R.B.Y:=R.A.Y+11;
 {$endif i386}
 {$ifdef x86_64}
-       R.A.X:=R.B.X-28-8;
-       R.B.Y:=R.A.Y+11+8;
+       R.A.X:=R.B.X-32;
+       R.B.Y:=R.A.Y+19;
 {$endif x86_64}
 {$ifdef m68k}
        R.A.X:=R.B.X-28;
