@@ -557,7 +557,7 @@ begin
     Insert(IL);
     R2.Move(0,-1);
     Insert(New(PLabel, Init(R2,label_debugger_useanothertty, IL)));
-{$endif Windows}
+{$endif Unix}
   end;
   InsertButtons(D);
   RB^.Select;
