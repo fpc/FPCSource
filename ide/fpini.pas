@@ -431,7 +431,9 @@ begin
   { First read the primary file, which can also set the parameters which can
     be overruled with the parameter loading }
   SetPrimaryFile(INIFile^.GetEntry(secCompile,iePrimaryFile,PrimaryFile));
+{$ifndef GDB_WINDOWS_ALWAYS_USE_ANOTHER_CONSOLE}
   DebuggeeTTY := INIFile^.GetEntry(secRun,ieDebuggeeRedir,DebuggeeTTY);
+{$endif not GDB_WINDOWS_ALWAYS_USE_ANOTHER_CONSOLE}
 {$ifdef SUPPORT_REMOTE}
   RemoteMachine :=INIFile^.GetEntry(secRun,ieRemoteMachine,RemoteMachine);
   RemotePort :=INIFile^.GetEntry(secRun,ieRemotePort,RemotePort);
@@ -653,8 +655,10 @@ begin
   INIFile^.SetEntry(secRun,ieRunDir,GetRunDir);
   INIFile^.SetEntry(secRun,ieRunParameters,GetRunParameters);
   INIFile^.SetEntry(secFiles,iePrinterDevice,GetPrinterDevice);
+{$ifndef GDB_WINDOWS_ALWAYS_USE_ANOTHER_CONSOLE}
   { If DebuggeeTTY<>'' then }
     INIFile^.SetEntry(secRun,ieDebuggeeRedir,DebuggeeTTY);
+{$endif not GDB_WINDOWS_ALWAYS_USE_ANOTHER_CONSOLE}
 {$ifdef SUPPORT_REMOTE}
     INIFile^.SetEntry(secRun,ieRemoteMachine,RemoteMachine);
     INIFile^.SetEntry(secRun,ieRemotePort,RemotePort);
