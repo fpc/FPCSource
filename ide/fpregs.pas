@@ -783,8 +783,8 @@ const
        R.B.Y:=R.A.Y+11;
 {$endif m68k}
 {$ifdef powerpc}
-       R.A.X:=R.B.X-28;
-       R.B.Y:=R.A.Y+22;
+       R.A.X:=R.B.X-30;
+       R.B.Y:=R.A.Y+21;
 {$endif powerpc}
 {$ifdef sparc}
        R.A.X:=R.B.X-30;
