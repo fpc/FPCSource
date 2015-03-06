@@ -262,7 +262,7 @@ var
 begin
   GetIntRegister := False;
   Value := 0;
-  if not GetRegisterAsString(RegName, 'd', RegValueStr) then
+  if not GetRegisterAsString(RegName, 'x', RegValueStr) then
     exit;
   Val(RegValueStr, Value, Code);
   if Code <> 0 then
