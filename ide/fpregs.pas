@@ -287,23 +287,126 @@ const
     var
        p,po : pchar;
        p1 : pchar;
-       reg,value : string;
        buffer : array[0..255] of char;
-       v : qword;
-       code : word;
        i : byte;
 
     begin
        GetIntRegs:=false;
 {$ifndef NODEBUG}
+{$ifdef cpu_known}
+{$ifdef i386}
+       GetIntRegs :=
+         Debugger^.GetIntRegister('eax', rs.eax) and
+         Debugger^.GetIntRegister('ebx', rs.ebx) and
+         Debugger^.GetIntRegister('ecx', rs.ecx) and
+         Debugger^.GetIntRegister('edx', rs.edx) and
+         Debugger^.GetIntRegister('esi', rs.esi) and
+         Debugger^.GetIntRegister('edi', rs.edi) and
+         Debugger^.GetIntRegister('ebp', rs.ebp) and
+         Debugger^.GetIntRegister('esp', rs.esp) and
+         Debugger^.GetIntRegister('eip', rs.eip) and
+       { under Windows flags are on a register named ps !! PM }
+         (Debugger^.GetIntRegister('eflags', rs.eflags) or Debugger^.GetIntRegister('ps', rs.eflags)) and
+         Debugger^.GetIntRegister('cs', rs.cs) and
+         Debugger^.GetIntRegister('ds', rs.ds) and
+         Debugger^.GetIntRegister('es', rs.es) and
+         Debugger^.GetIntRegister('fs', rs.fs) and
+         Debugger^.GetIntRegister('gs', rs.gs) and
+         Debugger^.GetIntRegister('ss', rs.ss);
+{$endif i386}
+{$ifdef x86_64}
+       GetIntRegs :=
+         Debugger^.GetIntRegister('rax', rs.rax) and
+         Debugger^.GetIntRegister('rbx', rs.rbx) and
+         Debugger^.GetIntRegister('rcx', rs.rcx) and
+         Debugger^.GetIntRegister('rdx', rs.rdx) and
+         Debugger^.GetIntRegister('rsi', rs.rsi) and
+         Debugger^.GetIntRegister('rdi', rs.rdi) and
+         Debugger^.GetIntRegister('rbp', rs.rbp) and
+         Debugger^.GetIntRegister('rsp', rs.rsp) and
+         Debugger^.GetIntRegister('r8', rs.r8) and
+         Debugger^.GetIntRegister('r9', rs.r9) and
+         Debugger^.GetIntRegister('r10', rs.r10) and
+         Debugger^.GetIntRegister('r11', rs.r11) and
+         Debugger^.GetIntRegister('r12', rs.r12) and
+         Debugger^.GetIntRegister('r13', rs.r13) and
+         Debugger^.GetIntRegister('r14', rs.r14) and
+         Debugger^.GetIntRegister('r15', rs.r15) and
+         Debugger^.GetIntRegister('rip', rs.rip) and
+       { under Windows flags are on a register named ps !! PM }
+         (Debugger^.GetIntRegister('eflags', rs.eflags) or Debugger^.GetIntRegister('ps', rs.eflags)) and
+         Debugger^.GetIntRegister('cs', rs.cs) and
+         Debugger^.GetIntRegister('ds', rs.ds) and
+         Debugger^.GetIntRegister('es', rs.es) and
+         Debugger^.GetIntRegister('fs', rs.fs) and
+         Debugger^.GetIntRegister('gs', rs.gs) and
+         Debugger^.GetIntRegister('ss', rs.ss);
+{$endif x86_64}
+{$ifdef m68k}
+       GetIntRegs :=
+         Debugger^.GetIntRegister('d0', rs.d0) and
+         Debugger^.GetIntRegister('d1', rs.d1) and
+         Debugger^.GetIntRegister('d2', rs.d2) and
+         Debugger^.GetIntRegister('d3', rs.d3) and
+         Debugger^.GetIntRegister('d4', rs.d4) and
+         Debugger^.GetIntRegister('d5', rs.d5) and
+         Debugger^.GetIntRegister('d6', rs.d6) and
+         Debugger^.GetIntRegister('d7', rs.d7) and
+         Debugger^.GetIntRegister('a0', rs.a0) and
+         Debugger^.GetIntRegister('a1', rs.a1) and
+         Debugger^.GetIntRegister('a2', rs.a2) and
+         Debugger^.GetIntRegister('a3', rs.a3) and
+         Debugger^.GetIntRegister('a4', rs.a4) and
+         Debugger^.GetIntRegister('a5', rs.a5) and
+         Debugger^.GetIntRegister('fp', rs.fp) and
+         Debugger^.GetIntRegister('sp', rs.sp) and
+         Debugger^.GetIntRegister('ps', rs.ps) and
+         Debugger^.GetIntRegister('pc', rs.pc);
+{$endif m68k}
+{$ifdef powerpc}
+       GetIntRegs := true;
+       for i:=0 to 31 do
+         GetIntRegs := GetIntRegs and Debugger^.GetIntRegister('r'+inttostr(i), rs.r[i]);
+       { other regs
+         pc,ps,cr,lr,ctr,xer : dword; }
+       GetIntRegs := GetIntRegs and
+         Debugger^.GetIntRegister('pc', rs.pc) and
+         Debugger^.GetIntRegister('ps', rs.ps) and
+         Debugger^.GetIntRegister('lr', rs.lr) and
+         Debugger^.GetIntRegister('ctr', rs.ctr) and
+         Debugger^.GetIntRegister('xer', rs.xer);
+{$endif powerpc}
+{$ifdef sparc}
+       GetIntRegs := true;
+       for i:=0 to 7 do
+         GetIntRegs := GetIntRegs and Debugger^.GetIntRegister('o'+inttostr(i), rs.o[i]);
+       for i:=0 to 7 do
+         if i = 6 then
+           GetIntRegs := GetIntRegs and (Debugger^.GetIntRegister('i6', rs.i[6]) or Debugger^.GetIntRegister('fp', rs.i[6]))
+         else
+           GetIntRegs := GetIntRegs and Debugger^.GetIntRegister('i'+inttostr(i), rs.i[i]);
+       for i:=0 to 7 do
+         GetIntRegs := GetIntRegs and Debugger^.GetIntRegister('l'+inttostr(i), rs.l[i]);
+       for i:=0 to 7 do
+         GetIntRegs := GetIntRegs and Debugger^.GetIntRegister('g'+inttostr(i), rs.g[i]);
+
+       GetIntRegs := GetIntRegs and
+         Debugger^.GetIntRegister('y', rs.y) and
+         Debugger^.GetIntRegister('psr', rs.psr) and
+         Debugger^.GetIntRegister('wim', rs.wim) and
+         Debugger^.GetIntRegister('tbs', rs.tbr) and
+         Debugger^.GetIntRegister('pc', rs.pc) and
+         Debugger^.GetIntRegister('npc', rs.npc) and
+         Debugger^.GetIntRegister('fsr', rs.fsr) and
+         Debugger^.GetIntRegister('csr', rs.csr);
+{$endif sparc}
+{$else cpu_known}
        Debugger^.Command('info registers');
        if Debugger^.Error then
          exit
        else
          begin
-{$ifndef cpu_known}
             i:=0;
-{$endif not cpu_known}
             po:=StrNew(Debugger^.GetOutput);
             p:=po;
             if assigned(p) then
@@ -312,7 +415,6 @@ const
                  p1:=strscan(p,' ');
                  while assigned(p1) do
                    begin
-{$ifndef cpu_known}
                       p1:=strscan(p,#10);
                       if assigned(p1) then
                         begin
@@ -321,213 +423,6 @@ const
                           if i<MaxRegs-1 then
                             inc(i);
                         end;
-{$else cpu_known}
-                      strlcopy(buffer,p,p1-p);
-                      reg:=strpas(buffer);
-                      p1:=strscan(p,'$');
-                      { some targets use 0x instead of $ }
-                      if p1=nil then
-                        p:=strpos(p,'0x')
-                      else
-                        p:=p1;
-                      p1:=strscan(p,#9);
-                      strlcopy(buffer,p,p1-p);
-                      value:=strpas(buffer);
-
-                      { replace the $? }
-                      if copy(value,1,2)='0x' then
-                        value:='$'+copy(value,3,length(value)-2);
-                      val(value,v,code);
-{$ifdef i386}
-                      if reg='eax' then
-                        rs.eax:=v
-                      else if reg='ebx' then
-                        rs.ebx:=v
-                      else if reg='ecx' then
-                        rs.ecx:=v
-                      else if reg='edx' then
-                        rs.edx:=v
-                      else if reg='eip' then
-                        rs.eip:=v
-                      else if reg='esi' then
-                        rs.esi:=v
-                      else if reg='edi' then
-                        rs.edi:=v
-                      else if reg='esp' then
-                        rs.esp:=v
-                      else if reg='ebp' then
-                        rs.ebp:=v
-                      { under Windows flags are on a register named ps !! PM }
-                      else if (reg='eflags') or (reg='ps') then
-                        rs.eflags:=v
-                      else if reg='cs' then
-                        rs.cs:=v
-                      else if reg='ds' then
-                        rs.ds:=v
-                      else if reg='es' then
-                        rs.es:=v
-                      else if reg='fs' then
-                        rs.fs:=v
-                      else if reg='gs' then
-                        rs.gs:=v
-                      else if reg='ss' then
-                        rs.ss:=v;
-{$endif i386}
-{$ifdef x86_64}
-                      if reg='rax' then
-                        rs.rax:=v
-                      else if reg='rbx' then
-                        rs.rbx:=v
-                      else if reg='rcx' then
-                        rs.rcx:=v
-                      else if reg='rdx' then
-                        rs.rdx:=v
-                      else if reg='rsi' then
-                        rs.rsi:=v
-                      else if reg='rdi' then
-                        rs.rdi:=v
-                      else if reg='rbp' then
-                        rs.rbp:=v
-                      else if reg='rsp' then
-                        rs.rsp:=v
-                      else if reg='r8' then
-                        rs.r8:=v
-                      else if reg='r9' then
-                        rs.r9:=v
-                      else if reg='r10' then
-                        rs.r10:=v
-                      else if reg='r11' then
-                        rs.r11:=v
-                      else if reg='r12' then
-                        rs.r12:=v
-                      else if reg='r13' then
-                        rs.r13:=v
-                      else if reg='r14' then
-                        rs.r14:=v
-                      else if reg='r15' then
-                        rs.r15:=v
-                      else if reg='rip' then
-                        rs.rip:=v
-                      { under Windows flags are on a register named ps !! PM }
-                      else if (reg='eflags') or (reg='ps') then
-                        rs.eflags:=v
-                      else if reg='cs' then
-                        rs.cs:=v
-                      else if reg='ds' then
-                        rs.ds:=v
-                      else if reg='es' then
-                        rs.es:=v
-                      else if reg='fs' then
-                        rs.fs:=v
-                      else if reg='gs' then
-                        rs.gs:=v
-                      else if reg='ss' then
-                        rs.ss:=v;
-{$endif x86_64}
-{$ifdef m68k}
-                      if reg='d0' then
-                        rs.d0:=v
-                      else if reg='d1' then
-                        rs.d1:=v
-                      else if reg='d2' then
-                        rs.d2:=v
-                      else if reg='d3' then
-                        rs.d3:=v
-                      else if reg='d4' then
-                        rs.d4:=v
-                      else if reg='d5' then
-                        rs.d5:=v
-                      else if reg='d6' then
-                        rs.d6:=v
-                      else if reg='d7' then
-                        rs.d7:=v
-                      else if reg='a0' then
-                        rs.a0:=v
-                      else if reg='a1' then
-                        rs.a1:=v
-                      else if reg='a2' then
-                        rs.a2:=v
-                      else if reg='a3' then
-                        rs.a3:=v
-                      else if reg='a4' then
-                        rs.a4:=v
-                      else if reg='a5' then
-                        rs.a5:=v
-                      else if reg='fp' then
-                        rs.fp:=v
-                      else if reg='sp' then
-                        rs.sp:=v
-                      else if (reg='ps') then
-                        rs.ps:=v
-                      else if reg='pc' then
-                        rs.pc:=v;
-{$endif m68k}
-{$ifdef powerpc}
-                      if (reg[1]='r') then
-                        begin
-                          for i:=0 to 31 do
-                            if reg='r'+inttostr(i) then
-                              rs.r[i]:=v;
-                        end
-                      { other regs
-                        pc,ps,cr,lr,ctr,xer : dword; }
-                      else if (reg='pc') then
-                        rs.pc:=v
-                      else if (reg='ps') then
-                        rs.ps:=v
-                      else if (reg='lr') then
-                        rs.lr:=v
-                      else if (reg='ctr') then
-                        rs.ctr:=v
-                      else if (reg='xer') then
-                        rs.xer:=v;
-{$endif powerpc}
-{$ifdef sparc}
-                      if (reg[1]='o') then
-                        begin
-                          for i:=0 to 7 do
-                            if reg='o'+inttostr(i) then
-                              rs.o[i]:=v;
-                        end
-                      else if (reg[1]='i') then
-                        begin
-                          for i:=0 to 7 do
-                            if reg='i'+inttostr(i) then
-                              rs.i[i]:=v;
-                        end
-                      else if (reg[1]='l') then
-                        begin
-                          for i:=0 to 7 do
-                            if reg='l'+inttostr(i) then
-                              rs.l[i]:=v;
-                        end
-                      else if (reg[1]='g') then
-                        begin
-                          for i:=0 to 7 do
-                            if reg='g'+inttostr(i) then
-                              rs.g[i]:=v;
-                        end
-
-                      else if reg='fp' then
-                        rs.i[6]:=v
-                      else if reg='y' then
-                        rs.y:=v
-                      else if reg='psr' then
-                        rs.psr:=v
-                      else if reg='wim' then
-                        rs.wim:=v
-                      else if reg='tbs' then
-                        rs.tbr:=v
-                      else if reg='pc' then
-                        rs.pc:=v
-                      else if reg='npc' then
-                        rs.npc:=v
-                      else if reg='fsr' then
-                        rs.fsr:=v
-                      else if reg='csr' then
-                        rs.csr:=v;
-{$endif sparc}
-{$endif not cpu_known}
                       p:=strscan(p1,#10);
                       if assigned(p) then
                         begin
@@ -546,6 +441,7 @@ const
        { do not open a messagebox for such errors }
        Debugger^.got_error:=false;
        GetIntRegs:=true;
+{$endif cpu_known}
 {$endif not NODEBUG}
     end;
 
