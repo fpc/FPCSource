@@ -546,7 +546,7 @@ const
        { do not open a messagebox for such errors }
        Debugger^.got_error:=false;
        GetIntRegs:=true;
-{$endif}
+{$endif not NODEBUG}
     end;
 
   constructor TRegistersView.Init(var Bounds: TRect);
