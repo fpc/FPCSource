@@ -226,6 +226,9 @@ type
        will be created/destroyed internally by these methods) }
      class function emit_ansistring_const(list: TAsmList; data: pchar; len: asizeint; encoding: tstringencoding; newsection: boolean): tasmlabofs;
      class function emit_unicodestring_const(list: TAsmList; data: pointer; encoding: tstringencoding; winlike: boolean):tasmlabofs;
+     { emits a tasmlabofs as returned by emit_*string_const }
+     procedure emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef);virtual;
+
      { emit a shortstring constant, and return its def }
      function emit_shortstring_const(const str: shortstring): tdef;
      { emit a guid constant }
@@ -1015,6 +1018,11 @@ implementation
          internalerror(200904271);
        list.concatlist(datatcb.get_final_asmlist(startlab,uniwidestrrecdef,sec_rodata_norel,startlab.name,const_align(sizeof(pint)),[tcalo_is_lab,tcalo_new_section]));
        datatcb.free;
+     end;
+
+   procedure ttai_typedconstbuilder.emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef);
+     begin
+       emit_tai(Tai_const.Create_sym_offset(ll.lab,ll.ofs),charptrdef);
      end;
 
 

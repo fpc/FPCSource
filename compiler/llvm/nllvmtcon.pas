@@ -72,6 +72,7 @@ interface
       constructor create; override;
       destructor destroy; override;
       procedure emit_tai_procvar2procdef(p: tai; pvdef: tprocvardef); override;
+      procedure emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef); override;
       procedure queue_init(todef: tdef); override;
       procedure queue_vecn(def: tdef; const index: tconstexprint); override;
       procedure queue_subscriptn(def: tabstractrecorddef; vs: tfieldvarsym); override;
@@ -82,11 +83,6 @@ interface
       class function get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint; override;
     end;
 
-
-    tllvmasmlisttypedconstbuilder = class(tasmlisttypedconstbuilder)
-     protected
-      procedure tc_emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef); override;
-    end;
 
 implementation
 
@@ -245,6 +241,42 @@ implementation
       if not pvdef.is_addressonly then
         pvdef:=tprocvardef(pvdef.getcopyas(procvardef,pc_address_only));
       emit_tai(p,pvdef);
+    end;
+
+
+  procedure tllvmtai_typedconstbuilder.emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef);
+    var
+      srsym     : tsym;
+      srsymtable: tsymtable;
+      strrecdef : trecorddef;
+      offset: pint;
+      field: tfieldvarsym;
+      dataptrdef: tdef;
+    begin
+      { if the returned offset is <> 0, then the string data
+        starts at that offset -> translate to a field for the
+        high level code generator }
+      if ll.ofs<>0 then
+        begin
+          { get the recorddef for this string constant }
+          if not searchsym_type(ctai_typedconstbuilder.get_dynstring_rec_name(st,winlikewidestring,strlength),srsym,srsymtable) then
+            internalerror(2014080406);
+          strrecdef:=trecorddef(ttypesym(srsym).typedef);
+          { offset in the record of the the string data }
+          offset:=ctai_typedconstbuilder.get_string_symofs(st,winlikewidestring);
+          { field corresponding to this offset }
+          field:=trecordsymtable(strrecdef.symtable).findfieldbyoffset(offset);
+          { pointerdef to the string data array }
+          dataptrdef:=getpointerdef(field.vardef);
+          queue_init(charptrdef);
+          queue_addrn(dataptrdef,charptrdef);
+          queue_subscriptn(strrecdef,field);
+          queue_emit_asmsym(ll.lab,strrecdef);
+        end
+      else
+       { since llvm doesn't support labels in the middle of structs, this
+         offset should never be 0  }
+       internalerror(2014080506);
     end;
 
 
@@ -454,46 +486,7 @@ implementation
     end;
 
 
-  { tllvmasmlisttypedconstbuilder }
-
-  procedure tllvmasmlisttypedconstbuilder.tc_emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef);
-    var
-      srsym     : tsym;
-      srsymtable: tsymtable;
-      strrecdef : trecorddef;
-      offset: pint;
-      field: tfieldvarsym;
-      dataptrdef: tdef;
-    begin
-      { if the returned offset is <> 0, then the string data
-        starts at that offset -> translate to a field for the
-        high level code generator }
-      if ll.ofs<>0 then
-        begin
-          { get the recorddef for this string constant }
-          if not searchsym_type(ctai_typedconstbuilder.get_dynstring_rec_name(st,winlikewidestring,strlength),srsym,srsymtable) then
-            internalerror(2014080406);
-          strrecdef:=trecorddef(ttypesym(srsym).typedef);
-          { offset in the record of the the string data }
-          offset:=ctai_typedconstbuilder.get_string_symofs(st,winlikewidestring);
-          { field corresponding to this offset }
-          field:=trecordsymtable(strrecdef.symtable).findfieldbyoffset(offset);
-          { pointerdef to the string data array }
-          dataptrdef:=getpointerdef(field.vardef);
-          ftcb.queue_init(charptrdef);
-          ftcb.queue_addrn(dataptrdef,charptrdef);
-          ftcb.queue_subscriptn(strrecdef,field);
-          ftcb.queue_emit_asmsym(ll.lab,strrecdef);
-        end
-      else
-       { since llvm doesn't support labels in the middle of structs, this
-         offset should never be 0  }
-       internalerror(2014080506);
-    end;
-
-
 begin
   ctai_typedconstbuilder:=tllvmtai_typedconstbuilder;
-  ctypedconstbuilder:=tllvmasmlisttypedconstbuilder;
 end.
 

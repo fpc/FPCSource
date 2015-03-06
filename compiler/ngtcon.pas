@@ -98,8 +98,6 @@ interface
         procedure tc_emit_setdef(def: tsetdef; var node: tnode);override;
         procedure tc_emit_enumdef(def: tenumdef; var node: tnode);override;
         procedure tc_emit_stringdef(def: tstringdef; var node: tnode);override;
-
-        procedure tc_emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef);virtual;
        public
         constructor create(sym: tstaticvarsym);virtual;
         procedure parse_into_asmlist;
@@ -449,12 +447,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
       end;
 
 
-    procedure tasmlisttypedconstbuilder.tc_emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef);
-      begin
-        ftcb.emit_tai(Tai_const.Create_sym_offset(ll.lab,ll.ofs),charptrdef);
-      end;
-
-
     procedure tasmlisttypedconstbuilder.tc_emit_stringdef(def: tstringdef; var node: tnode);
       var
         strlength : aint;
@@ -563,7 +555,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      end
                    else
                      ll:=ctai_typedconstbuilder.emit_ansistring_const(fdatalist,strval,strlength,def.encoding,true);
-                   tc_emit_string_offset(ll,strlength,def.stringtype,false,charpointertype);
+                   ftcb.emit_string_offset(ll,strlength,def.stringtype,false,charpointertype);
                 end;
               st_unicodestring,
               st_widestring:
@@ -599,7 +591,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                            Include(tcsym.varoptions,vo_force_finalize);
                          end;
                      end;
-                  tc_emit_string_offset(ll,strlength,def.stringtype,winlike,widecharpointertype);
+                  ftcb.emit_string_offset(ll,strlength,def.stringtype,winlike,widecharpointertype);
                 end;
               else
                 internalerror(200107081);
