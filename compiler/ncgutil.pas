@@ -1906,7 +1906,7 @@ implementation
               LOC_REGISTER:
                 begin
 {$ifdef cpu_uses_separate_address_registers}
-                  if getregtype(left.location.register)<>R_ADDRESSREGISTER then
+                  if getregtype(selfloc.register)<>R_ADDRESSREGISTER then
                     begin
                       reference_reset_base(href,cg.getaddressregister(list),objdef.vmt_offset,sizeof(pint));
                       cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,selfloc.register,href.base);
