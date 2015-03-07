@@ -202,6 +202,31 @@ endif
 
 
 #
+# $(SYSINIT_UNITS) Units
+#
+si_prc$(PPUEXT) : si_prc.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_prc.inc $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) si_prc.pp
+
+si_c21g$(PPUEXT) : si_c21g.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_c21g.inc $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) si_c21g.pp
+
+si_c21$(PPUEXT) : si_c21.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_c21.inc $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) si_c21.pp
+
+si_c$(PPUEXT) : si_c.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_c.inc $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) si_c.pp
+
+si_dll$(PPUEXT) : si_dll.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_dll.inc $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) si_dll.pp
+
+si_uc$(PPUEXT) : si_uc.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_uc.inc $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) si_uc.pp
+
+si_g$(PPUEXT) : si_g.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_g.inc $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) si_g.pp
+
+
+#
 # $(SYSTEMUNIT) Units ($(SYSTEMUNIT), Objpas, Strings)
 #
 
