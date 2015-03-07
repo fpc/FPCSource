@@ -1290,9 +1290,9 @@ end;
 function TDebugController.GetFPCBreakErrorParameters(var ExitCode: LongInt; var ExitAddr, ExitFrame: CORE_ADDR): Boolean;
 const
   { try to find the parameters }
-  FirstArgOffset = -sizeof(pointer);
-  SecondArgOffset = 2*-sizeof(pointer);
-  ThirdArgOffset = 3*-sizeof(pointer);
+  FirstArgOffset = -sizeof(CORE_ADDR);
+  SecondArgOffset = 2*-sizeof(CORE_ADDR);
+  ThirdArgOffset = 3*-sizeof(CORE_ADDR);
 begin
   // Procedure HandleErrorAddrFrame (Errno : longint;addr : CodePointer; frame : Pointer);
   //  [public,alias:'FPC_BREAK_ERROR']; {$ifdef cpui386} register; {$endif}
