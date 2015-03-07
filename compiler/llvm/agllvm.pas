@@ -650,6 +650,8 @@ implementation
                     else
                       asmwrite(' -- symbol offset: ' + tostr(hp.value));
                 end
+              else if hp.value=0 then
+                AsmWrite('zeroinitializer')
               else
                 AsmWrite(tostr(hp.value));
               AsmLn;
