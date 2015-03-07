@@ -29,6 +29,7 @@ fpcdir=../..
 
 [require] 
 nortl=y
+packages=mad
 
 [shared]
 build=n
