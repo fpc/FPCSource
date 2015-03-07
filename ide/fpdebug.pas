@@ -2876,17 +2876,9 @@ procedure TWatch.Get_new_value;
     function GetValue(var s : AnsiString) : boolean;
       begin
         s:=Debugger^.PrintCommand(s);
-        if not Debugger^.Error then
-          begin
-            GetValue:=true;
-          end
-        else
-          begin
-            // Is always done now s:=StrPas(Debugger^.GetError);
-            GetValue:=false;
-            { do not open a messagebox for such errors }
-            Debugger^.got_error:=false;
-          end;
+        GetValue := not Debugger^.Error;
+        { do not open a messagebox for such errors }
+        Debugger^.got_error:=false;
       end;
 
   begin
