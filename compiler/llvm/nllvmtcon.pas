@@ -253,6 +253,14 @@ implementation
       field: tfieldvarsym;
       dataptrdef: tdef;
     begin
+      { nil pointer? }
+      if not assigned(ll.lab) then
+        begin
+          if ll.ofs<>0 then
+            internalerror(2015030701);
+          inherited;
+          exit;
+        end;
       { if the returned offset is <> 0, then the string data
         starts at that offset -> translate to a field for the
         high level code generator }
