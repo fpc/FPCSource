@@ -782,11 +782,13 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         { const pointer ? }
         if (node.nodetype = pointerconstn) then
           begin
+            ftcb.queue_init(def);
+            ftcb.queue_typeconvn(ptrsinttype,def);
             {$if sizeof(TConstPtrUInt)=8}
-              ftcb.emit_tai(Tai_const.Create_64bit(int64(tpointerconstnode(node).value)),def);
+              ftcb.queue_emit_ordconst(int64(tpointerconstnode(node).value),ptrsinttype);
             {$else}
               {$if sizeof(TConstPtrUInt)=4}
-                ftcb.emit_tai(Tai_const.Create_32bit(longint(tpointerconstnode(node).value)),def);
+                ftcb.queue_emit_ordconst(longint(tpointerconstnode(node).value),ptrsinttype);
               {$else}
                 internalerror(200404122);
             {$endif} {$endif}
