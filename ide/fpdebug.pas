@@ -2869,7 +2869,7 @@ procedure TWatch.rename(s : string);
 
 procedure TWatch.Get_new_value;
 {$ifndef NODEBUG}
-  var i, j, curframe, startframe : longint;
+  var i, curframe, startframe : longint;
       s,s2,orig_s_result : AnsiString;
       loop_higher, found : boolean;
 
@@ -2943,11 +2943,6 @@ procedure TWatch.Get_new_value;
 {$endif FrameNameKnown}
                if not getValue(s2) then
                  loop_higher:=false;
-               j:=pos('=',s2);
-               if j>0 then
-                 s2:=copy(s2,j+1,length(s2));
-               while s2[1] in [' ',TAB] do
-                 delete(s2,1,1);
                if pos(s2,s)>0 then
                  loop_higher :=false;
              until not loop_higher;
