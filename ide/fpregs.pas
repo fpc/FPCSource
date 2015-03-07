@@ -277,6 +277,8 @@ const
       dialog_registers = 'Register View';
       dialog_fpu = 'FPU View';
       dialog_vector = 'Vector Unit View';
+      msg_registervaluesnotavailable = '<no values available>';
+      msg_registerwindowerror = '<debugger error>';
 
 {****************************************************************************
                          TRegistersView
@@ -492,11 +494,11 @@ const
     begin
        inherited draw;
 {$ifdef NODEBUG}
-       WriteStr(1,0,'<no values available>',7);
+       WriteStr(1,0,msg_registervaluesnotavailable,7);
 {$else NODEBUG}
        If not assigned(Debugger) then
          begin
-            WriteStr(1,0,'<no values available>',7);
+            WriteStr(1,0,msg_registervaluesnotavailable,7);
             exit;
          end;
        if InDraw then exit;
@@ -748,7 +750,7 @@ const
 {$endif cpu_known}
          end
        else
-         WriteStr(0,0,'<debugger error>',7);
+         WriteStr(0,0,msg_registerwindowerror,7);
        InDraw:=false;
 {$endif NODEBUG}
     end;
@@ -1056,11 +1058,11 @@ const
     begin
        inherited draw;
 {$ifdef NODEBUG}
-       WriteStr(1,0,'<no values available>',7);
+       WriteStr(1,0,msg_registervaluesnotavailable,7);
 {$else NODEBUG}
        If not assigned(Debugger) then
          begin
-            WriteStr(1,0,'<no values available>',7);
+            WriteStr(1,0,msg_registervaluesnotavailable,7);
             exit;
          end;
        if InDraw then
@@ -1183,7 +1185,7 @@ const
 {$endif cpu_known}
          end
        else
-         WriteStr(0,0,'<debugger error>',7);
+         WriteStr(0,0,msg_registerwindowerror,7);
        InDraw:=false;
 {$endif NODEBUG}
     end;
@@ -1440,11 +1442,11 @@ const
     begin
        inherited draw;
 {$ifdef NODEBUG}
-       WriteStr(1,0,'<no values available>',7);
+       WriteStr(1,0,msg_registervaluesnotavailable,7);
 {$else NODEBUG}
        If not assigned(Debugger) then
          begin
-            WriteStr(1,0,'<no values available>',7);
+            WriteStr(1,0,msg_registervaluesnotavailable,7);
             exit;
          end;
        if InDraw then
@@ -1513,7 +1515,7 @@ const
 {$endif cpu_known}
          end
        else
-         WriteStr(0,0,'<debugger error>',7);
+         WriteStr(0,0,msg_registerwindowerror,7);
        InDraw:=false;
 {$endif NODEBUG}
     end;
