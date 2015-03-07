@@ -281,6 +281,8 @@ type
      procedure queue_emit_const(cs: tconstsym); virtual;
      { ... asmsym/asmlabel }
      procedure queue_emit_asmsym(sym: tasmsymbol; def: tdef); virtual;
+     { ... an ordinal constant }
+     procedure queue_emit_ordconst(value: int64; def: tdef); virtual;
 
      { finalize the internal asmlist (if necessary) and return it.
        This asmlist will be freed when the builder is destroyed, so add its
@@ -1263,6 +1265,12 @@ implementation
          data is }
        def:=getpointerdef(def);
        emit_tai(Tai_const.Create_sym_offset(sym,fqueue_offset),def);
+       fqueue_offset:=low(fqueue_offset);
+     end;
+
+   procedure ttai_typedconstbuilder.queue_emit_ordconst(value: int64; def: tdef);
+     begin
+       emit_ord_const(value,def);
        fqueue_offset:=low(fqueue_offset);
      end;
 

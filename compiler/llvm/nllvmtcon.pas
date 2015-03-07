@@ -79,6 +79,7 @@ interface
       procedure queue_typeconvn(fromdef, todef: tdef); override;
       procedure queue_emit_staticvar(vs: tstaticvarsym); override;
       procedure queue_emit_asmsym(sym: tasmsymbol; def: tdef); override;
+      procedure queue_emit_ordconst(value: int64; def: tdef); override;
 
       class function get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint; override;
     end;
@@ -483,6 +484,15 @@ implementation
         make sure it doesn't get emitted again as part of the tai_const for
         the tasmsymbol }
       fqueue_offset:=0;
+      inherited;
+    end;
+
+
+  procedure tllvmtai_typedconstbuilder.queue_emit_ordconst(value: int64; def: tdef);
+    begin
+      { no offset into an ordinal constant }
+      if fqueue_offset<>0 then
+        internalerror(2015030702);
       inherited;
     end;
 
