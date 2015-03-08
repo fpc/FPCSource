@@ -364,6 +364,9 @@ endif
 ifeq ($(SUBARCH),armv6m)
 CPU_UNITS=lpc8xx lpc11xx lpc122x stm32f0xx cortexm0
 endif
+ifeq ($(SUBARCH),armv7a)
+CPU_UNITS=allwinner_a20
+endif
 endif
 ifeq ($(ARCH),avr)
 CPU_UNITS=atmega128

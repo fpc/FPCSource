@@ -8148,6 +8148,7 @@ rtl/dragonfly/x86_64/sighnd.inc svneol=native#text/plain
 rtl/dragonfly/x86_64/signal.inc svneol=native#text/plain
 rtl/embedded/Makefile svneol=native#text/plain
 rtl/embedded/Makefile.fpc svneol=native#text/plain
+rtl/embedded/arm/allwinner_a20.pp svneol=native#text/plain
 rtl/embedded/arm/at91sam7x256.pp svneol=native#text/plain
 rtl/embedded/arm/cortexm0.pp svneol=native#text/pascal
 rtl/embedded/arm/cortexm0_start.inc svneol=native#text/plain
