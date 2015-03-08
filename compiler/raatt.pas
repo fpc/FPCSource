@@ -317,6 +317,18 @@ unit raatt;
                end
            end;
 {$endif ARM}
+{$ifdef aarch64}
+           { b.cond }
+           case c of
+             '.':
+               begin
+                 repeat
+                   actasmpattern:=actasmpattern+c;
+                   c:=current_scanner.asmgetchar;
+                 until not(c in ['a'..'z','A'..'Z']);
+               end;
+           end;
+{$endif aarch64}
            { Opcode ? }
            If is_asmopcode(upper(actasmpattern)) then
             Begin
@@ -1294,10 +1306,16 @@ unit raatt;
         while (actasmtoken=AS_DOT) do
          begin
            Consume(AS_DOT);
-           if actasmtoken=AS_ID then
-            s:=s+'.'+actasmpattern;
-           if not Consume(AS_ID) then
+
+           { a record field could have the same name as a register }
+           if actasmtoken in [AS_ID,AS_REGISTER] then
+             begin
+               s:=s+'.'+actasmpattern;
+               consume(actasmtoken)
+             end
+           else
             begin
+              Consume(AS_ID);
               RecoverConsume(true);
               break;
             end;

@@ -417,12 +417,17 @@ begin
           LinkRes.Add('i386');
         system_powerpc64_darwin:
           LinkRes.Add('ppc64');
-        system_x86_64_darwin:
+        system_x86_64_darwin,
+        system_x86_64_iphonesim:
           LinkRes.Add('x86_64');
         system_arm_darwin:
           { current versions of the linker require the sub-architecture type
             to be specified }
           LinkRes.Add(lower(cputypestr[current_settings.cputype]));
+        system_aarch64_darwin:
+          LinkRes.Add('arm64');
+        else
+          internalerror(2014121801);
       end;
       if MacOSXVersionMin<>'' then
         begin
@@ -934,6 +939,9 @@ initialization
   RegisterImport(system_x86_64_darwin,timportlibdarwin);
   RegisterExport(system_x86_64_darwin,texportlibdarwin);
   RegisterTarget(system_x86_64_darwin_info);
+  RegisterImport(system_x86_64_iphonesim,timportlibdarwin);
+  RegisterExport(system_x86_64_iphonesim,texportlibdarwin);
+  RegisterTarget(system_x86_64_iphonesim_info);
 {$endif}
 {$ifdef i386}
   RegisterImport(system_i386_freebsd,timportlibbsd);
@@ -976,6 +984,11 @@ initialization
   RegisterExport(system_arm_darwin,texportlibdarwin);
   RegisterTarget(system_arm_darwin_info);
 {$endif arm}
+{$ifdef aarch64}
+  RegisterImport(system_aarch64_darwin,timportlibdarwin);
+  RegisterExport(system_aarch64_darwin,texportlibdarwin);
+  RegisterTarget(system_aarch64_darwin_info);
+{$endif aarch64}
 
   RegisterRes(res_elf_info,TWinLikeResourceFile);
   RegisterRes(res_macho_info,TWinLikeResourceFile);

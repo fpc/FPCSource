@@ -63,6 +63,8 @@ unit widestr;
       d : pchar; dcp : tstringencoding
     );
     function codepagebyname(const s : string) : tstringencoding;
+    function charlength(p: pchar; len: sizeint): sizeint;
+    function charlength(const s: string): sizeint;
 
   implementation
 
@@ -340,6 +342,54 @@ unit widestr;
         p:=getmap(s);
         if (p<>nil) then
           Result:=p^.cp;
+      end;
+
+
+    function charlength(p: pchar; len: sizeint): sizeint;
+      var
+        p2: pchar;
+        i, chars, codepointlen: sizeint;
+      begin
+{$IFDEF FPC_HAS_CPSTRING}
+        if len=0 then
+          begin
+            result:=0;
+            exit;
+          end;
+{ Length of the string converted to a SBCS codepage (e.g. ISO 8859-1)
+  should be equal to the amount of characters in the source string. }
+        if defaultsystemcodepage=cp_utf8 then
+{ ChangeCodePage does not work for UTF-8 apparently... :-( }
+          begin
+            i:=1;
+            chars:=0;
+            while i<=len do
+              begin
+                codepointlen:=utf8codepointlen(p,len-i+1,true);
+                inc(i,codepointlen);
+                inc(p,codepointlen);
+                inc(chars);
+              end;
+            result:=chars;
+          end
+        else if cpavailable(defaultsystemcodepage) then
+          begin
+            getmem(p2,succ(len));
+            fillchar(p2^,succ(len),0);
+            changecodepage(p,len,defaultsystemcodepage,p2,28591);
+            result:=strlen(p2);
+            freemem(p2,succ(len));
+          end
+        else
+          result:=len;
+{$ELSE FPC_HAS_CPSTRING}
+        result:=len;
+{$ENDIF FPC_HAS_CPSTRING}
+      end;
+
+    function charlength(const s: string): sizeint;
+      begin
+        result:=charlength(@s[1],length(s));
       end;
 
 end.

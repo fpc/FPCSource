@@ -1,6 +1,6 @@
 program TestStrIComp;
   uses
-    {$ifdef unix}cwstring,{$endif}
+    {$ifdef unix}{$ifdef darwin}iosxwstr{$else}cwstring{$endif},{$endif}
     SysUtils;
 
 var l: longint;

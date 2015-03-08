@@ -63,7 +63,11 @@ uses
   Dos,Objects,
   BrowCol,Version,
 {$ifndef NODEBUG}
-  gdbint,
+  {$ifdef GDBMI}
+    gdbmiint,
+  {$else GDBMI}
+    gdbint,
+  {$endif GDBMI}
 {$endif NODEBUG}
   FVConsts,
   Drivers,Views,App,Dialogs,HistList,
@@ -363,8 +367,14 @@ BEGIN
   writeln(bullet+' GDB Version '+GDBVersion);
  {$ifdef Windows}
   {$ifndef USE_MINGW_GDB}
-   writeln(bullet+' Cygwin "',GetCygwinFullName,'" version ',GetCygwinVersionString);
-   CheckCygwinVersion;
+   {$ifdef GDBMI}
+   { No reason to talk about cygwin DLL if we don't use it }
+   if using_cygwin_gdb then
+   {$endif GDBMI}
+     begin
+       writeln(bullet+' Cygwin "',GetCygwinFullName,'" version ',GetCygwinVersionString);
+       CheckCygwinVersion;
+     end;
   {$endif}
  {$endif Windows}
 {$endif NODEBUG}

@@ -454,7 +454,7 @@ uses
         fileopen:=false;
         try
           f:=CFileStreamClass.Create(filename,fmOpenRead);
-          fileopen:=true;
+          fileopen:=CStreamError=0;
         except
         end;
       end;

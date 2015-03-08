@@ -96,6 +96,7 @@ uses
 
 const
   page_size = 24;
+  page_width = 80;
 
 var
   option     : toption;
@@ -603,10 +604,12 @@ var
   lastident,
   j,outline,
   ident,
+  HelpLineHeight,
   lines : longint;
   show  : boolean;
   opt   : string[32];
   input,
+  HelpLine,
   s     : string;
   p     : pchar;
 begin
@@ -645,6 +648,9 @@ begin
 {$endif}
 {$ifdef i8086}
       '8',
+{$endif}
+{$ifdef aarch64}
+      'a',
 {$endif}
 {$ifdef arm}
       'A',
@@ -727,8 +733,13 @@ begin
            Comment(V_Normal,'');
            inc(Lines);
          end;
+        HelpLine := PadEnd('',ident)+opt+Copy(s,j+1,255);
+        if HelpLine = '' then
+         HelpLineHeight := 1
+        else
+         HelpLineHeight := Succ (CharLength (HelpLine) div Page_Width);
       { page full ? }
-        if (lines >= page_size - 1) then
+        if (lines + HelpLineHeight >= page_size - 1) then
          begin
            if not NoPressEnter then
             begin
@@ -739,9 +750,9 @@ begin
             end;
            lines:=0;
          end;
-        Comment(V_Normal,PadEnd('',ident)+opt+Copy(s,j+1,255));
+        Comment(V_Normal,HelpLine);
         LastIdent:=Ident;
-        inc(Lines);
+        Inc (Lines, HelpLineHeight);
       end;
    end;
   StopOptions(0);
@@ -885,7 +896,7 @@ begin
   if MacVersionSet then
     exit;
   { check for deployment target set via environment variable }
-  if not(target_info.system in [system_i386_iphonesim,system_arm_darwin]) then
+  if not(target_info.system in [system_i386_iphonesim,system_arm_darwin,system_aarch64_darwin,system_x86_64_iphonesim]) then
     begin
       envstr:=GetEnvironmentVariable('MACOSX_DEPLOYMENT_TARGET');
       if envstr<>'' then
@@ -929,6 +940,12 @@ begin
         set_system_compvar('IPHONE_OS_VERSION_MIN_REQUIRED','30000');
         iPhoneOSVersionMin:='3.0';
       end;
+    system_aarch64_darwin,
+    system_x86_64_iphonesim:
+      begin
+        set_system_compvar('IPHONE_OS_VERSION_MIN_REQUIRED','70000');
+        iPhoneOSVersionMin:='7.0';
+      end
     else
       internalerror(2012031001);
   end;
@@ -1473,10 +1490,16 @@ begin
                    Message2(option_obsolete_switch_use_new,'-Fg','-Fl');
                  'l' :
                    begin
-                     if ispara then
-                       ParaLibraryPath.AddPath(sysrootpath,More,false)
+                     if path_absolute(More) then
+                       if ispara then
+                         ParaLibraryPath.AddPath(sysrootpath,More,false)
+                       else
+                         LibrarySearchPath.AddPath(sysrootpath,More,true)
                      else
-                       LibrarySearchPath.AddPath(sysrootpath,More,true);
+                       if ispara then
+                         ParaLibraryPath.AddPath('',More,false)
+                       else
+                         LibrarySearchPath.AddPath('',More,true);
                    end;
                  'L' :
                    begin
@@ -2196,7 +2219,7 @@ begin
                       end;
                     'M':
                       begin
-                        if (target_info.system in (systems_darwin-[system_i386_iphonesim])) and
+                        if (target_info.system in (systems_darwin-[system_i386_iphonesim,system_arm_darwin,system_aarch64_darwin,system_x86_64_iphonesim])) and
                            ParseMacVersionMin(MacOSXVersionMin,iPhoneOSVersionMin,'MAC_OS_X_VERSION_MIN_REQUIRED',copy(More,2,255),false) then
                           begin
                             break;
@@ -2229,7 +2252,7 @@ begin
                       end;
                     'P':
                       begin
-                        if (target_info.system in [system_i386_iphonesim,system_arm_darwin]) and
+                        if (target_info.system in [system_i386_iphonesim,system_arm_darwin,system_aarch64_darwin,system_x86_64_iphonesim]) and
                            ParseMacVersionMin(iPhoneOSVersionMin,MacOSXVersionMin,'IPHONE_OS_VERSION_MIN_REQUIRED',copy(More,2,255),true) then
                           begin
                             break;
@@ -3202,9 +3225,9 @@ begin
 
 { abs(long) is handled internally on all CPUs }
   def_system_macro('FPC_HAS_INTERNAL_ABS_LONG');
-{$if defined(x86_64) or defined(powerpc64)}
+{$if defined(x86_64) or defined(powerpc64) or defined(cpuaarch64)}
   def_system_macro('FPC_HAS_INTERNAL_ABS_INT64');
-{$endif x86_64 or powerpc64}
+{$endif x86_64 or powerpc64 or aarch64}
 
   def_system_macro('FPC_HAS_UNICODESTRING');
   def_system_macro('FPC_RTTI_PACKSET1');
@@ -3388,6 +3411,12 @@ begin
     mm_huge:    def_system_macro('FPC_MM_HUGE');
   end;
 {$endif i8086}
+{$ifdef aarch64}
+  def_system_macro('CPUAARCH64');
+  def_system_macro('CPU64');
+  def_system_macro('FPC_CURRENCY_IS_INT64');
+  def_system_macro('FPC_COMP_IS_INT64');
+{$endif aarch64}
 
   if tf_cld in target_info.flags then
     if not UpdateTargetSwitchStr('CLD', init_settings.targetswitches, true) then
@@ -3781,7 +3810,7 @@ if (target_info.abi = abi_eabihf) then
 {$endif}
       def_system_macro('FPC_HAS_TYPE_SINGLE');
       def_system_macro('FPC_HAS_TYPE_DOUBLE');
-{$if not defined(i386) and not defined(x86_64) and not defined(i8086)}
+{$if not defined(i386) and not defined(x86_64) and not defined(i8086) and not defined(aarch64)}
       def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
 {$endif}
 {$if defined(m68k)}
@@ -3821,7 +3850,7 @@ if (target_info.abi = abi_eabihf) then
 {$endif ARM}
 
 { inline bsf/bsr implementation }
-{$if defined(i386) or defined(x86_64)}
+{$if defined(i386) or defined(x86_64) or defined(aarch64)}
   def_system_macro('FPC_HAS_INTERNAL_BSF');
   def_system_macro('FPC_HAS_INTERNAL_BSR');
 {$endif}

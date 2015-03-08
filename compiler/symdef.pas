@@ -214,9 +214,6 @@ interface
           function alignment:shortint;override;
        end;
 
-
-       { tpointerdef }
-
        tpointerdef = class(tabstractpointerdef)
           has_pointer_math : boolean;
           constructor create(def:tdef);virtual;
@@ -577,6 +574,7 @@ interface
           procedure buildderef;override;
           procedure deref;override;
           procedure calcparas;
+          function mangledprocparanames(oldlen : longint) : string;
           function  typename_paras(pno: tprocnameoptions): ansistring;
           function  is_methodpointer:boolean;virtual;
           function  is_addressonly:boolean;virtual;
@@ -1170,7 +1168,7 @@ implementation
             if not assigned(current_module.ansistrdef) then
               begin
                 { if we did not create it yet we need to do this now }
-                if current_module.is_unit then
+                if current_module.in_interface then
                   symtable:=current_module.globalsymtable
                 else
                   symtable:=current_module.localsymtable;
@@ -1220,38 +1218,7 @@ implementation
              conflicts with 2 overloads having both a nested procedure
              with the same name, see tb0314 (PFV) }
            s:=tprocdef(st.defowner).procsym.name;
-           oldlen:=length(s);
-           for i:=0 to tprocdef(st.defowner).paras.count-1 do
-            begin
-              hp:=tparavarsym(tprocdef(st.defowner).paras[i]);
-              if not(vo_is_hidden_para in hp.varoptions) then
-                s:=s+'$'+hp.vardef.mangledparaname;
-            end;
-           if not is_void(tprocdef(st.defowner).returndef) then
-             s:=s+'$$'+tprocdef(st.defowner).returndef.mangledparaname;
-           newlen:=length(s);
-           { Replace with CRC if the parameter line is very long }
-           if (newlen-oldlen>12) and
-              ((newlen+length(prefix)>100) or (newlen-oldlen>32)) then
-             begin
-               crc:=0;
-               for i:=0 to tprocdef(st.defowner).paras.count-1 do
-                 begin
-                   hp:=tparavarsym(tprocdef(st.defowner).paras[i]);
-                   if not(vo_is_hidden_para in hp.varoptions) then
-                     begin
-                       hs:=hp.vardef.mangledparaname;
-                       crc:=UpdateCrc32(crc,hs[1],length(hs));
-                     end;
-                 end;
-               if not is_void(tprocdef(st.defowner).returndef) then
-                 begin
-                   { add a little prefix so that x(integer; integer) is different from x(integer):integer }
-                   hs:='$$'+tprocdef(st.defowner).returndef.mangledparaname;
-                   crc:=UpdateCrc32(crc,hs[1],length(hs));
-                 end;
-               s:=Copy(s,1,oldlen)+'$crc'+hexstr(crc,8);
-             end;
+           s:=s+tprocdef(st.defowner).mangledprocparanames(Length(s));
            if prefix<>'' then
              prefix:=s+'_'+prefix
            else
@@ -1677,6 +1644,8 @@ implementation
                insertstack:=insertstack^.next;
              if not assigned(insertstack) then
                internalerror(200602044);
+             if insertstack^.symtable.sealed then
+               internalerror(2015022301);
              insertstack^.symtable.insertdef(self);
            end;
       end;
@@ -2036,12 +2005,12 @@ implementation
               recsize:=size;
               is_intregable:=
                 ispowerof2(recsize,temp) and
-                (((recsize <= sizeof(asizeint)*2)
+                (((recsize <= sizeof(asizeint)*2) and
                  { records cannot go into registers on 16 bit targets for now }
-                  and (sizeof(asizeint)>2)
-                  and not trecorddef(self).contains_float_field) or
-                  (recsize <= sizeof(asizeint)))
-                and not needs_inittable;
+                  (sizeof(asizeint)>2) and
+                  not trecorddef(self).contains_float_field) or
+                  (recsize <= sizeof(asizeint))) and
+                not needs_inittable;
             end;
         end;
      end;
@@ -2803,6 +2772,7 @@ implementation
            sc80real:
              if target_info.system in [system_i386_darwin,
                   system_i386_iphonesim,system_x86_64_darwin,
+                  system_x86_64_iphonesim,
                   system_x86_64_linux,system_x86_64_freebsd,
                   system_x86_64_openbsd,system_x86_64_netbsd,
                   system_x86_64_solaris,system_x86_64_embedded,
@@ -3420,8 +3390,10 @@ implementation
 
     constructor tarraydef.create_from_pointer(def:tpointerdef);
       begin
-         { use -1 so that the elecount will not overflow }
-         self.create(0,high(asizeint)-1,ptrsinttype);
+         { divide by the element size and do -1 so the array will have a valid size,
+           further, the element size might be 0 e.g. for empty records, so use max(...,1)
+           to avoid a division by zero }
+         self.create(0,(high(asizeint) div max(def.pointeddef.size,1))-1,ptrsinttype);
          arrayoptions:=[ado_IsConvertedPointer];
          setelementdef(def.pointeddef);
       end;
@@ -4337,6 +4309,53 @@ implementation
         parast.SymList.ForEachCall(@insert_para,nil);
         { Order parameters }
         paras.sortparas;
+      end;
+
+
+    function tabstractprocdef.mangledprocparanames(oldlen : longint) : string;
+      var
+        crc  : dword;
+        hp   : TParavarsym;
+        hs   : TSymStr;
+        newlen,
+        i    : integer;
+      begin
+        result:='';
+        hp:=nil;
+        { add parameter types }
+        for i:=0 to paras.count-1 do
+         begin
+           hp:=tparavarsym(paras[i]);
+           if not(vo_is_hidden_para in hp.varoptions) then
+             result:=result+'$'+hp.vardef.mangledparaname;
+         end;
+        { add resultdef, add $$ as separator to make it unique from a
+          parameter separator }
+        if not is_void(returndef) then
+          result:=result+'$$'+returndef.mangledparaname;
+        newlen:=length(result)+oldlen;
+        { Replace with CRC if the parameter line is very long }
+        if (newlen-oldlen>12) and
+           ((newlen>100) or (newlen-oldlen>64)) then
+          begin
+            crc:=0;
+            for i:=0 to paras.count-1 do
+              begin
+                hp:=tparavarsym(paras[i]);
+                if not(vo_is_hidden_para in hp.varoptions) then
+                  begin
+                    hs:=hp.vardef.mangledparaname;
+                    crc:=UpdateCrc32(crc,hs[1],length(hs));
+                  end;
+              end;
+            if not is_void(returndef) then
+              begin
+                { add a little prefix so that x(integer; integer) is different from x(integer):integer }
+                hs:='$$'+returndef.mangledparaname;
+                crc:=UpdateCrc32(crc,hs[1],length(hs));
+              end;
+            result:='$crc'+hexstr(crc,8);
+          end;
       end;
 
 
@@ -5473,53 +5492,11 @@ implementation
 
 
     function tprocdef.defaultmangledname: TSymStr;
-      var
-        hp   : TParavarsym;
-        hs   : TSymStr;
-        crc  : dword;
-        newlen,
-        oldlen,
-        i    : integer;
       begin
-        hp:=nil;
         { we need to use the symtable where the procsym is inserted,
           because that is visible to the world }
         defaultmangledname:=make_mangledname('',procsym.owner,procsym.name);
-        oldlen:=length(defaultmangledname);
-        { add parameter types }
-        for i:=0 to paras.count-1 do
-         begin
-           hp:=tparavarsym(paras[i]);
-           if not(vo_is_hidden_para in hp.varoptions) then
-             defaultmangledname:=defaultmangledname+'$'+hp.vardef.mangledparaname;
-         end;
-        { add resultdef, add $$ as separator to make it unique from a
-          parameter separator }
-        if not is_void(returndef) then
-          defaultmangledname:=defaultmangledname+'$$'+returndef.mangledparaname;
-        newlen:=length(defaultmangledname);
-        { Replace with CRC if the parameter line is very long }
-        if (newlen-oldlen>12) and
-           ((newlen>100) or (newlen-oldlen>64)) then
-          begin
-            crc:=0;
-            for i:=0 to paras.count-1 do
-              begin
-                hp:=tparavarsym(paras[i]);
-                if not(vo_is_hidden_para in hp.varoptions) then
-                  begin
-                    hs:=hp.vardef.mangledparaname;
-                    crc:=UpdateCrc32(crc,hs[1],length(hs));
-                  end;
-              end;
-            if not is_void(returndef) then
-              begin
-                { add a little prefix so that x(integer; integer) is different from x(integer):integer }
-                hs:='$$'+returndef.mangledparaname;
-                crc:=UpdateCrc32(crc,hs[1],length(hs));
-              end;
-            defaultmangledname:=Copy(defaultmangledname,1,oldlen)+'$crc'+hexstr(crc,8);
-          end;
+        defaultmangledname:=defaultmangledname+mangledprocparanames(Length(defaultmangledname))
       end;
 
 
@@ -5856,7 +5833,11 @@ implementation
           if not is_nested_pd(self) then
             result:='procvar'
           else
-            result:='nestedprovar'
+            { we need the manglednames here, because nestedprocvars can be anonymous, e.g.
+              having not a type name or not an unique one, see webtbs/tw27515.pp
+
+              Further, use $_ ... _$ delimiters to avoid ambiguous names, see webtbs/tw27515.pp }
+            result:='$_nestedprovar'+mangledprocparanames(0)+'_$'
         else
           result:='procvarofobj'
       end;
@@ -7439,7 +7420,7 @@ implementation
       begin
         if assigned(objc_fastenumeration) then
           exit;
-        if not(target_info.system in [system_arm_darwin,system_i386_iphonesim]) then
+        if not(target_info.system in [system_arm_darwin,system_i386_iphonesim,system_aarch64_darwin,system_x86_64_iphonesim]) then
           cocoaunit:='COCOAALL'
         else
           cocoaunit:='IPHONEALL';
@@ -7467,6 +7448,11 @@ implementation
 {$define use_vectorfpuimplemented}
         use_vectorfpu:=(current_settings.fputype in vfp_scalar);
 {$endif arm}
+{$ifdef aarch64}
+{$define use_vectorfpuimplemented}
+        use_vectorfpu:=true;
+{$endif aarch64}
+
 {$ifndef use_vectorfpuimplemented}
         use_vectorfpu:=false;
 {$endif}

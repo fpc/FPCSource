@@ -42,6 +42,10 @@ interface
         procedure emit_mod_reg_reg(signed: boolean;denum,num : tregister);override;
       end;
 
+      tm68kunaryminusnode = class(tcgunaryminusnode)
+        procedure second_float;override;
+      end;
+
       tm68kshlshrnode = class(tshlshrnode)
          procedure pass_generate_code;override;
          { everything will be handled in pass_2 }
@@ -173,6 +177,43 @@ implementation
 
 
 {*****************************************************************************
+                          TM68KUNARYMINUSNODE
+*****************************************************************************}
+
+    procedure tm68kunaryminusnode.second_float;
+      var
+        href: treference;
+      begin
+        secondpass(left);
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
+        //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('unaryminus second_float called!')));
+
+        case left.location.loc of
+          LOC_REFERENCE,
+          LOC_CREFERENCE :
+            begin
+              location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+              href:=left.location.reference;
+              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href);
+              current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FNEG,tcgsize2opsize[left.location.size],href,location.register));
+            end;
+          LOC_FPUREGISTER:
+            begin
+              location.register:=left.location.register;
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_FNEG,S_FX,location.register));
+            end;
+          LOC_CFPUREGISTER:
+            begin
+               location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEG,S_FX,left.location.register,location.register));
+            end;
+          else
+            internalerror(200306021);
+        end;
+      end;
+
+
+{*****************************************************************************
                              TM68KSHLRSHRNODE
 *****************************************************************************}
 
@@ -207,7 +248,7 @@ implementation
             hreg64lo:=left.location.register64.reglo;
 
             shiftval := tordconstnode(right).value.svalue;
-	    shiftval := shiftval and 63;
+            shiftval := shiftval and 63;
             if shiftval > 31 then
               begin
                 if nodetype = shln then
@@ -284,5 +325,6 @@ implementation
 begin
    cnotnode:=tm68knotnode;
    cmoddivnode:=tm68kmoddivnode;
+   cunaryminusnode:=tm68kunaryminusnode;
    cshlshrnode:=tm68kshlshrnode;
 end.

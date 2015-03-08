@@ -712,6 +712,7 @@ implementation
                      { don't warn about the result of constructors }
                      if ((tsym(sym).owner.symtabletype<>localsymtable) or
                         (tprocdef(tsym(sym).owner.defowner).proctypeoption<>potype_constructor)) and
+                        not (po_noreturn in tprocdef(tsym(sym).owner.defowner).procoptions) and
                         not(cs_opt_nodedfa in current_settings.optimizerswitches) then
                        MessagePos(tsym(sym).fileinfo,sym_w_function_result_not_set)
                    end

@@ -151,7 +151,8 @@ Const
 
 type
    tcpuflags =
-      (CPUX86_HAS_SSEUNIT,
+      (CPUX86_HAS_CMOV,
+       CPUX86_HAS_SSEUNIT,
        CPUX86_HAS_BMI1,
        CPUX86_HAS_BMI2,
        CPUX86_HAS_POPCNT,
@@ -167,13 +168,13 @@ type
      { cpu_none      } [],
      { cpu_386       } [],
      { cpu_Pentium   } [],
-     { cpu_Pentium2  } [],
-     { cpu_Pentium3  } [CPUX86_HAS_SSEUNIT],
-     { cpu_Pentium4  } [CPUX86_HAS_SSEUNIT],
-     { cpu_PentiumM  } [CPUX86_HAS_SSEUNIT],
-     { cpu_core_i    } [CPUX86_HAS_SSEUNIT,CPUX86_HAS_POPCNT],
-     { cpu_core_avx  } [CPUX86_HAS_SSEUNIT,CPUX86_HAS_POPCNT,CPUX86_HAS_AVXUNIT],
-     { cpu_core_avx2 } [CPUX86_HAS_SSEUNIT,CPUX86_HAS_POPCNT,CPUX86_HAS_AVXUNIT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE,CPUX86_HAS_FMA]
+     { cpu_Pentium2  } [CPUX86_HAS_CMOV],
+     { cpu_Pentium3  } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT],
+     { cpu_Pentium4  } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT],
+     { cpu_PentiumM  } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT],
+     { cpu_core_i    } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_POPCNT],
+     { cpu_core_avx  } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_POPCNT,CPUX86_HAS_AVXUNIT],
+     { cpu_core_avx2 } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT,CPUX86_HAS_POPCNT,CPUX86_HAS_AVXUNIT,CPUX86_HAS_BMI1,CPUX86_HAS_BMI2,CPUX86_HAS_LZCNT,CPUX86_HAS_MOVBE,CPUX86_HAS_FMA]
    );
 
 

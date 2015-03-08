@@ -512,7 +512,7 @@ interface
             idtxt  : 'AS-Darwin';
             asmbin : 'as';
             asmcmd : '-o $OBJ $EXTRAOPT $ASM -arch x86_64';
-            supported_targets : [system_x86_64_darwin];
+            supported_targets : [system_x86_64_darwin,system_x86_64_iphonesim];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : 'L';
             comment : '# ';

@@ -72,7 +72,7 @@ type
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
-    function StartdbTransaction(trans : TSQLHandle; aParams : string) : boolean; override;
+    function StartDBTransaction(trans : TSQLHandle; aParams : string) : boolean; override;
     procedure CommitRetaining(trans : TSQLHandle); override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
 
@@ -583,18 +583,13 @@ begin
     if TryStrToInt(NextWord(S,':'),Min) then
     begin
       if TryStrToInt(NextWord(S,'.'),Sec) then
-      begin // 23:59:59 or 23:59:59.999
-      MSec:=StrToIntDef(S,0);
-      if Interval then
-        Result:=EncodeTimeInterval(Hour,Min,Sec,MSec)
-      else
-        Result:=EncodeTime(Hour,Min,Sec,MSec);
+        // 23:59:59 or 23:59:59.999
+        MSec:=StrToIntDef(S,0)
+      else // 23:59
+      begin
+        Sec:=0;
+        MSec:=0;
       end;
-    end
-    else //23:59
-    begin
-      Sec:=0;
-      MSec:=0;
       if Interval then
         Result:=EncodeTimeInterval(Hour,Min,Sec,MSec)
       else
@@ -763,8 +758,7 @@ begin
   result:= true;
 end;
 
-function TSQLite3Connection.StartdbTransaction(trans: TSQLHandle;
-               aParams: string): boolean;
+function TSQLite3Connection.StartDBTransaction(trans: TSQLHandle; aParams: string): boolean;
 begin
   execsql('BEGIN');
   result:= true;

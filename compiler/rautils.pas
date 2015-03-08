@@ -69,6 +69,10 @@ type
       OPR_MODEFLAGS : (flags : tcpumodeflags);
       OPR_SPECIALREG: (specialreg : tregister; specialregflags : tspecialregflags);
 {$endif arm}
+{$ifdef aarch64}
+      OPR_SHIFTEROP : (shifterop : tshifterop);
+      OPR_COND      : (cc : tasmcond);
+{$endif aarch64}
   end;
 
   TOperand = class
@@ -1062,15 +1066,17 @@ end;
 {$ifdef ARM}
               OPR_REGSET:
                 ai.loadregset(i-1,regtype,subreg,regset,usermode);
-              OPR_SHIFTEROP:
-                ai.loadshifterop(i-1,shifterop);
-              OPR_COND:
-                ai.loadconditioncode(i-1,cc);
               OPR_MODEFLAGS:
                 ai.loadmodeflags(i-1,flags);
               OPR_SPECIALREG:
                 ai.loadspecialreg(i-1,specialreg,specialregflags);
 {$endif ARM}
+{$if defined(arm) or defined(aarch64)}
+             OPR_SHIFTEROP:
+               ai.loadshifterop(i-1,shifterop);
+             OPR_COND:
+               ai.loadconditioncode(i-1,cc);
+{$endif arm or aarch64}
               { ignore wrong operand }
               OPR_NONE:
                 ;
@@ -1205,7 +1211,7 @@ Begin
          begin
            if tconstsym(srsym).consttyp=constord then
             Begin
-              l:=tconstsym(srsym).value.valueord.svalue;
+              l:=aint(tconstsym(srsym).value.valueord.svalue);
               SearchIConstant:=TRUE;
               exit;
             end;

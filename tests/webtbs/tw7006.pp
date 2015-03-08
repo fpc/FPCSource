@@ -2,7 +2,7 @@ program av;
 {$ifdef FPC}{$mode objfpc}{$h+}{$INTERFACES CORBA}{$endif}
 {$ifdef mswindows}{$apptype console}{$endif}
 uses
- {$ifdef FPC}{$ifdef unix}cthreads,cwstring,{$endif}{$endif}sysutils;
+ {$ifdef FPC}{$ifdef unix}cthreads,{$ifdef darwin}iosxwstr{$else}cwstring{$endif},{$endif}{$endif}sysutils;
 type
  testrecty = record
   str: widestring;

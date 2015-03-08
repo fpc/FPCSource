@@ -219,11 +219,11 @@ interface
 {$ifdef arm}
        { ARM only }
        ,top_regset
-       ,top_conditioncode
        ,top_modeflags
        ,top_specialreg
 {$endif arm}
 {$if defined(arm) or defined(aarch64)}
+       ,top_conditioncode
        ,top_shifterop
 {$endif defined(arm) or defined(aarch64)}
 {$ifdef m68k}
@@ -266,12 +266,12 @@ interface
           top_local  : (localoper:plocaloper);
       {$ifdef arm}
           top_regset : (regset:^tcpuregisterset; regtyp: tregistertype; subreg: tsubregister; usermode: boolean);
-          top_conditioncode : (cc : TAsmCond);
           top_modeflags : (modeflags : tcpumodeflags);
           top_specialreg : (specialreg:tregister; specialflags:tspecialregflags);
       {$endif arm}
       {$if defined(arm) or defined(aarch64)}
           top_shifterop : (shifterop : pshifterop);
+          top_conditioncode : (cc : TAsmCond);
       {$endif defined(arm) or defined(aarch64)}
       {$ifdef m68k}
           top_regset : (dataregset,addrregset,fpuregset:^tcpuregisterset);
@@ -331,7 +331,7 @@ interface
         mark_Position
       );
 
-      TRegAllocType = (ra_alloc,ra_dealloc,ra_sync,ra_resize);
+      TRegAllocType = (ra_alloc,ra_dealloc,ra_sync,ra_resize,ra_markused);
 
       TStabType = (stab_stabs,stab_stabn,stab_stabd,
                    { AIX/XCOFF stab types }
@@ -354,6 +354,8 @@ interface
         asd_jclass,asd_jinterface,asd_jsuper,asd_jfield,asd_jlimit,asd_jline,
         { .ent/.end for MIPS and Alpha }
         asd_ent,asd_ent_end,
+        { supported by recent clang-based assemblers for data-in-code  }
+        asd_data_region, asd_end_data_region,
         { .thumb_func for ARM }
         asd_thumb_func
       );
@@ -368,7 +370,7 @@ interface
 
 
     const
-      regallocstr : array[tregalloctype] of string[10]=('allocated','released','sync','resized');
+      regallocstr : array[tregalloctype] of string[10]=('allocated','released','sync','resized','used');
       tempallocstr : array[boolean] of string[10]=('released','allocated');
       stabtypestr : array[TStabType] of string[8]=(
         'stabs','stabn','stabd',
@@ -385,6 +387,8 @@ interface
         'class','interface','super','field','limit','line',
         { .ent/.end for MIPS and Alpha }
         'ent','end',
+        { supported by recent clang-based assemblers for data-in-code }
+        'data_region','end_data_region',
         { .thumb_func for ARM }
         'thumb_func'
       );
@@ -711,6 +715,7 @@ interface
           constructor dealloc(r : tregister;ainstr:tai);
           constructor sync(r : tregister);
           constructor resize(r : tregister);
+          constructor markused(r : tregister);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
@@ -2421,6 +2426,15 @@ implementation
       end;
 
 
+    constructor tai_regalloc.markused(r : tregister);
+      begin
+        inherited create;
+        typ:=ait_regalloc;
+        ratype:=ra_markused;
+        reg:=r;
+      end;
+
+
     constructor tai_regalloc.ppuload(t:taitype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
@@ -2553,6 +2567,9 @@ implementation
 {$ifdef ARM}
               and not(r.base=NR_R15)
 {$endif ARM}
+{$ifdef aarch64}
+              and not(r.refaddr in [addr_full,addr_gotpageoffset,addr_gotpage])
+{$endif aarch64}
               then
               internalerror(200502052);
             typ:=top_ref;

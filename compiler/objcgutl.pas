@@ -91,7 +91,7 @@ implementation
     end;
 
 
-    { Used by PowerPC/64, ARM, and x86_64 }
+    { Used by PowerPC/64, ARM, x86_64 and AArch64 }
     tobjcrttiwriter_nonfragile = class(tobjcrttiwriter)
      protected
       ObjCEmptyCacheVar,

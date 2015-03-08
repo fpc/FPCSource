@@ -598,82 +598,6 @@ implementation
                             Init/Finalize Code
 ****************************************************************************}
 
-    procedure copyvalueparas(p:TObject;arg:pointer);
-      var
-        href : treference;
-        hreg : tregister;
-        list : TAsmList;
-        hsym : tparavarsym;
-        l    : longint;
-        localcopyloc : tlocation;
-        sizedef : tdef;
-      begin
-        list:=TAsmList(arg);
-        if (tsym(p).typ=paravarsym) and
-           (tparavarsym(p).varspez=vs_value) and
-          (paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
-          begin
-            { we have no idea about the alignment at the caller side }
-            hlcg.location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,true,1);
-            if is_open_array(tparavarsym(p).vardef) or
-               is_array_of_const(tparavarsym(p).vardef) then
-              begin
-                { cdecl functions don't have a high pointer so it is not possible to generate
-                  a local copy }
-                if not(current_procinfo.procdef.proccalloption in cdecl_pocalls) then
-                  begin
-                    hsym:=tparavarsym(get_high_value_sym(tparavarsym(p)));
-                    if not assigned(hsym) then
-                      internalerror(200306061);
-                    sizedef:=getpointerdef(tparavarsym(p).vardef);
-                    hreg:=hlcg.getaddressregister(list,sizedef);
-                    if not is_packed_array(tparavarsym(p).vardef) then
-                      hlcg.g_copyvaluepara_openarray(list,href,hsym.initialloc,tarraydef(tparavarsym(p).vardef),hreg)
-                    else
-                      internalerror(2006080401);
-//                      cg.g_copyvaluepara_packedopenarray(list,href,hsym.intialloc,tarraydef(tparavarsym(p).vardef).elepackedbitsize,hreg);
-                    hlcg.a_load_reg_loc(list,sizedef,sizedef,hreg,tparavarsym(p).initialloc);
-                  end;
-              end
-            else
-              begin
-                { Allocate space for the local copy }
-                l:=tparavarsym(p).getsize;
-                localcopyloc.loc:=LOC_REFERENCE;
-                localcopyloc.size:=int_cgsize(l);
-                tg.GetLocal(list,l,tparavarsym(p).vardef,localcopyloc.reference);
-                { Copy data }
-                if is_shortstring(tparavarsym(p).vardef) then
-                  begin
-                    { this code is only executed before the code for the body and the entry/exit code is generated
-                      so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
-                    }
-                    include(current_procinfo.flags,pi_do_call);
-                    hlcg.g_copyshortstring(list,href,localcopyloc.reference,tstringdef(tparavarsym(p).vardef));
-                  end
-                else if tparavarsym(p).vardef.typ = variantdef then
-                  begin
-                    { this code is only executed before the code for the body and the entry/exit code is generated
-                      so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
-                    }
-                    include(current_procinfo.flags,pi_do_call);
-                    hlcg.g_copyvariant(list,href,localcopyloc.reference,tvariantdef(tparavarsym(p).vardef))
-                  end
-                else
-                  begin
-                    { pass proper alignment info }
-                    localcopyloc.reference.alignment:=tparavarsym(p).vardef.alignment;
-                    cg.g_concatcopy(list,href,localcopyloc.reference,tparavarsym(p).vardef.size);
-                  end;
-                { update localloc of varsym }
-                tg.Ungetlocal(list,tparavarsym(p).localloc.reference);
-                tparavarsym(p).localloc:=localcopyloc;
-                tparavarsym(p).initialloc:=localcopyloc;
-              end;
-          end;
-      end;
-
-
     { generates the code for incrementing the reference count of parameters and
       initialize out parameters }
     procedure init_paras(p:TObject;arg:pointer);
@@ -698,7 +622,11 @@ implementation
                  if not((tparavarsym(p).vardef.typ=variantdef) and
                     paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
                    begin
-                     hlcg.location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
+                     hlcg.location_get_data_ref(list,tparavarsym(p).vardef,tparavarsym(p).initialloc,href,
+                       is_open_array(tparavarsym(p).vardef) or
+                       ((target_info.system in systems_caller_copy_addr_value_para) and
+                        paramanager.push_addr_param(vs_value,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)),
+                        sizeof(pint));
                      if is_open_array(tparavarsym(p).vardef) then
                        begin
                          { open arrays do not contain correct element count in their rtti,
@@ -864,12 +792,11 @@ implementation
         end;
 
       var
-        paraloc  : pcgparalocation;
-        href     : treference;
-        sizeleft : aint;
-{$if defined(sparc) or defined(arm) or defined(mips)}
-        tempref  : treference;
-{$endif defined(sparc) or defined(arm) or defined(mips)}
+        paraloc   : pcgparalocation;
+        href      : treference;
+        sizeleft  : aint;
+        alignment : longint;
+        tempref   : treference;
 {$ifdef mips}
         tmpreg   : tregister;
 {$endif mips}
@@ -1085,7 +1012,38 @@ implementation
                         end
 {$endif defined(cpu8bitalu)}
                       else
-                        internalerror(200410105);
+                        begin
+                          { this can happen if a parameter is spread over
+                            multiple paralocs, e.g. if a record with two single
+                            fields must be passed in two single precision
+                            registers }
+                          { does it fit in the register of destloc? }
+                          sizeleft:=para.intsize;
+                          if sizeleft<>vardef.size then
+                            internalerror(2014122806);
+                          if sizeleft<>tcgsize2size[destloc.size] then
+                            internalerror(200410105);
+                          { store everything first to memory, then load it in
+                            destloc }
+                          tg.gettemp(list,sizeleft,sizeleft,tt_persistent,tempref);
+                          gen_alloc_regloc(list,destloc);
+                          while sizeleft>0 do
+                            begin
+                              if not assigned(paraloc) then
+                                internalerror(2014122807);
+                              unget_para(paraloc^);
+                              cg.a_load_cgparaloc_ref(list,paraloc^,tempref,sizeleft,newalignment(para.alignment,para.intsize-sizeleft));
+                              if (paraloc^.size=OS_NO) and
+                                 assigned(paraloc^.next) then
+                                internalerror(2014122805);
+                              inc(tempref.offset,tcgsize2size[paraloc^.size]);
+                              dec(sizeleft,tcgsize2size[paraloc^.size]);
+                              paraloc:=paraloc^.next;
+                            end;
+                          dec(tempref.offset,para.intsize);
+                          cg.a_load_ref_reg(list,para.size,para.size,tempref,destloc.register);
+                          tg.ungettemp(list,tempref);
+                        end;
                     end
                   else
                     begin
@@ -1214,10 +1172,17 @@ implementation
               else
 {$endif not cpu64bitalu}
                 begin
-                  unget_para(paraloc^);
-                  gen_alloc_regloc(list,destloc);
-                  { from register to register -> alignment is irrelevant }
-                  cg.a_load_cgparaloc_anyreg(list,destloc.size,paraloc^,destloc.register,0);
+                  if not assigned(paraloc^.next) then
+                    begin
+                      unget_para(paraloc^);
+                      gen_alloc_regloc(list,destloc);
+                      { from register to register -> alignment is irrelevant }
+                      cg.a_load_cgparaloc_anyreg(list,destloc.size,paraloc^,destloc.register,0);
+                    end
+                  else
+                    begin
+                      internalerror(200410108);
+                    end;
                   { data could come in two memory locations, for now
                     we simply ignore the sanity check (FK)
                   if assigned(paraloc^.next) then
@@ -1293,7 +1258,7 @@ implementation
         { generate copies of call by value parameters, must be done before
           the initialization and body is parsed because the refcounts are
           incremented using the local copies }
-        current_procinfo.procdef.parast.SymList.ForEachCall(@copyvalueparas,list);
+        current_procinfo.procdef.parast.SymList.ForEachCall(@hlcg.g_copyvalueparas,list);
 {$ifdef powerpc}
         { unget the register that contains the stack pointer before the procedure entry, }
         { which is used to access the parameters in their original callee-side location  }
@@ -1941,7 +1906,7 @@ implementation
               LOC_REGISTER:
                 begin
 {$ifdef cpu_uses_separate_address_registers}
-                  if getregtype(left.location.register)<>R_ADDRESSREGISTER then
+                  if getregtype(selfloc.register)<>R_ADDRESSREGISTER then
                     begin
                       reference_reset_base(href,cg.getaddressregister(list),objdef.vmt_offset,sizeof(pint));
                       cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,selfloc.register,href.base);

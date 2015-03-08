@@ -240,7 +240,7 @@ begin
     end;
 end;
 
-function Nvu2FmtBCE(b:pbyte):tBCD;
+function Nvu2FmtBCD(b:pbyte):tBCD;
 var
   i,j       : integer;
   bb,size   : byte;
@@ -370,7 +370,7 @@ begin
                             AsDateTime := ComposeDateTime(EncodeDate(odt.year,odt.month,odt.day), EncodeTime(odt.hour,odt.min,odt.sec,odt.fsec div 1000000));
                             end;
         ftFMTBcd          : begin
-                            AsFMTBCD:=Nvu2FmtBCE(ParamBuffers[i].buffer);
+                            AsFMTBCD:=Nvu2FmtBCD(ParamBuffers[i].buffer);
                             end;
         end;
 
@@ -1089,7 +1089,7 @@ begin
         move(cur,buffer^,SizeOf(Currency));
         end;
       ftFmtBCD :
-        pBCD(buffer)^:= Nvu2FmtBCE(fieldbuffers[FieldDef.FieldNo-1].buffer);
+        pBCD(buffer)^:= Nvu2FmtBCD(fieldbuffers[FieldDef.FieldNo-1].buffer);
       ftFloat :
         move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,sizeof(double));
       ftSmallInt :

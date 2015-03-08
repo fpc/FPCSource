@@ -6,7 +6,7 @@
 
 {$ifdef unix}
 uses
-  cwstring;
+  {$ifdef darwin}iosxwstr{$else}cwstring{$endif};
 {$endif}
 {$r+}
 var

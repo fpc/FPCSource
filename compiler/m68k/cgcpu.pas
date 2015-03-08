@@ -1840,7 +1840,7 @@ unit cgcpu;
             if saved_fpu_registers[r] in rg[R_FPUREGISTER].used_in_proc then
               begin
                 hfreg:=newreg(R_FPUREGISTER,saved_fpu_registers[r],R_SUBWHOLE);
-                inc(fsize,10{sizeof(extended)});
+                inc(fsize,12{sizeof(extended)});
                 fpuregs:=fpuregs + [saved_fpu_registers[r]];
               end;
 
@@ -1873,7 +1873,7 @@ unit cgcpu;
               begin
                 { size is always longword aligned, while fsize is not }
                 inc(href.offset,size);
-                if fsize = 10{sizeof(extended)} then
+                if fsize = 12{sizeof(extended)} then
                   list.concat(taicpu.op_reg_ref(A_FMOVE,S_FX,hfreg,href))
                 else
                   list.concat(taicpu.op_regset_ref(A_FMOVEM,S_FX,[],[],fpuregs,href));
@@ -1931,7 +1931,7 @@ unit cgcpu;
           for r:=low(saved_address_registers) to high(saved_address_registers) do
             if saved_fpu_registers[r] in rg[R_FPUREGISTER].used_in_proc then
               begin
-                inc(fsize,10{sizeof(extended)});
+                inc(fsize,12{sizeof(extended)});
                 hfreg:=newreg(R_FPUREGISTER,saved_address_registers[r],R_SUBWHOLE);
                 { Allocate register so the optimizer does not remove the load }
                 a_reg_alloc(list,hfreg);
@@ -1961,7 +1961,7 @@ unit cgcpu;
           begin
             { size is always longword aligned, while fsize is not }
             inc(href.offset,size);
-            if fsize = 10{sizeof(extended)} then
+            if fsize = 12{sizeof(extended)} then
               list.concat(taicpu.op_ref_reg(A_FMOVE,S_FX,href,hfreg))
             else
               list.concat(taicpu.op_ref_regset(A_FMOVEM,S_FX,href,[],[],fpuregs));

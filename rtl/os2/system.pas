@@ -2,7 +2,7 @@
  ****************************************************************************
 
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2005 by Free Pascal development team
+    Copyright (c) 1999-2015 by Free Pascal development team
 
     Free Pascal - OS/2 runtime library
 
@@ -15,7 +15,7 @@
 
 ****************************************************************************}
 
-unit system;
+unit System;
 
 interface
 
@@ -24,6 +24,7 @@ interface
   {.$define IODEBUG}
   {.$define DEBUGENVIRONMENT}
   {.$define DEBUGARGUMENTS}
+  {.$define DEBUGOSERRORS}
 {$endif SYSTEMDEBUG}
 
 {$DEFINE OS2EXCEPTIONS}
@@ -139,6 +140,8 @@ function RtlCPtoOS2CP (RtlCP: TSystemCodepage; ReqFlags: byte): cardinal;
 const
 (* Are file sizes > 2 GB (64-bit) supported on the current system? *)
   FSApi64: boolean = false;
+(* Is full Unicode support provided by the underlying OS/2 version available *)
+(* and successfully initialized (otherwise dummy routines need to be used).  *)
   UniAPI: boolean = false;
 
 (* Support for tracking I/O errors returned by OS/2 API calls - emulation *)
@@ -232,6 +235,12 @@ var
   Sys_UniMapCtryToLocale: TUniMapCtryToLocale;
 
 {$ENDIF OS2UNICODE}
+
+{$IFDEF SYSTEMDEBUG}
+var
+  SysLastOSError: cardinal;
+{$ENDIF SYSTEMDEBUG}
+
 
 
 implementation
@@ -329,19 +338,37 @@ end;
 procedure JumpToHandleErrorFrame;
 var
  EIP, EBP, Error: longint;
+{$IFDEF SYSTEMEXCEPTIONDEBUG}
+ ESP, EBP1: longint;
+{$ENDIF SYSTEMEXCEPTIONDEBUG}
 begin
  (* save ebp *)
  asm
   movl (%ebp),%eax
   movl %eax,ebp
+{$IFDEF SYSTEMEXCEPTIONDEBUG}
+  movl %ebp,%eax
+  movl %eax,EBP1
+  movl %esp,%eax
+  movl %eax,ESP
+{$ENDIF SYSTEMEXCEPTIONDEBUG}
  end;
+{$ifdef SYSTEMEXCEPTIONDEBUG}
+ if IsConsole then
+  WriteLn (StdErr, 'Exception level at start of JumpToHandleErrorFrame = ', ExceptLevel);
+{$endif SYSTEMEXCEPTIONDEBUG}
  if (ExceptLevel > 0) then
   Dec (ExceptLevel);
  EIP := ExceptEIP [ExceptLevel];
  Error := ExceptError [ExceptLevel];
 {$ifdef SYSTEMEXCEPTIONDEBUG}
  if IsConsole then
-  WriteLn (StdErr, 'In JumpToHandleErrorFrame error = ', Error);
+  begin
+   WriteLn (StdErr, 'In JumpToHandleErrorFrame error = ', Error);
+   WriteLn (StdErr, 'EBP on entry: ', HexStr (EBP1, 8));
+   WriteLn (StdErr, 'Previous EBP: ', HexStr (EBP, 8));
+   WriteLn (StdErr, 'ESP on entry: ', HexStr (ESP, 8));
+  end;
 {$endif SYSTEMEXCEPTIONDEBUG}
  if ResetFPU [ExceptLevel] then
   SysResetFPU;
@@ -384,7 +411,7 @@ var
  Must_Reset_FPU: boolean;
  RC: cardinal;
 {$IFDEF SYSTEMEXCEPTIONDEBUG}
- CurSS: cardinal;
+ CurSS, CurESP, CurEBP: cardinal;
  B: byte;
 {$ENDIF SYSTEMEXCEPTIONDEBUG}
 begin
@@ -392,14 +419,61 @@ begin
  if IsConsole then
   begin
     asm
+      pushl %eax
       xorl %eax,%eax
       movw %ss,%ax
       movl %eax,CurSS
+      movl %esp,%eax
+      movl %eax,CurESP
+      movl %ebp,%eax
+      movl %eax,CurEBP
+      popl %eax
     end;
+    WriteLn (StdErr, '------------------------------------------------------');
     WriteLn (StdErr, 'In System_Exception_Handler, error = ',
                                             HexStr (Report^.Exception_Num, 8));
+    WriteLn (StdErr, 'Handler flags = ', HexStr (Report^.HandlerFlags, 8));
+    WriteLn (StdErr, 'Nested_RepRec = ', HexStr (PtrUInt (Report^.Nested_RepRec), 8));
+    WriteLn (StdErr, 'Amount of passed parameters = ', Report^.ParamCount);
     WriteLn (StdErr, 'Context SS = ', HexStr (Context^.Reg_SS, 8),
                                          ', current SS = ', HexStr (CurSS, 8));
+    WriteLn (StdErr, 'Current ESP = ', HexStr (CurESP, 8),
+                                       ', current EBP = ', HexStr (CurEBP, 8));
+    WriteLn (StdErr, 'Context flags = ', HexStr (Context^.ContextFlags, 8));
+    WriteLn (StdErr, 'Thread ID = ', ThreadID);
+    if Context^.ContextFlags and Context_Control <> 0 then
+     begin
+      WriteLn (StdErr, 'EBP = ', HexStr (Context^.Reg_EBP, 8),
+                     ', SS = ', HexStr (Context^.Reg_SS, 8),
+                     ', ESP = ', HexStr (Context^.Reg_ESP, 8));
+      WriteLn (StdErr, 'CS = ', HexStr (Context^.Reg_CS, 8),
+                     ', EIP = ', HexStr (Context^.Reg_EIP, 8),
+                     ', EFlags = ', HexStr (Context^.Flags, 8));
+     end;
+    if Context^.ContextFlags and Context_Floating_Point <> 0 then
+     begin
+      for B := 1 to 6 do
+       Write (StdErr, 'Ctx Env [', B, '] = ', HexStr (Context^.Env [B], 8),
+                                                                         ', ');
+      WriteLn (StdErr, 'Ctx Env [7] = ', HexStr (Context^.Env [7], 8));
+      for B := 0 to 6 do
+       Write (StdErr, 'FPU stack [', B, '] = ', Context^.FPUStack [B], ', ');
+      WriteLn (StdErr, 'FPU stack [7] = ', Context^.FPUStack [7]);
+     end;
+    if Context^.ContextFlags and Context_Segments <> 0 then
+     WriteLn (StdErr, 'GS = ', HexStr (Context^.Reg_GS, 8),
+                    ', FS = ', HexStr (Context^.Reg_FS, 8),
+                    ', ES = ', HexStr (Context^.Reg_ES, 8),
+                    ', DS = ', HexStr (Context^.Reg_DS, 8));
+    if Context^.ContextFlags and Context_Integer <> 0 then
+     begin
+      WriteLn (StdErr, 'EDI = ', HexStr (Context^.Reg_EDI, 8),
+                     ', ESI = ', HexStr (Context^.Reg_ESI, 8));
+      WriteLn (StdErr, 'EAX = ', HexStr (Context^.Reg_EAX, 8),
+                     ', EBX = ', HexStr (Context^.Reg_EBX, 8),
+                     ', ECX = ', HexStr (Context^.Reg_ECX, 8),
+                     ', EDX = ', HexStr (Context^.Reg_EDX, 8));
+     end;
   end;
 {$endif SYSTEMEXCEPTIONDEBUG}
  Res := Xcpt_Continue_Search;
@@ -461,7 +535,16 @@ begin
        Res := Xcpt_Continue_Execution;
       end
      else
-      Err := 216;
+      begin
+       Err := 216;
+{$ifdef SYSTEMEXCEPTIONDEBUG}
+       if IsConsole and (Report^.ParamCount >= 2) then
+        begin
+         Writeln (StdErr, 'Access violation flags: ', Report^.Parameters [0]);
+         WriteLn (StdErr, 'Fault address: ', HexStr (Report^.Parameters [1], 8));
+        end;
+{$endif SYSTEMEXCEPTIONDEBUG}
+      end;
     Xcpt_Signal:
      case Report^.Parameters [0] of
       Xcpt_Signal_KillProc:
@@ -511,14 +594,33 @@ begin
      Context^.Reg_EIP := cardinal (@JumpToHandleErrorFrame);
      Report^.Exception_Num := 0;
 
+     if Must_Reset_FPU and
+                   (Context^.ContextFlags and Context_Floating_Point <> 0) then
+      begin
+       { Control word is index 1 }
+       Context^.Env [1] := Default8087CW;
+       { Status word is index 2 }
+       Context^.Env [2] := Context^.Env [2] and not FPU_ExceptionMask;
+       { Tag word is index 3 }
+       Context^.Env [3] := $FFFF;
+{$ifdef SYSTEMEXCEPTIONDEBUG}
+       WriteLn (StdErr, 'After FPU status reset in context record:');
+       for B := 1 to 2 do
+        Write (StdErr, 'Ctx Env [', B, '] = ', HexStr (Context^.Env [B], 8),
+                                                                         ', ');
+       WriteLn (StdErr, 'Ctx Env [3] = ', HexStr (Context^.Env [3], 8));
+{$endif SYSTEMEXCEPTIONDEBUG}
+      end;
      Res := Xcpt_Continue_Execution;
 {$ifdef SYSTEMEXCEPTIONDEBUG}
      if IsConsole then
       begin
        WriteLn (StdErr, 'Exception Continue Exception set at ',
-                                          HexStr (ExceptEIP [ExceptLevel], 8));
+                                   HexStr (ExceptEIP [Pred (ExceptLevel)], 8));
        WriteLn (StdErr, 'EIP changed to ',
-             HexStr (longint (@JumpToHandleErrorFrame), 8), ', error = ', Err);
+                              HexStr (Context^.Reg_EIP, 8), ', error = ', Err);
+       WriteLn (StdErr, 'Exception level = ', ExceptLevel);
+       WriteLn (StdErr, 'ResetFPU = ', ResetFPU [Pred (ExceptLevel)]);
       end;
 {$endif SYSTEMEXCEPTIONDEBUG}
     end;
@@ -642,12 +744,28 @@ begin
 {$endif SYSTEMEXCEPTIONDEBUG}
 end;
 
+{$IFDEF SYSTEMDEBUG}
+const
+  OrigOSErrorWatch: TOSErrorWatch = nil;
+
+procedure TrackLastOSError (Error: cardinal);
+begin
+  SysLastOSError := Error;
+{$IFDEF DEBUGOSERRORS}
+  if IsConsole then
+   WriteLn (StdErr, 'Some OS/2 API returned error ', Error);
+{$ENDIF DEBUGOSERRORS}
+  OrigOSErrorWatch (Error);
+end;
+{$ENDIF SYSTEMDEBUG}
+
 procedure Remove_Exception_Handlers;
 var
   RC: cardinal;
 begin
   RC := DosUnsetExceptionHandler (ExcptReg^);
-  OSErrorWatch (RC);
+  if RC <> 0 then
+   OSErrorWatch (RC);
 end;
 {$ENDIF OS2EXCEPTIONS}
 
@@ -1265,9 +1383,17 @@ begin
   ThreadID := TIB^.TIB2^.TID;
   IsConsole := ApplicationType <> 3;
 
+{$IFDEF SYSTEMDEBUG}
+  SysLastOSError := 0;
+  OrigOSErrorWatch := TOSErrorWatch (SetOSErrorTracking (@TrackLastOSError));
+{$ENDIF SYSTEMDEBUG}
+
   {Query maximum path length (QSV_MAX_PATH_LEN = 1)}
-  if DosQuerySysInfo (1, 1, DW, SizeOf (DW)) = 0 then
-   RealMaxPathLen := DW;
+  RC := DosQuerySysInfo (1, 1, DW, SizeOf (DW));
+  if RC = 0 then
+   RealMaxPathLen := DW
+  else
+   OSErrorWatch (RC);
 
   ExitProc := nil;
 

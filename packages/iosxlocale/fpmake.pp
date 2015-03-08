@@ -22,6 +22,7 @@ begin
     P.OSes:=[darwin,iphonesim];
 
     T:=P.Targets.AddUnit('iosxlocale.pp');
+    T:=P.Targets.AddUnit('iosxwstr.pp');
 
 {$ifndef ALLPACKAGES}
     Run;

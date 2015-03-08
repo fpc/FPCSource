@@ -141,6 +141,9 @@ interface
     }
     function get_open_const_array(p : tnode) : tnode;
 
+    { excludes the flags passed in nf from the node tree passed }
+    procedure node_reset_flags(p : tnode;nf : tnodeflags);
+
 implementation
 
     uses
@@ -1190,7 +1193,6 @@ implementation
           result:=fen_norecurse_true;
       end;
 
-
     function might_have_sideeffects(n : tnode) : boolean;
       begin
         result:=foreachnodestatic(n,@check_for_sideeffect,nil);
@@ -1249,6 +1251,19 @@ implementation
         result:=p;
         if (p.nodetype=derefn) and (tderefnode(p).left.nodetype=addrn) then
           result:=get_open_const_array(taddrnode(tderefnode(result).left).left);
+      end;
+
+
+    function do_node_reset_flags(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        result:=fen_false;
+        n.flags:=n.flags-tnodeflags(arg^);
+      end;
+
+
+    procedure node_reset_flags(p : tnode; nf : tnodeflags);
+      begin
+        foreachnodestatic(p,@do_node_reset_flags,@nf);
       end;
 
 end.

@@ -1286,7 +1286,7 @@ Unit raarmgas;
                   end;
               end;
           end;
-        maxlen:=max(length(hs),5);
+        maxlen:=min(length(hs),5);
         actopcode:=A_NONE;
         j2:=maxlen;
         hs2:=hs;

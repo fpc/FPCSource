@@ -26,7 +26,11 @@ uses
 {$endif Windows}
   Objects,Dialogs,Drivers,Views,
 {$ifndef NODEBUG}
-  GDBCon,GDBInt,
+  {$ifdef GDBMI}
+    GDBMICon,GDBMIInt,
+  {$else GDBMI}
+    GDBCon,GDBInt,
+  {$endif GDBMI}
 {$endif NODEBUG}
   Menus,
   WViews,WEditor,
@@ -36,6 +40,9 @@ type
 {$ifndef NODEBUG}
   PDebugController=^TDebugController;
   TDebugController=object(TGDBController)
+  private
+    function  GetFPCBreakErrorParameters(var ExitCode: LongInt; var ExitAddr, ExitFrame: CORE_ADDR): Boolean;
+  public
      InvalidSourceLine : boolean;
 
      { if true the current debugger raw will stay in middle of
@@ -51,7 +58,6 @@ type
      HasExe   : boolean;
      RunCount : longint;
      WindowWidth : longint;
-     TBreakNumber : longint;
      FPCBreakErrorNumber : longint;
 {$ifdef SUPPORT_REMOTE}
      isRemoteDebugging,
@@ -61,11 +67,10 @@ type
 {$endif SUPPORT_REMOTE}
     constructor Init;
     procedure SetExe(const exefn:string);
-    procedure SetTBreak(tbreakstring : string);
     procedure SetWidth(AWidth : longint);
     procedure SetSourceDirs;
     destructor  Done;
-    procedure DoSelectSourceline(const fn:string;line:longint);virtual;
+    function DoSelectSourceline(const fn:string;line,BreakIndex:longint): Boolean;virtual;
 {    procedure DoStartSession;virtual;
     procedure DoBreakSession;virtual;}
     procedure DoEndSession(code:longint);virtual;
@@ -563,7 +568,11 @@ begin
 {$ifdef Windows}
   {$ifndef USE_MINGW_GDB} // see mantis 11968 because of mingw build. MvdV
 { for Windows we should convert e:\ into //e/ PM }
-  if (length(st)>2) and (st[2]=':') and (st[3]='/') then
+  if
+    {$ifdef GDBMI}
+     using_cygwin_gdb and
+    {$endif}
+     (length(st)>2) and (st[2]=':') and (st[3]='/') then
     st:=CygDrivePrefix+'/'+st[1]+copy(st,3,length(st));
   {$endif}
 { support spaces in the name by escaping them but without changing '\ ' into '\\ ' }
@@ -659,12 +668,12 @@ begin
   WindowWidth:=-1;
   switch_to_user:=true;
   GetDir(0,OrigPwd);
-  Command('set print object off');
+  SetCommand('print object off');
 {$ifdef SUPPORT_REMOTE}
   isFirstRemote:=true;
 {$ifdef FPC_ARMEL32}
   { GDB needs advice on exact file type }
-  Command('set gnutarget elf32-littlearm');
+  SetCommand('gnutarget elf32-littlearm');
 {$endif FPC_ARMEL32}
 {$endif SUPPORT_REMOTE}
 end;
@@ -675,14 +684,19 @@ begin
   f := GDBFileName(GetShortName(exefn));
   if (f<>'') and ExistsFile(exefn) then
     begin
-      LoadFile(f);
+      if not LoadFile(f) then
+        begin
+          HasExe:=false;
+          if GetError<>'' then
+            f:=GetError;
+          MessageBox(#3'Failed to load file '#13#3+f,nil,mfOKbutton);
+          exit;
+        end;
       HasExe:=true;
       { Procedure HandleErrorAddrFrame
          (Errno : longint;addr,frame : longint);
-         [public,alias:'FPC_BREAK_ERROR'];
-      Command('b HANDLEERRORADDRFRAME'); }
-      Command('b FPC_BREAK_ERROR');
-      FPCBreakErrorNumber:=last_breakpoint_number;
+         [public,alias:'FPC_BREAK_ERROR'];}
+      FPCBreakErrorNumber:=BreakpointInsert('FPC_BREAK_ERROR', []);
 {$ifdef FrameNameKnown}
       { this fails in GDB 5.1 because
         GDB replies that there is an attempt to dereference
@@ -701,25 +715,29 @@ begin
     begin
       HasExe:=false;
       reset_command:=true;
+{$ifdef GDBMI}
+      Command('-file-exec-and-symbols');
+{$else GDBMI}
       Command('file');
+{$endif GDBMI}
       reset_command:=false;
     end;
 end;
 
 
-procedure TDebugController.SetTBreak(tbreakstring : string);
-begin
-  Command('tbreak '+tbreakstring);
-  TBreakNumber:=Last_breakpoint_number;
-end;
-
 procedure TDebugController.SetWidth(AWidth : longint);
 begin
   WindowWidth:=AWidth;
-  Command('set width '+inttostr(WindowWidth));
+  SetCommand('width '+inttostr(WindowWidth));
 end;
 
 procedure TDebugController.SetSourceDirs;
+  const
+{$ifdef GDBMI}
+    AddSourceDirCommand = '-environment-directory';
+{$else GDBMI}
+    AddSourceDirCommand = 'dir';
+{$endif GDBMI}
   var f,s: ansistring;
       i : longint;
       Dir : SearchRec;
@@ -736,7 +754,7 @@ begin
       end;
     DefaultReplacements(s);
     if (pos('*',s)=0) and ExistsDir(s) then
-      Command('dir '+GDBFileName(GetShortName(s)))
+      Command(AddSourceDirCommand+' '+GDBFileName(GetShortName(s)))
     { we should also handle the /* cases of -Fu option }
     else if pos('*',s)>0 then
       begin
@@ -746,7 +764,7 @@ begin
         while Dos.DosError=0 do
           begin
             if ((Dir.attr and Directory) <> 0) and ExistsDir(s+Dir.Name) then
-              Command('dir '+GDBFileName(GetShortName(s+Dir.Name)));
+              Command(AddSourceDirCommand+' '+GDBFileName(GetShortName(s+Dir.Name)));
             Dos.FindNext(Dir);
           end;
         Dos.FindClose(Dir);
@@ -820,6 +838,12 @@ end;
 
 
 procedure TDebugController.Run;
+const
+{$ifdef GDBMI}
+  SetTTYCommand = '-inferior-tty-set';
+{$else GDBMI}
+  SetTTYCommand = 'tty';
+{$endif GDBMI}
 {$ifdef Unix}
 var
   Debuggeefile : text;
@@ -916,9 +940,9 @@ begin
 {$ifdef Windows}
   { Run the debugge in another console }
   if DebuggeeTTY<>'' then
-    Command('set new-console on')
+    SetCommand('new-console on')
   else
-    Command('set new-console off');
+    SetCommand('new-console off');
   NoSwitch:=DebuggeeTTY<>'';
 {$endif Windows}
 {$ifdef Unix}
@@ -931,12 +955,12 @@ begin
       ResetOK:=IOResult=0;
       If ResetOK and (IsATTY(textrec(Debuggeefile).handle)<>-1) then
         begin
-          Command('tty '+DebuggeeTTY);
+          Command(SetTTYCommand+' '+DebuggeeTTY);
           TTYUsed:=true;
         end
       else
         begin
-          Command('tty ');
+          Command(SetTTYCommand+' ');
           TTYUsed:=false;
         end;
       if ResetOK then
@@ -949,7 +973,7 @@ begin
   else
     begin
       if TTYName(input)<>'' then
-        Command('tty '+TTYName(input));
+        Command(SetTTYCommand+' '+TTYName(input));
       NoSwitch := false;
     end;
 {$endif Unix}
@@ -958,9 +982,6 @@ begin
 {$endif SUPPORT_REMOTE}
   { Switch to user screen to get correct handles }
   UserScreen;
-  { Don't try to print GDB messages while in User Screen mode }
-  If assigned(GDBWindow) then
-    GDBWindow^.Editor^.Lock;
 {$ifdef SUPPORT_REMOTE}
   if isRemoteDebugging then
     begin
@@ -982,8 +1003,6 @@ begin
       SetDir(StartupDir);
     end;
   DebuggerScreen;
-  If assigned(GDBWindow) then
-    GDBWindow^.Editor^.UnLock;
   IDEApp.SetCmdState([cmResetDebugger,cmUntilReturn],true);
   IDEApp.UpdateRunMenu(true);
   UpdateDebugViews;
@@ -1010,7 +1029,7 @@ end;
 
 procedure TDebugController.UntilReturn;
 begin
-  Command('finish');
+  inherited UntilReturn;
   UpdateDebugViews;
   { We could try to get the return value !
     Not done yet }
@@ -1087,6 +1106,14 @@ begin
             gdberrorbuf.reset;
         end;
 
+{$ifdef GDB_RAW_OUTPUT}
+      If StrLen(GetRaw)>0 then
+        begin
+          GDBWindow^.WriteOutputText(GetRaw);
+          if in_command=0 then
+            gdbrawbuf.reset;
+        end;
+{$endif GDB_RAW_OUTPUT}
       If StrLen(GetOutput)>0 then
         begin
           GDBWindow^.WriteOutputText(GetOutput);
@@ -1107,6 +1134,10 @@ begin
       { We should do something special for errors !! }
       If StrLen(GetError)>0 then
         GDBWindow^.WriteErrorText(GetError);
+{$ifdef GDB_RAW_OUTPUT}
+      If StrLen(GetRaw)>0 then
+        GDBWindow^.WriteOutputText(GetRaw);
+{$endif GDB_RAW_OUTPUT}
       GDBWindow^.WriteOutputText(GetOutput);
       GDBWindow^.Editor^.TextEnd;
     end;
@@ -1192,41 +1223,8 @@ begin
 end;
 
 function TDebugController.GetValue(Const expr : string) : pchar;
-var
-  p,p2,p3 : pchar;
 begin
-  if WindowWidth<>-1 then
-    Command('set width 0xffffffff');
-  Command('p '+expr);
-  p:=GetOutput;
-  p3:=nil;
-  if assigned(p) and (p[strlen(p)-1]=#10) then
-   begin
-     p3:=p+strlen(p)-1;
-     p3^:=#0;
-   end;
-  if assigned(p) then
-    p2:=strpos(p,'=')
-  else
-    p2:=nil;
-  if assigned(p2) then
-    p:=p2+1;
-  while p^ in [' ',TAB] do
-    inc(p);
-  { get rid of type }
-  if p^ = '(' then
-    p:=strpos(p,')')+1;
-  while p^ in [' ',TAB] do
-    inc(p);
-  if assigned(p) then
-    GetValue:=StrNew(p)
-  else
-    GetValue:=StrNew(GetError);
-  if assigned(p3) then
-    p3^:=#10;
-  got_error:=false;
-  if WindowWidth<>-1 then
-    Command('set width '+IntToStr(WindowWidth));
+  GetValue:=StrNew(PChar(PrintCommand(expr)));
 end;
 
 function TDebugController.GetFramePointer : CORE_ADDR;
@@ -1235,8 +1233,7 @@ var
   p : longint;
 begin
 {$ifdef FrameNameKnown}
-  Command('p /d '+FrameName);
-  st:=strpas(GetOutput);
+  st:=PrintFormattedCommand(FrameName,pfdecimal);
   p:=pos('=',st);
   while (p<length(st)) and (st[p+1] in [' ',#9]) do
     inc(p);
@@ -1256,7 +1253,7 @@ var
   st : string;
   p : longint;
 begin
-  Command('x /wd 0x'+hexstr(longint(addr),8));
+  Command('x /wd 0x'+hexstr(longint(addr),sizeof(CORE_ADDR)*2));
   st:=strpas(GetOutput);
   p:=pos(':',st);
   while (p<length(st)) and (st[p+1] in [' ',#9]) do
@@ -1275,7 +1272,7 @@ var
   p : longint;
   code : integer;
 begin
-  Command('x /wx 0x'+hexstr(PtrInt(addr),sizeof(PtrInt)*2));
+  Command('x /wx 0x'+hexstr(PtrInt(addr),sizeof(CORE_ADDR)*2));
   st:=strpas(GetOutput);
   p:=pos(':',st);
   while (p<length(st)) and (st[p+1] in [' ',#9]) do
@@ -1290,24 +1287,55 @@ begin
   Val('$'+st,GetPointerAt,code);
 end;
 
-procedure TDebugController.DoSelectSourceLine(const fn:string;line:longint);
+function TDebugController.GetFPCBreakErrorParameters(var ExitCode: LongInt; var ExitAddr, ExitFrame: CORE_ADDR): Boolean;
+const
+  { try to find the parameters }
+  FirstArgOffset = -sizeof(CORE_ADDR);
+  SecondArgOffset = 2*-sizeof(CORE_ADDR);
+  ThirdArgOffset = 3*-sizeof(CORE_ADDR);
+begin
+  // Procedure HandleErrorAddrFrame (Errno : longint;addr : CodePointer; frame : Pointer);
+  //  [public,alias:'FPC_BREAK_ERROR']; {$ifdef cpui386} register; {$endif}
+{$if defined(i386)}
+  GetFPCBreakErrorParameters :=
+    GetIntRegister('eax', ExitCode) and
+    GetIntRegister('edx', ExitAddr) and
+    GetIntRegister('ecx', ExitFrame);
+{$elseif defined(x86_64)}
+  {$ifdef Win64}
+    GetFPCBreakErrorParameters :=
+      GetIntRegister('rcx', ExitCode) and
+      GetIntRegister('rdx', ExitAddr) and
+      GetIntRegister('r8', ExitFrame);
+  {$else Win64}
+    GetFPCBreakErrorParameters :=
+      GetIntRegister('rdi', ExitCode) and
+      GetIntRegister('rsi', ExitAddr) and
+      GetIntRegister('rdx', ExitFrame);
+ {$endif Win64}
+{$elseif defined(FrameNameKnown)}
+  ExitCode:=GetLongintAt(GetFramePointer+FirstArgOffset);
+  ExitAddr:=GetPointerAt(GetFramePointer+SecondArgOffset);
+  ExitFrame:=GetPointerAt(GetFramePointer+ThirdArgOffset);
+  GetFPCBreakErrorParameters := True;
+{$else}
+  ExitCode := 0;
+  ExitAddr := 0;
+  ExitFrame := 0;
+  GetFPCBreakErrorParameters := False;
+{$endif}
+end;
+
+function TDebugController.DoSelectSourceLine(const fn:string;line,BreakIndex:longint): Boolean;
 var
   W: PSourceWindow;
   Found : boolean;
   PB : PBreakpoint;
   S : String;
-  BreakIndex : longint;
   stop_addr : CORE_ADDR;
   i,ExitCode : longint;
   ExitAddr,ExitFrame : CORE_ADDR;
-const
-  { try to find the parameters }
-  FirstArgOffset = -sizeof(pointer);
-  SecondArgOffset = 2*-sizeof(pointer);
-  ThirdArgOffset = 3*-sizeof(pointer);
-
 begin
-  BreakIndex:=stop_breakpoint_number;
   Desktop^.Lock;
   { 0 based line count in Editor }
   if Line>0 then
@@ -1318,41 +1346,33 @@ begin
 
   if (BreakIndex=FPCBreakErrorNumber) then
     begin
-      { Procedure HandleErrorAddrFrame
-         (Errno : longint;addr,frame : longint);
-         [public,alias:'FPC_BREAK_ERROR']; }
-{$ifdef FrameNameKnown}
-      ExitCode:=GetLongintAt(GetFramePointer+FirstArgOffset);
-      ExitAddr:=GetPointerAt(GetFramePointer+SecondArgOffset);
-      ExitFrame:=GetPointerAt(GetFramePointer+ThirdArgOffset);
-      if (ExitCode=0) and (ExitAddr=0) then
-        begin
-          Desktop^.Unlock;
-          Command('continue');
-          exit;
-        end;
-      { forget all old frames }
-      clear_frames;
-      { record new frames }
-      Command('backtrace');
-      for i:=0 to frame_count-1 do
-        begin
-          with frames[i]^ do
-            begin
-              if ExitAddr=address then
-                begin
-                  Command('f '+IntToStr(i));
-                  if assigned(file_name) then
-                    begin
-                      s:=strpas(file_name);
-                      line:=line_number;
-                      stop_addr:=address;
-                    end;
-                  break;
-                end;
-            end;
-        end;
-{$endif FrameNameKnown}
+      if GetFPCBreakErrorParameters(ExitCode, ExitAddr, ExitFrame) then
+      begin
+        Backtrace;
+        for i:=0 to frame_count-1 do
+          begin
+            with frames[i]^ do
+              begin
+                if ExitAddr=address then
+                  begin
+                    if SelectFrameCommand(i) and
+                       assigned(file_name) then
+                      begin
+                        s:=strpas(file_name);
+                        line:=line_number;
+                        stop_addr:=address;
+                      end;
+                    break;
+                  end;
+              end;
+          end;
+      end
+      else
+      begin
+        Desktop^.Unlock;
+        DoSelectSourceLine := False;
+        exit;
+      end;
     end;
   { Update Disassembly position }
   if Assigned(DisassemblyWindow) then
@@ -1455,8 +1475,7 @@ begin
          (PB^.typ<>bt_file_line) and (PB^.typ<>bt_function) and
          (PB^.typ<>bt_address) then
         begin
-           Command('p '+GetStr(PB^.Name));
-           S:=GetPChar(GetOutput);
+           S:=PrintCommand(GetStr(PB^.Name));
            got_error:=false;
            If Pos('=',S)>0 then
              S:=Copy(S,Pos('=',S)+1,255);
@@ -1480,6 +1499,7 @@ begin
                #3+' value = '+GetStr(PB^.CurrentValue),nil);
         end;
     end;
+  DoSelectSourceLine := True;
 end;
 
 procedure TDebugController.DoUserSignal;
@@ -1542,6 +1562,8 @@ begin
      end;
    ChangeDebuggeeWindowTitleTo(Stopped_State);
 {$endif Windows}
+  If assigned(GDBWindow) then
+    GDBWindow^.Editor^.UnLock;
 end;
 
 
@@ -1581,6 +1603,9 @@ begin
      end;
    ChangeDebuggeeWindowTitleTo(Running_State);
 {$endif Windows}
+  { Don't try to print GDB messages while in User Screen mode }
+  If assigned(GDBWindow) then
+    GDBWindow^.Editor^.Lock;
 end;
 
 {$endif NODEBUG}
@@ -1756,32 +1781,32 @@ procedure TBreakpoint.Insert;
   var
     p,p2 : pchar;
     st : string;
+    bkpt_no: LongInt = 0;
 begin
 {$ifndef NODEBUG}
   If not assigned(Debugger) then Exit;
   Remove;
-  Debugger^.last_breakpoint_number:=0;
   if (GDBState=bs_deleted) and (state=bs_enabled) then
     begin
       if (typ=bt_file_line) and assigned(FileName) then
-        Debugger^.Command('break '+GDBFileName(NameAndExtOf(GetStr(FileName)))+':'+IntToStr(Line))
+        bkpt_no := Debugger^.BreakpointInsert(GDBFileName(NameAndExtOf(GetStr(FileName)))+':'+IntToStr(Line), [])
       else if (typ=bt_function) and assigned(name) then
-        Debugger^.Command('break '+name^)
+        bkpt_no := Debugger^.BreakpointInsert(name^, [])
       else if (typ=bt_address) and assigned(name) then
-        Debugger^.Command('break *0x'+name^)
+        bkpt_no := Debugger^.BreakpointInsert('*0x'+name^, [])
       else if (typ=bt_watch) and assigned(name) then
-        Debugger^.Command('watch '+name^)
+        bkpt_no := Debugger^.WatchpointInsert(name^, wtWrite)
       else if (typ=bt_awatch) and assigned(name) then
-        Debugger^.Command('awatch '+name^)
+        bkpt_no := Debugger^.WatchpointInsert(name^, wtReadWrite)
       else if (typ=bt_rwatch) and assigned(name) then
-        Debugger^.Command('rwatch '+name^);
-      if Debugger^.last_breakpoint_number<>0 then
+        bkpt_no := Debugger^.WatchpointInsert(name^, wtRead);
+      if bkpt_no<>0 then
         begin
-          GDBIndex:=Debugger^.last_breakpoint_number;
+          GDBIndex:=bkpt_no;
           GDBState:=bs_enabled;
-          Debugger^.Command('cond '+IntToStr(GDBIndex)+' '+GetStr(Conditions));
+          Debugger^.BreakpointCondition(GDBIndex, GetStr(Conditions));
           If IgnoreCount>0 then
-            Debugger^.Command('ignore '+IntToStr(GDBIndex)+' '+IntToStr(IgnoreCount));
+            Debugger^.BreakpointSetIgnoreCount(GDBIndex, IgnoreCount);
           If Assigned(Commands) then
             begin
               {Commands are not handled yet }
@@ -1842,7 +1867,7 @@ begin
 {$ifndef NODEBUG}
   If not assigned(Debugger) then Exit;
   if GDBIndex>0 then
-    Debugger^.Command('delete '+IntToStr(GDBIndex));
+    Debugger^.BreakpointDelete(GDBIndex);
   GDBIndex:=0;
   GDBState:=bs_deleted;
 {$endif NODEBUG}
@@ -1853,7 +1878,7 @@ begin
 {$ifndef NODEBUG}
   If not assigned(Debugger) then Exit;
   if GDBIndex>0 then
-    Debugger^.Command('enable '+IntToStr(GDBIndex))
+    Debugger^.BreakpointEnable(GDBIndex)
   else
     Insert;
   GDBState:=bs_disabled;
@@ -1865,7 +1890,7 @@ begin
 {$ifndef NODEBUG}
   If not assigned(Debugger) then Exit;
   if GDBIndex>0 then
-    Debugger^.Command('disable '+IntToStr(GDBIndex));
+    Debugger^.BreakpointDisable(GDBIndex);
   GDBState:=bs_disabled;
 {$endif NODEBUG}
 end;
@@ -2844,27 +2869,16 @@ procedure TWatch.rename(s : string);
 
 procedure TWatch.Get_new_value;
 {$ifndef NODEBUG}
-  var p, q : pchar;
-      i, j, curframe, startframe : longint;
-      s,s2 : string;
+  var i, curframe, startframe : longint;
+      s,s2,orig_s_result : AnsiString;
       loop_higher, found : boolean;
-      last_removed : char;
 
-    function GetValue(var s : string) : boolean;
+    function GetValue(var s : AnsiString) : boolean;
       begin
-        Debugger^.command('p '+s);
-        if not Debugger^.Error then
-          begin
-            s:=StrPas(Debugger^.GetOutput);
-            GetValue:=true;
-          end
-        else
-          begin
-            s:=StrPas(Debugger^.GetError);
-            GetValue:=false;
-            { do not open a messagebox for such errors }
-            Debugger^.got_error:=false;
-          end;
+        s:=Debugger^.PrintCommand(s);
+        GetValue := not Debugger^.Error;
+        { do not open a messagebox for such errors }
+        Debugger^.got_error:=false;
       end;
 
   begin
@@ -2892,6 +2906,7 @@ procedure TWatch.Get_new_value;
           end;
       end;
     found:=GetValue(s);
+    orig_s_result:=s;
     Debugger^.got_error:=false;
     loop_higher:=not found;
     if not found then
@@ -2914,16 +2929,12 @@ procedure TWatch.Get_new_value;
                if not Debugger^.set_current_frame(curframe) then
                  loop_higher:=false;
 {$ifdef FrameNameKnown}
-               s2:='/x '+FrameName;
+               s2:=FrameName;
 {$else not  FrameNameKnown}
-               s2:='/x $ebp';
+               s2:='$ebp';
 {$endif FrameNameKnown}
-               getValue(s2);
-               j:=pos('=',s2);
-               if j>0 then
-                 s2:=copy(s2,j+1,length(s2));
-               while s2[1] in [' ',TAB] do
-                 delete(s2,1,1);
+               if not getValue(s2) then
+                 loop_higher:=false;
                if pos(s2,s)>0 then
                  loop_higher :=false;
              until not loop_higher;
@@ -2936,14 +2947,9 @@ procedure TWatch.Get_new_value;
            loop_higher:=false;
       end;
     if found then
-      p:=StrNew(Debugger^.GetOutput)
+      current_value:=StrNew(PChar('= ' + s))
     else
-      begin
-        { get a reasonable output at least }
-        s:=GetStr(expr);
-        GetValue(s);
-        p:=StrNew(Debugger^.GetError);
-      end;
+      current_value:=StrNew(PChar(orig_s_result));
     Debugger^.got_error:=false;
     { We should try here to find the expr in parent
       procedure if there are
@@ -2955,31 +2961,6 @@ procedure TWatch.Get_new_value;
     if curframe<>startframe then
       Debugger^.set_current_frame(startframe);
 
-    q:=nil;
-    if assigned(p) and (p[0]='$') then
-      q:=StrPos(p,'=');
-    if not assigned(q) then
-      q:=p;
-    if assigned(q) then
-      i:=strlen(q)
-    else
-      i:=0;
-    if (i>0) and (q[i-1]=#10) then
-      begin
-        while (i>1) and ((q[i-2]=' ') or (q[i-2]=#9)) do
-          dec(i);
-        last_removed:=q[i-1];
-        q[i-1]:=#0;
-      end
-    else
-      last_removed:=#0;
-    if assigned(q) then
-      current_value:=strnew(q)
-    else
-      current_value:=strnew('');
-    if last_removed<>#0 then
-      q[i-1]:=last_removed;
-    strdispose(p);
     GDBRunCount:=Debugger^.RunCount;
   end;
 {$else NODEBUG}
@@ -3523,12 +3504,10 @@ end;
         exit;
       DeskTop^.Lock;
       Clear;
-      { forget all old frames }
-      Debugger^.clear_frames;
 
       if Debugger^.WindowWidth<>-1 then
-        Debugger^.Command('set width 0xffffffff');
-      Debugger^.Command('backtrace');
+        Debugger^.SetCommand('width 0xffffffff');
+      Debugger^.Backtrace;
       { generate list }
       { all is in tframeentry }
       for i:=0 to Debugger^.frame_count-1 do
@@ -3539,7 +3518,7 @@ end;
                 AddItem(new(PMessageItem,init(0,GetPChar(function_name)+GetPChar(args),
                   AddModuleName(GetPChar(file_name)),line_number,1)))
               else
-                AddItem(new(PMessageItem,init(0,HexStr(address,8)+' '+GetPChar(function_name)+GetPChar(args),
+                AddItem(new(PMessageItem,init(0,HexStr(address,SizeOf(address)*2)+' '+GetPChar(function_name)+GetPChar(args),
                   AddModuleName(''),line_number,1)));
               W:=SearchOnDesktop(GetPChar(file_name),false);
               { First reset all Debugger rows }
@@ -3569,7 +3548,7 @@ end;
       if Assigned(list) and (List^.Count > 0) then
         FocusItem(0);
       if Debugger^.WindowWidth<>-1 then
-        Debugger^.Command('set width '+IntToStr(Debugger^.WindowWidth));
+        Debugger^.SetCommand('width '+IntToStr(Debugger^.WindowWidth));
       DeskTop^.Unlock;
 {$endif NODEBUG}
     end;
@@ -3585,7 +3564,7 @@ end;
       { select frame for watches }
       If not assigned(Debugger) then
         exit;
-      Debugger^.Command('f '+IntToStr(Focused));
+      Debugger^.SelectFrameCommand(Focused);
       { for local vars }
       Debugger^.RereadWatches;
 {$endif NODEBUG}
@@ -3599,7 +3578,7 @@ end;
       { select frame for watches }
       If not assigned(Debugger) then
         exit;
-      Debugger^.Command('f '+IntToStr(Focused));
+      Debugger^.SelectFrameCommand(Focused);
       { for local vars }
       Debugger^.RereadWatches;
 {$endif}

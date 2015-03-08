@@ -1057,7 +1057,7 @@ begin
     DataSize := 8
   else
     DataSize := 4;
-  if not(PropInfo^.PropType^.Kind in [tkInt64,tkQword,tkClass]) then
+  if not(PropInfo^.PropType^.Kind in [tkInt64,tkQword,tkClass,tkInterface,tkInterfaceRaw,tkDynArray]) then
     begin
       { cut off unnecessary stuff }
       case GetTypeData(PropInfo^.PropType)^.OrdType of

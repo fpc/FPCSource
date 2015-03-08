@@ -52,8 +52,7 @@ interface
           p_asm : TAsmList;
           currenttai : tai;
           { Used registers in assembler block }
-          used_regs_int,
-          used_regs_fpu : tcpuregisterset;
+          has_registerlist : boolean;
           constructor create(p : TAsmList);virtual;
           constructor create_get_position;
           destructor destroy;override;
@@ -642,8 +641,6 @@ implementation
         inherited create(asmn);
         p_asm:=p;
         currenttai:=nil;
-        used_regs_int:=[];
-        used_regs_fpu:=[];
       end;
 
 
@@ -751,6 +748,7 @@ implementation
           end
         else n.p_asm := nil;
         n.currenttai:=currenttai;
+        n.has_registerlist:=has_registerlist;
         result:=n;
       end;
 

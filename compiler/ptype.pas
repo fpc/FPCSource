@@ -50,7 +50,7 @@ interface
     procedure read_anon_type(var def : tdef;parseprocvardir:boolean);
 
     { parse nested type declaration of the def (typedef) }
-    procedure parse_nested_types(var def: tdef; isforwarddef: boolean; currentstructstack: tfpobjectlist);
+    procedure parse_nested_types(var def: tdef; isforwarddef,allowspecialization: boolean; currentstructstack: tfpobjectlist);
 
 
     { add a definition for a method to a record/objectdef that will contain
@@ -200,7 +200,7 @@ implementation
       end;
 
 
-    procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef,allowgenericsyms:boolean;out srsym:tsym;out srsymtable:tsymtable); forward;
+    procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef,allowgenericsyms,allowunitsym:boolean;out srsym:tsym;out srsymtable:tsymtable;out is_specialize:boolean); forward;
 
 
     { def is the outermost type in which other types have to be searched
@@ -213,13 +213,14 @@ implementation
       being parsed (so using id_type on them after pushing def on the
       symtablestack would result in errors because they'd come back as errordef)
     }
-    procedure parse_nested_types(var def: tdef; isforwarddef: boolean; currentstructstack: tfpobjectlist);
+    procedure parse_nested_types(var def: tdef; isforwarddef,allowspecialization: boolean; currentstructstack: tfpobjectlist);
       var
         t2: tdef;
         structstackindex: longint;
         srsym: tsym;
         srsymtable: tsymtable;
         oldsymtablestack: TSymtablestack;
+        isspecialize : boolean;
       begin
         if assigned(currentstructstack) then
           structstackindex:=currentstructstack.count-1
@@ -247,10 +248,16 @@ implementation
                      symtablestack:=TSymtablestack.create;
                      symtablestack.push(tabstractrecorddef(def).symtable);
                      t2:=generrordef;
-                     id_type(t2,isforwarddef,false,false,srsym,srsymtable);
+                     id_type(t2,isforwarddef,false,false,false,srsym,srsymtable,isspecialize);
                      symtablestack.pop(tabstractrecorddef(def).symtable);
                      symtablestack.free;
                      symtablestack:=oldsymtablestack;
+                     if isspecialize then
+                       begin
+                         if not allowspecialization then
+                           Message(parser_e_no_local_para_def);
+                         generate_specialization(t2,false,'');
+                       end;
                      def:=t2;
                    end;
                end
@@ -285,7 +292,7 @@ implementation
                      structdefstack.add(structdef);
                      structdef:=tabstractrecorddef(structdef.owner.defowner);
                    end;
-                 parse_nested_types(def,isfowarddef,structdefstack);
+                 parse_nested_types(def,isfowarddef,false,structdefstack);
                  structdefstack.free;
                  result:=true;
                  exit;
@@ -295,7 +302,7 @@ implementation
          result:=false;
       end;
 
-    procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef,allowgenericsyms:boolean;out srsym:tsym;out srsymtable:tsymtable);
+    procedure id_type(var def : tdef;isforwarddef,checkcurrentrecdef,allowgenericsyms,allowunitsym:boolean;out srsym:tsym;out srsymtable:tsymtable;out is_specialize:boolean);
     { reads a type definition }
     { to a appropriating tdef, s gets the name of   }
     { the type to allow name mangling          }
@@ -307,6 +314,7 @@ implementation
       begin
          srsym:=nil;
          srsymtable:=nil;
+         is_specialize:=false;
          s:=pattern;
          sorg:=orgpattern;
          pos:=current_tokenpos;
@@ -315,6 +323,14 @@ implementation
          if checkcurrentrecdef and
             try_parse_structdef_nested_type(def,current_structdef,isforwarddef) then
            exit;
+         if not allowunitsym and (idtoken=_SPECIALIZE) then
+           begin
+             consume(_ID);
+             is_specialize:=true;
+             s:=pattern;
+             sorg:=orgpattern;
+             pos:=current_tokenpos;
+           end;
          { Use the special searchsym_type that search only types }
          if not searchsym_type(s,srsym,srsymtable) then
            { for a good error message we need to know whether the symbol really did not exist or
@@ -323,7 +339,13 @@ implementation
          else
            not_a_type:=false;
          { handle unit specification like System.Writeln }
-         is_unit_specific:=try_consume_unitsym(srsym,srsymtable,t,true);
+         if allowunitsym then
+           is_unit_specific:=try_consume_unitsym(srsym,srsymtable,t,true,true,is_specialize)
+         else
+           begin
+             t:=_ID;
+             is_unit_specific:=false;
+           end;
          consume(t);
          if not_a_type then
            begin
@@ -399,6 +421,7 @@ implementation
     procedure single_type(var def:tdef;options:TSingleTypeOptions);
        var
          t2 : tdef;
+         isspecialize,
          dospecialize,
          again : boolean;
          srsym : tsym;
@@ -450,8 +473,12 @@ implementation
                      end
                    else
                      begin
-                       id_type(def,stoIsForwardDef in options,true,true,srsym,srsymtable);
-                       parse_nested_types(def,stoIsForwardDef in options,nil);
+                       id_type(def,stoIsForwardDef in options,true,true,not dospecialize or ([stoAllowSpecialization,stoAllowTypeDef]*options=[]),srsym,srsymtable,isspecialize);
+                       if isspecialize and dospecialize then
+                         internalerror(2015021301);
+                       if isspecialize then
+                         dospecialize:=true;
+                       parse_nested_types(def,stoIsForwardDef in options,[stoAllowSpecialization,stoAllowTypeDef]*options<>[],nil);
                      end;
                  end;
 
@@ -480,7 +507,7 @@ implementation
             if def.typ=forwarddef then
               def:=ttypesym(srsym).typedef;
             generate_specialization(def,stoParseClassParent in options,'');
-            parse_nested_types(def,stoIsForwardDef in options,nil);
+            parse_nested_types(def,stoIsForwardDef in options,[stoAllowSpecialization,stoAllowTypeDef]*options<>[],nil);
           end
         else
           begin
@@ -979,12 +1006,9 @@ implementation
            if (token=_ID) then
              if try_parse_structdef_nested_type(def,current_structdef,false) then
                exit;
-           { Generate a specialization in FPC mode? }
-           dospecialize:=not(m_delphi in current_settings.modeswitches) and try_to_consume(_SPECIALIZE);
            { we can't accept a equal in type }
            pt1:=comp_expr(false,true);
-           if not dospecialize and
-              try_to_consume(_POINTPOINT) then
+           if try_to_consume(_POINTPOINT) then
              begin
                { get high value of range }
                pt2:=comp_expr(false,false);
@@ -1040,10 +1064,13 @@ implementation
                    if (m_delphi in current_settings.modeswitches) then
                      dospecialize:=token=_LSHARPBRACKET
                    else
-                     { in non-Delphi modes we might get a inline specialization
-                       without "specialize" or "<T>" of the same type we're
-                       currently parsing, so we need to handle that special }
-                     newdef:=nil;
+                     begin
+                       dospecialize:=false;
+                       { in non-Delphi modes we might get a inline specialization
+                         without "specialize" or "<T>" of the same type we're
+                         currently parsing, so we need to handle that special }
+                       newdef:=nil;
+                     end;
                    if not dospecialize and
                        assigned(ttypenode(pt1).typesym) and
                        (ttypenode(pt1).typesym.typ=typesym) and

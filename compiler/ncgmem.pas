@@ -27,7 +27,8 @@ unit ncgmem;
 interface
 
     uses
-      globtype,cgbase,cpuinfo,cpubase,
+      globtype,cgbase,cgutils,cpuinfo,cpubase,
+      symtype,
       node,nmem;
 
     type
@@ -67,10 +68,12 @@ interface
            This routine should update location.reference correctly,
            so it points to the correct address.
          }
-         procedure update_reference_reg_mul(maybe_const_reg:tregister;l:aint);virtual;
-         procedure update_reference_reg_packed(maybe_const_reg:tregister;l:aint);virtual;
+         procedure update_reference_reg_mul(maybe_const_reg: tregister;regsize: tdef; l: aint);virtual;
+         procedure update_reference_reg_packed(maybe_const_reg: tregister; regsize: tdef; l: aint);virtual;
+         procedure update_reference_offset(var ref: treference; index, mulsize: aint); virtual;
          procedure second_wideansistring;virtual;
          procedure second_dynamicarray;virtual;
+         function valid_index_size(size: tcgsize): boolean;virtual;
        public
          procedure pass_generate_code;override;
        end;
@@ -81,11 +84,11 @@ implementation
     uses
       systems,
       cutils,cclasses,verbose,globals,constexp,
-      symconst,symbase,symtype,symdef,symsym,symcpu,symtable,defutil,paramgr,
+      symconst,symbase,symdef,symsym,symcpu,symtable,defutil,paramgr,
       aasmbase,aasmtai,aasmdata,
       procinfo,pass_2,parabase,
       pass_1,nld,ncon,nadd,ncnv,nutils,
-      cgutils,cgobj,hlcgobj,
+      cgobj,hlcgobj,
       tgobj,ncgutil,objcgutl,
       defcmp
       ;
@@ -345,7 +348,7 @@ implementation
                       {$ifdef cpu_uses_separate_address_registers}
                         if getregtype(left.location.register)<>R_ADDRESSREGISTER then
                           begin
-                            location.reference.base:=rg.getaddressregister(current_asmdata.CurrAsmList);
+                            location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
                             hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,
                               left.location.register,location.reference.base);
                           end
@@ -519,8 +522,8 @@ implementation
              }
              asmsym:=current_asmdata.RefAsmSymbol(vs.mangledname);
              reference_reset_symbol(tmpref,asmsym,0,sizeof(pint));
-             location.reference.index:=cg.getaddressregister(current_asmdata.CurrAsmList);
-             cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,location.reference.index);
+             location.reference.index:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
+             hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,ptruinttype,ptruinttype,tmpref,location.reference.index);
              { always packrecords C -> natural alignment }
              location.reference.alignment:=vs.vardef.alignment;
            end
@@ -613,7 +616,7 @@ implementation
      { the live range of the LOC_CREGISTER will most likely overlap the   }
      { the live range of the target LOC_(C)REGISTER)                      }
      { The passed register may be a LOC_CREGISTER as well.                }
-     procedure tcgvecnode.update_reference_reg_mul(maybe_const_reg:tregister;l:aint);
+     procedure tcgvecnode.update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint);
        var
          hreg: tregister;
        begin
@@ -643,7 +646,7 @@ implementation
 
 
      { see remarks for tcgvecnode.update_reference_reg_mul above }
-     procedure tcgvecnode.update_reference_reg_packed(maybe_const_reg:tregister;l:aint);
+     procedure tcgvecnode.update_reference_reg_packed(maybe_const_reg: tregister; regsize: tdef; l:aint);
        var
          sref: tsubsetreference;
          offsetreg, hreg: tregister;
@@ -661,7 +664,7 @@ implementation
 {$endif not cpu64bitalu}
              ) then
            begin
-             update_reference_reg_mul(maybe_const_reg,l div 8);
+             update_reference_reg_mul(maybe_const_reg,regsize,l div 8);
              exit;
            end;
          if (l > 8*sizeof(aint)) then
@@ -672,7 +675,7 @@ implementation
          cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_INT,l,hreg);
          { keep alignment for index }
          sref.ref.alignment := left.resultdef.alignment;
-         if not ispowerof2(sref.ref.alignment,temp) then
+         if not ispowerof2(packedbitsloadsize(l),temp) then
            internalerror(2006081201);
          alignpower:=temp;
          offsetreg := cg.getaddressregister(current_asmdata.CurrAsmList);
@@ -699,12 +702,25 @@ implementation
        end;
 
 
+     procedure tcgvecnode.update_reference_offset(var ref: treference; index, mulsize: aint);
+       begin
+         inc(ref.offset,index*mulsize);
+       end;
+
+
      procedure tcgvecnode.second_wideansistring;
        begin
        end;
 
      procedure tcgvecnode.second_dynamicarray;
        begin
+       end;
+
+
+     function tcgvecnode.valid_index_size(size: tcgsize): boolean;
+       begin
+         result:=
+           tcgsize2signed[size]=tcgsize2signed[OS_ADDR];
        end;
 
 
@@ -853,6 +869,7 @@ implementation
          paraloc2 : tcgpara;
          subsetref : tsubsetreference;
          temp : longint;
+         indexdef : tdef;
       begin
          paraloc1.init;
          paraloc2.init;
@@ -910,7 +927,7 @@ implementation
 
               { in ansistrings/widestrings S[1] is p<w>char(S)[0] }
               if not(cs_zerobasedstrings in current_settings.localswitches) then
-                dec(location.reference.offset,offsetdec);
+                update_reference_offset(location.reference,-1,offsetdec);
            end
          else if is_dynamic_array(left.resultdef) then
            begin
@@ -963,7 +980,7 @@ implementation
               or is_64bitint(resultdef)
 {$endif not cpu64bitalu}
               ) then
-           dec(location.reference.offset,bytemulsize*tarraydef(left.resultdef).lowrange);
+           update_reference_offset(location.reference,-tarraydef(left.resultdef).lowrange,bytemulsize);
 
          if right.nodetype=ordconstn then
            begin
@@ -984,10 +1001,10 @@ implementation
                    { only orddefs are bitpacked }
                    not is_ordinal(resultdef))) then
                 begin
-                  extraoffset:=bytemulsize*tordconstnode(right).value.svalue;
-                  inc(location.reference.offset,extraoffset);
-                  { adjust alignment after to this change }
-                  location.reference.alignment:=newalignment(location.reference.alignment,extraoffset);
+                  extraoffset:=tordconstnode(right).value.svalue;
+                  update_reference_offset(location.reference,extraoffset,bytemulsize);
+                  { adjust alignment after this change }
+                  location.reference.alignment:=newalignment(location.reference.alignment,extraoffset*bytemulsize);
                   { don't do this for floats etc.; needed to properly set the }
                   { size for bitpacked arrays (e.g. a bitpacked array of      }
                   { enums who are size 2 but fit in one byte -> in the array  }
@@ -1000,10 +1017,10 @@ implementation
                 begin
                   subsetref.ref := location.reference;
                   subsetref.ref.alignment := left.resultdef.alignment;
-                  if not ispowerof2(subsetref.ref.alignment,temp) then
+                  if not ispowerof2(packedbitsloadsize(resultdef.packedbitsize),temp) then
                     internalerror(2006081212);
                   alignpow:=temp;
-                  inc(subsetref.ref.offset,((mulsize * (tordconstnode(right).value.svalue-tarraydef(left.resultdef).lowrange)) shr (3+alignpow)) shl alignpow);
+                  update_reference_offset(subsetref.ref,(mulsize * (tordconstnode(right).value.svalue-tarraydef(left.resultdef).lowrange)) shr (3+alignpow),1 shl alignpow);
                   subsetref.bitindexreg := NR_NO;
                   subsetref.startbit := (mulsize * (tordconstnode(right).value.svalue-tarraydef(left.resultdef).lowrange)) and ((1 shl (3+alignpow))-1);
                   subsetref.bitlen := resultdef.packedbitsize;
@@ -1048,8 +1065,7 @@ implementation
                             replacenode(rightp^,taddnode(rightp^).left);
                           end;
                      end;
-                   inc(location.reference.offset,
-                       mulsize*extraoffset);
+                   update_reference_offset(location.reference,extraoffset,mulsize);
                 end;
               { calculate from left to right }
               if not(location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
@@ -1067,8 +1083,14 @@ implementation
               secondpass(right);
 
               { if mulsize = 1, we won't have to modify the index }
-              if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or (right.location.size<>OS_ADDR) then
-                hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,ptruinttype,true);
+              if not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
+                 not valid_index_size(right.location.size) then
+                begin
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,ptruinttype,true);
+                  indexdef:=ptruinttype
+                end
+              else
+                indexdef:=right.resultdef;
 
               if isjump then
                begin
@@ -1090,9 +1112,9 @@ implementation
               { insert the register and the multiplication factor in the
                 reference }
               if not is_packed_array(left.resultdef) then
-                update_reference_reg_mul(right.location.register,mulsize)
+                update_reference_reg_mul(right.location.register,indexdef,mulsize)
               else
-                update_reference_reg_packed(right.location.register,mulsize);
+                update_reference_reg_packed(right.location.register,indexdef,mulsize);
            end;
 
         location.size:=newsize;

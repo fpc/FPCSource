@@ -1531,6 +1531,9 @@ parser_w_ptr_type_ignored=03338_W_Pointer type "$1" ignored
 parser_e_global_generic_references_static=03339_E_Global Generic template references static symtable
 % A generic declared in the interface section of a unit must not reference symbols that belong
 % solely to the implementation section of that unit.
+parser_u_already_compiled=03340_UL_Unit $1 has been already compiled meanwhile.
+% This tells you that the recursive reading of the uses clauses triggered already
+% a compilation of the current unit, so the current compilation can be aborded.
 %
 %
 %
@@ -3458,6 +3461,7 @@ new features, etc.):
 #    4 = x86_64
 #    6 = 680x0 targets
 #    8 = 8086 (16-bit) targets
+#    a = AArch64
 #    A = ARM
 #    e = in extended debug mode only
 #    F = help for the 'fpc' binary (independent of the target compiler)
@@ -3726,6 +3730,7 @@ F*2P<x>_Set target CPU (arm,avr,i386,jvm,m68k,mips,mipsel,powerpc,powerpc64,spar
 3*2Twince_Windows CE
 4*2Tdarwin_Darwin/Mac OS X
 4*2Tfreebsd_FreeBSD
+4*2Tiphonesim_ iPhoneSimulator
 4*2Tlinux_Linux
 4*2Tnetbsd_NetBSD
 4*2Topenbsd_OpenBSD
@@ -3736,6 +3741,7 @@ F*2P<x>_Set target CPU (arm,avr,i386,jvm,m68k,mips,mipsel,powerpc,powerpc64,spar
 6*2Tlinux_Linux
 6*2Tpalmos_PalmOS
 8*2Tmsdos_MS-DOS (and compatible)
+a*2Tdarwin_Darwin/iOS
 A*2Tandroid_Android
 A*2Tdarwin_Darwin/iPhoneOS/iOS
 A*2Tembedded_Embedded
@@ -3790,6 +3796,7 @@ A*2WA_Specify native type application (Windows)
 3*2Wb_Create a bundle instead of a library (Darwin)
 P*2Wb_Create a bundle instead of a library (Darwin)
 p*2Wb_Create a bundle instead of a library (Darwin)
+a*2Wb_Create a bundle instead of a library (Darwin)
 A*2Wb_Create a bundle instead of a library (Darwin)
 4*2Wb_Create a bundle instead of a library (Darwin)
 3*2WB_Create a relocatable image (Windows, Symbian)
@@ -3807,6 +3814,7 @@ P*2WC_Specify console type application (Classic Mac OS)
 A*2WD_Use DEFFILE to export functions of DLL or EXE (Windows)
 3*2We_Use external resources (Darwin)
 4*2We_Use external resources (Darwin)
+a*2We_Use external resources (Darwin)
 A*2We_Use external resources (Darwin)
 P*2We_Use external resources (Darwin)
 p*2We_Use external resources (Darwin)
@@ -3817,6 +3825,7 @@ A*2WG_Specify graphic type application (Windows)
 P*2WG_Specify graphic type application (Classic Mac OS)
 3*2Wi_Use internal resources (Darwin)
 4*2Wi_Use internal resources (Darwin)
+a*2Wi_Use internal resources (Darwin)
 A*2Wi_Use internal resources (Darwin)
 P*2Wi_Use internal resources (Darwin)
 p*2Wi_Use internal resources (Darwin)
@@ -3840,6 +3849,8 @@ A*2Wpxxxx_Specify the controller type; see fpc -i or fpc -iu for possible values
 m*2Wpxxxx_Specify the controller type; see fpc -i or fpc -iu for possible values
 V*2Wpxxxx_Specify the controller type; see fpc -i or fpc -iu for possible values
 3*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (iphonesim)
+4*2WP<x>_Minimum iOS deployment version: 8.0, 8.0.2, ... (iphonesim)
+a*2WP<x>_Minimum iOS deployment version: 7.0, 7.1.2, ... (Darwin)
 A*2WP<x>_Minimum iOS deployment version: 3.0, 5.0.1, ... (Darwin)
 3*2WR_Generate relocation code (Windows)
 4*2WR_Generate relocation code (Windows)

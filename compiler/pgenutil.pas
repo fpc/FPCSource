@@ -40,7 +40,7 @@ uses
     function parse_generic_specialization_types(genericdeflist:tfpobjectlist;poslist:tfplist;out prettyname,specializename:ansistring):boolean;
     procedure insert_generic_parameter_types(def:tstoreddef;genericdef:tstoreddef;genericlist:tfphashobjectlist);
     procedure maybe_insert_generic_rename_symbol(const name:tidstring;genericlist:tfphashobjectlist);
-    function generate_generic_name(const name:tidstring;specializename:ansistring):tidstring;
+    function generate_generic_name(const name:tidstring;specializename:ansistring;owner_hierarchy:string):tidstring;
     procedure split_generic_name(const name:tidstring;out nongeneric:string;out count:longint);
     function resolve_generic_dummysym(const name:tidstring):tsym;
     function could_be_generic(const name:tidstring):boolean;inline;
@@ -650,7 +650,7 @@ uses
           end;
 
         { build the new type's name }
-        finalspecializename:=generate_generic_name(genname,specializename);
+        finalspecializename:=generate_generic_name(genname,specializename,genericdef.ownerhierarchyname);
         ufinalspecializename:=upper(finalspecializename);
         prettyname:=genericdef.typesym.prettyname+'<'+prettyname+'>';
 
@@ -1220,7 +1220,7 @@ uses
           end;
       end;
 
-    function generate_generic_name(const name:tidstring;specializename:ansistring):tidstring;
+    function generate_generic_name(const name:tidstring;specializename:ansistring;owner_hierarchy:string):tidstring;
     var
       crc : cardinal;
     begin
@@ -1229,6 +1229,11 @@ uses
       { build the new type's name }
       crc:=UpdateCrc32(0,specializename[1],length(specializename));
       result:=name+'$crc'+hexstr(crc,8);
+      if owner_hierarchy<>'' then
+        begin
+          crc:=UpdateCrc32(0,owner_hierarchy[1],length(owner_hierarchy));
+          result:=result+'$crc'+hexstr(crc,8);
+        end;
     end;
 
     procedure split_generic_name(const name:tidstring;out nongeneric:string;out count:longint);

@@ -952,6 +952,69 @@ unit i_bsd;
           );
 
 
+       system_x86_64_iphonesim_info  : tsysteminfo =
+          (
+            system       : system_x86_64_iphonesim;
+            name         : 'Darwin/iPhoneSim for x86_64';
+            shortname    : 'iPhoneSim';
+            flags        : [tf_p_ext_support,tf_files_case_sensitive,tf_smartlink_sections,tf_dwarf_relative_addresses,tf_dwarf_only_local_labels,tf_pic_default,tf_has_winlike_resources];
+            cpu          : cpu_x86_64;
+            unit_env     : 'BSDUNITS';
+            extradefines : 'UNIX;BSD;HASUNIX;DARWIN'; // also define darwin for code compatibility
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.dylib';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.dylib';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '_';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_darwin;
+            assemextern  : as_darwin;
+            link         : ld_none;
+            linkextern   : ld_bsd;
+            ar           : ar_gnu_ar;
+            res          : res_macho;
+            dbg          : dbg_dwarf2;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 8;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 8;
+                varalignmin     : 0;
+                varalignmax     : 16;
+                localalignmin   : 4;
+                localalignmax   : 16;
+                recordalignmin  : 0;
+                recordalignmax  : 16;
+                maxCrecordalign : 16
+              );
+            first_parm_offset : 16;
+            stacksize   : 262144;
+            stackalign   : 16;
+            abi : abi_default;
+          );
+
+
        system_arm_darwin_info : tsysteminfo =
           (
             system       : system_arm_darwin;
@@ -1014,6 +1077,71 @@ unit i_bsd;
             abi : abi_default
           );
 
+
+       system_aarch64_darwin_info  : tsysteminfo =
+          (
+            system       : system_aarch64_darwin;
+            name         : 'Darwin for AArch64';
+            shortname    : 'Darwin';
+            flags        : [tf_p_ext_support,tf_requires_proper_alignment,tf_files_case_sensitive,tf_smartlink_sections,tf_dwarf_relative_addresses,tf_dwarf_only_local_labels,tf_pic_default,tf_has_winlike_resources];
+            cpu          : cpu_aarch64;
+            unit_env     : 'BSDUNITS';
+            extradefines : 'UNIX;BSD;HASUNIX';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.dylib';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.dylib';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '_';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_darwin;
+            assemextern  : as_darwin;
+            link         : ld_none;
+            linkextern   : ld_bsd;
+            ar           : ar_gnu_ar;
+            res          : res_macho;
+            dbg          : dbg_dwarf2;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 8;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 8;
+                varalignmin     : 0;
+                varalignmax     : 16;
+                localalignmin   : 4;
+                localalignmax   : 16;
+                recordalignmin  : 0;
+                recordalignmax  : 16;
+                maxCrecordalign : 16
+              );
+            first_parm_offset : 16;
+            stacksize   : 8*1024*1024;
+            stackalign   : 16;
+            abi : abi_aarch64_darwin;
+          );
+
+
+
   implementation
 
 initialization
@@ -1071,4 +1199,9 @@ initialization
      set_source_info(system_arm_darwin_info);
   {$endif Darwin}
 {$endif cpuarm}
+{$ifdef cpuaarch64}
+  {$ifdef Darwin}
+     set_source_info(system_aarch64_darwin_info);
+  {$endif Darwin}
+{$endif cpuaarch64}
 end.

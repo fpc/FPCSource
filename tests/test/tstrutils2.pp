@@ -10,7 +10,7 @@ program tstrutils2;
 uses
   StrUtils
 {$ifdef unix}
-  ,cwstring
+  ,{$ifdef darwin}iosxwstr{$else}cwstring{$endif}
 {$endif unix}
   ;
 

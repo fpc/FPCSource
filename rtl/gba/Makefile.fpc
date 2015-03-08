@@ -6,7 +6,7 @@
 main=rtl
 
 [target]
-loaders=prt0 cprt0
+loaders=$(LOADERS)
 units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
 #      dos \
       sysutils \
@@ -44,6 +44,8 @@ COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
+LOADERS=prt0 cprt0
+override FPCOPT+=@rtl.cfg
 
 # Use new feature from 1.0.5 version
 # that generates release PPU files
@@ -167,9 +169,6 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 #
 # Other system-independent RTL Units
 #
-
-ucomplex$(PPUEXT): $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(INC)/ucomplex.pp
 
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/getopts.pp

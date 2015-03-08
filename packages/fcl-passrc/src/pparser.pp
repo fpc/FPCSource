@@ -940,7 +940,6 @@ Var
   EnumValue: TPasEnumValue;
 
 begin
-  Writeln('Current comments : ',SavedComments);
   Result := TPasEnumType(CreateElement(TPasEnumType, TypeName, Parent));
   try
     while True do

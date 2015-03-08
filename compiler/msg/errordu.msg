@@ -3528,7 +3528,7 @@ F*0*_Es werden nur Optionen aufgelistet, die für die voreingestellte oder ausge
 3*2Anasmelf_ELF32 (Linux) Datei mit Hilfe von Nasm
 3*2Anasmwin32_Win32 Objektdatei mit Hilfe von Nasm
 3*2Anasmwdosx_Win32/WDOSX Objektdatei mit Hilfe von Nasm
-3*2Anasmdarwin Macho32 Objektdatei mit Hilfe von Nasm (experimentell)
+3*2Anasmdarwin_Macho32 Objektdatei mit Hilfe von Nasm (experimentell)
 3*2Awasm_Obj Datei mit Hilfe von Wasm (Watcom)
 3*2Anasmobj_Obj Datei mit Hilfe von Nasm
 3*2Amasm_Obj Datei mit Hilfe von Masm (Microsoft)

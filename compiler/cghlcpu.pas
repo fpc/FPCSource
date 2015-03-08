@@ -65,14 +65,14 @@ uses
       procedure a_cmp_reg_reg_label(list: TAsmList; size: tcgsize; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel); override;
       procedure a_call_reg(list: TAsmList; reg: tregister); override;
       procedure a_call_name(list: TAsmList; const s: string; weak: boolean); override;
-      procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tcgsize; src, dst: TRegister); override;
+      procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister); override;
     end;
 
 implementation
 
    { thlbasecgcpu }
 
-    procedure thlbasecgcpu.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tcgsize; src, dst: TRegister);
+    procedure thlbasecgcpu.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister);
       begin
         internalerror(2012042801);
       end;

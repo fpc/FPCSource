@@ -79,6 +79,9 @@ endif
 ifeq ($(CPU_TARGET),avr)
 PPSUF=avr
 endif
+ifeq ($(CPU_TARGET),aarch64)
+PPSUF=a64
+endif
 
 # cross compilers uses full cpu_target, not just ppc-suffix
 # (except if the target cannot run a native compiler)
@@ -204,7 +207,7 @@ endif
 BuildOnlyBaseCPUs=jvm
 
 ifneq ($(wildcard utils),)
-NOUTILSTARGETS=embedded gba msdos $(BuildOnlyBaseCPUs)
+NOUTILSTARGETS=embedded gba nds msdos $(BuildOnlyBaseCPUs)
 ifeq ($(findstring $(OS_TARGET),$(NOUTILSTARGETS)),)
 ifdef BUILDFULLNATIVE
 UTILS=1

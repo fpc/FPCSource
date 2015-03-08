@@ -1976,6 +1976,7 @@ Unit Rax86int;
       var
         PrefixOp,OverrideOp: tasmop;
         operandnum : longint;
+        t: TRegister;
         is_far_const:boolean;
         i:byte;
         tmp: toperand;
@@ -2147,6 +2148,37 @@ Unit Rax86int;
                   instr.opsize:=S_FAR;
                 end;
 {$endif i8086}
+        if (MemRefInfo(instr.opcode).ExistsSSEAVX) and
+           (MemRefInfo(instr.opcode).MemRefSize in MemRefSizeInfoVMems) then
+        begin
+          for i:=1 to operandnum do
+          begin
+            if (instr.operands[i].opr.typ = OPR_REFERENCE) and
+               (getregtype(instr.operands[i].opr.ref.base) = R_MMREGISTER) and
+               (instr.operands[i].opr.ref.index = NR_NO) then
+            begin
+              instr.operands[i].opr.ref.index := instr.operands[i].opr.ref.base;
+              instr.operands[i].opr.ref.base  := NR_NO;
+            end
+            else if (instr.operands[i].opr.typ = OPR_REFERENCE) and
+                    (getregtype(instr.operands[i].opr.ref.base) = R_MMREGISTER) and
+                    (getregtype(instr.operands[i].opr.ref.index) = R_INTREGISTER) and
+                    (getsubreg(instr.operands[i].opr.ref.index) = R_SUBADDR) then
+            begin
+              // exchange base- and index-register
+              // e.g. VGATHERDPD  XMM0, [XMM1 + RAX], XMM2 =>> VGATHERDPD  XMM0, [RAX + XMM1], XMM2
+              // e.g. VGATHERDPD  XMM0, [XMM1 + RAX * 2], XMM2 =>> not supported
+              // e.g. VGATHERDPD  XMM0, [XMM1 + RAX + 16], XMM2 =>> VGATHERDPD  XMM0, [RAX + XMM1 + 16]
+              if instr.operands[i].opr.ref.scalefactor > 1 then Message(asmr_e_invalid_reference_syntax)
+              else
+              begin
+                t := instr.operands[i].opr.ref.base;
+                instr.operands[i].opr.ref.base := instr.operands[i].opr.ref.index;
+                instr.operands[i].opr.ref.index := t;
+              end;
+            end;
+          end;
+        end;
       end;
 
 

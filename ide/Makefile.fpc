@@ -48,6 +48,9 @@ endif
 ifdef NOGDB
 FPMAKE_OPT+=--NoGDB=1
 endif
+ifdef GDBMI
+FPMAKE_OPT+=--GDBMI=1
+endif
 ifdef PPC_TARGET
 FPMAKE_OPT+=--CompilerTarget=$(PPC_TARGET)
 endif

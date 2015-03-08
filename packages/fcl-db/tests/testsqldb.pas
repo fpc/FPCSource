@@ -566,8 +566,6 @@ var datatype: string;
 begin
   with SQLDBConnector do
     begin
-    if not (sqLastInsertID in Connection.ConnOptions) then
-      Ignore(STestNotApplicable);
     case SQLServerType of
       ssMySQL:
         datatype := 'integer auto_increment';

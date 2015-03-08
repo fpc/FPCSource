@@ -337,6 +337,9 @@ Type
       ct_xmc4502x768,
       ct_xmc4504x512,
 
+      { Allwinner }
+      ct_allwinner_a20,
+
       // generic Thumb2 target
       ct_thumb2bare
      );
@@ -701,6 +704,9 @@ Const
       (controllertypestr:'XMC4500X768';   controllerunitstr:'XMC4500'; flashbase:$08000000;	flashsize:$000C0000;	srambase:$20000000;	sramsize:$00010000),
       (controllertypestr:'XMC4502X768';   controllerunitstr:'XMC4502'; flashbase:$08000000;	flashsize:$000C0000;	srambase:$20000000;	sramsize:$00010000),
       (controllertypestr:'XMC4504X512';   controllerunitstr:'XMC4504'; flashbase:$08000000;	flashsize:$00080000;	srambase:$20000000;	sramsize:$00010000),
+
+      { Allwinner }
+      (controllertypestr:'ALLWINNER_A20'; controllerunitstr:'ALLWINNER_A20';     flashbase:$00000000; flashsize:$00000000;  srambase:$40000000; sramsize:$80000000),
 
       { Bare bones }
       (controllertypestr:'THUMB2_BARE';	controllerunitstr:'THUMB2_BARE';	flashbase:$00000000;	flashsize:$00002000;	srambase:$20000000;	sramsize:$00000400)

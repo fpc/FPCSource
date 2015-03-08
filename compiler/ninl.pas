@@ -2631,6 +2631,10 @@ implementation
                   if (left.resultdef.typ<>undefineddef) and
                       paramanager.push_high_param(vs_value,left.resultdef,current_procinfo.procdef.proccalloption) then
                    begin
+                     { this should be an open array or array of const, both of
+                       which can only be simple load nodes of parameters }
+                     if left.nodetype<>loadn then
+                       internalerror(2014120701);
                      hightree:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
                      if assigned(hightree) then
                       begin
@@ -3848,10 +3852,18 @@ implementation
                  get_max_value(resultnode.resultdef)))
              else
                inserttypeconv(hpp,resultnode.resultdef);
+
              { avoid any possible warnings }
              inserttypeconv_internal(hpp,resultnode.resultdef);
 
              addstatement(newstatement,cassignmentnode.create(resultnode,hpp));
+
+             { force pass 1, so copied tries get first pass'ed as well and flags like nf_write, nf_call_unique
+               get set right }
+             node_reset_flags(newstatement.statement,[nf_pass1_done]);
+             { firstpass it }
+             firstpass(tnode(newstatement.left));
+
              { deallocate the temp }
              if assigned(tempnode) then
                addstatement(newstatement,ctempdeletenode.create(tempnode));

@@ -45,6 +45,9 @@ const
 //procedure SystemSleep(); cdecl; external;
 procedure ledBlink(bm: cint); cdecl; external;
 
+var
+  __dsimode: cbool; cvar; external;
+
 {$ifdef ARM9}
 procedure SystemSleep(); cdecl; external;
 procedure powerOn(bits: cint); cdecl; external;
@@ -58,6 +61,10 @@ procedure lcdMainOnTop(); inline;
 procedure lcdMainOnBottom(); inline; 
 
 procedure systemShutDown(); inline;
+
+procedure readFirmware(address: cuint32; buffer: pointer; length: cuint32); cdecl; external;
+function writeFirmware(address: cuint32; buffer: pointer; length: cuint32): cint; cdecl; external;
+
 
 function getBatteryLevel(): cuint32; cdecl; external;
 
@@ -219,7 +226,7 @@ const
   __system_argv: Pargv = pointer($02FFFE70);
 
 const
-  BOOTSIG = $62757473746F6F62; // ULL?
+  BOOTSIG: cardinal = $62757473746F6F62; // ULL?
 
 
 type

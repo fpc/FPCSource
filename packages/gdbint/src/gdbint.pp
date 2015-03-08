@@ -215,6 +215,7 @@ interface
   {$define GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
   {$define GDB_HAS_BP_NONE}
   {$define GDB_USE_XSTRVPRINTF}
+  {$define GDB_ANNOTATE_FRAME_BEGIN_HAS_GDBARCH_FIELD}
 {$endif def GDB_V7}
 
 
@@ -715,6 +716,15 @@ interface
 {$packrecords C}
 
 type
+{$if defined(CPUSPARC) and defined(LINUX)}
+  {$define GDB_CORE_ADDR_FORCE_64BITS}
+{$endif}
+{$ifdef GDB_CORE_ADDR_FORCE_64BITS}
+  CORE_ADDR = qword;
+{$else}
+  CORE_ADDR = ptruint; { might be target dependent PM }
+{$endif}
+
   psyminfo=^tsyminfo;
   tsyminfo=record
     address  : ptrint;
@@ -729,7 +739,7 @@ type
     function_name : pchar;
     args : pchar;
     line_number : longint;
-    address : ptrint;
+    address : CORE_ADDR;
     level : longint;
     constructor init;
     destructor done;
@@ -746,14 +756,6 @@ const
  k=1;
 
 type
-{$if defined(CPUSPARC) and defined(LINUX)}
-  {$define GDB_CORE_ADDR_FORCE_64BITS}
-{$endif}
-{$ifdef GDB_CORE_ADDR_FORCE_64BITS}
-  CORE_ADDR = qword;
-{$else}
-  CORE_ADDR = ptrint; { might be target dependent PM }
-{$endif}
   streamtype = (afile,astring);
   C_FILE     = ptrint; { at least under DJGPP }
   P_C_FILE   = ^C_FILE;
@@ -870,6 +872,9 @@ type
 
   pgdbinterface=^tgdbinterface;
   tgdbinterface=object
+  private
+    stop_breakpoint_number : longint;
+  public
     gdberrorbuf,
     gdboutputbuf  : tgdbbuffer;
     got_error,
@@ -885,7 +890,6 @@ type
     frame_begin_seen : boolean;
     frame_level,
     command_level,
-    stop_breakpoint_number,
     current_line_number,
     signal_start,
     signal_end,
@@ -907,8 +911,8 @@ type
     current_pc      : CORE_ADDR;
     { breakpoint }
     last_breakpoint_number,
-    last_breakpoint_address,
     last_breakpoint_line : longint;
+    last_breakpoint_address : CORE_ADDR;
     last_breakpoint_file : pchar;
     invalid_breakpoint_line : boolean;
     user_screen_shown,
@@ -931,7 +935,7 @@ type
     procedure clear_frames;
     { Highlevel }
     procedure GetAddrSyminfo(addr:ptrint;var si:tsyminfo);
-    procedure SelectSourceline(fn:pchar;line:longint);
+    function SelectSourceline(fn:pchar;line,BreakIndex:longint): Boolean;
     procedure StartSession;
     procedure BreakSession;
     procedure EndSession(code:longint);
@@ -940,7 +944,7 @@ type
     procedure FlushAll; virtual;
     function Query(question : pchar; args : pchar) : longint; virtual;
     { Hooks }
-    procedure DoSelectSourceline(const fn:string;line:longint);virtual;
+    function DoSelectSourceline(const fn:string;line,BreakIndex:longint): Boolean;virtual;
     procedure DoStartSession;virtual;
     procedure DoBreakSession;virtual;
     procedure DoEndSession(code:longint);virtual;
@@ -1876,6 +1880,7 @@ begin
   args:=nil;
   line_number:=0;
   address:=0;
+  level:=0;
 end;
 
 procedure tframeentry.clear;
@@ -2150,7 +2155,8 @@ begin
       fname:=sym.symtab^.filename
      else
       fname:=nil;
-     SelectSourceLine(fname,sym.line);
+     if not SelectSourceLine(fname,sym.line,stop_breakpoint_number) then
+       gdb_command('continue');
    end;
 end;
 
@@ -2272,7 +2278,11 @@ begin
 end;
 
 
-procedure annotate_frame_begin(level:longint;pc:CORE_ADDR);cdecl;public;
+procedure annotate_frame_begin(level:longint;
+{$ifdef GDB_ANNOTATE_FRAME_BEGIN_HAS_GDBARCH_FIELD}
+  gdbarch : pgdbarch;
+{$endif GDB_ANNOTATE_FRAME_BEGIN_HAS_GDBARCH_FIELD}
+pc:CORE_ADDR);cdecl;public;
 begin
 {$ifdef Verbose}
   Debug('|frame_begin(%d,%ld)|');
@@ -2430,6 +2440,10 @@ begin
         begin
           if (gdboutputbuf.buf[args_end-1]=#10) then
            dec(args_end);
+          { Flushing is not always correct for args,
+            try to move on to next closing brace }
+          while (args_end<file_start) and (gdboutputbuf.buf[args_end-1]<>')') do
+            inc(args_end);
           c:=gdboutputbuf.buf[args_end];
           gdboutputbuf.buf[args_end]:=#0;
           fe^.args:=strnew(gdboutputbuf.buf+args_start);
@@ -2487,7 +2501,11 @@ begin
 {$endif}
 end;
 
-procedure annotate_source(filename:pchar;line,character,mid:longint;pc:CORE_ADDR);cdecl;public;
+procedure annotate_source(filename:pchar;line,character,mid:longint;
+{$ifdef GDB_ANNOTATE_FRAME_BEGIN_HAS_GDBARCH_FIELD}
+  gdbarch : pgdbarch;
+{$endif GDB_ANNOTATE_FRAME_BEGIN_HAS_GDBARCH_FIELD}
+pc:CORE_ADDR);cdecl;public;
 begin
 {$ifdef Verbose}
   Debug('|source|');
@@ -3204,12 +3222,12 @@ begin
 end;
 
 
-procedure tgdbinterface.SelectSourceLine(fn:pchar;line:longint);
+function tgdbinterface.SelectSourceLine(fn:pchar;line,BreakIndex:longint): Boolean;
 begin
   if assigned(fn) then
-   DoSelectSourceLine(StrPas(fn),line)
+    SelectSourceLine:=DoSelectSourceLine(StrPas(fn),line,BreakIndex)
   else
-   DoSelectSourceLine('',line);
+    SelectSourceLine:=DoSelectSourceLine('',line,BreakIndex);
 end;
 
 
@@ -3271,15 +3289,16 @@ end;
           Default Hooks
 ---------------------------------------}
 
-procedure tgdbinterface.DoSelectSourceLine(const fn:string;line:longint);
+function tgdbinterface.DoSelectSourceLine(const fn:string;line,BreakIndex:longint): Boolean;
 {$ifdef Verbose}
 var
-  s : string;
+  s,bs : string;
 {$endif}
 begin
 {$ifdef Verbose}
   Str(line,S);
-  Debug('|SelectSource '+fn+':'+s+'|');
+  Str(BreakIndex,BS);
+  Debug('|SelectSource '+fn+':'+s+','+bs+'|');
 {$endif}
 end;
 

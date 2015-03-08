@@ -908,6 +908,20 @@ implementation
               limit:=254;
         end;
 
+      function is_case_dispatch(hp: taicpu): boolean;
+        begin
+          result:=
+            ((taicpu(hp).opcode in [A_ADD,A_LDR]) and
+             not(GenerateThumbCode or GenerateThumb2Code) and
+             (taicpu(hp).oper[0]^.typ=top_reg) and
+             (taicpu(hp).oper[0]^.reg=NR_PC)) or
+             ((taicpu(hp).opcode=A_MOV) and (GenerateThumbCode) and
+              (taicpu(hp).oper[0]^.typ=top_reg) and
+              (taicpu(hp).oper[0]^.reg=NR_PC)) or
+             (taicpu(hp).opcode=A_TBH) or
+             (taicpu(hp).opcode=A_TBB);
+        end;
+
       var
         curinspos,
         penalty,
@@ -916,7 +930,8 @@ implementation
         currentsize,
         extradataoffset,
         curop : longint;
-        curtai : tai;
+        curtai,
+        inserttai : tai;
         ai_label : tai_label;
         curdatatai,hp,hp2 : tai;
         curdata : TAsmList;
@@ -1076,15 +1091,11 @@ implementation
                 case taicpu(hp).opcode of
                   A_MOV,
                   A_LDR,
-                  A_ADD:
+                  A_ADD,
+                  A_TBH,
+                  A_TBB:
                     { approximation if we hit a case jump table }
-                    if ((taicpu(hp).opcode in [A_ADD,A_LDR]) and not(GenerateThumbCode or GenerateThumb2Code) and
-                       (taicpu(hp).oper[0]^.typ=top_reg) and
-                      (taicpu(hp).oper[0]^.reg=NR_PC)) or
-                      ((taicpu(hp).opcode=A_MOV) and (GenerateThumbCode) and
-                       (taicpu(hp).oper[0]^.typ=top_reg) and
-                       (taicpu(hp).oper[0]^.reg=NR_PC))
-                       then
+                    if is_case_dispatch(taicpu(hp)) then
                       begin
                         penalty:=multiplier;
                         hp:=tai(hp.next);
@@ -1178,12 +1189,34 @@ implementation
                 else
                   limit:=1016;
 
+                { if this is an add/tbh/tbb-based jumptable, go back to the
+                  previous instruction, because inserting data between the
+                  dispatch instruction and the table would mess up the
+                  addresses }
+                inserttai:=curtai;
+                if is_case_dispatch(taicpu(inserttai)) and
+                   ((taicpu(inserttai).opcode=A_ADD) or
+                    (taicpu(inserttai).opcode=A_TBH) or
+                    (taicpu(inserttai).opcode=A_TBB)) then
+                  begin
+                    repeat
+                      inserttai:=tai(inserttai.previous);
+                    until inserttai.typ=ait_instruction;
+                    { if it's an add-based jump table, then also skip the
+                      pc-relative load }
+                    if taicpu(curtai).opcode=A_ADD then
+                      repeat
+                        inserttai:=tai(inserttai.previous);
+                      until inserttai.typ=ait_instruction;
+                  end
+                else
+
                 { on arm thumb, insert the data always after all labels etc. following an instruction so it
                   is prevent that a bxx yyy; bl xxx; yyyy: sequence gets separated ( we never insert on arm thumb after
                   bxx) and the distance of bxx gets too long }
                 if GenerateThumbCode then
-                  while assigned(tai(curtai.Next)) and (tai(curtai.Next).typ in SkipInstr+[ait_label]) do
-                    curtai:=tai(curtai.next);
+                  while assigned(tai(inserttai.Next)) and (tai(inserttai.Next).typ in SkipInstr+[ait_label]) do
+                    inserttai:=tai(inserttai.next);
 
                 doinsert:=false;
                 current_asmdata.getjumplabel(l);
@@ -1210,7 +1243,7 @@ implementation
                   is then equal curdata.last.previous) we could over see one
                   instruction }
                 hp:=tai(curdata.Last);
-                list.insertlistafter(curtai,curdata);
+                list.insertlistafter(inserttai,curdata);
                 curtai:=hp;
               end
             else

@@ -332,6 +332,22 @@ Type
   FarPointer = Pointer;
 {$endif CPUAVR}
 
+{$ifdef CPUAARCH64}
+  {$define DEFAULT_DOUBLE}
+
+  {$define SUPPORT_SINGLE}
+  {$define SUPPORT_DOUBLE}
+
+  ValReal = Double;
+
+  { map comp to int64, but this doesn't mean we compile the comp support in! }
+  Comp = Int64;
+  PComp = ^Comp;
+
+  FarPointer = Pointer;
+{$endif CPUAARCH64}
+
+
 {$ifdef CPU64}
   SizeInt = Int64;
   SizeUInt = QWord;
@@ -856,13 +872,13 @@ function NtoLE(const AValue: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$define FPC_HAS_INTERNAL_ROX_WORD}
 {$endif defined(cpux86_64) or defined(cpui386)}
 
-{$if defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64)}
+{$if defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64) or defined(cpuaarch64)}
 {$define FPC_HAS_INTERNAL_ROX_DWORD}
-{$endif defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64)}
+{$endif defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64) or defined(cpuaarch64)}
 
-{$if defined(cpux86_64) or defined(powerpc64)}
+{$if defined(cpux86_64) or defined(powerpc64) or defined(cpuaarch64)}
 {$define FPC_HAS_INTERNAL_ROX_QWORD}
-{$endif defined(cpux86_64) or defined(powerpc64)}
+{$endif defined(cpux86_64) or defined(powerpc64) or defined(cpuaarch64)}
 
 {$endif FPC_HAS_INTERNAL_ROX}
 
@@ -937,9 +953,9 @@ function RolQWord(Const AValue : QWord;const Dist : Byte): QWord;{$ifdef SYSTEMI
 {$define FPC_HAS_INTERNAL_SAR_DWORD}
 { $endif defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64) or defined(mips) or defined(mipsel)}
 
-{$if defined(cpux86_64) or defined(powerpc64)}
+{$if defined(cpux86_64) or defined(powerpc64) or defined(cpuaarch64)}
 {$define FPC_HAS_INTERNAL_SAR_QWORD}
-{$endif defined(cpux86_64) or defined(powerpc64)}
+{$endif defined(cpux86_64) or defined(powerpc64) or defined(cpuaarch64)}
 
 {$endif FPC_HAS_INTERNAL_SAR}
 
@@ -971,23 +987,23 @@ function fpc_SarInt64(Const AValue : Int64;const Shift : Byte): Int64;compilerpr
 {$endif FPC_HAS_INTERNAL_SAR_QWORD}
 
 {$ifdef FPC_HAS_INTERNAL_BSF}
-{$if defined(cpui386) or defined(cpux86_64) or defined(cpuarm)}
+{$if defined(cpui386) or defined(cpux86_64) or defined(cpuarm) or defined(cpuaarch64)}
 {$define FPC_HAS_INTERNAL_BSF_BYTE}
 {$define FPC_HAS_INTERNAL_BSF_WORD}
 {$define FPC_HAS_INTERNAL_BSF_DWORD}
 {$endif}
-{$if defined(cpux86_64)}
+{$if defined(cpux86_64) or defined(cpuaarch64)}
 {$define FPC_HAS_INTERNAL_BSF_QWORD}
 {$endif}
 {$endif}
 
 {$ifdef FPC_HAS_INTERNAL_BSR}
-{$if defined(cpui386) or defined(cpux86_64) or defined(cpuarm)}
+{$if defined(cpui386) or defined(cpux86_64) or defined(cpuarm) or defined(cpuaarch64)}
 {$define FPC_HAS_INTERNAL_BSR_BYTE}
 {$define FPC_HAS_INTERNAL_BSR_WORD}
 {$define FPC_HAS_INTERNAL_BSR_DWORD}
 {$endif}
-{$if defined(cpux86_64)}
+{$if defined(cpux86_64) or defined(cpuaarch64)}
 {$define FPC_HAS_INTERNAL_BSR_QWORD}
 {$endif}
 {$endif}
@@ -1064,6 +1080,14 @@ Function  Sseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 function strpas(p:pchar):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
 function strlen(p:pchar):sizeint;external name 'FPC_PCHAR_LENGTH';
+
+{ result:
+  <0: invalid sequence detected after processing "-result" bytes
+  0: incomplete (may still be valid if MaxLookAhead is increased)
+  >0: sequence of result bytes forms a codepoint (+ combining diacritics if that
+      parameter was true)
+}
+function Utf8CodePointLen(P: PAnsiChar; MaxLookAhead: SizeInt; IncludeCombiningDiacriticalMarks: Boolean): SizeInt;
 
 { Shortstring functions }
 Procedure Delete(var s:shortstring;index:SizeInt;count:SizeInt);
@@ -1385,6 +1409,7 @@ Function  ParamStr(l:Longint):string;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
 Procedure Dump_Stack(var f : text;fp:pointer;addr : codepointer = nil);
+procedure Dump_Stack(var f : text;skipframes : longint);
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
 procedure DumpExceptionBackTrace(var f:text);
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}

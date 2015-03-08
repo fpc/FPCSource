@@ -893,7 +893,7 @@ function InternalStrToDateTime(S: string): TDateTime;
 
 var
   EY, EM, ED: Word;
-  EH, EN, ES: Word;
+  EH, EN, ES, EMS: Word;
 
 begin
   EY := StrToInt(Copy(S, 1, 4));
@@ -902,34 +902,44 @@ begin
   EH := StrToInt(Copy(S, 12, 2));
   EN := StrToInt(Copy(S, 15, 2));
   ES := StrToInt(Copy(S, 18, 2));
+  EMS:=0;
+{$IFDEF mysql56}
+  if (Copy(S, 21, 3)<>'') then
+    EMS := StrToIntDef(Copy(S, 21, 3),0);
+{$ENDIF} 
   if (EY = 0) or (EM = 0) or (ED = 0) then
     Result := 0
   else
     Result := EncodeDate(EY, EM, ED);
-  Result := ComposeDateTime(Result,EncodeTime(EH, EN, ES, 0));
+  Result := ComposeDateTime(Result,EncodeTime(EH, EN, ES, EMS));
 end;
 
 function InternalStrToTime(S: string): TDateTime;
 
 var
-  EH, EM, ES: Word;
+  EH, EM, ES, EMS: Word;
   p: integer;
 
 begin
   p := 1;
+  EMS:=0;
   EH := StrToInt(ExtractSubstr(S, p, [':'])); //hours can be 2 or 3 digits
   EM := StrToInt(ExtractSubstr(S, p, [':']));
   ES := StrToInt(ExtractSubstr(S, p, ['.']));
-  Result := EncodeTimeInterval(EH, EM, ES, 0);
+{$IFDEF mysql56}
+   EMS:= StrToIntDef(ExtractSubstr(S, p, ['.']),0);
+{$ENDIF}   
+  Result := EncodeTimeInterval(EH, EM, ES, EMS);
 end;
 
 function InternalStrToTimeStamp(S: string): TDateTime;
 
 var
   EY, EM, ED: Word;
-  EH, EN, ES: Word;
+  EH, EN, ES, EMS: Word;
 
 begin
+  EMS:=0;
 {$IFNDEF mysql40}
   EY := StrToInt(Copy(S, 1, 4));
   EM := StrToInt(Copy(S, 6, 2));
@@ -937,6 +947,10 @@ begin
   EH := StrToInt(Copy(S, 12, 2));
   EN := StrToInt(Copy(S, 15, 2));
   ES := StrToInt(Copy(S, 18, 2));
+{$IFDEF mysql56}
+  if (Copy(S, 21, 3)<>'') then
+    EMS := StrToIntDef(Copy(S, 21, 3),0);
+{$ENDIF} 
 {$ELSE}
   EY := StrToInt(Copy(S, 1, 4));
   EM := StrToInt(Copy(S, 5, 2));
@@ -949,7 +963,7 @@ begin
     Result := 0
   else
     Result := EncodeDate(EY, EM, ED);
-  Result := Result + EncodeTime(EH, EN, ES, 0);
+  Result := Result + EncodeTime(EH, EN, ES, EMS);
 end;
 
 function TConnectionName.MySQLWriteData(AField: PMYSQL_FIELD; FieldDef: TFieldDef; Source, Dest: PChar; Len: integer; out CreateBlob : boolean): Boolean;

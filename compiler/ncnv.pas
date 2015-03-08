@@ -2393,6 +2393,10 @@ implementation
                                   (left.resultdef.typ=objectdef))) or
 {$endif}
                                 (
+                                 is_void(left.resultdef)  and
+                                 (left.nodetype=derefn)
+                                ) or
+                                (
                                  not(is_open_array(left.resultdef)) and
                                  not(is_array_constructor(left.resultdef)) and
                                  not(is_array_of_const(left.resultdef)) and
@@ -2406,10 +2410,6 @@ implementation
                                    { the softfloat code generates casts <const. float> to record }
                                    (nf_internal in flags)
                                  ))
-                                ) or
-                                (
-                                 is_void(left.resultdef)  and
-                                 (left.nodetype=derefn)
                                 )
                                ) then
                            CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename)
@@ -4071,8 +4071,13 @@ implementation
         result:=nil;
         { Passing a class type to an "as" expression cannot result in a class
           of that type to be constructed.
+
+          We could put this inside the if-block below, but this way it is
+          safe for sure even if the code below changes
         }
-        include(right.flags,nf_ignore_for_wpo);
+        if assigned(right) then
+          include(right.flags,nf_ignore_for_wpo);
+
         if not assigned(call) then
           begin
             if is_class(left.resultdef) and

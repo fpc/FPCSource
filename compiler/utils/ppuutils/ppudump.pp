@@ -76,7 +76,8 @@ const
     { 12 } 'avr',
     { 13 } 'mipsel',
     { 14 } 'jvm',
-    { 15 } 'i8086'
+    { 15 } 'i8086',
+    { 16 } 'aarch64'
     );
 
 { List of all supported system-cpu couples }
@@ -109,7 +110,7 @@ const
   { 24 }  'OpenBSD-i386',
   { 25 }  'OpenBSD-m68k',
   { 26 }  'Linux-x86-64',
-  { 27 }  'MacOSX-ppc',
+  { 27 }  'Darwin-ppc',
   { 28 }  'OS/2 via EMX',
   { 29 }  'NetBSD-powerpc',
   { 30 }  'OpenBSD-powerpc',
@@ -128,7 +129,7 @@ const
   { 43 }  'Linux-powerpc64',
   { 44 }  'Darwin-i386',
   { 45 }  'PalmOS-arm',
-  { 46 }  'MacOSX-powerpc64',
+  { 46 }  'Darwin-powerpc64',
   { 47 }  'NDS-arm',
   { 48 }  'Embedded-i386',
   { 49 }  'Embedded-m68k',
@@ -143,7 +144,7 @@ const
   { 58 }  'Embedded-powerpc64',
   { 59 }  'Symbian-i386',
   { 60 }  'Symbian-arm',
-  { 61 }  'MacOSX-x64',
+  { 61 }  'Darwin-x64',
   { 62 }  'Embedded-avr',
   { 63 }  'Haiku-i386',
   { 64 }  'Darwin-ARM',
@@ -167,7 +168,9 @@ const
   { 82 }  'Embedded-mipsel',
   { 83 }  'AROS-i386',
   { 84 }  'AROS-x86-64',
-  { 85 }  'DragonFly-x86-64'
+  { 85 }  'DragonFly-x86-64',
+  { 85 }  'Darwin-AArch64',
+  { 86 }  'iPhoneSim-x86-64'
   );
 
 const

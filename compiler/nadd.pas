@@ -2819,10 +2819,6 @@ implementation
 
         if try_make_mul32to64 then
           begin
-            { if the code generator can handle 32 to 64-bit muls, we're done here }
-            if not use_generic_mul32to64 then
-              exit;
-
             { this uses the same criteria for signedness as the 32 to 64-bit mul
               handling in the i386 code generator }
             if is_signed(left.resultdef) and is_signed(right.resultdef) then
@@ -3123,6 +3119,14 @@ implementation
                  if nodetype=addn then
                   internalerror(200103291);
                  expectloc:=LOC_FLAGS;
+               end
+             else if (nodetype=muln) and
+                is_64bitint(resultdef) and
+                not use_generic_mul32to64 and
+                try_make_mul32to64 then
+               begin
+                 { if the code generator can handle 32 to 64-bit muls,
+                   we're done here }
                end
 {$ifndef cpu64bitalu}
               { is there a 64 bit type ? }

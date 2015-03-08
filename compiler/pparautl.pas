@@ -331,11 +331,21 @@ implementation
            { We need a local copy for a value parameter when only the
              address is pushed. Open arrays and Array of Const are
              an exception because they are allocated at runtime and the
-             address that is pushed is patched }
+             address that is pushed is patched.
+
+             Arrays passed to cdecl routines are special: they are pointers in
+             C and hence must be passed as such. Due to historical reasons, if
+             a cdecl routine is implemented in Pascal, we still make a copy on
+             the callee side. Do this the same on platforms that normally must
+             make a copy on the caller side, as otherwise the behaviour will
+             be different (and less perfomant) for routines implemented in C }
            if (varspez=vs_value) and
               paramanager.push_addr_param(varspez,vardef,pd.proccalloption) and
               not(is_open_array(vardef) or
-                  is_array_of_const(vardef)) then
+                  is_array_of_const(vardef)) and
+              (not(target_info.system in systems_caller_copy_addr_value_para) or
+               ((pd.proccalloption in cdecl_pocalls) and
+                (vardef.typ=arraydef))) then
              include(varoptions,vo_has_local_copy);
 
            { needs high parameter ? }

@@ -36,10 +36,10 @@ const
   {$DEFINE S}
 {$ENDIF}
 
-const
-  SQLITE_VERSION        = '3.7.9';
-  SQLITE_VERSION_NUMBER = 3007009;
-  SQLITE_SOURCE_ID      = '2011-11-01 00:52:41 c7c6050ef060877ebe77b41d959e9df13f8c9b5e';
+{
+  Header converted from Sqlite version 3.7.9
+  SOURCE_ID = '2011-11-01 00:52:41 c7c6050ef060877ebe77b41d959e9df13f8c9b5e'
+}
 
 //SQLITE_EXTERN const char sqlite3_version[];
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_libversion{$IFDEF D}: function{$ENDIF}(): pansichar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
@@ -250,7 +250,6 @@ type
     Open         : function(vfs: psqlite3_vfs; zName: pansichar; f: psqlite3_file; flags: cint; pOutFlags: pcint): cint; cdecl;
     Delete       : function(vfs: psqlite3_vfs; zName: pansichar; syncDir: cint): cint; cdecl;
     Access       : function(vfs: psqlite3_vfs; zName: pansichar; flags: cint): cint; cdecl;
-    GetTempname  : function(vfs: psqlite3_vfs; nOut: cint; zOut: pansichar): cint; cdecl;
     FullPathname : function(vfs: psqlite3_vfs; zName: pansichar; nOut: cint; zOut: pansichar): cint; cdecl;
     DlOpen       : function(vfs: psqlite3_vfs; zFilename: pansichar): pointer; cdecl;
     DlError      : procedure(vfs: psqlite3_vfs; nByte: cint; zErrMsg: pansichar); cdecl;
@@ -258,6 +257,7 @@ type
     DlClose      : procedure(vfs: psqlite3_vfs; addr: pointer); cdecl;
     Randomness   : function(vfs: psqlite3_vfs; nByte: cint; zOut: pansichar): cint; cdecl;
     Sleep        : function(vfs: psqlite3_vfs; microseconds: cint): cint; cdecl;
+    GetLastError : function(vfs: psqlite3_vfs; code: cint; msg : pchar): cint; cdecl; 
     CurrentTime  : function(vfs: psqlite3_vfs; time: pcdouble): cint; cdecl;
     xSetSystemCall : function(vfs: psqlite3_vfs; zName: pansichar; sqlite3_syscall_ptr : pointer) : cint;
     xGetSystemCall : function(vfs: psqlite3_vfs; zName: pansichar) : pointer; cdecl;
@@ -427,7 +427,7 @@ const
 
 type
   xTrace = procedure(user: pointer; s: pansichar); cdecl;
-  xProfile = procedure(user: pointer; s: char; i: sqlite3_uint64); cdecl;
+  xProfile = procedure(user: pointer; s: pansichar; i: sqlite3_uint64); cdecl;
 
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_trace{$IFDEF D}: function{$ENDIF}(db: psqlite3; cb: xTrace; user: pointer): pointer; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_profile{$IFDEF D}: function{$ENDIF}(db: psqlite3; cb: xProfile; user: pointer): pointer; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}

@@ -8,14 +8,16 @@ programs=apSearch
 
 [require]
 packages=libndsfpc
-tools=bin2s mmutil grit
+tools=bin2s mmutil grit_fpc rmdir mv fpcmake
 nortl=y
 
 [install]
 fpcpackage=y
 
 [compiler]
-options=-Xm 
+options=-Xm
+targetdir=$(BIN)  
+unittargetdir=$(BUILD) 
 
 [default]
 cpu=arm
@@ -23,27 +25,81 @@ target=nds
 fpcdir=../../../../..
 
 [clean]
-files=*.elf *.o *.s *.nds *.nef *.h *.bin \
-       $(BUILD)/*
+files=*.elf *.o *.s *.nds *.nef *.h *.bin *.map \
+       $(BUILD)/* \
+       $(INC)/* \
+       $(BIN)/*
 units=*
 
 [prerules]
+BIN = bin
 BUILD = build
-AUDIO_FILES = $(foreach dir,$(notdir $(wildcard audio/*.*)),$(CURDIR)/audio/$(dir))
-GFX_FILES = $(foreach dir,gfx,$(notdir $(wildcard $(dir)/*.png)))
+DATA = data
+GFX = gfx
+INC = inc
+AUDIO_FILES = $(foreach dir, $(notdir $(wildcard audio/*.*)), $(CURDIR)/audio/$(dir))
+GFX_FILES =   $(foreach dir, $(GFX), $(notdir $(wildcard $(dir)/*.bmp $(dir)/*.png)))
+BIN_FILES =   $(foreach dir, $(DATA), $(notdir $(wildcard $(dir)/*)))
 
 [rules]
 .NOTPARALLEL:
-all: direc fpc_all 
-direc:
+clean: dir_delete fpc_clean fpc_cleanall
+all: dir_make $(BIN_FILES) $(GFX_FILES) fpc_all
+
+
+
+#
+# Delete temp directories
+#
+dir_delete:
+        @$(DELTREE) $(CURDIR)/$(BUILD) 
+        @$(DELTREE) $(CURDIR)/$(INC) 
+        @$(DELTREE) $(CURDIR)/$(BIN) 
+                
+#
+# Create temp directories
+#
+dir_make:
 ifneq ($(BUILD), $(CURDIR))
-        $(MKDIR) $(BUILD)
+        @$(MKDIR) $(BUILD)
 endif
+ifneq ($(INC), $(CURDIR))
+        @$(MKDIR) $(INC)
+endif
+ifneq ($(BIN), $(CURDIR))
+        @$(MKDIR) $(BIN)
+endif
+
+#
+# Audio files processing rule
+#
 soundbank.bin.o : $(AUDIO_FILES)
         @$(MMUTIL) $^ -d -o$(BUILD)/soundbank.bin -h$(BUILD)/soundbank.h
         $(BIN2S) $(BUILD)/soundbank.bin > $(BUILD)/soundbank.bin.s
         $(AS) -o $(BUILD)/soundbank.bin.o $(BUILD)/soundbank.bin.s
 
-$(GFX_FILES).o: 
-        $(GRIT) gfx/$(GFX_FILES) -fts -ff gfx/$(basename $(GFX_FILES)).grit -o$(BUILD)/$(GFX_FILES)
-        $(AS) -o $(BUILD)/$(basename $(GFX_FILES)).o $(BUILD)/$(basename $(GFX_FILES)).s
+#
+# Png files processing rule
+#
+$(GFX_FILES): $(wildcard %.bmp %.png)
+        @echo 'Converting $(@) file to asm...'
+        $(GRIT_FPC) $(GFX)/$(@) -fp -fts -ff $(GFX)/$(basename $(@)).grit -o$(BUILD)/$(@)
+        @echo 'Assembling $(@).s file...'
+        $(AS) -o $(BUILD)/$(basename $(@)).o $(BUILD)/$(basename $(@)).s
+        $(MV) -f $(BUILD)/$(basename $(@)).inc $(INC)/$(basename $(@)).inc           
+        @echo 'Done!'
+
+#
+# Binary files processing rule
+# 
+$(BIN_FILES): $(wildcard %.*)
+        @echo 'Converting $(@) file to asm...'
+        @$(BIN2S) $(DATA)/$(@) > $(BUILD)/$(@).s
+        @echo 'Creating $(@).inc include file...'
+        @echo "var" > `(echo "$(INC)/"$(@F) | tr . .)`.inc
+        @echo " " `(echo $(@F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"_end: array [0..0] of cuint8; cvar; external;" >> `(echo "$(INC)/"$(@F) | tr . .)`.inc
+        @echo " " `(echo $(@F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`": array [0..0] of cuint8; cvar; external;" >> `(echo "$(INC)/"$(@F) | tr . .)`.inc
+        @echo " " `(echo $(@F) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`_size": cuint32; cvar; external;" >> `(echo "$(INC)/"$(@F) | tr . .)`.inc
+        @echo 'Assembling $(@).s file...'
+        @$(AS) -o $(BUILD)/$(@).o $(BUILD)/$(@).s
+        @echo 'Done!'

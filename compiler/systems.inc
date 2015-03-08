@@ -49,7 +49,8 @@
              cpu_avr,                      { 12 }
              cpu_mipsel,                   { 13 }
              cpu_jvm,                      { 14 }
-             cpu_i8086                     { 15 }
+             cpu_i8086,                    { 15 }
+             cpu_aarch64                   { 16 }
        );
 
        tasmmode= (asmmode_none
@@ -166,7 +167,9 @@
              system_mipsel_embedded,    { 82 }
              system_i386_aros,          { 83 }
              system_x86_64_aros,        { 84 }
-             system_x86_64_dragonfly    { 85 }
+             system_x86_64_dragonfly,   { 85 }
+             system_aarch64_darwin,     { 85 }
+             system_x86_64_iphonesim    { 86 }
        );
 
      type
@@ -284,6 +287,7 @@
             ,abi_powerpc_sysv,abi_powerpc_aix
             ,abi_eabi,abi_armeb,abi_eabihf
             ,abi_old_win32_gnu
+            ,abi_aarch64_darwin
        );
 
 

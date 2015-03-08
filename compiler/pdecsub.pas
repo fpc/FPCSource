@@ -736,7 +736,8 @@ implementation
               begin
                 str(genparalist.count,gencount);
                 genname:=sp+'$'+gencount;
-                genname:=generate_generic_name(genname,specializename);
+                { ToDo: handle nested interfaces }
+                genname:=generate_generic_name(genname,specializename,'');
                 ugenname:=upper(genname);
 
                 srsym:=search_object_name(ugenname,false);

@@ -264,6 +264,13 @@ function do_isdevice(handle:thandle):boolean;forward;
 {$endif cpumips}
 {$endif not cpumipsel}
 
+{$ifdef cpuaarch64}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i aarch64.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpuaarch64}
 
 {$ifndef SYSPROCDEFINED}
   {$Error Can't determine processor type !}
@@ -557,8 +564,6 @@ const
 
 VAR
   mt : tMT19937StateArray;
-
-const
   mti: longint=MT19937N+1; // mti=MT19937N+1 means mt[] is not initialized
 
 { Initializing the array with a seed }
@@ -973,8 +978,6 @@ Begin
      exitProc:=nil;
      current_exit();
    End;
-  { Finalize units }
-  FinalizeUnits;
 
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
   { the embedded system unit itself contains no routines for console i/o
@@ -994,6 +997,9 @@ Begin
   SysFlushStdIO;
 {$endif EMBEDDED}
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
+
+  { Finalize units }
+  FinalizeUnits;
 
 {$if defined(MSWINDOWS) or defined(OS2)}
   { finally release the heap if possible, especially
@@ -1210,6 +1216,28 @@ Begin
    end;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
 End;
+
+
+procedure dump_stack(var f: text; skipframes: longint);
+var
+  i,count: longint;
+  frames: array [0..255] of codepointer;
+begin
+  if do_isdevice(textrec(f).handle) then
+    count:=max_frame_dump
+  else
+    count:=255;
+{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
+  try
+{$endif FPC_HAS_FEATURE_EXCEPTIONS}
+    count:=CaptureBacktrace(skipframes+1,count,@frames[0]);
+    for i:=0 to count-1 do
+      writeln(f,BackTraceStrFunc(frames[i]));
+{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
+  except
+  end;
+{$endif FPC_HAS_FEATURE_EXCEPTIONS}
+end;
 
 
 {$ifdef FPC_HAS_FEATURE_EXCEPTIONS}

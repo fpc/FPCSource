@@ -9,6 +9,7 @@ uses
 
 const
   NoGDBOption: boolean = false;
+  GDBMIOption: boolean = false;
 
 procedure ide_check_gdb_availability(Sender: TObject);
 
@@ -75,7 +76,12 @@ begin
   P := sender as TPackage;
   with installer do
     begin
-    if not (NoGDBOption) then
+    if GDBMIOption then
+      begin
+        BuildEngine.log(vlCommand, 'Compiling IDE with GDB/MI debugger support, LibGDB is not needed');
+        P.Options.Add('-dGDBMI');
+      end
+    else if not (NoGDBOption) then
       begin
         // Detection of GDB.
         GDBLibDir := DetectLibGDBDir;
@@ -141,11 +147,15 @@ Var
 begin
   AddCustomFpmakeCommandlineOption('CompilerTarget','Target CPU for the IDE''s compiler');
   AddCustomFpmakeCommandlineOption('NoGDB','If value=1 or ''Y'', no GDB support');
+  AddCustomFpmakeCommandlineOption('GDBMI','If value=1 or ''Y'', builds IDE with GDB/MI support (no need for LibGDB)');
   With Installer do
     begin
     s := GetCustomFpmakeCommandlineOptionValue('NoGDB');
     if (s='1') or (s='Y') then
      NoGDBOption := true;
+    s := GetCustomFpmakeCommandlineOptionValue('GDBMI');
+    if (s='1') or (s='Y') then
+     GDBMIOption := true;
     s :=GetCustomFpmakeCommandlineOptionValue('CompilerTarget');
     if s <> '' then
       CompilerTarget:=StringToCPU(s)
@@ -163,7 +173,7 @@ begin
     P.Dependencies.Add('chm');
     { This one is only needed if DEBUG is set }
     P.Dependencies.Add('regexpr');
-    if not (NoGDBOption) then
+    if not (NoGDBOption) and not (GDBMIOption) then
       P.Dependencies.Add('gdbint',AllOSes-AllAmigaLikeOSes);
     P.Dependencies.Add('graph',[go32v2]);
 
