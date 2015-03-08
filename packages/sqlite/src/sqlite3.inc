@@ -250,7 +250,6 @@ type
     Open         : function(vfs: psqlite3_vfs; zName: pansichar; f: psqlite3_file; flags: cint; pOutFlags: pcint): cint; cdecl;
     Delete       : function(vfs: psqlite3_vfs; zName: pansichar; syncDir: cint): cint; cdecl;
     Access       : function(vfs: psqlite3_vfs; zName: pansichar; flags: cint): cint; cdecl;
-    GetTempname  : function(vfs: psqlite3_vfs; nOut: cint; zOut: pansichar): cint; cdecl;
     FullPathname : function(vfs: psqlite3_vfs; zName: pansichar; nOut: cint; zOut: pansichar): cint; cdecl;
     DlOpen       : function(vfs: psqlite3_vfs; zFilename: pansichar): pointer; cdecl;
     DlError      : procedure(vfs: psqlite3_vfs; nByte: cint; zErrMsg: pansichar); cdecl;
@@ -258,6 +257,7 @@ type
     DlClose      : procedure(vfs: psqlite3_vfs; addr: pointer); cdecl;
     Randomness   : function(vfs: psqlite3_vfs; nByte: cint; zOut: pansichar): cint; cdecl;
     Sleep        : function(vfs: psqlite3_vfs; microseconds: cint): cint; cdecl;
+    GetLastError : function(vfs: psqlite3_vfs; code: cint; msg : pchar): cint; cdecl; 
     CurrentTime  : function(vfs: psqlite3_vfs; time: pcdouble): cint; cdecl;
     xSetSystemCall : function(vfs: psqlite3_vfs; zName: pansichar; sqlite3_syscall_ptr : pointer) : cint;
     xGetSystemCall : function(vfs: psqlite3_vfs; zName: pansichar) : pointer; cdecl;
