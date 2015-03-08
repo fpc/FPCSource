@@ -93,7 +93,7 @@ unit cpubase;
       first_mm_imreg     = $30;
 
 { TODO: Calculate bsstart}
-      regnumber_count_bsstart = 64;
+      regnumber_count_bsstart = 128;
 
       regnumber_table : array[tregisterindex] of tregister = (
         {$i rarmnum.inc}

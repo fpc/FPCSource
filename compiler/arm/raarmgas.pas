@@ -1217,7 +1217,8 @@ Unit raarmgas;
                 break;
               end;
           else
-            if (instr.opcode = A_MSR) and (operandnum = 1) then
+            if ((instr.opcode = A_MRS) and (operandnum = 2)) or
+               ((instr.opcode = A_MSR) and (operandnum = 1)) then
               BuildSpecialreg(instr.Operands[operandnum] as tarmoperand)
             else
               BuildOperand(instr.Operands[operandnum] as tarmoperand);
