@@ -36,10 +36,10 @@ const
   {$DEFINE S}
 {$ENDIF}
 
-const
-  SQLITE_VERSION        = '3.7.9';
-  SQLITE_VERSION_NUMBER = 3007009;
-  SQLITE_SOURCE_ID      = '2011-11-01 00:52:41 c7c6050ef060877ebe77b41d959e9df13f8c9b5e';
+{
+  Header converted from Sqlite version 3.7.9
+  SOURCE_ID = '2011-11-01 00:52:41 c7c6050ef060877ebe77b41d959e9df13f8c9b5e'
+}
 
 //SQLITE_EXTERN const char sqlite3_version[];
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_libversion{$IFDEF D}: function{$ENDIF}(): pansichar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
