@@ -81,6 +81,7 @@ uses
       InDraw : boolean;
       GDBCount : longint;
       first : boolean;
+      LastOK : boolean;
       constructor Init(var Bounds: TRect);
       procedure   Draw;virtual;
       destructor  Done; virtual;
@@ -128,6 +129,7 @@ uses
       UseInfoFloat : boolean;
 {$endif not cpu_known}
       first : boolean;
+      LastOK : boolean;
       constructor Init(var Bounds: TRect);
       procedure   Draw;virtual;
       destructor  Done; virtual;
@@ -189,6 +191,7 @@ uses
       UseInfoVector : boolean;
 {$endif not cpu_known}
       first : boolean;
+      LastOK : boolean;
       constructor Init(var Bounds: TRect);
       procedure   Draw;virtual;
       destructor  Done; virtual;
@@ -507,6 +510,7 @@ const
          begin
            OldReg:=NewReg;
            OK:=GetIntRegs(rs);
+           LastOK:=OK;
            NewReg:=rs;
            { get inital values }
            if first then
@@ -519,7 +523,7 @@ const
        else
          begin
            rs:=NewReg;
-           OK:=true;
+           OK:=LastOK;
          end;
        if  OK then
          begin
@@ -1076,6 +1080,7 @@ const
              ,UseInfoFloat
 {$endif not cpu_known}
              );
+           LastOK:=OK;
            NewReg:=rs;
            { get inital values }
            if first then
@@ -1088,7 +1093,7 @@ const
        else
          begin
            rs:=newreg;
-           OK:=true;
+           OK:=LastOK;
          end;
        if OK then
          begin
@@ -1460,6 +1465,7 @@ const
              ,UseInfoVector
 {$endif not cpu_known}
              );
+           LastOK:=OK;
            NewReg:=rs;
            { get inital values }
            if first then
@@ -1472,7 +1478,7 @@ const
        else
          begin
            rs:=newreg;
-           OK:=true;
+           OK:=LastOK;
          end;
        if OK then
          begin
