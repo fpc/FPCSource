@@ -1290,7 +1290,7 @@ Unit raarmgas;
         actopcode:=A_NONE;
         j2:=maxlen;
         hs2:=hs;
-        while j2>1 do
+        while j2>=1 do
           begin
             hs:=hs2;
             while j2>=1 do
