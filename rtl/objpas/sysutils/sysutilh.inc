@@ -255,7 +255,8 @@ type
 
 Var
    OnShowException : Procedure (Msg : ShortString);
-
+   WriteExceptionToStdErr : Boolean = True;
+   
 Const
    HexDisplayPrefix : string = '$';
 
