@@ -1236,7 +1236,7 @@ const
        Flags:=wfClose or wfMove or wfgrow;
        Palette:=wpCyanWindow;
        HelpCtx:=hcFPURegisters;
-       R.Assign(1,1,Size.X-2,Size.Y-2);
+       R.Assign(1,1,Size.X-2,Size.Y-1);
        RV:=new(PFPUView,init(R));
        Insert(RV);
        If assigned(FPUWindow) then
@@ -1567,7 +1567,7 @@ const
        Flags:=wfClose or wfMove or wfgrow;
        Palette:=wpCyanWindow;
        HelpCtx:=hcVectorRegisters;
-       R.Assign(1,1,Size.X-2,Size.Y-2);
+       R.Assign(1,1,Size.X-2,Size.Y-1);
        RV:=new(PVectorView,init(R));
        Insert(RV);
        If assigned(VectorWindow) then
