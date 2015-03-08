@@ -256,10 +256,11 @@ type
     DlSym        : function(vfs: psqlite3_vfs; addr: pointer; zSymbol: pansichar): pointer; cdecl;
     DlClose      : procedure(vfs: psqlite3_vfs; addr: pointer); cdecl;
     Randomness   : function(vfs: psqlite3_vfs; nByte: cint; zOut: pansichar): cint; cdecl;
-    Sleep        : function(vfs: psqlite3_vfs; microseconds: cint): cint; cdecl;
-    GetLastError : function(vfs: psqlite3_vfs; code: cint; msg : pchar): cint; cdecl; 
+    Sleep        : function(vfs: psqlite3_vfs; microseconds: cint): cint; cdecl;    
     CurrentTime  : function(vfs: psqlite3_vfs; time: pcdouble): cint; cdecl;
-    xSetSystemCall : function(vfs: psqlite3_vfs; zName: pansichar; sqlite3_syscall_ptr : pointer) : cint;
+    GetLastError : function(vfs: psqlite3_vfs; code: cint; msg: pansichar): cint; cdecl;
+    CurrentTimeInt64 : function(vfs: psqlite3_vfs; time: psqlite3_int64): cint; cdecl; 	
+    xSetSystemCall : function(vfs: psqlite3_vfs; zName: pansichar; sqlite3_syscall_ptr : pointer) : cint; cdecl;
     xGetSystemCall : function(vfs: psqlite3_vfs; zName: pansichar) : pointer; cdecl;
     xNextSystemCall : function(vfs: psqlite3_vfs; zName: pansichar) : pansichar; cdecl;
   end;
