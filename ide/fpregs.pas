@@ -496,7 +496,7 @@ const
 {$ifdef NODEBUG}
        WriteStr(1,0,msg_registervaluesnotavailable,7);
 {$else NODEBUG}
-       If not assigned(Debugger) then
+       If (not assigned(Debugger)) or (not Debugger^.IsRunning) then
          begin
             WriteStr(1,0,msg_registervaluesnotavailable,7);
             exit;
@@ -1060,7 +1060,7 @@ const
 {$ifdef NODEBUG}
        WriteStr(1,0,msg_registervaluesnotavailable,7);
 {$else NODEBUG}
-       If not assigned(Debugger) then
+       If (not assigned(Debugger)) or (not Debugger^.IsRunning) then
          begin
             WriteStr(1,0,msg_registervaluesnotavailable,7);
             exit;
@@ -1444,7 +1444,7 @@ const
 {$ifdef NODEBUG}
        WriteStr(1,0,msg_registervaluesnotavailable,7);
 {$else NODEBUG}
-       If not assigned(Debugger) then
+       If (not assigned(Debugger)) or (not Debugger^.IsRunning) then
          begin
             WriteStr(1,0,msg_registervaluesnotavailable,7);
             exit;
