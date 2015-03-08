@@ -1,6 +1,6 @@
 program test;
 
-uses sqlite,sqlitedb, strings,classes;
+uses sqlite3,sqlite3db, strings,classes;
 
 var
   MySQL: TSQLite;
