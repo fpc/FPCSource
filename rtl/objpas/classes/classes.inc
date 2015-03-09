@@ -334,68 +334,73 @@ procedure TThread.Synchronize(AMethod: TThreadMethod);
     TThread.Synchronize(self,AMethod);
   end;
 
+Function PopThreadQueueHead : TThread.PThreadQueueEntry;
+
+begin
+  Result:=ThreadQueueHead;
+  if (Result<>Nil) then
+    begin
+    System.EnterCriticalSection(ThreadQueueLock);
+    try
+      Result:=ThreadQueueHead;
+      if Result<>Nil then
+        ThreadQueueHead:=ThreadQueueHead^.Next;
+    finally
+      System.LeaveCriticalSection(ThreadQueueLock);
+    end;
+    end;
+end;
 
 function CheckSynchronize(timeout : longint=0) : boolean;
-  { assumes being called from GUI thread }
-  var
-    exceptobj: Exception;
-    tmpentry: TThread.PThreadQueueEntry;
-  begin
-    result:=false;
-    { first sanity check }
-    if Not IsMultiThread then
-      Exit
-    { second sanity check }
-    else if GetCurrentThreadID<>MainThreadID then
-      raise EThread.CreateFmt(SCheckSynchronizeError,[GetCurrentThreadID])
+
+{ assumes being called from GUI thread }
+var
+  ExceptObj: Exception;
+  tmpentry: TThread.PThreadQueueEntry;
+
+begin
+  result:=false;
+  { first sanity check }
+  if Not IsMultiThread then
+    Exit
+  { second sanity check }
+  else if GetCurrentThreadID<>MainThreadID then
+    raise EThread.CreateFmt(SCheckSynchronizeError,[GetCurrentThreadID]);
+  if timeout>0 then
+    RtlEventWaitFor(SynchronizeTimeoutEvent,timeout)
+  else
+    RtlEventResetEvent(SynchronizeTimeoutEvent);
+  tmpentry := PopThreadQueueHead;
+  while Assigned(tmpentry) do
+    begin
+    { step 1: update the list }
+    if not Assigned(ThreadQueueHead) then
+      ThreadQueueTail := Nil;
+    { step 2: execute the method }
+    exceptobj := Nil;
+    try
+      ExecuteThreadQueueEntry(tmpentry);
+    except
+      exceptobj := Exception(AcquireExceptionObject);
+    end;
+    { step 3: error handling and cleanup }
+    if Assigned(tmpentry^.SyncEvent) then
+      begin
+      { for Synchronize entries we pass back the Exception and trigger
+        the event that Synchronize waits in }
+      tmpentry^.Exception := exceptobj;
+      RtlEventSetEvent(tmpentry^.SyncEvent)
+      end
     else
       begin
-        if timeout>0 then
-          begin
-            RtlEventWaitFor(SynchronizeTimeoutEvent,timeout);
-          end
-         else
-           RtlEventResetEvent(SynchronizeTimeoutEvent);
-
-        System.EnterCriticalSection(ThreadQueueLock);
-        try
-          { Note: we don't need to pay attention to recursive calls to
-                  Synchronize as those calls will be executed in the context of
-                  the GUI thread and thus will be executed immediatly instead of
-                  queuing them }
-          while Assigned(ThreadQueueHead) do begin
-            { step 1: update the list }
-            tmpentry := ThreadQueueHead;
-            ThreadQueueHead := ThreadQueueHead^.Next;
-            if not Assigned(ThreadQueueHead) then
-              ThreadQueueTail := Nil;
-
-            { step 2: execute the method }
-            exceptobj := Nil;
-            try
-              ExecuteThreadQueueEntry(tmpentry);
-            except
-              exceptobj := Exception(AcquireExceptionObject);
-            end;
-
-            { step 3: error handling and cleanup }
-            if Assigned(tmpentry^.SyncEvent) then begin
-              { for Synchronize entries we pass back the Exception and trigger
-                the event that Synchronize waits in }
-              tmpentry^.Exception := exceptobj;
-              RtlEventSetEvent(tmpentry^.SyncEvent)
-            end else begin
-              { for Queue entries we dispose the entry and raise the exception }
-              Dispose(tmpentry);
-              if Assigned(exceptobj) then
-                raise exceptobj;
-            end;
-          end;
-        finally
-          System.LeaveCriticalSection(ThreadQueueLock);
-        end;
+      { for Queue entries we dispose the entry and raise the exception }
+      Dispose(tmpentry);
+      if Assigned(exceptobj) then
+        raise exceptobj;
       end;
-  end;
+    tmpentry := PopThreadQueueHead;
+    end;
+end;
 
 
 class function TThread.GetCurrentThread: TThread;
