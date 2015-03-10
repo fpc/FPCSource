@@ -49,7 +49,14 @@ end;
 {$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
 {$define FPC_SYSTEM_HAS_INDEXBYTE}
 
+{$ifdef LINUX}
+  {$define BUGGYMEMCHR}
+{$endif}
+
 function memchr(const buf; b: cint; len: size_t): pointer; cdecl; external 'c';
+{$ifdef BUGGYMEMCHR}
+function rawmemchr(const buf; b: cint): pointer; cdecl; external 'c';
+{$endif BUGGYMEMCHR}
 
 function IndexByte(Const buf;len:sizeint;b:byte):sizeint;{$ifdef SYSTEMINLINE}inline;{$endif}
 var
@@ -60,7 +67,12 @@ begin
   { simulate assembler implementations behaviour, which is expected }
   { fpc_pchar_to_ansistr in astrings.inc (interpret values < 0 as   }
   { unsigned)                                                       }
-  res := memchr(buf,cint(b),size_t(sizeuint(len)));
+{$ifdef BUGGYMEMCHR}
+  if len = -1 then
+    res := rawmemchr(buf,cint(b))
+  else
+{$endif BUGGYMEMCHR}
+    res := memchr(buf,cint(b),size_t(sizeuint(len)));
   if (res <> nil) then
     IndexByte := SizeInt(res-@buf)
   else
