@@ -214,8 +214,8 @@ implementation
 
 uses
   dbconst,
-  strutils,
-  dateutils,
+  StrUtils,
+  DateUtils,
   FmtBCD;
 
 const
@@ -856,7 +856,7 @@ begin
   Result := StrToFloat(Tmp);
 end;
 
-function InternalStrToCurrency(const S: string): Extended;
+function InternalStrToCurrency(const S: string): Currency;
 
 var
   I: Integer;
