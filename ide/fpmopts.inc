@@ -548,7 +548,8 @@ begin
       L:=0;
     CB2^.SetData(L);
 {$ifdef GDB_WINDOWS_ALWAYS_USE_ANOTHER_CONSOLE}
-    CB2^.EnableMask := CB2^.EnableMask and $fffffffe;
+    { EnableMask type is longint, avoid range check error here }
+    CB2^.EnableMask := CB2^.EnableMask and longint($7ffffffe);
 {$endif GDB_WINDOWS_ALWAYS_USE_ANOTHER_CONSOLE}
     R2.Move(0,-1);
     Insert(New(PLabel, Init(R2,label_debugger_redirection, CB2)));
