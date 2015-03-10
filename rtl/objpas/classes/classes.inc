@@ -345,6 +345,8 @@ begin
       Result:=ThreadQueueHead;
       if Result<>Nil then
         ThreadQueueHead:=ThreadQueueHead^.Next;
+      if Not Assigned(ThreadQueueHead) then
+        ThreadQueueTail := Nil;
     finally
       System.LeaveCriticalSection(ThreadQueueLock);
     end;
@@ -373,9 +375,6 @@ begin
   tmpentry := PopThreadQueueHead;
   while Assigned(tmpentry) do
     begin
-    { step 1: update the list }
-    if not Assigned(ThreadQueueHead) then
-      ThreadQueueTail := Nil;
     { step 2: execute the method }
     exceptobj := Nil;
     try
