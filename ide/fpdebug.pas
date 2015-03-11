@@ -1477,10 +1477,6 @@ begin
         begin
            S:=PrintCommand(GetStr(PB^.Name));
            got_error:=false;
-           If Pos('=',S)>0 then
-             S:=Copy(S,Pos('=',S)+1,255);
-           If S[Length(S)]=#10 then
-             Delete(S,Length(S),1);
            if Assigned(PB^.OldValue) then
              DisposeStr(PB^.OldValue);
            PB^.OldValue:=PB^.CurrentValue;
