@@ -3991,9 +3991,15 @@ implementation
           begin
             if tsym(symtable.symlist[i]).typ<>fieldvarsym then
               continue;
-            if assigned(tfieldvarsym(symtable.symlist[i]).vardef) and
-              tstoreddef(tfieldvarsym(symtable.symlist[i]).vardef).is_fpuregable then
-              exit;
+            if assigned(tfieldvarsym(symtable.symlist[i]).vardef) then
+              begin
+                if tstoreddef(tfieldvarsym(symtable.symlist[i]).vardef).is_fpuregable then
+                  exit;
+                { search recursively }
+                if (tstoreddef(tfieldvarsym(symtable.symlist[i]).vardef).typ=recorddef) and
+                  (tabstractrecorddef(tfieldvarsym(symtable.symlist[i]).vardef).contains_float_field) then
+                  exit;
+              end;
           end;
         result:=false;
       end;
