@@ -291,6 +291,10 @@ uses
       {# Stack pointer register }
       NR_STACK_POINTER_REG = NR_R1;
       RS_STACK_POINTER_REG = RS_R1;
+      { old stack pointer register used during copying variables from the caller
+        stack frame
+      }
+      NR_OLD_STACK_POINTER_REG = NR_R12;
       {# Frame pointer register }
       NR_FRAME_POINTER_REG = NR_STACK_POINTER_REG;
       RS_FRAME_POINTER_REG = RS_STACK_POINTER_REG;

@@ -830,11 +830,8 @@ const
             usesgpr := firstregint <> 32;
             usesfpr := firstregfpu <> 32;
 
-             if (tppcprocinfo(current_procinfo).needs_frame_pointer) then
-              begin
-                a_reg_alloc(list,NR_R12);
-                list.concat(taicpu.op_reg_reg(A_MR,NR_R12,NR_STACK_POINTER_REG));
-              end;
+             if tppcprocinfo(current_procinfo).needs_frame_pointer then
+               list.concat(taicpu.op_reg_reg(A_MR,NR_OLD_STACK_POINTER_REG,NR_STACK_POINTER_REG));
           end;
 
         if usesfpr then
