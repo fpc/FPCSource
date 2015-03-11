@@ -217,5 +217,7 @@
   {$ifdef DEBUG}
     {$define GDB_RAW_OUTPUT}
   {$endif DEBUG}
-  {$define GDB_WINDOWS_ALWAYS_USE_ANOTHER_CONSOLE}
+  {$ifdef Windows}
+    {$define GDB_WINDOWS_ALWAYS_USE_ANOTHER_CONSOLE}
+  {$endif Windows}
 {$endif GDBMI}
