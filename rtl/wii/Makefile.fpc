@@ -7,10 +7,10 @@ main=rtl
 
 [target]
 loaders=
-units=$(SYSTEMUNIT) uuchar objpas macpas strings \
-#      dos \
+units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 strings \
+      dos \
       sysutils \
-#      classes \
+      classes \
       math typinfo ctypes \
       charset cpall getopts \
       types rtlconsts sysconst lineinfo fgl cmem
@@ -45,10 +45,8 @@ COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
+override FPCOPT+=@rtl.cfg
 
-# Use new feature from 1.0.5 version
-# that generates release PPU files
-# which will not be recompiled
 ifdef RELEASE
 override FPCOPT+=-Ur
 endif
@@ -83,6 +81,7 @@ $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS) $(INC)/softfpu.pp
         $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp $(REDIR)
 
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
+	$(COMPILER) $(INC)/uuchar.pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp $(REDIR)
@@ -90,6 +89,10 @@ objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
                    $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/strings.pp
+
+iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/iso7185.pp
 
 #
 # System Dependent Units
@@ -105,10 +108,11 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
                $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) dos.pp
 
 #crt$(PPUEXT) : crt.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
 
-objects$(PPUEXT) : $(INC)/objects.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+#objects$(PPUEXT) : $(INC)/objects.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 #printer$(PPUEXT) : printer.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
 
@@ -167,16 +171,21 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 #
 
 ucomplex$(PPUEXT): $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/ucomplex.pp
 
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/getopts.pp
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
 
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/lineinfo.pp
+
 #lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
 
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/charset.pp
 
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
@@ -186,43 +195,63 @@ cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 #
 
 exec$(PPUEXT)    : exec.pp execf.inc execd.inc
+	$(COMPILER) exec.pp
 
 timer$(PPUEXT)   : timer.pp timerd.inc timerf.inc
+	$(COMPILER) timer.pp
 
 utility$(PPUEXT) : utility.pp exec$(PPUEXT) utilf.inc utild1.inc utild2.inc
+	$(COMPILER) utility.pp
 
 doslib$(PPUEXT)  : doslib.pp exec$(PPUEXT) timer$(PPUEXT) doslibd.inc doslibf.inc
+	$(COMPILER) doslib.pp
 
 hardware$(PPUEXT): hardware.pas exec$(PPUEXT)
+	$(COMPILER) hardware.pas
 
 inputevent$(PPUEXT): inputevent.pas exec$(PPUEXT) timer$(PPUEXT) utility$(PPUEXT)
+	$(COMPILER) inputevent.pas
 
 graphics$(PPUEXT): graphics.pas exec$(PPUEXT) utility$(PPUEXT) hardware$(PPUEXT)
+	$(COMPILER) graphics.pas
 
 layers$(PPUEXT)  : layers.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT)
+	$(COMPILER) layers.pas
 
 intuition$(PPUEXT): intuition.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT) \
                     inputevent$(PPUEXT) timer$(PPUEXT) layers$(PPUEXT)
+	$(COMPILER) intuition.pas
 
 aboxlib$(PPUEXT): aboxlib.pas
+	$(COMPILER) aboxlib.pas
 
 clipboard$(PPUEXT): clipboard.pas exec$(PPUEXT)
+	$(COMPILER) clipboard.pas
 
 datatype$(PPUEXT): datatypes.pas exec$(PPUEXT) doslib$(PPUEXT) intuition$(PPUEXT) \
                    utility$(PPUEXT) graphics$(PPUEXT)
+	$(COMPILER) datatypes.pas
 
 asl$(PPUEXT): asl.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEXT)
+	$(COMPILER) asl.pas
 
 ahi$(PPUEXT): ahi.pas exec$(PPUEXT) utility$(PPUEXT)
+	$(COMPILER) ahi.pas
 
 mui$(PPUEXT): mui.pas exec$(PPUEXT) utility$(PPUEXT) intuition$(PPUEXT) graphics$(PPUEXT)
+	$(COMPILER) mui.pas
 
 tinygl$(PPUEXT): tinygl.pp exec$(PPUEXT)
+	$(COMPILER) tinygl.pp
 
 get9$(PPUEXT): get9.pas exec$(PPUEXT)
+	$(COMPILER) get9.pas
 
 muihelper$(PPUEXT): muihelper.pas intuition$(PPUEXT) mui$(PPUEXT) doslib$(PPUEXT) utility$(PPUEXT)
+	$(COMPILER) muihelper.pas
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/ctypes.pp
 
 cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/cmem.pp

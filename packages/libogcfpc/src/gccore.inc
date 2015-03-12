@@ -1,3 +1,4 @@
+{$include ogc/libversion.inc}
 {$include ogc/disc_io.inc}
 
 {$include debug.inc}
@@ -86,7 +87,7 @@
   {$include wiiuse/wiiuse.inc}
   {$include wiiuse/wpad.inc}
   
-  { $include wiikeyboard/wsksymdef.inc}
+  {$include wiikeyboard/wsksymdef.inc}
   {$include wiikeyboard/keyboard.inc}
   {$include wiikeyboard/usbkeyboard.inc}
 
