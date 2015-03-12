@@ -12027,6 +12027,7 @@ tests/test/tobjc4.pp svneol=native#text/plain
 tests/test/tobjc40.pp svneol=native#text/plain
 tests/test/tobjc41.pp svneol=native#text/plain
 tests/test/tobjc42.pp svneol=native#text/plain
+tests/test/tobjc43.pp svneol=native#text/plain
 tests/test/tobjc4a.pp svneol=native#text/plain
 tests/test/tobjc5.pp svneol=native#text/plain
 tests/test/tobjc5a.pp svneol=native#text/plain
