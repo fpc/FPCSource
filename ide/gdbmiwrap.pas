@@ -209,9 +209,9 @@ begin
 {$if defined(TARGET_IS_64BIT)}
   Result := StrToQWord(C2PascalNumberPrefix(AsString));
 {$elseif defined(CPU64)}
-  Result := StrToInt64(C2PascalNumberPrefix(AsString));
+  Result := StrToQWord(C2PascalNumberPrefix(AsString));
 {$else}
-  Result := StrToInt(C2PascalNumberPrefix(AsString));
+  Result := StrToLongWord(C2PascalNumberPrefix(AsString));
 {$endif}
 end;
 
