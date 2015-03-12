@@ -207,11 +207,11 @@ end;
 function TGDBMI_Value.AsCoreAddr: CORE_ADDR;
 begin
 {$if defined(TARGET_IS_64BIT)}
-  Result := StrToQWord(C2PascalNumberPrefix(AsString));
+  Result := AsQWord;
 {$elseif defined(CPU64)}
-  Result := StrToQWord(C2PascalNumberPrefix(AsString));
+  Result := AsQWord;
 {$else}
-  Result := StrToLongWord(C2PascalNumberPrefix(AsString));
+  Result := AsLongWord;
 {$endif}
 end;
 
