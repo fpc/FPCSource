@@ -27,7 +27,7 @@ begin
     P.NeedLibC:= false;
 
     P.SourcePath.Add('src');
-    
+
     T:=P.Targets.AddUnit('nds9.pp');
     T:=P.Targets.AddUnit('nds7.pp');
      T.IncludePath.Add('src/nds');
@@ -45,6 +45,7 @@ begin
        AddInclude('interrupts.inc');
        AddInclude('ipc.inc');
        AddInclude('jtypes.inc');
+       AddInclude('libversion.inc');
        AddInclude('memory.inc');
        AddInclude('nds.inc');
        AddInclude('ndsinclude.inc');
@@ -53,7 +54,7 @@ begin
        AddInclude('system.inc');
        AddInclude('timers.inc');
        AddInclude('touch.inc');
-     end;    
+     end;
      T.IncludePath.Add('src/nds/arm7');
      with T.Dependencies do
      begin
@@ -64,7 +65,7 @@ begin
        AddInclude('sdmmc.inc');
        AddInclude('serial.inc');
        AddInclude('touch.inc');
-     end;    
+     end;
      T.IncludePath.Add('src/nds/arm9');
      with T.Dependencies do
      begin
@@ -94,7 +95,8 @@ begin
        AddInclude('trig_lut.inc');
        AddInclude('video.inc');
        AddInclude('videoGL.inc');
-     end;    
+       AddInclude('window.inc');
+     end;
 
     // dswifi
     P.SourcePath.Add('src/dswifi');

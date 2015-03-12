@@ -3,8 +3,8 @@
 #
 
 [target]
-loaders= 
-programs=touchLook
+loaders=
+programs=streaming
 
 [require]
 packages=libndsfpc
