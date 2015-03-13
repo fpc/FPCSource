@@ -161,13 +161,13 @@ const
 
 function VFP_GetCW : dword; nostackframe; assembler;
   asm
-    fmrx r0,fpscr
+    vmrs r0,fpscr
   end;
 
 
 procedure VFP_SetCW(cw : dword); nostackframe; assembler;
   asm
-    fmxr fpscr,r0
+    vmsr fpscr,r0
   end;
 
 

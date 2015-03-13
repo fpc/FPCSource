@@ -4140,7 +4140,7 @@ implementation
         begin
 {$ifdef arm}
           if GenerateThumbCode or GenerateThumb2Code then
-            list.concat(tai_thumb_func.create);
+            list.concat(tai_directive.create(asd_thumb_func,''));
 {$endif arm}
           { "double link" all procedure entry symbols via .reference }
           { directives on darwin, because otherwise the linker       }

@@ -69,6 +69,7 @@
             ,asmmode_avr_gas
             ,asmmode_i8086_intel
             ,asmmode_i8086_att
+            ,asmmode_arm_gas_unified
        );
 
      (* IMPORTANT NOTE:
@@ -214,6 +215,7 @@
              ,as_i8086_nasm
              ,as_i8086_nasmobj
              ,as_gas_powerpc_xcoff
+             ,as_arm_elf32
        );
 
        tlink = (ld_none,

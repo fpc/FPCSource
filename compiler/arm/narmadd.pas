@@ -162,6 +162,7 @@ interface
       var
         op : TAsmOp;
         singleprec: boolean;
+        pf: TOpPostfix;
       begin
         pass_left_right;
         if (nf_swapped in flags) then
@@ -210,33 +211,25 @@ interface
               location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
 
               singleprec:=tfloatdef(left.resultdef).floattype=s32real;
+              if singleprec then
+                pf:=PF_F32
+              else
+                pf:=PF_F64;
               case nodetype of
                 addn :
-                  if singleprec then
-                    op:=A_FADDS
-                  else
-                    op:=A_FADDD;
+                  op:=A_VADD;
                 muln :
-                  if singleprec then
-                    op:=A_FMULS
-                  else
-                    op:=A_FMULD;
+                  op:=A_VMUL;
                 subn :
-                  if singleprec then
-                    op:=A_FSUBS
-                  else
-                    op:=A_FSUBD;
+                  op:=A_VSUB;
                 slashn :
-                  if singleprec then
-                    op:=A_FDIVS
-                  else
-                    op:=A_FDIVD;
+                  op:=A_VDIV;
                 else
                   internalerror(2009111401);
               end;
 
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,
-                 location.register,left.location.register,right.location.register));
+              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(op,
+                 location.register,left.location.register,right.location.register),pf));
             end;
           fpu_fpv4_s16:
             begin
@@ -275,6 +268,7 @@ interface
     procedure tarmaddnode.second_cmpfloat;
       var
         op: TAsmOp;
+        pf: TOpPostfix;
       begin
         pass_left_right;
         if (nf_swapped in flags) then
@@ -310,19 +304,20 @@ interface
               hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,right.resultdef,true);
 
-              if (tfloatdef(left.resultdef).floattype=s32real) then
-                if nodetype in [equaln,unequaln] then
-                  op:=A_FCMPS
-                 else
-                   op:=A_FCMPES
-              else if nodetype in [equaln,unequaln] then
-                op:=A_FCMPD
+              if nodetype in [equaln,unequaln] then
+                op:=A_VCMP
               else
-                op:=A_FCMPED;
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,
-                left.location.register,right.location.register));
+                op:=A_VCMPE;
+
+              if (tfloatdef(left.resultdef).floattype=s32real) then
+                pf:=PF_F32
+              else
+                pf:=PF_F64;
+
+              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(op,
+                left.location.register,right.location.register), pf));
               cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
-              current_asmdata.CurrAsmList.concat(taicpu.op_none(A_FMSTAT));
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_VMRS,NR_APSR_nzcv,NR_FPSCR));
               location.resflags:=GetFpuResFlags;
             end;
           fpu_fpv4_s16:

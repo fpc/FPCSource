@@ -2035,11 +2035,11 @@ unit cgcpu;
                      ref.index:=ref.base;
                      ref.base:=NR_NO;
                      { FSTMX is deprecated on ARMv6 and later }
-                     if (current_settings.cputype<cpu_armv6) then
+                     {if (current_settings.cputype<cpu_armv6) then
                        postfix:=PF_IAX
                      else
-                       postfix:=PF_IAD;
-                     list.concat(setoppostfix(taicpu.op_ref_regset(A_FSTM,ref,R_MMREGISTER,R_SUBFD,mmregs),postfix));
+                       postfix:=PF_IAD;}
+                     list.concat(taicpu.op_ref_regset(A_VSTM,ref,R_MMREGISTER,R_SUBFD,mmregs));
                    end;
                end;
              end;
@@ -2136,11 +2136,11 @@ unit cgcpu;
                       ref.index:=ref.base;
                       ref.base:=NR_NO;
                       { FLDMX is deprecated on ARMv6 and later }
-                      if (current_settings.cputype<cpu_armv6) then
+                      {if (current_settings.cputype<cpu_armv6) then
                         mmpostfix:=PF_IAX
                       else
-                        mmpostfix:=PF_IAD;
-                      list.concat(setoppostfix(taicpu.op_ref_regset(A_FLDM,ref,R_MMREGISTER,R_SUBFD,mmregs),mmpostfix));
+                        mmpostfix:=PF_IAD;}
+                      list.concat(taicpu.op_ref_regset(A_VLDM,ref,R_MMREGISTER,R_SUBFD,mmregs));
                     end;
                 end;
               end;
@@ -2914,8 +2914,8 @@ unit cgcpu;
     function get_scalar_mm_op(fromsize,tosize : tcgsize) : tasmop;
       const
         convertop : array[OS_F32..OS_F128,OS_F32..OS_F128] of tasmop = (
-          (A_FCPYS,A_FCVTSD,A_NONE,A_NONE,A_NONE),
-          (A_FCVTDS,A_FCPYD,A_NONE,A_NONE,A_NONE),
+          (A_VMOV,A_VCVT,A_NONE,A_NONE,A_NONE),
+          (A_VCVT,A_VMOV,A_NONE,A_NONE,A_NONE),
           (A_NONE,A_NONE,A_NONE,A_NONE,A_NONE),
           (A_NONE,A_NONE,A_NONE,A_NONE,A_NONE),
           (A_NONE,A_NONE,A_NONE,A_NONE,A_NONE));
@@ -2926,33 +2926,30 @@ unit cgcpu;
       end;
 
 
+    function get_scalar_mm_prefix(fromsize,tosize : tcgsize) : TOpPostfix;
+      const
+        convertop : array[OS_F32..OS_F128,OS_F32..OS_F128] of TOpPostfix = (
+          (PF_F32,   PF_F32F64,PF_None,PF_None,PF_None),
+          (PF_F64F32,PF_F64,   PF_None,PF_None,PF_None),
+          (PF_None,  PF_None,  PF_None,PF_None,PF_None),
+          (PF_None,  PF_None,  PF_None,PF_None,PF_None),
+          (PF_None,  PF_None,  PF_None,PF_None,PF_None));
+      begin
+        result:=convertop[fromsize,tosize];
+      end;
+
+
     procedure tbasecgarm.a_loadmm_reg_reg(list: tasmlist; fromsize,tosize: tcgsize; reg1,reg2: tregister; shuffle: pmmshuffle);
       var
         instr: taicpu;
       begin
-        if shuffle=nil then
-          begin
-            if fromsize=tosize then
-              { needs correct size in case of spilling }
-              case fromsize of
-                OS_F32:
-                  instr:=taicpu.op_reg_reg(A_FCPYS,reg2,reg1);
-                OS_F64:
-                  instr:=taicpu.op_reg_reg(A_FCPYD,reg2,reg1);
-                else
-                  internalerror(2009112405);
-              end
-            else
-              internalerror(2009112406);
-          end
-        else if shufflescalar(shuffle) then
-          instr:=taicpu.op_reg_reg(get_scalar_mm_op(tosize,fromsize),reg2,reg1)
+        if (shuffle=nil) or shufflescalar(shuffle) then
+          instr:=setoppostfix(taicpu.op_reg_reg(get_scalar_mm_op(tosize,fromsize),reg2,reg1),get_scalar_mm_prefix(tosize,fromsize))
         else
           internalerror(2009112407);
         list.concat(instr);
         case instr.opcode of
-          A_FCPYS,
-          A_FCPYD:
+          A_VMOV:
             add_move_instruction(instr);
         end;
       end;
@@ -2963,7 +2960,6 @@ unit cgcpu;
         intreg,
         tmpmmreg : tregister;
         reg64    : tregister64;
-        op       : tasmop;
       begin
         if assigned(shuffle) and
            not(shufflescalar(shuffle)) then
@@ -3012,15 +3008,7 @@ unit cgcpu;
           end
         else
           begin
-             case fromsize of
-               OS_F32:
-                 op:=A_FLDS;
-               OS_F64:
-                 op:=A_FLDD;
-               else
-                 internalerror(2009112415);
-             end;
-             handle_load_store(list,op,PF_None,tmpmmreg,ref);
+             handle_load_store(list,A_VLDR,PF_None,tmpmmreg,ref);
           end;
 
         if (tmpmmreg<>reg) then
@@ -3033,7 +3021,6 @@ unit cgcpu;
         intreg,
         tmpmmreg : tregister;
         reg64    : tregister64;
-        op       : tasmop;
       begin
         if assigned(shuffle) and
            not(shufflescalar(shuffle)) then
@@ -3085,15 +3072,7 @@ unit cgcpu;
           end
         else
           begin
-             case fromsize of
-               OS_F32:
-                 op:=A_FSTS;
-               OS_F64:
-                 op:=A_FSTD;
-               else
-                 internalerror(2009112418);
-             end;
-             handle_load_store(list,op,PF_None,tmpmmreg,ref);
+             handle_load_store(list,A_VSTR,PF_None,tmpmmreg,ref);
           end;
       end;
 
@@ -3109,7 +3088,7 @@ unit cgcpu;
         if assigned(shuffle) and
            not shufflescalar(shuffle) then
           internalerror(2009112516);
-        list.concat(taicpu.op_reg_reg(A_FMSR,mmreg,intreg));
+        list.concat(taicpu.op_reg_reg(A_VMOV,mmreg,intreg));
       end;
 
 
@@ -3124,7 +3103,7 @@ unit cgcpu;
         if assigned(shuffle) and
            not shufflescalar(shuffle) then
           internalerror(2009112514);
-        list.concat(taicpu.op_reg_reg(A_FMRS,intreg,mmreg));
+        list.concat(taicpu.op_reg_reg(A_VMOV,intreg,mmreg));
       end;
 
 
@@ -3146,9 +3125,9 @@ unit cgcpu;
                 a_load_const_reg(list,OS_32,0,tmpreg);
                 case size of
                   OS_F32:
-                    list.concat(taicpu.op_reg_reg(A_FMSR,dst,tmpreg));
+                    list.concat(taicpu.op_reg_reg(A_VMOV,dst,tmpreg));
                   OS_F64:
-                    list.concat(taicpu.op_reg_reg_reg(A_FMDRR,dst,tmpreg,tmpreg));
+                    list.concat(taicpu.op_reg_reg_reg(A_VMOV,dst,tmpreg,tmpreg));
                   else
                     internalerror(2009112908);
                 end;
@@ -3270,7 +3249,7 @@ unit cgcpu;
           Internalerror(200109191);
 
           if GenerateThumbCode or GenerateThumb2Code then
-            list.concat(tai_thumb_func.create);
+            list.concat(tai_directive.Create(asd_thumb_func,''));
 
         make_global:=false;
         if (not current_module.is_unit) or
@@ -3413,7 +3392,7 @@ unit cgcpu;
           conversions }
         if (mmsize<>OS_F64) then
           internalerror(2009112405);
-        list.concat(taicpu.op_reg_reg_reg(A_FMDRR,mmreg,intreg.reglo,intreg.reghi));
+        list.concat(taicpu.op_reg_reg_reg(A_VMOV,mmreg,intreg.reglo,intreg.reghi));
       end;
 
 
@@ -3423,7 +3402,7 @@ unit cgcpu;
           conversions }
         if (mmsize<>OS_F64) then
           internalerror(2009112406);
-        list.concat(taicpu.op_reg_reg_reg(A_FMRRD,intreg.reglo,intreg.reghi,mmreg));
+        list.concat(taicpu.op_reg_reg_reg(A_VMOV,intreg.reglo,intreg.reghi,mmreg));
       end;
 
 
@@ -4358,7 +4337,13 @@ unit cgcpu;
         rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
             [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7],first_fpu_imreg,[]);
 
-        if current_settings.fputype in [fpu_fpv4_s16,fpu_vfpv3_d16] then
+        if current_settings.fputype=fpu_vfpv3 then
+          rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFD,
+              [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7,
+               RS_D16,RS_D17,RS_D18,RS_D19,RS_D20,RS_D21,RS_D22,RS_D23,RS_D24,RS_D25,RS_D26,RS_D27,RS_D28,RS_D29,RS_D30,RS_D31,
+               RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15
+              ],first_mm_imreg,[])
+        else if current_settings.fputype in [fpu_fpv4_s16,fpu_vfpv3_d16] then
           rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBFD,
               [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7,
                RS_D8,RS_D9,RS_D10,RS_D11,RS_D12,RS_D13,RS_D14,RS_D15
@@ -5281,19 +5266,13 @@ unit cgcpu;
 
     procedure tthumb2cgarm.a_loadmm_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister; shuffle: pmmshuffle);
       begin
-        if fromsize=OS_F32 then
-          handle_load_store(list,A_VLDR,PF_F32,reg,ref)
-        else
-          handle_load_store(list,A_VLDR,PF_F64,reg,ref);
+        handle_load_store(list,A_VLDR,PF_None,reg,ref);
       end;
 
 
     procedure tthumb2cgarm.a_loadmm_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference; shuffle: pmmshuffle);
       begin
-        if fromsize=OS_F32 then
-          handle_load_store(list,A_VSTR,PF_F32,reg,ref)
-        else
-          handle_load_store(list,A_VSTR,PF_F64,reg,ref);
+        handle_load_store(list,A_VSTR,PF_None,reg,ref);
       end;
 
 

@@ -114,6 +114,7 @@ implementation
         encodereloc:       @elf_sparc_encodeReloc;
         loadreloc:         @elf_sparc_loadReloc;
         loadsection:       nil;
+        encodeflags:       nil;
       );
 
     as_sparc_elf32_info : tasminfo =

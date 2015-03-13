@@ -325,8 +325,15 @@ implementation
           result:=R_ARM_ABS32;
         RELOC_RELATIVE:
           result:=R_ARM_REL32;
+        RELOC_RELATIVE_24:
+          result:=R_ARM_JUMP24;
+        RELOC_RELATIVE_24_THUMB:
+          result:=R_ARM_CALL;
+        RELOC_RELATIVE_CALL_THUMB:
+          result:=R_ARM_THM_CALL;
       else
         result:=0;
+        writeln(objrel.typ);
         InternalError(2012110602);
       end;
     end;
@@ -666,9 +673,14 @@ implementation
                   begin
                     if (reltyp=R_ARM_CALL) then
                       { change BL to BLX, dest bit 1 goes to instruction bit 24 }
-                      address:=(address and $FE000000) or (((tmp-curloc) and 2) shl 23) or $10000000
+                      address:=(address and $FE000000) or (((tmp-curloc) and 2) shl 23) or $F0000000
                     else
                       InternalError(2014092001);
+                  end
+                else if (address and $FF000000)=$FA000000 then
+                  begin
+                    { Change BLX to BL }
+                    address:=(address and $EA000000) or $01000000;
                   end;
                 tmp:=tmp-curloc;
                 // TODO: check overflow
@@ -902,6 +914,11 @@ implementation
     end;
 
 
+  function elf_arm_encodeflags: longword;
+    begin
+      result:=EF_ARM_EABI_VER5;
+    end;
+
 {*****************************************************************************
                                     Initialize
 *****************************************************************************}
@@ -924,9 +941,26 @@ implementation
         encodereloc:       @elf_arm_encodeReloc;
         loadreloc:         @elf_arm_loadReloc;
         loadsection:       @elf_arm_loadSection;
+        encodeflags:       @elf_arm_encodeflags;
       );
 
+    as_arm_elf32_info : tasminfo =
+       (
+         id     : as_arm_elf32;
+         idtxt  : 'ELF';
+         asmbin : '';
+         asmcmd : '';
+         supported_targets : [system_arm_embedded,system_arm_darwin,
+                              system_arm_linux,system_arm_gba,
+                              system_arm_nds];
+         flags : [af_outputbinary,af_smartlink_sections,af_supports_dwarf];
+         labelprefix : '.L';
+         comment : '';
+         dollarsign: '$';
+       );
+
 initialization
+  RegisterAssembler(as_arm_elf32_info,TElfAssembler);
   ElfTarget:=elf_target_arm;
   ElfExeOutputClass:=TElfExeOutputARM;
 
