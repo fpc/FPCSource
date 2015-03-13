@@ -11912,6 +11912,7 @@ tests/test/tlibrary2.pp svneol=native#text/plain
 tests/test/tlibrary3.pp svneol=native#text/plain
 tests/test/tmacbool.pp svneol=native#text/plain
 tests/test/tmacfunret.pp svneol=native#text/plain
+tests/test/tmacfunret2.pp svneol=native#text/plain
 tests/test/tmaclocalprocparam1.pp svneol=native#text/plain
 tests/test/tmaclocalprocparam1a.pp svneol=native#text/plain
 tests/test/tmaclocalprocparam2.pp svneol=native#text/plain
