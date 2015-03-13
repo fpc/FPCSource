@@ -3118,10 +3118,21 @@ implementation
              _RETURN :
                 begin
                   consume(_RETURN);
+                  p1:=nil;
                   if not(token in [_SEMICOLON,_ELSE,_END]) then
-                    p1 := cexitnode.create(comp_expr(true,false))
-                  else
-                    p1 := cexitnode.create(nil);
+                    begin
+                      p1:=comp_expr(true,false);
+                      if not assigned(current_procinfo) or
+                         (current_procinfo.procdef.proctypeoption in [potype_constructor,potype_destructor]) or
+                         is_void(current_procinfo.procdef.returndef) then
+                        begin
+                          Message(parser_e_void_function);
+                          { recovery }
+                          p1.free;
+                          p1:=nil;
+                        end;
+                    end;
+                  p1 := cexitnode.create(p1);
                 end;
              _INHERITED :
                begin

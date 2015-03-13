@@ -37,7 +37,10 @@ type
   TGDBMI_ListValue = class;
   TGDBMI_Value = class
     function AsString: string;
+    function AsInt64: Int64;
+    function AsQWord: QWord;
     function AsLongInt: LongInt;
+    function AsLongWord: LongWord;
     function AsCoreAddr: CORE_ADDR;
     function AsTuple: TGDBMI_TupleValue;
     function AsList: TGDBMI_ListValue;
@@ -173,19 +176,42 @@ begin
   Result := (self as TGDBMI_StringValue).StringValue;
 end;
 
+function TGDBMI_Value.AsInt64: Int64;
+begin
+  Result := StrToInt64(C2PascalNumberPrefix(AsString));
+end;
+
+function TGDBMI_Value.AsQWord: QWord;
+begin
+  Result := StrToQWord(C2PascalNumberPrefix(AsString));
+end;
+
 function TGDBMI_Value.AsLongInt: LongInt;
 begin
   Result := StrToInt(C2PascalNumberPrefix(AsString));
 end;
 
+function TGDBMI_Value.AsLongWord: LongWord;
+const
+  SInvalidInteger = '"%s" is an invalid integer';
+var
+  S: string;
+  Error: LongInt;
+begin
+  S := C2PascalNumberPrefix(AsString);
+  Val(S, Result, Error);
+  if Error <> 0 then
+    raise EConvertError.CreateFmt(SInvalidInteger,[S]);
+end;
+
 function TGDBMI_Value.AsCoreAddr: CORE_ADDR;
 begin
 {$if defined(TARGET_IS_64BIT)}
-  Result := StrToQWord(C2PascalNumberPrefix(AsString));
+  Result := AsQWord;
 {$elseif defined(CPU64)}
-  Result := StrToInt64(C2PascalNumberPrefix(AsString));
+  Result := AsQWord;
 {$else}
-  Result := StrToInt(C2PascalNumberPrefix(AsString));
+  Result := AsLongWord;
 {$endif}
 end;
 

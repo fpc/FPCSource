@@ -987,23 +987,23 @@ function fpc_SarInt64(Const AValue : Int64;const Shift : Byte): Int64;compilerpr
 {$endif FPC_HAS_INTERNAL_SAR_QWORD}
 
 {$ifdef FPC_HAS_INTERNAL_BSF}
-{$if defined(cpui386) or defined(cpux86_64) or defined(cpuarm) or defined(cpuaarch64)}
+{$if defined(cpui386) or defined(cpux86_64) or defined(cpuarm) or defined(cpuaarch64) or defined(cpupowerpc32) or defined(cpupowerpc64)}
 {$define FPC_HAS_INTERNAL_BSF_BYTE}
 {$define FPC_HAS_INTERNAL_BSF_WORD}
 {$define FPC_HAS_INTERNAL_BSF_DWORD}
 {$endif}
-{$if defined(cpux86_64) or defined(cpuaarch64)}
+{$if defined(cpux86_64) or defined(cpuaarch64) or defined(cpupowerpc64)}
 {$define FPC_HAS_INTERNAL_BSF_QWORD}
 {$endif}
 {$endif}
 
 {$ifdef FPC_HAS_INTERNAL_BSR}
-{$if defined(cpui386) or defined(cpux86_64) or defined(cpuarm) or defined(cpuaarch64)}
+{$if defined(cpui386) or defined(cpux86_64) or defined(cpuarm) or defined(cpuaarch64) or defined(cpupowerpc32) or defined(cpupowerpc64)}
 {$define FPC_HAS_INTERNAL_BSR_BYTE}
 {$define FPC_HAS_INTERNAL_BSR_WORD}
 {$define FPC_HAS_INTERNAL_BSR_DWORD}
 {$endif}
-{$if defined(cpux86_64) or defined(cpuaarch64)}
+{$if defined(cpux86_64) or defined(cpuaarch64) or defined(cpupowerpc64)}
 {$define FPC_HAS_INTERNAL_BSR_QWORD}
 {$endif}
 {$endif}

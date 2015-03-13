@@ -1193,10 +1193,8 @@ begin
   save_standard_registers;
 
   { save old stack frame pointer }
-  if (tppcprocinfo(current_procinfo).needs_frame_pointer) then begin
-    a_reg_alloc(list, NR_OLD_STACK_POINTER_REG);
+  if (tppcprocinfo(current_procinfo).needs_frame_pointer) then
     list.concat(taicpu.op_reg_reg(A_MR, NR_OLD_STACK_POINTER_REG, NR_STACK_POINTER_REG));
-  end;
 
   { create stack frame }
   if (not nostackframe) and (localsize > 0) and

@@ -434,7 +434,7 @@ Ignore:
       end;
     'exited':
       begin
-        ExitCode := GDB.ExecAsyncOutput.Parameters['exit-code'].AsLongInt;
+        ExitCode := LongInt(GDB.ExecAsyncOutput.Parameters['exit-code'].AsLongWord);
         DebuggerScreen;
         current_pc := 0;
         Debuggee_started := False;

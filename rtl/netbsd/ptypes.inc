@@ -169,7 +169,8 @@ struct statfs12 {
         1: (_mbstateL: cint64); { for alignment }
     end;
    pmbstate_t = ^mbstate_t;
-  
+ 
+{ records transcripted fromm NetBSD 5.1 libpthread sources } 
    pthread_t            = pointer;
    pthread_attr_t       = record
      pta_magic : cuint;
@@ -181,8 +182,21 @@ struct statfs12 {
      ptma_magic : cint;
      ptma_private : pointer;
    end;
-   pthread_cond_t       = pointer;
-   pthread_condattr_t   = pointer;
+   pthread_spin_t = char;
+   pthread_queue_t = record
+       first, last : pointer;
+     end;
+   pthread_cond_t       = record
+       ptc_magic : cuint;
+       ptc_lock : pthread_spin_t;
+       ptc_waiters : pthread_queue_t;
+       ptc_mutex : ^pthread_mutex_t;
+       ptc_private : pointer;
+     end;
+   pthread_condattr_t   = record
+       ptca_magic : cuint;
+       ptca_private : pointer;
+     end;
    pthread_key_t        = cint;
    pthread_rwlock_t     = pointer;
    pthread_rwlockattr_t = pointer;
