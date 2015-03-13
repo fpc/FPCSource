@@ -5913,6 +5913,68 @@ const
     IMAGE_FILE_MACHINE_CEE               = $C0EE;
     IMAGE_FILE_LARGE_ADDRESS_AWARE       = $20;    // for peflags.
 
+  //
+  // Section characteristics.
+  //
+  //      IMAGE_SCN_TYPE_REG                   = $00000000;  // Reserved.
+  //      IMAGE_SCN_TYPE_DSECT                 = $00000001;  // Reserved.
+  //      IMAGE_SCN_TYPE_NOLOAD                = $00000002;  // Reserved.
+  //      IMAGE_SCN_TYPE_GROUP                 = $00000004;  // Reserved.
+     IMAGE_SCN_TYPE_NO_PAD                = $00000008;  // Reserved.
+  //      IMAGE_SCN_TYPE_COPY                  = $00000010;  // Reserved.
+
+     IMAGE_SCN_CNT_CODE                   = $00000020;  // Section contains code.
+     IMAGE_SCN_CNT_INITIALIZED_DATA       = $00000040;  // Section contains initialized data.
+     IMAGE_SCN_CNT_UNINITIALIZED_DATA     = $00000080;  // Section contains uninitialized data.
+
+     IMAGE_SCN_LNK_OTHER                  = $00000100;  // Reserved.
+     IMAGE_SCN_LNK_INFO                   = $00000200;  // Section contains comments or some other type of information.
+  //      IMAGE_SCN_TYPE_OVER                  = $00000400  // Reserved.
+     IMAGE_SCN_LNK_REMOVE                 = $00000800;  // Section contents will not become part of image.
+     IMAGE_SCN_LNK_COMDAT                 = $00001000;  // Section contents comdat.
+  //                                           = $00002000  // Reserved.
+  //      IMAGE_SCN_MEM_PROTECTED - Obsolete   = $00004000
+     IMAGE_SCN_NO_DEFER_SPEC_EXC          = $00004000;  // Reset speculative exceptions handling bits in the TLB entries for this section.
+     IMAGE_SCN_GPREL                      = $00008000;  // Section content can be accessed relative to GP
+     IMAGE_SCN_MEM_FARDATA                = $00008000;
+  //      IMAGE_SCN_MEM_SYSHEAP  - Obsolete    = $00010000;
+     IMAGE_SCN_MEM_PURGEABLE              = $00020000;
+     IMAGE_SCN_MEM_16BIT                  = $00020000;
+     IMAGE_SCN_MEM_LOCKED                 = $00040000;
+     IMAGE_SCN_MEM_PRELOAD                = $00080000;
+
+     IMAGE_SCN_ALIGN_1BYTES               = $00100000;  //
+     IMAGE_SCN_ALIGN_2BYTES               = $00200000;  //
+     IMAGE_SCN_ALIGN_4BYTES               = $00300000;  //
+     IMAGE_SCN_ALIGN_8BYTES               = $00400000;  //
+     IMAGE_SCN_ALIGN_16BYTES              = $00500000;  // Default alignment if no others are specified.
+     IMAGE_SCN_ALIGN_32BYTES              = $00600000;  //
+     IMAGE_SCN_ALIGN_64BYTES              = $00700000;  //
+     IMAGE_SCN_ALIGN_128BYTES             = $00800000;  //
+     IMAGE_SCN_ALIGN_256BYTES             = $00900000;  //
+     IMAGE_SCN_ALIGN_512BYTES             = $00A00000;  //
+     IMAGE_SCN_ALIGN_1024BYTES            = $00B00000;  //
+     IMAGE_SCN_ALIGN_2048BYTES            = $00C00000;  //
+     IMAGE_SCN_ALIGN_4096BYTES            = $00D00000;  //
+     IMAGE_SCN_ALIGN_8192BYTES            = $00E00000;  //
+  // Unused                                    = $00F00000;
+     IMAGE_SCN_ALIGN_MASK                 = $00F00000;
+
+     IMAGE_SCN_LNK_NRELOC_OVFL            = $01000000;  // Section contains extended relocations.
+     IMAGE_SCN_MEM_DISCARDABLE            = $02000000;  // Section can be discarded.
+     IMAGE_SCN_MEM_NOT_CACHED             = $04000000;  // Section is not cachable.
+     IMAGE_SCN_MEM_NOT_PAGED              = $08000000;  // Section is not pageable.
+     IMAGE_SCN_MEM_SHARED                 = $10000000;  // Section is shareable.
+     IMAGE_SCN_MEM_EXECUTE                = $20000000;  // Section is executable.
+     IMAGE_SCN_MEM_READ                   = $40000000;  // Section is readable.
+     IMAGE_SCN_MEM_WRITE                  = $80000000;  // Section is writeable.
+
+  //
+  // TLS Characteristic Flags
+  //
+     IMAGE_SCN_SCALE_INDEX                = $00000001;  // Tls index is scaled
+
+
     GWLP_WNDPROC        		 = -4; 
     GWLP_HINSTANCE      		 = -6; 
     GWLP_HWNDPARENT     		 = -8; 
@@ -5927,6 +5989,26 @@ const
     GCLP_WNDPROC                         = -24;
     GCLP_HICONSM                         = -34;
 
+    IMAGE_ORDINAL_FLAG64 = uint64($8000000000000000);
+    IMAGE_ORDINAL_FLAG32 = uint32($80000000);
+    bm__IMAGE_TLS_DIRECTORY64_Reserved0 = $FFFFF;
+    bp__IMAGE_TLS_DIRECTORY64_Reserved0 = 0;
+    bm__IMAGE_TLS_DIRECTORY64_Alignment = $F00000;
+    bp__IMAGE_TLS_DIRECTORY64_Alignment = 20;
+    bm__IMAGE_TLS_DIRECTORY64_Reserved1 = $FF000000;
+    bp__IMAGE_TLS_DIRECTORY64_Reserved1 = 24;
+    bm__IMAGE_TLS_DIRECTORY32_Reserved0 = $FFFFF;
+    bp__IMAGE_TLS_DIRECTORY32_Reserved0 = 0;
+    bm__IMAGE_TLS_DIRECTORY32_Alignment = $F00000;
+    bp__IMAGE_TLS_DIRECTORY32_Alignment = 20;
+    bm__IMAGE_TLS_DIRECTORY32_Reserved1 = $FF000000;
+    bp__IMAGE_TLS_DIRECTORY32_Reserved1 = 24;
+
+{$ifdef WIN64}
+    IMAGE_ORDINAL_FLAG = IMAGE_ORDINAL_FLAG64;
+{$else}
+    IMAGE_ORDINAL_FLAG = IMAGE_ORDINAL_FLAG32;
+{$endif}                                                          
 
 // #if(WINVER >= 0x0500)
 {/*

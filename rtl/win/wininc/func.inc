@@ -245,6 +245,7 @@ function SetSystemTime(lpSystemTime:LPSYSTEMTIME):WINBOOL; external 'kernel32' n
 procedure GetLocalTime(lpSystemTime:LPSYSTEMTIME); external 'kernel32' name 'GetLocalTime';
 function SetLocalTime(lpSystemTime:LPSYSTEMTIME):WINBOOL; external 'kernel32' name 'SetLocalTime';
 procedure GetSystemInfo(lpSystemInfo:LPSYSTEM_INFO); external 'kernel32' name 'GetSystemInfo';
+procedure GetNativeSystemInfo(lpSystemInfo:LPSYSTEM_INFO); external 'kernel32' name 'GetNativeSystemInfo';
 function SystemTimeToTzSpecificLocalTime(lpTimeZoneInformation:LPTIME_ZONE_INFORMATION; lpUniversalTime:LPSYSTEMTIME; lpLocalTime:LPSYSTEMTIME):WINBOOL; external 'kernel32' name 'SystemTimeToTzSpecificLocalTime';
 function GetTimeZoneInformation(lpTimeZoneInformation:LPTIME_ZONE_INFORMATION):DWORD; external 'kernel32' name 'GetTimeZoneInformation';
 function SetTimeZoneInformation(lpTimeZoneInformation:LPTIME_ZONE_INFORMATION):WINBOOL; external 'kernel32' name 'SetTimeZoneInformation';
