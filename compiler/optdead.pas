@@ -242,7 +242,7 @@ const
               exit;
             end;
           if (line[fsymtypepos] in ['T','t']) and
-             (not(target_info.system in systems_dotted_function_names) or
+             (not use_dotted_functions or
               (line[fsymnamepos-1]='.')) then
             fsymbols.add(copy(line,fsymnamepos,length(line)),pointer(1));
         end;
@@ -340,7 +340,7 @@ const
         { on Linux/ppc64, there is an extra '.' at the start
           of public function names
         }
-        if (target_info.system=system_powerpc64_linux) then
+        if use_dotted_functions then
           inc(fsymnamepos);
         if failiferror(fsymtypepos<=0) then
           exit;

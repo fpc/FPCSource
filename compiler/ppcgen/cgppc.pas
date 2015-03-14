@@ -766,7 +766,9 @@ unit cgppc;
               href.offset := smallint(href.offset and $ffff);
             end;
           a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R11);
-          if (target_info.system in ([system_powerpc64_linux]+systems_aix)) then
+          if (target_info.system in systems_aix) or
+             ((target_info.system = system_powerpc64_linux) and
+              (target_info.abi=abi_powerpc_sysv)) then
             begin
               reference_reset_base(href, NR_R11, 0, sizeof(pint));
               a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R11);
@@ -817,11 +819,9 @@ unit cgppc;
             system_powerpc_darwin,
             system_powerpc64_darwin:
               list.concat(taicpu.op_sym(A_B,get_darwin_call_stub(procdef.mangledname,false)));
-            system_powerpc64_linux,
-            system_powerpc_aix,
-            system_powerpc64_aix:
+            else if use_dotted_functions then
               {$note ts:todo add GOT change?? - think not needed :) }
-              list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol('.' + procdef.mangledname)));
+              list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol('.' + procdef.mangledname)))
             else
               list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname)))
           end;

@@ -550,6 +550,7 @@ interface
     function is_double_hilo_swapped: boolean;{$ifdef USEINLINE}inline;{$endif}
 {$endif ARM}
     function floating_point_range_check_error : boolean;
+    function use_dotted_functions: boolean;
 
   { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
   const
@@ -1293,6 +1294,14 @@ implementation
     function floating_point_range_check_error : boolean;
       begin
         result:=cs_ieee_errors in current_settings.localswitches;
+      end;
+
+
+    function use_dotted_functions: boolean;
+      begin
+        result:=
+          (target_info.system in systems_dotted_function_names) and
+          (target_info.abi<>abi_powerpc_elfv2);
       end;
 
 {****************************************************************************

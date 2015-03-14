@@ -47,7 +47,7 @@ Unit rappcgas;
       { helpers }
       cutils,
       { global }
-      globtype,verbose,
+      globtype,globals,verbose,
       systems,
       { aasm }
       cpubase,aasmbase,aasmtai,aasmdata,aasmcpu,
@@ -763,12 +763,12 @@ Unit rappcgas;
             if (instr.Operands[1].opr.ref.base<>NR_NO) or
                (instr.Operands[1].opr.ref.index<>NR_NO) then
               Message(asmr_e_syn_operand);
-            if (target_info.system in systems_dotted_function_names) and
+            if use_dotted_functions and
                assigned(instr.Operands[1].opr.ref.symbol) then
               instr.Operands[1].opr.ref.symbol:=current_asmdata.DefineAsmSymbol('.'+instr.Operands[1].opr.ref.symbol.name,instr.Operands[1].opr.ref.symbol.bind,AT_FUNCTION);
           end;
         { regular name is toc entry, .-based name is actual code }
-        if (target_info.system in systems_dotted_function_names) and
+        if use_dotted_functions and
            (instr.Operands[1].opr.typ = OPR_SYMBOL) and
            (instr.Operands[1].opr.symbol.typ=AT_FUNCTION) then
           instr.Operands[1].opr.symbol:=current_asmdata.DefineAsmSymbol('.'+instr.Operands[1].opr.symbol.name,instr.Operands[1].opr.symbol.bind,AT_FUNCTION);
