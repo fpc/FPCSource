@@ -737,10 +737,7 @@ implementation
 {$ifdef SPARC}
 //        aiclass[ait_labeled_instruction]:=tai_labeled_instruction;
 {$endif SPARC}
-{$ifdef arm}
-        aiclass[ait_thumb_set]:=tai_thumb_set;
-{$endif arm}
-        aiclass[ait_set]:=tai_set;
+        aiclass[ait_symbolpair]:=tai_symbolpair;
         aiclass[ait_weak]:=tai_weak;
         aiclass[ait_cutobject]:=tai_cutobject;
         aiclass[ait_regalloc]:=tai_regalloc;

@@ -1242,7 +1242,7 @@ unit raatt;
                Consume(AS_COMMA);
                BuildConstSymbolExpression(true,false,false, symofs,symval,symtyp);
 
-               curList.concat(tai_set.create(symname,symval));
+               curList.concat(tai_symbolpair.create(spk_set,symname,symval));
              end;
 
            AS_WEAK:

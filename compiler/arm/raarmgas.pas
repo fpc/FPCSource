@@ -1440,7 +1440,7 @@ Unit raarmgas;
             Consume(AS_COMMA);
             BuildConstSymbolExpression(true,false,false, val,symval,symtyp);
 
-            curList.concat(tai_thumb_set.create(symname,symval));
+            curList.concat(tai_symbolpair.create(spk_thumb_set,symname,symval));
           end
         else if actasmpattern='.thumb_func' then
           begin

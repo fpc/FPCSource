@@ -1354,18 +1354,15 @@ implementation
                else
                  AsmWriteLn(tai_symbol(hp).sym.name + '=' + tostr(tai_symbol(hp).value));
              end;
-{$ifdef arm}
-           ait_thumb_set:
+           ait_symbolpair:
              begin
-               AsmWriteLn(#9'.thumb_set '+tai_thumb_set(hp).sym^+', '+tai_thumb_set(hp).value^);
-             end;
-{$endif arm}
-           ait_set:
-             begin
+               AsmWrite(#9);
+               AsmWrite(symbolpairkindstr[tai_symbolpair(hp).kind]);
+               AsmWrite(' ');
                if replaceforbidden then
-                 AsmWriteLn(#9'.set '+ReplaceForbiddenAsmSymbolChars(tai_set(hp).sym^)+', '+ReplaceForbiddenAsmSymbolChars(tai_set(hp).value^))
+                 AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).sym^)+', '+ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).value^))
                else
-                 AsmWriteLn(#9'.set '+tai_set(hp).sym^+', '+tai_set(hp).value^);
+                 AsmWriteLn(tai_symbolpair(hp).sym^+', '+tai_symbolpair(hp).value^);
              end;
            ait_weak:
              begin

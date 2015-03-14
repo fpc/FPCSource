@@ -421,7 +421,7 @@ implementation
                     ait_align:
                       inc(CurrOffset,tai_align(curtai).aligntype);
                     ait_weak,
-                    ait_set,
+                    ait_symbolpair,
                     ait_marker:
                       ;
                     ait_label:
