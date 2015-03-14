@@ -692,7 +692,7 @@ unit i_bsd;
             first_parm_offset : 24;
             stacksize   : 262144;
             stackalign   : 16;
-            abi : abi_powerpc_aix;
+            abi : abi_powerpc_darwin;
           );
 
 
@@ -884,7 +884,7 @@ unit i_bsd;
             first_parm_offset : 48;
             stacksize   : 262144;
             stackalign   : 16;
-            abi : abi_powerpc_aix;
+            abi : abi_powerpc_darwin;
           );
 
 

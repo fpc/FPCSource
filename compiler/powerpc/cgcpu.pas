@@ -802,7 +802,8 @@ const
                 list.concat(taicpu.op_reg(A_MFLR,NR_R0));
                 { ... in caller's frame }
                 case target_info.abi of
-                  abi_powerpc_aix:
+                  abi_powerpc_aix,
+                  abi_powerpc_darwin:
                     reference_reset_base(href,NR_STACK_POINTER_REG,LA_LR_AIX,4);
                   abi_powerpc_sysv:
                     reference_reset_base(href,NR_STACK_POINTER_REG,LA_LR_SYSV,4);
@@ -814,7 +815,7 @@ const
 
 (*
             { save the CR if necessary in callers frame. }
-            if target_info.abi = abi_powerpc_aix then
+            if target_info.abi in [abi_powerpc_aix,abi_powerpc_darwin]  then
               if false then { Not needed at the moment. }
                 begin
                   a_reg_alloc(list,NR_R0);
@@ -1014,7 +1015,8 @@ const
                 if (pi_do_call in current_procinfo.flags) then
                   begin
                     case target_info.abi of
-                      abi_powerpc_aix:
+                      abi_powerpc_aix,
+                      abi_powerpc_darwin:
                         reference_reset_base(href,NR_STACK_POINTER_REG,LA_LR_AIX,4);
                       abi_powerpc_sysv:
                         reference_reset_base(href,NR_STACK_POINTER_REG,LA_LR_SYSV,4);
@@ -1027,7 +1029,7 @@ const
 
 (*
                   { restore the CR if necessary from callers frame}
-                  if target_info.abi = abi_powerpc_aix then
+                  if target_info.abi in [abi_powerpc_aix,abi_powerpc_darwin] then
                     if false then { Not needed at the moment. }
                       begin
                         reference_reset_base(href,NR_STACK_POINTER_REG,LA_CR_AIX);
@@ -1061,7 +1063,8 @@ const
         begin
             { FIXME: has to be R_F14 instad of R_F8 for SYSV-64bit }
             case target_info.abi of
-              abi_powerpc_aix:
+              abi_powerpc_aix,
+              abi_powerpc_darwin:
                 firstfpureg := RS_F14;
               abi_powerpc_sysv:
                 firstfpureg := RS_F9;
@@ -1144,7 +1147,8 @@ const
         begin
           { FIXME: has to be R_F14 instad of R_F8 for SYSV-64bit }
           case target_info.abi of
-            abi_powerpc_aix:
+            abi_powerpc_aix,
+            abi_powerpc_darwin:
               firstfpureg := RS_F14;
             abi_powerpc_sysv:
               firstfpureg := RS_F9;

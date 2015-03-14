@@ -363,6 +363,7 @@ interface
          (name: 'DEFAULT'; supported: true),
          (name: 'SYSV'   ; supported:{$if defined(powerpc) or defined(powerpc64)}true{$else}false{$endif}),
          (name: 'AIX'    ; supported:{$if defined(powerpc) or defined(powerpc64)}true{$else}false{$endif}),
+         (name: 'DARWIN'    ; supported:{$if defined(powerpc) or defined(powerpc64)}true{$else}false{$endif}),
          (name: 'ELFV2'  ; supported:{$if defined(powerpc64)}true{$else}false{$endif}),
          (name: 'EABI'   ; supported:{$ifdef FPC_ARMEL}true{$else}false{$endif}),
          (name: 'ARMEB'  ; supported:{$ifdef FPC_ARMEB}true{$else}false{$endif}),

@@ -284,7 +284,7 @@
        );
 
        tabi = (abi_default
-            ,abi_powerpc_sysv,abi_powerpc_aix,abi_powerpc_elfv2
+            ,abi_powerpc_sysv,abi_powerpc_aix,abi_powerpc_darwin,abi_powerpc_elfv2
             ,abi_eabi,abi_armeb,abi_eabihf
             ,abi_old_win32_gnu
             ,abi_aarch64_darwin
