@@ -3908,6 +3908,16 @@ if (target_info.abi = abi_eabihf) then
     end;
 {$endif}
 
+{$if defined(powerpc) or defined(powerpc64)}
+  { define _CALL_ELF symbol like gcc }
+  case target_info.abi of
+    abi_powerpc_sysv:
+      set_system_compvar('_CALL_ELF','1');
+    abi_powerpc_elfv2:
+      set_system_compvar('_CALL_ELF','2');
+    end;
+{$endif}
+
   { Section smartlinking conflicts with import sections on Windows }
   if GenerateImportSection and
      (target_info.system in [system_i386_win32,system_x86_64_win64]) then
