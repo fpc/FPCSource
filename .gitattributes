@@ -10637,6 +10637,13 @@ tests/test/cg/obj/linux/powerpc/tcext3.o -text
 tests/test/cg/obj/linux/powerpc/tcext4.o -text
 tests/test/cg/obj/linux/powerpc/tcext5.o -text
 tests/test/cg/obj/linux/powerpc/tcext6.o -text
+tests/test/cg/obj/linux/powerpc64-le/cpptcl1.o -text
+tests/test/cg/obj/linux/powerpc64-le/cpptcl2.o -text
+tests/test/cg/obj/linux/powerpc64-le/ctest.o -text
+tests/test/cg/obj/linux/powerpc64-le/tcext3.o -text
+tests/test/cg/obj/linux/powerpc64-le/tcext4.o -text
+tests/test/cg/obj/linux/powerpc64-le/tcext5.o -text
+tests/test/cg/obj/linux/powerpc64-le/tcext6.o -text
 tests/test/cg/obj/linux/powerpc64/cpptcl1.o -text
 tests/test/cg/obj/linux/powerpc64/cpptcl2.o -text
 tests/test/cg/obj/linux/powerpc64/ctest.o -text
