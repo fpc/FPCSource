@@ -44,6 +44,7 @@ implementation
 
   uses
     cpubase,globtype,
+    systems,
     procinfo,cpupi,
     symdef,defutil;
 
@@ -54,6 +55,12 @@ implementation
       fromsreg, tosreg: tsubsetregister;
       restbits: byte;
     begin
+      { the code below is only valid for big endian }
+      if target_info.endian=endian_little then
+        begin
+         inherited;
+         exit
+        end;
       restbits:=(sref.bitlen-(loadbitsize-sref.startbit));
       if is_signed(subsetsize) then
         begin
