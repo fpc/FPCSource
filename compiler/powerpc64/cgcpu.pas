@@ -1167,7 +1167,33 @@ var
 
 var
   href: treference;
+  lab: tasmlabel;
+  procmangledname: TSymStr;
 begin
+  { In ELFv2 the function is required to initialise the TOC register itself
+    if necessary. Additionally, it has to mark the end of this TOC
+    initialisation code with a .localfunc directive, which will be used as
+    local entry code by the linker (when it knows the TOC value is the same
+    for the caller and callee). It must load the TOC in a PIC-way, which it
+    can do easily because R12 is guaranteed to hold the address of this function
+    on entry. }
+  if (target_info.abi=abi_powerpc_elfv2) and
+     (pi_needs_got in current_procinfo.flags) and
+     not nostackframe then
+    begin
+      current_asmdata.getlabel(lab,alt_addr);
+      getcpuregister(list,NR_R12);
+      getcpuregister(list,NR_R2);
+      cg.a_label(list,lab);
+      reference_reset_symbol(href,current_asmdata.RefAsmSymbol('.TOC.',AT_DATA),0,sizeof(PInt));
+      href.relsymbol:=lab;
+      href.refaddr:=addr_higha;
+      list.concat(taicpu.op_reg_reg_ref(a_addis,NR_R2,NR_R12,href));
+      href.refaddr:=addr_low;
+      list.concat(taicpu.op_reg_reg_ref(a_addi,NR_R2,NR_R2,href));
+      procmangledname:=current_procinfo.procdef.mangledname;
+      list.concat(tai_symbolpair.create(spk_localentry,procmangledname,procmangledname));
+    end;
   calcFirstUsedFPR(firstregfpu, fprcount);
   calcFirstUsedGPR(firstreggpr, gprcount);
 

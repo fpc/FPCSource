@@ -28,7 +28,8 @@ interface
     uses
       cpubase,
       globtype,
-      parabase,cgbase,cgutils,
+      parabase,cgutils,
+      aasmdata,cgbase,
       symdef,node,ncal;
 
     type
@@ -97,6 +98,9 @@ interface
           procedure do_call_ref(ref: treference);virtual;
 
           procedure load_block_invoke(toreg: tregister);virtual;
+
+          function get_call_reg(list: TAsmList): tregister; virtual;
+          procedure unget_call_reg(list: TAsmList; reg: tregister); virtual;
        public
           procedure pass_generate_code;override;
           destructor destroy;override;
@@ -111,7 +115,7 @@ implementation
       cpuinfo,
       symconst,symbase,symtable,symtype,symsym,defutil,paramgr,
       pass_2,
-      aasmbase,aasmtai,aasmdata,
+      aasmbase,aasmtai,
       nbas,nmem,nld,ncnv,nutils,
       ncgutil,blockutl,
       cgobj,tgobj,hlcgobj,
@@ -468,6 +472,18 @@ implementation
           internalerror(2014071506);
         href.offset:=tfieldvarsym(srsym).fieldoffset;
         hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,tfieldvarsym(srsym).vardef,procdefinition,href,toreg);
+      end;
+
+
+    function tcgcallnode.get_call_reg(list: TAsmList): tregister;
+      begin
+        result:=hlcg.getaddressregister(current_asmdata.CurrAsmList,procdefinition.address_type);
+      end;
+
+
+    procedure tcgcallnode.unget_call_reg(list: TAsmList; reg: tregister);
+      begin
+        { nothing to do by default }
       end;
 
 
@@ -947,7 +963,7 @@ implementation
                  callref:=can_call_ref(href);
                  if not callref then
                    begin
-                     pvreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,proc_addr_voidptrdef);
+                     pvreg:=get_call_reg(current_asmdata.CurrAsmList);
                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,proc_addr_size,proc_addr_size,href,pvreg);
                    end;
 
@@ -977,7 +993,10 @@ implementation
                  if callref then
                    do_call_ref(href)
                  else
-                   hlcg.a_call_reg(current_asmdata.CurrAsmList,tabstractprocdef(procdefinition),pvreg);
+                   begin
+                     hlcg.a_call_reg(current_asmdata.CurrAsmList,tabstractprocdef(procdefinition),pvreg);
+                     unget_call_reg(current_asmdata.CurrAsmList,pvreg);
+                   end;
 
                  extra_post_call_code;
                end

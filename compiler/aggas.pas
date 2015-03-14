@@ -1359,10 +1359,16 @@ implementation
                AsmWrite(#9);
                AsmWrite(symbolpairkindstr[tai_symbolpair(hp).kind]);
                AsmWrite(' ');
-               if replaceforbidden then
-                 AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).sym^)+', '+ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).value^))
+               if tai_symbolpair(hp).kind<>spk_localentry then
+                 s:=', '
                else
-                 AsmWriteLn(tai_symbolpair(hp).sym^+', '+tai_symbolpair(hp).value^);
+                 { the .localentry directive has to specify the size from the
+                   start till here of the non-local entry code as second argument }
+                 s:=', .-';
+               if replaceforbidden then
+                 AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).sym^)+s+ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).value^))
+               else
+                 AsmWriteLn(tai_symbolpair(hp).sym^+s+tai_symbolpair(hp).value^);
              end;
            ait_weak:
              begin

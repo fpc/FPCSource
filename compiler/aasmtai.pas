@@ -359,7 +359,7 @@ interface
           ash_savereg,ash_savexmm,ash_pushframe
         );
 
-      TSymbolPairKind = (spk_set, spk_thumb_set);
+      TSymbolPairKind = (spk_set, spk_thumb_set, spk_localentry);
 
 
     const
@@ -393,7 +393,7 @@ interface
         '.seh_savereg','.seh_savexmm','.seh_pushframe'
       );
       symbolpairkindstr: array[TSymbolPairKind] of string[11]=(
-        '.set', '.thumb_set'
+        '.set', '.thumb_set', '.localentry'
       );
 
     type
