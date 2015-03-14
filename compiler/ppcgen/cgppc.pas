@@ -473,6 +473,7 @@ unit cgppc;
       var
         tmpref: treference;
         tmpreg: tregister;
+        toc_offset: longint;
       begin
         tmpreg:=NR_NO;
         if target_info.system in systems_aix then
@@ -496,12 +497,32 @@ unit cgppc;
             a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,NR_RTOC);
             tmpref.offset:=2*sizeof(pint);
             a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,NR_R11);
+          end
+        else if target_info.abi=abi_powerpc_elfv2 then
+          begin
+            { save current TOC }
+            reference_reset_base(tmpref,NR_STACK_POINTER_REG,LA_RTOC_ELFV2,sizeof(pint));
+            a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_RTOC,tmpref);
+            { functions must be called via R12 for this ABI }
+            if reg<>NR_R12 then
+              begin
+                getcpuregister(list,NR_R12);
+                a_load_reg_reg(list,OS_ADDR,OS_ADDR,reg,NR_R12)
+              end;
           end;
         list.concat(taicpu.op_none(A_BCTRL));
-        if target_info.system in systems_aix then
+        if (target_info.system in systems_aix) or
+           (target_info.abi=abi_powerpc_elfv2) then
           begin
+            if (target_info.abi=abi_powerpc_elfv2) and
+               (reg<>NR_R12) then
+              ungetcpuregister(list,NR_R12);
             { restore our TOC }
-            reference_reset_base(tmpref,NR_STACK_POINTER_REG,LA_RTOC_AIX,sizeof(pint));
+            if target_info.system in systems_aix then
+              toc_offset:=LA_RTOC_AIX
+            else
+              toc_offset:=LA_RTOC_ELFV2;
+            reference_reset_base(tmpref,NR_STACK_POINTER_REG,toc_offset,sizeof(pint));
             a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,NR_RTOC);
           end;
         include(current_procinfo.flags,pi_do_call);
