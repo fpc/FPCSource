@@ -380,8 +380,13 @@ begin
       Err := IOResult;
       if Err <> 0 then
        begin
-        Str (Err, SErr);
-        Verbose (V_Error, 'Directory creation failed ' + SErr);
+        { did another parallel instance create it in the mean time? }
+        if not PathExists(hs) then
+          begin
+            { no -> error }
+            Str (Err, SErr);
+            Verbose (V_Error, 'Directory creation of "'+HS+'" failed ' + SErr);
+          end;
        end;
     end;
 end;
