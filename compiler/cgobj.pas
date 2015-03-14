@@ -1214,7 +1214,14 @@ implementation
                end;
              end;
            LOC_FPUREGISTER :
-             a_loadfpu_reg_reg(list,paraloc.size,regsize,paraloc.register,reg);
+             begin
+               case getregtype(reg) of
+                 R_FPUREGISTER:
+                   a_loadfpu_reg_reg(list,paraloc.size,regsize,paraloc.register,reg)
+                 else
+                   internalerror(2015031401);
+                 end;
+             end;
            LOC_REFERENCE :
              begin
                reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset,align);
