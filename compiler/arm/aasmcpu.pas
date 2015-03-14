@@ -179,7 +179,7 @@ uses
         ops     : byte;
         optypes : array[0..5] of longint;
         code    : array[0..maxinfolen] of char;
-        flags   : longint;
+        flags   : longword;
       end;
 
       pinsentry=^tinsentry;
@@ -2024,7 +2024,7 @@ implementation
             IF_ARMv4T or IF_ARMv5T or IF_ARMv6T2 or IF_ARMv7M or IF_ARMv7EM
           );
 
-        FPUMasks: array[tfputype] of longint =
+        FPUMasks: array[tfputype] of longword =
           (
             IF_NONE,
             IF_NONE,
@@ -2167,7 +2167,10 @@ implementation
                         ot:=ot or OT_AM2;
 
                       if (ref^.index<>NR_NO) and
-                        (oppostfix in [PF_None,PF_IA,PF_IB,PF_DA,PF_DB,PF_FD,PF_FA,PF_ED,PF_EA]) and
+                        (oppostfix in [PF_None,PF_IA,PF_IB,PF_DA,PF_DB,PF_FD,PF_FA,PF_ED,PF_EA,
+                                       PF_IAD,PF_DBD,PF_FDD,PF_EAD,
+                                       PF_IAS,PF_DBS,PF_FDS,PF_EAS,
+                                       PF_IAX,PF_DBX,PF_FDX,PF_EAX]) and
                         (
                           (ref^.base=NR_NO) and
                           (ref^.shiftmode=SM_None) and
@@ -2333,7 +2336,7 @@ implementation
         { update condition flags
           or floating point single }
       if (oppostfix=PF_S) and
-        not(p^.code[0] in [#$04..#$0F,#$14..#$16,#$29,#$30,#$60..#$6B,#$80..#$82,#$A0..#$A2]) then
+        not(p^.code[0] in [#$04..#$0F,#$14..#$16,#$29,#$30,#$60..#$6B,#$80..#$82,#$A0..#$A2,#$44,#$94,#$42,#$92]) then
         begin
           Matches:=0;
           exit;
@@ -2341,7 +2344,13 @@ implementation
 
       { floating point size }
       if (oppostfix in [PF_D,PF_E,PF_P,PF_EP]) and
-        not(p^.code[0] in [#$A0..#$A2]) then
+        not(p^.code[0] in [
+          // FPA
+          #$A0..#$A2,
+          // old-school VFP
+          #$42,#$92,
+          // vldm/vstm
+          #$44,#$94]) then
         begin
           Matches:=0;
           exit;
@@ -3768,7 +3777,8 @@ implementation
               bytes:=bytes or (ord(insentry^.code[3]) shl 8);
               bytes:=bytes or ord(insentry^.code[4]);
               { set regs }
-              if opcode=A_VMRS then
+              if (opcode=A_VMRS) or
+                 (opcode=A_FMRX) then
                 begin
                   case oper[1]^.reg of
                     NR_FPSID: Rn:=$0;
@@ -3818,6 +3828,12 @@ implementation
                   Rn:=getmmreg(oper[1]^.reg);
                   Rm:=getmmreg(oper[2]^.reg);
                 end
+              else if ops=1 then
+                begin
+                  Rd:=getmmreg(oper[0]^.reg);
+                  Rn:=0;
+                  Rm:=0;
+                end
               else if oper[1]^.typ=top_const then
                 begin
                   Rd:=getmmreg(oper[0]^.reg);
@@ -3831,7 +3847,7 @@ implementation
                   Rm:=getmmreg(oper[1]^.reg);
                 end;
 
-              if oppostfix=PF_F32 then
+              if (oppostfix=PF_F32) or (insentry^.code[5]=#1) then
                 begin
                   D:=rd and $1; Rd:=Rd shr 1;
                   N:=rn and $1; Rn:=Rn shr 1;
@@ -3883,6 +3899,55 @@ implementation
 
                   bytes:=bytes and $FFF0FFFF;
                   bytes:=bytes or ($7 shl 16);
+
+                  bytes:=bytes or (Rd shl 12);
+                  bytes:=bytes or (Rm shl 0);
+
+                  bytes:=bytes or (D shl 22);
+                  bytes:=bytes or (M shl 5);
+                end
+              else if (ops=2) and
+                      (oppostfix=PF_None) then
+                begin
+                  d:=0;
+                  case getsubreg(oper[0]^.reg) of
+                    R_SUBNONE:
+                      rd:=getsupreg(oper[0]^.reg);
+                    R_SUBFS:
+                      begin
+                        rd:=getmmreg(oper[0]^.reg);
+
+                        d:=rd and 1;
+                        rd:=rd shr 1;
+                      end;
+                    R_SUBFD:
+                      begin
+                        rd:=getmmreg(oper[0]^.reg);
+
+                        d:=(rd shr 4) and 1;
+                        rd:=rd and $F;
+                      end;
+                  end;
+
+                  m:=0;
+                  case getsubreg(oper[1]^.reg) of
+                    R_SUBNONE:
+                      rm:=getsupreg(oper[1]^.reg);
+                    R_SUBFS:
+                      begin
+                        rm:=getmmreg(oper[1]^.reg);
+
+                        m:=rm and 1;
+                        rm:=rm shr 1;
+                      end;
+                    R_SUBFD:
+                      begin
+                        rm:=getmmreg(oper[1]^.reg);
+
+                        m:=(rm shr 4) and 1;
+                        rm:=rm and $F;
+                      end;
+                  end;
 
                   bytes:=bytes or (Rd shl 12);
                   bytes:=bytes or (Rm shl 0);
@@ -4034,14 +4099,14 @@ implementation
                           { set W }
                           bytes:=bytes or (1 shl 21);
                         end
-                      else if oppostfix = PF_DB then
+                      else if oppostfix in [PF_DB,PF_DBS,PF_DBD,PF_DBX] then
                         message1(asmw_e_invalid_opcode_and_operands, 'Invalid postfix without writeback');
                     end
                   else
                     begin
                       Rn:=getsupreg(oper[0]^.reg);
 
-                      if oppostfix = PF_DB then
+                      if oppostfix in [PF_DB,PF_DBS,PF_DBD,PF_DBX] then
                         message1(asmw_e_invalid_opcode_and_operands, 'Invalid postfix without writeback');
                     end;
 
@@ -4050,10 +4115,18 @@ implementation
                   { Set PU bits }
                   case oppostfix of
                     PF_None,
-                    PF_IA:
+                    PF_IA,PF_IAS,PF_IAD,PF_IAX:
                       bytes:=bytes or (1 shl 23);
-                    PF_DB:
+                    PF_DB,PF_DBS,PF_DBD,PF_DBX:
                       bytes:=bytes or (2 shl 23);
+                  end;
+
+                  case oppostfix of
+                    PF_IAX,PF_DBX,PF_FDX,PF_EAX:
+                      begin
+                        bytes:=bytes or (1 shl 8);
+                        bytes:=bytes or (1 shl 0); // Offset is odd
+                      end;
                   end;
 
                   dp_operation:=(oper[1]^.subreg=R_SUBFD);

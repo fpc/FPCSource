@@ -299,7 +299,6 @@ reg32,reg32         \321\300\1\x11\101            ARM32,ARMv4
 [LDMcc]
 memam4,reglist              \x69\xC8            THUMB,ARMv4T
 reglo,reglist               \x69\xC8            THUMB,ARMv4T
-reg32,reglist		   \x26\x81			ARM7
 
 memam4,reglist              \x8C\xE8\x10\x0\x0  THUMB32,WIDE,ARMv6T2
 reg32,reglist               \x8C\xE8\x10\x0\x0  THUMB32,WIDE,ARMv6T2
@@ -756,14 +755,22 @@ reg32,memam2               \x88\xF9\x10\xE\x0\0                THUMB32,ARMv6T2
 reg32,memam2               \x1E\x0\x30\x0\xD0                  ARM32,ARMv4
 
 [LDRSHTcc]
-reg32,memam2              \x88\xF9\x30\xE\x0\0         THUMB32,ARMv6T2
-reg32,memam2              \x1E\x0\x30\x0\xF0           ARM32,ARMv4
+reg32,memam2              \x88\xF9\x30\xE\x0\0                 THUMB32,ARMv6T2
+reg32,memam2              \x1E\x0\x30\x0\xF0                   ARM32,ARMv4
 
 [FSTDcc]
+vreg,memam2             \x95\xED\x0\xA                         THUMB32,VFPv2
+vreg,memam2             \x45\xD\x0\xA                          ARM32,VFPv2
 
 [FSTMcc]
+memam4,reglist		      \x94\xEC\x00\xA		                  THUMB32,VFPv2
+reg32,reglist		      \x94\xEC\x00\xA		                  THUMB32,VFPv2
+memam4,reglist		      \x44\xC\x00\xA		                     ARM32,VFPv2
+reg32,reglist		      \x44\xC\x00\xA		                     ARM32,VFPv2
 
 [FSTScc]
+vreg,memam2             \x95\xED\x0\xA                         THUMB32,VFPv2
+vreg,memam2             \x45\xD\x0\xA                          ARM32,VFPv2
 
 ; ARMv6
 
@@ -1253,50 +1260,98 @@ void                          \x2F\x3\x20\xF0\x1               ARM32,ARMv6K
 ; vfp instructions
 ;
 [FABSDcc]
+vreg,vreg               \x92\xEE\xB0\xA\xC0\0        THUMB32,VFPv2
+vreg,vreg               \x42\xE\xB0\xA\xC0\0         ARM32,VFPv2
 
 [FABSScc]
+vreg,vreg               \x92\xEE\xB0\xA\xC0\1        THUMB32,VFPv2
+vreg,vreg               \x42\xE\xB0\xA\xC0\1         ARM32,VFPv2
 
 [FADDDcc]
+vreg,vreg,vreg          \x92\xEE\x30\xA\x0\0         THUMB32,VFPv2
+vreg,vreg,vreg          \x42\xE\x30\xA\x0\0          ARM32,VFPv2
 
 [FADDScc]
+vreg,vreg,vreg          \x92\xEE\x30\xA\x0\1         THUMB32,VFPv2
+vreg,vreg,vreg          \x42\xE\x30\xA\x0\1          ARM32,VFPv2
 
 [FCMPDcc]
-
-[FCMPEDcc]
-
-[FCMPEScc]
-
-[FCMPEZDcc]
-
-[FCMPEZScc]
+vreg,vreg               \x92\xEE\xB4\xA\x40\0        THUMB32,VFPv2
+vreg,vreg               \x42\xE\xB4\xA\x40\0         ARM32,VFPv2
 
 [FCMPScc]
+vreg,vreg               \x92\xEE\xB4\xA\x40\1        THUMB32,VFPv2
+vreg,vreg               \x42\xE\xB4\xA\x40\1         ARM32,VFPv2
+
+[FCMPEDcc]
+vreg,vreg               \x92\xEE\xB4\xA\xC0\0        THUMB32,VFPv2
+vreg,vreg               \x42\xE\xB4\xA\xC0\0         ARM32,VFPv2
+
+[FCMPEScc]
+vreg,vreg               \x92\xEE\xB4\xA\xC0\1        THUMB32,VFPv2
+vreg,vreg               \x42\xE\xB4\xA\xC0\1         ARM32,VFPv2
 
 [FCMPZDcc]
+vreg                    \x92\xEE\xB5\xA\x40\0        THUMB32,VFPv2
+vreg                    \x42\xE\xB5\xA\x40\0         ARM32,VFPv2
 
 [FCMPZScc]
+vreg                    \x92\xEE\xB5\xA\x40\1        THUMB32,VFPv2
+vreg                    \x42\xE\xB5\xA\x40\1         ARM32,VFPv2
+
+[FCMPEZDcc]
+vreg                    \x92\xEE\xB5\xA\xC0\0        THUMB32,VFPv2
+vreg                    \x42\xE\xB5\xA\xC0\0         ARM32,VFPv2
+
+[FCMPEZScc]
+vreg                    \x92\xEE\xB5\xA\xC0\1        THUMB32,VFPv2
+vreg                    \x42\xE\xB5\xA\xC0\1         ARM32,VFPv2
 
 [FCPYDcc]
+vreg,vreg               \x43\xEE\xB0\xB\x40          THUMB32,VFPv2
+vreg,vreg               \x43\xE\xB0\xB\x40           ARM32,VFPv2
 
 [FCPYScc]
+vreg,vreg               \x43\xEE\xB0\xA\x40          THUMB32,VFPv2
+vreg,vreg               \x43\xE\xB0\xA\x40           ARM32,VFPv2
 
 [FCVTDScc]
+vreg,vreg               \x43\xEE\xB7\xA\xC0          THUMB32,VFPv2
+vreg,vreg               \x43\xE\xB7\xA\xC0           ARM32,VFPv2
 
 [FCVTSDcc]
+vreg,vreg               \x43\xEE\xB7\xB\xC0          THUMB32,VFPv2
+vreg,vreg               \x43\xE\xB7\xB\xC0           ARM32,VFPv2
 
 [FDIVDcc]
+vreg,vreg,vreg          \x92\xEE\x80\xA\x0\0          THUMB32,VFPv2
+vreg,vreg,vreg          \x42\xE\x80\xA\x0\0           ARM32,VFPv2
 
 [FDIVScc]
+vreg,vreg,vreg          \x92\xEE\x80\xA\x0\1          THUMB32,VFPv2
+vreg,vreg,vreg          \x42\xE\x80\xA\x0\1           ARM32,VFPv2
 
 [FLDDcc]
+vreg,memam2             \x95\xED\x10\xA               THUMB32,VFPv2
+vreg,memam2             \x45\xD\x10\xA                ARM32,VFPv2
 
 [FLDMcc]
+memam4,reglist		      \x94\xEC\x10\xA		         THUMB32,VFPv2
+reg32,reglist		      \x94\xEC\x10\xA		         THUMB32,VFPv2
+memam4,reglist		      \x44\xC\x10\xA		            ARM32,VFPv2
+reg32,reglist		      \x44\xC\x10\xA		            ARM32,VFPv2
 
 [FLDScc]
+vreg,memam2             \x95\xED\x10\xA               THUMB32,VFPv2
+vreg,memam2             \x45\xD\x10\xA                ARM32,VFPv2
 
 [FMACDcc]
+vreg,vreg,vreg          \x92\xEE\x0\xA\x00\0          THUMB32,VFPv2
+vreg,vreg,vreg          \x42\xE\x0\xA\x00\0           ARM32,VFPv2
 
 [FMACScc]
+vreg,vreg,vreg          \x92\xEE\x0\xA\x00\1          THUMB32,VFPv2
+vreg,vreg,vreg          \x42\xE\x0\xA\x00\1           ARM32,VFPv2
 
 [FMDHRcc]
 
@@ -1307,62 +1362,122 @@ void                          \x2F\x3\x20\xF0\x1               ARM32,ARMv6K
 [FMRDLcc]
 
 [FMRScc]
+reg32,vreg              \x90\xEE\x10\xA\x10           THUMB32,VFPv2
+reg32,vreg              \x40\xE\x10\xA\x10            ARM32,VFPv2
 
 [FMRXcc]
+reg32,regf              \x91\xEE\xF0\xA\x10           THUMB32,VFPv2
+regf,regf               \x91\xEE\xF0\xA\x10           THUMB32,VFPv2
+reg32,regf              \x41\xE\xF0\xA\x10            ARM32,VFPv2
+regf,regf               \x41\xE\xF0\xA\x10            ARM32,VFPv2
 
 [FMSCDcc]
+vreg,vreg,vreg          \x92\xEE\x10\xA\x00\0         THUMB32,VFPv2
+vreg,vreg,vreg          \x42\xE\x10\xA\x00\0          ARM32,VFPv2
 
 [FMSCScc]
+vreg,vreg,vreg          \x92\xEE\x10\xA\x00\1         THUMB32,VFPv2
+vreg,vreg,vreg          \x42\xE\x10\xA\x00\1          ARM32,VFPv2
 
 [FMSRcc]
+vreg,reg32              \x90\xEE\x00\xA\x10           THUMB32,VFPv2
+vreg,reg32              \x40\xE\x00\xA\x10            ARM32,VFPv2
 
 [FMSTATcc]
+void                    \x80\xEE\xF1\xFA\x10          THUMB32,VFPv2
+void                    \x2F\xE\xF1\xFA\x10           ARM32,VFPv2
 
 [FMULDcc]
+vreg,vreg,vreg          \x92\xEE\x20\xA\x0\0          THUMB32,VFPv2
+vreg,vreg,vreg          \x42\xE\x20\xA\x0\0           ARM32,VFPv2
 
 [FMULScc]
+vreg,vreg,vreg          \x92\xEE\x20\xA\x0\1          THUMB32,VFPv2
+vreg,vreg,vreg          \x42\xE\x20\xA\x0\1           ARM32,VFPv2
 
 [FMXRcc]
+regf,reg32              \x91\xEE\xE0\xA\x10           THUMB32,VFPv2
+regf,reg32              \x41\xE\xE0\xA\x10            ARM32,VFPv2
 
 [FNEGDcc]
+vreg,vreg               \x92\xEE\xB1\xA\x40\0         THUMB32,VFPv2
+vreg,vreg               \x42\xE\xB1\xA\x40\0          ARM32,VFPv2
 
 [FNEGScc]
+vreg,vreg               \x92\xEE\xB1\xA\x40\1         THUMB32,VFPv2
+vreg,vreg               \x42\xE\xB1\xA\x40\1          ARM32,VFPv2
 
 [FNMACDcc]
+vreg,vreg,vreg          \x92\xEE\x00\xA\x40\0         THUMB32,VFPv2
+vreg,vreg,vreg          \x42\xE\x00\xA\x40\0          ARM32,VFPv2
 
 [FNMACScc]
+vreg,vreg,vreg          \x92\xEE\x00\xA\x40\1         THUMB32,VFPv2
+vreg,vreg,vreg          \x42\xE\x00\xA\x40\1          ARM32,VFPv2
 
 [FNMSCDcc]
+vreg,vreg,vreg          \x92\xEE\x10\xA\x40\0         THUMB32,VFPv2
+vreg,vreg,vreg          \x42\xE\x10\xA\x40\0          ARM32,VFPv2
 
 [FNMSCScc]
+vreg,vreg,vreg          \x92\xEE\x10\xA\x40\1         THUMB32,VFPv2
+vreg,vreg,vreg          \x42\xE\x10\xA\x40\1          ARM32,VFPv2
 
 [FNMULDcc]
+vreg,vreg,vreg          \x92\xEE\x20\xA\x40\0         THUMB32,VFPv2
+vreg,vreg,vreg          \x42\xE\x20\xA\x40\0          ARM32,VFPv2
 
 [FNMULScc]
+vreg,vreg,vreg          \x92\xEE\x20\xA\x40\1         THUMB32,VFPv2
+vreg,vreg,vreg          \x42\xE\x20\xA\x40\1          ARM32,VFPv2
 
 [FSITODcc]
+vreg,vreg               \x43\xEE\xB8\xB\xC0          THUMB32,VFPv2
+vreg,vreg               \x43\xE\xB8\xB\xC0           ARM32,VFPv2
 
 [FSITOScc]
+vreg,vreg               \x43\xEE\xB8\xA\xC0          THUMB32,VFPv2
+vreg,vreg               \x43\xE\xB8\xA\xC0           ARM32,VFPv2
 
 [FSQRTDcc]
+vreg,vreg               \x92\xEE\xB1\xA\xC0\0         THUMB32,VFPv2
+vreg,vreg               \x42\xE\xB1\xA\xC0\0          ARM32,VFPv2
 
 [FSQRTScc]
+vreg,vreg               \x92\xEE\xB1\xA\xC0\1         THUMB32,VFPv2
+vreg,vreg               \x42\xE\xB1\xA\xC0\1          ARM32,VFPv2
 
 [FSUBDcc]
+vreg,vreg,vreg          \x92\xEE\x30\xA\x40\0         THUMB32,VFPv2
+vreg,vreg,vreg          \x42\xE\x30\xA\x40\0          ARM32,VFPv2
 
 [FSUBScc]
+vreg,vreg,vreg          \x92\xEE\x30\xA\x40\1         THUMB32,VFPv2
+vreg,vreg,vreg          \x42\xE\x30\xA\x40\1          ARM32,VFPv2
 
 [FTOSIDcc]
+vreg,vreg               \x43\xEE\xBD\xB\x40          THUMB32,VFPv2
+vreg,vreg               \x43\xE\xBD\xB\x40           ARM32,VFPv2
 
 [FTOSIScc]
+vreg,vreg               \x43\xEE\xBD\xA\x40          THUMB32,VFPv2
+vreg,vreg               \x43\xE\xBD\xA\x40           ARM32,VFPv2
 
 [FTOUIDcc]
+vreg,vreg               \x43\xEE\xBC\xB\x40          THUMB32,VFPv2
+vreg,vreg               \x43\xE\xBC\xB\x40           ARM32,VFPv2
 
 [FTOUIScc]
+vreg,vreg               \x43\xEE\xBC\xA\x40          THUMB32,VFPv2
+vreg,vreg               \x43\xE\xBC\xA\x40           ARM32,VFPv2
 
 [FUITODcc]
+vreg,vreg               \x43\xEE\xB8\xB\x40          THUMB32,VFPv2
+vreg,vreg               \x43\xE\xB8\xB\x40           ARM32,VFPv2
 
 [FUITOScc]
+vreg,vreg               \x43\xEE\xB8\xA\x40          THUMB32,VFPv2
+vreg,vreg               \x43\xE\xB8\xA\x40           ARM32,VFPv2
 
 [FMDRRcc]
 
@@ -1544,9 +1659,20 @@ vreg,vreg,vreg          \x92\xEE\x20\xA\x40         THUMB32,VFPv2
 vreg,vreg,vreg          \x42\xE\x20\xA\x40         ARM32,VFPv2
 
 [VFMA]
+vreg,vreg,vreg          \x92\xEE\xA0\xA\x00          THUMB32,VFPv4
+vreg,vreg,vreg          \x42\xE\xA0\xA\x00          ARM32,VFPv4
+
 [VFMS]
+vreg,vreg,vreg          \x92\xEE\xA0\xA\x40          THUMB32,VFPv4
+vreg,vreg,vreg          \x42\xE\xA0\xA\x40          ARM32,VFPv4
+
 [VFNMA]
+vreg,vreg,vreg          \x92\xEE\x90\xA\x00          THUMB32,VFPv4
+vreg,vreg,vreg          \x42\xE\x90\xA\x00          ARM32,VFPv4
+
 [VFNMS]
+vreg,vreg,vreg          \x92\xEE\x90\xA\x40          THUMB32,VFPv4
+vreg,vreg,vreg          \x42\xE\x90\xA\x40          ARM32,VFPv4
 
 [VNEGcc]
 vreg,vreg               \x92\xEE\xB1\xA\x40         THUMB32,VFPv2
