@@ -95,15 +95,13 @@ unit cgcpu;
 
         procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
         function fixref(list: TAsmList; var ref: treference): boolean;
+        function force_to_dataregister(list: TAsmList; size: TCGSize; reg: TRegister): TRegister;
+        procedure move_if_needed(list: TAsmList; size: TCGSize; src: TRegister; dest: TRegister);
      protected
         procedure call_rtl_mul_const_reg(list:tasmlist;size:tcgsize;a:tcgint;reg:tregister;const name:string);
         procedure call_rtl_mul_reg_reg(list:tasmlist;reg1,reg2:tregister;const name:string);
      private
-
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
-        function force_to_dataregister(list: TAsmList; size: TCGSize; reg: TRegister): TRegister;
-        procedure move_if_needed(list: TAsmList; size: TCGSize; src: TRegister; dest: TRegister);
-
      end;
 
      tcg64f68k = class(tcg64f32)

@@ -120,14 +120,11 @@ implementation
     procedure tm68ktypeconvnode.second_int_to_real;
 
       var
-        tempconst: trealconstnode;
         ref: treference;
-        valuereg, tempreg, leftreg, tmpfpureg: tregister;
+        leftreg: tregister;
         signed : boolean;
-        scratch_used : boolean;
         opsize : tcgsize;
       begin
-        scratch_used := false;
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         signed := is_signed(left.resultdef);
         opsize := def_cgsize(left.resultdef);
@@ -144,14 +141,15 @@ implementation
         case left.location.loc of
           LOC_REGISTER, LOC_CREGISTER:
             begin
-              leftreg := left.location.register;
+              leftreg:=tcg68k(cg).force_to_dataregister(current_asmdata.CurrAsmList,left.location.size,left.location.register);
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FMOVE,TCGSize2OpSize[opsize],leftreg,
                   location.register));
             end;
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
-              current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FMOVE,TCGSize2OpSize[opsize],
-                  left.location.reference,location.register));
+              ref:=left.location.reference;
+              tcg68k(cg).fixref(current_asmdata.CurrAsmList,ref);
+              current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FMOVE,TCGSize2OpSize[opsize],ref,location.register));
             end
           else
             internalerror(200110012);
