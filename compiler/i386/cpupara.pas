@@ -292,7 +292,7 @@ unit cpupara;
       var
         retcgsize  : tcgsize;
         paraloc : pcgparalocation;
-        sym: tfieldvarsym;
+        fdef,
         usedef: tdef;
         handled: boolean;
       begin
@@ -307,10 +307,10 @@ unit cpupara;
                                    system_i386_os2,system_i386_emx]) and
            ((usedef.typ=recorddef) or
             is_object(usedef)) and
-           tabstractrecordsymtable(tabstractrecorddef(usedef).symtable).has_single_field(sym) and
-           (sym.vardef.typ=floatdef) and
-           (tfloatdef(sym.vardef).floattype in [s32real,s64real]) then
-          usedef:=sym.vardef;
+           tabstractrecordsymtable(tabstractrecorddef(usedef).symtable).has_single_field(fdef) and
+           (fdef.typ=floatdef) and
+           (tfloatdef(fdef).floattype in [s32real,s64real]) then
+          usedef:=fdef;
 
         handled:=set_common_funcretloc_info(p,usedef,retcgsize,result);
         { normally forcetempdef is passed straight through to

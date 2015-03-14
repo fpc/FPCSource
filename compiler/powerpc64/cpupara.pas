@@ -320,7 +320,6 @@ var
   locdef,
   tmpdef: tdef;
   paralen: aint;
-  fsym: tfieldvarsym;
   parashift: byte;
   tailpadding,
   firstparaloc,
@@ -422,10 +421,10 @@ implemented
     { AIX/ELFv1 b) }
     else if (target_info.abi in [abi_powerpc_aix,abi_powerpc_sysv]) and
        (paradef.typ=recorddef) and
-       tabstractrecordsymtable(tabstractrecorddef(paradef).symtable).has_single_field(fsym) and
-       (fsym.vardef.typ=floatdef) then
+       tabstractrecordsymtable(tabstractrecorddef(paradef).symtable).has_single_field(tmpdef) and
+       (tmpdef.typ=floatdef) then
       begin
-        paradef:=fsym.vardef;
+        paradef:=tmpdef;
         loc:=getparaloc(paradef);
         paracgsize:=def_cgsize(paradef)
       end

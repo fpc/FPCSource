@@ -330,13 +330,13 @@ unit cpupara;
          paralen: aint;
          nextintreg,nextfloatreg,nextmmreg, maxfpureg : tsuperregister;
          locdef,
+         fdef,
          paradef : tdef;
          paraloc : pcgparalocation;
          i  : integer;
          hp : tparavarsym;
          loc : tcgloc;
          paracgsize: tcgsize;
-         sym: tfieldvarsym;
          firstparaloc: boolean;
 
       begin
@@ -404,13 +404,12 @@ unit cpupara;
                       { if a record has only one field and that field is }
                       { non-composite (not array or record), it must be  }
                       { passed according to the rules of that type.      }
-                      sym:=nil;
-                      if tabstractrecordsymtable(tabstractrecorddef(paradef).symtable).has_single_field(sym) and
-                         ((sym.vardef.typ=floatdef) or
+                      if tabstractrecordsymtable(tabstractrecorddef(paradef).symtable).has_single_field(fdef) and
+                         ((fdef.typ=floatdef) or
                           ((target_info.system=system_powerpc_darwin) and
-                           (sym.vardef.typ in [orddef,enumdef]))) then
+                           (fdef.typ in [orddef,enumdef]))) then
                         begin
-                          paradef:=sym.vardef;
+                          paradef:=fdef;
                           paracgsize:=def_cgsize(paradef);
                         end
                       else
