@@ -640,8 +640,18 @@ implemented
         end
       else if (paracgsize in [OS_NO, OS_128, OS_S128]) then
         begin
-          paraloc^.size := OS_INT;
-          paraloc^.def := osuinttype;
+          if (paralen>4) or
+             (parashift<>0) then
+            begin
+              paraloc^.size := OS_INT;
+              paraloc^.def := osuinttype;
+            end
+          else
+            begin
+              { for 3-byte records aligned in the lower bits of register }
+              paraloc^.size := OS_32;
+              paraloc^.def := u32inttype;
+            end;
         end
       else
         begin
