@@ -1378,6 +1378,7 @@ unit cgcpu;
         opcode : tasmop;
         opsize : topsize;
         href   : treference;
+        hreg   : tregister;
       begin
         opcode := topcg2tasmop[op];
         opsize := TCGSize2OpSize[size];
@@ -1396,8 +1397,10 @@ unit cgcpu;
             begin
               href:=ref;
               fixref(list,href);
+              { areg -> ref arithmetic operations are impossible on 68k }
+              hreg:=force_to_dataregister(list,size,reg);
               { add/sub works the same way, so have it unified here }
-              list.concat(taicpu.op_reg_ref(opcode, opsize, reg, href));
+              list.concat(taicpu.op_reg_ref(opcode, opsize, hreg, href));
             end;
           else begin
 //            list.concat(tai_comment.create(strpnew('a_op_reg_ref inherited')));
