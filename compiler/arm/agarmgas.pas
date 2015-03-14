@@ -109,6 +109,8 @@ unit agarmgas;
           result:='-mfpu=vfpv3-d16 '+result;
         if (current_settings.fputype = fpu_fpv4_s16) then
           result:='-mfpu=fpv4-sp-d16 '+result;
+        if (current_settings.fputype = fpu_vfpv4) then
+          result:='-mfpu=vfpv4 '+result;
 
         if GenerateThumb2Code then
           result:='-march='+cputype_to_gas_march[current_settings.cputype]+' -mthumb -mthumb-interwork '+result

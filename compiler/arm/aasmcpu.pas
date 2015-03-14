@@ -165,6 +165,7 @@ uses
       IF_FPA        = $10000000;
       IF_VFPv2      = $20000000;
       IF_VFPv3      = $40000000;
+      IF_VFPv4      = $80000000;
 
       { if the instruction can change in a second pass }
       IF_PASS2  = longint($80000000);
@@ -2034,7 +2035,8 @@ implementation
             IF_VFPv2,
             IF_VFPv2 or IF_VFPv3,
             IF_VFPv2 or IF_VFPv3,
-            IF_NONE
+            IF_NONE,
+            IF_VFPv2 or IF_VFPv3 or IF_VFPv4
           );
       begin
         fArmVMask:=Masks[current_settings.cputype] or FPUMasks[current_settings.fputype];

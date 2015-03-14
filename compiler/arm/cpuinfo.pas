@@ -67,7 +67,8 @@ Type
       fpu_vfpv2,
       fpu_vfpv3,
       fpu_vfpv3_d16,
-      fpu_fpv4_s16
+      fpu_fpv4_s16,
+      fpu_vfpv4
      );
 
    tcontrollertype =
@@ -402,7 +403,8 @@ Const
      'VFPV2',
      'VFPV3',
      'VFPV3_D16',
-     'FPV4_S16'
+     'FPV4_S16',
+     'VFPV4'
    );
 
 
