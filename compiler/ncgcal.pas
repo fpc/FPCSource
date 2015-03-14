@@ -735,7 +735,7 @@ implementation
                              internalerror(200408222);
                            if getsupreg(callerparaloc^.register)<first_fpu_imreg then
                              cg.getcpuregister(current_asmdata.CurrAsmList,callerparaloc^.register);
-                           cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,tmpparaloc^.size,ppn.tempcgpara.size,tmpparaloc^.register,callerparaloc^.register);
+                           cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,callerparaloc^.register);
                          end;
                        LOC_MMREGISTER:
                          begin
