@@ -386,7 +386,6 @@ begin
   curintreg := nextintreg;
   curfloatreg := nextfloatreg;
   curmmreg := nextmmreg;
-  cur_stack_offset := cur_stack_offset;
   result := cur_stack_offset;
 end;
 
