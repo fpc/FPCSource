@@ -74,17 +74,19 @@ var
   lasize,
   minstacksize: aword;
 begin
+  if target_info.abi<>abi_powerpc_elfv2 then
+    lasize:=LinkageAreaSizeELF
+  else
+    lasize:=LinkageAreaSizeELFv2;
   if not (po_assembler in procdef.procoptions) then begin
     { align the stack properly }
     if target_info.abi<>abi_powerpc_elfv2 then
       begin
         { same for AIX/Darwin }
-        lasize:=LinkageAreaSizeELF;
         minstacksize:=MINIMUM_STACKFRAME_SIZE;
       end
     else
       begin
-        lasize:=LinkageAreaSizeELFv2;
         minstacksize:=MINIMUM_STACKFRAME_SIZE_ELFV2;
       end;
     ofs := align(maxpushedparasize + lasize, ELF_STACK_ALIGN);
@@ -99,8 +101,9 @@ begin
   end else begin
     if (current_procinfo.procdef.localst.symtabletype=localsymtable) and
        (tabstractlocalsymtable(current_procinfo.procdef.localst).count_locals <> 0) then
-      { at 0(r1), the previous value of r1 will be stored }
-      tg.setfirsttemp(8);
+      { at 0(r1), the previous value of r1 will be stored; also make sure
+        there's room to store lr etc by potential callees}
+      tg.setfirsttemp(lasize);
   end;
 end;
 
