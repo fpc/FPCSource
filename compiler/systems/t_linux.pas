@@ -1518,6 +1518,12 @@ initialization
   RegisterTarget(system_powerpc_linux_info);
 {$endif powerpc}
 {$ifdef powerpc64}
+  { default to little endian either when compiling with -dppc64le, or when
+    compiling on a little endian ppc64 platform }
+ {$if defined(ppc64le) or (defined(cpupowerpc64) and defined(FPC_LITTLE_ENDIAN))}
+  system_powerpc64_linux_info.endian:=endian_little;
+  system_powerpc64_linux_info.abi:=abi_powerpc_elfv2;
+ {$endif}
   RegisterImport(system_powerpc64_linux,timportliblinux);
   RegisterExport(system_powerpc64_linux,texportliblinux);
   RegisterTarget(system_powerpc64_linux_info);

@@ -36,6 +36,7 @@ Type
     NoPressEnter,
     FPCHelpLines,
     LogoWritten,
+    ABISetExplicitly,
     FPUSetExplicitly,
     CPUSetExplicitly,
     OptCPUSetExplicitly: boolean;
@@ -1115,6 +1116,7 @@ begin
                         s:=upper(copy(more,j+1,length(more)-j));
                         if not(SetAbiType(s,target_info.abi)) then
                           IllegalPara(opt);
+                        ABISetExplicitly:=true;
                         break;
                       end;
 
@@ -3065,6 +3067,7 @@ begin
   LogoWritten:=false;
   NoPressEnter:=false;
   FirstPass:=false;
+  ABISetExplicitly:=false;
   FPUSetExplicitly:=false;
   CPUSetExplicitly:=false;
   OptCPUSetExplicitly:=false;
@@ -3888,6 +3891,22 @@ if (target_info.abi = abi_eabihf) then
     end;
 {$endif}
 
+{$if defined(powerpc64)}
+  { on sysv targets, default to elfv2 for little endian and to elfv1 for
+    big endian (unless specified otherwise). As the gcc man page says:
+    "Overriding the default ABI requires special system support and is
+     likely to fail in spectacular ways" }
+  if not option.ABISetExplicitly then
+    begin
+      if (target_info.abi=abi_powerpc_sysv) and
+         (target_info.endian=endian_little) then
+        target_info.abi:=abi_powerpc_elfv2
+      else
+        if (target_info.abi=abi_powerpc_elfv2) and
+         (target_info.endian=endian_big) then
+        target_info.abi:=abi_powerpc_sysv
+    end;
+{$endif}
 
   { Section smartlinking conflicts with import sections on Windows }
   if GenerateImportSection and
