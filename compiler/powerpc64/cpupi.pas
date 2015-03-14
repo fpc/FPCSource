@@ -70,17 +70,30 @@ end;
 
 procedure tppcprocinfo.set_first_temp_offset;
 var
-  ofs: aword;
+  ofs,
+  lasize,
+  minstacksize: aword;
 begin
   if not (po_assembler in procdef.procoptions) then begin
     { align the stack properly }
-    ofs := align(maxpushedparasize + LinkageAreaSizeELF, ELF_STACK_ALIGN);
+    if target_info.abi<>abi_powerpc_elfv2 then
+      begin
+        { same for AIX/Darwin }
+        lasize:=LinkageAreaSizeELF;
+        minstacksize:=MINIMUM_STACKFRAME_SIZE;
+      end
+    else
+      begin
+        lasize:=LinkageAreaSizeELFv2;
+        minstacksize:=MINIMUM_STACKFRAME_SIZE_ELFV2;
+      end;
+    ofs := align(maxpushedparasize + lasize, ELF_STACK_ALIGN);
 
     { the ABI specification says that it is required to always allocate space for 8 * 8 bytes
       for registers R3-R10 and stack header if there's a stack frame, but GCC doesn't do that,
       so we don't that too. Uncomment the next three lines if this is required }
-    if (cs_profile in init_settings.moduleswitches) and (ofs < MINIMUM_STACKFRAME_SIZE) then begin
-      ofs := MINIMUM_STACKFRAME_SIZE;
+    if (cs_profile in init_settings.moduleswitches) and (ofs < minstacksize) then begin
+      ofs := minstacksize;
     end;
     tg.setfirsttemp(ofs);
   end else begin

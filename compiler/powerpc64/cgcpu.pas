@@ -305,6 +305,22 @@ begin
 end;
 
 
+function get_rtoc_offset: longint;
+begin
+  result:=0;
+  case target_info.abi of
+    abi_powerpc_aix,
+    abi_powerpc_darwin:
+      result:=LA_RTOC_AIX;
+    abi_powerpc_elfv1:
+      result:=LA_RTOC_SYSV;
+    abi_powerpc_elfv2:
+      result:=LA_RTOC_ELFV2;
+    else
+      internalerror(2015021001);
+  end;
+end;
+
 { calling a procedure by address }
 
 procedure tcgppc.a_call_reg(list: TAsmList; reg: tregister);
@@ -322,7 +338,7 @@ begin
     a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, tempreg);
 
     { save TOC pointer in stackframe }
-    reference_reset_base(tmpref, NR_STACK_POINTER_REG, LA_RTOC_SYSV, 8);
+    reference_reset_base(tmpref, NR_STACK_POINTER_REG, get_rtoc_offset, 8);
     a_load_reg_ref(list, OS_ADDR, OS_ADDR, NR_RTOC, tmpref);
 
     { move actual function pointer to CTR register }
@@ -349,7 +365,7 @@ begin
   end;
 
   { we need to load the old RTOC from stackframe because we changed it}
-  reference_reset_base(tmpref, NR_STACK_POINTER_REG, LA_RTOC_SYSV, 8);
+  reference_reset_base(tmpref, NR_STACK_POINTER_REG, get_rtoc_offset, 8);
   a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, NR_RTOC);
 
   include(current_procinfo.flags, pi_do_call);

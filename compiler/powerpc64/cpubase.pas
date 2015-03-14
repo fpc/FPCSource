@@ -361,6 +361,7 @@ const
   *****************************************************************************}
 
   LinkageAreaSizeELF = 48;
+  LinkageAreaSizeELFv2 = 32;
   { offset in the linkage area for the saved stack pointer }
   LA_SP = 0;
   { offset in the linkage area for the saved conditional register}
@@ -371,6 +372,7 @@ const
   { offset in the linkage area for the saved RTOC register}
   LA_RTOC_SYSV = 40;
   LA_RTOC_AIX = 40;
+  LA_RTOC_ELFV2 = 24;
 
   PARENT_FRAMEPOINTER_OFFSET = 24;
 
@@ -384,6 +386,7 @@ const
   
   { minimum size of the stack frame if one exists }
   MINIMUM_STACKFRAME_SIZE = 112;
+  MINIMUM_STACKFRAME_SIZE_ELFV2 = 112 - 16;
 
   maxfpuregs = 8;
 
