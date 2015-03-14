@@ -39,6 +39,7 @@ type
       tcpuregisterset; override;
     function push_addr_param(varspez: tvarspez; def: tdef; calloption:
       tproccalloption): boolean; override;
+    function ret_in_param(def: tdef; pd: tabstractprocdef): boolean; override;
 
     procedure getintparaloc(pd : tabstractprocdef; nr: longint; var cgpara: tcgpara); override;
     function create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint; override;
@@ -54,7 +55,7 @@ type
       var curintreg, curfloatreg, curmmreg: tsuperregister; var
         cur_stack_offset: aword; isVararg : boolean): longint;
     function parseparaloc(p: tparavarsym; const s: string): boolean; override;
-    procedure create_paraloc_for_def(var para: TCGPara; varspez: tvarspez; paradef: tdef; var nextfloatreg, nextintreg: tsuperregister; var stack_offset: longint; const isVararg, forceintmem: boolean; const side: tcallercallee; const p: tabstractprocdef);
+    procedure create_paraloc_for_def(var para: TCGPara; varspez: tvarspez; paradef: tdef; var nextfloatreg, nextintreg: tsuperregister; var stack_offset: aword; const isVararg, forceintmem: boolean; const side: tcallercallee; const p: tabstractprocdef);
   end;
 
 implementation
@@ -200,6 +201,74 @@ begin
   end;
 end;
 
+function tppcparamanager.ret_in_param(def: tdef; pd: tabstractprocdef): boolean;
+  var
+    tmpdef: tdef;
+  begin
+    if handle_common_ret_in_param(def,pd,result) then
+      exit;
+
+    { general rule: passed in registers -> returned in registers }
+    result:=push_addr_param(vs_value,def,pd.proccalloption);
+
+    case target_info.abi of
+      { elfv2: non-homogeneous aggregate larger than 2 doublewords or a
+        homogeneous aggregate with more than eight registers are returned by
+        reference }
+      abi_powerpc_elfv2:
+        begin
+          if not result then
+            begin
+              if (def.typ=recorddef) then
+                begin
+                  if tcpurecorddef(def).has_single_type_elfv2(tmpdef) then
+                    begin
+                      if def.size>8*tmpdef.size then
+                        result:=true
+                    end
+                  else if def.size>2*sizeof(aint) then
+                    result:=true;
+                end
+              else if (def.typ=arraydef) then
+                begin
+                  if tcpuarraydef(def).has_single_type_elfv2(tmpdef) then
+                    begin
+                      if def.size>8*tmpdef.size then
+                        result:=true
+                    end
+                  else if def.size>2*sizeof(aint) then
+                    result:=true;
+                end;
+            end;
+        end;
+      { sysv/aix: any non-scalar/non-floating point is returned by reference }
+      abi_powerpc_sysv,
+      abi_powerpc_aix:
+        begin
+          case def.typ of
+            procvardef:
+              result:=def.size>8;
+            recorddef:
+              result:=true;
+          end;
+        end;
+      { Darwin: if completely passed in registers -> returned by registers;
+        i.e., if part is passed via memory because there are not enough
+        registers, return via memory }
+      abi_powerpc_darwin:
+        begin
+          case def.typ of
+            recorddef:
+              { todo: fix once the Darwin/ppc64 abi is fully implemented, as it
+                requires individual fields to be passed in individual registers,
+                so a record with 9 bytes may need to be passed via memory }
+              if def.size>8*sizeof(aint) then
+                result:=true;
+          end;
+        end;
+    end;
+  end;
+
 procedure tppcparamanager.init_values(var curintreg, curfloatreg, curmmreg:
   tsuperregister; var cur_stack_offset: aword);
 begin
@@ -213,32 +282,45 @@ end;
 function tppcparamanager.get_funcretloc(p : tabstractprocdef; side:
   tcallercallee; forcetempdef: tdef): tcgpara;
 var
-  paraloc : pcgparalocation;
-  retcgsize  : tcgsize;
+  paraloc: pcgparalocation;
+  retcgsize: tcgsize;
+  nextfloatreg, nextintreg, nextmmreg: tsuperregister;
+  stack_offset: aword;
 begin
   if set_common_funcretloc_info(p,forcetempdef,retcgsize,result) then
     exit;
 
-  paraloc:=result.add_location;
-  { Return in FPU register? }
-  if result.def.typ=floatdef then
+  { on Darwin and with ELFv2, results are returned the same way as they are
+    passed }
+  if target_info.abi in [abi_powerpc_elfv2,abi_powerpc_darwin] then
     begin
-      paraloc^.loc:=LOC_FPUREGISTER;
-      paraloc^.register:=NR_FPU_RESULT_REG;
-      paraloc^.size:=retcgsize;
-      paraloc^.def:=result.def;
+      init_values(nextintreg,nextfloatreg,nextmmreg,stack_offset);
+      create_paraloc_for_def(result,vs_value,result.def,nextfloatreg,nextintreg,stack_offset,false,false,side,p);
     end
   else
-   { Return in register }
     begin
-       paraloc^.loc:=LOC_REGISTER;
-       if side=callerside then
-         paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize))
-       else
-         paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
-       paraloc^.size:=retcgsize;
-       paraloc^.def:=result.def;
-     end;
+      { for AIX and ELFv1, the situation is simpler: always just one register }
+      paraloc:=result.add_location;
+      { Return in FPU register? }
+      if result.def.typ=floatdef then
+        begin
+          paraloc^.loc:=LOC_FPUREGISTER;
+          paraloc^.register:=NR_FPU_RESULT_REG;
+          paraloc^.size:=retcgsize;
+          paraloc^.def:=result.def;
+        end
+      else
+       { Return in register }
+        begin
+           paraloc^.loc:=LOC_REGISTER;
+           if side=callerside then
+             paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize))
+           else
+             paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
+           paraloc^.size:=retcgsize;
+           paraloc^.def:=result.def;
+         end;
+    end;
 end;
 
 function tppcparamanager.create_paraloc_info(p: tabstractprocdef; side:
@@ -260,7 +342,6 @@ function tppcparamanager.create_paraloc_info_intern(p: tabstractprocdef; side:
   var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset:
   aword; isVararg : boolean): longint;
 var
-  stack_offset: longint;
   nextintreg, nextfloatreg, nextmmreg : tsuperregister;
   i: integer;
   hp: tparavarsym;
@@ -277,7 +358,6 @@ begin
   nextintreg := curintreg;
   nextfloatreg := curfloatreg;
   nextmmreg := curmmreg;
-  stack_offset := cur_stack_offset;
 
   for i := 0 to paras.count - 1 do begin
     hp := tparavarsym(paras[i]);
@@ -300,17 +380,17 @@ begin
     end;
     delphi_nestedfp:=(vo_is_parentfp in hp.varoptions) and (po_delphi_nested_cc in p.procoptions);
     create_paraloc_for_def(hp.paraloc[side], hp.varspez, hp.vardef,
-      nextfloatreg, nextintreg, stack_offset, isVararg, delphi_nestedfp, side, p);
+      nextfloatreg, nextintreg, cur_stack_offset, isVararg, delphi_nestedfp, side, p);
   end;
 
   curintreg := nextintreg;
   curfloatreg := nextfloatreg;
   curmmreg := nextmmreg;
-  cur_stack_offset := stack_offset;
-  result := stack_offset;
+  cur_stack_offset := cur_stack_offset;
+  result := cur_stack_offset;
 end;
 
-procedure tppcparamanager.create_paraloc_for_def(var para: TCGPara; varspez: tvarspez; paradef: tdef; var nextfloatreg, nextintreg: tsuperregister; var stack_offset: longint; const isVararg, forceintmem: boolean; const side: tcallercallee; const p: tabstractprocdef);
+procedure tppcparamanager.create_paraloc_for_def(var para: TCGPara; varspez: tvarspez; paradef: tdef; var nextfloatreg, nextintreg: tsuperregister; var stack_offset: aword; const isVararg, forceintmem: boolean; const side: tcallercallee; const p: tabstractprocdef);
 var
   paracgsize: tcgsize;
   loc: tcgloc;
