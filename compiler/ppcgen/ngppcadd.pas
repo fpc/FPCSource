@@ -409,6 +409,16 @@ implementation
         opdone,
         cmpop  : boolean;
       begin
+        if target_info.endian=endian_little then
+          begin
+            { this code currently assumes big endian }
+            if (left.nodetype=setelementn) or (right.nodetype=setelementn) then
+              begin
+                inherited second_addsmallsetelement;
+                exit;
+              end
+          end;
+
         cgop:=OP_None;
 
         pass_left_and_right;
