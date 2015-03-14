@@ -1366,9 +1366,17 @@ implementation
                    start till here of the non-local entry code as second argument }
                  s:=', .-';
                if replaceforbidden then
-                 AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).sym^)+s+ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).value^))
+                 begin
+                   { avoid string truncation }
+                   AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).sym^)+s);
+                   AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).value^));
+                 end
                else
-                 AsmWriteLn(tai_symbolpair(hp).sym^+s+tai_symbolpair(hp).value^);
+                 begin
+                   { avoid string truncation }
+                   AsmWrite(tai_symbolpair(hp).sym^+s);
+                   AsmWriteLn(tai_symbolpair(hp).value^);
+                 end;
              end;
            ait_weak:
              begin
