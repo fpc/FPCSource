@@ -1274,6 +1274,7 @@ function EndMenu:BOOL; external 'user32' name 'EndMenu';
 
 
 function GetMenuBarInfo(_hwnd:HWND; idObject:longint; idItem:longint; pmbi:LPMENUBARINFO):BOOL; external 'user32' name 'GetMenuBarInfo';
+function IMAGE_FIRST_SECTION(ntheader : PIMAGE_NT_HEADERS):PIMAGE_SECTION_HEADER;
 
 {$endif read_interface}
 
@@ -2371,6 +2372,21 @@ var
 begin
   res:=InternalGetLargestConsoleWindowSize(hConsoleOutput);
   GetLargestConsoleWindowSize:=COORD(res);
+end;
+
+{
+#define IMAGE_FIRST_SECTION( ntheader ) ((PIMAGE_SECTION_HEADER) \
+    ((ULONG_PTR)(ntheader) + \
+     FIELD_OFFSET( IMAGE_NT_HEADERS, OptionalHeader ) + \
+     ((ntheader))->FileHeader.SizeOfOptionalHeader \
+    )) 
+
+}
+
+function IMAGE_FIRST_SECTION(ntheader : PIMAGE_NT_HEADERS):PIMAGE_SECTION_HEADER;
+// (PTRUINT(ntheader)+ OFS(ntheader^.OptionalHeader) - OFS(NTHEADER);  -> address of ntheader cancels.
+begin
+  IMAGE_FIRST_SECTION:=PIMAGE_SECTION_HEADER(OFS(ntheader^.OptionalHeader) + ntheader^.FileHeader.SizeOfOptionalHeader);
 end;
 
 {$endif read_implementation}
