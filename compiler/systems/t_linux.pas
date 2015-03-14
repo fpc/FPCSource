@@ -124,31 +124,34 @@ implementation
 procedure SetupLibrarySearchPath;
 begin
   if not Dontlinkstdlibpath Then
+    begin
 {$ifdef x86_64}
-    LibrarySearchPath.AddPath(sysrootpath,'/lib64;/usr/lib64;/usr/X11R6/lib64',true);
+      LibrarySearchPath.AddPath(sysrootpath,'/lib64;/usr/lib64;/usr/X11R6/lib64',true);
 {$else}
 {$ifdef powerpc64}
-    LibrarySearchPath.AddPath(sysrootpath,'/lib64;/usr/lib64;/usr/X11R6/lib64',true);
+      if target_info.abi<>abi_powerpc_elfv2 then
+        LibrarySearchPath.AddPath(sysrootpath,'/lib64;/usr/lib64;/usr/X11R6/lib64',true)
+      else
+        LibrarySearchPath.AddPath(sysrootpath,'/lib64;/usr/lib/powerpc64le-linux-gnu;/usr/X11R6/powerpc64le-linux-gnu',true);
 {$else powerpc64}
-    LibrarySearchPath.AddPath(sysrootpath,'/lib;/usr/lib;/usr/X11R6/lib',true);
+      LibrarySearchPath.AddPath(sysrootpath,'/lib;/usr/lib;/usr/X11R6/lib',true);
 {$endif powerpc64}
 {$endif x86_64}
 
 {$ifdef arm}
   { some newer Debian have the crt*.o files at uncommon locations,
     for other arm flavours, this cannot hurt }
-  if not Dontlinkstdlibpath Then
 {$ifdef FPC_ARMHF}
-    LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/arm-linux-gnueabihf',true);
+      LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/arm-linux-gnueabihf',true);
 {$endif FPC_ARMHF}
 {$ifdef FPC_ARMEL}
-    LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/arm-linux-gnueabi',true);
+      LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/arm-linux-gnueabi',true);
 {$endif}
 {$endif arm}
 {$ifdef x86_64}
-  if not Dontlinkstdlibpath Then
-    LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/x86_64-linux-gnu',true);
+      LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/x86_64-linux-gnu',true);
 {$endif x86_64}
+    end;
 end;
 
 {$ifdef m68k}
@@ -172,7 +175,9 @@ end;
 {$endif powerpc}
 
 {$ifdef powerpc64}
-  const defdynlinker='/lib64/ld64.so.1';
+  const defdynlinkerv1='/lib64/ld64.so.1';
+  const defdynlinkerv2='/lib64/ld64.so.2';
+  var defdynlinker: string;
 {$endif powerpc64}
 
 {$ifdef arm}
@@ -193,6 +198,13 @@ end;
 
 procedure SetupDynlinker(out DynamicLinker:string;out libctype:TLibcType);
 begin
+{$ifdef powerpc64}
+  if defdynlinker='' then
+    if target_info.abi=abi_powerpc_sysv then
+      defdynlinker:=defdynlinkerv1
+    else
+      defdynlinker:=defdynlinkerv2;
+{$endif powerpc64}
   {
     Search order:
     glibc 2.1+
@@ -274,7 +286,7 @@ const
 {$ifdef i386}      platform_select='-b elf32-i386 -m elf_i386';{$endif}
 {$ifdef x86_64}    platform_select='-b elf64-x86-64 -m elf_x86_64';{$endif}
 {$ifdef powerpc}   platform_select='-b elf32-powerpc -m elf32ppclinux';{$endif}
-{$ifdef POWERPC64} platform_select='-b elf64-powerpc -m elf64ppc';{$endif}
+{$ifdef POWERPC64} platform_select='';{$endif}
 {$ifdef sparc}     platform_select='-b elf32-sparc -m elf32_sparc';{$endif}
 {$ifdef arm}       platform_select='';{$endif} {unknown :( }
 {$ifdef m68k}      platform_select='';{$endif} {unknown :( }
@@ -286,11 +298,20 @@ const
   {$endif}
 {$endif}
 
-
+var
+  platformopt: string;
 begin
+  platformopt:='';
+{$ifdef powerpc64}
+  if (target_info.abi=abi_powerpc_elfv2) and
+     (target_info.endian=endian_little) then
+    platformopt:=' -b elf64-powerpcle -m elf64lppc'
+  else
+    platformopt:=' -b elf64-powerpc -m elf64ppc';
+{$endif powerpc64}
   with Info do
    begin
-     ExeCmd[1]:='ld '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE';
+     ExeCmd[1]:='ld '+platform_select+platformopt+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE';
      { when we want to cross-link we need to override default library paths }
      if length(sysrootpath) > 0 then
        ExeCmd[1]:=ExeCmd[1]+' -T';
