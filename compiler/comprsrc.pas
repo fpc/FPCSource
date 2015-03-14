@@ -283,10 +283,10 @@ begin
       Replace(s,'$OBJ',maybequoted(OutName));
       subarch:='all';
       arch:=cpu2str[target_cpu];
-      if (source_info.cpu=systems.cpu_arm) then
+      if (target_info.cpu=systems.cpu_arm) then
         begin
           //Differentiate between arm and armeb
-          if (source_info.endian=endian_big) then
+          if (target_info.endian=endian_big) then
             arch:=arch+'eb';
         end;
       Replace(s,'$ARCH',arch);
