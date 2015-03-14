@@ -178,7 +178,8 @@ begin
     procvardef,
     recorddef:
       result :=
-        ((varspez = vs_const) and
+        (varspez = vs_const) and
+        (
          (
           (not (calloption in [pocall_cdecl, pocall_cppdecl]) and
           (def.size > 8))
