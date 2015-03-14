@@ -80,6 +80,12 @@ SYSINIT_UNITS=si_prc si_c si_g si_dll
 override LOADERS+=abitag
 endif
 
+ifeq ($(ARCH),powerpc64)
+ifeq ($(findstring 2.6.,$(FPC_VERSION)),)
+SYSINIT_UNITS=si_prc si_c si_g si_dll
+endif
+endif
+
 # mipsel reuses mips files by including so some file names exist
 # twice, this causes the compiler to find sometimes wrong files and it tries
 # to recompile rtl units. To prevent this, compile always as release PPUs, this

@@ -351,6 +351,11 @@ CPU_UNITS=x86 ports cpu
 SYSINIT_UNITS=si_prc si_c si_g si_dll
 override LOADERS+=abitag
 endif
+ifeq ($(ARCH),powerpc64)
+ifeq ($(findstring 2.6.,$(FPC_VERSION)),)
+SYSINIT_UNITS=si_prc si_c si_g si_dll
+endif
+endif
 ifeq ($(ARCH),mipsel)
 override FPCOPT+=-Ur
 endif

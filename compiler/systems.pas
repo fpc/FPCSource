@@ -303,7 +303,8 @@ interface
        { all systems for which weak linking has been tested/is supported }
        systems_weak_linking = systems_darwin + systems_solaris + systems_linux + systems_android;
 
-       systems_internal_sysinit = [system_i386_linux,system_i386_win32];
+       systems_internal_sysinit = [system_i386_linux,system_i386_win32,
+                                   system_powerpc64_linux];
 
        { all systems that use garbage collection for reference-counted types }
        systems_garbage_collected_managed_types = [
