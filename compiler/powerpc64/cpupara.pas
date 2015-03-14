@@ -60,7 +60,7 @@ implementation
 
 uses
   verbose, systems,
-  defutil,symtable,
+  defutil,symtable,symcpu,
   procinfo, cpupi;
 
 function tppcparamanager.get_volatile_registers_int(calloption:
@@ -262,6 +262,7 @@ var
   stack_offset: longint;
   paralen: aint;
   nextintreg, nextfloatreg, nextmmreg : tsuperregister;
+  tmpdef,
   locdef,
   paradef: tdef;
   paraloc: pcgparalocation;
@@ -291,6 +292,7 @@ begin
     hp := tparavarsym(paras[i]);
 
     paradef := hp.vardef;
+    locdef := nil;
     { Syscall for Morphos can have already a paraloc set; not supported on ppc64 }
     if (vo_has_explicit_paraloc in hp.varoptions) then begin
       internalerror(200412153);
@@ -329,7 +331,17 @@ begin
             (fsym.vardef.typ in [orddef, enumdef]))) then begin
           paradef := fsym.vardef;
           loc := getparaloc(paradef);
-          paracgsize := def_cgsize(paradef);
+          paracgsize := def_cgsize(paradef)
+        { With the new ABI, so-called "homogeneous" aggregates, i.e. struct, arrays,
+          or unions that (recursively) contain only elements of the same floating-
+          point or vector type are passed as if those elements were passed as
+          separate arguments.  (This is done for up to 8 such elements.) }
+        end else if (target_info.abi=abi_powerpc_elfv2) and
+           tcpurecorddef(paradef).has_single_type_elfv2(tmpdef) and
+           ((8*tmpdef.size)<=paradef.size) then begin
+            locdef := tmpdef;
+            loc := getparaloc(locdef);
+            paracgsize := def_cgsize(locdef);
         end else begin
           loc := LOC_REGISTER;
           paracgsize := int_cgsize(paralen);
@@ -369,7 +381,8 @@ begin
       end else
         internalerror(2005011310);
     adjusttail:=paralen>8;
-    locdef:=paradef;
+    if not assigned(locdef) then
+      locdef:=paradef;
     firstparaloc:=true;
     { can become < 0 for e.g. 3-byte records }
     while (paralen > 0) do begin
