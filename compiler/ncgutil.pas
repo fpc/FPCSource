@@ -1049,7 +1049,19 @@ implementation
                     begin
                       unget_para(paraloc^);
                       gen_alloc_regloc(list,destloc);
-                      cg.a_load_cgparaloc_anyreg(list,destloc.size,paraloc^,destloc.register,sizeof(aint));
+                      { we can't directly move regular registers into fpu
+                        registers }
+                      if getregtype(paraloc^.register)=R_FPUREGISTER then
+                        begin
+                          { store everything first to memory, then load it in
+                            destloc }
+                          tg.gettemp(list,tcgsize2size[paraloc^.size],sizeleft,tt_persistent,tempref);
+                          cg.a_load_cgparaloc_ref(list,paraloc^,tempref,tcgsize2size[paraloc^.size],tempref.alignment);
+                          cg.a_load_ref_reg(list,int_cgsize(tcgsize2size[paraloc^.size]),destloc.size,tempref,destloc.register);
+                          tg.ungettemp(list,tempref);
+                        end
+                      else
+                        cg.a_load_cgparaloc_anyreg(list,destloc.size,paraloc^,destloc.register,sizeof(aint));
                     end;
                 end;
             end;
