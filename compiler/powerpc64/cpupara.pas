@@ -311,17 +311,22 @@ end;
 
 procedure tppcparamanager.create_paraloc_for_def(var para: TCGPara; varspez: tvarspez; paradef: tdef; var nextfloatreg, nextintreg: tsuperregister; var stack_offset: longint; const isVararg, forceintmem: boolean; const side: tcallercallee; const p: tabstractprocdef);
 var
-  adjusttail: boolean;
-  firstparaloc: boolean;
   paracgsize: tcgsize;
   loc: tcgloc;
   paraloc: pcgparalocation;
+  { def to use for all paralocs if <> nil }
+  alllocdef,
+  { def to use for the current paraloc }
   locdef,
   tmpdef: tdef;
   paralen: aint;
   fsym: tfieldvarsym;
   parashift: byte;
+  tailpadding,
+  firstparaloc,
+  paraaligned: boolean;
 begin
+  alllocdef:=nil;
   locdef:=nil;
   parashift := 0;
   para.reset;
@@ -335,48 +340,134 @@ begin
       paralen := paradef.size
     else
       paralen := tcgsize2size[def_cgsize(paradef)];
-    if (paradef.typ = recorddef) and
-      (varspez in [vs_value, vs_const]) then begin
-      { if a record has only one field and that field is }
-      { non-composite (not array or record), it must be  }
-      { passed according to the rules of that type.       }
-      if tabstractrecordsymtable(tabstractrecorddef(paradef).symtable).has_single_field(fsym) and
-        ((fsym.vardef.typ = floatdef) or
-         (not(target_info.system in systems_aix) and
-          (fsym.vardef.typ in [orddef, enumdef]))) then begin
-        paradef := fsym.vardef;
-        loc := getparaloc(paradef);
-        paracgsize := def_cgsize(paradef)
-      { With the new ABI, so-called "homogeneous" aggregates, i.e. struct, arrays,
-        or unions that (recursively) contain only elements of the same floating-
-        point or vector type are passed as if those elements were passed as
-        separate arguments.  (This is done for up to 8 such elements.) }
-      end else if (target_info.abi=abi_powerpc_elfv2) and
-         tcpurecorddef(paradef).has_single_type_elfv2(tmpdef) and
-         ((8*tmpdef.size)<=paradef.size) then begin
-          locdef := tmpdef;
-          loc := getparaloc(locdef);
-          paracgsize := def_cgsize(locdef);
-      end else begin
-        loc := LOC_REGISTER;
-        paracgsize := int_cgsize(paralen);
-        if (paralen in [3, 5, 6, 7]) then
-          parashift := (8-paralen) * 8;
-      end;
-    end else begin
-      loc := getparaloc(paradef);
-      paracgsize := def_cgsize(paradef);
-      { for things like formaldef }
-      if (paracgsize = OS_NO) then begin
-        paracgsize := OS_ADDR;
-        paralen := tcgsize2size[OS_ADDR];
-      end;
-    end
+    { default rules:
+      * integer parameters sign/zero-extended to 64 bit
+      * floating point register used -> skip equivalent GP register
+      * floating point parameters passed as is (32/64 bit)
+      * floating point parameters to variable arguments -> in int registers
+      * aggregates passed in consecutive integer registers
+      * all *aggregate* data in integer registers exactly mirrors the data
+        in memory -> on big endian it's left aligned (passed in most
+        significant part of the 64 bit word if it's < 64 bit), on little
+        endian it's right aligned (least significant part of the 64 bit
+        word)
+
+      special rules:
+
+implemented
+   |
+   | * AIX/ELFv1/SysV ppc64 ABI (big endian only):
+   x    a) single precision floats are stored in the second word of a 64 bit
+           location when passed on the stack
+   x    b) aggregate with 1 floating point element passed like a floating
+           point parameter of the same size
+   x    c) aggregates smaller than 64 bit are aligned in least significant bits
+           of a single 64bit location (incl. register) (AIX exception: it puts
+           them in the most significant bits)
+
+      * ELFv2 ppc64 ABI:
+   x    a) so-called "homogeneous" aggregates, i.e. struct, arrays, or unions
+           that (recursively) contain only elements of the same floating-
+           point or vector type, are passed as if those elements were passed as
+           separate arguments. This is done for up to 8 such elements.
+   x    b) other than a), it's the same as the AIX ppc64 ABI
+
+      * Darwin ppc64 ABI:
+
+      - as in the general case, aggregates in registers mirror their place in
+        memory, so if e.g. a struct starts with a 32 bit integer, it's
+        placed in the upper 32 bits of a the corresponding register. A plain
+        32 bit integer para is however passed in the lower 32 bits, since it
+        is promoted to a 64 bit int first (see below)
+
+   x    a) aggregates with sizes 1, 2 and 4 bytes are padded with 0s on the left
+          (-> aligned in least significant bits of 64 bit word on big endian) to
+          a multiple of *4 bytes* (when passed by memory, don't occupy 8 bytes)
+   x    b) other aggregates are padded with 0s on the right (-> aligned in most
+           signifcant bits of 64 bit word of integer register) to a multiple of
+           *4 bytes*
+   x    c) all floating pointer parameters (not in aggregates) are promoted to
+           double (doesn't seem to be correct: 8 bytes are reserved in the
+           stack frame, but the compiler still stores a single in it (in the
+           lower 4 bytes -- like with SysV a) )
+   x    d) all integer parameters (not in aggregates) are promoted to 64 bit
+  (x)   e) aggregates (incl. arrays) of exactly 16 bytes passed in two integer
+           registers
+        f) floats in *structures without unions* are processed per rule c)
+           (similar for vector fields)
+        g) other fields in *structures without unions* are processed
+           recursively according to e) / f) if they are aggragates, and h)
+           otherwise (i.e, without promotion!)
+  (x)   h) everything else (structures with unions and size<>16, arrays with
+           size<>16, ...) is passed "normally" in integer registers
+    }
+    { should the tail be shifted into the most significant bits? }
+    tailpadding:=false;
+    { have we ensured that the next parameter location will be aligned to the
+      next 8 byte boundary? }
+    paraaligned:=false;
+    { ELFv2 a) }
+    if (target_info.abi=abi_powerpc_elfv2) and
+       (((paradef.typ=recorddef) and
+         tcpurecorddef(paradef).has_single_type_elfv2(tmpdef)) or
+        ((paradef.typ=arraydef) and
+         tcpuarraydef(paradef).has_single_type_elfv2(tmpdef))) and
+       (tmpdef.typ=floatdef { or vectordef }) and
+       (paradef.size<=(8*tmpdef.size)) then
+      begin
+        alllocdef:=tmpdef;
+        loc:=getparaloc(alllocdef);
+        paracgsize:=def_cgsize(paradef);
+      end
+    { AIX/ELFv1 b) }
+    else if (target_info.abi in [abi_powerpc_aix,abi_powerpc_sysv]) and
+       (paradef.typ=recorddef) and
+       tabstractrecordsymtable(tabstractrecorddef(paradef).symtable).has_single_field(fsym) and
+       (fsym.vardef.typ=floatdef) then
+      begin
+        paradef:=fsym.vardef;
+        loc:=getparaloc(paradef);
+        paracgsize:=def_cgsize(paradef)
+      end
+    else if (((paradef.typ=arraydef) and not
+         is_special_array(paradef)) or
+        (paradef.typ=recorddef)) then
+      begin
+        { should handle Darwin f/g/h) now, but can't model that yet }
+
+        { general rule: aggregate data is aligned in the most significant bits
+          except for ELFv1 c) and Darwin a) }
+        if (target_info.endian=endian_big) and
+           ((target_info.abi in [abi_powerpc_aix,abi_powerpc_elfv2]) or
+            ((target_info.abi=abi_powerpc_sysv) and
+             (paralen>8)) or
+            ((target_info.abi=abi_powerpc_darwin) and
+             not(paralen in [1,2,4]))) then
+          tailpadding:=true
+        { if we don't add tailpadding on the caller side, the callee will have
+          to shift the value in the register before it can store it to memory }
+        else if (target_info.endian=endian_big) and
+           (paralen in [3,5,6,7]) then
+          parashift:=(8-paralen)*8;
+        { general fallback rule: pass aggregate types in integer registers
+          without special adjustments (incl. Darwin h) }
+        loc:=LOC_REGISTER;
+        paracgsize:=int_cgsize(paralen);
+      end
+    else
+      begin
+        loc:=getparaloc(paradef);
+        paracgsize:=def_cgsize(paradef);
+        { for things like formaldef }
+        if (paracgsize=OS_NO) then
+          begin
+            paracgsize:=OS_ADDR;
+            paralen:=tcgsize2size[OS_ADDR];
+          end;
+      end
   end;
 
-  { patch FPU values into integer registers if we currently have
-   to pass them as vararg parameters
-  }
+  { patch FPU values into integer registers if we are processing varargs }
   if (isVararg) and (paradef.typ = floatdef) then begin
     loc := LOC_REGISTER;
     if paracgsize = OS_F64 then
@@ -384,6 +475,41 @@ begin
     else
       paracgsize := OS_32;
   end;
+
+  { AIX/SysV a), Darwin c) -> skip 4 bytes in the stack frame }
+ if (target_info.endian=endian_big) and
+    (paradef.typ=floatdef) and
+    (tfloatdef(paradef).floattype=s32real) and
+    (nextfloatreg>RS_F13) then
+   begin
+     inc(stack_offset,4);
+     paraaligned:=true;
+   end;
+
+ { Darwin d) }
+  if (target_info.abi=abi_powerpc_darwin) and
+     (paradef.typ in [orddef,enumdef]) and
+     (paralen<8) and
+     { we don't have to sign/zero extend the lower 8/16/32 bit on the callee
+       side since it's done on the caller side; however, if the value is
+       passed via memory, we do have to modify the stack offset since this
+       is big endian and otherwise we'll load/store the wrong bytes) }
+     ((side=callerside) or
+      forceintmem or
+      (nextintreg>RS_R10)) then
+     begin
+      if side=callerside then
+        begin
+          paralen:=8;
+          paradef:=s64inttype;
+          paracgsize:=OS_S64;
+        end
+      else
+        begin
+          inc(stack_offset,8-paralen);
+          paraaligned:=true;
+        end;
+    end;
 
   para.alignment := std_param_align;
   para.size := paracgsize;
@@ -395,9 +521,13 @@ begin
       paraloc^.loc := LOC_VOID;
     end else
       internalerror(2005011310);
-  adjusttail:=paralen>8;
-  if not assigned(locdef) then
-    locdef:=paradef;
+  if not assigned(alllocdef) then
+    locdef:=paradef
+  else
+    begin
+      locdef:=alllocdef;
+      paracgsize:=def_cgsize(locdef);
+    end;
   firstparaloc:=true;
   { can become < 0 for e.g. 3-byte records }
   while (paralen > 0) do begin
@@ -411,20 +541,18 @@ begin
       paraloc^.shiftval := parashift;
 
       { make sure we don't lose whether or not the type is signed }
-      if (paracgsize <> OS_NO) and (paradef.typ <> orddef) then
+      if (paracgsize <> OS_NO) and
+         (paradef.typ <> orddef) and
+         not assigned(alllocdef) then
         begin
           paracgsize := int_cgsize(paralen);
           locdef:=get_paraloc_def(paradef, paralen, firstparaloc);
         end;
 
-      { aix requires that record data (including partial data) stored in
-        parameter registers is left-aligned. Other targets only do this if
-        the total size of the parameter was > 8 bytes. }
-      if (target_info.endian=endian_big) and
-         ((((target_info.system in systems_aix) and
-            (paradef.typ = recorddef)) or
-           adjusttail) and
-          (paralen < sizeof(aint))) then
+      { Partial aggregate data may have to be left-aligned. If so, add tail
+        padding }
+      if tailpadding and
+         (paralen < sizeof(aint)) then
         begin
           paraloc^.shiftval := (sizeof(aint)-paralen)*(-8);
           paraloc^.size := OS_INT;
@@ -499,7 +627,10 @@ begin
       paraloc^.reference.offset := stack_offset;
 
       { align temp contents to next register size }
-      inc(stack_offset, align(paralen, 8));
+      if not paraaligned then
+        inc(stack_offset, align(paralen, 8))
+      else
+        inc(stack_offset, paralen);
       paralen := 0;
     end;
     firstparaloc:=false;

@@ -79,6 +79,8 @@ type
   tcpuclassrefdefclass = class of tcpuclassrefdef;
 
   tcpuarraydef = class(tarraydef)
+    { see tcpurecorddef.has_single_type_elfv2 }
+    function has_single_type_elfv2(out def: tdef): boolean;
   end;
   tcpuarraydefclass = class of tcpuarraydef;
 
@@ -217,6 +219,33 @@ implementation
       if assigned(def) then
         result:=true;
     end;
+
+
+  { tcpuarraydef }
+
+  function tcpuarraydef.has_single_type_elfv2(out def: tdef): boolean;
+    var
+      checkdef: tdef;
+    begin
+      result:=false;
+      checkdef:=self;
+      while (checkdef.typ=arraydef) and
+            not is_special_array(checkdef) do
+        checkdef:=tarraydef(checkdef).elementdef;
+      case checkdef.typ of
+        recorddef:
+          result:=tcpurecorddef(checkdef).has_single_type_elfv2(def);
+        floatdef:
+          begin
+            def:=checkdef;
+            result:=true;
+            exit;
+          end;
+        else
+          exit;
+        end;
+    end;
+
 
 begin
   { used tdef classes }
