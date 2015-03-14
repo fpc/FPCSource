@@ -70,6 +70,7 @@ interface
          RELOC_RELATIVE_24,
          RELOC_RELATIVE_24_THUMB,
          RELOC_RELATIVE_CALL_THUMB,
+         RELOC_GOT32,
 {$endif arm}
          { Relative relocation }
          RELOC_RELATIVE,

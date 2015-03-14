@@ -1861,6 +1861,8 @@ implementation
             result:=LengthSleb128(value);
           aitconst_half16bit:
             result:=2;
+          aitconst_got:
+            result:=sizeof(pint);
           aitconst_gotoff_symbol:
             result:=4;
           else

@@ -331,6 +331,8 @@ implementation
           result:=R_ARM_CALL;
         RELOC_RELATIVE_CALL_THUMB:
           result:=R_ARM_THM_CALL;
+        RELOC_GOT32:
+          result:=R_ARM_GOT_BREL;
       else
         result:=0;
         writeln(objrel.typ);
