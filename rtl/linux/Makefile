@@ -3499,31 +3499,31 @@ ifeq ($(ARCH),arm)
     ARMTHUMB=1
   endif
 endif
-prt0$(OEXT) : $(ARCH)/prt0.as
+prt0$(OEXT) : $(ARCH)/prt0.as $(COMPILER_UNITTARGETDIR)
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(ARCH)/prt0.as
-abitag$(OEXT) : $(ARCH)/abitag.as
+abitag$(OEXT) : $(ARCH)/abitag.as $(COMPILER_UNITTARGETDIR)
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)abitag$(OEXT) $(ARCH)/abitag.as
-dllprt0$(OEXT) : $(ARCH)/dllprt0.as
+dllprt0$(OEXT) : $(ARCH)/dllprt0.as $(COMPILER_UNITTARGETDIR)
 ifndef ARMTHUMB
 	$(AS) $(ASTARGET) $(ASSHAREDOPT) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(ARCH)/dllprt0.as
 endif
-gprt0$(OEXT) : $(ARCH)/gprt0.as
+gprt0$(OEXT) : $(ARCH)/gprt0.as $(COMPILER_UNITTARGETDIR)
 ifndef ARMTHUMB
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)gprt0$(OEXT) $(ARCH)/gprt0.as
 endif
-cprt0$(OEXT) : $(ARCH)/cprt0.as
+cprt0$(OEXT) : $(ARCH)/cprt0.as $(COMPILER_UNITTARGETDIR)
 ifndef ARMTHUMB
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(ARCH)/cprt0.as
 endif
-cprt21$(OEXT) : $(ARCH)/cprt21.as
+cprt21$(OEXT) : $(ARCH)/cprt21.as $(COMPILER_UNITTARGETDIR)
 ifndef ARMTHUMB
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt21$(OEXT) $(ARCH)/cprt21.as
 endif
-gprt21$(OEXT) : $(ARCH)/gprt21.as
+gprt21$(OEXT) : $(ARCH)/gprt21.as $(COMPILER_UNITTARGETDIR)
 ifndef ARMTHUMB
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)gprt21$(OEXT) $(ARCH)/gprt21.as
 endif
-ucprt0$(OEXT) : $(ARCH)/ucprt0.as
+ucprt0$(OEXT) : $(ARCH)/ucprt0.as $(COMPILER_UNITTARGETDIR)
 ifndef ARMTHUMB
 	$(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)$@ $<
 endif
