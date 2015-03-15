@@ -1386,6 +1386,7 @@ Implementation
         leblen : byte;
         lebbuf : array[0..63] of byte;
         objsym,
+        ref,
         objsymend : TObjSymbol;
         zerobuf : array[0..63] of byte;
         relative_reloc: boolean;
@@ -1541,6 +1542,22 @@ Implementation
              ait_cutobject :
                if SmartAsm then
                 break;
+             ait_weak:
+               begin
+                 objsym:=ObjData.symbolref(tai_weak(hp).sym^);
+                 objsym.bind:=AB_WEAK_EXTERNAL;
+               end;
+             ait_set:
+               begin
+                 objsym:=ObjData.symbolref(tai_set(hp).sym^);
+                 ref:=objdata.symbolref(tai_set(hp).value^);
+
+                 objsym.offset:=ref.offset;
+                 objsym.objsection:=ref.objsection;
+{$ifdef arm}
+                 objsym.ThumbFunc:=ref.ThumbFunc;
+{$endif arm}
+               end;
 {$ifndef DISABLE_WIN64_SEH}
              ait_seh_directive :
                tai_seh_directive(hp).generate_code(objdata);
