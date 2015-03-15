@@ -195,7 +195,7 @@ unit agavrgas;
 
 
     const
-       as_arm_gas_info : tasminfo =
+       as_avr_gas_info : tasminfo =
           (
             id     : as_gas;
 
@@ -211,5 +211,5 @@ unit agavrgas;
 
 
 begin
-  RegisterAssembler(as_arm_gas_info,TAVRGNUAssembler);
+  RegisterAssembler(as_avr_gas_info,TAVRGNUAssembler);
 end.
