@@ -786,15 +786,17 @@ unit cgppc;
                 smallint((href.offset shr 16)+ord(smallint(href.offset and $ffff) < 0))));
               href.offset := smallint(href.offset and $ffff);
             end;
-          a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R11);
+          { use R12 for dispatch because most ABIs don't care and ELFv2
+            requires it }
+          a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R12);
           if (target_info.system in systems_aix) or
              ((target_info.system = system_powerpc64_linux) and
               (target_info.abi=abi_powerpc_sysv)) then
             begin
-              reference_reset_base(href, NR_R11, 0, sizeof(pint));
-              a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R11);
+              reference_reset_base(href, NR_R12, 0, sizeof(pint));
+              a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R12);
             end;
-          list.concat(taicpu.op_reg(A_MTCTR,NR_R11));
+          list.concat(taicpu.op_reg(A_MTCTR,NR_R12));
           list.concat(taicpu.op_none(A_BCTR));
           if (target_info.system in ([system_powerpc64_linux]+systems_aix)) then
             list.concat(taicpu.op_none(A_NOP));
