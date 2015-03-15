@@ -1549,7 +1549,7 @@ Implementation
                end;
              ait_symbolpair:
                begin
-                 if tai_symbolpair(hp).kind<>spk_set then
+                 if tai_symbolpair(hp).kind=spk_set then
                    begin
                      objsym:=ObjData.symbolref(tai_symbolpair(hp).sym^);
                      ref:=objdata.symbolref(tai_symbolpair(hp).value^);
