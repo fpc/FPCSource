@@ -705,6 +705,11 @@ unit cpupara;
               def:=search_system_type('TVARDATA').typedef;
               result:=classify_argument(def,varspez,def.size,classes,byte_offset);
             end;
+          undefineddef:
+            { show shall we know?
+              since classify_argument is called during parsing, see tw27685.pp,
+              we handle undefineddef here }
+            result:=0;
           else
             internalerror(2010021405);
         end;
