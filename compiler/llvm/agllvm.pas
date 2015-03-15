@@ -945,19 +945,7 @@ implementation
               asmwrite('* ');
               asmwriteln(LlvmAsmSymName(taillvmalias(hp).oldsym));
             end;
-         {$ifdef arm}
-          ait_thumb_func:
-            begin
-              { should be emitted as part of the function def }
-              internalerror(2013010706);
-            end;
-          ait_thumb_set:
-            begin
-              { should be emitted as part of the symbol def }
-              internalerror(2013010707);
-            end;
-         {$endif arm}
-          ait_set:
+          ait_symbolpair:
             begin
               { should be emitted as part of the symbol def }
               internalerror(2013010708);
