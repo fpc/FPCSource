@@ -77,6 +77,7 @@ interface
       );
 
       llvm_fpcond2str: array[tllvmfpcmp] of ansistring = (
+      'invalid',
       'false',
       'oeq', 'ogt', 'oge', 'olt', 'ole', 'one', 'ord',
       'ueq', 'ugt', 'uge', 'ult', 'ule', 'une', 'uno',

@@ -849,6 +849,9 @@ implementation
               invert:=a=0;
             OC_NE:
               invert:=a=1;
+            else
+              { avoid uninitialised warning }
+              internalerror(2015031504);
             end;
           current_asmdata.getjumplabel(falselab);
           fallthroughlab:=falselab;

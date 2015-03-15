@@ -84,6 +84,7 @@ interface
 
   type
     tllvmfpcmp = (
+      lfc_invalid,
       lfc_false,
       lfc_oeq, lfc_ogt, lfc_oge, lfc_olt, lfc_ole, lfc_one, lfc_ord,
       lfc_ueq, lfc_ugt, lfc_uge, lfc_ult, lfc_ule, lfc_une, lfc_uno,

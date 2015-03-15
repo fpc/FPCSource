@@ -4052,6 +4052,7 @@ implementation
         inherited create(n,recorddef);
         { if we specified a name, then we'll probably want to look up the
           type again by name too -> create typesym }
+        ts:=nil;
         if definedname then
           begin
             ts:=ctypesym.create(n,self);

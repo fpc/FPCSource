@@ -166,6 +166,8 @@ implementation
           cmpop:=OC_EQ;
         unequaln:
           cmpop:=OC_NE;
+        else
+          internalerror(2015031505);
       end;
       if nf_swapped in flags then
         cmpop:=swap_opcmp(cmpop);
@@ -206,6 +208,8 @@ implementation
 
       cmpop:=false;
       singleprec:=tfloatdef(left.resultdef).floattype=s32real;
+      { avoid uninitialised warning }
+      llvmfpcmp:=lfc_invalid;
       case nodetype of
         addn :
           op:=la_fadd;
@@ -233,6 +237,8 @@ implementation
                 llvmfpcmp:=lfc_oeq;
               unequaln:
                 llvmfpcmp:=lfc_one;
+              else
+                internalerror(2015031506);
             end;
           end;
         else

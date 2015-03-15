@@ -565,6 +565,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      begin
                        ll.lab:=nil;
                        ll.ofs:=0;
+                       winlike:=false;
                      end
                    else
                      begin

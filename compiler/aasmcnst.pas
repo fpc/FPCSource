@@ -997,7 +997,9 @@ implementation
                datatcb.emit_tai(Tai_label.Create(result.lab),widecharpointertype);
                { allocate a separate label for the start of the data }
                current_asmdata.getdatalabel(startlab);
-             end;
+             end
+           else
+             internalerror(2015031502);
            result.ofs:=string_symofs;
          end
        else

@@ -109,7 +109,10 @@ implementation
           begin
             oldfileinfo:=current_filepos;
             current_filepos:=current_procinfo.procdef.fileinfo;
-          end;
+          end
+        else
+          { avoid uninitialised warning later }
+          oldfileinfo.line:=0;
         alloclist.concat(taillvm.op_ref_size(la_alloca,ref,def));
         if assigned(current_procinfo) then
           current_filepos:=oldfileinfo;
