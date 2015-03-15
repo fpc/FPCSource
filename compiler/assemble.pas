@@ -1547,16 +1547,19 @@ Implementation
                  objsym:=ObjData.symbolref(tai_weak(hp).sym^);
                  objsym.bind:=AB_WEAK_EXTERNAL;
                end;
-             ait_set:
+             ait_symbolpair:
                begin
-                 objsym:=ObjData.symbolref(tai_set(hp).sym^);
-                 ref:=objdata.symbolref(tai_set(hp).value^);
+                 if tai_symbolpair(hp).kind<>spk_set then
+                   begin
+                     objsym:=ObjData.symbolref(tai_symbolpair(hp).sym^);
+                     ref:=objdata.symbolref(tai_symbolpair(hp).value^);
 
-                 objsym.offset:=ref.offset;
-                 objsym.objsection:=ref.objsection;
+                     objsym.offset:=ref.offset;
+                     objsym.objsection:=ref.objsection;
 {$ifdef arm}
-                 objsym.ThumbFunc:=ref.ThumbFunc;
+                     objsym.ThumbFunc:=ref.ThumbFunc;
 {$endif arm}
+                   end;
                end;
 {$ifndef DISABLE_WIN64_SEH}
              ait_seh_directive :
