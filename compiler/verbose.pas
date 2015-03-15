@@ -438,7 +438,7 @@ implementation
 
     Procedure UpdateStatus;
       var
-        module : tmodulebase;
+        module : tmodule;
       begin
       { fix status }
         status.currentline:=current_filepos.line;
@@ -454,8 +454,12 @@ implementation
               status.currentmodulestate:=ModuleStateStr[module.state];
               status.currentsource:=module.sourcefiles.get_file_name(current_filepos.fileindex);
               status.currentsourcepath:=module.sourcefiles.get_file_path(current_filepos.fileindex);
+              { if sources are not available, construct a prefix from the
+                ppu file name }
+              if not(module.sources_avail) then
+                status.currentsourcepath:=module.ppufilename+':'
               { if currentsourcepath is relative, make it absolute }
-              if not path_absolute(status.currentsourcepath) then
+              else if not path_absolute(status.currentsourcepath) then
                 status.currentsourcepath:=GetCurrentDir+status.currentsourcepath;
 
               { update lastfileidx only if name known PM }
