@@ -22,7 +22,7 @@ interface
 
 type
   TMachineType = (mtnone, mti386,mtx86_64,mtppc,mtppc64,mtarm,mtarmeb,mtm68k,
-                  mtsparc,mtalpha,mtia64,mtmips,mtmipsel,mtaarch64,
+                  mtsparc,mtalpha,mtia64,mtmips,mtmipsel,mtaarch64,mtppc64le,
                   mtBigEndian,mtLittleEndian);
   TMachineTypes = set of TMachineType;
 
@@ -34,7 +34,7 @@ type
       mtarm,mtarmeb:
         (subarm: TSubMachineTypeArm);
       mtnone, mti386,mtx86_64,mtppc,mtppc64,mtm68k,
-      mtsparc,mtalpha,mtia64,mtmips,mtmipsel,mtaarch64,
+      mtsparc,mtalpha,mtia64,mtmips,mtmipsel,mtaarch64,mtppc64le,
       mtBigEndian,mtLittleEndian:
         (subgen: TSubMachineTypeGeneric);
   end;
@@ -84,6 +84,7 @@ var
     (name : 'mips';         formats : [ofElf]; alias : 'mipseb'), //mtmips
     (name : 'mipsel';       formats : [ofElf]),                   //mtmipsel
     (name : 'aarch64';      formats : [ofMachO]),                 //mtaarch64
+    (name : 'powerpc64le';  formats : [ofElf]),                   //mtppc64le
     (name : 'bigendian';    formats : [ofExt]),                   //mtBigEndian
     (name : 'littleendian'; formats : [ofExt])                    //mtLittleEndian
   );
@@ -100,7 +101,8 @@ var
     (name : 'elf';      ext : '.or';     machines : [mti386,mtx86_64,mtppc,
                                                      mtppc64,mtarm,mtarmeb,
                                                      mtm68k,mtsparc,mtalpha,
-                                                     mtia64,mtmips,mtmipsel]),
+                                                     mtia64,mtmips,mtmipsel,
+                                                     mtppc64le]),
     (name : 'coff';     ext : '.o';      machines : [mti386,mtx86_64,mtarm,
                                                      mtppc,mtppc64]),
     (name : 'xcoff';    ext : '.o';      machines : [mtppc{,mtppc64}]),
@@ -122,7 +124,11 @@ var
     machine : mtppc;
     submachine : (subgen: smtgen_all);
   {$elseif defined(CPUPOWERPC64)}
+    {$ifdef FPC_BIG_ENDIAN}
     machine : mtppc64;
+    {$else FPC_BIG_ENDIAN}
+    machine : mtppc64le;
+    {$endif FPC_BIG_ENDIAN}
     submachine : (subgen: smtgen_all);
   {$elseif defined(CPUARM)}
     {$IFDEF ENDIAN_LITTLE}

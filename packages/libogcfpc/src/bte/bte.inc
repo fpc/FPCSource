@@ -121,6 +121,8 @@ function BTE_InitSub(cb: btecallback): cint32; cdecl; external;
 function BTE_ReadStoredLinkKey(keys: Plinkkey_info; max_cnt: cuint8;
   cb: btecallback): cint32; cdecl; external;
 
+function BTE_ReadBdAddr(bdaddr: P_bd_addr; cb: btecallback): cint32; cdecl; external;
+
 type
   TAuxCCB1 = procedure(bdaddr: P_bd_addr; reason: cuint8); cdecl;
   TAuxCCB0 = procedure(bdaddr: P_bd_addr; reason: cuint8); cdecl;

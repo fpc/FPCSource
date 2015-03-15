@@ -164,6 +164,7 @@ unit cpupara;
         result:=
           result and
           (elecount>0) and
+          (elecount<=4) and
           (p.size=basedef.size*elecount)
       end;
 

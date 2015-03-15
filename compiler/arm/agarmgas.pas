@@ -109,6 +109,8 @@ unit agarmgas;
           result:='-mfpu=vfpv3-d16 '+result;
         if (current_settings.fputype = fpu_fpv4_s16) then
           result:='-mfpu=fpv4-sp-d16 '+result;
+        if (current_settings.fputype = fpu_vfpv4) then
+          result:='-mfpu=vfpv4 '+result;
 
         if GenerateThumb2Code then
           result:='-march='+cputype_to_gas_march[current_settings.cputype]+' -mthumb -mthumb-interwork '+result
@@ -207,7 +209,7 @@ unit agarmgas;
       var
         hs : string;
         first : boolean;
-        r : tsuperregister;
+        r, rs : tsuperregister;
       begin
         case o.typ of
           top_reg:
@@ -229,14 +231,44 @@ unit agarmgas;
             begin
               getopstr:='{';
               first:=true;
-              for r:=RS_R0 to RS_R15 do
-                if r in o.regset^ then
-                  begin
-                    if not(first) then
-                      getopstr:=getopstr+',';
-                    getopstr:=getopstr+gas_regname(newreg(o.regtyp,r,o.subreg));
-                    first:=false;
-                  end;
+              if R_SUBFS=o.subreg then
+                begin
+                  for r:=0 to 31 do // S0 to S31
+                    if r in o.regset^ then
+                      begin
+                        if not(first) then
+                          getopstr:=getopstr+',';
+                        if odd(r) then
+                          rs:=(r shr 1)+RS_S1
+                        else
+                          rs:=(r shr 1)+RS_S0;
+                        getopstr:=getopstr+gas_regname(newreg(o.regtyp,rs,o.subreg));
+                        first:=false;
+                      end;
+                end
+              else if R_SUBFD=o.subreg then
+                begin
+                  for r:=0 to 31 do
+                    if r in o.regset^ then
+                      begin
+                        if not(first) then
+                          getopstr:=getopstr+',';
+                        rs:=r+RS_D0;
+                        getopstr:=getopstr+gas_regname(newreg(o.regtyp,rs,o.subreg));
+                        first:=false;
+                      end;
+                end
+              else
+                begin
+                  for r:=RS_R0 to RS_R15 do
+                    if r in o.regset^ then
+                      begin
+                        if not(first) then
+                          getopstr:=getopstr+',';
+                        getopstr:=getopstr+gas_regname(newreg(o.regtyp,r,o.subreg));
+                        first:=false;
+                      end;
+                end;
               getopstr:=getopstr+'}';
               if o.usermode then
                 getopstr:=getopstr+'^';
@@ -296,7 +328,7 @@ unit agarmgas;
 
           if taicpu(hp).ops = 0 then
             s:=#9+gas_op2str[op]+cond2str[taicpu(hp).condition]+oppostfix2str[taicpu(hp).oppostfix]
-          else if (taicpu(hp).opcode>=A_VABS) and (taicpu(hp).opcode<=A_VSUB) then
+          else if taicpu(hp).oppostfix in [PF_8..PF_U32F64] then
             s:=#9+gas_op2str[op]+cond2str[taicpu(hp).condition]+oppostfix2str[taicpu(hp).oppostfix]
           else
             s:=#9+gas_op2str[op]+oppostfix2str[taicpu(hp).oppostfix]+cond2str[taicpu(hp).condition]+postfix; // Conditional infixes are deprecated in unified syntax
@@ -313,7 +345,7 @@ unit agarmgas;
                // writeln(taicpu(hp).fileinfo.line);
 
                { LDM and STM use references as first operand but they are written like a register }
-               if (i=0) and (op in [A_LDM,A_STM,A_FSTM,A_FLDM]) then
+               if (i=0) and (op in [A_LDM,A_STM,A_FSTM,A_FLDM,A_VSTM,A_VLDM]) then
                  begin
                    case taicpu(hp).oper[0]^.typ of
                      top_ref:

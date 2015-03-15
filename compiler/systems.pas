@@ -309,7 +309,8 @@ interface
        { all systems for which weak linking has been tested/is supported }
        systems_weak_linking = systems_darwin + systems_solaris + systems_linux + systems_android;
 
-       systems_internal_sysinit = [system_i386_linux,system_i386_win32];
+       systems_internal_sysinit = [system_i386_linux,system_i386_win32,
+                                   system_powerpc64_linux];
 
        { all systems that use garbage collection for reference-counted types }
        systems_garbage_collected_managed_types = [
@@ -373,6 +374,8 @@ interface
          (name: 'DEFAULT'; supported: true),
          (name: 'SYSV'   ; supported:{$if defined(powerpc) or defined(powerpc64)}true{$else}false{$endif}),
          (name: 'AIX'    ; supported:{$if defined(powerpc) or defined(powerpc64)}true{$else}false{$endif}),
+         (name: 'DARWIN'    ; supported:{$if defined(powerpc) or defined(powerpc64)}true{$else}false{$endif}),
+         (name: 'ELFV2'  ; supported:{$if defined(powerpc64)}true{$else}false{$endif}),
          (name: 'EABI'   ; supported:{$ifdef FPC_ARMEL}true{$else}false{$endif}),
          (name: 'ARMEB'  ; supported:{$ifdef FPC_ARMEB}true{$else}false{$endif}),
          (name: 'EABIHF' ; supported:{$ifdef FPC_ARMHF}true{$else}false{$endif}),

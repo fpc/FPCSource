@@ -1414,7 +1414,24 @@ implementation
                end
              else
 {$endif not cpu64bitalu}
-               cg.a_load_loc_cgpara(list,l,cgpara);
+             case cgpara.location^.loc of
+               LOC_FPUREGISTER,
+               LOC_CFPUREGISTER:
+                 begin
+                   tmploc:=l;
+                   location_force_mem(list,tmploc,size);
+                   cg.a_loadfpu_ref_cgpara(list,locsize,tmploc.reference,cgpara);
+                 end;
+               LOC_MMREGISTER,
+               LOC_CMMREGISTER:
+                 begin
+                   tmploc:=l;
+                   location_force_mem(list,tmploc,size);
+                   cg.a_loadmm_ref_cgpara(list,locsize,tmploc.reference,cgpara,mms_movescalar);
+                 end;
+               else
+                 cg.a_load_loc_cgpara(list,l,cgpara);
+             end;
           end;
         else
           internalerror(2002042432);

@@ -703,7 +703,7 @@ unit i_bsd;
             first_parm_offset : 24;
             stacksize   : 262144;
             stackalign   : 16;
-            abi : abi_powerpc_aix;
+            abi : abi_powerpc_darwin;
             llvmdatalayout : 'E-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:64:64-v128:128:128-n32';
           );
 
@@ -898,7 +898,7 @@ unit i_bsd;
             first_parm_offset : 48;
             stacksize   : 262144;
             stackalign   : 16;
-            abi : abi_powerpc_aix;
+            abi : abi_powerpc_darwin;
             llvmdatalayout : 'E-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v128:128:128-n32:64';
           );
 

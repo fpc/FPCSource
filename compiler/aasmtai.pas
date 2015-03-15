@@ -80,11 +80,7 @@ interface
 {$ifdef m68k}
           ait_labeled_instruction,
 {$endif m68k}
-{$ifdef arm}
-          ait_thumb_func,
-          ait_thumb_set,
-{$endif arm}
-          ait_set,
+          ait_symbolpair,
           ait_weak,
           { used to split into tiny assembler files }
           ait_cutobject,
@@ -208,11 +204,7 @@ interface
 {$ifdef m68k}
           'labeled_instr',
 {$endif m68k}
-{$ifdef arm}
-          'thumb_func',
-          'thumb_set',
-{$endif arm}
-          'set',
+          'symbolpair',
           'weak',
           'cut',
           'regalloc',
@@ -305,12 +297,8 @@ interface
                      ait_regalloc,ait_tempalloc,
                      ait_stab,ait_function_name,
                      ait_cutobject,ait_marker,ait_varloc,ait_align,ait_section,ait_comment,
-                     ait_const,ait_typedconst,ait_directive,
-{$ifdef arm}
-                     ait_thumb_func,
-                     ait_thumb_set,
-{$endif arm}
-                     ait_set,ait_weak,
+                     ait_const,ait_directive,
+                     ait_symbolpair,ait_weak,
                      ait_realconst,
                      ait_symbol,
 {$ifdef JVM}
@@ -358,7 +346,9 @@ interface
         { .ent/.end for MIPS and Alpha }
         asd_ent,asd_ent_end,
         { supported by recent clang-based assemblers for data-in-code  }
-        asd_data_region, asd_end_data_region
+        asd_data_region, asd_end_data_region,
+        { .thumb_func for ARM }
+        asd_thumb_func
       );
 
       TAsmSehDirective=(
@@ -368,6 +358,8 @@ interface
           ash_setframe,ash_stackalloc,ash_pushreg,
           ash_savereg,ash_savexmm,ash_pushframe
         );
+
+      TSymbolPairKind = (spk_set, spk_thumb_set, spk_localentry);
 
 
     const
@@ -389,7 +381,9 @@ interface
         { .ent/.end for MIPS and Alpha }
         'ent','end',
         { supported by recent clang-based assemblers for data-in-code }
-        'data_region','end_data_region'
+        'data_region','end_data_region',
+        { .thumb_func for ARM }
+        'thumb_func'
       );
       sehdirectivestr : array[TAsmSehDirective] of string[16]=(
         '.seh_proc','.seh_endproc',
@@ -397,6 +391,9 @@ interface
         '.seh_eh','.seh_32','seh_no32',
         '.seh_setframe','.seh_stackalloc','.seh_pushreg',
         '.seh_savereg','.seh_savexmm','.seh_pushframe'
+      );
+      symbolpairkindstr: array[TSymbolPairKind] of string[11]=(
+        '.set', '.thumb_set', '.localentry'
       );
 
     type
@@ -885,20 +882,15 @@ interface
         tai_jcatch_class = class of tai_jcatch;
 {$endif JVM}
 
-        tai_set = class(tai)
+        tai_symbolpair = class(tai)
+          kind: TSymbolPairKind;
           sym,
           value: pshortstring;
-          constructor create(const asym, avalue: string);
+          constructor create(akind: TSymbolPairKind; const asym, avalue: string);
           destructor destroy;override;
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
         end;
-
-{$ifdef arm}
-        tai_thumb_set = class(tai_set)
-          constructor create(const asym, avalue: string);
-        end;
-{$endif arm}
 
         tai_weak = class(tai)
           sym: pshortstring;
@@ -1045,39 +1037,34 @@ implementation
         ppufile.putstring(sym^);
       end;
 
-{$ifdef arm}
-    constructor tai_thumb_set.create(const asym, avalue: string);
-      begin
-        inherited create(asym, avalue);
-        typ:=ait_thumb_set;
-      end;
-{$endif arm}
-
-    constructor tai_set.create(const asym, avalue: string);
+    constructor tai_symbolpair.create(akind: TSymbolPairKind; const asym, avalue: string);
       begin
         inherited create;
-        typ:=ait_set;
+        kind:=akind;
+        typ:=ait_symbolpair;
         sym:=stringdup(asym);
         value:=stringdup(avalue);
       end;
 
-    destructor tai_set.destroy;
+    destructor tai_symbolpair.destroy;
       begin
         stringdispose(sym);
         stringdispose(value);
         inherited destroy;
       end;
 
-    constructor tai_set.ppuload(t: taitype; ppufile: tcompilerppufile);
+    constructor tai_symbolpair.ppuload(t: taitype; ppufile: tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
+        kind:=TSymbolPairKind(ppufile.getbyte);;
         sym:=stringdup(ppufile.getstring);
         value:=stringdup(ppufile.getstring);
       end;
 
-    procedure tai_set.ppuwrite(ppufile: tcompilerppufile);
+    procedure tai_symbolpair.ppuwrite(ppufile: tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
+        ppufile.putbyte(byte(kind));
         ppufile.putstring(sym^);
         ppufile.putstring(value^);
       end;
@@ -1883,6 +1870,8 @@ implementation
             result:=LengthSleb128(value);
           aitconst_half16bit:
             result:=2;
+          aitconst_got:
+            result:=sizeof(pint);
           aitconst_gotoff_symbol:
             result:=4;
           else

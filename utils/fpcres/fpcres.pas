@@ -252,6 +252,7 @@ begin
     mtia64 : Result.MachineType:=emtia64;
     mtmips : Result.MachineType:=emtmips;
     mtmipsel : Result.MachineType:=emtmipsel;
+    mtppc64le : Result.MachineType:=emtppc64le;
   end;
 end;
 

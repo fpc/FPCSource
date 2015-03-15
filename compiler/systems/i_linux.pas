@@ -997,6 +997,11 @@ initialization
 {$ifdef CPUPOWERPC64}
   {$ifdef linux}
     set_source_info(system_powerpc64_linux_info);
+    { on a little endian PPC64 platform -> source is elfv2 }
+    {$ifdef FPC_LITTLE_ENDIAN}
+    source_info.endian:=endian_little;
+    source_info.abi:=abi_powerpc_elfv2;
+    {$endif}
   {$endif linux}
 {$endif CPUPOWERPC64}
 {$ifdef CPUARM}

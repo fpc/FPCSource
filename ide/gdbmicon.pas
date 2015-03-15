@@ -66,6 +66,8 @@ type
     function GetIntRegister(const RegName: string; var Value: Int64): Boolean;
     function GetIntRegister(const RegName: string; var Value: UInt32): Boolean;
     function GetIntRegister(const RegName: string; var Value: Int32): Boolean;
+    function GetIntRegister(const RegName: string; var Value: UInt16): Boolean;
+    function GetIntRegister(const RegName: string; var Value: Int16): Boolean;
     { set command }
     function SetCommand(Const SetExpr : string) : boolean;
     { print }
@@ -260,7 +262,7 @@ var
 begin
   GetIntRegister := False;
   Value := 0;
-  if not GetRegisterAsString(RegName, 'd', RegValueStr) then
+  if not GetRegisterAsString(RegName, 'x', RegValueStr) then
     exit;
   Val(RegValueStr, Value, Code);
   if Code <> 0 then
@@ -292,6 +294,24 @@ var
 begin
   GetIntRegister := GetIntRegister(RegName, U32Value);
   Value := Int32(U32Value);
+end;
+
+function TGDBController.GetIntRegister(const RegName: string; var Value: UInt16): Boolean;
+var
+  U64Value: UInt64;
+begin
+  GetIntRegister := GetIntRegister(RegName, U64Value);
+  Value := UInt16(U64Value);
+  if (U64Value shr 16) <> 0 then
+    GetIntRegister := False;
+end;
+
+function TGDBController.GetIntRegister(const RegName: string; var Value: Int16): Boolean;
+var
+  U16Value: UInt16;
+begin
+  GetIntRegister := GetIntRegister(RegName, U16Value);
+  Value := Int16(U16Value);
 end;
 
 

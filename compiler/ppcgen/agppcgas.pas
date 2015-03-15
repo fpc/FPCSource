@@ -411,6 +411,8 @@ unit agppcgas;
       var
          i : longint;
       begin
+        if target_info.abi = abi_powerpc_elfv2 then
+          AsmWriteln(#9'.abiversion 2');
         for i:=0 to 31 do
           AsmWriteln(#9'.set'#9'r'+tostr(i)+','+tostr(i));
         for i:=0 to 31 do

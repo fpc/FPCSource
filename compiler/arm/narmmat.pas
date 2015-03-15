@@ -411,6 +411,7 @@ implementation
     procedure tarmunaryminusnode.second_float;
       var
         op: tasmop;
+        pf: TOpPostfix;
       begin
         secondpass(left);
         case current_settings.fputype of
@@ -432,12 +433,14 @@ implementation
               location:=left.location;
               if (left.location.loc=LOC_CMMREGISTER) then
                 location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
-              if (location.size=OS_F32) then
-                op:=A_FNEGS
+
+              if (tfloatdef(left.resultdef).floattype=s32real) then
+                pf:=PF_F32
               else
-                op:=A_FNEGD;
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,
-                location.register,left.location.register));
+                pf:=PF_F64;
+
+              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VNEG,
+                location.register,left.location.register), pf));
             end;
           fpu_fpv4_s16:
             begin

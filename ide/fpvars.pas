@@ -145,7 +145,11 @@ const ClipboardWindow  : PClipboardWindow = nil;
        '"$REMOTEEXECCOMMAND" $DOITINBACKGROUND';
 {$endif SUPPORT_REMOTE}
 
+{$ifdef GDB_WINDOWS_ALWAYS_USE_ANOTHER_CONSOLE}
+     DebuggeeTTY : string = 'on';
+{$else GDB_WINDOWS_ALWAYS_USE_ANOTHER_CONSOLE}
      DebuggeeTTY : string = '';
+{$endif GDB_WINDOWS_ALWAYS_USE_ANOTHER_CONSOLE}
 
       ActionCommands   : array[acFirstAction..acLastAction] of word =
         (cmHelpTopicSearch,cmGotoCursor,cmToggleBreakpoint,

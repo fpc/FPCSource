@@ -707,6 +707,11 @@ unit cpupara;
               def:=search_system_type('TVARDATA').typedef;
               result:=classify_argument(def,varspez,def.size,classes,byte_offset);
             end;
+          undefineddef:
+            { show shall we know?
+              since classify_argument is called during parsing, see tw27685.pp,
+              we handle undefineddef here }
+            result:=0;
           else
             internalerror(2010021405);
         end;
@@ -1059,6 +1064,7 @@ unit cpupara;
                                                             var intparareg,mmparareg,parasize:longint;varargsparas: boolean);
       var
         hp         : tparavarsym;
+        fdef,
         paradef    : tdef;
         paraloc    : pcgparalocation;
         subreg     : tsubregister;
@@ -1072,7 +1078,6 @@ unit cpupara;
         i,
         varalign,
         paraalign  : longint;
-        sym: tfieldvarsym;
       begin
         paraalign:=get_para_align(p.proccalloption);
         { Register parameters are assigned from left to right }
@@ -1085,10 +1090,10 @@ unit cpupara;
             if (target_info.system=system_x86_64_win64) and
                ((paradef.typ=recorddef) {or
                is_object(paradef)}) and
-               tabstractrecordsymtable(tabstractrecorddef(paradef).symtable).has_single_field(sym) and
-               (sym.vardef.typ=floatdef) and
-               (tfloatdef(sym.vardef).floattype in [s32real,s64real]) then
-              paradef:=sym.vardef;
+               tabstractrecordsymtable(tabstractrecorddef(paradef).symtable).has_single_field(fdef) and
+               (fdef.typ=floatdef) and
+               (tfloatdef(fdef).floattype in [s32real,s64real]) then
+              paradef:=fdef;
 
             pushaddr:=push_addr_param(hp.varspez,paradef,p.proccalloption);
             if pushaddr then

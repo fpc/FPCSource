@@ -309,7 +309,7 @@ var
     else
       begin
 //      Result:=BEtoN(PLongint(@(ARecord^.ContentData[i]))^);
-      Result:=((ARecord^.ContentData[i] and $7f) shl 24) + (ARecord^.ContentData[i+1] shl 16)
+      Result:=Int64(((ARecord^.ContentData[i] and $7f) shl 24)) + (ARecord^.ContentData[i+1] shl 16)
                    + (ARecord^.ContentData[i+2] shl 8) + (ARecord^.ContentData[i+3]);
       inc(i,3);
       end;
@@ -533,6 +533,7 @@ begin
     end;
     Inc(BS,cl);
   Until (BS=L);
+  EndRequest := Default(FCGI_EndRequestRecord);
   FillChar(EndRequest,SizeOf(FCGI_EndRequestRecord),0);
   EndRequest.header.version:=FCGI_VERSION_1;
   EndRequest.header.reqtype:=FCGI_END_REQUEST;
@@ -810,6 +811,7 @@ var
   TimeV: TTimeVal;
 
 begin
+  FDS := Default(TFDSet);
   fpFD_Zero(FDS);
   fpFD_Set(FHandle, FDS);
   TimeV.tv_usec := (Timeout mod 1000) * 1000;
@@ -824,6 +826,7 @@ var
   TimeV: TTimeVal;
 
 begin
+  FDS := Default(TFDSet);
   FD_Zero(FDS);
   FD_Set(FHandle, FDS);
   TimeV.tv_usec := (Timeout mod 1000) * 1000;

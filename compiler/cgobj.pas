@@ -1184,7 +1184,14 @@ implementation
                end;
              end;
            LOC_FPUREGISTER :
-             a_loadfpu_reg_reg(list,paraloc.size,regsize,paraloc.register,reg);
+             begin
+               case getregtype(reg) of
+                 R_FPUREGISTER:
+                   a_loadfpu_reg_reg(list,paraloc.size,regsize,paraloc.register,reg)
+                 else
+                   internalerror(2015031401);
+                 end;
+             end;
            LOC_REFERENCE :
              begin
                reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset,align);
@@ -1614,13 +1621,22 @@ implementation
       var
          href : treference;
          hsize: tcgsize;
+         paraloc: PCGParaLocation;
       begin
          case cgpara.location^.loc of
           LOC_FPUREGISTER,LOC_CFPUREGISTER:
             begin
-              cgpara.check_simple_location;
               paramanager.alloccgpara(list,cgpara);
-              a_loadfpu_ref_reg(list,size,size,ref,cgpara.location^.register);
+              paraloc:=cgpara.location;
+              href:=ref;
+              while assigned(paraloc) do
+                begin
+                  if not(paraloc^.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
+                    internalerror(2015031501);
+                  a_loadfpu_ref_reg(list,paraloc^.size,paraloc^.size,href,paraloc^.register);
+                  inc(href.offset,tcgsize2size[paraloc^.size]);
+                  paraloc:=paraloc^.next;
+                end;
             end;
           LOC_REFERENCE,LOC_CREFERENCE:
             begin

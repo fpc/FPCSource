@@ -356,7 +356,7 @@ implementation
                       {$ifdef cpu_uses_separate_address_registers}
                         if getregtype(left.location.register)<>R_ADDRESSREGISTER then
                           begin
-                            location.reference.base:=rg.getaddressregister(current_asmdata.CurrAsmList);
+                            location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
                             hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,left.resultdef,left.resultdef,
                               left.location.register,location.reference.base);
                           end

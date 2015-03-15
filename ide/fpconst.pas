@@ -55,9 +55,11 @@ const
     {$endif cpu68k}
   {$endif i386}
   {$ifdef SUPPORT_REMOTE}
-      {$define USE_SPECIAL_BASENAME}
-      { this uses PPC_TARGET env. variable from Makefile }
-       FPBaseName = 'fp_'+{$i %PPC_TARGET%};
+      {$ifndef USE_SPECIAL_BASENAME}
+        { this uses PPC_TARGET env. variable from Makefile }
+         FPBaseName = 'fp_'+{$i %PPC_TARGET%};
+        {$define USE_SPECIAL_BASENAME}
+      {$endif ndef USE_SPECIAL_BASENAME}
   {$endif SUPPORT_REMOTE}
 {$endif not USE_FPBASENAME}
 {$ifndef USE_SPECIAL_BASENAME}

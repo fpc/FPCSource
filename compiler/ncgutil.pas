@@ -1038,7 +1038,19 @@ implementation
                     begin
                       unget_para(paraloc^);
                       gen_alloc_regloc(list,destloc);
-                      cg.a_load_cgparaloc_anyreg(list,destloc.size,paraloc^,destloc.register,sizeof(aint));
+                      { we can't directly move regular registers into fpu
+                        registers }
+                      if getregtype(paraloc^.register)=R_FPUREGISTER then
+                        begin
+                          { store everything first to memory, then load it in
+                            destloc }
+                          tg.gettemp(list,tcgsize2size[paraloc^.size],para.intsize,tt_persistent,tempref);
+                          cg.a_load_cgparaloc_ref(list,paraloc^,tempref,tcgsize2size[paraloc^.size],tempref.alignment);
+                          cg.a_load_ref_reg(list,int_cgsize(tcgsize2size[paraloc^.size]),destloc.size,tempref,destloc.register);
+                          tg.ungettemp(list,tempref);
+                        end
+                      else
+                        cg.a_load_cgparaloc_anyreg(list,destloc.size,paraloc^,destloc.register,sizeof(aint));
                     end;
                 end;
             end;
@@ -1248,18 +1260,6 @@ implementation
           the initialization and body is parsed because the refcounts are
           incremented using the local copies }
         current_procinfo.procdef.parast.SymList.ForEachCall(@hlcg.g_copyvalueparas,list);
-{$ifdef powerpc}
-        { unget the register that contains the stack pointer before the procedure entry, }
-        { which is used to access the parameters in their original callee-side location  }
-        if (tppcprocinfo(current_procinfo).needs_frame_pointer) then
-          cg.a_reg_dealloc(list,NR_R12);
-{$endif powerpc}
-{$ifdef powerpc64}
-        { unget the register that contains the stack pointer before the procedure entry, }
-        { which is used to access the parameters in their original callee-side location  }
-        if (tppcprocinfo(current_procinfo).needs_frame_pointer) then
-          cg.a_reg_dealloc(list, NR_OLD_STACK_POINTER_REG);
-{$endif powerpc64}
         if not(po_assembler in current_procinfo.procdef.procoptions) then
           begin
             { initialize refcounted paras, and trash others. Needed here
@@ -1880,7 +1880,7 @@ implementation
               LOC_REGISTER:
                 begin
 {$ifdef cpu_uses_separate_address_registers}
-                  if getregtype(left.location.register)<>R_ADDRESSREGISTER then
+                  if getregtype(selfloc.register)<>R_ADDRESSREGISTER then
                     begin
                       reference_reset_base(href,cg.getaddressregister(list),objdef.vmt_offset,sizeof(pint));
                       cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,selfloc.register,href.base);

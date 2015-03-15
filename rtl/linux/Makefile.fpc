@@ -80,6 +80,12 @@ SYSINIT_UNITS=si_prc si_c si_g si_dll
 override LOADERS+=abitag
 endif
 
+ifeq ($(ARCH),powerpc64)
+ifeq ($(findstring 2.6.,$(FPC_VERSION)),)
+SYSINIT_UNITS=si_prc si_c si_g si_dll
+endif
+endif
+
 # mipsel reuses mips files by including so some file names exist
 # twice, this causes the compiler to find sometimes wrong files and it tries
 # to recompile rtl units. To prevent this, compile always as release PPUs, this
@@ -160,45 +166,70 @@ endif
 # Loaders
 #
 
-prt0$(OEXT) : $(ARCH)/prt0.as
+prt0$(OEXT) : $(ARCH)/prt0.as $(COMPILER_UNITTARGETDIR)
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) $(ARCH)/prt0.as
 
-abitag$(OEXT) : $(ARCH)/abitag.as
+abitag$(OEXT) : $(ARCH)/abitag.as $(COMPILER_UNITTARGETDIR)
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)abitag$(OEXT) $(ARCH)/abitag.as
 
 # ASSHAREDOPT adds -KPIC mandatoy for mips/mipsel objects in shared libs
 #
 # the following startup files do not support thumb yet
 #
-dllprt0$(OEXT) : $(ARCH)/dllprt0.as
+dllprt0$(OEXT) : $(ARCH)/dllprt0.as $(COMPILER_UNITTARGETDIR)
 ifndef ARMTHUMB
         $(AS) $(ASTARGET) $(ASSHAREDOPT) -o $(UNITTARGETDIRPREFIX)dllprt0$(OEXT) $(ARCH)/dllprt0.as
 endif
 
-gprt0$(OEXT) : $(ARCH)/gprt0.as
+gprt0$(OEXT) : $(ARCH)/gprt0.as $(COMPILER_UNITTARGETDIR)
 ifndef ARMTHUMB
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)gprt0$(OEXT) $(ARCH)/gprt0.as
 endif
 
-cprt0$(OEXT) : $(ARCH)/cprt0.as
+cprt0$(OEXT) : $(ARCH)/cprt0.as $(COMPILER_UNITTARGETDIR)
 ifndef ARMTHUMB
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) $(ARCH)/cprt0.as
 endif
 
-cprt21$(OEXT) : $(ARCH)/cprt21.as
+cprt21$(OEXT) : $(ARCH)/cprt21.as $(COMPILER_UNITTARGETDIR)
 ifndef ARMTHUMB
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt21$(OEXT) $(ARCH)/cprt21.as
 endif
 
-gprt21$(OEXT) : $(ARCH)/gprt21.as
+gprt21$(OEXT) : $(ARCH)/gprt21.as $(COMPILER_UNITTARGETDIR)
 ifndef ARMTHUMB
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)gprt21$(OEXT) $(ARCH)/gprt21.as
 endif
 
-ucprt0$(OEXT) : $(ARCH)/ucprt0.as
+ucprt0$(OEXT) : $(ARCH)/ucprt0.as $(COMPILER_UNITTARGETDIR)
 ifndef ARMTHUMB
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)$@ $<
 endif
+
+
+#
+# $(SYSINIT_UNITS) Units
+#
+si_prc$(PPUEXT) : si_prc.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_prc.inc $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) si_prc.pp
+
+si_c21g$(PPUEXT) : si_c21g.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_c21g.inc $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) si_c21g.pp
+
+si_c21$(PPUEXT) : si_c21.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_c21.inc $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) si_c21.pp
+
+si_c$(PPUEXT) : si_c.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_c.inc $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) si_c.pp
+
+si_dll$(PPUEXT) : si_dll.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_dll.inc $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) si_dll.pp
+
+si_uc$(PPUEXT) : si_uc.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_uc.inc $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) si_uc.pp
+
+si_g$(PPUEXT) : si_g.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_g.inc $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) si_g.pp
 
 
 #

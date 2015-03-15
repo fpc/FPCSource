@@ -83,7 +83,7 @@ const
     'cmpd', 'cmpdi', 'cmpld', 'cmpldi',
     'srdi', 'sradi',
     'sldi',
-    'rldcl', 'rldicl',
+    'rldcl', 'rldcl_', 'rldicl', 'rldicl_', 'rldcr', 'rldcr_', 'rldicr', 'rldicr_',
     'divdu', 'divdu.', 'divd', 'divd.', 'mulld', 'mulld.', 'mulhd', 'mulhd.', 'srad', 'sld', 'srd',
     'divduo.', 'divdo.',
     'lwa', 'lwax', 'lwaux',

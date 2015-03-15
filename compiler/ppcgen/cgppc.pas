@@ -35,6 +35,8 @@ unit cgppc;
       tcgppcgen = class(tcg)
         procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : tcgpara); override;
 
+        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister); override;
+
         procedure a_call_reg(list : TAsmList;reg: tregister); override;
 
         { stores the contents of register reg to the memory location described by
@@ -211,6 +213,54 @@ unit cgppc;
            else
              internalerror(2002080701);
         end;
+      end;
+
+
+    procedure tcgppcgen.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister);
+      var
+        tmpreg: tregister;
+        cntlzop: tasmop;
+        bitsizem1: longint;
+      begin
+        { we only have a cntlz(w|d) instruction, which corresponds to bsr(x)
+         (well, regsize_in_bits - bsr(x), as x86 numbers bits in reverse).
+          Fortunately, bsf(x) can be calculated easily based on that, see
+          "Figure 5-13. Number of Powers of 2 Code Sequence" in the PowerPC
+          Compiler Writer's Guide
+        }
+        if srcsize in [OS_64,OS_S64] then
+          begin
+{$ifdef powerpc64}
+            cntlzop:=A_CNTLZD;
+{$else}
+            internalerror(2015022601);
+{$endif}
+            bitsizem1:=63;
+          end
+        else
+          begin
+            cntlzop:=A_CNTLZW;
+            bitsizem1:=31;
+          end;
+        if not reverse then
+          begin
+            { cntlzw(src and -src) }
+            tmpreg:=getintregister(list,srcsize);
+            { don't use a_op_reg_reg, as this will adjust the result
+              after the neg in case of a non-32/64 bit operation, which
+              is not necessary since we're only using it as an
+              AND-mask }
+            list.concat(taicpu.op_reg_reg(A_NEG,tmpreg,src));
+            a_op_reg_reg(list,OP_AND,srcsize,src,tmpreg);
+          end
+        else
+          tmpreg:=src;
+        { count leading zeroes }
+        list.concat(taicpu.op_reg_reg(cntlzop,dst,tmpreg));
+        { (bitsize-1) - cntlz (which is 32/64 in case src was 0) }
+        list.concat(taicpu.op_reg_reg_const(A_SUBFIC,dst,dst,bitsizem1));
+        { set to 255 is source was 0 }
+        a_op_const_reg(list,OP_AND,dstsize,255,dst);
       end;
 
 
@@ -421,6 +471,7 @@ unit cgppc;
       var
         tmpref: treference;
         tmpreg: tregister;
+        toc_offset: longint;
       begin
         tmpreg:=NR_NO;
         if target_info.system in systems_aix then
@@ -444,12 +495,32 @@ unit cgppc;
             a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,NR_RTOC);
             tmpref.offset:=2*sizeof(pint);
             a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,NR_R11);
+          end
+        else if target_info.abi=abi_powerpc_elfv2 then
+          begin
+            { save current TOC }
+            reference_reset_base(tmpref,NR_STACK_POINTER_REG,LA_RTOC_ELFV2,sizeof(pint));
+            a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_RTOC,tmpref);
+            { functions must be called via R12 for this ABI }
+            if reg<>NR_R12 then
+              begin
+                getcpuregister(list,NR_R12);
+                a_load_reg_reg(list,OS_ADDR,OS_ADDR,reg,NR_R12)
+              end;
           end;
         list.concat(taicpu.op_none(A_BCTRL));
-        if target_info.system in systems_aix then
+        if (target_info.system in systems_aix) or
+           (target_info.abi=abi_powerpc_elfv2) then
           begin
+            if (target_info.abi=abi_powerpc_elfv2) and
+               (reg<>NR_R12) then
+              ungetcpuregister(list,NR_R12);
             { restore our TOC }
-            reference_reset_base(tmpref,NR_STACK_POINTER_REG,LA_RTOC_AIX,sizeof(pint));
+            if target_info.system in systems_aix then
+              toc_offset:=LA_RTOC_AIX
+            else
+              toc_offset:=LA_RTOC_ELFV2;
+            reference_reset_base(tmpref,NR_STACK_POINTER_REG,toc_offset,sizeof(pint));
             a_load_ref_reg(list,OS_ADDR,OS_ADDR,tmpref,NR_RTOC);
           end;
         include(current_procinfo.flags,pi_do_call);

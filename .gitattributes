@@ -5482,6 +5482,7 @@ packages/libogcfpc/src/ogc/ios.inc svneol=native#text/plain
 packages/libogcfpc/src/ogc/ipc.inc svneol=native#text/plain
 packages/libogcfpc/src/ogc/irq.inc svneol=native#text/plain
 packages/libogcfpc/src/ogc/isfs.inc svneol=native#text/plain
+packages/libogcfpc/src/ogc/libversion.inc svneol=native#text/plain
 packages/libogcfpc/src/ogc/lwp.inc svneol=native#text/plain
 packages/libogcfpc/src/ogc/lwp_config.inc svneol=native#text/plain
 packages/libogcfpc/src/ogc/lwp_heap.inc svneol=native#text/plain
@@ -8172,6 +8173,7 @@ rtl/dragonfly/x86_64/sighnd.inc svneol=native#text/plain
 rtl/dragonfly/x86_64/signal.inc svneol=native#text/plain
 rtl/embedded/Makefile svneol=native#text/plain
 rtl/embedded/Makefile.fpc svneol=native#text/plain
+rtl/embedded/arm/allwinner_a20.pp svneol=native#text/plain
 rtl/embedded/arm/at91sam7x256.pp svneol=native#text/plain
 rtl/embedded/arm/cortexm0.pp svneol=native#text/pascal
 rtl/embedded/arm/cortexm0_start.inc svneol=native#text/plain
@@ -8627,6 +8629,10 @@ rtl/linux/powerpc64/cprt0.as svneol=native#text/plain
 rtl/linux/powerpc64/dllprt0.as svneol=native#text/plain
 rtl/linux/powerpc64/gprt0.as svneol=native#text/plain
 rtl/linux/powerpc64/prt0.as svneol=native#text/plain
+rtl/linux/powerpc64/si_c.inc svneol=native#text/plain
+rtl/linux/powerpc64/si_dll.inc svneol=native#text/plain
+rtl/linux/powerpc64/si_g.inc svneol=native#text/plain
+rtl/linux/powerpc64/si_prc.inc svneol=native#text/plain
 rtl/linux/powerpc64/sighnd.inc svneol=native#text/plain
 rtl/linux/powerpc64/sighndh.inc svneol=native#text/plain
 rtl/linux/powerpc64/stat.inc svneol=native#text/plain
@@ -9356,6 +9362,7 @@ rtl/wii/classes.pp svneol=native#text/plain
 rtl/wii/dos.pp svneol=native#text/plain
 rtl/wii/libc.inc svneol=native#text/plain
 rtl/wii/libch.inc svneol=native#text/plain
+rtl/wii/rtl.cfg svneol=native#text/plain
 rtl/wii/rtldefs.inc svneol=native#text/plain
 rtl/wii/sysdir.inc svneol=native#text/plain
 rtl/wii/sysfile.inc svneol=native#text/plain
@@ -10431,6 +10438,7 @@ tests/tbs/tb0607.pp svneol=native#text/plain
 tests/tbs/tb0608.pp svneol=native#text/pascal
 tests/tbs/tb0609.pp svneol=native#text/plain
 tests/tbs/tb205.pp svneol=native#text/plain
+tests/tbs/tb610.pp svneol=native#text/plain
 tests/tbs/tbs0594.pp svneol=native#text/pascal
 tests/tbs/ub0060.pp svneol=native#text/plain
 tests/tbs/ub0069.pp svneol=native#text/plain
@@ -10655,6 +10663,13 @@ tests/test/cg/obj/linux/powerpc/tcext3.o -text
 tests/test/cg/obj/linux/powerpc/tcext4.o -text
 tests/test/cg/obj/linux/powerpc/tcext5.o -text
 tests/test/cg/obj/linux/powerpc/tcext6.o -text
+tests/test/cg/obj/linux/powerpc64-le/cpptcl1.o -text
+tests/test/cg/obj/linux/powerpc64-le/cpptcl2.o -text
+tests/test/cg/obj/linux/powerpc64-le/ctest.o -text
+tests/test/cg/obj/linux/powerpc64-le/tcext3.o -text
+tests/test/cg/obj/linux/powerpc64-le/tcext4.o -text
+tests/test/cg/obj/linux/powerpc64-le/tcext5.o -text
+tests/test/cg/obj/linux/powerpc64-le/tcext6.o -text
 tests/test/cg/obj/linux/powerpc64/cpptcl1.o -text
 tests/test/cg/obj/linux/powerpc64/cpptcl2.o -text
 tests/test/cg/obj/linux/powerpc64/ctest.o -text
@@ -11934,6 +11949,7 @@ tests/test/tlibrary2.pp svneol=native#text/plain
 tests/test/tlibrary3.pp svneol=native#text/plain
 tests/test/tmacbool.pp svneol=native#text/plain
 tests/test/tmacfunret.pp svneol=native#text/plain
+tests/test/tmacfunret2.pp svneol=native#text/plain
 tests/test/tmaclocalprocparam1.pp svneol=native#text/plain
 tests/test/tmaclocalprocparam1a.pp svneol=native#text/plain
 tests/test/tmaclocalprocparam2.pp svneol=native#text/plain
@@ -12049,6 +12065,7 @@ tests/test/tobjc4.pp svneol=native#text/plain
 tests/test/tobjc40.pp svneol=native#text/plain
 tests/test/tobjc41.pp svneol=native#text/plain
 tests/test/tobjc42.pp svneol=native#text/plain
+tests/test/tobjc43.pp svneol=native#text/plain
 tests/test/tobjc4a.pp svneol=native#text/plain
 tests/test/tobjc5.pp svneol=native#text/plain
 tests/test/tobjc5a.pp svneol=native#text/plain
@@ -14341,7 +14358,10 @@ tests/webtbs/tw27424.pp svneol=native#text/pascal
 tests/webtbs/tw27515.pp svneol=native#text/pascal
 tests/webtbs/tw2758.pp svneol=native#text/plain
 tests/webtbs/tw2763.pp svneol=native#text/plain
+tests/webtbs/tw27634.pp svneol=native#text/plain
 tests/webtbs/tw2765.pp svneol=native#text/plain
+tests/webtbs/tw27658.pp svneol=native#text/plain
+tests/webtbs/tw27665.pp svneol=native#text/plain
 tests/webtbs/tw2767.pp svneol=native#text/plain
 tests/webtbs/tw2771.pp svneol=native#text/plain
 tests/webtbs/tw2772.pp svneol=native#text/plain

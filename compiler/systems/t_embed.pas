@@ -485,6 +485,9 @@ begin
       ct_xmc4500x768,
       ct_xmc4502x768,
       ct_xmc4504x512,
+
+      { Allwinner }
+      ct_allwinner_a20,
       
       ct_sc32442b,
       ct_thumb2bare:
@@ -538,12 +541,13 @@ begin
       if embedded_controllers[current_settings.controllertype].flashsize<>0 then
         begin
           Add('    } >flash');
+          Add('    .note.gnu.build-id : { *(.note.gnu.build-id) } >flash ');
         end
       else
         begin
           Add('    } >ram');
+          Add('    .note.gnu.build-id : { *(.note.gnu.build-id) } >ram ');
         end;
-      Add('    .note.gnu.build-id : { *(.note.gnu.build-id) } >flash ');
 
       Add('    .data :');
       Add('    {');

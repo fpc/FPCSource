@@ -1350,6 +1350,10 @@ Implementation
                    asd_reference:
                      { ignore for now, but should be added}
                      ;
+{$ifdef ARM}
+                   asd_thumb_func:
+                     ObjData.ThumbFunc:=true;
+{$endif ARM}
                    else
                      internalerror(2010011101);
                  end;
@@ -1488,6 +1492,9 @@ Implementation
                    asd_reference:
                      { ignore for now, but should be added}
                      ;
+                   asd_thumb_func:
+                     { ignore for now, but should be added}
+                     ;
                    else
                      internalerror(2010011102);
                  end;
@@ -1505,6 +1512,7 @@ Implementation
         leblen : byte;
         lebbuf : array[0..63] of byte;
         objsym,
+        ref,
         objsymend : TObjSymbol;
         zerobuf : array[0..63] of byte;
         relative_reloc: boolean;
@@ -1513,6 +1521,7 @@ Implementation
         ddouble : double;
         eextended : extended;
         ccomp : comp;
+        tmp    : word;
       begin
         fillchar(zerobuf,sizeof(zerobuf),0);
         fillchar(objsym,sizeof(objsym),0);
@@ -1636,6 +1645,10 @@ Implementation
                        { Required for DWARF2 support under Windows }
                        ObjData.writereloc(Tai_const(hp).symofs,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_SECREL32);
                      end;
+{$ifdef arm}
+                   aitconst_got:
+                     ObjData.writereloc(Tai_const(hp).symofs,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_GOT32);
+{$endif arm}
                    aitconst_gotoff_symbol:
                      ObjData.writereloc(Tai_const(hp).symofs,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_GOTOFF);
                    aitconst_uleb128bit,
@@ -1652,6 +1665,11 @@ Implementation
                    aitconst_darwin_dwarf_delta32,
                    aitconst_darwin_dwarf_delta64:
                      ObjData.writebytes(Tai_const(hp).value,tai_const(hp).size);
+                   aitconst_half16bit:
+                     begin
+                       tmp:=Tai_const(hp).value div 2;
+                       ObjData.writebytes(tmp,2);
+                     end
                    else
                      internalerror(200603254);
                  end;
@@ -1671,6 +1689,25 @@ Implementation
              ait_cutobject :
                if SmartAsm then
                 break;
+             ait_weak:
+               begin
+                 objsym:=ObjData.symbolref(tai_weak(hp).sym^);
+                 objsym.bind:=AB_WEAK_EXTERNAL;
+               end;
+             ait_symbolpair:
+               begin
+                 if tai_symbolpair(hp).kind=spk_set then
+                   begin
+                     objsym:=ObjData.symbolref(tai_symbolpair(hp).sym^);
+                     ref:=objdata.symbolref(tai_symbolpair(hp).value^);
+
+                     objsym.offset:=ref.offset;
+                     objsym.objsection:=ref.objsection;
+{$ifdef arm}
+                     objsym.ThumbFunc:=ref.ThumbFunc;
+{$endif arm}
+                   end;
+               end;
 {$ifndef DISABLE_WIN64_SEH}
              ait_seh_directive :
                tai_seh_directive(hp).generate_code(objdata);

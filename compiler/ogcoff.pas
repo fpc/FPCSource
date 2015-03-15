@@ -261,9 +261,9 @@ interface
        TLSDIR_SIZE      = $18;
 {$endif i386}
 {$ifdef arm}
-       COFF_MAGIC       = $1c0;
        COFF_OPT_MAGIC   = $10b;
        TLSDIR_SIZE      = $18;
+       function COFF_MAGIC: word;
 {$endif arm}
 {$ifdef x86_64}
        COFF_MAGIC       = $8664;
@@ -422,6 +422,11 @@ implementation
        IMAGE_REL_ARM_BLX11         = $0009;
        IMAGE_REL_ARM_SECTION       = $000E;     { Section table index }
        IMAGE_REL_ARM_SECREL        = $000F;     { Offset within section }
+       IMAGE_REL_ARM_MOV32A        = $0010;     { 32-bit VA applied to MOVW+MOVT pair, added to existing imm (ARM) }
+       IMAGE_REL_ARM_MOV32T        = $0011;     { 32-bit VA applied to MOVW+MOVT pair, added to existing imm (THUMB) }
+       IMAGE_REL_ARM_BRANCH20T     = $0012;     { Thumb: 20 most significant bits of 32 bit B cond instruction }
+       IMAGE_REL_ARM_BRANCH24T     = $0014;     { Thumb: 24 most significant bits of 32 bit B uncond instruction }
+       IMAGE_REL_ARM_BLX23T        = $0015;     { 23 most significant bits of 32 bit BL/BLX instruction. Transformed to BLX if target is Thumb }
 {$endif arm}
 
 {$ifdef i386}
@@ -913,6 +918,14 @@ const pemagic : array[0..3] of byte = (
                     if (relocval<>$3f) and (relocval<>0) then
                       internalerror(200606085);  { offset overflow }
                   end;
+                RELOC_RELATIVE_24_THUMB:
+                  begin
+                    relocval:=longint(relocval - objsec.mempos - objreloc.dataoffset) shr 1 - 4;
+                    address:=address or ((relocval shr 1) and $ffffff) or ((relocval and 1) shl 24);
+                    relocval:=relocval shr 25;
+                    if (relocval<>$3f) and (relocval<>0) then
+                      internalerror(200606085);  { offset overflow }
+                  end;
 {$endif arm}
 {$ifdef x86_64}
                 { 64 bit coff only }
@@ -1279,6 +1292,8 @@ const pemagic : array[0..3] of byte = (
                 rel.reloctype:=IMAGE_REL_ARM_SECREL;
               RELOC_RELATIVE_24 :
                 rel.reloctype:=IMAGE_REL_ARM_BRANCH24;
+              RELOC_RELATIVE_24_THUMB:
+                rel.reloctype:=IMAGE_REL_ARM_BLX24;
 {$endif arm}
 {$ifdef i386}
               RELOC_RELATIVE :
@@ -1597,6 +1612,8 @@ const pemagic : array[0..3] of byte = (
                rel_type:=RELOC_RELATIVE_24;
              IMAGE_REL_ARM_SECREL:
                rel_type:=RELOC_SECREL32;
+             IMAGE_REL_ARM_BLX24:
+               rel_type:=RELOC_RELATIVE_24_THUMB;
 {$endif arm}
 {$ifdef i386}
              IMAGE_REL_I386_PCRLONG :
@@ -2962,6 +2979,15 @@ const pemagic : array[0..3] of byte = (
         DLLReader.Free;
       end;
 
+{$ifdef arm}
+    function COFF_MAGIC: word;
+      begin
+        if GenerateThumb2Code and (current_settings.cputype>=cpu_armv7) then
+          COFF_MAGIC:=$1c4 // IMAGE_FILE_MACHINE_ARMNT
+        else
+          COFF_MAGIC:=$1c0; // IMAGE_FILE_MACHINE_ARM
+      end;
+{$endif arm}
 
 {*****************************************************************************
                                   Initialize

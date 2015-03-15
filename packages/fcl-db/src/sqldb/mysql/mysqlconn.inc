@@ -214,8 +214,8 @@ implementation
 
 uses
   dbconst,
-  strutils,
-  dateutils,
+  StrUtils,
+  DateUtils,
   FmtBCD;
 
 const
@@ -838,7 +838,7 @@ begin
     Result := StrToInt(S);
 end;
 
-function InternalStrToFloat(S: string): Extended;
+function InternalStrToFloat(const S: string): Extended;
 
 var
   I: Integer;
@@ -856,7 +856,7 @@ begin
   Result := StrToFloat(Tmp);
 end;
 
-function InternalStrToCurrency(S: string): Extended;
+function InternalStrToCurrency(const S: string): Currency;
 
 var
   I: Integer;
@@ -874,7 +874,7 @@ begin
   Result := StrToCurr(Tmp);
 end;
 
-function InternalStrToDate(S: string): TDateTime;
+function InternalStrToDate(const S: string): TDateTime;
 
 var
   EY, EM, ED: Word;
@@ -889,11 +889,30 @@ begin
     Result:=EncodeDate(EY, EM, ED);
 end;
 
-function InternalStrToDateTime(S: string): TDateTime;
+function StrToMSecs(const S: string): Word;
+var C: char;
+    d, MSecs: double;
+begin
+{$IFDEF MYSQL56_UP}
+  // datetime(n), where n is fractional seconds precision (between 0 and 6)
+  MSecs := 0;
+  d := 100;
+  for C in S do
+    begin
+    MSecs := MSecs + (ord(C)-ord('0'))*d;
+    d := d / 10;
+    end;
+  Result := Round(MSecs);
+{$ELSE}
+  Result := 0;
+{$ENDIF}
+end;
+
+function InternalStrToDateTime(const S: string): TDateTime;
 
 var
   EY, EM, ED: Word;
-  EH, EN, ES: Word;
+  EH, EN, ES, EMS: Word;
 
 begin
   EY := StrToInt(Copy(S, 1, 4));
@@ -902,17 +921,18 @@ begin
   EH := StrToInt(Copy(S, 12, 2));
   EN := StrToInt(Copy(S, 15, 2));
   ES := StrToInt(Copy(S, 18, 2));
+  EMS:= StrToMSecs(Copy(S, 21, 6));
   if (EY = 0) or (EM = 0) or (ED = 0) then
     Result := 0
   else
     Result := EncodeDate(EY, EM, ED);
-  Result := ComposeDateTime(Result,EncodeTime(EH, EN, ES, 0));
+  Result := ComposeDateTime(Result, EncodeTime(EH, EN, ES, EMS));
 end;
 
-function InternalStrToTime(S: string): TDateTime;
+function InternalStrToTime(const S: string): TDateTime;
 
 var
-  EH, EM, ES: Word;
+  EH, EM, ES, EMS: Word;
   p: integer;
 
 begin
@@ -920,14 +940,15 @@ begin
   EH := StrToInt(ExtractSubstr(S, p, [':'])); //hours can be 2 or 3 digits
   EM := StrToInt(ExtractSubstr(S, p, [':']));
   ES := StrToInt(ExtractSubstr(S, p, ['.']));
-  Result := EncodeTimeInterval(EH, EM, ES, 0);
+  EMS:= StrToMSecs(Copy(S, p, 6));
+  Result := EncodeTimeInterval(EH, EM, ES, EMS);
 end;
 
-function InternalStrToTimeStamp(S: string): TDateTime;
+function InternalStrToTimeStamp(const S: string): TDateTime;
 
 var
   EY, EM, ED: Word;
-  EH, EN, ES: Word;
+  EH, EN, ES, EMS: Word;
 
 begin
 {$IFNDEF mysql40}
@@ -937,6 +958,7 @@ begin
   EH := StrToInt(Copy(S, 12, 2));
   EN := StrToInt(Copy(S, 15, 2));
   ES := StrToInt(Copy(S, 18, 2));
+  EMS:= StrToMSecs(Copy(S, 21, 6));
 {$ELSE}
   EY := StrToInt(Copy(S, 1, 4));
   EM := StrToInt(Copy(S, 5, 2));
@@ -944,12 +966,13 @@ begin
   EH := StrToInt(Copy(S, 9, 2));
   EN := StrToInt(Copy(S, 11, 2));
   ES := StrToInt(Copy(S, 13, 2));
+  EMS:= 0;
 {$ENDIF}
   if (EY = 0) or (EM = 0) or (ED = 0) then
     Result := 0
   else
     Result := EncodeDate(EY, EM, ED);
-  Result := Result + EncodeTime(EH, EN, ES, 0);
+  Result := Result + EncodeTime(EH, EN, ES, EMS);
 end;
 
 function TConnectionName.MySQLWriteData(AField: PMYSQL_FIELD; FieldDef: TFieldDef; Source, Dest: PChar; Len: integer; out CreateBlob : boolean): Boolean;

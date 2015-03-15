@@ -548,7 +548,8 @@ begin
     emti386   : begin fMachineTypeInt:=EM_386; fBits:=ELFCLASS32; fOrder:=ELFDATA2LSB; end;
     emtm68k   : begin fMachineTypeInt:=EM_68K; fBits:=ELFCLASS32; fOrder:=ELFDATA2MSB; end;
     emtppc    : begin fMachineTypeInt:=EM_PPC; fBits:=ELFCLASS32; fOrder:=ELFDATA2MSB; end;
-    emtppc64  : begin fMachineTypeInt:=EM_PPC64; fBits:=ELFCLASS64; fOrder:=ELFDATA2MSB; end;
+    emtppc64  : begin fMachineTypeInt:=EM_PPC64; fBits:=ELFCLASS64;fOrder:=ELFDATA2MSB; end;
+    emtppc64le: begin fMachineTypeInt:=EM_PPC64; fBits:=ELFCLASS64;fOrder:=ELFDATA2LSB; end;
     emtarm    : begin fMachineTypeInt:=EM_ARM; fBits:=ELFCLASS32; fOrder:=ELFDATA2LSB; end;
     emtarmeb  : begin fMachineTypeInt:=EM_ARM; fBits:=ELFCLASS32; fOrder:=ELFDATA2MSB; end;
     emtalpha  : begin fMachineTypeInt:=EM_ALPHA; fBits:=ELFCLASS64; fOrder:=ELFDATA2LSB; end;

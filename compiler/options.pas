@@ -36,6 +36,7 @@ Type
     NoPressEnter,
     FPCHelpLines,
     LogoWritten,
+    ABISetExplicitly,
     FPUSetExplicitly,
     CPUSetExplicitly,
     OptCPUSetExplicitly: boolean;
@@ -819,6 +820,7 @@ function toption.ParseMacVersionMin(out minstr, emptystr: string; const compvarn
     temp,
     compvarvalue: string[15];
     i: longint;
+    osx_minor_two_digits: boolean;
   begin
     minstr:=value;
     emptystr:='';
@@ -842,11 +844,16 @@ function toption.ParseMacVersionMin(out minstr, emptystr: string; const compvarn
     temp:=subval(i+1,2,i);
     if temp='' then
       exit(false);
-    { on Mac OS X, the minor version number is limited to 1 digit }
+    { on Mac OS X, the minor version number was originally limited to 1 digit;
+      with 10.10 the format changed and two digits were also supported; on iOS,
+      the minor version number always takes up two digits }
+    osx_minor_two_digits:=false;
     if not ios then
       begin
-        if length(temp)<>1 then
-          exit(false);
+        { if the minor version number is two digits on OS X (the case since
+          OS X 10.10), we also have to add two digits for the patch level}
+        if length(temp)=2 then
+          osx_minor_two_digits:=true;
       end
     { the minor version number always takes up two digits on iOS }
     else if length(temp)=1 then
@@ -863,9 +870,12 @@ function toption.ParseMacVersionMin(out minstr, emptystr: string; const compvarn
         { there's only room for a single digit patch level in the version macro
           for Mac OS X. gcc sets it to zero if there are more digits, but that
           seems worse than clamping to 9 (don't declare as invalid like with
-          minor version number, because there is a precedent like 10.4.11)
+          minor version number, because there is a precedent like 10.4.11).
+
+          As of OS X 10.10 there are two digits for the patch level
         }
-        if not ios then
+        if not ios and
+           not osx_minor_two_digits then
           begin
             if length(temp)<>1 then
               temp:='9';
@@ -881,7 +891,8 @@ function toption.ParseMacVersionMin(out minstr, emptystr: string; const compvarn
         if i<=length(value) then
           exit(false);
       end
-    else if not ios then
+    else if not ios and
+       not osx_minor_two_digits then
       compvarvalue:=compvarvalue+'0'
     else
       compvarvalue:=compvarvalue+'00';
@@ -1109,6 +1120,7 @@ begin
                         s:=upper(copy(more,j+1,length(more)-j));
                         if not(SetAbiType(s,target_info.abi)) then
                           IllegalPara(opt);
+                        ABISetExplicitly:=true;
                         break;
                       end;
 
@@ -3059,6 +3071,7 @@ begin
   LogoWritten:=false;
   NoPressEnter:=false;
   FirstPass:=false;
+  ABISetExplicitly:=false;
   FPUSetExplicitly:=false;
   CPUSetExplicitly:=false;
   OptCPUSetExplicitly:=false;
@@ -3870,7 +3883,7 @@ if (target_info.abi = abi_eabihf) then
 {$endif ARM}
 
 { inline bsf/bsr implementation }
-{$if not defined(llvm) and (defined(i386) or defined(x86_64) or defined(aarch64))}
+{$if not defined(llvm) and (defined(i386) or defined(x86_64) or defined(aarch64) or defined(powerpc) or defined(powerpc64))}
   def_system_macro('FPC_HAS_INTERNAL_BSF');
   def_system_macro('FPC_HAS_INTERNAL_BSR');
 {$endif}
@@ -3898,6 +3911,32 @@ if (target_info.abi = abi_eabihf) then
     end;
 {$endif}
 
+{$if defined(powerpc64)}
+  { on sysv targets, default to elfv2 for little endian and to elfv1 for
+    big endian (unless specified otherwise). As the gcc man page says:
+    "Overriding the default ABI requires special system support and is
+     likely to fail in spectacular ways" }
+  if not option.ABISetExplicitly then
+    begin
+      if (target_info.abi=abi_powerpc_sysv) and
+         (target_info.endian=endian_little) then
+        target_info.abi:=abi_powerpc_elfv2
+      else
+        if (target_info.abi=abi_powerpc_elfv2) and
+         (target_info.endian=endian_big) then
+        target_info.abi:=abi_powerpc_sysv
+    end;
+{$endif}
+
+{$if defined(powerpc) or defined(powerpc64)}
+  { define _CALL_ELF symbol like gcc }
+  case target_info.abi of
+    abi_powerpc_sysv:
+      set_system_compvar('_CALL_ELF','1');
+    abi_powerpc_elfv2:
+      set_system_compvar('_CALL_ELF','2');
+    end;
+{$endif}
 
   { Section smartlinking conflicts with import sections on Windows }
   if GenerateImportSection and

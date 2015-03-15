@@ -87,7 +87,7 @@ unit i_macos;
             first_parm_offset : 8;
             stacksize    : 262144;
             stackalign   : 16;
-            abi : abi_powerpc_aix;
+            abi : abi_powerpc_darwin;
             llvmdatalayout : 'todo';
           );
 

@@ -181,6 +181,7 @@ interface
        TEncodeRelocProc=function(objrel:TObjRelocation):byte;
        TLoadRelocProc=procedure(objrel:TObjRelocation);
        TLoadSectionProc=function(objinput:TElfObjInput;objdata:TObjData;const shdr:TElfsechdr;shindex:longint):boolean;
+       TEncodeFlagsProc=function:longword;
        TDynamicReloc=(
          dr_relative,
          dr_glob_dat,
@@ -199,6 +200,7 @@ interface
          encodereloc: TEncodeRelocProc;
          loadreloc: TLoadRelocProc;
          loadsection: TLoadSectionProc;
+         encodeflags: TEncodeFlagsProc;
        end;
 
 
@@ -968,6 +970,12 @@ implementation
           elfsym.st_name:=nameidx;
         elfsym.st_size:=objsym.size;
         elfsym.st_value:=objsym.address;
+
+{$ifdef ARM}
+        if objsym.ThumbFunc then
+          inc(elfsym.st_value);
+{$endif ARM}
+
         case objsym.bind of
           AB_LOCAL :
             begin
@@ -1274,6 +1282,8 @@ implementation
            header.e_shnum:=nsections;
            header.e_ehsize:=sizeof(telfheader);
            header.e_shentsize:=sizeof(telfsechdr);
+           if assigned(ElfTarget.encodeflags) then
+             header.e_flags:=ElfTarget.encodeflags();
            MaybeSwapHeader(header);
            writer.write(header,sizeof(header));
            writer.writezeros($40-sizeof(header)); { align }
@@ -2045,6 +2055,8 @@ implementation
         header.e_shnum:=ExeSectionList.Count+1;
         header.e_phnum:=segmentlist.count;
         header.e_ehsize:=sizeof(telfheader);
+        if assigned(ElfTarget.encodeflags) then
+          header.e_flags:=ElfTarget.encodeflags();
         if assigned(EntrySym) then
           header.e_entry:=EntrySym.Address;
         header.e_shentsize:=sizeof(telfsechdr);

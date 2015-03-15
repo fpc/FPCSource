@@ -28,7 +28,8 @@ interface
     uses
       cpubase,
       globtype,
-      parabase,cgbase,cgutils,
+      parabase,cgutils,
+      aasmdata,cgbase,
       symdef,node,ncal;
 
     type
@@ -109,6 +110,9 @@ interface
           function load_procvar_codeptr: tregister;
 
           procedure load_block_invoke(toreg: tregister);virtual;
+
+          function get_call_reg(list: TAsmList): tregister; virtual;
+          procedure unget_call_reg(list: TAsmList; reg: tregister); virtual;
        public
           procedure pass_generate_code;override;
           destructor destroy;override;
@@ -123,7 +127,7 @@ implementation
       cpuinfo,
       symconst,symbase,symtable,symtype,symsym,defutil,paramgr,
       pass_2,
-      aasmbase,aasmtai,aasmdata,
+      aasmbase,aasmtai,
       nbas,nmem,nld,ncnv,nutils,
       ncgutil,blockutl,
       cgobj,tgobj,hlcgobj,
@@ -484,6 +488,18 @@ implementation
       end;
 
 
+    function tcgcallnode.get_call_reg(list: TAsmList): tregister;
+      begin
+        result:=hlcg.getaddressregister(current_asmdata.CurrAsmList,procdefinition.address_type);
+      end;
+
+
+    procedure tcgcallnode.unget_call_reg(list: TAsmList; reg: tregister);
+      begin
+        { nothing to do by default }
+      end;
+
+
     procedure tcgcallnode.set_result_location(realresdef: tstoreddef);
       begin
         if realresdef.is_intregable or
@@ -733,7 +749,7 @@ implementation
                              internalerror(200408222);
                            if getsupreg(callerparaloc^.register)<first_fpu_imreg then
                              cg.getcpuregister(current_asmdata.CurrAsmList,callerparaloc^.register);
-                           cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,tmpparaloc^.size,ppn.tempcgpara.size,tmpparaloc^.register,callerparaloc^.register);
+                           cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,callerparaloc^.register);
                          end;
                        LOC_MMREGISTER:
                          begin
@@ -1020,7 +1036,7 @@ implementation
                  callref:=can_call_ref(href);
                  if not callref then
                    begin
-                     pvreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,proc_addr_voidptrdef);
+                     pvreg:=get_call_reg(current_asmdata.CurrAsmList);
                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,proc_addr_size,proc_addr_size,href,pvreg);
                    end;
 
@@ -1051,7 +1067,11 @@ implementation
                  if callref then
                    retloc:=do_call_ref(href)
                  else
-                   retloc:=hlcg.a_call_reg(current_asmdata.CurrAsmList,tabstractprocdef(procdefinition),pvreg,paralocs);
+                   begin
+                     retloc:=hlcg.a_call_reg(current_asmdata.CurrAsmList,tabstractprocdef(procdefinition),pvreg,paralocs);
+                     unget_call_reg(current_asmdata.CurrAsmList,pvreg);
+                   end;
+
                  extra_post_call_code;
                end
              else

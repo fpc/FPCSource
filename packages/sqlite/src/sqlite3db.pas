@@ -24,7 +24,12 @@ type
 {*************************************************************}
 {*************************************************************}   
    private
-   fPSQlite: PPsqlite3;
+   type
+     TFieldList = class(TList)
+       protected
+         procedure Notify(Ptr: Pointer; Action: TListNotification); override;
+     end;
+   var
    fSQLite:Psqlite3;
    fMsg: String;
    fIsOpen: Boolean;
@@ -39,7 +44,7 @@ type
    fOnBusy: TOnBusy;
    fOnQueryComplete: TOnQueryComplete;
    fBusyTimeout: longint;
-   fPMsg: PChar;
+   fPMsg: PAnsiChar;
    fChangeCount: longint;
    fNb_Champ :  Integer;
    fList_FieldName : TStringList;
@@ -48,9 +53,9 @@ type
 {*************************************************************}
 {*************************************************************}   
    public
-   constructor Create(DBFileName: String);
+   constructor Create(const DBFileName: String);
    destructor Destroy; override;
-   function Query(Sql: String; Table: TStrings ): boolean;
+   function Query(const Sql: String; Table: TStrings ): boolean;
    function ErrorMessage(ErrNo: Integer): string;
    function IsComplete(Sql: String): boolean;
    function LastInsertRow: integer;
@@ -65,12 +70,12 @@ type
    property OnQueryComplete: TOnQueryComplete read fOnQueryComplete write fOnQueryComplete;
    property BusyTimeout: longint read fBusyTimeout write SetBusyTimeout;
    property ChangeCount: longint read fChangeCount;
-   property List_FieldName: TStringList read fList_FieldName write fList_FieldName;
-   property List_Field: TList read fList_Field write fList_Field;
+   property List_FieldName: TStringList read fList_FieldName;
+   property List_Field: TList read fList_Field;
    property Nb_Champ: integer read fNb_Champ write fNb_Champ;
- procedure SQLOnData(Sender: TObject; Columns: Integer; ColumnNames, ColumnValues: String);
-
+   procedure SQLOnData(Sender: TObject; Columns: Integer; ColumnNames, ColumnValues: String);
  end;
+
 function Pas2SQLStr(const PasString: string): string;
 function SQL2PasStr(const SQLString: string): string;
 function QuoteStr(const s: string; QuoteChar: Char ): string;
@@ -314,20 +319,27 @@ begin
    end;
    if length(InterS) > 0 then Field.add(InterS);
    List_Field.add(Field);
-   Field.Free;
 end;
+
 {*************************************************************}
-constructor TSQLite.Create(DBFileName: String);
+procedure TSQLite.TFieldList.Notify(Ptr: Pointer; Action: TListNotification);
+{*************************************************************}
+begin
+  if Action=lnDeleted then
+    TObject(Ptr).Free;
+  inherited;
+end;
+
+{*************************************************************}
+constructor TSQLite.Create(const DBFileName: String);
 {*************************************************************
 SQlite3 constructor
 G. Marcou
 *************************************************************}
-var
-   name	  : pchar;
-begin	  
+begin
    inherited Create;
-   List_FieldName := TStringList.Create;
-   List_Field := TList.Create;
+   fList_FieldName := TStringList.Create;
+   fList_Field := TFieldList.Create;
    fError := SQLITE_ERROR;
    fIsOpen := False;
    fLstName := TStringList.Create;
@@ -336,10 +348,8 @@ begin
    fOnBusy := nil;
    fOnQueryComplete := nil;
    fChangeCount := 0;
-   name:=StrAlloc (length(DBFileName)+1);
-   strpcopy(name,DBFileName);
    OnData:=@SQLOnData;
-   sqlite3_open(name,@fSQLite);
+   sqlite3_open(PAnsiChar(DBFileName), @fSQLite);
    sqlite3_free(fPMsg);
    if fSQLite <> nil then
    begin
@@ -349,7 +359,6 @@ begin
       fError := SQLITE_OK;
    end;
    fMsg := sqlite3_errmsg(fSQLite);
-   strdispose(name);
 end;
 {*************************************************************}
 destructor TSQLite.Destroy;
@@ -369,12 +378,12 @@ begin
    fOnQueryComplete := nil;
    fLstName := nil;
    fLstVal := nil;
-   List_FieldName.destroy;
-   List_Field.destroy;
+   fList_FieldName.destroy;
+   fList_Field.destroy;
    inherited Destroy;
 end;
 {*************************************************************}
-function TSQLite.Query(Sql: String; Table: TStrings ): boolean;
+function TSQLite.Query(const Sql: String; Table: TStrings ): boolean;
 {*************************************************************
 SQLite3 query the database
 G. Marcou
@@ -394,7 +403,7 @@ begin
       List_FieldName.clear;
       List_Field.clear;
       Nb_Champ:=-1;
-      fError := sqlite3_exec(fSQLite, PChar(sql), @ExecCallback, Self, @fPMsg);
+      fError := sqlite3_exec(fSQLite, PAnsiChar(sql), @ExecCallback, Self, @fPMsg);
       sqlite3_free(fPMsg);
       fChangeCount := sqlite3_changes(fSQLite);
       fTable := nil;

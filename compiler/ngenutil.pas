@@ -985,7 +985,7 @@ implementation
       if target_info.system in systems_embedded then
         begin
           maybe_new_object_file(current_asmdata.asmlists[al_globals]);
-          new_section(current_asmdata.asmlists[al_globals],sec_data,'__fpc_initialheap',current_settings.alignment.varalignmax);
+          new_section(current_asmdata.asmlists[al_globals],sec_bss,'__fpc_initialheap',current_settings.alignment.varalignmax);
           current_asmdata.asmlists[al_globals].concat(tai_datablock.Create_global('__fpc_initialheap',heapsize));
         end;
 

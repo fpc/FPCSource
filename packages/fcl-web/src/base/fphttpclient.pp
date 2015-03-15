@@ -202,6 +202,12 @@ Type
     Class function SimpleFormPost(const URL: string; FormData : TStrings): String;
     // Post a file
     Procedure FileFormPost(const AURL, AFieldName, AFileName: string; const Response: TStream);
+    // Post form with a file
+    Procedure FileFormPost(const AURL: string; FormData: TStrings; AFieldName, AFileName: string; const Response: TStream);
+    // Post a stream
+    Procedure StreamFormPost(const AURL, AFieldName, AFileName: string; const AStream: TStream; const Response: TStream);
+    // Post form with a stream
+    Procedure StreamFormPost(const AURL: string; FormData: TStrings; const AFieldName, AFileName: string; const AStream: TStream; const Response: TStream);
     // Simple form of Posting a file
     Class Procedure SimpleFileFormPost(const AURL, AFieldName, AFileName: string; const Response: TStream);
   Protected
@@ -420,7 +426,7 @@ begin
     Result:=Result+'?'+URI.Params;
 end;
 
-Function TFPCustomHTTPClient.GetSocketHandler(Const UseSSL : Boolean) : TSocketHandler;
+function TFPCustomHTTPClient.GetSocketHandler(const UseSSL: Boolean): TSocketHandler;
 
 begin
   Result:=Nil;
@@ -1708,34 +1714,65 @@ end;
 
 procedure TFPCustomHTTPClient.FileFormPost(const AURL, AFieldName,
   AFileName: string; const Response: TStream);
+begin
+  FileFormPost(AURL, nil, AFieldName, AFileName, Response);
+end;
 
+procedure TFPCustomHTTPClient.FileFormPost(const AURL: string;
+  FormData: TStrings; AFieldName, AFileName: string; const Response: TStream);
+var
+  F: TFileStream;
+begin
+  F:=TFileStream.Create(AFileName,fmOpenRead or fmShareDenyWrite);
+  try
+    StreamFormPost(AURL, FormData, AFieldName, ExtractFileName(AFileName), F, Response);
+  finally
+    F.Free;
+  end;
+end;
+
+procedure TFPCustomHTTPClient.StreamFormPost(const AURL, AFieldName,
+  AFileName: string; const AStream: TStream; const Response: TStream);
+begin
+  StreamFormPost(AURL, nil, AFieldName, AFileName, AStream, Response);
+end;
+
+procedure TFPCustomHTTPClient.StreamFormPost(const AURL: string;
+  FormData: TStrings; const AFieldName, AFileName: string;
+  const AStream: TStream; const Response: TStream);
 Var
   S, Sep : string;
   SS : TStringStream;
-  F : TFileStream;
+  I: Integer;
+  N,V: String;
 begin
   Sep:=Format('%.8x_multipart_boundary',[Random($ffffff)]);
   AddHeader('Content-Type','multipart/form-data; boundary='+Sep);
-  S:='--'+Sep+CRLF;
-  s:=s+Format('Content-Disposition: form-data; name="%s"; filename="%s"'+CRLF,[AFieldName,ExtractFileName(AFileName)]);
-  s:=s+'Content-Type: application/octet-string'+CRLF+CRLF;
-  SS:=TStringStream.Create(s);
+  SS:=TStringStream.Create('');
   try
-    SS.Seek(0,soFromEnd);
-    F:=TFileStream.Create(AFileName,fmOpenRead or fmShareDenyWrite);
-    try
-      SS.CopyFrom(F,F.Size);
-    finally
-      F.Free;
-    end;
+    if (FormData<>Nil) then
+      for I:=0 to FormData.Count -1 do
+        begin
+        // not url encoded
+        FormData.GetNameValue(I,N,V);
+        S :='--'+Sep+CRLF;
+        S:=S+Format('Content-Disposition: form-data; name="%s"'+CRLF+CRLF+'%s'+CRLF,[N, V]);
+        SS.WriteBuffer(S[1],Length(S));
+        end;
+    S:='--'+Sep+CRLF;
+    s:=s+Format('Content-Disposition: form-data; name="%s"; filename="%s"'+CRLF,[AFieldName,ExtractFileName(AFileName)]);
+    s:=s+'Content-Type: application/octet-string'+CRLF+CRLF;
+    SS.WriteBuffer(S[1],Length(S));
+    AStream.Seek(0, soFromBeginning);
+    SS.CopyFrom(AStream,AStream.Size);
     S:=CRLF+'--'+Sep+'--'+CRLF;
     SS.WriteBuffer(S[1],Length(S));
     SS.Position:=0;
     RequestBody:=SS;
     Post(AURL,Response);
   finally
-   RequestBody:=Nil;
-   SS.Free;
+    RequestBody:=Nil;
+    SS.Free;
   end;
 end;
 

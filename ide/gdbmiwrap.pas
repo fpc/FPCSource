@@ -37,7 +37,10 @@ type
   TGDBMI_ListValue = class;
   TGDBMI_Value = class
     function AsString: string;
+    function AsInt64: Int64;
+    function AsQWord: QWord;
     function AsLongInt: LongInt;
+    function AsLongWord: LongWord;
     function AsCoreAddr: CORE_ADDR;
     function AsTuple: TGDBMI_TupleValue;
     function AsList: TGDBMI_ListValue;
@@ -123,6 +126,7 @@ type
   end;
 
 function QuoteString(S: string): string;
+function C2PascalNumberPrefix(const S: string): string;
 
 implementation
 
@@ -154,24 +158,60 @@ begin
   Result := '"' + Result + '"';
 end;
 
+function C2PascalNumberPrefix(const S: string): string;
+begin
+  { hex: 0x -> $ }
+  if (Length(S) >= 3) and (s[1] = '0') and ((s[2] = 'x') or (s[2] = 'X')) then
+    exit('$' + Copy(S, 3, Length(S) - 2));
+
+  { oct: 0 -> & }
+  if (Length(S) >= 2) and (s[1] = '0') and ((s[2] >= '0') and (s[2] <= '7')) then
+    exit('&' + Copy(S, 2, Length(S) - 1));
+
+  Result := S;
+end;
+
 function TGDBMI_Value.AsString: string;
 begin
   Result := (self as TGDBMI_StringValue).StringValue;
 end;
 
+function TGDBMI_Value.AsInt64: Int64;
+begin
+  Result := StrToInt64(C2PascalNumberPrefix(AsString));
+end;
+
+function TGDBMI_Value.AsQWord: QWord;
+begin
+  Result := StrToQWord(C2PascalNumberPrefix(AsString));
+end;
+
 function TGDBMI_Value.AsLongInt: LongInt;
 begin
-  Result := StrToInt(AsString);
+  Result := StrToInt(C2PascalNumberPrefix(AsString));
+end;
+
+function TGDBMI_Value.AsLongWord: LongWord;
+const
+  SInvalidInteger = '"%s" is an invalid integer';
+var
+  S: string;
+  Error: LongInt;
+begin
+  S := C2PascalNumberPrefix(AsString);
+  Val(S, Result, Error);
+  if Error <> 0 then
+    raise EConvertError.CreateFmt(SInvalidInteger,[S]);
 end;
 
 function TGDBMI_Value.AsCoreAddr: CORE_ADDR;
 begin
 {$if defined(TARGET_IS_64BIT)}
-  Result := StrToQWord(AsString);
+  Result := AsQWord;
 {$elseif defined(CPU64)}
-  Result := StrToInt64(AsString);
+  Result := AsQWord;
 {$else}
-  Result := StrToInt(AsString);
+  Result := AsLongWord;
 {$endif}
 end;
 

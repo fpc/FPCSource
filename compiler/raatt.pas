@@ -287,12 +287,24 @@ unit raatt;
            end;
 {$endif POWERPC}
 {$if defined(ARM)}
-           { Thumb-2 instructions can have a .W postfix to indicate 32bit instructions
+           {
+             Thumb-2 instructions can have a .W postfix to indicate 32bit instructions,
+             Also in unified syntax sizes and types are indicated with something like a .<dt> prefix for example
            }
            case c of
              '.':
                begin
-                 actasmpattern:=actasmpattern+c;
+                 if len>1 then
+                   begin
+                     while c in ['A'..'Z','a'..'z','0'..'9','_','.'] do
+                       begin
+                         inc(len);
+                         actasmpattern[len]:=c;
+                         c:=current_scanner.asmgetchar;
+                       end;
+                     actasmpattern[0]:=chr(len);
+                   end;
+                 {actasmpattern:=actasmpattern+c;
                  c:=current_scanner.asmgetchar;
 
                  if upcase(c) = 'W' then
@@ -301,7 +313,7 @@ unit raatt;
                      c:=current_scanner.asmgetchar;
                    end
                  else
-                   internalerror(2010122301);
+                   internalerror(2010122301);}
                end
            end;
 {$endif ARM}
@@ -1230,7 +1242,7 @@ unit raatt;
                Consume(AS_COMMA);
                BuildConstSymbolExpression(true,false,false, symofs,symval,symtyp);
 
-               curList.concat(tai_set.create(symname,symval));
+               curList.concat(tai_symbolpair.create(spk_set,symname,symval));
              end;
 
            AS_WEAK:

@@ -286,15 +286,6 @@ unit cpupara;
           usedef:=p.returndef
         else
           usedef:=forcetempdef;
-        { on darwin/i386, if a record has only one field and that field is a
-          single or double, it has to be returned like a single/double }
-        if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
-           ((usedef.typ=recorddef) or
-            is_object(usedef)) and
-           tabstractrecordsymtable(tabstractrecorddef(usedef).symtable).has_single_field(sym) and
-           (sym.vardef.typ=floatdef) and
-           (tfloatdef(sym.vardef).floattype in [s32real,s64real]) then
-          usedef:=sym.vardef;
 
         handled:=set_common_funcretloc_info(p,usedef,retcgsize,result);
         { normally forcetempdef is passed straight through to

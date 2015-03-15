@@ -2280,7 +2280,7 @@ end;
 
 procedure annotate_frame_begin(level:longint;
 {$ifdef GDB_ANNOTATE_FRAME_BEGIN_HAS_GDBARCH_FIELD}
-  gdbarch : pointer;
+  gdbarch : pgdbarch;
 {$endif GDB_ANNOTATE_FRAME_BEGIN_HAS_GDBARCH_FIELD}
 pc:CORE_ADDR);cdecl;public;
 begin
@@ -2501,7 +2501,11 @@ begin
 {$endif}
 end;
 
-procedure annotate_source(filename:pchar;line,character,mid:longint;pc:CORE_ADDR);cdecl;public;
+procedure annotate_source(filename:pchar;line,character,mid:longint;
+{$ifdef GDB_ANNOTATE_FRAME_BEGIN_HAS_GDBARCH_FIELD}
+  gdbarch : pgdbarch;
+{$endif GDB_ANNOTATE_FRAME_BEGIN_HAS_GDBARCH_FIELD}
+pc:CORE_ADDR);cdecl;public;
 begin
 {$ifdef Verbose}
   Debug('|source|');

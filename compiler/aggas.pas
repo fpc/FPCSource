@@ -1104,8 +1104,9 @@ implementation
                    else
                      AsmWriteln(tai_symbol(hp).sym.name);
                  end;
-               if (target_info.system = system_powerpc64_linux) and
-                 (tai_symbol(hp).sym.typ = AT_FUNCTION) and (cs_profile in current_settings.moduleswitches) then
+               if (target_info.system=system_powerpc64_linux) and
+                  (tai_symbol(hp).sym.typ=AT_FUNCTION) and
+                  (cs_profile in current_settings.moduleswitches) then
                  AsmWriteLn('.globl _mcount');
 
                if tai_symbol(hp).is_global then
@@ -1116,8 +1117,9 @@ implementation
                   else
                     AsmWriteln(tai_symbol(hp).sym.name);
                 end;
-               if (target_info.system = system_powerpc64_linux) and
-                 (tai_symbol(hp).sym.typ = AT_FUNCTION) then
+               if (target_info.system=system_powerpc64_linux) and
+                  use_dotted_functions and
+                 (tai_symbol(hp).sym.typ=AT_FUNCTION) then
                  begin
                    AsmWriteLn('.section ".opd", "aw"');
                    AsmWriteLn('.align 3');
@@ -1180,22 +1182,29 @@ implementation
                else
                  AsmWriteLn(tai_symbol(hp).sym.name + '=' + tostr(tai_symbol(hp).value));
              end;
-{$ifdef arm}
-           ait_thumb_func:
+           ait_symbolpair:
              begin
-               AsmWriteLn(#9'.thumb_func');
-             end;
-           ait_thumb_set:
-             begin
-               AsmWriteLn(#9'.thumb_set '+tai_thumb_set(hp).sym^+', '+tai_thumb_set(hp).value^);
-             end;
-{$endif arm}
-           ait_set:
-             begin
-               if replaceforbidden then
-                 AsmWriteLn(#9'.set '+ReplaceForbiddenAsmSymbolChars(tai_set(hp).sym^)+', '+ReplaceForbiddenAsmSymbolChars(tai_set(hp).value^))
+               AsmWrite(#9);
+               AsmWrite(symbolpairkindstr[tai_symbolpair(hp).kind]);
+               AsmWrite(' ');
+               if tai_symbolpair(hp).kind<>spk_localentry then
+                 s:=', '
                else
-                 AsmWriteLn(#9'.set '+tai_set(hp).sym^+', '+tai_set(hp).value^);
+                 { the .localentry directive has to specify the size from the
+                   start till here of the non-local entry code as second argument }
+                 s:=', .-';
+               if replaceforbidden then
+                 begin
+                   { avoid string truncation }
+                   AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).sym^)+s);
+                   AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbolpair(hp).value^));
+                 end
+               else
+                 begin
+                   { avoid string truncation }
+                   AsmWrite(tai_symbolpair(hp).sym^+s);
+                   AsmWriteLn(tai_symbolpair(hp).value^);
+                 end;
              end;
            ait_weak:
              begin
@@ -1212,15 +1221,19 @@ implementation
                   inc(symendcount);
                   AsmWriteLn(s+':');
                   AsmWrite(#9'.size'#9);
-                  if (target_info.system = system_powerpc64_linux) and (tai_symbol_end(hp).sym.typ = AT_FUNCTION) then
+                  if (target_info.system=system_powerpc64_linux) and
+                     use_dotted_functions and
+                     (tai_symbol_end(hp).sym.typ=AT_FUNCTION) then
                     AsmWrite('.');
                   if replaceforbidden then
                     AsmWrite(ReplaceForbiddenAsmSymbolChars(tai_symbol_end(hp).sym.name))
                   else
                     AsmWrite(tai_symbol_end(hp).sym.name);
                   AsmWrite(', '+s+' - ');
-                  if (target_info.system = system_powerpc64_linux) and (tai_symbol_end(hp).sym.typ = AT_FUNCTION) then
-                     AsmWrite('.');
+                  if (target_info.system=system_powerpc64_linux) and
+                     use_dotted_functions and
+                     (tai_symbol_end(hp).sym.typ=AT_FUNCTION) then
+                    AsmWrite('.');
                   if replaceforbidden then
                     AsmWriteLn(ReplaceForbiddenAsmSymbolChars(tai_symbol_end(hp).sym.name))
                   else

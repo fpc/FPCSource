@@ -110,7 +110,7 @@ interface
           procedure addalignmentpadding;
           procedure insertdef(def:TDefEntry);override;
           function is_packed: boolean;
-          function has_single_field(out sym:tfieldvarsym): boolean;
+          function has_single_field(out def:tdef): boolean;
           function get_unit_symtable: tsymtable;
         protected
           { size in bytes including padding }
@@ -1333,9 +1333,12 @@ implementation
       end;
 
 
-    function tabstractrecordsymtable.has_single_field(out sym: tfieldvarsym): boolean;
+    function tabstractrecordsymtable.has_single_field(out def:tdef): boolean;
       var
         i: longint;
+        currentsymlist: TFPHashObjectList;
+        currentdef: tdef;
+        sym: tfieldvarsym;
       begin
         result:=false;
         { If a record contains a union, it does not contain a "single
@@ -1345,19 +1348,51 @@ implementation
            trecorddef(defowner).isunion then
           exit;
         { a record/object can contain other things than fields }
-        for i:=0 to SymList.Count-1 do
-          begin
-            if tsym(symlist[i]).typ=fieldvarsym then
-              begin
-                if result then
-                  begin
-                    result:=false;
-                    exit;
-                  end;
-                result:=true;
-                sym:=tfieldvarsym(symlist[i])
-              end;
-          end;
+        currentsymlist:=symlist;
+        { recurse in arrays and records }
+        sym:=nil;
+        repeat
+          { record has one field? }
+          for i:=0 to currentsymlist.Count-1 do
+            begin
+              if tsym(symlist[i]).typ=fieldvarsym then
+                begin
+                  if result then
+                    begin
+                      result:=false;
+                      exit;
+                    end;
+                  result:=true;
+                  sym:=tfieldvarsym(symlist[i])
+                end;
+            end;
+          if assigned(sym) then
+            begin
+              { if the field is an array, does it contain one element? }
+              currentdef:=sym.vardef;
+              while (currentdef.typ=arraydef) and
+                    not is_special_array(currentdef) do
+                begin
+                  if tarraydef(currentdef).elecount<>1 then
+                    begin
+                      result:=false;
+                      exit;
+                    end;
+                  currentdef:=tarraydef(currentdef).elementdef;
+                end;
+              { if the array element is again a record, continue descending }
+              if currentdef.typ=recorddef then
+                currentsymlist:=trecorddef(currentdef).symtable.SymList
+              else
+                begin
+                  { otherwise we found the type of the single element }
+                  def:=currentdef;
+                  exit;
+                end;
+            end
+          else
+            exit
+        until false;
       end;
 
     function tabstractrecordsymtable.get_unit_symtable: tsymtable;

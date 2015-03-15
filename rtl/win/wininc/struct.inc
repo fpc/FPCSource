@@ -8344,6 +8344,208 @@ type
      PIMAGE_LOAD_CONFIG_DIRECTORY = PIMAGE_LOAD_CONFIG_DIRECTORY32;
 {$endif}
 
+{$push}
+{$packrecords 4}
+  P_IMAGE_IMPORT_BY_NAME = ^_IMAGE_IMPORT_BY_NAME;
+  _IMAGE_IMPORT_BY_NAME =  record
+      Hint : WORD;
+      Name : array[0..0] of AnsiCHAR;
+    end;
+  IMAGE_IMPORT_BY_NAME = _IMAGE_IMPORT_BY_NAME;
+  PIMAGE_IMPORT_BY_NAME = ^IMAGE_IMPORT_BY_NAME;
+  LPIMAGE_IMPORT_BY_NAME = P_IMAGE_IMPORT_BY_NAME;
+  PPIMAGE_IMPORT_BY_NAME = ^PIMAGE_IMPORT_BY_NAME;
+
+  {$push}{$packrecords 8}              // Use align 8 for the 64-bit IAT.}
+  P_IMAGE_THUNK_DATA64 = ^_IMAGE_THUNK_DATA64;
+  _IMAGE_THUNK_DATA64 =  record
+      u1 :  record
+          case longint of
+            0 : ( ForwarderString : ULONGLONG );    { PBYTE  }
+            1 : ( _Function : ULONGLONG );          { PDWORD }
+            2 : ( Ordinal : ULONGLONG );
+            3 : ( AddressOfData : ULONGLONG );      { PIMAGE_IMPORT_BY_NAME }
+          end;
+    end;
+  IMAGE_THUNK_DATA64 = _IMAGE_THUNK_DATA64;
+  PIMAGE_THUNK_DATA64 = ^IMAGE_THUNK_DATA64;
+
+  PPIMAGE_THUNK_DATA64 = ^PIMAGE_THUNK_DATA64;
+  LPIMAGE_THUNK_DATA64 = PIMAGE_THUNK_DATA64;
+  {$pop}                        // Back to 4 byte packing}
+
+  P_IMAGE_THUNK_DATA32 = ^_IMAGE_THUNK_DATA32;
+  _IMAGE_THUNK_DATA32 =  record
+      u1 :  record
+          case longint of
+            0 : ( ForwarderString : DWORD );          { PBYTE  }
+            1 : ( _Function : DWORD );                { PDWORD }
+            2 : ( Ordinal : DWORD );
+            3 : ( AddressOfData : DWORD );            { PIMAGE_IMPORT_BY_NAME }
+          end;
+    end;
+  IMAGE_THUNK_DATA32 = _IMAGE_THUNK_DATA32;
+  PIMAGE_THUNK_DATA32 = ^IMAGE_THUNK_DATA32;
+
+  PPIMAGE_THUNK_DATA32 = ^PIMAGE_THUNK_DATA32;
+  LPIMAGE_THUNK_DATA32 = PIMAGE_THUNK_DATA32;
+
+  { }
+  { Thread Local Storage }
+  { }
+
+  PIMAGE_TLS_CALLBACK = procedure (DllHandle:PVOID; Reason:DWORD; Reserved:PVOID);stdcall; {NTAPI}
+
+  P_IMAGE_TLS_DIRECTORY64 = ^_IMAGE_TLS_DIRECTORY64;
+  _IMAGE_TLS_DIRECTORY64 =  record
+      StartAddressOfRawData : ULONGLONG;
+      EndAddressOfRawData : ULONGLONG;
+      AddressOfIndex : ULONGLONG;               { PDWORD }
+      AddressOfCallBacks : ULONGLONG;           { PIMAGE_TLS_CALLBACK *; }
+      SizeOfZeroFill : DWORD;
+      DUMMYUNIONNAME : bitpacked  record
+          case longint of
+            0 : ( Characteristics : DWORD );
+            1 : ( DUMMYSTRUCTNAME :  record
+           Reserved0 : 0..$FFFFF; // 5 nibbles=20 bits
+           Alignment : 0..$F;      // 4 bits
+           Reserved1 : 0..$FF;     // 8 bits
+              end );
+          end;
+    end;
+  IMAGE_TLS_DIRECTORY64 = _IMAGE_TLS_DIRECTORY64;
+  PIMAGE_TLS_DIRECTORY64 = ^IMAGE_TLS_DIRECTORY64;
+
+  PPIMAGE_TLS_DIRECTORY64 = ^PIMAGE_TLS_DIRECTORY64;
+  LPIMAGE_TLS_DIRECTORY64 = PIMAGE_TLS_DIRECTORY64;
+  P_IMAGE_TLS_DIRECTORY32 = ^_IMAGE_TLS_DIRECTORY32;
+  _IMAGE_TLS_DIRECTORY32 =  record
+      StartAddressOfRawData : DWORD;
+      EndAddressOfRawData : DWORD;
+      AddressOfIndex : DWORD;                      { PDWORD }
+      AddressOfCallBacks : DWORD;                  { PIMAGE_TLS_CALLBACK * }
+      SizeOfZeroFill : DWORD;
+      DUMMYUNIONNAME :  record
+          case longint of
+            0 : ( Characteristics : DWORD );
+            1 : ( DUMMYSTRUCTNAME : bitpacked  record
+                    Reserved0 : 0..$FFFFF; // 5 nibbles=20 bits
+                    Alignment : 0..$F;      // 4 bits
+                    Reserved1 : 0..$FF;     // 8 bits
+              end );
+          end;
+    end;
+  IMAGE_TLS_DIRECTORY32 = _IMAGE_TLS_DIRECTORY32;
+  PIMAGE_TLS_DIRECTORY32 = ^IMAGE_TLS_DIRECTORY32;
+
+
+
+  PPIMAGE_TLS_DIRECTORY32 = ^PIMAGE_TLS_DIRECTORY32;
+  LPIMAGE_TLS_DIRECTORY32 = PIMAGE_TLS_DIRECTORY32;
+
+  {$ifdef WIN64}
+
+  PIMAGE_THUNK_DATA = PIMAGE_THUNK_DATA64;
+  IMAGE_THUNK_DATA = IMAGE_THUNK_DATA64;
+
+  PPIMAGE_THUNK_DATA = ^PIMAGE_THUNK_DATA64;
+  LPIMAGE_THUNK_DATA = PIMAGE_THUNK_DATA64;
+
+  PIMAGE_TLS_DIRECTORY = ^IMAGE_TLS_DIRECTORY;
+  IMAGE_TLS_DIRECTORY = IMAGE_TLS_DIRECTORY64;
+
+  PPIMAGE_TLS_DIRECTORY = ^PIMAGE_TLS_DIRECTORY;
+  LPIMAGE_TLS_DIRECTORY = PIMAGE_TLS_DIRECTORY64;
+  {$else}
+
+  PIMAGE_THUNK_DATA = PIMAGE_THUNK_DATA32;
+  IMAGE_THUNK_DATA = IMAGE_THUNK_DATA32;
+
+  PPIMAGE_THUNK_DATA = ^PIMAGE_THUNK_DATA;
+  LPIMAGE_THUNK_DATA = PIMAGE_THUNK_DATA32;
+  PIMAGE_TLS_DIRECTORY = ^IMAGE_TLS_DIRECTORY;
+  IMAGE_TLS_DIRECTORY = IMAGE_TLS_DIRECTORY32;
+
+  PPIMAGE_TLS_DIRECTORY = ^PIMAGE_TLS_DIRECTORY;
+  LPIMAGE_TLS_DIRECTORY = PIMAGE_TLS_DIRECTORY32;
+  {$endif}
+
+  P_IMAGE_IMPORT_DESCRIPTOR = ^_IMAGE_IMPORT_DESCRIPTOR;
+  _IMAGE_IMPORT_DESCRIPTOR =  record
+      DUMMYUNIONNAME :  bitpacked record
+          case longint of
+            0 : ( Characteristics : DWORD );     { 0 for terminating null import descriptor }
+            1 : ( OriginalFirstThunk : DWORD );  { RVA to original unbound IAT (PIMAGE_THUNK_DATA) }
+          end;
+      TimeDateStamp : DWORD;                     { 0 if not bound, }
+                                                 // -1 if bound, and real date\time stamp
+                                                 //     in IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT (new BIND)
+                                                 // O.W. date/time stamp of DLL bound to (Old BIND)
+      ForwarderChain : DWORD;                    // -1 if no forwarders
+      Name : DWORD;
+      FirstThunk : DWORD;                        // RVA to IAT (if bound this IAT has actual addresses)
+    end;
+  IMAGE_IMPORT_DESCRIPTOR = _IMAGE_IMPORT_DESCRIPTOR;
+  PIMAGE_IMPORT_DESCRIPTOR = ^IMAGE_IMPORT_DESCRIPTOR   {UNALIGNED  }     ;
+
+
+  PPIMAGE_IMPORT_DESCRIPTOR = ^PIMAGE_IMPORT_DESCRIPTOR;
+  LPIMAGE_IMPORT_DESCRIPTOR = PIMAGE_IMPORT_DESCRIPTOR;
+  { }
+  { New format import descriptors pointed to by DataDirectory[ IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT ] }
+  { }
+
+
+  P_IMAGE_BOUND_IMPORT_DESCRIPTOR = ^_IMAGE_BOUND_IMPORT_DESCRIPTOR;
+  _IMAGE_BOUND_IMPORT_DESCRIPTOR =  record
+      TimeDateStamp : DWORD;
+      OffsetModuleName : WORD;
+      NumberOfModuleForwarderRefs : WORD;
+      { Array of zero or more IMAGE_BOUND_FORWARDER_REF follows }
+    end;
+
+  IMAGE_BOUND_IMPORT_DESCRIPTOR = _IMAGE_BOUND_IMPORT_DESCRIPTOR;
+  PIMAGE_BOUND_IMPORT_DESCRIPTOR = ^IMAGE_BOUND_IMPORT_DESCRIPTOR;
+  LPIMAGE_BOUND_IMPORT_DESCRIPTOR = P_IMAGE_BOUND_IMPORT_DESCRIPTOR;
+  PPIMAGE_BOUND_IMPORT_DESCRIPTOR = ^PIMAGE_BOUND_IMPORT_DESCRIPTOR;
+
+  P_IMAGE_BOUND_FORWARDER_REF = ^_IMAGE_BOUND_FORWARDER_REF;
+  _IMAGE_BOUND_FORWARDER_REF =  record
+      TimeDateStamp : DWORD;
+      OffsetModuleName : WORD;
+      Reserved : WORD;
+    end;
+  IMAGE_BOUND_FORWARDER_REF = _IMAGE_BOUND_FORWARDER_REF;
+  PIMAGE_BOUND_FORWARDER_REF = ^IMAGE_BOUND_FORWARDER_REF;
+  LPIMAGE_BOUND_FORWARDER_REF = P_IMAGE_BOUND_FORWARDER_REF;
+  PPIMAGE_BOUND_FORWARDER_REF = ^PIMAGE_BOUND_FORWARDER_REF;
+  { Delay load version 2 }
+
+  _IMAGE_DELAYLOAD_DESCRIPTOR = record
+    Attributes:record
+        case longint of
+        0: (AllAttributes :Dword;);
+        1: (dummyrecord:bitpacked record
+             rvabased:0..1;  {1 bits}                 // Delay load version 2
+             ReservedAttributes: 0..$7FFFFFF; {31 bits}
+             end;)
+        end;
+
+    DllNameRVA,                       // RVA to the name of the target library (NULL-terminate ASCII string)
+    ModuleHandleRVA,                  // RVA to the HMODULE caching location (PHMODULE)
+    ImportAddressTableRVA,            // RVA to the start of the IAT (PIMAGE_THUNK_DATA)
+    ImportNameTableRVA,               // RVA to the start of the name table (PIMAGE_THUNK_DATA::AddressOfData)
+    BoundImportAddressTableRVA,       // RVA to an optional bound IAT
+    UnloadInformationTableRVA,        // RVA to an optional unload info table
+    TimeDateStamp            : DWORD; // 0 if not bound,
+                                            // Otherwise, date/time of the target DLL
+     end;
+
+  IMAGE_DELAYLOAD_DESCRIPTOR= _IMAGE_DELAYLOAD_DESCRIPTOR;
+  PIMAGE_DELAYLOAD_DESCRIPTOR= ^_IMAGE_DELAYLOAD_DESCRIPTOR;
+  PCIMAGE_DELAYLOAD_DESCRIPTOR= PIMAGE_DELAYLOAD_DESCRIPTOR;
+{$pop}
+
  tagCOMBOBOXINFO = record
     cbSize: DWORD;
     rcItem: TRect;

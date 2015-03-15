@@ -679,9 +679,6 @@ implementation
               Message1(sym_e_formal_class_not_resolved,childof.objrealname^);
           end;
 
-        { remove forward flag, is resolved }
-        exclude(current_structdef.objectoptions,oo_is_forward);
-
         if hasparentdefined then
           begin
             if current_objectdef.objecttype in [odt_class,odt_objcclass,odt_objcprotocol,odt_javaclass,odt_interfacejava] then
@@ -695,6 +692,9 @@ implementation
               end;
             consume(_RKLAMMER);
           end;
+
+        { remove forward flag, is resolved }
+        exclude(current_structdef.objectoptions,oo_is_forward);
       end;
 
     procedure parse_extended_type(helpertype:thelpertype);

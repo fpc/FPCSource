@@ -67,7 +67,8 @@ Type
       fpu_vfpv2,
       fpu_vfpv3,
       fpu_vfpv3_d16,
-      fpu_fpv4_s16
+      fpu_fpv4_s16,
+      fpu_vfpv4
      );
 
    tcontrollertype =
@@ -337,6 +338,9 @@ Type
       ct_xmc4502x768,
       ct_xmc4504x512,
 
+      { Allwinner }
+      ct_allwinner_a20,
+
       // generic Thumb2 target
       ct_thumb2bare
      );
@@ -399,7 +403,8 @@ Const
      'VFPV2',
      'VFPV3',
      'VFPV3_D16',
-     'FPV4_S16'
+     'FPV4_S16',
+     'VFPV4'
    );
 
 
@@ -702,6 +707,9 @@ Const
       (controllertypestr:'XMC4502X768';   controllerunitstr:'XMC4502'; flashbase:$08000000;	flashsize:$000C0000;	srambase:$20000000;	sramsize:$00010000),
       (controllertypestr:'XMC4504X512';   controllerunitstr:'XMC4504'; flashbase:$08000000;	flashsize:$00080000;	srambase:$20000000;	sramsize:$00010000),
 
+      { Allwinner }
+      (controllertypestr:'ALLWINNER_A20'; controllerunitstr:'ALLWINNER_A20';     flashbase:$00000000; flashsize:$00000000;  srambase:$40000000; sramsize:$80000000),
+
       { Bare bones }
       (controllertypestr:'THUMB2_BARE';	controllerunitstr:'THUMB2_BARE';	flashbase:$00000000;	flashsize:$00002000;	srambase:$20000000;	sramsize:$00000400)
     );
@@ -746,7 +754,7 @@ Const
        { cpu_armv3    } [],
        { cpu_armv4    } [CPUARM_HAS_UMULL],
        { cpu_armv4t   } [CPUARM_HAS_BX,CPUARM_HAS_UMULL],
-       { cpu_armv5    } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_UMULL],
+       { cpu_armv5    } [CPUARM_HAS_CLZ,CPUARM_HAS_UMULL],
        { cpu_armv5t   } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_UMULL],
        { cpu_armv5te  } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_UMULL],
        { cpu_armv5tej } [CPUARM_HAS_BX,CPUARM_HAS_BLX,CPUARM_HAS_BLX_LABEL,CPUARM_HAS_CLZ,CPUARM_HAS_EDSP,CPUARM_HAS_UMULL],

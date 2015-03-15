@@ -1290,9 +1290,9 @@ end;
 function TDebugController.GetFPCBreakErrorParameters(var ExitCode: LongInt; var ExitAddr, ExitFrame: CORE_ADDR): Boolean;
 const
   { try to find the parameters }
-  FirstArgOffset = -sizeof(pointer);
-  SecondArgOffset = 2*-sizeof(pointer);
-  ThirdArgOffset = 3*-sizeof(pointer);
+  FirstArgOffset = -sizeof(CORE_ADDR);
+  SecondArgOffset = 2*-sizeof(CORE_ADDR);
+  ThirdArgOffset = 3*-sizeof(CORE_ADDR);
 begin
   // Procedure HandleErrorAddrFrame (Errno : longint;addr : CodePointer; frame : Pointer);
   //  [public,alias:'FPC_BREAK_ERROR']; {$ifdef cpui386} register; {$endif}
@@ -1477,10 +1477,6 @@ begin
         begin
            S:=PrintCommand(GetStr(PB^.Name));
            got_error:=false;
-           If Pos('=',S)>0 then
-             S:=Copy(S,Pos('=',S)+1,255);
-           If S[Length(S)]=#10 then
-             Delete(S,Length(S),1);
            if Assigned(PB^.OldValue) then
              DisposeStr(PB^.OldValue);
            PB^.OldValue:=PB^.CurrentValue;
@@ -2869,24 +2865,16 @@ procedure TWatch.rename(s : string);
 
 procedure TWatch.Get_new_value;
 {$ifndef NODEBUG}
-  var i, j, curframe, startframe : longint;
+  var i, curframe, startframe : longint;
       s,s2,orig_s_result : AnsiString;
       loop_higher, found : boolean;
 
     function GetValue(var s : AnsiString) : boolean;
       begin
         s:=Debugger^.PrintCommand(s);
-        if not Debugger^.Error then
-          begin
-            GetValue:=true;
-          end
-        else
-          begin
-            // Is always done now s:=StrPas(Debugger^.GetError);
-            GetValue:=false;
-            { do not open a messagebox for such errors }
-            Debugger^.got_error:=false;
-          end;
+        GetValue := not Debugger^.Error;
+        { do not open a messagebox for such errors }
+        Debugger^.got_error:=false;
       end;
 
   begin
@@ -2943,11 +2931,6 @@ procedure TWatch.Get_new_value;
 {$endif FrameNameKnown}
                if not getValue(s2) then
                  loop_higher:=false;
-               j:=pos('=',s2);
-               if j>0 then
-                 s2:=copy(s2,j+1,length(s2));
-               while s2[1] in [' ',TAB] do
-                 delete(s2,1,1);
                if pos(s2,s)>0 then
                  loop_higher :=false;
              until not loop_higher;

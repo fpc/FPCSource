@@ -28,6 +28,7 @@ unit hlcgppc;
 interface
 
 uses
+  globals,
   aasmdata,
   symtype,symdef,
   cgbase,cgutils,hlcgobj,hlcg2ll;
@@ -39,6 +40,7 @@ type
    public
     procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
     procedure g_external_wrapper(list: TAsmList; pd: TProcDef; const externalname: string); override;
+    procedure gen_load_para_value(list: TAsmList); override;
   end;
 
 implementation
@@ -49,7 +51,8 @@ implementation
     symconst,
     aasmbase,aasmtai,aasmcpu,
     cpubase,globtype,
-    defutil,cgobj,cgppc;
+    procinfo,cpupi,cgobj,cgppc,
+    defutil;
 
 { thlcgppc }
 
@@ -58,6 +61,12 @@ implementation
       fromsreg, tosreg: tsubsetregister;
       restbits: byte;
     begin
+      { the code below is only valid for big endian }
+      if target_info.endian=endian_little then
+        begin
+         inherited;
+         exit
+        end;
       restbits:=(sref.bitlen-(loadbitsize-sref.startbit));
       if is_signed(subsetsize) then
         begin
@@ -118,13 +127,17 @@ implementation
               smallint((href.offset shr 16)+ord(smallint(href.offset and $ffff) < 0))));
             href.offset := smallint(href.offset and $ffff);
           end;
-        cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R11);
-        if (target_info.system in ([system_powerpc64_linux]+systems_aix)) then
+        { use R12 for dispatch because most ABIs don't care and ELFv2
+          requires it }
+        cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R12);
+        if (target_info.system in systems_aix) or
+           ((target_info.system = system_powerpc64_linux) and
+            (target_info.abi=abi_powerpc_sysv)) then
           begin
-            reference_reset_base(href, voidpointertype, NR_R11, 0, sizeof(pint));
-            cg.a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R11);
+            reference_reset_base(href, voidpointertype, NR_R12, 0, sizeof(pint));
+            cg.a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R12);
           end;
-        list.concat(taicpu.op_reg(A_MTCTR,NR_R11));
+        list.concat(taicpu.op_reg(A_MTCTR,NR_R12));
         list.concat(taicpu.op_none(A_BCTR));
         if (target_info.system in ([system_powerpc64_linux]+systems_aix)) then
           list.concat(taicpu.op_none(A_NOP));
@@ -170,11 +183,9 @@ implementation
           system_powerpc_darwin,
           system_powerpc64_darwin:
             list.concat(taicpu.op_sym(A_B,tcgppcgen(cg).get_darwin_call_stub(procdef.mangledname,false)));
-          system_powerpc64_linux,
-          system_powerpc_aix,
-          system_powerpc64_aix:
+          else if use_dotted_functions then
             {$note ts:todo add GOT change?? - think not needed :) }
-            list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol('.' + procdef.mangledname)));
+            list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol('.' + procdef.mangledname)))
           else
             list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname)))
         end;
@@ -229,6 +240,20 @@ implementation
       cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R0);
       list.concat(taicpu.op_reg(A_MTLR, NR_R0));
       list.concat(taicpu.op_none(A_BLR));
+    end;
+
+
+  procedure thlcgppcgen.gen_load_para_value(list: TAsmList);
+    begin
+      { get the register that contains the stack pointer before the procedure
+        entry, which is used to access the parameters in their original
+        callee-side location }
+      if (tppcprocinfo(current_procinfo).needs_frame_pointer) then
+        getcpuregister(list,NR_OLD_STACK_POINTER_REG);
+      inherited;
+      { free it again }
+      if (tppcprocinfo(current_procinfo).needs_frame_pointer) then
+        ungetcpuregister(list,NR_OLD_STACK_POINTER_REG);
     end;
 
 end.

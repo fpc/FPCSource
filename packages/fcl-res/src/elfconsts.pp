@@ -22,7 +22,7 @@ interface
 type
   TElfMachineType = (emtnone, emtsparc, emti386, emtm68k, emtppc, emtppc64,
                      emtarm, emtarmeb, emtia64, emtx86_64, emtalpha,
-                     emtmips, emtmipsel);
+                     emtmips, emtmipsel, emtppc64le);
 const
   ELFMAGIC     = chr($7f)+'ELF';
 

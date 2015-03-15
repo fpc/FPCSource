@@ -289,8 +289,12 @@ Procedure CatchUnhandledException (Obj : TObject; Addr: CodePointer; FrameCount:
 Var
   i : longint;
   hstdout : ^text;
+  
 begin
-  hstdout:=@stdout;
+  if WriteExceptionToStdErr then
+    hstdout:=@stderr
+  else
+    hstdout:=@stdout;
   Writeln(hstdout^,'An unhandled exception occurred at $',HexStr(Addr),':');
   if Obj is exception then
     Writeln(hstdout^,Obj.ClassName,': ',Exception(Obj).Message)
