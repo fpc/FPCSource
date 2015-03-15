@@ -921,22 +921,39 @@ unit cgcpu;
     procedure tcg68k.a_load_reg_reg(list : TAsmList;fromsize,tosize : tcgsize;reg1,reg2 : tregister);
       var
         instr : taicpu;
+        hreg : tregister;
+        opsize : topsize;
       begin
         { move to destination register }
-        if (reg1<>reg2) then
+        opsize:=TCGSize2OpSize[fromsize];
+        if isaddressregister(reg2) and not (opsize in [S_L]) then
           begin
-            instr:=taicpu.op_reg_reg(A_MOVE,TCGSize2OpSize[fromsize],reg1,reg2);
+            hreg:=cg.getintregister(list,OS_ADDR);
+            instr:=taicpu.op_reg_reg(A_MOVE,TCGSize2OpSize[fromsize],reg1,hreg);
             add_move_instruction(instr);
             list.concat(instr);
+            sign_extend(list,fromsize,hreg);
+            list.concat(taicpu.op_reg_reg(A_MOVE,S_L,hreg,reg2));
+          end
+        else
+          begin
+            if (reg1<>reg2) then
+              begin
+                instr:=taicpu.op_reg_reg(A_MOVE,opsize,reg1,reg2);
+                add_move_instruction(instr);
+                list.concat(instr);
+              end;
+            sign_extend(list,fromsize,reg2);
           end;
-         sign_extend(list, fromsize, reg2);
       end;
 
 
     procedure tcg68k.a_load_ref_reg(list : TAsmList;fromsize,tosize : tcgsize;const ref : treference;register : tregister);
       var
        href : treference;
+       hreg : tregister;
        size : tcgsize;
+       opsize: topsize;
       begin
          href:=ref;
          fixref(list,href);
@@ -944,9 +961,20 @@ unit cgcpu;
            size:=fromsize
          else
            size:=tosize;
-         list.concat(taicpu.op_ref_reg(A_MOVE,TCGSize2OpSize[size],href,register));
-         { extend the value in the register }
-         sign_extend(list, size, register);
+         opsize:=TCGSize2OpSize[size];
+         if isaddressregister(register) and not (opsize in [S_L]) then
+           begin
+             hreg:=getintregister(list,OS_ADDR);
+             list.concat(taicpu.op_ref_reg(A_MOVE,opsize,href,hreg));
+             sign_extend(list,size,hreg);
+             a_load_reg_reg(list,OS_ADDR,OS_ADDR,hreg,register);
+           end
+         else 
+           begin
+             list.concat(taicpu.op_ref_reg(A_MOVE,opsize,href,register));
+             { extend the value in the register }
+             sign_extend(list, size, register);
+           end;
       end;
 
 
@@ -2010,18 +2038,25 @@ unit cgcpu;
                 end;
               OS_8: { 8 -> 32 bit zero extend }
                 begin
+                  if (isaddressregister(reg)) then
+                    internalerror(2015031501);
                   //list.concat(tai_comment.create(strpnew('zero extend byte')));
                   list.concat(taicpu.op_const_reg(A_AND,S_L,$FF,reg));
                 end;
               OS_S16: { 16 -> 32 bit sign extend }
                 begin
-                  if (isaddressregister(reg)) then
-                    internalerror(2014031203);
-                  //list.concat(tai_comment.create(strpnew('sign extend word')));
-                  list.concat(taicpu.op_reg(A_EXT,S_L,reg));
+                  { address registers are sign-extended from 16->32 bit anyway
+                    automagically on every W operation by the CPU, so this is a NOP }
+                  if not isaddressregister(reg) then
+                    begin
+                      //list.concat(tai_comment.create(strpnew('sign extend word')));
+                      list.concat(taicpu.op_reg(A_EXT,S_L,reg));
+                    end;
                 end;
               OS_16:
                 begin
+                  if (isaddressregister(reg)) then
+                    internalerror(2015031502);
                   //list.concat(tai_comment.create(strpnew('zero extend byte')));
                   list.concat(taicpu.op_const_reg(A_AND,S_L,$FFFF,reg));
                 end;
