@@ -1961,6 +1961,10 @@ implementation
         if FindInsEntry(objdata) then
          begin
            InsSize:=4;
+
+           if insentry^.code[0] in [#$60..#$6C] then
+             InsSize:=2;
+
            LastInsOffset:=InsOffset;
            Pass1:=InsSize;
            exit;
@@ -2125,7 +2129,9 @@ implementation
                       if GenerateThumbCode or
                          GenerateThumb2Code then
                         begin
-                          if (ref^.base=NR_PC) then
+                          if (ref^.addressmode<>AM_OFFSET) then
+                            ot:=ot or OT_AM2
+                          else if (ref^.base=NR_PC) then
                             ot:=ot or OT_AM6
                           else if (ref^.base=NR_STACK_POINTER_REG) then
                             ot:=ot or OT_AM5
@@ -2432,6 +2438,15 @@ implementation
                   matches:=0;
                   exit;
                 end;
+            end;
+        end
+      else if p^.code[0]=#$6B then
+        begin
+          if inIT or
+             (oppostfix<>PF_S) then
+            begin
+              Matches:=0;
+              exit;
             end;
         end;
 
@@ -4446,7 +4461,16 @@ implementation
               { set regs }
               bytes:=bytes or (getsupreg(oper[0]^.reg) and $7);
               bytes:=bytes or (getsupreg(oper[1]^.ref^.base) shl 3);
-              bytes:=bytes or (((oper[1]^.ref^.offset shr ord(insentry^.code[3])) and $1F) shl 6);
+
+              { set offset }
+              offset:=0;
+              currsym:=objdata.symbolref(oper[1]^.ref^.symbol);
+              if assigned(currsym) then
+                offset:=currsym.offset-(insoffset+4) and (not longword(3));
+
+              offset:=(offset+oper[1]^.ref^.offset);
+
+              bytes:=bytes or (((offset shr ord(insentry^.code[3])) and $1F) shl 6);
             end;
           #$67: { Thumb load/store }
             begin
@@ -4458,8 +4482,19 @@ implementation
               bytes:=bytes or ord(insentry^.code[2]);
               { set regs }
               bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
+
               if oper[1]^.typ=top_ref then
-                bytes:=bytes or ((oper[1]^.ref^.offset shr ord(insentry^.code[3])) and $FF)
+                begin
+                  { set offset }
+                  offset:=0;
+                  currsym:=objdata.symbolref(oper[1]^.ref^.symbol);
+                  if assigned(currsym) then
+                    offset:=currsym.offset-(insoffset+4) and (not longword(3));
+
+                  offset:=(offset+oper[1]^.ref^.offset);
+
+                  bytes:=bytes or ((offset shr ord(insentry^.code[3])) and $FF);
+                end
               else
                 bytes:=bytes or ((oper[1]^.val shr ord(insentry^.code[3])) and $FF);
             end;
@@ -4940,11 +4975,16 @@ implementation
                   offset:=(offset+oper[1]^.ref^.offset) shr ord(insentry^.code[5]);
                   if offset>=0 then
                     begin
-                      if not (opcode in [A_LDRT,A_LDRSBT,A_LDRSHT,A_LDRBT,A_LDRHT]) then
+                      if (offset>255) and
+                         (not (opcode in [A_LDRT,A_LDRSBT,A_LDRSHT,A_LDRBT,A_LDRHT])) then
                         bytes:=bytes or (1 shl 23);
+
                       { set U flag }
                       if (oper[1]^.ref^.addressmode<>AM_OFFSET) then
-                        bytes:=bytes or (1 shl 9);
+                        begin
+                          bytes:=bytes or (1 shl 9);
+                          bytes:=bytes or (1 shl 11);
+                        end;
                       bytes:=bytes or offset
                     end
                   else
