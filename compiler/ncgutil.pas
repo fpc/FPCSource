@@ -1055,7 +1055,7 @@ implementation
                         begin
                           { store everything first to memory, then load it in
                             destloc }
-                          tg.gettemp(list,tcgsize2size[paraloc^.size],sizeleft,tt_persistent,tempref);
+                          tg.gettemp(list,tcgsize2size[paraloc^.size],para.intsize,tt_persistent,tempref);
                           cg.a_load_cgparaloc_ref(list,paraloc^,tempref,tcgsize2size[paraloc^.size],tempref.alignment);
                           cg.a_load_ref_reg(list,int_cgsize(tcgsize2size[paraloc^.size]),destloc.size,tempref,destloc.register);
                           tg.ungettemp(list,tempref);
