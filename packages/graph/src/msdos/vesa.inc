@@ -305,14 +305,14 @@ end;
       If ((amount >= 4) and
           ((offs and 3) = 0)) or
          (amount >= 4+4-(offs and 3)) Then
-      { allign target }
+      { align target }
         Begin
           If (offs and 3) <> 0 then
           { this cannot go past a window boundary bacause the }
           { size of a window is always a multiple of 4        }
             Begin
               {$ifdef logging}
-              LogLn('Alligning by reading '+strf(4-(offs and 3))+' pixels');
+              LogLn('Aligning by reading '+strf(4-(offs and 3))+' pixels');
               {$endif logging}
               for l := 1 to 4-(offs and 3) do
                 WordArray(Data)[index+l-1] :=
@@ -324,7 +324,7 @@ end;
           {$ifdef logging}
           LogLn('Offset is now '+hexstr(offs,8)+', amount left: '+strf(amount));
           {$endif logging}
-          { offs is now 4-bytes alligned }
+          { offs is now 4-bytes aligned }
           If amount <= ($10000-(Offs and $ffff)) Then
              bankrest := amount
           else {the rest won't fit anymore in the current window }
@@ -431,7 +431,7 @@ end;
                      { size of a window is always a multiple of 4        }
                        Begin
                          {$ifdef logging2}
-                         LogLn('Alligning by drawing '+strf(4-(offs and 3))+' pixels');
+                         LogLn('Aligning by drawing '+strf(4-(offs and 3))+' pixels');
                          {$endif logging2}
                          for l := 1 to 4-(offs and 3) do
                            Mem[WinWriteSeg:word(offs)+l-1] :=
@@ -442,7 +442,7 @@ end;
                      {$ifdef logging2}
                      LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
                      {$endif logging}
-                     { offs is now 4-bytes alligned }
+                     { offs is now 4-bytes aligned }
                      If HLength <= ($10000-(Offs and $ffff)) Then
                         bankrest := HLength
                      else {the rest won't fit anymore in the current window }
@@ -495,7 +495,7 @@ end;
                  If ((HLength >= 4) and
                      ((offs and 3) = 0)) or
                     (HLength >= 4+4-(offs and 3)) Then
-                 { allign target }
+                 { align target }
                    Begin
                      l := 0;
                      If (offs and 3) <> 0 then
@@ -503,7 +503,7 @@ end;
                      { size of a window is always a multiple of 4        }
                        Begin
                          {$ifdef logging2}
-                         LogLn('Alligning by drawing '+strf(4-(offs and 3))+' pixels');
+                         LogLn('Aligning by drawing '+strf(4-(offs and 3))+' pixels');
                          {$endif logging}
                          for l := 1 to 4-(offs and 3) do
                            Mem[WinWriteSeg:word(offs)+l-1] :=
@@ -514,7 +514,7 @@ end;
                      {$ifdef logging2}
                      LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
                      {$endif logging}
-                     { offs is now 4-bytes alligned }
+                     { offs is now 4-bytes aligned }
                      If HLength <= ($10000-(Offs and $ffff)) Then
                         bankrest := HLength
                      else {the rest won't fit anymore in the current window }
@@ -567,7 +567,7 @@ end;
                  If ((HLength >= 4) and
                      ((offs and 3) = 0)) or
                     (HLength >= 4+4-(offs and 3)) Then
-                 { allign target }
+                 { align target }
                    Begin
                      l := 0;
                      If (offs and 3) <> 0 then
@@ -575,7 +575,7 @@ end;
                      { size of a window is always a multiple of 4        }
                        Begin
                          {$ifdef logging2}
-                         LogLn('Alligning by drawing '+strf(4-(offs and 3))+' pixels');
+                         LogLn('Aligning by drawing '+strf(4-(offs and 3))+' pixels');
                          {$endif logging}
                          for l := 1 to 4-(offs and 3) do
                            Mem[WinWriteSeg:word(offs)+l-1] :=
@@ -590,7 +590,7 @@ end;
                      {$ifdef logging2}
                      LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
                      {$endif logging}
-                     { offs is now 4-bytes alligned }
+                     { offs is now 4-bytes aligned }
                      If HLength <= ($10000-(Offs and $ffff)) Then
                         bankrest := HLength
                      else {the rest won't fit anymore in the current window }
@@ -640,7 +640,7 @@ end;
                  If ((HLength >= 4) and
                      ((offs and 3) = 0)) or
                     (HLength >= 4+4-(offs and 3)) Then
-                 { allign target }
+                 { align target }
                    Begin
                      l := 0;
                      If (offs and 3) <> 0 then
@@ -648,7 +648,7 @@ end;
                      { size of a window is always a multiple of 4        }
                        Begin
                          {$ifdef logging2}
-                         LogLn('Alligning by drawing '+strf(4-(offs and 3))+' pixels');
+                         LogLn('Aligning by drawing '+strf(4-(offs and 3))+' pixels');
                          {$endif logging}
                          for l := 1 to 4-(offs and 3) do
                            Mem[WinWriteSeg:word(offs)+l-1] := Byte(Mask);
@@ -658,7 +658,7 @@ end;
                      {$ifdef logging2}
                      LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
                      {$endif logging}
-                     { offs is now 4-bytes alligned }
+                     { offs is now 4-bytes aligned }
                      If HLength <= ($10000-(Offs and $ffff)) Then
                         bankrest := HLength
                      else {the rest won't fit anymore in the current window }
@@ -939,7 +939,7 @@ end;
            {$ifdef logging2}
            LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(amount));
            {$endif logging2}
-           { offs is now 8-bytes alligned }
+           { offs is now 8-bytes aligned }
            If amount <= ($10000-(Offs and $ffff)) Then
               bankrest := amount
            else {the rest won't fit anymore in the current window }
