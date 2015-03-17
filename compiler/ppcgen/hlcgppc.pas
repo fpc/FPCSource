@@ -36,12 +36,15 @@ type
   thlcgppcgen = class(thlcg2ll)
    protected
     procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tdef; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); override;
+   public
+    procedure gen_load_para_value(list: TAsmList); override;
   end;
 
 implementation
 
   uses
     cpubase,globtype,
+    procinfo,cpupi,
     symdef,defutil;
 
 { thlcgppc }
@@ -78,6 +81,20 @@ implementation
       tosreg.bitlen:=restbits;
 
       a_load_subsetreg_subsetreg(list,subsetsize,subsetsize,fromsreg,tosreg);
+    end;
+
+
+  procedure thlcgppcgen.gen_load_para_value(list: TAsmList);
+    begin
+      { get the register that contains the stack pointer before the procedure
+        entry, which is used to access the parameters in their original
+        callee-side location }
+      if (tppcprocinfo(current_procinfo).needs_frame_pointer) then
+        getcpuregister(list,NR_OLD_STACK_POINTER_REG);
+      inherited;
+      { free it again }
+      if (tppcprocinfo(current_procinfo).needs_frame_pointer) then
+        ungetcpuregister(list,NR_OLD_STACK_POINTER_REG);
     end;
 
 end.

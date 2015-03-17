@@ -1294,18 +1294,6 @@ implementation
           the initialization and body is parsed because the refcounts are
           incremented using the local copies }
         current_procinfo.procdef.parast.SymList.ForEachCall(@copyvalueparas,list);
-{$ifdef powerpc}
-        { unget the register that contains the stack pointer before the procedure entry, }
-        { which is used to access the parameters in their original callee-side location  }
-        if (tppcprocinfo(current_procinfo).needs_frame_pointer) then
-          cg.a_reg_dealloc(list,NR_R12);
-{$endif powerpc}
-{$ifdef powerpc64}
-        { unget the register that contains the stack pointer before the procedure entry, }
-        { which is used to access the parameters in their original callee-side location  }
-        if (tppcprocinfo(current_procinfo).needs_frame_pointer) then
-          cg.a_reg_dealloc(list, NR_OLD_STACK_POINTER_REG);
-{$endif powerpc64}
         if not(po_assembler in current_procinfo.procdef.procoptions) then
           begin
             { initialize refcounted paras, and trash others. Needed here
