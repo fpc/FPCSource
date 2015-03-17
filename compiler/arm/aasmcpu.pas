@@ -216,6 +216,7 @@ uses
          constructor op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
          constructor op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: aint);
          constructor op_reg_const_const(op : tasmop;_op1 : tregister; _op2,_op3: aint);
+         constructor op_reg_reg_const_const(op : tasmop;_op1,_op2 : tregister; _op3,_op4: aint);
          constructor op_reg_reg_sym_ofs(op : tasmop;_op1,_op2 : tregister; _op3: tasmsymbol;_op3ofs: longint);
          constructor op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister; const _op3: treference);
          constructor op_reg_reg_shifterop(op : tasmop;_op1,_op2 : tregister;_op3 : tshifterop);
@@ -309,7 +310,8 @@ uses
 implementation
 
   uses
-    itcpugas,aoptcpu;
+    itcpugas,aoptcpu,
+    systems;
 
 
     procedure taicpu.loadshifterop(opidx:longint;const so:tshifterop);
@@ -520,6 +522,17 @@ implementation
          loadconst(1,aint(_op2));
          loadconst(2,aint(_op3));
        end;
+
+
+    constructor taicpu.op_reg_reg_const_const(op: tasmop; _op1, _op2: tregister; _op3, _op4: aint);
+      begin
+        inherited create(op);
+        ops:=4;
+        loadreg(0,_op1);
+        loadreg(1,_op2);
+        loadconst(2,aint(_op3));
+        loadconst(3,aint(_op4));
+      end;
 
 
     constructor taicpu.op_reg_const_ref(op : tasmop;_op1 : tregister;_op2 : aint;_op3 : treference);
@@ -765,7 +778,8 @@ implementation
               { check for pre/post indexed }
               result := operand_read;
           //Thumb2
-          A_LSL, A_LSR, A_ROR, A_ASR, A_SDIV, A_UDIV, A_MOVW, A_MOVT, A_MLS, A_BFI:
+          A_LSL, A_LSR, A_ROR, A_ASR, A_SDIV, A_UDIV, A_MOVW, A_MOVT, A_MLS, A_BFI,
+          A_SMMLA,A_SMMLS:
             if opnr in [0] then
               result:=operand_write
             else
@@ -1572,6 +1586,7 @@ implementation
                     A_NEG:
                       begin
                         taicpu(curtai).opcode:=A_RSB;
+                        taicpu(curtai).oppostfix:=PF_S; // NEG should always set flags (according to documentation NEG<c> = RSBS<c>)
 
                         if taicpu(curtai).ops=2 then
                           begin
@@ -1599,7 +1614,9 @@ implementation
 
     procedure finalizearmcode(list, listtoinsert: TAsmList);
       begin
-        expand_instructions(list);
+        { Don't expand pseudo instructions when using GAS, it breaks on some thumb instructions }
+        if target_asm.id<>as_gas then
+          expand_instructions(list);
 
         { Do Thumb-2 16bit -> 32bit transformations }
         if GenerateThumb2Code then
