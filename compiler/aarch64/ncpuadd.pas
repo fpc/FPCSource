@@ -366,6 +366,10 @@ interface
                       not(is_signed(right.resultdef));
             pass_left_right;
             force_reg_left_right(true,true);
+            { force_reg_left_right can leave right as a LOC_CONSTANT (we can't
+              say "a constant register is okay, but an ordinal constant isn't) }
+            if right.location.loc=LOC_CONSTANT then
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
             location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
             location.register:=cg.getintregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
             current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg_reg(multops[unsigned],location.register,left.location.register,right.location.register));

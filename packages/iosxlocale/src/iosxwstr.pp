@@ -237,7 +237,7 @@ implementation
       mstr:=CFStringCreateMutableCopy(nil,0,str);
       { lowercase }
       locale:=CFLocaleCopyCurrent;
-      CFStringLowercase(mstr,CFLocaleCopyCurrent);
+      CFStringLowercase(mstr,locale);
       CFRelease(locale);
       { extract the data again }
       range.location:=0;
