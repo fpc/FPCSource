@@ -62,7 +62,7 @@ interface
          'move16',
          { coldfire v4 instructions }
          'mov3q','mvz','mvs','sats','byterev','ff1',
-         { fpu processor instructions - directly supported only. }
+         { fpu processor instructions - directly supported }
          { ieee aware and misc. condition codes not supported   }
          'fabs','fadd',
          'fbeq','fbne','fbngt','fbgt','fbge','fbnge',
@@ -76,6 +76,8 @@ interface
          'fsflmul','ftst',
          'ftrapeq','ftrapne','ftrapgt','ftrapngt','ftrapge','ftrapnge',
          'ftraplt','ftrapnlt','ftraple','ftrapgl','ftrapngl','ftrapgle','ftrapngle',
+         { fpu instructions - indirectly supported }
+         'fsin','fcos',
          { protected instructions }
          'cprestore','cpsave',
          { fpu unit protected instructions                    }

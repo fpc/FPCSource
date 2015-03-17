@@ -68,7 +68,7 @@ unit cpubase;
          a_move16,
          { coldfire v4 instructions }
          a_mov3q,a_mvz,a_mvs,a_sats,a_byterev,a_ff1,
-         { fpu processor instructions - directly supported only. }
+         { fpu processor instructions - directly supported }
          { ieee aware and misc. condition codes not supported   }
          a_fabs,a_fadd,
          a_fbeq,a_fbne,a_fbngt,a_fbgt,a_fbge,a_fbnge,
@@ -82,6 +82,8 @@ unit cpubase;
          a_fsflmul,a_ftst,
          a_ftrapeq,a_ftrapne,a_ftrapgt,a_ftrapngt,a_ftrapge,a_ftrapnge,
          a_ftraplt,a_ftrapnlt,a_ftraple,a_ftrapgl,a_ftrapngl,a_ftrapgle,a_ftrapngle,
+         { fpu instructions - indirectly supported }
+         a_fsin,a_fcos,
          { protected instructions }
          a_cprestore,a_cpsave,
          { fpu unit protected instructions                    }

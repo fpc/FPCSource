@@ -34,18 +34,18 @@ interface
         function first_sqr_real: tnode; override;
         function first_sqrt_real: tnode; override;
         {function first_arctan_real: tnode; override;
-        function first_ln_real: tnode; override;
+        function first_ln_real: tnode; override;}
         function first_cos_real: tnode; override;
-        function first_sin_real: tnode; override;}
+        function first_sin_real: tnode; override;
 
         procedure second_abs_real; override;
         procedure second_sqr_real; override;
         procedure second_sqrt_real; override;
         {procedure second_arctan_real; override;
-        procedure second_ln_real; override;
+        procedure second_ln_real; override;}
         procedure second_cos_real; override;
         procedure second_sin_real; override;
-        procedure second_prefetch; override;
+        {procedure second_prefetch; override;
         procedure second_abs_long; override;}
       private
         procedure second_do_operation(op: TAsmOp);
@@ -112,6 +112,38 @@ implementation
           end;
       end;
 
+    function t68kinlinenode.first_sin_real : tnode;
+      begin
+        if (cs_fp_emulation in current_settings.moduleswitches) then
+          result:=inherited first_sin_real
+        else
+          begin
+            case current_settings.fputype of
+              fpu_68881:
+                expectloc:=LOC_FPUREGISTER;
+              else
+                internalerror(2015022203);
+            end;
+            first_sin_real:=nil;
+          end;
+      end;
+
+    function t68kinlinenode.first_cos_real : tnode;
+      begin
+        if (cs_fp_emulation in current_settings.moduleswitches) then
+          result:=inherited first_cos_real
+        else
+          begin
+            case current_settings.fputype of
+              fpu_68881:
+                expectloc:=LOC_FPUREGISTER;
+              else
+                internalerror(2015022203);
+            end;
+            first_cos_real:=nil;
+          end;
+      end;
+
     procedure t68kinlinenode.second_abs_real;
       begin
         //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_abs_real called!')));
@@ -145,6 +177,18 @@ implementation
       begin
         //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_sqrt_real called!')));
         second_do_operation(A_FSQRT);
+      end;
+
+    procedure t68kinlinenode.second_sin_real;
+      begin
+        //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_sqrt_real called!')));
+        second_do_operation(A_FSIN);
+      end;
+
+    procedure t68kinlinenode.second_cos_real;
+      begin
+        //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_sqrt_real called!')));
+        second_do_operation(A_FCOS);
       end;
 
     procedure t68kinlinenode.second_do_operation(op: TAsmOp);

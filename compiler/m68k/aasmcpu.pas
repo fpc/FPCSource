@@ -496,7 +496,7 @@ type
           // FPU opcodes
           A_FSXX, A_FSEQ, A_FSNE, A_FSLT, A_FSLE, A_FSGT, A_FSGE:
              result:=operand_write;
-          A_FABS,A_FSQRT,A_FNEG:
+          A_FABS,A_FSQRT,A_FNEG,A_FSIN,A_FCOS:
              if ops = 1 then
                begin
                  if opnr = 0 then
