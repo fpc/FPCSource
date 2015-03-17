@@ -425,7 +425,6 @@ end;
                     (HLength >= 4+4-(offs and 3)) Then
                  { align target }
                    Begin
-                     l := 0;
                      If (offs and 3) <> 0 then
                      { this cannot go past a window boundary bacause the }
                      { size of a window is always a multiple of 4        }
@@ -436,9 +435,9 @@ end;
                          for l := 1 to 4-(offs and 3) do
                            Mem[WinWriteSeg:word(offs)+l-1] :=
                              Mem[WinReadSeg:word(offs)+l-1] And Byte(CurrentColor);
+                         Dec(HLength, l);
+                         inc(offs, l);
                        End;
-                     Dec(HLength, l);
-                     inc(offs, l);
                      {$ifdef logging2}
                      LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
                      {$endif logging}
@@ -497,7 +496,6 @@ end;
                     (HLength >= 4+4-(offs and 3)) Then
                  { align target }
                    Begin
-                     l := 0;
                      If (offs and 3) <> 0 then
                      { this cannot go past a window boundary bacause the }
                      { size of a window is always a multiple of 4        }
@@ -508,9 +506,9 @@ end;
                          for l := 1 to 4-(offs and 3) do
                            Mem[WinWriteSeg:word(offs)+l-1] :=
                              Mem[WinReadSeg:word(offs)+l-1] Xor Byte(CurrentColor);
+                         Dec(HLength, l);
+                         inc(offs, l);
                        End;
-                     Dec(HLength, l);
-                     inc(offs, l);
                      {$ifdef logging2}
                      LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
                      {$endif logging}
@@ -569,7 +567,6 @@ end;
                     (HLength >= 4+4-(offs and 3)) Then
                  { align target }
                    Begin
-                     l := 0;
                      If (offs and 3) <> 0 then
                      { this cannot go past a window boundary bacause the }
                      { size of a window is always a multiple of 4        }
@@ -580,9 +577,9 @@ end;
                          for l := 1 to 4-(offs and 3) do
                            Mem[WinWriteSeg:word(offs)+l-1] :=
                              Mem[WinReadSeg:word(offs)+l-1] Or Byte(CurrentColor);
+                         Dec(HLength, l);
+                         inc(offs, l);
                        End;
-                     Dec(HLength, l);
-                     inc(offs, l);
                      { it is possible that by aligningm we ended up in a new }
                      { bank, so set the correct bank again to make sure      }
                      setwritebank(offs shr 16);
@@ -642,7 +639,6 @@ end;
                     (HLength >= 4+4-(offs and 3)) Then
                  { align target }
                    Begin
-                     l := 0;
                      If (offs and 3) <> 0 then
                      { this cannot go past a window boundary bacause the }
                      { size of a window is always a multiple of 4        }
@@ -652,9 +648,9 @@ end;
                          {$endif logging}
                          for l := 1 to 4-(offs and 3) do
                            Mem[WinWriteSeg:word(offs)+l-1] := Byte(Mask);
+                         Dec(HLength, l);
+                         inc(offs, l);
                        End;
-                     Dec(HLength, l);
-                     inc(offs, l);
                      {$ifdef logging2}
                      LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
                      {$endif logging}
@@ -918,7 +914,6 @@ end;
            (amount > 7+8-(offs and 7))) Then
          Begin
            { align target }
-           l := 0;
            If (offs and 7) <> 0 then
            { this cannot go past a window boundary bacause the }
            { size of a window is always a multiple of 8        }
@@ -933,9 +928,9 @@ end;
                    Mem[WinWriteSeg:word(offs)+l-1] := fill.pat[patternPos and 7];
                    inc(patternPos)
                  end;
+               Dec(amount, l);
+               inc(offs, l);
              End;
-           Dec(amount, l);
-           inc(offs, l);
            {$ifdef logging2}
            LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(amount));
            {$endif logging2}
