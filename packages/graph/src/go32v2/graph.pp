@@ -3550,6 +3550,7 @@ const CrtAddress: word = 0;
       mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVESARGBPalette;
       mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
       mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
+      mode.HLine := {$ifdef fpc}@{$endif}HLineVESA32kOr64k;
     end;
 
     procedure FillCommonVESA32k(var mode: TModeInfo);
