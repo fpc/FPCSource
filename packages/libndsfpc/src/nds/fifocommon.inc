@@ -4,22 +4,22 @@
 type
   FifoChannels = integer;
 const
-  FIFO_PM     : FifoChannels = 0;
-  FIFO_SOUND  : FifoChannels = 1;
-  FIFO_SYSTEM : FifoChannels = 2;
-  FIFO_MAXMOD : FifoChannels = 3;
-  FIFO_DSWIFI : FifoChannels = 4;
-  FIFO_SDMMC  : FifoChannels = 5;
-  FIFO_RSVD_01: FifoChannels = 6;
-  FIFO_RSVD_02: FifoChannels = 7;
-  FIFO_USER_01: FifoChannels = 8;
-  FIFO_USER_02: FifoChannels = 9;
-  FIFO_USER_03: FifoChannels = 10;	    
-  FIFO_USER_04: FifoChannels = 11;	    
-  FIFO_USER_05: FifoChannels = 12;	    
-  FIFO_USER_06: FifoChannels = 13;	    
-  FIFO_USER_07: FifoChannels = 14;	    
-  FIFO_USER_08: FifoChannels = 15;
+  FIFO_PM      : FifoChannels = 0;
+  FIFO_SOUND   : FifoChannels = 1;
+  FIFO_SYSTEM  : FifoChannels = 2;
+  FIFO_MAXMOD  : FifoChannels = 3;
+  FIFO_DSWIFI  : FifoChannels = 4;
+  FIFO_SDMMC   : FifoChannels = 5;
+  FIFO_FIRMWARE: FifoChannels = 6;
+  FIFO_RSVD_01 : FifoChannels = 7;
+  FIFO_USER_01 : FifoChannels = 8;
+  FIFO_USER_02 : FifoChannels = 9;
+  FIFO_USER_03 : FifoChannels = 10;	    
+  FIFO_USER_04 : FifoChannels = 11;	    
+  FIFO_USER_05 : FifoChannels = 12;	    
+  FIFO_USER_06 : FifoChannels = 13;	    
+  FIFO_USER_07 : FifoChannels = 14;	    
+  FIFO_USER_08 : FifoChannels = 15;
   
   
 type
@@ -54,6 +54,12 @@ const
 	SDMMC_SD_START       : FifoSystemCommands = 1;
 	SDMMC_SD_IS_INSERTED : FifoSystemCommands = 2;
 	SDMMC_SD_STOP        : FifoSystemCommands = 3;
+
+type
+  FifoFirmwareCommands = integer;
+const
+	FW_READ  = 0;
+	FW_WRITE = 1;
 
 type
   FifoPMCommands = integer;

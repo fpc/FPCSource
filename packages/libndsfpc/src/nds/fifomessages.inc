@@ -66,6 +66,14 @@ type
 			    numsectors: cuint32;
 			  end;
 		  );
+      6: (
+        fwParams: record
+          buffer: pointer;
+          address: cuint32;
+          length: cuint32;
+        end;      
+      );  
+        
   end;
   TFifoMessage = FifoMessage;
   PFifoMessage = ^FifoMessage;

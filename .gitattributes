@@ -4850,6 +4850,9 @@ packages/libndsfpc/examples/audio/maxmod/song_events_example2/Makefile svneol=na
 packages/libndsfpc/examples/audio/maxmod/song_events_example2/Makefile.fpc svneol=native#text/plain
 packages/libndsfpc/examples/audio/maxmod/song_events_example2/audio/example2.it -text
 packages/libndsfpc/examples/audio/maxmod/song_events_example2/song_events_example2.pp svneol=native#text/plain
+packages/libndsfpc/examples/audio/maxmod/streaming/Makefile svneol=native#text/plain
+packages/libndsfpc/examples/audio/maxmod/streaming/Makefile.fpc svneol=native#text/plain
+packages/libndsfpc/examples/audio/maxmod/streaming/streaming.pp svneol=native#text/plain
 packages/libndsfpc/examples/audio/micrecord/Makefile svneol=native#text/plain
 packages/libndsfpc/examples/audio/micrecord/Makefile.fpc svneol=native#text/plain
 packages/libndsfpc/examples/audio/micrecord/micrecord.pp svneol=native#text/plain
@@ -5146,8 +5149,6 @@ packages/libndsfpc/examples/graphics/Ext_Palettes/backgrounds/gfx/devkitlogo.gri
 packages/libndsfpc/examples/graphics/Ext_Palettes/backgrounds/gfx/devkitlogo.png -text
 packages/libndsfpc/examples/graphics/Ext_Palettes/backgrounds/gfx/drunkenlogo.grit svneol=native#text/plain
 packages/libndsfpc/examples/graphics/Ext_Palettes/backgrounds/gfx/drunkenlogo.png -text
-packages/libndsfpc/examples/graphics/Ext_Palettes/backgrounds/inc/devkitlogo.inc svneol=native#text/plain
-packages/libndsfpc/examples/graphics/Ext_Palettes/backgrounds/inc/drunkenlogo.inc svneol=native#text/plain
 packages/libndsfpc/examples/graphics/Makefile svneol=native#text/plain
 packages/libndsfpc/examples/graphics/Makefile.fpc svneol=native#text/plain
 packages/libndsfpc/examples/graphics/Printing/Makefile svneol=native#text/plain
@@ -5450,6 +5451,7 @@ packages/libogcfpc/src/ogc/ios.inc svneol=native#text/plain
 packages/libogcfpc/src/ogc/ipc.inc svneol=native#text/plain
 packages/libogcfpc/src/ogc/irq.inc svneol=native#text/plain
 packages/libogcfpc/src/ogc/isfs.inc svneol=native#text/plain
+packages/libogcfpc/src/ogc/libversion.inc svneol=native#text/plain
 packages/libogcfpc/src/ogc/lwp.inc svneol=native#text/plain
 packages/libogcfpc/src/ogc/lwp_config.inc svneol=native#text/plain
 packages/libogcfpc/src/ogc/lwp_heap.inc svneol=native#text/plain
@@ -8780,6 +8782,7 @@ rtl/nds/ndsbiosh.inc svneol=native#text/plain
 rtl/nds/ndsh.inc svneol=native#text/plain
 rtl/nds/prt07.as svneol=native#text/plain
 rtl/nds/prt09.as svneol=native#text/plain
+rtl/nds/rtl.cfg svneol=native#text/plain
 rtl/nds/rtldefs.inc svneol=native#text/plain
 rtl/nds/sysdir.inc svneol=native#text/plain
 rtl/nds/sysfile.inc svneol=native#text/plain
@@ -9311,6 +9314,7 @@ rtl/wii/classes.pp svneol=native#text/plain
 rtl/wii/dos.pp svneol=native#text/plain
 rtl/wii/libc.inc svneol=native#text/plain
 rtl/wii/libch.inc svneol=native#text/plain
+rtl/wii/rtl.cfg svneol=native#text/plain
 rtl/wii/rtldefs.inc svneol=native#text/plain
 rtl/wii/sysdir.inc svneol=native#text/plain
 rtl/wii/sysfile.inc svneol=native#text/plain

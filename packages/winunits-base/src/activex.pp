@@ -4568,7 +4568,7 @@ type
   function CreateItemMoniker(_para1:POLESTR; _para2:POLESTR;out _para3:IMoniker):HRESULT;stdcall; external  'ole32.dll' name 'CreateItemMoniker';
   function CreateAntiMoniker(_para1:PIMoniker):HRESULT;stdcall; external  'ole32.dll' name 'CreateAntiMoniker';
   function CreatePointerMoniker(_para1:IUnknown; out _para2:IMoniker):HRESULT;stdcall; external  'ole32.dll' name 'CreatePointerMoniker';
-  function GetRunningObjectTable(_para1:DWORD; _para2:IRunningObjectTable):HRESULT;stdcall; external  'ole32.dll' name 'GetRunningObjectTable';
+  function GetRunningObjectTable(_para1:DWORD; out _para2:IRunningObjectTable):HRESULT;stdcall; external  'ole32.dll' name 'GetRunningObjectTable';
   function CoInitializeSecurity(_para1:PSECURITY_DESCRIPTOR; _para2:LONG; _para3:PSOLE_AUTHENTICATION_SERVICE; _para4:pointer; _para5:DWORD;
              _para6:DWORD; _para7:pointer; _para8:DWORD; _para9:pointer):HRESULT;stdcall; external  'ole32.dll' name 'CoInitializeSecurity';
   function CoGetCallContext(const _para1:TIID; _para2:Ppointer):HRESULT;stdcall; external  'ole32.dll' name 'CoGetCallContext';

@@ -42,7 +42,7 @@ implementation
 
 uses
   sysconst;
-    
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -197,7 +197,7 @@ begin
   result := -1;
 end;
 
-Procedure InternalFindClose(var Handle: Pointer);
+Procedure InternalFindClose(var Handle: THandle);
 begin
 
 end;
@@ -317,8 +317,7 @@ begin
   result := -1;
 end;
 
-function ExecuteProcess (const Path: AnsiString;
-                                  const ComLine: array of AnsiString;Flags:TExecuteFlags=[]): integer;
+function ExecuteProcess (const Path: AnsiString; const ComLine: array of AnsiString;Flags:TExecuteFlags=[]): integer;
 begin
   result := -1;
 end;

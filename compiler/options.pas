@@ -807,6 +807,7 @@ function toption.ParseMacVersionMin(out minstr, emptystr: string; const compvarn
     temp,
     compvarvalue: string[15];
     i: longint;
+    osx_minor_two_digits: boolean;
   begin
     minstr:=value;
     emptystr:='';
@@ -830,11 +831,16 @@ function toption.ParseMacVersionMin(out minstr, emptystr: string; const compvarn
     temp:=subval(i+1,2,i);
     if temp='' then
       exit(false);
-    { on Mac OS X, the minor version number is limited to 1 digit }
+    { on Mac OS X, the minor version number was originally limited to 1 digit;
+      with 10.10 the format changed and two digits were also supported; on iOS,
+      the minor version number always takes up two digits }
+    osx_minor_two_digits:=false;
     if not ios then
       begin
-        if length(temp)<>1 then
-          exit(false);
+        { if the minor version number is two digits on OS X (the case since
+          OS X 10.10), we also have to add two digits for the patch level}
+        if length(temp)=2 then
+          osx_minor_two_digits:=true;
       end
     { the minor version number always takes up two digits on iOS }
     else if length(temp)=1 then
@@ -851,9 +857,12 @@ function toption.ParseMacVersionMin(out minstr, emptystr: string; const compvarn
         { there's only room for a single digit patch level in the version macro
           for Mac OS X. gcc sets it to zero if there are more digits, but that
           seems worse than clamping to 9 (don't declare as invalid like with
-          minor version number, because there is a precedent like 10.4.11)
+          minor version number, because there is a precedent like 10.4.11).
+
+          As of OS X 10.10 there are two digits for the patch level
         }
-        if not ios then
+        if not ios and
+           not osx_minor_two_digits then
           begin
             if length(temp)<>1 then
               temp:='9';
@@ -869,7 +878,8 @@ function toption.ParseMacVersionMin(out minstr, emptystr: string; const compvarn
         if i<=length(value) then
           exit(false);
       end
-    else if not ios then
+    else if not ios and
+       not osx_minor_two_digits then
       compvarvalue:=compvarvalue+'0'
     else
       compvarvalue:=compvarvalue+'00';
