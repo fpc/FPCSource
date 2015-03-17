@@ -594,16 +594,16 @@
    }
 
 
-  function IMAGE_ORDINAL64(Ordinal : int64) : int64;
-  function IMAGE_ORDINAL32(Ordinal : longint) : longint;
-  function IMAGE_SNAP_BY_ORDINAL64(Ordinal : int64) : boolean;
-  function IMAGE_SNAP_BY_ORDINAL32(Ordinal : longint) : boolean;
+  function IMAGE_ORDINAL64(Ordinal : uint64) : uint64; inline;
+  function IMAGE_ORDINAL32(Ordinal : cardinal) : cardinal;inline;
+  function IMAGE_SNAP_BY_ORDINAL64(Ordinal : uint64) : boolean;  inline;
+  function IMAGE_SNAP_BY_ORDINAL32(Ordinal : cardinal) : boolean; inline;
   {$ifdef WIN64}
-    function IMAGE_ORDINAL(Ordinal : int64) : int64;
-    function IMAGE_SNAP_BY_ORDINAL(Ordinal : int64) : boolean;
+    function IMAGE_ORDINAL(Ordinal : uint64) : uint64; inline;
+    function IMAGE_SNAP_BY_ORDINAL(Ordinal : uint64) : boolean; inline;
   {$else}
-    function IMAGE_ORDINAL(Ordinal : longint) : longint;
-    function IMAGE_SNAP_BY_ORDINAL(Ordinal : longint) : boolean;
+    function IMAGE_ORDINAL(Ordinal : cardinal) : cardinal; inline;
+    function IMAGE_SNAP_BY_ORDINAL(Ordinal : cardinal) : boolean; inline;
   {$endif}
  
 
@@ -1072,46 +1072,46 @@ type
        PALETTERGB:=$02000000 or (RGB(r,g,b));
     end;
 
-  function IMAGE_ORDINAL64(Ordinal : int64) : int64;
+  function IMAGE_ORDINAL64(Ordinal : uint64) : uint64;
   begin
     IMAGE_ORDINAL64:=Ordinal and $ffff;
   end;
 
-  function IMAGE_ORDINAL32(Ordinal : longint) : longint;
+  function IMAGE_ORDINAL32(Ordinal : cardinal) : cardinal;
   begin
     IMAGE_ORDINAL32:=Ordinal and $ffff;
   end;
 
-  function IMAGE_SNAP_BY_ORDINAL64(Ordinal : int64) : boolean;
+  function IMAGE_SNAP_BY_ORDINAL64(Ordinal : uint64) : boolean;
   begin
     IMAGE_SNAP_BY_ORDINAL64:=(Ordinal and IMAGE_ORDINAL_FLAG64)<>0;
   end;
 
-  function IMAGE_SNAP_BY_ORDINAL32(Ordinal : longint) : boolean;
+  function IMAGE_SNAP_BY_ORDINAL32(Ordinal : cardinal) : boolean;
   begin
     IMAGE_SNAP_BY_ORDINAL32:=(Ordinal and IMAGE_ORDINAL_FLAG32)<>0;
   end;
 
   {$ifdef win64}
-  function IMAGE_ORDINAL(Ordinal : int64) : int64;
+  function IMAGE_ORDINAL(Ordinal : uint64) : uint64;
   begin
     IMAGE_ORDINAL:=IMAGE_ORDINAL64(Ordinal);
   end;
 
 
-  function IMAGE_SNAP_BY_ORDINAL(Ordinal : int64) : boolean;
+  function IMAGE_SNAP_BY_ORDINAL(Ordinal : uint64) : boolean;
   begin
     IMAGE_SNAP_BY_ORDINAL:=IMAGE_SNAP_BY_ORDINAL64(Ordinal);
   end;
 
   {$else}
 
-  function IMAGE_ORDINAL(Ordinal : longint) : longint;
+  function IMAGE_ORDINAL(Ordinal : cardinal) : cardinal;
   begin
     IMAGE_ORDINAL:=IMAGE_ORDINAL32(Ordinal);
   end;
 
-  function IMAGE_SNAP_BY_ORDINAL(Ordinal : longint) : boolean;
+  function IMAGE_SNAP_BY_ORDINAL(Ordinal : cardinal) : boolean;
   begin
     IMAGE_SNAP_BY_ORDINAL:=IMAGE_SNAP_BY_ORDINAL32(Ordinal);
   end;
