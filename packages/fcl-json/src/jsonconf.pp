@@ -73,6 +73,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    Procedure Reload;
     procedure Clear;
     procedure Flush;    // Writes the JSON file
     procedure OpenKey(const aPath: WideString; AllowCreate : Boolean);
@@ -528,11 +529,16 @@ begin
   DeletePath(APath);
 end;
 
+Procedure TJSONConfig.Reload;
+
+begin
+  if Length(Filename) > 0 then
+    DoSetFilename(Filename,True);
+end;
 procedure TJSONConfig.Loaded;
 begin
   inherited Loaded;
-  if Length(Filename) > 0 then
-    DoSetFilename(Filename,True);
+  Reload;
 end;
 
 function TJSONConfig.FindPath(const APath: WideString; AllowCreate: Boolean
