@@ -169,7 +169,7 @@ implementation
         CheckResourcesUsed:=found;
       end;
 
-    procedure AddUnit(const s:string; autoadded: boolean);
+    procedure AddUnit(const s:string);
       var
         hp : tppumodule;
         unitsym : tunitsym;
@@ -189,12 +189,6 @@ implementation
         tabstractunitsymtable(current_module.localsymtable).insertunit(unitsym);
         { add to used units }
         current_module.addusedunit(hp,false,unitsym);
-        { mark as used if automatically added }
-        if autoadded then
-          begin
-            current_module.updatemaps;
-            inc(current_module.unitmap[hp.moduleid].refs);
-          end;
       end;
 
 
@@ -217,7 +211,7 @@ implementation
           end;
         { Variants unit is not loaded yet, load it now }
         Message(parser_w_implicit_uses_of_variants_unit);
-        AddUnit('variants',true);
+        AddUnit('variants');
       end;
 
 
@@ -298,7 +292,7 @@ implementation
 
         { insert the system unit, it is allways the first. Load also the
           internal types from the system unit }
-        AddUnit('system',true);
+        AddUnit('system');
         systemunit:=tglobalsymtable(symtablestack.top);
         load_intern_types;
 
@@ -312,26 +306,26 @@ implementation
          begin
            { Heaptrc unit, load heaptrace before any other units especially objpas }
            if (cs_use_heaptrc in current_settings.globalswitches) then
-             AddUnit('heaptrc',true);
+             AddUnit('heaptrc');
            { Lineinfo unit }
            if (cs_use_lineinfo in current_settings.globalswitches) then begin
              case paratargetdbg of
                dbg_stabs:
-                 AddUnit('lineinfo',true);
+                 AddUnit('lineinfo');
                dbg_stabx:
-                 AddUnit('lnfogdb',true);
+                 AddUnit('lnfogdb');
                else
-                 AddUnit('lnfodwrf',true);
+                 AddUnit('lnfodwrf');
              end;
            end;
            { Valgrind requires c memory manager }
            if (cs_gdb_valgrind in current_settings.globalswitches) then
-             AddUnit('cmem',true);
+             AddUnit('cmem');
 {$ifdef cpufpemu}
            { Floating point emulation unit?
              softfpu must be in the system unit anyways (FK)
            if (cs_fp_emulation in current_settings.moduleswitches) and not(target_info.system in system_wince) then
-             AddUnit('softfpu',true);
+             AddUnit('softfpu');
            }
 {$endif cpufpemu}
            { Which kind of resource support?
@@ -339,55 +333,55 @@ implementation
              otherwise we need it here since it must be loaded quite early }
            if (tf_has_winlike_resources in target_info.flags) then
              if target_res.id=res_ext then
-               AddUnit('fpextres',true)
+               AddUnit('fpextres')
              else
-               AddUnit('fpintres',true);
+               AddUnit('fpintres');
          end;
         { Objpas unit? }
         if m_objpas in current_settings.modeswitches then
-          AddUnit('objpas',true);
+          AddUnit('objpas');
 
         { Macpas unit? }
         if m_mac in current_settings.modeswitches then
-          AddUnit('macpas',true);
+          AddUnit('macpas');
 
         if m_iso in current_settings.modeswitches then
-          AddUnit('iso7185',true);
+          AddUnit('iso7185');
 
         { blocks support? }
         if m_blocks in current_settings.modeswitches then
-          AddUnit('blockrtl',true);
+          AddUnit('blockrtl');
 
         { default char=widechar? }
         if m_default_unicodestring in current_settings.modeswitches then
-          AddUnit('uuchar',true);
+          AddUnit('uuchar');
 
         { Objective-C support unit? }
         if (m_objectivec1 in current_settings.modeswitches) then
           begin
             { interface to Objective-C run time }
-            AddUnit('objc',true);
+            AddUnit('objc');
             loadobjctypes;
             { NSObject }
             if not(current_module.is_unit) or
                (current_module.modulename^<>'OBJCBASE') then
-              AddUnit('objcbase',true);
+              AddUnit('objcbase');
           end;
         { Profile unit? Needed for go32v2 only }
         if (cs_profile in current_settings.moduleswitches) and
            (target_info.system in [system_i386_go32v2,system_i386_watcom]) then
-          AddUnit('profile',true);
+          AddUnit('profile');
         if (cs_load_fpcylix_unit in current_settings.globalswitches) then
           begin
-            AddUnit('fpcylix',true);
-            AddUnit('dynlibs',true);
+            AddUnit('fpcylix');
+            AddUnit('dynlibs');
           end;
 
         { CPU targets with microcontroller support can add a controller specific unit }
         if ControllerSupport and (target_info.system in systems_embedded) and
           (current_settings.controllertype<>ct_none) and
           (embedded_controllers[current_settings.controllertype].controllerunitstr<>'') then
-          AddUnit(embedded_controllers[current_settings.controllertype].controllerunitstr,true);
+          AddUnit(embedded_controllers[current_settings.controllertype].controllerunitstr);
       end;
 
 
@@ -400,7 +394,7 @@ implementation
           s:=GetToken(hs,',');
           if s='' then
             break;
-          AddUnit(s,true);
+          AddUnit(s);
         until false;
       end;
 
@@ -1707,7 +1701,7 @@ type
                          module_name:=module_name+'.'+orgpattern;
                          consume(_ID);
                        end;
-                     AddUnit(module_name,false);
+                     AddUnit(module_name);
                    end
                  else
                    consume(_ID);
@@ -2265,7 +2259,7 @@ type
          if target_info.system in systems_internal_sysinit then
          begin
            { add start/halt unit }
-           AddUnit(linker.sysinitunit,true);
+           AddUnit(linker.sysinitunit);
          end;
 
 {$ifdef arm}
