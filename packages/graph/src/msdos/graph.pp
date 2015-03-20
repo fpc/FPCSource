@@ -3247,10 +3247,12 @@ const CrtAddress: word = 0;
     end;
 
    var
-    HGCDetected : Boolean;
-    CGADetected : Boolean; { TRUE means real CGA, *not* EGA or VGA }
-    EGADetected : Boolean; { TRUE means EGA or higher (VGA) }
-    VGADetected : Boolean;
+    HGCDetected : Boolean = FALSE;
+    CGADetected : Boolean = FALSE; { TRUE means real CGA, *not* EGA or VGA }
+    EGAColorDetected : Boolean = FALSE; { TRUE means true EGA with a color monitor }
+    EGAMonoDetected : Boolean = FALSE; { TRUE means true EGA with a monochrome (MDA) monitor }
+    MCGADetected : Boolean = FALSE;
+    VGADetected : Boolean = FALSE;
     mode: TModeInfo;
     regs: Registers;
    begin
@@ -3261,45 +3263,83 @@ const CrtAddress: word = 0;
      if assigned(ModeList) then
        exit;
 
-
-     HGCDetected := FALSE;
-     CGADetected := FALSE;
-     EGADetected := FALSE;
-     VGADetected := FALSE;
-     { check if EGA adapter supPorted...       }
-     regs.ah:=$12;
-     regs.bx:=$FF10;
-     intr($10,regs);     { get EGA information }
-     EGADetected:=regs.bh<>$FF;
-{$ifdef logging}
-     LogLn('EGA detected: '+strf(Longint(EGADetected)));
-{$endif logging}
-     { check if VGA adapter supPorted...       }
-     if EGADetected then
+     { check if VGA/MCGA adapter supported...       }
+     regs.ax:=$1a00;
+     intr($10,regs);    { get display combination code...}
+     if regs.al=$1a then
        begin
-         regs.ax:=$1a00;
-         intr($10,regs);    { get display combination code...}
-         if regs.al=$1a then
+         while regs.bx <> 0 do
            begin
-             { now check if this is the ATI EGA }
-             regs.ax:=$1c00; { get state size for save...     }
-                             { ... all imPortant data         }
-             regs.cx:=$07;
-             intr($10,regs);
-             VGADetected:=regs.al=$1c;
+             case regs.bl of
+               1: { monochrome adapter (MDA or HGC) }
+                 begin
+                   { check if Hercules adapter supported ... }
+                   HGCDetected:=Test6845($3B4);
+                 end;
+               2: CGADetected:=TRUE;
+               4: EGAColorDetected:=TRUE;
+               5: EGAMonoDetected:=TRUE;
+               {6: PGA, this is rare stuff, how do we handle it? }
+               7, 8: VGADetected:=TRUE;
+               10, 11, 12: MCGADetected:=TRUE;
+             end;
+             { check both primary and secondary display adapter }
+             regs.bx:=regs.bx shr 8;
            end;
        end;
-{$ifdef logging}
-       LogLn('VGA detected: '+strf(Longint(VGADetected)));
-{$endif logging}
-     { older than EGA? }
-     if not EGADetected then
+     if VGADetected then
        begin
-         { check if Hercules adapter supPorted ... }
+         { now check if this is the ATI EGA }
+         regs.ax:=$1c00; { get state size for save...     }
+                         { ... all important data         }
+         regs.cx:=$07;
+         intr($10,regs);
+         VGADetected:=regs.al=$1c;
+       end;
+     if not VGADetected and not MCGADetected and
+        not EGAColorDetected and not EGAMonoDetected and
+        not CGADetected and not HGCDetected then
+       begin
+         { check if EGA adapter supported...       }
+         regs.ah:=$12;
+         regs.bx:=$FF10;
+         intr($10,regs);     { get EGA information }
+         if regs.bh<>$FF then
+           case regs.cl of
+             0..3, { primary: MDA/HGC,   secondary: EGA color }
+             6..9: { primary: EGA color, secondary: MDA/HGC (optional) }
+               begin
+                 EGAColorDetected:=TRUE;
+                 { check if Hercules adapter supported ... }
+                 HGCDetected:=Test6845($3B4);
+               end;
+             4..5, { primary: CGA,        secondary: EGA mono }
+             10..11: { primary: EGA mono, secondary: CGA (optional) }
+               begin
+                 EGAMonoDetected:=TRUE;
+                 { check if CGA adapter supported ... }
+                 CGADetected := Test6845($3D4);
+               end;
+           end;
+       end;
+     { older than EGA? }
+     if not VGADetected and not MCGADetected and
+        not EGAColorDetected and not EGAMonoDetected and
+        not CGADetected and not HGCDetected then
+       begin
+         { check if Hercules adapter supported ... }
          HGCDetected := Test6845($3B4);
-         { check if CGA adapter supPorted ... }
+         { check if CGA adapter supported ... }
          CGADetected := Test6845($3D4);
        end;
+{$ifdef logging}
+     LogLn('HGC detected: '+strf(Longint(HGCDetected)));
+     LogLn('CGA detected: '+strf(Longint(CGADetected)));
+     LogLn('EGA color detected: '+strf(Longint(EGAColorDetected)));
+     LogLn('EGA mono detected: '+strf(Longint(EGAMonoDetected)));
+     LogLn('MCGA detected: '+strf(Longint(MCGADetected)));
+     LogLn('VGA detected: '+strf(Longint(VGADetected)));
+{$endif logging}
      if HGCDetected then
        begin
          { HACK:
@@ -3336,7 +3376,7 @@ const CrtAddress: word = 0;
          mode.YAspect := 10000;
          AddMode(mode);
        end;
-     if CGADetected or EGADetected then
+     if CGADetected or EGAColorDetected or MCGADetected or VGADetected then
        begin
          { HACK:
            until we create Save/RestoreStateCGA, we use Save/RestoreStateVGA
@@ -3389,7 +3429,7 @@ const CrtAddress: word = 0;
          AddMode(mode);
        end;
 
-     if EGADetected then
+     if EGAColorDetected or VGADetected then
        begin
          { HACK:
            until we create Save/RestoreStateEGA, we use Save/RestoreStateVGA
@@ -3431,8 +3471,14 @@ const CrtAddress: word = 0;
          AddMode(mode);
        end;
 
-     if VGADetected then
+     if MCGADetected or VGADetected then
        begin
+         { HACK:
+           until we create Save/RestoreStateEGA, we use Save/RestoreStateVGA
+           with the inWindows flag enabled (so we only save the mode number
+           and nothing else) }
+         if not VGADetected then
+           inWindows := true;
          SaveVideoState := @SaveStateVGA;
 {$ifdef logging}
          LogLn('Setting VGA SaveVideoState to '+strf(longint(SaveVideoState)));
@@ -3531,7 +3577,18 @@ const CrtAddress: word = 0;
          mode.XAspect := 8333;
          mode.YAspect := 10000;
          AddMode(mode);
+       end;
 
+     if VGADetected then
+       begin
+         SaveVideoState := @SaveStateVGA;
+{$ifdef logging}
+         LogLn('Setting VGA SaveVideoState to '+strf(longint(SaveVideoState)));
+{$endif logging}
+         RestoreVideoState := @RestoreStateVGA;
+{$ifdef logging}
+         LogLn('Setting VGA RestoreVideoState to '+strf(longint(RestoreVideoState)));
+{$endif logging}
          { now add all standard VGA modes...       }
          InitMode(mode);
          mode.DriverNumber:= LowRes;
