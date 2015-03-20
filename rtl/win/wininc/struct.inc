@@ -8346,6 +8346,25 @@ type
 
 {$push}
 {$packrecords 4}
+
+    PIMAGE_EXPORT_DIRECTORY = ^TIMAGE_EXPORT_DIRECTORY;
+    IMAGE_EXPORT_DIRECTORY = record
+        Characteristics : DWORD;
+        TimeDateStamp   : DWORD;
+        MajorVersion    : WORD;
+        MinorVersion    : WORD;
+        Name 	        : DWORD;
+        Base 		    : DWORD;
+        NumberOfFunctions : DWORD;
+        NumberOfNames   : DWORD;
+        AddressOfFunctions : DWORD;     { RVA from base of image }
+        AddressOfNames  : DWORD;        { RVA from base of image }
+        AddressOfNameOrdinals : DWORD;  { RVA from base of image }
+      end;
+    TIMAGE_EXPORT_DIRECTORY = IMAGE_EXPORT_DIRECTORY; 
+    _IMAGE_EXPORT_DIRECTORY = IMAGE_EXPORT_DIRECTORY;
+    LPIMAGE_EXPORT_DIRECTORY= PIMAGE_EXPORT_DIRECTORY;
+
   P_IMAGE_IMPORT_BY_NAME = ^_IMAGE_IMPORT_BY_NAME;
   _IMAGE_IMPORT_BY_NAME =  record
       Hint : WORD;
@@ -8403,15 +8422,13 @@ type
       AddressOfIndex : ULONGLONG;               { PDWORD }
       AddressOfCallBacks : ULONGLONG;           { PIMAGE_TLS_CALLBACK *; }
       SizeOfZeroFill : DWORD;
-      DUMMYUNIONNAME : bitpacked  record
           case longint of
             0 : ( Characteristics : DWORD );
-            1 : ( DUMMYSTRUCTNAME :  record
-           Reserved0 : 0..$FFFFF; // 5 nibbles=20 bits
-           Alignment : 0..$F;      // 4 bits
-           Reserved1 : 0..$FF;     // 8 bits
+            1 : ( CharacteristicsFields:  bitpacked record
+                                  Reserved0 : 0..$FFFFF; // 5 nibbles=20 bits
+                                  Alignment : 0..$F;      // 4 bits
+                                  Reserved1 : 0..$FF;     // 8 bits
               end );
-          end;
     end;
   IMAGE_TLS_DIRECTORY64 = _IMAGE_TLS_DIRECTORY64;
   PIMAGE_TLS_DIRECTORY64 = ^IMAGE_TLS_DIRECTORY64;
@@ -8425,15 +8442,14 @@ type
       AddressOfIndex : DWORD;                      { PDWORD }
       AddressOfCallBacks : DWORD;                  { PIMAGE_TLS_CALLBACK * }
       SizeOfZeroFill : DWORD;
-      DUMMYUNIONNAME :  record
           case longint of
             0 : ( Characteristics : DWORD );
-            1 : ( DUMMYSTRUCTNAME : bitpacked  record
-                    Reserved0 : 0..$FFFFF; // 5 nibbles=20 bits
-                    Alignment : 0..$F;      // 4 bits
-                    Reserved1 : 0..$FF;     // 8 bits
+            1 : ( CharacteristicsFields : bitpacked  record
+                                 Reserved0 : 0..$FFFFF; // 5 nibbles=20 bits
+                                 Alignment : 0..$F;      // 4 bits
+                                 Reserved1 : 0..$FF;     // 8 bits
               end );
-          end;
+
     end;
   IMAGE_TLS_DIRECTORY32 = _IMAGE_TLS_DIRECTORY32;
   PIMAGE_TLS_DIRECTORY32 = ^IMAGE_TLS_DIRECTORY32;
@@ -8472,18 +8488,17 @@ type
 
   P_IMAGE_IMPORT_DESCRIPTOR = ^_IMAGE_IMPORT_DESCRIPTOR;
   _IMAGE_IMPORT_DESCRIPTOR =  record
-      DUMMYUNIONNAME :  bitpacked record
           case longint of
             0 : ( Characteristics : DWORD );     { 0 for terminating null import descriptor }
-            1 : ( OriginalFirstThunk : DWORD );  { RVA to original unbound IAT (PIMAGE_THUNK_DATA) }
-          end;
-      TimeDateStamp : DWORD;                     { 0 if not bound, }
+            1 : ( OriginalFirstThunk : DWORD;    { RVA to original unbound IAT (PIMAGE_THUNK_DATA) }
+                  TimeDateStamp : DWORD;         { 0 if not bound, }
                                                  // -1 if bound, and real date\time stamp
                                                  //     in IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT (new BIND)
                                                  // O.W. date/time stamp of DLL bound to (Old BIND)
-      ForwarderChain : DWORD;                    // -1 if no forwarders
-      Name : DWORD;
-      FirstThunk : DWORD;                        // RVA to IAT (if bound this IAT has actual addresses)
+                  ForwarderChain : DWORD;        // -1 if no forwarders
+                  Name : DWORD;
+                  FirstThunk : DWORD;            // RVA to IAT (if bound this IAT has actual addresses)
+                );  
     end;
   IMAGE_IMPORT_DESCRIPTOR = _IMAGE_IMPORT_DESCRIPTOR;
   PIMAGE_IMPORT_DESCRIPTOR = ^IMAGE_IMPORT_DESCRIPTOR   {UNALIGNED  }     ;
