@@ -216,16 +216,16 @@ var
   Offset: Word;
   B, Mask, Shift: Byte;
 begin
-  X:= X + StartXViewPort;
-  Y:= Y + StartYViewPort;
-  { convert to absolute coordinates and then verify clipping...}
+  { verify clipping and then convert to absolute coordinates...}
   if ClipPixels then
   begin
-    if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
+    if (X < 0) or (X > ViewWidth) then
       exit;
-    if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
+    if (Y < 0) or (Y > ViewHeight) then
       exit;
   end;
+  X:= X + StartXViewPort;
+  Y:= Y + StartYViewPort;
   Offset := (Y shr 2) * 90 + (X shr 3) + VideoOfs;
   case Y and 3 of
     1: Inc(Offset, $2000);
@@ -620,16 +620,16 @@ var
   Offset: Word;
   B, Mask, Shift: Byte;
 begin
-  X:= X + StartXViewPort;
-  Y:= Y + StartYViewPort;
-  { convert to absolute coordinates and then verify clipping...}
+  { verify clipping and then convert to absolute coordinates...}
   if ClipPixels then
   begin
-    if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
+    if (X < 0) or (X > ViewWidth) then
       exit;
-    if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
+    if (Y < 0) or (Y > ViewHeight) then
       exit;
   end;
+  X:= X + StartXViewPort;
+  Y:= Y + StartYViewPort;
   Offset := (Y shr 1) * 80 + (X shr 2);
   if (Y and 1) <> 0 then
     Inc(Offset, 8192);
@@ -930,16 +930,16 @@ var
   Offset: Word;
   B, Mask, Shift: Byte;
 begin
-  X:= X + StartXViewPort;
-  Y:= Y + StartYViewPort;
-  { convert to absolute coordinates and then verify clipping...}
+  { verify clipping and then convert to absolute coordinates...}
   if ClipPixels then
   begin
-    if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
+    if (X < 0) or (X > ViewWidth) then
       exit;
-    if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
+    if (Y < 0) or (Y > ViewHeight) then
       exit;
   end;
+  X:= X + StartXViewPort;
+  Y:= Y + StartYViewPort;
   Offset := (Y shr 1) * 80 + (X shr 3);
   if (Y and 1) <> 0 then
     Inc(Offset, 8192);
@@ -1238,16 +1238,16 @@ var
   Offset: Word;
   B, Mask, Shift: Byte;
 begin
-  X:= X + StartXViewPort;
-  Y:= Y + StartYViewPort;
-  { convert to absolute coordinates and then verify clipping...}
+  { verify clipping and then convert to absolute coordinates...}
   if ClipPixels then
   begin
-    if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
+    if (X < 0) or (X > ViewWidth) then
       exit;
-    if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
+    if (Y < 0) or (Y > ViewHeight) then
       exit;
   end;
+  X:= X + StartXViewPort;
+  Y:= Y + StartYViewPort;
   Offset := Y * 80 + (X shr 3);
   Shift := 7 - (X and 7);
   Mask := 1 shl Shift;
@@ -1548,16 +1548,16 @@ end;
      dummy: byte;
 {$endif asmgraph}
   Begin
+    { verify clipping and then convert to absolute coordinates...}
+    if ClipPixels then
+    begin
+      if (X < 0) or (X > ViewWidth) then
+        exit;
+      if (Y < 0) or (Y > ViewHeight) then
+        exit;
+    end;
     X:= X + StartXViewPort;
     Y:= Y + StartYViewPort;
-    { convert to absolute coordinates and then verify clipping...}
-    if ClipPixels then
-     Begin
-       if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
-         exit;
-       if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
-         exit;
-     end;
 {$ifndef asmgraph}
      offset := y * 80 + (x shr 3) + VideoOfs;
      PortW[$3ce] := $0f01;       { Index 01 : Enable ops on all 4 planes }
@@ -2363,16 +2363,16 @@ End;
  Procedure PutPixel320(X,Y : smallint; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
  { x,y -> must be in local coordinates. Clipping if required. }
   Begin
+    { verify clipping and then convert to absolute coordinates...}
+    if ClipPixels then
+    begin
+      if (X < 0) or (X > ViewWidth) then
+        exit;
+      if (Y < 0) or (Y > ViewHeight) then
+        exit;
+    end;
     X:= X + StartXViewPort;
     Y:= Y + StartYViewPort;
-    { convert to absolute coordinates and then verify clipping...}
-    if ClipPixels then
-     Begin
-       if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
-         exit;
-       if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
-         exit;
-     end;
     asm
       mov    es, [SegA000]
       mov    ax, [Y]
@@ -2706,16 +2706,16 @@ const CrtAddress: word = 0;
  var offset: word;
 {$endif asmgraph}
   begin
+    { verify clipping and then convert to absolute coordinates...}
+    if ClipPixels then
+    begin
+      if (X < 0) or (X > ViewWidth) then
+        exit;
+      if (Y < 0) or (Y > ViewHeight) then
+        exit;
+    end;
     X:= X + StartXViewPort;
     Y:= Y + StartYViewPort;
-    { convert to absolute coordinates and then verify clipping...}
-    if ClipPixels then
-     Begin
-       if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
-         exit;
-       if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
-         exit;
-     end;
 {$ifndef asmgraph}
     offset := y * 80 + x shr 2 + VideoOfs;
     PortW[$3c4] := (hi(word(FirstPlane)) shl 8) shl (x and 3)+ lo(word(FirstPlane));

@@ -221,16 +221,16 @@ end;
   var
      offs : longint;
   begin
-     X:= X + StartXViewPort;
-     Y:= Y + StartYViewPort;
-     { convert to absolute coordinates and then verify clipping...}
+     { verify clipping and then convert to absolute coordinates...}
      if ClipPixels then
-     Begin
-       if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
+     begin
+       if (X < 0) or (X > ViewWidth) then
          exit;
-       if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
+       if (Y < 0) or (Y > ViewHeight) then
          exit;
      end;
+     X:= X + StartXViewPort;
+     Y:= Y + StartYViewPort;
      Y := Y + YOffset; { adjust pixel for correct virtual page }
      offs := longint(y) * BytesPerLine + x;
        begin
@@ -993,16 +993,16 @@ end;
 {$ifdef logging}
      logln('putpixvesa32kor64k('+strf(x)+','+strf(y)+')');
 {$endif logging}
-     X:= X + StartXViewPort;
-     Y:= Y + StartYViewPort;
-     { convert to absolute coordinates and then verify clipping...}
+     { verify clipping and then convert to absolute coordinates...}
      if ClipPixels then
-     Begin
-       if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
+     begin
+       if (X < 0) or (X > ViewWidth) then
          exit;
-       if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
+       if (Y < 0) or (Y > ViewHeight) then
          exit;
      end;
+     X:= X + StartXViewPort;
+     Y:= Y + StartYViewPort;
      Y := Y + YOffset; { adjust pixel for correct virtual page }
      offs := longint(y) * BytesPerLine + 2*x;
      bank := offs div 65536;
@@ -1398,16 +1398,16 @@ end;
      offs : longint;
      dummy : byte;
   begin
-     X:= X + StartXViewPort;
-     Y:= Y + StartYViewPort;
-     { convert to absolute coordinates and then verify clipping...}
-    if ClipPixels then
-     Begin
-       if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
+     { verify clipping and then convert to absolute coordinates...}
+     if ClipPixels then
+     begin
+       if (X < 0) or (X > ViewWidth) then
          exit;
-       if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
+       if (Y < 0) or (Y > ViewHeight) then
          exit;
      end;
+     X:= X + StartXViewPort;
+     Y:= Y + StartYViewPort;
      Y := Y + YOffset; { adjust pixel for correct virtual page }
      { }
      offs := longint(y) * BytesPerLine + (x div 8);
