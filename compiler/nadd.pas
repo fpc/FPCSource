@@ -2152,7 +2152,7 @@ implementation
             inserttypeconv(right,sinttype);
           end;
 
-         if cmp_of_disjunct_ranges(res) then
+         if cmp_of_disjunct_ranges(res) and not(nf_internal in flags) then
            begin
              if res then
                CGMessage(type_w_comparison_always_true)
