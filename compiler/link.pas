@@ -771,12 +771,14 @@ Implementation
           end;
 
       var
-        binstr, scriptfile : TCmdStr;
-        cmdstr, nextcmd, smartpath : TCmdStr;
+        binstr, firstbinstr, scriptfile : TCmdStr;
+        cmdstr, firstcmd, nextcmd, smartpath : TCmdStr;
         current : TCmdStrListItem;
         script: Text;
         scripted_ar : boolean;
+        ar_creates_different_output_file : boolean;
         success : boolean;
+        first : boolean;
       begin
         MakeStaticLibrary:=false;
       { remove the library, to be sure that it is rewritten }
@@ -785,6 +787,16 @@ Implementation
         smartpath:=FixPath(ChangeFileExt(current_module.asmfilename,target_info.smartext),false);
         SplitBinCmd(target_ar.arcmd,binstr,cmdstr);
         binstr := FindUtil(utilsprefix + binstr);
+        if target_ar.arfirstcmd<>'' then
+          begin
+            SplitBinCmd(target_ar.arfirstcmd,firstbinstr,firstcmd);
+            firstbinstr := FindUtil(utilsprefix + firstbinstr);
+          end
+        else
+          begin
+            firstbinstr:=binstr;
+            firstcmd:=cmdstr;
+          end;
 
 
         scripted_ar:=(target_ar.id=ar_gnu_ar_scripted) or
@@ -823,14 +835,33 @@ Implementation
           end
         else
           begin
+            ar_creates_different_output_file:=(Pos('$OUTPUTLIB',cmdstr)>0) or (Pos('$OUTPUTLIB',firstcmd)>0);
             Replace(cmdstr,'$LIB',maybequoted(current_module.staticlibfilename));
+            Replace(firstcmd,'$LIB',maybequoted(current_module.staticlibfilename));
+            Replace(cmdstr,'$OUTPUTLIB',maybequoted(current_module.staticlibfilename+'.tmp'));
+            Replace(firstcmd,'$OUTPUTLIB',maybequoted(current_module.staticlibfilename+'.tmp'));
             { create AR commands }
             success := true;
             current := TCmdStrListItem(SmartLinkOFiles.First);
+            first := true;
             repeat
-              nextcmd := cmdstr;
+              if first then
+                nextcmd := firstcmd
+              else
+                nextcmd := cmdstr;
               Replace(nextcmd,'$FILES',GetNextFiles(2047, current));
-              success:=DoExec(binstr,nextcmd,false,true);
+              if first then
+                success:=DoExec(firstbinstr,nextcmd,false,true)
+              else
+                success:=DoExec(binstr,nextcmd,false,true);
+              if ar_creates_different_output_file then
+                begin
+                  if FileExists(current_module.staticlibfilename,false) then
+                    DeleteFile(current_module.staticlibfilename);
+                  if FileExists(current_module.staticlibfilename+'.tmp',false) then
+                    RenameFile(current_module.staticlibfilename+'.tmp',current_module.staticlibfilename);
+                end;
+              first := false;
             until (not assigned(current)) or (not success);
           end;
 
@@ -1573,6 +1604,7 @@ Implementation
       ar_gnu_ar_info : tarinfo =
           (
             id          : ar_gnu_ar;
+            arfirstcmd  : '';
             arcmd       : 'ar qS $LIB $FILES';
             arfinishcmd : 'ar s $LIB'
           );
@@ -1580,25 +1612,29 @@ Implementation
       ar_gnu_ar_scripted_info : tarinfo =
           (
             id    : ar_gnu_ar_scripted;
+            arfirstcmd  : '';
             arcmd : 'ar -M < $SCRIPT';
             arfinishcmd : ''
           );
 
       ar_gnu_gar_info : tarinfo =
           ( id          : ar_gnu_gar;
+            arfirstcmd  : '';
             arcmd       : 'gar qS $LIB $FILES';
             arfinishcmd : 'gar s $LIB'
           );
 
       ar_watcom_wlib_omf_info : tarinfo =
           ( id          : ar_watcom_wlib_omf;
-            arcmd       : 'wlib -q -fo -c -b $LIB $FILES';
+            arfirstcmd  : 'wlib -q -fo -c -b -o $OUTPUTLIB $FILES';
+            arcmd       : 'wlib -q -fo -c -b -o $OUTPUTLIB $LIB $FILES';
             arfinishcmd : ''
           );
 
       ar_watcom_wlib_omf_scripted_info : tarinfo =
           (
             id    : ar_watcom_wlib_omf_scripted;
+            arfirstcmd  : '';
             arcmd : 'wlib @$SCRIPT';
             arfinishcmd : ''
           );
