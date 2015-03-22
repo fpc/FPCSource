@@ -3440,12 +3440,9 @@ implementation
                  if try_to_consume(_LKLAMMER) then
                   begin
                     p1:=factor(true,false);
-                    if token in postfixoperator_tokens then
-                     begin
-                       again:=true;
-                       postfixoperators(p1,again,getaddr);
-                     end
-                    else
+                    { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
+                    if token<>_RKLAMMER then
+                      p1:=sub_expr(opcompare,true,false,p1);
                     consume(_RKLAMMER);
                   end
                  else
