@@ -22,8 +22,9 @@ Unit System;
 
 {$define FPC_IS_SYSTEM}
 {$define HAS_CMDLINE}
-{$define USE_NOTHREADMANAGER}
+{ $define USE_NOTHREADMANAGER}
 
+{$define DISABLE_NO_THREAD_MANAGER}
 { Do not use standard memory manager }
 {$define HAS_MEMORYMANAGER}
 
@@ -245,7 +246,7 @@ begin
 
 {$ifdef FPC_HAS_FEATURE_THREADING}
   { threading }
-  InitSystemThreads;
+  //InitSystemThreads; // Empty call for embedded anyway
 {$endif FPC_HAS_FEATURE_THREADING}
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
