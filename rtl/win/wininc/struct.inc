@@ -8537,23 +8537,21 @@ type
   { Delay load version 2 }
 
   _IMAGE_DELAYLOAD_DESCRIPTOR = record
-    Attributes:record
         case longint of
-        0: (AllAttributes :Dword;);
-        1: (dummyrecord:bitpacked record
+        0: (AllAttributes :Dword;
+            DllNameRVA,                       // RVA to the name of the target library (NULL-terminate ASCII string)
+            ModuleHandleRVA,                  // RVA to the HMODULE caching location (PHMODULE)
+            ImportAddressTableRVA,            // RVA to the start of the IAT (PIMAGE_THUNK_DATA)
+            ImportNameTableRVA,               // RVA to the start of the name table (PIMAGE_THUNK_DATA::AddressOfData)
+            BoundImportAddressTableRVA,       // RVA to an optional bound IAT
+            UnloadInformationTableRVA,        // RVA to an optional unload info table
+            TimeDateStamp            : DWORD; // 0 if not bound,
+                                            // Otherwise, date/time of the target DLL
+         );
+        1: (Attributes:bitpacked record
              rvabased:0..1;  {1 bits}                 // Delay load version 2
              ReservedAttributes: 0..$7FFFFFF; {31 bits}
              end;)
-        end;
-
-    DllNameRVA,                       // RVA to the name of the target library (NULL-terminate ASCII string)
-    ModuleHandleRVA,                  // RVA to the HMODULE caching location (PHMODULE)
-    ImportAddressTableRVA,            // RVA to the start of the IAT (PIMAGE_THUNK_DATA)
-    ImportNameTableRVA,               // RVA to the start of the name table (PIMAGE_THUNK_DATA::AddressOfData)
-    BoundImportAddressTableRVA,       // RVA to an optional bound IAT
-    UnloadInformationTableRVA,        // RVA to an optional unload info table
-    TimeDateStamp            : DWORD; // 0 if not bound,
-                                            // Otherwise, date/time of the target DLL
      end;
 
   IMAGE_DELAYLOAD_DESCRIPTOR= _IMAGE_DELAYLOAD_DESCRIPTOR;
