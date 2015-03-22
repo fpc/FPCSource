@@ -2261,7 +2261,7 @@ End;
 
 
  procedure SetVisual200(page: word); {$ifndef fpc}far;{$endif fpc}
-  { two page supPort... }
+  { four page support... }
   begin
     if page > HardwarePages then exit;
     asm
@@ -2296,12 +2296,13 @@ End;
   end;
 
  procedure SetActive200(page: word); {$ifndef fpc}far;{$endif fpc}
-  { two page supPort... }
+  { four page support... }
   begin
     case page of
      0 : VideoOfs := 0;
      1 : VideoOfs := 16384;
      2 : VideoOfs := 32768;
+     3 : VideoOfs := 49152;
     else
       VideoOfs := 0;
     end;
@@ -3447,7 +3448,7 @@ const CrtAddress: word = 0;
          mode.ModeName:='640 x 200 EGA';
          mode.MaxX := 639;
          mode.MaxY := 199;
-         mode.HardwarePages := 2;
+         mode.HardwarePages := 3;
          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual200;
          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive200;
          mode.InitMode := {$ifdef fpc}@{$endif}Init640x200x16;
@@ -3620,7 +3621,7 @@ const CrtAddress: word = 0;
          mode.ModeName:='640 x 200 EGA'; { yes, it says 'EGA' even for the VGA driver; this is TP7 compatible }
          mode.MaxX := 639;
          mode.MaxY := 199;
-         mode.HardwarePages := 2;
+         mode.HardwarePages := 3;
          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual200;
          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive200;
          mode.InitMode := {$ifdef fpc}@{$endif}Init640x200x16;
