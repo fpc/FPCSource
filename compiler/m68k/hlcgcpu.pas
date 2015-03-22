@@ -39,6 +39,8 @@ uses
     thlcgm68k = class(thlcg2ll)
       procedure a_bit_set_reg_reg(list: TAsmList; doset: boolean; bitnumbersize, destsize: tdef; bitnumber, dest: tregister); override;
       procedure a_bit_set_const_reg(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; destreg: tregister); override;
+      procedure a_bit_set_reg_ref(list: TAsmList; doset: boolean; fromsize, tosize: tdef; bitnumber: tregister; const ref: treference); override;
+      procedure a_bit_set_const_ref(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; const ref: treference); override;
     end;
 
 
@@ -58,27 +60,54 @@ implementation
     cpuinfo,
     cgcpu;
 
+  const
+    bit_set_clr_instr: array[boolean] of tasmop = (A_BCLR,A_BSET);
+
   procedure thlcgm68k.a_bit_set_reg_reg(list: TAsmList; doset: boolean; bitnumbersize, destsize: tdef; bitnumber, dest: tregister);
-    const
-      instr: array[boolean] of tasmop = (A_BCLR,A_BSET);
     var
       tmpvalue: tregister;
     begin
-      tmpvalue:=getintregister(list,destsize);
+      tmpvalue:=getintregister(list,ptruinttype);
       //list.concat(tai_comment.create(strpnew('a_bit_set_reg_reg: called!')));
-      a_load_const_reg(list,u32inttype,destsize.size*8-1,tmpvalue);
+      a_load_const_reg(list,ptruinttype,destsize.size*8-1,tmpvalue);
       a_op_reg_reg(list,OP_SUB,bitnumbersize,bitnumber,tmpvalue);
-      list.concat(taicpu.op_reg_reg(instr[doset],S_NO,tmpvalue,dest));
+      list.concat(taicpu.op_reg_reg(bit_set_clr_instr[doset],S_NO,tmpvalue,dest));
     end;
 
   procedure thlcgm68k.a_bit_set_const_reg(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; destreg: tregister);
-    const
-      instr: array[boolean] of tasmop = (A_BCLR,A_BSET);
     begin
       //list.concat(tai_comment.create(strpnew('a_bit_set_const_reg: called!')));
-      list.concat(taicpu.op_const_reg(instr[doset],S_NO,(destsize.size*8)-bitnumber-1,destreg));
+      list.concat(taicpu.op_const_reg(bit_set_clr_instr[doset],S_NO,(destsize.size*8)-bitnumber-1,destreg));
     end;
 
+  procedure thlcgm68k.a_bit_set_reg_ref(list: TAsmList; doset: boolean; fromsize, tosize: tdef; bitnumber: tregister; const ref: treference);
+    var
+      tmpvalue: tregister;
+      sref: tsubsetreference;
+    begin
+      //list.concat(tai_comment.create(strpnew('a_bit_set_reg_ref: called!')));
+      sref:=get_bit_reg_ref_sref(list,fromsize,tosize,bitnumber,ref);
+      tcg68k(cg).fixref(list,sref.ref);
+
+      tmpvalue:=getintregister(list,ptruinttype);
+      a_load_const_reg(list,ptruinttype,7,tmpvalue);
+      a_op_reg_reg(list,OP_SUB,fromsize,sref.bitindexreg,tmpvalue);
+
+      { memory accesses of bset/bclr are always byte, so no alignment problem }
+      list.concat(taicpu.op_reg_ref(bit_set_clr_instr[doset],S_NO,tmpvalue,sref.ref));
+    end;
+
+  procedure thlcgm68k.a_bit_set_const_ref(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; const ref: treference);
+    var
+      sref: tsubsetreference;
+    begin
+      //list.concat(tai_comment.create(strpnew('a_bit_set_const_ref: called!')));
+      sref:=get_bit_const_ref_sref(bitnumber,destsize,ref);
+      tcg68k(cg).fixref(list,sref.ref);
+
+      { memory accesses of bset/bclr are always byte, so no alignment problem }
+      list.concat(taicpu.op_const_ref(bit_set_clr_instr[doset],S_NO,8-sref.startbit-1,sref.ref));
+    end;
 
   procedure create_hlcodegen;
     begin
