@@ -1349,7 +1349,12 @@ begin
                    StopOptions(1);
                  end;
                if l>0 then
-                 set_system_compvar(hs,Copy(more,l+2,255))
+                 begin
+                   if cs_support_macro in init_settings.moduleswitches then
+                     set_system_macro(hs,Copy(more,l+2,255))
+                   else
+                     set_system_compvar(hs,Copy(more,l+2,255));
+                 end
                else
                  def_system_macro(hs);
              end;
