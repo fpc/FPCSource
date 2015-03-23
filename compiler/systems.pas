@@ -83,6 +83,7 @@ interface
        parinfo = ^tarinfo;
        tarinfo = record
           id          : tar;
+          addfilecmd  : string[10];
           arfirstcmd  : string[50];
           arcmd       : string[50];
           arfinishcmd : string[10];

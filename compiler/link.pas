@@ -761,11 +761,11 @@ Implementation
 
     Function TExternalLinker.MakeStaticLibrary:boolean;
 
-        function GetNextFiles(const maxCmdLength : Longint; var item : TCmdStrListItem) : TCmdStr;
+        function GetNextFiles(const maxCmdLength : Longint; var item : TCmdStrListItem; const addfilecmd : string) : TCmdStr;
           begin
             result := '';
             while (assigned(item) and ((length(result) + length(item.str) + 1) < maxCmdLength)) do begin
-              result := result + ' ' + item.str;
+              result := result + ' ' + addfilecmd + item.str;
               item := TCmdStrListItem(item.next);
             end;
           end;
@@ -849,7 +849,7 @@ Implementation
                 nextcmd := firstcmd
               else
                 nextcmd := cmdstr;
-              Replace(nextcmd,'$FILES',GetNextFiles(2047, current));
+              Replace(nextcmd,'$FILES',GetNextFiles(2047, current, target_ar.addfilecmd));
               if first then
                 success:=DoExec(firstbinstr,nextcmd,false,true)
               else
@@ -1604,6 +1604,7 @@ Implementation
       ar_gnu_ar_info : tarinfo =
           (
             id          : ar_gnu_ar;
+            addfilecmd  : '';
             arfirstcmd  : '';
             arcmd       : 'ar qS $LIB $FILES';
             arfinishcmd : 'ar s $LIB'
@@ -1612,6 +1613,7 @@ Implementation
       ar_gnu_ar_scripted_info : tarinfo =
           (
             id    : ar_gnu_ar_scripted;
+            addfilecmd  : '';
             arfirstcmd  : '';
             arcmd : 'ar -M < $SCRIPT';
             arfinishcmd : ''
@@ -1619,6 +1621,7 @@ Implementation
 
       ar_gnu_gar_info : tarinfo =
           ( id          : ar_gnu_gar;
+            addfilecmd  : '';
             arfirstcmd  : '';
             arcmd       : 'gar qS $LIB $FILES';
             arfinishcmd : 'gar s $LIB'
@@ -1626,6 +1629,7 @@ Implementation
 
       ar_watcom_wlib_omf_info : tarinfo =
           ( id          : ar_watcom_wlib_omf;
+            addfilecmd  : '+';
             arfirstcmd  : 'wlib -q -fo -c -b -n -o=$OUTPUTLIB $LIB $FILES';
             arcmd       : 'wlib -q -fo -c -b -o=$OUTPUTLIB $LIB $FILES';
             arfinishcmd : ''
@@ -1634,6 +1638,7 @@ Implementation
       ar_watcom_wlib_omf_scripted_info : tarinfo =
           (
             id    : ar_watcom_wlib_omf_scripted;
+            addfilecmd  : '+';
             arfirstcmd  : '';
             arcmd : 'wlib @$SCRIPT';
             arfinishcmd : ''
