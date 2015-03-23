@@ -107,9 +107,10 @@ type
     procedure CommitRetaining(trans : TSQLHandle); override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); override;
-    function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
     function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
+    function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
+    function GetNextValueSQL(const SequenceName: string; IncrementBy: Integer): string; override;
   public
     constructor Create(AOwner : TComponent); override;
     function GetConnectionInfo(InfoType:TConnInfoType): string; override;
@@ -208,7 +209,8 @@ begin
   else result := true;
 end;
 
-function TIBConnection.StartDBTransaction(trans : TSQLHandle;AParams : String) : boolean;
+function TIBConnection.StartdbTransaction(trans: TSQLHandle; AParams: string
+  ): boolean;
 var
   DBHandle : pointer;
   tr       : TIBTrans;
@@ -641,7 +643,7 @@ begin
   end;
 end;
 
-Function TIBConnection.AllocateCursorHandle : TSQLCursor;
+function TIBConnection.AllocateCursorHandle: TSQLCursor;
 
 var curs : TIBCursor;
 
@@ -665,7 +667,7 @@ begin
   FreeAndNil(cursor);
 end;
 
-Function TIBConnection.AllocateTransactionHandle : TSQLHandle;
+function TIBConnection.AllocateTransactionHandle: TSQLHandle;
 
 begin
   result := TIBTrans.create;
@@ -1388,12 +1390,27 @@ begin
                           '(r.rdb$system_flag = 0 or r.rdb$system_flag is null) and (rdb$relation_name = ''' + Uppercase(SchemaObjectName) + ''') ' +
                         'ORDER BY '+
                           'r.rdb$field_name';
+    stSequences  : s := 'SELECT ' +
+                          'rdb$generator_id         as recno,' +
+                          '''' + DatabaseName + ''' as sequence_catalog,' +
+                          '''''                     as sequence_schema,' +
+                          'rdb$generator_name       as sequence_name ' +
+                        'FROM ' +
+                          'rdb$generators ' +
+                        'WHERE ' +
+                          'rdb$system_flag = 0 or rdb$system_flag is null ' +
+                        'ORDER BY ' +
+                          'rdb$generator_name';
   else
     DatabaseError(SMetadataUnavailable)
   end; {case}
   result := s;
 end;
 
+function TIBConnection.GetNextValueSQL(const SequenceName: string; IncrementBy: Integer): string;
+begin
+  Result := Format('SELECT gen_id(%s, %d) FROM RDB$DATABASE', [SequenceName, IncrementBy]);
+end;
 
 procedure TIBConnection.UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string);
 
@@ -1480,7 +1497,7 @@ begin
   end;
 end;
 
-procedure TIBConnection.GetFloat(CurrBuff, Buffer : pointer; Size : byte);
+procedure TIBConnection.GetFloat(CurrBuff, Buffer: pointer; Size: Byte);
 var
   Ext : extended;
   Dbl : double;
