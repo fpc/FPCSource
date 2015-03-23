@@ -342,7 +342,7 @@ begin
     #10: Sender.wrtStr('&#xA;');
     #13: Sender.wrtStr('&#xD;');
   else
-    raise EConvertError.Create('Illegal character');
+    raise EConvertError.CreateFmt('Illegal character: ',[S[idx]]);
   end;
 end;
 
