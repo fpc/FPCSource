@@ -2,7 +2,14 @@ program tclock;
 {$MODE OBJFPC}
 
 uses
-  libc, ncurses, sysutils;
+  ncurses, sysutils;
+
+{$linklib c}
+procedure setlocale(cat : integer; p : pchar); cdecl; external 'c';
+
+
+const
+  LC_ALL = 6;
 
 const
   ASPECT = 2.2;

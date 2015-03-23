@@ -8,7 +8,15 @@ program nlshello;
 {$mode objfpc}
 
 uses
-  gettext, libc, ncurses;
+  gettext, ncurses;
+
+{$linklib c}
+procedure setlocale(cat : integer; p : pchar); cdecl; external 'c';
+
+
+const
+  LC_ALL = 6;
+
 
 resourcestring
   hello_world = 'Hello world!';

@@ -3,18 +3,26 @@ program form_test_2;
 {$MODE OBJFPC}
 
 uses
-  ncurses, form, libc;
+  ncurses, form;
 
+
+{$linklib c}
+procedure setlocale(cat : integer; p : pchar); cdecl; external 'c';
+
+
+const
+  LC_ALL = 6;
 
 var
   my_bg: Smallint = COLOR_BLACK;
-
   field: array[0..5] of PFIELD;
   my_form: PFORM;
   i, ch: Longint;
+
 begin
 
-try
+  try
+
   setlocale(LC_ALL, ''); { Tested with Russian UTF-8 locale }
 
   (* Initialize curses *)
