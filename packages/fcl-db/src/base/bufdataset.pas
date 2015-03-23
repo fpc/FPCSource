@@ -2676,7 +2676,10 @@ end;
 
 function TCustomBufDataset.GetRecordCount: Longint;
 begin
-  Result := FBRecordCount;
+  if Active then
+    Result := FBRecordCount
+  else
+    Result:=0;  
 end;
 
 function TCustomBufDataset.UpdateStatus: TUpdateStatus;
