@@ -660,7 +660,7 @@ procedure TFPWriterPNG.WritetRNS;
   procedure PaletteAlpha;
   var r : integer;
   begin
-    with TheImage.palette do
+    with FPalette do
       begin
       // search last palette entry with transparency
       r := count;
