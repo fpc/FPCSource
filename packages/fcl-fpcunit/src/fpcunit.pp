@@ -295,6 +295,9 @@ type
   function ComparisonMsg(const aExpected: UnicodeString; const aActual: UnicodeString; const aCheckEqual: boolean=true): string; overload;
   {$ENDIF}
 
+  // Made public for 3rd party developers extending TTestCase with new AssertXXX methods
+  function CallerAddr: Pointer;
+
   
 Resourcestring
 
@@ -321,6 +324,35 @@ Const
   Implementation sections. }
 {$undef read_interface}
 {$define read_implementation}
+
+
+function CallerAddr: Pointer;
+var
+  bp: Pointer;
+begin
+  bp := get_caller_frame(get_frame);
+  if bp <> nil then
+    Result := get_caller_addr(bp)
+  else
+    Result := nil;
+end;
+
+function AddrsToStr(Addrs: Pointer): string;
+begin
+  if PtrUInt(Addrs) > 0 then
+    Result := '$'+Format('%p', [Addrs])
+  else
+    Result := 'n/a';
+end;
+
+
+function PointerToLocationInfo(Addrs: Pointer): string;
+
+begin
+  Result := BackTraceStrFunc(Addrs);
+  if Trim(Result) = '' then
+    Result := AddrsToStr(Addrs) + '  <no map file>';
+end;
 
 
 type
