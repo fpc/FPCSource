@@ -79,8 +79,8 @@ type
 
   TAssert = class(TTest)
   public
-    class procedure Fail(const AMessage: string);
-    class procedure Fail(const AFmt: string; Args : Array of const);
+    class procedure Fail(const AMessage: string; AErrorAddrs: Pointer = nil);
+    class procedure Fail(const AFmt: string; Args : Array of const;  AErrorAddrs: Pointer = nil);
     class procedure AssertTrue(const AMessage: string; ACondition: boolean); overload;
     class procedure AssertTrue(ACondition: boolean); overload;
     class procedure AssertFalse(const AMessage: string; ACondition: boolean); overload;
@@ -513,14 +513,20 @@ end;
 
 { TAssert }
 
-class procedure TAssert.Fail(const AMessage: string);
+class procedure TAssert.Fail(const AMessage: string; AErrorAddrs: Pointer);
 begin
-  raise EAssertionFailedError.Create(AMessage);
+  if AErrorAddrs = nil then
+    raise EAssertionFailedError.Create(AMessage) at CallerAddr
+  else
+    raise EAssertionFailedError.Create(AMessage) at AErrorAddrs;
 end;
 
-class procedure TAssert.Fail(const AFmt: string; Args: array of const);
+class procedure TAssert.Fail(const AFmt: string; Args: array of const; AErrorAddrs: Pointer = nil);
 begin
-  raise EAssertionFailedError.CreateFmt(AFmt,Args);
+  if AErrorAddrs = nil then
+    raise EAssertionFailedError.CreateFmt(AFmt,Args) at CallerAddr
+  else    
+    raise EAssertionFailedError.CreateFmt(AFmt,Args) at AErrorAddrs;
 end;
 
 
