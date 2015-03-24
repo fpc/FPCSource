@@ -260,7 +260,7 @@ begin
     if (Result='') then
       begin
       if FEmitLine then
-        AddToStatement(S,(FCol=1));
+        AddToStatement(S,(FCol<=1));
       FCol:=1;
       FLine:=FLine+1;
       end
@@ -442,11 +442,12 @@ function TCustomSQLScript.NextStatement: AnsiString;
 
 var
   pnt: AnsiString;
-  terminator_found: Boolean;
+  addnewline,terminator_found: Boolean;
 
 begin
   terminator_found:=False;
   ClearStatement;
+  addnewline:=false;
   while FLine <= FSQL.Count do
     begin
     pnt:=FindNextSeparator([FTerminator, '/*', '"', '''', '--']);
@@ -476,7 +477,10 @@ begin
       begin
       FComment:=True;
       if FCommentsInSQL then
-        AddToStatement(Copy(FSQL[FLine-1],FCol,Length(FSQL[FLine-1])-FCol+1),True);
+        begin
+        AddToStatement(Copy(FSQL[FLine-1],FCol,Length(FSQL[FLine-1])-FCol+1),False);
+        AddNewLine:=true;
+        end;
       Inc(Fline);
       FCol:=0;
       FComment:=False;
@@ -494,7 +498,8 @@ begin
       AddToStatement(pnt,False);
       FCol:=FCol + length(pnt);
       pnt:=FindNextSeparator(['''']);
-      AddToStatement(pnt,false);
+      AddToStatement(pnt,addnewline);
+      addnewline:=False;
       FCol:=FCol + length(pnt);
       end;
     end;
