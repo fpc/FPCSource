@@ -40,6 +40,8 @@ Var
   App : TFPCUnitRunner;
 
 begin
+  DefaultFormat:=fPlain;
+  DefaultRunAllTests:=True;
   App:=TFPCUnitRunner.Create(Nil);
   App.Initialize;
   App.Title := 'FPCUnit Test Suite';
