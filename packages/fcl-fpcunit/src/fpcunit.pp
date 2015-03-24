@@ -293,10 +293,11 @@ type
     property StartingTime: TDateTime read FStartingTime;
   end;
 
-  function ComparisonMsg(const aExpected: string; const aActual: string; const aCheckEqual: boolean=true): string;
+  function ComparisonMsg(const aExpected: string; const aActual: string; const aCheckEqual: boolean=true): string; overload;
   {$IFDEF UNICODE}
   function ComparisonMsg(const aExpected: UnicodeString; const aActual: UnicodeString; const aCheckEqual: boolean=true): string; overload;
   {$ENDIF}
+  function ComparisonMsg(const aMsg: string; const aExpected: string; const aActual: string; const aCheckEqual: boolean=true): string; overload;
 
   // Made public for 3rd party developers extending TTestCase with new AssertXXX methods
   function CallerAddr: Pointer;
@@ -394,6 +395,10 @@ begin
 end;
 {$ENDIF}
 
+function ComparisonMsg(const aMsg: string; const aExpected: string; const aActual: string; const aCheckEqual: boolean): string;
+begin
+  Result := '"' + aMsg + '"' + ComparisonMsg(aExpected, aActual, aCheckEqual);
+end;
 
 
 constructor EAssertionFailedError.Create;
