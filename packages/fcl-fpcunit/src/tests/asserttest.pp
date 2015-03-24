@@ -236,7 +236,7 @@ end;
 procedure TMyTest.RaiseIgnoreTest;
 begin
   Ignore('This is an ignored test');
-  AssertEquals('the compiler can count', 3, 1+1); 
+  AssertEquals('the compiler can count', 3, 2);
 end;
 
 procedure TTestIgnore.TestIgnoreResult;
@@ -262,14 +262,14 @@ var
 begin
   t := TMyTest.CreateWithName('RaiseIgnoreTest');
   t.EnableIgnores := false;
-  res := t.CreateResultandRun;
+  res := t.CreateResultAndRun;
   assertEquals('no test was run', 1, res.RunTests);
   assertEquals('Ignored Test reported even if the switch is not active', 0, res.NumberOfIgnoredTests);
   assertEquals('no failure caught', 1, res.NumberOfFailures);
   assertFalse('failure is signalled as Ignored Test and the switch is not active', 
     TTestFailure(res.Failures[0]).IsIgnoredTest);
   assertEquals('wrong failure name', 'EAssertionFailedError', TTestFailure(res.Failures[0]).ExceptionClassName);
-  assertEquals('wrong message', 'the compiler can count expected: <3> but was: <2>', TTestFailure(res.Failures[0]).ExceptionMessage);
+  assertEquals('wrong message', '"the compiler can count" expected: <3> but was: <2>', TTestFailure(res.Failures[0]).ExceptionMessage);
   t.Free;
   res.Free;
 end;
