@@ -121,7 +121,7 @@ type
     function Commit(trans : TSQLHandle) : boolean; override;
     procedure CommitRetaining(trans : TSQLHandle); override;
     function StartImplicitTransaction(trans : TSQLHandle; AParams : string) : boolean; override;
-    function StartdbTransaction(trans : TSQLHandle; AParams : string) : boolean; override;
+    function StartDBTransaction(trans : TSQLHandle; AParams : string) : boolean; override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); override;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor;ATransaction : TSQLTransaction); override;
@@ -556,7 +556,7 @@ begin
   Result := true;
 end;
 
-function TPQConnection.StartdbTransaction(trans: TSQLHandle; AParams: string
+function TPQConnection.StartDBTransaction(trans: TSQLHandle; AParams: string
   ): boolean;
 
 Var

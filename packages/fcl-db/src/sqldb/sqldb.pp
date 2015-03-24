@@ -210,7 +210,7 @@ type
     function Commit(trans : TSQLHandle) : boolean; virtual; abstract;
     function RollBack(trans : TSQLHandle) : boolean; virtual; abstract;
     function StartImplicitTransaction(trans : TSQLHandle; aParams : string) : boolean; virtual;
-    function StartdbTransaction(trans : TSQLHandle; aParams : string) : boolean; virtual; abstract;
+    function StartDBTransaction(trans : TSQLHandle; aParams : string) : boolean; virtual; abstract;
     procedure CommitRetaining(trans : TSQLHandle); virtual; abstract;
     procedure RollBackRetaining(trans : TSQLHandle); virtual; abstract;
 
@@ -698,7 +698,7 @@ type
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
-    function StartdbTransaction(trans : TSQLHandle; aParams : string) : boolean; override;
+    function StartDBTransaction(trans : TSQLHandle; aParams : string) : boolean; override;
     procedure CommitRetaining(trans : TSQLHandle); override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(IndexDefs : TIndexDefs; TableName : string); override;
@@ -1995,7 +1995,7 @@ begin
     end
   else
     begin
-    if Db.StartdbTransaction(FTrans,FParams.CommaText) then
+    if Db.StartDBTransaction(FTrans,FParams.CommaText) then
       OpenTrans
     end;
 end;
@@ -3329,11 +3329,10 @@ begin
   Result:=FProxy.RollBack(trans);
 end;
 
-function TSQLConnector.StartdbTransaction(trans: TSQLHandle; aParams: string
-  ): boolean;
+function TSQLConnector.StartDBTransaction(trans: TSQLHandle; aParams: string): boolean;
 begin
   CheckProxy;
-  Result:=FProxy.StartdbTransaction(trans, aParams);
+  Result:=FProxy.StartDBTransaction(trans, aParams);
 end;
 
 procedure TSQLConnector.CommitRetaining(trans: TSQLHandle);

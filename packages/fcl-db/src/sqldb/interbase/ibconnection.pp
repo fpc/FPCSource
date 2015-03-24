@@ -103,7 +103,7 @@ type
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
-    function StartdbTransaction(trans : TSQLHandle; AParams : string) : boolean; override;
+    function StartDBTransaction(trans : TSQLHandle; AParams : string) : boolean; override;
     procedure CommitRetaining(trans : TSQLHandle); override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); override;
@@ -209,7 +209,7 @@ begin
   else result := true;
 end;
 
-function TIBConnection.StartdbTransaction(trans: TSQLHandle; AParams: string
+function TIBConnection.StartDBTransaction(trans: TSQLHandle; AParams: string
   ): boolean;
 var
   DBHandle : pointer;
