@@ -609,6 +609,7 @@ type
     FAdapter: IStringsAdapter;
     FLBS : TTextLineBreakStyle;
     FStrictDelimiter : Boolean;
+    FLineBreak : String;
     function GetCommaText: string;
     function GetName(Index: Integer): string;
     function GetValue(const Name: string): string;
@@ -626,6 +627,8 @@ type
     Function GetDelimiter : Char;
     Function GetNameValueSeparator : Char;
     Function GetQuoteChar: Char;
+    Function GetLineBreak : String;
+    procedure SetLineBreak(const S : String);
   protected
     procedure DefineProperties(Filer: TFiler); override;
     procedure Error(const Msg: string; Data: Integer);
@@ -647,6 +650,8 @@ type
     Function GetValueFromIndex(Index: Integer): string;
     Procedure SetValueFromIndex(Index: Integer; const Value: string);
     Procedure CheckSpecialChars;
+    Class Function GetNextLine (Const Value : String; Var S : String; Var P : Integer) : Boolean;
+    Function GetNextLinebreak (Const Value : String; Var S : String; Var P : Integer) : Boolean;
   public
     destructor Destroy; override;
     function Add(const S: string): Integer; virtual;
@@ -682,6 +687,7 @@ type
     Property TextLineBreakStyle : TTextLineBreakStyle Read GetLBS Write SetLBS;
     property Delimiter: Char read GetDelimiter write SetDelimiter;
     property DelimitedText: string read GetDelimitedText write SetDelimitedText;
+    property LineBreak : string Read GetLineBreak write SetLineBreak;
     Property StrictDelimiter : Boolean Read FStrictDelimiter Write FStrictDelimiter;
     property QuoteChar: Char read GetQuoteChar write SetQuoteChar;
     Property NameValueSeparator : Char Read GetNameValueSeparator Write SetNameValueSeparator;
