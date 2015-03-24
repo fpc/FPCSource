@@ -280,6 +280,7 @@ Type
   { TDecoratorTestSuite }
 
   TDecoratorTestSuite = Class(TTestSuite)
+  public
     Procedure  FreeDecorators(T : TTest);
     Destructor Destroy; override;
   end;
