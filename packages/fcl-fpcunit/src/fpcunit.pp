@@ -269,9 +269,8 @@ type
     destructor Destroy; override;
     procedure ClearErrorLists;
     procedure StartTest(ATest: TTest);
-    procedure AddFailure(ATest: TTest; E: EAssertionFailedError; aFailureList: TFPList);
-    procedure AddError(ATest: TTest; E: Exception; AUnitName: string;
-      AFailedMethodName: string; ALineNumber: longint);
+    procedure AddFailure(ATest: TTest; E: EAssertionFailedError; aFailureList: TFPList; AThrownExceptionAdrs: Pointer);
+    procedure AddError(ATest: TTest; E: Exception; AThrownExceptionAdrs: Pointer);
     procedure EndTest(ATest: TTest);
     procedure AddListener(AListener: ITestListener);
     procedure RemoveListener(AListener: ITestListener);
@@ -1243,13 +1242,13 @@ begin
 end;
 
 
-procedure TTestResult.AddFailure(ATest: TTest; E: EAssertionFailedError; aFailureList: TFPList);
+procedure TTestResult.AddFailure(ATest: TTest; E: EAssertionFailedError; aFailureList: TFPList; AThrownExceptionAdrs: Pointer);
 var
   i: integer;
   f: TTestFailure;
 begin
   //lock mutex
-  f := TTestFailure.CreateFailure(ATest, E, ATest.LastStep);
+  f := TTestFailure.CreateFailure(ATest, E, ATest.LastStep, AThrownExceptionAdrs);
   aFailureList.Add(f);
   for i := 0 to FListeners.Count - 1 do
     ITestListener(FListeners[i]).AddFailure(ATest, f);
@@ -1257,17 +1256,13 @@ begin
 end;
 
 
-procedure TTestResult.AddError(ATest: TTest; E: Exception;
-  AUnitName: string; AFailedMethodName: string; ALineNumber: longint);
+procedure TTestResult.AddError(ATest: TTest; E: Exception; AThrownExceptionAdrs: Pointer);
 var
   i: integer;
   f: TTestFailure;
 begin
   //lock mutex
-  f := TTestFailure.CreateFailure(ATest, E, ATest.LastStep);
-  f.SourceUnitName := AUnitName;
-  f.FailedMethodName := AFailedMethodName;
-  f.LineNumber := ALineNumber;
+  f := TTestFailure.CreateFailure(ATest, E, ATest.LastStep, AThrownExceptionAdrs);
   FErrors.Add(f);
   for i := 0 to FListeners.Count - 1 do
     ITestListener(FListeners[i]).AddError(ATest, f);
@@ -1302,26 +1297,17 @@ end;
 
 
 procedure TTestResult.RunProtected(ATestCase: TTest; protect: TProtect);
-var
-  func, source: shortstring;
-  line: longint;
 begin
-  func := '';
-  source := '';
-  line := 0;
   try
     protect(ATestCase, Self);
   except
     on E: EIgnoredTest do
-      AddFailure(ATestCase, E, FIgnoredTests);
+      AddFailure(ATestCase, E, FIgnoredTests, ExceptAddr);
     on E: EAssertionFailedError do
-      AddFailure(ATestCase, E, FFailures);
+      AddFailure(ATestCase, E, FFailures, ExceptAddr);
     on E: Exception do
       begin
-      {$ifdef SHOWLINEINFO}
-        GetLineInfo(LongWord(ExceptAddr), func, source, line);
-      {$endif}
-        AddError(ATestCase, E, source, func, line);
+        AddError(ATestCase, E, ExceptAddr);
       end;
   end;
 end;
