@@ -87,8 +87,10 @@ type
     class procedure AssertFalse(ACondition: boolean); overload;
     class procedure AssertEquals(const AMessage: string; Expected, Actual: string); overload;
     class procedure AssertEquals(Expected, Actual: string); overload;
+    {$IFDEF UNICODE}
     class procedure AssertEquals(const AMessage: string; Expected, Actual: UnicodeString); overload;
     class procedure AssertEquals(Expected, Actual: UnicodeString); overload;
+    {$ENDIF}
     class procedure AssertEquals(const AMessage: string; Expected, Actual: integer); overload;
     class procedure AssertEquals(Expected, Actual: integer); overload;
     class procedure AssertEquals(const AMessage: string; Expected, Actual: int64); overload;
@@ -289,7 +291,9 @@ type
   end;
 
   function ComparisonMsg(const aExpected: string; const aActual: string; const aCheckEqual: boolean=true): string;
-  function ComparisonMsg(const aExpected: UnicodeString; const aActual: UnicodeString; const aCheckEqual: boolean=true): string;
+  {$IFDEF UNICODE}
+  function ComparisonMsg(const aExpected: UnicodeString; const aActual: UnicodeString; const aCheckEqual: boolean=true): string; overload;
+  {$ENDIF}
 
   
 Resourcestring
@@ -346,7 +350,7 @@ begin
     Result := format(SCompareNotEqual, [aExpected, aActual]);
 end;
 
-
+{$IFDEF UNICODE}
 function ComparisonMsg(const aExpected: UnicodeString; const aActual: UnicodeString; const aCheckEqual: boolean=true): string;
 // aCheckEqual=false gives the error message if the test does *not* expect the results to be the same.
 begin
@@ -355,6 +359,8 @@ begin
   else {check unequal requires opposite error message}
     Result := format(UnicodeString(SCompareNotEqual), [aExpected, aActual]);
 end;
+{$ENDIF}
+
 
 
 constructor EAssertionFailedError.Create;
@@ -511,7 +517,8 @@ begin
   AssertEquals('', Expected, Actual);
 end;
 
-class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: Unicodestring);
+{$IFDEF UNICODE}
+class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: UnicodeString);
 begin
   AssertTrue(AMessage + ComparisonMsg(Expected, Actual), (Expected=Actual));
 end;
@@ -521,7 +528,7 @@ class procedure TAssert.AssertEquals(Expected, Actual: UnicodeString);
 begin
   AssertEquals('', Expected, Actual);
 end;
-
+{$ENDIF}
 
 class procedure TAssert.AssertNotNull(const AString: string);
 begin
