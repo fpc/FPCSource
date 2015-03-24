@@ -637,7 +637,9 @@ begin
   { forget all old frames }
   clear_frames;
 
+  MaxWidth;
   Command('backtrace');
+  NormWidth;
 end;
 
 function TGDBController.SelectFrameCommand(level :longint) : boolean;

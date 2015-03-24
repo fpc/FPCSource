@@ -2495,8 +2495,10 @@ begin
     Editor^.AddLine('');
   Insert(Editor);
 {$ifndef NODEBUG}
+ {$ifndef GDBMI}
   if assigned(Debugger) then
-    Debugger^.SetWidth(Size.X-1);
+    Debugger^.SetCommand('width ' + IntToStr(Size.X-1));
+ {$endif GDBMI}
 {$endif NODEBUG}
   Editor^.silent:=false;
   Editor^.AutoRepeat:=true;

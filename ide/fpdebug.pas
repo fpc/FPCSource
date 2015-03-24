@@ -57,7 +57,6 @@ type
      NoSwitch : boolean;
      HasExe   : boolean;
      RunCount : longint;
-     WindowWidth : longint;
      FPCBreakErrorNumber : longint;
 {$ifdef SUPPORT_REMOTE}
      isRemoteDebugging,
@@ -67,7 +66,6 @@ type
 {$endif SUPPORT_REMOTE}
     constructor Init;
     procedure SetExe(const exefn:string);
-    procedure SetWidth(AWidth : longint);
     procedure SetSourceDirs;
     destructor  Done;
     function DoSelectSourceline(const fn:string;line,BreakIndex:longint): Boolean;virtual;
@@ -665,7 +663,6 @@ begin
   NoSwitch:=False;
   HasExe:=false;
   Debugger:=@self;
-  WindowWidth:=-1;
   switch_to_user:=true;
   GetDir(0,OrigPwd);
   SetCommand('print object off');
@@ -724,12 +721,6 @@ begin
     end;
 end;
 
-
-procedure TDebugController.SetWidth(AWidth : longint);
-begin
-  WindowWidth:=AWidth;
-  SetCommand('width '+inttostr(WindowWidth));
-end;
 
 procedure TDebugController.SetSourceDirs;
   const
@@ -3501,8 +3492,6 @@ end;
       DeskTop^.Lock;
       Clear;
 
-      if Debugger^.WindowWidth<>-1 then
-        Debugger^.SetCommand('width 0xffffffff');
       Debugger^.Backtrace;
       { generate list }
       { all is in tframeentry }
@@ -3543,8 +3532,6 @@ end;
         end;
       if Assigned(list) and (List^.Count > 0) then
         FocusItem(0);
-      if Debugger^.WindowWidth<>-1 then
-        Debugger^.SetCommand('width '+IntToStr(Debugger^.WindowWidth));
       DeskTop^.Unlock;
 {$endif NODEBUG}
     end;
