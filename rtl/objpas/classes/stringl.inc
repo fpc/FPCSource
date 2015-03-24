@@ -675,6 +675,11 @@ begin
   Insert (Count,S);
 end;
 
+function TStrings.Add(const Fmt : string; const Args : Array of const): Integer;
+
+begin
+  Result:=Add(Format(Fmt,Args));
+end;
 
 
 Function TStrings.AddObject(const S: string; AObject: TObject): Integer;
@@ -684,6 +689,11 @@ begin
   Objects[result]:=AObject;
 end;
 
+function TStrings.AddObject(const Fmt: string; Args : Array of const; AObject: TObject): Integer;
+
+begin
+  Result:=AddObject(Format(Fmt,Args),AObject);
+end;
 
 
 Procedure TStrings.Append(const S: string);

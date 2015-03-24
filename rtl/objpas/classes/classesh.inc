@@ -654,8 +654,10 @@ type
     Function GetNextLinebreak (Const Value : String; Var S : String; Var P : Integer) : Boolean;
   public
     destructor Destroy; override;
-    function Add(const S: string): Integer; virtual;
-    function AddObject(const S: string; AObject: TObject): Integer; virtual;
+    function Add(const S: string): Integer; virtual; overload;
+    function AddObject(const S: string; AObject: TObject): Integer; virtual; overload;
+    function Add(const Fmt : string; const Args : Array of const): Integer; overload;
+    function AddObject(const Fmt: string; Args : Array of const; AObject: TObject): Integer; overload;
     procedure Append(const S: string);
     procedure AddStrings(TheStrings: TStrings); overload; virtual;
     procedure AddStrings(const TheStrings: array of string); overload; virtual;
