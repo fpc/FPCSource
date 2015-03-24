@@ -751,6 +751,7 @@ begin
       FDelimiter:=S.FDelimiter;
       FNameValueSeparator:=S.FNameValueSeparator;
       FLBS:=S.FLBS;
+      FLineBreak:=S.FLineBreak;
       AddStrings(S);
     finally
       EndUpdate;
