@@ -21,7 +21,6 @@
     class procedure CheckNotNull(obj: IUnknown; msg: string = ''); overload; virtual;
     class procedure CheckIs(obj :TObject; pClass: TClass; msg: string = ''); overload;
     class procedure CheckSame(expected, actual: TObject; msg: string = ''); overload;
-    class procedure FailNotEquals(expected, actual: string; msg: string = ''; errorAddr: Pointer = nil); virtual;
     class procedure CheckTrue(condition: Boolean; msg: string = '');
     class procedure CheckFalse(condition: Boolean; msg: string = '');
     class procedure CheckException(AMethod: TRunMethod; AExceptionClass: ExceptClass; msg: string = '');
@@ -151,12 +150,6 @@ end;
 class procedure TAssert.CheckSame(expected, actual: TObject; msg: string);
 begin
    AssertSame(msg, expected, actual);
-end;
-
-class procedure TAssert.FailNotEquals(expected, actual: string; msg: string;
-  errorAddr: Pointer);
-begin
-  Fail(msg + ComparisonMsg(Expected, Actual));
 end;
 
 class procedure TAssert.CheckTrue(condition: Boolean; msg: string);
