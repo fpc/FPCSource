@@ -144,15 +144,17 @@ type
     FRaisedExceptionClass: TClass;
     FRaisedExceptionMessage: string;
     FSourceUnitName: string;
+    FThrownExceptionAddress: Pointer;
     FTestLastStep: TTestStep;
     function GetAsString: string;
     function GetExceptionMessage: string;
     function GetIsFailure: boolean;
     function GetIsIgnoredTest: boolean;
     function GetExceptionClassName: string;
+    function GetLocationInfo: string;
     procedure SetTestLastStep(const Value: TTestStep);
   public
-    constructor CreateFailure(ATest: TTest; E: Exception; LastStep: TTestStep);
+    constructor CreateFailure(ATest: TTest; E: Exception; LastStep: TTestStep; ThrownExceptionAddrs: pointer = nil);
     property ExceptionClass: TClass read FRaisedExceptionClass;
   published
     property AsString: string read GetAsString;
@@ -162,6 +164,7 @@ type
     property ExceptionClassName: string read GetExceptionClassName;
     property SourceUnitName: string read FSourceUnitName write FSourceUnitName;
     property LineNumber: longint read FLineNumber write FLineNumber;
+    property LocationInfo: string read GetLocationInfo;
     property FailedMethodName: string read FFailedMethodName write FFailedMethodName;
     property TestLastStep: TTestStep read FTestLastStep write SetTestLastStep;
   end;
@@ -405,13 +408,14 @@ begin
 end;
 
 
-constructor TTestFailure.CreateFailure(ATest: TTest; E: Exception; LastStep: TTestStep);
+constructor TTestFailure.CreateFailure(ATest: TTest; E: Exception; LastStep: TTestStep; ThrownExceptionAddrs: pointer);
 begin
   inherited Create;
   FTestName := ATest.GetTestName;
   FTestSuiteName := ATest.GetTestSuiteName;
   FRaisedExceptionClass := E.ClassType;
   FRaisedExceptionMessage := E.Message;
+  FThrownExceptionAddress := ThrownExceptionAddrs;
   FTestLastStep := LastStep;
 end;
 
@@ -434,6 +438,11 @@ begin
     Result := FRaisedExceptionClass.ClassName
   else
     Result := '<NIL>'
+end;
+
+function TTestFailure.GetLocationInfo: string;
+begin
+  Result := PointerToLocationInfo(FThrownExceptionAddress);
 end;
 
 
