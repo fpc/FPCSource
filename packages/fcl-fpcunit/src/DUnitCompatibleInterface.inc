@@ -181,9 +181,9 @@ class function TAssert.EqualsErrorMessage(const expected, actual: string;
     const ErrorMsg: string): string;
 begin
   if (ErrorMsg <> '') then
-    Result := Format(sMsgActualEqualsExpFmt, [ErrorMsg + ', ', expected, actual])
+    Result := Format(sExpectedButWasAndMessageFmt, [ErrorMsg + ', ', expected, actual])
   else
-    Result := Format(sActualEqualsExpFmt, [expected, actual])
+    Result := Format(sExpectedButWasFmt, [expected, actual])
 end;
 
 class function TAssert.NotEqualsErrorMessage(const expected, actual: string;
