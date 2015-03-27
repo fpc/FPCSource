@@ -1038,7 +1038,7 @@ uses
                         Message(parser_e_illegal_expression)
                       else
                         begin
-                          srsymtable:=trecordsymtable.create(defname,0);
+                          srsymtable:=trecordsymtable.create(defname,0,1,1);
                           basedef:=crecorddef.create(defname,srsymtable);
                           include(constraintdata.flags,gcf_record);
                           allowconstructor:=false;

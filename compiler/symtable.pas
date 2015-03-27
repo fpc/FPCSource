@@ -96,7 +96,9 @@ interface
           recordalignment,       { alignment desired when inserting this record }
           fieldalignment,        { alignment current alignment used when fields are inserted }
           padalignment : shortint;   { size to a multiple of which the symtable has to be rounded up }
-          constructor create(const n:string;usealign:shortint);
+          recordalignmin,            { local equivalents of global settings, so that records can }
+          maxCrecordalign: shortint; { be created with custom settings internally }
+          constructor create(const n:string;usealign,recordminalign,recordmaxCalign:shortint);
           destructor destroy;override;
           procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -133,13 +135,13 @@ interface
 
        trecordsymtable = class(tabstractrecordsymtable)
        public
-          constructor create(const n:string;usealign:shortint);
+          constructor create(const n:string;usealign,recordminalign,recordmaxCalign:shortint);
           procedure insertunionst(unionst : trecordsymtable;offset : longint);
        end;
 
        tObjectSymtable = class(tabstractrecordsymtable)
        public
-          constructor create(adefowner:tdef;const n:string;usealign:shortint);
+          constructor create(adefowner:tdef;const n:string;usealign,recordminalign,recordmaxCalign:shortint);
           function  checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
        end;
 
@@ -151,6 +153,7 @@ interface
         private
          equivst: tabstractrecordsymtable;
          curroffset: aint;
+         recordalignmin: shortint;
          function get(index: longint): tllvmshadowsymtableentry;
         public
          symdeflist: TFPObjectList;
@@ -943,7 +946,7 @@ implementation
       end;
 {$endif llvm}
 
-    constructor tabstractrecordsymtable.create(const n:string;usealign:shortint);
+    constructor tabstractrecordsymtable.create(const n:string;usealign,recordminalign,recordmaxCalign:shortint);
       begin
         inherited create(n);
         moduleid:=current_module.moduleid;
@@ -951,6 +954,8 @@ implementation
         databitsize:=0;
         recordalignment:=1;
         usefieldalignment:=usealign;
+        recordalignmin:=recordminalign;
+        maxCrecordalign:=recordmaxCalign;
         padalignment:=1;
         { recordalign C_alignment means C record packing, that starts
           with an alignment of 1 }
@@ -981,6 +986,7 @@ implementation
           Message(unit_f_ppu_read_error);
         recordalignment:=shortint(ppufile.getbyte);
         usefieldalignment:=shortint(ppufile.getbyte);
+        recordalignmin:=shortint(ppufile.getbyte);
         if (usefieldalignment=C_alignment) then
           fieldalignment:=shortint(ppufile.getbyte);
         inherited ppuload(ppufile);
@@ -997,6 +1003,7 @@ implementation
            affects the alignment of fields of the childs }
          ppufile.putbyte(byte(recordalignment));
          ppufile.putbyte(byte(usefieldalignment));
+         ppufile.putbyte(byte(recordalignmin));
          if (usefieldalignment=C_alignment) then
            ppufile.putbyte(byte(fieldalignment));
          ppufile.writeentry(ibrecsymtableoptions);
@@ -1039,7 +1046,7 @@ implementation
       begin
         case usefieldalignment of
           C_alignment:
-            varalignrecord:=used_align(varalign,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign);
+            varalignrecord:=used_align(varalign,recordalignmin,maxCrecordalign);
           mac68k_alignment:
             varalignrecord:=2;
           else
@@ -1434,7 +1441,7 @@ implementation
                 Message1(sym_w_wrong_C_pack,vardef.typename);
               if varalign=0 then
                 varalign:=l;
-              if (globalfieldalignment<current_settings.alignment.maxCrecordalign) then
+              if (globalfieldalignment<maxCrecordalign) then
                 begin
                   if (varalign>16) and (globalfieldalignment<32) then
                     globalfieldalignment:=32
@@ -1450,7 +1457,7 @@ implementation
                   else if (varalign>1) and (globalfieldalignment<2) then
                     globalfieldalignment:=2;
                 end;
-              globalfieldalignment:=min(globalfieldalignment,current_settings.alignment.maxCrecordalign);
+              globalfieldalignment:=min(globalfieldalignment,maxCrecordalign);
             end;
           mac68k_alignment:
             begin
@@ -1468,7 +1475,7 @@ implementation
         end;
         if varalign=0 then
           varalign:=size_2_align(l);
-        varalignfield:=used_align(varalign,current_settings.alignment.recordalignmin,globalfieldalignment);
+        varalignfield:=used_align(varalign,recordalignmin,globalfieldalignment);
 
         result:=align(base,varalignfield);
       end;
@@ -1482,9 +1489,9 @@ implementation
                               TRecordSymtable
 ****************************************************************************}
 
-    constructor trecordsymtable.create(const n:string;usealign:shortint);
+    constructor trecordsymtable.create(const n:string;usealign,recordminalign,recordmaxCalign:shortint);
       begin
-        inherited create(n,usealign);
+        inherited create(n,usealign,recordminalign,recordmaxCalign);
         symtabletype:=recordsymtable;
       end;
 
@@ -1601,9 +1608,9 @@ implementation
                               TObjectSymtable
 ****************************************************************************}
 
-    constructor tObjectSymtable.create(adefowner:tdef;const n:string;usealign:shortint);
+    constructor tObjectSymtable.create(adefowner:tdef;const n:string;usealign,recordminalign,recordmaxCalign:shortint);
       begin
-        inherited create(n,usealign);
+        inherited create(n,usealign,recordminalign,recordmaxCalign);
         symtabletype:=ObjectSymtable;
         defowner:=adefowner;
       end;
@@ -1810,7 +1817,7 @@ implementation
                 if (lastoffset=sym.fieldoffset) then
                   begin
                     if (equivst.fieldalignment<>bit_alignment) then
-                      newalignment:=used_align(sym.vardef.alignment,current_settings.alignment.recordalignmin,equivst.fieldalignment)
+                      newalignment:=used_align(sym.vardef.alignment,equivst.recordalignmin,equivst.fieldalignment)
                     else
                       newalignment:=1;
                     if (newalignment>tfieldvarsym(variantstarts[variantstarts.count-1]).vardef.alignment) then
@@ -1833,7 +1840,7 @@ implementation
                       internalerror(2008051003);
                     { new variant has higher alignment? }
                     if (equivst.fieldalignment<>bit_alignment) then
-                      newalignment:=used_align(sym.vardef.alignment,current_settings.alignment.recordalignmin,equivst.fieldalignment)
+                      newalignment:=used_align(sym.vardef.alignment,equivst.recordalignmin,equivst.fieldalignment)
                     else
                       newalignment:=1;
                     { yes, replace and remove previous nested variants }

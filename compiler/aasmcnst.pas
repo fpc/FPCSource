@@ -301,7 +301,7 @@ type
         b) the def of the record should be automatically constructed based on
            the types of the emitted fields
      }
-     function begin_anonymous_record(const optionalname: string; packrecords: shortint): trecorddef; virtual;
+     function begin_anonymous_record(const optionalname: string; packrecords, recordalignmin, maxcrecordalign: shortint): trecorddef; virtual;
      function end_anonymous_record: trecorddef; virtual;
 
      { The next group of routines are for constructing complex expressions.
@@ -982,7 +982,7 @@ implementation
        result.ofs:=0;
        { pack the data, so that we don't add unnecessary null bytes after the
          constant string }
-       begin_anonymous_record('$'+get_dynstring_rec_name(stringtype,false,len),1);
+       begin_anonymous_record('$'+get_dynstring_rec_name(stringtype,false,len),1,1,1);
        string_symofs:=get_string_symofs(stringtype,false);
        { encoding }
        emit_tai(tai_const.create_16bit(encoding),u16inttype);
@@ -1151,7 +1151,10 @@ implementation
        if winlike then
          begin
            result.lab:=startlab;
-           datatcb.begin_anonymous_record('$'+get_dynstring_rec_name(st_widestring,true,strlength),sizeof(pint));
+           datatcb.begin_anonymous_record('$'+get_dynstring_rec_name(st_widestring,true,strlength),
+             0,
+             targetinfos[target_info.system]^.alignment.recordalignmin,
+             targetinfos[target_info.system]^.alignment.maxCrecordalign);
            datatcb.emit_tai(Tai_const.Create_32bit(strlength*cwidechartype.size),s32inttype);
            { can we optimise by placing the string constant label at the
              required offset? }
@@ -1267,7 +1270,7 @@ implementation
      end;
 
 
-   function ttai_typedconstbuilder.begin_anonymous_record(const optionalname: string; packrecords: shortint): trecorddef;
+   function ttai_typedconstbuilder.begin_anonymous_record(const optionalname: string; packrecords, recordalignmin, maxcrecordalign: shortint): trecorddef;
      var
        anonrecorddef: trecorddef;
        srsym: tsym;
@@ -1293,7 +1296,7 @@ implementation
              end;
          end;
        { create skeleton def }
-       anonrecorddef:=crecorddef.create_global_internal(optionalname,packrecords);
+       anonrecorddef:=crecorddef.create_global_internal(optionalname,packrecords,recordalignmin,maxcrecordalign);
        { generic aggregate housekeeping }
        begin_aggregate_internal(anonrecorddef,true);
        { mark as anonymous record }

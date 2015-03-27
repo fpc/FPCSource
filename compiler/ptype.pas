@@ -898,7 +898,7 @@ implementation
          if (n<>'') or
             not(target_info.system in systems_jvm) then
            begin
-             recst:=trecordsymtable.create(n,current_settings.packrecords);
+             recst:=trecordsymtable.create(n,current_settings.packrecords,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign);
              { can't use recst.realname^ instead of n, because recst.realname is
                nil in case of an empty name }
              current_structdef:=crecorddef.create(n,recst);
@@ -907,7 +907,8 @@ implementation
            begin
              { for the JVM target records always need a name, because they are
                represented by a class }
-             recst:=trecordsymtable.create(current_module.realmodulename^+'__fpc_intern_recname_'+tostr(current_module.deflist.count),current_settings.packrecords);
+             recst:=trecordsymtable.create(current_module.realmodulename^+'__fpc_intern_recname_'+tostr(current_module.deflist.count),
+               current_settings.packrecords,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign);
              current_structdef:=crecorddef.create(recst.name^,recst);
            end;
          result:=current_structdef;

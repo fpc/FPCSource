@@ -636,7 +636,10 @@ implementation
 
             { generate the class table }
             tcb:=ctai_typedconstbuilder.create([tcalo_is_lab]);
-            tcb.begin_anonymous_record('$fpc_intern_classtable_'+tostr(classtablelist.Count-1),packrecords);
+            tcb.begin_anonymous_record('$fpc_intern_classtable_'+tostr(classtablelist.Count-1),
+              packrecords,
+              targetinfos[target_info.system]^.alignment.recordalignmin,
+              targetinfos[target_info.system]^.alignment.maxCrecordalign);
             tcb.emit_tai(Tai_const.Create_16bit(classtablelist.count),u16inttype);
             for i:=0 to classtablelist.Count-1 do
               begin
@@ -670,7 +673,9 @@ implementation
               lengths and their order would have to incorporated in the name,
               plus there would be very little chance that it could actually be
               reused }
-            tcb.begin_anonymous_record('',packrecords);
+            tcb.begin_anonymous_record('',packrecords,
+              targetinfos[target_info.system]^.alignment.recordalignmin,
+              targetinfos[target_info.system]^.alignment.maxCrecordalign);
             tcb.emit_tai(Tai_const.Create_16bit(fieldcount),u16inttype);
             tcb.emit_tai(Tai_const.Create_sym(classtable),getpointerdef(classtabledef));
             for i:=0 to _class.symtable.SymList.Count-1 do
@@ -690,7 +695,9 @@ implementation
                         Name: ShortString;
                       end;
                     }
-                    tcb.begin_anonymous_record('$fpc_intern_fieldinfo_'+tostr(length(tfieldvarsym(sym).realname)),packrecords);
+                    tcb.begin_anonymous_record('$fpc_intern_fieldinfo_'+tostr(length(tfieldvarsym(sym).realname)),packrecords,
+                      targetinfos[target_info.system]^.alignment.recordalignmin,
+                      targetinfos[target_info.system]^.alignment.maxCrecordalign);
                     tcb.emit_tai(Tai_const.Create_pint(tfieldvarsym(sym).fieldoffset),ptruinttype);
                     classindex:=classtablelist.IndexOf(tfieldvarsym(sym).vardef);
                     if classindex=-1 then
@@ -804,7 +811,9 @@ implementation
       begin
         current_asmdata.getlabel(result,alt_data);
         tcb:=ctai_typedconstbuilder.create([tcalo_is_lab]);
-        tcb.begin_anonymous_record('',0);
+        tcb.begin_anonymous_record('',0,
+          targetinfos[target_info.system]^.alignment.recordalignmin,
+          targetinfos[target_info.system]^.alignment.maxCrecordalign);
         tcb.emit_tai(Tai_const.Create_pint(_class.ImplementedInterfaces.count),search_system_type('SIZEUINT').typedef);
         interfaceentrydef:=search_system_type('TINTERFACEENTRY').typedef;
         interfaceentrytypedef:=search_system_type('TINTERFACEENTRYTYPE').typedef;
@@ -847,7 +856,9 @@ implementation
             arrdef:=tarraydef(trecordsymtable(recdef.symtable).findfieldbyoffset(countdef.size).vardef);
             exit
           end;
-        recdef:=crecorddef.create_global_internal('$'+basename+tostr(count),packrecords);
+        recdef:=crecorddef.create_global_internal('$'+basename+tostr(count),packrecords,
+          targetinfos[target_info.system]^.alignment.recordalignmin,
+          targetinfos[target_info.system]^.alignment.maxCrecordalign);
         fields:=tfplist.create;
         fields.add(countdef);
         if count>0 then
@@ -878,7 +889,9 @@ implementation
         fieldlist:=tfplist.create;
         for i:=low(fields) to high(fields) do
           fieldlist.add(fields[i]);
-        result:=crecorddef.create_global_internal('$'+name,packrecords);
+        result:=crecorddef.create_global_internal('$'+name,packrecords,
+          targetinfos[target_info.system]^.alignment.recordalignmin,
+          targetinfos[target_info.system]^.alignment.maxCrecordalign);
         result.add_fields_from_deflist(fieldlist);
         fieldlist.free;
       end;

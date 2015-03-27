@@ -298,7 +298,7 @@ interface
           variantrecdesc : pvariantrecdesc;
           isunion       : boolean;
           constructor create(const n:string; p:TSymtable);virtual;
-          constructor create_global_internal(n: string; packrecords: shortint); virtual;
+          constructor create_global_internal(n: string; packrecords, recordalignmin, maxCrecordalign: shortint); virtual;
           procedure add_field_by_def(def: tdef);
           procedure add_fields_from_deflist(fieldtypes: tfplist);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -4031,7 +4031,7 @@ implementation
       end;
 
 
-    constructor trecorddef.create_global_internal(n: string; packrecords: shortint);
+    constructor trecorddef.create_global_internal(n: string; packrecords, recordalignmin, maxCrecordalign: shortint);
       var
         oldsymtablestack: tsymtablestack;
         ts: ttypesym;
@@ -4046,7 +4046,7 @@ implementation
           that can have side-effects (e.g., it removes helpers) }
         symtablestack:=nil;
 
-        symtable:=trecordsymtable.create(n,packrecords);
+        symtable:=trecordsymtable.create(n,packrecords,recordalignmin,maxCrecordalign);
         symtable.defowner:=self;
         isunion:=false;
         inherited create(n,recorddef);
@@ -4128,11 +4128,12 @@ implementation
          else
            begin
              ppuload_platform(ppufile);
-             symtable:=trecordsymtable.create(objrealname^,0);
+             symtable:=trecordsymtable.create(objrealname^,0,0,0);
              trecordsymtable(symtable).fieldalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).recordalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).padalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).usefieldalignment:=shortint(ppufile.getbyte);
+             trecordsymtable(symtable).recordalignmin:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).datasize:=ppufile.getasizeint;
              trecordsymtable(symtable).paddingsize:=ppufile.getword;
              trecordsymtable(symtable).ppuload(ppufile);
@@ -4257,6 +4258,7 @@ implementation
              ppufile.putbyte(byte(trecordsymtable(symtable).recordalignment));
              ppufile.putbyte(byte(trecordsymtable(symtable).padalignment));
              ppufile.putbyte(byte(trecordsymtable(symtable).usefieldalignment));
+             ppufile.putbyte(byte(trecordsymtable(symtable).recordalignmin));
              ppufile.putasizeint(trecordsymtable(symtable).datasize);
              ppufile.putword(trecordsymtable(symtable).paddingsize);
              { the variantrecdesc is needed only for iso-like new statements new(prec,1,2,3 ...);
@@ -5986,7 +5988,8 @@ implementation
         childof:=nil;
         if objecttype=odt_helper then
           owner.includeoption(sto_has_helper);
-        symtable:=tObjectSymtable.create(self,n,current_settings.packrecords);
+        symtable:=tObjectSymtable.create(self,n,current_settings.packrecords,
+          current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign);
         { create space for vmt !! }
         vmtentries:=TFPList.Create;
         set_parent(c);
@@ -6015,11 +6018,12 @@ implementation
          { only used for external Objective-C classes/protocols }
          if (objextname^='') then
            stringdispose(objextname);
-         symtable:=tObjectSymtable.create(self,objrealname^,0);
+         symtable:=tObjectSymtable.create(self,objrealname^,0,0,0);
          tObjectSymtable(symtable).datasize:=ppufile.getasizeint;
          tObjectSymtable(symtable).paddingsize:=ppufile.getword;
          tObjectSymtable(symtable).fieldalignment:=shortint(ppufile.getbyte);
          tObjectSymtable(symtable).recordalignment:=shortint(ppufile.getbyte);
+         tObjectSymtable(symtable).recordalignmin:=shortint(ppufile.getbyte);
          ppufile.getderef(vmt_fieldderef);
          ppufile.getderef(childofderef);
 
@@ -6222,6 +6226,7 @@ implementation
          ppufile.putword(tObjectSymtable(symtable).paddingsize);
          ppufile.putbyte(byte(tObjectSymtable(symtable).fieldalignment));
          ppufile.putbyte(byte(tObjectSymtable(symtable).recordalignment));
+         ppufile.putbyte(byte(tObjectSymtable(symtable).recordalignmin));
          ppufile.putderef(vmt_fieldderef);
          ppufile.putderef(childofderef);
          if objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface] then

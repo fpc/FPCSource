@@ -1118,7 +1118,8 @@ implementation
       { create struct to hold local variables and parameters that are
         accessed from within nested routines (start with extra dollar to prevent
         the JVM from thinking this is a nested class in the unit) }
-      nestedvarsst:=trecordsymtable.create('$'+current_module.realmodulename^+'$$_fpc_nestedvars$'+tostr(pd.defid),current_settings.alignment.localalignmax);
+      nestedvarsst:=trecordsymtable.create('$'+current_module.realmodulename^+'$$_fpc_nestedvars$'+tostr(pd.defid),
+        current_settings.alignment.localalignmax,current_settings.alignment.localalignmin,current_settings.alignment.maxCrecordalign);
       nestedvarsdef:=crecorddef.create(nestedvarsst.name^,nestedvarsst);
 {$ifdef jvm}
       maybe_guarantee_record_typesym(nestedvarsdef,nestedvarsdef.owner);
