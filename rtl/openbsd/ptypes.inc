@@ -52,8 +52,11 @@ type
     pid_t    = cint32;          { used as process identifier   }
     TPid     = pid_t;
     pPid     = ^pid_t;
-
+{$ifdef CPU64}
+    size_t   = cuint64;
+{$else}
     size_t   = cuint32;         { as definied in the C standard}
+{$endif}
     TSize    = size_t;
     pSize    = ^size_t;
     pSize_t  = ^size_t;
