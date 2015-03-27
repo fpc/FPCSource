@@ -176,7 +176,7 @@ type
     end;
 
 // kernel statfs from mount.h
-  TStatfs = packed record
+  TStatfs = record
     flags,			  { copy of mount flags }
     bsize,			  { filesystem block size}
     iosize		: cint;   { optimal transfr block size }
