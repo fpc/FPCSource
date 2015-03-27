@@ -185,6 +185,32 @@ type
      { array of caggregateinformation instances }
      faggregateinformation: tfpobjectlist;
 
+    { Support for generating data that is only referenced from the typed
+      constant data that we are currently generated. Such data can all be put
+      in the same dead-strippable unit, as it's either all included or none of
+      it is included. This data can be spread over multiple kinds of sections
+      though (e.g. rodata and rodata_no_rel), so per section keep track whether
+      we already started a dead-strippable unit and if so, what the section
+      name was (so that on platforms that perform the dead stripping based on
+      sections, we put all data for one typed constant into a single section
+      with the same name) }
+    protected type
+     tinternal_data_section_info = record
+       secname: TSymStr;
+       sectype: TAsmSectiontype;
+     end;
+    protected var
+     { all internally generated data must be stored in the same list, as it must
+       be consecutive (if it's spread over multiple lists, we don't know in
+       which order they'll be concatenated) -> keep track of this list }
+     finternal_data_asmlist: tasmlist;
+     { kind of the last section we started in the finternal_data_asmlist, to
+       avoid creating unnecessary section statements }
+     finternal_data_current_section: TAsmSectiontype;
+     { info about in which kinds of sections we have already emitted internal
+       data, and what their names were }
+     finternal_data_section_info: array of tinternal_data_section_info;
+
      { ensure that finalize_asmlist is called only once }
      fasmlist_finalized: boolean;
 
@@ -203,11 +229,26 @@ type
        location }
      procedure pad_next_field(nextfielddef: tdef);
 
+     { returns the index in finternal_data_section_info of the info for the
+       section of type typ. Returns -1 if there is no such info yet }
+     function get_internal_data_section_index(typ: TAsmSectiontype): longint;
+
      { easy access to the top level aggregate information instance }
      property curagginfo: taggregateinformation read getcurragginfo;
     public
      constructor create(const options: ttcasmlistoptions); virtual;
      destructor destroy; override;
+
+    public
+     { returns a builder for generating data that is only referrenced by the
+       typed constant date we are currently generating (e.g. string data for a
+       pchar constant). Also returns the label that will be placed at the start
+       of that data. list is the tasmlist to which the data will be }
+     procedure start_internal_data_builder(list: tasmlist; sectype: TAsmSectiontype; out tcb: ttai_typedconstbuilder; out l: tasmlabel);
+     { finish a previously started internal data builder, including
+       concatenating all generated data to the provided list and freeing the
+       builder }
+     procedure finish_internal_data_builder(var tcb: ttai_typedconstbuilder; l: tasmlabel; def: tdef; alignment: longint);
 
      { add a simple constant data element (p) to the typed constant.
        def is the type of the added value }
@@ -649,6 +690,15 @@ implementation
      end;
 
 
+   function ttai_typedconstbuilder.get_internal_data_section_index(typ: TAsmSectiontype): longint;
+     begin
+       for result:=low(finternal_data_section_info) to high(finternal_data_section_info) do
+         if finternal_data_section_info[result].sectype=typ then
+           exit;
+       result:=-1;
+     end;
+
+
    function ttai_typedconstbuilder.aggregate_kind(def: tdef): ttypedconstkind;
      begin
        if (def.typ in [recorddef,filedef,variantdef]) or
@@ -771,6 +821,7 @@ implementation
        foptions:=options;
        { queue is empty }
        fqueue_offset:=low(fqueue_offset);
+       finternal_data_current_section:=sec_none;
      end;
 
 
@@ -782,6 +833,99 @@ implementation
        faggregateinformation.free;
        fasmlist.free;
        inherited destroy;
+     end;
+
+
+   procedure ttai_typedconstbuilder.start_internal_data_builder(list: tasmlist; sectype: TAsmSectiontype; out tcb: ttai_typedconstbuilder; out l: tasmlabel);
+     var
+       options: ttcasmlistoptions;
+       foundsec: longint;
+     begin
+       options:=[tcalo_is_lab];
+       { Add a section header if the previous one was different. We'll use the
+         same section name in case multiple items are added to the same kind of
+         section (rodata, rodata_no_rel, ...), so that everything will still
+         end up in the same section even if there are multiple section headers }
+       if finternal_data_current_section<>sectype then
+         include(options,tcalo_new_section);
+       finternal_data_current_section:=sectype;
+       l:=nil;
+       { did we already create a section of this type for the internal data of
+         this builder? }
+       foundsec:=get_internal_data_section_index(sectype);
+       if foundsec=-1 then
+         begin
+           { we only need to start a dead-strippable section of data at the
+             start of the first subsection of this kind for this block.
+
+             exception: if dead stripping happens based on objects/libraries,
+             then we only have to create a new object file for the first
+             internal data section of any kind (all the rest will simply be put
+             in the same object file) }
+           if create_smartlink then
+             begin
+               if not create_smartlink_library or
+                  (length(finternal_data_section_info)=0) then
+                 include(options,tcalo_make_dead_strippable);
+               { on Darwin, dead code/data stripping happens based on non-
+                 temporary labels (any label that doesn't start with "L" -- it
+                 doesn't have to be global) -> add a non-temporary lobel at the
+                 start of every kind of subsection created in this builder }
+               if target_info.system in systems_darwin then
+                 current_asmdata.getstaticdatalabel(l)
+             end;
+           foundsec:=length(finternal_data_section_info);
+           setlength(finternal_data_section_info,foundsec+1);
+           finternal_data_section_info[foundsec].sectype:=sectype;
+         end;
+       if not assigned(finternal_data_asmlist) and
+          (cs_create_smart in current_settings.moduleswitches) then
+         begin
+           { on Darwin, dead code/data stripping happens based on non-temporary
+             labels (any label that doesn't start with "L" -- it doesn't have
+             to be global) }
+           if target_info.system in systems_darwin then
+             current_asmdata.getstaticdatalabel(l)
+           else if create_smartlink_library then
+             current_asmdata.getglobaldatalabel(l);
+           { the internal data list should only be assigned by this routine,
+             the first time that an internal data block is started }
+           if not assigned(list) or
+              assigned(finternal_data_asmlist) then
+             internalerror(2015032101);
+           finternal_data_asmlist:=list;
+         end
+       { all internal data for this tcb must go to the same list (otherwise all
+         data we want to add to the dead-strippable block is not guaranteed to
+         be sequential and e.g. in the same object file in case of library-based
+         dead stripping) }
+       else if (assigned(finternal_data_asmlist) and
+           (list<>finternal_data_asmlist)) or
+           not assigned(list) then
+         internalerror(2015032101);
+       finternal_data_asmlist:=list;
+       if not assigned(l) then
+         if create_smartlink_library then
+           { all labels need to be global in case they're in another object }
+           current_asmdata.getglobaldatalabel(l)
+         else
+           { no special requirement for the label -> just get a local one }
+           current_asmdata.getlocaldatalabel(l);
+       { first section of this kind -> set name }
+       if finternal_data_section_info[foundsec].secname='' then
+         finternal_data_section_info[foundsec].secname:=l.Name;
+       tcb:=ttai_typedconstbuilderclass(classtype).create(options);
+     end;
+
+
+   procedure ttai_typedconstbuilder.finish_internal_data_builder(var tcb: ttai_typedconstbuilder; l: tasmlabel; def: tdef; alignment: longint);
+     begin
+       finternal_data_asmlist.concatList(tcb.get_final_asmlist(l,def,
+         finternal_data_current_section,
+         finternal_data_section_info[get_internal_data_section_index(finternal_data_current_section)].secname,
+         alignment));
+       tcb.free;
+       tcb:=nil;
      end;
 
 
