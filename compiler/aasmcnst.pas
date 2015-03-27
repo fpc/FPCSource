@@ -104,8 +104,13 @@ type
    ttcasmlistoption = (
      { the tasmsymbol is a tasmlabel }
      tcalo_is_lab,
-     { start a new section }
-     tcalo_new_section
+     { start a new section (e.g., because we don't know the current section
+       type) }
+     tcalo_new_section,
+     { this symbol is the start of a block of data that should be
+       dead-stripable/smartlinkable; may imply starting a new section, but
+       not necessarily (depends on what the platform requirements are) }
+     tcalo_make_dead_strippable
    );
    ttcasmlistoptions = set of ttcasmlistoption;
 
@@ -669,11 +674,17 @@ implementation
        prelist:=tasmlist.create;
        { only now add items based on the symbolname, because it may be
          modified by the "section" specifier in case of a typed constant }
-       if tcalo_new_section in options then
+       if tcalo_make_dead_strippable in options then
          begin
            maybe_new_object_file(prelist);
+           { we always need a new section here, since if we started a new
+             object file then we have to say what the section is, and otherwise
+             we need a new section because that's how the dead stripping works
+             (except on Darwin, but that will be addressed in a future commit) }
            new_section(prelist,section,secname,const_align(alignment));
          end
+       else if tcalo_new_section in options then
+         new_section(prelist,section,secname,const_align(alignment))
        else
          prelist.concat(cai_align.Create(const_align(alignment)));
        if not(tcalo_is_lab in options) then
@@ -958,7 +969,7 @@ implementation
      begin
        options:=[tcalo_is_lab];
        if NewSection then
-         include(options,tcalo_new_section);
+         include(options,tcalo_make_dead_strippable);
        datatcb:=self.create(options);
        result:=datatcb.emit_string_const_common(st_ansistring,len,encoding,startlab);
 
@@ -985,7 +996,7 @@ implementation
        uniwidestrrecdef: trecorddef;
        datatcb: ttai_typedconstbuilder;
      begin
-       datatcb:=self.create([tcalo_is_lab,tcalo_new_section]);
+       datatcb:=self.create([tcalo_is_lab,tcalo_make_dead_strippable]);
        strlength:=getlengthwidestring(pcompilerwidestring(data));
        if winlike then
          begin

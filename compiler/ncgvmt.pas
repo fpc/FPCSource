@@ -894,7 +894,7 @@ implementation
       if assigned(_class.iidguid) then
         begin
           s:=make_mangledname('IID',_class.owner,_class.objname^);
-          tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
+          tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable]);
           tcb.emit_guid_const(_class.iidguid^);
           list.concatlist(tcb.get_final_asmlist(
             current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA),
@@ -905,7 +905,7 @@ implementation
           tcb.free;
         end;
       s:=make_mangledname('IIDSTR',_class.owner,_class.objname^);
-      tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
+      tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable]);
       def:=tcb.emit_shortstring_const(_class.iidstr^);
       list.concatlist(tcb.get_final_asmlist(
         current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA),

@@ -360,7 +360,7 @@ implementation
                         begin
                           current_asmdata.getdatalabel(lastlabel.lab);
 
-                          datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_new_section]);
+                          datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);
                           { truncate strings larger than 255 chars }
                           if len>255 then
                            l:=255
@@ -384,7 +384,7 @@ implementation
                         begin
                           current_asmdata.getdatalabel(lastlabel.lab);
 
-                          datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_new_section]);
+                          datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);
                           { include terminating zero }
                           getmem(pc,len+1);
                           move(value_str^,pc[0],len);
