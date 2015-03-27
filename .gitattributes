@@ -492,6 +492,7 @@ compiler/oglx.pas svneol=native#text/plain
 compiler/ogmacho.pas svneol=native#text/plain
 compiler/ogmap.pas svneol=native#text/plain
 compiler/ognlm.pas svneol=native#text/plain
+compiler/ogomf.pas svneol=native#text/plain
 compiler/optbase.pas svneol=native#text/plain
 compiler/optconstprop.pas svneol=native#text/pascal
 compiler/optcse.pas svneol=native#text/plain

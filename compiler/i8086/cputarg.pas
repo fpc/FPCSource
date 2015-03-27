@@ -53,10 +53,7 @@ implementation
 //      ,agx86int
     {$endif}
 
-//      ,ogcoff
-//      ,ogelf
-//      ,ogmacho
-//      ,cpuelf
+        ,ogomf
 
 {**************************************
         Assembler Readers
