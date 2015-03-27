@@ -28,7 +28,7 @@
         <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="231">
+    <Units Count="232">
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
@@ -62,6 +62,7 @@
       <Unit7>
         <Filename Value="i8086\cputarg.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="cputarg"/>
       </Unit7>
       <Unit8>
         <Filename Value="i8086\hlcgcpu.pas"/>
@@ -1004,6 +1005,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="ogomf"/>
       </Unit230>
+      <Unit231>
+        <Filename Value="omfbase.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="omfbase"/>
+      </Unit231>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

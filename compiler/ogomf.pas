@@ -33,6 +33,8 @@ interface
        systems,
        { assembler }
        cpuinfo,cpubase,aasmbase,assemble,link,
+       { OMF definitions }
+       omfbase,
        { output }
        ogbase,
        owbase;
