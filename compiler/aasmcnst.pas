@@ -826,7 +826,7 @@ implementation
        charptrdef: tdef;
        elesize: word;
      begin
-       current_asmdata.getdatalabel(result.lab);
+       current_asmdata.getglobaldatalabel(result.lab);
        startlab:=result.lab;
        result.ofs:=0;
        { pack the data, so that we don't add unnecessary null bytes after the
@@ -867,7 +867,7 @@ implementation
            { results in slightly more efficient code }
            emit_tai(tai_label.create(result.lab),charptrdef);
            result.ofs:=0;
-           current_asmdata.getdatalabel(startlab);
+           current_asmdata.getglobaldatalabel(startlab);
          end;
        { sanity check }
        if result.ofs<>string_symofs then
@@ -1001,7 +1001,7 @@ implementation
        if winlike then
          begin
            datatcb.begin_anonymous_record('$'+get_dynstring_rec_name(st_widestring,true,strlength),sizeof(pint));
-           current_asmdata.getdatalabel(result.lab);
+           current_asmdata.getglobaldatalabel(result.lab);
            datatcb.emit_tai(Tai_const.Create_32bit(strlength*cwidechartype.size),s32inttype);
            { can we optimise by placing the string constant label at the
              required offset? }
@@ -1011,7 +1011,7 @@ implementation
                { yes }
                datatcb.emit_tai(Tai_label.Create(result.lab),widecharpointertype);
                { allocate a separate label for the start of the data }
-               current_asmdata.getdatalabel(startlab);
+               current_asmdata.getglobaldatalabel(startlab);
              end
            else
              internalerror(2015031502);

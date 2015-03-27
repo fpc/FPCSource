@@ -2267,7 +2267,7 @@ unit cgcpu;
            (tf_pic_uses_got in target_info.flags) then
           begin
             reference_reset(ref,4);
-            current_asmdata.getdatalabel(l);
+            current_asmdata.getglobaldatalabel(l);
             cg.a_label(current_procinfo.aktlocaldata,l);
             ref.symbol:=l;
             ref.base:=NR_PC;

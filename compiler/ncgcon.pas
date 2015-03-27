@@ -95,7 +95,7 @@ implementation
         b : byte;
       begin
         location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(maxalign));
-        current_asmdata.getdatalabel(l);
+        current_asmdata.getglobaldatalabel(l);
         maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
         new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l.name,const_align(maxalign));
         current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l));
@@ -162,7 +162,7 @@ implementation
              { :-(, we must generate a new entry }
              if not(assigned(lab_real)) then
                begin
-                  current_asmdata.getdatalabel(lastlabel);
+                  current_asmdata.getglobaldatalabel(lastlabel);
                   entry^.Data:=lastlabel;
                   lab_real:=lastlabel;
                   maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
@@ -358,7 +358,7 @@ implementation
                         end;
                       cst_shortstring:
                         begin
-                          current_asmdata.getdatalabel(lastlabel.lab);
+                          current_asmdata.getglobaldatalabel(lastlabel.lab);
 
                           datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);
                           { truncate strings larger than 255 chars }
@@ -382,7 +382,7 @@ implementation
                         end;
                       cst_conststring:
                         begin
-                          current_asmdata.getdatalabel(lastlabel.lab);
+                          current_asmdata.getglobaldatalabel(lastlabel.lab);
 
                           datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);
                           { include terminating zero }
@@ -446,7 +446,7 @@ implementation
         lab: tasmlabel;
         i: longint;
       begin
-        current_asmdata.getdatalabel(lab);
+        current_asmdata.getglobaldatalabel(lab);
         result:=lab;
         lab_set:=lab;
         maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
@@ -528,7 +528,7 @@ implementation
                  { :-(, we must generate a new entry }
                  if not assigned(entry^.Data) then
                    begin
-                     current_asmdata.getdatalabel(lastlabel);
+                     current_asmdata.getglobaldatalabel(lastlabel);
                      lab_set:=lastlabel;
                      entry^.Data:=lastlabel;
                      maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
@@ -588,7 +588,7 @@ implementation
              { :-(, we must generate a new entry }
              if not assigned(entry^.Data) then
                begin
-                 current_asmdata.getdatalabel(lastlabel);
+                 current_asmdata.getglobaldatalabel(lastlabel);
                  lab_set:=lastlabel;
                  entry^.Data:=lastlabel;
                  maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);

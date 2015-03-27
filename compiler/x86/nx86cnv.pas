@@ -392,7 +392,7 @@ implementation
                      if it is 1 then we add 2**64 as float.
                      Since 2**64 can be represented exactly, use a single-precision
                      constant to save space. }
-                   current_asmdata.getdatalabel(l1);
+                   current_asmdata.getglobaldatalabel(l1);
                    current_asmdata.getjumplabel(l2);
     
                    if not(signtested) then

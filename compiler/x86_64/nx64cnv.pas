@@ -110,7 +110,7 @@ implementation
                      we load bits 0..62 and then check bit 63:
                      if it is 1 then we add $80000000 000000000
                      as double                                  }
-                   current_asmdata.getdatalabel(l1);
+                   current_asmdata.getglobaldatalabel(l1);
                    current_asmdata.getjumplabel(l2);
 
                    { Get sign bit }

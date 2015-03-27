@@ -173,7 +173,7 @@ interface
         procedure getjumplabel(out l : TAsmLabel);
         procedure getglobaljumplabel(out l : TAsmLabel);
         procedure getaddrlabel(out l : TAsmLabel);
-        procedure getdatalabel(out l : TAsmLabel);
+        procedure getglobaldatalabel(out l : TAsmLabel);
         { generate an alternative (duplicate) symbol }
         procedure GenerateAltSymbol(p:TAsmSymbol);
         procedure ResetAltSymbols;
@@ -510,7 +510,7 @@ implementation
         inc(FNextLabelNr[alt_jump]);
       end;
 
-    procedure TAsmData.getdatalabel(out l : TAsmLabel);
+    procedure TAsmData.getglobaldatalabel(out l : TAsmLabel);
       begin
         l:=TAsmLabel.createglobal(AsmSymbolDict,name^,FNextLabelNr[alt_data],alt_data);
         inc(FNextLabelNr[alt_data]);

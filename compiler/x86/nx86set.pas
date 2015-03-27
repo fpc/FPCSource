@@ -113,7 +113,7 @@ implementation
              cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opcgsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
              min_:=0;
           end;
-        current_asmdata.getdatalabel(table);
+        current_asmdata.getglobaldatalabel(table);
         { make it a 32bit register }
         indexreg:=cg.makeregsize(current_asmdata.CurrAsmList,hregister,OS_INT);
         cg.a_load_reg_reg(current_asmdata.CurrAsmList,opcgsize,OS_INT,hregister,indexreg);

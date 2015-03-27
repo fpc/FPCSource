@@ -955,10 +955,10 @@ implementation
                       begin
                         { The pointer typecast is needed to prevent a problem with range checking
                           on when the typecast is changed to 'as' }
-                        current_asmdata.getdatalabel(TAsmLabel(pointer(def.dwarf_lab)));
-                        current_asmdata.getdatalabel(TAsmLabel(pointer(def.dwarf_ref_lab)));
+                        current_asmdata.getglobaldatalabel(TAsmLabel(pointer(def.dwarf_lab)));
+                        current_asmdata.getglobaldatalabel(TAsmLabel(pointer(def.dwarf_ref_lab)));
                         if is_implicit_pointer_object_type(def) then
-                          current_asmdata.getdatalabel(TAsmLabel(pointer(tobjectdef(def).dwarf_struct_lab)));
+                          current_asmdata.getglobaldatalabel(TAsmLabel(pointer(tobjectdef(def).dwarf_struct_lab)));
                       end;
                   end;
               end
@@ -1763,7 +1763,7 @@ implementation
 
           { create a structure with two elements }
           if not(tf_dwarf_only_local_labels in target_info.flags) then
-            current_asmdata.getdatalabel(arr)
+            current_asmdata.getglobaldatalabel(arr)
           else
             current_asmdata.getaddrlabel(arr);
           append_entry(DW_TAG_structure_type,true,[
@@ -1899,7 +1899,7 @@ implementation
           begin
             { create a structure with two elements }
             if not(tf_dwarf_only_local_labels in target_info.flags) then
-              current_asmdata.getdatalabel(proc)
+              current_asmdata.getglobaldatalabel(proc)
             else
               current_asmdata.getaddrlabel(proc);
             append_entry(DW_TAG_structure_type,true,[
@@ -3704,7 +3704,7 @@ implementation
             if assigned(def.elementdef) then
               begin
                 if not(tf_dwarf_only_local_labels in target_info.flags) then
-                  current_asmdata.getdatalabel(lab)
+                  current_asmdata.getglobaldatalabel(lab)
                 else
                   current_asmdata.getaddrlabel(lab);
                 append_labelentry_ref(DW_AT_type,lab);
@@ -4016,7 +4016,7 @@ implementation
           obj : tasmlabel;
         begin
           if not(tf_dwarf_only_local_labels in target_info.flags) then
-            current_asmdata.getdatalabel(obj)
+            current_asmdata.getglobaldatalabel(obj)
           else
             current_asmdata.getaddrlabel(obj);
           { implicit pointer }

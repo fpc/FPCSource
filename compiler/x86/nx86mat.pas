@@ -168,7 +168,7 @@ interface
             { make life of register allocator easier }
             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
 
-            current_asmdata.getdatalabel(l1);
+            current_asmdata.getglobaldatalabel(l1);
             new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,const_align(sizeof(pint)));
             current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
             case def_cgsize(resultdef) of

@@ -235,7 +235,7 @@ implementation
         len : byte;
         tcb : ttai_typedconstbuilder;
       begin
-         current_asmdata.getdatalabel(p^.nl);
+         current_asmdata.getglobaldatalabel(p^.nl);
          if assigned(p^.l) then
            writenames(list,p^.l);
          tcb:=ctai_typedconstbuilder.create([tcalo_is_lab]);
@@ -446,7 +446,7 @@ implementation
 
          if count>0 then
            begin
-              current_asmdata.getdatalabel(r);
+              current_asmdata.getglobaldatalabel(r);
               gendmt:=r;
               al_globals.concat(cai_align.create(const_align(sizeof(pint))));
               al_globals.concat(Tai_label.Create(r));
