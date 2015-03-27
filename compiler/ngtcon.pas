@@ -804,8 +804,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             begin
               { create a tcb for the string data (it's placed in a separate
                 asmlist) }
-              datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);
-              current_asmdata.getlabel(ll,alt_data);
+              ftcb.start_internal_data_builder(fdatalist,sec_rodata,datatcb,ll);
               if node.nodetype=stringconstn then
                 varalign:=size_2_align(tstringconstnode(node).len)
               else
@@ -838,8 +837,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   IncompatibleTypes(node.resultdef, def);
                   datadef:=getarraydef(cansichartype,1);
                 end;
-              current_asmdata.asmlists[al_const].concatlist(datatcb.get_final_asmlist(ll,datadef,sec_rodata,ll.name,varalign));
-              datatcb.free;
+              ftcb.finish_internal_data_builder(datatcb,ll,datadef,varalign);
               { we now emit the address of the first element of the array
                 containing the string data }
               ftcb.queue_init(def);
@@ -857,7 +855,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             begin
               if (node.nodetype in [stringconstn,ordconstn]) then
                 begin
-                  current_asmdata.getlabel(ll,alt_data);
                   { convert to unicodestring stringconstn }
                   inserttypeconv(node,cunicodestringtype);
                   if (node.nodetype=stringconstn) and
@@ -865,6 +862,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                    begin
                      { create a tcb for the string data (it's placed in a separate
                        asmlist) }
+                     ftcb.start_internal_data_builder(fdatalist,sec_rodata,datatcb,ll);
                      datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);
                      pw:=pcompilerwidestring(tstringconstnode(node).value_str);
                      { include terminating #0 }
@@ -876,8 +874,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      datatcb.emit_tai(Tai_const.Create_16bit(0),cwidechartype);
                      datatcb.maybe_end_aggregate(datadef);
                      { concat add the string data to the fdatalist }
-                     fdatalist.concatlist(datatcb.get_final_asmlist(ll,datadef,sec_rodata,ll.name,const_align(sizeof(pint))));
-                     datatcb.free;
+                     ftcb.finish_internal_data_builder(datatcb,ll,datadef,const_align(sizeof(pint)));
                      { we now emit the address of the first element of the array
                        containing the string data }
                      ftcb.queue_init(def);
