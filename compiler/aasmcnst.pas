@@ -260,7 +260,7 @@ type
      procedure emit_tai_procvar2procdef(p: tai; pvdef: tprocvardef); virtual;
 
     protected
-     function emit_string_const_common(stringtype: tstringtype; len: asizeint; encoding: tstringencoding; out startlab: tasmlabel):tasmlabofs;
+     function emit_string_const_common(stringtype: tstringtype; len: asizeint; encoding: tstringencoding; var startlab: tasmlabel):tasmlabofs;
      procedure begin_aggregate_internal(def: tdef; anonymous: boolean); virtual;
      procedure end_aggregate_internal(def: tdef; anonymous: boolean); virtual;
      { when building an anonymous record, we cannot immediately insert the
@@ -274,8 +274,8 @@ type
      { class functions and an extra list parameter, because emitting the data
        for the strings has to happen via a separate typed const builder (which
        will be created/destroyed internally by these methods) }
-     class function emit_ansistring_const(list: TAsmList; data: pchar; len: asizeint; encoding: tstringencoding; newsection: boolean): tasmlabofs;
-     class function emit_unicodestring_const(list: TAsmList; data: pointer; encoding: tstringencoding; winlike: boolean):tasmlabofs;
+     function emit_ansistring_const(datalist: TAsmList; data: pchar; len: asizeint; encoding: tstringencoding): tasmlabofs;
+     function emit_unicodestring_const(datalist: TAsmList; data: pointer; encoding: tstringencoding; winlike: boolean):tasmlabofs;
      { emits a tasmlabofs as returned by emit_*string_const }
      procedure emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef);virtual;
 
@@ -972,14 +972,13 @@ implementation
      end;
 
 
-   function ttai_typedconstbuilder.emit_string_const_common(stringtype: tstringtype; len: asizeint; encoding: tstringencoding; out startlab: tasmlabel): tasmlabofs;
+   function ttai_typedconstbuilder.emit_string_const_common(stringtype: tstringtype; len: asizeint; encoding: tstringencoding; var startlab: tasmlabel): tasmlabofs;
      var
        string_symofs: asizeint;
        charptrdef: tdef;
        elesize: word;
      begin
-       current_asmdata.getglobaldatalabel(result.lab);
-       startlab:=result.lab;
+       result.lab:=startlab;
        result.ofs:=0;
        { pack the data, so that we don't add unnecessary null bytes after the
          constant string }
@@ -1019,7 +1018,11 @@ implementation
            { results in slightly more efficient code }
            emit_tai(tai_label.create(result.lab),charptrdef);
            result.ofs:=0;
-           current_asmdata.getglobaldatalabel(startlab);
+           { create new label of the same kind (including whether or not the
+             name starts with target_asm.labelprefix in case it's AB_LOCAL,
+             so we keep the difference depending on whether the original was
+             allocated via getstatic/getlocal/getglobal datalabel) }
+           startlab:=tasmlabel.create(current_asmdata.AsmSymbolDict,startlab.name+'$strlab',startlab.bind,startlab.typ);
          end;
        { sanity check }
        if result.ofs<>string_symofs then
@@ -1110,19 +1113,15 @@ implementation
      end;
 
 
-   class function ttai_typedconstbuilder.emit_ansistring_const(list: TAsmList; data: pchar; len: asizeint; encoding: tstringencoding; newsection: boolean): tasmlabofs;
+   function ttai_typedconstbuilder.emit_ansistring_const(datalist: TAsmList; data: pchar; len: asizeint; encoding: tstringencoding): tasmlabofs;
      var
        s: PChar;
        startlab: tasmlabel;
        ansistrrecdef: trecorddef;
        datadef: tdef;
        datatcb: ttai_typedconstbuilder;
-       options: ttcasmlistoptions;
      begin
-       options:=[tcalo_is_lab];
-       if NewSection then
-         include(options,tcalo_make_dead_strippable);
-       datatcb:=self.create(options);
+       start_internal_data_builder(datalist,sec_rodata_norel,'',datatcb,startlab);
        result:=datatcb.emit_string_const_common(st_ansistring,len,encoding,startlab);
 
        getmem(s,len+1);
@@ -1134,12 +1133,11 @@ implementation
        datatcb.emit_tai(tai_string.create_pchar(s,len+1),datadef);
        datatcb.maybe_end_aggregate(datadef);
        ansistrrecdef:=datatcb.end_anonymous_record;
-       list.concatlist(datatcb.get_final_asmlist(startlab,ansistrrecdef,sec_rodata_norel,startlab.name,const_align(sizeof(pint))));
-       datatcb.free;
+       finish_internal_data_builder(datatcb,startlab,ansistrrecdef,const_align(sizeof(pointer)));
      end;
 
 
-   class function ttai_typedconstbuilder.emit_unicodestring_const(list: TAsmList; data: pointer; encoding: tstringencoding; winlike: boolean):tasmlabofs;
+   function ttai_typedconstbuilder.emit_unicodestring_const(datalist: TAsmList; data: pointer; encoding: tstringencoding; winlike: boolean):tasmlabofs;
      var
        i, strlength: longint;
        string_symofs: asizeint;
@@ -1148,12 +1146,12 @@ implementation
        uniwidestrrecdef: trecorddef;
        datatcb: ttai_typedconstbuilder;
      begin
-       datatcb:=self.create([tcalo_is_lab,tcalo_make_dead_strippable]);
+       start_internal_data_builder(datalist,sec_rodata_norel,'',datatcb,startlab);
        strlength:=getlengthwidestring(pcompilerwidestring(data));
        if winlike then
          begin
+           result.lab:=startlab;
            datatcb.begin_anonymous_record('$'+get_dynstring_rec_name(st_widestring,true,strlength),sizeof(pint));
-           current_asmdata.getglobaldatalabel(result.lab);
            datatcb.emit_tai(Tai_const.Create_32bit(strlength*cwidechartype.size),s32inttype);
            { can we optimise by placing the string constant label at the
              required offset? }
@@ -1162,8 +1160,9 @@ implementation
              begin
                { yes }
                datatcb.emit_tai(Tai_label.Create(result.lab),widecharpointertype);
-               { allocate a separate label for the start of the data }
-               current_asmdata.getglobaldatalabel(startlab);
+               { allocate a separate label for the start of the data (see
+                 emit_string_const_common() for explanation) }
+               startlab:=tasmlabel.create(current_asmdata.AsmSymbolDict,startlab.name+'$strlab',startlab.bind,startlab.typ);
              end
            else
              internalerror(2015031502);
@@ -1187,9 +1186,9 @@ implementation
        else
          { code generation for other sizes must be written }
          internalerror(200904271);
-       list.concatlist(datatcb.get_final_asmlist(startlab,uniwidestrrecdef,sec_rodata_norel,startlab.name,const_align(sizeof(pint))));
-       datatcb.free;
+       finish_internal_data_builder(datatcb,startlab,datadef,const_align(sizeof(pint)));
      end;
+
 
    procedure ttai_typedconstbuilder.emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef);
      begin

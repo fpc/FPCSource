@@ -325,6 +325,7 @@ implementation
               { :-(, we must generate a new entry }
               if not assigned(entry^.Data) then
                 begin
+                  datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);
                    case cst_type of
                       cst_ansistring:
                         begin
@@ -332,12 +333,15 @@ implementation
                              InternalError(2008032301)   { empty string should be handled above }
                            else
                              begin
-                               lastlabel:=ctai_typedconstbuilder.emit_ansistring_const(current_asmdata.AsmLists[al_typedconsts],value_str,len,tstringdef(resultdef).encoding,true);
+                               lastlabel:=datatcb.emit_ansistring_const(current_asmdata.AsmLists[al_typedconsts],value_str,len,tstringdef(resultdef).encoding);
                                { because we hardcode the offset below due to it
                                  not being stored in the hashset, check here }
-                               if lastlabel.ofs<>ctai_typedconstbuilder.get_string_symofs(st_ansistring,false) then
+                               if lastlabel.ofs<>datatcb.get_string_symofs(st_ansistring,false) then
                                  internalerror(2012051703);
                              end;
+                           { no contents of the datatcb itself to concatenate,
+                             as we will just return the address of the emitted
+                             ansistring constant record }
                         end;
                       cst_unicodestring,
                       cst_widestring:
@@ -346,21 +350,23 @@ implementation
                              InternalError(2008032302)   { empty string should be handled above }
                            else
                              begin
-                               lastlabel:=ctai_typedconstbuilder.emit_unicodestring_const(current_asmdata.AsmLists[al_typedconsts],
+                               lastlabel:=datatcb.emit_unicodestring_const(current_asmdata.AsmLists[al_typedconsts],
                                                value_str,
                                                tstringdef(resultdef).encoding,
                                                winlikewidestring);
                                { because we hardcode the offset below due to it
                                  not being stored in the hashset, check here }
-                               if lastlabel.ofs<>ctai_typedconstbuilder.get_string_symofs(tstringdef(resultdef).stringtype,winlikewidestring) then
+                               if lastlabel.ofs<>datatcb.get_string_symofs(tstringdef(resultdef).stringtype,winlikewidestring) then
                                  internalerror(2012051704);
                              end;
+                           { no contents of the datatcb itself to concatenate,
+                             as we will just return the address of the emitted
+                             unicode/widestring constant record }
                         end;
                       cst_shortstring:
                         begin
                           current_asmdata.getglobaldatalabel(lastlabel.lab);
 
-                          datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);
                           { truncate strings larger than 255 chars }
                           if len>255 then
                            l:=255
@@ -378,7 +384,6 @@ implementation
                           current_asmdata.asmlists[al_typedconsts].concatList(
                             datatcb.get_final_asmlist(lastlabel.lab,datadef,sec_rodata_norel,lastlabel.lab.name,const_align(sizeof(pint)))
                           );
-                          datatcb.free;
                         end;
                       cst_conststring:
                         begin
@@ -400,10 +405,10 @@ implementation
                           current_asmdata.asmlists[al_typedconsts].concatList(
                             datatcb.get_final_asmlist(lastlabel.lab,datadef,sec_rodata_norel,lastlabel.lab.name,const_align(sizeof(pint)))
                           );
-                          datatcb.free;
                         end;
                       else
                         internalerror(2013120103);
+                      datatcb.free;
                    end;
                    lab_str:=lastlabel.lab;
                    entry^.Data:=lastlabel.lab;

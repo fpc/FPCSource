@@ -554,7 +554,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                        ll.ofs:=0;
                      end
                    else
-                     ll:=ctai_typedconstbuilder.emit_ansistring_const(fdatalist,strval,strlength,def.encoding,true);
+                     ll:=ftcb.emit_ansistring_const(fdatalist,strval,strlength,def.encoding);
                    ftcb.emit_string_offset(ll,strlength,def.stringtype,false,charpointertype);
                 end;
               st_unicodestring,
@@ -570,7 +570,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                    else
                      begin
                        winlike:=(def.stringtype=st_widestring) and (tf_winlikewidestring in target_info.flags);
-                       ll:=ctai_typedconstbuilder.emit_unicodestring_const(fdatalist,
+                       ll:=ftcb.emit_unicodestring_const(fdatalist,
                               strval,
                               def.encoding,
                               winlike);

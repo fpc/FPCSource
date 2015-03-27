@@ -136,10 +136,12 @@ uses
         resstrlab : tasmsymbol;
         endsymlab : tasmsymbol;
         R : TResourceStringItem;
+        tcb : ttai_typedconstbuilder;
       begin
         { Put resourcestrings in a new objectfile. Putting it in multiple files
           makes the linking too dependent on the linker script requiring a SORT(*) for
           the data sections }
+        tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
         maybe_new_object_file(current_asmdata.asmlists[al_const]);
         new_section(current_asmdata.asmlists[al_const],sec_rodata_norel,make_mangledname('RESSTRTABLE',current_module.localsymtable,''),sizeof(pint));
 
@@ -149,7 +151,7 @@ uses
           make_mangledname('RESSTR',current_module.localsymtable,'START'),AT_DATA,0));
 
         { Write unitname entry }
-        namelab:=ctai_typedconstbuilder.emit_ansistring_const(current_asmdata.asmlists[al_const],@current_module.localsymtable.name^[1],length(current_module.localsymtable.name^),getansistringcodepage,False);
+        namelab:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_const],@current_module.localsymtable.name^[1],length(current_module.localsymtable.name^),getansistringcodepage);
         current_asmdata.asmlists[al_resourcestrings].concat(tai_const.Create_sym_offset(namelab.lab,namelab.ofs));
         current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_nil_dataptr);
         current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_nil_dataptr);
@@ -165,7 +167,7 @@ uses
             new_section(current_asmdata.asmlists[al_const],sec_rodata_norel,make_mangledname('RESSTR',current_module.localsymtable,'d_'+r.name),sizeof(pint));
             { Write default value }
             if assigned(R.value) and (R.len<>0) then
-              valuelab:=ctai_typedconstbuilder.emit_ansistring_const(current_asmdata.asmlists[al_const],R.Value,R.Len,getansistringcodepage,False)
+              valuelab:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_const],R.Value,R.Len,getansistringcodepage)
             else
               begin
                 valuelab.lab:=nil;
@@ -173,7 +175,7 @@ uses
               end;
             { Append the name as a ansistring. }
             current_asmdata.asmlists[al_const].concat(cai_align.Create(const_align(sizeof(pint))));
-            namelab:=ctai_typedconstbuilder.emit_ansistring_const(current_asmdata.asmlists[al_const],@R.Name[1],length(R.name),getansistringcodepage,False);
+            namelab:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_const],@R.Name[1],length(R.name),getansistringcodepage);
 
             {
               Resourcestring index:
@@ -197,6 +199,8 @@ uses
             current_asmdata.asmlists[al_resourcestrings].concat(tai_symbol_end.create(resstrlab));
             R:=TResourceStringItem(R.Next);
           end;
+        { nothing has been emited to the tcb itself }
+        tcb.free;
         new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,make_mangledname('RESSTR',current_module.localsymtable,'3_END'),sizeof(pint));
         endsymlab:=current_asmdata.DefineAsmSymbol(make_mangledname('RESSTR',current_module.localsymtable,'END'),AB_GLOBAL,AT_DATA);
         current_asmdata.AsmLists[al_resourcestrings].concat(tai_symbol.create_global(endsymlab,0));
