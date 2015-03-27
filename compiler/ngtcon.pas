@@ -804,7 +804,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             begin
               { create a tcb for the string data (it's placed in a separate
                 asmlist) }
-              ftcb.start_internal_data_builder(fdatalist,sec_rodata,datatcb,ll);
+              ftcb.start_internal_data_builder(fdatalist,sec_rodata,'',datatcb,ll);
               if node.nodetype=stringconstn then
                 varalign:=size_2_align(tstringconstnode(node).len)
               else
@@ -862,7 +862,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                    begin
                      { create a tcb for the string data (it's placed in a separate
                        asmlist) }
-                     ftcb.start_internal_data_builder(fdatalist,sec_rodata,datatcb,ll);
+                     ftcb.start_internal_data_builder(fdatalist,sec_rodata,'',datatcb,ll);
                      datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_make_dead_strippable]);
                      pw:=pcompilerwidestring(tstringconstnode(node).value_str);
                      { include terminating #0 }

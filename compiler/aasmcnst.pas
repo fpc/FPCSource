@@ -243,8 +243,9 @@ type
      { returns a builder for generating data that is only referrenced by the
        typed constant date we are currently generating (e.g. string data for a
        pchar constant). Also returns the label that will be placed at the start
-       of that data. list is the tasmlist to which the data will be }
-     procedure start_internal_data_builder(list: tasmlist; sectype: TAsmSectiontype; out tcb: ttai_typedconstbuilder; out l: tasmlabel);
+       of that data. list is the tasmlist to which the data will be added.
+       secname can be empty to use a default }
+     procedure start_internal_data_builder(list: tasmlist; sectype: TAsmSectiontype; const secname: TSymStr; out tcb: ttai_typedconstbuilder; out l: tasmlabel);
      { finish a previously started internal data builder, including
        concatenating all generated data to the provided list and freeing the
        builder }
@@ -836,7 +837,7 @@ implementation
      end;
 
 
-   procedure ttai_typedconstbuilder.start_internal_data_builder(list: tasmlist; sectype: TAsmSectiontype; out tcb: ttai_typedconstbuilder; out l: tasmlabel);
+   procedure ttai_typedconstbuilder.start_internal_data_builder(list: tasmlist; sectype: TAsmSectiontype; const secname: TSymStr; out tcb: ttai_typedconstbuilder; out l: tasmlabel);
      var
        options: ttcasmlistoptions;
        foundsec: longint;
@@ -913,7 +914,14 @@ implementation
            current_asmdata.getlocaldatalabel(l);
        { first section of this kind -> set name }
        if finternal_data_section_info[foundsec].secname='' then
-         finternal_data_section_info[foundsec].secname:=l.Name;
+         if secname='' then
+           finternal_data_section_info[foundsec].secname:=l.Name
+         else
+           finternal_data_section_info[foundsec].secname:=secname
+       { if the name is specified multiple times, it must match }
+       else if (secname<>'') and
+               (finternal_data_section_info[foundsec].secname<>secname) then
+         internalerror(2015032401);
        tcb:=ttai_typedconstbuilderclass(classtype).create(options);
      end;
 
