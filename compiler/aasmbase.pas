@@ -187,12 +187,21 @@ interface
        TAsmLabel = class(TAsmSymbol)
        protected
          function getname:TSymStr;override;
+         {$push}{$warnings off}
+         { new visibility section to let "warnings off" take effect }
+       protected
+         { this constructor is only supposed to be used internally by
+           createstatoc/createlocal -> disable warning that constructors should
+           be public }
+         constructor create_non_global(AList: TFPHashObjectList; nr: longint; ltyp: TAsmLabelType; const prefix: TSymStr);
        public
+         {$pop}
          labelnr   : longint;
          labeltype : TAsmLabelType;
          is_set    : boolean;
-         constructor Createlocal(AList:TFPHashObjectList;nr:longint;ltyp:TAsmLabelType);
-         constructor Createglobal(AList:TFPHashObjectList;const modulename:TSymStr;nr:longint;ltyp:TAsmLabelType);
+         constructor Createlocal(AList: TFPHashObjectList; nr: longint; ltyp: TAsmLabelType);
+         constructor Createstatic(AList: TFPHashObjectList; nr: longint; ltyp: TAsmLabelType);
+         constructor Createglobal(AList: TFPHashObjectList; const modulename: TSymStr; nr: longint; ltyp: TAsmLabelType);
          function getaltcopy(AList:TFPHashObjectList;altnr: longint): TAsmSymbol; override;
        end;
 
@@ -419,22 +428,15 @@ implementation
                                  TAsmLabel
 *****************************************************************************}
 
-    constructor TAsmLabel.Createlocal(AList:TFPHashObjectList;nr:longint;ltyp:TAsmLabelType);
-      var
-        asmtyp: TAsmsymtype;
+    constructor TAsmLabel.Createlocal(AList: TFPHashObjectList; nr: longint; ltyp: TAsmLabelType);
       begin
-        case ltyp of
-          alt_addr:
-            asmtyp:=AT_ADDR;
-          alt_data:
-            asmtyp:=AT_DATA;
-          else
-            asmtyp:=AT_LABEL;
-        end;
-        inherited Create(AList,target_asm.labelprefix+asmlabeltypeprefix[ltyp]+tostr(nr),AB_LOCAL,asmtyp);
-        labelnr:=nr;
-        labeltype:=ltyp;
-        is_set:=false;
+        create_non_global(AList,nr,ltyp,target_asm.labelprefix);
+      end;
+
+
+    constructor TAsmLabel.Createstatic(AList:TFPHashObjectList;nr:longint;ltyp:TAsmLabelType);
+      begin
+        create_non_global(AList,nr,ltyp,'_$$fpclocal$_l');
       end;
 
 
@@ -474,8 +476,28 @@ implementation
         increfs;
       end;
 
-	procedure default_global_used;
-	  begin
-	  end;
+
+    constructor TAsmLabel.create_non_global(AList: TFPHashObjectList; nr: longint; ltyp: TAsmLabelType; const prefix: TSymStr);
+      var
+        asmtyp: TAsmsymtype;
+      begin
+        case ltyp of
+          alt_addr:
+            asmtyp:=AT_ADDR;
+          alt_data:
+            asmtyp:=AT_DATA;
+          else
+            asmtyp:=AT_LABEL;
+        end;
+        inherited Create(AList,prefix+asmlabeltypeprefix[ltyp]+tostr(nr),AB_LOCAL,asmtyp);
+        labelnr:=nr;
+        labeltype:=ltyp;
+        is_set:=false;
+      end;
+
+
+    procedure default_global_used;
+      begin
+      end;
 
 end.
