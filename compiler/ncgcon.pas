@@ -360,7 +360,7 @@ implementation
                         begin
                           current_asmdata.getdatalabel(lastlabel.lab);
 
-                          datatcb:=ctai_typedconstbuilder.create;
+                          datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_new_section]);
                           { truncate strings larger than 255 chars }
                           if len>255 then
                            l:=255
@@ -376,7 +376,7 @@ implementation
                           datatcb.emit_tai(Tai_string.Create_pchar(pc,l+1),datadef);
                           datatcb.maybe_end_aggregate(datadef);
                           current_asmdata.asmlists[al_typedconsts].concatList(
-                            datatcb.get_final_asmlist(lastlabel.lab,datadef,sec_rodata_norel,lastlabel.lab.name,const_align(sizeof(pint)),[tcalo_is_lab,tcalo_new_section])
+                            datatcb.get_final_asmlist(lastlabel.lab,datadef,sec_rodata_norel,lastlabel.lab.name,const_align(sizeof(pint)))
                           );
                           datatcb.free;
                         end;
@@ -384,7 +384,7 @@ implementation
                         begin
                           current_asmdata.getdatalabel(lastlabel.lab);
 
-                          datatcb:=ctai_typedconstbuilder.create;
+                          datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_new_section]);
                           { include terminating zero }
                           getmem(pc,len+1);
                           move(value_str^,pc[0],len);
@@ -398,7 +398,7 @@ implementation
                           datatcb.emit_tai(Tai_string.Create_pchar(pc,len+1),datadef);
                           datatcb.maybe_end_aggregate(datadef);
                           current_asmdata.asmlists[al_typedconsts].concatList(
-                            datatcb.get_final_asmlist(lastlabel.lab,datadef,sec_rodata_norel,lastlabel.lab.name,const_align(sizeof(pint)),[tcalo_is_lab,tcalo_new_section])
+                            datatcb.get_final_asmlist(lastlabel.lab,datadef,sec_rodata_norel,lastlabel.lab.name,const_align(sizeof(pint)))
                           );
                           datatcb.free;
                         end;

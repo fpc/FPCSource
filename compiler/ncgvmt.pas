@@ -238,7 +238,7 @@ implementation
          current_asmdata.getdatalabel(p^.nl);
          if assigned(p^.l) then
            writenames(list,p^.l);
-         tcb:=ctai_typedconstbuilder.create;
+         tcb:=ctai_typedconstbuilder.create([tcalo_is_lab]);
          len:=length(p^.data.messageinf.str^);
          tcb.maybe_begin_aggregate(getarraydef(cansichartype,len+1));
          tcb.emit_tai(tai_const.create_8bit(len),cansichartype);
@@ -247,7 +247,7 @@ implementation
          ca[len]:=#0;
          tcb.emit_tai(Tai_string.Create_pchar(ca,len),getarraydef(cansichartype,len));
          tcb.maybe_end_aggregate(getarraydef(cansichartype,len+1));
-         list.concatList(tcb.get_final_asmlist(p^.nl,getarraydef(cansichartype,len+1),sec_rodata_norel,'',sizeof(pint),[tcalo_is_lab]));
+         list.concatList(tcb.get_final_asmlist(p^.nl,getarraydef(cansichartype,len+1),sec_rodata_norel,'',sizeof(pint)));
          tcb.free;
          if assigned(p^.r) then
            writenames(list,p^.r);
@@ -283,7 +283,7 @@ implementation
          { insert all message handlers into a tree, sorted by name }
          _class.symtable.SymList.ForEachCall(@insertmsgstr,@count);
 
-         tcb:=ctai_typedconstbuilder.create;
+         tcb:=ctai_typedconstbuilder.create([tcalo_is_lab]);
          { write all names }
          if assigned(root) then
            writenames(list,root);
@@ -312,7 +312,7 @@ implementation
               disposeprocdeftree(root);
            end;
          tcb.maybe_end_aggregate(msgstrtabdef);
-         list.concatList(tcb.get_final_asmlist(result,msgstrtabdef,sec_rodata,'',sizeof(pint),[tcalo_is_lab]));
+         list.concatList(tcb.get_final_asmlist(result,msgstrtabdef,sec_rodata,'',sizeof(pint)));
          tcb.free;
       end;
 
@@ -364,7 +364,7 @@ implementation
              end;
          }
          current_asmdata.getlabel(r,alt_data);
-         tcb:=ctai_typedconstbuilder.create;
+         tcb:=ctai_typedconstbuilder.create([tcalo_is_lab]);
          genintmsgtab:=r;
          gettabledef('fpc_msgint_table_entries_',s32inttype,msginttabledef,count,0,msgintdef,msgintarrdef);
          tcb.maybe_begin_aggregate(msgintdef);
@@ -377,7 +377,7 @@ implementation
               disposeprocdeftree(root);
            end;
          tcb.maybe_end_aggregate(msgintdef);
-         list.concatList(tcb.get_final_asmlist(result,msgintdef,sec_rodata,'',sizeof(pint),[tcalo_is_lab]));
+         list.concatList(tcb.get_final_asmlist(result,msgintdef,sec_rodata,'',sizeof(pint)));
          tcb.free;
       end;
 
@@ -514,10 +514,10 @@ implementation
               begin
                 current_asmdata.getlabel(l,alt_data);
                 { l: name_of_method }
-                tcb:=ctai_typedconstbuilder.create;
+                tcb:=ctai_typedconstbuilder.create([tcalo_is_lab]);
 
                 namedef:=tcb.emit_shortstring_const(tsym(p).realname);
-                lists^.list.concatList(tcb.get_final_asmlist(l,namedef,sec_rodata_norel,'',sizeof(pint),[tcalo_is_lab]));
+                lists^.list.concatList(tcb.get_final_asmlist(l,namedef,sec_rodata_norel,'',sizeof(pint)));
                 tcb.free;
                 { the tmethodnamerec }
                 lists^.pubmethodstcb.maybe_begin_aggregate(lists^.methodnamerec);
@@ -567,7 +567,7 @@ implementation
                     entries : packed array[0..0] of tmethodnamerec;
                   end;
                }
-              lists.pubmethodstcb:=ctai_typedconstbuilder.create;
+              lists.pubmethodstcb:=ctai_typedconstbuilder.create([tcalo_is_lab]);
               current_asmdata.getlabel(l,alt_data);
               gettabledef('fpc_intern_tmethodnametable_',u32inttype,lists.methodnamerec,count,1,pubmethodsdef,pubmethodsarraydef);
               { begin tmethodnametable }
@@ -582,7 +582,7 @@ implementation
               lists.pubmethodstcb.maybe_end_aggregate(pubmethodsarraydef);
               { end methodnametable }
               lists.pubmethodstcb.maybe_end_aggregate(pubmethodsdef);
-              list.concatlist(lists.pubmethodstcb.get_final_asmlist(l,pubmethodsdef,sec_rodata,'',sizeof(pint),[tcalo_is_lab]));
+              list.concatlist(lists.pubmethodstcb.get_final_asmlist(l,pubmethodsdef,sec_rodata,'',sizeof(pint)));
               lists.pubmethodstcb.free;
               genpublishedmethodstable:=l;
            end
@@ -635,7 +635,7 @@ implementation
               packrecords:=1;
 
             { generate the class table }
-            tcb:=ctai_typedconstbuilder.create;
+            tcb:=ctai_typedconstbuilder.create([tcalo_is_lab]);
             tcb.begin_anonymous_record('$fpc_intern_classtable_'+tostr(classtablelist.Count-1),packrecords);
             tcb.emit_tai(Tai_const.Create_16bit(classtablelist.count),u16inttype);
             for i:=0 to classtablelist.Count-1 do
@@ -649,7 +649,7 @@ implementation
                   tfieldvarsym(classdef.vmt_field).vardef);
               end;
             classtabledef:=tcb.end_anonymous_record;
-            list.concatlist(tcb.get_final_asmlist(classtable,classtabledef,sec_rodata,'',sizeof(pint),[tcalo_is_lab]));
+            list.concatlist(tcb.get_final_asmlist(classtable,classtabledef,sec_rodata,'',sizeof(pint)));
             tcb.free;
 
             { write fields }
@@ -664,7 +664,7 @@ implementation
                 Fields: array[0..0] of TFieldInfo
               end;
             }
-            tcb:=ctai_typedconstbuilder.create;
+            tcb:=ctai_typedconstbuilder.create([tcalo_is_lab]);
             { can't easily specify a name here for reuse of the constructed def,
               since it's full of variable length shortstrings (-> all of those
               lengths and their order would have to incorporated in the name,
@@ -701,7 +701,7 @@ implementation
                   end;
               end;
             fieldtabledef:=tcb.end_anonymous_record;
-            list.concatlist(tcb.get_final_asmlist(fieldtable,fieldtabledef,sec_rodata,'',sizeof(pint),[tcalo_is_lab]));
+            list.concatlist(tcb.get_final_asmlist(fieldtable,fieldtabledef,sec_rodata,'',sizeof(pint)));
             tcb.free;
 
             result:=fieldtable;
@@ -803,7 +803,7 @@ implementation
         interfacearray: tdef;
       begin
         current_asmdata.getlabel(result,alt_data);
-        tcb:=ctai_typedconstbuilder.create;
+        tcb:=ctai_typedconstbuilder.create([tcalo_is_lab]);
         tcb.begin_anonymous_record('',0);
         tcb.emit_tai(Tai_const.Create_pint(_class.ImplementedInterfaces.count),search_system_type('SIZEUINT').typedef);
         interfaceentrydef:=search_system_type('TINTERFACEENTRY').typedef;
@@ -818,7 +818,7 @@ implementation
           end;
         tcb.maybe_end_aggregate(interfacearray);
         tabledef:=tcb.end_anonymous_record;
-        list.concatlist(tcb.get_final_asmlist(result,tabledef,sec_rodata,'',tabledef.alignment,[tcalo_is_lab]));
+        list.concatlist(tcb.get_final_asmlist(result,tabledef,sec_rodata,'',tabledef.alignment));
 
         { Write vtbls }
         for i:=0 to _class.ImplementedInterfaces.count-1 do
@@ -894,27 +894,25 @@ implementation
       if assigned(_class.iidguid) then
         begin
           s:=make_mangledname('IID',_class.owner,_class.objname^);
-          tcb:=ctai_typedconstbuilder.create;
+          tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
           tcb.emit_guid_const(_class.iidguid^);
           list.concatlist(tcb.get_final_asmlist(
             current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA),
             rec_tguid,
             sec_rodata_norel,
             s,
-            const_align(sizeof(pint)),
-            [tcalo_new_section]));
+            const_align(sizeof(pint))));
           tcb.free;
         end;
       s:=make_mangledname('IIDSTR',_class.owner,_class.objname^);
-      tcb:=ctai_typedconstbuilder.create;
+      tcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
       def:=tcb.emit_shortstring_const(_class.iidstr^);
       list.concatlist(tcb.get_final_asmlist(
         current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA),
         def,
         sec_rodata_norel,
         s,
-        sizeof(pint),
-        [tcalo_new_section]));
+        sizeof(pint)));
       tcb.free;
     end;
 
@@ -1058,10 +1056,10 @@ implementation
           begin
             { write class name }
             current_asmdata.getlabel(classnamelabel,alt_data);
-            tcb:=ctai_typedconstbuilder.create;
+            tcb:=ctai_typedconstbuilder.create([tcalo_is_lab]);
             hs:=_class.RttiName;
             classnamedef:=tcb.emit_shortstring_const(_class.RttiName);
-            templist.concatlist(tcb.get_final_asmlist(classnamelabel,classnamedef,sec_rodata_norel,'',sizeof(pint),[tcalo_is_lab]));
+            templist.concatlist(tcb.get_final_asmlist(classnamelabel,classnamedef,sec_rodata_norel,'',sizeof(pint)));
             tcb.free;
 
             { interface table }

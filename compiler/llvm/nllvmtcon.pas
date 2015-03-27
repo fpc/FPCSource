@@ -69,7 +69,6 @@ interface
       procedure begin_aggregate_internal(def: tdef; anonymous: boolean); override;
       procedure end_aggregate_internal(def: tdef; anonymous: boolean); override;
      public
-      constructor create; override;
       destructor destroy; override;
       procedure emit_tai_procvar2procdef(p: tai; pvdef: tprocvardef); override;
       procedure emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef); override;
@@ -156,12 +155,6 @@ implementation
   function tllvmtai_typedconstbuilder.wrap_with_type(p: tai; def: tdef): tai;
     begin
       result:=tai_simpletypedconst.create(tck_simple,def,p);
-    end;
-
-
-  constructor tllvmtai_typedconstbuilder.create;
-    begin
-      inherited create;
     end;
 
 

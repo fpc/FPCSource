@@ -441,7 +441,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
       begin
         inherited;
         fsym:=sym;
-        ftcb:=ctai_typedconstbuilder.create;
+        ftcb:=ctai_typedconstbuilder.create([tcalo_new_section]);
         fdatalist:=tasmlist.create;
         curoffset:=0;
       end;
@@ -804,7 +804,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             begin
               { create a tcb for the string data (it's placed in a separate
                 asmlist) }
-              datatcb:=ctai_typedconstbuilder.create;
+              datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_new_section]);
               current_asmdata.getlabel(ll,alt_data);
               if node.nodetype=stringconstn then
                 varalign:=size_2_align(tstringconstnode(node).len)
@@ -838,7 +838,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                   IncompatibleTypes(node.resultdef, def);
                   datadef:=getarraydef(cansichartype,1);
                 end;
-              current_asmdata.asmlists[al_const].concatlist(datatcb.get_final_asmlist(ll,datadef,sec_rodata,ll.name,varalign,[tcalo_is_lab,tcalo_new_section]));
+              current_asmdata.asmlists[al_const].concatlist(datatcb.get_final_asmlist(ll,datadef,sec_rodata,ll.name,varalign));
               datatcb.free;
               { we now emit the address of the first element of the array
                 containing the string data }
@@ -865,7 +865,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                    begin
                      { create a tcb for the string data (it's placed in a separate
                        asmlist) }
-                     datatcb:=ctai_typedconstbuilder.create;
+                     datatcb:=ctai_typedconstbuilder.create([tcalo_is_lab,tcalo_new_section]);
                      pw:=pcompilerwidestring(tstringconstnode(node).value_str);
                      { include terminating #0 }
                      datadef:=getarraydef(cwidechartype,tstringconstnode(node).len+1);
@@ -876,7 +876,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                      datatcb.emit_tai(Tai_const.Create_16bit(0),cwidechartype);
                      datatcb.maybe_end_aggregate(datadef);
                      { concat add the string data to the fdatalist }
-                     fdatalist.concatlist(datatcb.get_final_asmlist(ll,datadef,sec_rodata,ll.name,const_align(sizeof(pint)),[tcalo_is_lab,tcalo_new_section]));
+                     fdatalist.concatlist(datatcb.get_final_asmlist(ll,datadef,sec_rodata,ll.name,const_align(sizeof(pint))));
                      datatcb.free;
                      { we now emit the address of the first element of the array
                        containing the string data }
@@ -1102,7 +1102,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               sec:=sec_data;
             secname:=asmsym.Name;
           end;
-        reslist:=ftcb.get_final_asmlist(asmsym,fsym.vardef,sec,secname,fsym.vardef.alignment,[tcalo_new_section]);
+        reslist:=ftcb.get_final_asmlist(asmsym,fsym.vardef,sec,secname,fsym.vardef.alignment);
         if addstabx then
           begin
             { see same code in ncgutil.insertbssdata }

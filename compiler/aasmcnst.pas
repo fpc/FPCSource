@@ -170,6 +170,9 @@ type
     protected
      { temporary list in which all data is collected }
      fasmlist: tasmlist;
+     { options for the final asmlist }
+     foptions: ttcasmlistoptions;
+
      { while queueing elements of a compound expression, this is the current
        offset in the top-level array/record }
      fqueue_offset: asizeint;
@@ -198,7 +201,7 @@ type
      { easy access to the top level aggregate information instance }
      property curagginfo: taggregateinformation read getcurragginfo;
     public
-     constructor create; virtual;
+     constructor create(const options: ttcasmlistoptions); virtual;
      destructor destroy; override;
 
      { add a simple constant data element (p) to the typed constant.
@@ -288,7 +291,7 @@ type
        This asmlist will be freed when the builder is destroyed, so add its
        contents to another list first. This property should only be accessed
        once all data has been added. }
-     function get_final_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: longint; const options: ttcasmlistoptions): tasmlist;
+     function get_final_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: longint): tasmlist;
 
      { returns the offset of the string data relative to ansi/unicode/widestring
        constant labels. On most platforms, this is 0 (with the header at a
@@ -696,11 +699,11 @@ implementation
      end;
 
 
-   function ttai_typedconstbuilder.get_final_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: longint; const options: ttcasmlistoptions): tasmlist;
+   function ttai_typedconstbuilder.get_final_asmlist(sym: tasmsymbol; def: tdef; section: TAsmSectiontype; const secname: TSymStr; alignment: longint): tasmlist;
      begin
        if not fasmlist_finalized then
          begin
-           finalize_asmlist(sym,def,section,secname,alignment,options);
+           finalize_asmlist(sym,def,section,secname,alignment,foptions);
            fasmlist_finalized:=true;
          end;
        result:=fasmlist;
@@ -750,10 +753,11 @@ implementation
      end;
 
 
-   constructor ttai_typedconstbuilder.create;
+   constructor ttai_typedconstbuilder.create(const options: ttcasmlistoptions);
      begin
        inherited create;
        fasmlist:=tasmlist.create;
+       foptions:=options;
        { queue is empty }
        fqueue_offset:=low(fqueue_offset);
      end;
@@ -952,7 +956,10 @@ implementation
        datatcb: ttai_typedconstbuilder;
        options: ttcasmlistoptions;
      begin
-       datatcb:=self.create;
+       options:=[tcalo_is_lab];
+       if NewSection then
+         include(options,tcalo_new_section);
+       datatcb:=self.create(options);
        result:=datatcb.emit_string_const_common(st_ansistring,len,encoding,startlab);
 
        getmem(s,len+1);
@@ -964,10 +971,7 @@ implementation
        datatcb.emit_tai(tai_string.create_pchar(s,len+1),datadef);
        datatcb.maybe_end_aggregate(datadef);
        ansistrrecdef:=datatcb.end_anonymous_record;
-       options:=[tcalo_is_lab];
-       if NewSection then
-         include(options,tcalo_new_section);
-       list.concatlist(datatcb.get_final_asmlist(startlab,ansistrrecdef,sec_rodata_norel,startlab.name,const_align(sizeof(pint)),options));
+       list.concatlist(datatcb.get_final_asmlist(startlab,ansistrrecdef,sec_rodata_norel,startlab.name,const_align(sizeof(pint))));
        datatcb.free;
      end;
 
@@ -981,7 +985,7 @@ implementation
        uniwidestrrecdef: trecorddef;
        datatcb: ttai_typedconstbuilder;
      begin
-       datatcb:=self.create;
+       datatcb:=self.create([tcalo_is_lab,tcalo_new_section]);
        strlength:=getlengthwidestring(pcompilerwidestring(data));
        if winlike then
          begin
@@ -1020,7 +1024,7 @@ implementation
        else
          { code generation for other sizes must be written }
          internalerror(200904271);
-       list.concatlist(datatcb.get_final_asmlist(startlab,uniwidestrrecdef,sec_rodata_norel,startlab.name,const_align(sizeof(pint)),[tcalo_is_lab,tcalo_new_section]));
+       list.concatlist(datatcb.get_final_asmlist(startlab,uniwidestrrecdef,sec_rodata_norel,startlab.name,const_align(sizeof(pint))));
        datatcb.free;
      end;
 
