@@ -155,9 +155,12 @@ implementation
       if (resultdef.typ=floatdef) and
          (tfloatdef(resultdef).floattype=s80real) then
        begin
-         { avoid uninitialised warning }
-         arrptrelementdef:=nil;
-         getarrelementptrdef;
+         if not assigned(locref) then
+           begin
+             { avoid uninitialised warning }
+             arrptrelementdef:=nil;
+             getarrelementptrdef;
+           end;
          hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(resultdef));
          hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,arrptrelementdef,getpointerdef(resultdef),locref^.base,hreg);
          locref^.base:=hreg;
