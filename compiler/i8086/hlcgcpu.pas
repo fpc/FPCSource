@@ -353,7 +353,7 @@ implementation
       cg.a_loadaddr_ref_reg(list, tmpref, r);
 
       { step 2: if destination is a far pointer, we have to pass a segment as well }
-      if is_farpointer(tosize) or is_hugepointer(tosize) then
+      if is_farpointer(tosize) or is_hugepointer(tosize) or is_farprocvar(tosize) then
         begin
           { if a segment register is specified in ref, we use that }
           if ref.segment<>NR_NO then

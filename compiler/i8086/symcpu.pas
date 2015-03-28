@@ -123,6 +123,7 @@ type
    public
     constructor create(level:byte);override;
     function address_type:tdef;override;
+    function size:asizeint;override;
     procedure declared_far;override;
     procedure declared_near;override;
     function is_far:boolean;
@@ -210,6 +211,9 @@ const
 
   function is_proc_far(p: tabstractprocdef): boolean;
 
+  {# Returns true if p is a far proc var }
+  function is_farprocvar(p : tdef): boolean;
+
   {# Returns true if p is a far pointer def }
   function is_farpointer(p : tdef) : boolean;
 
@@ -231,6 +235,12 @@ implementation
     else
       internalerror(2014041301);
   end;
+
+  { true if p is a far proc var }
+  function is_farprocvar(p : tdef): boolean;
+    begin
+      result:=(p.typ=procvardef) and tcpuprocvardef(p).is_far;
+    end;
 
   { true if p is a far pointer def }
   function is_farpointer(p : tdef) : boolean;
@@ -315,6 +325,12 @@ implementation
         result:=voidfarpointertype
       else
         result:=voidnearpointertype;
+    end;
+
+
+  function tcpuprocdef.size: asizeint;
+    begin
+      result:=address_type.size;
     end;
 
 
