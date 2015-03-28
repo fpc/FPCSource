@@ -409,6 +409,11 @@ begin
   locdef:=nil;
   parashift := 0;
   para.reset;
+  { should the tail be shifted into the most significant bits? }
+  tailpadding:=false;
+  { have we ensured that the next parameter location will be aligned to the
+    next 8 byte boundary? }
+  paraaligned:=false;
   if push_addr_param(varspez, paradef, p.proccalloption) then begin
     paradef := getpointerdef(paradef);
     loc := LOC_REGISTER;
@@ -480,11 +485,6 @@ implemented
   (x)   h) everything else (structures with unions and size<>16, arrays with
            size<>16, ...) is passed "normally" in integer registers
     }
-    { should the tail be shifted into the most significant bits? }
-    tailpadding:=false;
-    { have we ensured that the next parameter location will be aligned to the
-      next 8 byte boundary? }
-    paraaligned:=false;
     { ELFv2 a) }
     if (target_info.abi=abi_powerpc_elfv2) and
        (((paradef.typ=recorddef) and

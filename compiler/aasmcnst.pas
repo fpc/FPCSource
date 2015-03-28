@@ -700,6 +700,8 @@ implementation
 
    function ttai_typedconstbuilder.get_internal_data_section_index(typ: TAsmSectiontype): longint;
      begin
+       { avoid wrong warning by -Oodfa }
+       result:=-1;
        for result:=low(finternal_data_section_info) to high(finternal_data_section_info) do
          if finternal_data_section_info[result].sectype=typ then
            exit;
