@@ -63,7 +63,7 @@ interface
       record consisting of 4 longints must be returned as a record consisting of
       two int64's on x86-64. This function is used to create (and reuse)
       temporary recorddefs for such purposes.}
-    function llvmgettemprecorddef(fieldtypes: tfplist; packrecords: shortint): trecorddef;
+    function llvmgettemprecorddef(fieldtypes: tfplist; packrecords, recordalignmin, maxcrecordalign: shortint): trecorddef;
 
     { get the llvm type corresponding to a parameter, e.g. a record containing
       two integer int64 for an arbitrary record split over two individual int64
@@ -621,7 +621,7 @@ implementation
       end;
 
 
-    function llvmgettemprecorddef(fieldtypes: tfplist; packrecords: shortint): trecorddef;
+    function llvmgettemprecorddef(fieldtypes: tfplist; packrecords, recordalignmin, maxcrecordalign: shortint): trecorddef;
       var
         i: longint;
         res: PHashSetItem;
@@ -675,7 +675,8 @@ implementation
         res:=current_module.llvmdefs.FindOrAdd(@typename[1],length(typename));
         if not assigned(res^.Data) then
           begin
-            res^.Data:=crecorddef.create_global_internal(typename,packrecords);
+            res^.Data:=crecorddef.create_global_internal(typename,packrecords,
+              recordalignmin,maxcrecordalign);
             trecorddef(res^.Data).add_fields_from_deflist(fieldtypes);
           end;
         result:=trecorddef(res^.Data);
@@ -706,7 +707,9 @@ implementation
           retdeflist.add(retloc^.def);
           retloc:=retloc^.next;
         until not assigned(retloc);
-        result:=llvmgettemprecorddef(retdeflist,C_alignment);
+        result:=llvmgettemprecorddef(retdeflist,C_alignment,
+          targetinfos[target_info.system]^.alignment.recordalignmin,
+          targetinfos[target_info.system]^.alignment.maxCrecordalign);
       end;
 
 
