@@ -94,7 +94,9 @@ unit i_linux;
             first_parm_offset : 8;
             stacksize    : 8*1024*1024;
             stackalign   : 4;
-            abi : abi_default
+            abi : abi_default;
+            { note: default LLVM stack alignment is 16 bytes for this target }
+            llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:32:32-n8:16:32-S32';
           );
 
        system_x86_6432_linux_info : tsysteminfo =
@@ -158,7 +160,8 @@ unit i_linux;
             first_parm_offset : 8;
             stacksize    : 8*1024*1024;
             stackalign   : 16;
-            abi : abi_default
+            abi : abi_default;
+            llvmdatalayout : 'todo';
           );
 
        system_m68k_linux_info : tsysteminfo =
@@ -223,7 +226,8 @@ unit i_linux;
             first_parm_offset : 8;
             stacksize    : 32*1024*1024;
             stackalign   : 4;
-            abi : abi_default
+            abi : abi_default;
+            llvmdatalayout : 'todo';
           );
 
        system_powerpc_linux_info : tsysteminfo =
@@ -288,6 +292,7 @@ unit i_linux;
             stacksize    : 32*1024*1024;
             stackalign   : 16;
             abi : abi_powerpc_sysv;
+            llvmdatalayout : 'E-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v128:128:128-n32';
           );
 
        system_powerpc64_linux_info : tsysteminfo =
@@ -350,7 +355,8 @@ unit i_linux;
             first_parm_offset : 8;
             stacksize    : 10*1024*1024;
             stackalign   : 16;
-            abi : abi_powerpc_sysv
+            abi : abi_powerpc_sysv;
+            llvmdatalayout : 'E-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-f128:64:64-v128:128:128-n32:64';
           );
 
        system_alpha_linux_info : tsysteminfo =
@@ -413,7 +419,8 @@ unit i_linux;
             first_parm_offset : 8;
             stacksize    : 32*1024*1024;
             stackalign   : 8;  { ??? }
-            abi : abi_default
+            abi : abi_default;
+            llvmdatalayout : 'todo';
           );
 
        system_x86_64_linux_info : tsysteminfo =
@@ -477,7 +484,8 @@ unit i_linux;
             first_parm_offset : 16;
             stacksize    : 8*1024*1024;
             stackalign   : 16;
-            abi : abi_default
+            abi : abi_default;
+            llvmdatalayout : 'e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128';
           );
 
        system_sparc_linux_info : tsysteminfo =
@@ -543,7 +551,8 @@ unit i_linux;
             first_parm_offset : 92;
             stacksize    : 8*1024*1024;
             stackalign   : 8;
-            abi : abi_default
+            abi : abi_default;
+            llvmdatalayout : 'E-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-n32-S64';
           );
 
 {$ifdef FPC_ARMHF}
@@ -609,7 +618,8 @@ unit i_linux;
             first_parm_offset : 8;
             stacksize    : 8*1024*1024;
             stackalign   : 8;
-            abi : abi_eabihf
+            abi : abi_eabihf;
+            llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32-S64';
           );
 {$else FPC_ARMHF}
 {$ifdef FPC_ARMEL}
@@ -675,7 +685,8 @@ unit i_linux;
             first_parm_offset : 8;
             stacksize    : 8*1024*1024;
             stackalign   : 8;
-            abi : abi_eabi
+            abi : abi_eabi;
+            llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32-S64';
           );
 {$else FPC_ARMEL}
 {$ifdef FPC_ARMEB}
@@ -741,7 +752,8 @@ unit i_linux;
             first_parm_offset : 8;
             stacksize    : 8*1024*1024;
             stackalign   : 4;
-            abi : abi_default
+            abi : abi_default;
+            llvmdatalayout: 'todo';
           );
 {$else FPC_ARMEB}
        system_arm_linux_info : tsysteminfo =
@@ -805,7 +817,8 @@ unit i_linux;
             first_parm_offset : 8;
             stacksize    : 8*1024*1024;
             stackalign   : 4;
-            abi : abi_default
+            abi : abi_default;
+            llvmdatalayout: 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:32:64-v128:32:128-a0:0:32-n32-S32';
           );
 {$endif FPC_ARMEB}
 {$endif FPC_ARMEL}
@@ -874,7 +887,8 @@ unit i_linux;
             first_parm_offset : 0;
             stacksize    : 32*1024*1024;
             stackalign   : 8;
-            abi : abi_default
+            abi : abi_default;
+            llvmdatalayout : 'E-p:32:32:32-i1:8:8-i8:8:32-i16:16:32-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-n32-S64';
           );
 
        system_mipsel_linux_info : tsysteminfo =
@@ -940,7 +954,8 @@ unit i_linux;
             first_parm_offset : 0;
             stacksize    : 32*1024*1024;
             stackalign   : 8;
-            abi : abi_default
+            abi : abi_default;
+            llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:32-i16:16:32-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-n32-S64';
           );
 
   implementation

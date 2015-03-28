@@ -33,7 +33,7 @@ unit cpupara;
       parabase,paramgr;
 
     type
-       tx86_64paramanager = class(tparamanager)
+       tcpuparamanager = class(tparamanager)
        private
           procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
                                                var intparareg,mmparareg,parasize:longint;varargsparas: boolean);
@@ -171,21 +171,23 @@ unit cpupara;
            if size<=4 then
              begin
                cl.typ:=X86_64_INTEGERSI_CLASS;
+               { gcc/clang sign/zero-extend all values to 32 bits, except for
+                 _Bool (= Pascal boolean), which is only zero-extended to 8 bits
+                 as per the x86-64 ABI -> do the same }
                if not assigned(cl.def) or
-                  (cl.def.size<size) then
-                 begin
-                   case size of
-                     1: cl.def:=u8inttype;
-                     2: cl.def:=u16inttype;
-                     3,4: cl.def:=u32inttype;
-                   end;
-                 end;
+                  not is_pasbool(cl.def) or
+                  (size>1) then
+                 cl.def:=u32inttype;
              end
            else
              begin
                cl.typ:=X86_64_INTEGER_CLASS;
                if not assigned(cl.def) or
-                  (cl.def.size<size) then
+                  (cl.def.size<size) or
+                  (not(cl.def.typ in [orddef,floatdef,pointerdef]) and
+                   not is_implicit_pointer_object_type(cl.def) and
+                   not is_dynamicstring(cl.def) and
+                   not is_dynamic_array(cl.def)) then
                  cl.def:=u64inttype;
              end;
          end;
@@ -763,7 +765,7 @@ unit cpupara;
       end;
 
 
-    function tx86_64paramanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
+    function tcpuparamanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
       var
         classes: tx64paraclasses;
         numclasses: longint;
@@ -786,7 +788,7 @@ unit cpupara;
       end;
 
 
-    function tx86_64paramanager.param_use_paraloc(const cgpara:tcgpara):boolean;
+    function tcpuparamanager.param_use_paraloc(const cgpara:tcgpara):boolean;
       var
         paraloc : pcgparalocation;
       begin
@@ -808,7 +810,7 @@ unit cpupara;
 
 
     { true if a parameter is too large to copy and only the address is pushed }
-    function tx86_64paramanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
+    function tcpuparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       var
         classes: tx64paraclasses;
         numclasses: longint;
@@ -886,7 +888,7 @@ unit cpupara;
       end;
 
 
-    function tx86_64paramanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
+    function tcpuparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
         if target_info.system=system_x86_64_win64 then
           result:=[RS_RAX,RS_RCX,RS_RDX,RS_R8,RS_R9,RS_R10,RS_R11]
@@ -895,7 +897,7 @@ unit cpupara;
       end;
 
 
-    function tx86_64paramanager.get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;
+    function tcpuparamanager.get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;
       begin
         if target_info.system=system_x86_64_win64 then
           result:=[RS_XMM0..RS_XMM5]
@@ -904,13 +906,13 @@ unit cpupara;
       end;
 
 
-    function tx86_64paramanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
+    function tcpuparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=[RS_ST0..RS_ST7];
       end;
 
 
-    function tx86_64paramanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
+    function tcpuparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
       const
         intretregs: array[0..1] of tregister = (NR_FUNCTION_RETURN_REG,NR_FUNCTION_RETURN_REG_HIGH);
         mmretregs: array[0..1] of tregister = (NR_MM_RESULT_REG,NR_MM_RESULT_REG_HIGH);
@@ -925,17 +927,6 @@ unit cpupara;
       begin
         if set_common_funcretloc_info(p,forcetempdef,retcgsize,result) then
           exit;
-
-        { integer sizes < 32 bit have to be sign/zero extended to 32 bit on
-          the callee side (caller can expect those bits are valid) }
-        if (side=calleeside) and
-           (retcgsize in [OS_8,OS_S8,OS_16,OS_S16]) then
-          begin
-            retcgsize:=OS_S32;
-            result.def:=s32inttype;
-            result.intsize:=4;
-            result.size:=retcgsize;
-          end;
 
         { Return in FPU register? -> don't use classify_argument(), because
           currency and comp need special treatment here (they are integer class
@@ -1003,8 +994,7 @@ unit cpupara;
                         end
                       else if result.intsize in [1,2,4] then
                         begin
-                          paraloc^.size:=retcgsize;
-                          paraloc^.def:=result.def;
+                          paraloc^.size:=def_cgsize(paraloc^.def);
                         end
                       else
                         begin
@@ -1070,7 +1060,7 @@ unit cpupara;
       end;
 
 
-    procedure tx86_64paramanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
+    procedure tcpuparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
                                                             var intparareg,mmparareg,parasize:longint;varargsparas: boolean);
       var
         hp         : tparavarsym;
@@ -1120,16 +1110,6 @@ unit cpupara;
                 getvalueparaloc(hp.varspez,paradef,loc[1],loc[2]);
                 paralen:=push_size(hp.varspez,paradef,p.proccalloption);
                 paracgsize:=def_cgsize(paradef);
-                { integer sizes < 32 bit have to be sign/zero extended to 32 bit
-                  on the caller side }
-                if (side=callerside) and
-                   (paracgsize in [OS_8,OS_S8,OS_16,OS_S16]) then
-                  begin
-                    paracgsize:=OS_S32;
-                    paralen:=4;
-                    paradef:=s32inttype;
-                    loc[1].def:=paradef;
-                  end;
               end;
 
             { cheat for now, we should copy the value to an mm reg as well (FK) }
@@ -1221,8 +1201,7 @@ unit cpupara;
                             end
                           else
                             begin
-                              paraloc^.size:=paracgsize;
-                              paraloc^.def:=paradef;
+                              paraloc^.size:=def_cgsize(paraloc^.def);
                               { s64comp is pushed in an int register }
                               if paraloc^.size=OS_C64 then
                                 begin
@@ -1351,7 +1330,7 @@ unit cpupara;
       end;
 
 
-    function tx86_64paramanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
+    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
       var
         intparareg,mmparareg,
         parasize : longint;
@@ -1372,7 +1351,7 @@ unit cpupara;
       end;
 
 
-    function tx86_64paramanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
+    function tcpuparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
       var
         intparareg,mmparareg,
         parasize : longint;
@@ -1392,5 +1371,5 @@ unit cpupara;
 
 
 begin
-   paramanager:=tx86_64paramanager.create;
+   paramanager:=tcpuparamanager.create;
 end.

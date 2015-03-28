@@ -30,7 +30,7 @@ interface
     uses
       symdef,
       cgutils,
-      ncgcal;
+      ncgcal,parabase;
 
     type
 
@@ -41,7 +41,7 @@ interface
          procedure do_release_unused_return_value;override;
          procedure set_result_location(realresdef: tstoreddef);override;
          function can_call_ref(var ref: treference):boolean;override;
-         procedure do_call_ref(ref: treference);override;
+         function do_call_ref(ref: treference): tcgpara;override;
        end;
 
 
@@ -49,7 +49,8 @@ implementation
 
     uses
       cgobj,
-      cgbase,cpubase,cgx86,cga,aasmdata,aasmcpu;
+      cgbase,cpubase,cgx86,cga,aasmdata,aasmcpu,
+      hlcgobj;
 
 
 {*****************************************************************************
@@ -91,9 +92,10 @@ implementation
     end;
 
 
-  procedure tx86callnode.do_call_ref(ref: treference);
+  function tx86callnode.do_call_ref(ref: treference): tcgpara;
     begin
       current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,ref));
+      result:=hlcg.get_call_result_cgpara(procdefinition,typedef)
     end;
 
 end.

@@ -32,7 +32,7 @@ uses
   paramgr, parabase, cgbase, cgutils;
 
 type
-  tppcparamanager = class(tparamanager)
+  tcpuparamanager = class(tparamanager)
     function get_volatile_registers_int(calloption: tproccalloption):
       tcpuregisterset; override;
     function get_volatile_registers_fpu(calloption: tproccalloption):
@@ -65,7 +65,7 @@ uses
   defutil,symtable,symcpu,
   procinfo, cpupi;
 
-function tppcparamanager.get_volatile_registers_int(calloption:
+function tcpuparamanager.get_volatile_registers_int(calloption:
   tproccalloption): tcpuregisterset;
 begin
   result := [RS_R0,RS_R3..RS_R12];
@@ -73,13 +73,13 @@ begin
     include(result,RS_R2);
 end;
 
-function tppcparamanager.get_volatile_registers_fpu(calloption:
+function tcpuparamanager.get_volatile_registers_fpu(calloption:
   tproccalloption): tcpuregisterset;
 begin
   result := [RS_F0..RS_F13];
 end;
 
-procedure tppcparamanager.getintparaloc(pd : tabstractprocdef; nr: longint; var cgpara: tcgpara);
+procedure tcpuparamanager.getintparaloc(pd : tabstractprocdef; nr: longint; var cgpara: tcgpara);
 var
   paraloc: pcgparalocation;
   psym: tparavarsym;
@@ -162,7 +162,7 @@ begin
   end;
 end;
 
-function tppcparamanager.push_addr_param(varspez: tvarspez; def: tdef;
+function tcpuparamanager.push_addr_param(varspez: tvarspez; def: tdef;
   calloption: tproccalloption): boolean;
 begin
   result := false;
@@ -201,7 +201,7 @@ begin
   end;
 end;
 
-function tppcparamanager.ret_in_param(def: tdef; pd: tabstractprocdef): boolean;
+function tcpuparamanager.ret_in_param(def: tdef; pd: tabstractprocdef): boolean;
   var
     tmpdef: tdef;
   begin
@@ -269,7 +269,7 @@ function tppcparamanager.ret_in_param(def: tdef; pd: tabstractprocdef): boolean;
     end;
   end;
 
-procedure tppcparamanager.init_values(var curintreg, curfloatreg, curmmreg:
+procedure tcpuparamanager.init_values(var curintreg, curfloatreg, curmmreg:
   tsuperregister; var cur_stack_offset: aword);
 begin
   { register parameter save area begins at 48(r2) }
@@ -279,7 +279,7 @@ begin
   curmmreg := RS_M2;
 end;
 
-function tppcparamanager.get_funcretloc(p : tabstractprocdef; side:
+function tcpuparamanager.get_funcretloc(p : tabstractprocdef; side:
   tcallercallee; forcetempdef: tdef): tcgpara;
 var
   paraloc: pcgparalocation;
@@ -323,7 +323,7 @@ begin
     end;
 end;
 
-function tppcparamanager.create_paraloc_info(p: tabstractprocdef; side:
+function tcpuparamanager.create_paraloc_info(p: tabstractprocdef; side:
   tcallercallee): longint;
 var
   cur_stack_offset: aword;
@@ -337,7 +337,7 @@ begin
   create_funcretloc_info(p, side);
 end;
 
-function tppcparamanager.create_paraloc_info_intern(p: tabstractprocdef; side:
+function tcpuparamanager.create_paraloc_info_intern(p: tabstractprocdef; side:
   tcallercallee; paras: tparalist;
   var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset:
   aword; isVararg : boolean): longint;
@@ -389,7 +389,7 @@ begin
   result := cur_stack_offset;
 end;
 
-procedure tppcparamanager.create_paraloc_for_def(var para: TCGPara; varspez: tvarspez; paradef: tdef; var nextfloatreg, nextintreg: tsuperregister; var stack_offset: aword; const isVararg, forceintmem: boolean; const side: tcallercallee; const p: tabstractprocdef);
+procedure tcpuparamanager.create_paraloc_for_def(var para: TCGPara; varspez: tvarspez; paradef: tdef; var nextfloatreg, nextintreg: tsuperregister; var stack_offset: aword; const isVararg, forceintmem: boolean; const side: tcallercallee; const p: tabstractprocdef);
 var
   paracgsize: tcgsize;
   loc: tcgloc;
@@ -409,6 +409,11 @@ begin
   locdef:=nil;
   parashift := 0;
   para.reset;
+  { should the tail be shifted into the most significant bits? }
+  tailpadding:=false;
+  { have we ensured that the next parameter location will be aligned to the
+    next 8 byte boundary? }
+  paraaligned:=false;
   if push_addr_param(varspez, paradef, p.proccalloption) then begin
     paradef := getpointerdef(paradef);
     loc := LOC_REGISTER;
@@ -480,11 +485,6 @@ implemented
   (x)   h) everything else (structures with unions and size<>16, arrays with
            size<>16, ...) is passed "normally" in integer registers
     }
-    { should the tail be shifted into the most significant bits? }
-    tailpadding:=false;
-    { have we ensured that the next parameter location will be aligned to the
-      next 8 byte boundary? }
-    paraaligned:=false;
     { ELFv2 a) }
     if (target_info.abi=abi_powerpc_elfv2) and
        (((paradef.typ=recorddef) and
@@ -726,7 +726,7 @@ implemented
   end;
 end;
 
-function tppcparamanager.create_varargs_paraloc_info(p: tabstractprocdef;
+function tcpuparamanager.create_varargs_paraloc_info(p: tabstractprocdef;
   varargspara: tvarargsparalist): longint;
 var
   cur_stack_offset: aword;
@@ -768,7 +768,7 @@ begin
     include(varargspara.varargsinfo, va_uses_float_reg);
 end;
 
-function tppcparamanager.parseparaloc(p: tparavarsym; const s: string): boolean;
+function tcpuparamanager.parseparaloc(p: tparavarsym; const s: string): boolean;
 begin
   { not supported/required for PowerPC64-linux target }
   internalerror(200404182);
@@ -777,6 +777,6 @@ end;
 
 
 begin
-  paramanager := tppcparamanager.create;
+  paramanager := tcpuparamanager.create;
 end.
 

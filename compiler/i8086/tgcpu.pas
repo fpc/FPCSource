@@ -37,7 +37,7 @@ unit tgcpu;
 
       ttgi8086 = class(ttgobj)
       protected
-        procedure alloctemp(list: TAsmList; size,alignment : longint; temptype : ttemptype; def:tdef; out ref: treference);override;
+        procedure alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference);override;
       end;
 
 implementation
@@ -47,7 +47,7 @@ uses
 
 { ttgi8086 }
 
-procedure ttgi8086.alloctemp(list: TAsmList; size, alignment: longint; temptype: ttemptype; def: tdef; out ref: treference);
+procedure ttgi8086.alloctemp(list: TAsmList; size: asizeint; alignment: shortint; temptype: ttemptype; def: tdef; fini: boolean; out ref: treference);
   begin
     inherited;
     ref.segment:=NR_SS;

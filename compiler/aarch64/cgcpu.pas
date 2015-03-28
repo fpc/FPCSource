@@ -36,13 +36,13 @@ interface
     type
       tcgaarch64=class(tcg)
        protected
+        { changes register size without adding register allocation info }
+        function makeregsize(reg: tregister; size: tcgsize): tregister; overload;
+       public
         { simplifies "ref" so it can be used with "op". If "ref" can be used
           with a different load/Store operation that has the same meaning as the
           original one, "op" will be replaced with the alternative }
         procedure make_simple_ref(list:TAsmList; var op: tasmop; size: tcgsize; oppostfix: toppostfix; var ref: treference; preferred_newbasereg: tregister);
-        { changes register size without adding register allocation info }
-        function makeregsize(reg: tregister; size: tcgsize): tregister; overload;
-       public
         function getfpuregister(list: TAsmList; size: Tcgsize): Tregister; override;
         procedure handle_reg_imm12_reg(list: TAsmList; op: Tasmop; size: tcgsize; src: tregister; a: tcgint; dst: tregister; tmpreg: tregister; setflags, usedest: boolean);
         procedure init_register_allocators;override;
@@ -100,7 +100,6 @@ interface
         procedure g_concatcopy_move(list: TAsmList; const source, dest: treference; len: tcgint);
         procedure g_concatcopy(list: TAsmList; const source, dest: treference; len: tcgint);override;
         procedure g_adjust_self_value(list: TAsmList; procdef: tprocdef; ioffset: tcgint);override;
-        procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
        private
         function save_regs(list: TAsmList; rt: tregistertype; lowsr, highsr: tsuperregister; sub: tsubregister): longint;
         procedure load_regs(list: TAsmList; rt: tregistertype; lowsr, highsr: tsuperregister; sub: tsubregister);
@@ -2207,72 +2206,6 @@ implementation
         InternalError(2013020102);
       end;
 
-
-    procedure tcgaarch64.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
-      var
-        make_global: boolean;
-        href: treference;
-        hsym: tsym;
-        paraloc: pcgparalocation;
-        op: tasmop;
-      begin
-        if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
-          Internalerror(200006137);
-        if not assigned(procdef.struct) or
-           (procdef.procoptions*[po_classmethod, po_staticmethod,
-             po_methodpointer, po_interrupt, po_iocheck]<>[]) then
-          Internalerror(200006138);
-        if procdef.owner.symtabletype<>ObjectSymtable then
-          Internalerror(200109191);
-
-        make_global:=false;
-        if (not current_module.is_unit) or create_smartlink_library or
-           (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
-          make_global:=true;
-
-        if make_global then
-          list.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
-        else
-          list.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
-
-        { set param1 interface to self  }
-        procdef.init_paraloc_info(callerside);
-        hsym:=tsym(procdef.parast.Find('self'));
-        if not(assigned(hsym) and
-          (hsym.typ=paravarsym)) then
-          internalerror(2010103101);
-        paraloc:=tparavarsym(hsym).paraloc[callerside].location;
-        if assigned(paraloc^.next) then
-          InternalError(2013020101);
-
-        case paraloc^.loc of
-          LOC_REGISTER:
-            handle_reg_imm12_reg(list,A_SUB,paraloc^.size,paraloc^.register,ioffset,paraloc^.register,NR_IP0,false,true);
-          else
-            internalerror(2010103102);
-        end;
-
-        if (po_virtualmethod in procdef.procoptions) and
-            not is_objectpascal_helper(procdef.struct) then
-          begin
-            if (procdef.extnumber=$ffff) then
-              Internalerror(200006139);
-            { mov  0(%rdi),%rax ; load vmt}
-            reference_reset_base(href,paraloc^.register,0,sizeof(pint));
-            getcpuregister(list,NR_IP0);
-            a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_IP0);
-            { jmp *vmtoffs(%eax) ; method offs }
-            reference_reset_base(href,NR_IP0,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
-            op:=A_LDR;
-            make_simple_ref(list,op,OS_ADDR,PF_None,href,NR_IP0);
-            list.concat(taicpu.op_reg_ref(op,NR_IP0,href));
-            ungetcpuregister(list,NR_IP0);
-            list.concat(taicpu.op_reg(A_BR,NR_IP0));
-          end
-        else
-          a_jmp_name(list,procdef.mangledname);
-        list.concat(Tai_symbol_end.Createname(labelname));
-      end;
 
 
     procedure create_codegen;

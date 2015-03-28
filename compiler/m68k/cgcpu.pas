@@ -85,7 +85,6 @@ unit cgcpu;
         procedure g_restore_registers(list:TAsmList);override;
 
         procedure g_adjust_self_value(list:TAsmList;procdef:tprocdef;ioffset:tcgint);override;
-        procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
 
         { # Sign or zero extend the register to a full 32-bit value.
             The new value is left in the same register.
@@ -2160,87 +2159,6 @@ unit cgcpu;
               end;
               paraloc:=next;
             end;
-      end;
-
-
-    procedure tcg68k.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
-
-        procedure getselftoa0(offs:longint);
-          var
-            href : treference;
-            selfoffsetfromsp : longint;
-          begin
-            { move.l offset(%sp),%a0 }
-
-            { framepointer is pushed for nested procs }
-            if procdef.parast.symtablelevel>normal_function_level then
-              selfoffsetfromsp:=sizeof(aint)
-            else
-              selfoffsetfromsp:=0;
-            reference_reset_base(href,NR_SP,selfoffsetfromsp+offs,4);
-            cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_A0);
-          end;
-
-        procedure loadvmttoa0;
-        var
-          href : treference;
-        begin
-          { move.l  (%a0),%a0 ; load vmt}
-          reference_reset_base(href,NR_A0,0,4);
-          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_A0);
-        end;
-
-        procedure op_ona0methodaddr;
-        var
-          href : treference;
-        begin
-          if (procdef.extnumber=$ffff) then
-            Internalerror(2013100701);
-          reference_reset_base(href,NR_A0,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4);
-          list.concat(taicpu.op_ref_reg(A_MOVE,S_L,href,NR_A0));
-          reference_reset_base(href,NR_A0,0,4);
-          list.concat(taicpu.op_ref(A_JMP,S_NO,href));
-        end;
-
-      var
-        make_global : boolean;
-      begin
-        if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
-          Internalerror(200006137);
-        if not assigned(procdef.struct) or
-           (procdef.procoptions*[po_classmethod, po_staticmethod,
-             po_methodpointer, po_interrupt, po_iocheck]<>[]) then
-          Internalerror(200006138);
-        if procdef.owner.symtabletype<>ObjectSymtable then
-          Internalerror(200109191);
-
-        make_global:=false;
-        if (not current_module.is_unit) or
-           create_smartlink or
-           (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
-          make_global:=true;
-
-        if make_global then
-          List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
-        else
-          List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
-
-        { set param1 interface to self  }
-        g_adjust_self_value(list,procdef,ioffset);
-
-        { case 4 }
-        if (po_virtualmethod in procdef.procoptions) and
-            not is_objectpascal_helper(procdef.struct) then
-          begin
-            getselftoa0(4);
-            loadvmttoa0;
-            op_ona0methodaddr;
-          end
-        { case 0 }
-        else
-          list.concat(taicpu.op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(procdef.mangledname)));
-
-        List.concat(Tai_symbol_end.Createname(labelname));
       end;
 
 

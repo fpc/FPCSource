@@ -30,7 +30,7 @@ unit rgcpu;
     uses
       cpubase,
       cpuinfo,
-      aasmbase,aasmtai,aasmdata,aasmcpu,
+      aasmbase,aasmtai,aasmsym,aasmdata,aasmcpu,
       cclasses,globtype,cgbase,cgutils,rgobj,rgx86;
 
     type
@@ -38,7 +38,7 @@ unit rgcpu;
        { trgcpu }
 
        trgcpu = class(trgx86)
-          function  do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;override;
+          function  do_spill_replace(list:TAsmList;instr:tai_cpu_abstract_sym;orgreg:tsuperregister;const spilltemp:treference):boolean;override;
           procedure add_constraints(reg:Tregister);override;
        end;
 
@@ -62,7 +62,7 @@ implementation
                                  trgcpu
 *************************************************************************}
 
-    function trgcpu.do_spill_replace(list: TAsmList; instr: taicpu; orgreg: tsuperregister; const spilltemp: treference): boolean;
+    function trgcpu.do_spill_replace(list:TAsmList;instr:tai_cpu_abstract_sym;orgreg:tsuperregister;const spilltemp:treference): boolean;
       var
         spilltemp2: treference;
       begin

@@ -594,14 +594,21 @@ implementation
                end;
              end;
 
-           ait_real_32bit :
-             AsmWriteLn(#9#9'DD'#9+single2str(tai_real_32bit(hp).value));
-           ait_real_64bit :
-             AsmWriteLn(#9#9'DQ'#9+double2str(tai_real_64bit(hp).value));
-           ait_real_80bit :
-             AsmWriteLn(#9#9'DT'#9+extended2str(tai_real_80bit(hp).value));
-           ait_comp_64bit :
-             AsmWriteLn(#9#9'DQ'#9+extended2str(tai_comp_64bit(hp).value));
+           ait_realconst:
+             begin
+               case tai_realconst(hp).realtyp of
+                 aitrealconst_s32bit:
+                   AsmWriteLn(#9#9'DD'#9+single2str(tai_realconst(hp).value.s32val));
+                 aitrealconst_s64bit:
+                   AsmWriteLn(#9#9'DQ'#9+double2str(tai_realconst(hp).value.s64val));
+                 aitrealconst_s80bit:
+                   AsmWriteLn(#9#9'DT'#9+extended2str(tai_realconst(hp).value.s80val));
+                 aitrealconst_s64comp:
+                   AsmWriteLn(#9#9'DQ'#9+extended2str(tai_realconst(hp).value.s64compval));
+                 else
+                   internalerror(2014050604);
+               end;
+             end;
            ait_string :
              begin
                counter := 0;
@@ -684,8 +691,7 @@ implementation
                 begin
                   AsmWrite(tai_label(hp).labsym.name);
                   if assigned(hp.next) and not(tai(hp.next).typ in
-                     [ait_const,
-                      ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_string]) then
+                     [ait_const,ait_realconst,ait_string]) then
                    AsmWriteLn(':')
                   else
                    DoNotSplitLine:=true;
@@ -699,8 +705,7 @@ implementation
                  AsmWriteLn(#9'PUBLIC'#9+tai_symbol(hp).sym.name);
                AsmWrite(tai_symbol(hp).sym.name);
                if assigned(hp.next) and not(tai(hp.next).typ in
-                  [ait_const,
-                   ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_string]) then
+                  [ait_const,ait_realconst,ait_string]) then
                 AsmWriteLn(':')
              end;
            ait_symbol_end :

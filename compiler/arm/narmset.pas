@@ -37,7 +37,7 @@ interface
 
        tarminnode = class(tcginnode)
          function pass_1: tnode; override;
-         procedure in_smallset(uopsize: tcgsize; opdef: tdef; setbase: aint); override;
+         procedure in_smallset(opdef: tdef; setbase: aint); override;
        end;
 
       tarmcasenode = class(tcgcasenode)
@@ -77,7 +77,7 @@ implementation
           end;
       end;
 
-    procedure tarminnode.in_smallset(uopsize: tcgsize; opdef: tdef; setbase: aint);
+    procedure tarminnode.in_smallset(opdef: tdef; setbase: aint);
       var
         so : tshifterop;
         hregister : tregister;
@@ -101,7 +101,7 @@ implementation
             hlcg.location_force_reg(current_asmdata.CurrAsmList, right.location,
              right.resultdef, right.resultdef, true);
 
-            hregister:=cg.getintregister(current_asmdata.CurrAsmList, uopsize);
+            hregister:=hlcg.getintregister(current_asmdata.CurrAsmList, opdef);
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_MOV,hregister,1));
 
             if GenerateThumbCode or GenerateThumb2Code then

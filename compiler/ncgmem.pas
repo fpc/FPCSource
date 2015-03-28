@@ -49,6 +49,9 @@ interface
        end;
 
        tcgsubscriptnode = class(tsubscriptnode)
+         protected
+          function handle_platform_subscript: boolean; virtual;
+         public
           procedure pass_generate_code;override;
        end;
 
@@ -307,7 +310,7 @@ implementation
             paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
             paraloc1.done;
             hlcg.allocallcpuregisters(current_asmdata.CurrAsmList);
-            hlcg.a_call_name(current_asmdata.CurrAsmList,pd,'FPC_CHECKPOINTER',nil,false);
+            hlcg.a_call_name(current_asmdata.CurrAsmList,pd,'FPC_CHECKPOINTER',[@paraloc1],nil,false);
             hlcg.deallocallcpuregisters(current_asmdata.CurrAsmList);
           end;
       end;
@@ -316,6 +319,11 @@ implementation
 {*****************************************************************************
                           TCGSUBSCRIPTNODE
 *****************************************************************************}
+
+    function tcgsubscriptnode.handle_platform_subscript: boolean;
+      begin
+        result:=false;
+      end;
 
     procedure tcgsubscriptnode.pass_generate_code;
       var
@@ -389,7 +397,7 @@ implementation
                     hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,left.resultdef,location.reference.base,paraloc1);
                     paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                     hlcg.allocallcpuregisters(current_asmdata.CurrAsmList);
-                    hlcg.a_call_name(current_asmdata.CurrAsmList,pd,'FPC_CHECKPOINTER',nil,false);
+                    hlcg.a_call_name(current_asmdata.CurrAsmList,pd,'FPC_CHECKPOINTER',[@paraloc1],nil,false);
                     hlcg.deallocallcpuregisters(current_asmdata.CurrAsmList);
                   end;
                end
@@ -527,15 +535,9 @@ implementation
              { always packrecords C -> natural alignment }
              location.reference.alignment:=vs.vardef.alignment;
            end
-         else if is_java_class_or_interface(left.resultdef) or
-                 ((target_info.system in systems_jvm) and
-                  (left.resultdef.typ=recorddef)) then
+         else if handle_platform_subscript then
            begin
-             if (location.loc<>LOC_REFERENCE) or
-                (location.reference.index<>NR_NO) or
-                assigned(location.reference.symbol) then
-               internalerror(2011011301);
-             location.reference.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname);
+             { done }
            end
          else if (location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
            begin

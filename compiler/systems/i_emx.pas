@@ -100,6 +100,7 @@ unit i_emx;
             stacksize    : 256*1024;
             stackalign   : 4;
             abi          : abi_default;
+            llvmdatalayout : 'todo';
           );
 
 

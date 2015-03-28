@@ -29,6 +29,7 @@ unit hlcgcpu;
 interface
 
   uses
+    globtype,
     aasmdata,
     symtype,symdef,parabase,
     cgbase,cgutils,
@@ -42,6 +43,12 @@ interface
      public
       procedure g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister); override;
       procedure g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation); override;
+      procedure g_exception_reason_save(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const href: treference); override;
+      procedure g_exception_reason_save_const(list: TAsmList; size: tdef; a: tcgint; const href: treference); override;
+      procedure g_exception_reason_load(list: TAsmList; fromsize, tosize: tdef; const href: treference; reg: tregister); override;
+      procedure g_exception_reason_discard(list: TAsmList; size: tdef; href: treference); override;
+
+      procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
     end;
 
   procedure create_hlcodegen;
@@ -49,9 +56,12 @@ interface
 implementation
 
   uses
-    globtype,verbose,
+    verbose,
+    fmodule,systems,
+    aasmbase,aasmtai,
     paramgr,
-    cpubase,tgobj,cgobj,cgcpu;
+    symconst,symsym,defutil,
+    cpubase,aasmcpu,tgobj,cgobj,cgx86,cgcpu;
 
   { thlcgcpu }
 
@@ -192,6 +202,221 @@ implementation
     end;
 
 
+  procedure thlcgcpu.g_exception_reason_save(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const href: treference);
+    begin
+      if not paramanager.use_fixed_stack then
+        list.concat(Taicpu.op_reg(A_PUSH,tcgsize2opsize[def_cgsize(tosize)],reg))
+      else
+        inherited
+    end;
+
+
+  procedure thlcgcpu.g_exception_reason_save_const(list: TAsmList; size: tdef; a: tcgint; const href: treference);
+    begin
+      if not paramanager.use_fixed_stack then
+        list.concat(Taicpu.op_const(A_PUSH,tcgsize2opsize[def_cgsize(size)],a))
+      else
+        inherited;
+    end;
+
+
+  procedure thlcgcpu.g_exception_reason_load(list: TAsmList; fromsize, tosize: tdef; const href: treference; reg: tregister);
+    begin
+      if not paramanager.use_fixed_stack then
+        list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[def_cgsize(tosize)],reg))
+      else
+        inherited;
+    end;
+
+
+  procedure thlcgcpu.g_exception_reason_discard(list: TAsmList; size: tdef; href: treference);
+    begin
+      if not paramanager.use_fixed_stack then
+        begin
+          getcpuregister(list,NR_FUNCTION_RESULT_REG);
+          list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[def_cgsize(size)],NR_FUNCTION_RESULT_REG));
+          ungetcpuregister(list,NR_FUNCTION_RESULT_REG);
+        end;
+    end;
+
+
+  procedure thlcgcpu.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
+    {
+    possible calling conventions:
+                  default stdcall cdecl pascal register
+    default(0):      OK     OK    OK     OK       OK
+    virtual(1):      OK     OK    OK     OK       OK(2 or 1)
+
+    (0):
+        set self parameter to correct value
+        jmp mangledname
+
+    (1): The wrapper code use %ecx to reach the virtual method address
+         set self to correct value
+         move self,%eax
+         mov  0(%eax),%ecx ; load vmt
+         jmp  vmtoffs(%ecx) ; method offs
+
+    (2): Virtual use values pushed on stack to reach the method address
+         so the following code be generated:
+         set self to correct value
+         push %ebx ; allocate space for function address
+         push %eax
+         mov  self,%eax
+         mov  0(%eax),%eax ; load vmt
+         mov  vmtoffs(%eax),eax ; method offs
+         mov  %eax,4(%esp)
+         pop  %eax
+         ret  0; jmp the address
+
+    }
+
+    { returns whether ECX is used (either as a parameter or is nonvolatile and shouldn't be changed) }
+    function is_ecx_used: boolean;
+      var
+        i: Integer;
+        hp: tparavarsym;
+        paraloc: PCGParaLocation;
+      begin
+        if not (RS_ECX in paramanager.get_volatile_registers_int(procdef.proccalloption)) then
+          exit(true);
+        for i:=0 to procdef.paras.count-1 do
+         begin
+           hp:=tparavarsym(procdef.paras[i]);
+           procdef.init_paraloc_info(calleeside);
+           paraloc:=hp.paraloc[calleeside].Location;
+           while paraloc<>nil do
+             begin
+               if (paraloc^.Loc=LOC_REGISTER) and (getsupreg(paraloc^.register)=RS_ECX) then
+                 exit(true);
+               paraloc:=paraloc^.Next;
+             end;
+         end;
+        Result:=false;
+      end;
+
+    procedure getselftoeax(offs: longint);
+      var
+        href : treference;
+        selfoffsetfromsp : longint;
+      begin
+        { mov offset(%esp),%eax }
+        if (procdef.proccalloption<>pocall_register) then
+          begin
+            { framepointer is pushed for nested procs }
+            if procdef.parast.symtablelevel>normal_function_level then
+              selfoffsetfromsp:=2*sizeof(aint)
+            else
+              selfoffsetfromsp:=sizeof(aint);
+            reference_reset_base(href,voidstackpointertype,NR_ESP,selfoffsetfromsp+offs,4);
+            cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
+          end;
+      end;
+
+    procedure loadvmtto(reg: tregister);
+      var
+        href : treference;
+      begin
+        { mov  0(%eax),%reg ; load vmt}
+        reference_reset_base(href,voidpointertype,NR_EAX,0,4);
+        cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,reg);
+      end;
+
+    procedure op_onregmethodaddr(op: TAsmOp; reg: tregister);
+      var
+        href : treference;
+      begin
+        if (procdef.extnumber=$ffff) then
+          Internalerror(200006139);
+        { call/jmp  vmtoffs(%reg) ; method offs }
+        reference_reset_base(href,voidpointertype,reg,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4);
+        list.concat(taicpu.op_ref(op,S_L,href));
+      end;
+
+
+    procedure loadmethodoffstoeax;
+      var
+        href : treference;
+      begin
+        if (procdef.extnumber=$ffff) then
+          Internalerror(200006139);
+        { mov vmtoffs(%eax),%eax ; method offs }
+        reference_reset_base(href,voidpointertype,NR_EAX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4);
+        cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
+      end;
+
+
+    var
+      lab : tasmsymbol;
+      make_global : boolean;
+      href : treference;
+    begin
+      if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
+        Internalerror(200006137);
+      if not assigned(procdef.struct) or
+         (procdef.procoptions*[po_classmethod, po_staticmethod,
+           po_methodpointer, po_interrupt, po_iocheck]<>[]) then
+        Internalerror(200006138);
+      if procdef.owner.symtabletype<>ObjectSymtable then
+        Internalerror(200109191);
+
+      make_global:=false;
+      if (not current_module.is_unit) or
+         create_smartlink or
+         (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
+        make_global:=true;
+
+      if make_global then
+        List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
+      else
+        List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
+
+      { set param1 interface to self  }
+      g_adjust_self_value(list,procdef,ioffset);
+
+      if (po_virtualmethod in procdef.procoptions) and
+          not is_objectpascal_helper(procdef.struct) then
+        begin
+          if (procdef.proccalloption=pocall_register) and is_ecx_used then
+            begin
+              { case 2 }
+              list.concat(taicpu.op_reg(A_PUSH,S_L,NR_EBX)); { allocate space for address}
+              list.concat(taicpu.op_reg(A_PUSH,S_L,NR_EAX));
+              getselftoeax(8);
+              loadvmtto(NR_EAX);
+              loadmethodoffstoeax;
+              { mov %eax,4(%esp) }
+              reference_reset_base(href,voidstackpointertype,NR_ESP,4,4);
+              list.concat(taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
+              { pop  %eax }
+              list.concat(taicpu.op_reg(A_POP,S_L,NR_EAX));
+              { ret  ; jump to the address }
+              list.concat(taicpu.op_none(A_RET,S_L));
+            end
+          else
+            begin
+              { case 1 }
+              getselftoeax(0);
+              loadvmtto(NR_ECX);
+              op_onregmethodaddr(A_JMP,NR_ECX);
+            end;
+        end
+      { case 0 }
+      else
+        begin
+          if (target_info.system <> system_i386_darwin) then
+            begin
+              lab:=current_asmdata.RefAsmSymbol(procdef.mangledname);
+              list.concat(taicpu.op_sym(A_JMP,S_NO,lab))
+            end
+          else
+            list.concat(taicpu.op_sym(A_JMP,S_NO,tcgx86(cg).get_darwin_call_stub(procdef.mangledname,false)))
+        end;
+
+      List.concat(Tai_symbol_end.Createname(labelname));
+    end;
+
+
   procedure create_hlcodegen;
     begin
       hlcg:=thlcgcpu.create;
@@ -200,4 +425,6 @@ implementation
 
 
 
+begin
+  chlcgobj:=thlcgcpu;
 end.

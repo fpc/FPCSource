@@ -153,7 +153,7 @@ begin
     loadsigned(tfloatdef(resultdef).floattype)
   else
   begin
-    current_asmdata.getdatalabel(l1);
+    current_asmdata.getglobaldatalabel(l1);
     current_asmdata.getjumplabel(l2);
     reference_reset_symbol(href, l1, 0, sizeof(aint));
     hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
@@ -170,7 +170,7 @@ begin
         hregister := cg.getfpuregister(current_asmdata.CurrAsmList, OS_F64);
         new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,const_align(8));
         current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
-        current_asmdata.asmlists[al_typedconsts].concat(Tai_real_64bit.Create(4294967296.0));
+        current_asmdata.asmlists[al_typedconsts].concat(tai_realconst.create_s64real(4294967296.0));
 
         cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList, OS_F64, OS_F64, href, hregister);
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD_D, location.Register, hregister, location.Register));

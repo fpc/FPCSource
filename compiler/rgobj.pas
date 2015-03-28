@@ -31,7 +31,7 @@ unit rgobj;
 
     uses
       cutils, cpubase,
-      aasmbase,aasmtai,aasmdata,aasmcpu,
+      aasmbase,aasmtai,aasmdata,aasmsym,aasmcpu,
       cclasses,globtype,cgbase,cgutils,
       cpuinfo
       ;
@@ -101,6 +101,9 @@ unit rgobj;
         degree   : TSuperregister;
         flags    : Treginfoflagset;
         weight   : longint;
+{$ifdef llvm}
+        def      : pointer;
+{$endif llvm}
       end;
       Preginfo=^TReginfo;
 
@@ -111,11 +114,16 @@ unit rgobj;
           register that will have to replace it }
         spillregconstraints : set of TSubRegister;
         orgreg : tsuperregister;
-        tempreg : tregister;
-        regread,regwritten, mustbespilled: boolean;
+        loadreg,
+        storereg: tregister;
+        regread, regwritten, mustbespilled: boolean;
       end;
-      tspillregsinfo = array[0..3] of tspillreginfo;
+      tspillregsinfo = record
+        reginfocount: longint;
+        reginfo: array[0..3] of tspillreginfo;
+      end;
 
+      Pspill_temp_list=^Tspill_temp_list;
       Tspill_temp_list=array[tsuperregister] of Treference;
 
       {#------------------------------------------------------------------
@@ -131,6 +139,8 @@ unit rgobj;
        trgobj=class
         preserved_by_proc : tcpuregisterset;
         used_in_proc : tcpuregisterset;
+        { generate SSA code? }
+        ssa_safe: boolean;
 
         constructor create(Aregtype:Tregistertype;
                            Adefaultsub:Tsubregister;
@@ -168,32 +178,38 @@ unit rgobj;
         { default subregister used }
         defaultsub        : tsubregister;
         live_registers:Tsuperregisterworklist;
+        spillednodes: tsuperregisterworklist;
+
         { can be overridden to add cpu specific interferences }
         procedure add_cpu_interferences(p : tai);virtual;
         procedure add_constraints(reg:Tregister);virtual;
         function  getregisterinline(list:TAsmList;const subregconstraints:Tsubregisterset):Tregister;
         procedure ungetregisterinline(list:TAsmList;r:Tregister);
         function  get_spill_subreg(r : tregister) : tsubregister;virtual;
-        function  do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;virtual;
-        procedure do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);virtual;
-        procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);virtual;
+        function  do_spill_replace(list:TAsmList;instr:tai_cpu_abstract_sym;orgreg:tsuperregister;const spilltemp:treference):boolean;virtual;
+        { the orgrsupeg parameter is only here for the llvm target, so it can
+          discover the def to use for the load }
+        procedure do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister;orgsupreg:tsuperregister);virtual;
+        procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister;orgsupreg:tsuperregister);virtual;
 
         function instr_spill_register(list:TAsmList;
-                                      instr:taicpu;
+                                      instr:tai_cpu_abstract_sym;
                                       const r:Tsuperregisterset;
                                       const spilltemplist:Tspill_temp_list): boolean;virtual;
         procedure insert_regalloc_info_all(list:TAsmList);
+        procedure determine_spill_registers(list:TAsmList;headertail:tai); virtual;
+        procedure get_spill_temp(list:TAsmlist;spill_temps: Pspill_temp_list; supreg: tsuperregister);virtual;
+      strict protected
+        { Highest register allocated until now.}
+        reginfo           : PReginfo;
       private
         int_live_range_direction: TRADirection;
         { First imaginary register.}
         first_imaginary   : Tsuperregister;
-        { Highest register allocated until now.}
-        reginfo           : PReginfo;
         usable_registers_cnt : word;
         usable_registers  : array[0..maxcpuregister] of tsuperregister;
         usable_register_set : tcpuregisterset;
         ibitmap           : Tinterferencebitmap;
-        spillednodes,
         simplifyworklist,
         freezeworklist,
         spillworklist,
@@ -390,8 +406,9 @@ unit rgobj;
          regtype:=Aregtype;
          defaultsub:=Adefaultsub;
          preserved_by_proc:=Apreserved_by_proc;
-         // default value set by newinstance
+         // default values set by newinstance
          // used_in_proc:=[];
+         // ssa_safe:=false;
          live_registers.init;
          { Get reginfo for CPU registers }
          maxreginfo:=first_imaginary;
@@ -566,9 +583,7 @@ unit rgobj;
         {Do register allocation.}
         spillingcounter:=0;
         repeat
-          prepare_colouring;
-          colour_registers;
-          epilogue_colouring;
+          determine_spill_registers(list,headertai);
           endspill:=true;
           if spillednodes.length<>0 then
             begin
@@ -1632,6 +1647,34 @@ unit rgobj;
       end;
 
 
+    procedure trgobj.determine_spill_registers(list: TAsmList; headertail: tai);
+      begin
+        prepare_colouring;
+        colour_registers;
+        epilogue_colouring;
+      end;
+
+
+    procedure trgobj.get_spill_temp(list: TAsmlist; spill_temps: Pspill_temp_list; supreg: tsuperregister);
+      var
+        size: ptrint;
+      begin
+        {Get a temp for the spilled register, the size must at least equal a complete register,
+         take also care of the fact that subreg can be larger than a single register like doubles
+         that occupy 2 registers }
+        { only force the whole register in case of integers. Storing a register that contains
+          a single precision value as a double can cause conversion errors on e.g. ARM VFP }
+        if (regtype=R_INTREGISTER) then
+          size:=max(tcgsize2size[reg_cgsize(newreg(regtype,supreg,R_SUBWHOLE))],
+                         tcgsize2size[reg_cgsize(newreg(regtype,supreg,reginfo[supreg].subreg))])
+        else
+          size:=tcgsize2size[reg_cgsize(newreg(regtype,supreg,reginfo[supreg].subreg))];
+        tg.gettemp(list,
+                   size,size,
+                   tt_noreuse,spill_temps^[supreg]);
+      end;
+
+
     procedure trgobj.add_cpu_interferences(p : tai);
       begin
       end;
@@ -1909,7 +1952,6 @@ unit rgobj;
         spill_temps : ^Tspill_temp_list;
         supreg : tsuperregister;
         templist : TAsmList;
-        size: ptrint;
       begin
         spill_registers:=false;
         live_registers.clear;
@@ -1928,19 +1970,7 @@ unit rgobj;
               supregset_include(regs_to_spill_set,t);
               {Clear all interferences of the spilled register.}
               clear_interferences(t);
-              {Get a temp for the spilled register, the size must at least equal a complete register,
-               take also care of the fact that subreg can be larger than a single register like doubles
-               that occupy 2 registers }
-              { only force the whole register in case of integers. Storing a register that contains
-                a single precision value as a double can cause conversion errors on e.g. ARM VFP }
-              if (regtype=R_INTREGISTER) then
-                size:=max(tcgsize2size[reg_cgsize(newreg(regtype,t,R_SUBWHOLE))],
-                               tcgsize2size[reg_cgsize(newreg(regtype,t,reginfo[t].subreg))])
-              else
-                size:=tcgsize2size[reg_cgsize(newreg(regtype,t,reginfo[t].subreg))];
-              tg.gettemp(templist,
-                         size,size,
-                         tt_noreuse,spill_temps^[t]);
+              get_spill_temp(templist,spill_temps,t);
             end;
         list.insertlistafter(headertai,templist);
         templist.free;
@@ -1976,12 +2006,15 @@ unit rgobj;
                           end;
                       end;
                   end;
+{$ifdef llvm}
+              ait_llvmins,
+{$endif llvm}
               ait_instruction:
-                with Taicpu(p) do
+                with tai_cpu_abstract_sym(p) do
                   begin
-//                    writeln(gas_op2str[taicpu(p).opcode]);
+//                    writeln(gas_op2str[tai_cpu_abstract_sym(p).opcode]);
                     current_filepos:=fileinfo;
-                    if instr_spill_register(list,taicpu(p),regs_to_spill_set,spill_temps^) then
+                    if instr_spill_register(list,tai_cpu_abstract_sym(p),regs_to_spill_set,spill_temps^) then
                       spill_registers:=true;
                   end;
             end;
@@ -1996,15 +2029,15 @@ unit rgobj;
       end;
 
 
-    function trgobj.do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;
+    function trgobj.do_spill_replace(list:TAsmList;instr:tai_cpu_abstract_sym;orgreg:tsuperregister;const spilltemp:treference):boolean;
       begin
         result:=false;
       end;
 
 
-    procedure trgobj.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
+    procedure trgobj.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister;orgsupreg:tsuperregister);
       var
-        ins:Taicpu;
+        ins:tai_cpu_abstract_sym;
       begin
         ins:=spilling_create_load(spilltemp,tempreg);
         add_cpu_interferences(ins);
@@ -2015,9 +2048,9 @@ unit rgobj;
       end;
 
 
-    procedure Trgobj.do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
+    procedure Trgobj.do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister;orgsupreg:tsuperregister);
       var
-        ins:Taicpu;
+        ins:tai_cpu_abstract_sym;
       begin
         ins:=spilling_create_store(tempreg,spilltemp);
         add_cpu_interferences(ins);
@@ -2035,65 +2068,68 @@ unit rgobj;
 
 
     function trgobj.instr_spill_register(list:TAsmList;
-                                         instr:taicpu;
+                                         instr:tai_cpu_abstract_sym;
                                          const r:Tsuperregisterset;
                                          const spilltemplist:Tspill_temp_list): boolean;
       var
-        counter, regindex: longint;
+        counter: longint;
         regs: tspillregsinfo;
         spilled: boolean;
 
       procedure addreginfo(reg: tregister; operation: topertype);
         var
           i, tmpindex: longint;
-          supreg : tsuperregister;
+          supreg: tsuperregister;
         begin
-          tmpindex := regindex;
-          supreg:=get_alias(getsupreg(reg));
+          tmpindex := regs.reginfocount;
+          supreg := get_alias(getsupreg(reg));
           { did we already encounter this register? }
-          for i := 0 to pred(regindex) do
-            if (regs[i].orgreg = supreg) then
+          for i := 0 to pred(regs.reginfocount) do
+            if (regs.reginfo[i].orgreg = supreg) then
               begin
                 tmpindex := i;
                 break;
               end;
-          if tmpindex > high(regs) then
+          if tmpindex > high(regs.reginfo) then
             internalerror(2003120301);
-          regs[tmpindex].orgreg := supreg;
-          include(regs[tmpindex].spillregconstraints,get_spill_subreg(reg));
+          regs.reginfo[tmpindex].orgreg := supreg;
+          include(regs.reginfo[tmpindex].spillregconstraints,get_spill_subreg(reg));
           if supregset_in(r,supreg) then
             begin
               { add/update info on this register }
-              regs[tmpindex].mustbespilled := true;
+              regs.reginfo[tmpindex].mustbespilled := true;
               case operation of
                 operand_read:
-                  regs[tmpindex].regread := true;
+                  regs.reginfo[tmpindex].regread := true;
                 operand_write:
-                  regs[tmpindex].regwritten := true;
+                  regs.reginfo[tmpindex].regwritten := true;
                 operand_readwrite:
                   begin
-                    regs[tmpindex].regread := true;
-                    regs[tmpindex].regwritten := true;
+                    regs.reginfo[tmpindex].regread := true;
+                    regs.reginfo[tmpindex].regwritten := true;
                   end;
               end;
               spilled := true;
             end;
-          inc(regindex,ord(regindex=tmpindex));
+          inc(regs.reginfocount,ord(regs.reginfocount=tmpindex));
         end;
 
 
-      procedure tryreplacereg(var reg: tregister);
+      procedure tryreplacereg(var reg: tregister; useloadreg: boolean);
         var
           i: longint;
           supreg: tsuperregister;
         begin
           supreg:=get_alias(getsupreg(reg));
-          for i:=0 to pred(regindex) do
-            if (regs[i].mustbespilled) and
-               (regs[i].orgreg=supreg) then
+          for i:=0 to pred(regs.reginfocount) do
+            if (regs.reginfo[i].mustbespilled) and
+               (regs.reginfo[i].orgreg=supreg) then
               begin
                 { Only replace supreg }
-                setsupreg(reg,getsupreg(regs[i].tempreg));
+                if useloadreg then
+                  setsupreg(reg,getsupreg(regs.reginfo[i].loadreg))
+                else
+                  setsupreg(reg,getsupreg(regs.reginfo[i].storereg));
                 break;
               end;
         end;
@@ -2106,10 +2142,13 @@ unit rgobj;
       begin
         result := false;
         fillchar(regs,sizeof(regs),0);
-        for counter := low(regs) to high(regs) do
-          regs[counter].orgreg := RS_INVALID;
+        for counter := low(regs.reginfo) to high(regs.reginfo) do
+          begin
+            regs.reginfo[counter].orgreg := RS_INVALID;
+            regs.reginfo[counter].loadreg := NR_INVALID;
+            regs.reginfo[counter].storereg := NR_INVALID;
+          end;
         spilled := false;
-        regindex := 0;
 
         { check whether and if so which and how (read/written) this instructions contains
           registers that must be spilled }
@@ -2161,8 +2200,8 @@ unit rgobj;
 
           For non-x86 it is nevertheless possible to replace moves to/from the register
           with loads/stores to spilltemp (Sergei) }
-        for counter := 0 to pred(regindex) do
-          with regs[counter] do
+        for counter := 0 to pred(regs.reginfocount) do
+          with regs.reginfo[counter] do
             begin
               if mustbespilled then
                 begin
@@ -2230,22 +2269,24 @@ unit rgobj;
         loadpos:=tai(loadpos.next);
 
         { Load the spilled registers }
-        for counter := 0 to pred(regindex) do
-          with regs[counter] do
+        for counter := 0 to pred(regs.reginfocount) do
+          with regs.reginfo[counter] do
             begin
               if mustbespilled and regread then
                 begin
-                  tempreg:=getregisterinline(list,regs[counter].spillregconstraints);
-                  do_spill_read(list,tai(loadpos.previous),spilltemplist[orgreg],tempreg);
+                  loadreg:=getregisterinline(list,regs.reginfo[counter].spillregconstraints);
+                  do_spill_read(list,tai(loadpos.previous),spilltemplist[orgreg],loadreg,orgreg);
                 end;
             end;
 
         { Release temp registers of read-only registers, and add reference of the instruction
           to the reginfo }
-        for counter := 0 to pred(regindex) do
-          with regs[counter] do
+        for counter := 0 to pred(regs.reginfocount) do
+          with regs.reginfo[counter] do
             begin
-              if mustbespilled and regread and (not regwritten) then
+              if mustbespilled and regread and
+                (ssa_safe or
+                 not regwritten) then
                 begin
                   { The original instruction will be the next that uses this register
 
@@ -2253,21 +2294,31 @@ unit rgobj;
                     so it will selected for spilling with a lower priority than
                     the original one, this prevents an endless spilling loop if orgreg
                     is short living, see e.g. tw25164.pp }
-                  add_reg_instruction(instr,tempreg,reginfo[orgreg].weight+1);
-                  ungetregisterinline(list,tempreg);
+                  add_reg_instruction(instr,loadreg,reginfo[orgreg].weight+1);
+                  ungetregisterinline(list,loadreg);
                 end;
             end;
 
         { Allocate temp registers of write-only registers, and add reference of the instruction
           to the reginfo }
-        for counter := 0 to pred(regindex) do
-          with regs[counter] do
+        for counter := 0 to pred(regs.reginfocount) do
+          with regs.reginfo[counter] do
             begin
               if mustbespilled and regwritten then
                 begin
                   { When the register is also loaded there is already a register assigned }
-                  if (not regread) then
-                    tempreg:=getregisterinline(list,regs[counter].spillregconstraints);
+                  if (not regread) or
+                     ssa_safe then
+                    begin
+                      storereg:=getregisterinline(list,regs.reginfo[counter].spillregconstraints);
+                      { we also use loadreg for store replacements in case we
+                        don't have ensure ssa -> initialise loadreg even if
+                        there are no reads }
+                      if not regread  then
+                       loadreg:=storereg;
+                    end
+                  else
+                    storereg:=loadreg;
                   { The original instruction will be the next that uses this register, this
                     also needs to be done for read-write registers,
 
@@ -2275,19 +2326,19 @@ unit rgobj;
                     so it will selected for spilling with a lower priority than
                     the original one, this prevents an endless spilling loop if orgreg
                     is short living, see e.g. tw25164.pp }
-                  add_reg_instruction(instr,tempreg,reginfo[orgreg].weight+1);
+                  add_reg_instruction(instr,storereg,reginfo[orgreg].weight+1);
                 end;
             end;
 
         { store the spilled registers }
         storepos:=tai(instr.next);
-        for counter := 0 to pred(regindex) do
-          with regs[counter] do
+        for counter := 0 to pred(regs.reginfocount) do
+          with regs.reginfo[counter] do
             begin
               if mustbespilled and regwritten then
                 begin
-                  do_spill_written(list,tai(storepos.previous),spilltemplist[orgreg],tempreg);
-                  ungetregisterinline(list,tempreg);
+                  do_spill_written(list,tai(storepos.previous),spilltemplist[orgreg],storereg,orgreg);
+                  ungetregisterinline(list,storereg);
                 end;
             end;
 
@@ -2304,7 +2355,8 @@ unit rgobj;
               top_reg:
                 begin
                   if (getregtype(reg) = regtype) then
-                    tryreplacereg(reg);
+                    tryreplacereg(reg,not ssa_safe or
+                      (instr.spilling_get_operation_type(counter)=operand_read));
                 end;
               top_ref:
                 begin
@@ -2312,14 +2364,16 @@ unit rgobj;
                     begin
                       if (ref^.base <> NR_NO) and
                           (getregtype(ref^.base)=regtype) then
-                        tryreplacereg(ref^.base);
+                        tryreplacereg(ref^.base,
+                          not ssa_safe or (instr.spilling_get_operation_type_ref(counter,ref^.base)=operand_read));
                       if (ref^.index <> NR_NO) and
                           (getregtype(ref^.index)=regtype) then
-                        tryreplacereg(ref^.index);
+                        tryreplacereg(ref^.index,
+                          not ssa_safe or (instr.spilling_get_operation_type_ref(counter,ref^.index)=operand_read));
 {$if defined(x86)}
                       if (ref^.segment <> NR_NO) and
                           (getregtype(ref^.segment)=regtype) then
-                        tryreplacereg(ref^.segment);
+                        tryreplacereg(ref^.segment,true { always read-only });
 {$endif defined(x86)}
                     end;
                 end;
@@ -2327,7 +2381,7 @@ unit rgobj;
               top_shifterop:
                 begin
                   if regtype in [R_INTREGISTER,R_ADDRESSREGISTER] then
-                    tryreplacereg(shifterop^.rs);
+                    tryreplacereg(shifterop^.rs,true { always read-only });
                 end;
 {$endif ARM}
             end;

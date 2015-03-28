@@ -89,6 +89,7 @@ unit i_atari;
             stacksize    : 262144;
             stackalign   : 2;
             abi : abi_default;
+            llvmdatalayout : 'todo';
           );
 
   implementation

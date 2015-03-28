@@ -27,15 +27,15 @@ unit rgcpu;
   interface
 
      uses
-       aasmbase,aasmtai,aasmdata,aasmcpu,
+       aasmbase,aasmtai,aasmdata,aasmsym,aasmcpu,
        cgbase,cgutils,cpubase,
        rgobj;
 
      type
        trgcpu = class(trgobj)
-         procedure do_spill_read(list:tasmlist;pos:tai;const spilltemp:treference;tempreg:tregister);override;
-         procedure do_spill_written(list:tasmlist;pos:tai;const spilltemp:treference;tempreg:tregister);override;
-         function do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;override;
+         procedure do_spill_read(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister); override;
+         procedure do_spill_written(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister); override;
+         function do_spill_replace(list : TAsmList;instr : tai_cpu_abstract_sym; orgreg : tsuperregister;const spilltemp : treference) : boolean; override;
        end;
 
   implementation
@@ -53,7 +53,7 @@ unit rgcpu;
       end;
 
 
-    procedure trgcpu.do_spill_read(list:tasmlist;pos:tai;const spilltemp:treference;tempreg:tregister);
+    procedure trgcpu.do_spill_read(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
       var
         helpins  : tai;
         tmpref   : treference;
@@ -82,11 +82,11 @@ unit rgcpu;
             helplist.free;
           end
         else
-          inherited do_spill_read(list,pos,spilltemp,tempreg);
+          inherited;
       end;
 
 
-    procedure trgcpu.do_spill_written(list:tasmlist;pos:tai;const spilltemp:treference;tempreg:tregister);
+    procedure trgcpu.do_spill_written(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
       var
         tmpref   : treference;
         helplist : tasmlist;
@@ -116,11 +116,11 @@ unit rgcpu;
             helplist.free;
           end
         else
-          inherited do_spill_written(list,pos,spilltemp,tempreg);
+          inherited;
     end;
 
 
-    function trgcpu.do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;
+    function trgcpu.do_spill_replace(list : TAsmList;instr : tai_cpu_abstract_sym; orgreg : tsuperregister;const spilltemp : treference) : boolean;
       var
         opidx: longint;
       begin
@@ -167,7 +167,7 @@ unit rgcpu;
         instr.oper[opidx]^.typ:=top_ref;
         new(instr.oper[opidx]^.ref);
         instr.oper[opidx]^.ref^:=spilltemp;
-        case instr.opsize of
+        case taicpu(instr).opsize of
           S_B: inc(instr.oper[opidx]^.ref^.offset,3);
           S_W: inc(instr.oper[opidx]^.ref^.offset,2);
         end;

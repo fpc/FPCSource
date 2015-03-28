@@ -92,6 +92,10 @@ uses
   comphook,
   symtable,scanner,rabase,
   symconst,
+{$ifdef llvm}
+  { override supported optimizer transformations at the compiler level }
+  llvminfo,
+{$endif llvm}
   dirparse,
   i_bsd;
 
@@ -3625,6 +3629,10 @@ begin
   objectsearchpath.AddList(unitsearchpath,false);
   librarysearchpath.AddList(unitsearchpath,false);
 
+{$ifdef llvm}
+  { force llvm assembler writer }
+  paratargetasm:=as_llvm;
+{$endif llvm}
   { maybe override assembler }
   if (paratargetasm<>as_none) then
     begin
@@ -3765,6 +3773,12 @@ if (target_info.abi = abi_eabihf) then
       def_system_macro('CPUTHUMB');
       if not option.FPUSetExplicitly then
         init_settings.fputype:=fpu_soft;
+{$if defined(FPC_ARMEL) or defined(FPC_ARMHF)}
+      target_info.llvmdatalayout:='e-p:32:32:32-i1:8:32-i8:8:32-i16:16:32-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:32-n32-S64';
+{$else FPC_ARMAL or FPC_ARMHF}
+      if target_info.endian=endian_little then
+        target_info.llvmdatalayout:='e-p:32:32:32-i1:8:32-i8:8:32-i16:16:32-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:32:64-v128:32:128-a0:0:32-n32-S32';
+{$endif FPC_ARMAL or FPC_ARMHF}
     end;
 
   if (init_settings.instructionset=is_thumb) and (CPUARM_HAS_THUMB2 in cpu_capabilities[init_settings.cputype]) then
@@ -3780,6 +3794,12 @@ if (target_info.abi = abi_eabihf) then
     end;
 {$endif jvm}
 
+{$ifdef llvm}
+  { standard extension for llvm bitcode files }
+  target_info.asmext:='.ll';
+  { always use section threadvars for now }
+  include(target_info.flags,tf_section_threadvars);
+{$endif llvm}
 {$ifdef mipsel}
   case target_info.system of
     system_mipsel_android:
@@ -3868,7 +3888,7 @@ if (target_info.abi = abi_eabihf) then
 {$endif ARM}
 
 { inline bsf/bsr implementation }
-{$if defined(i386) or defined(x86_64) or defined(aarch64) or defined(powerpc) or defined(powerpc64)}
+{$if not defined(llvm) and (defined(i386) or defined(x86_64) or defined(aarch64) or defined(powerpc) or defined(powerpc64))}
   def_system_macro('FPC_HAS_INTERNAL_BSF');
   def_system_macro('FPC_HAS_INTERNAL_BSR');
 {$endif}

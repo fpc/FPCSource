@@ -32,7 +32,7 @@ unit cpupara;
        paramgr,parabase,cgbase,cgutils;
 
     type
-       tppcparamanager = class(tparamanager)
+       tcpuparamanager = class(tparamanager)
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
@@ -56,7 +56,7 @@ unit cpupara;
        procinfo,cpupi;
 
 
-    function tppcparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
+    function tcpuparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
         if (target_info.system = system_powerpc_darwin) then
           result := [RS_R0,RS_R2..RS_R12]
@@ -65,7 +65,7 @@ unit cpupara;
       end;
 
 
-    function tppcparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
+    function tcpuparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
       begin
         case target_info.abi of
           abi_powerpc_aix,
@@ -78,7 +78,7 @@ unit cpupara;
       end;
 
 
-    procedure tppcparamanager.getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
+    procedure tcpuparamanager.getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
       var
         paraloc : pcgparalocation;
         psym : tparavarsym;
@@ -182,7 +182,7 @@ unit cpupara;
       end;
 
 
-    function tppcparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
+    function tcpuparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
         result:=false;
         { var,out,constref always require address }
@@ -237,7 +237,7 @@ unit cpupara;
       end;
 
 
-    procedure tppcparamanager.init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
+    procedure tcpuparamanager.init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
       begin
         case target_info.abi of
           abi_powerpc_aix,
@@ -254,7 +254,7 @@ unit cpupara;
       end;
 
 
-    function tppcparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
+    function tcpuparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
       var
         paraloc : pcgparalocation;
         retcgsize  : tcgsize;
@@ -308,7 +308,7 @@ unit cpupara;
       end;
 
 
-    function tppcparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
+    function tcpuparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
 
       var
         cur_stack_offset: aword;
@@ -323,7 +323,7 @@ unit cpupara;
 
 
 
-    function tppcparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras:tparalist;
+    function tcpuparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras:tparalist;
                var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword; varargsparas: boolean):longint;
       var
          stack_offset: longint;
@@ -612,7 +612,7 @@ unit cpupara;
       end;
 
 
-    function tppcparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
+    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
       var
         cur_stack_offset: aword;
         parasize, l: longint;
@@ -657,7 +657,7 @@ unit cpupara;
       end;
 
 
-    function tppcparamanager.parseparaloc(p : tparavarsym;const s : string) : boolean;
+    function tcpuparamanager.parseparaloc(p : tparavarsym;const s : string) : boolean;
       var
         paraloc : pcgparalocation;
         paracgsize : tcgsize;
@@ -738,5 +738,5 @@ unit cpupara;
       end;
 
 begin
-   paramanager:=tppcparamanager.create;
+   paramanager:=tcpuparamanager.create;
 end.

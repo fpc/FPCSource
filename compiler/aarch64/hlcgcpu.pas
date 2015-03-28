@@ -31,6 +31,7 @@ interface
   uses
     symtype,
     aasmdata,
+    symdef,
     cgbase,cgutils,
     hlcgobj, hlcg2ll;
 
@@ -38,6 +39,8 @@ interface
     thlcgaarch64 = class(thlcg2ll)
       procedure a_load_subsetreg_reg(list: TAsmList; subsetsize, tosize: tdef; const sreg: tsubsetregister; destreg: tregister); override;
       procedure a_load_subsetreg_subsetreg(list: TAsmlist; fromsubsetsize, tosubsetsize: tdef; const fromsreg, tosreg: tsubsetregister); override;
+
+      procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
      protected
       procedure a_load_regconst_subsetreg_intern(list: TAsmList; fromsize, subsetsize: tdef; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt); override;
     end;
@@ -47,8 +50,10 @@ interface
 implementation
 
   uses
-    defutil,
-    cpubase,aasmcpu,
+    verbose,globtype,fmodule,
+    aasmbase,aasmtai,
+    symconst,symsym,defutil,
+    cpubase,aasmcpu,parabase,
     cgobj,cgcpu;
 
   procedure thlcgaarch64.a_load_subsetreg_reg(list: TAsmList; subsetsize, tosize: tdef; const sreg: tsubsetregister; destreg: tregister);
@@ -127,6 +132,73 @@ implementation
         end
       else
         inherited;
+    end;
+
+
+  procedure thlcgaarch64.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
+    var
+      make_global: boolean;
+      href: treference;
+      hsym: tsym;
+      paraloc: pcgparalocation;
+      op: tasmop;
+    begin
+      if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
+        Internalerror(200006137);
+      if not assigned(procdef.struct) or
+         (procdef.procoptions*[po_classmethod, po_staticmethod,
+           po_methodpointer, po_interrupt, po_iocheck]<>[]) then
+        Internalerror(200006138);
+      if procdef.owner.symtabletype<>ObjectSymtable then
+        Internalerror(200109191);
+
+      make_global:=false;
+      if (not current_module.is_unit) or create_smartlink_library or
+         (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
+        make_global:=true;
+
+      if make_global then
+        list.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
+      else
+        list.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
+
+      { set param1 interface to self  }
+      procdef.init_paraloc_info(callerside);
+      hsym:=tsym(procdef.parast.Find('self'));
+      if not(assigned(hsym) and
+        (hsym.typ=paravarsym)) then
+        internalerror(2010103101);
+      paraloc:=tparavarsym(hsym).paraloc[callerside].location;
+      if assigned(paraloc^.next) then
+        InternalError(2013020101);
+
+      case paraloc^.loc of
+        LOC_REGISTER:
+          tcgaarch64(cg).handle_reg_imm12_reg(list,A_SUB,paraloc^.size,paraloc^.register,ioffset,paraloc^.register,NR_IP0,false,true);
+        else
+          internalerror(2010103102);
+      end;
+
+      if (po_virtualmethod in procdef.procoptions) and
+          not is_objectpascal_helper(procdef.struct) then
+        begin
+          if (procdef.extnumber=$ffff) then
+            Internalerror(200006139);
+          { mov  0(%rdi),%rax ; load vmt}
+          reference_reset_base(href,voidpointertype,paraloc^.register,0,sizeof(pint));
+          getcpuregister(list,NR_IP0);
+          a_load_ref_reg(list,voidpointertype,voidpointertype,href,NR_IP0);
+          { jmp *vmtoffs(%eax) ; method offs }
+          reference_reset_base(href,voidpointertype,NR_IP0,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
+          op:=A_LDR;
+          tcgaarch64(cg).make_simple_ref(list,op,OS_ADDR,PF_None,href,NR_IP0);
+          list.concat(taicpu.op_reg_ref(op,NR_IP0,href));
+          ungetcpuregister(list,NR_IP0);
+          list.concat(taicpu.op_reg(A_BR,NR_IP0));
+        end
+      else
+        cg.a_jmp_name(list,procdef.mangledname);
+      list.concat(Tai_symbol_end.Createname(labelname));
     end;
 
 

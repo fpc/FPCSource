@@ -89,6 +89,7 @@ unit i_aros;
             stacksize    : 262144;
             stackalign   : 4;
             abi : abi_default;
+            llvmdatalayout : 'todo';
           );
 
        system_x86_64_aros_info : tsysteminfo =
@@ -151,6 +152,7 @@ unit i_aros;
             stacksize    : 8*1024*1024;
             stackalign   : 16; { fix me: this is a wild guess for now (KB) }
             abi : abi_default;
+            llvmdatalayout : 'todo';
           );
 
   implementation

@@ -60,17 +60,20 @@ unit cgppc;
         procedure a_jmp_flags(list: TAsmList; const f: TResFlags; l: tasmlabel); override;
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
 
-        procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
 
         procedure g_maybe_got_init(list: TAsmList); override;
 
         procedure get_aix_toc_sym(list: TAsmList; const symname: string; const flags: tindsymflags; out ref: treference; force_direct_toc: boolean);
         procedure g_load_check_simple(list: TAsmList; const ref: treference; size: aint);
-        procedure g_external_wrapper(list: TAsmList; pd: TProcDef; const externalname: string); override;
         procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags; reg: TRegister); override;
+
+        { returns true if the offset of the given reference can not be  }
+        { represented by a 16 bit immediate as required by some PowerPC }
+        { instructions                                                  }
+        function hasLargeOffset(const ref : TReference) : Boolean; inline;
+        function  get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
        protected
         function g_indirect_sym_load(list:TAsmList;const symname: string; const flags: tindsymflags): tregister; override;
-        function  get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
         { Make sure ref is a valid reference for the PowerPC and sets the }
         { base to the value of the index if (base = R_NO).                }
         { Returns true if the reference contained a base, index and an    }
@@ -85,11 +88,6 @@ unit cgppc;
         { of asmcondflags and destination addressing mode                }
         procedure a_jmp(list: TAsmList; op: tasmop;
                         c: tasmcondflag; crval: longint; l: tasmlabel);
-
-        { returns true if the offset of the given reference can not be  }
-        { represented by a 16 bit immediate as required by some PowerPC }
-        { instructions                                                  }
-        function hasLargeOffset(const ref : TReference) : Boolean; inline;
 
         function save_lr_in_prologue: boolean;
 
@@ -756,103 +754,7 @@ unit cgppc;
 
 
 
-    procedure tcgppcgen.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
-
-        procedure loadvmttor11;
-        var
-          href : treference;
-        begin
-          reference_reset_base(href,NR_R3,0,sizeof(pint));
-          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R11);
-        end;
-
-
-        procedure op_onr11methodaddr;
-        var
-          href : treference;
-        begin
-          if (procdef.extnumber=$ffff) then
-            Internalerror(200006139);
-          { call/jmp  vmtoffs(%eax) ; method offs }
-          reference_reset_base(href,NR_R11,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
-          if hasLargeOffset(href) then
-            begin
-{$ifdef cpu64}
-              if (longint(href.offset) <> href.offset) then
-                { add support for offsets > 32 bit }
-                internalerror(200510201);
-{$endif cpu64}
-              list.concat(taicpu.op_reg_reg_const(A_ADDIS,NR_R11,NR_R11,
-                smallint((href.offset shr 16)+ord(smallint(href.offset and $ffff) < 0))));
-              href.offset := smallint(href.offset and $ffff);
-            end;
-          { use R12 for dispatch because most ABIs don't care and ELFv2
-            requires it }
-          a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R12);
-          if (target_info.system in systems_aix) or
-             ((target_info.system = system_powerpc64_linux) and
-              (target_info.abi=abi_powerpc_sysv)) then
-            begin
-              reference_reset_base(href, NR_R12, 0, sizeof(pint));
-              a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R12);
-            end;
-          list.concat(taicpu.op_reg(A_MTCTR,NR_R12));
-          list.concat(taicpu.op_none(A_BCTR));
-          if (target_info.system in ([system_powerpc64_linux]+systems_aix)) then
-            list.concat(taicpu.op_none(A_NOP));
-        end;
-
-
-      var
-        make_global : boolean;
-      begin
-        if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
-          Internalerror(200006137);
-        if not assigned(procdef.struct) or
-           (procdef.procoptions*[po_classmethod, po_staticmethod,
-             po_methodpointer, po_interrupt, po_iocheck]<>[]) then
-          Internalerror(200006138);
-        if procdef.owner.symtabletype<>ObjectSymtable then
-          Internalerror(200109191);
-
-        make_global:=false;
-        if (not current_module.is_unit) or
-            create_smartlink or
-           (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
-          make_global:=true;
-
-        if make_global then
-          List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
-        else
-          List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
-
-        { set param1 interface to self  }
-        g_adjust_self_value(list,procdef,ioffset);
-
-        { case 4 }
-        if (po_virtualmethod in procdef.procoptions) and
-            not is_objectpascal_helper(procdef.struct) then
-          begin
-            loadvmttor11;
-            op_onr11methodaddr;
-          end
-        { case 0 }
-        else
-          case target_info.system of
-            system_powerpc_darwin,
-            system_powerpc64_darwin:
-              list.concat(taicpu.op_sym(A_B,get_darwin_call_stub(procdef.mangledname,false)));
-            else if use_dotted_functions then
-              {$note ts:todo add GOT change?? - think not needed :) }
-              list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol('.' + procdef.mangledname)))
-            else
-              list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname)))
-          end;
-        List.concat(Tai_symbol_end.Createname(labelname));
-      end;
-
-
-    function tcgppcgen.load_got_symbol(list: TAsmList; const symbol : string; const flags: tindsymflags) : tregister;
+  function tcgppcgen.load_got_symbol(list: TAsmList; const symbol : string; const flags: tindsymflags) : tregister;
     var
       l: tasmsymbol;
       ref: treference;
@@ -1015,56 +917,6 @@ unit cgppc;
       a_call_name(list,'FPC_INVALIDPOINTER',false);
       a_label(list,lab);
     end;
-
-
-    procedure tcgppcgen.g_external_wrapper(list: TAsmList; pd: TProcDef; const externalname: string);
-      var
-        href : treference;
-      begin
-        if not(target_info.system in ([system_powerpc64_linux]+systems_aix)) then begin
-          inherited;
-          exit;
-        end;
-
-        { for ppc64/linux and aix emit correct code which sets up a stack frame
-          and then calls the external method normally to ensure that the GOT/TOC
-          will be loaded correctly if required.
-
-        The resulting code sequence looks as follows:
-
-        mflr r0
-        stw/d r0, 16(r1)
-        stw/du r1, -112(r1)
-        bl <external_method>
-        nop
-        addi r1, r1, 112
-        lwz/d r0, 16(r1)
-        mtlr r0
-        blr
-
-        }
-        list.concat(taicpu.op_reg(A_MFLR, NR_R0));
-        if target_info.abi=abi_powerpc_sysv then
-          reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_SYSV, 8)
-        else
-          reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_AIX, 8);
-        a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_R0,href);
-        reference_reset_base(href, NR_STACK_POINTER_REG, -MINIMUM_STACKFRAME_SIZE, 8);
-        list.concat(taicpu.op_reg_ref({$ifdef cpu64bitaddr}A_STDU{$else}A_STWU{$endif}, NR_STACK_POINTER_REG, href));
-
-        a_call_name(list,externalname,false);
-
-        list.concat(taicpu.op_reg_reg_const(A_ADDI, NR_STACK_POINTER_REG, NR_STACK_POINTER_REG, MINIMUM_STACKFRAME_SIZE));
-
-
-        if target_info.abi=abi_powerpc_sysv then
-          reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_SYSV, 8)
-        else
-          reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_AIX, 8);
-        a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R0);
-        list.concat(taicpu.op_reg(A_MTLR, NR_R0));
-        list.concat(taicpu.op_none(A_BLR));
-      end;
 
 
     procedure tcgppcgen.g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags; reg: TRegister);

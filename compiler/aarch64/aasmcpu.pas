@@ -1063,14 +1063,9 @@ implementation
                                         if (tai_const(hp).consttype=aitconst_64bit) then
                                           inc(extradataoffset);
                                       end;
-                                    ait_comp_64bit,
-                                    ait_real_64bit:
+                                    ait_realconst:
                                       begin
-                                        inc(extradataoffset);
-                                      end;
-                                    ait_real_80bit:
-                                      begin
-                                        inc(extradataoffset,2);
+                                        inc(extradataoffset,((tai_realconst(hp).savesize-4+3) div 4));
                                       end;
                                   end;
                                   if (hp.typ=ait_const) then
@@ -1124,18 +1119,9 @@ implementation
                   if (tai_const(curtai).consttype=aitconst_64bit) then
                     inc(curinspos);
                 end;
-              ait_real_32bit:
+              ait_realconst:
                 begin
-                  inc(curinspos);
-                end;
-              ait_comp_64bit,
-              ait_real_64bit:
-                begin
-                  inc(curinspos,2);
-                end;
-              ait_real_80bit:
-                begin
-                  inc(curinspos,3);
+                  inc(curinspos,(tai_realconst(hp).savesize+3) div 4);
                 end;
             end;
             { special case for case jump tables }

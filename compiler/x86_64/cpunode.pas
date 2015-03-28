@@ -43,6 +43,9 @@ unit cpunode;
        ncgset,
        ncgopt,
        ncgobjc,
+       { symtable }
+       symcpu,
+{$ifndef llvm}
        { the cpu specific node units must be used after the generic ones to
          get the correct class pointer }
        nx86set,
@@ -56,9 +59,10 @@ unit cpunode;
        nx64flw,
 {$endif DISABLE_WIN64_SEH}
        nx64inl,
-       nx64set,
-       { symtable }
-       symcpu
+       nx64set
+{$else}
+       llvmnode
+{$endif ndef llvm}
        ;
 
 end.

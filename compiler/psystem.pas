@@ -474,7 +474,7 @@ implementation
         if not(target_info.system in systems_managed_vm) then
           begin
             { Add a type for virtual method tables }
-            hrecst:=trecordsymtable.create('',current_settings.packrecords);
+            hrecst:=trecordsymtable.create('',current_settings.packrecords,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign);
             vmttype:=crecorddef.create('',hrecst);
             pvmttype:=cpointerdef.create(vmttype);
             { can't use addtype for pvmt because the rtti of the pointed
@@ -499,13 +499,13 @@ implementation
             addtype('$vtblarray',vmtarraytype);
           end;
         { Add a type for methodpointers }
-        hrecst:=trecordsymtable.create('',1);
+        hrecst:=trecordsymtable.create('',1,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign);
         addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[]));
         addfield(hrecst,cfieldvarsym.create('$self',vs_value,voidpointertype,[]));
         methodpointertype:=crecorddef.create('',hrecst);
         addtype('$methodpointer',methodpointertype);
         { Add a type for nested proc pointers }
-        hrecst:=trecordsymtable.create('',1);
+        hrecst:=trecordsymtable.create('',1,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign);
         addfield(hrecst,cfieldvarsym.create('$proc',vs_value,voidcodepointertype,[]));
         addfield(hrecst,cfieldvarsym.create('$parentfp',vs_value,parentfpvoidpointertype,[]));
         nestedprocpointertype:=crecorddef.create('',hrecst);
@@ -715,10 +715,7 @@ implementation
         aiclass[ait_directive]:=tai_directive;
         aiclass[ait_label]:=tai_label;
         aiclass[ait_const]:=tai_const;
-        aiclass[ait_real_32bit]:=tai_real_32bit;
-        aiclass[ait_real_64bit]:=tai_real_64bit;
-        aiclass[ait_real_80bit]:=tai_real_80bit;
-        aiclass[ait_comp_64bit]:=tai_comp_64bit;
+        aiclass[ait_realconst]:=tai_realconst;
         aiclass[ait_stab]:=tai_stab;
         aiclass[ait_force_line]:=tai_force_line;
         aiclass[ait_function_name]:=tai_function_name;

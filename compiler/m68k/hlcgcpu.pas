@@ -28,42 +28,41 @@ unit hlcgcpu;
 
 interface
 
-uses
-  globtype,
-  aasmbase, aasmdata,
-  cgbase, cgutils,
-  symconst,symtype,symdef,
-  parabase, hlcgobj, hlcg2ll;
+
+  uses
+    globtype,
+    aasmbase, aasmdata,
+    cgbase, cgutils,
+    symconst,symtype,symdef,
+    hlcg2ll;
 
   type
-    thlcgm68k = class(thlcg2ll)
+    thlcgcpu = class(thlcg2ll)
       procedure a_bit_set_reg_reg(list: TAsmList; doset: boolean; bitnumbersize, destsize: tdef; bitnumber, dest: tregister); override;
       procedure a_bit_set_const_reg(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; destreg: tregister); override;
       procedure a_bit_set_reg_ref(list: TAsmList; doset: boolean; fromsize, tosize: tdef; bitnumber: tregister; const ref: treference); override;
       procedure a_bit_set_const_ref(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; const ref: treference); override;
+      procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
     end;
-
 
   procedure create_hlcodegen;
 
 implementation
 
   uses
-    verbose, systems,
-    aasmtai,
-    aasmcpu,
-    cutils,
-    globals,
+    globals, verbose, systems, cutils,
+    fmodule,
+    aasmtai, aasmcpu,
     defutil,
-    cgobj,
-    cpubase,
-    cpuinfo,
-    cgcpu;
+    hlcgobj,
+    cpuinfo, cgobj, cpubase, cgcpu;
+
+
 
   const
     bit_set_clr_instr: array[boolean] of tasmop = (A_BCLR,A_BSET);
 
-  procedure thlcgm68k.a_bit_set_reg_reg(list: TAsmList; doset: boolean; bitnumbersize, destsize: tdef; bitnumber, dest: tregister);
+  procedure thlcgcpu.a_bit_set_reg_reg(list: TAsmList; doset: boolean; bitnumbersize, destsize: tdef; bitnumber, dest: tregister);
     var
       tmpvalue: tregister;
     begin
@@ -74,13 +73,15 @@ implementation
       list.concat(taicpu.op_reg_reg(bit_set_clr_instr[doset],S_NO,tmpvalue,dest));
     end;
 
-  procedure thlcgm68k.a_bit_set_const_reg(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; destreg: tregister);
+
+  procedure thlcgcpu.a_bit_set_const_reg(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; destreg: tregister);
     begin
       //list.concat(tai_comment.create(strpnew('a_bit_set_const_reg: called!')));
       list.concat(taicpu.op_const_reg(bit_set_clr_instr[doset],S_NO,(destsize.size*8)-bitnumber-1,destreg));
     end;
 
-  procedure thlcgm68k.a_bit_set_reg_ref(list: TAsmList; doset: boolean; fromsize, tosize: tdef; bitnumber: tregister; const ref: treference);
+
+  procedure thlcgcpu.a_bit_set_reg_ref(list: TAsmList; doset: boolean; fromsize, tosize: tdef; bitnumber: tregister; const ref: treference);
     var
       tmpvalue: tregister;
       sref: tsubsetreference;
@@ -97,7 +98,8 @@ implementation
       list.concat(taicpu.op_reg_ref(bit_set_clr_instr[doset],S_NO,tmpvalue,sref.ref));
     end;
 
-  procedure thlcgm68k.a_bit_set_const_ref(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; const ref: treference);
+
+  procedure thlcgcpu.a_bit_set_const_ref(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; const ref: treference);
     var
       sref: tsubsetreference;
     begin
@@ -109,10 +111,94 @@ implementation
       list.concat(taicpu.op_const_ref(bit_set_clr_instr[doset],S_NO,8-sref.startbit-1,sref.ref));
     end;
 
+
+  procedure thlcgcpu.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
+
+    procedure getselftoa0(offs:longint);
+      var
+        href : treference;
+        selfoffsetfromsp : longint;
+      begin
+        { move.l offset(%sp),%a0 }
+
+        { framepointer is pushed for nested procs }
+        if procdef.parast.symtablelevel>normal_function_level then
+          selfoffsetfromsp:=sizeof(aint)
+        else
+          selfoffsetfromsp:=0;
+        reference_reset_base(href, voidstackpointertype, NR_SP,selfoffsetfromsp+offs,4);
+        cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_A0);
+      end;
+
+    procedure loadvmttoa0;
+      var
+        href : treference;
+      begin
+        { move.l  (%a0),%a0 ; load vmt}
+        reference_reset_base(href, voidpointertype, NR_A0,0,4);
+        cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_A0);
+      end;
+
+    procedure op_ona0methodaddr;
+      var
+        href : treference;
+      begin
+        if (procdef.extnumber=$ffff) then
+          Internalerror(2013100701);
+        reference_reset_base(href,voidpointertype,NR_A0,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4);
+        list.concat(taicpu.op_ref_reg(A_MOVE,S_L,href,NR_A0));
+        reference_reset_base(href,voidpointertype,NR_A0,0,4);
+        list.concat(taicpu.op_ref(A_JMP,S_NO,href));
+      end;
+
+    var
+      make_global : boolean;
+    begin
+      if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
+        Internalerror(200006137);
+      if not assigned(procdef.struct) or
+         (procdef.procoptions*[po_classmethod, po_staticmethod,
+           po_methodpointer, po_interrupt, po_iocheck]<>[]) then
+        Internalerror(200006138);
+      if procdef.owner.symtabletype<>ObjectSymtable then
+        Internalerror(200109191);
+
+      make_global:=false;
+      if (not current_module.is_unit) or
+         create_smartlink or
+         (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
+        make_global:=true;
+
+      if make_global then
+        List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
+      else
+        List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
+
+      { set param1 interface to self  }
+      g_adjust_self_value(list,procdef,ioffset);
+
+      { case 4 }
+      if (po_virtualmethod in procdef.procoptions) and
+          not is_objectpascal_helper(procdef.struct) then
+        begin
+          getselftoa0(4);
+          loadvmttoa0;
+          op_ona0methodaddr;
+        end
+      { case 0 }
+      else
+        list.concat(taicpu.op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(procdef.mangledname)));
+
+      List.concat(Tai_symbol_end.Createname(labelname));
+    end;
+
+
   procedure create_hlcodegen;
     begin
-      hlcg:=thlcgm68k.create;
+      hlcg:=thlcgcpu.create;
       create_codegen;
     end;
 
+begin
+  chlcgobj:=thlcgcpu;
 end.

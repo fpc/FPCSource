@@ -706,10 +706,21 @@ implementation
                 ttypesym(sym).typedef:=hdef;
               newtype.typedef:=hdef;
               { KAZ: handle TGUID declaration in system unit }
-              if (cs_compilesystem in current_settings.moduleswitches) and not assigned(rec_tguid) and
-                 (gentypename='TGUID') and { name: TGUID and size=16 bytes that is 128 bits }
-                 assigned(hdef) and (hdef.typ=recorddef) and (hdef.size=16) then
-                rec_tguid:=trecorddef(hdef);
+              if (cs_compilesystem in current_settings.moduleswitches) and
+                 assigned(hdef) and
+                 (hdef.typ=recorddef) then
+                begin
+                  if not assigned(rec_tguid) and
+                     (gentypename='TGUID') and
+                     (hdef.size=16) then
+                    rec_tguid:=trecorddef(hdef)
+                  else if not assigned(rec_jmp_buf) and
+                     (gentypename='JMP_BUF') then
+                    rec_jmp_buf:=trecorddef(hdef)
+                  else if not assigned(rec_exceptaddr) and
+                     (gentypename='TEXCEPTADDR') then
+                    rec_exceptaddr:=trecorddef(hdef);
+                end;
             end;
            if assigned(hdef) then
             begin

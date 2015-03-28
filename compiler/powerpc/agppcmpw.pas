@@ -902,6 +902,13 @@ interface
                 end;
               end;
 
+            ait_realconst:
+              begin
+                { update for tai_realconst change, see aggas.pas and commented
+                  old code below }
+                internalerror(2014050607);
+              end;
+(*
             ait_real_64bit :
               begin
                 AsmWriteLn(target_asm.comment+'value: '+double2str(tai_real_64bit(hp).value));
@@ -937,7 +944,7 @@ interface
                   end;
                 AsmLn;
               end;
-
+*)
             ait_string:
               begin
                 {NOTE When a single quote char is encountered, it is

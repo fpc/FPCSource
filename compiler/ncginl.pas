@@ -68,7 +68,7 @@ implementation
     uses
       globtype,systems,constexp,
       cutils,verbose,globals,
-      symconst,symdef,defutil,symsym,
+      symconst,symtype,symdef,defutil,symsym,
       aasmbase,aasmtai,aasmdata,aasmcpu,parabase,
       cgbase,pass_1,pass_2,
       cpuinfo,cpubase,paramgr,procinfo,
@@ -287,6 +287,7 @@ implementation
       var
         lengthlab : tasmlabel;
         hregister : tregister;
+        lendef : tdef;
         href : treference;
       begin
         secondpass(left);
@@ -301,24 +302,28 @@ implementation
            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
            current_asmdata.getjumplabel(lengthlab);
            hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,left.resultdef,OC_EQ,0,left.location.register,lengthlab);
-           if is_widestring(left.resultdef) and (tf_winlikewidestring in target_info.flags) then
-             begin
-               hlcg.reference_reset_base(href,left.resultdef,left.location.register,-sizeof(dword),sizeof(dword));
-               hregister:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_INT);
-               cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_INT,href,hregister);
-             end
-           else
-             begin
-               hlcg.reference_reset_base(href,left.resultdef,left.location.register,-sizeof(pint),sizeof(pint));
-               hregister:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_INT);
-               cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,href,hregister);
-             end;
+           { the length of a widestring is a 32 bit unsigned int. Since every
+             character occupies 2 bytes, on a 32 bit platform you can express
+             the maximum length using 31 bits. On a 64 bit platform, it may be
+             32 bits. This means that regardless of the platform, a location
+             with size OS_SINT/ossinttype can hold the length without
+             overflowing (this code returns an ossinttype value) }
            if is_widestring(left.resultdef) then
-             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,1,hregister);
+             lendef:=u32inttype
+           else
+             lendef:=ossinttype;
+           hlcg.reference_reset_base(href,left.resultdef,left.location.register,-lendef.size,lendef.alignment);
+           { if the string pointer is nil, the length is 0 -> reuse the register
+             that originally held the string pointer for the length, so that we
+             can keep the original nil/0 as length in that case }
+           hregister:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,def_cgsize(resultdef));
+           hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,lendef,resultdef,href,hregister);
+           if is_widestring(left.resultdef) then
+             hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,resultdef,1,hregister);
 
            { Dynamic arrays do not have their length attached but their maximum index }
            if is_dynamic_array(left.resultdef) then
-             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,OS_INT,1,hregister);
+             hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,resultdef,1,hregister);
 
            cg.a_label(current_asmdata.CurrAsmList,lengthlab);
            location_reset(location,LOC_REGISTER,def_cgsize(resultdef));

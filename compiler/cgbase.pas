@@ -175,7 +175,9 @@ interface
         R_MMXREGISTER,     { = 3 }
         R_MMREGISTER,      { = 4 }
         R_SPECIALREGISTER, { = 5 }
-        R_ADDRESSREGISTER  { = 6 }
+        R_ADDRESSREGISTER, { = 6 }
+        { used on llvm, every temp gets its own "base register" }
+        R_TEMPREGISTER     { = 7 }
       );
 
       { Sub registers }

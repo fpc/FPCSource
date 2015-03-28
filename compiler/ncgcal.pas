@@ -35,12 +35,13 @@ interface
     type
        tcgcallparanode = class(tcallparanode)
        protected
-          tempcgpara : tcgpara;
           procedure push_addr_para;
           procedure push_value_para;virtual;
           procedure push_formal_para;virtual;
           procedure push_copyout_para;virtual;abstract;
        public
+          tempcgpara : tcgpara;
+
           constructor create(expr,next : tnode);override;
           destructor destroy;override;
           procedure secondcallparan;override;
@@ -56,10 +57,10 @@ interface
           procedure copy_back_paras;
           procedure release_para_temps;
           procedure reorder_parameters;
-          procedure pushparas;
           procedure freeparas;
        protected
           retloc: tcgpara;
+          paralocs: array of pcgpara;
 
           framepointer_paraloc : tcgpara;
           {# This routine is used to push the current frame pointer
@@ -95,7 +96,18 @@ interface
             on ref. }
           function can_call_ref(var ref: treference):boolean;virtual;
           procedure extra_call_ref_code(var ref: treference);virtual;
-          procedure do_call_ref(ref: treference);virtual;
+          function do_call_ref(ref: treference): tcgpara;virtual;
+
+          { store all the parameters in the temporary paralocs in their final
+            location, and create the paralocs array that will be passed to
+            hlcg.a_call_* }
+          procedure pushparas;virtual;
+
+          { loads the code pointer of a complex procvar (one with a self/
+            parentfp/... and a procedure address) into a register and returns it }
+          function load_complex_procvar_codeptr: tregister; virtual;
+          { loads the procvar code pointer into a register }
+          function load_procvar_codeptr: tregister;
 
           procedure load_block_invoke(toreg: tregister);virtual;
 
@@ -152,7 +164,6 @@ implementation
     procedure tcgcallnode.reorder_parameters;
       var
         hpcurr,hpprev,hpnext,hpreversestart : tcgcallparanode;
-        currloc : tcgloc;
       begin
         { All parameters are now in temporary locations. If we move them to
           their regular locations in the same order, then we get the
@@ -449,9 +460,11 @@ implementation
       end;
 
 
-    procedure tcgcallnode.do_call_ref(ref: treference);
+    function tcgcallnode.do_call_ref(ref: treference): tcgpara;
       begin
         InternalError(2014012901);
+        { silence warning }
+        result.init;
       end;
 
 
@@ -676,6 +689,7 @@ implementation
                end;
              ppn:=tcallparanode(ppn.right);
           end;
+        setlength(paralocs,0);
       end;
 
 
@@ -688,7 +702,7 @@ implementation
          htempref,
          href : treference;
          calleralignment,
-         tmpalignment: longint;
+         tmpalignment, i: longint;
          skipiffinalloc: boolean;
        begin
          { copy all resources to the allocated registers }
@@ -790,6 +804,60 @@ implementation
                end;
              ppn:=tcgcallparanode(ppn.right);
            end;
+         setlength(paralocs,procdefinition.paras.count);
+         for i:=0 to procdefinition.paras.count-1 do
+           paralocs[i]:=@tparavarsym(procdefinition.paras[i]).paraloc[callerside];
+       end;
+
+
+     function tcgcallnode.load_complex_procvar_codeptr: tregister;
+       var
+         srcreg: tregister;
+         codeprocdef: tabstractprocdef;
+       begin
+         { this is safe even on i8086, because procvardef code pointers are
+           always far there (so the current state of far calls vs the state
+           of far calls where the procvardef was defined does not matter,
+           even though the procvardef constructor called by getcopyas looks at
+           it) }
+         codeprocdef:=tabstractprocdef(procdefinition.getcopyas(procvardef,pc_address_only));
+         result:=hlcg.getaddressregister(current_asmdata.CurrAsmList,codeprocdef);
+         { in case we have a method pointer on a big endian target in registers,
+           the method address is stored in registerhi (it's the first field
+           in the tmethod record) }
+         if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+           begin
+             if not(right.location.size in [OS_PAIR,OS_SPAIR]) then
+               internalerror(2014081401);
+             if (target_info.endian=endian_big) then
+               srcreg:=right.location.registerhi
+             else
+               srcreg:=right.location.register;
+             hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,codeprocdef,codeprocdef,srcreg,result)
+           end
+         else
+           begin
+             hlcg.location_force_mem(current_asmdata.CurrAsmList,right.location,procdefinition);
+             hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,getpointerdef(procdefinition),getpointerdef(codeprocdef),right.location.reference);
+             hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,codeprocdef,codeprocdef,right.location.reference,result);
+           end;
+       end;
+
+
+     function tcgcallnode.load_procvar_codeptr: tregister;
+       begin
+         if po_is_block in procdefinition.procoptions then
+           begin
+             result:=hlcg.getaddressregister(current_asmdata.CurrAsmList,procdefinition);
+             load_block_invoke(result);
+           end
+         else if not(procdefinition.is_addressonly) then
+           result:=load_complex_procvar_codeptr
+         else
+           begin
+             result:=hlcg.getaddressregister(current_asmdata.CurrAsmList,procdefinition);
+             hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,procdefinition,procdefinition,right.location,result);
+           end;
        end;
 
 
@@ -859,17 +927,22 @@ implementation
           begin
             { The forced returntype may have a different size than the one
               declared for the procdef }
-            if not assigned(typedef) then
-              retloc:=procdefinition.funcretloc[callerside]
-            else
-              retloc:=paramanager.get_funcretloc(procdefinition,callerside,typedef);
+            retloc:=hlcg.get_call_result_cgpara(procdefinition,typedef);
             retlocitem:=retloc.location;
             while assigned(retlocitem) do
               begin
                 case retlocitem^.loc of
                   LOC_REGISTER:
-
-                    include(regs_to_save_int,getsupreg(retlocitem^.register));
+                    case getregtype(retlocitem^.register) of
+                      R_INTREGISTER:
+                        include(regs_to_save_int,getsupreg(retlocitem^.register));
+                      R_ADDRESSREGISTER:
+                        include(regs_to_save_address,getsupreg(retlocitem^.register));
+                      R_TEMPREGISTER:
+                        ;
+                      else
+                        internalerror(2014020102);
+                      end;
                   LOC_FPUREGISTER:
                     include(regs_to_save_fpu,getsupreg(retlocitem^.register));
                   LOC_MMREGISTER:
@@ -990,11 +1063,12 @@ implementation
 
                  { call method }
                  extra_call_code;
+                 retloc.resetiftemp;
                  if callref then
-                   do_call_ref(href)
+                   retloc:=do_call_ref(href)
                  else
                    begin
-                     hlcg.a_call_reg(current_asmdata.CurrAsmList,tabstractprocdef(procdefinition),pvreg);
+                     retloc:=hlcg.a_call_reg(current_asmdata.CurrAsmList,tabstractprocdef(procdefinition),pvreg,paralocs);
                      unget_call_reg(current_asmdata.CurrAsmList,pvreg);
                    end;
 
@@ -1029,12 +1103,13 @@ implementation
                       if (po_interrupt in procdefinition.procoptions) then
                         extra_interrupt_code;
                       extra_call_code;
+                      retloc.resetiftemp;
                       if (name_to_call='') then
                         name_to_call:=tprocdef(procdefinition).mangledname;
                       if cnf_inherited in callnodeflags then
-                        hlcg.a_call_name_inherited(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call)
+                        retloc:=hlcg.a_call_name_inherited(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call,paralocs)
                       else
-                        hlcg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call,typedef,po_weakexternal in procdefinition.procoptions).resetiftemp;
+                        retloc:=hlcg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition),name_to_call,paralocs,typedef,po_weakexternal in procdefinition.procoptions);
                       extra_post_call_code;
                     end;
                end;
@@ -1043,31 +1118,20 @@ implementation
            { now procedure variable case }
            begin
               secondpass(right);
-              callref:=false;
 
-              pvreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,proc_addr_voidptrdef);
-              { Only load OS_ADDR from the reference (when converting to hlcg:
-                watch out with procedure of object) }
-              if po_is_block in procdefinition.procoptions then
-                load_block_invoke(pvreg)
-              else if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+              { can we directly call the procvar in a memory location? }
+              callref:=false;
+              if not(po_is_block in procdefinition.procoptions) and
+                 (right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                 begin
                   href:=right.location.reference;
                   callref:=can_call_ref(href);
-                  if not callref then
-                    cg.a_load_ref_reg(current_asmdata.CurrAsmList,proc_addr_size,proc_addr_size,right.location.reference,pvreg)
-                end
-              else if right.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-                begin
-                  { in case left is a method pointer and we are on a big endian target, then
-                    the method address is stored in registerhi }
-                  if (target_info.endian=endian_big) and (right.location.size in [OS_PAIR,OS_SPAIR]) then
-                    hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,proc_addr_voidptrdef,proc_addr_voidptrdef,right.location.registerhi,pvreg)
-                  else
-                    hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,proc_addr_voidptrdef,proc_addr_voidptrdef,right.location.register,pvreg);
-                end
+                end;
+
+              if not callref then
+                pvreg:=load_procvar_codeptr
               else
-                hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,proc_addr_voidptrdef,proc_addr_voidptrdef,right.location,pvreg);
+                pvreg:=NR_INVALID;
               location_freetemp(current_asmdata.CurrAsmList,right.location);
 
               { Load parameters that are in temporary registers in the
@@ -1097,10 +1161,11 @@ implementation
                 extra_interrupt_code;
               extra_call_code;
 
+              retloc.resetiftemp;
               if callref then
-                do_call_ref(href)
+                retloc:=do_call_ref(href)
               else
-                hlcg.a_call_reg(current_asmdata.CurrAsmList,procdefinition,pvreg);
+                retloc:=hlcg.a_call_reg(current_asmdata.CurrAsmList,procdefinition,pvreg,paralocs);
               extra_post_call_code;
            end;
 
@@ -1134,10 +1199,16 @@ implementation
                begin
                  case retlocitem^.loc of
                    LOC_REGISTER:
-                     if getregtype(retlocitem^.register)=R_INTREGISTER then
-                       exclude(regs_to_save_int,getsupreg(retlocitem^.register))
-                     else
-                       exclude(regs_to_save_address,getsupreg(retlocitem^.register));
+                     case getregtype(retlocitem^.register) of
+                       R_INTREGISTER:
+                         exclude(regs_to_save_int,getsupreg(retlocitem^.register));
+                       R_ADDRESSREGISTER:
+                         exclude(regs_to_save_address,getsupreg(retlocitem^.register));
+                       R_TEMPREGISTER:
+                         ;
+                       else
+                         internalerror(2014020103);
+                     end;
                    LOC_FPUREGISTER:
                      exclude(regs_to_save_fpu,getsupreg(retlocitem^.register));
                    LOC_MMREGISTER:
@@ -1203,9 +1274,7 @@ implementation
             (right=nil) and
             not(po_virtualmethod in procdefinition.procoptions) then
            begin
-              cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_IOCHECK',false);
-              cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+              hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_iocheck',[],nil).resetiftemp;
            end;
       end;
 

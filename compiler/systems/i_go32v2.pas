@@ -89,6 +89,7 @@ unit i_go32v2;
             stacksize    : 262144;
             stackalign   : 4;
             abi          : abi_default;
+            llvmdatalayout : 'todo';
           );
 
   implementation

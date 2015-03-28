@@ -35,6 +35,10 @@ interface
        cutils,cclasses,
        globtype,systems,
        cpuinfo,cpubase,
+{$ifdef llvm}
+       { overrides max_operands }
+       llvmbase,
+{$endif llvm}
        cgbase,cgutils,
        symtype,
        aasmbase,aasmdata,ogbase
@@ -60,11 +64,8 @@ interface
           ait_directive,
           ait_label,
           ait_const,
-          ait_real_32bit,
-          ait_real_64bit,
-          ait_real_80bit,
-          ait_comp_64bit,
-          ait_real_128bit,
+          ait_realconst,
+          ait_typedconst,
           ait_stab,
           ait_force_line,
           ait_function_name,
@@ -94,6 +95,11 @@ interface
           ait_jvar,    { debug information for a local variable }
           ait_jcatch,  { exception catch clause }
 {$endif JVM}
+{$ifdef llvm}
+          ait_llvmins, { llvm instruction }
+          ait_llvmalias, { alias for a symbol }
+          ait_llvmdecl, { llvm symbol declaration (global/external variable, external procdef) }
+{$endif}
           { SEH directives used in ARM,MIPS and x86_64 COFF targets }
           ait_seh_directive
           );
@@ -139,6 +145,14 @@ interface
           aitconst_gotoff_symbol
         );
 
+        tairealconsttype = (
+          aitrealconst_s32bit,
+          aitrealconst_s64bit,
+          aitrealconst_s80bit,
+          aitrealconst_s128bit,
+          aitrealconst_s64comp
+        );
+
     const
 {$if defined(cpu64bitaddr)}
        aitconst_ptr = aitconst_64bit;
@@ -174,11 +188,8 @@ interface
           'symbol_directive',
           'label',
           'const',
-          'real_32bit',
-          'real_64bit',
-          'real_80bit',
-          'comp_64bit',
-          'real_128bit',
+          'realconst',
+          'typedconst',
           'stab',
           'force_line',
           'function_name',
@@ -204,6 +215,11 @@ interface
           'jvar',
           'jcatch',
 {$endif JVM}
+{$ifdef llvm}
+          'llvmins',
+          'llvmalias',
+          'llvmdecl',
+{$endif}
           'seh_directive'
           );
 
@@ -231,6 +247,19 @@ interface
        ,top_string
        ,top_wstring
 {$endif jvm}
+{$ifdef llvm}
+       { llvm only }
+       ,top_single
+       ,top_double
+{$ifdef cpuextended}
+       ,top_extended80
+{$endif cpuextended}
+       ,top_tai
+       ,top_def
+       ,top_fpcond
+       ,top_cond
+       ,top_para
+{$endif llvm}
        );
 
       { kinds of operations that an instruction can perform on an operand }
@@ -246,38 +275,6 @@ interface
         localforceref : boolean
       end;
       plocaloper = ^tlocaloper;
-
-      { please keep the size of this record <=12 bytes and keep it properly aligned }
-      toper = record
-        ot : longint;
-        case typ : toptype of
-          top_none   : ();
-          top_reg    : (reg:tregister);
-          top_ref    : (ref:preference);
-          top_const  : (val:tcgint);
-          top_bool   : (b:boolean);
-          { local varsym that will be inserted in pass_generate_code }
-          top_local  : (localoper:plocaloper);
-      {$ifdef arm}
-          top_regset : (regset:^tcpuregisterset; regtyp: tregistertype; subreg: tsubregister; usermode: boolean);
-          top_modeflags : (modeflags : tcpumodeflags);
-          top_specialreg : (specialreg:tregister; specialflags:tspecialregflags);
-      {$endif arm}
-      {$if defined(arm) or defined(aarch64)}
-          top_shifterop : (shifterop : pshifterop);
-          top_conditioncode : (cc : TAsmCond);
-      {$endif defined(arm) or defined(aarch64)}
-      {$ifdef m68k}
-          top_regset : (dataregset,addrregset,fpuregset:^tcpuregisterset);
-      {$endif m68k}
-      {$ifdef jvm}
-          top_single : (sval:single);
-          top_double : (dval:double);
-          top_string : (pcvallen: aint; pcval: pchar);
-          top_wstring : (pwstrval: pcompilerwidestring);
-      {$endif jvm}
-      end;
-      poper=^toper;
 
     const
       { ait_* types which don't result in executable code or which don't influence
@@ -302,11 +299,14 @@ interface
                      ait_cutobject,ait_marker,ait_varloc,ait_align,ait_section,ait_comment,
                      ait_const,ait_directive,
                      ait_symbolpair,ait_weak,
-                     ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_real_128bit,
+                     ait_realconst,
                      ait_symbol,
 {$ifdef JVM}
                      ait_jvar, ait_jcatch,
 {$endif JVM}
+{$ifdef llvm}
+                     ait_llvmdecl,
+{$endif llvm}
                      ait_seh_directive
                     ];
 
@@ -397,6 +397,52 @@ interface
       );
 
     type
+        tai = class;
+
+        { please keep the size of this record <=12 bytes and keep it properly aligned }
+        toper = record
+          ot : longint;
+          case typ : toptype of
+            top_none   : ();
+            top_reg    : (reg:tregister);
+            top_ref    : (ref:preference);
+            top_const  : (val:tcgint);
+            top_bool   : (b:boolean);
+            { local varsym that will be inserted in pass_generate_code }
+            top_local  : (localoper:plocaloper);
+        {$ifdef arm}
+            top_regset : (regset:^tcpuregisterset; regtyp: tregistertype; subreg: tsubregister; usermode: boolean);
+            top_modeflags : (modeflags : tcpumodeflags);
+            top_specialreg : (specialreg:tregister; specialflags:tspecialregflags);
+        {$endif arm}
+        {$if defined(arm) or defined(aarch64)}
+            top_shifterop : (shifterop : pshifterop);
+            top_conditioncode : (cc : TAsmCond);
+        {$endif defined(arm) or defined(aarch64)}
+        {$ifdef m68k}
+            top_regset : (dataregset,addrregset,fpuregset:^tcpuregisterset);
+        {$endif m68k}
+        {$ifdef jvm}
+            top_single : (sval:single);
+            top_double : (dval:double);
+            top_string : (pcvallen: aint; pcval: pchar);
+            top_wstring : (pwstrval: pcompilerwidestring);
+        {$endif jvm}
+        {$ifdef llvm}
+            top_single : (sval:single);
+            top_double : (dval:double);
+          {$ifdef cpuextended}
+            top_extended80 : (eval:extended);
+          {$endif cpuextended}
+            top_tai    : (ai: tai);
+            top_def    : (def: tdef);
+            top_cond   : (cond: topcmp);
+            top_fpcond : (fpcond: tllvmfpcmp);
+            top_para   : (paras: tfplist);
+        {$endif llvm}
+        end;
+        poper=^toper;
+
        { abstract assembler item }
        tai = class(TLinkedListItem)
 {$ifndef NOOPT}
@@ -589,57 +635,34 @@ interface
           function size:longint;
        end;
 
-       { Generates a single float (32 bit real) }
-       tai_real_32bit = class(tai)
-          value : ts32real;
-          constructor Create(_value : ts32real);
-          constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-       end;
-
+       { floating point const }
        tformatoptions = (fo_none,fo_hiloswapped);
-
-       { Generates a double float (64 bit real) }
-       tai_real_64bit = class(tai)
-          value : ts64real;
+       tai_realconst = class(tai)
+          realtyp: tairealconsttype;
+          savesize: byte;
+          value: record
+            case tairealconsttype of
+              aitrealconst_s32bit: (s32val: ts32real);
+              aitrealconst_s64bit: (s64val: ts64real);
+              aitrealconst_s80bit: (s80val: ts80real);
+              aitrealconst_s128bit: (s128val: ts128real);
+              aitrealconst_s64comp: (s64compval: ts64comp);
+          end;
 {$ifdef ARM}
           formatoptions : tformatoptions;
-          constructor Create_hiloswapped(_value : ts64real);
 {$endif ARM}
-          constructor Create(_value : ts64real);
-          constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-       end;
-
-
-       { Generates an extended float (80 bit real) }
-       tai_real_80bit = class(tai)
-          value : ts80real;
-          savesize : byte;
-          constructor Create(_value : ts80real; _savesize: byte);
-          constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-       end;
-
-
-       { Generates an float128 (128 bit real) }
-       tai_real_128bit = class(tai)
-          value : ts128real;
-          constructor Create(_value : ts128real);
-          constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-       end;
-
-       { Generates a comp int (integer over 64 bits)
-
-          This is Intel 80x86 specific, and is not
-          really supported on other processors.
-       }
-       tai_comp_64bit = class(tai)
-          value : ts64comp;
-          constructor Create(_value : ts64comp);
-          constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          constructor create_s32real(val: ts32real);
+          constructor create_s64real(val: ts64real);
+{$ifdef ARM}
+          constructor create_s64real_hiloswapped(val : ts64real);
+{$endif ARM}
+          constructor create_s80real(val: ts80real; _savesize: byte);
+          constructor create_s128real(val: ts128real);
+          constructor create_s64compreal(val: ts64comp);
+          constructor ppuload(t: taitype;ppufile: tcompilerppufile); override;
+          procedure ppuwrite(ppufile: tcompilerppufile); override;
+          function getcopy:tlinkedlistitem;override;
+          function datasize: word;
        end;
 
        { tai_stab }
@@ -1858,156 +1881,151 @@ implementation
 
 
 {****************************************************************************
-                               TAI_real_32bit
+                               TAI_realconst
  ****************************************************************************}
 
-    constructor tai_real_32bit.Create(_value : ts32real);
-
+    constructor tai_realconst.create_s32real(val: ts32real);
       begin
-         inherited Create;
-         typ:=ait_real_32bit;
-         value:=_value;
-      end;
-
-    constructor tai_real_32bit.ppuload(t:taitype;ppufile:tcompilerppufile);
-      begin
-        inherited ppuload(t,ppufile);
-        value:=ppufile.getreal;
+        inherited create;
+        typ:=ait_realconst;
+        realtyp:=aitrealconst_s32bit;
+        savesize:=4;
+        value.s32val:=val;
       end;
 
 
-    procedure tai_real_32bit.ppuwrite(ppufile:tcompilerppufile);
+    constructor tai_realconst.create_s64real(val: ts64real);
       begin
-        inherited ppuwrite(ppufile);
-        ppufile.putreal(value);
+        inherited create;
+        typ:=ait_realconst;
+        realtyp:=aitrealconst_s64bit;
+        savesize:=8;
+        value.s64val:=val;
       end;
-
-
-{****************************************************************************
-                               TAI_real_64bit
- ****************************************************************************}
-
-    constructor tai_real_64bit.Create(_value : ts64real);
-
-      begin
-         inherited Create;
-         typ:=ait_real_64bit;
-         value:=_value;
-      end;
-
 
 {$ifdef ARM}
-    constructor tai_real_64bit.Create_hiloswapped(_value : ts64real);
-
+    constructor tai_realconst.create_s64real_hiloswapped(val : ts64real);
       begin
-         inherited Create;
-         typ:=ait_real_64bit;
-         value:=_value;
-         formatoptions:=fo_hiloswapped;
+        inherited create;
+        typ:=ait_realconst;
+        realtyp:=aitrealconst_s64bit;
+        value.s64val:=val;
+        savesize:=8;
+        formatoptions:=fo_hiloswapped;
       end;
+
 {$endif ARM}
 
-    constructor tai_real_64bit.ppuload(t:taitype;ppufile:tcompilerppufile);
+    constructor tai_realconst.create_s80real(val: ts80real; _savesize: byte);
       begin
-        inherited ppuload(t,ppufile);
-        value:=ppufile.getreal;
+        inherited create;
+        typ:=ait_realconst;
+        realtyp:=aitrealconst_s80bit;
+        savesize:=_savesize;
+        value.s80val:=val;
+      end;
+
+
+    constructor tai_realconst.create_s128real(val: ts128real);
+      begin
+        inherited create;
+        typ:=ait_realconst;
+        realtyp:=aitrealconst_s128bit;
+        savesize:=16;
+        value.s128val:=val;
+      end;
+
+
+    constructor tai_realconst.create_s64compreal(val: ts64comp);
+      begin
+        inherited create;
+        typ:=ait_realconst;
+        realtyp:=aitrealconst_s64comp;
+        savesize:=8;
+        value.s64compval:=val;
+      end;
+
+
+        constructor tai_realconst.ppuload(t: taitype; ppufile: tcompilerppufile);
+      begin
+        inherited;
+        realtyp:=tairealconsttype(ppufile.getbyte);
 {$ifdef ARM}
         formatoptions:=tformatoptions(ppufile.getbyte);
 {$endif ARM}
+        case realtyp of
+          aitrealconst_s32bit:
+            value.s32val:=ppufile.getreal;
+          aitrealconst_s64bit:
+            value.s64val:=ppufile.getreal;
+          aitrealconst_s80bit:
+            value.s80val:=ppufile.getreal;
+          aitrealconst_s128bit:
+            value.s128val:=ppufile.getreal;
+          aitrealconst_s64comp:
+            value.s64compval:=comp(ppufile.getint64);
+          else
+            internalerror(2014050602);
+        end;
       end;
 
 
-    procedure tai_real_64bit.ppuwrite(ppufile:tcompilerppufile);
+    procedure tai_realconst.ppuwrite(ppufile: tcompilerppufile);
+      var
+        c: comp;
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putreal(value);
+        ppufile.putbyte(byte(realtyp));
 {$ifdef ARM}
         ppufile.putbyte(byte(formatoptions));
+{$endif ARM}
+        case realtyp of
+          aitrealconst_s32bit:
+            ppufile.putreal(value.s32val);
+          aitrealconst_s64bit:
+            ppufile.putreal(value.s64val);
+          aitrealconst_s80bit:
+            ppufile.putreal(value.s80val);
+          aitrealconst_s128bit:
+            ppufile.putreal(value.s128val);
+          aitrealconst_s64comp:
+            begin
+              c:=comp(value.s64compval);
+              ppufile.putint64(int64(c));
+            end
+          else
+            internalerror(2014050601);
+        end;
+      end;
+
+
+    function tai_realconst.getcopy: tlinkedlistitem;
+      begin
+        result:=inherited getcopy;
+        tai_realconst(result).value:=value;
+        tai_realconst(result).realtyp:=realtyp;
+        tai_realconst(result).savesize:=savesize;
+{$ifdef ARM}
+        tai_realconst(result).formatoptions:=formatoptions;
 {$endif ARM}
       end;
 
 
-{****************************************************************************
-                               TAI_real_80bit
- ****************************************************************************}
-
-    constructor tai_real_80bit.Create(_value : ts80real; _savesize: byte);
-
+    function tai_realconst.datasize: word;
       begin
-         inherited Create;
-         typ:=ait_real_80bit;
-         value:=_value;
-         savesize:=_savesize;
-      end;
-
-
-    constructor tai_real_80bit.ppuload(t:taitype;ppufile:tcompilerppufile);
-      begin
-        inherited ppuload(t,ppufile);
-        value:=ppufile.getreal;
-        savesize:=ppufile.getbyte;
-      end;
-
-
-    procedure tai_real_80bit.ppuwrite(ppufile:tcompilerppufile);
-      begin
-        inherited ppuwrite(ppufile);
-        ppufile.putreal(value);
-        ppufile.putbyte(savesize);
-      end;
-
-
-{****************************************************************************
-                               TAI_real_80bit
- ****************************************************************************}
-
-    constructor tai_real_128bit.Create(_value : ts128real);
-
-      begin
-         inherited Create;
-         typ:=ait_real_128bit;
-         value:=_value;
-      end;
-
-
-    constructor tai_real_128bit.ppuload(t:taitype;ppufile:tcompilerppufile);
-      begin
-        inherited ppuload(t,ppufile);
-        value:=ppufile.getreal;
-      end;
-
-
-    procedure tai_real_128bit.ppuwrite(ppufile:tcompilerppufile);
-      begin
-        inherited ppuwrite(ppufile);
-        ppufile.putreal(value);
-      end;
-
-
-{****************************************************************************
-                               Tai_comp_64bit
- ****************************************************************************}
-
-    constructor tai_comp_64bit.Create(_value : ts64comp);
-
-      begin
-         inherited Create;
-         typ:=ait_comp_64bit;
-         value:=_value;
-      end;
-
-
-    constructor tai_comp_64bit.ppuload(t:taitype;ppufile:tcompilerppufile);
-      begin
-        inherited ppuload(t,ppufile);
-        ppufile.putdata(value,sizeof(value));
-      end;
-
-
-    procedure tai_comp_64bit.ppuwrite(ppufile:tcompilerppufile);
-      begin
-        inherited ppuwrite(ppufile);
-        ppufile.getdata(value,sizeof(value));
+        case realtyp of
+          aitrealconst_s32bit:
+            result:=4;
+          aitrealconst_s64bit,
+          aitrealconst_s64comp:
+            result:=8;
+          aitrealconst_s80bit:
+            result:=10;
+          aitrealconst_s128bit:
+            result:=16;
+          else
+            internalerror(2014050603);
+        end;
       end;
 
 
@@ -2047,8 +2065,9 @@ implementation
       begin
         inherited ppuload(t,ppufile);
         len:=ppufile.getlongint;
-        getmem(str,len);
+        getmem(str,len+1);
         ppufile.getdata(str^,len);
+        str[len]:=#0
       end;
 
 
@@ -2548,6 +2567,7 @@ implementation
             if (ref^.segment<>NR_NO) and (ref^.segment<>NR_DS) then
               segprefix:=ref^.segment;
 {$endif}
+{$ifndef llvm}
             if (cs_create_pic in current_settings.moduleswitches) and
               assigned(r.symbol) and
               not assigned(r.relsymbol) and
@@ -2560,6 +2580,7 @@ implementation
 {$endif aarch64}
               then
               internalerror(200502052);
+{$endif not llvm}
             typ:=top_ref;
             if assigned(add_reg_instruction_hook) then
               begin
@@ -2668,6 +2689,12 @@ implementation
               top_wstring:
                 donewidestring(pwstrval);
 {$endif jvm}
+{$ifdef llvm}
+              top_para:
+                paras.free;
+              top_tai:
+                ai.free;
+{$endif llvm}
             end;
             typ:=top_none;
           end;

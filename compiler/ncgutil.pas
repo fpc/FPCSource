@@ -143,7 +143,11 @@ implementation
     regvars,dbgbase,
     pass_1,pass_2,
     nbas,ncon,nld,nmem,nutils,ngenutil,
-    tgobj,cgobj,cgcpu,hlcgobj,hlcgcpu
+    tgobj,cgobj,hlcgobj,hlcgcpu
+{$ifdef llvm}
+    { override create_hlcodegen from hlcgcpu }
+    , hlcgllvm
+{$endif}
 {$ifdef powerpc}
     , cpupi
 {$endif}
@@ -382,17 +386,10 @@ implementation
 *****************************************************************************}
 
     procedure get_exception_temps(list:TAsmList;var t:texceptiontemps);
-     var
-       except_buf_size: longint;
      begin
-        { todo: is there a way to retrieve the except_buf_size from the size of
-          the TExceptAddr record from the system unit (like we do for jmp_buf_size),
-          without moving TExceptAddr to the interface part? }
-        except_buf_size:=voidpointertype.size*2+sizeof(pint);
-        get_jumpbuf_size;
-        tg.GetTemp(list,except_buf_size,sizeof(pint),tt_persistent,t.envbuf);
-        tg.GetTemp(list,jmp_buf_size,jmp_buf_align,tt_persistent,t.jmpbuf);
-        tg.GetTemp(list,sizeof(pint),sizeof(pint),tt_persistent,t.reasonbuf);
+        tg.gethltemp(list,rec_exceptaddr,rec_exceptaddr.size,tt_persistent,t.envbuf);
+        tg.gethltemp(list,rec_jmp_buf,rec_jmp_buf.size,tt_persistent,t.jmpbuf);
+        tg.gethltemp(list,ossinttype,ossinttype.size,tt_persistent,t.reasonbuf);
       end;
 
 
@@ -405,71 +402,65 @@ implementation
 
 
     procedure new_exception(list:TAsmList;const t:texceptiontemps;exceptlabel:tasmlabel);
-      const
-{$ifdef cpu16bitaddr}
-        pushexceptaddr_frametype_cgsize = OS_S16;
-        setjmp_result_cgsize = OS_S16;
-{$else cpu16bitaddr}
-        pushexceptaddr_frametype_cgsize = OS_S32;
-        setjmp_result_cgsize = OS_S32;
-{$endif cpu16bitaddr}
       var
-        paraloc1,paraloc2,paraloc3 : tcgpara;
+        paraloc1, paraloc2, paraloc3, pushexceptres, setjmpres: tcgpara;
         pd: tprocdef;
-{$ifdef i8086}
-        tmpreg: TRegister;
-{$endif i8086}
+        tmpresloc: tlocation;
       begin
-        pd:=search_system_proc('fpc_pushexceptaddr');
         paraloc1.init;
         paraloc2.init;
         paraloc3.init;
+
+        { fpc_pushexceptaddr(exceptionframetype, setjmp_buffer, exception_address_chain_entry) }
+        pd:=search_system_proc('fpc_pushexceptaddr');
         paramanager.getintparaloc(pd,1,paraloc1);
         paramanager.getintparaloc(pd,2,paraloc2);
         paramanager.getintparaloc(pd,3,paraloc3);
         if pd.is_pushleftright then
           begin
-            { push type of exceptionframe }
-            cg.a_load_const_cgpara(list,pushexceptaddr_frametype_cgsize,1,paraloc1);
-            cg.a_loadaddr_ref_cgpara(list,t.jmpbuf,paraloc2);
-            cg.a_loadaddr_ref_cgpara(list,t.envbuf,paraloc3);
+            { type of exceptionframe }
+            hlcg.a_load_const_cgpara(list,paraloc1.def,1,paraloc1);
+            { setjmp buffer }
+            hlcg.a_loadaddr_ref_cgpara(list,rec_jmp_buf,t.jmpbuf,paraloc2);
+            { exception address chain entry }
+            hlcg.a_loadaddr_ref_cgpara(list,rec_exceptaddr,t.envbuf,paraloc3);
           end
         else
           begin
-            cg.a_loadaddr_ref_cgpara(list,t.envbuf,paraloc3);
-            cg.a_loadaddr_ref_cgpara(list,t.jmpbuf,paraloc2);
-            { push type of exceptionframe }
-            cg.a_load_const_cgpara(list,pushexceptaddr_frametype_cgsize,1,paraloc1);
+            hlcg.a_loadaddr_ref_cgpara(list,rec_exceptaddr,t.envbuf,paraloc3);
+            hlcg.a_loadaddr_ref_cgpara(list,rec_jmp_buf,t.jmpbuf,paraloc2);
+            hlcg.a_load_const_cgpara(list,paraloc1.def,1,paraloc1);
           end;
         paramanager.freecgpara(list,paraloc3);
         paramanager.freecgpara(list,paraloc2);
         paramanager.freecgpara(list,paraloc1);
-        cg.allocallcpuregisters(list);
-        cg.a_call_name(list,'FPC_PUSHEXCEPTADDR',false);
-        cg.deallocallcpuregisters(list);
+        { perform the fpc_pushexceptaddr call }
+        pushexceptres:=hlcg.g_call_system_proc(list,pd,[@paraloc1,@paraloc2,@paraloc3],nil);
 
+        { get the result }
+        location_reset(tmpresloc,LOC_REGISTER,def_cgsize(pushexceptres.def));
+        tmpresloc.register:=hlcg.getaddressregister(list,pushexceptres.def);
+        hlcg.gen_load_cgpara_loc(list,pushexceptres.def,pushexceptres,tmpresloc,true);
+        pushexceptres.resetiftemp;
+
+        { fpc_setjmp(result_of_pushexceptaddr_call) }
         pd:=search_system_proc('fpc_setjmp');
         paramanager.getintparaloc(pd,1,paraloc1);
-{$ifdef i8086}
-        if current_settings.x86memorymodel in x86_far_data_models then
-          begin
-            tmpreg:=cg.getintregister(list,OS_32);
-            cg.a_load_reg_reg(list,OS_16,OS_16,NR_FUNCTION_RESULT32_LOW_REG,tmpreg);
-            cg.a_load_reg_reg(list,OS_16,OS_16,NR_FUNCTION_RESULT32_HIGH_REG,GetNextReg(tmpreg));
-            cg.a_load_reg_cgpara(list,OS_32,tmpreg,paraloc1);
-          end
-        else
-{$endif i8086}
-          cg.a_load_reg_cgpara(list,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
-        paramanager.freecgpara(list,paraloc1);
-        cg.allocallcpuregisters(list);
-        cg.a_call_name(list,'FPC_SETJMP',false);
-        cg.deallocallcpuregisters(list);
-        cg.alloccpuregisters(list,R_INTREGISTER,[RS_FUNCTION_RESULT_REG]);
 
-        cg.g_exception_reason_save(list, t.reasonbuf);
-        cg.a_cmp_const_reg_label(list,setjmp_result_cgsize,OC_NE,0,cg.makeregsize(list,NR_FUNCTION_RESULT_REG,setjmp_result_cgsize),exceptlabel);
-        cg.dealloccpuregisters(list,R_INTREGISTER,[RS_FUNCTION_RESULT_REG]);
+        hlcg.a_load_reg_cgpara(list,pushexceptres.def,tmpresloc.register,paraloc1);
+        paramanager.freecgpara(list,paraloc1);
+        { perform the fpc_setjmp call }
+        setjmpres:=hlcg.g_call_system_proc(list,pd,[@paraloc1],nil);
+        setjmpres.check_simple_location;
+        if setjmpres.location^.loc<>LOC_REGISTER then
+          internalerror(2014080701);
+        hlcg.getcpuregister(list,setjmpres.location^.register);
+        hlcg.g_exception_reason_save(list,setjmpres.def,ossinttype,setjmpres.location^.register,t.reasonbuf);
+        { if we get 0 here in the function result register, it means that we
+          longjmp'd back here }
+        hlcg.a_cmp_const_reg_label(list,setjmpres.def,OC_NE,0,setjmpres.location^.register,exceptlabel);
+        hlcg.ungetcpuregister(list,setjmpres.location^.register);
+        setjmpres.resetiftemp;
         paraloc1.done;
         paraloc2.done;
         paraloc3.done;
@@ -477,19 +468,17 @@ implementation
 
 
     procedure free_exception(list:TAsmList;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean);
-     begin
-         cg.allocallcpuregisters(list);
-         cg.a_call_name(list,'FPC_POPADDRSTACK',false);
-         cg.deallocallcpuregisters(list);
-
+      var
+        reasonreg: tregister;
+      begin
+         hlcg.g_call_system_proc(list,'fpc_popaddrstack',[],nil);
          if not onlyfree then
           begin
-            { g_exception_reason_load already allocates NR_FUNCTION_RESULT_REG }
-            cg.g_exception_reason_load(list, t.reasonbuf);
-            cg.a_cmp_const_reg_label(list,OS_INT,OC_EQ,a,NR_FUNCTION_RESULT_REG,endexceptlabel);
-            cg.a_reg_dealloc(list,NR_FUNCTION_RESULT_REG);
+            reasonreg:=hlcg.getintregister(list,osuinttype);
+            hlcg.g_exception_reason_load(list,osuinttype,osuinttype,t.reasonbuf,reasonreg);
+            hlcg.a_cmp_const_reg_label(list,osuinttype,OC_EQ,a,reasonreg,endexceptlabel);
           end;
-     end;
+      end;
 
 
 {*****************************************************************************
@@ -1468,7 +1457,7 @@ implementation
         else
           list.concat(Tai_symbol.createname(pd.mangledname,AT_FUNCTION,0));
 
-        cg.g_external_wrapper(list,pd,externalname);
+        hlcg.g_external_wrapper(list,pd,externalname);
         destroy_hlcodegen;
       end;
 
@@ -1478,29 +1467,12 @@ implementation
 
     procedure gen_alloc_symtable(list:TAsmList;pd:tprocdef;st:TSymtable);
 
-      procedure setlocalloc(vs:tabstractnormalvarsym);
-        begin
-          if cs_asm_source in current_settings.globalswitches then
-            begin
-              case vs.initialloc.loc of
-                LOC_REFERENCE :
-                  begin
-                    if not assigned(vs.initialloc.reference.symbol) then
-                      list.concat(Tai_comment.Create(strpnew('Var '+vs.realname+' located at '+
-                         std_regname(vs.initialloc.reference.base)+tostr_with_plus(vs.initialloc.reference.offset)+
-                         ', size='+tcgsize2str(vs.initialloc.size))));
-                  end;
-              end;
-            end;
-          vs.localloc:=vs.initialloc;
-          FillChar(vs.currentregloc,sizeof(vs.currentregloc),0);
-        end;
-
       var
         i       : longint;
         highsym,
         sym     : tsym;
         vs      : tabstractnormalvarsym;
+        ptrdef  : tdef;
         isaddr  : boolean;
       begin
         for i:=0 to st.SymList.Count-1 do
@@ -1520,7 +1492,7 @@ implementation
                       vs.initialloc.loc:=tvarregable2tcgloc[vs.varregable];
                       vs.initialloc.size:=def_cgsize(vs.vardef);
                       gen_alloc_regvar(list,vs,true);
-                      setlocalloc(vs);
+                      hlcg.varsym_set_localloc(list,vs);
                     end;
                 end;
               paravarsym :
@@ -1561,21 +1533,23 @@ implementation
                         begin
                           vs.initialloc.loc:=LOC_REFERENCE;
                           { Reuse the parameter location for values to are at a single location on the stack }
-                          if paramanager.param_use_paraloc(tparavarsym(sym).paraloc[calleeside]) then
+                          if paramanager.param_use_paraloc(tparavarsym(vs).paraloc[calleeside]) then
                             begin
-                              reference_reset_base(vs.initialloc.reference,tparavarsym(sym).paraloc[calleeside].location^.reference.index,
-                                  tparavarsym(sym).paraloc[calleeside].location^.reference.offset,tparavarsym(sym).paraloc[calleeside].alignment);
+                              hlcg.paravarsym_set_initialloc_to_paraloc(tparavarsym(vs));
                             end
                           else
                             begin
                               if isaddr then
-                                tg.GetLocal(list,voidpointertype.size,voidpointertype,vs.initialloc.reference)
+                                begin
+                                  ptrdef:=getpointerdef(vs.vardef);
+                                  tg.GetLocal(list,ptrdef.size,ptrdef,vs.initialloc.reference)
+                                end
                               else
-                                tg.GetLocal(list,vs.getsize,tparavarsym(sym).paraloc[calleeside].alignment,vs.vardef,vs.initialloc.reference);
+                                tg.GetLocal(list,vs.getsize,tparavarsym(vs).paraloc[calleeside].alignment,vs.vardef,vs.initialloc.reference);
                             end;
                         end;
                     end;
-                  setlocalloc(vs);
+                  hlcg.varsym_set_localloc(list,vs);
                 end;
               localvarsym :
                 begin
@@ -1615,7 +1589,7 @@ implementation
                       vs.initialloc.loc:=LOC_REFERENCE;
                       tg.GetLocal(list,vs.getsize,vs.vardef,vs.initialloc.reference);
                     end;
-                  setlocalloc(vs);
+                  hlcg.varsym_set_localloc(list,vs);
                 end;
             end;
           end;

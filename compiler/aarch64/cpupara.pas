@@ -33,7 +33,7 @@ unit cpupara;
        symconst,symbase,symtype,symdef,parabase,paramgr;
 
     type
-       taarch64paramanager = class(tparamanager)
+       tcpuparamanager = class(tparamanager)
           function get_volatile_registers_int(calloption: tproccalloption): tcpuregisterset; override;
           function get_volatile_registers_fpu(calloption: tproccalloption): tcpuregisterset; override;
           function get_volatile_registers_mm(calloption: tproccalloption): tcpuregisterset; override;
@@ -69,19 +69,19 @@ unit cpupara;
       RS_LAST_MM_PARAM_SUPREG = RS_D7;
 
 
-    function taarch64paramanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
+    function tcpuparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=VOLATILE_INTREGISTERS
       end;
 
 
-    function taarch64paramanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
+    function tcpuparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=[];
       end;
 
 
-    function taarch64paramanager.get_volatile_registers_mm(calloption: tproccalloption): tcpuregisterset;
+    function tcpuparamanager.get_volatile_registers_mm(calloption: tproccalloption): tcpuregisterset;
       begin
         result:=VOLATILE_MMREGISTERS;
       end;
@@ -223,7 +223,7 @@ unit cpupara;
       end;
 
 
-    function taarch64paramanager.push_addr_param(varspez: tvarspez; def :tdef; calloption: tproccalloption): boolean;
+    function tcpuparamanager.push_addr_param(varspez: tvarspez; def :tdef; calloption: tproccalloption): boolean;
       var
         hfabasedef: tdef;
       begin
@@ -273,7 +273,7 @@ unit cpupara;
       end;
 
 
-    function taarch64paramanager.ret_in_param(def: tdef; pd: tabstractprocdef): boolean;
+    function tcpuparamanager.ret_in_param(def: tdef; pd: tabstractprocdef): boolean;
       begin
         if handle_common_ret_in_param(def,pd,result) then
           exit;
@@ -283,7 +283,7 @@ unit cpupara;
       end;
 
 
-    procedure taarch64paramanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist; isvariadic: boolean);
+    procedure tcpuparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist; isvariadic: boolean);
       var
         hp: tparavarsym;
         i: longint;
@@ -335,7 +335,7 @@ unit cpupara;
       end;
 
 
-    function  taarch64paramanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
+    function  tcpuparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
       var
         retcgsize: tcgsize;
       begin
@@ -352,7 +352,8 @@ unit cpupara;
            internalerror(2014113001);
       end;
 
-    function taarch64paramanager.param_use_paraloc(const cgpara: tcgpara): boolean;
+
+    function tcpuparamanager.param_use_paraloc(const cgpara: tcgpara): boolean;
       begin
         { we always set up a stack frame -> we can always access the parameters
           this way }
@@ -362,7 +363,7 @@ unit cpupara;
       end;
 
 
-    procedure taarch64paramanager.init_para_alloc_values;
+    procedure tcpuparamanager.init_para_alloc_values;
       begin
         curintreg:=RS_FIRST_INT_PARAM_SUPREG;
         curmmreg:=RS_FIRST_MM_PARAM_SUPREG;
@@ -370,7 +371,7 @@ unit cpupara;
       end;
 
 
-    procedure taarch64paramanager.alloc_para(out result: tcgpara; p: tabstractprocdef; varspez: tvarspez; side: tcallercallee; paradef: tdef; isvariadic, isdelphinestedcc: boolean);
+    procedure tcpuparamanager.alloc_para(out result: tcgpara; p: tabstractprocdef; varspez: tvarspez; side: tcallercallee; paradef: tdef; isvariadic, isdelphinestedcc: boolean);
       var
         hfabasedef, locdef: tdef;
         paraloc: pcgparalocation;
@@ -608,7 +609,7 @@ unit cpupara;
       end;
 
 
-    function taarch64paramanager.create_paraloc_info(p: tabstractprocdef; side: tcallercallee):longint;
+    function tcpuparamanager.create_paraloc_info(p: tabstractprocdef; side: tcallercallee):longint;
       begin
         init_para_alloc_values;
 
@@ -619,7 +620,7 @@ unit cpupara;
      end;
 
 
-    function taarch64paramanager.create_varargs_paraloc_info(p: tabstractprocdef; varargspara: tvarargsparalist):longint;
+    function tcpuparamanager.create_varargs_paraloc_info(p: tabstractprocdef; varargspara: tvarargsparalist):longint;
       begin
         init_para_alloc_values;
 
@@ -642,5 +643,5 @@ unit cpupara;
       end;
 
 begin
-   paramanager:=taarch64paramanager.create;
+   paramanager:=tcpuparamanager.create;
 end.

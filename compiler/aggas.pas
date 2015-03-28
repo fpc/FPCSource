@@ -119,88 +119,9 @@ implementation
     var
       symendcount  : longint;
 
-    type
-{$ifdef cpuextended}
-      t80bitarray = array[0..9] of byte;
-{$endif cpuextended}
-      t64bitarray = array[0..7] of byte;
-      t32bitarray = array[0..3] of byte;
-
 {****************************************************************************}
 {                          Support routines                                  }
 {****************************************************************************}
-
-    function single2str(d : single) : string;
-      var
-         hs : string;
-      begin
-         str(d,hs);
-      { replace space with + }
-         if hs[1]=' ' then
-          hs[1]:='+';
-         single2str:='0d'+hs
-      end;
-
-    function double2str(d : double) : string;
-      var
-         hs : string;
-      begin
-         str(d,hs);
-      { replace space with + }
-         if hs[1]=' ' then
-          hs[1]:='+';
-         double2str:='0d'+hs
-      end;
-
-    function extended2str(e : extended) : string;
-      var
-         hs : string;
-      begin
-         str(e,hs);
-      { replace space with + }
-         if hs[1]=' ' then
-          hs[1]:='+';
-         extended2str:='0d'+hs
-      end;
-
-
-  { convert floating point values }
-  { to correct endian             }
-  procedure swap64bitarray(var t: t64bitarray);
-    var
-     b: byte;
-    begin
-      b:= t[7];
-      t[7] := t[0];
-      t[0] := b;
-
-      b := t[6];
-      t[6] := t[1];
-      t[1] := b;
-
-      b:= t[5];
-      t[5] := t[2];
-      t[2] := b;
-
-      b:= t[4];
-      t[4] := t[3];
-      t[3] := b;
-   end;
-
-
-   procedure swap32bitarray(var t: t32bitarray);
-    var
-     b: byte;
-    begin
-      b:= t[1];
-      t[1]:= t[2];
-      t[2]:= b;
-
-      b:= t[0];
-      t[0]:= t[3];
-      t[3]:= b;
-    end;
-
 
     const
       ait_const2str : array[aitconst_128bit..aitconst_64bit_unaligned] of string[20]=(
@@ -638,8 +559,7 @@ implementation
           needsObject :=
               (
                 assigned(hp.next) and
-                 (tai(hp.next).typ in [ait_const,ait_datablock,
-                  ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit])
+                 (tai(hp.next).typ in [ait_const,ait_datablock,ait_realconst])
               ) or
               (hp.sym.typ=AT_DATA);
 
@@ -1104,101 +1024,9 @@ implementation
                end;
              end;
 
-           { the "and defined(FPC_HAS_TYPE_EXTENDED)" isn't optimal but currently the only solution
-             it prevents proper cross compilation to i386 though
-           }
-{$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
-           ait_real_80bit :
+           ait_realconst :
              begin
-               if do_line then
-                AsmWriteLn(target_asm.comment+'value: '+extended2str(tai_real_80bit(hp).value));
-             { Make sure e is a extended type, bestreal could be
-               a different type (bestreal) !! (PFV) }
-               e:=tai_real_80bit(hp).value;
-               AsmWrite(#9'.byte'#9);
-               for i:=0 to 9 do
-                begin
-                  if i<>0 then
-                   AsmWrite(',');
-                  AsmWrite(tostr(t80bitarray(e)[i]));
-                end;
-               for i:=11 to tai_real_80bit(hp).savesize do
-                 AsmWrite(',0');
-               AsmLn;
-             end;
-{$endif cpuextended}
-
-           ait_real_64bit :
-             begin
-               if do_line then
-                AsmWriteLn(target_asm.comment+'value: '+double2str(tai_real_64bit(hp).value));
-               d:=tai_real_64bit(hp).value;
-               { swap the values to correct endian if required }
-               if source_info.endian <> target_info.endian then
-                 swap64bitarray(t64bitarray(d));
-               AsmWrite(#9'.byte'#9);
-{$ifdef arm}
-               if tai_real_64bit(hp).formatoptions=fo_hiloswapped then
-                 begin
-                   for i:=4 to 7 do
-                     begin
-                       if i<>4 then
-                         AsmWrite(',');
-                       AsmWrite(tostr(t64bitarray(d)[i]));
-                     end;
-                   for i:=0 to 3 do
-                     begin
-                       AsmWrite(',');
-                       AsmWrite(tostr(t64bitarray(d)[i]));
-                     end;
-                 end
-               else
-{$endif arm}
-                 begin
-                   for i:=0 to 7 do
-                     begin
-                       if i<>0 then
-                         AsmWrite(',');
-                       AsmWrite(tostr(t64bitarray(d)[i]));
-                     end;
-                 end;
-               AsmLn;
-             end;
-
-           ait_real_32bit :
-             begin
-               if do_line then
-                AsmWriteLn(target_asm.comment+'value: '+single2str(tai_real_32bit(hp).value));
-               sin:=tai_real_32bit(hp).value;
-               { swap the values to correct endian if required }
-               if source_info.endian <> target_info.endian then
-                 swap32bitarray(t32bitarray(sin));
-               AsmWrite(#9'.byte'#9);
-               for i:=0 to 3 do
-                begin
-                  if i<>0 then
-                   AsmWrite(',');
-                  AsmWrite(tostr(t32bitarray(sin)[i]));
-                end;
-               AsmLn;
-             end;
-
-           ait_comp_64bit :
-             begin
-               if do_line then
-                AsmWriteLn(target_asm.comment+'value: '+extended2str(tai_comp_64bit(hp).value));
-               AsmWrite(#9'.byte'#9);
-               co:=comp(tai_comp_64bit(hp).value);
-               { swap the values to correct endian if required }
-               if source_info.endian <> target_info.endian then
-                 swap64bitarray(t64bitarray(co));
-               for i:=0 to 7 do
-                begin
-                  if i<>0 then
-                   AsmWrite(',');
-                  AsmWrite(tostr(t64bitarray(co)[i]));
-                end;
-               AsmLn;
+               WriteRealConstAsBytes(tai_realconst(hp),#9'.byte'#9,do_line);
              end;
 
            ait_string :

@@ -41,7 +41,6 @@ unit cgcpu;
 
         procedure g_proc_entry(list : TAsmList;localsize:longint; nostackframe:boolean);override;
         procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
-        procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
         procedure g_local_unwind(list: TAsmList; l: TAsmLabel);override;
         procedure g_save_registers(list: TAsmList);override;
         procedure g_restore_registers(list: TAsmList);override;
@@ -424,68 +423,6 @@ unit cgcpu;
           inherited g_restore_registers(list);
       end;
 
-
-    procedure tcgx86_64.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
-      var
-        make_global : boolean;
-        href : treference;
-        sym : tasmsymbol;
-        r : treference;
-      begin
-        if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
-          Internalerror(200006137);
-        if not assigned(procdef.struct) or
-           (procdef.procoptions*[po_classmethod, po_staticmethod,
-             po_methodpointer, po_interrupt, po_iocheck]<>[]) then
-          Internalerror(200006138);
-        if procdef.owner.symtabletype<>ObjectSymtable then
-          Internalerror(200109191);
-
-        make_global:=false;
-        if (not current_module.is_unit) or create_smartlink or
-           (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
-          make_global:=true;
-
-        if make_global then
-          List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
-        else
-          List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
-
-        { set param1 interface to self  }
-        g_adjust_self_value(list,procdef,ioffset);
-
-        if (po_virtualmethod in procdef.procoptions) and
-            not is_objectpascal_helper(procdef.struct) then
-          begin
-            if (procdef.extnumber=$ffff) then
-              Internalerror(200006139);
-            { load vmt from first paramter }
-            { win64 uses a different abi }
-            if target_info.system=system_x86_64_win64 then
-              reference_reset_base(href,NR_RCX,0,sizeof(pint))
-            else
-              reference_reset_base(href,NR_RDI,0,sizeof(pint));
-            cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_RAX);
-            { jmp *vmtoffs(%eax) ; method offs }
-            reference_reset_base(href,NR_RAX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
-            list.concat(taicpu.op_ref(A_JMP,S_Q,href));
-          end
-        else
-          begin
-            sym:=current_asmdata.RefAsmSymbol(procdef.mangledname);
-            reference_reset_symbol(r,sym,0,sizeof(pint));
-            if (cs_create_pic in current_settings.moduleswitches) and
-               { darwin/x86_64's assembler doesn't want @PLT after call symbols }
-               not(target_info.system in systems_darwin) then
-              r.refaddr:=addr_pic
-            else
-              r.refaddr:=addr_full;
-
-            list.concat(taicpu.op_ref(A_JMP,S_NO,r));
-          end;
-
-        List.concat(Tai_symbol_end.Createname(labelname));
-      end;
 
     procedure tcgx86_64.g_local_unwind(list: TAsmList; l: TAsmLabel);
       var

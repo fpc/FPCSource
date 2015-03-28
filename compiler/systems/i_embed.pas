@@ -88,7 +88,8 @@ unit i_embed;
             first_parm_offset : 8;
             stacksize    : 262144;
             stackalign   : 4;
-            abi : abi_default
+            abi : abi_default;
+            llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32-S32';
           );
 
        system_avr_embedded_info : tsysteminfo =
@@ -151,7 +152,8 @@ unit i_embed;
             first_parm_offset : 0;
             stacksize    : 1024;
             stackalign   : 4;
-            abi : abi_default
+            abi : abi_default;
+            llvmdatalayout : 'todo';
           );
 
        system_mipsel_embedded_info : tsysteminfo =
@@ -214,7 +216,8 @@ unit i_embed;
             first_parm_offset : 0;
             stacksize    : 262144;
             stackalign   : 8;
-            abi : abi_default
+            abi : abi_default;
+            llvmdatalayout : 'todo';
           );
 
        system_i386_embedded_info : tsysteminfo =
@@ -277,7 +280,8 @@ unit i_embed;
             first_parm_offset : 8;
             stacksize    : 4096;
             stackalign   : 4;
-            abi : abi_default
+            abi : abi_default;
+            llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:32:32-n8:16:32-S32';
           );
 
   implementation

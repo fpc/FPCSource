@@ -37,8 +37,9 @@ unit hlcgobj;
        cclasses,globtype,constexp,
        cpubase,cgbase,cgutils,parabase,
        aasmbase,aasmtai,aasmdata,aasmcpu,
-       symconst,symtype,symsym,symdef,
-       node,nutils
+       symconst,symbase,symtype,symsym,symdef,
+       node,nutils,
+       tgobj
        ;
 
     type
@@ -82,6 +83,7 @@ unit hlcgobj;
           { warning: only works correctly for fpu types currently }
           function getmmregister(list:TAsmList;size:tdef):Tregister;virtual;
           function getflagregister(list:TAsmList;size:tdef):Tregister;virtual;
+          function gettempregister(list:TAsmList;size:tdef):Tregister;virtual;
           function getregisterfordef(list: TAsmList;size:tdef):Tregister;virtual;
           {Does the generic cg need SIMD registers, like getmmxregister? Or should
            the cpu specific child cg object have such a method?}
@@ -104,8 +106,8 @@ unit hlcgobj;
           {# Returns the kind of register this type should be loaded in (it does not
              check whether this is actually possible, but if it's loaded in a register
              by the compiler for any purpose other than parameter passing/function
-             result loading, this is the register type used }
-          function def2regtyp(def: tdef): tregistertype; virtual;
+             result loading, this is the register type used) }
+          class function def2regtyp(def: tdef): tregistertype; virtual;
 
           {# Returns a reference with its base address set from a pointer that
              has been loaded in a register.
@@ -121,6 +123,9 @@ unit hlcgobj;
              @param(reg register containing the value of a pointer)
           }
           procedure reference_reset_base(var ref: treference; regsize: tdef; reg: tregister; offset, alignment: longint); virtual;
+
+          {# Returns a reference corresponding to a temp }
+          procedure temp_to_ref(p: ptemprecord; out ref: treference); virtual;
 
           {# Emit a label to the instruction stream. }
           procedure a_label(list : TAsmList;l : tasmlabel); inline;
@@ -217,14 +222,14 @@ unit hlcgobj;
              Returns the function result location.
              This routine must be overridden for each new target cpu.
           }
-          function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef; weak: boolean): tcgpara;virtual;abstract;
-          procedure a_call_reg(list : TAsmList;pd : tabstractprocdef;reg : tregister);virtual;abstract;
+          function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;virtual;abstract;
+          function a_call_reg(list : TAsmList;pd : tabstractprocdef;reg : tregister; const paras: array of pcgpara): tcgpara;virtual;abstract;
           { same as a_call_name, might be overridden on certain architectures to emit
             static calls without usage of a got trampoline }
-          function a_call_name_static(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef): tcgpara;virtual;
+          function a_call_name_static(list : TAsmList;pd : tprocdef;const s : TSymStr; const paras: array of pcgpara; forceresdef: tdef): tcgpara;virtual;
           { same as a_call_name, might be overridden on certain architectures to emit
             special static calls for inherited methods }
-          procedure a_call_name_inherited(list : TAsmList;pd : tprocdef;const s : TSymStr);virtual;
+          function a_call_name_inherited(list : TAsmList;pd : tprocdef;const s : TSymStr; const paras: array of pcgpara): tcgpara;virtual;
 
           { move instructions }
           procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : tcgint;register : tregister);virtual;abstract;
@@ -282,8 +287,8 @@ unit hlcgobj;
           procedure a_bit_set_reg_loc(list: TAsmList; doset: boolean; regsize, tosize: tdef; bitnumber: tregister; const loc: tlocation);virtual;
           procedure a_bit_set_const_loc(list: TAsmList; doset: boolean; tosize: tdef; bitnumber: tcgint; const loc: tlocation);virtual;
 
+          function  get_call_result_cgpara(pd: tabstractprocdef; forceresdef: tdef): tcgpara; virtual;
          protected
-           function  get_call_result_cgpara(pd: tprocdef; forceresdef: tdef): tcgpara;
            procedure get_subsetref_load_info(const sref: tsubsetreference; out loadsize: torddef; out extra_load: boolean);
            procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tdef; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); virtual;
            procedure a_load_subsetref_regs_index(list: TAsmList; subsetsize: tdef; loadbitsize: byte; const sref: tsubsetreference; valuereg: tregister); virtual;
@@ -309,6 +314,7 @@ unit hlcgobj;
           procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const ref: treference); virtual; abstract;
           procedure a_loadfpu_ref_ref(list: TAsmList; fromsize, tosize: tdef; const ref1,ref2: treference);virtual;
           procedure a_loadfpu_loc_reg(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; const reg: tregister);virtual;
+          procedure a_loadfpu_loc_ref(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; const ref: treference);virtual;
           procedure a_loadfpu_reg_loc(list: TAsmList; fromsize, tosize: tdef; const reg: tregister; const loc: tlocation);virtual;
           procedure a_loadfpu_reg_cgpara(list : TAsmList;fromsize: tdef;const r : tregister;const cgpara : TCGPara);virtual;
           procedure a_loadfpu_ref_cgpara(list : TAsmList;fromsize : tdef;const ref : treference;const cgpara : TCGPara);virtual;
@@ -321,6 +327,7 @@ unit hlcgobj;
           { required for subsetreg/ref; still tcgsize rather than tdef because of reason mentioned above }
           procedure a_loadmm_loc_reg(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; const reg: tregister; shuffle : pmmshuffle);virtual;
           procedure a_loadmm_reg_loc(list: TAsmList; fromsize, tosize: tdef; const reg: tregister; const loc: tlocation;shuffle : pmmshuffle);virtual;
+          procedure a_loadmm_loc_ref(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; const ref: treference; shuffle : pmmshuffle);virtual;
           procedure a_loadmm_reg_cgpara(list: TAsmList; fromsize: tdef; reg: tregister;const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
           procedure a_loadmm_ref_cgpara(list: TAsmList; fromsize: tdef; const ref: treference;const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
           procedure a_loadmm_loc_cgpara(list: TAsmList; fromsize: tdef; const loc: tlocation; const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
@@ -388,6 +395,42 @@ unit hlcgobj;
           procedure g_flags2reg(list: TAsmList; size: tdef; const f: tresflags; reg: TRegister); virtual; abstract;
           procedure g_flags2ref(list: TAsmList; size: tdef; const f: tresflags; const ref:TReference); virtual; abstract;
 {$endif cpuflags}
+
+          {#
+              This routine is used in exception management nodes. It should
+              save the exception reason currently in the reg. The
+              save should be done either to a temp (pointed to by href).
+              or on the stack (pushing the value on the stack).
+           }
+          procedure g_exception_reason_save(list : TAsmList; fromsize, tosize: tdef; reg: tregister; const href : treference);virtual;
+
+          {#
+              This routine is used in exception management nodes. It should
+              save the exception reason constant. The
+              save should be done either to a temp (pointed to by href).
+              or on the stack (pushing the value on the stack).
+
+              The size of the value to save is OS_S32. The default version
+              saves the exception reason to a temp. memory area.
+           }
+          procedure g_exception_reason_save_const(list: TAsmList; size: tdef; a: tcgint; const href: treference);virtual;
+
+          {#
+              This routine is used in exception management nodes. It should
+              load the exception reason to reg. The saved value
+              should either be in the temp. area (pointed to by href , href should
+              *NOT* be freed) or on the stack (the value should be popped).
+
+              The size of the value to save is OS_S32. The default version
+              saves the exception reason to a temp. memory area.
+           }
+          procedure g_exception_reason_load(list : TAsmList; fromsize, tosize: tdef; const href : treference; reg: tregister);virtual;
+          {#
+              This routine is called when the current exception reason can be
+              discarded. On platforms that use push/pop, it causes the current
+              value to be popped. On other platforms it doesn't do anything
+          }
+          procedure g_exception_reason_discard(list : TAsmList; size: tdef; href: treference); virtual;
 
           procedure g_maybe_testself(list : TAsmList; selftype: tdef; reg:tregister);
 //          procedure g_maybe_testvmt(list : TAsmList;reg:tregister;objdef:tobjectdef);
@@ -474,7 +517,7 @@ unit hlcgobj;
           setting up any additional environment before doing so (if required).
 
           The default implementation issues a jump instruction to the external name. }
-//          procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string); virtual;
+          procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string); virtual;
 
          protected
           procedure g_allocload_reg_reg(list: TAsmList; regsize: tdef; const fromreg: tregister; out toreg: tregister; regtyp: tregistertype);
@@ -487,6 +530,14 @@ unit hlcgobj;
             It's intended as some kind of replacement for a_loadaddr_ref_reg()
             for targets without pointers. }
           procedure g_reference_loc(list: TAsmList; def: tdef; const fromloc: tlocation; out toloc: tlocation); virtual;
+
+          { typecasts the pointer in reg to a new pointer. By default it does
+            nothing, only required for type-aware platforms like LLVM }
+          procedure g_ptrtypecast_reg(list: TAsmList; fromdef, todef: tpointerdef; reg: tregister); virtual;
+          { same but for a treference (considers the reference itself, not the
+            value stored at that place in memory). Replaces ref with a new
+            reference if necessary }
+          procedure g_ptrtypecast_ref(list: TAsmList; fromdef, todef: tpointerdef; var ref: treference); virtual;
 
 
           { routines migrated from ncgutil }
@@ -534,6 +585,10 @@ unit hlcgobj;
           { generates the code for decrementing the reference count of parameters }
           procedure final_paras(p:TObject;arg:pointer);
          public
+          { helper called by gen_alloc_symtable }
+          procedure varsym_set_localloc(list: TAsmList; vs:tabstractnormalvarsym); virtual;
+          { helper called by gen_alloc_symtable }
+          procedure paravarsym_set_initialloc_to_paraloc(vs: tparavarsym); virtual;
 
           procedure gen_load_para_value(list:TAsmList);virtual;
           { helpers called by gen_load_para_value }
@@ -546,6 +601,7 @@ unit hlcgobj;
             location if it's not initialised by the Pascal code, e.g.
             stack-based architectures. By default it does nothing }
           procedure gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara);virtual;
+          procedure gen_load_loc_function_result(list: TAsmList; vardef: tdef; const l: tlocation);virtual;
          public
           { load a tlocation into a cgpara }
           procedure gen_load_loc_cgpara(list: TAsmList; vardef: tdef; const l: tlocation; const cgpara: tcgpara);virtual;
@@ -563,10 +619,10 @@ unit hlcgobj;
           procedure record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList); virtual;
 
           { generate a call to a routine in the system unit }
-          function g_call_system_proc(list: TAsmList; const procname: string; forceresdef: tdef): tcgpara;
-          function g_call_system_proc(list: TAsmList; pd: tprocdef; forceresdef: tdef): tcgpara;
+          function g_call_system_proc(list: TAsmList; const procname: string; const paras: array of pcgpara; forceresdef: tdef): tcgpara;
+          function g_call_system_proc(list: TAsmList; pd: tprocdef; const paras: array of pcgpara; forceresdef: tdef): tcgpara;
          protected
-          function g_call_system_proc_intern(list: TAsmList; pd: tprocdef; forceresdef: tdef): tcgpara; virtual;
+          function g_call_system_proc_intern(list: TAsmList; pd: tprocdef; const paras: array of pcgpara; forceresdef: tdef): tcgpara; virtual;
          public
 
 
@@ -574,10 +630,15 @@ unit hlcgobj;
             produces a simple jump to destination label. }
           procedure g_local_unwind(list: TAsmList; l: TAsmLabel);virtual;abstract;
        end;
+     thlcgobjclass = class of thlcgobj;
 
     var
        {# Main high level code generator class }
        hlcg : thlcgobj;
+       { class type of high level code generator class (also valid when hlcg is
+         nil, in order to be able to call its virtual class methods) }
+       chlcgobj: thlcgobjclass;
+
 
     procedure destroy_hlcodegen;
 
@@ -587,9 +648,9 @@ implementation
        globals,systems,
        fmodule,export,
        verbose,defutil,paramgr,
-       symbase,symtable,
+       symtable,
        nbas,ncon,nld,ncgrtti,pass_1,pass_2,
-       cpuinfo,cgobj,tgobj,cutils,procinfo,
+       cpuinfo,cgobj,cutils,procinfo,
 {$ifdef x86}
        cgx86,
 {$endif x86}
@@ -647,6 +708,13 @@ implementation
   function thlcgobj.getflagregister(list: TAsmList; size: tdef): Tregister;
     begin
       result:=cg.getflagregister(list,def_cgsize(size));
+    end;
+
+  function thlcgobj.gettempregister(list: TAsmList; size: tdef): Tregister;
+    begin
+      { doesn't make sense to try to translate this size to tcgsize, temps
+        can have any size }
+      result:=cg.gettempregister(list);
     end;
 
     function thlcgobj.getregisterfordef(list: TAsmList; size: tdef): Tregister;
@@ -710,7 +778,7 @@ implementation
       cg.translate_register(reg);
     end;
 
-  function thlcgobj.def2regtyp(def: tdef): tregistertype;
+  class function thlcgobj.def2regtyp(def: tdef): tregistertype;
     begin
         case def.typ of
           enumdef,
@@ -748,6 +816,11 @@ implementation
       reference_reset(ref,alignment);
       ref.base:=reg;
       ref.offset:=offset;
+    end;
+
+  procedure thlcgobj.temp_to_ref(p: ptemprecord; out ref: treference);
+    begin
+      reference_reset_base(ref,voidstackpointertype,current_procinfo.framepointer,p^.pos,p^.alignment);
     end;
 
   procedure thlcgobj.a_label(list: TAsmList; l: tasmlabel); inline;
@@ -1017,15 +1090,15 @@ implementation
          end;
     end;
 
-  function thlcgobj.a_call_name_static(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef): tcgpara;
+  function thlcgobj.a_call_name_static(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef): tcgpara;
     begin
-      result:=a_call_name(list,pd,s,forceresdef,false);
+      result:=a_call_name(list,pd,s,paras,forceresdef,false);
     end;
 
-    procedure thlcgobj.a_call_name_inherited(list: TAsmList; pd: tprocdef; const s: TSymStr);
-      begin
-        a_call_name(list,pd,s,nil,false);
-      end;
+  function thlcgobj.a_call_name_inherited(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara): tcgpara;
+    begin
+      result:=a_call_name(list,pd,s,paras,nil,false);
+    end;
 
   procedure thlcgobj.a_load_const_ref(list: TAsmList; tosize: tdef; a: tcgint; const ref: treference);
     var
@@ -1701,7 +1774,7 @@ implementation
     end;
 
 
-  function thlcgobj.get_call_result_cgpara(pd: tprocdef; forceresdef: tdef): tcgpara;
+  function thlcgobj.get_call_result_cgpara(pd: tabstractprocdef; forceresdef: tdef): tcgpara;
     begin
       if not assigned(forceresdef) then
         begin
@@ -2366,6 +2439,26 @@ implementation
       end;
     end;
 
+  procedure thlcgobj.a_loadfpu_loc_ref(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; const ref: treference);
+    var
+      reg: tregister;
+    begin
+      case loc.loc of
+        LOC_REFERENCE, LOC_CREFERENCE:
+          begin
+            reg:=getfpuregister(list,tosize);
+            a_loadfpu_ref_reg(list,fromsize,tosize,loc.reference,reg);
+            a_loadfpu_reg_ref(list,tosize,tosize,reg,ref);
+          end;
+        LOC_FPUREGISTER, LOC_CFPUREGISTER:
+          begin
+            a_loadfpu_reg_ref(list,fromsize,tosize,loc.register,ref);
+          end;
+        else
+          internalerror(2014080802);
+      end;
+    end;
+
   procedure thlcgobj.a_loadfpu_reg_loc(list: TAsmList; fromsize, tosize: tdef; const reg: tregister; const loc: tlocation);
     begin
       case loc.loc of
@@ -2410,8 +2503,9 @@ implementation
 
   procedure thlcgobj.a_loadfpu_ref_cgpara(list: TAsmList; fromsize: tdef; const ref: treference; const cgpara: TCGPara);
     var
+       hreg : tregister;
        href : treference;
-//       hsize: tcgsize;
+       intptrdef: tdef;
     begin
        case cgpara.location^.loc of
         LOC_FPUREGISTER,LOC_CFPUREGISTER:
@@ -2427,22 +2521,19 @@ implementation
             { concatcopy should choose the best way to copy the data }
             g_concatcopy(list,fromsize,ref,href);
           end;
-        (* not yet supported
         LOC_REGISTER,LOC_CREGISTER:
           begin
-            { force integer size }
-            hsize:=int_cgsize(tcgsize2size[size]);
-{$ifndef cpu64bitalu}
-            if (hsize in [OS_S64,OS_64]) then
-              cg64.a_load64_ref_cgpara(list,ref,cgpara)
-            else
-{$endif not cpu64bitalu}
-              begin
-                cgpara.check_simple_location;
-                a_load_ref_cgpara(list,hsize,ref,cgpara)
-              end;
+            cgpara.check_simple_location;
+            if fromsize.size<>cgpara.location^.def.size then
+              internalerror(2014080603);
+            { convert the reference from a floating point location to an
+              integer location, and load that }
+            intptrdef:=getpointerdef(cgpara.location^.def);
+            hreg:=getaddressregister(list,intptrdef);
+            a_loadaddr_ref_reg(list,fromsize,intptrdef,ref,hreg);
+            reference_reset_base(href,intptrdef,hreg,0,ref.alignment);
+            a_load_ref_cgpara(list,cgpara.location^.def,ref,cgpara);
           end
-        *)
         else
           internalerror(2010120423);
       end;
@@ -2489,6 +2580,39 @@ implementation
           a_loadmm_reg_ref(list,fromsize,tosize,reg,loc.reference,shuffle);
         else
           internalerror(2010120415);
+      end;
+    end;
+
+  procedure thlcgobj.a_loadmm_loc_ref(list: TAsmList; fromsize, tosize: tdef; const loc: tlocation; const ref: treference; shuffle: pmmshuffle);
+    var
+      intreg, reg: tregister;
+    begin
+      case loc.loc of
+        LOC_MMREGISTER,LOC_CMMREGISTER:
+          a_loadmm_reg_ref(list,fromsize,tosize,loc.register,ref,shuffle);
+        LOC_REFERENCE,LOC_CREFERENCE:
+          begin
+            reg:=getmmregister(list,tosize);
+            a_loadmm_ref_reg(list,fromsize,tosize,loc.reference,reg,shuffle);
+            a_loadmm_reg_ref(list,tosize,tosize,reg,ref,shuffle);
+          end;
+        LOC_REGISTER,LOC_CREGISTER:
+          begin
+            reg:=getmmregister(list,tosize);
+            a_loadmm_intreg_reg(list,fromsize,tosize,loc.register,reg,shuffle);
+            a_loadmm_reg_ref(list,tosize,tosize,reg,ref,shuffle);
+          end;
+        LOC_SUBSETREG,LOC_CSUBSETREG,
+        LOC_SUBSETREF,LOC_CSUBSETREF:
+          begin
+            intreg:=getintregister(list,fromsize);
+            reg:=getmmregister(list,tosize);
+            a_load_loc_reg(list,fromsize,fromsize,loc,intreg);
+            a_loadmm_intreg_reg(list,fromsize,tosize,intreg,reg,shuffle);
+            a_loadmm_reg_ref(list,tosize,tosize,reg,ref,shuffle);
+          end
+        else
+          internalerror(2014080803);
       end;
     end;
 
@@ -2818,7 +2942,7 @@ implementation
     var
       tmpreg: tregister;
     begin
-      tmpreg:=getintregister(list,size);
+      tmpreg:=getregisterfordef(list,size);
       a_load_const_reg(list,size,a,tmpreg);
       a_cmp_reg_reg_label(list,size,cmp_op,tmpreg,reg,l);
     end;
@@ -2827,7 +2951,7 @@ implementation
     var
       tmpreg: tregister;
     begin
-      tmpreg:=getintregister(list,size);
+      tmpreg:=getregisterfordef(list,size);
       a_load_ref_reg(list,size,size,ref,tmpreg);
       a_cmp_const_reg_label(list,size,cmp_op,a,tmpreg,l);
     end;
@@ -2955,6 +3079,30 @@ implementation
       end;
     end;
 
+
+  procedure thlcgobj.g_exception_reason_save(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const href: treference);
+    begin
+      a_load_reg_ref(list,fromsize,tosize,reg,href);
+    end;
+
+  procedure thlcgobj.g_exception_reason_save_const(list: TAsmList; size: tdef; a: tcgint; const href: treference);
+    begin
+      a_load_const_ref(list,size,a,href);
+    end;
+
+
+  procedure thlcgobj.g_exception_reason_load(list: TAsmList; fromsize, tosize: tdef; const href: treference; reg: tregister);
+    begin
+      a_load_ref_reg(list,fromsize,tosize,href,reg);
+    end;
+
+
+  procedure thlcgobj.g_exception_reason_discard(list: TAsmList; size: tdef; href: treference);
+    begin
+      { do nothing by default }
+    end;
+
+
   procedure thlcgobj.g_maybe_testself(list: TAsmList; selftype: tdef; reg: tregister);
     var
       OKLabel : tasmlabel;
@@ -2971,7 +3119,7 @@ implementation
          paramanager.getintparaloc(pd,1,cgpara1);
          a_load_const_cgpara(list,s32inttype,aint(210),cgpara1);
          paramanager.freecgpara(list,cgpara1);
-         g_call_system_proc(list,pd,nil);
+         g_call_system_proc(list,pd,[@cgpara1],nil);
          cgpara1.done;
          a_label(list,oklabel);
        end;
@@ -3019,7 +3167,7 @@ implementation
       paramanager.freecgpara(list,cgpara3);
       paramanager.freecgpara(list,cgpara2);
       paramanager.freecgpara(list,cgpara1);
-      g_call_system_proc(list,pd,nil);
+      g_call_system_proc(list,pd,[@cgpara1,@cgpara2,@cgpara3],nil);
       cgpara3.done;
       cgpara2.done;
       cgpara1.done;
@@ -3047,7 +3195,7 @@ implementation
         end;
       paramanager.freecgpara(list,cgpara2);
       paramanager.freecgpara(list,cgpara1);
-      g_call_system_proc(list,pd,nil);
+      g_call_system_proc(list,pd,[@cgpara1,@cgpara2],nil);
       cgpara2.done;
       cgpara1.done;
     end;
@@ -3086,7 +3234,7 @@ implementation
             { these functions get the pointer by value }
             a_load_ref_cgpara(list,t,ref,cgpara1);
           paramanager.freecgpara(list,cgpara1);
-          g_call_system_proc(list,pd,nil);
+          g_call_system_proc(list,pd,[@cgpara1],nil);
         end
        else
         begin
@@ -3108,7 +3256,7 @@ implementation
             end;
           paramanager.freecgpara(list,cgpara1);
           paramanager.freecgpara(list,cgpara2);
-          g_call_system_proc(list,pd,nil);
+          g_call_system_proc(list,pd,[@cgpara1,@cgpara2],nil);
         end;
        cgpara2.done;
        cgpara1.done;
@@ -3134,7 +3282,7 @@ implementation
            paramanager.getintparaloc(pd,1,cgpara1);
            a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
            paramanager.freecgpara(list,cgpara1);
-          g_call_system_proc(list,pd,nil);
+          g_call_system_proc(list,pd,[@cgpara1],nil);
          end
        else
          begin
@@ -3156,7 +3304,7 @@ implementation
               end;
             paramanager.freecgpara(list,cgpara1);
             paramanager.freecgpara(list,cgpara2);
-            g_call_system_proc(list,pd,nil);
+            g_call_system_proc(list,pd,[@cgpara1,@cgpara2],nil);
          end;
        cgpara1.done;
        cgpara2.done;
@@ -3206,7 +3354,7 @@ implementation
             end;
           paramanager.freecgpara(list,cgpara1);
           paramanager.freecgpara(list,cgpara2);
-          g_call_system_proc(list,pd,nil);
+          g_call_system_proc(list,pd,[@cgpara1,@cgpara2],nil);
           cgpara1.done;
           cgpara2.done;
           exit;
@@ -3216,7 +3364,7 @@ implementation
       paramanager.getintparaloc(pd,1,cgpara1);
       a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
       paramanager.freecgpara(list,cgpara1);
-      g_call_system_proc(list,pd,nil);
+      g_call_system_proc(list,pd,[@cgpara1],nil);
       cgpara1.done;
     end;
 
@@ -3270,7 +3418,7 @@ implementation
       paramanager.freecgpara(list,cgpara1);
       paramanager.freecgpara(list,cgpara2);
       paramanager.freecgpara(list,cgpara3);
-      g_call_system_proc(list,pd,nil);
+      g_call_system_proc(list,pd,[@cgpara1,@cgpara2,@cgpara3],nil);
 
       cgpara3.done;
       cgpara2.done;
@@ -3441,7 +3589,7 @@ implementation
                   { if low(to) > maxlongint also range error }
                   (lto > aintmax) then
                  begin
-                   g_call_system_proc(list,'fpc_rangeerror',nil);
+                   g_call_system_proc(list,'fpc_rangeerror',[],nil);
                    exit
                  end;
                { from is signed and to is unsigned -> when looking at to }
@@ -3456,7 +3604,7 @@ implementation
                if (lfrom > aintmax) or
                   (hto < 0) then
                  begin
-                   g_call_system_proc(list,'fpc_rangeerror',nil);
+                   g_call_system_proc(list,'fpc_rangeerror',[],nil);
                    exit
                  end;
                { from is unsigned and to is signed -> when looking at to }
@@ -3479,7 +3627,7 @@ implementation
         a_cmp_const_reg_label(list,maxdef,OC_BE,aintmax,hreg,neglabel)
       else
         a_cmp_const_reg_label(list,maxdef,OC_BE,tcgint(int64(hto-lto)),hreg,neglabel);
-      g_call_system_proc(list,'fpc_rangeerror',nil);
+      g_call_system_proc(list,'fpc_rangeerror',[],nil);
       a_label(list,neglabel);
     end;
 
@@ -3521,7 +3669,7 @@ implementation
       paramanager.getintparaloc(pd,1,cgpara1);
       a_load_reg_cgpara(list,sinttype,sizereg,cgpara1);
       paramanager.freecgpara(list,cgpara1);
-      getmemres:=g_call_system_proc(list,pd,ptrarrdef);
+      getmemres:=g_call_system_proc(list,pd,[@cgpara1],ptrarrdef);
       cgpara1.done;
       { return the new address }
       location_reset(destloc,LOC_REGISTER,OS_ADDR);
@@ -3557,7 +3705,7 @@ implementation
       paramanager.freecgpara(list,cgpara3);
       paramanager.freecgpara(list,cgpara2);
       paramanager.freecgpara(list,cgpara1);
-      g_call_system_proc(list,pd,nil);
+      g_call_system_proc(list,pd,[@cgpara1,@cgpara2,@cgpara3],nil);
       cgpara3.done;
       cgpara2.done;
       cgpara1.done;
@@ -3576,12 +3724,17 @@ implementation
       { load source }
       a_load_loc_cgpara(list,getpointerdef(arrdef),l,cgpara1);
       paramanager.freecgpara(list,cgpara1);
-      g_call_system_proc(list,pd,nil);
+      g_call_system_proc(list,pd,[@cgpara1],nil);
       cgpara1.done;
     end;
 
   procedure thlcgobj.g_profilecode(list: TAsmList);
     begin
+    end;
+
+  procedure thlcgobj.g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string);
+    begin
+      cg.a_jmp_name(list,externalname);
     end;
 
   procedure thlcgobj.g_allocload_reg_reg(list: TAsmList; regsize: tdef; const fromreg: tregister; out toreg: tregister; regtyp: tregistertype);
@@ -3647,6 +3800,16 @@ implementation
         else
           internalerror(2012012701);
       end;
+    end;
+
+  procedure thlcgobj.g_ptrtypecast_reg(list: TAsmList; fromdef, todef: tpointerdef; reg: tregister);
+    begin
+      { nothing to do }
+    end;
+
+  procedure thlcgobj.g_ptrtypecast_ref(list: TAsmList; fromdef, todef: tpointerdef; var ref: treference);
+    begin
+      { nothing to do }
     end;
 
   procedure thlcgobj.location_force_reg(list: TAsmList; var l: tlocation; src_size, dst_size: tdef; maybeconst: boolean);
@@ -3982,7 +4145,7 @@ implementation
                 cg64.a_load64_reg_reg(list,n.location.register64,joinreg64(rr.new,rr.newhi))
               else
 {$endif cpu64bitalu}
-                cg.a_load_reg_reg(list,n.location.size,n.location.size,n.location.register,rr.new);
+                a_load_reg_reg(list,n.resultdef,n.resultdef,n.location.register,rr.new);
             end;
           LOC_CFPUREGISTER:
             cg.a_loadfpu_reg_reg(list,n.location.size,n.location.size,n.location.register,rr.new);
@@ -3991,7 +4154,7 @@ implementation
             cg.a_loadmm_reg_reg(list,OS_M64,OS_M64,n.location.register,rr.new,nil);
 {$endif SUPPORT_MMX}
           LOC_CMMREGISTER:
-            cg.a_loadmm_reg_reg(list,n.location.size,n.location.size,n.location.register,rr.new,nil);
+            a_loadmm_reg_reg(list,n.resultdef,n.resultdef,n.location.register,rr.new,nil);
           else
             internalerror(2006090920);
         end;
@@ -4271,6 +4434,30 @@ implementation
       current_procinfo:=old_current_procinfo;
     end;
 
+  procedure thlcgobj.varsym_set_localloc(list: TAsmList; vs: tabstractnormalvarsym);
+    begin
+      if cs_asm_source in current_settings.globalswitches then
+        begin
+          case vs.initialloc.loc of
+            LOC_REFERENCE :
+              begin
+                if not assigned(vs.initialloc.reference.symbol) then
+                  list.concat(Tai_comment.Create(strpnew('Var '+vs.realname+' located at '+
+                     std_regname(vs.initialloc.reference.base)+tostr_with_plus(vs.initialloc.reference.offset)+
+                     ', size='+tcgsize2str(vs.initialloc.size))));
+              end;
+          end;
+        end;
+      vs.localloc:=vs.initialloc;
+      FillChar(vs.currentregloc,sizeof(vs.currentregloc),0);
+    end;
+
+  procedure thlcgobj.paravarsym_set_initialloc_to_paraloc(vs: tparavarsym);
+    begin
+      reference_reset_base(vs.initialloc.reference,voidstackpointertype,tparavarsym(vs).paraloc[calleeside].location^.reference.index,
+          tparavarsym(vs).paraloc[calleeside].location^.reference.offset,tparavarsym(vs).paraloc[calleeside].alignment);
+    end;
+
   procedure thlcgobj.gen_entry_code(list: TAsmList);
     begin
       { the actual profile code can clobber some registers,
@@ -4288,19 +4475,14 @@ implementation
             end;
         end;
 
-      { TODO: create high level version (create compilerprocs in system unit,
-          look up procdef, use hlcgobj.a_call_name()) }
-
       { call startup helpers from main program }
       if (current_procinfo.procdef.proctypeoption=potype_proginit) then
        begin
          { initialize units }
-         cg.allocallcpuregisters(list);
          if not(current_module.islibrary) then
-           cg.a_call_name(list,'FPC_INITIALIZEUNITS',false)
+           g_call_system_proc(list,'fpc_initializeunits',[],nil)
          else
-           cg.a_call_name(list,'FPC_LIBINITIALIZEUNITS',false);
-         cg.deallocallcpuregisters(list);
+           g_call_system_proc(list,'fpc_libinitializeunits',[],nil);
        end;
 
       list.concat(Tai_force_line.Create);
@@ -4318,7 +4500,7 @@ implementation
       { call __EXIT for main program }
       if (not DLLsource) and
          (current_procinfo.procdef.proctypeoption=potype_proginit) then
-        cg.a_call_name(list,'FPC_DO_EXIT',false);
+        g_call_system_proc(list,'fpc_do_exit',[],nil);
     end;
 
   procedure thlcgobj.inittempvariables(list: TAsmList);
@@ -4329,10 +4511,11 @@ implementation
       hp:=tg.templist;
       while assigned(hp) do
        begin
-         if assigned(hp^.def) and
+         if hp^.fini and
+            assigned(hp^.def) and
             is_managed_type(hp^.def) then
           begin
-            reference_reset_base(href,voidstackpointertype,current_procinfo.framepointer,hp^.pos,voidstackpointertype.size);
+            temp_to_ref(hp,href);
             g_initialize(list,hp^.def,href);
           end;
          hp:=hp^.next;
@@ -4376,11 +4559,12 @@ implementation
       hp:=tg.templist;
       while assigned(hp) do
        begin
-         if assigned(hp^.def) and
+         if hp^.fini and
+            assigned(hp^.def) and
             is_managed_type(hp^.def) then
           begin
             include(current_procinfo.flags,pi_needs_implicit_finally);
-            reference_reset_base(href,voidstackpointertype,current_procinfo.framepointer,hp^.pos,voidstackpointertype.size);
+            temp_to_ref(hp,href);
             g_finalize(list,hp^.def,href);
           end;
          hp:=hp^.next;
@@ -4838,6 +5022,11 @@ implementation
       { do nothing by default }
     end;
 
+  procedure thlcgobj.gen_load_loc_function_result(list: TAsmList; vardef: tdef; const l: tlocation);
+    begin
+      gen_load_loc_cgpara(list,vardef,l,current_procinfo.procdef.funcretloc[calleeside]);
+    end;
+
   procedure thlcgobj.gen_load_loc_cgpara(list: TAsmList; vardef: tdef; const l: tlocation; const cgpara: tcgpara);
     begin
       { Handle Floating point types differently
@@ -4915,7 +5104,6 @@ implementation
   procedure thlcgobj.gen_load_return_value(list: TAsmList);
     var
       ressym : tabstractnormalvarsym;
-      funcretloc : TCGPara;
       retdef : tdef;
     begin
       { Is the loading needed? }
@@ -4927,8 +5115,6 @@ implementation
            (po_nostackframe in current_procinfo.procdef.procoptions))
          ) then
         exit;
-
-      funcretloc:=current_procinfo.procdef.funcretloc[calleeside];
 
       { constructors return self }
       if (current_procinfo.procdef.proctypeoption=potype_constructor) then
@@ -4949,10 +5135,10 @@ implementation
         begin
           { was: don't do anything if funcretloc.loc in [LOC_INVALID,LOC_REFERENCE] }
           if not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef) then
-            gen_load_loc_cgpara(list,retdef,ressym.localloc,funcretloc);
+            gen_load_loc_function_result(list,retdef,ressym.localloc);
         end
       else
-        gen_load_uninitialized_function_result(list,current_procinfo.procdef,retdef,funcretloc)
+        gen_load_uninitialized_function_result(list,current_procinfo.procdef,retdef,current_procinfo.procdef.funcretloc[calleeside])
     end;
 
   procedure thlcgobj.record_generated_code_for_procdef(pd: tprocdef; code, data: TAsmList);
@@ -4967,26 +5153,28 @@ implementation
         current_asmdata.asmlists[al_procedures].concatlist(data);
     end;
 
-  function thlcgobj.g_call_system_proc(list: TAsmList; const procname: string; forceresdef: tdef): tcgpara;
+  function thlcgobj.g_call_system_proc(list: TAsmList; const procname: string; const paras: array of pcgpara; forceresdef: tdef): tcgpara;
     var
       pd: tprocdef;
     begin
       pd:=search_system_proc(procname);
-      result:=g_call_system_proc_intern(list,pd,forceresdef);
+      pd.init_paraloc_info(callerside);
+      result:=g_call_system_proc_intern(list,pd,paras,forceresdef);
     end;
 
-  function thlcgobj.g_call_system_proc(list: TAsmList; pd: tprocdef; forceresdef: tdef): tcgpara;
+  function thlcgobj.g_call_system_proc(list: TAsmList; pd: tprocdef; const paras: array of pcgpara; forceresdef: tdef): tcgpara;
     begin
       { separate non-virtual routine to make it clear that the routine to
         override, if any, is g_call_system_proc_intern (and that none of
         the g_call_system_proc variants should be made virtual) }
-      result:=g_call_system_proc_intern(list,pd,forceresdef);
+      pd.init_paraloc_info(callerside);
+      result:=g_call_system_proc_intern(list,pd,paras,forceresdef);
     end;
 
-  function thlcgobj.g_call_system_proc_intern(list: TAsmList; pd: tprocdef; forceresdef: tdef): tcgpara;
+  function thlcgobj.g_call_system_proc_intern(list: TAsmList; pd: tprocdef; const paras: array of pcgpara; forceresdef: tdef): tcgpara;
     begin
       allocallcpuregisters(list);
-      result:=a_call_name(list,pd,pd.mangledname,forceresdef,false);
+      result:=a_call_name(list,pd,pd.mangledname,paras,forceresdef,false);
       deallocallcpuregisters(list);
     end;
 

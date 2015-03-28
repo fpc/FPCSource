@@ -192,6 +192,15 @@ interface
           { offset in record/object, for bitpacked fields the offset is
             given in bit, else in bytes }
           fieldoffset   : asizeint;
+{$ifdef llvm}
+          { the llvm version of the record does not support variants,   }
+          { so the llvm equivalent field may not be at the exact same   }
+          { offset -> store the difference (bits for bitpacked records, }
+          { bytes otherwise)                                            }
+          offsetfromllvmfield : aint;
+          { number of the closest field in the llvm definition }
+          llvmfieldnr         : longint;
+{$endif llvm}
           externalname  : pshortstring;
 {$ifdef symansistr}
           cachedmangledname: TSymStr; { mangled name for ObjC or Java }

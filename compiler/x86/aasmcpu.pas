@@ -1625,9 +1625,9 @@ implementation
           (0, 1, 2, 3, 6, 7, 5, 4);
         maxsupreg: array[tregistertype] of tsuperregister=
 {$ifdef x86_64}
-          (0, 16, 9, 8, 16, 32, 0);
+          (0, 16, 9, 8, 16, 32, 0, 0);
 {$else x86_64}
-          (0,  8, 9, 8,  8, 32, 0);
+          (0,  8, 9, 8,  8, 32, 0, 0);
 {$endif x86_64}
       var
         rs: tsuperregister;

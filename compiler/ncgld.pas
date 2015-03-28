@@ -263,6 +263,7 @@ implementation
         endrelocatelab,
         norelocatelab : tasmlabel;
         paraloc1 : tcgpara;
+        vd,
         pvd : tdef;
       begin
         { we don't know the size of all arrays }
@@ -447,10 +448,11 @@ implementation
                       hregister:=location.register
                     else
                       begin
-                        hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
+                        vd:=getpointerdef(resultdef);
+                        hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,vd);
                         { we need to load only an address }
-                        location.size:=int_cgsize(voidpointertype.size);
-                        hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,location,hregister);
+                        location.size:=int_cgsize(vd.size);
+                        hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,vd,vd,location,hregister);
                       end;
                     { assume packed records may always be unaligned }
                     if not(resultdef.typ in [recorddef,objectdef]) or
@@ -742,6 +744,7 @@ implementation
                     LOC_REGISTER,
                     LOC_CREGISTER :
                       begin
+{$ifndef cpuhighleveltarget}
 {$ifdef cpu64bitalu}
                         if left.location.size in [OS_128,OS_S128] then
                           cg128.a_load128_ref_reg(current_asmdata.CurrAsmList,right.location.reference,left.location.register128)
@@ -751,6 +754,7 @@ implementation
                           cg64.a_load64_ref_reg(current_asmdata.CurrAsmList,right.location.reference,left.location.register64)
                         else
 {$endif cpu64bitalu}
+{$endif not cpuhighleveltarget}
                           hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,right.resultdef,left.resultdef,right.location.reference,left.location.register);
                       end;
                     LOC_FPUREGISTER,
@@ -881,6 +885,7 @@ implementation
               LOC_REGISTER,
               LOC_CREGISTER :
                 begin
+{$ifndef cpuhighleveltarget}
 {$ifdef cpu64bitalu}
                   if left.location.size in [OS_128,OS_S128] then
                     cg128.a_load128_reg_loc(current_asmdata.CurrAsmList,
@@ -893,6 +898,7 @@ implementation
                       right.location.register64,left.location)
                   else
 {$endif cpu64bitalu}
+{$endif not cpuhighleveltarget}
 {$ifdef i8086}
                   { prefer a_load_loc_ref, because it supports i8086-specific types
                     that use registerhi (like 6-byte method pointers)
@@ -1331,6 +1337,7 @@ implementation
                      end;
                    else
                      begin
+{$ifndef cpuhighleveltarget}
 {$ifdef cpu64bitalu}
                        if hp.left.location.size in [OS_128,OS_S128] then
                          cg128.a_load128_loc_ref(current_asmdata.CurrAsmList,hp.left.location,href)
@@ -1340,6 +1347,7 @@ implementation
                          cg64.a_load64_loc_ref(current_asmdata.CurrAsmList,hp.left.location,href)
                        else
 {$endif cpu64bitalu}
+{$endif not cpuhighleveltarget}
                          hlcg.a_load_loc_ref(current_asmdata.CurrAsmList,eledef,eledef,hp.left.location,href);
                      end;
                  end;

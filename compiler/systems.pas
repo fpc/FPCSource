@@ -203,6 +203,12 @@ interface
           { stack alignment }
           stackalign   : byte;
           abi          : tabi;
+          { llvm -- varies wildly in length and is empty for many targets ->
+            ansistring instead of shortstring; tsysteminfo records aren't
+            copied very often anyway. These strings come from the file
+            lib/Basic/Targets.cpp in the clang (cfe 3.3) source tree, sometimes
+            adapted to match our (custom) stack alignment requirements }
+          llvmdatalayout: ansistring;
        end;
 
     tabiinfo = record
@@ -338,8 +344,12 @@ interface
          variables, but emulate it by wrapping nested variables in records
          whose address is passed around }
        systems_fpnestedstruct = [
+{$ifndef llvm}
          system_jvm_java32,
          system_jvm_android32
+{$else not llvm}
+         low(tsystem)..high(tsystem)
+{$endif not llvm}
        ];
 
        { all systems where a value parameter passed by reference must be copied
@@ -643,7 +653,7 @@ begin
   if assigned(targetinfos[t]) then
    writeln('Warning: Target is already registered!')
   else
-   Getmem(targetinfos[t],sizeof(tsysteminfo));
+   new(targetinfos[t]);
   targetinfos[t]^:=r;
 end;
 
@@ -654,7 +664,7 @@ var
 begin
   t:=r.id;
   if not assigned(resinfos[t]) then
-    Getmem(resinfos[t],sizeof(tresinfo));
+    new(resinfos[t]);
   resinfos[t]^:=r;
   resinfos[t]^.resourcefileclass:=rcf;
 end;
@@ -668,7 +678,7 @@ begin
   if assigned(arinfos[t]) then
     writeln('Warning: ar is already registered!')
   else
-    Getmem(arinfos[t],sizeof(tarinfo));
+    new(arinfos[t]);
   arinfos[t]^:=r;
 end;
 

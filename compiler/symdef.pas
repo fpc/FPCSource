@@ -298,6 +298,9 @@ interface
           variantrecdesc : pvariantrecdesc;
           isunion       : boolean;
           constructor create(const n:string; p:TSymtable);virtual;
+          constructor create_global_internal(n: string; packrecords, recordalignmin, maxCrecordalign: shortint); virtual;
+          procedure add_field_by_def(def: tdef);
+          procedure add_fields_from_deflist(fieldtypes: tfplist);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           function getcopy : tstoreddef;override;
@@ -378,7 +381,8 @@ interface
           { and no vmt field for objects without virtuals }
           vmtentries     : TFPList;
           vmcallstaticinfo : pmvcallstaticinfo;
-          vmt_offset     : longint;
+          vmt_field       : tsym;
+          vmt_fieldderef  : tderef;
           iidguid        : pguid;
           iidstr         : pshortstring;
           { store implemented interfaces defs and name mappings }
@@ -428,6 +432,7 @@ interface
           function  vmt_mangledname : TSymStr;
           procedure check_forwards; override;
           procedure insertvmt;
+          function  vmt_offset: asizeint;
           procedure set_parent(c : tobjectdef);
           function find_destructor: tprocdef;
           function implements_any_interfaces: boolean;
@@ -545,7 +550,10 @@ interface
        tproccopytyp = (pc_normal,
                        { always creates a top-level function, removes all
                          special parameters (self, vmt, parentfp, ...) }
-                       pc_bareproc
+                       pc_bareproc,
+                       { creates a procvardef describing only the code pointer
+                         of a method/netsted function/... }
+                       pc_address_only
                        );
 
        tabstractprocdef = class(tstoreddef)
@@ -1027,8 +1035,11 @@ interface
          of all interfaces         }
        rec_tguid : trecorddef;
 
-       { pointer to jump buffer }
+       { jump buffer type, used by setjmp }
        rec_jmp_buf : trecorddef;
+
+       { system.texceptaddr type, used by fpc_pushexceptaddr }
+       rec_exceptaddr: trecorddef;
 
        { Objective-C base types }
        objc_metaclasstype,
@@ -4020,6 +4031,70 @@ implementation
       end;
 
 
+    constructor trecorddef.create_global_internal(n: string; packrecords, recordalignmin, maxCrecordalign: shortint);
+      var
+        oldsymtablestack: tsymtablestack;
+        ts: ttypesym;
+        definedname: boolean;
+      begin
+        { construct name }
+        definedname:=n<>'';
+        if not definedname then
+          n:='$InternalRec'+tostr(current_module.deflist.count);
+        oldsymtablestack:=symtablestack;
+        { do not simply push/pop current_module.localsymtable, because
+          that can have side-effects (e.g., it removes helpers) }
+        symtablestack:=nil;
+
+        symtable:=trecordsymtable.create(n,packrecords,recordalignmin,maxCrecordalign);
+        symtable.defowner:=self;
+        isunion:=false;
+        inherited create(n,recorddef);
+        { if we specified a name, then we'll probably want to look up the
+          type again by name too -> create typesym }
+        ts:=nil;
+        if definedname then
+          begin
+            ts:=ctypesym.create(n,self);
+            { avoid hints about unused types (these may only be used for
+              typed constant data) }
+            ts.increfcount;
+          end;
+        if assigned(current_module.localsymtable) then
+          begin
+            current_module.localsymtable.insertdef(self);
+            if definedname then
+              current_module.localsymtable.insert(ts);
+          end
+        else
+          begin
+            current_module.globalsymtable.insertdef(self);
+            if definedname then
+              current_module.globalsymtable.insert(ts);
+          end;
+        symtablestack:=oldsymtablestack;
+      end;
+
+
+    procedure trecorddef.add_field_by_def(def: tdef);
+      var
+        sym: tfieldvarsym;
+      begin
+        sym:=cfieldvarsym.create('$f'+tostr(trecordsymtable(symtable).symlist.count),vs_value,def,[]);
+        symtable.insert(sym);
+        trecordsymtable(symtable).addfield(sym,vis_hidden);
+      end;
+
+
+    procedure trecorddef.add_fields_from_deflist(fieldtypes: tfplist);
+      var
+        i: longint;
+      begin
+        for i:=0 to fieldtypes.count-1 do
+          add_field_by_def(tdef(fieldtypes[i]));
+      end;
+
+
     constructor trecorddef.ppuload(ppufile:tcompilerppufile);
 
       procedure readvariantrecdesc(var variantrecdesc : pvariantrecdesc);
@@ -4053,11 +4128,12 @@ implementation
          else
            begin
              ppuload_platform(ppufile);
-             symtable:=trecordsymtable.create(objrealname^,0);
+             symtable:=trecordsymtable.create(objrealname^,0,0,0);
              trecordsymtable(symtable).fieldalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).recordalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).padalignment:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).usefieldalignment:=shortint(ppufile.getbyte);
+             trecordsymtable(symtable).recordalignmin:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).datasize:=ppufile.getasizeint;
              trecordsymtable(symtable).paddingsize:=ppufile.getword;
              trecordsymtable(symtable).ppuload(ppufile);
@@ -4129,21 +4205,23 @@ implementation
          else
            tstoredsymtable(symtable).deref;
 
-         { assign TGUID? load only from system unit }
-         if not(assigned(rec_tguid)) and
-            (upper(typename)='TGUID') and
-            assigned(owner) and
+         { internal types, only load from the system unit }
+         if assigned(owner) and
             assigned(owner.name) and
             (owner.name^='SYSTEM') then
-           rec_tguid:=self;
-
-         { assign JMP_BUF? load only from system unit }
-         if not(assigned(rec_jmp_buf)) and
-            (upper(typename)='JMP_BUF') and
-            assigned(owner) and
-            assigned(owner.name) and
-            (owner.name^='SYSTEM') then
-           rec_jmp_buf:=self;
+           begin
+             { TGUID  }
+             if not assigned(rec_tguid) and
+                (upper(typename)='TGUID') then
+               rec_tguid:=self
+             { JMP_BUF }
+             else if not assigned(rec_jmp_buf) and
+                (upper(typename)='JMP_BUF') then
+               rec_jmp_buf:=self
+             else if not assigned(rec_exceptaddr) and
+                (upper(typename)='TEXCEPTADDR') then
+               rec_exceptaddr:=self;
+           end;
       end;
 
 
@@ -4180,6 +4258,7 @@ implementation
              ppufile.putbyte(byte(trecordsymtable(symtable).recordalignment));
              ppufile.putbyte(byte(trecordsymtable(symtable).padalignment));
              ppufile.putbyte(byte(trecordsymtable(symtable).usefieldalignment));
+             ppufile.putbyte(byte(trecordsymtable(symtable).recordalignmin));
              ppufile.putasizeint(trecordsymtable(symtable).datasize);
              ppufile.putword(trecordsymtable(symtable).paddingsize);
              { the variantrecdesc is needed only for iso-like new statements new(prec,1,2,3 ...);
@@ -4634,6 +4713,9 @@ implementation
           tabstractprocdef(result).procoptions:=tabstractprocdef(result).procoptions*[po_explicitparaloc,po_hascallingconvention,po_varargs,po_iocheck,po_has_importname,po_has_importdll];
         if newtyp=procvardef then
           tabstractprocdef(result).procoptions:=tabstractprocdef(result).procoptions-[po_has_importname,po_has_importdll];
+        if copytyp=pc_address_only then
+          include(tabstractprocdef(result).procoptions,po_addressonly);
+
         tabstractprocdef(result).callerargareasize:=callerargareasize;
         tabstractprocdef(result).calleeargareasize:=calleeargareasize;
         tabstractprocdef(result).maxparacount:=maxparacount;
@@ -5331,7 +5413,11 @@ implementation
       begin
         result:=inherited getcopyas(newtyp,copytyp);
         if newtyp=procvardef then
-          exit;
+          begin
+            { create new paralist }
+            tprocvardef(result).calcparas;
+            exit;
+          end;
         { don't copy mangled name, can be different }
         tprocdef(result).messageinf:=messageinf;
         tprocdef(result).dispid:=dispid;
@@ -5902,10 +5988,10 @@ implementation
         childof:=nil;
         if objecttype=odt_helper then
           owner.includeoption(sto_has_helper);
-        symtable:=tObjectSymtable.create(self,n,current_settings.packrecords);
+        symtable:=tObjectSymtable.create(self,n,current_settings.packrecords,
+          current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign);
         { create space for vmt !! }
         vmtentries:=TFPList.Create;
-        vmt_offset:=0;
         set_parent(c);
         if objecttype in [odt_interfacecorba,odt_interfacecom,odt_dispinterface] then
           prepareguid;
@@ -5932,12 +6018,13 @@ implementation
          { only used for external Objective-C classes/protocols }
          if (objextname^='') then
            stringdispose(objextname);
-         symtable:=tObjectSymtable.create(self,objrealname^,0);
+         symtable:=tObjectSymtable.create(self,objrealname^,0,0,0);
          tObjectSymtable(symtable).datasize:=ppufile.getasizeint;
          tObjectSymtable(symtable).paddingsize:=ppufile.getword;
          tObjectSymtable(symtable).fieldalignment:=shortint(ppufile.getbyte);
          tObjectSymtable(symtable).recordalignment:=shortint(ppufile.getbyte);
-         vmt_offset:=ppufile.getlongint;
+         tObjectSymtable(symtable).recordalignmin:=shortint(ppufile.getbyte);
+         ppufile.getderef(vmt_fieldderef);
          ppufile.getderef(childofderef);
 
          { load guid }
@@ -6091,7 +6178,7 @@ implementation
         tobjectdef(result).extendeddef:=extendeddef;
         if assigned(tcinitcode) then
           tobjectdef(result).tcinitcode:=tcinitcode.getcopy;
-        tobjectdef(result).vmt_offset:=vmt_offset;
+        tobjectdef(result).vmt_field:=vmt_field;
         if assigned(iidguid) then
           begin
             new(tobjectdef(result).iidguid);
@@ -6139,7 +6226,8 @@ implementation
          ppufile.putword(tObjectSymtable(symtable).paddingsize);
          ppufile.putbyte(byte(tObjectSymtable(symtable).fieldalignment));
          ppufile.putbyte(byte(tObjectSymtable(symtable).recordalignment));
-         ppufile.putlongint(vmt_offset);
+         ppufile.putbyte(byte(tObjectSymtable(symtable).recordalignmin));
+         ppufile.putderef(vmt_fieldderef);
          ppufile.putderef(childofderef);
          if objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
            begin
@@ -6203,6 +6291,7 @@ implementation
          vmtentry : pvmtentry;
       begin
          inherited buildderef;
+         vmt_fieldderef.build(vmt_field);
          childofderef.build(childof);
          if df_copied_def in defoptions then
            cloneddefderef.build(symtable.defowner)
@@ -6232,6 +6321,7 @@ implementation
          vmtentry : pvmtentry;
       begin
          inherited deref;
+         vmt_field:=tsym(vmt_fieldderef.resolve);
          childof:=tobjectdef(childofderef.resolve);
          if df_copied_def in defoptions then
            begin
@@ -6391,7 +6481,7 @@ implementation
             { if parent has a vmt field then the offset is the same for the child PM }
             if (oo_has_vmt in c.objectoptions) or is_class(self) then
               begin
-                vmt_offset:=c.vmt_offset;
+                vmt_field:=c.vmt_field;
                 include(objectoptions,oo_has_vmt);
               end;
           end;
@@ -6399,8 +6489,6 @@ implementation
 
 
    procedure tobjectdef.insertvmt;
-     var
-       vs: tfieldvarsym;
      begin
         if objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_javaclass,odt_interfacejava] then
           exit;
@@ -6417,18 +6505,24 @@ implementation
                  tObjectSymtable(symtable).datasize:=align(tObjectSymtable(symtable).datasize,sizeof(pint));
                  tObjectSymtable(symtable).alignrecord(tObjectSymtable(symtable).datasize,sizeof(pint));
                end;
-             vs:=cfieldvarsym.create('_vptr$'+objname^,vs_value,voidpointertype,[]);
-             hidesym(vs);
-             tObjectSymtable(symtable).insert(vs);
-             tObjectSymtable(symtable).addfield(vs,vis_hidden);
-             if (tObjectSymtable(symtable).usefieldalignment<>bit_alignment) then
-               vmt_offset:=vs.fieldoffset
-             else
-               vmt_offset:=vs.fieldoffset div 8;
+             vmt_field:=cfieldvarsym.create('_vptr$'+objname^,vs_value,voidpointertype,[]);
+             hidesym(vmt_field);
+             tObjectSymtable(symtable).insert(vmt_field);
+             tObjectSymtable(symtable).addfield(tfieldvarsym(vmt_field),vis_hidden);
              include(objectoptions,oo_has_vmt);
           end;
      end;
 
+
+   function tobjectdef.vmt_offset: asizeint;
+     begin
+        if objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol,odt_javaclass,odt_interfacejava] then
+          result:=0
+        else if (tObjectSymtable(symtable).usefieldalignment<>bit_alignment) then
+          result:=tfieldvarsym(vmt_field).fieldoffset
+        else
+          result:=tfieldvarsym(vmt_field).fieldoffset div 8;
+     end;
 
 
    procedure tobjectdef.check_forwards;

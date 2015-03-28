@@ -1489,17 +1489,19 @@ end;
   {***********************************************************************}
     Begin
        case real_typ of
-          s32real : p.concat(Tai_real_32bit.Create(value));
+          s32real : p.concat(tai_realconst.create_s32real(value));
           s64real :
 {$ifdef ARM}
            if is_double_hilo_swapped then
-             p.concat(Tai_real_64bit.Create_hiloswapped(value))
+             p.concat(tai_realconst.create_s64real_hiloswapped(value))
            else
 {$endif ARM}
-             p.concat(Tai_real_64bit.Create(value));
-          s80real : p.concat(Tai_real_80bit.Create(value,s80floattype.size));
-          sc80real : p.concat(Tai_real_80bit.Create(value,sc80floattype.size));
-          s64comp : p.concat(Tai_comp_64bit.Create(trunc(value)));
+             p.concat(tai_realconst.create_s64real(value));
+          s80real : p.concat(tai_realconst.create_s80real(value,s80floattype.size));
+          sc80real : p.concat(tai_realconst.create_s80real(value,sc80floattype.size));
+          s64comp : p.concat(tai_realconst.create_s64compreal(trunc(value)));
+          else
+            internalerror(2014050608);
        end;
     end;
 

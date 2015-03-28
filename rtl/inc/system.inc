@@ -12,6 +12,11 @@
 
  **********************************************************************}
 
+{ contains the definition of the TExceptAddr type, which is required
+  by the compiler to generate code for any routine containing
+  implicit or explicit exceptions }
+{$i excepth.inc}
+
 { ObjpasInt is the integer type, equivalent to Objpas.Integer (the Integer
   type in ObjFpc and Delphi modes). It is defined here for use in the
   implementation part of the System unit. }
@@ -901,7 +906,7 @@ end;
 
 procedure internal_initializeunits; external name 'FPC_INITIALIZEUNITS';
 
-procedure fpc_LibInitializeUnits;[public,alias:'FPC_LIBINITIALIZEUNITS'];
+procedure fpc_LibInitializeUnits;[public,alias:'FPC_LIBINITIALIZEUNITS'];compilerproc;
 begin
 {$ifdef FPC_HAS_FEATURE_DYNLIBS}
   IsLibrary:=true;
@@ -1040,11 +1045,13 @@ Begin
 End;
 
 
-Procedure do_exit;[Public,Alias:'FPC_DO_EXIT'];
+Procedure fpc_do_exit;[Public,Alias:'FPC_DO_EXIT']; compilerproc;
 begin
   InternalExit;
   System_exit;
 end;
+
+procedure internal_do_exit; external name 'FPC_DO_EXIT';
 
 
 Procedure lib_exit;[Public,Alias:'FPC_LIB_EXIT'];
@@ -1063,7 +1070,7 @@ Begin
 {$endif FPC_LIMITED_EXITCODE}
     ExitCode:=ErrNum;
 {$endif FPC_HAS_FEATURE_EXITCODE}
-  Do_Exit;
+  internal_do_exit;
 end;
 
 

@@ -125,9 +125,9 @@ unit cgx86;
 
         procedure g_overflowcheck(list: TAsmList; const l:tlocation;def:tdef);override;
 
-        procedure g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string); override;
-
         procedure make_simple_ref(list:TAsmList;var ref: treference);
+
+        function get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
 
         procedure generate_leave(list : TAsmList);
       protected
@@ -137,7 +137,6 @@ unit cgx86;
         procedure opmm_loc_reg(list: TAsmList; Op: TOpCG; size : tcgsize;loc : tlocation;dst: tregister; shuffle : pmmshuffle);
         procedure opmm_loc_reg_reg(list : TAsmList;Op : TOpCG;size : tcgsize;loc : tlocation;src,dst : tregister;shuffle : pmmshuffle);
 
-        function get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
         procedure sizes2load(s1,s2 : tcgsize;var op: tasmop; var s3: topsize);
 
         procedure floatload(list: TAsmList; t : tcgsize;const ref : treference);
@@ -3078,32 +3077,6 @@ unit cgx86;
 
          a_call_name(list,'FPC_OVERFLOW',false);
          a_label(list,hl);
-      end;
-
-
-    procedure tcgx86.g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string);
-      var
-        ref : treference;
-        sym : tasmsymbol;
-      begin
-       if (target_info.system = system_i386_darwin) then
-         begin
-           { a_jmp_name jumps to a stub which is always pic-safe on darwin }
-           inherited g_external_wrapper(list,procdef,externalname);
-           exit;
-         end;
-
-        sym:=current_asmdata.RefAsmSymbol(externalname);
-        reference_reset_symbol(ref,sym,0,sizeof(pint));
-
-        { create pic'ed? }
-        if (cs_create_pic in current_settings.moduleswitches) and
-           { darwin/x86_64's assembler doesn't want @PLT after call symbols }
-           not(target_info.system in [system_x86_64_darwin,system_i386_iphonesim,system_x86_64_iphonesim]) then
-          ref.refaddr:=addr_pic
-        else
-          ref.refaddr:=addr_full;
-        list.concat(taicpu.op_ref(A_JMP,S_NO,ref));
       end;
 
 end.

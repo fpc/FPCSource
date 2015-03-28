@@ -33,7 +33,7 @@ unit cpupara;
        symconst,symbase,symtype,symdef,parabase,paramgr;
 
     type
-       tavrparamanager = class(tparamanager)
+       tcpuparamanager = class(tparamanager)
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
@@ -55,13 +55,13 @@ unit cpupara;
        defutil,symsym;
 
 
-    function tavrparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
+    function tcpuparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=VOLATILE_INTREGISTERS;
       end;
 
 
-    function tavrparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
+    function tcpuparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=VOLATILE_FPUREGISTERS;
       end;
@@ -116,7 +116,7 @@ unit cpupara;
       end;
 
 
-    function tavrparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
+    function tcpuparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
         result:=false;
         if varspez in [vs_var,vs_out,vs_constref] then
@@ -147,7 +147,7 @@ unit cpupara;
       end;
 
 
-    function tavrparamanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
+    function tcpuparamanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
       begin
         if handle_common_ret_in_param(def,pd,result) then
           exit;
@@ -172,7 +172,7 @@ unit cpupara;
       end;
 
 
-    procedure tavrparamanager.init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
+    procedure tcpuparamanager.init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
       begin
         curintreg:=RS_R25;
         curfloatreg:=RS_INVALID;
@@ -181,8 +181,8 @@ unit cpupara;
       end;
 
 
-    { TODO : fix tavrparamanager.create_paraloc_info_intern }
-    function tavrparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
+    { TODO : fix tcpuparamanager.create_paraloc_info_intern }
+    function tcpuparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
         var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword):longint;
 
       var
@@ -380,7 +380,7 @@ unit cpupara;
       end;
 
 
-    function tavrparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
+    function tcpuparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
       var
         cur_stack_offset: aword;
         curintreg, curfloatreg, curmmreg: tsuperregister;
@@ -395,7 +395,7 @@ unit cpupara;
 
 
     { TODO : fix tavrparamanager.get_funcretloc }
-    function  tavrparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
+    function  tcpuparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
       var
         retcgsize : tcgsize;
         paraloc : pcgparalocation;
@@ -519,7 +519,7 @@ unit cpupara;
       end;
 
 
-    function tavrparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
+    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
       var
         cur_stack_offset: aword;
         curintreg, curfloatreg, curmmreg: tsuperregister;
@@ -535,5 +535,5 @@ unit cpupara;
       end;
 
 begin
-   paramanager:=tavrparamanager.create;
+   paramanager:=tcpuparamanager.create;
 end.

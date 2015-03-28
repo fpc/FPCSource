@@ -1021,14 +1021,9 @@ implementation
                                             if (tai_const(hp).consttype=aitconst_64bit) then
                                               inc(extradataoffset,multiplier);
                                           end;
-                                        ait_comp_64bit,
-                                        ait_real_64bit:
+                                        ait_realconst:
                                           begin
-                                            inc(extradataoffset,multiplier);
-                                          end;
-                                        ait_real_80bit:
-                                          begin
-                                            inc(extradataoffset,2*multiplier);
+                                            inc(extradataoffset,multiplier*(((tai_realconst(hp).savesize-4)+3) div 4));
                                           end;
                                       end;
                                       { check if the same constant has been already inserted into the currently handled list,
@@ -1084,18 +1079,9 @@ implementation
                   if (tai_const(curtai).consttype=aitconst_64bit) then
                     inc(curinspos,multiplier);
                 end;
-              ait_real_32bit:
+              ait_realconst:
                 begin
-                  inc(curinspos,multiplier);
-                end;
-              ait_comp_64bit,
-              ait_real_64bit:
-                begin
-                  inc(curinspos,2*multiplier);
-                end;
-              ait_real_80bit:
-                begin
-                  inc(curinspos,3*multiplier);
+                  inc(curinspos,multiplier*((tai_realconst(hp).savesize+3) div 4));
                 end;
             end;
             { special case for case jump tables }

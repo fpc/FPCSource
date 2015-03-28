@@ -34,10 +34,10 @@ unit rgcpu;
 
     type
       trgcpu=class(trgobj)
-        procedure do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
-        procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
+        procedure do_spill_read(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister); override;
+        procedure do_spill_written(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister); override;
        protected
-        procedure do_spill_op(list: tasmlist; op: tasmop; pos: tai; const spilltemp: treference; tempreg: tregister);
+        procedure do_spill_op(list: tasmlist; op: tasmop; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
       end;
 
       trgintcpu=class(trgcpu)
@@ -51,19 +51,19 @@ implementation
       verbose,cutils,
       cgobj;
 
-    procedure trgcpu.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
+    procedure trgcpu.do_spill_read(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
       begin
-        do_spill_op(list,A_LDR,pos,spilltemp,tempreg);
+        do_spill_op(list,A_LDR,pos,spilltemp,tempreg,orgsupreg);
       end;
 
 
-    procedure trgcpu.do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
+    procedure trgcpu.do_spill_written(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
       begin
-        do_spill_op(list,A_STR,pos,spilltemp,tempreg);
+        do_spill_op(list,A_STR,pos,spilltemp,tempreg,orgsupreg);
       end;
 
 
-    procedure trgcpu.do_spill_op(list: tasmlist; op: tasmop; pos: tai; const spilltemp: treference; tempreg: tregister);
+    procedure trgcpu.do_spill_op(list: tasmlist; op: tasmop; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
       var
         helpins  : tai;
         tmpref   : treference;
@@ -95,9 +95,9 @@ implementation
             helplist.free;
           end
         else if isload then
-          inherited do_spill_read(list,pos,spilltemp,tempreg)
+          inherited do_spill_read(list,pos,spilltemp,tempreg,orgsupreg)
         else
-          inherited do_spill_written(list,pos,spilltemp,tempreg)
+          inherited do_spill_written(list,pos,spilltemp,tempreg,orgsupreg)
       end;
 
 

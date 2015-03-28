@@ -323,9 +323,7 @@ interface
      { Memory sizes }
        heapsize,
        maxheapsize,
-       stacksize,
-       jmp_buf_size,
-       jmp_buf_align : longint;
+       stacksize   : longint;
 
 {$Ifdef EXTDEBUG}
      { parameter switches }
@@ -374,6 +372,7 @@ interface
        { (this will be prefixed with the target_info.cprefix)                }
        defaultmainaliasname = 'main';
        mainaliasname : string = defaultmainaliasname;
+
 
     const
       default_settings : TSettings = (
@@ -1429,11 +1428,6 @@ implementation
           in options or init_parser }
         stacksize:=0;
         { not initialized yet }
-{$ifndef jvm}
-        jmp_buf_size:=-1;
-{$else}
-        jmp_buf_size:=0;
-{$endif}
         apptype:=app_cui;
 
         { Init values }

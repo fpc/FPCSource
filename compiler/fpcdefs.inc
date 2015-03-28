@@ -259,3 +259,14 @@
 {$if not defined(FPC_HAS_TYPE_EXTENDED) and defined(i386)}
 {$error Cross-compiling from systems without support for an 80 bit extended floating point type to i386 is not yet supported at this time }
 {$endif}
+
+{ llvm backends partially use other backends for parameter info calculation,
+  alignment info, data sizes etc. They always support 64 bit alu though.
+}
+{$ifdef llvm}
+  {$undef SUPPORT_MMX}
+  {$undef cpu16bitalu}
+  {$undef cpu32bitalu}
+  {$define cpu64bitalu}
+  {$define cpuhighleveltarget}
+{$endif}

@@ -27,7 +27,8 @@ unit ngenutil;
 interface
 
   uses
-    cclasses,
+    cclasses,globtype,
+    aasmdata,
     node,nbas,symtype,symsym,symconst,symdef;
 
 
@@ -68,6 +69,9 @@ interface
       { trashing for differently sized variables that those handled by
         trash_small() }
       class procedure trash_large(var stat: tstatementnode; trashn, sizen: tnode; trashintval: int64); virtual;
+      { insert a single bss sym, called by insert bssdata (factored out
+        non-common part for llvm) }
+      class procedure insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint); virtual;
 
       { initialization of iso styled program parameters }
       class procedure initialize_textrec(p : TObject; statn : pointer);
@@ -105,9 +109,9 @@ interface
 implementation
 
     uses
-      verbose,version,globtype,globals,cutils,constexp,
+      verbose,version,globals,cutils,constexp,
       scanner,systems,procinfo,fmodule,
-      aasmbase,aasmdata,aasmtai,
+      aasmbase,aasmtai,
       symbase,symtable,defutil,
       nadd,ncal,ncnv,ncon,nflw,ninl,nld,nmem,nobj,nutils,
       ppu,
@@ -510,6 +514,29 @@ implementation
     end;
 
 
+  class procedure tnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint);
+    begin
+      if sym.globalasmsym then
+        begin
+          { on AIX/stabx, we cannot generate debug information that encodes
+            the address of a global symbol, you need a symbol with the same
+            name as the identifier -> create an extra *local* symbol.
+            Moreover, such a local symbol will be removed if it's not
+            referenced anywhere, so also create a reference }
+          if (target_dbg.id=dbg_stabx) and
+             (cs_debuginfo in current_settings.moduleswitches) and
+             not assigned(current_asmdata.GetAsmSymbol(sym.name)) then
+            begin
+              list.concat(tai_symbol.Create(current_asmdata.DefineAsmSymbol(sym.name,AB_LOCAL,AT_DATA),0));
+              list.concat(tai_directive.Create(asd_reference,sym.name));
+            end;
+          list.concat(Tai_datablock.create_global(sym.mangledname,size));
+        end
+      else
+        list.concat(Tai_datablock.create(sym.mangledname,size));
+    end;
+
+
   class procedure tnodeutils.insertbssdata(sym: tstaticvarsym);
     var
       l : asizeint;
@@ -557,24 +584,7 @@ implementation
         new_section(list,sec_user,sym.section,varalign)
       else
         new_section(list,sectype,lower(sym.mangledname),varalign);
-      if sym.globalasmsym then
-        begin
-          { on AIX/stabx, we cannot generate debug information that encodes
-            the address of a global symbol, you need a symbol with the same
-            name as the identifier -> create an extra *local* symbol.
-            Moreover, such a local symbol will be removed if it's not
-            referenced anywhere, so also create a reference }
-          if (target_dbg.id=dbg_stabx) and
-             (cs_debuginfo in current_settings.moduleswitches) and
-             not assigned(current_asmdata.GetAsmSymbol(sym.name)) then
-            begin
-              list.concat(tai_symbol.Create(current_asmdata.DefineAsmSymbol(sym.name,AB_LOCAL,AT_DATA),0));
-              list.concat(tai_directive.Create(asd_reference,sym.name));
-            end;
-          list.concat(Tai_datablock.create_global(sym.mangledname,l));
-        end
-      else
-        list.concat(Tai_datablock.create(sym.mangledname,l));
+      insertbsssym(list,sym,l,varalign);
       current_filepos:=storefilepos;
     end;
 

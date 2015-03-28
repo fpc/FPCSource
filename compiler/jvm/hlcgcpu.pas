@@ -47,13 +47,13 @@ uses
       procedure incstack(list : TAsmList;slots: longint);
       procedure decstack(list : TAsmList;slots: longint);
 
-      function def2regtyp(def: tdef): tregistertype; override;
+      class function def2regtyp(def: tdef): tregistertype; override;
 
       procedure a_load_const_cgpara(list : TAsmList;tosize : tdef;a : tcgint;const cgpara : TCGPara);override;
 
-      function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef; weak: boolean): tcgpara;override;
-      procedure a_call_name_inherited(list : TAsmList;pd : tprocdef;const s : TSymStr);override;
-      procedure a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister); override;
+      function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;override;
+      function a_call_name_inherited(list : TAsmList;pd : tprocdef;const s : TSymStr; const paras: array of pcgpara): tcgpara;override;
+      function a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister; const paras: array of pcgpara): tcgpara; override;
 
       procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : tcgint;register : tregister);override;
       procedure a_load_const_ref(list : TAsmList;tosize : tdef;a : tcgint;const ref : treference);override;
@@ -202,7 +202,7 @@ uses
 
       procedure inittempvariables(list:TAsmList);override;
 
-      function g_call_system_proc_intern(list: TAsmList; pd: tprocdef; forceresdef: tdef): tcgpara; override;
+      function g_call_system_proc_intern(list: TAsmList; pd: tprocdef; const paras: array of pcgpara; forceresdef: tdef): tcgpara; override;
 
       { in case of an array, the array base address and index have to be
         put on the evaluation stack before the stored value; similarly, for
@@ -288,7 +288,7 @@ implementation
         list.concat(tai_comment.Create(strpnew('    freed '+tostr(slots)+', stack height = '+tostr(fevalstackheight))));
     end;
 
-  function thlcgjvm.def2regtyp(def: tdef): tregistertype;
+  class function thlcgjvm.def2regtyp(def: tdef): tregistertype;
     begin
       case def.typ of
         { records and enums are implemented via classes }
@@ -316,20 +316,21 @@ implementation
       inherited a_load_const_cgpara(list, tosize, a, cgpara);
     end;
 
-  function thlcgjvm.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef; weak: boolean): tcgpara;
+  function thlcgjvm.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;
     begin
       result:=a_call_name_intern(list,pd,s,forceresdef,false);
     end;
 
-  procedure thlcgjvm.a_call_name_inherited(list: TAsmList; pd: tprocdef; const s: TSymStr);
+  function thlcgjvm.a_call_name_inherited(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara): tcgpara;
     begin
-      a_call_name_intern(list,pd,s,nil,true);
+      result:=a_call_name_intern(list,pd,s,nil,true);
     end;
 
 
-  procedure thlcgjvm.a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister);
+  function thlcgjvm.a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister; const paras: array of pcgpara): tcgpara;
     begin
       internalerror(2012042824);
+      result.init;
     end;
 
 
@@ -707,30 +708,30 @@ implementation
           a_load_const_stack(list,s32inttype,initdim-1,R_INTREGISTER);
           case elemdef.typ of
             arraydef:
-              g_call_system_proc(list,'fpc_initialize_array_dynarr',nil);
+              g_call_system_proc(list,'fpc_initialize_array_dynarr',[],nil);
             recorddef,setdef,procvardef:
               begin
                 tg.gethltemp(list,elemdef,elemdef.size,tt_persistent,recref);
                 a_load_ref_stack(list,elemdef,recref,prepare_stack_for_ref(list,recref,false));
                 case elemdef.typ of
                   recorddef:
-                    g_call_system_proc(list,'fpc_initialize_array_record',nil);
+                    g_call_system_proc(list,'fpc_initialize_array_record',[],nil);
                   setdef:
                     begin
                       if tsetdef(elemdef).elementdef.typ=enumdef then
-                        g_call_system_proc(list,'fpc_initialize_array_enumset',nil)
+                        g_call_system_proc(list,'fpc_initialize_array_enumset',[],nil)
                       else
-                        g_call_system_proc(list,'fpc_initialize_array_bitset',nil)
+                        g_call_system_proc(list,'fpc_initialize_array_bitset',[],nil)
                     end;
                   procvardef:
-                    g_call_system_proc(list,'fpc_initialize_array_procvar',nil);
+                    g_call_system_proc(list,'fpc_initialize_array_procvar',[],nil);
                 end;
                 tg.ungettemp(list,recref);
               end;
             enumdef:
               begin
                 a_load_ref_stack(list,java_jlobject,enuminitref,prepare_stack_for_ref(list,enuminitref,false));
-                g_call_system_proc(list,'fpc_initialize_array_object',nil);
+                g_call_system_proc(list,'fpc_initialize_array_object',[],nil);
               end;
             stringdef:
               begin
@@ -738,13 +739,13 @@ implementation
                   st_shortstring:
                     begin
                       a_load_const_stack_intern(list,u8inttype,tstringdef(elemdef).len,R_INTREGISTER,true);
-                      g_call_system_proc(list,'fpc_initialize_array_shortstring',nil);
+                      g_call_system_proc(list,'fpc_initialize_array_shortstring',[],nil);
                     end;
                   st_ansistring:
-                    g_call_system_proc(list,'fpc_initialize_array_ansistring',nil);
+                    g_call_system_proc(list,'fpc_initialize_array_ansistring',[],nil);
                   st_unicodestring,
                   st_widestring:
-                    g_call_system_proc(list,'fpc_initialize_array_unicodestring',nil);
+                    g_call_system_proc(list,'fpc_initialize_array_unicodestring',[],nil);
                   else
                     internalerror(2011081801);
                 end;
@@ -952,7 +953,7 @@ implementation
     end;
 
 
-  function thlcgjvm.g_call_system_proc_intern(list: TAsmList; pd: tprocdef; forceresdef: tdef): tcgpara;
+  function thlcgjvm.g_call_system_proc_intern(list: TAsmList; pd: tprocdef; const paras: array of pcgpara; forceresdef: tdef): tcgpara;
     begin
       result:=inherited;
       pd.init_paraloc_info(callerside);
@@ -1415,7 +1416,7 @@ implementation
          a_load_const_stack(list,s32inttype,-1,R_INTREGISTER);
          a_load_const_stack(list,s32inttype,-1,R_INTREGISTER);
        end;
-     g_call_system_proc(list,procname,nil);
+     g_call_system_proc(list,procname,[],nil);
      if ndim<>1 then
        begin
          { pop return value, must be the same as dest }
@@ -1439,7 +1440,7 @@ implementation
            (srsym.typ<>procsym) then
           Message1(cg_f_unknown_compilerproc,size.typename+'.fpcDeepCopy');
         pd:=tprocdef(tprocsym(srsym).procdeflist[0]);
-        a_call_name(list,pd,pd.mangledname,nil,false);
+        a_call_name(list,pd,pd.mangledname,[],nil,false);
         { both parameters are removed, no function result }
         decstack(list,2);
       end;
@@ -1451,9 +1452,9 @@ implementation
         a_load_ref_stack(list,size,dest,prepare_stack_for_ref(list,dest,false));
         { call set copy helper }
         if tsetdef(size).elementdef.typ=enumdef then
-          g_call_system_proc(list,'fpc_enumset_copy',nil)
+          g_call_system_proc(list,'fpc_enumset_copy',[],nil)
         else
-          g_call_system_proc(list,'fpc_bitset_copy',nil);
+          g_call_system_proc(list,'fpc_bitset_copy',[],nil);
       end;
 
 
@@ -1472,7 +1473,7 @@ implementation
            (srsym.typ<>procsym) then
           Message1(cg_f_unknown_compilerproc,'ShortstringClass.FpcDeepCopy');
         pd:=tprocdef(tprocsym(srsym).procdeflist[0]);
-        a_call_name(list,pd,pd.mangledname,nil,false);
+        a_call_name(list,pd,pd.mangledname,[],nil,false);
         { both parameters are removed, no function result }
         decstack(list,2);
       end;
@@ -1661,22 +1662,22 @@ implementation
       a_load_const_stack(list,s32inttype,normaldim,R_INTREGISTER);
       { highloc is invalid, the length is part of the array in Java }
       if is_wide_or_unicode_string(t) then
-        g_call_system_proc(list,'fpc_initialize_array_unicodestring',nil)
+        g_call_system_proc(list,'fpc_initialize_array_unicodestring',[],nil)
       else if is_ansistring(t) then
-        g_call_system_proc(list,'fpc_initialize_array_ansistring',nil)
+        g_call_system_proc(list,'fpc_initialize_array_ansistring',[],nil)
       else if is_dynamic_array(t) then
-        g_call_system_proc(list,'fpc_initialize_array_dynarr',nil)
+        g_call_system_proc(list,'fpc_initialize_array_dynarr',[],nil)
       else if is_record(t) or
               (t.typ=setdef) then
         begin
           tg.gethltemp(list,t,t.size,tt_persistent,eleref);
           a_load_ref_stack(list,t,eleref,prepare_stack_for_ref(list,eleref,false));
           if is_record(t) then
-            g_call_system_proc(list,'fpc_initialize_array_record',nil)
+            g_call_system_proc(list,'fpc_initialize_array_record',[],nil)
           else if tsetdef(t).elementdef.typ=enumdef then
-            g_call_system_proc(list,'fpc_initialize_array_enumset',nil)
+            g_call_system_proc(list,'fpc_initialize_array_enumset',[],nil)
           else
-            g_call_system_proc(list,'fpc_initialize_array_bitset',nil);
+            g_call_system_proc(list,'fpc_initialize_array_bitset',[],nil);
           tg.ungettemp(list,eleref);
         end
       else if (t.typ=enumdef) then
@@ -1684,7 +1685,7 @@ implementation
           if get_enum_init_val_ref(t,eleref) then
             begin
               a_load_ref_stack(list,java_jlobject,eleref,prepare_stack_for_ref(list,eleref,false));
-              g_call_system_proc(list,'fpc_initialize_array_object',nil);
+              g_call_system_proc(list,'fpc_initialize_array_object',[],nil);
             end;
         end
       else
@@ -1717,7 +1718,7 @@ implementation
           else
             internalerror(2013113008);
           a_load_ref_stack(list,java_jlobject,ref,prepare_stack_for_ref(list,ref,false));
-          a_call_name(list,pd,pd.mangledname,nil,false);
+          a_call_name(list,pd,pd.mangledname,[],nil,false);
           { parameter removed, no result }
           decstack(list,1);
         end
@@ -1744,7 +1745,7 @@ implementation
         exit;
       current_asmdata.getjumplabel(hl);
       a_cmp_const_loc_label(list,s32inttype,OC_EQ,0,ovloc,hl);
-      g_call_system_proc(list,'fpc_overflow',nil);
+      g_call_system_proc(list,'fpc_overflow',[],nil);
       a_label(list,hl);
     end;
 
@@ -2556,4 +2557,6 @@ implementation
       create_codegen;
     end;
 
+begin
+  chlcgobj:=thlcgjvm;
 end.

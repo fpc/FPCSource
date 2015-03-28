@@ -85,6 +85,7 @@ unit cgobj;
           function getfpuregister(list:TAsmList;size:Tcgsize):Tregister;virtual;
           function getmmregister(list:TAsmList;size:Tcgsize):Tregister;virtual;
           function getflagregister(list:TAsmList;size:Tcgsize):Tregister;virtual;
+          function gettempregister(list:TAsmList):Tregister;virtual;
           {Does the generic cg need SIMD registers, like getmmxregister? Or should
            the cpu specific child cg object have such a method?}
 
@@ -105,7 +106,7 @@ unit cgobj;
           procedure do_register_allocation(list:TAsmList;headertai:tai);virtual;
           procedure translate_register(var reg : tregister);
 
-          function makeregsize(list:TAsmList;reg:Tregister;size:Tcgsize):Tregister;
+          function makeregsize(list:TAsmList;reg:Tregister;size:Tcgsize):Tregister; virtual;
 
           {# Emit a label to the instruction stream. }
           procedure a_label(list : TAsmList;l : tasmlabel);virtual;
@@ -346,36 +347,6 @@ unit cgobj;
           }
           procedure optimize_op_const(size: TCGSize; var op: topcg; var a : tcgint);virtual;
 
-         {#
-             This routine is used in exception management nodes. It should
-             save the exception reason currently in the FUNCTION_RETURN_REG. The
-             save should be done either to a temp (pointed to by href).
-             or on the stack (pushing the value on the stack).
-
-             The size of the value to save is OS_S32. The default version
-             saves the exception reason to a temp. memory area.
-          }
-         procedure g_exception_reason_save(list : TAsmList; const href : treference);virtual;
-         {#
-             This routine is used in exception management nodes. It should
-             save the exception reason constant. The
-             save should be done either to a temp (pointed to by href).
-             or on the stack (pushing the value on the stack).
-
-             The size of the value to save is OS_S32. The default version
-             saves the exception reason to a temp. memory area.
-          }
-         procedure g_exception_reason_save_const(list : TAsmList; const href : treference; a: tcgint);virtual;
-         {#
-             This routine is used in exception management nodes. It should
-             load the exception reason to the FUNCTION_RETURN_REG. The saved value
-             should either be in the temp. area (pointed to by href , href should
-             *NOT* be freed) or on the stack (the value should be popped).
-
-             The size of the value to save is OS_S32. The default version
-             saves the exception reason to a temp. memory area.
-          }
-         procedure g_exception_reason_load(list : TAsmList; const href : treference);virtual;
 
           procedure g_maybe_testvmt(list : TAsmList;reg:tregister;objdef:tobjectdef);
           {# This should emit the opcode to copy len bytes from the source
@@ -446,14 +417,7 @@ unit cgobj;
           }
           procedure g_restore_registers(list:TAsmList);virtual;
 
-          procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);virtual;abstract;
           procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint);virtual;
-
-          { generate a stub which only purpose is to pass control the given external method,
-          setting up any additional environment before doing so (if required).
-
-          The default implementation issues a jump instruction to the external name. }
-          procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string); virtual;
 
           { initialize the pic/got register }
           procedure g_maybe_got_init(list: TAsmList); virtual;
@@ -668,6 +632,12 @@ implementation
               internalerror(200312121);
             result:=rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
           end;
+      end;
+
+
+    function tcg.gettempregister(list: TAsmList): Tregister;
+      begin
+        result:=rg[R_TEMPREGISTER].getregister(list,R_SUBWHOLE);
       end;
 
 
@@ -2392,25 +2362,6 @@ implementation
       end;
 
 
-    procedure tcg.g_exception_reason_save(list : TAsmList; const href : treference);
-      begin
-        a_load_reg_ref(list, OS_INT, OS_INT, NR_FUNCTION_RESULT_REG, href);
-      end;
-
-
-    procedure tcg.g_exception_reason_save_const(list : TAsmList; const href : treference; a: tcgint);
-      begin
-        a_load_const_ref(list, OS_INT, a, href);
-      end;
-
-
-    procedure tcg.g_exception_reason_load(list : TAsmList; const href : treference);
-      begin
-        a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
-        a_load_ref_reg(list, OS_INT, OS_INT, href, NR_FUNCTION_RESULT_REG);
-      end;
-
-
     procedure tcg.g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint);
       var
         hsym : tsym;
@@ -2442,12 +2393,6 @@ implementation
               end;
               paraloc:=next;
             end;
-      end;
-
-
-    procedure tcg.g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string);
-      begin
-        a_jmp_name(list,externalname);
       end;
 
 

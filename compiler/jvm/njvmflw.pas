@@ -41,10 +41,14 @@ interface
 
        tjvmtryexceptnode = class(ttryexceptnode)
           procedure pass_generate_code;override;
+         protected
+          procedure adjust_estimated_stack_size; override;
        end;
 
        tjvmtryfinallynode = class(ttryfinallynode)
           procedure pass_generate_code;override;
+         protected
+          procedure adjust_estimated_stack_size; override;
        end;
 
        tjvmonnode = class(tonnode)
@@ -255,6 +259,12 @@ implementation
          { return all used control flow statements }
          flowcontrol:=oldflowcontrol+(exceptflowcontrol +
            tryflowcontrol - [fc_inflowcontrol]);
+      end;
+
+
+    procedure tjvmtryexceptnode.adjust_estimated_stack_size;
+      begin
+        { do nothing }
       end;
 
 
@@ -496,6 +506,12 @@ implementation
             current_procinfo.CurrBreakLabel:=oldBreakLabel;
           end;
          flowcontrol:=oldflowcontrol+(tryflowcontrol-[fc_inflowcontrol]);
+      end;
+
+
+    procedure tjvmtryfinallynode.adjust_estimated_stack_size;
+      begin
+        { do nothing }
       end;
 
 begin

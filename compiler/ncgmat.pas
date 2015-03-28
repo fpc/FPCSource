@@ -26,6 +26,7 @@ unit ncgmat;
 interface
 
     uses
+      symtype,
       node,nmat,cpubase,cgbase;
 
     type
@@ -41,7 +42,7 @@ interface
            point values are stored in the register
            in IEEE-754 format.
          }
-         procedure emit_float_sign_change(r: tregister; _size : tcgsize);virtual;
+         procedure emit_float_sign_change(r: tregister; _size : tdef);virtual;
 {$ifdef SUPPORT_MMX}
          procedure second_mmx;virtual;abstract;
 {$endif SUPPORT_MMX}
@@ -129,7 +130,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symtable,symconst,symtype,symdef,aasmbase,aasmtai,aasmdata,aasmcpu,defutil,
+      symtable,symconst,symdef,aasmbase,aasmtai,aasmdata,aasmcpu,defutil,
       parabase,
       pass_2,
       ncon,
@@ -143,7 +144,7 @@ implementation
                           TCGUNARYMINUSNODE
 *****************************************************************************}
 
-    procedure tcgunaryminusnode.emit_float_sign_change(r: tregister; _size : tcgsize);
+    procedure tcgunaryminusnode.emit_float_sign_change(r: tregister; _size : tdef);
       var
         href,
         href2 : treference;
@@ -151,30 +152,34 @@ implementation
         { get a temporary memory reference to store the floating
           point value
         }
-        tg.gettemp(current_asmdata.CurrAsmList,tcgsize2size[_size],tcgsize2size[_size],tt_normal,href);
+        tg.gethltemp(current_asmdata.CurrAsmList,_size,_size.size,tt_normal,href);
         { store the floating point value in the temporary memory area }
-        cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,_size,_size,r,href);
+        hlcg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,_size,_size,r,href);
         { only single and double ieee are supported, for little endian
           the signed bit is in the second dword }
         href2:=href;
-        case _size of
-          OS_F64 :
+        if _size.typ<>floatdef then
+          internalerror(2014012211);
+        case tfloatdef(_size).floattype of
+          s64real,
+          s64comp,
+          s64currency:
             if target_info.endian = endian_little then
               inc(href2.offset,4);
-          OS_F32 :
+          s32real :
             ;
           else
             internalerror(200406021);
         end;
         { flip sign-bit (bit 31/63) of single/double }
-        cg.a_op_const_ref(current_asmdata.CurrAsmList,OP_XOR,OS_32,
+        hlcg.a_op_const_ref(current_asmdata.CurrAsmList,OP_XOR,u32inttype,
 {$ifdef cpu64bitalu}
           aint($80000000),
 {$else cpu64bitalu}
           longint($80000000),
 {$endif cpu64bitalu}
           href2);
-        cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,_size,_size,href,r);
+        hlcg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,_size,_size,href,r);
         tg.ungetiftemp(current_asmdata.CurrAsmList,href);
       end;
 
@@ -233,21 +238,21 @@ implementation
           LOC_CREFERENCE :
             begin
               location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-              cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
-                 left.location.size,location.size,
+              hlcg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
+                 left.resultdef,resultdef,
                  left.location.reference,location.register);
-              emit_float_sign_change(location.register,def_cgsize(left.resultdef));
+              emit_float_sign_change(location.register,left.resultdef);
             end;
           LOC_FPUREGISTER:
             begin
                location.register:=left.location.register;
-               emit_float_sign_change(location.register,def_cgsize(left.resultdef));
+               emit_float_sign_change(location.register,left.resultdef);
             end;
           LOC_CFPUREGISTER:
             begin
                location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-               cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,location.register);
-               emit_float_sign_change(location.register,def_cgsize(left.resultdef));
+               hlcg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register);
+               emit_float_sign_change(location.register,left.resultdef);
             end;
           else
             internalerror(200306021);
@@ -281,7 +286,7 @@ implementation
           begin
             current_asmdata.getjumplabel(hl);
             hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_NE,torddef(opsize).low.svalue,location.register,hl);
-            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_overflow',nil);
+            hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_overflow',[],nil);
             hlcg.a_label(current_asmdata.CurrAsmList,hl);
           end;
       end;

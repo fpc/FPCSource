@@ -112,6 +112,10 @@ implementation
        pbase,pstatmnt,pdecl,pdecsub,pexports,pgenutil,pparautl,
        { codegen }
        tgobj,cgbase,cgobj,cgutils,hlcgobj,hlcgcpu,dbgbase,
+{$ifdef llvm}
+      { override create_hlcodegen from hlcgcpu }
+      hlcgllvm,
+{$endif}
        ncgutil,regvars,
        optbase,
        opttail,

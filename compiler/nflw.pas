@@ -184,6 +184,8 @@ interface
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
           function simplify(forinline: boolean): tnode; override;
+         protected
+          procedure adjust_estimated_stack_size; virtual;
        end;
        ttryexceptnodeclass = class of ttryexceptnode;
 
@@ -196,6 +198,7 @@ interface
           function simplify(forinline:boolean): tnode;override;
        protected
           function create_finalizer_procdef: tprocdef;
+          procedure adjust_estimated_stack_size; virtual;
        end;
        ttryfinallynodeclass = class of ttryfinallynode;
 
@@ -2079,7 +2082,8 @@ implementation
 
         include(current_procinfo.flags,pi_do_call);
         include(current_procinfo.flags,pi_uses_exceptions);
-        inc(current_procinfo.estimatedtempsize,get_jumpbuf_size*2);
+
+        adjust_estimated_stack_size;
       end;
 
 
@@ -2089,6 +2093,11 @@ implementation
         { empty try -> can never raise exception -> do nothing }
         if has_no_code(left) then
           result:=cnothingnode.create;
+      end;
+
+    procedure ttryexceptnode.adjust_estimated_stack_size;
+      begin
+        inc(current_procinfo.estimatedtempsize,rec_jmp_buf.size*2);
       end;
 
 
@@ -2152,7 +2161,7 @@ implementation
         if not(implicitframe) then
           include(current_procinfo.flags,pi_uses_exceptions);
 
-        inc(current_procinfo.estimatedtempsize,get_jumpbuf_size);
+        adjust_estimated_stack_size;
       end;
 
 
@@ -2214,6 +2223,12 @@ implementation
         proc_add_definition(result);
         result.forwarddef:=false;
         result.aliasnames.insert(result.mangledname);
+      end;
+
+
+    procedure ttryfinallynode.adjust_estimated_stack_size;
+      begin
+        inc(current_procinfo.estimatedtempsize,rec_jmp_buf.size);
       end;
 
 

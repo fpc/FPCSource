@@ -88,6 +88,7 @@ unit i_macos;
             stacksize    : 262144;
             stackalign   : 16;
             abi : abi_powerpc_darwin;
+            llvmdatalayout : 'todo';
           );
 
   implementation
