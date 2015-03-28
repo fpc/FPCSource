@@ -26,6 +26,9 @@ unit omfbase;
 
 interface
 
+  uses
+    owbase;
+
   const
     { OMF record types }
     RT_THEADR    = $80;  { Translator Header Record }
@@ -68,6 +71,59 @@ interface
     RT_VERNUM    = $CC;  { OMF Version Number Record }
     RT_VENDEXT   = $CE;  { Vendor-specific OMF Extension Record }
 
+  type
+
+    { TOmfRawRecord }
+
+    TOmfRawRecord = class
+    private
+      function GetRecordLength: Word;
+      function GetRecordType: Byte;
+      procedure SetRecordLength(AValue: Word);
+      procedure SetRecordType(AValue: Byte);
+    public
+      RawData: array [-3..65535] of Byte;
+      property RecordType: Byte read GetRecordType write SetRecordType;
+      property RecordLength: Word read GetRecordLength write SetRecordLength;
+
+      procedure ReadFrom(aReader: TObjectReader);
+      procedure WriteTo(aWriter: TObjectWriter);
+    end;
+
 implementation
+
+  { TOmfRawRecord }
+
+  function TOmfRawRecord.GetRecordType: Byte;
+    begin
+      Result:=RawData[-3];
+    end;
+
+  procedure TOmfRawRecord.SetRecordType(AValue: Byte);
+    begin
+      RawData[-3]:=AValue;
+    end;
+
+  function TOmfRawRecord.GetRecordLength: Word;
+    begin
+      Result:=RawData[-2] or (RawData[-1] shl 8);
+    end;
+
+  procedure TOmfRawRecord.SetRecordLength(AValue: Word);
+    begin
+      RawData[-2]:=Byte(AValue);
+      RawData[-1]:=Byte(AValue shr 8);
+    end;
+
+  procedure TOmfRawRecord.ReadFrom(aReader: TObjectReader);
+    begin
+      aReader.read(RawData, 3);
+      aReader.read(RawData[0], RecordLength);
+    end;
+
+  procedure TOmfRawRecord.WriteTo(aWriter: TObjectWriter);
+    begin
+      aWriter.write(RawData, RecordLength+3);
+    end;
 
 end.
