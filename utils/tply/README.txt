@@ -16,7 +16,7 @@ available from the TPLY homepage:
 
 For information about the Free Pascal Compiler, please refer to:
 
-	http://tfdec1.fys.kuleuven.ac.be/~michael/fpc/fpc.html
+	http://www.freepascal.org/
 
 The manual can be found in the files tply.tex (TeX version) and tply.doc
 (ASCII version) contained in the package. An extended version of the manual
@@ -44,7 +44,7 @@ The original version of the TPLY package was written by Albert Graef
 4.0-6.0. Berend de Boer <berend@pobox.com>, the current maintainer of the
 Turbo/Borland Pascal version, adapted TPLY to take advantage of the large
 memory models in Borland Pascal 7.0 and Delphi. Michael Van Canneyt
-<Michael.VanCanneyt@fys.kuleuven.ac.be>, who maintains the Linux version of
+<michael@freepascal.org>, who maintains the Linux version of
 the Free Pascal compiler, is the author of the Free Pascal port.
 
 
@@ -77,10 +77,9 @@ to store things :-) The 16-bit DPMI platforms have tables extended as large as
 possible without changing basic Lex or Yacc sources.
 
 This version was ported to Free Pascal by Michael Van Canneyt
-<Michael.VanCanneyt@fys.kuleuven.ac.be> (April 1998).
+<michael@freepascal.org> (April 1998).
 
-*** Version 4.1		Michael Van Canneyt
-			<Michael.VanCanneyt@fys.kuleuven.ac.be>
+*** Version 4.1		Michael Van Canneyt <michael@freepascal.org>
 			Albert Graef <ag@muwiinfa.geschichte.uni-mainz.de>
 
 May 1998. Merges the Turbo and Free Pascal versions into a single package.
@@ -141,6 +140,18 @@ The items to be installed are the executables of TP Lex and Yacc (compiled
 from the lex.pas and yacc.pas programs), the Lex and Yacc code templates
 (*.cod files), and the LexLib and YaccLib library units (compiled from
 lexlib.pas and yacclib.pas).
+
+The plex and pyacc programs will look for the *.cod files in the following locations:
+For unix-like operating systems:
+1. Current directory.
+2. Directory given by FPCDIR
+3. Directory /usr/local/lib/fpc/lexyacc
+4. Directory /usr/lib/fpc/lexyacc
+
+For other operating systems (dos/windows-like) : 
+1. Current directory.
+2. Directory given by FPCDIR 
+3. Directory where the executable is located.
 
 For the Free Pascal/Linux version, a Makefile is provided. To install, issue
 the command `make' (maybe you have to edit the Makefile before this to reflect

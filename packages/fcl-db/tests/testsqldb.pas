@@ -53,6 +53,7 @@ type
     Procedure TestRefreshSQLMultipleRecords;
     Procedure TestRefreshSQLNoRecords;
     Procedure TestFetchAutoInc;
+    procedure TestSequence;
   end;
 
   { TTestTSQLConnection }
@@ -86,7 +87,7 @@ implementation
 
 { TTestTSQLQuery }
 
-Procedure TTestTSQLQuery.Setup;
+procedure TTestTSQLQuery.Setup;
 begin
   inherited Setup;
   SQLDBConnector.Connection.Options:=[];
@@ -181,7 +182,7 @@ begin
   end;
 end;
 
-Procedure TTestTSQLQuery.TestKeepOpenOnCommit;
+procedure TTestTSQLQuery.TestKeepOpenOnCommit;
 var Q: TSQLQuery;
     I: Integer;
 begin
@@ -219,12 +220,12 @@ begin
     end;
 end;
 
-Procedure TTestTSQLQuery.TrySetPacketRecords;
+procedure TTestTSQLQuery.TrySetPacketRecords;
 begin
   FMyQ.PacketRecords:=10;
 end;
 
-Procedure TTestTSQLQuery.TestKeepOpenOnCommitPacketRecords;
+procedure TTestTSQLQuery.TestKeepOpenOnCommitPacketRecords;
 begin
   with SQLDBConnector do
     begin
@@ -234,12 +235,12 @@ begin
     end;
 end;
 
-Procedure TTestTSQLQuery.TrySetQueryOptions;
+procedure TTestTSQLQuery.TrySetQueryOptions;
 begin
   FMyQ.Options:=[sqoKeepOpenOnCommit];
 end;
 
-Procedure TTestTSQLQuery.TestCheckSettingsOnlyWhenInactive;
+procedure TTestTSQLQuery.TestCheckSettingsOnlyWhenInactive;
 begin
   // Check that we can only set QueryOptions when the query is inactive.
   with SQLDBConnector do
@@ -261,7 +262,7 @@ begin
   AssertTrue('Have modifications in after post',FMyq.UpdateStatus=usModified)
 end;
 
-Procedure TTestTSQLQuery.TestAutoApplyUpdatesPost;
+procedure TTestTSQLQuery.TestAutoApplyUpdatesPost;
 var Q: TSQLQuery;
     I: Integer;
 begin
@@ -296,7 +297,7 @@ begin
 
 end;
 
-Procedure TTestTSQLQuery.TestAutoApplyUpdatesDelete;
+procedure TTestTSQLQuery.TestAutoApplyUpdatesDelete;
 
 var Q: TSQLQuery;
     I: Integer;
@@ -328,13 +329,13 @@ begin
     end;
 end;
 
-Procedure TTestTSQLQuery.DoApplyUpdates;
+procedure TTestTSQLQuery.DoApplyUpdates;
 
 begin
   FMyQ.ApplyUpdates();
 end;
 
-Procedure TTestTSQLQuery.TestCheckRowsAffected;
+procedure TTestTSQLQuery.TestCheckRowsAffected;
 var Q: TSQLQuery;
     I: Integer;
 begin
@@ -359,7 +360,7 @@ begin
     end;
 end;
 
-Procedure TTestTSQLQuery.TestAutoCommit;
+procedure TTestTSQLQuery.TestAutoCommit;
 var
   I : Integer;
 begin
@@ -389,7 +390,7 @@ begin
     end;
 end;
 
-Procedure TTestTSQLQuery.TestRefreshSQL;
+procedure TTestTSQLQuery.TestRefreshSQL;
 var
   Q: TSQLQuery;
 
@@ -424,7 +425,7 @@ begin
   AssertEquals('Field value has been fetched from the database', 1, Q.FieldByName('b').AsInteger);
 end;
 
-Procedure TTestTSQLQuery.TestGeneratedRefreshSQL;
+procedure TTestTSQLQuery.TestGeneratedRefreshSQL;
 
 var
   Q: TSQLQuery;
@@ -456,7 +457,7 @@ begin
   AssertEquals('Field value has been fetched from the database ','fgh',Q.FieldByName('b').AsString);
 end;
 
-Procedure TTestTSQLQuery.TestGeneratedRefreshSQL1Field;
+procedure TTestTSQLQuery.TestGeneratedRefreshSQL1Field;
 var
   Q: TSQLQuery;
 
@@ -485,7 +486,7 @@ begin
   AssertEquals('Field value b has NOT been fetched from the database ','',Q.FieldByName('b').AsString);
 end;
 
-Procedure TTestTSQLQuery.TestGeneratedRefreshSQLNoKey;
+procedure TTestTSQLQuery.TestGeneratedRefreshSQLNoKey;
 begin
   with SQLDBConnector do
     begin
@@ -507,7 +508,7 @@ begin
   AssertException('Cannot refresh without primary key',EUpdateError,@DoApplyUpdates);
 end;
 
-Procedure TTestTSQLQuery.TestRefreshSQLMultipleRecords;
+procedure TTestTSQLQuery.TestRefreshSQLMultipleRecords;
 
 begin
   with SQLDBConnector do
@@ -534,7 +535,7 @@ begin
   AssertException('Multiple records returned by RefreshSQL gives an error',EUpdateError,@DoApplyUpdates);
 end;
 
-Procedure TTestTSQLQuery.TestRefreshSQLNoRecords;
+procedure TTestTSQLQuery.TestRefreshSQLNoRecords;
 begin
   with SQLDBConnector do
     begin
@@ -560,7 +561,7 @@ begin
   AssertException('No records returned by RefreshSQL gives an error',EUpdateError,@DoApplyUpdates);
 end;
 
-Procedure TTestTSQLQuery.TestFetchAutoInc;
+procedure TTestTSQLQuery.TestFetchAutoInc;
 var datatype: string;
     id: largeint;
 begin
@@ -600,6 +601,50 @@ begin
     Next;  // #2 record
     AssertTrue('Next ID value is not greater than previous', FieldByName('id').AsLargeInt>id);
     end;
+end;
+
+procedure TTestTSQLQuery.TestSequence;
+var SequenceNames : TStringList;
+begin
+  case SQLServerType of
+    ssFirebird:
+      SQLDBConnector.ExecuteDirect('create sequence FPDEV_SEQ1');
+    ssMSSQL, ssOracle, ssPostgreSQL:
+      SQLDBConnector.ExecuteDirect('create sequence FPDEV_SEQ1 MINVALUE 1');
+    else
+      Ignore(STestNotApplicable);
+  end;
+  SQLDBConnector.ExecuteDirect('create table FPDEV2 (id integer)');
+  SQLDBConnector.CommitDDL;
+
+  with SQLDBConnector.Query do
+    begin
+    SQL.Text := 'select * from FPDEV2';
+    Sequence.FieldName:='id';
+    Sequence.SequenceName:='FPDEV_SEQ1';
+    Open;
+    // default is get next value on new record
+    Append;
+    AssertEquals(1, FieldByName('id').AsInteger);
+
+    Sequence.ApplyEvent:=saeOnPost;
+    Append;
+    AssertTrue('Field ID must be null after Append', FieldByName('id').IsNull);
+    Post;
+    AssertEquals(2, FieldByName('id').AsInteger);
+    end;
+
+  // test GetSequenceNames
+  SequenceNames := TStringList.Create;
+  try
+    SQLDBConnector.Connection.GetSequenceNames(SequenceNames);
+    AssertTrue(SequenceNames.IndexOf('FPDEV_SEQ1') >= 0);
+  finally
+    SequenceNames.Free;
+  end;
+
+  SQLDBConnector.ExecuteDirect('drop sequence FPDEV_SEQ1');
+  SQLDBConnector.CommitDDL;
 end;
 
 

@@ -12,12 +12,13 @@ loaders=$(LOADERS)
 # not all targets include enough features to build all units so
 # the common units which are not compiled for all CPUs are stored in
 # CPU_SPECIFIC_COMMON_UNITS
-units=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS)
+units=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas macpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) \
 # macpas iso7185 strings
-#      dos \
-#       classes math typinfo varutils fmtbcd \
-#       charset cpall ucomplex getopts matrix \
-#       variants types rtlconsts sysconst dateutil
+       dos \
+       sysutils \
+       classes math typinfo ctypes \
+       charset cpall getopts \
+       types rtlconsts sysconst lineinfo fgl
 #implicitunits=exeinfo \
 #      cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
 #      cp437 cp646 cp850 cp856 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5 cp8859_2 cp852
@@ -209,6 +210,9 @@ rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp $(SYSTEMUNIT)$(PPUEXT)
 
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
+
+fgl$(PPUEXT): $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
+        $(COMPILER) -Sg $(OBJPASDIR)/fgl.pp $(REDIR)
 
 dateutil$(PPUEXT) : $(OBJPASDIR)/dateutil.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutil.pp

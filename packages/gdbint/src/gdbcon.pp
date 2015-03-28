@@ -32,6 +32,10 @@ type
   PGDBController=^TGDBController;
   TGDBController=object(TGDBInterface)
   private
+    SavedWindowWidth : longint;
+    { width }
+    procedure MaxWidth;
+    procedure NormWidth;
     { print }
     function InternalGetValue(Const expr : string) : AnsiString;
   public
@@ -441,28 +445,11 @@ begin
   SetCommand:=true;
 end;
 
-{ print }
+{ width }
 
-function TrimEnd(s: AnsiString): AnsiString;
-var
-  I: LongInt;
-begin
-  if (s<>'') and (s[Length(s)]=#10) then
-  begin
-    I:=Length(s);
-    while (i>1) and ((s[i-1]=' ') or (s[i-1]=#9)) do
-      dec(i);
-	delete(s,i,Length(s)-i+1);
-  end;
-  TrimEnd:=s;
-end;
-
-function TGDBController.InternalGetValue(Const expr : string) : AnsiString;
+procedure TGDBController.MaxWidth;
 var
   p,p2,p3 : pchar;
-  st : string;
-  WindowWidth : longint;
-  saved_got_error: Boolean;
 begin
   Command('show width');
   p:=GetOutput;
@@ -484,12 +471,49 @@ begin
   p3:=strpos(p,'.');
   if assigned(p3) then
     p3^:=#0;
-  WindowWidth:=-1;
-  val(strpas(p),WindowWidth);
-  if WindowWidth<>-1 then
+  SavedWindowWidth:=-1;
+  val(strpas(p),SavedWindowWidth);
+  if SavedWindowWidth<>-1 then
     Command('set width 0xffffffff');
-  Command('p '+expr);
+end;
+
+procedure TGDBController.NormWidth;
+var
+  st : string;
+  saved_got_error : boolean;
+begin
   saved_got_error:=got_error;
+  if SavedWindowWidth<>-1 then
+    begin
+      str(SavedWindowWidth,st);
+      Command('set width '+St);
+    end;
+  got_error:=saved_got_error;
+end;
+
+{ print }
+
+function TrimEnd(s: AnsiString): AnsiString;
+var
+  I: LongInt;
+begin
+  if (s<>'') and (s[Length(s)]=#10) then
+  begin
+    I:=Length(s);
+    while (i>1) and ((s[i-1]=' ') or (s[i-1]=#9)) do
+      dec(i);
+	delete(s,i,Length(s)-i+1);
+  end;
+  TrimEnd:=s;
+end;
+
+function TGDBController.InternalGetValue(Const expr : string) : AnsiString;
+var
+  p,p2 : pchar;
+begin
+  MaxWidth;
+
+  Command('p '+expr);
   p:=GetOutput;
   if assigned(p) then
     p2:=strpos(p,'=')
@@ -504,16 +528,12 @@ begin
     p:=strpos(p,')')+1;
   while p^ in [' ',#9] do
     inc(p);
-  if assigned(p) and not saved_got_error then
+  if assigned(p) and not got_error then
     InternalGetValue:=TrimEnd(AnsiString(p))
   else
     InternalGetValue:=TrimEnd(AnsiString(GetError));
-  if WindowWidth<>-1 then
-    begin
-      str(WindowWidth,st);
-      Command('set width '+St);
-    end;
-  got_error:=saved_got_error;
+
+  NormWidth;
 end;
 
 
@@ -617,7 +637,9 @@ begin
   { forget all old frames }
   clear_frames;
 
+  MaxWidth;
   Command('backtrace');
+  NormWidth;
 end;
 
 function TGDBController.SelectFrameCommand(level :longint) : boolean;

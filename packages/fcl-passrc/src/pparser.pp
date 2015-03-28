@@ -988,7 +988,7 @@ function TPasParser.ParseType(Parent: TPasElement; Const TypeName : String = '';
 
 Const
   // These types are allowed only when full type declarations
-  FullTypeTokens = [tkGeneric,tkSpecialize,tkClass,tkInterface,tkType];
+  FullTypeTokens = [tkGeneric,{tkSpecialize,}tkClass,tkInterface,tkType];
   // Parsing of these types already takes care of hints
   NoHintTokens = [tkProcedure,tkFunction];
 var
@@ -1639,6 +1639,7 @@ begin
         Result.Overloads.Add(OldMember);
         Result.SourceFilename:=OldMember.SourceFilename;
         Result.SourceLinenumber:=OldMember.SourceLinenumber;
+        Result.DocComment:=Oldmember.DocComment;
         AList[i] := Result;
         end;
       end;

@@ -1252,7 +1252,7 @@ begin
   InitDefaultIndexes;
   CalcRecordSize;
 
-  FBRecordcount := 0;
+  FBRecordCount := 0;
 
   for IndexNr:=0 to FIndexesCount-1 do with FIndexes[IndexNr] do
     InitialiseSpareRecord(IntAllocRecordBuffer);
@@ -1283,6 +1283,7 @@ var r  : integer;
 begin
   FOpen:=False;
   FReadFromFile:=False;
+  FBRecordCount:=0;
 
   if FIndexesCount>0 then with FIndexes[0] do if IsInitialized then
     begin
@@ -2676,7 +2677,10 @@ end;
 
 function TCustomBufDataset.GetRecordCount: Longint;
 begin
-  Result := FBRecordCount;
+  if Active then
+    Result := FBRecordCount
+  else
+    Result:=0;  
 end;
 
 function TCustomBufDataset.UpdateStatus: TUpdateStatus;

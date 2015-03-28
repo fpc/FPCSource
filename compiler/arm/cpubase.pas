@@ -608,7 +608,7 @@ unit cpubase;
         else
           begin
             result:=false;
-            for i:=1 to 31 do
+            for i:=8 to 31 do
               begin
                 t:=RolDWord(d,i);
                 if ((t and $FF)=t) and

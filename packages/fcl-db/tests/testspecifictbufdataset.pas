@@ -39,6 +39,7 @@ type
     procedure TestAutoIncField;
     procedure TestAutoIncFieldStreaming;
     procedure TestAutoIncFieldStreamingXML;
+    Procedure TestRecordCount;
   end;
 
 implementation
@@ -248,6 +249,22 @@ begin
   IntTestAutoIncFieldStreaming(true);
 end;
 
+procedure TTestSpecificTBufDataset.TestRecordCount;
+var
+  BDS:TBufDataSet;
+  
+begin
+  BDS:=TBufDataSet.Create(nil);
+  BDS.FieldDefs.Add('ID',ftLargeint);
+  BDS.CreateDataSet;
+  BDS.AppendRecord([1]);
+  BDS.AppendRecord([2]);
+  BDS.AppendRecord([3]);
+  BDS.Close;
+  AssertEquals('IsEmpty: ',True,BDS.IsEmpty);
+  AssertEquals('RecordCount: ',0,BDS.RecordCount);
+end;
+  
 initialization
 {$ifdef fpc}
 

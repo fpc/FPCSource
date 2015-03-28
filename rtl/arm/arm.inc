@@ -534,11 +534,11 @@ asm
 {$endif}
   stmfd   sp!, {r1, lr}
   sub     r0, r1, #8
-{$if defined(CPUARM_HAS_BX) and not(defined(WINCE))}
+{$if defined(CPUARM_HAS_BLX_LABEL) and not(defined(WINCE))}
   blx     InterLockedDecrement
-{$else defined(CPUARM_HAS_BX) and not(defined(WINCE))}
+{$else defined(CPUARM_HAS_BLX_LABEL) and not(defined(WINCE))}
   bl      InterLockedDecrement
-{$endif defined(CPUARM_HAS_BX) and not(defined(WINCE))}
+{$endif defined(CPUARM_HAS_BLX_LABEL) and not(defined(WINCE))}
   // InterLockedDecrement is a nice guy and sets the z flag for us
   // if the reference count dropped to 0
   ldmnefd sp!, {r1, pc}

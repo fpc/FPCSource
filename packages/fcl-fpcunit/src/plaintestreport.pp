@@ -124,10 +124,8 @@ begin
     begin
       FDoc[FDoc.Count -1] := FDoc[FDoc.Count -1] + '  Error: ' + FTempFailure.ExceptionClassName;
       FDoc.Add(StringOfChar(' ',ALevel*2) + '    Exception:   ' + FTempFailure.ExceptionMessage);
-      FDoc.Add(StringOfChar(' ',ALevel*2) + '    Source unit: ' + FTempFailure.SourceUnitName);
-      FDoc.Add(StringOfChar(' ',ALevel*2) + '    Method name: ' + FTempFailure.FailedMethodName);
-      FDoc.Add(StringOfChar(' ',ALevel*2) + '    Line number: ' 
-        + IntToStr(FTempFailure.LineNumber));
+      FDoc.Add(StringOfChar(' ',ALevel*2) + '    at ' + FTempFailure.LocationInfo);
+      // TODO: Add stack dump output info
     end
     else
       if FTempFailure.IsIgnoredTest then
@@ -136,9 +134,13 @@ begin
            + FTempFailure.ExceptionMessage;
       end
       else
+      begin
         //is a failure
         FDoc[FDoc.Count -1] := FDoc[FDoc.Count -1] + '  Failed: ' 
           + FTempFailure.ExceptionMessage;
+        FDoc.Add(StringOfChar(' ',ALevel*2) + '    Exception:   ' + FTempFailure.ExceptionMessage);
+        FDoc.Add(StringOfChar(' ',ALevel*2) + '    at ' + FTempFailure.LocationInfo);
+      end;
   end;
   FTempFailure := nil;
 end;
@@ -225,9 +227,7 @@ begin
         Result := Result + '    Message:           ' + f.AsString + System.sLineBreak;
         Result := Result + '    Exception class:   ' + f.ExceptionClassName + System.sLineBreak;
         Result := Result + '    Exception message: ' + f.ExceptionMessage + System.sLineBreak;
-        Result := Result + '    Source unitname:   ' + f.SourceUnitName + System.sLineBreak;
-        Result := Result + '    Line number:       ' + IntToStr(f.LineNumber) + System.sLineBreak;
-        Result := Result + '    Failed methodname: ' + f.FailedMethodName + System.sLineBreak;
+        Result := Result + '        at ' + f.LocationInfo + System.sLineBreak;
       end;
     end;
     if NumberOfFailures <> 0 then
@@ -242,6 +242,7 @@ begin
         Result := Result + '    Message:           ' + f.AsString + System.sLineBreak;
         Result := Result + '    Exception class:   ' + f.ExceptionClassName + System.sLineBreak;
         Result := Result + '    Exception message: ' + f.ExceptionMessage + System.sLineBreak;
+        Result := Result + '        at ' + f.LocationInfo + System.sLineBreak;
       end;
     end;
    if NumberOfIgnoredTests <> 0 then

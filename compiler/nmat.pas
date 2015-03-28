@@ -361,7 +361,7 @@ implementation
              result_data:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
 
              { right <=0? }
-             addstatement(statements,cifnode.create(caddnode.create(lten,right.getcopy,cordconstnode.create(0,resultdef,false)),
+             addstatement(statements,cifnode.create_internal(caddnode.create_internal(lten,right.getcopy,cordconstnode.create(0,resultdef,false)),
                { then: result:=left mod right }
                ccallnode.createintern('fpc_divbyzero',nil),
                nil
@@ -371,17 +371,17 @@ implementation
              { result:=(-left) mod right }
              addstatement(else_statements,cassignmentnode.create(ctemprefnode.create(result_data),cmoddivnode.create(modn,cunaryminusnode.create(left.getcopy),right.getcopy)));
              { result<>0? }
-             addstatement(else_statements,cifnode.create(caddnode.create(unequaln,ctemprefnode.create(result_data),cordconstnode.create(0,resultdef,false)),
+             addstatement(else_statements,cifnode.create_internal(caddnode.create_internal(unequaln,ctemprefnode.create(result_data),cordconstnode.create(0,resultdef,false)),
                { then: result:=right-result }
-               cassignmentnode.create(ctemprefnode.create(result_data),caddnode.create(subn,right.getcopy,ctemprefnode.create(result_data))),
+               cassignmentnode.create_internal(ctemprefnode.create(result_data),caddnode.create_internal(subn,right.getcopy,ctemprefnode.create(result_data))),
                nil
                ));
 
              addstatement(statements,result_data);
              { if left>=0 }
-             addstatement(statements,cifnode.create(caddnode.create(gten,left.getcopy,cordconstnode.create(0,resultdef,false)),
+             addstatement(statements,cifnode.create_internal(caddnode.create_internal(gten,left.getcopy,cordconstnode.create(0,resultdef,false)),
                { then: result:=left mod right }
-               cassignmentnode.create(ctemprefnode.create(result_data),cmoddivnode.create(modn,left.getcopy,right.getcopy)),
+               cassignmentnode.create_internal(ctemprefnode.create(result_data),cmoddivnode.create(modn,left.getcopy,right.getcopy)),
                { else block }
                else_block
                ));

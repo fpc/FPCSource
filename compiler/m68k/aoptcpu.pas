@@ -112,6 +112,17 @@ unit aoptcpu;
                           result:=true;
                         end;
                   end;
+              { MOVEA #0,Ax to SUBA Ax,Ax, because it's shorter }
+              A_MOVEA:
+                if (taicpu(p).oper[0]^.typ = top_const) and
+                   (taicpu(p).oper[0]^.val = 0) then
+                  begin
+                    DebugMsg('Optimizer: MOVEA #0,Ax to SUBA Ax,Ax',p);
+                    taicpu(p).opcode:=A_SUBA;
+                    taicpu(p).opsize:=S_L; { otherwise it will be .W -> BOOM }
+                    taicpu(p).loadoper(0,taicpu(p).oper[1]^);
+                    result:=true;
+                  end;
               { CMP #0,<ea> equals to TST <ea>, just shorter and TST is more flexible anyway }
               A_CMP:
                 if (taicpu(p).oper[0]^.typ = top_const) and

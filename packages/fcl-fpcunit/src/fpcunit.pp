@@ -79,16 +79,21 @@ type
 
   TAssert = class(TTest)
   public
-    class procedure Fail(const AMessage: string);
-    class procedure Fail(const AFmt: string; Args : Array of const);
+    class procedure Fail(const AMessage: string; AErrorAddrs: Pointer = nil);
+    class procedure Fail(const AFmt: string; Args : Array of const;  AErrorAddrs: Pointer = nil);
+    class procedure FailEquals(const expected, actual: string; const ErrorMsg: string = ''; AErrorAddrs: Pointer = nil);
+    class procedure FailNotEquals(const expected, actual: string; const ErrorMsg: string = ''; AErrorAddrs: Pointer = nil);
+
     class procedure AssertTrue(const AMessage: string; ACondition: boolean); overload;
     class procedure AssertTrue(ACondition: boolean); overload;
     class procedure AssertFalse(const AMessage: string; ACondition: boolean); overload;
     class procedure AssertFalse(ACondition: boolean); overload;
     class procedure AssertEquals(const AMessage: string; Expected, Actual: string); overload;
     class procedure AssertEquals(Expected, Actual: string); overload;
+    {$IFDEF UNICODE}
     class procedure AssertEquals(const AMessage: string; Expected, Actual: UnicodeString); overload;
     class procedure AssertEquals(Expected, Actual: UnicodeString); overload;
+    {$ENDIF}
     class procedure AssertEquals(const AMessage: string; Expected, Actual: integer); overload;
     class procedure AssertEquals(Expected, Actual: integer); overload;
     class procedure AssertEquals(const AMessage: string; Expected, Actual: int64); overload;
@@ -142,15 +147,17 @@ type
     FRaisedExceptionClass: TClass;
     FRaisedExceptionMessage: string;
     FSourceUnitName: string;
+    FThrownExceptionAddress: Pointer;
     FTestLastStep: TTestStep;
     function GetAsString: string;
     function GetExceptionMessage: string;
     function GetIsFailure: boolean;
     function GetIsIgnoredTest: boolean;
     function GetExceptionClassName: string;
+    function GetLocationInfo: string;
     procedure SetTestLastStep(const Value: TTestStep);
   public
-    constructor CreateFailure(ATest: TTest; E: Exception; LastStep: TTestStep);
+    constructor CreateFailure(ATest: TTest; E: Exception; LastStep: TTestStep; ThrownExceptionAddrs: pointer = nil);
     property ExceptionClass: TClass read FRaisedExceptionClass;
   published
     property AsString: string read GetAsString;
@@ -160,6 +167,7 @@ type
     property ExceptionClassName: string read GetExceptionClassName;
     property SourceUnitName: string read FSourceUnitName write FSourceUnitName;
     property LineNumber: longint read FLineNumber write FLineNumber;
+    property LocationInfo: string read GetLocationInfo;
     property FailedMethodName: string read FFailedMethodName write FFailedMethodName;
     property TestLastStep: TTestStep read FTestLastStep write SetTestLastStep;
   end;
@@ -174,11 +182,17 @@ type
     procedure EndTestSuite(ATestSuite: TTestSuite);
   end;
 
+  { TTestCase }
+
   TTestCase = class(TAssert)
   private
     FName: string;
     FTestSuiteName: string;
     FEnableIgnores: boolean;
+    FExpectedExceptionFailMessage : String;
+    FExpectedException : TClass;
+    FExpectedExceptionMessage: String;
+    FExpectedExceptionContext: Integer;
   protected
     function CreateResult: TTestResult; virtual;
     procedure SetUp; virtual;
@@ -195,11 +209,17 @@ type
     constructor Create; virtual;
     constructor CreateWith(const ATestName: string; const ATestSuiteName: string); virtual;
     constructor CreateWithName(const AName: string); virtual;
+    procedure ExpectException(AExceptionClass: TClass; AExceptionMessage: string=''; AExceptionHelpContext: Integer=0);
+    procedure ExpectException(const Msg: String; AExceptionClass: TClass; AExceptionMessage: string=''; AExceptionHelpContext: Integer=0);
     function CountTestCases: integer; override;
     function CreateResultAndRun: TTestResult; virtual;
     procedure Run(AResult: TTestResult); override;
     function AsString: string;
     property TestSuiteName: string read GetTestSuiteName write SetTestSuiteName;
+    Property ExpectedExceptionFailMessage  : String Read FExpectedExceptionFailMessage;
+    Property ExpectedException : TClass Read FExpectedException;
+    Property ExpectedExceptionMessage : String Read FExpectedExceptionMessage;
+    Property ExpectedExceptionContext: Integer Read FExpectedExceptionContext;
   published
     property TestName: string read GetTestName write SetTestName;
   end;
@@ -261,9 +281,8 @@ type
     destructor Destroy; override;
     procedure ClearErrorLists;
     procedure StartTest(ATest: TTest);
-    procedure AddFailure(ATest: TTest; E: EAssertionFailedError; aFailureList: TFPList);
-    procedure AddError(ATest: TTest; E: Exception; AUnitName: string;
-      AFailedMethodName: string; ALineNumber: longint);
+    procedure AddFailure(ATest: TTest; E: EAssertionFailedError; aFailureList: TFPList; AThrownExceptionAdrs: Pointer);
+    procedure AddError(ATest: TTest; E: Exception; AThrownExceptionAdrs: Pointer);
     procedure EndTest(ATest: TTest);
     procedure AddListener(AListener: ITestListener);
     procedure RemoveListener(AListener: ITestListener);
@@ -288,8 +307,14 @@ type
     property StartingTime: TDateTime read FStartingTime;
   end;
 
-  function ComparisonMsg(const aExpected: string; const aActual: string; const aCheckEqual: boolean=true): string;
-  function ComparisonMsg(const aExpected: UnicodeString; const aActual: UnicodeString; const aCheckEqual: boolean=true): string;
+  function ComparisonMsg(const aExpected: string; const aActual: string; const aCheckEqual: boolean=true): string; overload;
+  {$IFDEF UNICODE}
+  function ComparisonMsg(const aExpected: UnicodeString; const aActual: UnicodeString; const aCheckEqual: boolean=true): string; overload;
+  {$ENDIF}
+  function ComparisonMsg(const aMsg: string; const aExpected: string; const aActual: string; const aCheckEqual: boolean=true): string; overload;
+
+  // Made public for 3rd party developers extending TTestCase with new AssertXXX methods
+  function CallerAddr: Pointer;
 
   
 Resourcestring
@@ -298,6 +323,8 @@ Resourcestring
   SCompareNotEqual = ' expected: not equal to <%s> but was: <%s>';
   SExpectedNotSame = 'expected not same';
   SExceptionCompare = 'Exception %s expected but %s was raised';
+  SExceptionMessageCompare = 'Exception raised but exception property Message differs: ';
+  SExceptionHelpContextCompare = 'Exception raised but exception property HelpContext differs: ';
   SMethodNotFound = 'Method <%s> not found';
   SNoValidInheritance = ' does not inherit from TTestCase';
   SNoValidTests = 'No valid tests found in ';
@@ -311,14 +338,41 @@ uses
 Const
   sExpectedButWasFmt = 'Expected:' + LineEnding + '"%s"' + LineEnding + 'But was:' + LineEnding + '"%s"';
   sExpectedButWasAndMessageFmt = '%s' + LineEnding + sExpectedButWasFmt;
-  sMsgActualEqualsExpFmt = '%s' + LineEnding + 'Expected ' + LineEnding + '< %s > ' + LineEnding + 'equals actual ' + LineEnding + '< %s >';
-  sActualEqualsExpFmt = 'Expected ' + LineEnding + '< %s > ' + LineEnding + 'equals actual ' + LineEnding + '< %s >';
 
 
 { This lets us use a single include file for both the Interface and
   Implementation sections. }
 {$undef read_interface}
 {$define read_implementation}
+
+
+function CallerAddr: Pointer;
+var
+  bp: Pointer;
+begin
+  bp := get_caller_frame(get_frame);
+  if bp <> nil then
+    Result := get_caller_addr(bp)
+  else
+    Result := nil;
+end;
+
+function AddrsToStr(Addrs: Pointer): string;
+begin
+  if PtrUInt(Addrs) > 0 then
+    Result := '$'+Format('%p', [Addrs])
+  else
+    Result := 'n/a';
+end;
+
+
+function PointerToLocationInfo(Addrs: Pointer): string;
+
+begin
+  Result := BackTraceStrFunc(Addrs);
+  if Trim(Result) = '' then
+    Result := AddrsToStr(Addrs) + '  <no map file>';
+end;
 
 
 type
@@ -346,7 +400,7 @@ begin
     Result := format(SCompareNotEqual, [aExpected, aActual]);
 end;
 
-
+{$IFDEF UNICODE}
 function ComparisonMsg(const aExpected: UnicodeString; const aActual: UnicodeString; const aCheckEqual: boolean=true): string;
 // aCheckEqual=false gives the error message if the test does *not* expect the results to be the same.
 begin
@@ -354,6 +408,12 @@ begin
     Result := format(UnicodeString(SCompare), [aExpected, aActual])
   else {check unequal requires opposite error message}
     Result := format(UnicodeString(SCompareNotEqual), [aExpected, aActual]);
+end;
+{$ENDIF}
+
+function ComparisonMsg(const aMsg: string; const aExpected: string; const aActual: string; const aCheckEqual: boolean): string;
+begin
+  Result := '"' + aMsg + '"' + ComparisonMsg(aExpected, aActual, aCheckEqual);
 end;
 
 
@@ -369,13 +429,14 @@ begin
 end;
 
 
-constructor TTestFailure.CreateFailure(ATest: TTest; E: Exception; LastStep: TTestStep);
+constructor TTestFailure.CreateFailure(ATest: TTest; E: Exception; LastStep: TTestStep; ThrownExceptionAddrs: pointer);
 begin
   inherited Create;
   FTestName := ATest.GetTestName;
   FTestSuiteName := ATest.GetTestSuiteName;
   FRaisedExceptionClass := E.ClassType;
   FRaisedExceptionMessage := E.Message;
+  FThrownExceptionAddress := ThrownExceptionAddrs;
   FTestLastStep := LastStep;
 end;
 
@@ -398,6 +459,11 @@ begin
     Result := FRaisedExceptionClass.ClassName
   else
     Result := '<NIL>'
+end;
+
+function TTestFailure.GetLocationInfo: string;
+begin
+  Result := PointerToLocationInfo(FThrownExceptionAddress);
 end;
 
 
@@ -463,16 +529,31 @@ end;
 
 { TAssert }
 
-class procedure TAssert.Fail(const AMessage: string);
+class procedure TAssert.Fail(const AMessage: string; AErrorAddrs: Pointer);
 begin
-  raise EAssertionFailedError.Create(AMessage);
+  if AErrorAddrs = nil then
+    raise EAssertionFailedError.Create(AMessage) at CallerAddr
+  else
+    raise EAssertionFailedError.Create(AMessage) at AErrorAddrs;
 end;
 
-class procedure TAssert.Fail(const AFmt: string; Args: array of const);
+class procedure TAssert.Fail(const AFmt: string; Args: array of const; AErrorAddrs: Pointer = nil);
 begin
-  raise EAssertionFailedError.CreateFmt(AFmt,Args);
+  if AErrorAddrs = nil then
+    raise EAssertionFailedError.CreateFmt(AFmt,Args) at CallerAddr
+  else    
+    raise EAssertionFailedError.CreateFmt(AFmt,Args) at AErrorAddrs;
 end;
 
+class procedure TAssert.FailEquals(const expected, actual: string; const ErrorMsg: string; AErrorAddrs: Pointer);
+begin
+  Fail(EqualsErrorMessage(expected, actual, ErrorMsg), AErrorAddrs);
+end;
+
+class procedure TAssert.FailNotEquals(const expected, actual: string; const ErrorMsg: string; AErrorAddrs: Pointer);
+begin
+  Fail(NotEqualsErrorMessage(expected, actual, ErrorMsg), AErrorAddrs);
+end;
 
 class procedure TAssert.AssertTrue(const AMessage: string; ACondition: boolean);
 begin
@@ -502,7 +583,7 @@ end;
 
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: string);
 begin
-  AssertTrue(AMessage + ComparisonMsg(Expected, Actual), AnsiCompareStr(Expected, Actual) = 0);
+  AssertTrue(ComparisonMsg(AMessage ,Expected, Actual), AnsiCompareStr(Expected, Actual) = 0);
 end;
 
 
@@ -511,9 +592,10 @@ begin
   AssertEquals('', Expected, Actual);
 end;
 
-class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: Unicodestring);
+{$IFDEF UNICODE}
+class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: UnicodeString);
 begin
-  AssertTrue(AMessage + ComparisonMsg(Expected, Actual), (Expected=Actual));
+  AssertTrue(ComparisonMsg(AMessage,Expected, Actual), (Expected=Actual));
 end;
 
 
@@ -521,7 +603,7 @@ class procedure TAssert.AssertEquals(Expected, Actual: UnicodeString);
 begin
   AssertEquals('', Expected, Actual);
 end;
-
+{$ENDIF}
 
 class procedure TAssert.AssertNotNull(const AString: string);
 begin
@@ -531,7 +613,7 @@ end;
 
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: integer);
 begin
-  AssertTrue(AMessage + ComparisonMsg(IntToStr(Expected), IntToStr(Actual)), Expected = Actual);
+  AssertTrue(ComparisonMsg(AMessage,IntToStr(Expected), IntToStr(Actual)), Expected = Actual);
 end;
 
 
@@ -543,7 +625,7 @@ end;
 
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: int64);
 begin
-  AssertTrue(AMessage + ComparisonMsg(IntToStr(Expected), IntToStr(Actual)), Expected = Actual);
+  AssertTrue(ComparisonMsg(AMessage,IntToStr(Expected), IntToStr(Actual)), Expected = Actual);
 end;
 
 
@@ -555,7 +637,7 @@ end;
 
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: currency);
 begin
-  AssertTrue(AMessage + ComparisonMsg(FloatToStr(Expected), FloatToStr(Actual)), Expected = Actual);
+  AssertTrue(ComparisonMsg(AMessage,FloatToStr(Expected), FloatToStr(Actual)), Expected = Actual);
 end;
 
 
@@ -567,7 +649,7 @@ end;
 
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual, Delta: double);
 begin
-  AssertTrue(AMessage + ComparisonMsg(FloatToStr(Expected),FloatToStr(Actual)),
+  AssertTrue(ComparisonMsg(AMessage,FloatToStr(Expected),FloatToStr(Actual)),
     (Abs(Expected - Actual) <= Delta));
 end;
 
@@ -586,7 +668,7 @@ end;
 
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: boolean);
 begin
-  AssertTrue(AMessage + ComparisonMsg(BoolToStr(Expected, true), BoolToStr(Actual, true)), Expected = Actual);
+  AssertTrue(ComparisonMsg(AMessage,BoolToStr(Expected, true), BoolToStr(Actual, true)), Expected = Actual);
 end;
 
 
@@ -598,7 +680,7 @@ end;
 
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: char);
 begin
-  AssertTrue(AMessage + ComparisonMsg(Expected, Actual), Expected = Actual);
+  AssertTrue(ComparisonMsg(AMessage,Expected, Actual), Expected = Actual);
 end;
 
 
@@ -619,7 +701,7 @@ class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: T
   end;
 
 begin
-  AssertTrue(AMessage + ComparisonMsg(GetN(Expected), GetN(Actual)), Expected = Actual);
+  AssertTrue(ComparisonMsg(AMessage,GetN(Expected), GetN(Actual)), Expected = Actual);
 end;
 
 
@@ -631,7 +713,7 @@ end;
 
 class procedure TAssert.AssertSame(const AMessage: string; Expected, Actual: TObject);
 begin
-  AssertTrue(AMessage + ComparisonMsg(IntToStr(PtrInt(Expected)), IntToStr(PtrInt(Actual))),
+  AssertTrue(ComparisonMsg(AMessage,IntToStr(PtrInt(Expected)), IntToStr(PtrInt(Actual))),
     Expected = Actual);
 end;
 
@@ -644,7 +726,7 @@ end;
 
 class procedure TAssert.AssertSame(const AMessage: string; Expected, Actual: Pointer);
 begin
-  AssertTrue(AMessage + ComparisonMsg(IntToStr(PtrInt(Expected)), IntToStr(PtrInt(Actual))),
+  AssertTrue(ComparisonMsg(AMessage,IntToStr(PtrInt(Expected)), IntToStr(PtrInt(Actual))),
     Expected = Actual);
 end;
 
@@ -898,6 +980,8 @@ var
   m: TMethod;
   RunMethod: TRunMethod;
   pMethod : Pointer;
+  FailMessage : String;
+
 begin
   AssertNotNull('name of the test not assigned', FName);
   pMethod := Self.MethodAddress(FName);
@@ -906,7 +990,33 @@ begin
     m.Code := pMethod;
     m.Data := self;
     RunMethod := TRunMethod(m);
-    RunMethod;
+    ExpectException('',Nil,'',0);
+    try
+      FailMessage:='';
+      RunMethod;
+      if (FExpectedException<>Nil) then
+        FailMessage:=Format(SExceptionCompare, [FExpectedException.ClassName, SNoException])
+    except
+      On E : Exception do
+        begin
+        if FExpectedException=Nil then
+          Raise;
+        If not (E is FExpectedException) then
+          FailMessage:=Format(SExceptionCompare, [FExpectedException.ClassName, E.ClassName]);
+        if (FExpectedExceptionMessage<>'') then
+          if (FExpectedExceptionMessage<>E.Message) then
+            FailMessage:=Format(SExceptionmessageCompare+SCompare, [FExpectedExceptionMessage,E.Message]);
+        if (FExpectedExceptionContext<>0) then
+          if (FExpectedExceptionContext<>E.HelpContext) then
+            FailMessage:=Format(SExceptionHelpContextCompare+SCompare, [IntToStr(FExpectedExceptionContext),IntToStr(E.HelpContext)])
+        end;
+    end;
+    if (FailMessage<>'') then
+      begin
+      if (FExpectedExceptionFailMessage<>'') then
+        FailMessage:=' : '+FailMessage;
+      Fail(FExpectedExceptionFailMessage+FailMessage);
+      end;
   end
   else
     begin
@@ -1057,6 +1167,21 @@ begin
   end;
 end;
 
+procedure TTestCase.ExpectException(const Msg: String;
+  AExceptionClass: TClass; AExceptionMessage: string = '';
+  AExceptionHelpContext: Integer =0 );
+begin
+  FExpectedExceptionFailMessage:=Msg;
+  FExpectedException:=AExceptionClass;
+  FExpectedExceptionMessage:=AExceptionMessage;
+  FExpectedExceptionContext:=AExceptionHelpContext;
+end;
+
+procedure TTestCase.ExpectException(AExceptionClass: TClass;
+  AExceptionMessage: string = ''; AExceptionHelpContext: Integer = 0);
+begin
+  ExpectException('',AExceptionClass,AExceptionMessage,AExceptionHelpContext);
+end;
 
 procedure TTestSuite.Run(AResult: TTestResult);
 var
@@ -1174,13 +1299,13 @@ begin
 end;
 
 
-procedure TTestResult.AddFailure(ATest: TTest; E: EAssertionFailedError; aFailureList: TFPList);
+procedure TTestResult.AddFailure(ATest: TTest; E: EAssertionFailedError; aFailureList: TFPList; AThrownExceptionAdrs: Pointer);
 var
   i: integer;
   f: TTestFailure;
 begin
   //lock mutex
-  f := TTestFailure.CreateFailure(ATest, E, ATest.LastStep);
+  f := TTestFailure.CreateFailure(ATest, E, ATest.LastStep, AThrownExceptionAdrs);
   aFailureList.Add(f);
   for i := 0 to FListeners.Count - 1 do
     ITestListener(FListeners[i]).AddFailure(ATest, f);
@@ -1188,17 +1313,13 @@ begin
 end;
 
 
-procedure TTestResult.AddError(ATest: TTest; E: Exception;
-  AUnitName: string; AFailedMethodName: string; ALineNumber: longint);
+procedure TTestResult.AddError(ATest: TTest; E: Exception; AThrownExceptionAdrs: Pointer);
 var
   i: integer;
   f: TTestFailure;
 begin
   //lock mutex
-  f := TTestFailure.CreateFailure(ATest, E, ATest.LastStep);
-  f.SourceUnitName := AUnitName;
-  f.FailedMethodName := AFailedMethodName;
-  f.LineNumber := ALineNumber;
+  f := TTestFailure.CreateFailure(ATest, E, ATest.LastStep, AThrownExceptionAdrs);
   FErrors.Add(f);
   for i := 0 to FListeners.Count - 1 do
     ITestListener(FListeners[i]).AddError(ATest, f);
@@ -1233,26 +1354,17 @@ end;
 
 
 procedure TTestResult.RunProtected(ATestCase: TTest; protect: TProtect);
-var
-  func, source: shortstring;
-  line: longint;
 begin
-  func := '';
-  source := '';
-  line := 0;
   try
     protect(ATestCase, Self);
   except
     on E: EIgnoredTest do
-      AddFailure(ATestCase, E, FIgnoredTests);
+      AddFailure(ATestCase, E, FIgnoredTests, ExceptAddr);
     on E: EAssertionFailedError do
-      AddFailure(ATestCase, E, FFailures);
+      AddFailure(ATestCase, E, FFailures, ExceptAddr);
     on E: Exception do
       begin
-      {$ifdef SHOWLINEINFO}
-        GetLineInfo(LongWord(ExceptAddr), func, source, line);
-      {$endif}
-        AddError(ATestCase, E, source, func, line);
+        AddError(ATestCase, E, ExceptAddr);
       end;
   end;
 end;
@@ -1279,7 +1391,7 @@ begin
 //unlock mutex
 end;
 
-function TTestResult.SkipTest(ATestCase: TTestCase): Boolean;
+function TTestResult.SkipTest(ATestCase: TTestCase): boolean;
 var
   i: integer;
 begin
@@ -1292,7 +1404,7 @@ begin
   else
     for i := 0 to FSkippedTests.Count - 1 do
     begin
-      if PtrInt(FSkippedTests[i]) = PtrInt(ATestCase) then
+      if PtrUInt(FSkippedTests[i]) = PtrUInt(ATestCase) then
       begin
         Result := true;
         Exit;

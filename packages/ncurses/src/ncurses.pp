@@ -1,4 +1,4 @@
-{ 
+{
   Interface to the ncurses library. Original ncurses library copyright:
 
 ****************************************************************************
@@ -8,13 +8,13 @@
  * copy of this software and associated documentation files (the            *
  * "Software"), to deal in the Software without restriction, including      *
  * without limitation the rights to use, copy, modify, merge, publish,      *
- * distribute, distribute with modifications, sublicense, and/or sell       *  
+ * distribute, distribute with modifications, sublicense, and/or sell       *
  * copies of the Software, and to permit persons to whom the Software is    *
  * furnished to do so, subject to the following conditions:                 *
  *                                                                          *
  * The above copyright notice and this permission notice shall be included  *
  * in all copies or substantial portions of the Software.                   *
- *                                                                          * 
+ *                                                                          *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
  * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
@@ -24,7 +24,7 @@
  * THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
  *                                                                          *
  * Except as contained in this notice, the name(s) of the above copyright   *
- * holders shall not be used in advertising or otherwise to promote the     *  
+ * holders shall not be used in advertising or otherwise to promote the     *
  * sale, use or other dealings in this Software without prior written       *
  * authorization.                                                           *
  ****************************************************************************}
@@ -34,6 +34,9 @@
 
 unit ncurses;
 interface
+
+uses
+  unixtype;
 
 {$PACKRECORDS C}
 {$LINKLIB ncursesw}
@@ -51,10 +54,6 @@ type
 {$ELSE USE_FPC_BYTEBOOL}
    Bool = Byte;
 {$ENDIF USE_FPC_BYTEBOOL}
-
-type
-   wchar_t = Widechar;
-   pwchar_t = ^wchar_t;
 
 const
 {$IFDEF USE_FPC_BYTEBOOL}
@@ -74,18 +73,18 @@ const
 
 type
    pchtype = ^chtype;
-   chtype  = Longint; {longword}
+   chtype  = culong;
    pmmask_t = ^mmask_t;
-   mmask_t  = Longint; {longword}
+   mmask_t  = culong;
 
 { colors  }
 var
 {$IFNDEF darwin}
-   COLORS : Longint cvar; external;
-   COLOR_PAIRS : Longint cvar; external;
+   COLORS : cint cvar; external;
+   COLOR_PAIRS : cint cvar; external;
 {$ELSE darwin}
-   COLORS : Longint external libncurses name 'COLORS';
-   COLOR_PAIRS : Longint external libncurses name 'COLOR_PAIRS';
+   COLORS : cint external libncurses name 'COLORS';
+   COLOR_PAIRS : cint external libncurses name 'COLOR_PAIRS';
 {$ENDIF darwin}
 
 const
@@ -205,7 +204,7 @@ type
      attr : attr_t;
      chars : array[0..CCHARW_MAX - 1] of wchar_t;
 {$IFDEF NCURSES_EXT_COLORS}
-     ext_color : Longint;  { color pair, must be more than 16-bits }
+     ext_color : cint;  { color pair, must be more than 16-bits }
 {$ENDIF NCURSES_EXT_COLORS}
    end;
 
@@ -237,14 +236,14 @@ type
      _immed : Bool;               { window in immed mode? (not yet used)  }
      _sync : Bool;                { window in sync mode?  }
      _use_keypad : Bool;          { process function keys into KEY_ symbols?  }
-     _delay : Longint;            { 0 = nodelay, <0 = blocking, >0 = delay  }
+     _delay : cint;               { 0 = nodelay, <0 = blocking, >0 = delay  }
      _line : ^ldat;               { the actual line data  }
 { global screen state  }
      _regtop : Smallint;          { top line of scrolling region  }
      _regbottom : Smallint;       { bottom line of scrolling region  }
 { these are used only if this is a sub-window  }
-     _parx : Longint;             { x coordinate of this window in parent  }
-     _pary : Longint;             { y coordinate of this window in parent  }
+     _parx : cint;                { x coordinate of this window in parent  }
+     _pary : cint;                { y coordinate of this window in parent  }
      _parent : PWINDOW;           { pointer to parent if a sub-window  }
 { these are used only if this is a pad  }
      _pad : record
@@ -258,7 +257,7 @@ type
         _yoffset : Smallint;     { real begy is _begy + _yoffset  }
         _bkgrnd : cchar_t;       { current background char/attribute pair  }
 {$IFDEF NCURSES_EXT_COLORS}
-     _color : Longint;           { current color-pair for non-space character }
+     _color : cint;              { current color-pair for non-space character }
 {$ENDIF NCURSES_EXT_COLORS}
      end;
 
@@ -429,7 +428,7 @@ function wattr_on(_para1:PWINDOW; _para2:attr_t; _para3:Pointer):Longint; cdecl;
 function wattr_off(_para1:PWINDOW; _para2:attr_t; _para3:Pointer):Longint; cdecl;external libncurses;
 function wbkgd(_para1:PWINDOW; _para2:chtype):Longint; cdecl;external libncurses;
 procedure wbkgdset(_para1:PWINDOW; _para2:chtype);cdecl;external libncurses;
-function wborder(_para1:PWINDOW; _para2:chtype; _para3:chtype; _para4:chtype; _para5:chtype; 
+function wborder(_para1:PWINDOW; _para2:chtype; _para3:chtype; _para4:chtype; _para5:chtype;
            _para6:chtype; _para7:chtype; _para8:chtype; _para9:chtype):Longint; cdecl;external libncurses;
 function wchgat(_para1:PWINDOW; _para2:Longint; _para3:attr_t; _para4:Smallint; _para5:Pointer):Longint; cdecl;external libncurses;
 function wclear(_para1:PWINDOW):Longint; cdecl;external libncurses;
@@ -502,7 +501,7 @@ function wadd_wchnstr(_para1:PWINDOW; _para2:Pcchar_t; _para3:Longint):longint; 
 function waddnwstr(_para1:PWINDOW; _para2:Pwchar_t; _para3:Longint):longint; cdecl;external libncurses;
 function wbkgrnd(_para1:PWINDOW; _para2:Pcchar_t):longint; cdecl;external libncurses;
 procedure wbkgrndset(_para1:PWINDOW; _para2:Pcchar_t);cdecl;external  libncurses;
-function wborder_set(_para1:PWINDOW; _para2:Pcchar_t; _para3:Pcchar_t; _para4:Pcchar_t; _para5:Pcchar_t; 
+function wborder_set(_para1:PWINDOW; _para2:Pcchar_t; _para3:Pcchar_t; _para4:Pcchar_t; _para5:Pcchar_t;
            _para6:Pcchar_t; _para7:Pcchar_t; _para8:Pcchar_t; _para9:Pcchar_t):longint; cdecl;external libncurses;
 function wecho_wchar(_para1:PWINDOW; _para2:Pcchar_t):longint; cdecl;external libncurses;
 function wget_wch(_para1:PWINDOW; _para2:PLongint):longint; cdecl;external libncurses;
@@ -558,7 +557,7 @@ const
    WA_TOP = A_TOP;
    WA_VERTICAL = A_VERTICAL;
 
-function COLOR_PAIR(n: longint): longint; inline;
+function COLOR_PAIR(n: cint): cint; inline;
 function PAIR_NUMBER(attr: attr_t): longint; inline;
 function color_set(color_pair_number: Smallint; opts: Pointer): longint; inline;
 

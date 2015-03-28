@@ -473,7 +473,8 @@ type
 
         case opcode of
           // CPU opcodes
-          A_MOVE, A_MOVEQ, A_MOVEA, A_MVZ, A_MVS, A_MOV3Q, A_LEA:
+          A_MOVE, A_MOVEQ, A_MOVEA, A_MVZ, A_MVS, A_MOV3Q, A_LEA,
+          A_BSET, A_BCLR:
             if opnr=1 then
               result:=operand_write;
           A_ADD, A_ADDQ, A_ADDX, A_SUB, A_SUBQ, A_SUBX,
@@ -490,13 +491,13 @@ type
             result:=operand_write;
           A_NEG, A_NEGX, A_EXT, A_EXTB, A_NOT, A_SWAP:
             result:=operand_readwrite;
-          A_TST,A_CMP,A_CMPI:
+          A_TST,A_CMP,A_CMPI,A_BTST:
             begin end; { Do nothing, default operand_read is fine here. }
 
           // FPU opcodes
           A_FSXX, A_FSEQ, A_FSNE, A_FSLT, A_FSLE, A_FSGT, A_FSGE:
              result:=operand_write;
-          A_FABS,A_FSQRT,A_FNEG:
+          A_FABS,A_FSQRT,A_FNEG,A_FSIN,A_FCOS:
              if ops = 1 then
                begin
                  if opnr = 0 then

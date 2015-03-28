@@ -28,13 +28,20 @@ unit hlcgcpu;
 
 interface
 
+
   uses
-    aasmdata,
-    symdef,
+    globtype,
+    aasmbase, aasmdata,
+    cgbase, cgutils,
+    symconst,symtype,symdef,
     hlcg2ll;
 
   type
     thlcgcpu = class(thlcg2ll)
+      procedure a_bit_set_reg_reg(list: TAsmList; doset: boolean; bitnumbersize, destsize: tdef; bitnumber, dest: tregister); override;
+      procedure a_bit_set_const_reg(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; destreg: tregister); override;
+      procedure a_bit_set_reg_ref(list: TAsmList; doset: boolean; fromsize, tosize: tdef; bitnumber: tregister; const ref: treference); override;
+      procedure a_bit_set_const_ref(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; const ref: treference); override;
       procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
     end;
 
@@ -43,33 +50,87 @@ interface
 implementation
 
   uses
-    globtype,verbose,
+    globals, verbose, systems, cutils,
     fmodule,
-    aasmbase,aasmtai,aasmcpu,
-    symconst,
+    aasmtai, aasmcpu,
+    defutil,
     hlcgobj,
-    cgbase, cgutils, cgobj, cpubase, cgcpu;
+    cpuinfo, cgobj, cpubase, cgcpu;
+
+
+
+  const
+    bit_set_clr_instr: array[boolean] of tasmop = (A_BCLR,A_BSET);
+
+  procedure thlcgcpu.a_bit_set_reg_reg(list: TAsmList; doset: boolean; bitnumbersize, destsize: tdef; bitnumber, dest: tregister);
+    var
+      tmpvalue: tregister;
+    begin
+      tmpvalue:=getintregister(list,ptruinttype);
+      //list.concat(tai_comment.create(strpnew('a_bit_set_reg_reg: called!')));
+      a_load_const_reg(list,ptruinttype,destsize.size*8-1,tmpvalue);
+      a_op_reg_reg(list,OP_SUB,bitnumbersize,bitnumber,tmpvalue);
+      list.concat(taicpu.op_reg_reg(bit_set_clr_instr[doset],S_NO,tmpvalue,dest));
+    end;
+
+
+  procedure thlcgcpu.a_bit_set_const_reg(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; destreg: tregister);
+    begin
+      //list.concat(tai_comment.create(strpnew('a_bit_set_const_reg: called!')));
+      list.concat(taicpu.op_const_reg(bit_set_clr_instr[doset],S_NO,(destsize.size*8)-bitnumber-1,destreg));
+    end;
+
+
+  procedure thlcgcpu.a_bit_set_reg_ref(list: TAsmList; doset: boolean; fromsize, tosize: tdef; bitnumber: tregister; const ref: treference);
+    var
+      tmpvalue: tregister;
+      sref: tsubsetreference;
+    begin
+      //list.concat(tai_comment.create(strpnew('a_bit_set_reg_ref: called!')));
+      sref:=get_bit_reg_ref_sref(list,fromsize,tosize,bitnumber,ref);
+      tcg68k(cg).fixref(list,sref.ref);
+
+      tmpvalue:=getintregister(list,ptruinttype);
+      a_load_const_reg(list,ptruinttype,7,tmpvalue);
+      a_op_reg_reg(list,OP_SUB,fromsize,sref.bitindexreg,tmpvalue);
+
+      { memory accesses of bset/bclr are always byte, so no alignment problem }
+      list.concat(taicpu.op_reg_ref(bit_set_clr_instr[doset],S_NO,tmpvalue,sref.ref));
+    end;
+
+
+  procedure thlcgcpu.a_bit_set_const_ref(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; const ref: treference);
+    var
+      sref: tsubsetreference;
+    begin
+      //list.concat(tai_comment.create(strpnew('a_bit_set_const_ref: called!')));
+      sref:=get_bit_const_ref_sref(bitnumber,destsize,ref);
+      tcg68k(cg).fixref(list,sref.ref);
+
+      { memory accesses of bset/bclr are always byte, so no alignment problem }
+      list.concat(taicpu.op_const_ref(bit_set_clr_instr[doset],S_NO,8-sref.startbit-1,sref.ref));
+    end;
 
 
   procedure thlcgcpu.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
 
-      procedure getselftoa0(offs:longint);
-        var
-          href : treference;
-          selfoffsetfromsp : longint;
-        begin
-          { move.l offset(%sp),%a0 }
+    procedure getselftoa0(offs:longint);
+      var
+        href : treference;
+        selfoffsetfromsp : longint;
+      begin
+        { move.l offset(%sp),%a0 }
 
-          { framepointer is pushed for nested procs }
-          if procdef.parast.symtablelevel>normal_function_level then
-            selfoffsetfromsp:=sizeof(aint)
-          else
-            selfoffsetfromsp:=0;
-          reference_reset_base(href, voidstackpointertype, NR_SP,selfoffsetfromsp+offs,4);
-          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_A0);
-        end;
+        { framepointer is pushed for nested procs }
+        if procdef.parast.symtablelevel>normal_function_level then
+          selfoffsetfromsp:=sizeof(aint)
+        else
+          selfoffsetfromsp:=0;
+        reference_reset_base(href, voidstackpointertype, NR_SP,selfoffsetfromsp+offs,4);
+        cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_A0);
+      end;
 
-      procedure loadvmttoa0;
+    procedure loadvmttoa0;
       var
         href : treference;
       begin
@@ -78,7 +139,7 @@ implementation
         cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_A0);
       end;
 
-      procedure op_ona0methodaddr;
+    procedure op_ona0methodaddr;
       var
         href : treference;
       begin

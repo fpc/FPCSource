@@ -741,9 +741,13 @@ unit cgcpu;
         if isaddressregister(register) then
           begin
             { an m68k manual I have recommends SUB Ax,Ax to be used instead of CLR for address regs }
-            if a = 0 then
+            { Premature optimization is the root of all evil - this code breaks spilling if the
+              register contains a spilled regvar, eg. a Pointer which is set to nil, then random
+              havoc happens... This is kept here for reference now, to allow fixing of the spilling
+              later. Most of the optimizations below here could be moved to the optimizer. (KB) }
+            {if a = 0 then
               list.concat(taicpu.op_reg_reg(A_SUB,S_L,register,register))
-            else
+            else}
               { ISA B/C Coldfire has MOV3Q which can move -1 or 1..7 to any reg }
               if (current_settings.cputype in [cpu_isa_b,cpu_isa_c]) and 
                  ((longint(a) = -1) or ((longint(a) > 0) and (longint(a) < 8))) then

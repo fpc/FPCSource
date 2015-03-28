@@ -725,7 +725,7 @@ end;
 
 procedure ptc_Init640x200x16;
 begin
-  ptc_InitMode16_CGAEmu(640, 200, 3);
+  ptc_InitMode16_CGAEmu(640, 200, 4);
 end;
 
 procedure ptc_Init640x350x16;
@@ -1827,7 +1827,7 @@ end;
      begin
        ModeNumber:=EGALo;
        DriverNumber := EGA;
-       HardwarePages := 2;
+       HardwarePages := 3;
        ModeName:='640 x 200 EGA';
        MaxColor := 16;
        DirectColor := FALSE;
@@ -1887,7 +1887,7 @@ end;
      begin
        ModeNumber:=VGALo;
        DriverNumber := VGA;
-       HardwarePages := 2;
+       HardwarePages := 3;
        ModeName:='640 x 200 EGA';
        MaxColor := 16;
        DirectColor := FALSE;
@@ -2541,7 +2541,7 @@ end;
 
        InitMode(graphmode);
        with graphmode do
-       begin  
+       begin
          ModeNumber := m1280x1024x64k;
          DriverNumber := VESA;
          HardwarePages := 1;

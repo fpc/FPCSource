@@ -86,7 +86,7 @@ interface
       );
 
       CpuSuffix : array[TCpu] of string=(
-        '_i386','_m68k','_powerpc','_sparc','_x86_64','_arm','_powerpc64','avr','_armeb', '_armel', '_mips', '_mipsel', '_mips64', '_mips64el', '_jvm','_i8086','_aarch64'
+        '_i386','_m68k','_powerpc','_sparc','_x86_64','_arm','_powerpc64','_avr','_armeb', '_armel', '_mips', '_mipsel', '_mips64', '_mips64el', '_jvm','_i8086','_aarch64'
       );
 
       ppcSuffix : array[TCpu] of string=(

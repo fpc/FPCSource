@@ -33,7 +33,8 @@ interface
 
     type
        t68kvecnode = class(tcgvecnode)
-          procedure update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint);override;
+          procedure update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint); override;
+          procedure update_reference_reg_packed(maybe_const_reg: tregister; regsize: tdef; l:aint); override;
           //procedure pass_generate_code;override;
        end;
 
@@ -45,7 +46,8 @@ implementation
       symdef,paramgr,
       aasmtai,aasmdata,
       nld,ncon,nadd,
-      cgutils,cgobj;
+      cgutils,cgobj,
+      defutil;
 
 
 {*****************************************************************************
@@ -122,6 +124,62 @@ implementation
             internalerror(2009020704);
           location.reference.alignment:=newalignment(location.reference.alignment,l);
       end;
+
+     { see remarks for tcgvecnode.update_reference_reg_mul above }
+     procedure t68kvecnode.update_reference_reg_packed(maybe_const_reg: tregister; regsize: tdef; l:aint);
+       var
+         sref: tsubsetreference;
+         offsetreg, hreg: tregister;
+         alignpower: aint;
+         temp : longint;
+       begin
+         { only orddefs are bitpacked. Even then we only need special code in }
+         { case the bitpacked *byte size* is not a power of two, otherwise    }
+         { everything can be handled using the the regular array code.        }
+         if ((l mod 8) = 0) and
+            (ispowerof2(l div 8,temp) or
+             not is_ordinal(resultdef)
+{$ifndef cpu64bitalu}
+             or is_64bitint(resultdef)
+{$endif not cpu64bitalu}
+             ) then
+           begin
+             update_reference_reg_mul(maybe_const_reg,regsize,l div 8);
+             exit;
+           end;
+         if (l > 8*sizeof(aint)) then
+           internalerror(200608051);
+         sref.ref := location.reference;
+         hreg := cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
+         cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,tarraydef(left.resultdef).lowrange,maybe_const_reg,hreg);
+         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_INT,l,hreg);
+         { keep alignment for index }
+         sref.ref.alignment := left.resultdef.alignment;
+         if not ispowerof2(packedbitsloadsize(l),temp) then
+           internalerror(2006081201);
+         alignpower:=temp;
+         offsetreg := cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
+         cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_ADDR,3+alignpower,hreg,offsetreg);
+         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,alignpower,offsetreg);
+         if (sref.ref.base = NR_NO) then
+           sref.ref.base := offsetreg
+         else if (sref.ref.index = NR_NO) then
+           sref.ref.index := offsetreg
+         else
+           begin
+             cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,sref.ref.base,offsetreg);
+             sref.ref.base := offsetreg;
+           end;
+         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_INT,(1 shl (3+alignpower))-1,hreg);
+         sref.bitindexreg := hreg;
+         sref.startbit := 0;
+         sref.bitlen := resultdef.packedbitsize;
+         if (left.location.loc = LOC_REFERENCE) then
+           location.loc := LOC_SUBSETREF
+         else
+           location.loc := LOC_CSUBSETREF;
+         location.sref := sref;
+       end;
 
     {procedure t68kvecnode.pass_generate_code;
       begin
