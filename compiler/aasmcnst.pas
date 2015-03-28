@@ -233,6 +233,13 @@ type
        section of type typ. Returns -1 if there is no such info yet }
      function get_internal_data_section_index(typ: TAsmSectiontype): longint;
 
+     { get a start label for an internal data section (at the start of a
+       potentially dead-strippable part) }
+     function get_internal_data_section_start_label: tasmlabel; virtual;
+     { get a label in the middle of an internal data section (no dead
+       stripping) }
+     function get_internal_data_section_internal_label: tasmlabel; virtual;
+
      { easy access to the top level aggregate information instance }
      property curagginfo: taggregateinformation read getcurragginfo;
     public
@@ -700,6 +707,31 @@ implementation
      end;
 
 
+   function ttai_typedconstbuilder.get_internal_data_section_start_label: tasmlabel;
+     begin
+       { on Darwin, dead code/data stripping happens based on non-temporary
+         labels (any label that doesn't start with "L" -- it doesn't have
+         to be global) }
+       if target_info.system in systems_darwin then
+         current_asmdata.getstaticdatalabel(result)
+       else if create_smartlink_library then
+         current_asmdata.getglobaldatalabel(result)
+       else
+         current_asmdata.getlocaldatalabel(result);
+     end;
+
+
+   function ttai_typedconstbuilder.get_internal_data_section_internal_label: tasmlabel;
+     begin
+       if create_smartlink_library then
+         { all labels need to be global in case they're in another object }
+         current_asmdata.getglobaldatalabel(result)
+       else
+         { no special requirement for the label -> just get a local one }
+         current_asmdata.getlocaldatalabel(result);
+     end;
+
+
    function ttai_typedconstbuilder.aggregate_kind(def: tdef): ttypedconstkind;
      begin
        if (def.typ in [recorddef,filedef,variantdef]) or
@@ -873,7 +905,7 @@ implementation
                  doesn't have to be global) -> add a non-temporary lobel at the
                  start of every kind of subsection created in this builder }
                if target_info.system in systems_darwin then
-                 current_asmdata.getstaticdatalabel(l)
+                 l:=get_internal_data_section_start_label;
              end;
            foundsec:=length(finternal_data_section_info);
            setlength(finternal_data_section_info,foundsec+1);
@@ -882,13 +914,7 @@ implementation
        if not assigned(finternal_data_asmlist) and
           (cs_create_smart in current_settings.moduleswitches) then
          begin
-           { on Darwin, dead code/data stripping happens based on non-temporary
-             labels (any label that doesn't start with "L" -- it doesn't have
-             to be global) }
-           if target_info.system in systems_darwin then
-             current_asmdata.getstaticdatalabel(l)
-           else if create_smartlink_library then
-             current_asmdata.getglobaldatalabel(l);
+           l:=get_internal_data_section_start_label;
            { the internal data list should only be assigned by this routine,
              the first time that an internal data block is started }
            if not assigned(list) or
@@ -906,12 +932,7 @@ implementation
          internalerror(2015032101);
        finternal_data_asmlist:=list;
        if not assigned(l) then
-         if create_smartlink_library then
-           { all labels need to be global in case they're in another object }
-           current_asmdata.getglobaldatalabel(l)
-         else
-           { no special requirement for the label -> just get a local one }
-           current_asmdata.getlocaldatalabel(l);
+         l:=get_internal_data_section_internal_label;
        { first section of this kind -> set name }
        if finternal_data_section_info[foundsec].secname='' then
          if secname='' then

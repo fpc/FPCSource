@@ -68,6 +68,9 @@ interface
       procedure insert_marked_aggregate_alignment(def: tdef); override;
       procedure begin_aggregate_internal(def: tdef; anonymous: boolean); override;
       procedure end_aggregate_internal(def: tdef; anonymous: boolean); override;
+
+      function get_internal_data_section_start_label: tasmlabel; override;
+      function get_internal_data_section_internal_label: tasmlabel; override;
      public
       destructor destroy; override;
       procedure emit_tai_procvar2procdef(p: tai; pvdef: tprocvardef); override;
@@ -322,6 +325,20 @@ implementation
           info.aggai.finish;
         end;
       inherited;
+    end;
+
+
+  function tllvmtai_typedconstbuilder.get_internal_data_section_start_label: tasmlabel;
+    begin
+      { let llvm take care of everything by creating internal nameless
+        constants }
+      current_asmdata.getlocaldatalabel(result);
+    end;
+
+
+  function tllvmtai_typedconstbuilder.get_internal_data_section_internal_label: tasmlabel;
+    begin
+      current_asmdata.getlocaldatalabel(result);
     end;
 
 
