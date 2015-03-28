@@ -77,14 +77,20 @@ interface
 
     TOmfRawRecord = class
     private
+      function GetChecksumByte: Byte;
       function GetRecordLength: Word;
       function GetRecordType: Byte;
+      procedure SetChecksumByte(AValue: Byte);
       procedure SetRecordLength(AValue: Word);
       procedure SetRecordType(AValue: Byte);
     public
       RawData: array [-3..65535] of Byte;
       property RecordType: Byte read GetRecordType write SetRecordType;
       property RecordLength: Word read GetRecordLength write SetRecordLength;
+
+      procedure CalculateChecksumByte;
+      function VerifyChecksumByte: boolean;
+      property ChecksumByte: Byte read GetChecksumByte write SetChecksumByte;
 
       procedure ReadFrom(aReader: TObjectReader);
       procedure WriteTo(aWriter: TObjectWriter);
@@ -113,6 +119,46 @@ implementation
     begin
       RawData[-2]:=Byte(AValue);
       RawData[-1]:=Byte(AValue shr 8);
+    end;
+
+  function TOmfRawRecord.GetChecksumByte: Byte;
+    begin
+      if RecordLength>0 then
+        Result:=RawData[RecordLength-1]
+      else
+        Result:=0;
+    end;
+
+  procedure TOmfRawRecord.SetChecksumByte(AValue: Byte);
+    begin
+      if RecordLength>0 then
+        RawData[RecordLength-1]:=AValue;
+    end;
+
+  procedure TOmfRawRecord.CalculateChecksumByte;
+    var
+      I: Integer;
+      b: Byte;
+    begin
+      b:=0;
+      for I:=-3 to RecordLength-2 do
+        b:=byte(b+RawData[I]);
+      SetChecksumByte($100-b);
+    end;
+
+  function TOmfRawRecord.VerifyChecksumByte: boolean;
+    var
+      I: Integer;
+      b: Byte;
+    begin
+      { according to the OMF spec, some tools always write a 0 rather than
+        computing the checksum, so it should also be accepted as correct }
+      if ChecksumByte=0 then
+        exit(true);
+      b:=0;
+      for I:=-3 to RecordLength-1 do
+        b:=byte(b+RawData[I]);
+      Result:=(b=0);
     end;
 
   procedure TOmfRawRecord.ReadFrom(aReader: TObjectReader);
