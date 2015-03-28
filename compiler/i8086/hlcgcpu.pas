@@ -413,7 +413,7 @@ implementation
   procedure thlcgcpu.g_exception_reason_save_const(list: TAsmList; size: tdef; a: tcgint; const href: treference);
     begin
       if not paramanager.use_fixed_stack then
-        list.concat(Taicpu.op_const(A_PUSH,tcgsize2opsize[def_cgsize(size)],a))
+        tcg8086(cg).push_const(list,def_cgsize(size),a)
       else
         inherited;
     end;
