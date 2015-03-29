@@ -93,8 +93,12 @@ Var
     { Untyped file support }
      Procedure AssignFile(out f:File;p:pchar);
      Procedure AssignFile(out f:File;c:char);
+  {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
      Procedure AssignFile(out f:File;const Name:UnicodeString);
+  {$endif FPC_HAS_FEATURE_WIDESTRINGS}
+  {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
      Procedure AssignFile(out f:File;const Name:RawByteString);
+  {$endif FPC_HAS_FEATURE_ANSISTRINGS}
      Procedure CloseFile(var f:File);
 {$endif FPC_HAS_FEATURE_FILEIO}
 
@@ -102,8 +106,12 @@ Var
      { Text file support }
      Procedure AssignFile(out t:Text;p:pchar);
      Procedure AssignFile(out t:Text;c:char);
+  {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
      Procedure AssignFile(out t:Text;const Name:UnicodeString);
+  {$endif FPC_HAS_FEATURE_WIDESTRINGS}
+  {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
      Procedure AssignFile(out t:Text;const Name:RawByteString);
+  {$endif FPC_HAS_FEATURE_ANSISTRINGS}
      Procedure CloseFile(Var t:Text);
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
@@ -111,8 +119,12 @@ Var
      { Typed file supoort }
      Procedure AssignFile(out f:TypedFile;p:pchar);
      Procedure AssignFile(out f:TypedFile;c:char);
+  {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
      Procedure AssignFile(out f:TypedFile;const Name:UnicodeString);
+  {$endif FPC_HAS_FEATURE_WIDESTRINGS}
+  {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
      Procedure AssignFile(out f:TypedFile;const Name:RawByteString);
+  {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
@@ -170,15 +182,19 @@ begin
   System.Assign (F,c);
 end;
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure AssignFile(out f:File;const Name:RawBytestring);
 begin
   System.Assign (F,Name);
 end;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 Procedure AssignFile(out f:File;const Name:UnicodeString);
 begin
   System.Assign (F,Name);
 end;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 Procedure CloseFile(Var f:File); [IOCheck];
 
@@ -201,15 +217,19 @@ begin
   System.Assign (T,c);
 end;
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure AssignFile(out t:Text;const Name:RawBytestring);
 begin
   System.Assign (T,Name);
 end;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 Procedure AssignFile(out t:Text;const Name:UnicodeString);
 begin
   System.Assign (T,Name);
 end;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 Procedure CloseFile(Var t:Text); [IOCheck];
 
@@ -232,15 +252,19 @@ begin
   System.Assign (F,c);
 end;
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure AssignFile(out f:TypedFile;const Name:RawBytestring);
 begin
   System.Assign (F,Name);
 end;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 Procedure AssignFile(out f:TypedFile;const Name:UnicodeString);
 begin
   System.Assign (F,Name);
 end;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
