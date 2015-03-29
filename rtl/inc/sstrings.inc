@@ -990,6 +990,11 @@ end;
 {$endif}
 
 {$ifndef FPC_STR_ENUM_INTERN}
+{ currently, the avr code generator fails on this procedure, so we disable it, 
+  this is not a good solution but fixing compilation of this procedure for
+  avr is hard, requires significant changes to the register allocator to take
+  care of different register classes }
+{$ifndef CPUAVR}
 procedure fpc_chararray_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out a : array of char);compilerproc;
 var
   ss : shortstring;
@@ -1002,6 +1007,7 @@ begin
     maxlen:=high(a)+1;
   fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
 end;
+{$endif CPUAVR}
 {$endif not FPC_STR_ENUM_INTERN}
 
 procedure fpc_chararray_bool(b : boolean;len:sizeint;out a : array of char);compilerproc;

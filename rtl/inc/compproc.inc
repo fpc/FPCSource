@@ -187,7 +187,14 @@ procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : RawByteStri
 {$ifndef FPUNONE}
 procedure fpc_chararray_Float(d : ValReal;len,fr,rt : SizeInt;out a : array of char); compilerproc;
 {$endif}
+{$ifndef CPUAVR}
+{ currently, the avr code generator fails on this procedure, so we disable it, 
+  this is not a good solution but fixing compilation of this procedure for
+  avr is hard, requires significant changes to the register allocator to take
+  care of different register classes }
 procedure fpc_chararray_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out a : array of char);compilerproc;
+{$endif CPUAVR}
+
 procedure fpc_chararray_bool(b : boolean;len:sizeint;out a : array of char);compilerproc;
 {$ifdef FPC_HAS_STR_CURRENCY}
 procedure fpc_chararray_Currency(c : Currency;len,fr : SizeInt;out a : array of char);compilerproc;
