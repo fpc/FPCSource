@@ -20,21 +20,9 @@ uses
   consoletestrunner, classes, SysUtils, fpcunit, testreport, asserttest,
   suitetest;
 
-Const
-  ShortOpts = 'alh';
-  Longopts : Array[1..5] of String = (
-    'all','list','format:','suite:','help');
-  Version = 'Version 0.1';
 
 Type
-  TFPCUnitRunner = Class(TTestRunner)
-
-  end;
-
-
-
-
-
+  TFPCUnitRunner = Class(TTestRunner);
 
 Var
   App : TFPCUnitRunner;
