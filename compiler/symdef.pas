@@ -615,6 +615,7 @@ interface
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
           function  getmangledparaname:TSymStr;override;
+          function getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp): tstoreddef; override;
        end;
        tprocvardefclass = class of tprocvardef;
 
@@ -5932,6 +5933,13 @@ implementation
             result:='$_nestedprovar'+mangledprocparanames(0)+'_$'
         else
           result:='procvarofobj'
+      end;
+
+
+    function tprocvardef.getcopyas(newtyp: tdeftyp; copytyp: tproccopytyp): tstoreddef;
+      begin
+        result:=inherited;
+        tabstractprocdef(result).calcparas;
       end;
 
 
