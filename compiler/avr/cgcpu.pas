@@ -118,7 +118,7 @@ unit cgcpu;
 
     const
       TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_MOV,A_ADD,A_AND,A_NONE,
-                            A_NONE,A_MUL,A_MULS,A_NEG,A_COM,A_OR,
+                            A_NONE,A_MULS,A_MUL,A_NEG,A_COM,A_OR,
                             A_ASR,A_LSL,A_LSR,A_SUB,A_EOR,A_ROL,A_ROR);
   implementation
 
@@ -536,7 +536,14 @@ unit cgcpu;
            OP_MUL,OP_IMUL:
              begin
                if size in [OS_8,OS_S8] then
-                 list.concat(taicpu.op_reg_reg(topcg2asmop[op],dst,src))
+                 begin
+                   getcpuregister(list,NR_R0);
+                   getcpuregister(list,NR_R1);
+                   list.concat(taicpu.op_reg_reg(topcg2asmop[op],dst,src));
+                   ungetcpuregister(list,NR_R1);
+                   list.concat(taicpu.op_reg_reg(A_MOV,dst,NR_R0));
+                   ungetcpuregister(list,NR_R0);
+                 end
                else if size=OS_16 then
                  begin
                    pd:=search_system_proc('fpc_mul_word');
