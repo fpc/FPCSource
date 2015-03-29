@@ -938,7 +938,7 @@ interface
       begin
         if is_farpointer(left.resultdef) then
           second_cmpfarpointer
-        else if is_32bit(left.resultdef) or is_hugepointer(left.resultdef) then
+        else if is_32bit(left.resultdef) or is_hugepointer(left.resultdef) or is_farprocvar(left.resultdef) then
           second_cmp32bit
         else
           inherited second_cmpordinal;
