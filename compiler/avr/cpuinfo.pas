@@ -56,6 +56,8 @@ Type
    tcontrollertype =
      (ct_none,
 
+      ct_avrsim,
+
       ct_atmega16,
       ct_atmega32,
       ct_atmega48,
@@ -120,6 +122,16 @@ Const
         eeprombase:0;
         eepromsize:0
    	),
+   	(
+        controllertypestr:'AVRSIM';
+        controllerunitstr:'AVRSIM';
+        flashbase:0;
+        flashsize:$20000;
+        srambase:0;
+        sramsize:4096;
+        eeprombase:0;
+        eepromsize:4096;
+        ),
         (
    	controllertypestr:'ATMEGA16';
         controllerunitstr:'ATMEGA16';

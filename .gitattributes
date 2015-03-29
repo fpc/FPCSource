@@ -8206,6 +8206,7 @@ rtl/embedded/arm/stm32f10x_md.pp svneol=native#text/pascal
 rtl/embedded/arm/stm32f10x_xl.pp svneol=native#text/pascal
 rtl/embedded/arm/xmc4500.pp svneol=native#text/pascal
 rtl/embedded/avr/atmega128.pp svneol=native#text/plain
+rtl/embedded/avr/avrsim.pp svneol=native#text/plain
 rtl/embedded/avr/start.inc svneol=native#text/plain
 rtl/embedded/buildrtl.lpi svneol=native#text/plain
 rtl/embedded/buildrtl.pp svneol=native#text/plain
