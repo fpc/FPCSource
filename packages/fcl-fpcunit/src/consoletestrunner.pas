@@ -73,9 +73,9 @@ uses testdecorator;
 
 const
   ShortOpts = 'alhp';
-  DefaultLongOpts: array[1..9] of string =
+  DefaultLongOpts: array[1..11] of string =
      ('all', 'list', 'progress', 'help', 'skiptiming',
-      'suite:', 'format:', 'file:', 'stylesheet:');
+      'suite:', 'format:', 'file:', 'stylesheet:','sparse','no-addresses');
 
   { TProgressWriter }
 type
@@ -154,6 +154,8 @@ begin
     end;
   end;
   Result.SkipTiming:=HasOption('skiptiming');
+  Result.Sparse:=HasOption('sparse');
+  Result.SkipAddressInfo:=HasOption('no-addresses');
 end;
 
 procedure TTestRunner.DoTestRun(ATest: TTest);
@@ -213,6 +215,8 @@ begin
     writeln('  --format=plain            output as plain ASCII source');
     writeln('  --format=xml              output as XML source (default)');
     writeln('  --skiptiming              Do not output timings (useful for diffs of testruns)');
+    writeln('  --sparse                  Produce Less output (errors/failures only)');
+    writeln('  --no-addresses            Do not display address info');
     writeln('  --stylesheet=<reference>   add stylesheet reference');
     writeln('  --file=<filename>         output results to file');
     writeln;
