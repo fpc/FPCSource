@@ -478,7 +478,8 @@ type
 
     FBlobBuffers      : array of PBlobBuffer;
     FUpdateBlobBuffers: array of PBlobBuffer;
-
+    FManualMergeChangeLog : Boolean;
+    
     procedure ProcessFieldsToCompareStruct(const AFields, ADescFields, ACInsFields: TList;
       const AIndexOptions: TIndexOptions; const ALocateOptions: TLocateOptions; out ACompareStruct: TDBCompareStruct);
     function BufferOffset: integer;
@@ -599,6 +600,7 @@ type
     property ReadOnly : Boolean read FReadOnly write SetReadOnly default false;
   published
     property FileName : string read FFileName write FFileName;
+    property ManualMergeChangeLog : Boolean read FManualMergeChangeLog write FManualMergeChangeLog default False;
     property PacketRecords : Integer read FPacketRecords write SetPacketRecords default 10;
     property OnUpdateError: TResolverErrorEvent read FOnUpdateError write SetOnUpdateError;
     property IndexDefs : TIndexDefs read GetIndexDefs;
@@ -842,6 +844,7 @@ end;
 constructor TCustomBufDataset.Create(AOwner : TComponent);
 begin
   Inherited Create(AOwner);
+  FManualMergeChangeLog := False;
   FMaxIndexesCount:=2;
   FIndexesCount:=0;
 
@@ -2417,9 +2420,8 @@ begin
       inc(r);
       end;
   finally
-    if FailedCount = 0 then
+    if (FailedCount=0) and Not ManualMergeChangeLog then
       MergeChangeLog;
-
     InternalGotoBookmark(@StoreCurrRec);
     Resync([]);
     EnableControls;
