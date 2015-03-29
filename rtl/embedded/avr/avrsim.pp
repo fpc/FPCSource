@@ -18,6 +18,9 @@ unit avrsim;
 
   implementation
 
+    uses
+      consoleio;
+
     procedure PASCALMAIN; external name 'PASCALMAIN';
 
     procedure _FPC_haltproc(exitcode : longint); public name '_haltproc'; noreturn;
@@ -53,5 +56,26 @@ unit avrsim;
         {$i start.inc}
       end;
 
+
+    function WriteChar(ACh: char; AUserData: pointer): boolean;
+      begin
+        WriteChar:=true;
+        OUTPUTREG:=ord(ACh);
+      end;
+
+
+    function ReadChar(var ACh: char; AUserData: pointer): boolean;
+      begin
+        ReadChar:=true;
+        ACh:=#0;
+      end;
+
+
+begin
+  OpenIO(Input, @WriteChar, @ReadChar, fmInput, nil);
+  OpenIO(Output, @WriteChar, @ReadChar, fmOutput, nil);
+  OpenIO(ErrOutput, @WriteChar, @ReadChar, fmOutput, nil);
+  OpenIO(StdOut, @WriteChar, @ReadChar, fmOutput, nil);
+  OpenIO(StdErr, @WriteChar, @ReadChar, fmOutput, nil);
 end.
 
