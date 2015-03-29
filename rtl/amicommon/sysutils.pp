@@ -57,6 +57,7 @@ uses
 {$DEFINE FPC_FEXPAND_VOLUMES} (* Full paths begin with drive specification *)
 {$DEFINE FPC_FEXPAND_DRIVESEP_IS_ROOT}
 {$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}
+{$DEFINE FPC_FEXPAND_DIRSEP_IS_UPDIR}
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
