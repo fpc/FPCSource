@@ -72,7 +72,11 @@ Type
     Sec   : word;
   End;
 
+{$ifdef FPC_HAS_FEATURE_THREADING}
 threadvar
+{$else FPC_HAS_FEATURE_THREADING}
+var
+{$endif FPC_HAS_FEATURE_THREADING}
   DosError : integer;
 
 {$ifdef cpui386}

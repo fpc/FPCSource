@@ -99,7 +99,11 @@ uses
   procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
     begin
       baseaddr:= nil;
+{$ifdef FPC_HAS_FEATURE_COMMANDARGS}
       filename:=ParamStr(0);
+{$else FPC_HAS_FEATURE_COMMANDARGS}
+      filename:='';
+{$endif FPC_HAS_FEATURE_COMMANDARGS}
     end;
 
 {$endif windows}
@@ -180,7 +184,7 @@ function getByte(var f:file):byte;
   begin
     for i := 1 to bytes do getbyte(f);
   end;
-  
+
   function get0String (var f:file) : string;
   var c : char;
   begin
@@ -192,7 +196,7 @@ function getByte(var f:file):byte;
       c := char (getbyte(f));
     end;
   end;
-  
+
   function getint32 (var f:file): longint;
   begin
     blockread (F, getint32, 4);
@@ -209,7 +213,7 @@ var valid : boolean;
     hdrLength,
     dataOffset,
     dataLength : longint;
-  
+
 
   function getLString : String;
   var Res:string;
@@ -235,12 +239,12 @@ var valid : boolean;
     blockread (e.F, getword, 2);
   end;
 
-  
+
 
 begin
   e.sechdrofs := 0;
   openNetwareNLM:=false;
-  
+
   // read and check header
   Skip (e.f,SIZE_OF_NLM_INTERNAL_FIXED_HEADER);
   getLString;  // NLM Description
@@ -840,7 +844,7 @@ const
    B_ADD_ON_IMAGE  = 3;
    B_SYSTEM_IMAGE  = 4;
    B_OK = 0;
-   
+
 type
     image_info = packed record
      id      : image_id;
