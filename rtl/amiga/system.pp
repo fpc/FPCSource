@@ -79,6 +79,7 @@ var
 {$ENDIF}
 
   ASYS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
+  ASYS_heapSemaphore: Pointer; { 68k OS from 3.x has no MEMF_SEM_PROTECTED for pools, have to do it ourselves }
   ASYS_origDir  : LongInt; { original directory on startup }
   AOS_wbMsg    : Pointer; public name '_WBenchMsg'; { the "public" part is amunits compatibility kludge }
   _WBenchMsg   : Pointer; external name '_WBenchMsg'; { amunits compatibility kludge }
@@ -353,6 +354,8 @@ begin
   { Creating the memory pool for growing heap }
   ASYS_heapPool:=CreatePool(MEMF_FAST,growheapsize2,growheapsize1);
   if ASYS_heapPool=nil then Halt(1);
+  ASYS_heapSemaphore:=AllocPooled(ASYS_heapPool,sizeof(TSignalSemaphore));
+  InitSemaphore(ASYS_heapSemaphore);
 
   if AOS_wbMsg=nil then begin
     StdInputHandle:=dosInput;

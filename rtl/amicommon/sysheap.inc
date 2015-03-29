@@ -25,7 +25,14 @@ function SysOSAlloc(size: ptruint): pointer;
 var values: array[0..2] of dword;
 {$ENDIF}
 begin
+{$IFDEF AMIGA}
+  { The mutex locking is only needed for AmigaOS, AROS and MorphOS has MEMF_SEM_PROTECTED }
+  ObtainSemaphore(ASYS_heapSemaphore);
+{$ENDIF}
   result:=AllocPooled(ASYS_heapPool,size);
+{$IFDEF AMIGA}
+  ReleaseSemaphore(ASYS_heapSemaphore);
+{$ENDIF}
 {$IFDEF ASYS_FPC_MEMDEBUG}
   values[0]:=dword(result);
   values[1]:=dword(size);
@@ -41,7 +48,13 @@ procedure SysOSFree(p: pointer; size: ptruint);
 var values: array[0..2] of dword;
 {$ENDIF}
 begin
+{$IFDEF AMIGA}
+  ObtainSemaphore(ASYS_heapSemaphore);
+{$ENDIF}
   FreePooled(ASYS_heapPool,p,size);
+{$IFDEF AMIGA}
+  ReleaseSemaphore(ASYS_heapSemaphore);
+{$ENDIF}
 {$IFDEF ASYS_FPC_MEMDEBUG}
   values[0]:=dword(p);
   values[1]:=dword(size);
