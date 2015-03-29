@@ -1131,6 +1131,7 @@ type
     function ReadInt32: LongInt; virtual; abstract;
     function ReadInt64: Int64; virtual; abstract;
     function ReadSet(EnumType: Pointer): Integer; virtual; abstract;
+    procedure ReadSignature; virtual; abstract;
     function ReadStr: String; virtual; abstract;
     function ReadString(StringType: TValueType): String; virtual; abstract;
     function ReadWideString: WideString;virtual;abstract;
@@ -1183,6 +1184,7 @@ type
     function ReadInt32: LongInt; override;
     function ReadInt64: Int64; override;
     function ReadSet(EnumType: Pointer): Integer; override;
+    procedure ReadSignature; override;
     function ReadStr: String; override;
     function ReadString(StringType: TValueType): String; override;
     function ReadWideString: WideString;override;
@@ -1291,6 +1293,7 @@ type
     procedure ReadListEnd;
     function ReadRootComponent(ARoot: TComponent): TComponent;
     function ReadVariant: Variant;
+    procedure ReadSignature;
     function ReadString: string;
     function ReadWideString: WideString;
     function ReadUnicodeString: UnicodeString;
@@ -1323,6 +1326,7 @@ type
     procedure BeginCollection; virtual; abstract;  { Ends with the next "EndList" }
     procedure BeginComponent(Component: TComponent; Flags: TFilerFlags;
       ChildPos: Integer); virtual; abstract;  { Ends after the second "EndList" }
+    procedure WriteSignature; virtual; abstract;
     procedure BeginList; virtual; abstract;
     procedure EndList; virtual; abstract;
     procedure BeginProperty(const PropName: String); virtual; abstract;
@@ -1359,8 +1363,6 @@ type
     FBufSize: Integer;
     FBufPos: Integer;
     FBufEnd: Integer;
-    FSignatureWritten: Boolean;
-
     procedure WriteWord(w : word); {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
     procedure WriteDWord(lw : longword); {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
     procedure WriteQWord(qw : qword); {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
@@ -1372,6 +1374,7 @@ type
   public
     constructor Create(Stream: TStream; BufSize: Integer);
     destructor Destroy; override;
+    procedure WriteSignature; override;
 
     procedure BeginCollection; override;
     procedure BeginComponent(Component: TComponent; Flags: TFilerFlags;
@@ -1468,6 +1471,7 @@ type
     procedure WriteSet(Value: LongInt; SetType: Pointer);
     procedure WriteListBegin;
     procedure WriteListEnd;
+    Procedure WriteSignature;
     procedure WriteRootComponent(ARoot: TComponent);
     procedure WriteString(const Value: string);
     procedure WriteWideString(const Value: WideString);
