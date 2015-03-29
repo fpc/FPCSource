@@ -348,7 +348,7 @@ CPU_UNITS=
 SYSINIT_UNITS=
 CPU_SPECIFIC_COMMON_UNITS=
 ifeq ($(ARCH),arm)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts
 ifeq ($(SUBARCH),armv7m)
 CPU_UNITS=lm3fury lm3tempest stm32f10x_ld stm32f10x_md stm32f10x_hd stm32f10x_xl stm32f10x_conn stm32f10x_cl lpc13xx lpc1768 lm4f120  xmc4500 cortexm3 cortexm4 # thumb2_bare
 endif
@@ -372,11 +372,11 @@ ifeq ($(ARCH),avr)
 CPU_UNITS=atmega128 avrsim
 endif
 ifeq ($(ARCH),i386)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts
 CPU_UNITS=multiboot
 endif
 ifeq ($(ARCH),mipsel)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts
 ifeq ($(SUBARCH),pic32mx)
   CPU_UNITS=pic32mx1xxfxxxb pic32mx2xxfxxxb pic32mx1xxfxxxc pic32mx2xxfxxxc pic32mx1xxfxxxd pic32mx2xxfxxxd pic32mx7x5fxxxl pic32mx7x5fxxxh
 endif
@@ -384,241 +384,241 @@ endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),i386-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),i386-aros)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),powerpc-aix)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),x86_64-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),x86_64-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),x86_64-iphonesim)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),x86_64-dragonfly)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),arm-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),powerpc64-aix)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),mips-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),mipsel-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),mipsel-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),jvm-java)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),jvm-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),i8086-msdos)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),aarch64-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall getopts sysconst lineinfo
+override TARGET_UNITS+=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) dos ctypes charset cpall sysconst lineinfo
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_LOADERS+=$(LOADERS)
@@ -2546,6 +2546,11 @@ objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
 		   $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+	$(COMPILER) $<
+	$(COMPILER) $<
+avrsim$(PPUEXT) : avr/avrsim.pp consoleio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 consoleio$(PPUEXT) : consoleio.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 heapmgr$(PPUEXT) : heapmgr.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
@@ -2553,7 +2558,10 @@ heapmgr$(PPUEXT) : heapmgr.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
 	       $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
+	$(COMPILER) $<
 objects$(PPUEXT) : $(INC)/objects.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
+	$(COMPILER) $<
 	$(COMPILER) $<
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 		    objpas$(PPUEXT) sysconst$(PPUEXT) heapmgr$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
@@ -2583,7 +2591,9 @@ dateutil$(PPUEXT) : $(OBJPASDIR)/dateutil.pp $(SYSTEMUNIT)$(PPUEXT)
 macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/macpas.pp $(REDIR)
 ucomplex$(PPUEXT): $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $<
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
