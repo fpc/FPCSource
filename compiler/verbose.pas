@@ -451,15 +451,13 @@ implementation
             begin
               { update status record }
               status.currentmodule:=module.modulename^;
+              status.currentsourceppufilename:=module.ppufilename;
               status.currentmodulestate:=ModuleStateStr[module.state];
               status.currentsource:=module.sourcefiles.get_file_name(current_filepos.fileindex);
               status.currentsourcepath:=module.sourcefiles.get_file_path(current_filepos.fileindex);
-              { if sources are not available, construct a prefix from the
-                ppu file name }
-              if not(module.sources_avail) then
-                status.currentsourcepath:=module.ppufilename+':'
+              status.sources_avail:=module.sources_avail;
               { if currentsourcepath is relative, make it absolute }
-              else if not path_absolute(status.currentsourcepath) then
+              if not path_absolute(status.currentsourcepath) then
                 status.currentsourcepath:=GetCurrentDir+status.currentsourcepath;
 
               { update lastfileidx only if name known PM }
@@ -1002,6 +1000,7 @@ implementation
         lastfileidx:=-1;
         lastmoduleidx:=-1;
         status.currentmodule:='';
+        status.currentsourceppufilename:='';
         status.currentsource:='';
         status.currentsourcepath:='';
         { Register internalerrorproc for cutils/cclasses }
