@@ -391,13 +391,11 @@ unit cgcpu;
 
     procedure tcgavr.a_call_name(list : TAsmList;const s : string; weak: boolean);
       begin
-        list.concat(taicpu.op_sym(A_RCALL,current_asmdata.RefAsmSymbol(s)));
-{
-        the compiler does not properly set this flag anymore in pass 1, and
-        for now we only need it after pass 2 (I hope) (JM)
-          if not(pi_do_call in current_procinfo.flags) then
-            internalerror(2003060703);
-}
+        if CPUAVR_HAS_JMP_CALL in cpu_capabilities[current_settings.cputype] then
+          list.concat(taicpu.op_sym(A_CALL,current_asmdata.RefAsmSymbol(s)))
+        else
+          list.concat(taicpu.op_sym(A_RCALL,current_asmdata.RefAsmSymbol(s)));
+
         include(current_procinfo.flags,pi_do_call);
       end;
 
@@ -1379,7 +1377,10 @@ unit cgcpu;
       var
         ai : taicpu;
       begin
-        ai:=taicpu.op_sym(A_JMP,current_asmdata.RefAsmSymbol(s));
+        if CPUAVR_HAS_JMP_CALL in cpu_capabilities[current_settings.cputype] then
+          ai:=taicpu.op_sym(A_JMP,current_asmdata.RefAsmSymbol(s))
+        else
+          ai:=taicpu.op_sym(A_RJMP,current_asmdata.RefAsmSymbol(s));
         ai.is_jmp:=true;
         list.concat(ai);
       end;
@@ -1389,7 +1390,10 @@ unit cgcpu;
       var
         ai : taicpu;
       begin
-        ai:=taicpu.op_sym(A_JMP,l);
+        if CPUAVR_HAS_JMP_CALL in cpu_capabilities[current_settings.cputype] then
+          ai:=taicpu.op_sym(A_JMP,l)
+        else
+          ai:=taicpu.op_sym(A_RJMP,l);
         ai.is_jmp:=true;
         list.concat(ai);
       end;
