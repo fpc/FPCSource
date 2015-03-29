@@ -93,7 +93,7 @@ type
 {$if not(defined(windows)) and not(defined(win32))}
    { Win32 reuses the struct from the Windows unit }
    TSystemTime = record
-      Year, Month, Day: word;
+      Year, Month, Day, DayOfWeek: word;
       Hour, Minute, Second, MilliSecond: word;
    end ;
 {$endif windows}
