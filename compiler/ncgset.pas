@@ -411,7 +411,7 @@ implementation
                  { location is always LOC_REGISTER }
                  location_reset(location, LOC_REGISTER, uopsize{def_cgsize(resultdef)});
                  { allocate a register for the result }
-                 location.register := cg.getintregister(current_asmdata.CurrAsmList, uopsize);
+                 location.register := hlcg.getintregister(current_asmdata.CurrAsmList, uopdef);
 
                  if right.location.loc=LOC_CONSTANT then
                    begin
@@ -422,7 +422,7 @@ implementation
                      { assumption (other cases will be caught by range checking) (JM)  }
 
                      { load left in register }
-                     hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
+                     hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,uopdef,true);
                      register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
                      { emit bit test operation -- warning: do not use
                        location_force_reg() to force a set into a register, except
@@ -435,18 +435,18 @@ implementation
                       a_bit_test_reg_loc_reg() properly takes into account the
                       size of the set to adjust the register index to test }
                      hlcg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList,
-                       left.resultdef,right.resultdef,resultdef,
+                       left.resultdef,right.resultdef,uopdef,
                        left.location.register,right.location,location.register);
 
                      { now zero the result if left > nr_of_bits_in_right_register }
-                     hr := cg.getintregister(current_asmdata.CurrAsmList,location.size);
+                     hr := hlcg.getintregister(current_asmdata.CurrAsmList,uopdef);
                      { if left > tcgsize2size[opsize]*8 then hr := 0 else hr := $ffffffff }
                      { (left.location.size = location.size at this point) }
-                     cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SUB, location.size, tcgsize2size[opsize]*8, left.location.register, hr);
-                     cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SAR, location.size, (tcgsize2size[opsize]*8)-1, hr);
+                     hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SUB, uopdef, tcgsize2size[opsize]*8, left.location.register, hr);
+                     hlcg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SAR, uopdef, (tcgsize2size[opsize]*8)-1, hr);
 
                      { if left > tcgsize2size[opsize]*8-1, then result := 0 else result := result of bit test }
-                     cg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_AND, location.size, hr, location.register);
+                     hlcg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_AND, uopdef, hr, location.register);
                    end { of right.location.loc=LOC_CONSTANT }
                  { do search in a normal set which could have >32 elements
                    but also used if the left side contains higher values > 32 }
@@ -456,7 +456,7 @@ implementation
                        {should be caught earlier }
                        internalerror(2007020402);
 
-                     hlcg.a_bit_test_const_loc_reg(current_asmdata.CurrAsmList,right.resultdef,resultdef,left.location.value-setbase,
+                     hlcg.a_bit_test_const_loc_reg(current_asmdata.CurrAsmList,right.resultdef,uopdef,left.location.value-setbase,
                        right.location,location.register);
                    end
                  else
@@ -477,22 +477,29 @@ implementation
                          current_asmdata.getjumplabel(l2);
                          needslabel := True;
 
-                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, left.location.size, OC_BE, tsetdef(right.resultdef).setmax-tsetdef(right.resultdef).setbase, pleftreg, l);
+                         hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, left.resultdef, OC_BE, tsetdef(right.resultdef).setmax-tsetdef(right.resultdef).setbase, pleftreg, l);
 
-                         cg.a_load_const_reg(current_asmdata.CurrAsmList, location.size, 0, location.register);
-                         cg.a_jmp_always(current_asmdata.CurrAsmList, l2);
+                         hlcg.a_load_const_reg(current_asmdata.CurrAsmList, uopdef, 0, location.register);
+                         hlcg.a_jmp_always(current_asmdata.CurrAsmList, l2);
 
-                         cg.a_label(current_asmdata.CurrAsmList, l);
+                         hlcg.a_label(current_asmdata.CurrAsmList, l);
                        end;
 
-                     hlcg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList,left.resultdef,right.resultdef,resultdef,
+                     hlcg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList,left.resultdef,right.resultdef,uopdef,
                        pleftreg,right.location,location.register);
 
                      if needslabel then
-                       cg.a_label(current_asmdata.CurrAsmList, l2);
+                       hlcg.a_label(current_asmdata.CurrAsmList, l2);
                    end;
+{$ifndef cpuhighleveltarget}
                  location.size := def_cgsize(resultdef);
                  location.register := cg.makeregsize(current_asmdata.CurrAsmList, location.register, location.size);
+{$else not cpuhighleveltarget}
+                 hr:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+                 hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,uopdef,resultdef,location.register,hr);
+                 location.register:=hr;
+                 location.size := def_cgsize(resultdef);
+{$endif not cpuhighleveltarget}
                end;
            end;
          location_freetemp(current_asmdata.CurrAsmList, right.location);
