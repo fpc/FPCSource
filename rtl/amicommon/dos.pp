@@ -317,26 +317,26 @@ end;
 
 function Create_Timer(theUnit : longint) : pTimeRequest;
 var
-    Error : longint;
-    TimerPort : pMsgPort;
-    TimeReq : pTimeRequest;
+  Error : longint;
+  TimerPort : pMsgPort;
+  TimeReq : pTimeRequest;
 begin
-    TimerPort := CreatePort(Nil, 0);
-    if TimerPort = Nil then
-  Create_Timer := Nil;
-    TimeReq := pTimeRequest(CreateExtIO(TimerPort,sizeof(tTimeRequest)));
-    if TimeReq = Nil then begin
-  DeletePort(TimerPort);
-  Create_Timer := Nil;
-    end;
-    Error := OpenDevice(TIMERNAME, theUnit, pIORequest(TimeReq), 0);
-    if Error <> 0 then begin
-  DeleteExtIO(pIORequest(TimeReq));
-  DeletePort(TimerPort);
-  Create_Timer := Nil;
-    end;
-    TimerBase := pointer(TimeReq^.tr_Node.io_Device);
-    Create_Timer := pTimeRequest(TimeReq);
+  TimerPort := CreatePort(Nil, 0);
+  if TimerPort = Nil then
+    Create_Timer := Nil;
+  TimeReq := pTimeRequest(CreateExtIO(TimerPort,sizeof(tTimeRequest)));
+  if TimeReq = Nil then begin
+    DeletePort(TimerPort);
+    Create_Timer := Nil;
+  end;
+  Error := OpenDevice(TIMERNAME, theUnit, pIORequest(TimeReq), 0);
+  if Error <> 0 then begin
+    DeleteExtIO(pIORequest(TimeReq));
+    DeletePort(TimerPort);
+    Create_Timer := Nil;
+  end;
+  TimerBase := pointer(TimeReq^.tr_Node.io_Device);
+  Create_Timer := pTimeRequest(TimeReq);
 end;
 
 Procedure Delete_Timer(WhichTimer : pTimeRequest);
