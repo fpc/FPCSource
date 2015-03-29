@@ -176,7 +176,7 @@ const
 
 
 const
- NSUBEXP = 15; // max number of subexpression //###0.929
+ NSUBEXP = 90; // max number of subexpression //###0.929
  // Cannot be more than NSUBEXPMAX
  // Be carefull - don't use values which overflow CLOSE opcode
  // (in this case you'll get compiler erorr).
@@ -389,7 +389,8 @@ type
     function GetLinePairedSeparator : RegExprString;
 
    public
-    constructor Create;
+    constructor Create; overload;
+    constructor Create(AExpression:string); overload;
     destructor Destroy; override;
 
     class function VersionMajor : integer; //###0.944
@@ -1200,6 +1201,12 @@ constructor TRegExpr.Create;
   LinePairedSeparator := RegExprLinePairedSeparator; //###0.941
  end; { of constructor TRegExpr.Create
 --------------------------------------------------------------}
+
+constructor TRegExpr.Create(AExpression:string);
+begin
+  create;
+  Expression:=AExpression;
+end;
 
 destructor TRegExpr.Destroy;
  begin
