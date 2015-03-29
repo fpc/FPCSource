@@ -601,7 +601,7 @@ Type
   public
     Constructor Create(AOwner :TComponent); override;
     Destructor Destroy; override;
-    Function IdentifierByName(AName : ShortString) : TFPExprIdentifierDef;
+    Function IdentifierByName(const AName : ShortString) : TFPExprIdentifierDef; virtual;
     Procedure Clear;
     Procedure EvaluateExpression(Var Result : TFPExpressionResult);
     Function Evaluate : TFPExpressionResult;
@@ -1047,7 +1047,7 @@ begin
   FDirty:=False;
 end;
 
-function TFPExpressionParser.IdentifierByName(AName: ShortString): TFPExprIdentifierDef;
+function TFPExpressionParser.IdentifierByName(const AName: ShortString): TFPExprIdentifierDef;
 begin
   If FDirty then
     CreateHashList;
