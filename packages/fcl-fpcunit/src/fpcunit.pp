@@ -347,14 +347,18 @@ Const
 
 
 function CallerAddr: Pointer;
-var
-  bp: Pointer;
+
+Var
+  bp,pcaddr : pointer;
+  
 begin
-  bp := get_caller_frame(get_frame);
-  if bp <> nil then
-    Result := get_caller_addr(bp)
-  else
-    Result := nil;
+  Result:=Nil;
+  bp:=get_frame;
+  pcaddr:=get_pc_addr;
+  get_caller_stackinfo(bp,pcaddr);
+  if bp<>Nil then
+    get_caller_stackinfo(bp,pcaddr);
+  result:=pcaddr;
 end;
 
 function AddrsToStr(Addrs: Pointer): string;
