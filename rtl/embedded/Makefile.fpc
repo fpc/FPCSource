@@ -12,13 +12,12 @@ loaders=$(LOADERS)
 # not all targets include enough features to build all units so
 # the common units which are not compiled for all CPUs are stored in
 # CPU_SPECIFIC_COMMON_UNITS
-units=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas macpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) \
+units=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio $(CPU_SPECIFIC_COMMON_UNITS) \
 # macpas iso7185 strings
        dos \
-       sysutils \
-       classes math typinfo ctypes \
+       ctypes \
        charset cpall getopts \
-       types rtlconsts sysconst lineinfo fgl
+       sysconst lineinfo
 #implicitunits=exeinfo \
 #      cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
 #      cp437 cp646 cp850 cp856 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5 cp8859_2 cp852
@@ -63,7 +62,7 @@ SYSINIT_UNITS=
 CPU_SPECIFIC_COMMON_UNITS=
 
 ifeq ($(ARCH),arm)
-CPU_SPECIFIC_COMMON_UNITS=sysutils sysconst
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts
 ifeq ($(SUBARCH),armv7m)
 CPU_UNITS=lm3fury lm3tempest stm32f10x_ld stm32f10x_md stm32f10x_hd stm32f10x_xl stm32f10x_conn stm32f10x_cl lpc13xx lpc1768 lm4f120  xmc4500 cortexm3 cortexm4 # thumb2_bare
 endif
@@ -89,11 +88,12 @@ CPU_UNITS=atmega128
 endif
 
 ifeq ($(ARCH),i386)
-CPU_SPECIFIC_COMMON_UNITS=sysutils sysconst
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts
 CPU_UNITS=multiboot
 endif
 
 ifeq ($(ARCH),mipsel)
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts
 ifeq ($(SUBARCH),pic32mx)
   CPU_UNITS=pic32mx1xxfxxxb pic32mx2xxfxxxb pic32mx1xxfxxxc pic32mx2xxfxxxc pic32mx1xxfxxxd pic32mx2xxfxxxd pic32mx7x5fxxxl pic32mx7x5fxxxh
 endif
@@ -189,7 +189,7 @@ classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) types$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp $(REDIR)
 
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
@@ -235,12 +235,16 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
 
-#lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/lineinfo.pp
 
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 
 cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
         $(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
+
+iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/iso7185.pp
 
 #
 # Unit specific rules
@@ -254,3 +258,28 @@ $(foreach unit,$(CPU_UNITS),$(eval $(call CPU_UNITS_RULE,$(unit))))
 
 $(addsuffix $(PPUEXT),$(CPU_UNITS)):
 	$(COMPILER) $<
+
+#
+# Other $(SYSTEMUNIT)-dependent RTL Units
+#
+
+errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(UNIXINC)/errors.pp
+
+callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/callspec.pp
+
+cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/cmem.pp
+
+cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT) unix$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) initc$(PPUEXT) dl$(PPUEXT)
+	$(COMPILER) $(UNIXINC)/cthreads.pp
+
+cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT) dynlibs$(PPUEXT) unixcp$(PPUEXT)
+	$(COMPILER) $(UNIXINC)/cwstring.pp
+
+ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/ctypes.pp
+
+fpcylix$(PPUEXT) : fpcylix.pp cthreads$(PPUEXT) cwstring$(PPUEXT) dynlibs$(PPUEXT) objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) fpcylix.pp
