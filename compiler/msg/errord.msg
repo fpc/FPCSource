@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at web.de>
 #
-#   Based on errore.msg of SVN revision 29517
+#   Based on errore.msg of SVN revision 30001
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2015 by the Free Pascal Development team
@@ -385,7 +385,7 @@ scanner_e_illegal_alignment_directive=02088_E_UngÅltige "alignment" Direktive
 scanner_f_illegal_utf8_bom=02089_F_Eine Datei, die mit einem UTF-8 BOM anfÑngt, kann nicht in einem Modul mit einer anderen Codepage verwendet werden
 % All source code that is part of a single compilation entity (program, library, unit) must be encoded
 % in the same code page
-scanner_w_directive_ignored_on_target=02090_W_Die Direktive "$1" wird fÅr die aktuelle Zielplatform ignoriert
+scanner_w_directive_ignored_on_target=02090_W_Die Direktive "$1" wird fÅr die aktuelle Zielplattform ignoriert
 % Some directives are ignored for certain targets, such as changing the
 % packrecords and packenum settings on managed platforms.
 scan_w_unavailable_system_codepage=02091_W_Die aktuelle System-Codepage "$1" steht fÅr den Compiler nicht zur VerfÅgung. Stelle die voreingestellte Codepage um auf "$2".
@@ -403,7 +403,7 @@ scan_e_illegal_peoptflag=02094_E_UngÅltiges Argument fÅr SETPEOPTFLAGS
 % ordinal value
 scan_e_unsupported_switch=02095_E_Direktive $1 wird auf diesem Zielbetriebssystem nicht unterstÅtzt
 % Not all compiler directives are supported on all targets.
-scan_w_invalid_stacksize=02096_W_Die spezifizierte Grî·e des Stack ist au·erhalb des gÅltigen Bereichs der Platform. Setzen der Grî·e des Stack ignoriert.
+scan_w_invalid_stacksize=02096_W_Die spezifizierte Grî·e des Stack ist au·erhalb des gÅltigen Bereichs der Plattform. Setzen der Grî·e des Stack ignoriert.
 % The valid range for the stack size is 1024 - 67107839 on 32-bit and 64-bit
 % platforms and 1024 - 65520 on 16-bit platforms. Additionally, for Turbo Pascal 7
 % compatibility reasons, specifying a stack size of 65521 on 16-bit platforms
@@ -421,7 +421,7 @@ scan_e_illegal_hugepointernormalization=02098_E_Illegales Argument fÅr HUGEPOINT
 #
 # Parser
 #
-# 03339 is the last used one
+# 03340 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1542,6 +1542,9 @@ parser_w_ptr_type_ignored=03338_W_Zeigertyp "$1" ignoriert
 parser_e_global_generic_references_static=03339_E_Ein globales, generisches Templat referenziert eine statische Symboltabelle
 % A generic declared in the interface section of a unit must not reference symbols that belong
 % solely to the implementation section of that unit.
+parser_u_already_compiled=03340_UL_Die Unit $1 wurde inzwischen bereits kompiliert.
+% This tells you that the recursive reading of the uses clauses triggered already
+% a compilation of the current unit, so the current compilation can be aborded.
 %
 % \end{description}
 # EndOfTeX
@@ -1942,7 +1945,7 @@ type_e_java_class_method_not_static_virtual=04112_E_JVM virtuelle Klassenmethode
 % the self pointer is required for correct dispatching.
 type_e_invalid_final_assignment=04113_E_Finale (Klassen-)Felder kînnen nur im (Klassen-)Konstruktur ihrer Klasse zugewiesen werden
 % It is only possible to assign a value to a final (class) field inside a (class) constructor of its owning class.
-type_e_no_managed_formal_assign_typecast=04114_E_Typecast fÅr nicht typisierte Parameter wird auf managed Platformen nicht unterstÅtzt, weise stattdessen einfach einen Wert zu
+type_e_no_managed_formal_assign_typecast=04114_E_Typecast fÅr nicht typisierte Parameter wird auf managed Plattformen nicht unterstÅtzt, weise stattdessen einfach einen Wert zu
 % On managed platforms, untyped parameters are translated by the compiler into
 % the equivalent of \var{var x: BaseClassType}. Non-class-based types passed to
 % such parameters are automatically wrapped (or boxed) in a class, and after the
@@ -1951,7 +1954,7 @@ type_e_no_managed_formal_assign_typecast=04114_E_Typecast fÅr nicht typisierte P
 % values to them (either class-based or primitive ones). On the caller side,
 % they will be extracted and if their type does not match the original variable's,
 % an exception will be raised.
-type_e_no_managed_assign_generic_typecast=04115_E_Auf managed Platformen kann fÅr die Zuweisungsseite eines Ausdrucks kein Typecast auf einen Supertyp erfolgen
+type_e_no_managed_assign_generic_typecast=04115_E_Auf managed Plattformen kann fÅr die Zuweisungsseite eines Ausdrucks kein Typecast auf einen Supertyp erfolgen
 % Managed platforms guarantee type safety at the bytecode level. This means that the virtual machine must be able
 % to statically determine that no type-unsafe assignments or operations occur. By assigning a parent class type to a
 % variable of a child type by typecasting the assignment side to the parent class type, the type safety would no
@@ -3227,7 +3230,7 @@ option_reading_further_from=11010_D_Lese weitere Optionen aus $1
 % to another options file.
 option_target_is_already_set=11011_W_Zielsystem ist bereits gesetzt: $1
 % Displayed if more than one \var{-T} option is specified.
-option_no_shared_lib_under_dos=11012_W_Gemeinsame Bibliotheken sind auf der DOS Platform nicht verfÅgbar, verwende stattdessen statische Bibliotheken
+option_no_shared_lib_under_dos=11012_W_Gemeinsame Bibliotheken sind auf der DOS Plattform nicht verfÅgbar, verwende stattdessen statische Bibliotheken
 % If you specify \var{-CD} for the \dos platform, this message is displayed.
 % The compiler supports only static libraries under \dos.
 option_too_many_ifdef=11013_F_Zu viele \#IF(N)DEFs in Zeile $2 der Optionen-Datei $1
@@ -3487,6 +3490,7 @@ diskutiert werden kînnen, usw.):
 #    4 = x86_64
 #    6 = 680x0 targets
 #    8 = 8086 (16-bit) targets
+#    a = AArch64
 #    A = ARM
 #    e = in extended debug mode only
 #    F = help for the 'fpc' binary (independent of the target compiler)
@@ -3507,7 +3511,7 @@ diskutiert werden kînnen, usw.):
 #  The third character represents the indentation level.
 #
 option_help_pages=11025_[
-F*0*_Es werden nur Optionen aufgelistet, die fÅr die voreingestellte oder ausgewÑhlte Platform gÅltig sind.
+F*0*_Es werden nur Optionen aufgelistet, die fÅr die voreingestellte oder ausgewÑhlte Plattform gÅltig sind.
 **0*_Nach booleschen Optionen geben Sie + zum Ein- bzw. - zum Ausschalten an
 **1@<x>_Lese zusÑtzlich zu den voreingestellten Compiler-Optionen aus fpc.cfg auch die aus <x>
 **1a_Erzeugte Assembler-Datei nicht lîschen
@@ -3754,6 +3758,7 @@ F*2P<x>_Setze die Ziel-CPU (arm, avr, i386, jvm, m68k, mips, mipsel, powerpc, po
 3*2Twince_Windows CE
 4*2Tdarwin_Darwin/Mac OS X
 4*2Tfreebsd_FreeBSD
+4*2Tiphonesim_iPhoneSimulator
 4*2Tlinux_Linux
 4*2Tnetbsd_NetBSD
 4*2Topenbsd_OpenBSD
@@ -3764,6 +3769,7 @@ F*2P<x>_Setze die Ziel-CPU (arm, avr, i386, jvm, m68k, mips, mipsel, powerpc, po
 6*2Tlinux_Linux
 6*2Tpalmos_PalmOS
 8*2Tmsdos_MS-DOS (und kompatible)
+a*2Tdarwin_Darwin/iOS
 A*2Tandroid_Android
 A*2Tdarwin_Darwin/iPhoneOS/iOS
 A*2Tembedded_Embedded
@@ -3819,6 +3825,7 @@ A*2WA_Spezifiziere ein natives Programm (Windows)
 3*2Wb_Erzeuge statt einer Bibliothek ein Bundle (Darwin)
 P*2Wb_Erzeuge statt einer Bibliothek ein Bundle (Darwin)
 p*2Wb_Erzeuge statt einer Bibliothek ein Bundle (Darwin)
+a*2Wb_Erzeuge statt einer Bibliothek ein Bundle (Darwin)
 A*2Wb_Erzeuge statt einer Bibliothek ein Bundle (Darwin)
 4*2Wb_Erzeuge statt einer Bibliothek ein Bundle (Darwin)
 3*2WB_Erzeuge ein relozierbares Image (Windows, Symbian)
@@ -3836,6 +3843,7 @@ P*2WC_Spezifiziere "console type application" (Classic Mac OS)
 A*2WD_Benutze DEFFILE um Funktionen der DLL oder EXE zu exportieren (Windows)
 3*2We_Benutze externe Resourcen (Darwin)
 4*2We_Benutze externe Resourcen (Darwin)
+a*2We_Benutze externe Resourcen (Darwin)
 A*2We_Benutze externe Resourcen (Darwin)
 P*2We_Benutze externe Resourcen (Darwin)
 p*2We_Benutze externe Resourcen (Darwin)
@@ -3846,6 +3854,7 @@ A*2WG_Spezifiziere "graphic type application" (Windows)
 P*2WG_Spezifiziere "graphic type application" (Classic Mac OS)
 3*2Wi_Benutze interne Resourcen (Darwin)
 4*2Wi_Benutze interne Resourcen (Darwin)
+a*2Wi_Benutze interne Resourcen (Darwin)
 A*2Wi_Benutze interne Resourcen (Darwin)
 P*2Wi_Benutze interne Resourcen (Darwin)
 p*2Wi_Benutze interne Resourcen (Darwin)
@@ -3869,6 +3878,8 @@ A*2Wpxxxx_Spezifiziere den Kontrollertyp; fpc -i oder fpc -iu geben mîgliche Wer
 m*2Wpxxxx_Spezifiziere den Kontrollertyp; fpc -i oder fpc -iu geben mîgliche Werte aus
 V*2Wpxxxx_Spezifiziere den Kontrollertyp; fpc -i oder fpc -iu  geben mîgliche Werte aus
 3*2WP<x>_Minimale iOS Deployment Version: 3.0, 5.0.1, ... (iphonesim)
+4*2WP<x>_Minimale iOS Deployment Version: 8.0, 8.0.2, ... (iphonesim)
+a*2WP<x>_Minimale iOS Deployment Version: 7.0, 7.1.2, ... (Darwin)
 A*2WP<x>_Minimale iOS Deployment Version: 3.0, 5.0.1, ... (Darwin)
 3*2WR_Erzeuge "relocation code" (Windows)
 4*2WR_Erzeuge "relocation code" (Windows)
@@ -3879,7 +3890,7 @@ A*2WR_Erzeuge "relocation code" (Windows)
 P*2WF_Spezifiziere "MPW tool type application" (Classic Mac OS)
 **2WX_Ermîgliche den executable stack (Linux)
 **1X_Programm-Optionen:
-**2Xc_öbergebe --shared an den Linker (nur Unix)
+**2Xc_öbergebe --shared an den Linker (BeOS, Darwin, FreeBSD, Linux)
 **2Xd_Den Standard Bibliotheks-Suchpfad NICHT nutzen (benîtigt fÅr cross compile, wenn nicht -XR verwendet wird)
 **2Xe_Verwende den externen Linker
 **2Xf_Ersetze zum Linken den Namen der pthread-Bibliothek (BSD)
@@ -3890,8 +3901,8 @@ P*2WF_Spezifiziere "MPW tool type application" (Classic Mac OS)
 **2XLO_Definiere die Reihenfolge der Bibliotheken fÅr das Linken
 **2XLD_Schlie·e die voreingestellte Reihenfolge der Standard-Bibliotheken aus
 **2Xm_Erzeuge die "link map"
-**2XM<x>_Setze den Namen der 'main' program Routine   (default ist 'main')
-**2Xn_Nutze den platformeigenen linker des Zielsystem anstelle des GNU ld (Solaris, AIX)
+**2XM<x>_Setze den Namen der 'main' Programm-Routine (default ist 'main')
+**2Xn_Nutze den plattformeigenen linker des Zielsystem anstelle des GNU ld (Solaris, AIX)
 F*2Xp<x>_Suche nach der Compilerbinary zuerst im Verzeichnis <x>
 **2XP<x>_Stelle dem Namen der Compiler-Hilfsprogramme (binutils) den Prefix <x> voran
 **2Xr<x>_Setze den rlink-Pfad des Linker zu <x> (benîtigt fÅr cross compile, siehe ld-Manual fÅr mehr Informationen) (BeOS, Linux)
