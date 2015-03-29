@@ -2482,3 +2482,30 @@ end;
 
 {------------------------------------------------------------------------------}
 
+operator Enumerator(ADataSet: TDataSet): TDataSetEnumerator;
+begin
+ Result:=TDataSetEnumerator.Create(ADataSet);
+end;
+
+constructor TDataSetEnumerator.Create(ADataSet: TDataSet);
+begin
+  inherited Create;
+  FDataSet:=ADataSet;
+  FBOF:=True;
+  FDataSet.First;
+end;
+
+function TDataSetEnumerator.GetCurrent: TFields;
+begin
+  Result := FDataSet.Fields;
+end;
+
+function TDataSetEnumerator.MoveNext: Boolean;
+
+begin
+  if FBOF then
+    FBOF:=False
+  else
+    FDataSet.Next;
+  Result:=not FDataSet.EOF;
+end;

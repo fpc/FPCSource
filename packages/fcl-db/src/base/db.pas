@@ -1713,6 +1713,17 @@ type
     property OnPostError: TDataSetErrorEvent read FOnPostError write FOnPostError;
   end;
 
+  TDataSetEnumerator = class
+  private
+    FDataSet: TDataSet;
+    FBOF: Boolean;
+    function GetCurrent: TFields;
+  public  
+    constructor Create(ADataSet: TDataSet);
+    function MoveNext: Boolean;
+    property Current: TFields read GetCurrent;
+  end;
+  
   TDataLink = class(TPersistent)
   private
     FFirstRecord,
@@ -2183,6 +2194,8 @@ function BuffersEqual(Buf1, Buf2: Pointer; Size: Integer): Boolean;
 
 function SkipComments(var p: PChar; EscapeSlash, EscapeRepeat : Boolean) : boolean;
 
+operator Enumerator(ADataSet: TDataSet): TDataSetEnumerator;
+ 
 implementation
 
 uses dbconst,typinfo;
