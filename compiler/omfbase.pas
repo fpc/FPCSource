@@ -71,6 +71,33 @@ interface
     RT_VERNUM    = $CC;  { OMF Version Number Record }
     RT_VENDEXT   = $CE;  { Vendor-specific OMF Extension Record }
 
+    { OMF comment class }
+    CC_Translator               = $00; { language translator (compiler or assembler) name }
+    CC_IntelCopyright           = $01;
+    CC_IntelReservedRangeStart  = $02;
+    CC_IntelReservedRangeEnd    = $9B;
+    CC_LibrarySpecifierObsolete = $81;
+    CC_MsDosVersionObsolete     = $9C;
+    CC_MemoryModel              = $9D;
+    CC_DOSSEG                   = $9E;
+    CC_DefaultLibrarySearchName = $9F;
+    CC_OmfExtension             = $A0;
+    CC_NewOmfExtension          = $A1;
+    CC_LinkPassSeparator        = $A2;
+    CC_LIBMOD                   = $A3;
+    CC_EXESTR                   = $A4;
+    CC_INCERR                   = $A6;
+    CC_NOPAD                    = $A7;
+    CC_WKEXT                    = $A8;
+    CC_LZEXT                    = $A9;
+    CC_Comment                  = $DA;
+    CC_Compiler                 = $DB;
+    CC_Date                     = $DC;
+    CC_Timestamp                = $DD;
+    CC_User                     = $DF;
+    CC_DependencyFileBorland    = $E9;
+    CC_CommandLineMicrosoft     = $FF;
+
   type
 
     { TOmfRawRecord }
@@ -117,6 +144,28 @@ interface
       procedure EncodeTo(RawRecord: TOmfRawRecord);override;
 
       property ModuleName: string read FModuleName write FModuleName;
+    end;
+
+    { TOmfRecord_COMENT }
+
+    TOmfRecord_COMENT = class(TOmfParsedRecord)
+    private
+      FCommentType: Byte;
+      FCommentClass: Byte;
+      FCommentString: string;
+      function GetNoList: Boolean;
+      function GetNoPurge: Boolean;
+      procedure SetNoList(AValue: Boolean);
+      procedure SetNoPurge(AValue: Boolean);
+    public
+      procedure DecodeFrom(RawRecord: TOmfRawRecord);override;
+      procedure EncodeTo(RawRecord: TOmfRawRecord);override;
+
+      property CommentType: Byte read FCommentType write FCommentType;
+      property CommentClass: Byte read FCommentClass write FCommentClass;
+      property CommentString: string read FCommentString write FCommentString;
+      property NoPurge: Boolean read GetNoPurge write SetNoPurge;
+      property NoList: Boolean read GetNoList write SetNoList;
     end;
 
 implementation
@@ -236,6 +285,57 @@ implementation
       RawRecord.RecordType:=RT_THEADR;
       NextOfs:=RawRecord.WriteStringAt(0,ModuleName);
       RawRecord.RecordLength:=NextOfs+1;
+      RawRecord.CalculateChecksumByte;
+    end;
+
+  { TOmfRecord_COMENT }
+
+  function TOmfRecord_COMENT.GetNoList: Boolean;
+    begin
+      Result:=(CommentType and $40)<>0;
+    end;
+
+  function TOmfRecord_COMENT.GetNoPurge: Boolean;
+    begin
+      Result:=(CommentType and $80)<>0;
+    end;
+
+  procedure TOmfRecord_COMENT.SetNoList(AValue: Boolean);
+    begin
+      if AValue then
+        CommentType:=CommentType or $40
+      else
+        CommentType:=CommentType and $BF;
+    end;
+
+  procedure TOmfRecord_COMENT.SetNoPurge(AValue: Boolean);
+    begin
+      if AValue then
+        CommentType:=CommentType or $80
+      else
+        CommentType:=CommentType and $7F;
+    end;
+
+  procedure TOmfRecord_COMENT.DecodeFrom(RawRecord: TOmfRawRecord);
+    begin
+      if RawRecord.RecordLength<3 then
+        internalerror(2015033104);
+      CommentType:=RawRecord.RawData[0];
+      CommentClass:=RawRecord.RawData[1];
+      SetLength(FCommentString,RawRecord.RecordLength-3);
+      UniqueString(FCommentString);
+      Move(RawRecord.RawData[2],FCommentString[1],Length(FCommentString));
+    end;
+
+  procedure TOmfRecord_COMENT.EncodeTo(RawRecord: TOmfRawRecord);
+    begin
+      RawRecord.RecordType:=RT_COMENT;
+      if (Length(FCommentString)+3)>High(RawRecord.RawData) then
+        internalerror(2015033105);
+      RawRecord.RecordLength:=Length(FCommentString)+3;
+      RawRecord.RawData[0]:=CommentType;
+      RawRecord.RawData[1]:=CommentClass;
+      Move(FCommentString[1],RawRecord.RawData[2],Length(FCommentString));
       RawRecord.CalculateChecksumByte;
     end;
 

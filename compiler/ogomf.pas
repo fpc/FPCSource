@@ -88,6 +88,7 @@ implementation
       var
         RawRecord: TOmfRawRecord;
         Header: TOmfRecord_THEADR;
+        Translator_COMENT: TOmfRecord_COMENT;
       begin
         { write header record }
         RawRecord:=TOmfRawRecord.Create;
@@ -96,6 +97,16 @@ implementation
         Header.EncodeTo(RawRecord);
         RawRecord.WriteTo(FWriter);
         Header.Free;
+
+        { write translator COMENT header }
+        Translator_COMENT:=TOmfRecord_COMENT.Create;
+        Translator_COMENT.CommentClass:=CC_Translator;
+        Translator_COMENT.CommentString:='FPC '+full_version_string+
+        ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname;
+        Translator_COMENT.EncodeTo(RawRecord);
+        RawRecord.WriteTo(FWriter);
+        Translator_COMENT.Free;
+
         RawRecord.Free;
         result:=true;
       end;
