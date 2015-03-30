@@ -803,7 +803,7 @@ implementation
           end;
 
         tcb.start_internal_data_builder(current_asmdata.AsmLists[al_const],sec_rodata,'',datatcb,lab);
-        datatcb.begin_anonymous_record('',0,
+        datatcb.begin_anonymous_record('',default_settings.packrecords,
           targetinfos[target_info.system]^.alignment.recordalignmin,
           targetinfos[target_info.system]^.alignment.maxCrecordalign);
         datatcb.emit_tai(Tai_const.Create_pint(_class.ImplementedInterfaces.count),search_system_type('SIZEUINT').typedef);
