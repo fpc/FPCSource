@@ -90,7 +90,6 @@ const
   SecsPerDay       : LongInt  = 86400;
   SecsPerHour      : Integer  = 3600;
   SecsPerMinute    : ShortInt = 60;
-  TICKSPERSECOND    = 50;
 
 
 {******************************************************************************
@@ -218,7 +217,7 @@ begin
   Minutes:=Minutes+Min;
   { Find the number of seconds and convert to ticks }
   S := LocalDate;
-  Ticks:=TICKSPERSECOND*S;
+  Ticks:=TICKS_PER_SECOND*S;
 end;
 
 
@@ -856,7 +855,7 @@ begin
              with FInfo^.fib_Date do
              FTime := ds_Days * (24 * 60 * 60) +
              ds_Minute * 60 +
-             ds_Tick div 50;
+             ds_Tick div TICKS_PER_SECOND;
         end else begin
              FTime := 0;
         end;
