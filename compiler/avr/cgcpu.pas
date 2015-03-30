@@ -322,10 +322,10 @@ unit cgcpu;
               internalerror(2014011105);
              case hp^.loc of
                LOC_REGISTER,LOC_CREGISTER:
-                 a_load_const_reg(list,hp^.size,(a shr (i-1)) and $ff,hp^.register);
+                 a_load_const_reg(list,hp^.size,(a shr (8*(i-1))) and $ff,hp^.register);
                LOC_REFERENCE,LOC_CREFERENCE:
                  begin
-                   list.concat(taicpu.op_const(A_PUSH,(a shr (i-1)) and $ff));
+                   list.concat(taicpu.op_const(A_PUSH,(a shr (8*(i-1))) and $ff));
                  end;
                else
                  internalerror(2002071004);
