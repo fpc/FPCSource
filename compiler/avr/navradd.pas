@@ -101,9 +101,9 @@ interface
                     ltn:
                       GetResFlags:=F_NotPossible;
                     lten:
-                      GetResFlags:=F_CS;
+                      GetResFlags:=F_SH;
                     gtn:
-                      GetResFlags:=F_CC;
+                      GetResFlags:=F_LO;
                     gten:
                       GetResFlags:=F_NotPossible;
                     else
@@ -112,13 +112,13 @@ interface
                 else
                   case NodeType of
                     ltn:
-                      GetResFlags:=F_CC;
+                      GetResFlags:=F_LO;
                     lten:
                       GetResFlags:=F_NotPossible;
                     gtn:
                       GetResFlags:=F_NotPossible;
                     gten:
-                      GetResFlags:=F_CS;
+                      GetResFlags:=F_SH;
                     else
                       internalerror(2014082023);
                   end;

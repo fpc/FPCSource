@@ -238,7 +238,7 @@ Implementation
                      (taicpu(p).oper[0]^.typ = top_reg) and
                      (taicpu(p).oper[1]^.typ = top_reg) and
                      GetNextInstructionUsingReg(p,hp1,taicpu(p).oper[0]^.reg) and
-                     (not RegModifiedBetween(taicpu(p).oper[0]^.reg, p, hp1)) and
+                     (not RegModifiedBetween(taicpu(p).oper[1]^.reg, p, hp1)) and
                      (hp1.typ = ait_instruction) and
                      (taicpu(hp1).opcode in [A_PUSH,A_MOV,A_CP,A_CPC,A_ADD,A_SUB,A_EOR,A_AND,A_OR]) and
                      RegInInstruction(taicpu(p).oper[0]^.reg, hp1) and
