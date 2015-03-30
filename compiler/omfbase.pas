@@ -25,7 +25,7 @@ unit omfbase;
 {$i fpcdefs.inc}
 
 interface
-
+{$H+}
   uses
     owbase;
 
@@ -88,6 +88,9 @@ interface
       property RecordType: Byte read GetRecordType write SetRecordType;
       property RecordLength: Word read GetRecordLength write SetRecordLength;
 
+      function ReadStringAt(Offset: Integer; out s: string): Integer;
+      function WriteStringAt(Offset: Integer; s: string): Integer;
+
       procedure CalculateChecksumByte;
       function VerifyChecksumByte: boolean;
       property ChecksumByte: Byte read GetChecksumByte write SetChecksumByte;
@@ -96,7 +99,30 @@ interface
       procedure WriteTo(aWriter: TObjectWriter);
     end;
 
+    { TOmfParsedRecord }
+
+    TOmfParsedRecord = class
+    public
+      procedure DecodeFrom(RawRecord: TOmfRawRecord);virtual;abstract;
+      procedure EncodeTo(RawRecord: TOmfRawRecord);virtual;abstract;
+    end;
+
+    { TOmfRecord_THEADR }
+
+    TOmfRecord_THEADR = class(TOmfParsedRecord)
+    private
+      FModuleName: string;
+    public
+      procedure DecodeFrom(RawRecord: TOmfRawRecord);override;
+      procedure EncodeTo(RawRecord: TOmfRawRecord);override;
+
+      property ModuleName: string read FModuleName write FModuleName;
+    end;
+
 implementation
+
+  uses
+    verbose;
 
   { TOmfRawRecord }
 
@@ -119,6 +145,30 @@ implementation
     begin
       RawData[-2]:=Byte(AValue);
       RawData[-1]:=Byte(AValue shr 8);
+    end;
+
+  function TOmfRawRecord.ReadStringAt(Offset: Integer; out s: string): Integer;
+    var
+      len: Byte;
+    begin
+      len:=RawData[Offset];
+      Result:=Offset+len+1;
+      if result>RecordLength then
+        internalerror(2015033103);
+      SetLength(s, len);
+      UniqueString(s);
+      Move(RawData[Offset+1],s[1],len);
+    end;
+
+  function TOmfRawRecord.WriteStringAt(Offset: Integer; s: string): Integer;
+    begin
+      if Length(s)>255 then
+        internalerror(2015033101);
+      result:=Offset+Length(s)+1;
+      if result>High(RawData) then
+        internalerror(2015033102);
+      RawData[Offset]:=Length(s);
+      Move(s[1], RawData[Offset+1], Length(s));
     end;
 
   function TOmfRawRecord.GetChecksumByte: Byte;
@@ -170,6 +220,23 @@ implementation
   procedure TOmfRawRecord.WriteTo(aWriter: TObjectWriter);
     begin
       aWriter.write(RawData, RecordLength+3);
+    end;
+
+  { TOmfRecord_THEADR }
+
+  procedure TOmfRecord_THEADR.DecodeFrom(RawRecord: TOmfRawRecord);
+    begin
+      RawRecord.ReadStringAt(0,FModuleName);
+    end;
+
+  procedure TOmfRecord_THEADR.EncodeTo(RawRecord: TOmfRawRecord);
+    var
+      NextOfs: Integer;
+    begin
+      RawRecord.RecordType:=RT_THEADR;
+      NextOfs:=RawRecord.WriteStringAt(0,ModuleName);
+      RawRecord.RecordLength:=NextOfs+1;
+      RawRecord.CalculateChecksumByte;
     end;
 
 end.

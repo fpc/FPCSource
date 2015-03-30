@@ -85,7 +85,18 @@ implementation
 ****************************************************************************}
 
     function TOmfObjOutput.writeData(Data:TObjData):boolean;
+      var
+        RawRecord: TOmfRawRecord;
+        Header: TOmfRecord_THEADR;
       begin
+        { write header record }
+        RawRecord:=TOmfRawRecord.Create;
+        Header:=TOmfRecord_THEADR.Create;
+        Header.ModuleName:=Data.Name;
+        Header.EncodeTo(RawRecord);
+        RawRecord.WriteTo(FWriter);
+        Header.Free;
+        RawRecord.Free;
         result:=true;
       end;
 
