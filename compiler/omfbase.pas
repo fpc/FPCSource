@@ -27,6 +27,7 @@ unit omfbase;
 interface
 {$H+}
   uses
+    cclasses,
     owbase;
 
   const
@@ -100,6 +101,21 @@ interface
 
   type
 
+    { TOmfOrderedNameCollection }
+
+    TOmfOrderedNameCollection = class
+    private
+      FStringList: array of string;
+      function GetCount: Integer;
+      function GetString(Index: Integer): string;
+      procedure SetString(Index: Integer; AValue: string);
+    public
+      function Add(const S: string): Integer;
+      procedure Clear;
+      property Strings [Index: Integer]: string read GetString write SetString; default;
+      property Count: Integer read GetCount;
+    end;
+
     { TOmfRawRecord }
 
     TOmfRawRecord = class
@@ -168,10 +184,55 @@ interface
       property NoList: Boolean read GetNoList write SetNoList;
     end;
 
+    { TOmfRecord_LNAMES }
+
+    TOmfRecord_LNAMES = class(TOmfParsedRecord)
+    private
+      FNames: TOmfOrderedNameCollection;
+      FNextIndex: Integer;
+    public
+      constructor Create;
+
+      procedure DecodeFrom(RawRecord: TOmfRawRecord);override;
+      procedure EncodeTo(RawRecord: TOmfRawRecord);override;
+
+      property Names: TOmfOrderedNameCollection read FNames write FNames;
+      property NextIndex: Integer read FNextIndex write FNextIndex;
+    end;
+
 implementation
 
   uses
     verbose;
+
+  { TOmfOrderedNameCollection }
+
+  function TOmfOrderedNameCollection.GetString(Index: Integer): string;
+    begin
+      Result:=FStringList[Index-1];
+    end;
+
+  function TOmfOrderedNameCollection.GetCount: Integer;
+    begin
+      Result:=Length(FStringList);
+    end;
+
+  procedure TOmfOrderedNameCollection.SetString(Index: Integer; AValue: string);
+    begin
+      FStringList[Index-1]:=AValue;
+    end;
+
+  function TOmfOrderedNameCollection.Add(const S: string): Integer;
+    begin
+      Result:=Length(FStringList)+1;
+      SetLength(FStringList,Result);
+      FStringList[Result-1]:=S;
+    end;
+
+  procedure TOmfOrderedNameCollection.Clear;
+    begin
+      SetLength(FStringList,0);
+    end;
 
   { TOmfRawRecord }
 
@@ -338,5 +399,46 @@ implementation
       Move(FCommentString[1],RawRecord.RawData[2],Length(FCommentString));
       RawRecord.CalculateChecksumByte;
     end;
+
+  { TOmfRecord_LNAMES }
+
+  constructor TOmfRecord_LNAMES.Create;
+    begin
+      FNextIndex:=1;
+    end;
+
+  procedure TOmfRecord_LNAMES.DecodeFrom(RawRecord: TOmfRawRecord);
+    begin
+      {TODO: implement}
+      internalerror(2015040101);
+    end;
+
+  procedure TOmfRecord_LNAMES.EncodeTo(RawRecord: TOmfRawRecord);
+    const
+      RecordLengthLimit = 1024;
+    var
+      Len,LastIncludedIndex,NextOfs,I: Integer;
+    begin
+      RawRecord.RecordType:=RT_LNAMES;
+
+      { find out how many strings can we include until we reach the length limit }
+      Len:=1;
+      LastIncludedIndex:=NextIndex-1;
+      repeat
+        Inc(LastIncludedIndex);
+        Inc(Len,Length(Names[LastIncludedIndex])+1);
+      until (LastIncludedIndex>=Names.Count) or ((Len+Length(Names[LastIncludedIndex+1])+1)>=RecordLengthLimit);
+
+      { write the strings... }
+      NextOfs:=0;
+      for I:=NextIndex to LastIncludedIndex do
+        NextOfs:=RawRecord.WriteStringAt(NextOfs,Names[I]);
+      RawRecord.RecordLength:=Len;
+      RawRecord.CalculateChecksumByte;
+
+      { update NextIndex }
+      NextIndex:=LastIncludedIndex+1;
+    end;
+
 
 end.

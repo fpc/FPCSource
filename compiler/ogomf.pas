@@ -47,10 +47,14 @@ interface
       end;
 
       TOmfObjOutput = class(tObjOutput)
+      private
+        FLNames: TOmfOrderedNameCollection;
+        property LNames: TOmfOrderedNameCollection read FLNames;
       protected
         function writeData(Data:TObjData):boolean;override;
       public
         constructor create(AWriter:TObjectWriter);override;
+        destructor Destroy;override;
       end;
 
       TOmfAssembler = class(tinternalassembler)
@@ -89,6 +93,7 @@ implementation
         RawRecord: TOmfRawRecord;
         Header: TOmfRecord_THEADR;
         Translator_COMENT: TOmfRecord_COMENT;
+        LNamesRec: TOmfRecord_LNAMES;
       begin
         { write header record }
         RawRecord:=TOmfRawRecord.Create;
@@ -107,6 +112,35 @@ implementation
         RawRecord.WriteTo(FWriter);
         Translator_COMENT.Free;
 
+        { dummy: let's add some names }
+        LNames.Clear;
+        LNames.Add('');
+        LNames.Add('text');
+        LNames.Add('code');
+        LNames.Add('rodata');
+        LNames.Add('data');
+        LNames.Add('data');
+        LNames.Add('data');
+        LNames.Add('fpc');
+        LNames.Add('data');
+        LNames.Add('bss');
+        LNames.Add('bss');
+        LNames.Add('stack');
+        LNames.Add('stack');
+        LNames.Add('heap');
+        LNames.Add('heap');
+        LNames.Add('dgroup');
+
+        { write LNAMES record(s) }
+        LNamesRec:=TOmfRecord_LNAMES.Create;
+        LNamesRec.Names:=LNames;
+        while LNamesRec.NextIndex<=LNames.Count do
+          begin
+            LNamesRec.EncodeTo(RawRecord);
+            RawRecord.WriteTo(FWriter);
+          end;
+        LNamesRec.Free;
+
         RawRecord.Free;
         result:=true;
       end;
@@ -115,6 +149,13 @@ implementation
       begin
         inherited create(AWriter);
         cobjdata:=TOmfObjData;
+        FLNames:=TOmfOrderedNameCollection.Create;
+      end;
+
+    destructor TOmfObjOutput.Destroy;
+      begin
+        FLNames.Free;
+        inherited Destroy;
       end;
 
 {****************************************************************************
