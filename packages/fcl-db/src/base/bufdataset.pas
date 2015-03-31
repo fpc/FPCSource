@@ -598,9 +598,9 @@ type
     property ChangeCount : Integer read GetChangeCount;
     property MaxIndexesCount : Integer read FMaxIndexesCount write SetMaxIndexesCount default 2;
     property ReadOnly : Boolean read FReadOnly write SetReadOnly default false;
+    property ManualMergeChangeLog : Boolean read FManualMergeChangeLog write FManualMergeChangeLog default False;
   published
     property FileName : string read FFileName write FFileName;
-    property ManualMergeChangeLog : Boolean read FManualMergeChangeLog write FManualMergeChangeLog default False;
     property PacketRecords : Integer read FPacketRecords write SetPacketRecords default 10;
     property OnUpdateError: TResolverErrorEvent read FOnUpdateError write SetOnUpdateError;
     property IndexDefs : TIndexDefs read GetIndexDefs;
