@@ -278,9 +278,8 @@ type
      procedure insert_marked_aggregate_alignment(def: tdef); virtual; abstract;
     public
      class function get_dynstring_rec_name(typ: tstringtype; winlike: boolean; len: asizeint): string;
-     { class functions and an extra list parameter, because emitting the data
-       for the strings has to happen via a separate typed const builder (which
-       will be created/destroyed internally by these methods) }
+     { the datalist parameter specifies where the data for the string constant
+       will be emitted (via an internal data builder) }
      function emit_ansistring_const(datalist: TAsmList; data: pchar; len: asizeint; encoding: tstringencoding): tasmlabofs;
      function emit_unicodestring_const(datalist: TAsmList; data: pointer; encoding: tstringencoding; winlike: boolean):tasmlabofs;
      { emits a tasmlabofs as returned by emit_*string_const }
