@@ -1723,7 +1723,9 @@ type
     function MoveNext: Boolean;
     property Current: TFields read GetCurrent;
   end;
-  
+
+{ TDataLink }
+
   TDataLink = class(TPersistent)
   private
     FFirstRecord,
@@ -1960,7 +1962,7 @@ type
     procedure Loaded; override;
     procedure SetConnected (Value : boolean); virtual;
     property ForcedClose : Boolean read FForcedClose write FForcedClose;
-    property Streamedconnected: Boolean read FStreamedConnected write FStreamedConnected;
+    property StreamedConnected: Boolean read FStreamedConnected write FStreamedConnected;
   public
     procedure Close(ForceClose: Boolean=False);
     destructor Destroy; override;
@@ -2178,6 +2180,10 @@ const
   // incorrect results
   ftBlobTypes = [ftBlob, ftMemo, ftGraphic, ftFmtMemo, ftParadoxOle,
     ftDBaseOle, ftTypedBinary, ftOraBlob, ftOraClob, ftWideMemo];
+
+var
+  LoginDialogExProc: function(const ADatabaseName: string; var AUserName, APassword: string; UserNameReadOnly: Boolean): Boolean = nil;
+
 
 { Auxiliary functions }
 
