@@ -2331,6 +2331,8 @@ unit rgobj;
             end;
 
         { store the spilled registers }
+        if not assigned(instr.next) then
+          list.concat(tai_marker.Create(mark_Position));
         storepos:=tai(instr.next);
         for counter := 0 to pred(regs.reginfocount) do
           with regs.reginfo[counter] do
