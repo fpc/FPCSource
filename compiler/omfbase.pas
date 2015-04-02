@@ -540,7 +540,6 @@ implementation
 
   procedure TOmfRecord_SEGDEF.EncodeTo(RawRecord: TOmfRawRecord);
     var
-      B: Byte;
       Big: Boolean;
       NextOfs: Integer;
     begin
