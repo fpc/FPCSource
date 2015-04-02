@@ -100,6 +100,24 @@ interface
     CC_CommandLineMicrosoft     = $FF;
 
   type
+    TOmfSegmentAlignment = (
+      saAbsolute                = 0,
+      saRelocatableByteAligned  = 1,
+      saRelocatableWordAligned  = 2,
+      saRelocatableParaAligned  = 3,
+      saRelocatablePageAligned  = 4,  { 32-bit linkers extension }
+      saRelocatableDWordAligned = 5,  { 32-bit linkers extension }
+      saNotSupported            = 6,
+      saNotDefined              = 7);
+    TOmfSegmentCombination = (
+      scPrivate   = 0,
+      scReserved1 = 1,
+      scPublic    = 2,
+      scReserved3 = 3,
+      scPublic4   = 4,  { same as scPublic }
+      scStack     = 5,
+      scCommon    = 6,
+      scPublic7   = 7); { same as scPublic }
 
     { TOmfOrderedNameCollection }
 
