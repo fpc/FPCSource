@@ -915,7 +915,7 @@ const pemagic : array[0..3] of byte = (
 {$ifdef arm}
                 RELOC_RELATIVE_24:
                   begin
-                    addend:=sarlongint(((address and $ffffff) shl 8),8);
+                    addend:=sarlongint(((address and $ffffff) shl 8),6); // Sign-extend while shifting left twice
                     relocval:=longint(relocval - objsec.mempos - objreloc.dataoffset + addend) shr 2;
                     address:=(address and $ff000000) or (relocval and $ffffff);
                     relocval:=relocval shr 24;
@@ -924,7 +924,7 @@ const pemagic : array[0..3] of byte = (
                   end;
                 RELOC_RELATIVE_24_THUMB:
                   begin
-                    addend:=sarlongint(((address and $ffffff) shl 8),8);
+                    addend:=sarlongint(((address and $ffffff) shl 8),6); // Sign-extend while shifting left twice, the assembler never sets the H bit
                     relocval:=longint(relocval - objsec.mempos - objreloc.dataoffset + addend) shr 1;
                     address:=(address and $ff000000) or ((relocval shr 1) and $ffffff) or ((relocval and 1) shl 24);
                     relocval:=relocval shr 25;
