@@ -118,6 +118,7 @@ interface
       scStack     = 5,
       scCommon    = 6,
       scPublic7   = 7); { same as scPublic }
+    TOmfSegmentUse = (suUse16, suUse32);
 
     { TOmfOrderedNameCollection }
 
@@ -151,6 +152,9 @@ interface
 
       function ReadStringAt(Offset: Integer; out s: string): Integer;
       function WriteStringAt(Offset: Integer; s: string): Integer;
+
+      function ReadIndexedRef(Offset: Integer; out IndexedRef: Integer): Integer;
+      function WriteIndexedRef(Offset: Integer; IndexedRef: Integer): Integer;
 
       procedure CalculateChecksumByte;
       function VerifyChecksumByte: boolean;
@@ -216,6 +220,35 @@ interface
 
       property Names: TOmfOrderedNameCollection read FNames write FNames;
       property NextIndex: Integer read FNextIndex write FNextIndex;
+    end;
+
+    { TOmfRecord_SEGDEF }
+
+    TOmfRecord_SEGDEF = class(TOmfParsedRecord)
+      FAlignment: TOmfSegmentAlignment;
+      FCombination: TOmfSegmentCombination;
+      FUse: TOmfSegmentUse;
+      FFrameNumber: Word;
+      FOffset: Byte;
+      FIs32Bit: Boolean;
+      FSegmentLength: Int64;  { int64, because it can be 2**32 }
+      FSegmentNameIndex: Integer;
+      FClassNameIndex: Integer;
+      FOverlayNameIndex: Integer;
+    public
+      procedure DecodeFrom(RawRecord: TOmfRawRecord);override;
+      procedure EncodeTo(RawRecord: TOmfRawRecord);override;
+
+      property Alignment: TOmfSegmentAlignment read FAlignment write FAlignment;
+      property Combination: TOmfSegmentCombination read FCombination write FCombination;
+      property Use: TOmfSegmentUse read FUse write FUse;
+      property FrameNumber: Word read FFrameNumber write FFrameNumber;
+      property Offset: Byte read FOffset write FOffset;
+      property Is32Bit: Boolean read FIs32Bit write FIs32Bit;
+      property SegmentLength: Int64 read FSegmentLength write FSegmentLength;
+      property SegmentNameIndex: Integer read FSegmentNameIndex write FSegmentNameIndex;
+      property ClassNameIndex: Integer read FClassNameIndex write FClassNameIndex;
+      property OverlayNameIndex: Integer read FOverlayNameIndex write FOverlayNameIndex;
     end;
 
 implementation
@@ -297,6 +330,41 @@ implementation
         internalerror(2015033102);
       RawData[Offset]:=Length(s);
       Move(s[1], RawData[Offset+1], Length(s));
+    end;
+
+  function TOmfRawRecord.ReadIndexedRef(Offset: Integer; out IndexedRef: Integer): Integer;
+    begin
+      Result:=Offset+1;
+      if result>RecordLength then
+        internalerror(2015033103);
+      IndexedRef:=RawData[Offset];
+      if IndexedRef<=$7f then
+        exit;
+      Result:=Offset+2;
+      if result>RecordLength then
+        internalerror(2015033103);
+      IndexedRef:=((IndexedRef and $7f) shl 8)+RawData[Offset+1];
+    end;
+
+  function TOmfRawRecord.WriteIndexedRef(Offset: Integer; IndexedRef: Integer): Integer;
+    begin
+      if (IndexedRef<0) or (IndexedRef>$7FFF) then
+        internalerror(2015040303);
+      if IndexedRef<=$7f then
+        begin
+          Result:=Offset+1;
+          if Result>High(RawData) then
+            internalerror(2015033102);
+          RawData[Offset]:=IndexedRef;
+        end
+      else
+        begin
+          Result:=Offset+2;
+          if Result>High(RawData) then
+            internalerror(2015033102);
+          RawData[Offset]:=$80+(IndexedRef shr 8);
+          RawData[Offset+1]:=Byte(IndexedRef);
+        end;
     end;
 
   function TOmfRawRecord.GetChecksumByte: Byte;
@@ -456,6 +524,68 @@ implementation
 
       { update NextIndex }
       NextIndex:=LastIncludedIndex+1;
+    end;
+
+  { TOmfRecord_SEGDEF }
+
+  procedure TOmfRecord_SEGDEF.DecodeFrom(RawRecord: TOmfRawRecord);
+    begin
+      if not (RawRecord.RecordType in [RT_SEGDEF,RT_SEGDEF32]) then
+        internalerror(2015040301);
+      Is32Bit:=RawRecord.RecordType=RT_SEGDEF32;
+
+      {TODO: implement the rest of the parsing}
+      internalerror(2015040304);
+    end;
+
+  procedure TOmfRecord_SEGDEF.EncodeTo(RawRecord: TOmfRawRecord);
+    var
+      B: Byte;
+      Big: Boolean;
+      NextOfs: Integer;
+    begin
+      if Is32Bit then
+        begin
+          RawRecord.RecordType:=RT_SEGDEF32;
+          if SegmentLength>4294967296 then
+            internalerror(2015040302);
+          Big:=SegmentLength=4294967296;
+        end
+      else
+        begin
+          RawRecord.RecordType:=RT_SEGDEF;
+          if SegmentLength>65536 then
+            internalerror(2015040302);
+          Big:=SegmentLength=65536;
+        end;
+      RawRecord.RawData[0]:=(Ord(Alignment) shl 5) or (Ord(Combination) shl 2) or (Ord(Big) shl 1) or Ord(Use);
+      NextOfs:=1;
+      if Alignment=saAbsolute then
+        begin
+          RawRecord.RawData[1]:=Byte(FrameNumber);
+          RawRecord.RawData[2]:=Byte(FrameNumber shr 8);
+          RawRecord.RawData[3]:=Offset;
+          NextOfs:=4;
+        end;
+      if Is32Bit then
+        begin
+          RawRecord.RawData[NextOfs]:=Byte(SegmentLength);
+          RawRecord.RawData[NextOfs+1]:=Byte(SegmentLength shr 8);
+          RawRecord.RawData[NextOfs+2]:=Byte(SegmentLength shr 16);
+          RawRecord.RawData[NextOfs+3]:=Byte(SegmentLength shr 24);
+          Inc(NextOfs,4);
+        end
+      else
+        begin
+          RawRecord.RawData[NextOfs]:=Byte(SegmentLength);
+          RawRecord.RawData[NextOfs+1]:=Byte(SegmentLength shr 8);
+          Inc(NextOfs,2);
+        end;
+      NextOfs:=RawRecord.WriteIndexedRef(NextOfs,SegmentNameIndex);
+      NextOfs:=RawRecord.WriteIndexedRef(NextOfs,ClassNameIndex);
+      NextOfs:=RawRecord.WriteIndexedRef(NextOfs,OverlayNameIndex);
+      RawRecord.RecordLength:=NextOfs+1;
+      RawRecord.CalculateChecksumByte;
     end;
 
 
