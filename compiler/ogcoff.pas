@@ -835,6 +835,9 @@ const pemagic : array[0..3] of byte = (
         objreloc : TObjRelocation;
         address,
         relocval : aint;
+{$ifdef arm}
+        addend   : aint;
+{$endif arm}
         relocsec : TObjSection;
 {$ifdef cpu64bitaddr}
         s        : string;
@@ -912,16 +915,18 @@ const pemagic : array[0..3] of byte = (
 {$ifdef arm}
                 RELOC_RELATIVE_24:
                   begin
-                    relocval:=longint(relocval - objsec.mempos - objreloc.dataoffset) shr 2 - 2;
-                    address:=address or (relocval and $ffffff);
+                    addend:=sarlongint(((address and $ffffff) shl 8),8);
+                    relocval:=longint(relocval - objsec.mempos - objreloc.dataoffset + addend) shr 2;
+                    address:=(address and $ff000000) or (relocval and $ffffff);
                     relocval:=relocval shr 24;
                     if (relocval<>$3f) and (relocval<>0) then
                       internalerror(200606085);  { offset overflow }
                   end;
                 RELOC_RELATIVE_24_THUMB:
                   begin
-                    relocval:=longint(relocval - objsec.mempos - objreloc.dataoffset) shr 1 - 4;
-                    address:=address or ((relocval shr 1) and $ffffff) or ((relocval and 1) shl 24);
+                    addend:=sarlongint(((address and $ffffff) shl 8),8);
+                    relocval:=longint(relocval - objsec.mempos - objreloc.dataoffset + addend) shr 1;
+                    address:=(address and $ff000000) or ((relocval shr 1) and $ffffff) or ((relocval and 1) shl 24);
                     relocval:=relocval shr 25;
                     if (relocval<>$3f) and (relocval<>0) then
                       internalerror(200606085);  { offset overflow }
