@@ -529,13 +529,52 @@ implementation
   { TOmfRecord_SEGDEF }
 
   procedure TOmfRecord_SEGDEF.DecodeFrom(RawRecord: TOmfRawRecord);
+    var
+      B: Byte;
+      Big: Boolean;
+      NextOfs: Integer;
     begin
       if not (RawRecord.RecordType in [RT_SEGDEF,RT_SEGDEF32]) then
         internalerror(2015040301);
       Is32Bit:=RawRecord.RecordType=RT_SEGDEF32;
 
-      {TODO: implement the rest of the parsing}
-      internalerror(2015040304);
+      B:=RawRecord.RawData[0];
+      Alignment:=TOmfSegmentAlignment(B shr 5);
+      Combination:=TOmfSegmentCombination((B shr 2) and 7);
+      Big:=(B and 2)<>0;
+      Use:=TOmfSegmentUse(B and 1);
+      NextOfs:=1;
+      if Alignment=saAbsolute then
+        begin
+          FrameNumber:=RawRecord.RawData[1]+(RawRecord.RawData[2] shl 8);
+          Offset:=RawRecord.RawData[3];
+          NextOfs:=4;
+        end
+      else
+        begin
+          FrameNumber:=0;
+          Offset:=0;
+        end;
+      if Is32Bit then
+        begin
+          SegmentLength:=RawRecord.RawData[NextOfs]+
+            (RawRecord.RawData[NextOfs+1] shl 8)+
+            (RawRecord.RawData[NextOfs+2] shl 16)+
+            (RawRecord.RawData[NextOfs+3] shl 24);
+          if Big then
+            SegmentLength:=4294967296;
+          Inc(NextOfs,4);
+        end
+      else
+        begin
+          SegmentLength:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8);
+          if Big then
+            SegmentLength:=65536;
+          Inc(NextOfs,2);
+        end;
+      NextOfs:=RawRecord.ReadIndexedRef(NextOfs,FSegmentNameIndex);
+      NextOfs:=RawRecord.ReadIndexedRef(NextOfs,FClassNameIndex);
+      NextOfs:=RawRecord.ReadIndexedRef(NextOfs,FOverlayNameIndex);
     end;
 
   procedure TOmfRecord_SEGDEF.EncodeTo(RawRecord: TOmfRawRecord);
