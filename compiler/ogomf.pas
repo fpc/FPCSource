@@ -56,6 +56,7 @@ interface
         procedure AddSegment(const name,segclass: string;
           Alignment: TOmfSegmentAlignment; Combination: TOmfSegmentCombination;
           Use: TOmfSegmentUse);
+        procedure AddGroup(const groupname: string; seglist: array of const);
         property LNames: TOmfOrderedNameCollection read FLNames;
         property Segments: TFPHashObjectList read FSegments;
         property Groups: TFPHashObjectList read FGroups;
@@ -113,6 +114,34 @@ implementation
         s.Use:=Use;
       end;
 
+    procedure TOmfObjOutput.AddGroup(const groupname: string; seglist: array of const);
+      var
+        g: TOmfRecord_GRPDEF;
+        I: Integer;
+        SegListStr: TSegmentList;
+      begin
+        g:=TOmfRecord_GRPDEF.Create;
+        Groups.Add(groupname,g);
+        g.GroupNameIndex:=LNames.Add(groupname);
+        SetLength(SegListStr,Length(seglist));
+        for I:=0 to High(seglist) do
+          begin
+            case seglist[I].VType of
+              vtString:
+                SegListStr[I]:=Segments.FindIndexOf(seglist[I].VString^);
+              vtAnsiString:
+                SegListStr[I]:=Segments.FindIndexOf(AnsiString(seglist[I].VAnsiString));
+              vtWideString:
+                SegListStr[I]:=Segments.FindIndexOf(WideString(seglist[I].VWideString));
+              vtUnicodeString:
+                SegListStr[I]:=Segments.FindIndexOf(UnicodeString(seglist[I].VUnicodeString));
+              else
+                internalerror(2015040402);
+            end;
+          end;
+        g.SegmentList:=SegListStr;
+      end;
+
     function TOmfObjOutput.writeData(Data:TObjData):boolean;
       var
         RawRecord: TOmfRawRecord;
@@ -122,7 +151,6 @@ implementation
         I: Integer;
         SegDef: TOmfRecord_SEGDEF;
         GrpDef: TOmfRecord_GRPDEF;
-        SegList: TSegmentList;
       begin
         { write header record }
         RawRecord:=TOmfRawRecord.Create;
@@ -153,41 +181,12 @@ implementation
         AddSegment('stack','stack',saRelocatableParaAligned,scStack,suUse16);
         AddSegment('heap','heap',saRelocatableParaAligned,scPublic,suUse16);
 
-        GrpDef:=TOmfRecord_GRPDEF.Create;
-        Groups.Add('dgroup',GrpDef);
-        GrpDef.GroupNameIndex:=LNames.Add('dgroup');
         if current_settings.x86memorymodel=mm_tiny then
-          begin
-            //AsmWriteLn('GROUP dgroup text rodata data fpc bss heap')
-            SetLength(SegList,6);
-            SegList[0]:=Segments.FindIndexOf('text');
-            SegList[1]:=Segments.FindIndexOf('rodata');
-            SegList[2]:=Segments.FindIndexOf('data');
-            SegList[3]:=Segments.FindIndexOf('fpc');
-            SegList[4]:=Segments.FindIndexOf('bss');
-            SegList[5]:=Segments.FindIndexOf('heap');
-          end
+          AddGroup('dgroup',['text','rodata','data','fpc','bss','heap'])
         else if current_settings.x86memorymodel in x86_near_data_models then
-          begin
-            //AsmWriteLn('GROUP dgroup rodata data fpc bss stack heap')
-            SetLength(SegList,6);
-            SegList[0]:=Segments.FindIndexOf('rodata');
-            SegList[1]:=Segments.FindIndexOf('data');
-            SegList[2]:=Segments.FindIndexOf('fpc');
-            SegList[3]:=Segments.FindIndexOf('bss');
-            SegList[4]:=Segments.FindIndexOf('stack');
-            SegList[5]:=Segments.FindIndexOf('heap');
-          end
+          AddGroup('dgroup',['rodata','data','fpc','bss','stack','heap'])
         else
-          begin
-            //AsmWriteLn('GROUP dgroup rodata data fpc bss');
-            SetLength(SegList,4);
-            SegList[0]:=Segments.FindIndexOf('rodata');
-            SegList[1]:=Segments.FindIndexOf('data');
-            SegList[2]:=Segments.FindIndexOf('fpc');
-            SegList[3]:=Segments.FindIndexOf('bss');
-          end;
-        GrpDef.SegmentList:=SegList;
+          AddGroup('dgroup',['rodata','data','fpc','bss']);
 
         { write LNAMES record(s) }
         LNamesRec:=TOmfRecord_LNAMES.Create;
