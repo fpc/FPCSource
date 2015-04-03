@@ -533,11 +533,17 @@ implementation
       B: Byte;
       Big: Boolean;
       NextOfs: Integer;
+      MinLen: Integer;
     begin
       if not (RawRecord.RecordType in [RT_SEGDEF,RT_SEGDEF32]) then
         internalerror(2015040301);
       Is32Bit:=RawRecord.RecordType=RT_SEGDEF32;
 
+      MinLen:=7; { b(1)+seglength(2..4)+segnameindex(1..2)+classnameindex(1..2)+overlaynameindex(1..2)+checksum }
+      if Is32Bit then
+        inc(MinLen,2);
+      if RawRecord.RecordLength<MinLen then
+        internalerror(2015040305);
       B:=RawRecord.RawData[0];
       Alignment:=TOmfSegmentAlignment(B shr 5);
       Combination:=TOmfSegmentCombination((B shr 2) and 7);
@@ -546,6 +552,9 @@ implementation
       NextOfs:=1;
       if Alignment=saAbsolute then
         begin
+          inc(MinLen,3);
+          if RawRecord.RecordLength<MinLen then
+            internalerror(2015040305);
           FrameNumber:=RawRecord.RawData[1]+(RawRecord.RawData[2] shl 8);
           Offset:=RawRecord.RawData[3];
           NextOfs:=4;
@@ -562,14 +571,20 @@ implementation
             (RawRecord.RawData[NextOfs+2] shl 16)+
             (RawRecord.RawData[NextOfs+3] shl 24);
           if Big then
-            SegmentLength:=4294967296;
+            if SegmentLength=0 then
+              SegmentLength:=4294967296
+            else
+              internalerror(2015040306);
           Inc(NextOfs,4);
         end
       else
         begin
           SegmentLength:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8);
           if Big then
-            SegmentLength:=65536;
+            if SegmentLength=0 then
+              SegmentLength:=65536
+            else
+              internalerror(2015040306);
           Inc(NextOfs,2);
         end;
       NextOfs:=RawRecord.ReadIndexedRef(NextOfs,FSegmentNameIndex);
