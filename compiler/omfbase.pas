@@ -671,8 +671,7 @@ implementation
       Segment: Integer;
     begin
       RawRecord.RecordType:=RT_GRPDEF;
-      NextOfs:=1;
-      NextOfs:=RawRecord.WriteIndexedRef(NextOfs,GroupNameIndex);
+      NextOfs:=RawRecord.WriteIndexedRef(0,GroupNameIndex);
       for Segment in SegmentList do
         begin
           if NextOfs>High(RawRecord.RawData) then
