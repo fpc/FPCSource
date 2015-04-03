@@ -251,6 +251,22 @@ interface
       property OverlayNameIndex: Integer read FOverlayNameIndex write FOverlayNameIndex;
     end;
 
+    TSegmentList = array of Integer;
+
+    { TOmfRecord_GRPDEF }
+
+    TOmfRecord_GRPDEF = class(TOmfParsedRecord)
+    private
+      FGroupNameIndex: Integer;
+      FSegmentList: TSegmentList;
+    public
+      procedure DecodeFrom(RawRecord: TOmfRawRecord);override;
+      procedure EncodeTo(RawRecord: TOmfRawRecord);override;
+
+      property GroupNameIndex: Integer read FGroupNameIndex write FGroupNameIndex;
+      property SegmentList: TSegmentList read FSegmentList write FSegmentList;
+    end;
+
 implementation
 
   uses
@@ -637,6 +653,33 @@ implementation
       NextOfs:=RawRecord.WriteIndexedRef(NextOfs,SegmentNameIndex);
       NextOfs:=RawRecord.WriteIndexedRef(NextOfs,ClassNameIndex);
       NextOfs:=RawRecord.WriteIndexedRef(NextOfs,OverlayNameIndex);
+      RawRecord.RecordLength:=NextOfs+1;
+      RawRecord.CalculateChecksumByte;
+    end;
+
+  { TOmfRecord_GRPDEF }
+
+  procedure TOmfRecord_GRPDEF.DecodeFrom(RawRecord: TOmfRawRecord);
+    begin
+      {TODO: implement}
+      internalerror(2015040101);
+    end;
+
+  procedure TOmfRecord_GRPDEF.EncodeTo(RawRecord: TOmfRawRecord);
+    var
+      NextOfs: Integer;
+      Segment: Integer;
+    begin
+      RawRecord.RecordType:=RT_GRPDEF;
+      NextOfs:=1;
+      NextOfs:=RawRecord.WriteIndexedRef(NextOfs,GroupNameIndex);
+      for Segment in SegmentList do
+        begin
+          if NextOfs>High(RawRecord.RawData) then
+            internalerror(2015040401);
+          RawRecord.RawData[NextOfs]:=$ff;
+          NextOfs:=RawRecord.WriteIndexedRef(NextOfs+1,Segment);
+        end;
       RawRecord.RecordLength:=NextOfs+1;
       RawRecord.CalculateChecksumByte;
     end;
