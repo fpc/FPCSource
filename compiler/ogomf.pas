@@ -52,11 +52,13 @@ interface
       private
         FLNames: TOmfOrderedNameCollection;
         FSegments: TFPHashObjectList;
+        FGroups: TFPHashObjectList;
         procedure AddSegment(const name,segclass: string;
           Alignment: TOmfSegmentAlignment; Combination: TOmfSegmentCombination;
           Use: TOmfSegmentUse);
         property LNames: TOmfOrderedNameCollection read FLNames;
         property Segments: TFPHashObjectList read FSegments;
+        property Groups: TFPHashObjectList read FGroups;
       protected
         function writeData(Data:TObjData):boolean;override;
       public
@@ -119,6 +121,8 @@ implementation
         LNamesRec: TOmfRecord_LNAMES;
         I: Integer;
         SegDef: TOmfRecord_SEGDEF;
+        GrpDef: TOmfRecord_GRPDEF;
+        SegList: TSegmentList;
       begin
         { write header record }
         RawRecord:=TOmfRawRecord.Create;
@@ -149,6 +153,42 @@ implementation
         AddSegment('stack','stack',saRelocatableParaAligned,scStack,suUse16);
         AddSegment('heap','heap',saRelocatableParaAligned,scPublic,suUse16);
 
+        GrpDef:=TOmfRecord_GRPDEF.Create;
+        Groups.Add('dgroup',GrpDef);
+        GrpDef.GroupNameIndex:=LNames.Add('dgroup');
+        if current_settings.x86memorymodel=mm_tiny then
+          begin
+            //AsmWriteLn('GROUP dgroup text rodata data fpc bss heap')
+            SetLength(SegList,6);
+            SegList[0]:=Segments.FindIndexOf('text');
+            SegList[1]:=Segments.FindIndexOf('rodata');
+            SegList[2]:=Segments.FindIndexOf('data');
+            SegList[3]:=Segments.FindIndexOf('fpc');
+            SegList[4]:=Segments.FindIndexOf('bss');
+            SegList[5]:=Segments.FindIndexOf('heap');
+          end
+        else if current_settings.x86memorymodel in x86_near_data_models then
+          begin
+            //AsmWriteLn('GROUP dgroup rodata data fpc bss stack heap')
+            SetLength(SegList,6);
+            SegList[0]:=Segments.FindIndexOf('rodata');
+            SegList[1]:=Segments.FindIndexOf('data');
+            SegList[2]:=Segments.FindIndexOf('fpc');
+            SegList[3]:=Segments.FindIndexOf('bss');
+            SegList[4]:=Segments.FindIndexOf('stack');
+            SegList[5]:=Segments.FindIndexOf('heap');
+          end
+        else
+          begin
+            //AsmWriteLn('GROUP dgroup rodata data fpc bss');
+            SetLength(SegList,4);
+            SegList[0]:=Segments.FindIndexOf('rodata');
+            SegList[1]:=Segments.FindIndexOf('data');
+            SegList[2]:=Segments.FindIndexOf('fpc');
+            SegList[3]:=Segments.FindIndexOf('bss');
+          end;
+        GrpDef.SegmentList:=SegList;
+
         { write LNAMES record(s) }
         LNamesRec:=TOmfRecord_LNAMES.Create;
         LNamesRec.Names:=LNames;
@@ -167,6 +207,14 @@ implementation
             RawRecord.WriteTo(FWriter);
           end;
 
+        { write GRPDEF record(s) }
+        for I:=1 to Groups.Count-1 do
+          begin
+            GrpDef:=TOmfRecord_GRPDEF(Groups[I]);
+            GrpDef.EncodeTo(RawRecord);
+            RawRecord.WriteTo(FWriter);
+          end;
+
         RawRecord.Free;
         result:=true;
       end;
@@ -178,10 +226,13 @@ implementation
         FLNames:=TOmfOrderedNameCollection.Create;
         FSegments:=TFPHashObjectList.Create;
         FSegments.Add('',nil);
+        FGroups:=TFPHashObjectList.Create;
+        FGroups.Add('',nil);
       end;
 
     destructor TOmfObjOutput.Destroy;
       begin
+        FGroups.Free;
         FSegments.Free;
         FLNames.Free;
         inherited Destroy;
