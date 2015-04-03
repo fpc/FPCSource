@@ -46,10 +46,17 @@ interface
         procedure writeReloc(Data:aint;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);override;
       end;
 
+      { TOmfObjOutput }
+
       TOmfObjOutput = class(tObjOutput)
       private
         FLNames: TOmfOrderedNameCollection;
+        FSegments: TFPHashObjectList;
+        procedure AddSegment(const name,segclass: string;
+          Alignment: TOmfSegmentAlignment; Combination: TOmfSegmentCombination;
+          Use: TOmfSegmentUse);
         property LNames: TOmfOrderedNameCollection read FLNames;
+        property Segments: TFPHashObjectList read FSegments;
       protected
         function writeData(Data:TObjData):boolean;override;
       public
@@ -88,12 +95,30 @@ implementation
                                 TOmfObjOutput
 ****************************************************************************}
 
+    procedure TOmfObjOutput.AddSegment(const name, segclass: string;
+        Alignment: TOmfSegmentAlignment; Combination: TOmfSegmentCombination;
+        Use: TOmfSegmentUse);
+      var
+        s: TOmfRecord_SEGDEF;
+      begin
+        s:=TOmfRecord_SEGDEF.Create;
+        Segments.Add(name,s);
+        s.SegmentNameIndex:=LNames.Add(name);
+        s.ClassNameIndex:=LNames.Add(segclass);
+        s.OverlayNameIndex:=1;
+        s.Alignment:=Alignment;
+        s.Combination:=Combination;
+        s.Use:=Use;
+      end;
+
     function TOmfObjOutput.writeData(Data:TObjData):boolean;
       var
         RawRecord: TOmfRawRecord;
         Header: TOmfRecord_THEADR;
         Translator_COMENT: TOmfRecord_COMENT;
         LNamesRec: TOmfRecord_LNAMES;
+        I: Integer;
+        SegDef: TOmfRecord_SEGDEF;
       begin
         { write header record }
         RawRecord:=TOmfRawRecord.Create;
@@ -112,24 +137,17 @@ implementation
         RawRecord.WriteTo(FWriter);
         Translator_COMENT.Free;
 
-        { dummy: let's add some names }
         LNames.Clear;
-        LNames.Add('');
-        LNames.Add('text');
-        LNames.Add('code');
-        LNames.Add('rodata');
-        LNames.Add('data');
-        LNames.Add('data');
-        LNames.Add('data');
-        LNames.Add('fpc');
-        LNames.Add('data');
-        LNames.Add('bss');
-        LNames.Add('bss');
-        LNames.Add('stack');
-        LNames.Add('stack');
-        LNames.Add('heap');
-        LNames.Add('heap');
-        LNames.Add('dgroup');
+        LNames.Add('');  { insert an empty string, which has index 1 }
+
+        if not (cs_huge_code in current_settings.moduleswitches) then
+          AddSegment({CodeSectionName(current_module.modulename^)}'text','code',saRelocatableByteAligned,scPublic,suUse16);
+        AddSegment('rodata','data',saRelocatableByteAligned,scPublic,suUse16);
+        AddSegment('data','data',saRelocatableWordAligned,scPublic,suUse16);
+        AddSegment('fpc','data',saRelocatableByteAligned,scPublic,suUse16);
+        AddSegment('bss','bss',saRelocatableByteAligned,scPublic,suUse16);
+        AddSegment('stack','stack',saRelocatableParaAligned,scStack,suUse16);
+        AddSegment('heap','heap',saRelocatableParaAligned,scPublic,suUse16);
 
         { write LNAMES record(s) }
         LNamesRec:=TOmfRecord_LNAMES.Create;
@@ -141,6 +159,14 @@ implementation
           end;
         LNamesRec.Free;
 
+        { write SEGDEF record(s) }
+        for I:=1 to Segments.Count-1 do
+          begin
+            SegDef:=TOmfRecord_SEGDEF(Segments[I]);
+            SegDef.EncodeTo(RawRecord);
+            RawRecord.WriteTo(FWriter);
+          end;
+
         RawRecord.Free;
         result:=true;
       end;
@@ -150,10 +176,13 @@ implementation
         inherited create(AWriter);
         cobjdata:=TOmfObjData;
         FLNames:=TOmfOrderedNameCollection.Create;
+        FSegments:=TFPHashObjectList.Create;
+        FSegments.Add('',nil);
       end;
 
     destructor TOmfObjOutput.Destroy;
       begin
+        FSegments.Free;
         FLNames.Free;
         inherited Destroy;
       end;
