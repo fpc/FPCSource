@@ -192,6 +192,10 @@ unit rgobj;
         procedure do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister;orgsupreg:tsuperregister);virtual;
         procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister;orgsupreg:tsuperregister);virtual;
 
+        function addreginfo(var regs: tspillregsinfo; const r: tsuperregisterset; reg: tregister; operation: topertype): boolean;
+        function instr_get_oper_spilling_info(var regs: tspillregsinfo; const r: tsuperregisterset; instr: tai_cpu_abstract_sym; opidx: longint): boolean; virtual;
+        procedure substitute_spilled_registers(const regs: tspillregsinfo; instr: tai_cpu_abstract_sym; opidx: longint);
+        procedure try_replace_reg(const regs: tspillregsinfo; var reg: tregister; useloadreg: boolean); virtual;
         function instr_spill_register(list:TAsmList;
                                       instr:tai_cpu_abstract_sym;
                                       const r:Tsuperregisterset;
@@ -2067,6 +2071,148 @@ unit rgobj;
       end;
 
 
+    function trgobj.addreginfo(var regs: tspillregsinfo; const r: tsuperregisterset; reg: tregister; operation: topertype): boolean;
+      var
+        i, tmpindex: longint;
+        supreg: tsuperregister;
+      begin
+        result:=false;
+        tmpindex := regs.reginfocount;
+        supreg := get_alias(getsupreg(reg));
+        { did we already encounter this register? }
+        for i := 0 to pred(regs.reginfocount) do
+          if (regs.reginfo[i].orgreg = supreg) then
+            begin
+              tmpindex := i;
+              break;
+            end;
+        if tmpindex > high(regs.reginfo) then
+          internalerror(2003120301);
+        regs.reginfo[tmpindex].orgreg := supreg;
+        include(regs.reginfo[tmpindex].spillregconstraints,get_spill_subreg(reg));
+        if supregset_in(r,supreg) then
+          begin
+            { add/update info on this register }
+            regs.reginfo[tmpindex].mustbespilled := true;
+            case operation of
+              operand_read:
+                regs.reginfo[tmpindex].regread := true;
+              operand_write:
+                regs.reginfo[tmpindex].regwritten := true;
+              operand_readwrite:
+                begin
+                  regs.reginfo[tmpindex].regread := true;
+                  regs.reginfo[tmpindex].regwritten := true;
+                end;
+            end;
+            result:=true;
+          end;
+        inc(regs.reginfocount,ord(regs.reginfocount=tmpindex));
+      end;
+
+
+    function trgobj.instr_get_oper_spilling_info(var regs: tspillregsinfo; const r: tsuperregisterset; instr: tai_cpu_abstract_sym; opidx: longint): boolean;
+      begin
+        result:=false;
+        with instr.oper[opidx]^ do
+          begin
+            case typ of
+              top_reg:
+                begin
+                  if (getregtype(reg) = regtype) then
+                    result:=addreginfo(regs,r,reg,instr.spilling_get_operation_type(opidx));
+                end;
+              top_ref:
+                begin
+                  if regtype in [R_INTREGISTER,R_ADDRESSREGISTER] then
+                    with ref^ do
+                      begin
+                        if (base <> NR_NO) and
+                            (getregtype(base)=regtype) then
+                          result:=addreginfo(regs,r,base,instr.spilling_get_operation_type_ref(opidx,base));
+                        if (index <> NR_NO) and
+                            (getregtype(index)=regtype) then
+                          result:=addreginfo(regs,r,index,instr.spilling_get_operation_type_ref(opidx,index)) or result;
+{$if defined(x86)}
+                        if (segment <> NR_NO) and
+                            (getregtype(segment)=regtype) then
+                          result:=addreginfo(regs,r,segment,instr.spilling_get_operation_type_ref(opidx,segment)) or result;
+{$endif defined(x86)}
+                      end;
+                end;
+{$ifdef ARM}
+              top_shifterop:
+                begin
+                  if regtype in [R_INTREGISTER,R_ADDRESSREGISTER] then
+                    if shifterop^.rs<>NR_NO then
+                      result:=addreginfo(regs,r,shifterop^.rs,operand_read);
+                end;
+{$endif ARM}
+            end;
+          end;
+      end;
+
+
+    procedure trgobj.try_replace_reg(const regs: tspillregsinfo; var reg: tregister; useloadreg: boolean);
+      var
+        i: longint;
+        supreg: tsuperregister;
+      begin
+        supreg:=get_alias(getsupreg(reg));
+        for i:=0 to pred(regs.reginfocount) do
+          if (regs.reginfo[i].mustbespilled) and
+             (regs.reginfo[i].orgreg=supreg) then
+            begin
+              { Only replace supreg }
+              if useloadreg then
+                setsupreg(reg, getsupreg(regs.reginfo[i].loadreg))
+              else
+                setsupreg(reg, getsupreg(regs.reginfo[i].storereg));
+              break;
+            end;
+      end;
+
+
+    procedure trgobj.substitute_spilled_registers(const regs: tspillregsinfo; instr: tai_cpu_abstract_sym; opidx: longint);
+      begin
+        with instr.oper[opidx]^ do
+          case typ of
+            top_reg:
+              begin
+                if (getregtype(reg) = regtype) then
+                  try_replace_reg(regs, reg, not ssa_safe or
+                    (instr.spilling_get_operation_type(opidx)=operand_read));
+              end;
+            top_ref:
+              begin
+                if regtype in [R_INTREGISTER, R_ADDRESSREGISTER] then
+                  begin
+                    if (ref^.base <> NR_NO) and
+                        (getregtype(ref^.base)=regtype) then
+                      try_replace_reg(regs, ref^.base,
+                        not ssa_safe or (instr.spilling_get_operation_type_ref(opidx, ref^.base)=operand_read));
+                    if (ref^.index <> NR_NO) and
+                        (getregtype(ref^.index)=regtype) then
+                      try_replace_reg(regs, ref^.index,
+                        not ssa_safe or (instr.spilling_get_operation_type_ref(opidx, ref^.index)=operand_read));
+  {$if defined(x86)}
+                    if (ref^.segment <> NR_NO) and
+                        (getregtype(ref^.segment)=regtype) then
+                      try_replace_reg(regs, ref^.segment, true { always read-only });
+  {$endif defined(x86)}
+                  end;
+              end;
+  {$ifdef ARM}
+            top_shifterop:
+              begin
+                if regtype in [R_INTREGISTER, R_ADDRESSREGISTER] then
+                  try_replace_reg(regs, shifterop^.rs, true { always read-only });
+              end;
+  {$endif ARM}
+          end;
+      end;
+
+
     function trgobj.instr_spill_register(list:TAsmList;
                                          instr:tai_cpu_abstract_sym;
                                          const r:Tsuperregisterset;
@@ -2075,66 +2221,6 @@ unit rgobj;
         counter: longint;
         regs: tspillregsinfo;
         spilled: boolean;
-
-      procedure addreginfo(reg: tregister; operation: topertype);
-        var
-          i, tmpindex: longint;
-          supreg: tsuperregister;
-        begin
-          tmpindex := regs.reginfocount;
-          supreg := get_alias(getsupreg(reg));
-          { did we already encounter this register? }
-          for i := 0 to pred(regs.reginfocount) do
-            if (regs.reginfo[i].orgreg = supreg) then
-              begin
-                tmpindex := i;
-                break;
-              end;
-          if tmpindex > high(regs.reginfo) then
-            internalerror(2003120301);
-          regs.reginfo[tmpindex].orgreg := supreg;
-          include(regs.reginfo[tmpindex].spillregconstraints,get_spill_subreg(reg));
-          if supregset_in(r,supreg) then
-            begin
-              { add/update info on this register }
-              regs.reginfo[tmpindex].mustbespilled := true;
-              case operation of
-                operand_read:
-                  regs.reginfo[tmpindex].regread := true;
-                operand_write:
-                  regs.reginfo[tmpindex].regwritten := true;
-                operand_readwrite:
-                  begin
-                    regs.reginfo[tmpindex].regread := true;
-                    regs.reginfo[tmpindex].regwritten := true;
-                  end;
-              end;
-              spilled := true;
-            end;
-          inc(regs.reginfocount,ord(regs.reginfocount=tmpindex));
-        end;
-
-
-      procedure tryreplacereg(var reg: tregister; useloadreg: boolean);
-        var
-          i: longint;
-          supreg: tsuperregister;
-        begin
-          supreg:=get_alias(getsupreg(reg));
-          for i:=0 to pred(regs.reginfocount) do
-            if (regs.reginfo[i].mustbespilled) and
-               (regs.reginfo[i].orgreg=supreg) then
-              begin
-                { Only replace supreg }
-                if useloadreg then
-                  setsupreg(reg,getsupreg(regs.reginfo[i].loadreg))
-                else
-                  setsupreg(reg,getsupreg(regs.reginfo[i].storereg));
-                break;
-              end;
-        end;
-
-
       var
         loadpos,
         storepos : tai;
@@ -2153,42 +2239,7 @@ unit rgobj;
         { check whether and if so which and how (read/written) this instructions contains
           registers that must be spilled }
         for counter := 0 to instr.ops-1 do
-         with instr.oper[counter]^ do
-          begin
-            case typ of
-              top_reg:
-                begin
-                  if (getregtype(reg) = regtype) then
-                    addreginfo(reg,instr.spilling_get_operation_type(counter));
-                end;
-              top_ref:
-                begin
-                  if regtype in [R_INTREGISTER,R_ADDRESSREGISTER] then
-                    with ref^ do
-                      begin
-                        if (base <> NR_NO) and
-                            (getregtype(base)=regtype) then
-                          addreginfo(base,instr.spilling_get_operation_type_ref(counter,base));
-                        if (index <> NR_NO) and
-                            (getregtype(index)=regtype) then
-                          addreginfo(index,instr.spilling_get_operation_type_ref(counter,index));
-{$if defined(x86)}
-                        if (segment <> NR_NO) and
-                            (getregtype(segment)=regtype) then
-                          addreginfo(segment,instr.spilling_get_operation_type_ref(counter,segment));
-{$endif defined(x86)}
-                      end;
-                end;
-{$ifdef ARM}
-              top_shifterop:
-                begin
-                  if regtype in [R_INTREGISTER,R_ADDRESSREGISTER] then
-                    if shifterop^.rs<>NR_NO then
-                      addreginfo(shifterop^.rs,operand_read);
-                end;
-{$endif ARM}
-            end;
-          end;
+          spilled:=instr_get_oper_spilling_info(regs,r,instr,counter) or spilled;
 
         { if no spilling for this instruction we can leave }
         if not spilled then
@@ -2352,45 +2403,11 @@ unit rgobj;
 
         { substitute registers }
         for counter:=0 to instr.ops-1 do
-          with instr.oper[counter]^ do
-            case typ of
-              top_reg:
-                begin
-                  if (getregtype(reg) = regtype) then
-                    tryreplacereg(reg,not ssa_safe or
-                      (instr.spilling_get_operation_type(counter)=operand_read));
-                end;
-              top_ref:
-                begin
-                  if regtype in [R_INTREGISTER,R_ADDRESSREGISTER] then
-                    begin
-                      if (ref^.base <> NR_NO) and
-                          (getregtype(ref^.base)=regtype) then
-                        tryreplacereg(ref^.base,
-                          not ssa_safe or (instr.spilling_get_operation_type_ref(counter,ref^.base)=operand_read));
-                      if (ref^.index <> NR_NO) and
-                          (getregtype(ref^.index)=regtype) then
-                        tryreplacereg(ref^.index,
-                          not ssa_safe or (instr.spilling_get_operation_type_ref(counter,ref^.index)=operand_read));
-{$if defined(x86)}
-                      if (ref^.segment <> NR_NO) and
-                          (getregtype(ref^.segment)=regtype) then
-                        tryreplacereg(ref^.segment,true { always read-only });
-{$endif defined(x86)}
-                    end;
-                end;
-{$ifdef ARM}
-              top_shifterop:
-                begin
-                  if regtype in [R_INTREGISTER,R_ADDRESSREGISTER] then
-                    tryreplacereg(shifterop^.rs,true { always read-only });
-                end;
-{$endif ARM}
-            end;
-         {We have modified the instruction; perhaps the new instruction has
+          substitute_spilled_registers(regs,instr,counter);
+        { We have modified the instruction; perhaps the new instruction has
           certain constraints regarding which imaginary registers interfere
-          with certain physical registers.}
-         add_cpu_interferences(instr);
+          with certain physical registers. }
+        add_cpu_interferences(instr);
       end;
 
 end.
