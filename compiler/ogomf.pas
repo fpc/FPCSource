@@ -147,6 +147,7 @@ implementation
         RawRecord: TOmfRawRecord;
         Header: TOmfRecord_THEADR;
         Translator_COMENT: TOmfRecord_COMENT;
+        LinkPassSeparator_COMENT: TOmfRecord_COMENT;
         LNamesRec: TOmfRecord_LNAMES;
         I: Integer;
         SegDef: TOmfRecord_SEGDEF;
@@ -213,6 +214,15 @@ implementation
             GrpDef.EncodeTo(RawRecord);
             RawRecord.WriteTo(FWriter);
           end;
+
+        { write link pass separator }
+        LinkPassSeparator_COMENT:=TOmfRecord_COMENT.Create;
+        LinkPassSeparator_COMENT.CommentClass:=CC_LinkPassSeparator;
+        LinkPassSeparator_COMENT.CommentString:=#1;
+        LinkPassSeparator_COMENT.NoList:=True;
+        LinkPassSeparator_COMENT.EncodeTo(RawRecord);
+        RawRecord.WriteTo(FWriter);
+        LinkPassSeparator_COMENT.Free;
 
         RawRecord.Free;
         result:=true;
