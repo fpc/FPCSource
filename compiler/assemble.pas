@@ -1665,11 +1665,12 @@ Implementation
                    aitconst_darwin_dwarf_delta32,
                    aitconst_darwin_dwarf_delta64:
                      ObjData.writebytes(Tai_const(hp).value,tai_const(hp).size);
-                   aitconst_half16bit:
+                   aitconst_half16bit,
+                   aitconst_gs:
                      begin
                        tmp:=Tai_const(hp).value div 2;
                        ObjData.writebytes(tmp,2);
-                     end
+                     end;
                    else
                      internalerror(200603254);
                  end;

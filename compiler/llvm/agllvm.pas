@@ -623,7 +623,8 @@ implementation
           aitconst_secrel32_symbol,
           aitconst_darwin_dwarf_delta32,
           aitconst_darwin_dwarf_delta64,
-          aitconst_half16bit:
+          aitconst_half16bit,
+          aitconst_gs:
             internalerror(2014052901);
           aitconst_128bit,
           aitconst_64bit,

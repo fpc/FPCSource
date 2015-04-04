@@ -133,6 +133,8 @@ interface
           aitconst_darwin_dwarf_delta32,
           { ARM Thumb-2 only }
           aitconst_half16bit, { used for table jumps. The actual value is the 16bit value shifted left once }
+          { AVR }
+          aitconst_gs, { Upper 16-bit of 17-bit constant }
           { for use by dwarf debugger information }
           aitconst_16bit_unaligned,
           aitconst_32bit_unaligned,
@@ -1680,6 +1682,11 @@ implementation
                consttype:=aitconst_ptr;
            end;
 {$else i8086}
+{$ifdef avr}
+         if assigned(_sym) and (_sym.typ=AT_FUNCTION) then
+           consttype:=aitconst_gs
+         else
+{$endif avr}
          consttype:=aitconst_ptr;
 {$endif i8086}
          { sym is allowed to be nil, this is used to write nil pointers }
@@ -1784,7 +1791,11 @@ implementation
           consttype:=aitconst_farptr
         else
 {$endif i8086}
+{$ifdef avr}
+          consttype:=aitconst_gs;
+{$else avr}
           consttype:=aitconst_ptr;
+{$endif avr}
         sym:=nil;
         endsym:=nil;
         symofs:=0;
@@ -1868,7 +1879,8 @@ implementation
             result:=LengthUleb128(qword(value));
           aitconst_sleb128bit :
             result:=LengthSleb128(value);
-          aitconst_half16bit:
+          aitconst_half16bit,
+          aitconst_gs:
             result:=2;
           aitconst_got:
             result:=sizeof(pint);

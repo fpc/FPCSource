@@ -127,7 +127,7 @@ implementation
       ait_const2str : array[aitconst_128bit..aitconst_64bit_unaligned] of string[20]=(
         #9'.fixme128'#9,#9'.quad'#9,#9'.long'#9,#9'.short'#9,#9'.byte'#9,
         #9'.sleb128'#9,#9'.uleb128'#9,
-        #9'.rva'#9,#9'.secrel32'#9,#9'.quad'#9,#9'.long'#9,#9'.short'#9,
+        #9'.rva'#9,#9'.secrel32'#9,#9'.quad'#9,#9'.long'#9,#9'.short'#9,#9'.short'#9,
         #9'.short'#9,#9'.long'#9,#9'.quad'#9
       );
 
@@ -919,6 +919,7 @@ implementation
                  aitconst_darwin_dwarf_delta32,
                  aitconst_darwin_dwarf_delta64,
                  aitconst_half16bit,
+                 aitconst_gs,
                  aitconst_16bit_unaligned,
                  aitconst_32bit_unaligned,
                  aitconst_64bit_unaligned:
@@ -995,6 +996,8 @@ implementation
 {$endif cpu64bitaddr}
                            if constdef = aitconst_half16bit then
                              s:='('+s+')/2';
+                           if constdef = aitconst_gs then
+                             s:='gs('+s+')';
 
                            AsmWrite(s);
                            inc(l,length(s));

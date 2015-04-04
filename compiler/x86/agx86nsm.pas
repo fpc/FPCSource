@@ -451,7 +451,7 @@ interface
         #9'FIXME_128BIT'#9,#9'DQ'#9,#9'DD'#9,#9'DW'#9,#9'DB'#9,
         #9'FIXME_SLEB128BIT'#9,#9'FIXME_ULEB128BIT'#9,
         #9'RVA'#9,#9'SECREL32'#9,#9'FIXME_darwin_dwarf_delta64'#9,
-        #9'FIXME_darwin_dwarf_delta32'#9,#9'FIXME_half16bit'#9,
+        #9'FIXME_darwin_dwarf_delta32'#9,#9'FIXME_half16bit'#9,#9'FIXME_gs'#9,
         #9'DW'#9,#9'DD'#9,#9'FIXME_64BIT_UNALIGNED'#9
       );
 
