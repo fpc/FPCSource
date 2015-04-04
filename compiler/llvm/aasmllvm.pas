@@ -424,7 +424,10 @@ uses
             end;
           la_invoke, la_call:
             begin
-              internalerror(2013110102);
+              if opnr=0 then
+                result:=oper[1]^.def
+              else
+                internalerror(2013110102);
             end;
           la_br,
           la_unreachable:
