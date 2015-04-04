@@ -27,7 +27,7 @@ unit rgllvm;
   interface
 
     uses
-      aasmcpu,aasmtai,aasmdata,
+      aasmcpu,aasmsym,aasmtai,aasmdata,
       symtype,
       cgbase,cgutils,
       cpubase,llvmbase,
@@ -41,6 +41,8 @@ unit rgllvm;
         procedure do_spill_read(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister); override;
         procedure do_spill_written(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister); override;
        protected
+        function instr_get_oper_spilling_info(var regs: tspillregsinfo; const r: tsuperregisterset; instr: tai_cpu_abstract_sym; opidx: longint): boolean; override;
+        procedure substitute_spilled_registers(const regs: tspillregsinfo; instr: tai_cpu_abstract_sym; opidx: longint); override;
         procedure determine_spill_registers(list: TasmList; headertai: tai); override;
         procedure get_spill_temp(list:TAsmlist;spill_temps: Pspill_temp_list; supreg: tsuperregister);override;
        strict protected
@@ -111,6 +113,58 @@ implementation
         {$ifdef DEBUG_SPILLING}
         list.Insertbefore(tai_comment.Create(strpnew('Spilling: Spill Write')),ins);
         {$endif}
+      end;
+
+
+    function trgllvm.instr_get_oper_spilling_info(var regs: tspillregsinfo; const r: tsuperregisterset; instr: tai_cpu_abstract_sym; opidx: longint): boolean;
+      var
+        i, paracnt: longint;
+        callpara: pllvmcallpara;
+      begin
+        result:=false;
+        with instr.oper[opidx]^ do
+          begin
+            case typ of
+              top_para:
+                begin
+                  for paracnt:=0 to paras.count-1 do
+                    begin
+                      callpara:=pllvmcallpara(paras[paracnt]);
+                      if (callpara^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) and
+                         (getregtype(callpara^.reg)=regtype) then
+                        begin
+                          result:=addreginfo(regs,r,callpara^.reg,operand_read) or result;
+                          break
+                        end;
+                    end;
+                end;
+              else
+                result:=inherited;
+            end;
+          end;
+      end;
+
+
+    procedure trgllvm.substitute_spilled_registers(const regs: tspillregsinfo; instr: tai_cpu_abstract_sym; opidx: longint);
+      var
+        i, paracnt: longint;
+        callpara: pllvmcallpara;
+      begin
+        with instr.oper[opidx]^ do
+          case typ of
+            top_para:
+              begin
+                for paracnt:=0 to paras.count-1 do
+                  begin
+                    callpara:=pllvmcallpara(paras[paracnt]);
+                    if (callpara^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) and
+                       (getregtype(callpara^.reg)=regtype) then
+                      try_replace_reg(regs, callpara^.reg,true);
+                  end;
+              end;
+            else
+              inherited;
+          end;
       end;
 
 
