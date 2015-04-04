@@ -108,10 +108,15 @@ begin
     T:=P.Targets.AddUnit('fpexprpars.pp');
       T.ResourceStrings:=true;
 
-    // Windows units
     T:=P.Targets.AddUnit('fileinfo.pp');
     T:=P.Targets.addUnit('fpmimetypes.pp');
-
+    T:=P.Targets.AddUnit('csvreadwrite.pp');
+    T:=P.Targets.addUnit('csvdocument.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('csvreadwrite');
+      AddUnit('contnrs');
+      end;
     // Additional sources
     P.Sources.AddSrcFiles('src/win/fclel.*');
     // Install windows resources
