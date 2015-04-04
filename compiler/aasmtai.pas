@@ -781,8 +781,8 @@ interface
            procedure loadlocal(opidx:longint;s:pointer;sofs:longint;indexreg:tregister;scale:byte;getoffset,forceref:boolean);
            procedure loadref(opidx:longint;const r:treference);
            procedure loadreg(opidx:longint;r:tregister);
-           procedure loadoper(opidx:longint;o:toper);
-           procedure clearop(opidx:longint);
+           procedure loadoper(opidx:longint;o:toper); virtual;
+           procedure clearop(opidx:longint); virtual;
            procedure freeop(opidx:longint);
            { register allocator }
            function is_same_reg_move(regtype: Tregistertype):boolean;virtual;
@@ -2701,12 +2701,6 @@ implementation
               top_wstring:
                 donewidestring(pwstrval);
 {$endif jvm}
-{$ifdef llvm}
-              top_para:
-                paras.free;
-              top_tai:
-                ai.free;
-{$endif llvm}
             end;
             typ:=top_none;
           end;

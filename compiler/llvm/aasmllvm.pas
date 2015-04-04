@@ -106,6 +106,8 @@ interface
         { e.g. dst = call retsize reg (paras) }
         constructor call_size_reg_paras(dst: tregister;retsize: tdef;reg:tregister;paras: tfplist);
 
+        procedure loadoper(opidx: longint; o: toper); override;
+        procedure clearop(opidx: longint); override;
         procedure loadtai(opidx: longint; _ai: tai);
         procedure loaddef(opidx: longint; _def: tdef);
         procedure loadsingle(opidx: longint; _sval: single);
@@ -252,6 +254,46 @@ uses
       end;
 
 
+    procedure taillvm.loadoper(opidx: longint; o: toper);
+      var
+        i: longint;
+        callpara: pllvmcallpara;
+      begin
+        inherited;
+        if o.typ=top_para then
+          begin
+            oper[opidx]^.paras:=tfplist.create;
+            for i:=0 to o.paras.count-1 do
+              begin
+                new(callpara);
+                callpara^:=pllvmcallpara(o.paras[i])^;
+                oper[opidx]^.paras.add(callpara);
+                if (callpara^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) and
+                   assigned(add_reg_instruction_hook) then
+                  add_reg_instruction_hook(self,callpara^.reg);
+              end;
+          end;
+      end;
+
+
+    procedure taillvm.clearop(opidx: longint);
+      var
+        i: longint;
+      begin
+        case oper[opidx]^.typ of
+          top_para:
+            begin
+              for i:=0 to oper[opidx]^.paras.count-1 do
+                dispose(pllvmcallpara(oper[opidx]^.paras[i]));
+              oper[opidx]^.paras.free;
+            end;
+          top_tai:
+            oper[opidx]^.ai.free;
+        end;
+        inherited;
+      end;
+
+
     procedure taillvm.loadtai(opidx: longint; _ai: tai);
       begin
         allocate_oper(opidx+1);
@@ -345,12 +387,22 @@ uses
 
 
     procedure taillvm.loadparas(opidx: longint; _paras: tfplist);
+      var
+        callpara: pllvmcallpara;
+        i: longint;
       begin
         allocate_oper(opidx+1);
         with oper[opidx]^ do
           begin
             clearop(opidx);
             paras:=_paras;
+            for i:=0 to _paras.count-1 do
+              begin
+                callpara:=pllvmcallpara(_paras[i]);
+                if (callpara^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) and
+                   assigned(add_reg_instruction_hook) then
+                  add_reg_instruction_hook(self,callpara^.reg);
+              end;
             typ:=top_para;
           end;
       end;
