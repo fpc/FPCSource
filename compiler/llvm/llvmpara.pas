@@ -45,6 +45,7 @@ unit llvmpara;
         architecture-specific code, or whether we will have to integrate parts
         into the various tcpuparamanager classes }
       tllvmparamanager = class(tcpuparamanager)
+        procedure getintparaloc(list: TAsmList; pd: tabstractprocdef; nr: longint; var cgpara: tcgpara); override;
         function param_use_paraloc(const cgpara: tcgpara): boolean; override;
         procedure createtempparaloc(list: TAsmList; calloption: tproccalloption; parasym: tparavarsym; can_use_final_stack_loc: boolean; var cgpara: TCGPara); override;
         function create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint; override;
@@ -65,6 +66,15 @@ unit llvmpara;
       cgbase,cgutils,tgobj,hlcgobj;
 
   { tllvmparamanager }
+
+  procedure tllvmparamanager.getintparaloc(list: TAsmList; pd: tabstractprocdef; nr: longint; var cgpara: tcgpara);
+    begin
+      if (nr<1) or (nr>pd.paras.count) then
+        InternalError(2015040401);
+      pd.init_paraloc_info(callerside);
+      createtempparaloc(list,pd.proccalloption,tparavarsym(pd.paras[nr-1]),true,cgpara);
+    end;
+
 
   function tllvmparamanager.param_use_paraloc(const cgpara: tcgpara): boolean;
     begin
