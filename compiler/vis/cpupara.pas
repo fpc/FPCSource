@@ -39,7 +39,6 @@ unit cpupara;
          rtl are used.
        }
        tcpuparamanager = class(tparamanager)
-          function getintparaloc(nr : longint) : tparalocation;override;
           procedure create_param_loc_info(p : tabstractprocdef);override;
           function getselflocation(p : tabstractprocdef) : tparalocation;override;
        end;
@@ -53,10 +52,6 @@ unit cpupara;
        systems,
        cpuinfo,cginfo,cgbase,
        defutil;
-
-    function tcpuparamanager.getintparaloc(nr : longint) : tparalocation;
-      begin
-      end;
 
     procedure tcpuparamanager.create_param_loc_info(p : tabstractprocdef);
       var

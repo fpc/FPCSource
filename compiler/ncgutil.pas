@@ -413,9 +413,9 @@ implementation
 
         { fpc_pushexceptaddr(exceptionframetype, setjmp_buffer, exception_address_chain_entry) }
         pd:=search_system_proc('fpc_pushexceptaddr');
-        paramanager.getintparaloc(pd,1,paraloc1);
-        paramanager.getintparaloc(pd,2,paraloc2);
-        paramanager.getintparaloc(pd,3,paraloc3);
+        paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
+        paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,2,paraloc2);
+        paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,3,paraloc3);
         if pd.is_pushleftright then
           begin
             { type of exceptionframe }
@@ -445,7 +445,7 @@ implementation
 
         { fpc_setjmp(result_of_pushexceptaddr_call) }
         pd:=search_system_proc('fpc_setjmp');
-        paramanager.getintparaloc(pd,1,paraloc1);
+        paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
 
         hlcg.a_load_reg_cgpara(list,pushexceptres.def,tmpresloc.register,paraloc1);
         paramanager.freecgpara(list,paraloc1);
@@ -1393,7 +1393,7 @@ implementation
       begin
         pd:=search_system_proc('fpc_stackcheck');
         paraloc1.init;
-        paramanager.getintparaloc(pd,1,paraloc1);
+        paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
         cg.a_load_const_cgpara(list,OS_INT,current_procinfo.calc_stackframe_size,paraloc1);
         paramanager.freecgpara(list,paraloc1);
         paraloc1.done;
@@ -1408,7 +1408,7 @@ implementation
         pd:=search_system_proc('fpc_stackcheck');
         paraloc1.init;
         { Also alloc the register needed for the parameter }
-        paramanager.getintparaloc(pd,1,paraloc1);
+        paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
         paramanager.freecgpara(list,paraloc1);
         { Call the helper }
         cg.allocallcpuregisters(list);

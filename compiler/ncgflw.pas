@@ -1268,7 +1268,7 @@ implementation
          { send the vmt parameter }
          pd:=search_system_proc('fpc_catches');
          reference_reset_symbol(href2,current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname,AT_DATA),0,sizeof(pint));
-         paramanager.getintparaloc(pd,1,paraloc1);
+         paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
          cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,href2,paraloc1);
          paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
          fpc_catches_res:=hlcg.g_call_system_proc(current_asmdata.CurrAsmList,pd,[@paraloc1],nil);
@@ -1387,7 +1387,7 @@ implementation
           nil otherwise. }
         pd:=search_system_proc('fpc_safecallhandler');
         cgpara.init;
-        paramanager.getintparaloc(pd,1,cgpara);
+        paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,cgpara);
         if is_class(current_procinfo.procdef.struct) then
           begin
             selfsym:=tparavarsym(current_procinfo.procdef.parast.Find('self'));

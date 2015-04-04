@@ -1480,9 +1480,9 @@ begin
   paraloc1.init;
   paraloc2.init;
   paraloc3.init;
-  paramanager.getintparaloc(pd, 1, paraloc1);
-  paramanager.getintparaloc(pd, 2, paraloc2);
-  paramanager.getintparaloc(pd, 3, paraloc3);
+  paramanager.getintparaloc(list, pd, 1, paraloc1);
+  paramanager.getintparaloc(list, pd, 2, paraloc2);
+  paramanager.getintparaloc(list, pd, 3, paraloc3);
   a_load_const_cgpara(list, OS_SINT, len, paraloc3);
   a_loadaddr_ref_cgpara(list, dest, paraloc2);
   a_loadaddr_ref_cgpara(list, Source, paraloc1);

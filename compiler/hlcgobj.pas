@@ -3116,7 +3116,7 @@ implementation
          current_asmdata.getjumplabel(oklabel);
          a_cmp_const_reg_label(list,selftype,OC_NE,0,reg,oklabel);
          cgpara1.init;
-         paramanager.getintparaloc(pd,1,cgpara1);
+         paramanager.getintparaloc(list,pd,1,cgpara1);
          a_load_const_cgpara(list,s32inttype,aint(210),cgpara1);
          paramanager.freecgpara(list,cgpara1);
          g_call_system_proc(list,pd,[@cgpara1],nil);
@@ -3149,9 +3149,9 @@ implementation
       cgpara1.init;
       cgpara2.init;
       cgpara3.init;
-      paramanager.getintparaloc(pd,1,cgpara1);
-      paramanager.getintparaloc(pd,2,cgpara2);
-      paramanager.getintparaloc(pd,3,cgpara3);
+      paramanager.getintparaloc(list,pd,1,cgpara1);
+      paramanager.getintparaloc(list,pd,2,cgpara2);
+      paramanager.getintparaloc(list,pd,3,cgpara3);
       if pd.is_pushleftright then
         begin
           a_loadaddr_ref_cgpara(list,strdef,dest,cgpara1);
@@ -3181,8 +3181,8 @@ implementation
       pd:=search_system_proc('fpc_variant_copy_overwrite');
       cgpara1.init;
       cgpara2.init;
-      paramanager.getintparaloc(pd,1,cgpara1);
-      paramanager.getintparaloc(pd,2,cgpara2);
+      paramanager.getintparaloc(list,pd,1,cgpara1);
+      paramanager.getintparaloc(list,pd,2,cgpara2);
       if pd.is_pushleftright then
         begin
           a_loadaddr_ref_cgpara(list,vardef,source,cgpara1);
@@ -3225,7 +3225,7 @@ implementation
        if incrfunc<>'' then
         begin
           pd:=search_system_proc(incrfunc);
-          paramanager.getintparaloc(pd,1,cgpara1);
+          paramanager.getintparaloc(list,pd,1,cgpara1);
           { widestrings aren't ref. counted on all platforms so we need the address
             to create a real copy }
           if is_widestring(t) then
@@ -3239,8 +3239,8 @@ implementation
        else
         begin
           pd:=search_system_proc('fpc_addref');
-          paramanager.getintparaloc(pd,1,cgpara1);
-          paramanager.getintparaloc(pd,2,cgpara2);
+          paramanager.getintparaloc(list,pd,1,cgpara1);
+          paramanager.getintparaloc(list,pd,2,cgpara2);
           if is_open_array(t) then
             InternalError(201103054);
           reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
@@ -3279,7 +3279,7 @@ implementation
        else if t.typ=variantdef then
          begin
            pd:=search_system_proc('fpc_variant_init');
-           paramanager.getintparaloc(pd,1,cgpara1);
+           paramanager.getintparaloc(list,pd,1,cgpara1);
            a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
            paramanager.freecgpara(list,cgpara1);
           g_call_system_proc(list,pd,[@cgpara1],nil);
@@ -3289,8 +3289,8 @@ implementation
             if is_open_array(t) then
               InternalError(201103052);
             pd:=search_system_proc('fpc_initialize');
-            paramanager.getintparaloc(pd,1,cgpara1);
-            paramanager.getintparaloc(pd,2,cgpara2);
+            paramanager.getintparaloc(list,pd,1,cgpara1);
+            paramanager.getintparaloc(list,pd,2,cgpara2);
             reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
             if pd.is_pushleftright then
               begin
@@ -3339,8 +3339,8 @@ implementation
             pd:=search_system_proc('fpc_dynarray_clear')
           else
             pd:=search_system_proc('fpc_finalize');
-          paramanager.getintparaloc(pd,1,cgpara1);
-          paramanager.getintparaloc(pd,2,cgpara2);
+          paramanager.getintparaloc(list,pd,1,cgpara1);
+          paramanager.getintparaloc(list,pd,2,cgpara2);
           reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
           if pd.is_pushleftright then
             begin
@@ -3361,7 +3361,7 @@ implementation
         end;
       pd:=search_system_proc(decrfunc);
       cgpara1.init;
-      paramanager.getintparaloc(pd,1,cgpara1);
+      paramanager.getintparaloc(list,pd,1,cgpara1);
       a_loadaddr_ref_cgpara(list,t,ref,cgpara1);
       paramanager.freecgpara(list,cgpara1);
       g_call_system_proc(list,pd,[@cgpara1],nil);
@@ -3379,9 +3379,9 @@ implementation
       cgpara2.init;
       cgpara3.init;
       pd:=search_system_proc(name);
-      paramanager.getintparaloc(pd,1,cgpara1);
-      paramanager.getintparaloc(pd,2,cgpara2);
-      paramanager.getintparaloc(pd,3,cgpara3);
+      paramanager.getintparaloc(list,pd,1,cgpara1);
+      paramanager.getintparaloc(list,pd,2,cgpara2);
+      paramanager.getintparaloc(list,pd,3,cgpara3);
 
       reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
       { if calling convention is left to right, push parameters 1 and 2 }
@@ -3666,7 +3666,7 @@ implementation
       { do getmem call }
       pd:=search_system_proc('fpc_getmem');
       cgpara1.init;
-      paramanager.getintparaloc(pd,1,cgpara1);
+      paramanager.getintparaloc(list,pd,1,cgpara1);
       a_load_reg_cgpara(list,sinttype,sizereg,cgpara1);
       paramanager.freecgpara(list,cgpara1);
       getmemres:=g_call_system_proc(list,pd,[@cgpara1],ptrarrdef);
@@ -3681,9 +3681,9 @@ implementation
       cgpara1.init;
       cgpara2.init;
       cgpara3.init;
-      paramanager.getintparaloc(pd,1,cgpara1);
-      paramanager.getintparaloc(pd,2,cgpara2);
-      paramanager.getintparaloc(pd,3,cgpara3);
+      paramanager.getintparaloc(list,pd,1,cgpara1);
+      paramanager.getintparaloc(list,pd,2,cgpara2);
+      paramanager.getintparaloc(list,pd,3,cgpara3);
       if pd.is_pushleftright then
         begin
           { load source }
@@ -3720,7 +3720,7 @@ implementation
       { do freemem call }
       pd:=search_system_proc('fpc_freemem');
       cgpara1.init;
-      paramanager.getintparaloc(pd,1,cgpara1);
+      paramanager.getintparaloc(list,pd,1,cgpara1);
       { load source }
       a_load_loc_cgpara(list,getpointerdef(arrdef),l,cgpara1);
       paramanager.freecgpara(list,cgpara1);

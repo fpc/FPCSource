@@ -326,7 +326,7 @@ implementation
                           begin
                             paraloc1.init;
                             pd:=search_system_proc('fpc_tls_add');
-                            paramanager.getintparaloc(pd,1,paraloc1);
+                            paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
                             if not(vo_is_weak_external in gvs.varoptions) then
                               reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),0,sizeof(pint))
                             else
@@ -377,7 +377,7 @@ implementation
                         if pvd.typ<>procvardef then
                           internalerror(2012120901);
                         paraloc1.init;
-                        paramanager.getintparaloc(tprocvardef(pvd),1,paraloc1);
+                        paramanager.getintparaloc(current_asmdata.CurrAsmList,tprocvardef(pvd),1,paraloc1);
                         hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,pvd);
                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE'),0,pvd.size);
                         hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,pvd,pvd,href,hregister);

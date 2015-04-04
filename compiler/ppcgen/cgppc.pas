@@ -692,7 +692,7 @@ unit cgppc;
         begin
           pd:=search_system_proc('mcount');
           paraloc1.init;
-          paramanager.getintparaloc(pd,1,paraloc1);
+          paramanager.getintparaloc(list,pd,1,paraloc1);
           a_load_reg_cgpara(list,OS_ADDR,NR_R0,paraloc1);
           paramanager.freecgpara(list,paraloc1);
           paraloc1.done;

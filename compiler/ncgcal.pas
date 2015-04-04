@@ -1237,7 +1237,7 @@ implementation
            begin
              pd:=search_system_proc('fpc_safecallcheck');
              cgpara.init;
-             paramanager.getintparaloc(pd,1,cgpara);
+             paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,cgpara);
              cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_INT,NR_FUNCTION_RESULT_REG,cgpara);
              paramanager.freecgpara(current_asmdata.CurrAsmList,cgpara);
              cg.g_call(current_asmdata.CurrAsmList,'FPC_SAFECALLCHECK');

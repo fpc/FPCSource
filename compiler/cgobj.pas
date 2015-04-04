@@ -2182,8 +2182,8 @@ implementation
         if (cs_check_object in current_settings.localswitches) then
          begin
            pd:=search_system_proc('fpc_check_object_ext');
-           paramanager.getintparaloc(pd,1,cgpara1);
-           paramanager.getintparaloc(pd,2,cgpara2);
+           paramanager.getintparaloc(list,pd,1,cgpara1);
+           paramanager.getintparaloc(list,pd,2,cgpara2);
            reference_reset_symbol(hrefvmt,current_asmdata.RefAsmSymbol(objdef.vmt_mangledname,AT_DATA),0,sizeof(pint));
            if pd.is_pushleftright then
              begin
@@ -2205,7 +2205,7 @@ implementation
          if (cs_check_range in current_settings.localswitches) then
           begin
             pd:=search_system_proc('fpc_check_object');
-            paramanager.getintparaloc(pd,1,cgpara1);
+            paramanager.getintparaloc(list,pd,1,cgpara1);
             a_load_reg_cgpara(list,OS_ADDR,reg,cgpara1);
             paramanager.freecgpara(list,cgpara1);
             allocallcpuregisters(list);

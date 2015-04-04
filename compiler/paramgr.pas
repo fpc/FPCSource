@@ -81,7 +81,7 @@ unit paramgr;
           function get_volatile_registers_flags(calloption : tproccalloption):tcpuregisterset;virtual;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;virtual;
 
-          procedure getintparaloc(pd: tabstractprocdef; nr : longint; var cgpara: tcgpara);virtual;
+          procedure getintparaloc(list: TAsmList; pd: tabstractprocdef; nr : longint; var cgpara: tcgpara);virtual;
 
           {# allocate an individual pcgparalocation that's part of a tcgpara
 
@@ -624,7 +624,7 @@ implementation
       end;
 
 
-    procedure tparamanager.getintparaloc(pd: tabstractprocdef; nr : longint; var cgpara: tcgpara);
+    procedure tparamanager.getintparaloc(list: TAsmList; pd: tabstractprocdef; nr : longint; var cgpara: tcgpara);
       begin
         if (nr<1) or (nr>pd.paras.count) then
           InternalError(2013060101);

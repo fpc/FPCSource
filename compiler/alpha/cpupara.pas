@@ -32,7 +32,6 @@ unit cpupara;
 
     type
        tcpuparamanager = class(tparamanager)
-          function getintparaloc(nr : longint) : tparalocation;override;
           procedure create_param_loc_info(p : tabstractprocdef);override;
           function getfuncretparaloc(p : tabstractprocdef) : tparalocation;override;
        end;
@@ -44,25 +43,6 @@ unit cpupara;
        globtype,
        cpuinfo,cginfo,cgbase,
        defbase;
-
-    function tcpuparamanager.getintparaloc(nr : longint) : tparalocation;
-
-      begin
-         fillchar(result,sizeof(tparalocation),0);
-         if nr<1 then
-           internalerror(2002070801)
-         else if nr<=8 then
-           begin
-              result.loc:=LOC_REGISTER;
-              result.register:=tregister(longint(R_2)+nr);
-           end
-         else
-           begin
-              result.loc:=LOC_REFERENCE;
-              result.reference.index:=stack_pointer_reg;
-              result.reference.offset:=(nr-8)*4;
-           end;
-      end;
 
     function getparaloc(p : tdef) : tloc;
 

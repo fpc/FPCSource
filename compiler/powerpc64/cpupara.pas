@@ -41,7 +41,7 @@ type
       tproccalloption): boolean; override;
     function ret_in_param(def: tdef; pd: tabstractprocdef): boolean; override;
 
-    procedure getintparaloc(pd : tabstractprocdef; nr: longint; var cgpara: tcgpara); override;
+    procedure getintparaloc(list: TAsmList; pd : tabstractprocdef; nr: longint; var cgpara: tcgpara); override;
     function create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint; override;
     function create_varargs_paraloc_info(p: tabstractprocdef; varargspara:
       tvarargsparalist): longint; override;
@@ -79,7 +79,7 @@ begin
   result := [RS_F0..RS_F13];
 end;
 
-procedure tcpuparamanager.getintparaloc(pd : tabstractprocdef; nr: longint; var cgpara: tcgpara);
+procedure tcpuparamanager.getintparaloc(list: TAsmList; pd : tabstractprocdef; nr: longint; var cgpara: tcgpara);
 var
   paraloc: pcgparalocation;
   psym: tparavarsym;

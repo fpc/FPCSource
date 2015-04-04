@@ -305,7 +305,7 @@ implementation
               internalerror(2012010601);
             pd:=tprocdef(tprocsym(sym).ProcdefList[0]);
             paraloc1.init;
-            paramanager.getintparaloc(pd,1,paraloc1);
+            paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
             hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,left.resultdef,location.reference.base,paraloc1);
             paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
             paraloc1.done;
@@ -393,7 +393,7 @@ implementation
                        (sym.typ<>procsym) then
                       internalerror(2012010602);
                     pd:=tprocdef(tprocsym(sym).ProcdefList[0]);
-                    paramanager.getintparaloc(pd,1,paraloc1);
+                    paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
                     hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,left.resultdef,location.reference.base,paraloc1);
                     paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                     hlcg.allocallcpuregisters(current_asmdata.CurrAsmList);
@@ -778,8 +778,8 @@ implementation
           if is_dynamic_array(left.resultdef) then
             begin
                pd:=search_system_proc('fpc_dynarray_rangecheck');
-               paramanager.getintparaloc(pd,1,paraloc1);
-               paramanager.getintparaloc(pd,2,paraloc2);
+               paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
+               paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,2,paraloc2);
                if pd.is_pushleftright then
                  begin
                    cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
@@ -820,8 +820,8 @@ implementation
             begin
               helpername:='fpc_'+tstringdef(left.resultdef).stringtypname+'_rangecheck';
               pd:=search_system_proc(helpername);
-              paramanager.getintparaloc(pd,1,paraloc1);
-              paramanager.getintparaloc(pd,2,paraloc2);
+              paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
+              paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,2,paraloc2);
               if pd.is_pushleftright then
                 begin
                   cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
