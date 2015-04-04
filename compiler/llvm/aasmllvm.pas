@@ -299,8 +299,7 @@ uses
         allocate_oper(opidx+1);
         with oper[opidx]^ do
          begin
-           if typ<>top_tai then
-             clearop(opidx);
+           clearop(opidx);
            ai:=_ai;
            typ:=top_tai;
          end;
