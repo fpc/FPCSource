@@ -14,6 +14,8 @@ type
   { Ttestsdfspecific }
 
   Ttestsdfspecific = class(Ttestcase)
+  private
+    procedure TestEmptyFieldContents;
   protected
     TestDataset: TSDFDataset;
     procedure Setup; override;
@@ -31,6 +33,10 @@ type
     procedure TestInputOurFormat;
     }
     procedure TestDelimitedTextOutput;
+    procedure TestEmptyHeader;
+    Procedure TestEmptyHeader2;
+    Procedure TestEmptyHeaderStripTrailingDelimiters;
+    Procedure TestStripTrailingDelimiters;
   end;
 
 implementation
@@ -260,45 +266,184 @@ const
   Value5='multi'+#13+#10+'line';
   Value6='Delimiter,and;done';
   Value7='Some "random" quotes';
-var
+Var
+  F : Text;
   FileStrings: TStringList;
   OneRecord: TStringList;
 begin
   TestDataset.Close;
   TestDataset.AllowMultiLine:=true;
+  TestDataset.FirstLineAsSchema:=true;
   if FileExists(OutputFileName) then DeleteFile(OutputFileName);
-  FileStrings:=TStringList.Create;
-  OneRecord:=TStringList.Create;
-  try
-    FileStrings.Add('Field1,Field2,Field3,Field4,Field5,Field6,Field7');
-    OneRecord.Add(Value1);
-    OneRecord.Add(Value2);
-    OneRecord.Add(Value3);
-    OneRecord.Add(Value4);
-    OneRecord.Add(Value5);
-    OneRecord.Add(Value6);
-    OneRecord.Add(Value7);
-    OneRecord.Delimiter:=',';
-    OneRecord.QuoteChar:='"';
-    OneRecord.StrictDelimiter:=true;
-    FileStrings.Add(OneRecord.DelimitedText);
-    FileStrings.SaveToFile(OutputFileName);
-  finally
-    FileStrings.Free;
-    OneRecord.Free;
-  end;
-
+  Assign(F,OutputFileName);
+  Rewrite(F);
+  Writeln(F,'Field1,Field2,Field3,Field4,Field5,Field6,Field7');
+  Writeln(F,'"Delimiter,""and"";quote","J""T""",Just a long line,"Just a quoted long line","multi');
+  Writeln(F,'line","Delimiter,and;done","Some ""random"" quotes"');
+  Close(F);
   // Load our dataset
   TestDataset.FileName:=OutputFileName;
   TestDataset.Open;
+//  AssertEquals('Field count',7,TEstDataset.Fielddefs.Count);
+//  AssertEquals('Record count',1,TEstDataset.RecordCount);
   TestDataset.First;
-  AssertEquals(Value1, TestDataSet.Fields[0].AsString);
-  AssertEquals(Value2, TestDataSet.Fields[1].AsString);
-  AssertEquals(Value3, TestDataSet.Fields[2].AsString);
-  AssertEquals(Value4, TestDataSet.Fields[3].AsString);
-  AssertEquals(Value5, TestDataSet.Fields[4].AsString);
-  AssertEquals(Value6, TestDataSet.Fields[5].AsString);
-  AssertEquals(Value7, TestDataSet.Fields[6].AsString);
+  AssertEquals('Field1',Value1, TestDataSet.Fields[0].AsString);
+  AssertEquals('Field2',Value2, TestDataSet.Fields[1].AsString);
+  AssertEquals('Field3',Value3, TestDataSet.Fields[2].AsString);
+  AssertEquals('Field4',Value4, TestDataSet.Fields[3].AsString);
+  AssertEquals('Field5',Value5, TestDataSet.Fields[4].AsString);
+  AssertEquals('Field6',Value6, TestDataSet.Fields[5].AsString);
+  AssertEquals('Field7',Value7, TestDataSet.Fields[6].AsString);
+end;
+
+procedure Ttestsdfspecific.TestEmptyHeader;
+
+const
+  OutputFileName='delim.csv';
+
+Var
+  F : Text;
+begin
+  TestDataset.Close;
+  TestDataset.AllowMultiLine:=False;
+  if FileExists(OutputFileName) then DeleteFile(OutputFileName);
+  Assign(F,OutputFileName);
+  Rewrite(F);
+  Writeln(F,'1;2;3;;5');
+  Close(F);
+  TestDataset.FirstLineAsSchema:=True;
+  TestDataset.Delimiter := ';';
+  TestDataset.FileName:=OutputFileName;
+  TestDataset.Open;
+  AssertEquals('Correct field count',5,TestDataset.FieldDefs.Count);
+end;
+
+procedure Ttestsdfspecific.TestEmptyHeader2;
+
+const
+  OutputFileName='delim.csv';
+
+Var
+  F : Text;
+  S : String;
+
+begin
+  TestDataset.Close;
+  TestDataset.AllowMultiLine:=False;
+  if FileExists(OutputFileName) then DeleteFile(OutputFileName);
+  Assign(F,OutputFileName);
+  Rewrite(F);
+  Writeln(F,'value1;value2;;;');
+  Close(F);
+  TestDataset.FirstLineAsSchema:=False;
+  TestDataset.Delimiter := ';';
+  TestDataset.FileName:=OutputFileName;
+  TestDataset.Schema.Clear;
+  TestDataset.Open;
+  AssertEquals('Correct field count',5,TestDataset.FieldDefs.Count);
+  TestDataset.Edit;
+  TestDataset.Fields[0].AsString:='Value1';
+  TestDataset.Post;
+  TestDataset.Close;
+  Assign(F,OutputFileName);
+  Reset(F);
+  ReadLn(F,S);
+  Close(F);
+  AssertEquals('No data lost','Value1;value2;;;',S);
+end;
+
+procedure Ttestsdfspecific.TestEmptyHeaderStripTrailingDelimiters;
+const
+  OutputFileName='delim.csv';
+
+Var
+  F : Text;
+  S : String;
+
+begin
+  TestDataset.Close;
+  TestDataset.AllowMultiLine:=False;
+  if FileExists(OutputFileName) then DeleteFile(OutputFileName);
+  Assign(F,OutputFileName);
+  Rewrite(F);
+  Writeln(F,'value1;value2;;;');
+  Close(F);
+  TestDataset.StripTrailingDelimiters:=True;
+  TestDataset.FirstLineAsSchema:=False;
+  TestDataset.Delimiter := ';';
+  TestDataset.FileName:=OutputFileName;
+  TestDataset.Schema.Clear;
+  TestDataset.Open;
+  AssertEquals('Correct field count',2,TestDataset.FieldDefs.Count);
+  TestDataset.Edit;
+  TestDataset.Fields[0].AsString:='Value1';
+  TestDataset.Post;
+  TestDataset.Close;
+  Assign(F,OutputFileName);
+  Reset(F);
+  ReadLn(F,S);
+  Close(F);
+  AssertEquals('No data lost','Value1;value2',S);
+end;
+
+procedure Ttestsdfspecific.TestStripTrailingDelimiters;
+const
+  OutputFileName='delim.csv';
+
+Var
+  F : Text;
+  S,S2 : String;
+
+begin
+  TestDataset.Close;
+  TestDataset.AllowMultiLine:=False;
+  if FileExists(OutputFileName) then DeleteFile(OutputFileName);
+  Assign(F,OutputFileName);
+  Rewrite(F);
+  Writeln(F,'value1;value2;;;');
+  Writeln(F,'value1;value2;;;');
+  Close(F);
+  TestDataset.StripTrailingDelimiters:=True;
+  TestDataset.FirstLineAsSchema:=False;
+  TestDataset.Delimiter := ';';
+  TestDataset.FileName:=OutputFileName;
+  TestDataset.Schema.Clear;
+  TestDataset.Open;
+  AssertEquals('Correct field count',2,TestDataset.FieldDefs.Count);
+  TestDataset.Edit;
+  TestDataset.Fields[0].AsString:='Value1';
+  TestDataset.Post;
+  TestDataset.Close;
+  Assign(F,OutputFileName);
+  Reset(F);
+  ReadLn(F,S);
+  ReadLn(F,S2);
+  Close(F);
+  AssertEquals('Headers lost','Value1;value2',S);
+  AssertEquals('Data lost','Value1;value2',S);
+end;
+
+procedure Ttestsdfspecific.TestEmptyFieldContents;
+
+const
+  OutputFileName='delim.csv';
+
+Var
+  F : Text;
+begin
+  TestDataset.Close;
+  TestDataset.AllowMultiLine:=False;
+  if FileExists(OutputFileName) then DeleteFile(OutputFileName);
+  Assign(F,OutputFileName);
+  Rewrite(F);
+  Writeln(F,'1;2;3;;5');
+  Writeln(F,'11;12;13;;15');
+  Close(F);
+  TestDataset.FirstLineAsSchema:=True;
+  TestDataset.Delimiter := ';';
+  TestDataset.FileName:=OutputFileName;
+  TestDataset.Open;
+  AssertEquals('Correct field count',5,TestDataset.FieldDefs.Count);
 end;
 
 
