@@ -194,8 +194,8 @@ unit rgobj;
 
         function addreginfo(var regs: tspillregsinfo; const r: tsuperregisterset; reg: tregister; operation: topertype): boolean;
         function instr_get_oper_spilling_info(var regs: tspillregsinfo; const r: tsuperregisterset; instr: tai_cpu_abstract_sym; opidx: longint): boolean; virtual;
-        procedure substitute_spilled_registers(const regs: tspillregsinfo; instr: tai_cpu_abstract_sym; opidx: longint);
-        procedure try_replace_reg(const regs: tspillregsinfo; var reg: tregister; useloadreg: boolean); virtual;
+        procedure substitute_spilled_registers(const regs: tspillregsinfo; instr: tai_cpu_abstract_sym; opidx: longint); virtual;
+        procedure try_replace_reg(const regs: tspillregsinfo; var reg: tregister; useloadreg: boolean);
         function instr_spill_register(list:TAsmList;
                                       instr:tai_cpu_abstract_sym;
                                       const r:Tsuperregisterset;

@@ -161,8 +161,9 @@ implementation
     procedure trgllvm.get_spill_temp(list: TAsmlist; spill_temps: Pspill_temp_list; supreg: tsuperregister);
       var
         supstart: tai;
-        i: longint;
+        i, paracnt: longint;
         def: tdef;
+        callpara: pllvmcallpara;
       begin
         supstart:=live_start[supreg];
         if supstart.typ<>ait_llvmins then
@@ -172,13 +173,29 @@ implementation
         def:=nil;
         for i:=0 to taillvm(supstart).ops-1 do
           begin
-            if (taillvm(supstart).oper[i]^.typ=top_reg) and
-               (getregtype(taillvm(supstart).oper[i]^.reg)=regtype) and
-               (getsupreg(taillvm(supstart).oper[i]^.reg)=supreg) then
-              begin
-                def:=taillvm(supstart).spilling_get_reg_type(i);
-                break
-              end;
+            case taillvm(supstart).oper[i]^.typ of
+              top_reg:
+                if (getregtype(taillvm(supstart).oper[i]^.reg)=regtype) and
+                   (getsupreg(taillvm(supstart).oper[i]^.reg)=supreg) then
+                  begin
+                    def:=taillvm(supstart).spilling_get_reg_type(i);
+                    break
+                  end;
+              top_para:
+                begin
+                  for paracnt:=0 to taillvm(supstart).oper[i]^.paras.count-1 do
+                    begin
+                      callpara:=pllvmcallpara(taillvm(supstart).oper[i]^.paras[paracnt]);
+                      if (callpara^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) and
+                         (getregtype(callpara^.reg)=regtype) and
+                         (getsupreg(callpara^.reg)=supreg) then
+                        begin
+                          def:=callpara^.def;
+                          break
+                        end;
+                    end;
+                end;
+            end;
           end;
         if not assigned(def) then
           internalerror(2013110702);
