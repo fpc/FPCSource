@@ -225,6 +225,7 @@ interface
     { TOmfRecord_SEGDEF }
 
     TOmfRecord_SEGDEF = class(TOmfParsedRecord)
+    private
       FAlignment: TOmfSegmentAlignment;
       FCombination: TOmfSegmentCombination;
       FUse: TOmfSegmentUse;
