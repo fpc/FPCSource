@@ -1647,7 +1647,13 @@ Implementation
                      end;
 {$ifdef i8086}
                    aitconst_farptr :
-                     ObjData.writereloc(Tai_const(hp).symofs,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_FARPTR);
+                     if assigned(tai_const(hp).sym) and
+                        not assigned(tai_const(hp).endsym) then
+                       ObjData.writereloc(Tai_const(hp).symofs,tai_const(hp).size,Objdata.SymbolRef(tai_const(hp).sym),RELOC_FARPTR)
+                     else if relative_reloc then
+                       internalerror(2015040601)
+                     else
+                       ObjData.writebytes(Tai_const(hp).value,tai_const(hp).size);
 {$endif i8086}
 {$ifdef arm}
                    aitconst_got:
