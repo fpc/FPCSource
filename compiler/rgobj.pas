@@ -1800,7 +1800,12 @@ unit rgobj;
                           end
                         else
                           begin
-                            setsupreg(reg,reginfo[getsupreg(reg)].colour);
+                            u:=reginfo[getsupreg(reg)].colour;
+{$ifdef EXTDEBUG}
+                            if u>=maxreginfo then
+                              internalerror(2015040501);
+{$endif}
+                            setsupreg(reg,u);
                             {
                               Remove sequences of release and
                               allocation of the same register like. Other combinations
@@ -2411,3 +2416,4 @@ unit rgobj;
       end;
 
 end.
+
