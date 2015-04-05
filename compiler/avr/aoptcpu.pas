@@ -87,6 +87,7 @@ Implementation
                      (taicpu(p).oper[0]^.typ=top_reg) and
                      (taicpu(p).oper[1]^.typ=top_const) and
                      GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+                     (hp1.typ=ait_instruction) and
                      (not RegModifiedBetween(taicpu(p).oper[0]^.reg, p, hp1)) and
                      (taicpu(hp1).opcode=A_CP) and
                      (taicpu(hp1).ops=2) and
