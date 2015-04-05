@@ -317,6 +317,26 @@ interface
       property SegmentList: TSegmentList read FSegmentList write FSegmentList;
     end;
 
+    { TOmfRecord_MODEND }
+
+    TOmfRecord_MODEND = class(TOmfParsedRecord)
+    private
+      FIs32Bit: Boolean;
+      FIsMainModule: Boolean;
+      FHasStartAddress: Boolean;
+      FSegmentBit: Boolean;
+      FLogicalStartAddress: Boolean;
+    public
+      procedure DecodeFrom(RawRecord: TOmfRawRecord);override;
+      procedure EncodeTo(RawRecord: TOmfRawRecord);override;
+
+      property Is32Bit: Boolean read FIs32Bit write FIs32Bit;
+      property IsMainModule: Boolean read FIsMainModule write FIsMainModule;
+      property HasStartAddress: Boolean read FHasStartAddress write FHasStartAddress;
+      property SegmentBit: Boolean read FSegmentBit write FSegmentBit;
+      property LogicalStartAddress: Boolean read FLogicalStartAddress write FLogicalStartAddress;
+    end;
+
     { TOmfSubRecord_FIXUP }
 
     TOmfSubRecord_FIXUP = class
@@ -771,6 +791,35 @@ implementation
             internalerror(2015040401);
           RawRecord.RawData[NextOfs]:=$ff;
           NextOfs:=RawRecord.WriteIndexedRef(NextOfs+1,Segment);
+        end;
+      RawRecord.RecordLength:=NextOfs+1;
+      RawRecord.CalculateChecksumByte;
+    end;
+
+  { TOmfRecord_MODEND }
+
+  procedure TOmfRecord_MODEND.DecodeFrom(RawRecord: TOmfRawRecord);
+    begin
+      {TODO: implement}
+      internalerror(2015040101);
+    end;
+
+  procedure TOmfRecord_MODEND.EncodeTo(RawRecord: TOmfRawRecord);
+    var
+      ModTyp: Byte;
+      NextOfs: Integer;
+    begin
+      if Is32Bit then
+        RawRecord.RecordType:=RT_MODEND32
+      else
+        RawRecord.RecordType:=RT_MODEND;
+      ModTyp:=(Ord(IsMainModule) shl 7)+(Ord(HasStartAddress) shl 6)+(Ord(SegmentBit) shl 5)+Ord(LogicalStartAddress);
+      RawRecord.RawData[0]:=ModTyp;
+      NextOfs:=1;
+      if HasStartAddress then
+        begin
+          {TODO: implement writing a start address}
+          internalerror(2015040101);
         end;
       RawRecord.RecordLength:=NextOfs+1;
       RawRecord.CalculateChecksumByte;

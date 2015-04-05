@@ -285,6 +285,7 @@ implementation
         Translator_COMENT: TOmfRecord_COMENT;
         LinkPassSeparator_COMENT: TOmfRecord_COMENT;
         LNamesRec: TOmfRecord_LNAMES;
+        ModEnd: TOmfRecord_MODEND;
         I: Integer;
         SegDef: TOmfRecord_SEGDEF;
         GrpDef: TOmfRecord_GRPDEF;
@@ -362,6 +363,12 @@ implementation
 
         { write section content, interleaved with fixups }
         WriteSections(Data);
+
+        { write MODEND record }
+        ModEnd:=TOmfRecord_MODEND.Create;
+        ModEnd.EncodeTo(RawRecord);
+        RawRecord.WriteTo(FWriter);
+        ModEnd.Free;
 
         RawRecord.Free;
         result:=true;
