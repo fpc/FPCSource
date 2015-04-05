@@ -120,6 +120,53 @@ interface
       scPublic7   = 7); { same as scPublic }
     TOmfSegmentUse = (suUse16, suUse32);
 
+    TOmfFixupMode = (fmSelfRelative, fmSegmentRelative);
+    TOmfFixupLocationType = (
+      fltLoByte                 = 0,  { low 8 bits of 16-bit offset }
+      fltOffset                 = 1,  { 16-bit offset }
+      fltBase                   = 2,  { 16-bit base (segment) }
+      fltFarPointer             = 3,  { 16-bit base:16-bit offset }
+      fltHiByte                 = 4,  { high 8 bits of 16-bit offset }
+      fltLoaderResolvedOffset   = 5,  { PharLap: Offset32 }
+      fltUndefined6             = 6,  { PharLap: Pointer48 }
+      fltUndefined7             = 7,
+      fltUndefined8             = 8,
+      fltOffset32               = 9,  { 32-bit offset }
+      fltUndefined10            = 10,
+      fltFarPointer48           = 11, { 16-bit base:32-bit offset }
+      fltUndefined12            = 12,
+      fltLoaderResolvedOffset32 = 13,
+      fltUndefined14            = 14,
+      fltUndefined15            = 15);
+    TOmfFixupFrameMethod = (
+      ffmSegmentIndex  = 0,  { SI(<segment name>) - The frame is the canonic frame of the logical
+                                                    segment segment defined by the index }
+      ffmGroupIndex    = 1,  { GI(<group name>)   - The frame is the canonic frame of the group
+                                                    (= the canonic frame of the logical segment from the group,
+                                                    located at the lowest memory address) }
+      ffmExternalIndex = 2,  { EI(<symbol name>)  - The frame is determined depending on the external's public definition:
+                                                     * if the symbol is defined relative to a logical segment and no defined group,
+                                                       the frame of the logical segment is used
+                                                     * if the symbol is defined absolutely, without reference to a logical segment and
+                                                       no defined group, the FRAME NUMBER from the symbol's PUBDEF record is used
+                                                     * regardless of how the symbol is specified, if there's an associated group,
+                                                       that group's canonic frame is used }
+      ffmFrameNumber   = 3,  { <FRAME NUMBER> - The frame is a directly specified constant. }
+      ffmLocation      = 4,  { LOCATION - The frame is determined by the location (i.e. the canonic frame of the logical
+                                          segment where the fixup location is) }
+      ffmTarget        = 5,  { TARGET - The frame is determined by the target. }
+      ffmNone          = 6,  { NONE - There is no frame. Used for 8089 self-relative references. }
+      ffmUndefined     = 7);
+    TOmfFixupTargetMethod = (
+      ftmSegmentIndex        = 0,  { SI(<segment name>),<displacement> }
+      ftmGroupIndex          = 1,  { GI(<group name>),<displacement> }
+      ftmExternalIndex       = 2,  { EI(<symbol name>),<displacement> }
+      ftmFrameNumber         = 3,  { <FRAME NUMBER>,<displacement> }
+      ftmSegmentIndexNoDisp  = 4,  { SI(<segment name>) }
+      ftmGroupIndexNoDisp    = 5,  { GI(<group name>) }
+      ftmExternalIndexNoDisp = 6,  { EI(<symbol name>) }
+      ftmFrameNumberNoDisp   = 7); { <FRAME NUMBER> }
+
     { TOmfOrderedNameCollection }
 
     TOmfOrderedNameCollection = class
