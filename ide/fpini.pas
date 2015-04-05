@@ -614,7 +614,7 @@ begin
   { Files }
   { avoid keeping old files }
   INIFile^.DeleteSection(secFiles);
-  INIFile^.SetEntry(secFiles,ieOpenExts,'"'+OpenExts+'"');
+  INIFile^.SetEntry(secFiles,ieOpenExts,EscapeIniText(OpenExts));
   for I:=1 to High(RecentFiles) do
     begin
       if I<=RecentFileCount then
@@ -682,17 +682,17 @@ begin
   { Help }
   S:='';
   HelpFiles^.ForEach(@ConcatName);
-  INIFile^.SetEntry(secHelp,ieHelpFiles,'"'+S+'"');
+  INIFile^.SetEntry(secHelp,ieHelpFiles,EscapeIniText(S));
   { Editor }
   INIFile^.SetIntEntry(secEditor,ieDefaultTabSize,DefaultTabSize);
   INIFile^.SetIntEntry(secEditor,ieDefaultIndentSize,DefaultIndentSize);
   INIFile^.SetIntEntry(secEditor,ieDefaultEditorFlags,DefaultCodeEditorFlags);
   INIFile^.SetEntry(secEditor,ieDefaultSaveExt,DefaultSaveExt);
   { Highlight }
-  INIFile^.SetEntry(secHighlight,ieHighlightExts,'"'+HighlightExts+'"');
-  INIFile^.SetEntry(secHighlight,ieTabsPattern,'"'+TabsPattern+'"');
+  INIFile^.SetEntry(secHighlight,ieHighlightExts,EscapeIniText(HighlightExts));
+  INIFile^.SetEntry(secHighlight,ieTabsPattern,EscapeIniText(TabsPattern));
   { SourcePath }
-  INIFile^.SetEntry(secSourcePath,ieSourceList,'"'+SourceDirs+'"');
+  INIFile^.SetEntry(secSourcePath,ieSourceList,EscapeIniText(SourceDirs));
   { Mouse }
   INIFile^.SetIntEntry(secMouse,ieDoubleClickDelay,DoubleDelay);
   INIFile^.SetIntEntry(secMouse,ieReverseButtons,byte(MouseReverse));
@@ -722,9 +722,9 @@ begin
     begin
       S:=IntToStr(I);
       GetToolParams(I-1,S1,S2,S3,W);
-      if S1<>'' then S1:='"'+S1+'"';
-      if S2<>'' then S2:='"'+S2+'"';
-      if S3<>'' then S3:='"'+S3+'"';
+      if S1<>'' then S1:=EscapeIniText(S1);
+      if S2<>'' then S2:=EscapeIniText(S2);
+      if S3<>'' then S3:=EscapeIniText(S3);
       INIFile^.SetEntry(secTools,ieToolName+S,S1);
       INIFile^.SetEntry(secTools,ieToolProgram+S,S2);
       INIFile^.SetEntry(secTools,ieToolParams+S,S3);

@@ -83,6 +83,8 @@ const MainSectionName : string[40] = 'MainSection';
       CommentChar     : char = ';';
       ValidStrDelimiters: set of char = ['''','"'];
 
+function EscapeIniText(S : string) : String;
+
 implementation
 
 uses
@@ -96,6 +98,30 @@ uses
   {$R-}
   {$DEFINE REENABLE_R}
 {$ENDIF}
+
+function EscapeIniText(S : string) : String;
+var
+  delimiter : char;
+  i: integer;
+begin
+  delimiter:=#0;
+  while delimiter < #255 do
+    begin
+      if (delimiter in ValidStrDelimiters) and
+         (pos(delimiter,S)=0) then
+        break;
+      delimiter:=succ(delimiter);
+    end;
+  if delimiter=#255 then
+    delimiter:='"';
+  { we use \", but we also need to escape \ itself }
+  for i:=length(s) downto 1 do
+    if (s[i]=delimiter) then
+      s:=copy(s,1,i-1)+'\'+delimiter+copy(s,i+1,length(s))
+    else if (s[i]='\') then
+      s:=copy(s,1,i-1)+'\\'+copy(s,i+1,length(s));
+  EscapeIniText:=delimiter+s+delimiter;
+end;
 
 function CalcHash(const s: String): Cardinal;
 var
@@ -123,8 +149,6 @@ end;
 
 function TINIEntry.GetText: string;
 var S,CoS: string;
-    delimiter : char;
-    i : longint;
 begin
   if Text=nil then
     begin
@@ -135,26 +159,7 @@ begin
           begin
             { if Value contains CommentChar, we need to add delimiters }
             if pos(CommentChar,S)>0 then
-              begin
-                delimiter:=#0;
-                while delimiter < #255 do
-                  begin
-                    if (delimiter in ValidStrDelimiters) and
-                       (pos(delimiter,S)=0) then
-                      break;
-                    delimiter:=succ(delimiter);
-                  end;
-                if delimiter=#255 then
-                  delimiter:='"';
-                { we use \", but we also need to escape \ itself }
-                for i:=length(s) downto 1 do
-                  if (s[i]=delimiter) then
-                    s:=copy(s,1,i-1)+'\'+delimiter+copy(s,i+1,length(s))
-                  else if (s[i]='\') then
-                    s:=copy(s,1,i-1)+'\\'+copy(s,i+1,length(s));
-
-                s:=delimiter+s+delimiter;
-              end;
+              S:=EscapeIniText(S);
             S:=S+' '+CommentChar+' '+CoS;
           end
     end
