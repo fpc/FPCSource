@@ -40,7 +40,12 @@ interface
        owbase;
 
     type
+
+      { TOmfObjData }
+
       TOmfObjData = class(TObjData)
+      private
+        class function CodeSectionName(const aname:string): string;
       public
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
         procedure writeReloc(Data:aint;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);override;
@@ -57,6 +62,9 @@ interface
           Alignment: TOmfSegmentAlignment; Combination: TOmfSegmentCombination;
           Use: TOmfSegmentUse);
         procedure AddGroup(const groupname: string; seglist: array of const);
+        procedure WriteSections(Data:TObjData);
+        procedure WriteSectionContentAndFixups(sec: TObjSection);
+
         property LNames: TOmfOrderedNameCollection read FLNames;
         property Segments: TFPHashObjectList read FSegments;
         property Groups: TFPHashObjectList read FGroups;
@@ -85,9 +93,85 @@ implementation
                                 TOmfObjData
 ****************************************************************************}
 
-    function TOmfObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
+    class function TOmfObjData.CodeSectionName(const aname: string): string;
       begin
-        result:=aname;
+{$ifdef i8086}
+        if current_settings.x86memorymodel in x86_far_code_models then
+          begin
+            if cs_huge_code in current_settings.moduleswitches then
+              result:=aname + '_TEXT'
+            else
+              result:=current_module.modulename^ + '_TEXT';
+          end
+        else
+{$endif}
+          result:='text';
+      end;
+
+    function TOmfObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
+      const
+        secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('','',
+          'text',
+          'data',
+          'data',
+          'rodata',
+          'bss',
+          'tbss',
+          'pdata',
+          'text','data','data','data','data',
+          'stab',
+          'stabstr',
+          'idata2','idata4','idata5','idata6','idata7','edata',
+          'eh_frame',
+          'debug_frame','debug_info','debug_line','debug_abbrev',
+          'fpc',
+          '',
+          'init',
+          'fini',
+          'objc_class',
+          'objc_meta_class',
+          'objc_cat_cls_meth',
+          'objc_cat_inst_meth',
+          'objc_protocol',
+          'objc_string_object',
+          'objc_cls_meth',
+          'objc_inst_meth',
+          'objc_cls_refs',
+          'objc_message_refs',
+          'objc_symbols',
+          'objc_category',
+          'objc_class_vars',
+          'objc_instance_vars',
+          'objc_module_info',
+          'objc_class_names',
+          'objc_meth_var_types',
+          'objc_meth_var_names',
+          'objc_selector_strs',
+          'objc_protocol_ext',
+          'objc_class_ext',
+          'objc_property',
+          'objc_image_info',
+          'objc_cstring_object',
+          'objc_sel_fixup',
+          '__DATA,__objc_data',
+          '__DATA,__objc_const',
+          'objc_superrefs',
+          '__DATA, __datacoal_nt,coalesced',
+          'objc_classlist',
+          'objc_nlclasslist',
+          'objc_catlist',
+          'obcj_nlcatlist',
+          'objc_protolist',
+          'stack',
+          'heap'
+        );
+      begin
+        if (atype=sec_user) then
+          Result:=aname
+        else if secnames[atype]='text' then
+          Result:=CodeSectionName(aname)
+        else
+          Result:=secnames[atype];
       end;
 
     procedure TOmfObjData.writeReloc(Data:aint;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);
@@ -142,6 +226,58 @@ implementation
         g.SegmentList:=SegListStr;
       end;
 
+    procedure TOmfObjOutput.WriteSections(Data: TObjData);
+      var
+        i:longint;
+        sec:TObjSection;
+      begin
+        for i:=0 to Data.ObjSectionList.Count-1 do
+          begin
+            sec:=TObjSection(Data.ObjSectionList[i]);
+            WriteSectionContentAndFixups(sec);
+          end;
+      end;
+
+    procedure TOmfObjOutput.WriteSectionContentAndFixups(sec: TObjSection);
+      const
+        MaxChunkSize=$3fa;
+      var
+        RawRecord: TOmfRawRecord;
+        ChunkStart,ChunkLen: DWord;
+        SegIndex: Integer;
+        NextOfs: Integer;
+      begin
+        if (oso_data in sec.SecOptions) then
+          begin
+            if sec.Data=nil then
+              internalerror(200403073);
+            SegIndex:=Segments.FindIndexOf(sec.Name);
+            RawRecord:=TOmfRawRecord.Create;
+            sec.data.seek(0);
+            ChunkStart:=0;
+            ChunkLen:=Min(MaxChunkSize, sec.Data.size-ChunkStart);
+            while ChunkLen>0 do
+            begin
+              { write LEDATA record }
+              RawRecord.RecordType:=RT_LEDATA;
+              NextOfs:=RawRecord.WriteIndexedRef(0,SegIndex);
+              RawRecord.RawData[NextOfs]:=Byte(ChunkStart);
+              RawRecord.RawData[NextOfs+1]:=Byte(ChunkStart shr 8);
+              Inc(NextOfs,2);
+              sec.data.read(RawRecord.RawData[NextOfs], ChunkLen);
+              Inc(NextOfs, ChunkLen);
+              RawRecord.RecordLength:=NextOfs+1;
+              RawRecord.CalculateChecksumByte;
+              RawRecord.WriteTo(FWriter);
+              { TODO: write fixups }
+              { prepare next chunk }
+              Inc(ChunkStart, ChunkLen);
+              ChunkLen:=Min(1024, sec.Data.size-ChunkStart);
+            end;
+            RawRecord.Free;
+          end;
+      end;
+
     function TOmfObjOutput.writeData(Data:TObjData):boolean;
       var
         RawRecord: TOmfRawRecord;
@@ -174,7 +310,7 @@ implementation
         LNames.Add('');  { insert an empty string, which has index 1 }
 
         if not (cs_huge_code in current_settings.moduleswitches) then
-          AddSegment({CodeSectionName(current_module.modulename^)}'text','code',saRelocatableByteAligned,scPublic,suUse16);
+          AddSegment(TOmfObjData.CodeSectionName(current_module.modulename^),'code',saRelocatableByteAligned,scPublic,suUse16);
         AddSegment('rodata','data',saRelocatableByteAligned,scPublic,suUse16);
         AddSegment('data','data',saRelocatableWordAligned,scPublic,suUse16);
         AddSegment('fpc','data',saRelocatableByteAligned,scPublic,suUse16);
@@ -223,6 +359,9 @@ implementation
         LinkPassSeparator_COMENT.EncodeTo(RawRecord);
         RawRecord.WriteTo(FWriter);
         LinkPassSeparator_COMENT.Free;
+
+        { write section content, interleaved with fixups }
+        WriteSections(Data);
 
         RawRecord.Free;
         result:=true;
