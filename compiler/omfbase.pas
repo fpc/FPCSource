@@ -120,6 +120,8 @@ interface
       scPublic7   = 7); { same as scPublic }
     TOmfSegmentUse = (suUse16, suUse32);
 
+    TOmfFixupThread = (ftThread0, ftThread1, ftThread2, ftThread3);
+
     TOmfFixupMode = (fmSelfRelative, fmSegmentRelative);
     TOmfFixupLocationType = (
       fltLoByte                 = 0,  { low 8 bits of 16-bit offset }
@@ -313,6 +315,49 @@ interface
 
       property GroupNameIndex: Integer read FGroupNameIndex write FGroupNameIndex;
       property SegmentList: TSegmentList read FSegmentList write FSegmentList;
+    end;
+
+    { TOmfSubRecord_FIXUP }
+
+    TOmfSubRecord_FIXUP = class
+    private
+      FIs32Bit: Boolean;
+      FMode: TOmfFixupMode;
+      FLocationType: TOmfFixupLocationType;
+      FLocationOffset: DWord;
+      FDataRecordStartOffset: DWord;
+      FTargetDeterminedByThread: Boolean;
+      FTargetThread: TOmfFixupThread;
+      FTargetThreadDisplacementPresent: Boolean;
+      FTargetMethod: TOmfFixupTargetMethod;
+      FTargetDatum: Integer;
+      FTargetDisplacement: DWord;
+      FFrameDeterminedByThread: Boolean;
+      FFrameThread: TOmfFixupThread;
+      FFrameMethod: TOmfFixupFrameMethod;
+      FFrameDatum: Integer;
+      function GetDataRecordOffset: Integer;
+      procedure SetDataRecordOffset(AValue: Integer);
+    public
+      function ReadAt(RawRecord: TOmfRawRecord; Offset: Integer): Integer;
+      function WriteAt(RawRecord: TOmfRawRecord; Offset: Integer): Integer;
+
+      property Is32Bit: Boolean read FIs32Bit write FIs32Bit;
+      property Mode: TOmfFixupMode read FMode write FMode;
+      property LocationType: TOmfFixupLocationType read FLocationType write FLocationType;
+      property LocationOffset: DWord read FLocationOffset write FLocationOffset;
+      property DataRecordStartOffset: DWord read FDataRecordStartOffset write FDataRecordStartOffset;
+      property DataRecordOffset: Integer read GetDataRecordOffset write SetDataRecordOffset;
+      property TargetDeterminedByThread: Boolean read FTargetDeterminedByThread write FTargetDeterminedByThread;
+      property TargetThread: TOmfFixupThread read FTargetThread write FTargetThread;
+      property TargetThreadDisplacementPresent: Boolean read FTargetThreadDisplacementPresent write FTargetThreadDisplacementPresent;
+      property TargetMethod: TOmfFixupTargetMethod read FTargetMethod write FTargetMethod;
+      property TargetDatum: Integer read FTargetDatum write FTargetDatum;
+      property TargetDisplacement: DWord read FTargetDisplacement write FTargetDisplacement;
+      property FrameDeterminedByThread: Boolean read FFrameDeterminedByThread write FFrameDeterminedByThread;
+      property FrameThread: TOmfFixupThread read FFrameThread write FFrameThread;
+      property FrameMethod: TOmfFixupFrameMethod read FFrameMethod write FFrameMethod;
+      property FrameDatum: Integer read FFrameDatum write FFrameDatum;
     end;
 
 implementation
@@ -729,6 +774,136 @@ implementation
         end;
       RawRecord.RecordLength:=NextOfs+1;
       RawRecord.CalculateChecksumByte;
+    end;
+
+  { TOmfSubRecord_FIXUP }
+
+  function TOmfSubRecord_FIXUP.GetDataRecordOffset: Integer;
+    begin
+      Result:=FLocationOffset-FDataRecordStartOffset;
+    end;
+
+  procedure TOmfSubRecord_FIXUP.SetDataRecordOffset(AValue: Integer);
+    begin
+      FLocationOffset:=AValue+FDataRecordStartOffset;
+    end;
+
+  function TOmfSubRecord_FIXUP.ReadAt(RawRecord: TOmfRawRecord; Offset: Integer): Integer;
+    var
+      Locat: Word;
+      FixData: Byte;
+    begin
+      if (Offset+2)>High(RawRecord.RawData) then
+        internalerror(2015040504);
+      { unlike other fields in the OMF format, this one is big endian }
+      Locat:=(RawRecord.RawData[Offset] shl 8) or RawRecord.RawData[Offset+1];
+      FixData:=RawRecord.RawData[Offset+2];
+      Inc(Offset,3);
+      if (Locat and $8000)=0 then
+        internalerror(2015040503);
+      DataRecordOffset:=Locat and $3FF;
+      LocationType:=TOmfFixupLocationType((Locat shr 10) and 15);
+      Mode:=TOmfFixupMode((Locat shr 14) and 1);
+      FrameDeterminedByThread:=(FixData and $80)<>0;
+      TargetDeterminedByThread:=(FixData and $08)<>0;
+      if FrameDeterminedByThread then
+        FrameThread:=TOmfFixupThread((FixData shr 4) and 3)
+      else
+        FrameMethod:=TOmfFixupFrameMethod((FixData shr 4) and 7);
+      if TargetDeterminedByThread then
+        begin
+          TargetThread:=TOmfFixupThread(FixData and 3);
+          TargetThreadDisplacementPresent:=(FixData and $40)=0;
+        end
+      else
+        TargetMethod:=TOmfFixupTargetMethod(FixData and 7);
+      { read Frame Datum? }
+      if not FrameDeterminedByThread and (FrameMethod in [ffmSegmentIndex,ffmGroupIndex,ffmExternalIndex,ffmFrameNumber]) then
+        Offset:=RawRecord.ReadIndexedRef(Offset,FFrameDatum)
+      else
+        FrameDatum:=0;
+      { read Target Datum? }
+      if not TargetDeterminedByThread then
+        Offset:=RawRecord.ReadIndexedRef(Offset,FTargetDatum)
+      else
+        TargetDatum:=0;
+      { read Target Displacement? }
+      if (TargetDeterminedByThread and TargetThreadDisplacementPresent) or
+         (TargetMethod in [ftmSegmentIndex,ftmGroupIndex,ftmExternalIndex,ftmFrameNumber]) then
+        begin
+          if Is32Bit then
+            begin
+              if (Offset+3)>High(RawRecord.RawData) then
+                internalerror(2015040504);
+              TargetDisplacement := RawRecord.RawData[Offset]+
+                                   (RawRecord.RawData[Offset+1] shl 8)+
+                                   (RawRecord.RawData[Offset+2] shl 16)+
+                                   (RawRecord.RawData[Offset+3] shl 24);
+              Inc(Offset,4);
+            end
+          else
+            begin
+              if (Offset+1)>High(RawRecord.RawData) then
+                internalerror(2015040504);
+              TargetDisplacement := RawRecord.RawData[Offset]+
+                                   (RawRecord.RawData[Offset+1] shl 8);
+              Inc(Offset,2);
+            end;
+        end;
+      Result:=Offset;
+    end;
+
+  function TOmfSubRecord_FIXUP.WriteAt(RawRecord: TOmfRawRecord; Offset: Integer): Integer;
+    var
+      Locat: Word;
+      FixData: Byte;
+    begin
+      if (DataRecordOffset<0) or (DataRecordOffset>1023) then
+        internalerror(2015040501);
+      Locat:=$8000+(Ord(Mode) shl 14)+(Ord(LocationType) shl 10)+DataRecordOffset;
+      { unlike other fields in the OMF format, this one is big endian }
+      RawRecord.RawData[Offset]:=Byte(Locat shr 8);
+      RawRecord.RawData[Offset+1]:=Byte(Locat);
+      Inc(Offset, 2);
+      FixData:=(Ord(FrameDeterminedByThread) shl 7)+(Ord(TargetDeterminedByThread) shl 3);
+      if FrameDeterminedByThread then
+        FixData:=FixData+(Ord(FrameThread) shl 4)
+      else
+        FixData:=FixData+(Ord(FrameMethod) shl 4);
+      if TargetDeterminedByThread then
+        FixData:=FixData+Ord(TargetThread)+(Ord(not TargetThreadDisplacementPresent) shl 2)
+      else
+        FixData:=FixData+Ord(TargetMethod);
+      RawRecord.RawData[Offset]:=FixData;
+      Inc(Offset);
+      { save Frame Datum? }
+      if not FrameDeterminedByThread and (FrameMethod in [ffmSegmentIndex,ffmGroupIndex,ffmExternalIndex,ffmFrameNumber]) then
+        Offset:=RawRecord.WriteIndexedRef(Offset,FrameDatum);
+      { save Target Datum? }
+      if not TargetDeterminedByThread then
+        Offset:=RawRecord.WriteIndexedRef(Offset,TargetDatum);
+      { save Target Displacement? }
+      if (TargetDeterminedByThread and TargetThreadDisplacementPresent) or
+         (TargetMethod in [ftmSegmentIndex,ftmGroupIndex,ftmExternalIndex,ftmFrameNumber]) then
+        begin
+          if Is32Bit then
+            begin
+              RawRecord.RawData[Offset]:=Byte(TargetDisplacement);
+              RawRecord.RawData[Offset+1]:=Byte(TargetDisplacement shr 8);
+              RawRecord.RawData[Offset+2]:=Byte(TargetDisplacement shr 16);
+              RawRecord.RawData[Offset+3]:=Byte(TargetDisplacement shr 24);
+              Inc(Offset,4);
+            end
+          else
+            begin
+              if TargetDisplacement>$ffff then
+                internalerror(2015040502);
+              RawRecord.RawData[Offset]:=Byte(TargetDisplacement);
+              RawRecord.RawData[Offset+1]:=Byte(TargetDisplacement shr 8);
+              Inc(Offset,2);
+            end;
+        end;
+      Result:=Offset;
     end;
 
 
