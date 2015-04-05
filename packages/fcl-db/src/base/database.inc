@@ -505,7 +505,25 @@ begin
   FBeforeConnect:=AValue;
 end;
 
+procedure TCustomConnection.DoLoginPrompt;
+
+var
+  ADatabaseName, AUserName, APassword: string;
+
+begin
+  if FLoginPrompt then
+    begin
+    GetLoginParams(ADatabaseName, AUserName, APassword);
+    if Assigned(FOnLogin) then
+      FOnLogin(Self, AUserName, APassword)
+    else if Assigned(LoginDialogExProc) then
+      LoginDialogExProc(ADatabaseName, AUserName, APassword, False);
+    SetLoginParams(ADatabaseName, AUserName, APassword);
+    end;
+end;
+
 procedure TCustomConnection.SetConnected(Value: boolean);
+
 begin
   If Value<>Connected then
     begin
@@ -520,8 +538,7 @@ begin
         begin
         if Assigned(BeforeConnect) then
           BeforeConnect(self);
-        if FLoginPrompt then if assigned(FOnLogin) then
-          FOnLogin(self,'','');
+        DoLoginPrompt;
         DoConnect;
         if Assigned(AfterConnect) then
           AfterConnect(self);
@@ -541,6 +558,26 @@ end;
 procedure TCustomConnection.SetBeforeDisconnect(const AValue: TNotifyEvent);
 begin
   FBeforeDisconnect:=AValue;
+end;
+
+procedure TCustomConnection.GetLoginParams(out ADatabaseName, AUserName, APassword: string);
+begin
+  if IsPublishedProp(Self,'DatabaseName') then
+    ADatabaseName := GetStrProp(Self,'DatabaseName');
+  if IsPublishedProp(Self,'UserName') then
+    AUserName := GetStrProp(Self,'UserName');
+  if IsPublishedProp(Self,'Password') then
+    APassword := 'Password';
+end;
+
+procedure TCustomConnection.SetLoginParams(const ADatabaseName, AUserName, APassword: string);
+begin
+  if IsPublishedProp(Self,'DatabaseName') then
+    SetStrProp(Self,'DatabaseName',ADatabaseName);
+  if IsPublishedProp(Self,'UserName') then
+    SetStrProp(Self,'UserName',AUserName);
+  if IsPublishedProp(Self,'Password') then
+    SetStrProp(Self,'Password',APassword);
 end;
 
 procedure TCustomConnection.DoConnect;

@@ -1953,14 +1953,17 @@ type
     procedure SetBeforeConnect(const AValue: TNotifyEvent);
     procedure SetBeforeDisconnect(const AValue: TNotifyEvent);
   protected
+    procedure DoLoginPrompt; virtual;
     procedure DoConnect; virtual;
     procedure DoDisconnect; virtual;
     function GetConnected : boolean; virtual;
     Function GetDataset(Index : longint) : TDataset; virtual;
     Function GetDataSetCount : Longint; virtual;
+    procedure GetLoginParams(out ADatabaseName, AUserName, APassword: string); virtual;
     procedure InternalHandleException; virtual;
     procedure Loaded; override;
     procedure SetConnected (Value : boolean); virtual;
+    procedure SetLoginParams(const ADatabaseName, AUserName, APassword: string); virtual;
     property ForcedClose : Boolean read FForcedClose write FForcedClose;
     property StreamedConnected: Boolean read FStreamedConnected write FStreamedConnected;
   public
