@@ -496,7 +496,6 @@ type
     function GetRecordUpdateBufferCached(const ABookmark : TBufBookmark; IncludePrior : boolean = false) : boolean;
     function GetActiveRecordUpdateBuffer : boolean;
     procedure ParseFilter(const AFilter: string);
-    function GetPacketReader(const Format: TDataPacketFormat; const AStream: TStream): TDataPacketReader;
 
     function GetIndexDefs : TIndexDefs;
     function GetIndexFieldNames: String;
@@ -560,6 +559,7 @@ type
     function IsReadFromPacket : Boolean;
     function getnextpacket : integer;
     procedure ActiveBufferToRecord;
+    function GetPacketReader(const Format: TDataPacketFormat; const AStream: TStream): TDataPacketReader; virtual;
     // abstracts, must be overidden by descendents
     function Fetch : boolean; virtual;
     function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual;

@@ -81,7 +81,7 @@ Type
     function GetCurrentRecord : boolean; override;
     procedure GotoNextRecord; override;
     procedure InitLoadRecords; override;
-    procedure RestoreRecord override;
+    procedure RestoreRecord; override;
     procedure StoreRecord(ARowState : TRowState; AUpdOrder : integer = 0); override;
     class function RecognizeStream(AStream : TStream) : boolean; override;
     Property Options : TCSVOptions Read FOptions;
@@ -95,6 +95,7 @@ Type
     FCSVOptions: TCSVOptions;
     procedure SetCSVOptions(AValue: TCSVOptions);
   Protected
+    function GetPacketReader(const Format: TDataPacketFormat; const AStream: TStream): TDataPacketReader; override;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); override;
     procedure InternalInitFieldDefs; override;
   Public
@@ -120,7 +121,7 @@ implementation
 
 { TCSVDataPacketReader }
 
-Procedure TCSVDataPacketReader.ReadNextRow;
+procedure TCSVDataPacketReader.ReadNextRow;
 
 
 begin
@@ -167,7 +168,7 @@ begin
   FOwnsOptions:=AOptions=Nil;
 end;
 
-Destructor TCSVDataPacketReader.Destroy;
+destructor TCSVDataPacketReader.Destroy;
 begin
   If FOwnsOptions then
     FreeAndNil(FOPtions);
@@ -302,6 +303,15 @@ begin
   FCSVOptions.Assign(AValue);
 end;
 
+function TCustomCSVDataset.GetPacketReader(const Format: TDataPacketFormat;
+  const AStream: TStream): TDataPacketReader;
+begin
+  If (Format=dfAny) then
+    Result:=TCSVDataPacketReader.Create(Self,AStream,FCSVOptions)
+  else
+    Result:=Inherited GetPacketReader(Format,AStream);
+end;
+
 procedure TCustomCSVDataset.LoadBlobIntoBuffer(FieldDef: TFieldDef;
   ABlobBuf: PBufBlobField);
 begin
@@ -313,13 +323,13 @@ begin
   // Do nothing
 end;
 
-Constructor TCustomCSVDataset.Create(AOwner: TComponent);
+constructor TCustomCSVDataset.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FCSVOptions:=TCSVOptions.Create;
 end;
 
-Destructor TCustomCSVDataset.Destroy;
+destructor TCustomCSVDataset.Destroy;
 begin
   FreeAndNil(FCSVOptions);
   inherited Destroy;
@@ -342,7 +352,7 @@ begin
   end;
 end;
 
-procedure TCustomCSVDataset.LoadFromCSVFile(Const AFileName: string);
+procedure TCustomCSVDataset.LoadFromCSVFile(const AFileName: string);
 
 Var
   F : TFileStream;
