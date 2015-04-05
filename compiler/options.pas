@@ -3440,6 +3440,16 @@ begin
   def_system_macro('FPC_COMP_IS_INT64');
 {$endif aarch64}
 
+{$if defined(cpu8bitalu)}
+  def_system_macro('CPUINT8');
+{$elseif defined(cpu16bitalu)}
+  def_system_macro('CPUINT16');
+{$elseif defined(cpu32bitalu)}
+  def_system_macro('CPUINT32');
+{$elseif defined(cpu64bitalu)}
+  def_system_macro('CPUINT64');
+{$endif defined(cpu64bitalu)}
+
   if tf_cld in target_info.flags then
     if not UpdateTargetSwitchStr('CLD', init_settings.targetswitches, true) then
       InternalError(2013092801);
