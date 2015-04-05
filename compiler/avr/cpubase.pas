@@ -63,8 +63,9 @@ unit cpubase;
       { Last value of opcode enumeration  }
       lastop  = high(tasmop);
 
-      jmp_instructions = [A_BRxx,A_SBIC,A_SBIS,A_JMP,A_RCALL,A_ICALL,A_EIJMP,
-                          A_RJMP,A_CALL,A_RET,A_RETI,A_CPSE,A_IJMP];
+      { call/reg instructions (A_RCALL,A_ICALL,A_CALL,A_RET,A_RETI) are not considered as jmp instructions for the usage cases of
+        this set }
+      jmp_instructions = [A_BRxx,A_SBIC,A_SBIS,A_JMP,A_EIJMP,A_RJMP,A_CPSE,A_IJMP];
 
 {*****************************************************************************
                                   Registers
@@ -121,7 +122,7 @@ unit cpubase;
         {$i ravrdwa.inc}
       );
       { registers which may be destroyed by calls }
-      VOLATILE_INTREGISTERS = [RS_R0,RS_R1,RS_R8..RS_R27,RS_R30,RS_R31];
+      VOLATILE_INTREGISTERS = [RS_R0,RS_R1,RS_R18..RS_R27,RS_R30,RS_R31];
       VOLATILE_FPUREGISTERS = [];
 
     type
