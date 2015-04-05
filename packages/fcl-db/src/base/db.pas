@@ -322,6 +322,7 @@ type
     procedure CheckInactive;
     class procedure CheckTypeSize(AValue: Longint); virtual;
     procedure Change; virtual;
+    procedure Bind(Binding: Boolean); virtual;
     procedure DataChanged;
     procedure FreeBuffers; virtual;
     function GetAsBCD: TBCD; virtual;
