@@ -860,8 +860,15 @@ end;
 
 procedure TCustomBufDataset.SetPacketRecords(aValue : integer);
 begin
-  if (aValue = -1) or (aValue > 0) then FPacketRecords := aValue
-    else DatabaseError(SInvPacketRecordsValue);
+  if (aValue = -1) or (aValue > 0) then
+    begin
+    if (IndexFieldNames='') then
+      FPacketRecords := aValue
+    else if AValue<>-1 then
+      DatabaseError(SInvPacketRecordsValueFieldNames);
+    end
+  else
+    DatabaseError(SInvPacketRecordsValue);
 end;
 
 destructor TCustomBufDataset.Destroy;
@@ -1895,6 +1902,7 @@ begin
       BuildIndex(FIndexes[1]);
       Resync([rmCenter]);
       end;
+    FPacketRecords:=-1;
     FIndexDefs.Updated:=false;
     end
   else

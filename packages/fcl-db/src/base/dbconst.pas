@@ -83,6 +83,7 @@ Resourcestring
   SLookupInfoError         = 'Lookup information for field ''%s'' is incomplete';
   SUnsupportedFieldType    = 'Fieldtype %s is not supported';
   SInvPacketRecordsValue   = 'PacketRecords has to be larger then 0';
+  SInvPacketRecordsValueFieldNames = 'PacketRecords must be -1 if IndexFieldNames is set';
   SInvalidSearchFieldType  = 'Searching in fields of type %s is not supported';
   SDatasetEmpty            = 'The dataset is empty';
   SFieldIsNull             = 'The field is null';
