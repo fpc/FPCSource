@@ -413,12 +413,16 @@ implementation
             { Extend the temp }
             if direction=-1 then
               begin
+                if qword(align(-lasttemp-alignmismatch,alignment))+size+alignmismatch>high(tl^.pos) then
+                  CGMessage(cg_e_localsize_too_big);
                 lasttemp:=(-align(-lasttemp-alignmismatch,alignment))-size-alignmismatch;
                 tl^.pos:=lasttemp;
               end
             else
               begin
                 tl^.pos:=align(lasttemp+alignmismatch,alignment)-alignmismatch;
+                if qword(tl^.pos)+size>high(tl^.pos) then
+                  CGMessage(cg_e_localsize_too_big);
                 lasttemp:=tl^.pos+size;
               end;
 
