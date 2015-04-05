@@ -1182,6 +1182,7 @@ Unit AoptObj;
 {$if defined(arm) or defined(aarch64)}
           (hp.condition=c_None) and
 {$endif arm or aarch64}
+          (hp.ops>0) and
           (JumpTargetOp(hp)^.typ = top_ref) and
           (JumpTargetOp(hp)^.ref^.symbol is TAsmLabel);
       end;
@@ -1381,7 +1382,8 @@ Unit AoptObj;
                         if GetNextInstruction(p, hp1) then
                           begin
                             SkipEntryExitMarker(hp1,hp1);
-                            if FindLabel(tasmlabel(JumpTargetOp(taicpu(p))^.ref^.symbol), hp1) and
+                            if IsJumpToLabel(taicpu(p)) and
+                              FindLabel(tasmlabel(JumpTargetOp(taicpu(p))^.ref^.symbol), hp1) and
           { TODO: FIXME removing the first instruction fails}
                                 (p<>blockstart) then
                               begin
@@ -1401,9 +1403,10 @@ Unit AoptObj;
                                 if hp1.typ = ait_label then
                                   SkipLabels(hp1,hp1);
                                 if (tai(hp1).typ=ait_instruction) and
-                                    IsJumpToLabel(taicpu(hp1)) and
-                                    GetNextInstruction(hp1, hp2) and
-                                    FindLabel(tasmlabel(JumpTargetOp(taicpu(p))^.ref^.symbol), hp2) then
+                                  IsJumpToLabel(taicpu(hp1)) and
+                                  GetNextInstruction(hp1, hp2) and
+                                  IsJumpToLabel(taicpu(p)) and
+                                  FindLabel(tasmlabel(JumpTargetOp(taicpu(p))^.ref^.symbol), hp2) then
                                   begin
                                     if (taicpu(p).opcode=aopt_condjmp)
   {$if defined(arm) or defined(aarch64)}
@@ -1440,7 +1443,7 @@ Unit AoptObj;
                                         continue;
                                       end;
                                   end
-                                else
+                                else if IsJumpToLabel(taicpu(p)) then
                                   GetFinalDestination(taicpu(p),0);
                               end;
                           end;
