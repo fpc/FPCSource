@@ -45,6 +45,9 @@ Unit aopt;
 
       private
         procedure FindLoHiLabels;
+
+        { Builds a table with the locations of the labels in the TAsmList.
+          Also fixes some RegDeallocs like "# %eax released; push (%eax)"  }
         Procedure BuildLabelTableAndFixRegAlloc;
         procedure clear;
         procedure pass_1;
@@ -121,9 +124,8 @@ Unit aopt;
           End
       End;
 
+
     Procedure TAsmOptimizer.BuildLabelTableAndFixRegAlloc;
-    { Builds a table with the locations of the labels in the TAsmList.       }
-    { Also fixes some RegDeallocs like "# %eax released; push (%eax)"           }
     Var p,hp1, hp2: tai;
         Regs: TAllUsedRegs;
         LabelIdx : longint;
