@@ -413,7 +413,7 @@ Type
   ALUSInt = ShortInt;
   ALUUInt = Byte;
 {$elseif defined(CPUINT16)}
-  ALUSInt = ShortInt;
+  ALUSInt = SmallInt;
   ALUUInt = Word;
 {$elseif defined(CPUINT32)}
   ALUSInt = Longint;
