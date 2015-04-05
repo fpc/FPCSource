@@ -859,7 +859,10 @@ type
   end;
   TInitFinalTable = record
     TableCount,
-    InitCount  : {$ifdef VER2_6}longint{$else}sizeint{$endif};
+    InitCount  : {$if defined(VER2)}longint
+                 {$elseif defined(VER3_0)}sizeint
+                 {$else}ALUUInt{$endif}
+                 ;
     Procs      : array[1..maxunits] of TInitFinalRec;
   end;
   PInitFinalTable = ^TInitFinalTable;
@@ -873,7 +876,7 @@ var
 
 procedure fpc_InitializeUnits;[public,alias:'FPC_INITIALIZEUNITS']; compilerproc;
 var
-  i : ObjpasInt;
+  i : ALUUInt;
 {$ifdef DEBUG}
   pt : PInitFinalTable;
 {$endif}
@@ -892,7 +895,7 @@ begin
   with InitFinalTable do
 {$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
    begin
-     for i:=1 to TableCount do
+     for i:=1 to ALUUInt(TableCount) do
       begin
         if assigned(Procs[i].InitProc) then
          Procs[i].InitProc();
@@ -1512,9 +1515,6 @@ end;
 {*****************************************************************************
                             File Handling
 *****************************************************************************}
-
-
-
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 { Allow slash and backslash as separators }

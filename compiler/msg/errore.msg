@@ -2443,6 +2443,9 @@ cg_e_function_not_support_by_selected_instruction_set=06056_E_The function used,
 % Some functions cannot be implemented efficiently for certain instruction sets, one example is fused multiply/add.
 % To avoid very inefficient code, the compiler complains in this case, so either select another instruction set
 % or replace the function call by alternative code
+cg_f_max_units_reached=06057_F_Maximum number of units ($1) reached for the current target
+% Depending of target architecture, the number of units is limited. This limit
+% has been reached. A unit counts only if it contains initialization or finalization count.
 %
 % \end{description}
 # EndOfTeX

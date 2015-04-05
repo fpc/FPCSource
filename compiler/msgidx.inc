@@ -673,6 +673,7 @@ const
   cg_e_mod_only_defined_for_pos_quotient=06054;
   cg_d_autoinlining=06055;
   cg_e_function_not_support_by_selected_instruction_set=06056;
+  cg_f_max_units_reached=06057;
   asmr_d_start_reading=07000;
   asmr_d_finish_reading=07001;
   asmr_e_none_label_contain_at=07002;
@@ -1007,9 +1008,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 75323;
+  MsgTxtSize = 75391;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,99,341,1000,96,57,126,29,202,64,
+    26,99,341,1000,96,58,126,29,202,64,
     58,20,1,1,1,1,1,1,1,1
   );

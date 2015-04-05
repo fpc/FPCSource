@@ -672,6 +672,8 @@ implementation
          { call the unit init code and make it external }
          if (hp.u.flags and (uf_init or uf_finalize))<>0 then
            begin
+             if count=high(aint) then
+               Message1(cg_f_max_units_reached,tostr(count));
              if (hp.u.flags and uf_init)<>0 then
                unitinits.concat(Tai_const.Createname(make_mangledname('INIT$',hp.u.globalsymtable,''),AT_FUNCTION,0))
              else
@@ -701,8 +703,8 @@ implementation
           inc(count);
         end;
       { Insert TableCount,InitCount at start }
-      unitinits.insert(Tai_const.Create_pint(0));
-      unitinits.insert(Tai_const.Create_pint(count));
+      unitinits.insert(Tai_const.Create_aint(0));
+      unitinits.insert(Tai_const.Create_aint(count));
       { Add to data segment }
       maybe_new_object_file(current_asmdata.asmlists[al_globals]);
       new_section(current_asmdata.asmlists[al_globals],sec_data,'INITFINAL',const_align(sizeof(pint)));
