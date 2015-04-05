@@ -66,6 +66,9 @@ interface
          RELOC_GOT32,
          RELOC_PLT32,
 {$endif i386}
+{$ifdef i8086}
+         RELOC_FARPTR,
+{$endif i8086}
 {$ifdef arm}
          RELOC_RELATIVE_24,
          RELOC_RELATIVE_24_THUMB,

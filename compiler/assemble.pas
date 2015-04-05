@@ -1645,6 +1645,10 @@ Implementation
                        { Required for DWARF2 support under Windows }
                        ObjData.writereloc(Tai_const(hp).symofs,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_SECREL32);
                      end;
+{$ifdef i8086}
+                   aitconst_farptr :
+                     ObjData.writereloc(Tai_const(hp).symofs,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_FARPTR);
+{$endif i8086}
 {$ifdef arm}
                    aitconst_got:
                      ObjData.writereloc(Tai_const(hp).symofs,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_GOT32);
