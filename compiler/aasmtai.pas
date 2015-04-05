@@ -1882,6 +1882,8 @@ implementation
           aitconst_half16bit,
           aitconst_gs:
             result:=2;
+          aitconst_farptr:
+            result:=4;
           aitconst_got:
             result:=sizeof(pint);
           aitconst_gotoff_symbol:
