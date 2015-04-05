@@ -17,7 +17,7 @@ units=$(SYSTEMUNIT) $(CPU_UNITS) uuchar objpas iso7185 strings heapmgr consoleio
        dos \
        ctypes \
        charset cpall \
-       sysconst lineinfo
+       sysconst
 #implicitunits=exeinfo \
 #      cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 \
 #      cp437 cp646 cp850 cp856 cp866 cp874 cp932 cp936 cp949 cp950 cp8859_1 cp8859_5 cp8859_2 cp852
@@ -62,7 +62,7 @@ SYSINIT_UNITS=
 CPU_SPECIFIC_COMMON_UNITS=
 
 ifeq ($(ARCH),arm)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 ifeq ($(SUBARCH),armv7m)
 CPU_UNITS=lm3fury lm3tempest stm32f10x_ld stm32f10x_md stm32f10x_hd stm32f10x_xl stm32f10x_conn stm32f10x_cl lpc13xx lpc1768 lm4f120  xmc4500 cortexm3 cortexm4 # thumb2_bare
 endif
@@ -88,12 +88,12 @@ CPU_UNITS=atmega128 avrsim
 endif
 
 ifeq ($(ARCH),i386)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 CPU_UNITS=multiboot
 endif
 
 ifeq ($(ARCH),mipsel)
-CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts
+CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 ifeq ($(SUBARCH),pic32mx)
   CPU_UNITS=pic32mx1xxfxxxb pic32mx2xxfxxxb pic32mx1xxfxxxc pic32mx2xxfxxxc pic32mx1xxfxxxd pic32mx2xxfxxxd pic32mx7x5fxxxl pic32mx7x5fxxxh
 endif
