@@ -402,7 +402,7 @@ type
 
   { TCustomSQLQuery }
 
-  TSQLQueryOption = (sqoKeepOpenOnCommit, sqoAutoApplyUpdates, sqoAutoCommit);
+  TSQLQueryOption = (sqoKeepOpenOnCommit, sqoAutoApplyUpdates, sqoAutoCommit, sqoCancelUpdatesOnRefresh);
   TSQLQueryOptions = Set of TSQLQueryOption;
 
   TCustomSQLQuery = class (TCustomBufDataset)
@@ -483,6 +483,7 @@ type
     procedure InternalClose; override;
     procedure InternalInitFieldDefs; override;
     procedure InternalOpen; override;
+    Procedure InternalRefresh; override;
     function  GetCanModify: Boolean; override;
     Function IsPrepared : Boolean; virtual;
     Procedure SetActive (Value : Boolean); override;
@@ -2234,7 +2235,7 @@ begin
   inherited Destroy;
 end;
 
-function TCustomSQLQuery.ParamByName(Const AParamName: String): TParam;
+function TCustomSQLQuery.ParamByName(const AParamName: String): TParam;
 
 begin
   Result:=Params.ParamByName(AParamName);
@@ -2246,7 +2247,7 @@ begin
   CheckInactive;
 end;
 
-Procedure TCustomSQLQuery.SetTransaction(Value: TDBTransaction);
+procedure TCustomSQLQuery.SetTransaction(Value: TDBTransaction);
 
 begin
   UnPrepare;
@@ -2276,7 +2277,7 @@ begin
     end;
 end;
 
-Function TCustomSQLQuery.IsPrepared: Boolean;
+function TCustomSQLQuery.IsPrepared: Boolean;
 
 begin
   if Assigned(Fstatement) then
@@ -2285,7 +2286,7 @@ begin
     Result := False;
 end;
 
-Function TCustomSQLQuery.AddFilter(SQLstr: string): string;
+function TCustomSQLQuery.AddFilter(SQLstr: string): string;
 
 begin
   if (FWhereStartPos > 0) and (FWhereStopPos > 0) then
@@ -2303,7 +2304,7 @@ begin
   Result := SQLstr;
 end;
 
-Function TCustomSQLQuery.NeedRefreshRecord(UpdateKind: TUpdateKind): Boolean;
+function TCustomSQLQuery.NeedRefreshRecord(UpdateKind: TUpdateKind): Boolean;
 
 
 Var
@@ -2323,7 +2324,7 @@ begin
     end;
 end;
 
-Function TCustomSQLQuery.RefreshRecord(UpdateKind: TUpdateKind) : Boolean;
+function TCustomSQLQuery.RefreshRecord(UpdateKind: TUpdateKind): Boolean;
 
 Var
   Q : TCustomSQLQuery;
@@ -2386,7 +2387,7 @@ begin
   First;
 end;
 
-Procedure TCustomSQLQuery.SetActive(Value: Boolean);
+procedure TCustomSQLQuery.SetActive(Value: Boolean);
 
 begin
   inherited SetActive(Value);
@@ -2461,7 +2462,7 @@ begin
   Result := FServerIndexDefs;
 end;
 
-function TCustomSQLQuery.GetSQL: TStringlist;
+function TCustomSQLQuery.GetSQL: TStringList;
 begin
   Result:=TStringList(Fstatement.SQL);
 end;
@@ -2476,7 +2477,7 @@ begin
   Result:=Transaction as TSQLTransaction;
 end;
 
-Function TCustomSQLQuery.Cursor: TSQLCursor;
+function TCustomSQLQuery.Cursor: TSQLCursor;
 begin
   Result:=FStatement.Cursor;
 end;
@@ -2623,6 +2624,13 @@ begin
   inherited InternalOpen;
 end;
 
+procedure TCustomSQLQuery.InternalRefresh;
+begin
+  if (sqoCancelUpdatesOnRefresh in Options) then
+    CancelUpdates;
+  inherited InternalRefresh;
+end;
+
 // public part
 
 procedure TCustomSQLQuery.ExecSQL;
@@ -2644,7 +2652,7 @@ begin
   end;
 end;
 
-Procedure TCustomSQLQuery.ApplyUpdates(MaxErrors: Integer);
+procedure TCustomSQLQuery.ApplyUpdates(MaxErrors: Integer);
 begin
   inherited ApplyUpdates(MaxErrors);
   If sqoAutoCommit in Options then
@@ -2655,14 +2663,14 @@ begin
     end;
 end;
 
-Procedure TCustomSQLQuery.Post;
+procedure TCustomSQLQuery.Post;
 begin
   inherited Post;
   If (sqoAutoApplyUpdates in Options) then
     ApplyUpdates;
 end;
 
-Procedure TCustomSQLQuery.Delete;
+procedure TCustomSQLQuery.Delete;
 begin
   inherited Delete;
   If (sqoAutoApplyUpdates in Options) then
@@ -2685,7 +2693,7 @@ begin
     FServerFiltered := False;
 end;
 
-procedure TCustomSQLQuery.SetSQL(const AValue: TStringlist);
+procedure TCustomSQLQuery.SetSQL(const AValue: TStringList);
 begin
   FStatement.SQL.Assign(AValue);
 end;
@@ -2709,7 +2717,7 @@ begin
     SQLConnection.UpdateIndexDefs(ServerIndexDefs,FTableName);
 end;
 
-Function TCustomSQLQuery.NeedLastInsertID : TField;
+function TCustomSQLQuery.NeedLastInsertID: TField;
 
 Var
   I : Integer;
@@ -2729,7 +2737,7 @@ begin
     end
 end;
 
-Function TCustomSQLQuery.RefreshLastInsertID(Field : TField) : Boolean;
+function TCustomSQLQuery.RefreshLastInsertID(Field: TField): Boolean;
 
 begin
   Result:=SQLConnection.RefreshLastInsertID(Self, Field);
@@ -2815,12 +2823,12 @@ begin
     UnPrepareStatement(Cursor);
 end;
 
-Function TCustomSQLQuery.LogEvent(EventType: TDBEventType): Boolean;
+function TCustomSQLQuery.LogEvent(EventType: TDBEventType): Boolean;
 begin
   Result:=Assigned(Database) and SQLConnection.LogEvent(EventType);
 end;
 
-Procedure TCustomSQLQuery.Log(EventType: TDBEventType; Const Msg: String);
+procedure TCustomSQLQuery.Log(EventType: TDBEventType; const Msg: String);
 
 Var
   M : String;
@@ -2899,7 +2907,7 @@ begin
   FStatement.Params.Assign(AValue);
 end;
 
-Procedure TCustomSQLQuery.SetDataSource(AValue: TDataSource);
+procedure TCustomSQLQuery.SetDataSource(AValue: TDataSource);
 
 Var
   DS : TDataSource;
@@ -2916,7 +2924,7 @@ begin
     end;
 end;
 
-Function TCustomSQLQuery.GetDataSource: TDataSource;
+function TCustomSQLQuery.GetDataSource: TDataSource;
 
 begin
   If Assigned(FStatement) then
