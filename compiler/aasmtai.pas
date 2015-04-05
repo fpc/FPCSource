@@ -617,15 +617,15 @@ interface
           constructor Create_sym_far(_sym:tasmsymbol);
 {$endif i8086}
           constructor Create_type_sym(_typ:taiconst_type;_sym:tasmsymbol);
-          constructor Create_sym_offset(_sym:tasmsymbol;ofs:aint);
-          constructor Create_type_sym_offset(_typ:taiconst_type;_sym:tasmsymbol;ofs:aint);
+          constructor Create_sym_offset(_sym:tasmsymbol;ofs:asizeint);
+          constructor Create_type_sym_offset(_typ:taiconst_type;_sym:tasmsymbol;ofs:asizeint);
           constructor Create_rel_sym(_typ:taiconst_type;_sym,_endsym:tasmsymbol);
           constructor Create_rel_sym_offset(_typ : taiconst_type; _sym,_endsym : tasmsymbol; _ofs : int64);
           constructor Create_rva_sym(_sym:tasmsymbol);
-          constructor Createname(const name:string;ofs:aint);
-          constructor Createname(const name:string;_symtyp:Tasmsymtype;ofs:aint);
-          constructor Create_type_name(_typ:taiconst_type;const name:string;ofs:aint);
-          constructor Create_type_name(_typ:taiconst_type;const name:string;_symtyp:Tasmsymtype;ofs:aint);
+          constructor Createname(const name:string;ofs:asizeint);
+          constructor Createname(const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
+          constructor Create_type_name(_typ:taiconst_type;const name:string;ofs:asizeint);
+          constructor Create_type_name(_typ:taiconst_type;const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
           constructor Create_nil_codeptr;
           constructor Create_nil_dataptr;
           constructor Create_int_codeptr(_value: int64);
@@ -1662,7 +1662,7 @@ implementation
 {$endif i8086}
 
 
-    constructor tai_const.Create_sym_offset(_sym:tasmsymbol;ofs:aint);
+    constructor tai_const.Create_sym_offset(_sym:tasmsymbol;ofs:asizeint);
       begin
          inherited Create;
          typ:=ait_const;
@@ -1702,7 +1702,7 @@ implementation
       end;
 
 
-    constructor tai_const.Create_type_sym_offset(_typ : taiconst_type;_sym : tasmsymbol; ofs : aint);
+    constructor tai_const.Create_type_sym_offset(_typ : taiconst_type;_sym : tasmsymbol; ofs : asizeint);
       begin
          inherited Create;
          typ:=ait_const;
@@ -1745,25 +1745,25 @@ implementation
       end;
 
 
-    constructor tai_const.Createname(const name:string;ofs:aint);
+    constructor tai_const.Createname(const name:string;ofs:asizeint);
       begin
          self.Createname(name,AT_NONE,ofs);
       end;
 
 
-    constructor tai_const.Createname(const name:string;_symtyp:Tasmsymtype;ofs:aint);
+    constructor tai_const.Createname(const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
       begin
          self.create_sym_offset(current_asmdata.RefAsmSymbol(name,_symtyp),ofs);
       end;
 
 
-    constructor tai_const.Create_type_name(_typ:taiconst_type;const name:string;ofs:aint);
+    constructor tai_const.Create_type_name(_typ:taiconst_type;const name:string;ofs:asizeint);
       begin
          self.Create_type_name(_typ,name,AT_NONE,ofs);
       end;
 
 
-    constructor tai_const.Create_type_name(_typ:taiconst_type;const name:string;_symtyp:Tasmsymtype;ofs:aint);
+    constructor tai_const.Create_type_name(_typ:taiconst_type;const name:string;_symtyp:Tasmsymtype;ofs:asizeint);
       begin
          self.create_sym_offset(current_asmdata.RefAsmSymbol(name,_symtyp),ofs);
          consttype:=_typ;
