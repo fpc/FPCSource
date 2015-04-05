@@ -399,6 +399,30 @@ Type
   ValUInt = Word;
 {$endif CPU16}
 
+{$if defined(VER2) or defined(VER3_0)}
+{$if defined(CPU16)}
+{$define CPUINT16}
+{$elseif defined(CPU32)}
+{$define CPUINT32}
+{$elseif defined(CPU64)}
+{$define CPUINT64}
+{$endif defined(CPU64)}
+{$endif defined(VER2) or defined(VER3_0)}
+
+{$if defined(CPUINT8)}
+  ALUSInt = ShortInt;
+  ALUUInt = Byte;
+{$elseif defined(CPUINT16)}
+  ALUSInt = ShortInt;
+  ALUUInt = Word;
+{$elseif defined(CPUINT32)}
+  ALUSInt = Longint;
+  ALUUInt = DWord;
+{$elseif defined(CPUINT64)}
+  ALUSInt = Int64;
+  ALUUInt = QWord;
+{$endif defined(CPUINT64)}
+
   { NativeInt and NativeUInt are Delphi compatibility types. Even though Delphi
     has IntPtr and UIntPtr, the Delphi documentation for NativeInt states that
     'The size of NativeInt is equivalent to the size of the pointer on the
@@ -694,7 +718,7 @@ var
   IsConsole : boolean = false; public name 'operatingsystem_isconsole';
   NoErrMsg: Boolean platform = False; // For Delphi compatibility, not used in FPC.
   FirstDotAtFileNameStartIsExtension : Boolean = False;
-  
+
   DefaultSystemCodePage,
   DefaultUnicodeCodePage,
   { the code page to use when sending paths/file names to OS file system API
