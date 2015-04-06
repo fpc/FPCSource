@@ -56,6 +56,19 @@ interface
       { TOmfObjSection }
 
       TOmfObjSection = class(TObjSection)
+      private
+        FClassName: string;
+        FOverlayName: string;
+        FOmfAlignment: TOmfSegmentAlignment;
+        FCombination: TOmfSegmentCombination;
+        FUse: TOmfSegmentUse;
+      public
+        constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
+        property ClassName: string read FClassName;
+        property OverlayName: string read FOverlayName;
+        property OmfAlignment: TOmfSegmentAlignment read FOmfAlignment;
+        property Combination: TOmfSegmentCombination read FCombination;
+        property Use: TOmfSegmentUse read FUse;
       end;
 
       { TOmfObjData }
@@ -131,6 +144,41 @@ implementation
       begin
         FOmfFixup.Free;
         inherited Destroy;
+      end;
+
+{****************************************************************************
+                                TOmfObjSection
+****************************************************************************}
+
+    constructor TOmfObjSection.create(AList: TFPHashObjectList;
+          const Aname: string; Aalign: shortint; Aoptions: TObjSectionOptions);
+      begin
+        inherited create(AList, Aname, Aalign, Aoptions);
+        FCombination:=scPublic;
+        FUse:=suUse16;
+        FOmfAlignment:=saRelocatableByteAligned;
+        if oso_executable in Aoptions then
+          FClassName:='code'
+        else if Aname='stack' then
+          begin
+            FClassName:='stack';
+            FCombination:=scStack;
+            FOmfAlignment:=saRelocatableParaAligned;
+          end
+        else if Aname='heap' then
+          begin
+            FClassName:='heap';
+            FOmfAlignment:=saRelocatableParaAligned;
+          end
+        else if Aname='bss' then
+          FClassName:='bss'
+        else if Aname='data' then
+          begin
+            FClassName:='data';
+            FOmfAlignment:=saRelocatableWordAligned;
+          end
+        else
+          FClassName:='data';
       end;
 
 {****************************************************************************
