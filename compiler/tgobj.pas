@@ -412,6 +412,7 @@ implementation
 
 {$push}
 {$warn 6018 off}
+{$warn 4044 off}
             { Extend the temp }
             if direction=-1 then
               begin
