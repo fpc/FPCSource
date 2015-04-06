@@ -2626,7 +2626,7 @@ end;
 
 procedure TCustomSQLQuery.InternalRefresh;
 begin
-  if (sqoCancelUpdatesOnRefresh in Options) then
+  if (ChangeCount>0) and (sqoCancelUpdatesOnRefresh in Options) then
     CancelUpdates;
   inherited InternalRefresh;
 end;
