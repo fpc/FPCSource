@@ -16,7 +16,6 @@ const
 
 var
   i,j : integer;
-  s : string;
 begin
   start;
   for i:=1 to 500000 do
