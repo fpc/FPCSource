@@ -3191,8 +3191,7 @@ begin
 
              writeln([space,' Abstract methods : ',getlongint]);
 
-             if (tobjecttyp(b)=odt_helper) or
-                 (oo_is_classhelper in current_objectoptions) then
+             if tobjecttyp(b)=odt_helper then
                begin
                  write([space,'    Helper parent : ']);
                  readderef('',objdef.HelperParent);
