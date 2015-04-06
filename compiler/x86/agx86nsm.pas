@@ -641,8 +641,10 @@ interface
                       AsmWriteLn(#9'ALIGNB '+tostr(tai_align(hp).aligntype))
                     else if tai_align_abstract(hp).use_op then
                       AsmWriteLn(#9'ALIGN '+tostr(tai_align(hp).aligntype)+',DB '+tostr(tai_align_abstract(hp).fillop))
+                    else if LastSecType in [sec_code,sec_stub,sec_init,sec_fini] then
+                      AsmWriteLn(#9'ALIGN '+tostr(tai_align(hp).aligntype))
                     else
-                      AsmWriteLn(#9'ALIGN '+tostr(tai_align(hp).aligntype));
+                      AsmWriteLn(#9'ALIGN '+tostr(tai_align(hp).aligntype)+',DB 0');
                  end;
              end;
 
