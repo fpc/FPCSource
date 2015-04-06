@@ -881,7 +881,7 @@ end;
 class procedure TAssert.AssertException(AExceptionClass: ExceptClass;
   AMethod: TRunMethod;AExceptionMessage : String = ''; AExceptionContext : Integer = 0);
 begin
-  AssertException('', AExceptionClass, AMethod, AExceptionMessage, 0, CallerAddr);
+  AssertException('', AExceptionClass, AMethod, AExceptionMessage, AExceptionContext, CallerAddr);
 end;
 
 
