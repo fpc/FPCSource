@@ -630,7 +630,7 @@ implementation
     var
       hp : tused_unit;
       unitinits : TAsmList;
-      count : longint;
+      count : aint;
 
       procedure write_struct_inits(u: tmodule);
         var

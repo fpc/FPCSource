@@ -410,6 +410,8 @@ implementation
             tl^.temptype:=temptype;
             tl^.def:=def;
 
+{$push}
+{$warn 6018 off}
             { Extend the temp }
             if direction=-1 then
               begin
@@ -425,7 +427,7 @@ implementation
                   CGMessage(cg_e_localsize_too_big);
                 lasttemp:=tl^.pos+size;
               end;
-
+{$pop}
             tl^.fini:=fini;
             tl^.alignment:=alignment;
             tl^.size:=size;
