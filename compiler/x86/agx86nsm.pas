@@ -639,6 +639,8 @@ interface
                       (target_info.system in (systems_windows+systems_wince))
                      ) then
                       AsmWriteLn(#9'ALIGNB '+tostr(tai_align(hp).aligntype))
+                    else if tai_align_abstract(hp).use_op then
+                      AsmWriteLn(#9'ALIGN '+tostr(tai_align(hp).aligntype)+',DB '+tostr(tai_align_abstract(hp).fillop))
                     else
                       AsmWriteLn(#9'ALIGN '+tostr(tai_align(hp).aligntype));
                  end;
