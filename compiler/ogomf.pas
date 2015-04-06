@@ -41,6 +41,18 @@ interface
 
     type
 
+      { TOmfRelocation }
+
+      TOmfRelocation = class(TObjRelocation)
+      private
+        FOmfFixup: TOmfSubRecord_FIXUP;
+      public
+        constructor CreateSymbol(ADataOffset:aword;s:TObjSymbol;Atyp:TObjRelocationType);
+        destructor Destroy; override;
+
+        property OmfFixup: TOmfSubRecord_FIXUP read FOmfFixup;
+      end;
+
       { TOmfObjData }
 
       TOmfObjData = class(TObjData)
@@ -88,6 +100,32 @@ implementation
        ogmap,
        version
        ;
+
+{****************************************************************************
+                                TOmfRelocation
+****************************************************************************}
+
+    constructor TOmfRelocation.CreateSymbol(ADataOffset: aword; s: TObjSymbol; Atyp: TObjRelocationType);
+      begin
+        inherited CreateSymbol(ADataOffset,s,Atyp);
+        FOmfFixup:=TOmfSubRecord_FIXUP.Create;
+        { dummy data, TODO: fix }
+        FOmfFixup.LocationOffset:=ADataOffset;
+        FOmfFixup.LocationType:=fltOffset;
+        FOmfFixup.FrameDeterminedByThread:=False;
+        FOmfFixup.TargetDeterminedByThread:=False;
+        FOmfFixup.Mode:=fmSegmentRelative;
+        FOmfFixup.TargetMethod:=ftmSegmentIndexNoDisp;
+        FOmfFixup.TargetDatum:=3;
+        FOmfFixup.FrameMethod:=ffmGroupIndex;
+        FOmfFixup.FrameDatum:=1;
+      end;
+
+    destructor TOmfRelocation.Destroy;
+      begin
+        FOmfFixup.Free;
+        inherited Destroy;
+      end;
 
 {****************************************************************************
                                 TOmfObjData
@@ -175,7 +213,25 @@ implementation
       end;
 
     procedure TOmfObjData.writeReloc(Data:aint;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);
+      var
+        objreloc: TOmfRelocation;
       begin
+{        Write('writeReloc(', data, ',', len, ',');
+        if p<>nil then
+          write(p.Name)
+        else
+          write('nil');
+        Writeln(',',Reloctype,')');}
+
+        if CurrObjSec=nil then
+          internalerror(200403072);
+        objreloc:=nil;
+        if assigned(p) then
+          begin
+            objreloc:=TOmfRelocation.CreateSymbol(CurrObjSec.Size,p,Reloctype);
+            CurrObjSec.ObjRelocations.Add(objreloc);
+          end;
+        CurrObjSec.write(data,len);
       end;
 
 {****************************************************************************
@@ -244,8 +300,10 @@ implementation
       var
         RawRecord: TOmfRawRecord;
         ChunkStart,ChunkLen: DWord;
+        ChunkFixupStart,ChunkFixupEnd: Integer;
         SegIndex: Integer;
         NextOfs: Integer;
+        I: Integer;
       begin
         if (oso_data in sec.SecOptions) then
           begin
@@ -254,6 +312,8 @@ implementation
             SegIndex:=Segments.FindIndexOf(sec.Name);
             RawRecord:=TOmfRawRecord.Create;
             sec.data.seek(0);
+            ChunkFixupStart:=0;
+            ChunkFixupEnd:=-1;
             ChunkStart:=0;
             ChunkLen:=Min(MaxChunkSize, sec.Data.size-ChunkStart);
             while ChunkLen>0 do
@@ -269,10 +329,27 @@ implementation
               RawRecord.RecordLength:=NextOfs+1;
               RawRecord.CalculateChecksumByte;
               RawRecord.WriteTo(FWriter);
-              { TODO: write fixups }
+              { write FIXUPP record }
+              while (ChunkFixupEnd<(sec.ObjRelocations.Count-1)) and
+                    (TOmfRelocation(sec.ObjRelocations[ChunkFixupEnd+1]).OmfFixup.LocationOffset<(ChunkStart+ChunkLen)) do
+                inc(ChunkFixupEnd);
+              if ChunkFixupEnd>=ChunkFixupStart then
+                begin
+                  RawRecord.RecordType:=RT_FIXUPP;
+                  NextOfs:=0;
+                  for I:=ChunkFixupStart to ChunkFixupEnd do
+                    begin
+                      TOmfRelocation(sec.ObjRelocations[I]).OmfFixup.DataRecordStartOffset:=ChunkStart;
+                      NextOfs:=TOmfRelocation(sec.ObjRelocations[I]).OmfFixup.WriteAt(RawRecord,NextOfs);
+                    end;
+                  RawRecord.RecordLength:=NextOfs+1;
+                  RawRecord.CalculateChecksumByte;
+                  RawRecord.WriteTo(FWriter);
+                end;
               { prepare next chunk }
               Inc(ChunkStart, ChunkLen);
-              ChunkLen:=Min(1024, sec.Data.size-ChunkStart);
+              ChunkLen:=Min(MaxChunkSize, sec.Data.size-ChunkStart);
+              ChunkFixupStart:=ChunkFixupEnd+1;
             end;
             RawRecord.Free;
           end;
