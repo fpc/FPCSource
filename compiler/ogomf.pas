@@ -53,12 +53,18 @@ interface
         property OmfFixup: TOmfSubRecord_FIXUP read FOmfFixup;
       end;
 
+      { TOmfObjSection }
+
+      TOmfObjSection = class(TObjSection)
+      end;
+
       { TOmfObjData }
 
       TOmfObjData = class(TObjData)
       private
         class function CodeSectionName(const aname:string): string;
       public
+        constructor create(const n:string);override;
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
         procedure writeReloc(Data:aint;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);override;
       end;
@@ -144,6 +150,12 @@ implementation
         else
 {$endif}
           result:='text';
+      end;
+
+    constructor TOmfObjData.create(const n: string);
+      begin
+        inherited create(n);
+        CObjSection:=TOmfObjSection;
       end;
 
     function TOmfObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
