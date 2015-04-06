@@ -666,6 +666,7 @@ begin
   writeln([space,' recordalignment: ',shortint(ppufile.getbyte)]);
   usefieldalignment:=shortint(ppufile.getbyte);
   writeln([space,' usefieldalignment: ',usefieldalignment]);
+  writeln([space,' recordalignmin: ',shortint(ppufile.getbyte)]);
   if (usefieldalignment=C_alignment) then
     writeln([space,' fieldalignment: ',shortint(ppufile.getbyte)]);
 end;
@@ -3114,6 +3115,7 @@ begin
                  writeln([space,'      RecordAlign : ',shortint(getbyte)]);
                  writeln([space,'         PadAlign : ',shortint(getbyte)]);
                  writeln([space,'UseFieldAlignment : ',shortint(getbyte)]);
+                 writeln([space,'   RecordAlignMin : ',shortint(getbyte)]);
                  objdef.Size:=getasizeint;
                  writeln([space,'         DataSize : ',objdef.Size]);
                  writeln([space,'      PaddingSize : ',getword]);
@@ -3172,7 +3174,9 @@ begin
              writeln([space,'      PaddingSize : ',getword]);
              writeln([space,'       FieldAlign : ',shortint(getbyte)]);
              writeln([space,'      RecordAlign : ',shortint(getbyte)]);
-             writeln([space,'       Vmt offset : ',getlongint]);
+             writeln([space,'   RecordAlignMin : ',shortint(getbyte)]);
+             write  ([space,  '       VmtField : ']);
+             readderef('',nil);
              write  ([space,  '   Ancestor Class : ']);
              readderef('',objdef.Ancestor);
 
