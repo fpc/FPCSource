@@ -54,6 +54,8 @@ type
     Procedure TestRefreshSQLNoRecords;
     Procedure TestFetchAutoInc;
     procedure TestSequence;
+    procedure TestReturningInsert;
+    procedure TestReturningUpdate;
   end;
 
   { TTestTSQLConnection }
@@ -198,7 +200,7 @@ begin
 
     Q := SQLDBConnector.Query;
     Q.SQL.Text:='select * from FPDEV2';
-    Q.Options:=[sqoKeepOpenOnCommit];
+    Q.Options:=[sqoKeepOpenOnCommit,sqoPreferRefresh];
     AssertEquals('PacketRecords forced to -1',-1,Q.PacketRecords);
     Q.Open;
     AssertEquals('Got all records',20,Q.RecordCount);
@@ -402,6 +404,7 @@ begin
       Transaction.Commit;
     end;
   Q:=SQLDBConnector.Query;
+  Q.OPtions:=Q.OPtions+[sqoPreferRefresh];
   Q.SQL.Text:='select * from FPDEV2';
   Q.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
   Q.RefreshSQL.Text:='SELECT a,b FROM FPDEV2 WHERE (id=:id)';
@@ -440,6 +443,7 @@ begin
   Q:=SQLDBConnector.Query;
   Q.SQL.Text:='select * from FPDEV2';
   Q.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
+  Q.OPtions:=Q.OPtions+[sqoPreferRefresh];
   Q.Open;
   With Q.FieldByName('id') do
     ProviderFlags:=ProviderFlags+[pfInKey];
@@ -471,6 +475,7 @@ begin
   Q:=SQLDBConnector.Query;
   Q.SQL.Text:='select * from FPDEV2';
   Q.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
+  Q.OPtions:=Q.OPtions+[sqoPreferRefresh];
   Q.Open;
   With Q.FieldByName('id') do
     ProviderFlags:=ProviderFlags+[pfInKey];
@@ -497,6 +502,7 @@ begin
   FMyQ:=SQLDBConnector.Query;
   FMyQ.SQL.Text:='select * from FPDEV2';
   FMyQ.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
+  FMyQ.OPtions:=FMyQ.OPtions+[sqoPreferRefresh];
   FMyQ.Open;
   With FMyQ.FieldByName('id') do
     ProviderFlags:=ProviderFlags-[pfInKey];
@@ -521,6 +527,7 @@ begin
       Transaction.Commit;
     end;
   FMyQ:=SQLDBConnector.Query;
+  FMyQ.OPtions:=FMyQ.OPtions+[sqoPreferRefresh];
   FMyQ.SQL.Text:='select * from FPDEV2';
   FMyQ.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
   FMyQ.RefreshSQL.Text:='select * from FPDEV2';
@@ -547,6 +554,7 @@ begin
       Transaction.Commit;
     end;
   FMyQ:=SQLDBConnector.Query;
+  FMyQ.OPtions:=FMyQ.OPtions+[sqoPreferRefresh];
   FMyQ.SQL.Text:='select * from FPDEV2';
   FMyQ.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
   FMyQ.RefreshSQL.Text:='select * from FPDEV2 where 1=2';
@@ -645,6 +653,68 @@ begin
 
   SQLDBConnector.ExecuteDirect('drop sequence FPDEV_SEQ1');
   SQLDBConnector.CommitDDL;
+end;
+
+procedure TTestTSQLQuery.TestReturningInsert;
+
+begin
+  with SQLDBConnector do
+    begin
+    if not (sqSupportReturning in Connection.ConnOptions) then
+      Ignore(STestNotApplicable);
+    ExecuteDirect('create table FPDEV2 (id integer not null, a varchar(10) default ''abcde'', b varchar(5) default ''fgh'', constraint PK_FPDEV2 primary key(id))');
+    if Transaction.Active then
+      Transaction.Commit;
+    ExecuteDirect('insert into FPDEV2 (id) values (123)');
+    if Transaction.Active then
+      Transaction.Commit;
+    end;
+  FMyQ:=SQLDBConnector.Query;
+  FMyQ.SQL.Text:='select * from FPDEV2';
+//  FMyQ.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
+  FMyQ.Open;
+  With FMyQ.FieldByName('id') do
+    ProviderFlags:=ProviderFlags+[pfInKey];
+  With FMyQ.FieldByName('a') do
+    ProviderFlags:=ProviderFlags+[pfRefreshOnInsert];
+  With FMyQ.FieldByName('b') do
+    ProviderFlags:=[];
+  FMyQ.Insert;
+  FMyQ.FieldByName('id').AsInteger:=1;
+  FMyQ.Post;
+  FMyQ.ApplyUpdates;
+  AssertEquals('a updated','abcde',FMyQ.FieldByName('a').AsString);
+  AssertEquals('b not updated','',FMyQ.FieldByName('b').AsString);
+end;
+
+procedure TTestTSQLQuery.TestReturningUpdate;
+
+begin
+  with SQLDBConnector do
+    begin
+    if not (sqSupportReturning in Connection.ConnOptions) then
+      Ignore(STestNotApplicable);
+    ExecuteDirect('create table FPDEV2 (id integer not null, a varchar(10) default ''abcde'', b varchar(5) default ''fgh'', constraint PK_FPDEV2 primary key(id))');
+    if Transaction.Active then
+      Transaction.Commit;
+    ExecuteDirect('insert into FPDEV2 (id) values (123)');
+    if Transaction.Active then
+      Transaction.Commit;
+    end;
+  FMyQ:=SQLDBConnector.Query;
+  FMyQ.SQL.Text:='select * from FPDEV2';
+  FMyQ.Open;
+  With FMyQ.FieldByName('id') do
+    ProviderFlags:=ProviderFlags+[pfInKey];
+  With FMyQ.FieldByName('b') do
+    ProviderFlags:=[pfRefreshOnUpdate];  // Do not update, just fetch new value
+  FMyQ.Edit;
+  FMyQ.FieldByName('a').AsString:='ccc';
+  FMyQ.Post;
+  SQLDBConnector.ExecuteDirect('update FPDEV2 set b=''123'' where id=123');
+  FMyQ.ApplyUpdates;
+  AssertEquals('a updated','ccc',FMyQ.FieldByName('a').AsString);
+  AssertEquals('b updated','123',FMyQ.FieldByName('b').AsString);
 end;
 
 
