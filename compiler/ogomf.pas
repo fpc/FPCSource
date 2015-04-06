@@ -215,6 +215,7 @@ implementation
     procedure TOmfObjData.writeReloc(Data:aint;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);
       var
         objreloc: TOmfRelocation;
+        symaddr: AWord;
       begin
 {        Write('writeReloc(', data, ',', len, ',');
         if p<>nil then
@@ -228,8 +229,12 @@ implementation
         objreloc:=nil;
         if assigned(p) then
           begin
+            { real address of the symbol }
+            symaddr:=p.address;
+
             objreloc:=TOmfRelocation.CreateSymbol(CurrObjSec.Size,p,Reloctype);
             CurrObjSec.ObjRelocations.Add(objreloc);
+            inc(data,symaddr);
           end;
         CurrObjSec.write(data,len);
       end;
