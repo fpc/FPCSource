@@ -509,8 +509,8 @@ function TFixedFormatDataSet.GetRecNo: Longint;
 var
   BufPtr: TRecordBuffer;
 begin
-  Result := -1;
-  if GetActiveRecBuf(BufPtr) then
+  Result := 0;
+  if GetActiveRecBuf(BufPtr) and Not (State in dsEditModes) then
     Result := PRecInfo(BufPtr + FRecInfoOfs)^.RecordNumber;
 end;
 
@@ -737,7 +737,7 @@ begin
     FData[FCurRec] := BufToStore(ActiveBuffer);
   end
   else
-    InternalAddRecord(ActiveBuffer, FALSE);
+    InternalAddRecord(ActiveBuffer, True);
 end;
 
 procedure TFixedFormatDataSet.InternalEdit;
@@ -754,15 +754,24 @@ begin
 end;
 
 procedure TFixedFormatDataSet.InternalAddRecord(Buffer: Pointer; DoAppend: Boolean);
+
+Var
+  I : Integer;
+
 begin
   FSaveChanges := TRUE;
   Inc(FLastBookmark);
   if DoAppend then
+    begin
     InternalLast;
-  if (FCurRec >=0) then
-    FData.InsertObject(FCurRec, BufToStore(Buffer), TObject(Pointer(FLastBookmark)))
-  else
     FData.AddObject(BufToStore(Buffer), TObject(Pointer(FLastBookmark)));
+    end
+  else if (FCurRec-FDataOffset>=0) then
+    begin
+    For I:=FCurRec+FDataOffset to FData.Count-1 do
+      FData.Objects[i]:=TObject(FCurRec+FDataOffset+1);
+    FData.InsertObject(FCurRec+FDataOffset, BufToStore(Buffer), TObject(Pointer(FCurRec)))
+    end
 end;
 
 procedure TFixedFormatDataSet.InternalGotoBookmark(ABookmark: Pointer);
