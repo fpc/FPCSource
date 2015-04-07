@@ -62,6 +62,7 @@ interface
         FOmfAlignment: TOmfSegmentAlignment;
         FCombination: TOmfSegmentCombination;
         FUse: TOmfSegmentUse;
+        FPrimaryGroup: string;
       public
         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
         property ClassName: string read FClassName;
@@ -69,6 +70,7 @@ interface
         property OmfAlignment: TOmfSegmentAlignment read FOmfAlignment;
         property Combination: TOmfSegmentCombination read FCombination;
         property Use: TOmfSegmentUse read FUse;
+        property PrimaryGroup: string read FPrimaryGroup;
       end;
 
       { TOmfObjData }
@@ -152,33 +154,51 @@ implementation
 
     constructor TOmfObjSection.create(AList: TFPHashObjectList;
           const Aname: string; Aalign: shortint; Aoptions: TObjSectionOptions);
+      var
+        dgroup: Boolean;
       begin
         inherited create(AList, Aname, Aalign, Aoptions);
         FCombination:=scPublic;
         FUse:=suUse16;
         FOmfAlignment:=saRelocatableByteAligned;
         if oso_executable in Aoptions then
-          FClassName:='code'
+          begin
+            FClassName:='code';
+            dgroup:=(current_settings.x86memorymodel=mm_tiny);
+          end
         else if Aname='stack' then
           begin
             FClassName:='stack';
             FCombination:=scStack;
             FOmfAlignment:=saRelocatableParaAligned;
+            dgroup:=current_settings.x86memorymodel in (x86_near_data_models-[mm_tiny]);
           end
         else if Aname='heap' then
           begin
             FClassName:='heap';
             FOmfAlignment:=saRelocatableParaAligned;
+            dgroup:=current_settings.x86memorymodel in x86_near_data_models;
           end
         else if Aname='bss' then
-          FClassName:='bss'
+          begin
+            FClassName:='bss';
+            dgroup:=true;
+          end
         else if Aname='data' then
           begin
             FClassName:='data';
             FOmfAlignment:=saRelocatableWordAligned;
+            dgroup:=true;
           end
         else
-          FClassName:='data';
+          begin
+            FClassName:='data';
+            dgroup:=true;
+          end;
+        if dgroup then
+          FPrimaryGroup:='dgroup'
+        else
+          FPrimaryGroup:='';
       end;
 
 {****************************************************************************
