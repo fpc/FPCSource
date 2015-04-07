@@ -95,6 +95,7 @@ interface
           Alignment: TOmfSegmentAlignment; Combination: TOmfSegmentCombination;
           Use: TOmfSegmentUse; Size: aword);
         procedure AddGroup(const groupname: string; seglist: array of const);
+        procedure AddGroup(const groupname: string; seglist: TSegmentList);
         procedure WriteSections(Data:TObjData);
         procedure WriteSectionContentAndFixups(sec: TObjSection);
 
@@ -370,6 +371,16 @@ implementation
         g.SegmentList:=SegListStr;
       end;
 
+    procedure TOmfObjOutput.AddGroup(const groupname: string; seglist: TSegmentList);
+      var
+        g: TOmfRecord_GRPDEF;
+      begin
+        g:=TOmfRecord_GRPDEF.Create;
+        Groups.Add(groupname,g);
+        g.GroupNameIndex:=LNames.Add(groupname);
+        g.SegmentList:=Copy(seglist);
+      end;
+
     procedure TOmfObjOutput.WriteSections(Data: TObjData);
       var
         i:longint;
@@ -460,6 +471,7 @@ implementation
         I: Integer;
         SegDef: TOmfRecord_SEGDEF;
         GrpDef: TOmfRecord_GRPDEF;
+        DGroupSegments: TSegmentList;
         nsections: Integer;
       begin
         { calc amount of sections we have and set their index, starting with 1 }
@@ -493,12 +505,17 @@ implementation
           with TOmfObjSection(Data.ObjSectionList[I]) do
             AddSegment(Name,ClassName,OverlayName,OmfAlignment,Combination,Use,Size);
 
-{        if current_settings.x86memorymodel=mm_tiny then
-          AddGroup('dgroup',['text','rodata','data','fpc','bss','heap'])
-        else if current_settings.x86memorymodel in x86_near_data_models then
-          AddGroup('dgroup',['rodata','data','fpc','bss','stack','heap'])
-        else
-          AddGroup('dgroup',['rodata','data','fpc','bss']);}
+
+        { create group "dgroup" }
+        SetLength(DGroupSegments,0);
+        for i:=0 to Data.ObjSectionList.Count-1 do
+          with TOmfObjSection(Data.ObjSectionList[I]) do
+            if PrimaryGroup='dgroup' then
+              begin
+                SetLength(DGroupSegments,Length(DGroupSegments)+1);
+                DGroupSegments[High(DGroupSegments)]:=index;
+              end;
+        AddGroup('dgroup',DGroupSegments);
 
         { write LNAMES record(s) }
         LNamesRec:=TOmfRecord_LNAMES.Create;
