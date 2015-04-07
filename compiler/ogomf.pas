@@ -488,21 +488,16 @@ implementation
         LNames.Clear;
         LNames.Add('');  { insert an empty string, which has index 1 }
 
-        if not (cs_huge_code in current_settings.moduleswitches) then
-          AddSegment(TOmfObjData.CodeSectionName(current_module.modulename^),'code',saRelocatableByteAligned,scPublic,suUse16);
-        AddSegment('rodata','data',saRelocatableByteAligned,scPublic,suUse16);
-        AddSegment('data','data',saRelocatableWordAligned,scPublic,suUse16);
-        AddSegment('fpc','data',saRelocatableByteAligned,scPublic,suUse16);
-        AddSegment('bss','bss',saRelocatableByteAligned,scPublic,suUse16);
-        AddSegment('stack','stack',saRelocatableParaAligned,scStack,suUse16);
-        AddSegment('heap','heap',saRelocatableParaAligned,scPublic,suUse16);
+        for i:=0 to Data.ObjSectionList.Count-1 do
+          with TOmfObjSection(Data.ObjSectionList[I]) do
+            AddSegment(Name,ClassName,OmfAlignment,Combination,Use);
 
-        if current_settings.x86memorymodel=mm_tiny then
+{        if current_settings.x86memorymodel=mm_tiny then
           AddGroup('dgroup',['text','rodata','data','fpc','bss','heap'])
         else if current_settings.x86memorymodel in x86_near_data_models then
           AddGroup('dgroup',['rodata','data','fpc','bss','stack','heap'])
         else
-          AddGroup('dgroup',['rodata','data','fpc','bss']);
+          AddGroup('dgroup',['rodata','data','fpc','bss']);}
 
         { write LNAMES record(s) }
         LNamesRec:=TOmfRecord_LNAMES.Create;
