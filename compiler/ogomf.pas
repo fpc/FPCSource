@@ -360,9 +360,9 @@ implementation
               vtAnsiString:
                 SegListStr[I]:=Segments.FindIndexOf(AnsiString(seglist[I].VAnsiString));
               vtWideString:
-                SegListStr[I]:=Segments.FindIndexOf(WideString(seglist[I].VWideString));
+                SegListStr[I]:=Segments.FindIndexOf(AnsiString(WideString(seglist[I].VWideString)));
               vtUnicodeString:
-                SegListStr[I]:=Segments.FindIndexOf(UnicodeString(seglist[I].VUnicodeString));
+                SegListStr[I]:=Segments.FindIndexOf(AnsiString(UnicodeString(seglist[I].VUnicodeString)));
               else
                 internalerror(2015040402);
             end;
