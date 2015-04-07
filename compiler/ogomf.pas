@@ -46,9 +46,11 @@ interface
       TOmfRelocation = class(TObjRelocation)
       private
         FOmfFixup: TOmfSubRecord_FIXUP;
+        function GetGroupIndex(const groupname: string): Integer;
       public
-        constructor CreateSymbol(ADataOffset:aword;s:TObjSymbol;Atyp:TObjRelocationType);
         destructor Destroy; override;
+
+        procedure BuildOmfFixup;
 
         property OmfFixup: TOmfSubRecord_FIXUP read FOmfFixup;
       end;
@@ -129,26 +131,43 @@ implementation
                                 TOmfRelocation
 ****************************************************************************}
 
-    constructor TOmfRelocation.CreateSymbol(ADataOffset: aword; s: TObjSymbol; Atyp: TObjRelocationType);
+    function TOmfRelocation.GetGroupIndex(const groupname: string): Integer;
       begin
-        inherited CreateSymbol(ADataOffset,s,Atyp);
-        FOmfFixup:=TOmfSubRecord_FIXUP.Create;
-        { dummy data, TODO: fix }
-        FOmfFixup.LocationOffset:=ADataOffset;
-        FOmfFixup.LocationType:=fltOffset;
-        FOmfFixup.FrameDeterminedByThread:=False;
-        FOmfFixup.TargetDeterminedByThread:=False;
-        FOmfFixup.Mode:=fmSegmentRelative;
-        FOmfFixup.TargetMethod:=ftmSegmentIndexNoDisp;
-        FOmfFixup.TargetDatum:=3;
-        FOmfFixup.FrameMethod:=ffmGroupIndex;
-        FOmfFixup.FrameDatum:=1;
+        if groupname='dgroup' then
+          Result:=1
+        else
+          internalerror(2014040703);
       end;
 
     destructor TOmfRelocation.Destroy;
       begin
         FOmfFixup.Free;
         inherited Destroy;
+      end;
+
+    procedure TOmfRelocation.BuildOmfFixup;
+      begin
+        FreeAndNil(FOmfFixup);
+        FOmfFixup:=TOmfSubRecord_FIXUP.Create;
+        if ObjSection<>nil then
+          begin
+            FOmfFixup.LocationOffset:=DataOffset;
+            FOmfFixup.LocationType:=fltOffset;
+            FOmfFixup.FrameDeterminedByThread:=False;
+            FOmfFixup.TargetDeterminedByThread:=False;
+            FOmfFixup.Mode:=fmSegmentRelative;
+            FOmfFixup.TargetMethod:=ftmSegmentIndexNoDisp;
+            FOmfFixup.TargetDatum:=ObjSection.Index;
+            if TOmfObjSection(ObjSection).PrimaryGroup<>'' then
+              begin
+                FOmfFixup.FrameMethod:=ffmGroupIndex;
+                FOmfFixup.FrameDatum:=GetGroupIndex(TOmfObjSection(ObjSection).PrimaryGroup);
+              end
+            else
+              FOmfFixup.FrameMethod:=ffmTarget;
+          end
+        else
+         internalerror(2015040702);
       end;
 
 {****************************************************************************
@@ -315,7 +334,7 @@ implementation
             { real address of the symbol }
             symaddr:=p.address;
 
-            objreloc:=TOmfRelocation.CreateSymbol(CurrObjSec.Size,p,Reloctype);
+            objreloc:=TOmfRelocation.CreateSection(CurrObjSec.Size,p.objsection,Reloctype);
             CurrObjSec.ObjRelocations.Add(objreloc);
             inc(data,symaddr);
           end;
@@ -430,7 +449,7 @@ implementation
               RawRecord.WriteTo(FWriter);
               { write FIXUPP record }
               while (ChunkFixupEnd<(sec.ObjRelocations.Count-1)) and
-                    (TOmfRelocation(sec.ObjRelocations[ChunkFixupEnd+1]).OmfFixup.LocationOffset<(ChunkStart+ChunkLen)) do
+                    (TOmfRelocation(sec.ObjRelocations[ChunkFixupEnd+1]).DataOffset<(ChunkStart+ChunkLen)) do
                 inc(ChunkFixupEnd);
               if ChunkFixupEnd>=ChunkFixupStart then
                 begin
@@ -438,6 +457,7 @@ implementation
                   NextOfs:=0;
                   for I:=ChunkFixupStart to ChunkFixupEnd do
                     begin
+                      TOmfRelocation(sec.ObjRelocations[I]).BuildOmfFixup;
                       TOmfRelocation(sec.ObjRelocations[I]).OmfFixup.DataRecordStartOffset:=ChunkStart;
                       NextOfs:=TOmfRelocation(sec.ObjRelocations[I]).OmfFixup.WriteAt(RawRecord,NextOfs);
                     end;
