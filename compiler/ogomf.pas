@@ -102,6 +102,7 @@ interface
         procedure WriteSectionContentAndFixups(sec: TObjSection);
 
         procedure section_count_sections(p:TObject;arg:pointer);
+        procedure WritePUBDEFs(Data: TObjData);
 
         property LNames: TOmfOrderedNameCollection read FLNames;
         property Segments: TFPHashObjectList read FSegments;
@@ -480,6 +481,55 @@ implementation
         inc(pinteger(arg)^);
       end;
 
+    procedure TOmfObjOutput.WritePUBDEFs(Data: TObjData);
+      var
+        PubNamesForSection: array of TFPHashObjectList;
+        i: Integer;
+        objsym: TObjSymbol;
+        PublicNameElem: TOmfPublicNameElement;
+        RawRecord: TOmfRawRecord;
+        PubDefRec: TOmfRecord_PUBDEF;
+        PrimaryGroupName: string;
+      begin
+        RawRecord:=TOmfRawRecord.Create;
+        SetLength(PubNamesForSection,Data.ObjSectionList.Count);
+        for i:=0 to Data.ObjSectionList.Count-1 do
+          PubNamesForSection[i]:=TFPHashObjectList.Create;
+
+        for i:=0 to Data.ObjSymbolList.Count-1 do
+          begin
+            objsym:=TObjSymbol(Data.ObjSymbolList[i]);
+            if objsym.bind=AB_GLOBAL then
+              begin
+                PublicNameElem:=TOmfPublicNameElement.Create(PubNamesForSection[objsym.objsection.index-1],objsym.Name);
+                PublicNameElem.PublicOffset:=objsym.offset;
+              end;
+          end;
+
+        for i:=0 to Data.ObjSectionList.Count-1 do
+          if PubNamesForSection[i].Count>0 then
+            begin
+              PubDefRec:=TOmfRecord_PUBDEF.Create;
+              PubDefRec.BaseSegmentIndex:=i+1;
+              PrimaryGroupName:=TOmfObjSection(Data.ObjSectionList[i]).PrimaryGroup;
+              if PrimaryGroupName<>'' then
+                PubDefRec.BaseGroupIndex:=Groups.FindIndexOf(PrimaryGroupName)
+              else
+                PubDefRec.BaseGroupIndex:=0;
+              PubDefRec.PublicNames:=PubNamesForSection[i];
+              while PubDefRec.NextIndex<PubDefRec.PublicNames.Count do
+                begin
+                  PubDefRec.EncodeTo(RawRecord);
+                  RawRecord.WriteTo(FWriter);
+                end;
+              PubDefRec.Free;
+            end;
+
+        for i:=0 to Data.ObjSectionList.Count-1 do
+          FreeAndNil(PubNamesForSection[i]);
+        RawRecord.Free;
+      end;
+
     function TOmfObjOutput.writeData(Data:TObjData):boolean;
       var
         RawRecord: TOmfRawRecord;
@@ -562,6 +612,9 @@ implementation
             GrpDef.EncodeTo(RawRecord);
             RawRecord.WriteTo(FWriter);
           end;
+
+        { write PUBDEF record(s) }
+        WritePUBDEFs(Data);
 
         { write link pass separator }
         LinkPassSeparator_COMENT:=TOmfRecord_COMENT.Create;
