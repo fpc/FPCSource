@@ -317,6 +317,43 @@ interface
       property SegmentList: TSegmentList read FSegmentList write FSegmentList;
     end;
 
+    { TOmfPublicNameElement }
+
+    TOmfPublicNameElement = class(TFPHashObject)
+    private
+      FPublicOffset: DWord;
+      FTypeIndex: Integer;
+    public
+      function GetLengthInFile(Is32Bit: Boolean): Integer;
+
+      property PublicOffset: DWord read FPublicOffset write FPublicOffset;
+      property TypeIndex: Integer read FTypeIndex write FTypeIndex;
+    end;
+
+    { TOmfRecord_PUBDEF }
+
+    TOmfRecord_PUBDEF = class(TOmfParsedRecord)
+    private
+      FIs32Bit: Boolean;
+      FBaseGroupIndex: Integer;
+      FBaseSegmentIndex: Integer;
+      FBaseFrame: Word;
+
+      FPublicNames: TFPHashObjectList;
+      FNextIndex: Integer;
+    public
+      procedure DecodeFrom(RawRecord: TOmfRawRecord);override;
+      procedure EncodeTo(RawRecord: TOmfRawRecord);override;
+
+      property Is32Bit: Boolean read FIs32Bit write FIs32Bit;
+      property BaseGroupIndex: Integer read FBaseGroupIndex write FBaseGroupIndex;
+      property BaseSegmentIndex: Integer read FBaseSegmentIndex write FBaseSegmentIndex;
+      property BaseFrame: Word read FBaseFrame write FBaseFrame;
+
+      property PublicNames: TFPHashObjectList read FPublicNames write FPublicNames;
+      property NextIndex: Integer read FNextIndex write FNextIndex;
+    end;
+
     { TOmfRecord_MODEND }
 
     TOmfRecord_MODEND = class(TOmfParsedRecord)
@@ -794,6 +831,83 @@ implementation
         end;
       RawRecord.RecordLength:=NextOfs+1;
       RawRecord.CalculateChecksumByte;
+    end;
+
+  { TOmfPublicNameElement }
+
+    function TOmfPublicNameElement.GetLengthInFile(Is32Bit: Boolean): Integer;
+    begin
+      Result:=1+Length(Name)+2+1;
+      if Is32Bit then
+        Inc(Result,2);
+      if TypeIndex>=$80 then
+        Inc(Result);
+    end;
+
+  { TOmfRecord_PUBDEF }
+
+  procedure TOmfRecord_PUBDEF.DecodeFrom(RawRecord: TOmfRawRecord);
+    begin
+      {TODO: implement}
+      internalerror(2015040101);
+    end;
+
+  procedure TOmfRecord_PUBDEF.EncodeTo(RawRecord: TOmfRawRecord);
+    const
+      RecordLengthLimit = 1024;
+    var
+      Len,LastIncludedIndex,NextOfs,I: Integer;
+      PubName: TOmfPublicNameElement;
+    begin
+      if Is32Bit then
+        RawRecord.RecordType:=RT_PUBDEF32
+      else
+        RawRecord.RecordType:=RT_PUBDEF;
+
+      NextOfs:=RawRecord.WriteIndexedRef(0,BaseGroupIndex);
+      NextOfs:=RawRecord.WriteIndexedRef(0,BaseSegmentIndex);
+      if BaseSegmentIndex=0 then
+        begin
+          RawRecord.RawData[NextOfs]:=Byte(BaseFrame);
+          RawRecord.RawData[NextOfs+1]:=Byte(BaseFrame shr 8);
+          Inc(NextOfs,2);
+        end;
+
+      { find out how many public names can we include until we reach the length limit }
+      Len:=NextOfs;
+      LastIncludedIndex:=NextIndex-1;
+      repeat
+        Inc(LastIncludedIndex);
+        Inc(Len,TOmfPublicNameElement(PublicNames[LastIncludedIndex]).GetLengthInFile(Is32Bit));
+      until (LastIncludedIndex>=PublicNames.Count) or ((Len+TOmfPublicNameElement(PublicNames[LastIncludedIndex+1]).GetLengthInFile(Is32Bit))>=RecordLengthLimit);
+
+      { write the public names... }
+      NextOfs:=0;
+      for I:=NextIndex to LastIncludedIndex do
+        begin
+          PubName:=TOmfPublicNameElement(PublicNames[I]);
+          NextOfs:=RawRecord.WriteStringAt(NextOfs,PubName.Name);
+          if Is32Bit then
+            begin
+              RawRecord.RawData[NextOfs]:=Byte(PubName.PublicOffset);
+              RawRecord.RawData[NextOfs+1]:=Byte(PubName.PublicOffset shr 8);
+              RawRecord.RawData[NextOfs+2]:=Byte(PubName.PublicOffset shr 16);
+              RawRecord.RawData[NextOfs+3]:=Byte(PubName.PublicOffset shr 24);
+              Inc(NextOfs,4);
+            end
+          else
+            begin
+              RawRecord.RawData[NextOfs]:=Byte(PubName.PublicOffset);
+              RawRecord.RawData[NextOfs+1]:=Byte(PubName.PublicOffset shr 8);
+              Inc(NextOfs,2);
+            end;
+          NextOfs:=RawRecord.WriteIndexedRef(NextOfs,PubName.TypeIndex);
+        end;
+      RawRecord.RecordLength:=Len;
+      RawRecord.CalculateChecksumByte;
+
+      { update NextIndex }
+      NextIndex:=LastIncludedIndex+1;
     end;
 
   { TOmfRecord_MODEND }
