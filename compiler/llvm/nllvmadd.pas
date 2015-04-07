@@ -69,10 +69,25 @@ implementation
 
   procedure tllvmaddnode.force_reg_left_right(allow_swap, allow_constant: boolean);
     begin
+      { comparison with pointer -> no immediate, as icmp can't handle pointer
+        immediates (except for nil as "null", but we don't generate that) }
+      if (nodetype in [equaln,unequaln,gtn,gten,ltn,lten]) and
+         ((left.nodetype in [pointerconstn,niln]) or
+          (right.nodetype in [pointerconstn,niln])) then
+        allow_constant:=false;
       inherited;
+      { pointer - pointer = integer -> make all defs pointer since we can't
+        subtract pointers }
+      if (nodetype=subn) and
+         (left.resultdef.typ=pointerdef) and
+         (right.resultdef.typ=pointerdef) then
+        begin
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,resultdef,true);
+        end
       { pointer +/- integer -> make defs the same since a_op_* only gets a
         single type as argument }
-      if (left.resultdef.typ=pointerdef)<>(right.resultdef.typ=pointerdef) then
+      else if (left.resultdef.typ=pointerdef)<>(right.resultdef.typ=pointerdef) then
         begin
           { the result is a pointerdef -> typecast both arguments to pointer;
             a_op_*_reg will convert them back to integer as needed }
