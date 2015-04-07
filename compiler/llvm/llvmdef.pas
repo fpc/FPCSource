@@ -358,8 +358,9 @@ implementation
             end;
           formaldef :
             begin
-              { var/const/out x }
-              encodedstr:=encodedstr+'i8*';
+              { var/const/out x (always treated as "pass by reference" -> don't
+                add extra "*" here) }
+              encodedstr:=encodedstr+'i8';
             end;
           arraydef :
             begin
