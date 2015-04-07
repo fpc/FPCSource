@@ -865,7 +865,7 @@ implementation
         RawRecord.RecordType:=RT_PUBDEF;
 
       NextOfs:=RawRecord.WriteIndexedRef(0,BaseGroupIndex);
-      NextOfs:=RawRecord.WriteIndexedRef(0,BaseSegmentIndex);
+      NextOfs:=RawRecord.WriteIndexedRef(NextOfs,BaseSegmentIndex);
       if BaseSegmentIndex=0 then
         begin
           RawRecord.RawData[NextOfs]:=Byte(BaseFrame);
@@ -879,10 +879,9 @@ implementation
       repeat
         Inc(LastIncludedIndex);
         Inc(Len,TOmfPublicNameElement(PublicNames[LastIncludedIndex]).GetLengthInFile(Is32Bit));
-      until (LastIncludedIndex>=PublicNames.Count) or ((Len+TOmfPublicNameElement(PublicNames[LastIncludedIndex+1]).GetLengthInFile(Is32Bit))>=RecordLengthLimit);
+      until (LastIncludedIndex>=(PublicNames.Count-1)) or ((Len+TOmfPublicNameElement(PublicNames[LastIncludedIndex+1]).GetLengthInFile(Is32Bit))>=RecordLengthLimit);
 
       { write the public names... }
-      NextOfs:=0;
       for I:=NextIndex to LastIncludedIndex do
         begin
           PubName:=TOmfPublicNameElement(PublicNames[I]);
@@ -903,7 +902,7 @@ implementation
             end;
           NextOfs:=RawRecord.WriteIndexedRef(NextOfs,PubName.TypeIndex);
         end;
-      RawRecord.RecordLength:=Len;
+      RawRecord.RecordLength:=Len+1;
       RawRecord.CalculateChecksumByte;
 
       { update NextIndex }
