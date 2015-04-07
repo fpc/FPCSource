@@ -861,9 +861,24 @@ begin
     begin
     FDatabase.FreeNotification(Self);
     FDatabase.RegisterStatement(Self);
-    if (Transaction=nil) and (Assigned(FDatabase.Transaction)) then
-      transaction := FDatabase.Transaction;
+    if not Assigned(Transaction) or (Transaction.DataBase <> FDatabase) then
+      Transaction := FDatabase.Transaction;
     OnChangeSQL(Self);
+    end;
+end;
+
+procedure TCustomSQLStatement.SetTransaction(AValue: TSQLTransaction);
+begin
+  if FTransaction=AValue then Exit;
+  UnPrepare;
+  if Assigned(FTransaction) then
+    FTransaction.RemoveFreeNotification(Self);
+  FTransaction:=AValue;
+  if Assigned(FTransaction) then
+    begin
+    FTransaction.FreeNotification(Self);
+    if Database <> FTransaction.DataBase then
+      Database := Transaction.Database as TSQLConnection;
     end;
 end;
 
@@ -892,21 +907,6 @@ procedure TCustomSQLStatement.SetSQL(AValue: TStrings);
 begin
   if FSQL=AValue then Exit;
   FSQL.Assign(AValue);
-end;
-
-procedure TCustomSQLStatement.SetTransaction(AValue: TSQLTransaction);
-begin
-  if FTransaction=AValue then Exit;
-  UnPrepare;
-  if Assigned(FTransaction) then
-    FTransaction.RemoveFreeNotification(Self);
-  FTransaction:=AValue;
-  if Assigned(FTransaction) then
-    begin
-    FTransaction.FreeNotification(Self);
-    If (Database=Nil) then
-      Database:=Transaction.Database as TSQLConnection;
-    end;
 end;
 
 Procedure TCustomSQLStatement.DoExecute;
@@ -2293,31 +2293,30 @@ end;
 procedure TCustomSQLQuery.SetTransaction(Value: TDBTransaction);
 
 begin
+  if Transaction = Value then Exit;
   UnPrepare;
   inherited;
   If Assigned(FStatement) then
-    FStatement.Transaction:=TSQLTransaction(Value);
-  If (Transaction<>Nil) and (Database=Nil) then
-    Database:=SQLTransaction.Database;
+    FStatement.Transaction := TSQLTransaction(Value);
+  If Assigned(Transaction) and (SQLTransaction.DataBase<>Database) then
+    Database := Transaction.Database;
 end;
 
 procedure TCustomSQLQuery.SetDatabase(Value : TDatabase);
 
-var db : tsqlconnection;
+var DB : TSQLConnection;
 
 begin
-  if (Database <> Value) then
-    begin
-    if assigned(value) and not (Value is TSQLConnection) then
-      DatabaseErrorFmt(SErrNotASQLConnection,[value.Name],self);
-    UnPrepare;
-    db := TSQLConnection(Value);
-    If Assigned(FStatement) then
-      FStatement.Database:=DB;
-    inherited setdatabase(value);
-    if assigned(value) and (Transaction = nil) and (Assigned(db.Transaction)) then
-      transaction := Db.Transaction;
-    end;
+  if Database = Value then Exit;
+  if Assigned(Value) and not (Value is TSQLConnection) then
+    DatabaseErrorFmt(SErrNotASQLConnection, [Value.Name], Self);
+  UnPrepare;
+  DB := TSQLConnection(Value);
+  If Assigned(FStatement) then
+    FStatement.Database := DB;
+  inherited;
+  if Assigned(DB) and Assigned(DB.Transaction) and (not Assigned(Transaction) or (Transaction.DataBase<>Value)) then
+    Transaction := DB.Transaction;
 end;
 
 function TCustomSQLQuery.IsPrepared: Boolean;
