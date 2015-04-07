@@ -98,6 +98,8 @@ interface
         procedure WriteSections(Data:TObjData);
         procedure WriteSectionContentAndFixups(sec: TObjSection);
 
+        procedure section_count_sections(p:TObject;arg:pointer);
+
         property LNames: TOmfOrderedNameCollection read FLNames;
         property Segments: TFPHashObjectList read FSegments;
         property Groups: TFPHashObjectList read FGroups;
@@ -440,6 +442,12 @@ implementation
           end;
       end;
 
+    procedure TOmfObjOutput.section_count_sections(p: TObject; arg: pointer);
+      begin
+        TOmfObjSection(p).index:=pinteger(arg)^;
+        inc(pinteger(arg)^);
+      end;
+
     function TOmfObjOutput.writeData(Data:TObjData):boolean;
       var
         RawRecord: TOmfRawRecord;
@@ -451,7 +459,15 @@ implementation
         I: Integer;
         SegDef: TOmfRecord_SEGDEF;
         GrpDef: TOmfRecord_GRPDEF;
+        nsections: Integer;
       begin
+        { calc amount of sections we have and set their index, starting with 1 }
+        nsections:=1;
+        data.ObjSectionList.ForEachCall(@section_count_sections,@nsections);
+        { maximum amount of sections supported in the omf format is $7fff }
+        if (nsections-1)>$7fff then
+          internalerror(2015040701);
+
         { write header record }
         RawRecord:=TOmfRawRecord.Create;
         Header:=TOmfRecord_THEADR.Create;
