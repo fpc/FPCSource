@@ -93,7 +93,7 @@ interface
         FGroups: TFPHashObjectList;
         procedure AddSegment(const name,segclass,ovlname: string;
           Alignment: TOmfSegmentAlignment; Combination: TOmfSegmentCombination;
-          Use: TOmfSegmentUse);
+          Use: TOmfSegmentUse; Size: aword);
         procedure AddGroup(const groupname: string; seglist: array of const);
         procedure WriteSections(Data:TObjData);
         procedure WriteSectionContentAndFixups(sec: TObjSection);
@@ -327,7 +327,7 @@ implementation
 
     procedure TOmfObjOutput.AddSegment(const name, segclass, ovlname: string;
         Alignment: TOmfSegmentAlignment; Combination: TOmfSegmentCombination;
-        Use: TOmfSegmentUse);
+        Use: TOmfSegmentUse; Size: aword);
       var
         s: TOmfRecord_SEGDEF;
       begin
@@ -339,6 +339,7 @@ implementation
         s.Alignment:=Alignment;
         s.Combination:=Combination;
         s.Use:=Use;
+        s.SegmentLength:=Size;
       end;
 
     procedure TOmfObjOutput.AddGroup(const groupname: string; seglist: array of const);
@@ -490,7 +491,7 @@ implementation
 
         for i:=0 to Data.ObjSectionList.Count-1 do
           with TOmfObjSection(Data.ObjSectionList[I]) do
-            AddSegment(Name,ClassName,OverlayName,OmfAlignment,Combination,Use);
+            AddSegment(Name,ClassName,OverlayName,OmfAlignment,Combination,Use,Size);
 
 {        if current_settings.x86memorymodel=mm_tiny then
           AddGroup('dgroup',['text','rodata','data','fpc','bss','heap'])
