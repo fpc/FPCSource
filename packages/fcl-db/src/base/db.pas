@@ -1915,7 +1915,7 @@ type
     Function AllowClose(DS: TDBDataset): Boolean; virtual;
     Procedure SetDatabase (Value : TDatabase); virtual;
     procedure CloseTrans;
-    procedure openTrans;
+    procedure OpenTrans;
     Procedure CheckDatabase;
     Procedure CheckActive;
     Procedure CheckInactive;
@@ -1929,7 +1929,7 @@ type
     procedure Loaded; override;
   Public
     constructor Create(AOwner: TComponent); override;
-    Destructor destroy; override;
+    Destructor Destroy; override;
     procedure CloseDataSets;
     Property DataBase : TDatabase Read FDatabase Write SetDatabase;
   published
