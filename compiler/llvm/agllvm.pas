@@ -42,9 +42,7 @@ interface
         procedure WriteExtraFooter;virtual;
         procedure WriteInstruction(hp: tai);
         procedure WriteLlvmInstruction(hp: tai);
-//        procedure WriteWeakSymbolDef(s: tasmsymbol); virtual;
         procedure WriteDirectiveName(dir: TAsmDirective); virtual;
-        procedure WriteWeakSymbolDef(s: tasmsymbol);
         procedure WriteRealConst(hp: tai_realconst; do_line: boolean);
         procedure WriteOrdConst(hp: tai_const);
         procedure WriteTai(const replaceforbidden: boolean; const do_line: boolean; var InlineLevel: cardinal; var hp: tai);
@@ -562,12 +560,6 @@ implementation
       end;
 
 
-    procedure TLLVMAssember.WriteWeakSymbolDef(s: tasmsymbol);
-      begin
-        AsmWriteLn(#9'.weak '+LlvmAsmSymName(s));
-      end;
-
-
     procedure TLLVMAssember.WriteRealConst(hp: tai_realconst; do_line: boolean);
       begin
         if do_line and
@@ -1052,22 +1044,9 @@ implementation
 
     procedure TLLVMAssember.WriteAsmList;
       var
-        n : string;
         hal : tasmlisttype;
         i: longint;
       begin
-
-        if current_module.mainsource<>'' then
-          n:=ExtractFileName(current_module.mainsource)
-        else
-          n:=InputFileName;
-
-        { gcc does not add it either for Darwin. Grep for
-          TARGET_ASM_FILE_START_FILE_DIRECTIVE in gcc/config/*.h
-        }
-        if not(target_info.system in systems_darwin) then
-          AsmWriteLn(#9'.file "'+FixFileName(n)+'"');
-
         WriteExtraHeader;
         AsmStartSize:=AsmSize;
 
@@ -1077,11 +1056,6 @@ implementation
             writetree(current_asmdata.asmlists[hal]);
             AsmWriteLn(target_asm.comment+'End asmlist '+AsmlistTypeStr[hal]);
           end;
-
-        { add weak symbol markers }
-        for i:=0 to current_asmdata.asmsymboldict.count-1 do
-          if (tasmsymbol(current_asmdata.asmsymboldict[i]).bind=AB_WEAK_EXTERNAL) then
-            writeweaksymboldef(tasmsymbol(current_asmdata.asmsymboldict[i]));
 
         AsmLn;
       end;
