@@ -451,15 +451,13 @@ implementation
         paramanager.freecgpara(list,paraloc1);
         { perform the fpc_setjmp call }
         setjmpres:=hlcg.g_call_system_proc(list,pd,[@paraloc1],nil);
-        setjmpres.check_simple_location;
-        if setjmpres.location^.loc<>LOC_REGISTER then
-          internalerror(2014080701);
-        hlcg.getcpuregister(list,setjmpres.location^.register);
-        hlcg.g_exception_reason_save(list,setjmpres.def,ossinttype,setjmpres.location^.register,t.reasonbuf);
+        location_reset(tmpresloc,LOC_REGISTER,def_cgsize(setjmpres.def));
+        tmpresloc.register:=hlcg.getaddressregister(list,pushexceptres.def);
+        hlcg.gen_load_cgpara_loc(list,pushexceptres.def,setjmpres,tmpresloc,true);
+        hlcg.g_exception_reason_save(list,setjmpres.def,ossinttype,tmpresloc.register,t.reasonbuf);
         { if we get 0 here in the function result register, it means that we
           longjmp'd back here }
-        hlcg.a_cmp_const_reg_label(list,setjmpres.def,OC_NE,0,setjmpres.location^.register,exceptlabel);
-        hlcg.ungetcpuregister(list,setjmpres.location^.register);
+        hlcg.a_cmp_const_reg_label(list,setjmpres.def,OC_NE,0,tmpresloc.register,exceptlabel);
         setjmpres.resetiftemp;
         paraloc1.done;
         paraloc2.done;
