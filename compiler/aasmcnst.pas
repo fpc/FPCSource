@@ -1174,7 +1174,7 @@ implementation
          begin
            result.lab:=startlab;
            datatcb.begin_anonymous_record('$'+get_dynstring_rec_name(st_widestring,true,strlength),
-             0,
+             4,
              targetinfos[target_info.system]^.alignment.recordalignmin,
              targetinfos[target_info.system]^.alignment.maxCrecordalign);
            datatcb.emit_tai(Tai_const.Create_32bit(strlength*cwidechartype.size),s32inttype);
