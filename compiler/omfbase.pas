@@ -354,6 +354,31 @@ interface
       property NextIndex: Integer read FNextIndex write FNextIndex;
     end;
 
+    { TOmfExternalNameElement }
+
+    TOmfExternalNameElement = class(TFPHashObject)
+    private
+      FTypeIndex: Integer;
+    public
+      function GetLengthInFile: Integer;
+
+      property TypeIndex: Integer read FTypeIndex write FTypeIndex;
+    end;
+
+    { TOmfRecord_EXTDEF }
+
+    TOmfRecord_EXTDEF = class(TOmfParsedRecord)
+    private
+      FExternalNames: TFPHashObjectList;
+      FNextIndex: Integer;
+    public
+      procedure DecodeFrom(RawRecord: TOmfRawRecord);override;
+      procedure EncodeTo(RawRecord: TOmfRawRecord);override;
+
+      property ExternalNames: TFPHashObjectList read FExternalNames write FExternalNames;
+      property NextIndex: Integer read FNextIndex write FNextIndex;
+    end;
+
     { TOmfRecord_MODEND }
 
     TOmfRecord_MODEND = class(TOmfParsedRecord)
@@ -901,6 +926,55 @@ implementation
               Inc(NextOfs,2);
             end;
           NextOfs:=RawRecord.WriteIndexedRef(NextOfs,PubName.TypeIndex);
+        end;
+      RawRecord.RecordLength:=Len+1;
+      RawRecord.CalculateChecksumByte;
+
+      { update NextIndex }
+      NextIndex:=LastIncludedIndex+1;
+    end;
+
+  { TOmfExternalNameElement }
+
+  function TOmfExternalNameElement.GetLengthInFile: Integer;
+    begin
+      Result:=1+Length(Name)+1;
+      if TypeIndex>=$80 then
+        Inc(Result);
+    end;
+
+  { TOmfRecord_EXTDEF }
+
+  procedure TOmfRecord_EXTDEF.DecodeFrom(RawRecord: TOmfRawRecord);
+    begin
+      {TODO: implement}
+      internalerror(2015040101);
+    end;
+
+  procedure TOmfRecord_EXTDEF.EncodeTo(RawRecord: TOmfRawRecord);
+    const
+      RecordLengthLimit = 1024;
+    var
+      Len,LastIncludedIndex,NextOfs,I: Integer;
+      ExtName: TOmfExternalNameElement;
+    begin
+      RawRecord.RecordType:=RT_EXTDEF;
+      NextOfs:=0;
+
+      { find out how many external names can we include until we reach the length limit }
+      Len:=NextOfs;
+      LastIncludedIndex:=NextIndex-1;
+      repeat
+        Inc(LastIncludedIndex);
+        Inc(Len,TOmfExternalNameElement(ExternalNames[LastIncludedIndex]).GetLengthInFile);
+      until (LastIncludedIndex>=(ExternalNames.Count-1)) or ((Len+TOmfExternalNameElement(ExternalNames[LastIncludedIndex+1]).GetLengthInFile)>=RecordLengthLimit);
+
+      { write the external names... }
+      for I:=NextIndex to LastIncludedIndex do
+        begin
+          ExtName:=TOmfExternalNameElement(ExternalNames[I]);
+          NextOfs:=RawRecord.WriteStringAt(NextOfs,ExtName.Name);
+          NextOfs:=RawRecord.WriteIndexedRef(NextOfs,ExtName.TypeIndex);
         end;
       RawRecord.RecordLength:=Len+1;
       RawRecord.CalculateChecksumByte;
