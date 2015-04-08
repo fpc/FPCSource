@@ -861,7 +861,7 @@ begin
     begin
     FDatabase.FreeNotification(Self);
     FDatabase.RegisterStatement(Self);
-    if not Assigned(Transaction) or (Transaction.DataBase <> Database) then
+    if Assigned(Database.Transaction) and (not Assigned(Transaction) or (Transaction.DataBase <> Database)) then
       Transaction := Database.Transaction;
     OnChangeSQL(Self);
     end;
@@ -877,8 +877,8 @@ begin
   if Assigned(FTransaction) then
     begin
     FTransaction.FreeNotification(Self);
-    if Database <> Transaction.DataBase then
-      Database := Transaction.Database as TSQLConnection;
+    if Assigned(Transaction.DataBase) and (Database <> Transaction.DataBase) then
+      Database := Transaction.DataBase as TSQLConnection;
     end;
 end;
 
@@ -2299,7 +2299,7 @@ begin
   If Assigned(FStatement) then
     FStatement.Database := DB;
   inherited;
-  if Assigned(DB) and Assigned(DB.Transaction) and (not Assigned(Transaction) or (Transaction.DataBase<>Value)) then
+  if Assigned(DB) and Assigned(DB.Transaction) and (not Assigned(Transaction) or (Transaction.DataBase<>Database)) then
     Transaction := DB.Transaction;
 end;
 
@@ -2311,7 +2311,7 @@ begin
   inherited;
   If Assigned(FStatement) then
     FStatement.Transaction := TSQLTransaction(Value);
-  If Assigned(Transaction) and (Database<>Transaction.DataBase) then
+  If Assigned(Transaction) and Assigned(Transaction.DataBase) and (Database<>Transaction.DataBase) then
     Database := Transaction.Database;
 end;
 
