@@ -1648,7 +1648,7 @@ implementation
       end;
 
 
-{$ifdef x86_64}
+{$if defined(x86_64)}
     function rexbits(r: tregister): byte;
       begin
         result:=0;
@@ -1897,7 +1897,7 @@ implementation
       end;
 
 
-{$else x86_64}
+{$elseif defined(i386)}
 
     function process_ea(const input:toper;out output:ea;rfield:longint):boolean;
       var
@@ -2066,7 +2066,108 @@ implementation
          output.size:=1+output.bytes;
         process_ea:=true;
       end;
-{$endif x86_64}
+{$elseif defined(i8086)}
+
+    procedure maybe_swap_index_base(var br,ir:Tregister);
+      var
+        tmpreg: Tregister;
+      begin
+        if ((br=NR_NO) or (br=NR_SI) or (br=NR_DI)) and
+           ((ir=NR_NO) or (ir=NR_BP) or (ir=NR_BX)) then
+          begin
+            tmpreg:=br;
+            br:=ir;
+            ir:=tmpreg;
+          end;
+      end;
+
+    function process_ea(const input:toper;out output:ea;rfield:longint):boolean;
+      var
+        sym   : tasmsymbol;
+        md,s,rv  : byte;
+        base,
+        o     : longint;
+        ir,br : Tregister;
+        isub,bsub : tsubregister;
+      begin
+        process_ea:=false;
+        fillchar(output,sizeof(output),0);
+        {Register ?}
+        if (input.typ=top_reg) then
+          begin
+            rv:=regval(input.reg);
+            output.modrm:=$c0 or (rfield shl 3) or rv;
+            output.size:=1;
+            process_ea:=true;
+            exit;
+          end;
+        {No register, so memory reference.}
+        if (input.typ<>top_ref) then
+          internalerror(200409262);
+
+        if ((input.ref^.index<>NR_NO) and (getregtype(input.ref^.index)<>R_INTREGISTER)) or
+           ((input.ref^.base<>NR_NO) and (getregtype(input.ref^.base)<>R_INTREGISTER)) then
+          internalerror(200301081);
+
+
+        ir:=input.ref^.index;
+        br:=input.ref^.base;
+        isub:=getsubreg(ir);
+        bsub:=getsubreg(br);
+        s:=input.ref^.scalefactor;
+        o:=input.ref^.offset;
+        sym:=input.ref^.symbol;
+        { it's a direct address }
+        if (br=NR_NO) and (ir=NR_NO) then
+          begin
+            { it's a pure offset }
+            output.bytes:=2;
+            output.modrm:=6 or (rfield shl 3);
+          end
+        else
+          { it's an indirection }
+          begin
+            { 32 bit address? }
+
+            if ((ir<>NR_NO) and (isub<>R_SUBADDR)) or
+               ((br<>NR_NO) and (bsub<>R_SUBADDR)) then
+              message(asmw_e_32bit_not_supported);
+            { scalefactor can only be 1 in 16-bit addresses }
+            if (s<>1) and (ir<>NR_NO) then
+              exit;
+            maybe_swap_index_base(br,ir);
+            if (br=NR_BX) and (ir=NR_SI) then
+              base:=0
+            else if (br=NR_BX) and (ir=NR_DI) then
+              base:=1
+            else if (br=NR_BP) and (ir=NR_SI) then
+              base:=2
+            else if (br=NR_BP) and (ir=NR_DI) then
+              base:=3
+            else if (br=NR_NO) and (ir=NR_SI) then
+              base:=4
+            else if (br=NR_NO) and (ir=NR_DI) then
+              base:=5
+            else if (br=NR_BP) and (ir=NR_NO) then
+              base:=6
+            else if (br=NR_BX) and (ir=NR_NO) then
+              base:=7
+            else
+              exit;
+            if (base<>6) and (o=0) and (sym=nil) then
+              md:=0
+            else if ((o>=-128) and (o<=127) and (sym=nil)) then
+              md:=1
+            else
+              md:=2;
+            output.bytes:=md;
+            output.modrm:=(longint(md) shl 6) or (rfield shl 3) or base;
+          end;
+        output.size:=1+output.bytes;
+        output.sib_present:=false;
+        process_ea:=true;
+      end;
+{$endif}
 
     function taicpu.calcsize(p:PInsEntry):shortint;
       var
