@@ -138,10 +138,10 @@ implementation
     begin
       inherited;
       locref:=nil;
+      { avoid uninitialised warning }
+      arrptrelementdef:=nil;
       if not arraytopointerconverted then
         begin
-          { avoid uninitialised warning }
-          arrptrelementdef:=nil;
           { the result is currently a pointer to left.resultdef (the array type)
              -> convert it into a pointer to an element inside this array }
           getarrelementptrdef;
@@ -156,11 +156,7 @@ implementation
          (tfloatdef(resultdef).floattype=s80real) then
        begin
          if not assigned(locref) then
-           begin
-             { avoid uninitialised warning }
-             arrptrelementdef:=nil;
-             getarrelementptrdef;
-           end;
+           getarrelementptrdef;
          hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(resultdef));
          hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,arrptrelementdef,getpointerdef(resultdef),locref^.base,hreg);
          locref^.base:=hreg;
