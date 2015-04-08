@@ -861,8 +861,8 @@ begin
     begin
     FDatabase.FreeNotification(Self);
     FDatabase.RegisterStatement(Self);
-    if not Assigned(Transaction) or (Transaction.DataBase <> FDatabase) then
-      Transaction := FDatabase.Transaction;
+    if not Assigned(Transaction) or (Transaction.DataBase <> Database) then
+      Transaction := Database.Transaction;
     OnChangeSQL(Self);
     end;
 end;
@@ -877,7 +877,7 @@ begin
   if Assigned(FTransaction) then
     begin
     FTransaction.FreeNotification(Self);
-    if Database <> FTransaction.DataBase then
+    if Database <> Transaction.DataBase then
       Database := Transaction.Database as TSQLConnection;
     end;
 end;
@@ -986,7 +986,7 @@ begin
   Database:=Nil;
   DataSource:=Nil;
   FreeAndNil(FDataLink);
-  FreeAndNil(Fparams);
+  FreeAndNil(FParams);
   FreeAndNil(FSQL);
   inherited Destroy;
 end;
@@ -1900,6 +1900,21 @@ end;
 
 { TSQLTransaction }
 
+constructor TSQLTransaction.Create(AOwner : TComponent);
+begin
+  inherited Create(AOwner);
+  FParams := TStringList.Create;
+  Action := caRollBack;
+end;
+
+destructor TSQLTransaction.Destroy;
+begin
+  EndTransaction;
+  FreeAndNil(FTrans);
+  FreeAndNil(FParams);
+  inherited Destroy;
+end;
+
 procedure TSQLTransaction.EndTransaction;
 
 begin
@@ -2044,40 +2059,21 @@ begin
     end;
 end;
 
-constructor TSQLTransaction.Create(AOwner : TComponent);
-begin
-  inherited Create(AOwner);
-  FParams := TStringList.Create;
-  Action := caRollBack;
-end;
-
-destructor TSQLTransaction.Destroy;
-begin
-  EndTransaction;
-  FreeAndNil(FTrans);
-  FreeAndNil(FParams);
-  inherited Destroy;
-end;
-
 Procedure TSQLTransaction.SetDatabase(Value: TDatabase);
 
 begin
   If Value<>Database then
     begin
     if Assigned(Value) and not (Value is TSQLConnection) then
-      DatabaseErrorFmt(SErrNotASQLConnection,[value.Name],self);
+      DatabaseErrorFmt(SErrNotASQLConnection, [Value.Name], Self);
     CheckInactive;
     if (stoUseImplicit in Options) and Assigned(Value) and Not (sqImplicitTransaction in TSQLConnection(Value).ConnOptions) then
-           DatabaseErrorFmt(SErrNoImplicitTransaction,[Value.ClassName]);
+      DatabaseErrorFmt(SErrNoImplicitTransaction, [Value.ClassName]);
     If Assigned(Database) then
-      begin
-      with SQLConnection do
-        if Transaction = self then Transaction := nil;
-      end;
-    inherited SetDatabase(Value);
+      if SQLConnection.Transaction = Self then SQLConnection.Transaction := nil;
+    inherited;
     If Assigned(Database) and not (csLoading in ComponentState) then
-      If (SQLConnection.Transaction=Nil) then
-        SQLConnection.Transaction:=Self;
+      If SQLConnection.Transaction = Nil then SQLConnection.Transaction := Self;
     end;
 end;
 
@@ -2290,18 +2286,6 @@ begin
   CheckInactive;
 end;
 
-procedure TCustomSQLQuery.SetTransaction(Value: TDBTransaction);
-
-begin
-  if Transaction = Value then Exit;
-  UnPrepare;
-  inherited;
-  If Assigned(FStatement) then
-    FStatement.Transaction := TSQLTransaction(Value);
-  If Assigned(Transaction) and (SQLTransaction.DataBase<>Database) then
-    Database := Transaction.Database;
-end;
-
 procedure TCustomSQLQuery.SetDatabase(Value : TDatabase);
 
 var DB : TSQLConnection;
@@ -2317,6 +2301,18 @@ begin
   inherited;
   if Assigned(DB) and Assigned(DB.Transaction) and (not Assigned(Transaction) or (Transaction.DataBase<>Value)) then
     Transaction := DB.Transaction;
+end;
+
+procedure TCustomSQLQuery.SetTransaction(Value: TDBTransaction);
+
+begin
+  if Transaction = Value then Exit;
+  UnPrepare;
+  inherited;
+  If Assigned(FStatement) then
+    FStatement.Transaction := TSQLTransaction(Value);
+  If Assigned(Transaction) and (Database<>Transaction.DataBase) then
+    Database := Transaction.Database;
 end;
 
 function TCustomSQLQuery.IsPrepared: Boolean;
