@@ -595,7 +595,7 @@ implementation
                    current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_PREFETCHNTA,S_NO,ref));
                  end;
                else
-                 internalerror(200402021);
+                 { nothing to prefetch };
              end;
            end;
        end;
