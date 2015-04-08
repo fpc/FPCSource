@@ -515,7 +515,7 @@ implementation
       end;
 
 
-    procedure llvmaddencodedparaloctype(hp: tparavarsym; proccalloption: tproccalloption; withparaname: boolean; var first: boolean; var encodedstr: TSymStr);
+    procedure llvmaddencodedparaloctype(hp: tparavarsym; proccalloption: tproccalloption; withparaname, withattributes: boolean; var first: boolean; var encodedstr: TSymStr);
       var
         paraloc: PCGParaLocation;
         signext: tllvmvalueextension;
@@ -544,10 +544,14 @@ implementation
           { in case signextstr<>'', there should be only one paraloc -> no need
             to clear (reason: it means that the paraloc is larger than the
             original parameter) }
-          encodedstr:=encodedstr+llvmvalueextension2str[signext];
+          if withattributes then
+            encodedstr:=encodedstr+llvmvalueextension2str[signext];
           { sret: hidden pointer for structured function result }
           if vo_is_funcret in hp.varoptions then
-            encodedstr:=encodedstr+' sret'
+            begin
+              if withattributes then
+                encodedstr:=encodedstr+' sret'
+            end
           else if not paramanager.push_addr_param(hp.varspez,hp.vardef,proccalloption) and
              llvmbyvalparaloc(paraloc) then
             encodedstr:=encodedstr+'* byval';
@@ -610,7 +614,7 @@ implementation
         for paranr:=0 to def.paras.count-1 do
           begin
             hp:=tparavarsym(def.paras[paranr]);
-            llvmaddencodedparaloctype(hp,def.proccalloption,pddecltype in [lpd_decl],first,encodedstr);
+            llvmaddencodedparaloctype(hp,def.proccalloption,pddecltype in [lpd_decl],not(pddecltype in [lpd_procvar]),first,encodedstr);
           end;
         if po_varargs in def.procoptions then
           begin
