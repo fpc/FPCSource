@@ -2255,7 +2255,11 @@ implementation
             208,209,210 :
               begin
                 case (oper[c-208]^.ot and OT_SIZE_MASK) of
-                  OT_BITS16:
+{$if defined(i386) or defined(x86_64)}
+                  OT_BITS16 :
+{$elseif defined(i8086)}
+                  OT_BITS32 :
+{$endif}
                     inc(len);
 {$ifdef x86_64}
                   OT_BITS64:
@@ -2976,7 +2980,11 @@ implementation
             208,209,210 :
               begin
                 case oper[c-208]^.ot and OT_SIZE_MASK of
+{$if defined(i386) or defined(x86_64)}
                   OT_BITS16 :
+{$elseif defined(i8086)}
+                  OT_BITS32 :
+{$endif}
                     begin
                       bytes[0]:=$66;
                       objdata.writebytes(bytes,1);
