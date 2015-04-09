@@ -201,13 +201,16 @@ unit cpupara;
         begin
           { In case of po_delphi_nested_cc, the parent frame pointer
             is always passed on the stack. }
-           if (nextintreg>RS_R7) and
+           if (nextintreg>RS_R9) and
               (not(vo_is_parentfp in hp.varoptions) or
                not(po_delphi_nested_cc in p.procoptions)) then
              begin
                paraloc^.loc:=LOC_REGISTER;
+               paraloc^.register:=newreg(R_INTREGISTER,nextintreg-1,R_SUBWHOLE);
+               paraloc:=hp.paraloc[side].add_location;
+               paraloc^.loc:=LOC_REGISTER;
                paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
-               dec(nextintreg);
+               dec(nextintreg,2);
              end
            else
              begin
@@ -288,6 +291,20 @@ unit cpupara;
                internalerror(200410311);
 {$endif EXTDEBUG}
              firstparaloc:=true;
+             if loc=LOC_REGISTER then
+               begin
+                 { the lsb is located in the register with the lowest number,
+                   by adding paralen mod 2, make the size even
+                 }
+                 nextintreg:=curintreg-(paralen+(paralen mod 2))+1;
+                 if nextintreg>=RS_R8 then
+                   curintreg:=nextintreg-1
+                 else
+                   begin
+                     curintreg:=RS_R7;
+                     loc:=LOC_REFERENCE;
+                   end;
+               end;
              while paralen>0 do
                begin
                  paraloc:=hp.paraloc[side].add_location;
@@ -324,7 +341,7 @@ unit cpupara;
                           begin
                             paraloc^.loc:=LOC_REGISTER;
                             paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
-                            dec(nextintreg);
+                            inc(nextintreg);
                           end
                         else
                           begin
@@ -372,7 +389,6 @@ unit cpupara;
                  firstparaloc:=false;
                end;
           end;
-        curintreg:=nextintreg;
         curfloatreg:=nextfloatreg;
         curmmreg:=nextmmreg;
         cur_stack_offset:=stack_offset;
