@@ -271,6 +271,20 @@ Implementation
                       p:=hp1;
                       result:=true;
                     end
+                  { remove
+                    mov reg0,reg0
+                  }
+                  else if (taicpu(p).ops=2) and
+                     (taicpu(p).oper[0]^.typ = top_reg) and
+                     (taicpu(p).oper[1]^.typ = top_reg) and
+                     (taicpu(p).oper[0]^.reg = taicpu(p).oper[1]^.reg) then
+                    begin
+                      GetNextInstruction(p,hp1);
+                      asml.remove(p);
+                      p.free;
+                      p:=hp1;
+                      result:=true;
+                    end
                   { fold
                     mov reg2,reg0
                     mov reg3,reg1
@@ -302,7 +316,7 @@ Implementation
                       taicpu(p).opcode:=A_MOVW;
                       asml.remove(hp1);
                       hp1.free;
-                      result := true;
+                      result:=true;
                     end;
                 end;
             end;
