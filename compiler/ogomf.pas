@@ -176,7 +176,7 @@ implementation
             FOmfFixup.TargetDeterminedByThread:=False;
             FOmfFixup.Mode:=fmSegmentRelative;
             FOmfFixup.TargetMethod:=ftmExternalIndexNoDisp;
-            FOmfFixup.TargetDatum:=0; {TODO}
+            FOmfFixup.TargetDatum:=symbol.symidx;
             FOmfFixup.FrameMethod:=ffmTarget;
           end
         else
