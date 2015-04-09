@@ -730,7 +730,7 @@ end;
 procedure TFixedFormatDataSet.InternalPost;
 begin
   FSaveChanges := TRUE;
-  inherited UpdateRecord;
+  inherited InternalPost;
   if (State = dsEdit) then // just update the data in the string list
   begin
     FData[FCurRec] := BufToStore(ActiveBuffer);
