@@ -835,9 +835,22 @@ implementation
   { TOmfRecord_GRPDEF }
 
   procedure TOmfRecord_GRPDEF.DecodeFrom(RawRecord: TOmfRawRecord);
+    var
+      NextOfs: Integer;
+      Segment: Integer;
     begin
-      {TODO: implement}
-      internalerror(2015040101);
+      if RawRecord.RecordType<>RT_GRPDEF then
+        internalerror(2015040301);
+      NextOfs:=RawRecord.ReadIndexedRef(0,FGroupNameIndex);
+      SetLength(FSegmentList,0);
+      while NextOfs<RawRecord.RecordLength-1 do
+        begin
+          if RawRecord.RawData[NextOfs]<>$ff then
+            internalerror(2015040901);
+          NextOfs:=RawRecord.ReadIndexedRef(NextOfs+1,Segment);
+          SetLength(FSegmentList,Length(FSegmentList)+1);
+          FSegmentList[High(FSegmentList)]:=Segment;
+        end;
     end;
 
   procedure TOmfRecord_GRPDEF.EncodeTo(RawRecord: TOmfRawRecord);
