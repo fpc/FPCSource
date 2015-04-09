@@ -2221,7 +2221,7 @@ implementation
               end;
             4,5,6,7 :
               begin
-                if opsize=S_W then
+                if opsize={$ifdef i8086}S_L{$else}S_W{$endif} then
                   inc(len,2)
                 else
                   inc(len);
@@ -2607,7 +2607,7 @@ implementation
         rexwritten:=false;
 {$endif x86_64}
         { Force word push/pop for registers }
-        if (opsize=S_W) and ((codes[0]=#4) or (codes[0]=#6) or
+        if (opsize={$ifdef i8086}S_L{$else}S_W{$endif}) and ((codes[0]=#4) or (codes[0]=#6) or
             ((codes[0]=#1) and ((codes[2]=#5) or (codes[2]=#7)))) then
         begin
           bytes[0]:=$66;
