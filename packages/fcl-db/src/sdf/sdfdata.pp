@@ -208,6 +208,7 @@ type
       write FDefaultRecordLength default 250;
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
+    function  BookmarkValid(ABookmark: TBookmark): Boolean; override;
     function  GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
     procedure RemoveBlankRecords; dynamic;
     procedure RemoveExtraColumns; dynamic;
@@ -770,6 +771,11 @@ begin
       FData.Objects[i]:=TObject(FCurRec+FDataOffset+1);
     FData.InsertObject(FCurRec+FDataOffset, BufToStore(Buffer), TObject(Pointer(FCurRec)))
     end
+end;
+
+function TFixedFormatDataSet.BookmarkValid(ABookmark: TBookmark): Boolean;
+begin
+  Result := Assigned(ABookmark) and (FData.IndexOfObject(TObject(PPtrInt(ABookmark)^)) <> -1);
 end;
 
 procedure TFixedFormatDataSet.InternalGotoBookmark(ABookmark: Pointer);
