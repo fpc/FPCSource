@@ -99,13 +99,14 @@ begin
   end;
 
   TestDataset.FileMustExist:=false;
-  TestDataset.FirstLineAsSchema := true;
+  TestDataset.FirstLineAsSchema := True;
   TestDataset.FileName:=InputFilename;
   TestDataset.Open;
 
   TestDataset.Last;
   TestDataset.First;
-  AssertEquals('Number of records in test dataset', 1, TestDataset.RecordCount);
+  AssertEquals('RecNo', 1, TestDataset.RecNo);
+  AssertEquals('RecordCount', 1, TestDataset.RecordCount);
   TestDataset.Close;
 end;
 
@@ -128,13 +129,14 @@ begin
   end;
 
   TestDataset.FileMustExist:=false;
-  TestDataset.FirstLineAsSchema := false;
+  TestDataset.FirstLineAsSchema := False;
   TestDataset.FileName:=InputFilename;
   TestDataset.Open;
 
   TestDataset.Last;
   TestDataset.First;
-  AssertEquals('Number of records in test dataset', 1, TestDataset.RecordCount);
+  AssertEquals('RecNo', 1, TestDataset.RecNo);
+  AssertEquals('RecordCount', 1, TestDataset.RecordCount);
   TestDataset.Close;
 end;
 
@@ -180,9 +182,11 @@ begin
   TestDataset.Post;
 
   TestDataset.Last;
-  TestDataset.First;
-  // This fails - seems it sees the header as a record, too?
-  AssertEquals('Number of records in test dataset', 4, TestDataset.RecordCount);
+  AssertEquals('RecNo', 4, TestDataset.RecNo);
+  TestDataset.RecNo := 2;
+  AssertEquals('RecNo', 2, TestDataset.RecNo);
+  AssertEquals(2, TestDataset.FieldByName('ID').AsInteger);
+  AssertEquals('RecordCount', 4, TestDataset.RecordCount);
   TestDataset.Close;
 end;
 
@@ -268,8 +272,6 @@ const
   Value7='Some "random" quotes';
 Var
   F : Text;
-  FileStrings: TStringList;
-  OneRecord: TStringList;
 begin
   TestDataset.Close;
   TestDataset.AllowMultiLine:=true;
@@ -315,7 +317,8 @@ begin
   TestDataset.Delimiter := ';';
   TestDataset.FileName:=OutputFileName;
   TestDataset.Open;
-  AssertEquals('Correct field count',5,TestDataset.FieldDefs.Count);
+  AssertEquals('FieldDefs.Count',5,TestDataset.FieldDefs.Count);
+  AssertEquals('RecordCount', 0, TestDataset.RecordCount);
 end;
 
 procedure Ttestsdfspecific.TestEmptyHeader2;
@@ -340,7 +343,8 @@ begin
   TestDataset.FileName:=OutputFileName;
   TestDataset.Schema.Clear;
   TestDataset.Open;
-  AssertEquals('Correct field count',5,TestDataset.FieldDefs.Count);
+  AssertEquals('FieldDefs.Count',5,TestDataset.FieldDefs.Count);
+  AssertEquals('RecordCount', 1, TestDataset.RecordCount);
   TestDataset.Edit;
   TestDataset.Fields[0].AsString:='Value1';
   TestDataset.Post;
@@ -374,7 +378,7 @@ begin
   TestDataset.FileName:=OutputFileName;
   TestDataset.Schema.Clear;
   TestDataset.Open;
-  AssertEquals('Correct field count',2,TestDataset.FieldDefs.Count);
+  AssertEquals('FieldDefs.Count',2,TestDataset.FieldDefs.Count);
   TestDataset.Edit;
   TestDataset.Fields[0].AsString:='Value1';
   TestDataset.Post;
@@ -409,7 +413,7 @@ begin
   TestDataset.FileName:=OutputFileName;
   TestDataset.Schema.Clear;
   TestDataset.Open;
-  AssertEquals('Correct field count',2,TestDataset.FieldDefs.Count);
+  AssertEquals('FieldDefs.Count',2,TestDataset.FieldDefs.Count);
   TestDataset.Edit;
   TestDataset.Fields[0].AsString:='Value1';
   TestDataset.Post;
@@ -443,7 +447,8 @@ begin
   TestDataset.Delimiter := ';';
   TestDataset.FileName:=OutputFileName;
   TestDataset.Open;
-  AssertEquals('Correct field count',5,TestDataset.FieldDefs.Count);
+  AssertEquals('FieldDefs.Count',5,TestDataset.FieldDefs.Count);
+  AssertEquals('RecordCount',1,TestDataset.RecordCount);
 end;
 
 

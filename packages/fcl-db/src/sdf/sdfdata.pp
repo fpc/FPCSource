@@ -137,7 +137,7 @@ type
 // TRecInfo
   PRecInfo = ^TRecInfo;
   TRecInfo = packed record
-    RecordNumber: PtrInt;
+    Bookmark: PtrInt;
     BookmarkFlag: TBookmarkFlag;
   end;
 //-----------------------------------------------------------------------------
@@ -200,7 +200,7 @@ type
     procedure SetRecNo(Value: Integer); override;
     function GetCanModify: boolean; override;
     function TxtGetRecord(Buffer : TRecordBuffer; GetMode: TGetMode): TGetResult;
-    function RecordFilter(RecBuf: Pointer; ARecNo: Integer): Boolean;
+    function RecordFilter(RecBuf: Pointer): Boolean;
     function BufToStore(Buffer: TRecordBuffer): String; virtual;
     function StoreToBuf(Source: String): String; virtual;
   public
@@ -266,8 +266,6 @@ type
     procedure SetDelimiter(Value : Char);
   protected
     procedure InternalInitFieldDefs; override;
-    function GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean)
-             : TGetResult; override;
     function BufToStore(Buffer: TRecordBuffer): String; override;
     function StoreToBuf(Source: String): String; override;
   public
@@ -373,7 +371,6 @@ procedure TFixedFormatDataSet.InternalOpen;
 var
   Stream : TStream;
 begin
-  FCurRec := -1;
   FSaveChanges := FALSE;
   if not Assigned(FData) then
     FData := TStringList.Create;
@@ -395,6 +392,7 @@ begin
   FRecInfoOfs := FRecordSize + CalcFieldsSize; // Initialize the offset for TRecInfo in the buffer
   FRecBufSize := FRecInfoOfs + SizeOf(TRecInfo);
   FLastBookmark := FData.Count;
+  FCurRec := FDataOffset - 1;
 end;
 
 procedure TFixedFormatDataSet.InternalClose;
@@ -482,20 +480,17 @@ begin
   if (FData.Count <= FDataOffset) then
     Result := grEOF
   else
-    Result := TxtGetRecord(Buffer, GetMode);
-  if Result = grOK then
   begin
-    if (CalcFieldsSize > 0) then
-      GetCalcFields(Buffer);
-    with PRecInfo(Buffer + FRecInfoOfs)^ do
+    Result := TxtGetRecord(Buffer, GetMode);
+    if Result = grOK then
     begin
-      BookmarkFlag := bfCurrent;
-      RecordNumber := PtrInt(FData.Objects[FCurRec]);
-    end;
-  end
-  else
-    if (Result = grError) and DoCheck then
-      DatabaseError('No Records');
+      if (CalcFieldsSize > 0) then
+        GetCalcFields(Buffer);
+    end
+    else
+      if (Result = grError) and DoCheck then
+        DatabaseError('No Records');
+  end;
 end;
 
 function TFixedFormatDataSet.GetRecordCount: Longint;
@@ -509,7 +504,10 @@ var
 begin
   Result := 0;
   if GetActiveRecBuf(RecBuf) and (State <> dsInsert) then
-    Result := PRecInfo(RecBuf + FRecInfoOfs)^.RecordNumber;
+  begin
+    InternalSetToRecord(RecBuf);
+    Result := FCurRec + 1 - FDataOffset;
+  end;
 end;
 
 procedure TFixedFormatDataSet.SetRecNo(Value: Integer);
@@ -518,7 +516,7 @@ begin
   if (Value >= 0) and (Value <= RecordCount) and (Value <> RecNo) then
   begin
     DoBeforeScroll;
-    FCurRec := Value - 1;
+    FCurRec := Value - 1 + FDataOffset;
     Resync([]);
     DoAfterScroll;
   end;
@@ -551,7 +549,7 @@ begin
     Accepted := TRUE;
     case GetMode of
       gmNext:
-        if FCurRec >= RecordCount - 1  then
+        if FCurRec >= FData.Count - 1  then
           Result := grEOF
         else
           Inc(FCurRec);
@@ -561,15 +559,20 @@ begin
         else
           Dec(FCurRec);
       gmCurrent:
-        if (FCurRec < FDataOffset) or (FCurRec >= RecordCount) then
+        if (FCurRec < FDataOffset) or (FCurRec >= FData.Count) then
           Result := grError;
     end;
-    if (Result = grOk) then
+    if Result = grOk then
     begin
       Move(PChar(StoreToBuf(FData[FCurRec]))^, Buffer[0], FRecordSize);
+      with PRecInfo(Buffer + FRecInfoOfs)^ do
+      begin
+        Bookmark := PtrInt(FData.Objects[FCurRec]);
+        BookmarkFlag := bfCurrent;
+      end;
       if Filtered then
       begin
-        Accepted := RecordFilter(Buffer, FCurRec +1);
+        Accepted := RecordFilter(Buffer);
         if not Accepted and (GetMode = gmCurrent) then
           Inc(FCurRec);
       end;
@@ -577,14 +580,13 @@ begin
   until Accepted;
 end;
 
-function TFixedFormatDataSet.RecordFilter(RecBuf: Pointer; ARecNo: Integer): Boolean;
+function TFixedFormatDataSet.RecordFilter(RecBuf: Pointer): Boolean;
 var
   Accept: Boolean;
   SaveState: TDataSetState;
 begin                          // Returns true if accepted in the filter
   SaveState := SetTempState(dsFilter);
   FFilterBuffer := RecBuf;
-  PRecInfo(FFilterBuffer + FRecInfoOfs)^.RecordNumber := ARecNo;
   Accept := TRUE;
   if Accept and Assigned(OnFilterRecord) then
     OnFilterRecord(Self, Accept);
@@ -718,7 +720,7 @@ end;
 // Navigation / Editing
 procedure TFixedFormatDataSet.InternalFirst;
 begin
-  FCurRec := -1;
+  FCurRec := FDataOffset - 1;
 end;
 
 procedure TFixedFormatDataSet.InternalLast;
@@ -764,7 +766,7 @@ begin
     InternalLast;
     FData.AddObject(BufToStore(Buffer), TObject(Pointer(FLastBookmark)));
     end
-  else if (FCurRec-FDataOffset>=0) then
+  else if (FCurRec >= FDataOffset) then
     begin
     For I:=FCurRec+FDataOffset to FData.Count-1 do
       FData.Objects[i]:=TObject(FCurRec+FDataOffset+1);
@@ -791,7 +793,7 @@ end;
 procedure TFixedFormatDataSet.InternalSetToRecord(Buffer: TRecordBuffer);
 begin
   if (State <> dsInsert) then
-    InternalGotoBookmark(@PRecInfo(Buffer + FRecInfoOfs)^.RecordNumber);
+    InternalGotoBookmark(@PRecInfo(Buffer + FRecInfoOfs)^.Bookmark);
 end;
 
 function TFixedFormatDataSet.GetBookmarkFlag(Buffer: TRecordBuffer): TBookmarkFlag;
@@ -934,29 +936,6 @@ begin
 
   end;
   inherited;
-end;
-
-function TSdfDataSet.GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode;
-  DoCheck: Boolean): TGetResult;
-begin
-  if FirstLineAsSchema then
-  begin
-    if (FData.Count < 2) then
-      begin
-      if GetMode=gmPrior then
-       Result := grBOF
-      else
-       Result := grEOF
-      end
-    else
-      begin
-      If (FCurrec=-1) and (GetMode=gmNext) then
-        inc(FCurRec);
-      Result := inherited GetRecord(Buffer, GetMode, DoCheck);
-      end;
-  end
-  else
-    Result := inherited GetRecord(Buffer, GetMode, DoCheck);
 end;
 
 function TSdfDataSet.StoreToBuf(Source: String): String;
