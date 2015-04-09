@@ -162,15 +162,14 @@ type
     procedure SetFieldPos(var Buffer : TRecordBuffer; FieldNo : Integer);
   protected
     FData               :TStringlist;
+    FDataOffset         :Integer;
     FCurRec             :Integer;
-    FRecBufSize         :Integer;
     FRecordSize         :Integer;
-    FLastBookmark       :PtrInt;
+    FRecBufSize         :Integer;
     FRecInfoOfs         :Integer;
-    FBookmarkOfs        :Integer;
+    FLastBookmark       :PtrInt;
     FSaveChanges        :Boolean;
     FDefaultRecordLength:Cardinal;
-    FDataOffset         : Integer;
   protected
     function AllocRecordBuffer: TRecordBuffer; override;
     procedure FreeRecordBuffer(var Buffer: TRecordBuffer); override;
@@ -394,8 +393,7 @@ begin
     FRecordSize := FDefaultRecordLength;
   BookmarkSize := SizeOf(PtrInt);
   FRecInfoOfs := FRecordSize + CalcFieldsSize; // Initialize the offset for TRecInfo in the buffer
-  FBookmarkOfs := FRecInfoOfs + SizeOf(TRecInfo);
-  FRecBufSize := FBookmarkOfs + BookmarkSize;
+  FRecBufSize := FRecInfoOfs + SizeOf(TRecInfo);
   FLastBookmark := FData.Count;
 end;
 
