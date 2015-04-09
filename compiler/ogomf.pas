@@ -335,9 +335,17 @@ implementation
             { real address of the symbol }
             symaddr:=p.address;
 
-            objreloc:=TOmfRelocation.CreateSection(CurrObjSec.Size,p.objsection,Reloctype);
-            CurrObjSec.ObjRelocations.Add(objreloc);
-            inc(data,symaddr);
+            if p.bind=AB_EXTERNAL then
+              begin
+                objreloc:=TOmfRelocation.CreateSymbol(CurrObjSec.Size,p,Reloctype);
+                CurrObjSec.ObjRelocations.Add(objreloc);
+              end
+            else
+              begin
+                objreloc:=TOmfRelocation.CreateSection(CurrObjSec.Size,p.objsection,Reloctype);
+                CurrObjSec.ObjRelocations.Add(objreloc);
+                inc(data,symaddr);
+              end;
           end;
         CurrObjSec.write(data,len);
       end;
