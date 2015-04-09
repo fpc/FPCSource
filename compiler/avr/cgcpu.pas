@@ -672,6 +672,9 @@ unit cgcpu;
             reg:=GetNextReg(reg);
         end;
 
+      var
+        curvalue : byte;
+
        begin
          mask:=$ff;
          shift:=0;
@@ -706,13 +709,27 @@ unit cgcpu;
                        NextReg;
                        mask:=mask shl 8;
                        inc(shift,8);
-                       list.concat(taicpu.op_reg_const(A_SBCI,reg,(qword(a) and mask) shr shift));
+                       curvalue:=(qword(a) and mask) shr shift;
+                       { decrease pressure on upper half of registers by using SBC ...,R1 instead
+                         of SBCI ...,0 }
+                       if curvalue=0 then
+                         list.concat(taicpu.op_reg_reg(A_SBC,reg,NR_R1))
+                       else
+                         list.concat(taicpu.op_reg_const(A_SBCI,reg,curvalue));
                      end;
                  end;
              end;
-           {OP_ADD:
+           OP_ADD:
              begin
-               list.concat(taicpu.op_reg_const(A_SUBI,reg,(-a) and mask));
+               curvalue:=a and mask;
+               if curvalue=0 then
+                 list.concat(taicpu.op_reg_reg(A_ADD,reg,NR_R1))
+               else
+                 begin
+                   tmpreg:=getintregister(list,OS_8);
+                   a_load_const_reg(list,OS_8,curvalue,tmpreg);
+                   list.concat(taicpu.op_reg_reg(A_ADD,reg,tmpreg));
+                 end;
                if size in [OS_S16,OS_16,OS_S32,OS_32,OS_S64,OS_64] then
                  begin
                    for i:=2 to tcgsize2size[size] do
@@ -720,10 +737,20 @@ unit cgcpu;
                        NextReg;
                        mask:=mask shl 8;
                        inc(shift,8);
-                       list.concat(taicpu.op_reg_const(A_ADC,reg,(a and mask) shr shift));
+                       curvalue:=(qword(a) and mask) shr shift;
+                       { decrease pressure on upper half of registers by using ADC ...,R1 instead
+                         of ADD ...,0 }
+                       if curvalue=0 then
+                         list.concat(taicpu.op_reg_reg(A_ADC,reg,NR_R1))
+                       else
+                         begin
+                           tmpreg:=getintregister(list,OS_8);
+                           a_load_const_reg(list,OS_8,curvalue,tmpreg);
+                           list.concat(taicpu.op_reg_reg(A_ADC,reg,tmpreg));
+                         end;
                      end;
                  end;
-             end; }
+             end;
          else
            begin
              if size in [OS_64,OS_S64] then
@@ -755,7 +782,7 @@ unit cgcpu;
          for i:=1 to tcgsize2size[size] do
            begin
              if ((qword(a) and mask) shr shift)=0 then
-               emit_mov(list,reg,NR_R1)
+               list.concat(taicpu.op_reg(A_CLR,reg))
              else
                list.concat(taicpu.op_reg_const(A_LDI,reg,(qword(a) and mask) shr shift));
 
