@@ -2266,16 +2266,18 @@ implementation
                 end;
               end;
             200 :
-{$ifndef x86_64}
-              inc(len);
-{$else x86_64}
+{$if defined(x86_64)}
               { every insentry with code 0310 must be marked with NOX86_64 }
               InternalError(2011051301);
-{$endif x86_64}
+{$elseif defined(i386)}
+              inc(len);
+{$elseif defined(i8086)}
+              {nothing};
+{$endif}
             201 :
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(i8086)}
               inc(len)
-{$endif x86_64}
+{$endif x86_64 or i8086}
               ;
             212 :
               inc(len);
@@ -2952,22 +2954,24 @@ implementation
 {$endif x86_64}
               end;
             200 :   { fixed 16-bit addr }
-{$ifndef x86_64}
+{$if defined(x86_64)}
+              { every insentry having code 0310 must be marked with NOX86_64 }
+              InternalError(2011051302);
+{$elseif defined(i386)}
               begin
                 bytes[0]:=$67;
                 objdata.writebytes(bytes,1);
               end;
-{$else x86_64}
-              { every insentry having code 0310 must be marked with NOX86_64 }
-              InternalError(2011051302);
+{$elseif defined(i8086)}
+              {nothing};
 {$endif}
             201 :   { fixed 32-bit addr }
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(i8086)}
               begin
                 bytes[0]:=$67;
                 objdata.writebytes(bytes,1);
               end
-{$endif x86_64}
+{$endif x86_64 or i8086}
                ;
             208,209,210 :
               begin
