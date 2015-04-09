@@ -103,6 +103,7 @@ interface
 
         procedure section_count_sections(p:TObject;arg:pointer);
         procedure WritePUBDEFs(Data: TObjData);
+        procedure WriteEXTDEFs(Data: TObjData);
 
         property LNames: TOmfOrderedNameCollection read FLNames;
         property Segments: TFPHashObjectList read FSegments;
@@ -549,6 +550,46 @@ implementation
         RawRecord.Free;
       end;
 
+    procedure TOmfObjOutput.WriteEXTDEFs(Data: TObjData);
+      var
+        ExtNames: TFPHashObjectList;
+        RawRecord: TOmfRawRecord;
+        i,idx: Integer;
+        objsym: TObjSymbol;
+        ExternalNameElem: TOmfExternalNameElement;
+        ExtDefRec: TOmfRecord_EXTDEF;
+      begin
+        ExtNames:=TFPHashObjectList.Create;
+        RawRecord:=TOmfRawRecord.Create;
+
+        idx:=1;
+        for i:=0 to Data.ObjSymbolList.Count-1 do
+          begin
+            objsym:=TObjSymbol(Data.ObjSymbolList[i]);
+            if objsym.bind=AB_EXTERNAL then
+              begin
+                ExternalNameElem:=TOmfExternalNameElement.Create(ExtNames,objsym.Name);
+                objsym.symidx:=idx;
+                Inc(idx);
+              end;
+          end;
+
+        if ExtNames.Count>0 then
+          begin
+            ExtDefRec:=TOmfRecord_EXTDEF.Create;
+            ExtDefRec.ExternalNames:=ExtNames;
+            while ExtDefRec.NextIndex<ExtDefRec.ExternalNames.Count do
+              begin
+                ExtDefRec.EncodeTo(RawRecord);
+                RawRecord.WriteTo(FWriter);
+              end;
+            ExtDefRec.Free;
+          end;
+
+        ExtNames.Free;
+        RawRecord.Free;
+      end;
+
     function TOmfObjOutput.writeData(Data:TObjData):boolean;
       var
         RawRecord: TOmfRawRecord;
@@ -638,6 +679,9 @@ implementation
 
         { write PUBDEF record(s) }
         WritePUBDEFs(Data);
+
+        { write EXTDEF record(s) }
+        WriteEXTDEFs(Data);
 
         { write link pass separator }
         LinkPassSeparator_COMENT:=TOmfRecord_COMENT.Create;
