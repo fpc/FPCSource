@@ -553,9 +553,14 @@ begin
     CheckEquals(1,RecordCount);
 
     append;
-    FieldByName('id').AsInteger := 1;
+    FieldByName('id').AsInteger := 2;
     CheckEquals(0,RecNo,'RecNo after 3rd Append');
     CheckEquals(1,RecordCount);
+    post;
+
+    edit;
+    CheckEquals(2,RecNo,'RecNo after Edit');
+    CheckEquals(2,RecordCount);
 
     Close;
 
@@ -756,12 +761,12 @@ begin
     CheckEquals(1,FieldByName('id').AsInteger);
 
     next;
-    delete;
+    delete;           // id=2
 
     GotoBookmark(BM2);
     CheckEquals(3,FieldByName('id').AsInteger,'After #2 deleted');
     
-    delete;delete;
+    delete;delete;    // id=3,4
 
     GotoBookmark(BM3);
     CheckEquals(6,FieldByName('id').AsInteger);

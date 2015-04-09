@@ -507,11 +507,11 @@ end;
 
 function TFixedFormatDataSet.GetRecNo: Longint;
 var
-  BufPtr: TRecordBuffer;
+  RecBuf: TRecordBuffer;
 begin
   Result := 0;
-  if GetActiveRecBuf(BufPtr) and Not (State in dsEditModes) then
-    Result := PRecInfo(BufPtr + FRecInfoOfs)^.RecordNumber;
+  if GetActiveRecBuf(RecBuf) and (State <> dsInsert) then
+    Result := PRecInfo(RecBuf + FRecInfoOfs)^.RecordNumber;
 end;
 
 procedure TFixedFormatDataSet.SetRecNo(Value: Integer);
