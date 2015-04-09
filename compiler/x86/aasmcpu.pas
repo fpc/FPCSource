@@ -2870,17 +2870,22 @@ implementation
             36,37,38 :   // 044..046 - select between word/dword/qword depending on
               begin      // address size (we support only default address sizes).
                 getvalsym(c-36);
-{$ifdef x86_64}
+{$if defined(x86_64)}
                 if assigned(currsym) then
                   objdata_writereloc(currval,8,currsym,currabsreloc)
                 else
                   objdata.writebytes(currval,8);
-{$else x86_64}
+{$elseif defined(i386)}
                 if assigned(currsym) then
                   objdata_writereloc(currval,4,currsym,currabsreloc32)
                 else
                   objdata.writebytes(currval,4);
-{$endif x86_64}
+{$elseif defined(i8086)}
+                if assigned(currsym) then
+                  objdata_writereloc(currval,2,currsym,currabsreloc)
+                else
+                  objdata.writebytes(currval,2);
+{$endif}
               end;
             40,41,42 :   // 050..052 - byte relative operand
               begin
