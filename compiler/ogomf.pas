@@ -589,6 +589,10 @@ implementation
 
         LNames.Clear;
         LNames.Add('');  { insert an empty string, which has index 1 }
+        FSegments.Clear;
+        FSegments.Add('',nil);
+        FGroups.Clear;
+        FGroups.Add('',nil);
 
         for i:=0 to Data.ObjSectionList.Count-1 do
           with TOmfObjSection(Data.ObjSectionList[I]) do
