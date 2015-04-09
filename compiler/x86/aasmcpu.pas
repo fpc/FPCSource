@@ -2368,10 +2368,10 @@ implementation
               end;
             192,193,194:
               begin
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(i8086)}
                 if (oper[c and 3]^.ot and OT_SIZE_MASK)=OT_BITS32 then
                   inc(len);
-{$endif x86_64}
+{$endif x86_64 or i8086}
               end;
             else
              InternalError(200603141);
@@ -2945,13 +2945,13 @@ implementation
               end;
             192,193,194:
               begin
-{$ifdef x86_64}
+{$if defined(x86_64) or defined(i8086)}
                 if (oper[c and 3]^.ot and OT_SIZE_MASK)=OT_BITS32 then
                   begin
                     bytes[0]:=$67;
                     objdata.writebytes(bytes,1);
                   end;
-{$endif x86_64}
+{$endif x86_64 or i8086}
               end;
             200 :   { fixed 16-bit addr }
 {$if defined(x86_64)}
