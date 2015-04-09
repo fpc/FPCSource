@@ -656,6 +656,8 @@ implementation
 
   procedure TOmfRecord_COMENT.DecodeFrom(RawRecord: TOmfRawRecord);
     begin
+      if RawRecord.RecordType<>RT_COMENT then
+        internalerror(2015040301);
       if RawRecord.RecordLength<3 then
         internalerror(2015033104);
       CommentType:=RawRecord.RawData[0];
