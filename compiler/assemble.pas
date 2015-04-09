@@ -1820,7 +1820,8 @@ Implementation
         place: tcutplace;
         ObjWriter : TObjectWriter;
       begin
-        if not(cs_asm_leave in current_settings.globalswitches) then
+        if not(cs_asm_leave in current_settings.globalswitches) and
+           not(af_needar in target_asm.flags) then
           ObjWriter:=TARObjectWriter.create(current_module.staticlibfilename)
         else
           ObjWriter:=TObjectwriter.create;
