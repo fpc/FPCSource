@@ -199,7 +199,7 @@ type THackDataLink=class(TDataLink);
 
 procedure TTestCursorDBBasics.TestAppendOnEmptyDataset;
 begin
-  with DBConnector.GetNDataset(0) do
+  with DBConnector.GetNDataset(True,0) do
     begin
     open;
     CheckTrue(CanModify);
@@ -217,7 +217,7 @@ end;
 
 procedure TTestCursorDBBasics.TestInsertOnEmptyDataset;
 begin
-  with DBConnector.GetNDataset(0) do
+  with DBConnector.GetNDataset(True,0) do
     begin
     open;
     CheckTrue(CanModify);
@@ -708,7 +708,7 @@ begin
     InsertRecord([152,'TestInsRec']);
     CheckEquals(152,fields[0].AsInteger);
     CheckEquals('TestInsRec',fields[1].AsString);
-    CheckTrue(state=dsBrowse);
+    CheckTrue(State=dsBrowse);
 
     // AppendRecord should append a record, further the same as InsertRecord
     AppendRecord([151,'TestInsRec']);

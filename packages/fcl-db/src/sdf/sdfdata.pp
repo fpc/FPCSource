@@ -387,11 +387,11 @@ begin
     FData.LoadFromFile(FileName);
   FRecordSize := FDefaultRecordLength;
   InternalInitFieldDefs;
+  if FRecordSize = 0 then
+    FRecordSize := FDefaultRecordLength;
   if DefaultFields then
     CreateFields;
   BindFields(TRUE);
-  if FRecordSize = 0 then
-    FRecordSize := FDefaultRecordLength;
   BookmarkSize := SizeOf(PtrInt);
   FRecInfoOfs := FRecordSize + CalcFieldsSize; // Initialize the offset for TRecInfo in the buffer
   FRecBufSize := FRecInfoOfs + SizeOf(TRecInfo);
@@ -480,7 +480,7 @@ end;
 function TFixedFormatDataSet.GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode;
   DoCheck: Boolean): TGetResult;
 begin
-  if (FData.Count < (1+FDataOffset)) then
+  if (FData.Count <= FDataOffset) then
     Result := grEOF
   else
     Result := TxtGetRecord(Buffer, GetMode);
@@ -953,7 +953,7 @@ begin
     else
       begin
       If (FCurrec=-1) and (GetMode=gmNext) then
-        inc(FCurrec);
+        inc(FCurRec);
       Result := inherited GetRecord(Buffer, GetMode, DoCheck);
       end;
   end
