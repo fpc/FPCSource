@@ -265,7 +265,6 @@ type
     procedure SetFirstLineAsSchema(Value : Boolean);
     procedure SetDelimiter(Value : Char);
   protected
-    function GetRecordCount: Integer; override;
     procedure InternalInitFieldDefs; override;
     function GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean)
              : TGetResult; override;
@@ -501,7 +500,7 @@ end;
 
 function TFixedFormatDataSet.GetRecordCount: Longint;
 begin
-  Result := FData.Count;
+  Result := FData.Count - FDataOffset;
 end;
 
 function TFixedFormatDataSet.GetRecNo: Longint;
@@ -516,7 +515,7 @@ end;
 procedure TFixedFormatDataSet.SetRecNo(Value: Integer);
 begin
   CheckBrowseMode;
-  if (Value >= 0) and (Value < FData.Count) and (Value <> RecNo) then
+  if (Value >= 0) and (Value <= RecordCount) and (Value <> RecNo) then
   begin
     DoBeforeScroll;
     FCurRec := Value - 1;
@@ -888,11 +887,10 @@ begin
     FData.Append(Schema.DelimitedText);
   end
   else if (FData.Count = 0) or (Trim(FData[0]) = '') then
-    begin
+  begin
     FirstLineAsSchema := FALSE;
-    FDataOffset:=0;
-    end
-  else if (Schema.Count = 0) or (FirstLineAsSchema) then
+  end
+  else if (Schema.Count = 0) or FirstLineAsSchema then
   begin
     Schema.Clear;
     SL:=FData[0];
@@ -1136,13 +1134,6 @@ procedure TSdfDataSet.SetDelimiter(Value : Char);
 begin
   CheckInactive;
   FDelimiter := Value;
-end;
-
-function TSdfDataSet.GetRecordCount: Integer;
-begin
-  Result:=Inherited GetRecordCount;
-  If Result>0 then
-    Result:=Result-Ord(FirstLineAsSchema);
 end;
 
 procedure TSdfDataSet.SetFirstLineAsSchema(Value : Boolean);
