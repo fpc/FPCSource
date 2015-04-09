@@ -167,6 +167,17 @@ implementation
             else
               FOmfFixup.FrameMethod:=ffmTarget;
           end
+        else if symbol<>nil then
+          begin
+            FOmfFixup.LocationOffset:=DataOffset;
+            FOmfFixup.LocationType:=fltOffset;
+            FOmfFixup.FrameDeterminedByThread:=False;
+            FOmfFixup.TargetDeterminedByThread:=False;
+            FOmfFixup.Mode:=fmSegmentRelative;
+            FOmfFixup.TargetMethod:=ftmExternalIndexNoDisp;
+            FOmfFixup.TargetDatum:=0; {TODO}
+            FOmfFixup.FrameMethod:=ffmTarget;
+          end
         else
          internalerror(2015040702);
       end;
