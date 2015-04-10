@@ -113,8 +113,9 @@ unit cg64f32;
 
     procedure splitparaloc64(const cgpara:tcgpara;var cgparalo,cgparahi:tcgpara);
       var
-        paraloclo,paraloclo2,
-        paralochi,paralochi2 : pcgparalocation;
+        paraloclo,paraloclo2,paraloclo3,paraloclo4,
+        paralochi,paralochi2,paralochi3,paralochi4 : pcgparalocation;
+        curparaloc : PCGParaLocation;
       begin
         if not(cgpara.size in [OS_64,OS_S64]) then
           internalerror(200408231);
@@ -135,6 +136,73 @@ unit cg64f32;
         cgparalo.alignment:=cgpara.alignment;
         paraloclo:=cgparalo.add_location;
         case cgpara.locations_count of
+          8:
+            begin
+              { 8 parameter fields? }
+              { Order for multiple locations is always
+                  paraloc^ -> high
+                  paraloc^.next -> low }
+              if (target_info.endian=ENDIAN_BIG) then
+                begin
+                  { is there any big endian 8 bit ALU/16 bit Addr CPU? }
+                  internalerror(2015041001);
+                  { paraloc^ -> high }
+                  move(cgpara.location^,paralochi^,sizeof(paralochi^));
+                  paralochi^.next:=nil;
+                  paralochi2:=cgparahi.add_location;
+                  move(cgpara.location^.next,paralochi2^,sizeof(paralochi2^));
+
+                  { paraloc^.next^.next^ -> low }
+                  move(cgpara.location^.next^.next^,paraloclo^,sizeof(paraloclo^));
+                  paraloclo^.next:=nil;
+                  paraloclo2:=cgparalo.add_location;
+                  move(cgpara.location^.next^.next^.next^,paraloclo2^,sizeof(paraloclo2^));
+                end
+              else
+                begin
+                  { paraloc^ -> low }
+                  move(cgpara.location^,paraloclo^,sizeof(paraloclo^));
+                  paraloclo^.next:=nil;
+                  paraloclo2:=cgparalo.add_location;
+                  move(cgpara.location^.next^,paraloclo2^,sizeof(paraloclo2^));
+                  paraloclo2^.next:=nil;
+                  paraloclo3:=cgparalo.add_location;
+                  move(cgpara.location^.next^.next^,paraloclo3^,sizeof(paraloclo3^));
+                  paraloclo3^.next:=nil;
+                  paraloclo4:=cgparalo.add_location;
+                  move(cgpara.location^.next^.next^.next^,paraloclo4^,sizeof(paraloclo4^));
+
+                  { paraloc^.next^.next^.next^.next^ -> high }
+                  curparaloc:=cgpara.location^.next^.next^.next^.next;
+                  move(curparaloc^,paralochi^,sizeof(paralochi^));
+                  paralochi^.next:=nil;
+                  paralochi2:=cgparahi.add_location;
+                  move(curparaloc^.next^,paralochi2^,sizeof(paralochi2^));
+                  paralochi2^.next:=nil;
+                  paralochi3:=cgparahi.add_location;
+                  move(curparaloc^.next^.next^,paralochi3^,sizeof(paralochi3^));
+                  paralochi3^.next:=nil;
+                  paralochi4:=cgparahi.add_location;
+                  move(curparaloc^.next^.next^.next^,paralochi4^,sizeof(paralochi4^));
+                end;
+
+              { fix size }
+              paraloclo^.size:=OS_8;
+              paraloclo2^.size:=OS_8;
+              paraloclo3^.size:=OS_8;
+              paraloclo4^.size:=OS_8;
+              paraloclo4^.next:=nil;
+              paralochi^.size:=OS_8;
+              paralochi2^.size:=OS_8;
+              paralochi3^.size:=OS_8;
+              paralochi4^.size:=OS_8;
+              paralochi4^.next:=nil;
+              if cgpara.size=OS_S64 then
+                if target_info.endian=ENDIAN_BIG then
+                  paralochi^.size:=OS_S8
+                else
+                  paraloclo4^.size:=OS_S8;
+            end;
           4:
             begin
               { 4 parameter fields? }
