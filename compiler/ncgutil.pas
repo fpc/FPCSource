@@ -790,6 +790,9 @@ implementation
 {$ifndef cpu64bitalu}
         tempreg  : tregister;
         reg64    : tregister64;
+{$if defined(cpu8bitalu)}
+        curparaloc : PCGParaLocation;
+{$endif defined(cpu8bitalu)}
 {$endif not cpu64bitalu}
       begin
         paraloc:=para.location;
@@ -894,6 +897,52 @@ implementation
                     LOC_REGISTER:
                       begin
                         case para.locations_count of
+{$if defined(cpu8bitalu)}
+                          { 8 paralocs? }
+                          8:
+                            if (target_info.endian=ENDIAN_BIG) then
+                              begin
+                                { is there any big endian 8 bit ALU/16 bit Addr CPU? }
+                                internalerror(2015041003);
+                                { paraloc^ -> high
+                                  paraloc^.next^.next^.next^.next -> low }
+                                unget_para(paraloc^);
+                                gen_alloc_regloc(list,destloc);
+                                { reg->reg, alignment is irrelevant }
+                                cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^,GetNextReg(destloc.register64.reghi),1);
+                                unget_para(paraloc^.next^);
+                                cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^.next^,destloc.register64.reghi,1);
+                                unget_para(paraloc^.next^.next^);
+                                cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^.next^.next^,GetNextReg(destloc.register64.reglo),1);
+                                unget_para(paraloc^.next^.next^.next^);
+                                cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^.next^.next^.next^,destloc.register64.reglo,1);
+                              end
+                            else
+                              begin
+                                { paraloc^ -> low
+                                  paraloc^.next^.next^.next^.next -> high }
+                                curparaloc:=paraloc;
+                                unget_para(curparaloc^);
+                                gen_alloc_regloc(list,destloc);
+                                cg.a_load_cgparaloc_anyreg(list,OS_8,curparaloc^,destloc.register64.reglo,2);
+                                unget_para(curparaloc^.next^);
+                                cg.a_load_cgparaloc_anyreg(list,OS_8,curparaloc^.next^,GetNextReg(destloc.register64.reglo),1);
+                                unget_para(curparaloc^.next^.next^);
+                                cg.a_load_cgparaloc_anyreg(list,OS_8,curparaloc^.next^.next^,GetNextReg(GetNextReg(destloc.register64.reglo)),1);
+                                unget_para(curparaloc^.next^.next^.next^);
+                                cg.a_load_cgparaloc_anyreg(list,OS_8,curparaloc^.next^.next^,GetNextReg(GetNextReg(GetNextReg(destloc.register64.reglo))),1);
+
+                                curparaloc:=paraloc^.next^.next^.next^.next;
+                                unget_para(curparaloc^);
+                                cg.a_load_cgparaloc_anyreg(list,OS_8,curparaloc^,destloc.register64.reghi,2);
+                                unget_para(curparaloc^.next^);
+                                cg.a_load_cgparaloc_anyreg(list,OS_8,curparaloc^.next^,GetNextReg(destloc.register64.reghi),1);
+                                unget_para(curparaloc^.next^.next^);
+                                cg.a_load_cgparaloc_anyreg(list,OS_8,curparaloc^.next^.next^,GetNextReg(GetNextReg(destloc.register64.reghi)),1);
+                                unget_para(curparaloc^.next^.next^.next^);
+                                cg.a_load_cgparaloc_anyreg(list,OS_8,curparaloc^.next^.next^.next^,GetNextReg(GetNextReg(GetNextReg(destloc.register64.reghi))),1);
+                              end;
+{$endif defined(cpu8bitalu)}
 {$if defined(cpu16bitalu) or defined(cpu8bitalu)}
                           { 4 paralocs? }
                           4:
