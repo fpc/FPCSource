@@ -631,27 +631,28 @@ begin
       TempPos := RecBuf;
       SetFieldPos(TRecordBuffer(RecBuf), Field.FieldNo);
       Result := (RecBuf < StrEnd(TempPos));
-    end
-    else
-      if (State in [dsBrowse, dsEdit, dsInsert, dsCalcFields]) then
+      if Result and (Buffer <> nil) then
       begin
-        Inc(RecBuf, FRecordSize + Field.Offset);
-        Result := Boolean(Byte(RecBuf[0]));
+        StrLCopy(Buffer, RecBuf, Field.Size);
+        if FTrimSpace then
+        begin
+          TempPos := StrEnd(Buffer);
+          repeat
+            Dec(TempPos);
+            if (TempPos[0] = ' ') then
+              TempPos[0]:= #0
+            else
+              break;
+          until (TempPos = Buffer);
+        end;
       end;
-  end;
-  if Result and (Buffer <> nil) then
-  begin
-    StrLCopy(Buffer, RecBuf, Field.Size);
-    if FTrimSpace then
+    end
+    else // fkCalculated, fkLookup
     begin
-      TempPos := StrEnd(Buffer);
-      repeat
-        Dec(TempPos);
-        if (TempPos[0] = ' ') then
-          TempPos[0]:= #0
-        else
-          break;
-      until (TempPos = Buffer);
+      Inc(RecBuf, FRecordSize + Field.Offset); // Offset is calculated using DataSize not Size
+      Result := Boolean(RecBuf[0]);
+      if Result and Assigned(Buffer) then
+        Move(RecBuf[1], Buffer^, Field.DataSize);
     end;
   end;
 end;
@@ -689,7 +690,9 @@ begin
   else // fkCalculated, fkLookup
   begin
     Inc(RecBuf, FRecordSize + Field.Offset);
-    Move(Buffer^, RecBuf[0], Field.Size);
+    Boolean(RecBuf[0]) := Assigned(Buffer);
+    if Assigned(Buffer) then
+      Move(Buffer^, RecBuf[1], Field.DataSize);
   end;
   if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
     DataEvent(deFieldChange, Ptrint(Field));

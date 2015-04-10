@@ -678,9 +678,9 @@ end;
 procedure TTestDBBasics.TestDetectionNonMatchingDataset;
 var
   F: TField;
-  ds: tdataset;
+  ds: TDataSet;
 begin
-  // TDataset.Bindfields should detect problems when the underlying data does
+  // TDataset.BindFields should detect problems when the underlying data does
   // not reflect the fields of the dataset. This test is to check if this is
   // really done.
   ds := DBConnector.GetNDataset(true,6);
@@ -2791,7 +2791,7 @@ procedure TTestDBBasics.TestCalculatedField;
 var ds   : TDataset;
     AFld1, AFld2, AFld3 : Tfield;
 begin
-  ds := DBConnector.GetNDataset(5);
+  ds := DBConnector.GetNDataset(True,5);
   with ds do
     begin
     AFld1 := TIntegerField.Create(ds);
@@ -2810,10 +2810,10 @@ begin
     CheckEquals(3,FieldCount);
     ds.OnCalcFields := TestcalculatedField_OnCalcfields;
     open;
-    CheckEquals(1,FieldByName('ID').asinteger);
-    CheckEquals(5,FieldByName('CALCFLD').asinteger);
+    CheckEquals(1, FieldByName('ID').AsInteger);
+    CheckEquals(5, FieldByName('CALCFLD').AsInteger);
     next;
-    CheckEquals(70000,FieldByName('CALCFLD').asinteger);
+    CheckEquals(70000,FieldByName('CALCFLD').AsInteger);
     next;
     CheckTrue(FieldByName('CALCFLD').IsNull, '#3 Null');
     next;
