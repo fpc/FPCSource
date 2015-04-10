@@ -28,7 +28,7 @@ unit rgcpu;
   interface
 
      uses
-       aasmbase,aasmtai,aasmdata,aasmcpu,
+       aasmbase,aasmtai,aasmdata,aasmcpu,aasmsym,
        cgbase,cgutils,
        cpubase,
        rgobj;
@@ -38,6 +38,7 @@ unit rgcpu;
          procedure add_constraints(reg:tregister);override;
          procedure do_spill_read(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister); override;
          procedure do_spill_written(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister); override;
+         function do_spill_replace(list : TAsmList;instr : tai_cpu_abstract_sym; orgreg : tsuperregister;const spilltemp : treference) : boolean; override;
        end;
 
        trgintcpu = class(trgcpu)
@@ -165,5 +166,41 @@ unit rgcpu;
           end;
       end;
 
+
+    function trgcpu.do_spill_replace(list:TAsmList;instr:tai_cpu_abstract_sym;orgreg:tsuperregister;const spilltemp:treference):boolean;
+      var
+        b : byte;
+      begin
+        result:=false;
+        if not(spilltemp.offset in [0..63]) then
+          exit;
+
+        { Replace 'mov  dst,orgreg' with 'ld  dst,spilltemp'
+          and     'mov  orgreg,src' with 'st  dst,spilltemp' }
+        with instr do
+          begin
+            if (opcode=A_MOV) and (ops=2) and (oper[1]^.typ=top_reg) and (oper[0]^.typ=top_reg) then
+              begin
+                if (getregtype(oper[0]^.reg)=regtype) and
+                   (get_alias(getsupreg(oper[0]^.reg))=orgreg) and
+                   (get_alias(getsupreg(oper[1]^.reg))<>orgreg) then
+                  begin
+                    { str expects the register in oper[0] }
+                    instr.loadreg(0,oper[1]^.reg);
+                    instr.loadref(1,spilltemp);
+                    opcode:=A_ST;
+                    result:=true;
+                  end
+                else if (getregtype(oper[1]^.reg)=regtype) and
+                   (get_alias(getsupreg(oper[1]^.reg))=orgreg) and
+                   (get_alias(getsupreg(oper[0]^.reg))<>orgreg) then
+                  begin
+                    instr.loadref(1,spilltemp);
+                    opcode:=A_LD;
+                    result:=true;
+                  end;
+              end;
+          end;
+      end;
 
 end.
