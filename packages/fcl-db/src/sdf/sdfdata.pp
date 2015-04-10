@@ -631,10 +631,10 @@ begin
       TempPos := RecBuf;
       SetFieldPos(TRecordBuffer(RecBuf), Field.FieldNo);
       Result := (RecBuf < StrEnd(TempPos));
-      if Result and (Buffer <> nil) then
+      if Result and Assigned(Buffer) then
       begin
         StrLCopy(Buffer, RecBuf, Field.Size);
-        if FTrimSpace then
+        if FTrimSpace then // trim trailing spaces
         begin
           TempPos := StrEnd(Buffer);
           repeat
@@ -674,7 +674,7 @@ begin
       DatabaseErrorFmt(SReadOnlyField, [Field.DisplayName]);
     if State in [dsEdit, dsInsert, dsNewValue] then
       Field.Validate(Buffer);
-    if Field.FieldKind <> fkInternalCalc then
+    if Assigned(Buffer) and (Field.FieldKind <> fkInternalCalc) then
     begin
       SetFieldPos(TRecordBuffer(RecBuf), Field.FieldNo);
       BufEnd := StrEnd(pansichar(ActiveBuffer));  // Fill with blanks when necessary
