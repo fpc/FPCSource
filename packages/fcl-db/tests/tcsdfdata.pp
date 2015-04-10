@@ -108,6 +108,7 @@ begin
   AssertEquals('RecNo', 1, TestDataset.RecNo);
   AssertEquals('RecordCount', 1, TestDataset.RecordCount);
   TestDataset.Close;
+  AssertEquals('RecordCount after Close', 0, TestDataset.RecordCount);
 end;
 
 procedure Ttestsdfspecific.TestSingleLineNoHeader;
@@ -138,6 +139,7 @@ begin
   AssertEquals('RecNo', 1, TestDataset.RecNo);
   AssertEquals('RecordCount', 1, TestDataset.RecordCount);
   TestDataset.Close;
+  AssertEquals('RecordCount after Close', 0, TestDataset.RecordCount);
 end;
 
 procedure Ttestsdfspecific.TestOutput;

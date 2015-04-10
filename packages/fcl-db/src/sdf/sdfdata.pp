@@ -199,8 +199,7 @@ type
     function GetRecNo: Integer; override;
     procedure SetRecNo(Value: Integer); override;
     function GetCanModify: boolean; override;
-    function TxtGetRecord(Buffer : TRecordBuffer; GetMode: TGetMode): TGetResult;
-    function RecordFilter(RecBuf: Pointer): Boolean;
+    function RecordFilter(RecBuf: TRecordBuffer): Boolean;
     function BufToStore(Buffer: TRecordBuffer): String; virtual;
     function StoreToBuf(Source: String): String; virtual;
   public
@@ -476,26 +475,59 @@ end;
 
 function TFixedFormatDataSet.GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode;
   DoCheck: Boolean): TGetResult;
+var
+  Accepted : Boolean;
 begin
   if (FData.Count <= FDataOffset) then
     Result := grEOF
   else
   begin
-    Result := TxtGetRecord(Buffer, GetMode);
-    if Result = grOK then
-    begin
-      if (CalcFieldsSize > 0) then
-        GetCalcFields(Buffer);
-    end
-    else
-      if (Result = grError) and DoCheck then
+    Result := grOK;
+    repeat
+      Accepted := TRUE;
+      case GetMode of
+        gmNext:
+          if FCurRec >= FData.Count - 1  then
+            Result := grEOF
+          else
+            Inc(FCurRec);
+        gmPrior:
+          if FCurRec <= FDataOffset then
+            Result := grBOF
+          else
+            Dec(FCurRec);
+        gmCurrent:
+          if (FCurRec < FDataOffset) or (FCurRec >= FData.Count) then
+            Result := grError;
+      end;
+
+      if Result = grOk then
+      begin
+        Move(PChar(StoreToBuf(FData[FCurRec]))^, Buffer[0], FRecordSize);
+        with PRecInfo(Buffer + FRecInfoOfs)^ do
+        begin
+          Bookmark := PtrInt(FData.Objects[FCurRec]);
+          BookmarkFlag := bfCurrent;
+        end;
+        if CalcFieldsSize > 0 then GetCalcFields(Buffer);
+
+        if Filtered then
+        begin
+          Accepted := RecordFilter(Buffer);
+          if not Accepted and (GetMode = gmCurrent) then
+            Inc(FCurRec);
+        end;
+      end
+      else if (Result = grError) and DoCheck then
         DatabaseError('No Records');
+    until (Result <> grOK) or Accepted;
   end;
 end;
 
 function TFixedFormatDataSet.GetRecordCount: Longint;
 begin
   Result := FData.Count - FDataOffset;
+  if Result < 0 then Result := 0; // closed dataset
 end;
 
 function TFixedFormatDataSet.GetRecNo: Longint;
@@ -540,58 +572,16 @@ begin
   Result := RecBuf <> nil;
 end;
 
-function TFixedFormatDataSet.TxtGetRecord(Buffer : TRecordBuffer; GetMode: TGetMode): TGetResult;
+function TFixedFormatDataSet.RecordFilter(RecBuf: TRecordBuffer): Boolean;
 var
-  Accepted : Boolean;
-begin
-  Result := grOK;
-  repeat
-    Accepted := TRUE;
-    case GetMode of
-      gmNext:
-        if FCurRec >= FData.Count - 1  then
-          Result := grEOF
-        else
-          Inc(FCurRec);
-      gmPrior:
-        if FCurRec <= FDataOffset then
-          Result := grBOF
-        else
-          Dec(FCurRec);
-      gmCurrent:
-        if (FCurRec < FDataOffset) or (FCurRec >= FData.Count) then
-          Result := grError;
-    end;
-    if Result = grOk then
-    begin
-      Move(PChar(StoreToBuf(FData[FCurRec]))^, Buffer[0], FRecordSize);
-      with PRecInfo(Buffer + FRecInfoOfs)^ do
-      begin
-        Bookmark := PtrInt(FData.Objects[FCurRec]);
-        BookmarkFlag := bfCurrent;
-      end;
-      if Filtered then
-      begin
-        Accepted := RecordFilter(Buffer);
-        if not Accepted and (GetMode = gmCurrent) then
-          Inc(FCurRec);
-      end;
-    end;
-  until Accepted;
-end;
-
-function TFixedFormatDataSet.RecordFilter(RecBuf: Pointer): Boolean;
-var
-  Accept: Boolean;
   SaveState: TDataSetState;
 begin                          // Returns true if accepted in the filter
   SaveState := SetTempState(dsFilter);
   FFilterBuffer := RecBuf;
-  Accept := TRUE;
-  if Accept and Assigned(OnFilterRecord) then
-    OnFilterRecord(Self, Accept);
+  Result := TRUE;
+  if Result and Assigned(OnFilterRecord) then
+    OnFilterRecord(Self, Result);
   RestoreState(SaveState);
-  Result := Accept;
 end;
 
 function TFixedFormatDataSet.GetCanModify: boolean;
