@@ -399,7 +399,7 @@ begin
   if (not FReadOnly) and (FSaveChanges) then  // Write any edits to disk
     FData.SaveToFile(FileName);
   FLoadfromStream := False;
-  FData.Clear;
+  FData.Clear;          // Clear data
   BindFields(FALSE);
   if DefaultFields then // Destroy the TField
     DestroyFields;
@@ -720,14 +720,12 @@ end;
 
 procedure TFixedFormatDataSet.InternalPost;
 begin
-  FSaveChanges := TRUE;
   inherited InternalPost;
+  FSaveChanges := TRUE;
   if (State = dsEdit) then // just update the data in the string list
-  begin
-    FData[FCurRec] := BufToStore(ActiveBuffer);
-  end
-  else
-    InternalAddRecord(ActiveBuffer, True);
+    FData[FCurRec] := BufToStore(ActiveBuffer)
+  else // append or insert
+    InternalAddRecord(ActiveBuffer, GetBookmarkFlag(ActiveBuffer)=bfEOF);
 end;
 
 procedure TFixedFormatDataSet.InternalEdit;
@@ -752,16 +750,11 @@ begin
   FSaveChanges := TRUE;
   Inc(FLastBookmark);
   if DoAppend then
-    begin
     InternalLast;
+  if (FCurRec >= FDataOffset) then
+    FData.InsertObject(FCurRec, BufToStore(Buffer), TObject(Pointer(FLastBookmark)))
+  else
     FData.AddObject(BufToStore(Buffer), TObject(Pointer(FLastBookmark)));
-    end
-  else if (FCurRec >= FDataOffset) then
-    begin
-    For I:=FCurRec+FDataOffset to FData.Count-1 do
-      FData.Objects[i]:=TObject(FCurRec+FDataOffset+1);
-    FData.InsertObject(FCurRec+FDataOffset, BufToStore(Buffer), TObject(Pointer(FCurRec)))
-    end
 end;
 
 function TFixedFormatDataSet.BookmarkValid(ABookmark: TBookmark): Boolean;

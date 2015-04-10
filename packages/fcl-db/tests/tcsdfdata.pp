@@ -102,6 +102,7 @@ begin
   TestDataset.FirstLineAsSchema := True;
   TestDataset.FileName:=InputFilename;
   TestDataset.Open;
+  AssertEquals('1', TestDataset.Fields[0].AsString); // just after Open
 
   TestDataset.Last;
   TestDataset.First;
@@ -133,6 +134,7 @@ begin
   TestDataset.FirstLineAsSchema := False;
   TestDataset.FileName:=InputFilename;
   TestDataset.Open;
+  AssertEquals('1', TestDataset.Fields[0].AsString);
 
   TestDataset.Last;
   TestDataset.First;
@@ -144,9 +146,11 @@ end;
 
 procedure Ttestsdfspecific.TestOutput;
 // Basic assignment test: assign some difficult data to records and
-// see if the recordcount is correct.
+// see if the RecordCount is correct.
 const
   OutputFilename='output.csv';
+var
+  i: integer;
 begin
   TestDataSet.Close;
 
@@ -169,27 +173,35 @@ begin
   TestDataset.Post;
 
   TestDataset.Append;
-  TestDataset.FieldByName('ID').AsInteger := 3;
+  TestDataset.FieldByName('ID').AsInteger := 4;
   //Data with delimiter and quote (to test 19376)
   TestDataset.FieldByName('NAME').AsString := 'Delimiter,"and";quote';
   TestDataset.FieldByName('BIRTHDAY').AsDateTime := ScanDateTime('yyyymmdd', '19761231', 1);
   TestDataset.Post;
 
-
-  TestDataset.Append;
-  TestDataset.FieldByName('ID').AsInteger := 4;
+  TestDataset.Insert;
+  TestDataset.FieldByName('ID').AsInteger := 3;
   // Regular data
   TestDataset.FieldByName('NAME').AsString := 'Just a long line of text without anything special';
   TestDataset.FieldByName('BIRTHDAY').AsDateTime := ScanDateTime('yyyymmdd', '19761231', 1);
   TestDataset.Post;
 
-  TestDataset.Last;
-  AssertEquals('RecNo', 4, TestDataset.RecNo);
-  TestDataset.RecNo := 2;
-  AssertEquals('RecNo', 2, TestDataset.RecNo);
-  AssertEquals(2, TestDataset.FieldByName('ID').AsInteger);
+  // test sequential order of records
+  TestDataset.First;
+  for i:=1 to 4 do begin
+    AssertEquals('RecNo', i, TestDataset.RecNo);
+    AssertEquals(i, TestDataset.FieldByName('ID').AsInteger);
+    TestDataset.Next;
+  end;
+  // set/test RecNo
+  for i:=1 to 4 do begin
+    TestDataset.RecNo := i;
+    AssertEquals('RecNo', i, TestDataset.RecNo);
+    AssertEquals(i, TestDataset.FieldByName('ID').AsInteger);
+  end;
   AssertEquals('RecordCount', 4, TestDataset.RecordCount);
   TestDataset.Close;
+  AssertEquals('RecordCount after Close', 0, TestDataset.RecordCount);
 end;
 
 {
