@@ -89,7 +89,7 @@ type
         x,y     : Word;
     end;
 
-    PLANEPTR = Pointer;
+    TPLANEPTR = PByte;
 
     pBitMap = ^tBitMap;
     tBitMap = record
@@ -98,7 +98,7 @@ type
         Flags           : Byte;
         Depth           : Byte;
         pad             : Word;
-        Planes          : Array [0..7] of PLANEPTR;
+        Planes          : Array [0..7] of TPLANEPTR;
     end;
 {* flags for AllocBitMap, etc. *}
 const
@@ -2262,7 +2262,7 @@ PROCEDURE BltBitMapRastPort(const srcBitMap : pBitMap location 'a0'; xSrc : LONG
 PROCEDURE BltClear(memBlock : pCHAR location 'a1'; byteCount : ULONG location 'd0'; flags : ULONG location 'd1'); syscall GfxBase 300;
 PROCEDURE BltMaskBitMapRastPort(const srcBitMap : pBitMap location 'a0'; xSrc : LONGINT location 'd0'; ySrc : LONGINT location 'd1'; destRP : pRastPort location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'; minterm : ULONG location 'd6';const bltMask : pCHAR location 'a2'); syscall GfxBase 636;
 PROCEDURE BltPattern(rp : pRastPort location 'a1';const mask : pCHAR location 'a0'; xMin : LONGINT location 'd0'; yMin : LONGINT location 'd1'; xMax : LONGINT location 'd2'; yMax : LONGINT location 'd3'; maskBPR : ULONG location 'd4'); syscall GfxBase 312;
-PROCEDURE BltTemplate(const source : pCHAR location 'a0'; xSrc : LONGINT location 'd0'; srcMod : LONGINT location 'd1'; destRP : pRastPort location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'); syscall GfxBase 036;
+PROCEDURE BltTemplate(const source : pWORD location 'a0'; xSrc : LONGINT location 'd0'; srcMod : LONGINT location 'd1'; destRP : pRastPort location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'); syscall GfxBase 036;
 FUNCTION CalcIVG(v : pView location 'a0'; vp : pViewPort location 'a1') : WORD; syscall GfxBase 828;
 PROCEDURE CBump(copList : pUCopList location 'a1'); syscall GfxBase 366;
 FUNCTION ChangeExtSpriteA(vp : pViewPort location 'a0'; oldsprite : pExtSprite location 'a1'; newsprite : pExtSprite location 'a2';const tags : pTagItem location 'a3') : LONGINT; syscall GfxBase 1026;
@@ -2325,7 +2325,7 @@ PROCEDURE InitGels(head : pVSprite location 'a0'; tail : pVSprite location 'a1';
 PROCEDURE InitGMasks(anOb : pAnimOb location 'a0'); syscall GfxBase 174;
 PROCEDURE InitMasks(vSprite : pVSprite location 'a0'); syscall GfxBase 126;
 PROCEDURE InitRastPort(rp : pRastPort location 'a1'); syscall GfxBase 198;
-FUNCTION InitTmpRas(tmpRas : pTmpRas location 'a0'; buffer : PLANEPTR location 'a1'; size : LONGINT location 'd0') : pTmpRas; syscall GfxBase 468;
+FUNCTION InitTmpRas(tmpRas : pTmpRas location 'a0'; buffer : Pointer location 'a1'; size : LONGINT location 'd0') : pTmpRas; syscall GfxBase 468;
 PROCEDURE InitView(view : pView location 'a1'); syscall GfxBase 360;
 PROCEDURE InitVPort(vp : pViewPort location 'a0'); syscall GfxBase 204;
 PROCEDURE LoadRGB32(vp : pViewPort location 'a0';const table : pULONG location 'a1'); syscall GfxBase 882;
