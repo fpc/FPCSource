@@ -880,7 +880,7 @@ interface
           elementdef : tdef;
           elementdefderef : tderef;
           setbase,
-          setmax   : aword;
+          setmax   : asizeint;
           constructor create(def:tdef;low, high : asizeint);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
@@ -3285,9 +3285,9 @@ implementation
       begin
          inherited ppuload(setdef,ppufile);
          ppufile.getderef(elementdefderef);
-         savesize:=ppufile.getaint;
-         setbase:=ppufile.getaint;
-         setmax:=ppufile.getaint;
+         savesize:=ppufile.getasizeint;
+         setbase:=ppufile.getasizeint;
+         setmax:=ppufile.getasizeint;
          ppuload_platform(ppufile);
       end;
 
@@ -3304,9 +3304,9 @@ implementation
       begin
          inherited ppuwrite(ppufile);
          ppufile.putderef(elementdefderef);
-         ppufile.putaint(savesize);
-         ppufile.putaint(setbase);
-         ppufile.putaint(setmax);
+         ppufile.putasizeint(savesize);
+         ppufile.putasizeint(setbase);
+         ppufile.putasizeint(setmax);
          writeentry(ppufile,ibsetdef);
       end;
 

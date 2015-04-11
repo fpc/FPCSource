@@ -3319,11 +3319,11 @@ begin
              readcommondef('Set definition',defoptions,setdef);
              write  ([space,'     Element type : ']);
              readderef('',setdef.ElType);
-             setdef.Size:=getaint;
+             setdef.Size:=getasizeint;
              writeln([space,'             Size : ',setdef.Size]);
-             setdef.SetBase:=getaint;
+             setdef.SetBase:=getasizeint;
              writeln([space,'         Set Base : ',setdef.SetBase]);
-             setdef.SetMax:=getaint;
+             setdef.SetMax:=getasizeint;
              writeln([space,'          Set Max : ',setdef.SetMax]);
            end;
 
