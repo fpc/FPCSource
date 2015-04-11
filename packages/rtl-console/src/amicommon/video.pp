@@ -228,11 +228,10 @@ end;
 
 
 procedure SysInitVideo;
-{$IFNDEF AROS}
 var
-  Counter, Counter2: LongInt;
+  Counter,
+  Counter2: LongInt;
   P: PWord;
-{$ENDIF}
 begin
 {$IFDEF MORPHOS}
   InitGraphicsLibrary;
