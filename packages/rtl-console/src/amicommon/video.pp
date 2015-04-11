@@ -78,7 +78,7 @@ var
 
   OldSH, OldSW          : longint;
 
-  OldCursorX, 
+  OldCursorX,
   OldCursorY            : LongInt;
   CursorType            : Word;
   OldCursorType         : Word;
@@ -100,6 +100,10 @@ var
   LastW, LastH: Integer;
   WindowForReqSave: PWindow;
   Process: PProcess;
+
+{$IFNDEF AROS}
+  FontBitmap: PBitmap;
+{$ENDIF}
 (*
   GetScreen: pScreen;
 
@@ -122,7 +126,7 @@ begin
     SA_Type           , PUBLICSCREEN_F, // pubscreen
     SA_PubName        , PtrUInt(PChar(VIDEOSCREENNAME)),
     SA_Quiet          , 1,
-    SA_LikeWorkbench  , 1     // Let OS  
+    SA_LikeWorkbench  , 1     // Let OS
   ]);
   {$ifdef VIDEODEBUG}
   if (GetScreen <> nil) then
@@ -224,8 +228,11 @@ end;
 
 
 procedure SysInitVideo;
+{$IFNDEF AROS}
 var
-  Counter: LongInt;
+  Counter, Counter2: LongInt;
+  P: PWord;
+{$ENDIF}
 begin
 {$IFDEF MORPHOS}
   InitGraphicsLibrary;
@@ -292,6 +299,27 @@ begin
      {$endif}
    end;
 
+{$IFNDEF AROS}
+   { Obtain Friend bitmap for font blitting }
+   FontBitmap:=AllocBitMap(16,16*256,1,0,VideoWindow^.RPort^.Bitmap);
+
+   { We need to make the data word wide, otherwise the blit will fail
+     miserably on classics (tested on 3.1 + AGA) }
+   if FontBitmap <> nil then
+   begin
+     { Locking the bitmap would be better, but that requires CGFX/P96/etc specific calls }
+     Forbid();
+     p:=PWord(FontBitmap^.Planes[0]);
+     for counter:=0 to 255 do
+       for counter2:=0 to 15 do
+         begin
+           p^:=vgafont[counter,counter2] shl 8;
+           inc(p);
+         end;
+     Permit();
+   end;
+{$ENDIF}
+
    CursorX := 0;
    CursorY := 0;
    OldCursorX := 0;
@@ -333,6 +361,11 @@ begin
     CloseWindow(videoWindow);
     VideoWindow := nil;
   end;
+
+{$IFNDEF AROS}
+  FreeBitMap(FontBitmap);
+{$ENDIF}
+
   {$ifdef WITHBUFFERING}
   FreeBitmap(BufRp^.Bitmap);
   BufRp^.Bitmap := nil;
@@ -358,7 +391,7 @@ begin
     begin
       LastT := 50;
       LastL := 50;
-      
+
       LastW := 80;
       LastH := 25;
     end;
@@ -412,7 +445,11 @@ begin
     SetABPenDrMd(rp, VideoPens[tmpBGColor], VideoPens[tmpFGColor], JAM2);
   end;
 
+{$IFNDEF AROS}
+  BltTemplate(@(PWord(FontBitmap^.Planes[0])[tmpChar * 16]), 0, 2, rp, sX, sY, 8, 16);
+{$ELSE}
   BltTemplate(@Vgafont[tmpChar, 0], 0, 1, rp, sX, sY, 8, 16);
+{$ENDIF}
 
   if crType = crUnderLine then
   begin
