@@ -142,7 +142,7 @@ unit cpupara;
           stringdef :
             result:=tstringdef(def).stringtype in [st_shortstring,st_longstring];
         else
-          result:=def.size>4;
+          result:=def.size>8;
         end;
       end;
 
@@ -164,7 +164,7 @@ unit cpupara;
             result:=not(def.size in [1,2,4]);
           }
           else
-            if (def.size > 4) then
+            if (def.size > 8) then
               result:=true
             else
               result:=inherited ret_in_param(def,pd);
@@ -344,18 +344,8 @@ unit cpupara;
                             inc(nextintreg);
                           end
                         else
-                          begin
-                            { LOC_REFERENCE covers always the overleft }
-                            paraloc^.loc:=LOC_REFERENCE;
-                            paraloc^.size:=int_cgsize(paralen);
-                            paraloc^.def:=get_paraloc_def(paradef,paralen,firstparaloc);
-
-                            if (side=callerside) then
-                              paraloc^.reference.index:=NR_STACK_POINTER_REG;
-                            paraloc^.reference.offset:=stack_offset;
-                            inc(stack_offset,align(paralen,4));
-                            paralen:=0;
-                         end;
+                          { parameters are always passed completely in registers or in memory on avr }
+                          internalerror(2015041002);
                       end;
                     LOC_REFERENCE:
                       begin
@@ -415,6 +405,7 @@ unit cpupara;
       var
         retcgsize : tcgsize;
         paraloc : pcgparalocation;
+        reg : TRegister;
       begin
          if set_common_funcretloc_info(p,forcetempdef,retcgsize,result) then
            exit;
@@ -463,30 +454,29 @@ unit cpupara;
         else
           begin
             case retcgsize of
+              OS_64,OS_S64:
+                begin
+                  for reg:=NR_R18 to NR_R25 do
+                    begin
+                      paraloc^.loc:=LOC_REGISTER;
+                      paraloc^.register:=reg;
+                      paraloc^.size:=OS_8;
+                      paraloc^.def:=u8inttype;
+                      if reg<>NR_R25 then
+                        paraloc:=result.add_location;
+                    end;
+                end;
               OS_32,OS_S32:
                 begin
-                  paraloc^.loc:=LOC_REGISTER;
-                  paraloc^.register:=NR_R22;
-                  paraloc^.size:=OS_8;
-                  paraloc^.def:=u8inttype;
-
-                  paraloc:=result.add_location;
-                  paraloc^.loc:=LOC_REGISTER;
-                  paraloc^.register:=NR_R23;
-                  paraloc^.size:=OS_8;
-                  paraloc^.def:=u8inttype;
-
-                  paraloc:=result.add_location;
-                  paraloc^.loc:=LOC_REGISTER;
-                  paraloc^.register:=NR_R24;
-                  paraloc^.size:=OS_8;
-                  paraloc^.def:=u8inttype;
-
-                  paraloc:=result.add_location;
-                  paraloc^.loc:=LOC_REGISTER;
-                  paraloc^.register:=NR_R25;
-                  paraloc^.size:=OS_8;
-                  paraloc^.def:=u8inttype;
+                  for reg:=NR_R22 to NR_R25 do
+                    begin
+                      paraloc^.loc:=LOC_REGISTER;
+                      paraloc^.register:=reg;
+                      paraloc^.size:=OS_8;
+                      paraloc^.def:=u8inttype;
+                      if reg<>NR_R25 then
+                        paraloc:=result.add_location;
+                    end;
                 end;
               OS_16,OS_S16:
                 begin
