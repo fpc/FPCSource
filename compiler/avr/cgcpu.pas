@@ -313,24 +313,23 @@ unit cgcpu;
 
         for i:=1 to tcgsize2size[paraloc.Size] do
           begin
-            if not(assigned(hp)) or
-              (tcgsize2size[hp^.size]<>1) or
-              (hp^.shiftval<>0) then
+            if not(assigned(hp)) then
               internalerror(2014011105);
              case hp^.loc of
                LOC_REGISTER,LOC_CREGISTER:
-                 a_load_const_reg(list,hp^.size,(a shr (8*(i-1))) and $ff,hp^.register);
-               LOC_REFERENCE,LOC_CREFERENCE:
                  begin
-                   list.concat(taicpu.op_const(A_PUSH,(a shr (8*(i-1))) and $ff));
+                   if (tcgsize2size[hp^.size]<>1) or
+                     (hp^.shiftval<>0) then
+                     internalerror(2015041101);
+                   a_load_const_reg(list,hp^.size,(a shr (8*(i-1))) and $ff,hp^.register);
+                   hp:=hp^.Next;
                  end;
+               LOC_REFERENCE,LOC_CREFERENCE:
+                 list.concat(taicpu.op_const(A_PUSH,(a shr (8*(i-1))) and $ff));
                else
                  internalerror(2002071004);
             end;
-            hp:=hp^.Next;
           end;
-        if assigned(hp) then
-          internalerror(2014011104);
       end;
 
 

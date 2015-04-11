@@ -324,11 +324,6 @@ unit cpupara;
                      else
                        internalerror(2005082901);
                    end
-                 else if paracgsize<>OS_S8 then
-                   begin
-                     paraloc^.size:=OS_8;
-                     paraloc^.def:=u8inttype
-                   end
                  else
                    begin
                      paraloc^.size:=paracgsize;
@@ -340,6 +335,8 @@ unit cpupara;
                         if nextintreg>=RS_R8 then
                           begin
                             paraloc^.loc:=LOC_REGISTER;
+                            paraloc^.size:=OS_8;
+                            paraloc^.def:=u8inttype;
                             paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
                             inc(nextintreg);
                           end
@@ -349,9 +346,9 @@ unit cpupara;
                       end;
                     LOC_REFERENCE:
                       begin
-                        paraloc^.size:=OS_ADDR;
                         if push_addr_param(hp.varspez,paradef,p.proccalloption) then
                           begin
+                            paraloc^.size:=OS_ADDR;
                             paraloc^.def:=getpointerdef(paradef);
                             assignintreg
                           end
