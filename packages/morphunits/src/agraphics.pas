@@ -2424,10 +2424,10 @@ SysCall GfxBase 480;
 procedure RemFont(textFont : pTextFont location 'a1');
 SysCall GfxBase 486;
 
-function AllocRaster(width : CARDINAL location 'd0'; height : CARDINAL location 'd1') : pCHAR;
+function AllocRaster(width : CARDINAL location 'd0'; height : CARDINAL location 'd1') : TPlanePtr;
 SysCall GfxBase 492;
 
-procedure FreeRaster(p : pCHAR location 'a0'; width : CARDINAL location 'd0'; height : CARDINAL location 'd1');
+procedure FreeRaster(p : TPlanePtr location 'a0'; width : CARDINAL location 'd0'; height : CARDINAL location 'd1');
 SysCall GfxBase 498;
 
 procedure AndRectRegion(region : pRegion location 'a0'; rectangle : pRectangle location 'a1');
