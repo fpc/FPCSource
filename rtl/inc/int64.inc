@@ -323,6 +323,9 @@
          q1,q2,q3 : qword;
 
       begin
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+         runerror(219);
+{$else EXCLUDE_COMPLEX_PROCS}
         { there's no difference between signed and unsigned multiplication,
           when the destination size is equal to the source size and overflow
           checking is off }
@@ -363,6 +366,7 @@
             else
               fpc_mul_int64:=q3;
           end;
+{$endif EXCLUDE_COMPLEX_PROCS}
       end;
 {$endif FPC_SYSTEM_HAS_MUL_INT64}
 

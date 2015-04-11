@@ -990,24 +990,26 @@ end;
 {$endif}
 
 {$ifndef FPC_STR_ENUM_INTERN}
-{ currently, the avr code generator fails on this procedure, so we disable it, 
+{ currently, the avr code generator fails on this procedure, so we disable it,
   this is not a good solution but fixing compilation of this procedure for
   avr is hard, requires significant changes to the register allocator to take
   care of different register classes }
-{$ifndef CPUAVR}
 procedure fpc_chararray_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out a : array of char);compilerproc;
 var
   ss : shortstring;
   maxlen : SizeInt;
 begin
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+  runerror(219);
+{$else EXCLUDE_COMPLEX_PROCS}
   fpc_shortstr_enum(ordinal,len,typinfo,ord2strindex,ss);
   if length(ss)<high(a)+1 then
     maxlen:=length(ss)
   else
     maxlen:=high(a)+1;
   fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
+{$endif EXCLUDE_COMPLEX_PROCS}
 end;
-{$endif CPUAVR}
 {$endif not FPC_STR_ENUM_INTERN}
 
 procedure fpc_chararray_bool(b : boolean;len:sizeint;out a : array of char);compilerproc;
@@ -1220,6 +1222,9 @@ end;
         maxqword=qword($ffffffffffffffff);
 
   begin
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+    runerror(219);
+{$else EXCLUDE_COMPLEX_PROCS}
     fpc_val_int64_shortstr := 0;
     Temp:=0;
     Code:=InitVal(s,negative,base);
@@ -1263,6 +1268,7 @@ end;
     fpc_val_int64_shortstr:=int64(Temp);
     If Negative Then
       fpc_val_int64_shortstr:=-fpc_val_int64_shortstr;
+{$endif EXCLUDE_COMPLEX_PROCS}
   end;
 
 

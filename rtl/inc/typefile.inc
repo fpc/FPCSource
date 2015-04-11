@@ -81,8 +81,12 @@ Procedure DoAssign(var t : TypedFile);
 const
   start : dword = 0;
 Begin
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+  runerror(219);
+{$else EXCLUDE_COMPLEX_PROCS}
   Assign(t,'fpc_'+HexStr(start,8)+'.tmp');
   inc(start);
+{$endif EXCLUDE_COMPLEX_PROCS}
 End;
 {$endif FPC_HAS_FEATURE_RANDOM}
 

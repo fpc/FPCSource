@@ -1217,6 +1217,9 @@ var
     s:string;
 
 begin
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+  runerror(219);
+{$else EXCLUDE_COMPLEX_PROCS}
   if textrec(t).mode<>fmoutput then
     begin
       if textrec(t).mode=fminput then
@@ -1229,6 +1232,7 @@ begin
   if (inoutres <> 0) then
     exit;
   fpc_writeBuffer(t,s[1],length(s));
+{$endif EXCLUDE_COMPLEX_PROCS}
 end;
 
 {$ifdef FPC_HAS_STR_CURRENCY}
@@ -1681,6 +1685,9 @@ var
   p,startp,maxp : pchar;
   end_of_string:boolean;
 Begin
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+  runerror(219);
+{$else EXCLUDE_COMPLEX_PROCS}
   ReadPCharLen:=0;
   If not CheckRead(f) then
     exit;
@@ -1722,6 +1729,7 @@ Begin
     inc(sPos,Len);
   until (spos=MaxLen) or end_of_string;
   ReadPCharLen:=spos;
+{$endif EXCLUDE_COMPLEX_PROCS}
 End;
 
 
