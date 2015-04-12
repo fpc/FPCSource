@@ -2284,7 +2284,10 @@ implementation
 {$endif x86_64 or i8086}
               ;
             212 :
-              inc(len);
+{$ifndef i8086}
+              inc(len)
+{$endif not i8086}
+              ;
             214 :
               begin
 {$ifdef x86_64}
@@ -2308,8 +2311,10 @@ implementation
               end;
             241:
               begin
+{$ifndef i8086}
                 inc(len);
                 exists_prefix_66 := true;
+{$endif not i8086}
               end;
             221:
 {$ifdef x86_64}
@@ -3001,11 +3006,13 @@ implementation
             212,
             241:
               begin
+{$ifndef i8086}
                 if not(needed_VEX) then
                 begin
                   bytes[0]:=$66;
                   objdata.writebytes(bytes,1);
                 end;
+{$endif not i8086}
               end;
             214 :
               begin
