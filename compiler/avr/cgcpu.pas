@@ -843,12 +843,20 @@ unit cgcpu;
             reference_reset(tmpref,0);
             tmpref.symbol:=ref.symbol;
             tmpref.offset:=ref.offset;
-            tmpref.refaddr:=addr_lo8;
+            if assigned(ref.symbol) and (ref.symbol.typ in [AT_FUNCTION,AT_LABEL]) then
+              tmpref.refaddr:=addr_lo8_gs
+            else
+              tmpref.refaddr:=addr_lo8;
             maybegetcpuregister(list,tmpreg);
             list.concat(taicpu.op_reg_ref(A_LDI,tmpreg,tmpref));
-            tmpref.refaddr:=addr_hi8;
+
+            if assigned(ref.symbol) and (ref.symbol.typ in [AT_FUNCTION,AT_LABEL]) then
+              tmpref.refaddr:=addr_hi8_gs
+            else
+              tmpref.refaddr:=addr_hi8;
             maybegetcpuregister(list,GetNextReg(tmpreg));
             list.concat(taicpu.op_reg_ref(A_LDI,GetNextReg(tmpreg),tmpref));
+
             if (ref.base<>NR_NO) then
               begin
                 list.concat(taicpu.op_reg_reg(A_ADD,tmpreg,ref.base));
@@ -1623,10 +1631,19 @@ unit cgcpu;
             reference_reset(tmpref,0);
             tmpref.symbol:=ref.symbol;
             tmpref.offset:=ref.offset;
-            tmpref.refaddr:=addr_lo8;
+
+            if assigned(ref.symbol) and (ref.symbol.typ in [AT_FUNCTION,AT_LABEL]) then
+              tmpref.refaddr:=addr_lo8_gs
+            else
+              tmpref.refaddr:=addr_lo8;
             list.concat(taicpu.op_reg_ref(A_LDI,r,tmpref));
-            tmpref.refaddr:=addr_hi8;
+
+            if assigned(ref.symbol) and (ref.symbol.typ in [AT_FUNCTION,AT_LABEL]) then
+              tmpref.refaddr:=addr_hi8_gs
+            else
+              tmpref.refaddr:=addr_hi8;
             list.concat(taicpu.op_reg_ref(A_LDI,GetNextReg(r),tmpref));
+
             if (ref.base<>NR_NO) then
               begin
                 list.concat(taicpu.op_reg_reg(A_ADD,r,ref.base));
