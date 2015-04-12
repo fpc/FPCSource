@@ -993,7 +993,7 @@ Begin
     redirection to seriell i/o }
 {$ifndef EMBEDDED}
   { Show runtime error and exit }
-  if WriteExceptionToStdErr then
+  if WriteErrorsToStdErr then
     pstdout:=@stderr
   else  
     pstdout:=@stdout;

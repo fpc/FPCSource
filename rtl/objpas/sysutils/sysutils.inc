@@ -291,7 +291,7 @@ Var
   hstdout : ^text;
   
 begin
-  if WriteExceptionToStdErr then
+  if WriteErrorsToStdErr then
     hstdout:=@stderr
   else
     hstdout:=@stdout;

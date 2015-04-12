@@ -754,7 +754,7 @@ Var
   StackLength : SizeUInt;
   
 Var
-  WriteExceptionToStdErr : Boolean = True;
+  WriteErrorsToStdErr : Boolean = True;
 
 function StackTop: Pointer;
 
