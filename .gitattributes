@@ -15442,8 +15442,8 @@ utils/h2pas/h2pyacclib.pas svneol=native#text/plain
 utils/h2pas/scan.l svneol=native#text/plain
 utils/h2pas/scan.pas svneol=native#text/plain
 utils/h2pas/testit.h -text
-utils/h2pas/yylex.cod -text
-utils/h2pas/yyparse.cod -text
+utils/h2pas/yylex.cod svneol=native#text/plain
+utils/h2pas/yyparse.cod svneol=native#text/plain
 utils/importtl/Makefile svneol=native#text/plain
 utils/importtl/Makefile.fpc svneol=native#text/plain
 utils/importtl/Makefile.fpc.fpcmake svneol=native#text/plain
