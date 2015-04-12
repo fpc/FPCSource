@@ -12317,6 +12317,7 @@ tests/test/tunit3.pp svneol=native#text/plain
 tests/test/tunroll1.pp svneol=native#text/plain
 tests/test/tutf81.pp svneol=native#text/plain
 tests/test/tutf82.pp svneol=native#text/plain
+tests/test/tutf8cpl.pp svneol=native#text/plain
 tests/test/tvarpropsetter1.pp svneol=native#text/plain
 tests/test/tvarpropsetter2.pp svneol=native#text/plain
 tests/test/tvarset1.pp svneol=native#text/plain

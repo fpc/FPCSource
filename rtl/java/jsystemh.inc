@@ -442,6 +442,15 @@ function strpas(p:pchar):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
 function strlen(p:pchar):sizeint;external name 'FPC_PCHAR_LENGTH';
 *)
 
+{ result:
+  <0: invalid sequence detected after processing "-result" bytes
+  0: incomplete (may still be valid if MaxLookAhead is increased)
+  >0: sequence of result bytes forms a codepoint (+ combining diacritics if that
+      parameter was true)
+}
+function Utf8CodePointLen(P: PAnsiChar; MaxLookAhead: SizeInt; IncludeCombiningDiacriticalMarks: Boolean): SizeInt;
+
+
 var
   { separated compared to generic version, for Java type safety }
   FPC_EMPTYANSICHAR : array[0..0] of ansichar;
