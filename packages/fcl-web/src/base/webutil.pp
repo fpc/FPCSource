@@ -18,7 +18,7 @@ unit webutil;
 interface
 
 uses
-  Classes, SysUtils, httpdefs;
+  Classes, SysUtils, httpprotocol, httpdefs;
 
 procedure DumpRequest (ARequest : TRequest; Dump : TStrings; Environment : Boolean = False);
 
@@ -37,32 +37,58 @@ procedure DumpRequest (ARequest : TRequest; Dump : TStrings; Environment : Boole
 Var
   I,J   : integer;
   N,V : String;
+  H : THeader;
+  VA : THTTPVariableType;
+
 begin
   With ARequest, Dump do
     begin
     // All possible headers
-    Add('<H1>All possible request headers:</H1>');
+    Add('<H1>HTTP 1.1 request headers:</H1>');
     Add('<TABLE BORDER="1"><TR><TD>Header</TD><TD>Value</TD></TR>');
-    For I:=1 to NoHTTPFields do
-      begin
-      AddNV(HTTPFieldNames[i],GetFieldByName(HTTPFieldNames[i]));
-      end;
+    For H in THeader do
+      if (hdRequest in HTTPHeaderDirections[H]) then
+        AddNV(HTTPHeaderNames[H],GetHeader(H));
     Add('</TABLE><P>');
-
     // Actually sent headers
     Add('<H1>Actually sent request headers:</H1>');
     Add('<TABLE BORDER="1"><TR><TD>Header</TD><TD>Value</TD></TR>');
-    For I:=0 to FieldCount-1 do
-      AddNV(FieldNames[I],FieldValues[I]);
+    For H in THeader do
+      if (hdRequest in HTTPHeaderDirections[H]) and HeaderIsSet(H) then
+        AddNV(HTTPHeaderNames[H],GetHeader(H));
+    For Va in HeaderBasedVariables do
+      begin
+      V:=GetHTTPVariable(Va);
+      if V<>'' then
+        AddNV(THTTPHeader.GetVariableHeaderName(Va),V);
+      end;
+    For I:=0 to CustomHeaders.Count-1 do
+      begin
+      CustomHeaders.GetNameValue(I,N,V);
+      AddNV(N,V);
+      end;
     Add('</TABLE><P>');
 
     // Actually sent headers, as text
     Add('<H1>Actually sent request headers as text:</H1>');
-    For I:=0 to FieldCount-1 do
-      Add(Fields[I]+'<BR>');
-      
+    Add('<pre>');
+    For H in THeader do
+      if (hdRequest in HTTPHeaderDirections[H]) and HeaderIsSet(H) then
+        Add(HTTPHeaderNames[H]+': '+GetHeader(H));
+     For Va in HeaderBasedVariables do
+       begin
+        V:=GetHTTPVariable(Va);
+        if V<>'' then
+          Add(THTTPHeader.GetVariableHeaderName(Va)+': '+V);
+       end;
+     For I:=0 to CustomHeaders.Count-1 do
+       begin
+       CustomHeaders.GetNameValue(I,N,V);
+         Add(N+': '+V);
+       end;
+    Add('</PRE>');
     // Additional headers
-    Add('<H1>Additional headers:</H1>');
+    Add('<H1>Additional protocol variables:</H1>');
     Add('<TABLE BORDER="1"><TR><TD>Header</TD><TD>Value</TD></TR>');
     AddNV('PathInfo',PathInfo);
     AddNV('PathTranslated',PathTranslated);

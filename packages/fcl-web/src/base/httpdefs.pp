@@ -29,52 +29,76 @@ unit HTTPDefs;
 
 interface
 
-uses Classes,Sysutils;
+uses typinfo,Classes, Sysutils, httpprotocol;
 
 const
   DefaultTimeOut = 15;
   SFPWebSession  = 'FPWebSession'; // Cookie name for session.
 
-  fieldAccept          = 'Accept';
-  fieldAcceptCharset   = 'Accept-Charset';
-  fieldAcceptEncoding  = 'Accept-Encoding';
-  fieldAcceptLanguage  = 'Accept-Language';
-  fieldAuthorization   = 'Authorization';
-  fieldConnection      = 'Connection';
-  fieldContentEncoding = 'Content-Encoding';
-  fieldContentLanguage = 'Content-Language';
-  fieldContentLength   = 'Content-Length';
-  fieldContentType     = 'Content-Type';
-  fieldCookie          = 'Cookie';
-  fieldDate            = 'Date';
-  fieldExpires         = 'Expires';
-  fieldFrom            = 'From';
-  fieldIfModifiedSince = 'If-Modified-Since';
-  fieldLastModified    = 'Last-Modified';
-  fieldLocation        = 'Location';
-  fieldPragma          = 'Pragma';
-  fieldReferer         = 'Referer';
-  fieldRetryAfter      = 'Retry-After';
-  fieldServer          = 'Server';
-  fieldSetCookie       = 'Set-Cookie';
-  fieldUserAgent       = 'User-Agent';
-  fieldWWWAuthenticate = 'WWW-Authenticate';
-  // These cannot be added to the NoHTTPFields constant
-  // They are in the extra array.
-  fieldHost            = 'Host';
-  fieldCacheControl    = 'Cache-Control';
-  fieldXRequestedWith  = 'X-Requested-With';
+
+  fieldAccept = HeaderAccept deprecated;
+  FieldAcceptCharset = HeaderAcceptCharset deprecated;
+  FieldAcceptEncoding = HeaderAcceptEncoding deprecated;
+  FieldAcceptLanguage = HeaderAcceptLanguage deprecated;
+  FieldAcceptRanges = HeaderAcceptRanges deprecated;
+  FieldAge = HeaderAge deprecated;
+  FieldAllow = HeaderAllow deprecated;
+  FieldAuthorization = HeaderAuthorization deprecated;
+  FieldCacheControl = HeaderCacheControl deprecated;
+  FieldConnection = HeaderConnection deprecated;
+  FieldContentEncoding = HeaderContentEncoding deprecated;
+  FieldContentLanguage = HeaderContentLanguage deprecated;
+  FieldContentLength = HeaderContentLength deprecated;
+  FieldContentLocation = HeaderContentLocation deprecated;
+  FieldContentMD5 = HeaderContentMD5 deprecated;
+  FieldContentRange = HeaderContentRange deprecated;
+  FieldContentType = HeaderContentType deprecated;
+  FieldDate = HeaderDate deprecated;
+  FieldETag = HeaderETag deprecated;
+  FieldExpires = HeaderExpires deprecated;
+  FieldExpect = HeaderExpect deprecated;
+  FieldFrom = HeaderFrom deprecated;
+  FieldHost = HeaderHost deprecated;
+  FieldIfMatch = HeaderIfMatch deprecated;
+  FieldIfModifiedSince = HeaderIfModifiedSince deprecated;
+  FieldIfNoneMatch = HeaderIfNoneMatch deprecated;
+  FieldIfRange = HeaderIfRange deprecated;
+  FieldIfUnModifiedSince = HeaderIfUnModifiedSince deprecated;
+  FieldLastModified = HeaderLastModified deprecated;
+  FieldLocation = HeaderLocation deprecated;
+  FieldMaxForwards = HeaderMaxForwards deprecated;
+  FieldPragma = HeaderPragma deprecated;
+  FieldProxyAuthenticate = HeaderProxyAuthenticate deprecated;
+  FieldProxyAuthorization = HeaderProxyAuthorization deprecated;
+  FieldRange = HeaderRange deprecated;
+  FieldReferer = HeaderReferer deprecated;
+  FieldRetryAfter = HeaderRetryAfter deprecated;
+  FieldServer = HeaderServer deprecated;
+  FieldTE = HeaderTE deprecated;
+  FieldTrailer = HeaderTrailer deprecated;
+  FieldTransferEncoding = HeaderTransferEncoding deprecated;
+  FieldUpgrade = HeaderUpgrade deprecated;
+  FieldUserAgent = HeaderUserAgent deprecated;
+  FieldVary = HeaderVary deprecated;
+  FieldVia = HeaderVia deprecated;
+  FieldWarning = HeaderWarning deprecated;
+  FieldWWWAuthenticate = HeaderWWWAuthenticate deprecated;
+
+  // These fields are NOT in the HTTP 1.1 definition.
+  FieldXRequestedWith = HeaderXRequestedWith deprecated;
+  FieldCookie = HeaderCookie deprecated;
+  FieldSetCookie = HeaderSetCookie deprecated;
 
   NoHTTPFields    = 27;
 
-  HTTPDateFmt     = '"%s", dd "%s" yyyy hh:mm:ss'; // For use in FormatDateTime
-  SCookieExpire   = ' "Expires="'+HTTPDateFmt+' "GMT"';
-  SCookieDomain   = ' Domain=%s';
-  SCookiePath     = ' Path=%s';
-  SCookieSecure   = ' Secure';
-  SCookieHttpOnly = ' HttpOnly';
+  HTTPDateFmt     = httpProtocol.HTTPDateFmt;
+  SCookieExpire   = httpProtocol.SCookieExpire;
+  SCookieDomain   = httpProtocol.SCookieDomain;
+  SCookiePath     = httpProtocol.SCookiePath;
+  SCookieSecure   = httpProtocol.SCookieSecure;
+  SCookieHttpOnly = httpProtocol.SCookieHttpOnly;
 
-  HTTPMonths: array[1..12] of string[3] = (
+  HTTPMonths : array[1..12] of string[3] = (
     'Jan', 'Feb', 'Mar', 'Apr',
     'May', 'Jun', 'Jul', 'Aug',
     'Sep', 'Oct', 'Nov', 'Dec');
@@ -82,23 +106,31 @@ const
     'Sun', 'Mon', 'Tue', 'Wed',
     'Thu', 'Fri', 'Sat');
 
+Type
+  // HTTP related variables.
+  THTTPVariableType = (hvUnknown,hvHTTPVersion, hvMethod, hvCookie, hvSetCookie, hvXRequestedWith,
+                   hvPathInfo,hvPathTranslated,hvRemoteAddress,hvRemoteHost,hvScriptName,
+                   hvServerPort,hvURL,hvQuery,hvContent);
+  THTTPVariableTypes = Set of THTTPVariableType;
 
 Type
-  THttpFields  = Array[1..NoHTTPFields] of string;
-  THttpIndexes = Array[1..NoHTTPFields] of integer;
-
+  THTTPVariables = Array[THTTPVariableType] of string;
+  THttpFields  = Array[1..NoHTTPFields] of string deprecated;
+  THttpIndexes = Array[1..NoHTTPFields] of integer deprecated;
 
 Const
+  HeaderBasedVariables = [hvCookie,hvSetCookie,hvXRequestedWith];
   // For this constant, the header names corresponds to the property index used in THTTPHeader.
   HTTPFieldNames : THttpFields
-             = (fieldAccept, fieldAcceptCharset, fieldAcceptEncoding, 
-                fieldAcceptLanguage, fieldAuthorization, fieldConnection,
-                fieldContentEncoding, fieldContentLanguage, fieldContentLength,
-                fieldContentType, fieldCookie, fieldDate, fieldExpires, 
-                fieldFrom, fieldIfModifiedSince, fieldLastModified, fieldLocation,
-                fieldPragma, fieldReferer, fieldRetryAfter, fieldServer, 
-                fieldSetCookie, fieldUserAgent, fieldWWWAuthenticate,
-                fieldHost, fieldCacheControl,fieldXRequestedWith);
+              = (fieldAccept, fieldAcceptCharset, fieldAcceptEncoding,
+                 fieldAcceptLanguage, fieldAuthorization, fieldConnection,
+                 fieldContentEncoding, fieldContentLanguage, fieldContentLength,
+                 fieldContentType, fieldCookie, fieldDate, fieldExpires,
+                 fieldFrom, fieldIfModifiedSince, fieldLastModified, fieldLocation,
+                 fieldPragma, fieldReferer, fieldRetryAfter, fieldServer,
+                 fieldSetCookie, fieldUserAgent, fieldWWWAuthenticate,
+                  fieldHost, fieldCacheControl,fieldXRequestedWith) deprecated;
+
   // Map header names on indexes in property getter/setter. 0 means not mapped !
   HTTPFieldIndexes : THTTPIndexes
                    =  (1,2,3,
@@ -108,7 +140,7 @@ Const
                        14,15,16,17,
                        18,19,20,21,
                        22,23,24,
-                       34,0,36);
+                       34,0,36) deprecated;
 
 
 
@@ -256,88 +288,116 @@ type
     FCookieFields: TStrings;
     FHTTPVersion: String;
     FHTTPXRequestedWith: String;
-    FFields : THttpFields;
+    FFields : THeadersArray;
+    FVariables : THTTPVariables;
     FQueryFields: TStrings;
+    FCustomHeaders : TStringList;
+    function GetCustomHeaders: TStringList;
     function GetSetField(AIndex: Integer): String;
     function GetSetFieldName(AIndex: Integer): String;
     procedure SetCookieFields(const AValue: TStrings);
     Function GetFieldCount : Integer;
     Function GetContentLength : Integer;
     Procedure SetContentLength(Value : Integer);
-    Function GetFieldIndex(AIndex : Integer) : Integer;
+    Function GetFieldOrigin(AIndex : Integer; Out H : THeader; V : THTTPVAriableType) : Boolean;
     Function GetServerPort : Word;
     Procedure SetServerPort(AValue : Word);
     Function GetSetFieldValue(Index : Integer) : String; virtual;
+    // These are private, because we need to know for sure the index is in the correct enumerated.
+    Function GetHeaderValue(AIndex : Integer) : String;
+    Procedure SetHeaderValue(AIndex : Integer; AValue : String);
+    procedure SetHTTPVariable(AIndex: Integer; AValue: String);
+    Function  GetHTTPVariable(AIndex : Integer) : String;
   Protected
-    Function GetFieldValue(Index : Integer) : String; virtual;
-    Procedure SetFieldValue(Index : Integer; Value : String); virtual;
+    // Kept for backwards compatibility
+    Class Function IndexToHTTPHeader (AIndex : Integer) : THeader;
+    Class Function IndexToHTTPVariable (AIndex : Integer) : THTTPVariableType;
+    procedure SetHTTPVariable(AVariable : THTTPVariableType; AValue: String);
+    Function  GetFieldValue(Index : Integer) : String; virtual; deprecated;
+    Procedure SetFieldValue(Index : Integer; Value : String); virtual; deprecated;
     procedure ParseFirstHeaderLine(const line: String);virtual;
     Procedure ParseCookies; virtual;
   public
     constructor Create; virtual;
     destructor Destroy; override;
+    // This is the clean way to get HTTP headers.
+    Function HeaderIsSet(AHeader : THeader) : Boolean;
+    Function GetHeader(AHeader : THeader) : String;
+    Procedure SetHeader(AHeader : THeader; Const AValue : String);
+    // Get/Set a field by name. These calls handle 'known' fields. For unknown fields, Get/SetCustomheader is called.
     procedure SetFieldByName(const AName, AValue: String);
-    function  GetFieldByName(const AName: String): String;
+    function GetFieldByName(const AName: String): String;
+    // Variables
+    Class Function GetVariableHeaderName(AVariable : THTTPVariableType) : String;
+    Function  GetHTTPVariable(AVariable : THTTPVariableType) : String;
+    // Get/Set custom headers.
+    Function GetCustomHeader(const Name: String) : String; virtual;
+    Procedure SetCustomHeader(const Name, Value: String); virtual;
     Function LoadFromStream(Stream : TStream; IncludeCommand : Boolean) : integer;
     Function LoadFromStrings(Strings: TStrings; IncludeCommand : Boolean) : integer; virtual;
     // Common access
     // This is an internal table. We should try to get rid of it,
     // It requires a lot of duplication.
-    property FieldCount: Integer read GetFieldCount;
-    property Fields[AIndex: Integer]: String read GetSetField;
-    property FieldNames[AIndex: Integer]: String read GetSetFieldName;
-    property FieldValues[AIndex: Integer]: String read GetSetFieldValue;
-    // Various properties.
-    Property HttpVersion : String Index 0 Read GetFieldValue Write SetFieldValue;
-    Property ProtocolVersion : String Index 0 Read GetFieldValue Write SetFieldValue;
-    property Accept: String Index 1 read GetFieldValue write SetFieldValue;
-    property AcceptCharset: String Index 2 Read GetFieldValue Write SetFieldValue;
-    property AcceptEncoding: String Index 3 Read GetFieldValue Write SetFieldValue;
-    property AcceptLanguage: String Index 4 Read GetFieldValue Write SetFieldValue;
-    property Authorization: String Index 5 Read GetFieldValue Write SetFieldValue;
-    property Connection: String Index 6 Read GetFieldValue Write SetFieldValue;
-    property ContentEncoding: String Index 7 Read GetFieldValue Write SetFieldValue;
-    property ContentLanguage: String Index 8 Read GetFieldValue Write SetFieldValue;
+    property FieldCount: Integer read GetFieldCount; deprecated;
+    property Fields[AIndex: Integer]: String read GetSetField ; deprecated;
+    property FieldNames[AIndex: Integer]: String read GetSetFieldName ;deprecated;
+    property FieldValues[AIndex: Integer]: String read GetSetFieldValue ;deprecated;
+    // Official HTTP headers.
+    property Accept: String Index Ord(hhAccept) read GetHeaderValue write SetHeaderValue;
+    property AcceptCharset: String Index Ord(hhAcceptCharset) Read GetHeaderValue Write SetHeaderValue;
+    property AcceptEncoding: String Index Ord(hhAcceptEncoding) Read GetHeaderValue Write SetHeaderValue;
+    property AcceptLanguage: String Index Ord(hhAcceptLanguage) Read GetHeaderValue Write SetHeaderValue;
+    property Authorization: String Index Ord(hhAuthorization) Read GetHeaderValue Write SetHeaderValue;
+    property Connection: String Index Ord(hhConnection) Read GetHeaderValue Write SetHeaderValue;
+    property ContentEncoding: String Index Ord(hhContentEncoding) Read GetHeaderValue Write SetHeaderValue;
+    property ContentLanguage: String Index Ord(hhContentLanguage) Read GetHeaderValue Write SetHeaderValue;
     property ContentLength: Integer Read GetContentLength Write SetContentLength; // Index 9
-    property ContentType: String Index 10 Read GetFieldValue Write SetFieldValue;
-    property Cookie: String Index 11 Read GetFieldValue Write SetFieldValue;
-    property Date: String Index 12 Read GetFieldValue Write SetFieldValue;
-    property Expires: String Index 13 Read GetFieldValue Write SetFieldValue;
-    property From: String Index 14 Read GetFieldValue Write SetFieldValue;
-    property IfModifiedSince: String Index 15 Read GetFieldValue Write SetFieldValue;
-    property LastModified: String Index 16 Read GetFieldValue Write SetFieldValue;
-    property Location: String Index 17 Read GetFieldValue Write SetFieldValue;
-    property Pragma: String Index 18 Read GetFieldValue Write SetFieldValue;
-    property Referer: String Index 19 Read GetFieldValue Write SetFieldValue;
-    property RetryAfter: String Index 20 Read GetFieldValue Write SetFieldValue;
-    property Server: String Index 21 Read GetFieldValue Write SetFieldValue;
-    property SetCookie: String Index 22 Read GetFieldValue Write SetFieldValue;
-    property UserAgent: String Index 23 Read GetFieldValue Write SetFieldValue;
-    property WWWAuthenticate: String Index 24 Read GetFieldValue Write SetFieldValue;
-    // Various aliases, for compatibility
-    Property PathInfo : String index 25 read GetFieldValue Write SetFieldValue;
-    Property PathTranslated : String Index 26 read GetFieldValue Write SetFieldValue;
-    Property RemoteAddress : String Index 27 read GetFieldValue Write SetFieldValue;
-    Property RemoteAddr : String Index 27 read GetFieldValue Write SetFieldValue; // Alias, Delphi-compat
-    Property RemoteHost : String Index 28 read  GetFieldValue Write SetFieldValue;
-    Property ScriptName : String Index 29 read  GetFieldValue Write SetFieldValue;
+    property ContentType: String Index Ord(hhContentType) Read GetHeaderValue Write SetHeaderValue;
+    property Date: String Index Ord(hhDate) Read GetHeaderValue Write SetHeaderValue;
+    property Expires: String Index Ord(hhExpires) Read GetHeaderValue Write SetHeaderValue;
+    property From: String Index Ord(hhFrom) Read GetHeaderValue Write SetHeaderValue;
+    Property Host : String Index Ord(hhHost) Read GetFieldValue Write SetFieldValue;
+    property IfModifiedSince: String Index Ord(hhIfModifiedSince) Read GetHeaderValue Write SetHeaderValue;
+    property LastModified: String Index Ord(hhLastModified) Read GetHeaderValue Write SetHeaderValue;
+    property Location: String Index Ord(hhLocation) Read GetHeaderValue Write SetHeaderValue;
+    property Pragma: String Index Ord(hhPragma) Read GetHeaderValue Write SetHeaderValue;
+    property Referer: String Index Ord(hhReferer) Read GetHeaderValue Write SetHeaderValue;
+    property RetryAfter: String Index Ord(hhRetryAfter) Read GetHeaderValue Write SetHeaderValue;
+    property Server: String Index Ord(hhServer) Read GetHeaderValue Write SetHeaderValue;
+    property UserAgent: String Index Ord(hhUserAgent) Read GetHeaderValue Write SetHeaderValue;
+    property Warning: String Index Ord(hhWarning) Read GetHeaderValue Write SetHeaderValue;
+    property WWWAuthenticate: String Index Ord(hhWWWAuthenticate) Read GetHeaderValue Write SetHeaderValue;
+    property Via: String Index Ord(hhVia) Read GetHeaderValue Write SetHeaderValue;
+    // HTTP headers, Delphi compatibility
+    Property HTTPAccept : String Index Ord(hhAccept) read GetFieldValue Write SetFieldValue;
+    Property HTTPAcceptCharset : String Index Ord(hhAcceptCharset) read GetFieldValue Write SetFieldValue;
+    Property HTTPAcceptEncoding : String Index Ord(hhAcceptEncoding) read GetFieldValue Write SetFieldValue;
+    Property HTTPIfModifiedSince : String Index Ord(hhIfModifiedSince) read GetFieldValue Write SetFieldValue; // Maybe change to TDateTime ??
+    Property HTTPReferer : String Index Ord(hhReferer) read GetFieldValue Write SetFieldValue;
+    Property HTTPUserAgent : String Index Ord(hhUserAgent) read GetFieldValue Write SetFieldValue;
+    // Headers, not in HTTP spec.
+    property Cookie: String Index Ord(hvCookie) Read GetHTTPVariable Write SetHTTPVariable;
+    property SetCookie: String Index Ord(hvSetCookie) Read GetHTTPVariable Write SetHTTPVariable;
+    Property HTTPXRequestedWith : String Index Ord(hvXRequestedWith) read GetHTTPVariable Write SetHTTPVariable;
+    Property HttpVersion : String Index ord(hvHTTPVErsion) Read GetHTTPVariable Write SetHTTPVariable;
+    Property ProtocolVersion : String Index ord(hvHTTPVErsion) Read GetHTTPVariable Write SetHTTPVariable;
+    // Specials, mostly from CGI protocol/Apache.
+    Property PathInfo : String index Ord(hvPathInfo) read GetHTTPVariable Write SetHTTPVariable;
+    Property PathTranslated : String index Ord(hvPathInfo) read GetHTTPVariable Write SetHTTPVariable;
+    Property RemoteAddress : String Index Ord(hvRemoteAddress) read GetHTTPVariable Write SetHTTPVariable;
+    Property RemoteAddr : String Index Ord(hvRemoteAddress) read GetHTTPVariable Write SetHTTPVariable; // Alias, Delphi-compat
+    Property RemoteHost : String Index Ord(hvRemoteHost) read  GetHTTPVariable Write SetHTTPVariable;
+    Property ScriptName : String Index Ord(hvScriptName) read  GetHTTPVariable Write SetHTTPVariable;
     Property ServerPort : Word Read GetServerPort Write SetServerPort; // Index 30
-    Property HTTPAccept : String Index 1 read GetFieldValue Write SetFieldValue;
-    Property HTTPAcceptCharset : String Index 2 read GetFieldValue Write SetFieldValue;
-    Property HTTPAcceptEncoding : String Index 3 read GetFieldValue Write SetFieldValue;
-    Property HTTPIfModifiedSince : String Index 15 read GetFieldValue Write SetFieldValue; // Maybe change to TDateTime ??
-    Property HTTPReferer : String Index 19 read GetFieldValue Write SetFieldValue;
-    Property HTTPUserAgent : String Index 23 read GetFieldValue Write SetFieldValue;
-    Property Method : String Index 31 read GetFieldValue Write SetFieldValue;
-    Property URL : String Index 32 read GetFieldValue Write SetFieldValue;
-    Property Query : String Index 33 read GetFieldValue Write SetFieldValue;
-    Property Host : String Index 34 Read GetFieldValue Write SetFieldValue;
-    Property Content : String Index 35 Read GetFieldValue Write SetFieldValue;
-    Property HTTPXRequestedWith : String Index 36 read GetFieldValue Write SetFieldValue;
+    Property Method : String Index Ord(hvMethod) read GetHTTPVariable Write SetHTTPVariable;
+    Property URL : String Index Ord(hvURL) read GetHTTPVariable Write SetHTTPVariable;
+    Property Query : String Index Ord(hvQuery) read GetHTTPVariable Write SetHTTPVariable;
+    Property Content : String Index Ord(hvContent) Read GetHTTPVariable Write SetHTTPVariable;
     // Lists
     Property CookieFields : TStrings Read FCookieFields Write SetCookieFields;
     Property ContentFields: TStrings read FContentFields;
     property QueryFields : TStrings read FQueryFields;
+    Property CustomHeaders: TStringList read GetCustomHeaders;
   end;
 
   TOnUnknownEncodingEvent = Procedure (Sender : TRequest; Const ContentType : String;Stream : TStream) of object;
@@ -385,17 +445,24 @@ type
   public
     constructor Create; override;
     destructor destroy; override;
-    Function  GetNextPathInfo : String;
-    Property  ReturnedPathInfo : String Read FReturnedPathInfo Write FReturnedPathInfo;
-    Property  LocalPathPrefix : string Read GetLocalPathPrefix;
-    Property  CommandLine : String Read FCommandLine;
-    Property  Command : String read FCommand;
-    Property  URI : String read FURI;                // Uniform Resource Identifier
-    Property  QueryString : String Index 33 read GetFieldValue Write SetFieldValue; // Alias
-    Property  HeaderLine : String read GetFirstHeaderLine;
-    Property  Files : TUploadedFiles Read FFiles;
-    Property  HandleGetOnPost : Boolean Read FHandleGetOnPost Write FHandleGetOnPost;
-    Property  OnUnknownEncoding : TOnUnknownEncodingEvent Read FOnUnknownEncoding Write FOnUnknownEncoding;
+    Function GetNextPathInfo : String;
+    Property ReturnedPathInfo : String Read FReturnedPathInfo Write FReturnedPathInfo;
+    Property LocalPathPrefix : string Read GetLocalPathPrefix;
+    Property CommandLine : String Read FCommandLine;
+    Property Command : String read FCommand;
+    Property URI : String read FURI;                // Uniform Resource Identifier
+    Property QueryString : String Index Ord(hvQuery) read GetHTTPVariable Write SetHTTPVariable;
+    Property HeaderLine : String read GetFirstHeaderLine;
+    Property Files : TUploadedFiles Read FFiles;
+    Property HandleGetOnPost : Boolean Read FHandleGetOnPost Write FHandleGetOnPost;
+    Property OnUnknownEncoding : TOnUnknownEncodingEvent Read FOnUnknownEncoding Write FOnUnknownEncoding;
+    Property IfMatch : String Index ord(hhIfMatch) Read GetHeaderValue Write SetHeaderValue;
+    Property IfNoneMatch : String  Index ord(hhIfNoneMatch) Read GetHeaderValue Write SetHeaderValue;
+    Property IfRange : String  Index ord(hhIfRange) Read GetHeaderValue Write SetHeaderValue;
+    Property IfUnModifiedSince : String  Index ord(hhIfUnmodifiedSince) Read GetHeaderValue Write SetHeaderValue;
+    Property ContentRange : String Index ord(hhContentRange) Read GetHeaderValue Write SetHeaderValue;
+    Property TE : String Index ord(hhTE) Read GetHeaderValue Write SetHeaderValue;
+    Property Upgrade : String Index ord(hhUpgrade) Read GetHeaderValue Write SetHeaderValue;
   end;
 
 
@@ -403,7 +470,6 @@ type
 
   TResponse = class(THttpHeader)
   private
-    FCacheControl: String;
     FContents: TStrings;
     FContentStream : TStream;
     FCode: Integer;
@@ -413,7 +479,6 @@ type
     FContentSent: Boolean;
     FRequest : TRequest;
     FCookies : TCookies;
-    FCustomHeaders : TStringList;
     function GetContent: String;
     procedure SetContent(const AValue: String);
     procedure SetContents(AValue: TStrings);
@@ -431,13 +496,19 @@ type
     Procedure SendContent;
     Procedure SendHeaders;
     Procedure SendResponse; // Delphi compatibility
-    Function GetCustomHeader(const Name: String) : String;
-    Procedure SetCustomHeader(const Name, Value: String);
     Procedure SendRedirect(const TargetURL:String);
     Property Request : TRequest Read FRequest;
     Property Code: Integer Read FCode Write FCode;
     Property CodeText: String Read FCodeText Write FCodeText;
-    Property CacheControl : String Read FCacheControl Write FCacheControl;
+    Property Age : String  Index Ord(hhAge) Read GetHeaderValue Write SetHeaderValue;
+    Property Allow : String  Index Ord(hhAllow) Read GetHeaderValue Write SetHeaderValue;
+    Property CacheControl : String Index Ord(hhCacheControl) Read GetHeaderValue Write SetHeaderValue;
+    Property ContentLocation : String Index Ord(hhContentLocation) Read GetHeaderValue Write SetHeaderValue;
+    Property ContentMD5 : String Index Ord(hhContentMD5) Read GetHeaderValue Write SetHeaderValue;
+    Property ContentRange : String Index Ord(hhContentRange) Read GetHeaderValue Write SetHeaderValue;
+    Property ETag : String  Index Ord(hhEtag) Read GetHeaderValue Write SetHeaderValue;
+    Property ProxyAuthenticate : String Index Ord(hhProxyAuthenticate) Read GetHeaderValue Write SetHeaderValue;
+    Property RetryAfter : String  Index Ord(hhRetryAfter) Read GetHeaderValue Write SetHeaderValue;
     Property FirstHeaderLine : String Read GetFirstHeaderLine Write SetFirstHeaderLine;
     Property ContentStream : TStream Read FContentStream Write SetContentStream;
     Property Content : String Read GetContent Write SetContent;
@@ -445,7 +516,6 @@ type
     Property HeadersSent : Boolean Read FHeadersSent;
     Property ContentSent : Boolean Read FContentSent;
     property Cookies: TCookies read FCookies;
-    Property CustomHeaders: TStringList read FCustomHeaders;
     Property FreeContentStream : Boolean Read FFreeContentStream Write FFreeContentStream;
   end;
   
@@ -521,6 +591,8 @@ Var
   MimeItemsClass : TMimeItemsClass = TMimeItems;
   MimeItemClass : TMimeItemClass = nil;
 
+Procedure Touch(Const AName : String);
+
 implementation
 
 uses
@@ -545,7 +617,12 @@ const
 { ---------------------------------------------------------------------
   Auxiliary functions
   ---------------------------------------------------------------------}
-  
+Procedure Touch(Const AName : String);
+
+begin
+  FileClose(FileCreate('/tmp/touch-'+StringReplace(AName,'/','_',[rfReplaceAll])));
+end;
+
 Function GetFieldNameIndex(AName : String) : Integer;
 
 var
@@ -559,107 +636,22 @@ begin
     Result:=HTTPFieldIndexes[Result];
 end;
 
-function HTTPDecode(const AStr: String): String;
-
-var
-  S,SS, R : PChar;
-  H : String[3];
-  L,C : Integer;
+Function HTTPDecode(const AStr: String): String;
 
 begin
-  L:=Length(Astr);
-  SetLength(Result,L);
-  If (L=0) then
-    exit;
-  S:=PChar(AStr);
-  SS:=S;
-  R:=PChar(Result);
-  while (S-SS)<L do
-    begin
-    case S^ of
-      '+': R^ := ' ';
-      '%': begin
-           Inc(S);
-           if ((S-SS)<L) then
-             begin
-             if (S^='%') then
-               R^:='%'
-             else
-               begin
-               H:='$00';
-               H[2]:=S^;
-               Inc(S);
-               If (S-SS)<L then
-                 begin
-                 H[3]:=S^;
-                 Val(H,PByte(R)^,C);
-                 If (C<>0) then
-                   R^:=' ';
-                 end;
-               end;
-             end;
-           end;
-      else
-        R^ := S^;
-      end;
-    Inc(R);
-    Inc(S);
-    end;
-  SetLength(Result,R-PChar(Result));
+  Result:=httpProtocol.HTTPDecode(AStr);
 end;
 
-function HTTPEncode(const AStr: String): String;
+Function HTTPEncode(const AStr: String): String;
 
-const
-  HTTPAllowed = ['A'..'Z','a'..'z',
-                 '*','@','.','_','-',
-                 '0'..'9',
-                 '$','!','''','(',')'];
-                 
-var
-  SS,S,R: PChar;
-  H : String[2];
-  L : Integer;
-  
 begin
-  L:=Length(AStr);
-  SetLength(Result,L*3); // Worst case scenario
-  if (L=0) then
-    exit;
-  R:=PChar(Result);
-  S:=PChar(AStr);
-  SS:=S; // Avoid #0 limit !!
-  while ((S-SS)<L) do
-    begin
-    if S^ in HTTPAllowed then
-      R^:=S^
-    else if (S^=' ') then
-      R^:='+'
-    else
-      begin
-      R^:='%';
-      H:=HexStr(Ord(S^),2);
-      Inc(R);
-      R^:=H[1];
-      Inc(R);
-      R^:=H[2];
-      end;
-    Inc(R);
-    Inc(S);
-    end;
-  SetLength(Result,R-PChar(Result));
+  Result:=httpProtocol.HTTPEncode(AStr);
 end;
 
-function IncludeHTTPPathDelimiter(const AStr: String): String;
-
-Var
-  l : Integer;
+Function IncludeHTTPPathDelimiter(const AStr: String): String;
 
 begin
-  Result:=AStr;
-  L:=Length(Result);
-  If (L>0) and (Result[L]<>'/') then
-    Result:=Result+'/';
+  Result:=httpProtocol.IncludeHTTPPathDelimiter(AStr);
 end;
 
 { -------------------------------------------------------------------
@@ -797,16 +789,20 @@ end;
   THTTPHeader
   ---------------------------------------------------------------------}
 
-function THttpHeader.GetFieldCount: Integer;
+function THTTPHeader.GetFieldCount: Integer;
+
 
 Var
-  I : Integer;
+  h : THeader;
 
 begin
   Result:=0;
-  For I:=1 to NoHTTPFields do
-    If (GetFieldValue(i)<>'') then
+  For H in THeader do
+    If HeaderIsSet(H) then
       Inc(Result);
+  Inc(Result,Ord(FVariables[hvXRequestedWith]<>''));
+  Inc(Result,Ord(FVariables[hvSetCookie]<>''));
+  Inc(Result,Ord(FVariables[hvCookie]<>''));
 end;
 
 function THTTPHeader.GetContentLength: Integer;
@@ -820,23 +816,47 @@ begin
 end;
 
 
-Function THttpHeader.GetFieldIndex(AIndex : Integer) : Integer;
+function THTTPHeader.GetFieldOrigin(AIndex: Integer; out H: THeader;
+  V: THTTPVAriableType): Boolean;
 
-var
-  I : Integer;
-   
+
 begin
-  I:=1;
-  While (I<=NoHTTPFields) and (AIndex>=0) do
+  V:=hvUnknown;
+  H:=Succ(hhUnknown);
+  While (H<=High(THeader)) and (AIndex>=0) do
     begin
-    If (GetFieldValue(i)<>'') then
+    If (GetHeader(H)<>'') then
       Dec(AIndex);
-    Inc(I);
+    H:=Succ(H);
     end;
-  If (AIndex=-1) then
-    Result:=I-1
-  else
-    Result:=-1;  
+  Result:=(AIndex<0);
+  if Result then
+    begin
+    H:=Pred(H);
+    Exit;
+    end;
+  h:=hhUnknown;
+  if (AIndex>=0) then
+    begin
+    H:=hhUnknown;
+    V:=hvXRequestedWith;
+    if (FVariables[V]<>'') then
+      Dec(AIndex);
+    end;
+  if (AIndex>=0) then
+    begin
+    V:=hvSetCookie;
+    if (FVariables[V]<>'') then
+      Dec(AIndex);
+    end;
+  if (AIndex>=0) then
+    begin
+    V:=hvCookie;
+    if (FVariables[V]<>'') then
+      Dec(AIndex);
+    end;
+  Result:=(AIndex<0);
+  if not Result then V:=hvUnknown
 end;
 
 function THTTPHeader.GetServerPort: Word;
@@ -844,7 +864,19 @@ begin
   Result:=StrToIntDef(GetFieldValue(30),0);
 end;
 
-Procedure THTTPHeader.SetServerPort(AValue : Word);
+procedure THTTPHeader.SetHTTPVariable(AIndex: Integer; AValue: String);
+begin
+  if (AIndex>=0) and (Aindex<=Ord(High(THTTPVariableType))) then
+    SetHTTPVariable(THTTPVariableType(AIndex),AValue);
+end;
+
+procedure THTTPHeader.SetHTTPVariable(AVariable: THTTPVariableType; AValue: String);
+begin
+  Touch(GetEnumName(TypeInfo(THTTPVariableType),Ord(AVariable))+'='+AValue);
+  FVariables[AVariable]:=AValue
+end;
+
+procedure THTTPHeader.SetServerPort(AValue: Word);
 
 begin
   SetFieldValue(30,IntToStr(AValue));
@@ -853,46 +885,138 @@ end;
 function THTTPHeader.GetSetFieldValue(Index: Integer): String;
 
 Var
-  I : Integer;
+  H : THeader;
+  V : THTTPVariableType;
 
 begin
-  I:=GetFieldIndex(Index);
-  If (I<>-1) then
-    Result:=GetFieldValue(I);
+  if GetFieldOrigin(Index,H,V) then
+    begin
+    if H<>hhUnknown then
+      Result:=GetHeader(H)
+    else if V<>hVUnknown then
+      Result:=GetHTTPVariable(V);
+    end;
+end;
+
+function THTTPHeader.GetHeaderValue(AIndex: Integer): String;
+begin
+  if (AIndex>=0) and (AIndex<=Ord(High(THeader))) then
+    Result:=GetHeader(THeader(AIndex))
+  else
+    Result:='';
+end;
+
+procedure THTTPHeader.SetHeaderValue(AIndex: Integer; AValue: String);
+begin
+  if (AIndex>=0) and (AIndex<=Ord(High(THeader))) then
+    SetHeader(THeader(AIndex),AValue);
+end;
+
+function THTTPHeader.GetHTTPVariable(AVariable: THTTPVariableType): String;
+
+begin
+  Result:=FVariables[AVariable];
+end;
+
+function THTTPHeader.GetHTTPVariable(AIndex: Integer): String;
+begin
+  if (AIndex>=0) and (AIndex<=Ord(High(THTTPVariableType))) then
+    Result:=GetHTTPVariable(THTTPVariableType(AIndex))
+  else
+    Result:='';
+end;
+
+class function THTTPHeader.IndexToHTTPHeader(AIndex: Integer): THeader;
+
+Const
+  IDX : Array[THeader] of Integer =
+      (-1,
+       1,2,3,4,
+       -1,-1,-1,5,-1,
+       6,7,8,
+       9,-1,-1,-1,
+       10,12,-1,13,-1,
+       14,34,-1,15,-1,
+       -1,-1,16,17,-1,
+       18,-1,-1,-1,19,
+       20,21,-1,-1,
+       -1,-1,23,-1,
+       -1,-1,24);
+
+begin
+  Result:=High(THeader);
+  While (Result>hhUnknown) and (IDX[Result]<>AIndex) do
+    Result:=Pred(Result);
+end;
+
+class function THTTPHeader.IndexToHTTPVariable(AIndex: Integer
+  ): THTTPVariableType;
+
+Const
+  IDX : Array[THTTPVariableType] of Integer =
+      (-1,
+       0,31,11,22,36,
+       25,26,27,28,29,
+       30,32,33,35);
+
+begin
+  Result:=High(THTTPVariableType);
+  While (Result>hvUnknown) and (IDX[Result]<>AIndex) do
+    Result:=Pred(Result);
 end;
 
 function THTTPHeader.GetSetField(AIndex: Integer): String;
-var
-  I : Integer;
+
+Var
+  H : THeader;
+  V : THTTPVariableType;
 
 begin
-  I:=GetFieldIndex(AIndex);
-  If (I<>-1) then
-    Result := HTTPFieldNames[I] + ': ' + GetFieldValue(I);
+  if GetFieldOrigin(AIndex,H,V) then
+    if H<>hhUnknown then
+      Result:=HTTPHeaderNames[H]+': '+GetHeader(H)
+    else if V<>hVUnknown then
+      Result:=GetVariableHeaderName(V)+': '+GetHTTPVariable(V);
+end;
+
+function THTTPHeader.GetCustomHeaders: TStringList;
+begin
+  If FCustomHeaders=Nil then
+    FCustomHeaders:=TStringList.Create;
+  Result:=FCustomHeaders;
 end;
 
 function THTTPHeader.GetSetFieldName(AIndex: Integer): String;
-var
-  I : Integer;
+
+Var
+  H : THeader;
+  V : THTTPVariableType;
 
 begin
-  I:=GetFieldIndex(AIndex);
-  if (I<>-1) then
-    Result:=HTTPFieldNames[I];
+  if GetFieldOrigin(AIndex,H,V) then
+    if H<>hhUnknown then
+      Result:=HTTPHeaderNames[H]
+    else
+      Result:=GetVariableHeaderName(V);
 end;
 
 
-Function THttpHeader.GetFieldValue(Index : Integer) : String;
+function THTTPHeader.GetFieldValue(Index: Integer): String;
+
+Var
+  H : THeader;
+  V : THTTPVariableType;
 
 begin
-  if (Index>=1) and (Index<=NoHTTPFields) then
-    Result:=FFields[Index]
+  Result:='';
+  H:=IndexToHTTPHeader(Index);
+  if (H<>hhUnknown) then
+    Result:=GetHeader(H)
   else
-    case Index of
-      0  : Result:=FHTTPVersion;
-      36 : Result:=FHTTPXRequestedWith;
-    else
-      Result := '';
+    begin
+    V:=IndexToHTTPVariable(Index);
+    if V<>hvUnknown then
+      Result:=GetHTTPVariable(V)
     end;
 end;
 
@@ -902,10 +1026,24 @@ begin
 end;
 
 
-Procedure THttpHeader.SetFieldValue(Index : Integer; Value : String);
+procedure THTTPHeader.SetFieldValue(Index: Integer; Value: String);
+
+
+Var
+  H : THeader;
+  V : THTTPVariableType;
 
 begin
-  if (Index>=1) and (Index<=NoHTTPFields) then
+  H:=IndexToHTTPHeader(Index);
+  if (H<>hhUnknown) then
+    SetHeader(H,Value)
+  else
+    begin
+    V:=IndexToHTTPVariable(Index);
+    if V<>hvUnknown then
+      SetHTTPVariable(V,Value)
+    end;
+(* if (Index>=1) and (Index<=NoHTTPFields) then
     begin
     FFields[Index]:=Value;
     If (Index=11) then
@@ -922,6 +1060,7 @@ begin
       30 : ; // Property ServerPort : Word Read GetServerPort; // Index 30 in TRequest
       36 : FHTTPXRequestedWith:=Value;
     end;
+*)
 end;
 
 procedure THTTPHeader.ParseFirstHeaderLine(const line: String);
@@ -952,7 +1091,7 @@ begin
 {$ifdef cgidebug}  SendMethodExit('Parsecookies done');{$endif}
 end;
 
-constructor THttpHeader.Create;
+constructor THTTPHeader.Create;
 begin
   FCookieFields:=TStringList.Create;
   FQueryFields:=TStringList.Create;
@@ -960,9 +1099,10 @@ begin
   FHttpVersion := '1.1';
 end;
 
-destructor THttpHeader.Destroy;
+destructor THTTPHeader.Destroy;
 
 begin
+  FreeAndNil(FCustomHeaders);
   FreeAndNil(FContentFields);
   FreeAndNil(FQueryFields);
   FreeAndNil(FCookieFields);
@@ -970,7 +1110,24 @@ begin
 end;
 
 
-function THttpHeader.GetFieldByName(const AName: String): String;
+function THTTPHeader.HeaderIsSet(AHeader: THeader): Boolean;
+begin
+  Result:=(FFields[AHeader]<>'');
+end;
+
+function THTTPHeader.GetHeader(AHeader: THeader): String;
+begin
+  Result:=FFields[AHeader];
+end;
+
+procedure THTTPHeader.SetHeader(AHeader: THeader; const AValue: String);
+begin
+  Touch(GetEnumName(TypeInfo(THEader),ORd(AHeader))+'='+AValue);
+  FFields[AHeader]:=AValue;
+end;
+
+
+function THTTPHeader.GetFieldByName(const AName: String): String;
 var
   i: Integer;
 
@@ -979,10 +1136,37 @@ begin
   If (I<>0) then
     Result:=self.GetFieldValue(i)
   else
+    Result:=GetCustomHeader(AName);
+end;
+
+class function THTTPHeader.GetVariableHeaderName(AVariable: THTTPVariableType
+  ): String;
+begin
+  Case AVariable of
+    hvSetCookie : Result:=HeaderSetCookie;
+    hvCookie : Result:=HeaderCookie;
+    hvXRequestedWith : Result:=HeaderXRequestedWith;
+  end;
+end;
+
+function THTTPHeader.GetCustomHeader(const Name: String): String;
+begin
+  if Assigned(FCustomHeaders) then
+    Result:=CustomHeaders.Values[Name]
+  else
     Result:='';
 end;
 
-Function THTTPHeader.LoadFromStream(Stream: TStream; IncludeCommand : Boolean) : Integer;
+procedure THTTPHeader.SetCustomHeader(const Name, Value: String);
+begin
+  if GetCustomHeader(Name) = '' then
+    CustomHeaders.Add(Name + '=' + Value)
+  else
+    CustomHeaders.Values[Name] := Value;
+end;
+
+function THTTPHeader.LoadFromStream(Stream: TStream; IncludeCommand: Boolean
+  ): integer;
 
 Var
   S : TStrings;
@@ -997,7 +1181,8 @@ begin
   end;
 end;
 
-Function THTTPHeader.LoadFromStrings(Strings: TStrings; IncludeCommand : Boolean) : integer;
+function THTTPHeader.LoadFromStrings(Strings: TStrings; IncludeCommand: Boolean
+  ): integer;
 
 Var
   P  : Integer;
@@ -1029,14 +1214,16 @@ begin
     end;
 end;
 
-procedure THttpHeader.SetFieldByName(const AName, AValue: String);
+procedure THTTPHeader.SetFieldByName(const AName, AValue: String);
 var
   i: Integer;
 
 begin
   I:=GetFieldNameIndex(AName);
   If (I<>0) then
-    SetFieldValue(i,AValue);
+    SetFieldValue(i,AValue)
+  else
+    SetCustomHeader(AName,AValue);
 end;
 
 { ---------------------------------------------------------------------
@@ -1617,7 +1804,7 @@ end;
 
 procedure TRequest.InitContent(var AContent: String);
 begin
-  FContent:=AContent;
+  FVariables[hvContent]:=AContent;
   FContentRead:=True;
 end;
 
@@ -1824,7 +2011,6 @@ begin
     FreeAndNil(FContentStream);
   FreeAndNil(FCookies);
   FreeAndNil(FContents);
-  FreeAndNil(FCustomHeaders);
   inherited destroy;
 end;
 
@@ -1865,18 +2051,6 @@ begin
   SendContent;
 end;
 
-function TResponse.GetCustomHeader(const Name: String): String;
-begin
-  Result := FCustomHeaders.Values[Name];
-end;
-
-procedure TResponse.SetCustomHeader(const Name, Value: String);
-begin
-  if GetCustomHeader(Name) = '' then
-    FCustomHeaders.Add(Name + '=' + Value)
-  else
-    FCustomHeaders.Values[Name] := Value;
-end;
 
 procedure TResponse.SendRedirect(const TargetURL: String);
 begin
@@ -1964,6 +2138,8 @@ procedure TResponse.CollectHeaders(Headers: TStrings);
 
 Var
   I : Integer;
+  H : THeader;
+  N,V : String;
 
 begin
   Headers.add(Format('Status: %d %s',[Code,CodeText]));
@@ -1975,11 +2151,17 @@ begin
     SendInteger('Nr of cookies',FCookies.Count);
 {$endif}
   For I:=0 to FCookies.Count-1 do
-    Headers.Add('Set-Cookie: '+FCookies[i].AsString);
-  For I:=0 to FieldCount-1 do
-    Headers.Add(Fields[i]);
-  For I:=0 to FCustomHeaders.Count - 1 do if FCustomHeaders[I] <> '' then
-    Headers.Add(FCustomHeaders.Names[I] + ': ' + FCustomHeaders.ValueFromIndex[I]);
+    Headers.Add(HeaderSetCookie+': '+FCookies[i].AsString);
+  For H in THeader do
+    if (hdResponse in HTTPHeaderDirections[H]) and HeaderIsSet(H) then
+      Headers.Add(HTTPHeaderNames[H]+': '+GetHeader(H));
+  if Assigned(FCustomHeaders) then
+    For I:=0 to FCustomHeaders.Count - 1 do
+      begin
+      FCustomHeaders.GetNameValue(I,N,V);
+      if (V<>'') then
+        Headers.Add(N+': '+V);
+      end;
   Headers.Add('');
 {$ifdef cgidebug} SendMethodExit('Collectheaders');{$endif}
 end;
