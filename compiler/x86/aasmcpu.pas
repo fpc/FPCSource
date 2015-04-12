@@ -1234,10 +1234,18 @@ implementation
                              ) then
                             ot:=OT_IMM8 or OT_SHORT
                           else
+{$ifdef i8086}
+                            ot:=OT_IMM16 or OT_NEAR;
+{$else i8086}
                             ot:=OT_IMM32 or OT_NEAR;
+{$endif i8086}
                         end
                       else
+{$ifdef i8086}
+                        ot:=OT_IMM16 or OT_NEAR;
+{$else i8086}
                         ot:=OT_IMM32 or OT_NEAR;
+{$endif i8086}
                     end;
                 end;
               top_local :
