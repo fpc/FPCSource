@@ -28,6 +28,59 @@ procedure fpc_cpuinit;
   end;
 
 
+{$define FPC_SYSTEM_HAS_MOVE}
+procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];
+var
+  aligncount : sizeint;
+  pdest,psrc,pend : pbyte;
+begin
+  if (@dest=@source) or (count<=0) then
+    exit;
+  if (@dest<@source) or (@source+count<@dest) then
+    begin
+      { Forward Move }
+      psrc:=@source;
+      pdest:=@dest;
+      pend:=psrc+count;
+      while psrc<pend do
+        begin
+          pdest^:=psrc^;
+          inc(pdest);
+          inc(psrc);
+        end;
+    end
+  else
+    begin
+      { Backward Move }
+      psrc:=@source+count;
+      pdest:=@dest+count;
+      while psrc>@source do
+        begin
+          dec(pdest);
+          dec(psrc);
+          pdest^:=psrc^;
+        end;
+    end;
+end;
+
+
+{$define FPC_SYSTEM_HAS_FILLCHAR}
+Procedure FillChar(var x;count:SizeInt;value:byte);
+var
+  pdest,pend : pbyte;
+  v : ptruint;
+begin
+  if count <= 0 then
+    exit;
+  pdest:=@x;
+  pend:=pdest+count;
+  while pdest<pend do
+    begin
+      pdest^:=value;
+      inc(pdest);
+    end;
+end;
+
 
 {$IFNDEF INTERNAL_BACKTRACE}
 {$define FPC_SYSTEM_HAS_GET_FRAME}
