@@ -765,9 +765,10 @@ unit cgcpu;
                end
              else
                begin
-                 { if (op=OP_SAR) and (a=31) and (size in [OS_32,OS_S32]) then
+{$if 0}
+                 { code not working yet }
+                 if (op=OP_SAR) and (a=31) and (size in [OS_32,OS_S32]) then
                    begin
-                     { code not working yet }
                      tmpreg:=reg;
                      for i:=1 to 4 do
                        begin
@@ -776,7 +777,7 @@ unit cgcpu;
                        end;
                    end
                  else
-                 }
+{$endif}
                    begin
                      tmpreg:=getintregister(list,size);
                      a_load_const_reg(list,size,a,tmpreg);
