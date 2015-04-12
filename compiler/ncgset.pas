@@ -547,7 +547,7 @@ implementation
 
       procedure genitem(t : pcaselabel);
 
-          procedure gensub(value:aint);
+          procedure gensub(value:tcgint);
             begin
               { here, since the sub and cmp are separate we need
                 to move the result before subtract to help
@@ -562,16 +562,16 @@ implementation
              genitem(t^.less);
            { do we need to test the first value? }
            if first and (t^._low>get_min_value(left.resultdef)) then
-             hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,aint(t^._low.svalue),hregister,elselabel);
+             hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,tcgint(t^._low.svalue),hregister,elselabel);
            if t^._low=t^._high then
              begin
                if t^._low-last=0 then
                  hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_EQ,0,hregister,blocklabel(t^.blockid))
                else
                  begin
-                   gensub(aint(t^._low.svalue-last.svalue));
+                   gensub(tcgint(t^._low.svalue-last.svalue));
                    hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,
-                                            OC_EQ,aint(t^._low.svalue-last.svalue),scratch_reg,blocklabel(t^.blockid));
+                                            OC_EQ,tcgint(t^._low.svalue-last.svalue),scratch_reg,blocklabel(t^.blockid));
                  end;
                last:=t^._low;
              end
@@ -584,18 +584,18 @@ implementation
                   begin
                      { have we to ajust the first value ? }
                      if (t^._low>get_min_value(left.resultdef)) or (get_min_value(left.resultdef)<>0) then
-                       gensub(aint(t^._low.svalue));
+                       gensub(tcgint(t^._low.svalue));
                   end
                 else
                   begin
                     { if there is no unused label between the last and the }
                     { present label then the lower limit can be checked    }
                     { immediately. else check the range in between:       }
-                    gensub(aint(t^._low.svalue-last.svalue));
-                    hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize,jmp_lt,aint(t^._low.svalue-last.svalue),scratch_reg,elselabel);
+                    gensub(tcgint(t^._low.svalue-last.svalue));
+                    hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize,jmp_lt,tcgint(t^._low.svalue-last.svalue),scratch_reg,elselabel);
                   end;
-                gensub(aint(t^._high.svalue-t^._low.svalue));
-                hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_le,aint(t^._high.svalue-t^._low.svalue),scratch_reg,blocklabel(t^.blockid));
+                gensub(tcgint(t^._high.svalue-t^._low.svalue));
+                hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_le,tcgint(t^._high.svalue-t^._low.svalue),scratch_reg,blocklabel(t^.blockid));
                 last:=t^._high;
              end;
            first:=false;
@@ -933,7 +933,7 @@ implementation
          distv,
          lv,hv,
          max_label: tconstexprint;
-         labelcnt : aint;
+         labelcnt : tcgint;
          max_linear_list : aint;
          otl, ofl: tasmlabel;
          isjump : boolean;
