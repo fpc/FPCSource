@@ -206,7 +206,7 @@ interface
           begin
             { decrease register pressure on registers >= r16 }
             if (right.location.value and $ff)=0 then
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,left.location.register,NR_R1))
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,NR_R1))
             else
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CPI,left.location.register,right.location.value and $ff))
           end
