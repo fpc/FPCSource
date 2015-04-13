@@ -536,6 +536,7 @@ unit cgcpu;
                    cg.a_reg_alloc(list,NR_R0);
                    cg.a_reg_alloc(list,NR_R1);
                    list.concat(taicpu.op_reg_reg(topcg2asmop[op],dst,src));
+                   list.concat(taicpu.op_reg(A_CLR,NR_R1));
                    cg.a_reg_dealloc(list,NR_R1);
                    list.concat(taicpu.op_reg_reg(A_MOV,dst,NR_R0));
                    cg.a_reg_dealloc(list,NR_R0);
