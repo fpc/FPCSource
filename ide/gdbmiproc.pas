@@ -42,11 +42,13 @@ type
     property Alive: Boolean read IsAlive;
   end;
 
+var
+  GdbProgramName: string = 'gdb';
+
 implementation
 
 var
   DebugLogEnabled: Boolean = False;
-  GdbProgramName: string = 'gdb';
 
 function TGDBProcess.IsAlive: Boolean;
 begin
