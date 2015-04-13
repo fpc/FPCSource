@@ -2207,62 +2207,62 @@ implementation
           c:=ord(codes^);
           inc(codes);
           case c of
-            0 :
+            &0 :
               break;
-            1,2,3 :
+            &1,&2,&3 :
               begin
                 inc(codes,c);
                 inc(len,c);
               end;
-            8,9,10 :
+            &10,&11,&12 :
               begin
 {$ifdef x86_64}
-                rex:=rex or (rexbits(oper[c-8]^.reg) and $F1);
+                rex:=rex or (rexbits(oper[c-&10]^.reg) and $F1);
 {$endif x86_64}
                 inc(codes);
                 inc(len);
               end;
-            11 :
+            &13 :
               begin
                 inc(codes);
                 inc(len);
               end;
-            4,5,6,7 :
+            &4,&5,&6,&7 :
               begin
                 if opsize={$ifdef i8086}S_L{$else}S_W{$endif} then
                   inc(len,2)
                 else
                   inc(len);
               end;
-            12,13,14,
-            16,17,18,
-            20,21,22,23,
-            40,41,42 :
+            &14,&15,&16,
+            &20,&21,&22,
+            &24,&25,&26,&27,
+            &50,&51,&52 :
               inc(len);
-            24,25,26,
-            31,
-            48,49,50 :
+            &30,&31,&32,
+            &37,
+            &60,&61,&62 :
               inc(len,2);
-            28,29,30:
+            &34,&35,&36:
               begin
                 if opsize=S_Q then
                   inc(len,8)
                 else
                   inc(len,4);
               end;
-            36,37,38:
+            &44,&45,&46:
               inc(len,sizeof(pint));
-            44,45,46:
+            &54,&55,&56:
               inc(len,8);
-            32,33,34,
-            52,53,54,
-            56,57,58,
-            172,173,174 :
+            &40,&41,&42,
+            &64,&65,&66,
+            &70,&71,&72,
+            &254,&255,&256 :
               inc(len,4);
-            60,61,62,63: ; // ignore vex-coded operand-idx
-            208,209,210 :
+            &74,&75,&76,&77: ; // ignore vex-coded operand-idx
+            &320,&321,&322 :
               begin
-                case (oper[c-208]^.ot and OT_SIZE_MASK) of
+                case (oper[c-&320]^.ot and OT_SIZE_MASK) of
 {$if defined(i386) or defined(x86_64)}
                   OT_BITS16 :
 {$elseif defined(i8086)}
@@ -2277,7 +2277,7 @@ implementation
 {$endif x86_64}
                 end;
               end;
-            200 :
+            &310 :
 {$if defined(x86_64)}
               { every insentry with code 0310 must be marked with NOX86_64 }
               InternalError(2011051301);
@@ -2286,53 +2286,53 @@ implementation
 {$elseif defined(i8086)}
               {nothing};
 {$endif}
-            201 :
+            &311 :
 {$if defined(x86_64) or defined(i8086)}
               inc(len)
 {$endif x86_64 or i8086}
               ;
-            212 :
+            &324 :
 {$ifndef i8086}
               inc(len)
 {$endif not i8086}
               ;
-            214 :
+            &326 :
               begin
 {$ifdef x86_64}
                 rex:=rex or $48;
 {$endif x86_64}
               end;
-            202,
-            211,
-            213,
-            215,
-            217,218: ;
-            219:
+            &312,
+            &323,
+            &325,
+            &327,
+            &331,&332: ;
+            &333:
               begin
                 inc(len);
                 exists_prefix_F2 := true;
               end;
-            220:
+            &334:
               begin
                 inc(len);
                 exists_prefix_F3 := true;
               end;
-            241:
+            &361:
               begin
 {$ifndef i8086}
                 inc(len);
                 exists_prefix_66 := true;
 {$endif not i8086}
               end;
-            221:
+            &335:
 {$ifdef x86_64}
               omit_rexw:=true
 {$endif x86_64}
               ;
-            64..151 :
+            &100..&227 :
               begin
 {$ifdef x86_64}
-                 if (c<127) then
+                 if (c<&177) then
                   begin
                     if (oper[c and 7]^.typ=top_reg) then
                       begin
@@ -2350,8 +2350,8 @@ implementation
 {$endif x86_64}
 
               end;
-            242: // VEX prefix for AVX (length = 2 or 3 bytes, dependens on REX.XBW or opcode-prefix ($0F38 or $0F3A))
-                 // =>> DEFAULT = 2 Bytes
+            &362: // VEX prefix for AVX (length = 2 or 3 bytes, dependens on REX.XBW or opcode-prefix ($0F38 or $0F3A))
+                  // =>> DEFAULT = 2 Bytes
               begin
                 if not(exists_vex) then
                 begin
@@ -2359,8 +2359,8 @@ implementation
                   exists_vex := true;
                 end;
               end;
-            243: // REX.W = 1
-                 // =>> VEX prefix length = 3
+            &363: // REX.W = 1
+                  // =>> VEX prefix length = 3
               begin
                 if not(exists_vex_extension) then
                 begin
@@ -2368,14 +2368,14 @@ implementation
                   exists_vex_extension := true;
                 end;
               end;
-            244: ; // VEX length bit
-            246, // operand 2 (ymmreg) encoded immediate byte (bit 4-7)
-            247: inc(len); // operand 3 (ymmreg) encoded immediate byte (bit 4-7)
-            248: // VEX-Extension prefix $0F
-                 // ignore for calculating length
-                 ;
-            249, // VEX-Extension prefix $0F38
-            250: // VEX-Extension prefix $0F3A
+            &364: ; // VEX length bit
+            &366, // operand 2 (ymmreg) encoded immediate byte (bit 4-7)
+            &367: inc(len); // operand 3 (ymmreg) encoded immediate byte (bit 4-7)
+            &370: // VEX-Extension prefix $0F
+                  // ignore for calculating length
+                  ;
+            &371, // VEX-Extension prefix $0F38
+            &372: // VEX-Extension prefix $0F3A
               begin
                 if not(exists_vex_extension) then
                 begin
@@ -2383,7 +2383,7 @@ implementation
                   exists_vex_extension := true;
                 end;
               end;
-            192,193,194:
+            &300,&301,&302:
               begin
 {$if defined(x86_64) or defined(i8086)}
                 if (oper[c and 3]^.ot and OT_SIZE_MASK)=OT_BITS32 then
@@ -2645,28 +2645,28 @@ implementation
           inc(codes);
 
           case c of
-              0: break;
-              1,
-              2,
-              3: inc(codes,c);
-             60: opmode := 0;
-             61: opmode := 1;
-             62: opmode := 2;
-            219: VEXvvvv                := VEXvvvv  OR $02; // set SIMD-prefix $F3
-            220: VEXvvvv                := VEXvvvv  OR $03; // set SIMD-prefix $F2
-            241: VEXvvvv                := VEXvvvv  OR $01; // set SIMD-prefix $66
-            242: needed_VEX             := true;
-            243: begin
+             &0: break;
+             &1,
+             &2,
+             &3: inc(codes,c);
+            &74: opmode := 0;
+            &75: opmode := 1;
+            &76: opmode := 2;
+           &333: VEXvvvv                := VEXvvvv  OR $02; // set SIMD-prefix $F3
+           &334: VEXvvvv                := VEXvvvv  OR $03; // set SIMD-prefix $F2
+           &361: VEXvvvv                := VEXvvvv  OR $01; // set SIMD-prefix $66
+           &362: needed_VEX             := true;
+           &363: begin
                    needed_VEX_Extension := true;
                    VEXvvvv              := VEXvvvv  OR (1 shl 7); // set REX.W
                  end;
-            244: VEXvvvv                := VEXvvvv  OR $04; // vectorlength = 256 bits AND no scalar
-            248: VEXmmmmm               := VEXmmmmm OR $01; // set leading opcode byte $0F
-            249: begin
+           &364: VEXvvvv                := VEXvvvv  OR $04; // vectorlength = 256 bits AND no scalar
+           &370: VEXmmmmm               := VEXmmmmm OR $01; // set leading opcode byte $0F
+           &371: begin
                    needed_VEX_Extension := true;
                    VEXmmmmm             := VEXmmmmm OR $02; // set leading opcode byte $0F38
                  end;
-            250: begin
+           &372: begin
                    needed_VEX_Extension := true;
                    VEXmmmmm             := VEXmmmmm OR $03; // set leading opcode byte $0F3A
                  end;
@@ -2755,9 +2755,9 @@ implementation
           c:=ord(codes^);
           inc(codes);
           case c of
-            0 :
+            &0 :
               break;
-            1,2,3 :
+            &1,&2,&3 :
               begin
 {$ifdef x86_64}
                 if not(needed_VEX) then  // TG
@@ -2766,7 +2766,7 @@ implementation
                 objdata.writebytes(codes^,c);
                 inc(codes,c);
               end;
-            4,6 :
+            &4,&6 :
               begin
                 case oper[0]^.reg of
                   NR_CS:
@@ -2781,11 +2781,11 @@ implementation
                   else
                     internalerror(777004);
                 end;
-                if c=4 then
+                if c=&4 then
                   inc(bytes[0]);
                 objdata.writebytes(bytes,1);
               end;
-            5,7 :
+            &5,&7 :
               begin
                 case oper[0]^.reg of
                   NR_FS:
@@ -2795,29 +2795,29 @@ implementation
                   else
                     internalerror(777005);
                 end;
-                if c=5 then
+                if c=&5 then
                   inc(bytes[0]);
                 objdata.writebytes(bytes,1);
               end;
-            8,9,10 :
+            &10,&11,&12 :
               begin
 {$ifdef x86_64}
                 if not(needed_VEX) then  // TG
                   maybewriterex;
 {$endif x86_64}
-                bytes[0]:=ord(codes^)+regval(oper[c-8]^.reg);
+                bytes[0]:=ord(codes^)+regval(oper[c-&10]^.reg);
                 inc(codes);
                 objdata.writebytes(bytes,1);
               end;
-            11 :
+            &13 :
               begin
                 bytes[0]:=ord(codes^)+condval[condition];
                 inc(codes);
                 objdata.writebytes(bytes,1);
               end;
-            12,13,14 :
+            &14,&15,&16 :
               begin
-                getvalsym(c-12);
+                getvalsym(c-&14);
                 if (currval<-128) or (currval>127) then
                  Message2(asmw_e_value_exceeds_bounds,'signed byte',tostr(currval));
                 if assigned(currsym) then
@@ -2825,9 +2825,9 @@ implementation
                 else
                   objdata.writebytes(currval,1);
               end;
-            16,17,18 :
+            &20,&21,&22 :
               begin
-                getvalsym(c-16);
+                getvalsym(c-&20);
                 if (currval<-256) or (currval>255) then
                  Message2(asmw_e_value_exceeds_bounds,'byte',tostr(currval));
                 if assigned(currsym) then
@@ -2835,9 +2835,9 @@ implementation
                 else
                  objdata.writebytes(currval,1);
               end;
-            20,21,22,23 :
+            &24,&25,&26,&27 :
               begin
-                getvalsym(c-20);
+                getvalsym(c-&24);
                 if (currval<0) or (currval>255) then
                  Message2(asmw_e_value_exceeds_bounds,'unsigned byte',tostr(currval));
                 if assigned(currsym) then
@@ -2845,9 +2845,9 @@ implementation
                 else
                  objdata.writebytes(currval,1);
               end;
-            24,25,26 :     // 030..032
+            &30,&31,&32 :     // 030..032
               begin
-                getvalsym(c-24);
+                getvalsym(c-&30);
 {$ifndef i8086}
                 { currval is an aint so this cannot happen on i8086 and causes only a warning }
                 if (currval<-65536) or (currval>65535) then
@@ -2858,11 +2858,11 @@ implementation
                 else
                  objdata.writebytes(currval,2);
               end;
-            28,29,30 :     // 034..036
+            &34,&35,&36 :     // 034..036
               { !!! These are intended (and used in opcode table) to select depending
                     on address size, *not* operand size. Works by coincidence only. }
               begin
-                getvalsym(c-28);
+                getvalsym(c-&34);
                 if opsize=S_Q then
                   begin
                     if assigned(currsym) then
@@ -2878,17 +2878,17 @@ implementation
                       objdata.writebytes(currval,4);
                   end
               end;
-            32,33,34 :    // 040..042
+            &40,&41,&42 :    // 040..042
               begin
-                getvalsym(c-32);
+                getvalsym(c-&40);
                 if assigned(currsym) then
                  objdata_writereloc(currval,4,currsym,currabsreloc32)
                 else
                  objdata.writebytes(currval,4);
               end;
-            36,37,38 :   // 044..046 - select between word/dword/qword depending on
+            &44,&45,&46 :// 044..046 - select between word/dword/qword depending on
               begin      // address size (we support only default address sizes).
-                getvalsym(c-36);
+                getvalsym(c-&44);
 {$if defined(x86_64)}
                 if assigned(currsym) then
                   objdata_writereloc(currval,8,currsym,currabsreloc)
@@ -2906,9 +2906,9 @@ implementation
                   objdata.writebytes(currval,2);
 {$endif}
               end;
-            40,41,42 :   // 050..052 - byte relative operand
+            &50,&51,&52 :   // 050..052 - byte relative operand
               begin
-                getvalsym(c-40);
+                getvalsym(c-&50);
                 data:=currval-insend;
 {$push}
 {$r-,q-} { disable also overflow as address returns a qword for x86_64 }
@@ -2919,35 +2919,35 @@ implementation
                  Message1(asmw_e_short_jmp_out_of_range,tostr(data));
                 objdata.writebytes(data,1);
               end;
-            44,45,46:   // 054..056 - qword immediate operand
+            &54,&55,&56:   // 054..056 - qword immediate operand
               begin
-                getvalsym(c-44);
+                getvalsym(c-&54);
                 if assigned(currsym) then
                   objdata_writereloc(currval,8,currsym,currabsreloc)
                 else
                   objdata.writebytes(currval,8);
               end;
-            52,53,54 :  // 064..066 - select between 16/32 address mode, but we support only 32
+            &64,&65,&66 :  // 064..066 - select between 16/32 address mode, but we support only 32
               begin
-                getvalsym(c-52);
+                getvalsym(c-&64);
                 if assigned(currsym) then
                  objdata_writereloc(currval,4,currsym,currrelreloc)
                 else
                  objdata_writereloc(currval-insend,4,nil,currabsreloc32)
               end;
-            56,57,58 :  // 070..072 - long relative operand
+            &70,&71,&72 :  // 070..072 - long relative operand
               begin
-                getvalsym(c-56);
+                getvalsym(c-&70);
                 if assigned(currsym) then
                  objdata_writereloc(currval,4,currsym,currrelreloc)
                 else
                  objdata_writereloc(currval-insend,4,nil,currabsreloc32)
               end;
-            60,61,62 : ; // 074..076 - vex-coded vector operand
-                         // ignore
-            172,173,174 :  // 0254..0256 - dword implicitly sign-extended to 64-bit (x86_64 only)
+            &74,&75,&76 : ; // 074..076 - vex-coded vector operand
+                            // ignore
+            &254,&255,&256 :  // 0254..0256 - dword implicitly sign-extended to 64-bit (x86_64 only)
               begin
-                getvalsym(c-172);
+                getvalsym(c-&254);
 {$ifdef x86_64}
                 { for i386 as aint type is longint the
                   following test is useless }
@@ -2960,7 +2960,7 @@ implementation
                 else
                   objdata.writebytes(currval,4);
               end;
-            192,193,194:
+            &300,&301,&302:
               begin
 {$if defined(x86_64) or defined(i8086)}
                 if (oper[c and 3]^.ot and OT_SIZE_MASK)=OT_BITS32 then
@@ -2970,7 +2970,7 @@ implementation
                   end;
 {$endif x86_64 or i8086}
               end;
-            200 :   { fixed 16-bit addr }
+            &310 :   { fixed 16-bit addr }
 {$if defined(x86_64)}
               { every insentry having code 0310 must be marked with NOX86_64 }
               InternalError(2011051302);
@@ -2982,7 +2982,7 @@ implementation
 {$elseif defined(i8086)}
               {nothing};
 {$endif}
-            201 :   { fixed 32-bit addr }
+            &311 :   { fixed 32-bit addr }
 {$if defined(x86_64) or defined(i8086)}
               begin
                 bytes[0]:=$67;
@@ -2990,9 +2990,9 @@ implementation
               end
 {$endif x86_64 or i8086}
                ;
-            208,209,210 :
+            &320,&321,&322 :
               begin
-                case oper[c-208]^.ot and OT_SIZE_MASK of
+                case oper[c-&320]^.ot and OT_SIZE_MASK of
 {$if defined(i386) or defined(x86_64)}
                   OT_BITS16 :
 {$elseif defined(i8086)}
@@ -3008,11 +3008,11 @@ implementation
 {$endif x86_64}
                 end;
               end;
-            211,
-            213 : {no action needed};
+            &323,
+            &325 : {no action needed};
 
-            212,
-            241:
+            &324,
+            &361:
               begin
 {$ifndef i8086}
                 if not(needed_VEX) then
@@ -3022,13 +3022,13 @@ implementation
                 end;
 {$endif not i8086}
               end;
-            214 :
+            &326 :
               begin
 {$ifndef x86_64}
                 Message(asmw_e_64bit_not_supported);
 {$endif x86_64}
               end;
-            219 :
+            &333 :
               begin
                 if not(needed_VEX) then
                 begin
@@ -3036,7 +3036,7 @@ implementation
                   objdata.writebytes(bytes,1);
                 end;
               end;
-            220 :
+            &334 :
               begin
                 if not(needed_VEX) then
                 begin
@@ -3044,17 +3044,17 @@ implementation
                   objdata.writebytes(bytes,1);
                 end;
               end;
-            221:
+            &335:
               ;
-            202,
-            215,
-            217,218 :
+            &312,
+            &327,
+            &331,&332 :
               begin
                 { these are dissambler hints or 32 bit prefixes which
                   are not needed }
               end;
-            242..244: ; // VEX flags =>> nothing todo
-            246: begin
+            &362..&364: ; // VEX flags =>> nothing todo
+            &366: begin
                    if needed_VEX then
                    begin
                      if ops = 4 then
@@ -3075,7 +3075,7 @@ implementation
                    end
                    else Internalerror(2014032004);
                  end;
-            247: begin
+            &367: begin
                    if needed_VEX then
                    begin
                      if ops = 4 then
@@ -3096,9 +3096,9 @@ implementation
                    end
                    else Internalerror(2014032008);
                  end;
-            248..250: ; // VEX flags =>> nothing todo
-            31,
-            48,49,50 :
+            &370..&372: ; // VEX flags =>> nothing todo
+            &37,
+            &60,&61,&62 :
               begin
                 InternalError(777006);
               end
@@ -3110,9 +3110,9 @@ implementation
                   if (rex<>0) and not(rexwritten) then
                     internalerror(200603191);
 {$endif x86_64}
-                if (c>=64) and (c<=151) then  // 0100..0227
+                if (c>=&100) and (c<=&227) then  // 0100..0227
                  begin
-                   if (c<127) then            // 0177
+                   if (c<&177) then            // 0177
                     begin
                       if (oper[c and 7]^.typ=top_reg) then
                         rfield:=regval(oper[c and 7]^.reg)
