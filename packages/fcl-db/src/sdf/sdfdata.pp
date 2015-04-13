@@ -259,7 +259,7 @@ type
     FFirstLineAsSchema : Boolean;
     FFMultiLine        : Boolean;
     FStripTrailingDelimiters : Boolean;
-    procedure DoStripTrailingDelimiters(var S: String; All : Boolean);
+    procedure DoStripTrailingDelimiters(var S: String);
     procedure SetMultiLine(const Value: Boolean);
     procedure SetFirstLineAsSchema(Value : Boolean);
     procedure SetDelimiter(Value : Char);
@@ -864,7 +864,7 @@ end;
 procedure TSdfDataSet.InternalInitFieldDefs;
 var
   pStart, pEnd, len : Integer;
-  SL,Fn : String;
+  SchemaLine, FN : String;
 
 begin
   if not IsCursorOpen then
@@ -881,45 +881,53 @@ begin
   else if (Schema.Count = 0) or FirstLineAsSchema then
   begin
     Schema.Clear;
-    SL:=FData[0];
+    SchemaLine:=FData[0];
     if StripTrailingDelimiters then
-      DoStripTrailingDelimiters(SL,True);
-    len := Length(SL);
+      DoStripTrailingDelimiters(SchemaLine);
+    len := Length(SchemaLine);
     pEnd := 1;
     repeat
-      while (pEnd<=len) and (SL[pEnd] in [#1..' ']) do
+      // skip leading white-spaces
+      while (pEnd<=len) and (SchemaLine[pEnd] in [#1..' ']) do
         Inc(pEnd);
+
       if (pEnd > len) then
         break;
+
       pStart := pEnd;
-      if (SL[pStart] = '"') then
+      if (SchemaLine[pStart] = '"') then
+        // quoted field name
         begin
         repeat
           Inc(pEnd);
-        until (pEnd > len)  or (SL[pEnd] = '"');
-        if (SL[pEnd] = '"') then
+        until (pEnd > len)  or (SchemaLine[pEnd] = '"');
+        if (SchemaLine[pEnd] = '"') then
           Inc(pStart);
         end
       else
-        while (pEnd<=len) and (SL[pEnd]<>Delimiter) do
+        // unquoted field name
+        while (pEnd<=len) and (SchemaLine[pEnd]<>Delimiter) do
           Inc(pEnd);
-      if (FirstLineAsSchema) then
-        FN:=Copy(SL,pStart,pEnd - pStart)
+
+      if FirstLineAsSchema then
+        FN:=Copy(SchemaLine, pStart, pEnd - pStart)
       else
         FN:='';
-      if (FN='') then // Pend-PStart=0 is possible: a,b,,c
+      if FN='' then // pEnd-pStart=0 is possible: a,b,,c
         FN:=Format('Field%d', [Schema.Count + 1]);
       Schema.Add(FN);
-      if (Pend<=Len) and (SL[pEnd] = '"') then
-        while (pEnd <= len) and (SL[pEnd] <> Delimiter) do
-          Inc(pEnd);
-//      if (SL[pEnd]=Delimiter) then
-        Inc(pEnd);
-    until (pEnd > len);
-    // Special case: f1,f2, is 3 fields, last unnamed.
-    if (Len>0) and (SL[Len]=Delimiter) then
-      Schema.Add(Format('Field%d', [Schema.Count + 1]));
 
+      // skip all after trailing quote until next Delimiter
+      if (pEnd<=Len) and (SchemaLine[pEnd] = '"') then
+        while (pEnd <= len) and (SchemaLine[pEnd] <> Delimiter) do
+          Inc(pEnd);
+
+      Inc(pEnd);
+    until (pEnd > len);
+
+    // Special case: f1,f2, is 3 fields, last unnamed.
+    if (Len>0) and (SchemaLine[Len]=Delimiter) then
+      Schema.Add(Format('Field%d', [Schema.Count + 1]));
   end;
   inherited;
 end;
@@ -1077,10 +1085,10 @@ begin
       end;
     Result := Result + Str + FDelimiter;
   end;
-  DoStripTrailingDelimiters(Result,StripTrailingDelimiters)
+  DoStripTrailingDelimiters(Result)
 end;
 
-procedure TSdfDataSet.DoStripTrailingDelimiters(var S: String; All: Boolean);
+procedure TSdfDataSet.DoStripTrailingDelimiters(var S: String);
 
 var
   L,P : integer;
@@ -1088,8 +1096,8 @@ begin
 //  Write('S "',S,'" -> "');
   L:=Length(S);
   P:=L;
-  while (p>0) and (S[p]=FDelimiter) and (All or (P=L)) do
-    Dec(p);
+  while (P>0) and (S[P]=FDelimiter) and ((P=L) or StripTrailingDelimiters) do
+    Dec(P);
   if P<L then
     S:=Copy(S,1,P);
 //  Writeln(s,'"');
