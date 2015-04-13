@@ -93,20 +93,21 @@ procedure Ttestsdfspecific.TestSingleLineHeader;
 var
   FileStrings: TStringList;
 begin
-  // with Schema, with Header line
+  // with Schema, with Header line, which differs from Schema
   TestDataset.FirstLineAsSchema := True;
   TestDataset.FileName := TestFileName('singleh.csv');
 
   FileStrings:=TStringList.Create;
   try
-    FileStrings.Add('ID,NAME,BIRTHDAY');
-    FileStrings.Add('1,SimpleName,31-12-1976');
+    FileStrings.Add('ID,NAME,BIRTHDAY,GENDER'); // 4 fields override 3 fields in Schema
+    FileStrings.Add('1,SimpleName,31-12-1976,M');
     FileStrings.SaveToFile(TestDataset.FileName);
   finally
     FileStrings.Free;
   end;
 
   TestDataset.Open;
+  AssertEquals('FieldDefs.Count', 4, TestDataset.FieldDefs.Count);
   AssertEquals('1', TestDataset.Fields[0].AsString); // just after Open
 
   TestDataset.Last;
@@ -135,6 +136,7 @@ begin
   end;
 
   TestDataset.Open;
+  AssertEquals('FieldDefs.Count', 3, TestDataset.FieldDefs.Count);
   AssertEquals('1', TestDataset.Fields[0].AsString);
 
   TestDataset.Last;
