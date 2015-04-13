@@ -38,11 +38,16 @@ interface
         procedure second_boolean;override;
       end;
 
+      tavrshlshrnode = class(tcgshlshrnode)
+        procedure second_integer;override;
+      end;
+
 implementation
 
     uses
       globtype,systems,
       cutils,verbose,globals,constexp,
+      symtype,symdef,
       aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,
       cgbase,cgobj,hlcgobj,cgutils,
@@ -263,7 +268,66 @@ implementation
           end;
       end;
 
+
+    procedure tavrshlshrnode.second_integer;
+      var
+         op : topcg;
+         opdef: tdef;
+         hcountreg : tregister;
+         opsize : tcgsize;
+         shiftval : longint;
+      begin
+        { determine operator }
+        case nodetype of
+          shln: op:=OP_SHL;
+          shrn: op:=OP_SHR;
+          else
+            internalerror(2013120102);
+        end;
+        opsize:=left.location.size;
+        opdef:=left.resultdef;
+
+        if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER]) or
+          { location_force_reg can be also used to change the size of a register }
+          (left.location.size<>opsize) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
+        location_reset(location,LOC_REGISTER,opsize);
+        location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+
+        { shifting by a constant directly coded: }
+        if (right.nodetype=ordconstn) then
+          begin
+             { shl/shr must "wrap around", so use ... and 31 }
+             { In TP, "byte/word shl 16 = 0", so no "and 15" in case of
+               a 16 bit ALU }
+             if tcgsize2size[opsize]<=4 then
+               shiftval:=tordconstnode(right).value.uvalue and 31
+             else
+               shiftval:=tordconstnode(right).value.uvalue and 63;
+             hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,opdef,
+               shiftval,left.location.register,location.register);
+          end
+        else
+          begin
+             { load right operators in a register - this
+               is done since most target cpu which will use this
+               node do not support a shift count in a mem. location (cec)
+             }
+             hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,sinttype,true);
+             hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,opdef,right.location.register,left.location.register,location.register);
+          end;
+        { shl/shr nodes return the same type as left, which can be different
+          from opdef }
+        if opdef<>resultdef then
+          begin
+            hcountreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+            hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,opdef,resultdef,location.register,hcountreg);
+            location.register:=hcountreg;
+          end;
+      end;
+
 begin
   cmoddivnode:=tavrmoddivnode;
   cnotnode:=tavrnotnode;
+  cshlshrnode:=tavrshlshrnode;
 end.
