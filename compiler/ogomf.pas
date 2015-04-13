@@ -157,7 +157,12 @@ implementation
             FOmfFixup.LocationType:=fltOffset;
             FOmfFixup.FrameDeterminedByThread:=False;
             FOmfFixup.TargetDeterminedByThread:=False;
-            FOmfFixup.Mode:=fmSegmentRelative;
+            if typ=RELOC_ABSOLUTE then
+              FOmfFixup.Mode:=fmSegmentRelative
+            else if typ=RELOC_RELATIVE then
+              FOmfFixup.Mode:=fmSelfRelative
+            else
+              internalerror(2015041401);
             FOmfFixup.TargetMethod:=ftmSegmentIndexNoDisp;
             FOmfFixup.TargetDatum:=ObjSection.Index;
             if TOmfObjSection(ObjSection).PrimaryGroup<>'' then
@@ -174,7 +179,12 @@ implementation
             FOmfFixup.LocationType:=fltOffset;
             FOmfFixup.FrameDeterminedByThread:=False;
             FOmfFixup.TargetDeterminedByThread:=False;
-            FOmfFixup.Mode:=fmSegmentRelative;
+            if typ=RELOC_ABSOLUTE then
+              FOmfFixup.Mode:=fmSegmentRelative
+            else if typ=RELOC_RELATIVE then
+              FOmfFixup.Mode:=fmSelfRelative
+            else
+              internalerror(2015041401);
             FOmfFixup.TargetMethod:=ftmExternalIndexNoDisp;
             FOmfFixup.TargetDatum:=symbol.symidx;
             FOmfFixup.FrameMethod:=ffmTarget;
