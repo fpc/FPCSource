@@ -238,7 +238,7 @@ begin
       until (SleepTime<=0) or Terminated;
       T:=Timer;
       If Assigned(T) and not terminated then
-        Synchronize(@T.Timer);
+        Queue(@T.Timer);
       end
     else
       Terminate;  
@@ -268,8 +268,6 @@ begin
   FThread.FTimerDriver:=Nil;
   FThread.Terminate; // Will free itself.
   CheckSynchronize; // make sure thread is not stuck at synchronize call.
-  If Assigned(FThread) then
-    Fthread.WaitFor;  
 end;
 
 

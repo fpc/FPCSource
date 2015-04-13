@@ -170,9 +170,11 @@ type
     FPrecision : Longint;
     FRequired : Boolean;
     FSize : Integer;
+    FCharSetWidth: Integer;
     FAttributes : TFieldAttributes;
     Function GetFieldClass : TFieldClass;
     procedure SetAttributes(AValue: TFieldAttributes);
+    procedure SetCharSetWidth(AValue: Integer);
     procedure SetDataType(AValue: TFieldType);
     procedure SetPrecision(const AValue: Longint);
     procedure SetSize(const AValue: Integer);
@@ -193,6 +195,7 @@ type
     property DataType: TFieldType read FDataType write SetDataType;
     property Precision: Longint read FPrecision write SetPrecision;
     property Size: Integer read FSize write SetSize;
+    property CharSetWidth: Integer read FCharSetWidth write SetCharSetWidth default 1;
   end;
   TFieldDefClass = Class of TFieldDef;
 
@@ -458,6 +461,7 @@ type
   private
     FFixedChar     : boolean;
     FTransliterate : Boolean;
+    FCharSetWidth  : Integer;
   protected
     class procedure CheckTypeSize(AValue: Longint); override;
     function GetAsBoolean: Boolean; override;
@@ -487,6 +491,7 @@ type
   published
     property EditMask;
     property Size default 20;
+    property CharSetWidth: Integer read FCharSetWidth write FCharSetWidth default 1;
   end;
 
 { TWideStringField }

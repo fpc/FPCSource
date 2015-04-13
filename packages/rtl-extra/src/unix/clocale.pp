@@ -106,8 +106,41 @@ procedure GetFormatSettings(out fmts: TFormatSettings);
   end;
 
   function GetLocaleChar(item: cint): char;
+  var
+    p: PChar;
   begin
-    GetLocaleChar := nl_langinfo(item)^;
+    p := nl_langinfo(item);
+    Result := p^;
+    if (ord(Result)>127) and (DefaultSystemCodePage=CP_UTF8) then begin
+      Result := #0;
+      case p^ of
+      #$C2:
+        case p[1] of
+        #$A0: Result:=' '; // non breakable space
+        #$B7: Result:='.'; // middle stop
+        end;
+      #$CB:
+        if p[1]=#$99 then Result:=''''; // dot above, italian handwriting
+      #$D9:
+        case p[1] of
+        #$AB: Result:=','; // arabic decimal separator, persian thousand separator
+        #$AC: Result:=''''; // arabic thousand separator
+        end;
+      #$E2:
+        case p[1] of
+        #$80:
+          case p[2] of
+          #$82, // long space
+          #$83, // long space
+          #$89, // thin space
+          #$AF: // narrow non breakable space
+            Result := ' ';
+          #$94: Result := '-'; // persian decimal mark
+          end;
+        #$8E: if p[2]=#$96 then Result := ''''; // codepoint 9110 decimal separator
+        end;
+      end;
+    end;
   end;
 
   function SkipModifiers(const s: string; var i: integer): string;

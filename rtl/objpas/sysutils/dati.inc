@@ -61,13 +61,8 @@ begin
     D:=D-0.5
   else
     D:=D+0.5;
-  Result.Time := Abs(Trunc(D)) Mod MSecsPerDay;
+  result.Time := Abs(Trunc(D)) Mod MSecsPerDay;
   result.Date := DateDelta + Trunc(D) div MSecsPerDay;
-  if D<0 then
-    begin
-    Result.Time:=MSecsPerDay-Result.time;
-    Result.Date:=Result.Date-1;
-    end;
 end;
 
 {   TimeStampToDateTime converts TimeStamp to a TDateTime value   }

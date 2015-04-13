@@ -35,11 +35,15 @@ Var
   S : TStrings;
 
 begin
+
   S:=TStringList.Create;
   try
+    S.Add('<HTML><HEAD><TITLE>Echo demo</TITLE></HEAD><BODY>');
     // Analyze request.
-    DumpRequest(ARequest,S);
-
+    DumpRequest(ARequest,S,True);
+    S.Add('<H1>Extra headers (may or may not be passed):</H1>');
+    S.Add('Do not track header (DNT):  '+ARequest.GetCustomHeader('DNT'));
+    S.Add('</BODY></HTML>');
     AResponse.Contents:=S;
     Handled:=True;
   finally

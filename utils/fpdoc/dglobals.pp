@@ -23,7 +23,7 @@ unit dGlobals;
 
 interface
 
-uses Classes, DOM, PasTree, PParser, StrUtils,uriparser;
+uses Classes, DOM, PasTree, PParser, StrUtils, uriparser;
 
 Const
   CacheSize = 20;

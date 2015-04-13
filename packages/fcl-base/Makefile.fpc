@@ -7,7 +7,7 @@ name=fcl-base
 version=3.1.1
 
 [require]
-packages=rtl fpmkunit
+packages=rtl fpmkunit rtl-objpas
 
 [install]
 fpcpackage=y
