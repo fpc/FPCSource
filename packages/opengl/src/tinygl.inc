@@ -115,6 +115,21 @@ syscall sysvbase TinyGLBase 304;
 procedure _GLClearDepth(gcl: pointer; depth: GLclampd);
 syscall sysvbase TinyGLBase 310;
 
+function  _GLRenderMode(gcl: pointer; mode: GLint): GLint;
+syscall sysvbase TinyGLBase 316;
+
+procedure _GLSelectBuffer(gcl: pointer; size: GLsizei; buffer: PGLuint);
+syscall sysvbase TinyGLBase 322;
+
+procedure _GLInitNames(gcl: pointer);
+syscall sysvbase TinyGLBase 328;
+
+procedure _GLPushName(gcl: pointer; name: GLuint);
+syscall sysvbase TinyGLBase 334;
+
+procedure _GLLoadName(gcl: pointer; name: GLuint);
+syscall sysvbase TinyGLBase 346;
+
 procedure _GLGenTextures(gcl: pointer; n: GLsizei; textures: PGLuint);
 syscall sysvbase TinyGLBase 352;
 
@@ -156,6 +171,9 @@ syscall sysvbase TinyGLBase 478;
 
 procedure _GLHint(gcl: pointer; target, mode: GLenum);
 syscall sysvbase TinyGLBase 484;
+
+procedure _GLGetIntegerv(gcl: pointer; pname: GLenum; params: PGLint);
+syscall sysvbase TinyGLBase 490;
 
 procedure _GLGetFloatv(gcl: pointer; pname: GLenum; params: PGLfloat);
 syscall sysvbase TinyGLBase 496;
@@ -312,9 +330,19 @@ syscall sysvbase TinyGLBase 1210;
 procedure _GLStencilOp(gcl: pointer; fail, zfail, zpass: GLenum);
 syscall sysvbase TinyGLBase 1216;
 
+procedure _GLClipPlane(gcl: pointer; plane: GLenum; const equation: PGLdouble);
+syscall sysvbase TinyGLBase 1270;
+
 procedure _GLColorMask(gcl: pointer; red, green, blue, alpha: GLboolean);
 syscall sysvbase TinyGLBase 1282;
+{$ENDIF}
 
+{$IFDEF GLU_UNIT}
+procedure _GLUPickMatrix(gcl: pointer; x:GLdouble; y:GLdouble; delX:GLdouble; delY:GLdouble; viewport:PGLint);
+syscall sysvbase TinyGLBase 1348;
+{$ENDIF}
+
+{$IFDEF GL_UNIT}
 procedure _GLCopyTexImage2D(gcl: pointer; target: GLenum; level: GLint; internalFormat: GLenum; x, y: GLint; width, height: GLsizei; border: GLint); inline;
 syscall sysvbase TinyGLBase 1402;
 {$ENDIF GL_UNIT}
@@ -360,6 +388,11 @@ begin
   _GLClearDepth(tglContext, depth);
 end;
 
+procedure glSelectBuffer(size: GLsizei; buffer: PGLuint); inline;
+begin
+  _GLSelectBuffer(tglContext, size, buffer);
+end;
+
 procedure glColorMask(red, green, blue, alpha: GLboolean); inline;
 begin
   _GLColorMask(tglContext, red, green, blue, alpha);
@@ -403,6 +436,11 @@ end;
 function  glGenLists(range: GLsizei): GLuint; inline;
 begin
   glGenLists:=_GLGenLists(tglContext, range);
+end;
+
+procedure glGetIntegerv(pname: GLenum; params: PGLint); inline;
+begin
+  _GLGetIntegerv(tglContext, pname, params);
 end;
 
 procedure glGetFloatv(pname: GLenum; params: PGLfloat); inline;
@@ -534,6 +572,11 @@ begin
   _GLStencilFunc(tglContext, func, ref, mask);
 end;
 
+procedure glClipPlane(plane: GLenum; const equation: PGLdouble); inline;
+begin
+  _GLClipPlane(tglContext, plane, equation);
+end;
+
 procedure glStencilOp(fail, zfail, zpass: GLenum); inline;
 begin
   _GLStencilOp(tglContext, fail, zfail, zpass);
@@ -645,6 +688,26 @@ begin
   _GLPushMatrix(tglContext);
 end;
 
+function glRenderMode(mode: GLint): GLint; inline;
+begin
+  glRenderMode:=_GLRenderMode(tglContext, mode);
+end;
+
+procedure glInitNames; inline;
+begin
+  _GLInitNames(tglContext);
+end;
+
+procedure glLoadName(name: GLuint); inline;
+begin
+  _GLLoadName(tglContext, name);
+end;
+
+procedure glPushName(name: GLuint); inline;
+begin
+  _GLPushName(tglContext, name);
+end;
+
 procedure glTexImage2D(target: GLenum; level, internalformat: GLint; width, height: GLsizei; border: GLint; format, atype: GLenum; const pixels: Pointer); inline;
 begin
   _GLTexImage2D(tglContext, target, level, internalformat, width, height, border, format, atype, pixels);
@@ -720,6 +783,11 @@ end;
 procedure gluPerspective(fovy, aspect, zNear, zFar: GLdouble); inline;
 begin
   _GLUPerspective(tglContext, fovy, aspect, zNear, zFar);
+end;
+
+procedure gluPickMatrix(x:GLdouble; y:GLdouble; delX:GLdouble; delY:GLdouble; viewport:PGLint); inline;
+begin
+  _GLUPickMatrix(tglContext, x, y, delX, delY, viewport);
 end;
 {$ENDIF GLU_UNIT}
 
