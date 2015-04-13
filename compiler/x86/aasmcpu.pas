@@ -2255,10 +2255,15 @@ implementation
             &54,&55,&56:
               inc(len,8);
             &40,&41,&42,
-            &64,&65,&66,
             &70,&71,&72,
             &254,&255,&256 :
               inc(len,4);
+            &64,&65,&66:
+{$ifdef i8086}
+              inc(len,2);
+{$else i8086}
+              inc(len,4);
+{$endif i8086}
             &74,&75,&76,&77: ; // ignore vex-coded operand-idx
             &320,&321,&322 :
               begin
@@ -2927,13 +2932,20 @@ implementation
                 else
                   objdata.writebytes(currval,8);
               end;
-            &64,&65,&66 :  // 064..066 - select between 16/32 address mode, but we support only 32
+            &64,&65,&66 :  // 064..066 - select between 16/32 address mode, but we support only 32 (only 16 on i8086)
               begin
                 getvalsym(c-&64);
+{$ifdef i8086}
+                if assigned(currsym) then
+                 objdata_writereloc(currval,2,currsym,currrelreloc)
+                else
+                 objdata_writereloc(currval-insend,2,nil,currabsreloc)
+{$else i8086}
                 if assigned(currsym) then
                  objdata_writereloc(currval,4,currsym,currrelreloc)
                 else
                  objdata_writereloc(currval-insend,4,nil,currabsreloc32)
+{$endif i8086}
               end;
             &70,&71,&72 :  // 070..072 - long relative operand
               begin
