@@ -257,7 +257,7 @@ type
   private
     FDelimiter : Char;
     FFirstLineAsSchema : Boolean;
-    FFMultiLine        : Boolean;
+    FMultiLine         : Boolean;
     FStripTrailingDelimiters : Boolean;
     procedure DoStripTrailingDelimiters(var S: String);
     procedure SetMultiLine(const Value: Boolean);
@@ -270,7 +270,8 @@ type
   public
     constructor Create(AOwner: TComponent); override;
   published
-    property AllowMultiLine: Boolean read FFMultiLine write SetMultiLine default True; //Whether or not to allow fields containing CR and/or LF
+    // Whether or not to allow fields containing CR and/or LF (on write only)
+    property AllowMultiLine: Boolean read FMultiLine write SetMultiLine;
     property Delimiter: Char read FDelimiter write SetDelimiter;
     property FirstLineAsSchema: Boolean read FFirstLineAsSchema write SetFirstLineAsSchema;
     // Set this to True if you want to strip all last delimiters
@@ -290,7 +291,7 @@ begin
   FFileMustExist  := TRUE;
   FLoadfromStream := False;
   FRecordSize   := 0;
-  FTrimSpace     := TRUE;
+  FTrimSpace    := TRUE;
   FSchema       := TStringList.Create;
   FData         := TStringList.Create;  // Load the textfile into a stringlist
   inherited Create(AOwner);
@@ -745,10 +746,6 @@ begin
 end;
 
 procedure TFixedFormatDataSet.InternalAddRecord(Buffer: Pointer; DoAppend: Boolean);
-
-Var
-  I : Integer;
-
 begin
   FSaveChanges := TRUE;
   Inc(FLastBookmark);
@@ -858,7 +855,7 @@ begin
   inherited Create(AOwner);
   FDelimiter := ',';
   FFirstLineAsSchema := FALSE;
-  FFMultiLine :=False;
+  FMultiLine := False;
 end;
 
 procedure TSdfDataSet.InternalInitFieldDefs;
@@ -963,7 +960,7 @@ begin
     IsQuoted := false;
     while Boolean(Byte(pStrEnd[0])) and (pStrEnd[0] in [#1..' ']) do
     begin
-     if FFMultiLine then
+     if FMultiLine then
       begin
        if ((pStrEnd[0]=CR) or (pStrEnd[0]=LF)) then
         begin
@@ -986,7 +983,7 @@ begin
     if (pStr[0] = Quote) then
      begin
       IsQuoted := true; // See below: accept end of string without explicit quote
-      if FFMultiLine then
+      if FMultiLine then
        begin
         repeat
          Inc(pStrEnd);
@@ -1062,7 +1059,7 @@ begin
     QuoteMe:=false;
     Str := Trim(Copy(pansichar(Buffer), p, FieldDefs[i].Size));
     Inc(p, FieldDefs[i].Size);
-    if FFMultiLine then
+    if FMultiLine then
       begin
        // If multiline enabled, quote whenever we find carriage return or linefeed
        if (not QuoteMe) and (StrScan(PChar(Str), #10) <> nil) then QuoteMe:=true;
@@ -1118,7 +1115,7 @@ end;
 
 procedure TSdfDataSet.SetMultiLine(const Value: Boolean);
 begin
-  FFMultiLine:=Value;
+  FMultiLine:=Value;
 end;
 
 
