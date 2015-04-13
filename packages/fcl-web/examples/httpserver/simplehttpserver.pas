@@ -2,7 +2,7 @@ program simplehttpserver;
 
 {$mode objfpc}{$H+}
 {$define UseCThreads}
-{$linklib pthread}
+
 uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,

@@ -3,8 +3,8 @@ program testcgiapp;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, SysUtils, CustApp, inifiles, process, httpdefs, custcgi, cgiprotocol,
-  httpprotocol;
+  Classes, SysUtils, CustApp, inifiles, process, httpdefs,custcgi
+  { you can add units after this };
 
 type
 

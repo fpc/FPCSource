@@ -18,7 +18,6 @@ Const
   ADeprecatedConst = 1 deprecated;
    
 Type
-  // an enumerated type  
   TAnEnumType         = (one,two,three);
   TASetType           = Set of TAnEnumType;
   TAnArrayType        = Array[1..10] of Integer;

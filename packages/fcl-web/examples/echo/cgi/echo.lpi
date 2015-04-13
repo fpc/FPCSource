@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -31,6 +31,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
+        <LaunchingApplication PathPlusParams="\usr\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
     <RequiredPackages Count="1">
@@ -42,27 +43,29 @@
       <Unit0>
         <Filename Value="echo.lpr"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="echo"/>
       </Unit0>
       <Unit1>
         <Filename Value="..\webmodule\wmecho.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="EchoModule"/>
-        <HasResources Value="True"/>
         <ResourceBaseClass Value="DataModule"/>
         <UnitName Value="wmecho"/>
       </Unit1>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="11"/>
+    <Version Value="10"/>
     <PathDelim Value="\"/>
-    <Target>
-      <Filename Value="echo.cgi" ApplyConventions="False"/>
-    </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..\webmodule"/>
     </SearchPaths>
+    <Other>
+      <CompilerMessages>
+        <UseMsgFile Value="True"/>
+      </CompilerMessages>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">

@@ -33,7 +33,6 @@ Constructor TFieldDef.Create(ACollection : TCollection);
 begin
   Inherited Create(ACollection);
   FFieldNo:=Index+1;
-  FCharSetWidth := 1;
 end;
 
 Constructor TFieldDef.Create(AOwner: TFieldDefs; const AName: string;
@@ -49,10 +48,6 @@ begin
   FSize:=ASize;
   FRequired:=ARequired;
   FPrecision:=-1;
-  if (ADataType in [ftWideString,ftFixedWideChar,ftWideMemo]) then
-    FCharsetWidth:=2
-  else
-    FCharSetWidth := 1;
   FFieldNo:=AFieldNo;
 end;
 
@@ -76,7 +71,6 @@ begin
       Size := fd.Size;
       Precision := fd.Precision;
       FRequired := fd.Required;
-      FCharSetWidth:=fd.CharsetWidth
     finally
       Collection.EndUpdate;
     end;
@@ -118,8 +112,6 @@ begin
       TBCDField(Result).Precision:=FPrecision;
     if (Result is TFmtBCDField) then
       TFmtBCDField(Result).Precision:=FPrecision;
-    if Result is TStringField then
-      TStringField(Result).CharSetWidth := FCharSetWidth;
   except
     Result.Free;
     Raise;
@@ -129,12 +121,6 @@ end;
 procedure TFieldDef.SetAttributes(AValue: TFieldAttributes);
 begin
   FAttributes := AValue;
-  Changed(False);
-end;
-
-procedure TFieldDef.SetCharSetWidth(AValue: Integer);
-begin
-  FCharSetWidth := AValue;
   Changed(False);
 end;
 
@@ -1060,10 +1046,6 @@ begin
   FFixedChar := False;
   FTransliterate := False;
   FSize:=20;
-  if Self is TWideStringField then
-    FCharsetWidth := 2
-  else
-    FCharSetWidth := 1;
 end;
 
 procedure TStringField.SetFieldType(AValue: TFieldType);
@@ -1143,7 +1125,7 @@ end;
 function TStringField.GetDefaultWidth: Longint;
 
 begin
-  result:=Size div FCharSetWidth;
+  result:=Size;
 end;
 
 Procedure TStringField.GetText(var AText: string; ADisplayText: Boolean);

@@ -19,6 +19,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
+
+{%RunCommand $MakeExe($(EdFile)) --package=fpvectorial --input=/home/felipe/Programas/fpctrunk/packages/fpvectorial/src/fpvectorial.pas}
 program MakeSkel;
 
 {$mode objfpc}
@@ -46,13 +48,11 @@ type
   Private
     FEl : TPasElement;
     FNode : TDocNode;
-  Public
+  Public  
     Constructor Create(AnElement : TPasElement; ADocNode : TDocNode);
     Property Element : TPasElement Read FEl;
     Property DocNode : TDocNode Read FNode;
   end;
-
-  { TSkelEngine }
 
   TSkelEngine = class(TFPDocEngine)
   Private
@@ -60,7 +60,6 @@ type
     FNodeList,
     FModules : TStringList;
     Procedure  DoWriteUnReferencedNodes(N : TDocNode; NodePath : String);
-    Function MakeXML(S : String) : String;
   public
     Destructor Destroy; override;
     Function MustWriteElement(El : TPasElement; Full : Boolean) : Boolean;
@@ -84,7 +83,6 @@ const
   FPCDate: String = {$I %FPCDATE%};
 
 var
-  UseComments,
   WriteDeclaration,
   UpdateMode,
   SortNodes,
@@ -96,7 +94,7 @@ var
   DisablePrivate,
   DisableFunctionResults: Boolean;
   EmitClassSeparator: Boolean;
-  MaxShortDescrLen : Integer = 60;
+  
   
 Constructor TNodePair.Create(AnElement : TPasElement; ADocNode : TDocNode);
 
@@ -194,8 +192,6 @@ Var
 begin
   Result := AClass.Create(AName, AParent);
   Result.Visibility:=AVisibility;
-  if NeedComments and assigned(CurrentParser) then
-    Result.DocComment:=CurrentParser.SavedComments;
   // Let function/procedure arguments and function results
   // inherit visibility from their parents if visDefault visibility is
   // specified.
@@ -217,11 +213,10 @@ begin
     DN:=Nil;  
   // See if we need to write documentation for it
   If MustWriteElement(Result,False) then
-    FNodeList.AddObject(Result.PathName,TNodePair.Create(Result,DN))
+    FNodeList.AddObject(Result.PathName,TNodePair.Create(Result,DN));
 end;
 
-Function TSkelEngine.WriteElement(Var F: Text; El: TPasElement;
-  ADocNode: TDocNode): Boolean;
+Function TSkelEngine.WriteElement(Var F : Text;El : TPasElement; ADocNode : TDocNode) : Boolean;
 
   Function WriteOnlyShort(APasElement : TPasElement) : Boolean;
 
@@ -247,10 +242,7 @@ Function TSkelEngine.WriteElement(Var F: Text; El: TPasElement;
             or WriteOnlyShort(El) 
             or EL.InheritsFrom(TPasProcedure) 
   end;
-
-Var
-  l : Integer;
-  D : string;
+    
 begin
   // Check again, this time with full declaration.
   Result:=MustWriteElement(El,True);
@@ -279,15 +271,10 @@ begin
     Writeln(F,'     Declaration: ',El.GetDeclaration(True),' -->');
     end;
   WriteLn(f,'<element name="', El.FullName, '">');
-  L:=Length(El.DocComment);
-  if NeedComments and (l>0) and (L<=MaxShortDescrLen) then
-    D:=MakeXml(El.DocComment);
-  WriteLn(f, '<short>',D,'</short>');
+  WriteLn(f, '<short></short>');
   if Not WriteOnlyShort(El) then
     begin
     WriteLn(f, '<descr>');
-    if NeedComments and (l>0) and (L>MaxShortDescrLen) then
-      Writeln(F,MakeXml(El.DocComment));
     WriteLn(f, '</descr>');
     if not (DisableErrors or IsTypeVarConst(El)) then
       begin
@@ -318,12 +305,6 @@ begin
       N:=N.NextSibling;
       end;
     end;
-end;
-
-Function TSkelEngine.MakeXML(S: String): String;
-begin
-  Result:=StringReplace(s,'>','&gt;',[rfReplaceAll]);
-  Result:=StringReplace(Result,'<','&lt;',[rfReplaceAll]);
 end;
 
 procedure TSkelEngine.WriteUnReferencedNodes;
@@ -430,7 +411,6 @@ begin
         begin
         Engine := TSkelEngine.Create;
         Try
-          Engine.NeedComments:=UseComments;
           Engine.SetPackageName(APackageName);
           if UpdateMode then
             For J:=0 to DescrFiles.Count-1 do
@@ -510,8 +490,6 @@ var
 begin
   if (s = '-h') or (s = '--help') then
     CmdLineAction := actionHelp
-  else if s = '--use-comments' then
-    UseComments:=True
   else if s = '--update' then
     UpdateMode := True
   else if s = '--disable-arguments' then
