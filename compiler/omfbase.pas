@@ -613,6 +613,8 @@ implementation
 
   procedure TOmfRecord_THEADR.DecodeFrom(RawRecord: TOmfRawRecord);
     begin
+      if RawRecord.RecordType<>RT_THEADR then
+        internalerror(2015040301);
       RawRecord.ReadStringAt(0,FModuleName);
     end;
 
