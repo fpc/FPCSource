@@ -1123,7 +1123,7 @@ implementation
         begin
           if LogicalStartAddress then
             begin
-              if EndData>=RawRecord.RecordLength then
+              if NextOfs>=RawRecord.RecordLength then
                 internalerror(2015040305);
               EndData:=RawRecord.RawData[NextOfs];
               Inc(NextOfs);
