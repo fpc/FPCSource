@@ -212,9 +212,13 @@ unit cpubase;
       { Defines the default address size for a processor, }
       OS_ADDR = OS_16;
       { the natural int size for a processor,
-        has to match osuinttype/ossinttype as initialized in psystem }
-      OS_INT = OS_16;
-      OS_SINT = OS_S16;
+        has to match osuinttype/ossinttype as initialized in psystem,
+        initially, this was OS_16/OS_S16 on avr, but experience has
+        proven that it is better to make it 8 Bit thus having the same
+        size as a register.
+      }
+      OS_INT = OS_8;
+      OS_SINT = OS_S8;
       { the maximum float size for a processor,           }
       OS_FLOAT = OS_F64;
       { the size of a vector register for a processor     }
