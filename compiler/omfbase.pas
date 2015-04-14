@@ -898,9 +898,52 @@ implementation
   { TOmfRecord_PUBDEF }
 
   procedure TOmfRecord_PUBDEF.DecodeFrom(RawRecord: TOmfRawRecord);
+    var
+      NextOfs: Integer;
+      Name: string;
+      TypeIndex: Integer;
+      PublicOffset: DWord;
+      PubName: TOmfPublicNameElement;
     begin
-      {TODO: implement}
-      internalerror(2015040101);
+      if not (RawRecord.RecordType in [RT_PUBDEF,RT_PUBDEF32]) then
+        internalerror(2015040301);
+      Is32Bit:=RawRecord.RecordType=RT_PUBDEF32;
+
+      NextOfs:=RawRecord.ReadIndexedRef(0,FBaseGroupIndex);
+      NextOfs:=RawRecord.ReadIndexedRef(NextOfs,FBaseSegmentIndex);
+      if BaseSegmentIndex=0 then
+        begin
+          if (NextOfs+1)>High(RawRecord.RawData) then
+            internalerror(2015041401);
+          BaseFrame:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8);
+          Inc(NextOfs,2);
+        end
+      else
+        BaseFrame:=0;
+
+      while NextOfs<(RawRecord.RecordLength-1) do
+        begin
+          NextOfs:=RawRecord.ReadStringAt(NextOfs,Name);
+          if Is32Bit then
+            begin
+              if (NextOfs+3)>High(RawRecord.RawData) then
+                internalerror(2015041401);
+              PublicOffset:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8)+
+                (RawRecord.RawData[NextOfs+2] shl 16)+(RawRecord.RawData[NextOfs+3] shl 24);
+              Inc(NextOfs,4);
+            end
+          else
+            begin
+              if (NextOfs+1)>High(RawRecord.RawData) then
+                internalerror(2015041401);
+              PublicOffset:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8);
+              Inc(NextOfs,2);
+            end;
+          NextOfs:=RawRecord.ReadIndexedRef(NextOfs,TypeIndex);
+          PubName:=TOmfPublicNameElement.Create(PublicNames,Name);
+          PubName.PublicOffset:=PublicOffset;
+          PubName.TypeIndex:=TypeIndex;
+        end;
     end;
 
   procedure TOmfRecord_PUBDEF.EncodeTo(RawRecord: TOmfRawRecord);
