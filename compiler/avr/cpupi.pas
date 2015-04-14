@@ -66,8 +66,13 @@ unit cpupi;
 
     function tavrprocinfo.calc_stackframe_size:longint;
       begin
-        maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,2));
-        result:=Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,2))+maxpushedparasize;
+        if tg.lasttemp=2 then
+          { correct that lasttemp is 2 in case of an empty stack due to the post-decrement pushing and an additional correction
+            in tgobj.setfirsttemp.
+          }
+          result:=maxpushedparasize
+        else
+          result:=tg.direction*tg.lasttemp+maxpushedparasize;
       end;
 
 
