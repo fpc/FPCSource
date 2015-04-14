@@ -154,34 +154,63 @@ implementation
         if ObjSection<>nil then
           begin
             FOmfFixup.LocationOffset:=DataOffset;
-            FOmfFixup.LocationType:=fltOffset;
+            if typ in [RELOC_ABSOLUTE,RELOC_RELATIVE] then
+              FOmfFixup.LocationType:=fltOffset
+            else if typ in [RELOC_SEG,RELOC_SEGREL] then
+              FOmfFixup.LocationType:=fltBase
+            else
+              internalerror(2015041501);
             FOmfFixup.FrameDeterminedByThread:=False;
             FOmfFixup.TargetDeterminedByThread:=False;
-            if typ=RELOC_ABSOLUTE then
+            if typ in [RELOC_ABSOLUTE,RELOC_SEG] then
               FOmfFixup.Mode:=fmSegmentRelative
-            else if typ=RELOC_RELATIVE then
+            else if typ in [RELOC_RELATIVE,RELOC_SEGREL] then
               FOmfFixup.Mode:=fmSelfRelative
             else
               internalerror(2015041401);
-            FOmfFixup.TargetMethod:=ftmSegmentIndexNoDisp;
-            FOmfFixup.TargetDatum:=ObjSection.Index;
-            if TOmfObjSection(ObjSection).PrimaryGroup<>'' then
+            if typ in [RELOC_ABSOLUTE,RELOC_RELATIVE] then
               begin
-                FOmfFixup.FrameMethod:=ffmGroupIndex;
-                FOmfFixup.FrameDatum:=GetGroupIndex(TOmfObjSection(ObjSection).PrimaryGroup);
+                FOmfFixup.TargetMethod:=ftmSegmentIndexNoDisp;
+                FOmfFixup.TargetDatum:=ObjSection.Index;
+                if TOmfObjSection(ObjSection).PrimaryGroup<>'' then
+                  begin
+                    FOmfFixup.FrameMethod:=ffmGroupIndex;
+                    FOmfFixup.FrameDatum:=GetGroupIndex(TOmfObjSection(ObjSection).PrimaryGroup);
+                  end
+                else
+                  FOmfFixup.FrameMethod:=ffmTarget;
               end
             else
-              FOmfFixup.FrameMethod:=ffmTarget;
+              begin
+                FOmfFixup.FrameMethod:=ffmTarget;
+                FOmfFixup.TargetMethod:=ftmSegmentIndexNoDisp;
+                FOmfFixup.TargetDatum:=ObjSection.Index;
+                if TOmfObjSection(ObjSection).PrimaryGroup<>'' then
+                  begin
+                    FOmfFixup.TargetMethod:=ftmGroupIndexNoDisp;
+                    FOmfFixup.TargetDatum:=GetGroupIndex(TOmfObjSection(ObjSection).PrimaryGroup);
+                  end
+                else
+                  begin
+                    FOmfFixup.TargetMethod:=ftmSegmentIndexNoDisp;
+                    FOmfFixup.TargetDatum:=ObjSection.Index;
+                  end;
+              end;
           end
         else if symbol<>nil then
           begin
             FOmfFixup.LocationOffset:=DataOffset;
-            FOmfFixup.LocationType:=fltOffset;
+            if typ in [RELOC_ABSOLUTE,RELOC_RELATIVE] then
+              FOmfFixup.LocationType:=fltOffset
+            else if typ in [RELOC_SEG,RELOC_SEGREL] then
+              FOmfFixup.LocationType:=fltBase
+            else
+              internalerror(2015041501);
             FOmfFixup.FrameDeterminedByThread:=False;
             FOmfFixup.TargetDeterminedByThread:=False;
-            if typ=RELOC_ABSOLUTE then
+            if typ in [RELOC_ABSOLUTE,RELOC_SEG] then
               FOmfFixup.Mode:=fmSegmentRelative
-            else if typ=RELOC_RELATIVE then
+            else if typ in [RELOC_RELATIVE,RELOC_SEGREL] then
               FOmfFixup.Mode:=fmSelfRelative
             else
               internalerror(2015041401);
@@ -348,6 +377,16 @@ implementation
         else
           write('nil');
         Writeln(',',Reloctype,')');}
+
+        { RELOC_FARPTR = RELOC_ABSOLUTE+RELOC_SEG }
+        if Reloctype=RELOC_FARPTR then
+          begin
+            if len<>4 then
+              internalerror(2015041502);
+            writeReloc(Data,2,p,RELOC_ABSOLUTE);
+            writeReloc(0,2,p,RELOC_SEG);
+            exit;
+          end;
 
         if CurrObjSec=nil then
           internalerror(200403072);

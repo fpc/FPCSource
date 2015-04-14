@@ -2521,6 +2521,15 @@ implementation
                 begin
                   currval:=oper[opidx]^.ref^.offset;
                   currsym:=ObjData.symbolref(oper[opidx]^.ref^.symbol);
+{$ifdef i8086}
+                  if oper[opidx]^.ref^.refaddr=addr_seg then
+                    begin
+                      currrelreloc:=RELOC_SEGREL;
+                      currabsreloc:=RELOC_SEG;
+                      currabsreloc32:=RELOC_SEG;
+                    end
+                  else
+{$endif i8086}
 {$ifdef i386}
                   if (oper[opidx]^.ref^.refaddr=addr_pic) and
                      (tf_pic_uses_got in target_info.flags) then

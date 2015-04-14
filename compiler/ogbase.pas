@@ -68,6 +68,8 @@ interface
 {$endif i386}
 {$ifdef i8086}
          RELOC_FARPTR,
+         RELOC_SEG,
+         RELOC_SEGREL,
 {$endif i8086}
 {$ifdef arm}
          RELOC_RELATIVE_24,
