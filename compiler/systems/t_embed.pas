@@ -401,6 +401,10 @@ begin
       ct_stm32f107rc,
       ct_stm32f107vb,
       ct_stm32f107vc,
+      
+      ct_stm32f429xe,
+      ct_stm32f429xg,
+      ct_stm32f429xi,
 
       { TI - 64 K Flash, 16 K SRAM Devices }
       ct_lm3s1110,

@@ -250,6 +250,10 @@ Type
       ct_stm32f107rc,
       ct_stm32f107vb,
       ct_stm32f107vc,
+      
+      ct_stm32f429xe, // 512K flash
+      ct_stm32f429xg, // 1M flash
+      ct_stm32f429xi, // 2M flash
 
       { TI - Fury Class - 64 K Flash, 16 K SRAM Devices }
       ct_lm3s1110,
@@ -621,6 +625,10 @@ Const
       (controllertypestr:'STM32F107RC';     controllerunitstr:'STM32F10X_CL';     flashbase:$08000000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000),
       (controllertypestr:'STM32F107VB';     controllerunitstr:'STM32F10X_CL';     flashbase:$08000000; flashsize:$00020000; srambase:$20000000; sramsize:$00010000),
       (controllertypestr:'STM32F107VC';     controllerunitstr:'STM32F10X_CL';     flashbase:$08000000; flashsize:$00040000; srambase:$20000000; sramsize:$00010000),
+      
+      (controllertypestr:'STM32F429XE';     controllerunitstr:'STM32F429';        flashbase:$08000000; flashsize:$00080000; srambase:$20000000; sramsize:$00030000),
+      (controllertypestr:'STM32F429XG';     controllerunitstr:'STM32F429';        flashbase:$08000000; flashsize:$00100000; srambase:$20000000; sramsize:$00030000),
+      (controllertypestr:'STM32F429XI';     controllerunitstr:'STM32F429';        flashbase:$08000000; flashsize:$00200000; srambase:$20000000; sramsize:$00030000),
 
       (controllertypestr:'LM3S1110';	controllerunitstr:'LM3FURY';	flashbase:$00000000;	flashsize:$00010000;	srambase:$20000000;	sramsize:$00004000),
       (controllertypestr:'LM3S1133';	controllerunitstr:'LM3FURY';	flashbase:$00000000;	flashsize:$00010000;	srambase:$20000000;	sramsize:$00004000),

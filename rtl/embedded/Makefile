@@ -353,7 +353,7 @@ ifeq ($(SUBARCH),armv7m)
 CPU_UNITS=lm3fury lm3tempest stm32f10x_ld stm32f10x_md stm32f10x_hd stm32f10x_xl stm32f10x_conn stm32f10x_cl lpc13xx lpc1768 lm4f120  xmc4500 cortexm3 cortexm4 # thumb2_bare
 endif
 ifeq ($(SUBARCH),armv7em)
-CPU_UNITS=lm4f120 xmc4500 cortexm3 cortexm4 # thumb2_bare
+CPU_UNITS=lm4f120 xmc4500 stm32f429 cortexm3 cortexm4 # thumb2_bare
 endif
 ifeq ($(SUBARCH),armv4t)
 CPU_UNITS=lpc21x4 at91sam7x256 sc32442b
