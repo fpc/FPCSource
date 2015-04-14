@@ -388,6 +388,15 @@ interface
       FHasStartAddress: Boolean;
       FSegmentBit: Boolean;
       FLogicalStartAddress: Boolean;
+
+      FFrameMethod: TOmfFixupFrameMethod;
+      FFrameDatum: Integer;
+      FTargetMethod: TOmfFixupTargetMethod;
+      FTargetDatum: Integer;
+      FTargetDisplacement: DWord;
+
+      FPhysFrameNumber: Word;
+      FPhysOffset: DWord;
     public
       procedure DecodeFrom(RawRecord: TOmfRawRecord);override;
       procedure EncodeTo(RawRecord: TOmfRawRecord);override;
@@ -397,6 +406,17 @@ interface
       property HasStartAddress: Boolean read FHasStartAddress write FHasStartAddress;
       property SegmentBit: Boolean read FSegmentBit write FSegmentBit;
       property LogicalStartAddress: Boolean read FLogicalStartAddress write FLogicalStartAddress;
+
+      { properties, specifying a logical start address (used when LogicalStartAddress=true) }
+      property FrameMethod: TOmfFixupFrameMethod read FFrameMethod write FFrameMethod;
+      property FrameDatum: Integer read FFrameDatum write FFrameDatum;
+      property TargetMethod: TOmfFixupTargetMethod read FTargetMethod write FTargetMethod;
+      property TargetDatum: Integer read FTargetDatum write FTargetDatum;
+      property TargetDisplacement: DWord read FTargetDisplacement write FTargetDisplacement;
+
+      { properties, specifying a physical start address (used when LogicalStartAddress=false) }
+      property PhysFrameNumber: Word read FPhysFrameNumber write FPhysFrameNumber;
+      property PhysOffset: DWord read FPhysOffset write FPhysOffset;
     end;
 
     { TOmfSubRecord_FIXUP }
