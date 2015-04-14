@@ -2549,8 +2549,6 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 	$(COMPILER) $<
 	$(COMPILER) $<
 	$(COMPILER) $<
-avrsim$(PPUEXT) : avr/avrsim.pp consoleio$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $<
 consoleio$(PPUEXT) : consoleio.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 heapmgr$(PPUEXT) : heapmgr.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
