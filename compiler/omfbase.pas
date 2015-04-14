@@ -1010,6 +1010,8 @@ implementation
             end
           else
             begin
+              if PubName.PublicOffset>$ffff then
+                internalerror(2015041403);
               RawRecord.RawData[NextOfs]:=Byte(PubName.PublicOffset);
               RawRecord.RawData[NextOfs+1]:=Byte(PubName.PublicOffset shr 8);
               Inc(NextOfs,2);
