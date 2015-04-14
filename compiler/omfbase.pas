@@ -1097,6 +1097,7 @@ implementation
     var
       ModTyp: Byte;
       NextOfs: Integer;
+      EndData: Byte;
     begin
       if Is32Bit then
         RawRecord.RecordType:=RT_MODEND32
@@ -1107,8 +1108,63 @@ implementation
       NextOfs:=1;
       if HasStartAddress then
         begin
-          {TODO: implement writing a start address}
-          internalerror(2015040101);
+          if LogicalStartAddress then
+            begin
+              { frame method ffmLocation is not allowed in an MODEND record }
+              if FrameMethod=ffmLocation then
+                internalerror(2015041402);
+              EndData:=(Ord(FrameMethod) shl 4)+Ord(TargetMethod);
+              RawRecord.RawData[NextOfs]:=EndData;
+              Inc(NextOfs);
+              { save Frame Datum? }
+              if FrameMethod in [ffmSegmentIndex,ffmGroupIndex,ffmExternalIndex,ffmFrameNumber] then
+                NextOfs:=RawRecord.WriteIndexedRef(NextOfs,FrameDatum);
+              { save Target Datum? }
+              NextOfs:=RawRecord.WriteIndexedRef(NextOfs,TargetDatum);
+              { save Target Displacement? }
+              if TargetMethod in [ftmSegmentIndex,ftmGroupIndex,ftmExternalIndex,ftmFrameNumber] then
+                begin
+                  if Is32Bit then
+                    begin
+                      RawRecord.RawData[NextOfs]:=Byte(TargetDisplacement);
+                      RawRecord.RawData[NextOfs+1]:=Byte(TargetDisplacement shr 8);
+                      RawRecord.RawData[NextOfs+2]:=Byte(TargetDisplacement shr 16);
+                      RawRecord.RawData[NextOfs+3]:=Byte(TargetDisplacement shr 24);
+                      Inc(NextOfs,4);
+                    end
+                  else
+                    begin
+                      if TargetDisplacement>$ffff then
+                        internalerror(2015040502);
+                      RawRecord.RawData[NextOfs]:=Byte(TargetDisplacement);
+                      RawRecord.RawData[NextOfs+1]:=Byte(TargetDisplacement shr 8);
+                      Inc(NextOfs,2);
+                    end;
+                end;
+            end
+          else
+            begin
+              { physical start address }
+              RawRecord.RawData[NextOfs]:=Byte(PhysFrameNumber);
+              RawRecord.RawData[NextOfs+1]:=Byte(PhysFrameNumber shr 8);
+              Inc(NextOfs,2);
+              if Is32Bit then
+                begin
+                  RawRecord.RawData[NextOfs]:=Byte(PhysOffset);
+                  RawRecord.RawData[NextOfs+1]:=Byte(PhysOffset shr 8);
+                  RawRecord.RawData[NextOfs+2]:=Byte(PhysOffset shr 16);
+                  RawRecord.RawData[NextOfs+3]:=Byte(PhysOffset shr 24);
+                  Inc(NextOfs,4);
+                end
+              else
+                begin
+                  if PhysOffset>$ffff then
+                    internalerror(2015040502);
+                  RawRecord.RawData[NextOfs]:=Byte(PhysOffset);
+                  RawRecord.RawData[NextOfs+1]:=Byte(PhysOffset shr 8);
+                  Inc(NextOfs,2);
+                end;
+            end;
         end;
       RawRecord.RecordLength:=NextOfs+1;
       RawRecord.CalculateChecksumByte;
