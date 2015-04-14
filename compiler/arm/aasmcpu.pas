@@ -744,7 +744,8 @@ implementation
           A_SXTB16,A_UXTB16,
           A_UXTB,A_UXTH,A_SXTB,A_SXTH,
           A_NEG,
-          A_VABS,A_VADD,A_VCVT,A_VDIV,A_VLDR,A_VMOV,A_VMUL,A_VNEG,A_VSQRT,A_VSUB:
+          A_VABS,A_VADD,A_VCVT,A_VDIV,A_VLDR,A_VMOV,A_VMUL,A_VNEG,A_VSQRT,A_VSUB,
+          A_MRS,A_MSR:
             if opnr=0 then
               result:=operand_write
             else
