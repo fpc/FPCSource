@@ -972,9 +972,22 @@ implementation
   { TOmfRecord_EXTDEF }
 
   procedure TOmfRecord_EXTDEF.DecodeFrom(RawRecord: TOmfRawRecord);
+    var
+      NextOfs: Integer;
+      Name: string;
+      TypeIndex: Integer;
+      ExtName: TOmfExternalNameElement;
     begin
-      {TODO: implement}
-      internalerror(2015040101);
+      if RawRecord.RecordType<>RT_EXTDEF then
+        internalerror(2015040301);
+      NextOfs:=0;
+      while NextOfs<(RawRecord.RecordLength-1) do
+        begin
+          NextOfs:=RawRecord.ReadStringAt(NextOfs,Name);
+          NextOfs:=RawRecord.ReadIndexedRef(NextOfs,TypeIndex);
+          ExtName:=TOmfExternalNameElement.Create(ExternalNames,Name);
+          ExtName.TypeIndex:=TypeIndex;
+        end;
     end;
 
   procedure TOmfRecord_EXTDEF.EncodeTo(RawRecord: TOmfRawRecord);
