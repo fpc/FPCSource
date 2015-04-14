@@ -933,7 +933,7 @@ implementation
       NextOfs:=RawRecord.ReadIndexedRef(NextOfs,FBaseSegmentIndex);
       if BaseSegmentIndex=0 then
         begin
-          if (NextOfs+1)>High(RawRecord.RawData) then
+          if (NextOfs+1)>=RawRecord.RecordLength then
             internalerror(2015041401);
           BaseFrame:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8);
           Inc(NextOfs,2);
@@ -946,7 +946,7 @@ implementation
           NextOfs:=RawRecord.ReadStringAt(NextOfs,Name);
           if Is32Bit then
             begin
-              if (NextOfs+3)>High(RawRecord.RawData) then
+              if (NextOfs+3)>=RawRecord.RecordLength then
                 internalerror(2015041401);
               PublicOffset:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8)+
                 (RawRecord.RawData[NextOfs+2] shl 16)+(RawRecord.RawData[NextOfs+3] shl 24);
@@ -954,7 +954,7 @@ implementation
             end
           else
             begin
-              if (NextOfs+1)>High(RawRecord.RawData) then
+              if (NextOfs+1)>=RawRecord.RecordLength then
                 internalerror(2015041401);
               PublicOffset:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8);
               Inc(NextOfs,2);
@@ -1283,7 +1283,7 @@ implementation
       Locat: Word;
       FixData: Byte;
     begin
-      if (Offset+2)>High(RawRecord.RawData) then
+      if (Offset+2)>=RawRecord.RecordLength then
         internalerror(2015040504);
       { unlike other fields in the OMF format, this one is big endian }
       Locat:=(RawRecord.RawData[Offset] shl 8) or RawRecord.RawData[Offset+1];
@@ -1323,7 +1323,7 @@ implementation
         begin
           if Is32Bit then
             begin
-              if (Offset+3)>High(RawRecord.RawData) then
+              if (Offset+3)>=RawRecord.RecordLength then
                 internalerror(2015040504);
               TargetDisplacement := RawRecord.RawData[Offset]+
                                    (RawRecord.RawData[Offset+1] shl 8)+
@@ -1333,7 +1333,7 @@ implementation
             end
           else
             begin
-              if (Offset+1)>High(RawRecord.RawData) then
+              if (Offset+1)>=RawRecord.RecordLength then
                 internalerror(2015040504);
               TargetDisplacement := RawRecord.RawData[Offset]+
                                    (RawRecord.RawData[Offset+1] shl 8);
