@@ -136,22 +136,22 @@ unit i_embed;
             endian       : endian_little;
             alignment    :
               (
-                procalign       : 4;
-                loopalign       : 4;
+                procalign       : 1;
+                loopalign       : 1;
                 jumpalign       : 0;
                 constalignmin   : 0;
-                constalignmax   : 4;
+                constalignmax   : 1;
                 varalignmin     : 0;
-                varalignmax     : 4;
-                localalignmin   : 4;
-                localalignmax   : 8;
+                varalignmax     : 1;
+                localalignmin   : 0;
+                localalignmax   : 1;
                 recordalignmin  : 0;
-                recordalignmax  : 4;
-                maxCrecordalign : 4
+                recordalignmax  : 1;
+                maxCrecordalign : 1
               );
             first_parm_offset : 0;
             stacksize    : 1024;
-            stackalign   : 4;
+            stackalign   : 1;
             abi : abi_default;
             llvmdatalayout : 'todo';
           );
