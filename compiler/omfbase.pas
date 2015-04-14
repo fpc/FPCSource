@@ -1090,9 +1090,103 @@ implementation
   { TOmfRecord_MODEND }
 
   procedure TOmfRecord_MODEND.DecodeFrom(RawRecord: TOmfRawRecord);
+    var
+      ModTyp: Byte;
+      NextOfs: Integer;
+      EndData: Byte;
     begin
-      {TODO: implement}
-      internalerror(2015040101);
+      if not (RawRecord.RecordType in [RT_MODEND,RT_MODEND32]) then
+        internalerror(2015040301);
+      Is32Bit:=RawRecord.RecordType=RT_MODEND32;
+
+      if RawRecord.RecordLength<2 then
+        internalerror(2015040305);
+      ModTyp:=RawRecord.RawData[0];
+      IsMainModule:=(ModTyp and $80)<>0;
+      HasStartAddress:=(ModTyp and $40)<>0;
+      SegmentBit:=(ModTyp and $20)<>0;
+      LogicalStartAddress:=(ModTyp and $01)<>0;
+      if (ModTyp and $1E)<>0 then
+        internalerror(2015041404);
+      NextOfs:=1;
+
+      { clear all the start address properties first }
+      FrameMethod:=Low(FrameMethod);
+      FrameDatum:=0;
+      TargetMethod:=Low(TargetMethod);
+      TargetDatum:=0;
+      TargetDisplacement:=0;
+      PhysFrameNumber:=0;
+      PhysOffset:=0;
+
+      if HasStartAddress then
+        begin
+          if LogicalStartAddress then
+            begin
+              if EndData>=RawRecord.RecordLength then
+                internalerror(2015040305);
+              EndData:=RawRecord.RawData[NextOfs];
+              Inc(NextOfs);
+              { frame and target method determined by thread is not allowed in MODEND records }
+              if (EndData and $88)<>0 then
+                internalerror(2015041406);
+              FrameMethod:=TOmfFixupFrameMethod((EndData shr 4) and 7);
+              TargetMethod:=TOmfFixupTargetMethod(EndData and 7);
+              { frame method ffmLocation is not allowed in an MODEND record }
+              if FrameMethod=ffmLocation then
+                internalerror(2015041402);
+              { read Frame Datum? }
+              if FrameMethod in [ffmSegmentIndex,ffmGroupIndex,ffmExternalIndex,ffmFrameNumber] then
+                NextOfs:=RawRecord.ReadIndexedRef(NextOfs,FFrameDatum);
+              { read Target Datum? }
+              NextOfs:=RawRecord.ReadIndexedRef(NextOfs,FTargetDatum);
+              { read Target Displacement? }
+              if TargetMethod in [ftmSegmentIndex,ftmGroupIndex,ftmExternalIndex,ftmFrameNumber] then
+                begin
+                  if Is32Bit then
+                    begin
+                      if (NextOfs+3)>=RawRecord.RecordLength then
+                        internalerror(2015040504);
+                      TargetDisplacement := RawRecord.RawData[NextOfs]+
+                                           (RawRecord.RawData[NextOfs+1] shl 8)+
+                                           (RawRecord.RawData[NextOfs+2] shl 16)+
+                                           (RawRecord.RawData[NextOfs+3] shl 24);
+                      Inc(NextOfs,4);
+                    end
+                  else
+                    begin
+                      if (NextOfs+1)>=RawRecord.RecordLength then
+                        internalerror(2015040504);
+                      TargetDisplacement := RawRecord.RawData[NextOfs]+
+                                           (RawRecord.RawData[NextOfs+1] shl 8);
+                      Inc(NextOfs,2);
+                    end;
+                end;
+            end
+          else
+            begin
+              { physical start address }
+              if (NextOfs+1)>=RawRecord.RecordLength then
+                internalerror(2015040305);
+              PhysFrameNumber:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8);
+              Inc(NextOfs,2);
+              if Is32Bit then
+                begin
+                  if (NextOfs+3)>=RawRecord.RecordLength then
+                    internalerror(2015040305);
+                  PhysOffset:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8)+
+                    (RawRecord.RawData[NextOfs+2] shl 16)+(RawRecord.RawData[NextOfs+3] shl 24);
+                  Inc(NextOfs,4);
+                end
+              else
+                begin
+                  if (NextOfs+1)>=RawRecord.RecordLength then
+                    internalerror(2015040305);
+                  PhysOffset:=RawRecord.RawData[NextOfs]+(RawRecord.RawData[NextOfs+1] shl 8);
+                  Inc(NextOfs,2);
+                end;
+            end;
+        end;
     end;
 
   procedure TOmfRecord_MODEND.EncodeTo(RawRecord: TOmfRawRecord);
