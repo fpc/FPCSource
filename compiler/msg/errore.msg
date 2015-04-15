@@ -131,7 +131,7 @@ general_i_number_of_notes=01023_I_$1 note(s) issued
 general_f_ioerror=01024_F_I/O error: $1
 % During compilation an I/O error happened which allows no further compilation.
 general_f_oserror=01025_F_Operating system error: $1
-% During compilation an operanting system error happened which allows no further compilation.
+% During compilation an operating system error happened which allows no further compilation.
 % \end{description}
 #
 # Scanner
@@ -378,7 +378,7 @@ scanner_e_illegal_alignment_directive=02088_E_Illegal alignment directive
 scanner_f_illegal_utf8_bom=02089_F_It is not possible to include a file that starts with an UTF-8 BOM in a module that uses a different code page
 % All source code that is part of a single compilation entity (program, library, unit) must be encoded
 % in the same code page
-scanner_w_directive_ignored_on_target=02090_W_Directive "$1" is ignored for the the current target platform
+scanner_w_directive_ignored_on_target=02090_W_Directive "$1" is ignored for the current target platform
 % Some directives are ignored for certain targets, such as changing the
 % packrecords and packenum settings on managed platforms.
 scan_w_unavailable_system_codepage=02091_W_Current system codepage "$1" is not available for the compiler. Switching default codepage back to "$2".
@@ -841,7 +841,7 @@ parser_e_cant_publish_that_property=03134_E_This kind of property cannot be publ
 parser_e_empty_import_name=03136_E_An import name is required
 % Some targets need a name for the imported procedure or a \var{cdecl} specifier.
 parser_e_division_by_zero=03138_E_Division by zero
-% A division by zero was encounted.
+% A division by zero was encountered.
 parser_e_invalid_float_operation=03139_E_Invalid floating point operation
 % An operation on two real type values produced an overflow or a division
 % by zero.
@@ -1142,7 +1142,7 @@ parser_e_packed_element_no_var_addr=03221_E_The address cannot be taken of bit p
 % (or as \var{packed} in any mode with \var{\{\$bitpacking on\}}), it will
 % be packed at the bit level. This means it becomes impossible to take addresses
 % of individual array elements or record fields. The only exception to this rule
-% is in the case of packed arrays elements whose packed size is a multple of 8 bits.
+% is in the case of packed arrays elements whose packed size is a multiple of 8 bits.
 parser_e_packed_dynamic_open_array=03222_E_Dynamic arrays cannot be packed
 % Only regular (and possibly in the future also open) arrays can be packed.
 parser_e_packed_element_no_loop=03223_E_Bit packed array elements and record fields cannot be used as loop variables
@@ -1403,7 +1403,7 @@ parser_e_no_destructor_in_records=03300_E_Destructors are not allowed in records
 % Destructor declarations are not allowed in records or helpers.
 parser_e_class_methods_only_static_in_records=03301_E_Class methods must be static in records
 % Class methods declarations are not allowed in records without static modifier.
-% Records have no inheritance and therefore non static class methods have no sence for them.
+% Records have no inheritance and therefore non static class methods have no sense for them.
 parser_e_no_parameterless_constructor_in_records=03302_E_Parameterless constructors are not allowed in records or record/type helpers
 % Constructor declarations with no arguments are not allowed in records or record/type helpers.
 parser_e_at_least_one_argument_must_be_of_type=03303_E_Either the result or at least one parameter must be of type "$1"
@@ -1424,7 +1424,7 @@ parser_e_not_allowed_in_helper=03307_E_"$1" is not allowed in helper types
 parser_e_no_class_constructor_in_helpers=03308_E_Class constructors are not allowed in helpers
 % Class constructor declarations are not allowed in helpers.
 parser_e_inherited_not_in_record=03309_E_The use of "inherited" is not allowed in a record
-% As records don't suppport inheritance the use of "inherited" is prohibited for
+% As records don't support inheritance the use of "inherited" is prohibited for
 % these as well as for record helpers (in mode "Delphi" only).
 parser_e_no_types_in_local_anonymous_records=03310_E_Type declarations are not allowed in local or anonymous records
 % Records with types must be defined globally. Types cannot be defined inside records which are defined in a
@@ -1436,7 +1436,7 @@ parser_e_mapping_no_implements=03312_E_Interface "$1" cannot be delegated by "$2
 % Method resolution clause maps a method of an interface to a method of the current class. Therefore the current class
 % has to implement the interface directly. Delegation is not possible.
 parser_e_implements_no_mapping=03313_E_Interface "$1" cannot have method resolutions, "$2" already delegates it
-% Method resoulution is only possible for interfaces that are implemented directly, not by delegation.
+% Method resolution is only possible for interfaces that are implemented directly, not by delegation.
 parser_e_invalid_codepage=03314_E_Invalid codepage
 % When declaring a string with a given codepage, the range of valid codepages values is limited
 % to 0 to 65535.
@@ -1499,7 +1499,7 @@ parser_e_no_methods_in_local_anonymous_records=03329_E_Method declarations are n
 parser_e_no_properties_in_local_anonymous_records=03330_E_Property declarations are not allowed in local or anonymous records
 % Records with properties must be defined globally. Properties cannot be defined inside records which are defined in a
 % procedure or function or in anonymous records.
-parser_e_no_class_in_local_anonymous_records=03331_E_Class memeber declarations are not allowed in local or anonymous records
+parser_e_no_class_in_local_anonymous_records=03331_E_Class member declarations are not allowed in local or anonymous records
 % Records with class members must be defined globally. Class members cannot be defined inside records which are defined in a
 % procedure or function or in anonymous records.
 parser_e_not_allowed_in_record=03332_E_Visibility section "$1" not allowed in records
@@ -1533,7 +1533,7 @@ parser_e_global_generic_references_static=03339_E_Global Generic template refere
 % solely to the implementation section of that unit.
 parser_u_already_compiled=03340_UL_Unit $1 has been already compiled meanwhile.
 % This tells you that the recursive reading of the uses clauses triggered already
-% a compilation of the current unit, so the current compilation can be aborded.
+% a compilation of the current unit, so the current compilation can be aborted.
 %
 %
 %
@@ -1557,7 +1557,7 @@ type_e_mismatch=04000_E_Type mismatch
 % \end{itemize}
 type_e_incompatible_types=04001_E_Incompatible types: got "$1" expected "$2"
 % There is no conversion possible between the two types.
-% Another possiblity is that they are declared in different
+% Another possibility is that they are declared in different
 % declarations:
 % \begin{verbatim}
 % Var
@@ -1883,7 +1883,7 @@ type_w_procvar_univ_conflicting_para=04095_W_Coerced univ parameter type in proc
 % \end{verbatim}
 % This code may however crash on platforms that pass integers in registers and
 % floating point values on the stack, because then the stack will be unbalanced.
-% Note that this warning will not flagg all potentially dangerous situations.
+% Note that this warning will not flag all potentially dangerous situations.
 % when \var{test} returns.
 type_e_generics_cannot_reference_itself=04096_E_Type parameters of specializations of generics cannot reference the currently specialized type
 % Recursive specializations of generics like \var{Type MyType = specialize MyGeneric<MyType>;} are not possible.
@@ -1930,7 +1930,7 @@ type_w_range_check_error_bounds=04110_W_range check error while evaluating const
 type_e_type_not_allowed_for_default=04111_E_This type is not supported for the Default() intrinsic
 % Some types like for example Text and File Of X are not supported by the Default intrinsic.
 type_e_java_class_method_not_static_virtual=04112_E_JVM virtual class methods cannot be static
-% Virtual class methods cannot be static when targetting the JVM platform, because
+% Virtual class methods cannot be static when targeting the JVM platform, because
 % the self pointer is required for correct dispatching.
 type_e_invalid_final_assignment=04113_E_Final (class) fields can only be assigned in their class' (class) constructor
 % It is only possible to assign a value to a final (class) field inside a (class) constructor of its owning class.
@@ -2163,8 +2163,8 @@ sym_w_deprecated_symbol_with_msg=05066_W_Symbol "$1" is deprecated: "$2"
 % be available in newer versions of the unit / library. Use of this symbol
 % should be avoided as much as possible.
 sym_e_no_enumerator=05067_E_Cannot find an enumerator for the type "$1"
-% This means that compiler cannot find an apropriate enumerator to use in the for-in loop.
-% To create an enumerator you need to defind an operator enumerator or add a public or published
+% This means that compiler cannot find an appropriate enumerator to use in the for-in loop.
+% To create an enumerator you need to define an operator enumerator or add a public or published
 % GetEnumerator method to the class or object definition.
 sym_e_no_enumerator_move=05068_E_Cannot find a "MoveNext" method in enumerator "$1"
 % This means that compiler cannot find a public MoveNext method with the Boolean return type in
@@ -2214,7 +2214,7 @@ sym_w_experimental_unit=05079_W_Unit "$1" is experimental
 % might disappear or change semantics in future versions. Usage of this unit
 % should be avoided as much as possible.
 sym_e_formal_class_not_resolved=05080_E_No complete definition of the formally declared class "$1" is in scope
-% Objecive-C and Java classes can be imported formally, without using the the unit in which it is fully declared.
+% Objecive-C and Java classes can be imported formally, without using the unit in which it is fully declared.
 % This enables making forward references to such classes and breaking circular dependencies amongst units.
 % However, as soon as you wish to actually do something with an entity of this class type (such as
 % access one of its fields, send a message to it, or use it to inherit from), the compiler requires the full definition
@@ -2461,8 +2461,8 @@ asmr_d_finish_reading=07001_DL_Finished $1 styled assembler parsing
 asmr_e_none_label_contain_at=07002_E_Non-label pattern contains @
 % A identifier which isn't a label cannot contain a @.
 asmr_e_building_record_offset=07004_E_Error building record offset
-% There has an error occured while building the offset of a record/object
-% structure, this can happend when there is no field specified at all or
+% There has an error occurred while building the offset of a record/object
+% structure, this can happen when there is no field specified at all or
 % an unknown field identifier is used.
 asmr_e_offset_without_identifier=07005_E_OFFSET used without identifier
 % You can only use OFFSET with an identifier. Other syntaxes are not
@@ -2603,7 +2603,7 @@ asmr_w_id_supposed_external=07072_W_Identifier $1 supposed external
 asmr_e_string_not_allowed_as_const=07073_E_Strings not allowed as constants
 % Character strings are not allowed as constants.
 asmr_e_no_var_type_specified=07074_E_No type of variable specified
-% The syntax expects a type idenfitifer after the dot, but
+% The syntax expects a type identifier after the dot, but
 % none was found.
 asmr_w_assembler_code_not_returned_to_text=07075_E_assembler code not returned to text section
 % There was a directive in the assembler block to change sections,
@@ -2704,9 +2704,9 @@ asmr_e_mixing_regtypes=07108_E_All registers in a register set must be of the sa
 asmr_e_empty_regset=07109_E_A register set cannot be empty
 % Instructions on the ARM architecture that take a register set as argument require that such a set
 % contains at least one register.
-asmr_w_useless_got_for_local=07110_W_@GOTPCREL is useless and potentially dangereous for local symbols
+asmr_w_useless_got_for_local=07110_W_@GOTPCREL is useless and potentially dangerous for local symbols
 % The use of @GOTPCREL supposes an extra indirection that is
-% not present if the symbol is local, which might lead to wrong asembler code
+% not present if the symbol is local, which might lead to wrong assembler code
 asmr_w_general_segment_with_constant=07111_W_Constant with general purpose segment register
 % General purpose register should not have constant offsets
 % as OS memory allocation might not be compatible with that.
@@ -3078,15 +3078,15 @@ unit_u_check_time=10037_U_PPU Check file $1 time $2
 ### The following two error msgs is currently disabled.
 #unit_h_cond_not_set_in_last_compile=10038_H_Conditional $1 was not set at startup in last compilation of $2
 #% when recompilation of an unit is required the compiler will check that
-#% the same conditionals are set for the recompiliation. The compiler has
+#% the same conditionals are set for the recompilation. The compiler has
 #% found a conditional that currently is defined, but was not used the last
 #% time the unit was compiled.
 #unit_h_cond_set_in_last_compile=10039_H_Conditional $1 was set at startup in last compilation of $2
 #% when recompilation of an unit is required the compiler will check that
-#% the same conditionals are set for the recompiliation. The compiler has
+#% the same conditionals are set for the recompilation. The compiler has
 #% found a conditional that was used the last time the unit was compiled, but
 #% the conditional is currently not defined.
-unit_w_cant_compile_unit_with_changed_incfile=10040_W_Can't recompile unit $1, but found modifed include files
+unit_w_cant_compile_unit_with_changed_incfile=10040_W_Can't recompile unit $1, but found modified include files
 % A unit was found to have modified include files, but
 % some source files were not found, so recompilation is impossible.
 unit_u_source_modified=10041_U_File $1 is newer than the one used for creating PPU file $2
@@ -3196,7 +3196,7 @@ option_no_option_found=11005_N_No option inside $1 config file
 option_illegal_para=11006_E_Illegal parameter: $1
 % You specified an unknown option.
 option_help_pages_para=11007_H_-? writes help pages
-% When an unknown option is given, this message is diplayed.
+% When an unknown option is given, this message is displayed.
 option_too_many_cfg_files=11008_F_Too many config files nested
 % You can only nest up to 16 config files.
 option_unable_open_file=11009_F_Unable to open file $1
@@ -3290,7 +3290,7 @@ option_unsupported_target_for_feature=11045_F_The feature "$1" is not, or not ye
 % Not all features are supported or implemented for all target platforms. This message informs you that a chosen
 % feature is incompatible with the currently selected target platform.
 option_dwarf_smart_linking=11046_N_DWARF debug information cannot be used with smart linking on this target, switching to static linking
-% Smart linking is currently incompatble with DWARF debug information on most
+% Smart linking is currently incompatible with DWARF debug information on most
 % platforms, so smart linking is disabled in such cases.
 option_ignored_target=11047_W_Option "$1" is ignored for the current target platform.
 % Not all options are supported or implemented for all target platforms. This message informs you that a chosen
@@ -3356,14 +3356,14 @@ wpo_no_input_specified=12006_F_The selected whole program optimizations require 
 wpo_not_enough_info=12007_E_No collected information necessary to perform "$1" whole program optimization found
 % While you pointed the compiler to a file containing whole program optimization feedback, it
 % did not contain the information necessary to perform the selected optimizations. You most likely
-% have to recompile the program using the appropate -OWxxx switch.
+% have to recompile the program using the appropriate -OWxxx switch.
 wpo_no_output_specified=12008_F_Specify a whole program optimization feedback file to store the generated info in (using -FW)
 % You have to specify the feedback file in which the compiler has to store the whole program optimization
 % feedback that is generated during the compilation run. This can be done using the -FW switch.
 wpo_output_without_info_gen=12009_E_Not generating any whole program optimization information, yet a feedback file was specified (using -FW)
 % The compiler was instructed to store whole program optimization feedback into a file specified using -FW,
 % but not to actually generated any whole program optimization feedback. The classes of to be
-% generated information can be speciied using -OWxxx.
+% generated information can be specified using -OWxxx.
 wpo_input_without_info_use=12010_E_Not performing any whole program optimizations, yet an input feedback file was specified (using -Fw)
 % The compiler was not instructed to perform any whole program optimizations (no -Owxxx parameters),
 % but nevertheless an input file with such feedback was specified (using -Fwyyy). Since this can
