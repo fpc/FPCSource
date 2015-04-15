@@ -1242,7 +1242,10 @@ implementation
                         end
                       else
 {$ifdef i8086}
-                        ot:=OT_IMM16 or OT_NEAR;
+                        if opsize=S_FAR then
+                          ot:=OT_IMM16 or OT_FAR
+                        else
+                          ot:=OT_IMM16 or OT_NEAR;
 {$else i8086}
                         ot:=OT_IMM32 or OT_NEAR;
 {$endif i8086}
@@ -1359,6 +1362,9 @@ implementation
            if ((insot and OT_SIZE_MASK)<>0) and
               ((insot and currot and OT_SIZE_MASK)<>(currot and OT_SIZE_MASK)) then
              exit;
+           { "far" matches only with "far" }
+           if (insot and OT_FAR)<>(currot and OT_FAR) then
+             exit;
          end;
 
         { Check operand sizes }
@@ -1416,6 +1422,8 @@ implementation
                    { Immediates can always include smaller size }
                    ((currot and OT_IMMEDIATE)=0) and
                     (((insot and OT_SIZE_MASK) or siz[i])<(currot and OT_SIZE_MASK)) then
+                  exit;
+                if (insot and OT_FAR)<>(currot and OT_FAR) then
                   exit;
               end;
           end;
@@ -2249,10 +2257,14 @@ implementation
               inc(len,2);
             &34,&35,&36:
               begin
+{$ifdef i8086}
+                inc(len,2);
+{$else i8086}
                 if opsize=S_Q then
                   inc(len,8)
                 else
                   inc(len,4);
+{$endif i8086}
               end;
             &44,&45,&46:
               inc(len,sizeof(pint));
@@ -2881,6 +2893,12 @@ implementation
                     on address size, *not* operand size. Works by coincidence only. }
               begin
                 getvalsym(c-&34);
+{$ifdef i8086}
+                if assigned(currsym) then
+                  objdata_writereloc(currval,2,currsym,currabsreloc)
+                else
+                  objdata.writebytes(currval,2);
+{$else i8086}
                 if opsize=S_Q then
                   begin
                     if assigned(currsym) then
@@ -2895,6 +2913,7 @@ implementation
                     else
                       objdata.writebytes(currval,4);
                   end
+{$endif i8086}
               end;
             &40,&41,&42 :    // 040..042
               begin
@@ -3122,7 +3141,17 @@ implementation
                    else Internalerror(2014032008);
                  end;
             &370..&372: ; // VEX flags =>> nothing todo
-            &37,
+            &37:
+              begin
+{$ifdef i8086}
+                if assigned(currsym) then
+                  objdata_writereloc(0,2,currsym,RELOC_SEG)
+                else
+                  InternalError(2015041503);
+{$else i8086}
+                InternalError(777006);
+{$endif i8086}
+              end;
             &60,&61,&62 :
               begin
                 InternalError(777006);
