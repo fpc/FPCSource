@@ -82,6 +82,7 @@ interface
         class function CodeSectionName(const aname:string): string;
       public
         constructor create(const n:string);override;
+        function sectiontype2align(atype:TAsmSectiontype):shortint;override;
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
         procedure writeReloc(Data:aint;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);override;
       end;
@@ -298,6 +299,33 @@ implementation
       begin
         inherited create(n);
         CObjSection:=TOmfObjSection;
+      end;
+
+    function TOmfObjData.sectiontype2align(atype: TAsmSectiontype): shortint;
+      begin
+        case atype of
+          sec_stabstr,sec_debug_info,sec_debug_line,sec_debug_abbrev:
+            result:=1;
+          sec_code:
+            result:=1;
+          sec_bss:
+            result:=1;
+          sec_data:
+            result:=2;
+          { For idata (at least idata2) it must be 4 bytes, because
+            an entry is always (also in win64) 20 bytes and aligning
+            on 8 bytes will insert 4 bytes between the entries resulting
+            in a corrupt idata section.
+            Same story with .pdata, it has 4-byte elements which should
+            be packed without gaps. }
+          sec_idata2,sec_idata4,sec_idata5,sec_idata6,sec_idata7,sec_pdata:
+            result:=4;
+          sec_stack,
+          sec_heap:
+            result:=16;
+          else
+            result:=1;
+        end;
       end;
 
     function TOmfObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
