@@ -269,4 +269,5 @@
   {$undef cpu32bitalu}
   {$define cpu64bitalu}
   {$define cpuhighleveltarget}
+  {$define symansistr}
 {$endif}
