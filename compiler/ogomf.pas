@@ -61,15 +61,15 @@ interface
       private
         FClassName: string;
         FOverlayName: string;
-        FOmfAlignment: TOmfSegmentAlignment;
         FCombination: TOmfSegmentCombination;
         FUse: TOmfSegmentUse;
         FPrimaryGroup: string;
+        function GetOmfAlignment: TOmfSegmentAlignment;
       public
         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
         property ClassName: string read FClassName;
         property OverlayName: string read FOverlayName;
-        property OmfAlignment: TOmfSegmentAlignment read FOmfAlignment;
+        property OmfAlignment: TOmfSegmentAlignment read GetOmfAlignment;
         property Combination: TOmfSegmentCombination read FCombination;
         property Use: TOmfSegmentUse read FUse;
         property PrimaryGroup: string read FPrimaryGroup;
@@ -227,6 +227,22 @@ implementation
                                 TOmfObjSection
 ****************************************************************************}
 
+    function TOmfObjSection.GetOmfAlignment: TOmfSegmentAlignment;
+      begin
+        case SecAlign of
+          1:
+            result:=saRelocatableByteAligned;
+          2:
+            result:=saRelocatableWordAligned;
+          4:
+            result:=saRelocatableDWordAligned;
+          16:
+            result:=saRelocatableParaAligned;
+          else
+            internalerror(2015041504);
+        end;
+      end;
+
     constructor TOmfObjSection.create(AList: TFPHashObjectList;
           const Aname: string; Aalign: shortint; Aoptions: TObjSectionOptions);
       var
@@ -235,7 +251,6 @@ implementation
         inherited create(AList, Aname, Aalign, Aoptions);
         FCombination:=scPublic;
         FUse:=suUse16;
-        FOmfAlignment:=saRelocatableByteAligned;
         if oso_executable in Aoptions then
           begin
             FClassName:='code';
@@ -245,13 +260,11 @@ implementation
           begin
             FClassName:='stack';
             FCombination:=scStack;
-            FOmfAlignment:=saRelocatableParaAligned;
             dgroup:=current_settings.x86memorymodel in (x86_near_data_models-[mm_tiny]);
           end
         else if Aname='heap' then
           begin
             FClassName:='heap';
-            FOmfAlignment:=saRelocatableParaAligned;
             dgroup:=current_settings.x86memorymodel in x86_near_data_models;
           end
         else if Aname='bss' then
@@ -262,7 +275,6 @@ implementation
         else if Aname='data' then
           begin
             FClassName:='data';
-            FOmfAlignment:=saRelocatableWordAligned;
             dgroup:=true;
           end
         else
