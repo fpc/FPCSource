@@ -100,10 +100,8 @@ begin
     Result.SetFieldType(DataType);
     Result.FReadOnly:=(faReadOnly in Attributes);
 {$ifdef dsdebug}
-    Writeln ('TFieldDef.CreateField : Trying to set dataset');
-{$endif dsdebug}
-{$ifdef dsdebug}
     Writeln ('TFieldDef.CreateField : Result Fieldno : ',Result.FieldNo,'; Self : ',FieldNo);
+    Writeln ('TFieldDef.CreateField : Trying to set dataset');
 {$endif dsdebug}
     Result.Dataset:=TFieldDefs(Collection).Dataset;
     If (Result is TFloatField) then
@@ -626,7 +624,7 @@ begin
     Result:=FFieldName;
 end;
 
-function TField.IsDisplayStored: Boolean;
+function TField.IsDisplayLabelStored: Boolean;
 
 begin
   Result:=(DisplayLabel<>FieldName);
@@ -2494,8 +2492,8 @@ end;
 function TBCDField.GetDefaultWidth: Longint;
 
 begin
-  if precision > 0 then result := precision
-    else result := 10;
+  if Precision > 0 then Result := Precision
+  else Result := 10;
 end;
 
 procedure TBCDField.GetText(var TheText: string; ADisplayText: Boolean);

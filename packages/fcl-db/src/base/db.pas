@@ -178,7 +178,7 @@ type
     procedure SetSize(const AValue: Integer);
     procedure SetRequired(const AValue: Boolean);
   public
-    constructor create(ACollection : TCollection); override;
+    constructor Create(ACollection : TCollection); override;
     constructor Create(AOwner: TFieldDefs; const AName: string;
       ADataType: TFieldType; ASize: Integer; ARequired: Boolean; AFieldNo: Longint); overload;
     destructor Destroy; override;
@@ -191,8 +191,8 @@ type
   Published
     property Attributes: TFieldAttributes read FAttributes write SetAttributes default [];
     property DataType: TFieldType read FDataType write SetDataType;
-    property Precision: Longint read FPrecision write SetPrecision;
-    property Size: Integer read FSize write SetSize;
+    property Precision: Longint read FPrecision write SetPrecision default 0;
+    property Size: Integer read FSize write SetSize default 0;
   end;
   TFieldDefClass = Class of TFieldDef;
 
@@ -314,7 +314,7 @@ type
     procedure SetLookup(const AValue: Boolean);
     procedure SetReadOnly(const AValue: Boolean);
     procedure SetVisible(const AValue: Boolean);
-    function IsDisplayStored : Boolean;
+    function IsDisplayLabelStored : Boolean;
     function IsDisplayWidthStored: Boolean;
     function GetLookupList: TLookupList;
     procedure CalcLookupValue;
@@ -429,7 +429,7 @@ type
     property CustomConstraint: string read FCustomConstraint write FCustomConstraint;
     property ConstraintErrorMessage: string read FConstraintErrorMessage write FConstraintErrorMessage;
     property DefaultExpression: string read FDefaultExpression write FDefaultExpression;
-    property DisplayLabel : string read GetDisplayName write SetDisplayLabel stored IsDisplayStored;
+    property DisplayLabel : string read GetDisplayName write SetDisplayLabel stored IsDisplayLabelStored;
     property DisplayWidth: Longint read GetDisplayWidth write SetDisplayWidth stored IsDisplayWidthStored;
     property FieldKind: TFieldKind read FFieldKind write FFieldKind;
     property FieldName: string read FFieldName write FFieldName;
