@@ -5953,6 +5953,13 @@
   (
     opcode  : A_Jcc;
     ops     : 1;
+    optypes : (ot_immediate or ot_bits16,ot_none,ot_none,ot_none);
+    code    : #19#112#1#3#1#233#48;
+    flags   : if_8086 or if_pass2 or if_16bitonly
+  ),
+  (
+    opcode  : A_Jcc;
+    ops     : 1;
     optypes : (ot_immediate or ot_short,ot_none,ot_none,ot_none);
     code    : #11#112#40;
     flags   : if_8086
@@ -5963,6 +5970,13 @@
     optypes : (ot_immediate or ot_near,ot_none,ot_none,ot_none);
     code    : #208#1#15#11#128#52;
     flags   : if_386 or if_pass2
+  ),
+  (
+    opcode  : A_Jcc;
+    ops     : 1;
+    optypes : (ot_immediate or ot_bits16 or ot_near,ot_none,ot_none,ot_none);
+    code    : #19#112#1#3#1#233#48;
+    flags   : if_8086 or if_pass2 or if_16bitonly
   ),
   (
     opcode  : A_SETcc;

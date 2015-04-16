@@ -2099,8 +2099,10 @@ reg16|32|64,regmem    \320\1\x0F\13\x40\110          P6,SM
 (Ch_RFLAGS, Ch_None, Ch_None)
 imm8                  \13\x70\50                     8086
 imm16|32              \320\1\x0F\13\x80\64           386,PASS2
+imm16                 \23\x70\1\x03\1\xE9\60         8086,PASS2,16BITONLY
 imm|short             \13\x70\50                     8086
 imm|near              \320\1\x0F\13\x80\64           386,PASS2
+imm16|near            \23\x70\1\x03\1\xE9\60         8086,PASS2,16BITONLY
 
 [SETcc,setCCX]
 (Ch_RFLAGS, Ch_WOp1, Ch_None)
