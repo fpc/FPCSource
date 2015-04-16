@@ -2234,7 +2234,7 @@ implementation
                 inc(codes);
                 inc(len);
               end;
-            &13 :
+            &13,&23 :
               begin
                 inc(codes);
                 inc(len);
@@ -2463,6 +2463,9 @@ implementation
        *                 to the condition code value of the instruction.
        * \14, \15, \16 - a signed byte immediate operand, from operand 0, 1 or 2
        * \20, \21, \22 - a byte immediate operand, from operand 0, 1 or 2
+       * \23           - a literal byte follows in the code stream, to be added
+       *                 to the inverted condition code value of the instruction
+       *                 (inverted version of \13).
        * \24, \25, \26, \27 - an unsigned byte immediate operand, from operand 0, 1, 2 or 3
        * \30, \31, \32 - a word immediate operand, from operand 0, 1 or 2
        * \34, \35, \36 - select between \3[012] and \4[012] depending on 16/32 bit
@@ -2864,6 +2867,12 @@ implementation
                  objdata_writereloc(currval,1,currsym,currabsreloc)
                 else
                  objdata.writebytes(currval,1);
+              end;
+            &23 :
+              begin
+                bytes[0]:=ord(codes^)+condval[inverse_cond(condition)];
+                inc(codes);
+                objdata.writebytes(bytes,1);
               end;
             &24,&25,&26,&27 :
               begin
