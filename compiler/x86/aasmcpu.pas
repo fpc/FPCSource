@@ -1349,6 +1349,17 @@ implementation
         if (p^.opcode<>opcode) or (p^.ops<>ops) then
           exit;
 
+{$ifdef i8086}
+        { On i8086, we need to skip the i386+ version of Jcc near, if the target
+          cpu is earlier than 386. There's another entry, later in the table for
+          i8086, which simulates it with i8086 instructions:
+            JNcc short +3
+            JMP near target }
+        if (p^.opcode=A_Jcc) and (current_settings.cputype<cpu_386) and
+          ((p^.flags and IF_386)<>0) then
+          exit;
+{$endif i8086}
+
         for i:=0 to p^.ops-1 do
          begin
            insot:=p^.optypes[i];
@@ -2973,6 +2984,18 @@ implementation
                 else
                   objdata.writebytes(currval,8);
               end;
+            &60,&61,&62 :
+              begin
+                getvalsym(c-&60);
+{$ifdef i8086}
+                if assigned(currsym) then
+                 objdata_writereloc(currval,2,currsym,currrelreloc)
+                else
+                 objdata_writereloc(currval-insend,2,nil,currabsreloc)
+{$else i8086}
+                InternalError(777006);
+{$endif i8086}
+              end;
             &64,&65,&66 :  // 064..066 - select between 16/32 address mode, but we support only 32 (only 16 on i8086)
               begin
                 getvalsym(c-&64);
@@ -3161,10 +3184,6 @@ implementation
                 InternalError(777006);
 {$endif i8086}
               end;
-            &60,&61,&62 :
-              begin
-                InternalError(777006);
-              end
             else
               begin
                 { rex should be written at this point }
