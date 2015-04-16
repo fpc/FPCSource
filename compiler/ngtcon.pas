@@ -165,7 +165,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
       begin
         result:=tsym(def.symtable.SymList[symidx]);
         inc(symidx);
-        if result.typ=fieldvarsym then
+        if (result.typ=fieldvarsym) and
+           not(sp_static in result.symoptions) then
           exit;
       end;
     result:=nil;

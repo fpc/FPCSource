@@ -594,6 +594,7 @@ implementation
           begin
             sym:=tsym(_class.symtable.SymList[i]);
             if (sym.typ=fieldvarsym) and
+               not(sp_static in sym.symoptions) and
                (sym.visibility=vis_published) then
              begin
                 if tfieldvarsym(sym).vardef.typ<>objectdef then
@@ -659,6 +660,7 @@ implementation
               begin
                 sym:=tsym(_class.symtable.SymList[i]);
                 if (sym.typ=fieldvarsym) and
+                   not(sp_static in sym.symoptions) and
                   (sym.visibility=vis_published) then
                   begin
                     {

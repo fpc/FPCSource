@@ -4001,7 +4001,8 @@ implementation
         result:=true;
         for i:=0 to symtable.symlist.count-1 do
           begin
-            if tsym(symtable.symlist[i]).typ<>fieldvarsym then
+            if (tsym(symtable.symlist[i]).typ<>fieldvarsym) or
+               (sp_static in tsym(symtable.symlist[i]).symoptions) then
               continue;
             if assigned(tfieldvarsym(symtable.symlist[i]).vardef) then
               begin

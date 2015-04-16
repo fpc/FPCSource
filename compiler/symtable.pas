@@ -1282,6 +1282,7 @@ implementation
           begin
             sym:=tsym(symlist[i]);
             if (sym.typ=fieldvarsym) and
+               not(sp_static in sym.symoptions) and
                (tfieldvarsym(sym).fieldoffset>=offset) then
               begin
                 result:=tfieldvarsym(sym);
@@ -1362,7 +1363,8 @@ implementation
           { record has one field? }
           for i:=0 to currentsymlist.Count-1 do
             begin
-              if tsym(symlist[i]).typ=fieldvarsym then
+              if (tsym(symlist[i]).typ=fieldvarsym) and
+                 not(sp_static in tsym(symlist[i]).symoptions) then
                 begin
                   if result then
                     begin

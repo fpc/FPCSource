@@ -456,7 +456,8 @@ implementation
             i:=curindex;
             repeat
               inc(i);
-            until tsym(tabstractrecorddef(def).symtable.symlist[i]).typ=fieldvarsym;
+            until (tsym(tabstractrecorddef(def).symtable.symlist[i]).typ=fieldvarsym) and
+              not(sp_static in tsym(tabstractrecorddef(def).symtable.symlist[i]).symoptions);
             nextoffset:=fieldoffset[i];
             currentoffset:=curoffset;
             curindex:=i;

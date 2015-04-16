@@ -1058,7 +1058,8 @@ Unit Rax86int;
                     end;
                    if (actasmtoken=AS_DOT) or
                       (assigned(sym) and
-                       (sym.typ = fieldvarsym)) then
+                       (sym.typ = fieldvarsym) and
+                       not(sp_static in sym.symoptions)) then
                      begin
                       BuildRecordOffsetSize(tempstr,l,k,hs,needvmtofs);
                       if hs <> '' then
