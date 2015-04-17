@@ -803,7 +803,11 @@ begin
             (opcode=A_POP)) and
            (operands[1].opr.typ=OPR_REGISTER) and
            is_segment_reg(operands[1].opr.reg) then
+{$ifdef i8086}
+          opsize:=S_W
+{$else i8086}
           opsize:=S_L
+{$endif i8086}
         else
           opsize:=tx86operand(operands[1]).opsize;
       end;
