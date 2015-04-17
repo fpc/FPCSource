@@ -250,7 +250,8 @@ implementation
           A_MOV,A_MOVW,A_POP:
             if opnr=0 then
               result:=operand_write;
-          A_CP,A_CPC,A_CPI,A_PUSH,A_SBRC,A_SBRS,A_ST,A_STD,A_STS:
+          A_CP,A_CPC,A_CPI,A_PUSH,A_SBRC,A_SBRS,A_ST,A_STD,A_STS,
+          A_MUL, A_MULS,A_FMUL,A_FMULS,A_FMULSU:
             ;
           else
             begin
