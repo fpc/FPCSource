@@ -150,6 +150,7 @@ type
     function GetVariableModifiers(Out VarMods : TVariableModifiers; Out Libname,ExportName : string): string;
     function GetVariableValueAndLocation(Parent : TPasElement; Out Value : TPasExpr; Out Location: String): Boolean;
     procedure HandleProcedureModifier(Parent: TPasElement; pm : TProcedureModifier);
+    procedure ParseAsmBlock(AsmBlock: TPasImplAsmStatement);
     procedure ParseClassLocalConsts(AType: TPasClassType; AVisibility: TPasMemberVisibility);
     procedure ParseClassLocalTypes(AType: TPasClassType; AVisibility: TPasMemberVisibility);
     procedure ParseVarList(Parent: TPasElement; VarList: TFPList; AVisibility: TPasMemberVisibility; Full: Boolean);
@@ -3134,6 +3135,19 @@ begin
 //  writeln('TPasParser.ParseProcBeginBlock ended ',curtokenstring);
 end;
 
+procedure TPasParser.ParseAsmBlock(AsmBlock : TPasImplAsmStatement);
+
+begin
+  NextToken;
+  While CurToken<>tkEnd do
+    begin
+    AsmBlock.Tokens.Add(CurTokenText);
+    NextToken;
+    end;
+  // NextToken; // Eat end.
+  // Do not consume end. Current token will normally be end;
+end;
+
 // Next token is start of (compound) statement
 // After parsing CurToken is on last token of statement
 procedure TPasParser.ParseStatement(Parent: TPasImplBlock;
@@ -3195,6 +3209,13 @@ begin
     NextToken;
     //WriteLn(i,'Token=',CurTokenText);
     case CurToken of
+    tkasm :
+      begin
+      el:=TPasImplElement(CreateElement(TPasImplAsmStatement,'',CurBlock));
+      ParseAsmBlock(TPasImplAsmStatement(el));
+      CurBlock.AddElement(el);
+      NewImplElement:=El;
+      end;
     tkbegin:
       begin
       el:=TPasImplElement(CreateElement(TPasImplBeginBlock,'',CurBlock));

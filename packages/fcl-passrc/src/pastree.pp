@@ -958,6 +958,17 @@ type
   TFinalizationSection = class(TPasImplBlock)
   end;
 
+  { TPasImplAsmStatement }
+
+  TPasImplAsmStatement = class (TPasImplStatement)
+  private
+    FTokens: TStrings;
+  Public
+    constructor Create(const AName: string; AParent: TPasElement); override;
+    destructor Destroy; override;
+    Property Tokens : TStrings Read FTokens;
+  end;
+
   { TPasImplRepeatUntil }
 
   TPasImplRepeatUntil = class(TPasImplBlock)
@@ -1183,6 +1194,21 @@ const
 implementation
 
 uses SysUtils;
+
+{ TPasImplAsmStatement }
+
+constructor TPasImplAsmStatement.Create(const AName: string;
+  AParent: TPasElement);
+begin
+  inherited Create(AName, AParent);
+  FTokens:=TStringList.Create;
+end;
+
+destructor TPasImplAsmStatement.Destroy;
+begin
+  FreeAndNil(FTokens);
+  inherited Destroy;
+end;
 
 { TPasClassConstructor }
 
