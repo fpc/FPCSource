@@ -32,10 +32,14 @@ unit cpupi;
 
     type
        ti8086procinfo = class(tcgprocinfo)
+       private
+         procedure insert_8087_fwaits(list : TAsmList);
+       public
          constructor create(aparent:tprocinfo);override;
          procedure set_first_temp_offset;override;
          function calc_stackframe_size:longint;override;
          procedure generate_parameter_info;override;
+         procedure postprocess_code;override;
        end;
 
 
@@ -44,8 +48,9 @@ unit cpupi;
     uses
       cutils,
       systems,globals,globtype,
+      aasmtai,aasmcpu,
       cgobj,tgobj,paramgr,
-      cpubase,
+      cpubase,cpuinfo,
       cgutils,
       symconst;
 
@@ -93,6 +98,31 @@ unit cpupi;
         { If the stack is fixed, nothing has to be removed by the callee     }
         if paramanager.use_fixed_stack then
           para_stack_size := 0;
+      end;
+
+
+    procedure ti8086procinfo.insert_8087_fwaits(list : TAsmList);
+      var
+        curtai: tai;
+      begin
+        curtai:=tai(list.First);
+        while assigned(curtai) do
+          begin
+            if (curtai.typ=ait_instruction)
+               and requires_fwait_on_8087(taicpu(curtai).opcode) then
+              list.InsertBefore(taicpu.op_none(A_FWAIT),curtai);
+
+            curtai:=tai(curtai.Next);
+          end;
+      end;
+
+
+    procedure ti8086procinfo.postprocess_code;
+      begin
+        { nickysn note: I don't know if the 187 requires FWAIT before
+          every instruction like the 8087, so I'm including it just in case }
+        if current_settings.cputype<=cpu_186 then
+          insert_8087_fwaits(aktproccode);
       end;
 
 begin

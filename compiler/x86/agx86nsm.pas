@@ -909,13 +909,6 @@ interface
                else
                 begin
                   prefix:='';
-{$ifdef i8086}
-                  { nickysn note: I don't know if the 187 requires FWAIT before
-                    every instruction like the 8087, so I'm including it just in case }
-                  if (current_settings.cputype<=cpu_186) and
-                      requires_fwait_on_8087(fixed_opcode) then
-                    prefix:='wait '+prefix;
-{$endif i8086}
 {$ifndef i8086}
                   { We need to explicitely set
                     word prefix to get selectors
