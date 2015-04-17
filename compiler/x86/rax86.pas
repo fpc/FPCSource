@@ -778,11 +778,13 @@ begin
                      operands[i].opr.ref.symbol:=s;
                      operands[i].opr.ref.offset:=so;
                    end;
-  {$ifdef x86_64}
+  {$if defined(x86_64)}
                   tx86operand(operands[i]).opsize:=S_Q;
-  {$else x86_64}
+  {$elseif defined(i386)}
                   tx86operand(operands[i]).opsize:=S_L;
-  {$endif x86_64}
+  {$elseif defined(i8086)}
+                  tx86operand(operands[i]).opsize:=S_W;
+  {$endif}
                 end;
             end;
         end;
