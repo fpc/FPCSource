@@ -1,3 +1,5 @@
+%%% Reordering of errorptu.msg respective to errore.msg
+%%% Contains all comments from errorptu.msg
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1999-2009 by the Free Pascal Development team
@@ -387,6 +389,49 @@ scanner_e_illegal_alignment_directive=02088_E_Diretiva de alinhamento ilegal
 % semantics of you language, i.e. it determines if your Pascal constructs
 % are correct.
 % \begin{description}
+scanner_f_illegal_utf8_bom=02089_F_It is not possible to include a file that starts with an UTF-8 BOM in a module that uses a different code page
+% All source code that is part of a single compilation entity (program, library, unit) must be encoded
+% in the same code page
+scanner_w_directive_ignored_on_target=02090_W_Directive "$1" is ignored for the current target platform
+% Some directives are ignored for certain targets, such as changing the
+% packrecords and packenum settings on managed platforms.
+scan_w_unavailable_system_codepage=02091_W_Current system codepage "$1" is not available for the compiler. Switching default codepage back to "$2".
+% The current system codepage is not known by the compiler.
+% The compiler is compiled with support for several codepages built-in.
+% The codepage of the operation system is not in that list. You will need to recompile
+% the compiler with support for this codepage.
+scan_w_setpeoptflags_not_support=02092_W_SETPEOPTFLAGS is not supported by the target OS
+% The \var{\{\$SETPEOPTFLAGS\}} directive is not supported by the target OS.
+scan_e_illegal_peflag=02093_E_Illegal argument for SETPEFLAGS
+% The given argument for SETPEFLAGS is neither a correct named value nor an
+% ordinal value
+scan_e_illegal_peoptflag=02094_E_Illegal argument for SETPEOPTFLAGS
+% The given argument for SETPEOPTFLAGS is neither a correct named value nor an
+% ordinal value
+scan_e_unsupported_switch=02095_E_Directive $1 is not supported on this target
+% Not all compiler directives are supported on all targets.
+scan_w_invalid_stacksize=02096_W_The specified stack size is not within the valid range for the platform. Setting the stack size ignored.
+% The valid range for the stack size is 1024 - 67107839 on 32-bit and 64-bit
+% platforms and 1024 - 65520 on 16-bit platforms. Additionally, for Turbo Pascal 7
+% compatibility reasons, specifying a stack size of 65521 on 16-bit platforms
+% actually sets the stack size to 65520.
+scan_w_heapmax_lessthan_heapmin=02097_W_The specified HeapMax value is smaller than the HeapMin value. Setting HeapMax ignored.
+% The HeapMax value (if specified) must be greater than or equal to the HeapMin
+% value. Otherwise, the HeapMax value is ignored.
+scan_e_illegal_hugepointernormalization=02098_E_Illegal argument for HUGEPOINTERNORMALIZATION
+% The only allowed values for HUGEPOINTERNORMALIZATION are BORLANDC, MICROSOFTC
+% and WATCOMC.
+% \end{description}
+#
+# Parser
+#
+# 03339 is the last used one
+#
+% \section{Parser messages}
+% This section lists all parser messages. The parser takes care of the
+% semantics of you language, i.e. it determines if your Pascal constructs
+% are correct.
+% \begin{description}
 parser_e_syntax_error=03000_E_Analizador - Erro sintaxe
 % An error against the Turbo Pascal language was encountered. This typically
 % happens when an illegal character is found in the source file.
@@ -638,7 +683,7 @@ parser_e_void_function=03080_E_Procedimentos não podem retornar um valor
 % In \fpc, you can specify a return value for a function when using
 % the \var{exit} statement. This error occurs when you try to do this with a
 % procedure. Procedures cannot return a value.
-parser_e_constructors_always_objects=03081_E_Construtores, destruidores e operadores de classe devem ser métodos
+parser_e_only_methods_allowed=03081_E_constructors, destructors and class operators must be methods
 % You're declaring a procedure as destructor, constructor or class operator, when the
 % procedure isn't a class method.
 parser_e_operator_not_overloaded=03082_E_Operador não é sobrecarregado
@@ -680,9 +725,10 @@ parser_e_mix_of_classes_and_objects=03093_E_A mistura de diferentes espécies de
 % a class cannot have an object as parent and vice versa.
 parser_w_unknown_proc_directive_ignored=03094_W_Diretiva desconhecida de procedimento teve que ser ignorada: "$1"
 % The procedure directive you specified is unknown.
-parser_e_absolute_only_one_var=03095_E_Absolute só pode estar associada a uma variável
-% You cannot specify more than one variable before the \var{absolute} directive.
-% Thus, the following construct will provide this error:
+parser_e_directive_only_one_var=03095_E_$1 can be associated with only one variable
+% You cannot specify more than one variable before the \var{absolute}, \var{export}, \var{external},
+% \var{weakexternal}, \var{public} and \var{cvar} directives.
+% As a result, for example the following construct will provide this error:
 % \begin{verbatim}
 % Var Z : Longint;
 %     X,Y : Longint absolute Z;
@@ -1259,23 +1305,23 @@ parser_e_no_objc_published=03271_E_Classes Objective-C não podem ter seções P
 parser_f_need_objc=03272_F_Este módulo requer que seja especificado uma chave de modo Objective-C para ser compilado
 % This error indicates the use of Objective-C language features without an Objective-C mode switch
 % active. Enable one via the -M command line switch, or the {\$modeswitch x} directive.
-parser_e_must_use_override_objc=03273_E_Métodos herdados podem apenas ser sobrepostos em Objective-C, adicione "OVERRIDE" (método herdado definido em $1)
-parser_h_should_use_override_objc=03274_H_Métodos herdados podem apenas ser sobrepostos em Objective-C, adicione "OVERRIDE" (método herdado definido em $1).
-% It is not possible to \var{reintroduce} methods in Objective-C like in Object Pascal. Methods with the same
+parser_e_must_use_override=03273_E_Inherited methods can only be overridden in Objective-C and Java, add "override" (inherited method defined in $1)
+parser_h_should_use_override=03274_H_Inherited methods can only be overridden in Objective-C and Java, add "override" (inherited method defined in $1).
+% It is not possible to \var{reintroduce} methods in Objective-C or Java like in Object Pascal. Methods with the same
 % name always map to the same virtual method entry. In order to make this clear in the source code,
 % the compiler always requires the \var{override} directive to be specified when implementing overriding
-% Objective-C methods in Pascal. If the implementation is external, this rule is relaxed because Objective-C
-% does not have any \var{override}-style keyword (since it's the default and only behaviour in that language),
+% Objective-C or Java methods in Pascal. If the implementation is external, this rule is relaxed because Objective-C and Java
+% do not have any \var{override}-style keyword (since it's the default and only behaviour in these languages),
 % which makes it hard for automated header conversion tools to include it everywhere.
 % The type in which the inherited method is defined is explicitly mentioned, because this may either
-% be an objcclass or an objccategory.
+% be an objcclass or an objccategory in case of Objective-C.
 parser_e_objc_message_name_changed=03275_E_Nome mensagem "$1" na classe herdada é diferente do nome mensagem "$2" na classe atual.
 % An overriding Objective-C method cannot have a different message name than an inherited method. The reason
 % is that these message names uniquely define the message to the Objective-C runtime, which means that
 % giving them a different message name breaks the ``override'' semantics.
-parser_e_no_objc_unique=03276_E_Ainda não é possível fazer cópias únicas de tipos Objective-C
-% Duplicating an Objective-C type using \var{type x = type y;} is not yet supported. You may be able to
-% obtain the desired effect using \var{type x = objcclass(y) end;} instead.
+parser_e_unique_unsupported=03276_E_It is not yet possible to make unique copies of Objective-C or Java types
+% Duplicating an Objective-C or Java type using \var{type x = type y;} is not yet supported. You may be able to
+% obtain the desired effect using \var{type x = objcclass(y) end;} resp.{} \var{type x = class(y) end;} instead.
 parser_e_no_category_as_types=03277_E_Categorias Objective-C e classes auxiliares Object Pascal não podem ser usadas como tipos
 % It is not possible to declare a variable as an instance of an Objective-C
 % category or an Object Pascal class helper. A category/class helper adds
@@ -1355,9 +1401,9 @@ parser_f_no_generic_inside_generic=03297_F_Declaração de classe genérica dent
 % (guarded by internal error 200511173 in tscannerfile.startrecordtokens).
 % Since generics are implemented by recording tokens, it is not possible to
 % have declaration of generic class inside another generic class.
-parser_e_forward_protocol_declaration_must_be_resolved=03298_E_Declaração posterior de objcprotocl "$1" deve ser resolvida antes de uma objcclass possa conformá-la
-% An objcprotocol must be fully defined before classes can conform to it.
-% This error occurs in the following situation:
+parser_e_forward_intf_declaration_must_be_resolved=03298_E_Forward declaration "$1" must be resolved before a class can conform to or implement it
+% An Objective-C protocol or Java Interface must be fully defined before classes can conform to it.
+% This error occurs in the following situation (example for Objective-C, but the same goes for Java interfaces):
 % \begin{verbatim}
 %  Type MyProtocol = objcprotoocl;
 %       ChildClass = Class(NSObject,MyProtocol)
@@ -1372,8 +1418,8 @@ parser_e_no_destructor_in_records=03300_E_Destruidores não são permitidos em r
 parser_e_class_methods_only_static_in_records=03301_E_Métodos de classe devem ser estáticos em registros
 % Class methods declarations aren't allowed in records without static modifier.
 % Records have no inheritance and therefore non static class methods have no sence for them.
-parser_e_no_constructor_in_records=03302_E_Construtores não são permitidos em registros ou auxiliares de registro
-% Constructor declarations aren't allowed in records or record helpers.
+parser_e_no_parameterless_constructor_in_records=03302_E_Parameterless constructors are not allowed in records or record/type helpers
+% Constructor declarations with no arguments are not allowed in records or record/type helpers.
 parser_e_at_least_one_argument_must_be_of_type=03303_E_Tanto o resultado ou ao menos um parâmetro deve ser do tipo "$1"
 % It is required that either the result of the routine or at least one of its parameters be of the specified type.
 % For example class operators either take an instance of the structured type in which they are defined, or they return one.
@@ -1412,6 +1458,113 @@ parser_e_invalid_codepage=03314_E_Codepage inválido
 # Type Checking
 #
 # 04108 is the last used one
+#
+% \section{Type checking errors}
+% This section lists all errors that can occur when type checking is
+% performed.
+% \begin{description}
+parser_e_final_only_const_var=03315_E_Only fields (var-sections) and constants can be final in object types
+% A final (class) field must be assigned a single value in the (class) constructor, and cannot
+% be overwritten afterwards. A final (typed) constant is read-only.
+parser_e_final_only_external=03316_E_Final fields are currently only supported for external classes
+% Support for final fields in non-external classes requires a full data flow
+% analysis implementation in FPC, which it currently still lacks.
+parser_e_no_typed_const=03317_E_Typed constants are not allowed here, only formal constants are
+% Java interfaces define a namespace in which formal constant can be defined,
+% but since they define no storage it is not possible to define typed constants
+% in them (those are more or less the same as initialised class fields).
+parser_e_java_no_inherited_constructor=03318_E_Constructors are not automatically inherited in the JVM; explicitly add a constructor that calls the inherited one if you need it
+% Java does not automatically add inherited constructors to child classes, so that they can be hidden.
+% For compatibility with external Java code, FPC does the same. If you require access to the same
+% constructors in a child class, define them in the child class and call the inherited one from
+% there.
+parser_d_internal_parser_string=03319_D_Parsing internally generated code: $1
+% The compiler sometimes internally constructs Pascal code that is subsequently
+% injected into the program. These messages display such code, in order to help
+% with debugging errors in them.
+parser_e_feature_unsupported_for_vm=03320_E_This language feature is not supported on managed VM targets
+% Certain language features are not supported on targets that are managed virtual machines.
+parser_e_jvm_invalid_virtual_constructor_call=03321_E_Calling a virtual constructor for the current instance inside another constructor is not possible on the JVM target
+% The JVM does not natively support virtual constructor. Unforunately, we are not aware of a way to
+% emulate them in a way that makes it possible to support calling virtual constructors
+% for the current instance inside another constructor.
+parser_e_method_lower_visibility=03322_E_Overriding method "$1" cannot have a lower visibility ($2) than in parent class $3 ($4)
+% The JVM does not allow lowering the visibility of an overriding method.
+parser_e_nostackframe_without_assembler=03323_E_Procedure/Function declared with call option NOSTACKFRAME but without ASSEMBLER
+% nostackframe call modifier is supposed to be used in conjunction with assembler.
+parser_e_nostackframe_with_locals=03324_E_Procedure/Function declared with call option NOSTACKFRAME but local stack size is $1
+% nostackframe call modifier used without assembler modifier
+% might still generate local stack needs.
+parser_e_cannot_generate_property_getter_setter=03325_E_Cannot generate property getter/setter $1 because its name clashes with existing identifier $2
+% Automatically generated getters/setters cannot have the same name as existing
+% identifiers, because this may change the behaviour of existing code.
+parser_w_overriding_property_getter_setter=03326_W_Automatically generated property getter/setter $1 overrides the same-named getter/setter in class $2
+% Automatically generated property getters/setters on the JVM platform are virtual methods, because
+% the JVM does not support non-virtual methods that can be changed in child classes. This means
+% that if a child class changes an inherited property definition, the behaviour of that property
+% can change compared to native targets since even if a variable is declared as the parent type,
+% by calling the virtual method the getter from the child will be used. This is different from
+% the behaviour on native targets or when not activating automatically generated setters/getters,
+% because in that case only the declared type of a variable influences the property behaviour.
+parser_w_case_difference_auto_property_getter_setter_prefix=03327_W_Case mismatch between declared property getter/setter $1 and automatically constructed name $2, not changing declared name
+% If a property's specified getter/setter already corresponded to the naming convention specified
+% by the automatic getter/setter generation setting except in terms of upper/lowercase, the
+% compiler will print a warning because it cannot necessarily change that other declaration itself
+% not can it add one using the correct case (it could conflict with the original declaration).
+% Manually correct the case of the getter/setter to conform to the desired coding rules.
+% \var{TChild} overrides
+parser_e_no_consts_in_local_anonymous_records=03328_E_Constants declarations are not allowed in local or anonymous records
+% Records with constants must be defined globally. Constants cannot be defined inside records which are defined in a
+% procedure or function or in anonymous records.
+parser_e_no_methods_in_local_anonymous_records=03329_E_Method declarations are not allowed in local or anonymous records
+% Records with methods must be defined globally. Methods cannot be defined inside records which are defined in a
+% procedure or function or in anonymous records.
+parser_e_no_properties_in_local_anonymous_records=03330_E_Property declarations are not allowed in local or anonymous records
+% Records with properties must be defined globally. Properties cannot be defined inside records which are defined in a
+% procedure or function or in anonymous records.
+parser_e_no_class_in_local_anonymous_records=03331_E_Class member declarations are not allowed in local or anonymous records
+% Records with class members must be defined globally. Class members cannot be defined inside records which are defined in a
+% procedure or function or in anonymous records.
+parser_e_not_allowed_in_record=03332_E_Visibility section "$1" not allowed in records
+% The visibility sections \var(protected) and \var(strict protected) are only
+% useful together with inheritance. Since records do not support that they are
+% forbidden.
+parser_e_dir_not_allowed=03333_E_Directive "$1" not allowed here
+% This directive is not allowed in the given context. E.g. "static"
+% is not allowed for instance methods or class operators.
+parser_e_no_assembler_in_generic=03334_E_Assembler blocks not allowed inside generics
+% The use of assembler blocks/routines is not allowed inside generics.
+parser_e_property_only_sgr=03335_E_Properties can be only static, global or inside structured types
+% Properties cannot be declared local, only global, using the static
+% directive or inside structured types.
+parser_e_overloaded_have_same_mangled_name=03336_E_Overloaded routines have the same mangled name
+% Some platforms, such as the JVM platform, encode the parameters in the routine name in
+% a prescribed way, and this encoding may map different Pascal types to the same encoded
+% (a.k.a.\ ``mangled'') name. This error can only be solved by removing or changing the
+% conflicting definitions' parameter declarations or routine names.
+parser_e_default_value_val_const=03337_E_Default values can only be specified for value, const and constref parameters
+% A default parameter value allows you to not specify a value for this parameter
+% when calling the routine, and the compiler will instead pass the specified
+% default (constant) value. As a result, default values can only be specified
+% for parameters that can accept constant values.
+parser_w_ptr_type_ignored=03338_W_Pointer type "$1" ignored
+% The specified pointer type modifier is ignored, because it is not supported on
+% the current platform. This happens, for example, when a far pointer is
+% declared on a non-x86 platform.
+parser_e_global_generic_references_static=03339_E_Global Generic template references static symtable
+% A generic declared in the interface section of a unit must not reference symbols that belong
+% solely to the implementation section of that unit.
+parser_u_already_compiled=03340_UL_Unit $1 has been already compiled meanwhile.
+% This tells you that the recursive reading of the uses clauses triggered already
+% a compilation of the current unit, so the current compilation can be aborted.
+%
+%
+%
+% \end{description}
+%
+# Type Checking
+#
+# 04123 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1598,12 +1751,12 @@ type_e_type_is_not_completly_defined=04042_E_Tipo "$1" não está completamente 
 type_w_string_too_long=04043_W_Literal 'String' tem mais caracteres que comprimento 'string' curta
 % The size of the constant string, which is assigned to a shortstring,
 % is longer than the maximum size of the shortstring (255 characters).
-type_w_signed_unsigned_always_false=04044_W_Comparação pode ser sempre falsa devido a faixa da constante e expressão
+type_w_comparison_always_false=04044_W_Comparison might be always false due to range of constant and expression
 % There is a comparison between a constant and an expression where the constant is out of the
 % valid range of values of the expression. Because of type promotion, the statement will always evaluate to
 % false. Explicitly typecast the constant or the expression to the correct range to avoid this warning
 % if you think the code is correct.
-type_w_signed_unsigned_always_true=04045_W_Comparação pode ser sempre verdadeira devido a faixa da constante e expressão
+type_w_comparison_always_true=04045_W_Comparison might be always true due to range of constant and expression
 % There is a comparison between a constant and an expression where the constant is out of the
 % valid range of values of the expression. Because of type promotion, the statement will always evaluate to
 % true. Explicitly typecast the constant or the expression to the correct range to avoid this warning
@@ -1798,6 +1951,70 @@ type_w_unicode_data_loss=04108_W_Conversão de constante Unicode com potencial d
 # Symtable
 #
 # 05084 is the last used one
+#
+% \section{Symbol handling}
+% This section lists all the messages that concern the handling of symbols.
+% This means all things that have to do with procedure and variable names.
+% \begin{description}
+type_e_range_check_error_bounds=04109_E_range check error while evaluating constants ($1 must be between $2 and $3)
+type_w_range_check_error_bounds=04110_W_range check error while evaluating constants ($1 must be between $2 and $3)
+% The constants are outside their allowed range.
+type_e_type_not_allowed_for_default=04111_E_This type is not supported for the Default() intrinsic
+% Some types like for example Text and File Of X are not supported by the Default intrinsic.
+type_e_java_class_method_not_static_virtual=04112_E_JVM virtual class methods cannot be static
+% Virtual class methods cannot be static when targeting the JVM platform, because
+% the self pointer is required for correct dispatching.
+type_e_invalid_final_assignment=04113_E_Final (class) fields can only be assigned in their class' (class) constructor
+% It is only possible to assign a value to a final (class) field inside a (class) constructor of its owning class.
+type_e_no_managed_formal_assign_typecast=04114_E_It is not possible to typecast untyped parameters on managed platforms, simply assign a value to them instead.
+% On managed platforms, untyped parameters are translated by the compiler into
+% the equivalent of \var{var x: BaseClassType}. Non-class-based types passed to
+% such parameters are automatically wrapped (or boxed) in a class, and after the
+% call the potentially modified value is assigned back to the original variable.
+% On the caller side, changing untyped var/out parameters happens by simply assigning
+% values to them (either class-based or primitive ones). On the caller side,
+% they will be extracted and if their type does not match the original variable's,
+% an exception will be raised.
+type_e_no_managed_assign_generic_typecast=04115_E_The assignment side of an expression cannot be typecasted to a supertype on managed platforms
+% Managed platforms guarantee type safety at the bytecode level. This means that the virtual machine must be able
+% to statically determine that no type-unsafe assignments or operations occur. By assigning a parent class type to a
+% variable of a child type by typecasting the assignment side to the parent class type, the type safety would no
+% longer be guaranteed and the generated code would fail verification at run time time.
+type_w_interface_lower_visibility=04116_-W_The interface method "$1" raises the visibility of "$2" to public when accessed via an interface instance
+type_e_interface_lower_visibility=04117_E_The interface method "$1" has a higher visibility (public) than "$2"
+% All methods in an interface have always public visibility. That means that if
+% an interface method is implemented using a (strict) protected or private method,
+% this method is actually publicly accessible via the interface. On the JVM
+% target this situation results in an error because the JVM rejects such
+% attempts to circumvent the visibility rules. On other targets this is a
+% warning that is disabled by default because such situations are common
+% practice, but it can be enabled in case you are concerned with keeping your
+% code compilable for the JVM target.
+type_e_typeof_requires_vmt=04118_E_TYPEOF can only be used on object types with VMT
+% Typeof() intrinsic returns pointer to VMT of its argument. It cannot be used on object types that do not have VMT.
+type_e_invalid_default_value=04119_E_It is not possible to define a default value for a parameter of type "$1"
+% Parameters declared as structured types, such as files, variants, non-dynamic
+% arrays and TP-style objects, cannot have a default value.
+type_e_type_not_allowed_for_type_helper=04120_E_Type "$1" cannot be extended by a type helper
+% Types like procedural variables cannot be extended by type helpers
+type_e_procedure_must_be_far=04121_E_Procedure or function must be far in order to allow taking its address: "$1"
+% In certain i8086 memory models (medium, large and huge), procedures and functions
+% have to be declared 'far' in order to allow their address to be taken.
+type_w_instance_abstract_class=04122_W_Creating an instance of abstract class "$1"
+% The specified class is declared as \var{abstract} and thus no instance of this class
+% should be created. This is merely a warning for Delphi compatibility.
+type_e_function_reference_kind=04123_E_Subroutine references cannot be declared as "of object" or "is nested", they can always refer to any kind of subroutine
+% Subroutine references can refer to any kind of subroutine and hence do not
+% require specialisation for methods or nested subroutines.
+type_e_anonymous_function_unsupported=04999_E_Function references are not yet supported, only blocks (add "cdecl;" at the end)
+% Remove this error message once Delphi-style anonymous are implemented. It has
+% number 4999 so as not to result in a gap in the error message numbering once
+% it's removed.
+% \end{description}
+#
+# Symtable
+#
+# 05095 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -2028,8 +2245,8 @@ sym_w_experimental_unit=05079_W_Unidade "$1" é experimental
 % declared as \var{experimental} is used. Experimental units
 % might disappear or change semantics in future versions. Usage of this unit
 % should be avoided as much as possible.
-sym_e_objc_formal_class_not_resolved=05080_E_Nenhuma definição completa da classe objeto formalmente declarada "$1" está no escopo
-% Objecive-C classes can be imported formally, without using the the unit in which it is fully declared.
+sym_e_formal_class_not_resolved=05080_E_No complete definition of the formally declared class "$1" is in scope
+% Objecive-C and Java classes can be imported formally, without using the unit in which it is fully declared.
 % This enables making forward references to such classes and breaking circular dependencies amongst units.
 % However, as soon as you wish to actually do something with an entity of this class type (such as
 % access one of its fields, send a message to it, or use it to inherit from), the compiler requires the full definition
@@ -2048,6 +2265,75 @@ sym_w_library_overload=05084_W_Possível conflito em biblioteca: símbolo "$1" d
 % by another library. This warning appears if 'funcname' is used twice
 % with two different library names.
 %
+% \end{description}
+#
+# Codegenerator
+#
+# 06049 is the last used one
+#
+% \section{Code generator messages}
+% This section lists all messages that can be displayed if the code
+% generator encounters an error condition.
+% \begin{description}
+sym_e_duplicate_id_create_java_constructor=05085_E_Cannot add implicit constructor 'Create' because identifier already used by "$1"
+% Java does not automatically add inherited constructors to child classes, so that they can be hidden.
+% However, if a class does not explicitly declare at least one constructor, the compiler is
+% required to add a public, parameterless constructor. In Java, constructors are nameless,
+% but in FPC they are all called ``Create''. Therefore, if you do not add a constructor to
+% a Java class and furthermore use the ``Create'' identifier for another entity (e.g., a field,
+% or a parameterless method), the compiler cannot satisfy this requirement.
+sym_e_no_matching_inherited_parameterless_constructor=05086_E_Cannot generate default constructor for class, because parent has no parameterless constructor
+% Java does not automatically add inherited constructors to child classes, so that they can be hidden.
+% However, if a class does not explicitly declare at least one constructor, the compiler is
+% required to add a public, parameterless constructor. This compiler must then call
+% the parameterless constructor from the parent class inside this added constructor.
+% This is however impossible if the parent class does not declare such a constructor.
+% In this case you must add a valid constructor yourself.
+sym_d_adding_helper_for=05087_D_Adding helper for $1
+% A helper for the mentioned type is added to the current scope
+sym_e_param_list=05088_E_Found declaration: $1
+% This message shows all overloaded declarations in case of an error.
+sym_w_uninitialized_managed_local_variable=05089_W_Local variable "$1" of a managed type does not seem to be initialized
+% This message is displayed if the compiler thinks that a variable will
+% be used (i.e. it appears in the right-hand side of an expression) when it
+% was not initialized first (i.e. appeared in the left-hand side of an
+% assignment). Since the variable is managed, i. e. implicitly initialized by the compiler, this might be intended behaviour and
+% does not necessarily mean that the code is wrong.
+sym_w_uninitialized_managed_variable=05090_W_Variable "$1" of a managed type does not seem to be initialized
+% This message is displayed if the compiler thinks that a variable will
+% be used (i.e. it appears in the right-hand side of an expression) when it
+% was not initialized first (i.e. appeared in the left-hand side of an
+% assignment). Since the variable is managed, i. e. implicitly initialized by the compiler, this might be intended behaviour and
+% does not necessarily mean that the code is wrong.
+sym_h_uninitialized_managed_local_variable=05091_H_Local variable "$1" of a managed type does not seem to be initialized
+% This message is displayed if the compiler thinks that a variable will
+% be used (i.e. it appears in the right-hand side of an expression) when it
+% was not initialized first (i.e. it did not appear in the left-hand side of an
+% assignment). Since the variable is managed, i. e. implicitly initialized by the compiler, this might be intended behaviour and
+% does not necessarily mean that the code is wrong.
+sym_h_uninitialized_managed_variable=05092_H_Variable "$1" of a managed type does not seem to be initialized
+% This message is displayed if the compiler thinks that a variable will
+% be used (i.e. it appears in the right-hand side of an expression) when it
+% was not initialized first (i.e. t did not appear in the left-hand side of an
+% assignment). Since the variable is managed, i. e. implicitly initialized by the compiler, this might be intended behaviour and
+% does not necessarily mean that the code is wrong.
+sym_w_managed_function_result_uninitialized=05093_W_function result variable of a managed type does not seem to initialized
+% This message is displayed if the compiler thinks that the function result
+% variable will be used (i.e. it appears in the right-hand side of an expression)
+% before it is initialized (i.e. before it appeared in the left-hand side of an
+% assignment). Since the variable is managed, i. e. implicitly initialized by the compiler, this might be intended behaviour and
+% does not necessarily mean that the code is wrong.
+sym_h_managed_function_result_uninitialized=05094_H_Function result variable of a managed type does not seem to be initialized
+% This message is displayed if the compiler thinks that the function result
+% variable will be used (i.e. it appears in the right-hand side of an expression)
+% before it is initialized (i.e. it appears in the left-hand side of an
+% assignment). Since the variable is managed, i. e. implicitly initialized by the compiler, this might be intended behaviour and
+% does not necessarily mean that the code is wrong.
+sym_w_duplicate_id=05095_W_Duplicate identifier "$1"
+% The identifier was already declared in an Objective-C category that's in the
+% same scope as the current identifier. This is a warning instead of an error,
+% because while this hides the identifier from the category, there are often
+% many unused categories in scope.
 % \end{description}
 #
 # Codegenerator
@@ -2201,6 +2487,23 @@ cg_e_mod_only_defined_for_pos_quotient=06054_E_No modo ISO, o operador 'mod' é 
 # Assembler reader
 #
 # 07110 is the last used one
+#
+cg_d_autoinlining=06055_DL_Auto inlining: $1
+% Due to auto inlining turned on, the compiler auto inlines this subroutine.
+cg_e_function_not_support_by_selected_instruction_set=06056_E_The function used, is not supported by the selected instruction set: $1
+% Some functions cannot be implemented efficiently for certain instruction sets, one example is fused multiply/add.
+% To avoid very inefficient code, the compiler complains in this case, so either select another instruction set
+% or replace the function call by alternative code
+cg_f_max_units_reached=06057_F_Maximum number of units ($1) reached for the current target
+% Depending of target architecture, the number of units is limited. This limit
+% has been reached. A unit counts only if it contains initialization or finalization count.
+%
+% \end{description}
+# EndOfTeX
+#
+# Assembler reader
+#
+# 07125 is the last used one
 #
 asmr_d_start_reading=07000_DL_Iniciando $1 análise estilo assembler
 % This informs you that an assembler block is being parsed
@@ -2475,6 +2778,46 @@ asmr_e_unsupported_directive=07115_E_Diretiva "$1" não é suportada pelo alvo a
 #
 # 08022 is the last used one
 #
+asmr_e_complex_function_result_location=07116_E_This function's result location cannot be encoded directly in a single operand when "nostackframe" is used
+% Functions declared with the \var{nostackframe} modifier do not have a stack frame, and hence
+% do not have a local variable to hold the temporary function result.  Accesses to the function
+% result in such routines directly go to the registers or memory location that will be used
+% to return their result to the caller.  In some cases this result may be spread over multiple
+% registers, in which case it is not possible to access the location via its symbolic name.
+% You have to directly use the appropriate register names in this case.
+asmr_e_wrong_gotpcrel_intel_syntax=07117_E_GOTPCREL references in Intel assembler syntax cannot contain a base or index register, and their offset must 0.
+% The syntax for a gotpcrel PIC memory expression in Intel assembler syntax is
+% \verb*[global_symbol wrt ..gotpcrel]*
+asmr_e_no_gotpcrel_support=07118_E_The current target does not support GOTPCREL relocations
+% Not all targets support position-independent code using a global offset table.
+% Use a different way to access symbols in a position-indepent way in these cases.
+asmr_w_global_access_without_got=07119_W_Exported/global symbols should be accessed via the GOT
+% Global symbols (symbols from the unit interface, or defined in a program
+% or library) should be accessed via the GOT when generating position-indepent code.
+asmr_w_check_mem_operand_size=07120_W_Check size of memory operand "$1"
+% The size of memory operand is possible invalid. This is
+% probably an error in the assembler statement
+asmr_w_check_mem_operand_size3=07121_W_Check size of memory operand "$1: memory-operand-size is $2 bits, but expected [$3 bits]"
+% The size of memory operand is possible invalid. This is
+% probably an error in the assembler statement
+asmr_w_check_mem_operand_size_offset=07122_W_Check size of memory operand "$1: memory-operand-size is $2 bits, but expected [$3 bits + $4 byte offset]"
+% The size of memory operand is possible invalid. This is
+% probably an error in the assembler statement
+asmr_w_check_mem_operand_negative_offset=07123_W_Check "$1: offset of memory operand is negative "$2 byte"
+% The offset of memory operand is possible invalid. This is
+% probably an error in the assembler statement
+asmr_w_check_mem_operand_automap_multiple_size=07124_W_Check "$1: size of memory operand is empty, but es exists different definitions of the memory size =>> map to $2 (smallest option)"
+% The size of memory operand is empty and we have different definitions of possible memory sizes. Check it!
+asmr_e_invalid_ref_register=07125_E_Invalid register used in memory reference expression: "$1"
+% FPU, vector and sometimes integer registers cannot be used in memory reference
+% expressions, due to limitations of the cpu architecture or simple because
+% it is not meaningful.
+
+#
+# Assembler/binary writers
+#
+# 08029 is the last used one
+#
 asmw_f_too_many_asm_files=08000_F_Muitos arquivos assembler
 % With smartlinking enabled, there are too many assembler
 % files generated. Disable smartlinking.
@@ -2519,6 +2862,27 @@ asmw_e_handlerdata_no_handler=08025_E_Diretiva .seh_handlerdata sem .seh_handler
 # Executing linker/assembler
 #
 # 09033 is the last used one
+#
+# BeginOfTeX
+%
+% \section{Errors of assembling/linking stage}
+% This section lists errors that occur when the compiler is processing the
+% command line or handling the configuration files.
+% \begin{description}
+asmw_f_too_many_relocations=08026_F_Relocation count for section $1 exceeds 65535
+% Legacy COFF targets limit number of relocations per section to 65535 because they use a 2-byte field
+% to store the relocation count. Targets using newer PECOFF format do not have this limitation.
+asmw_w_changing_bind_type=08027_N_Change of bind type of symbol $1 from $2 to $3 after use
+asmw_h_changing_bind_type=08028_H_Change of bind type of symbol $1 from $2 to $3 after use
+% An assembler symbol bind type has been altered after use, which can lead to wrong code.
+% First version is reserved for changig to local label, which is the most probable cause
+% of wrong code generation, but currently set to Note level as it appears inside
+% the compiler compilation.
+asmw_e_32bit_not_supported=08029_E_Asm: 32 Bit references not supported
+#
+# Executing linker/assembler
+#
+# 09035 is the last used one
 #
 # BeginOfTeX
 %
@@ -2579,6 +2943,9 @@ exec_e_exe_not_supported=09018_E_Criação de Executáveis não suportada
 exec_e_dll_not_supported=09019_E_Criação de bibliotecas Dinâmicas/Compartilhadas não suportada
 % Creating dynamically loadable libraries is not supported for this platform, because it was
 % not yet implemented in the compiler.
+exec_e_static_lib_not_supported=09035_E_Creation of Static Libraries not supported
+% Creating static libraries is not supported for this platform, because it was
+% not yet implemented in the compiler.
 exec_i_closing_script=09020_I_Fechando roteiro $1
 % Informational message showing when writing of the external assembling and linking script is finished.
 exec_e_res_not_found=09021_E_Compilador recursos "$1" não encontrado, mudando para modo externo
@@ -2610,6 +2977,23 @@ exec_e_cant_write_resource_file=09032_E_Impossível gravar arquivo recursos "$1"
 % An error occurred resource file cannot be written.
 exec_n_backquote_cat_file_not_found=09033_N_Arquivo "$1" não encontrado para comando 'cat' entre aspas
 % The compiler did not find the file that should be expanded into linker parameters
+%\end{description}
+# EndOfTeX
+
+#
+# Executable information
+#
+# 09134 is the last used one
+#
+# BeginOfTeX
+% \section{Executable information messages.}
+% This section lists all messages that the compiler emits when an executable program is produced,
+% and only when the internal linker is used.
+% \begin{description}
+exec_w_init_file_not_found=09034_W_"$1" not found, this will probably cause a linking failure
+% The compiler adds certain startup code files to the linker only when they are found.
+% If they are not found, they are not added and this might cause a linking failure.
+%
 %\end{description}
 # EndOfTeX
 
@@ -2871,6 +3255,17 @@ unit_u_indirect_crc_changed=10062_U_CRC interface indireta (objetos/classes) alt
 #
 # 11049 is the last used one
 #
+unit_u_ppu_invalid_memory_model=10063_U_PPU is compiled for another i8086 memory model
+% This unit file was compiled for a different i8086 memory model and
+% cannot be read.
+% \end{description}
+# EndOfTeX
+
+#
+#  Options
+#
+# 11057 is the last used one
+#
 option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
 %
@@ -2998,6 +3393,39 @@ option_debug_external_unsupported=11048_W_Desabilitando informação externa dep
 option_dwarf_smartlink_creation=11049_N_Informação de depuração DWARF não pode ser usada com vinculação inteligente com assembler externo, desabilitando criação de biblioteca estática.
 % Smart linking is currently incompatble with DWARF debug information on most
 % platforms, so smart linking is disabled in such cases.
+%\end{description}
+# EndOfTeX
+
+#
+#  Whole program optimization
+#
+# 12019 is the last used one
+#
+# BeginOfTeX
+%
+% \section{Whole program optimization messages}
+% This section lists errors that occur when the compiler is performing
+% whole program optimization.
+% \begin{description}
+option_invalid_macosx_deployment_target=11050_E_Invalid value for MACOSX_DEPLOYMENT_TARGET environment variable: $1
+option_invalid_iphoneos_deployment_target=11051_E_Invalid value for IPHONEOS_DEPLOYMENT_TARGET environment variable: $1
+% On Mac OS X, the MACOSX\_DEPLOYMENT\_TARGET/IPHONEOS\_DEPLOYMENT\_TARGET environment variable can be
+% used to set the default target OS version. In case of Mac OS X, it has to be of the format
+% XY.Z or XY.Z.AB with X, Y,Z , A and B all digits from 0-9.
+% In case of iOS, it has to be X.Z.A, where X, Z and A can all be either 1 or 2
+% digits from 0-9.
+option_illegal_fpu_eabihf=11052_E_You must use a FPU type of VFPV2, VFPV3 or VFPV3_D16 when using the EABIHF ABI target
+% The EABIHF (VFP hardfloat) ABI target can only be used with VFP FPUs.
+option_w_unsupported_debug_format=11053_W_The selected debug format is not supported on the current target, not changing the current setting
+% Not all targets support all debug formats (in particular, Stabs is not supported on 64 bit targets).
+option_missing_arg=11054_E_argument to "$1" is missing
+% Displayed when parameter must be followed by an argument.
+option_malformed_para=11055_E_malformed parameter: $1
+% Given argument is not valid for parameter.
+option_smart_link_requires_external_linker=11056_W_Smart linking requires external linker
+option_com_files_require_tiny_model=11057_E_Creating .COM files is not supported in the current memory model. Only the tiny memory model supports making .COM files.
+
+
 %\end{description}
 # EndOfTeX
 
@@ -3441,3 +3869,54 @@ P*2WT_Especifica aplicação do tipo ferramenta MPW (Classic Mac OS)
 
 #
 # The End...
+%%% parser_e_constructors_always_objects=03081_E_Construtores, destruidores e operadores de classe devem ser métodos
+% You're declaring a procedure as destructor, constructor or class operator, when the
+% procedure isn't a class method.
+%%% parser_e_absolute_only_one_var=03095_E_Absolute só pode estar associada a uma variável
+% You cannot specify more than one variable before the \var{absolute} directive.
+% Thus, the following construct will provide this error:
+% \begin{verbatim}
+% Var Z : Longint;
+%     X,Y : Longint absolute Z;
+% \end{verbatim}
+%%% parser_e_must_use_override_objc=03273_E_Métodos herdados podem apenas ser sobrepostos em Objective-C, adicione "OVERRIDE" (método herdado definido em $1)
+%%% parser_h_should_use_override_objc=03274_H_Métodos herdados podem apenas ser sobrepostos em Objective-C, adicione "OVERRIDE" (método herdado definido em $1).
+% It is not possible to \var{reintroduce} methods in Objective-C like in Object Pascal. Methods with the same
+% name always map to the same virtual method entry. In order to make this clear in the source code,
+% the compiler always requires the \var{override} directive to be specified when implementing overriding
+% Objective-C methods in Pascal. If the implementation is external, this rule is relaxed because Objective-C
+% does not have any \var{override}-style keyword (since it's the default and only behaviour in that language),
+% which makes it hard for automated header conversion tools to include it everywhere.
+% The type in which the inherited method is defined is explicitly mentioned, because this may either
+% be an objcclass or an objccategory.
+%%% parser_e_no_objc_unique=03276_E_Ainda não é possível fazer cópias únicas de tipos Objective-C
+% Duplicating an Objective-C type using \var{type x = type y;} is not yet supported. You may be able to
+% obtain the desired effect using \var{type x = objcclass(y) end;} instead.
+%%% parser_e_forward_protocol_declaration_must_be_resolved=03298_E_Declaração posterior de objcprotocl "$1" deve ser resolvida antes de uma objcclass possa conformá-la
+% An objcprotocol must be fully defined before classes can conform to it.
+% This error occurs in the following situation:
+% \begin{verbatim}
+%  Type MyProtocol = objcprotoocl;
+%       ChildClass = Class(NSObject,MyProtocol)
+%         ...
+%       end;
+% \end{verbatim}
+% where \var{MyProtocol} is declared but not defined.
+%%% parser_e_no_constructor_in_records=03302_E_Construtores não são permitidos em registros ou auxiliares de registro
+% Constructor declarations aren't allowed in records or record helpers.
+%%% type_w_signed_unsigned_always_false=04044_W_Comparação pode ser sempre falsa devido a faixa da constante e expressão
+% There is a comparison between a constant and an expression where the constant is out of the
+% valid range of values of the expression. Because of type promotion, the statement will always evaluate to
+% false. Explicitly typecast the constant or the expression to the correct range to avoid this warning
+% if you think the code is correct.
+%%% type_w_signed_unsigned_always_true=04045_W_Comparação pode ser sempre verdadeira devido a faixa da constante e expressão
+% There is a comparison between a constant and an expression where the constant is out of the
+% valid range of values of the expression. Because of type promotion, the statement will always evaluate to
+% true. Explicitly typecast the constant or the expression to the correct range to avoid this warning
+% if you think the code is correct.
+%%% sym_e_objc_formal_class_not_resolved=05080_E_Nenhuma definição completa da classe objeto formalmente declarada "$1" está no escopo
+% Objecive-C classes can be imported formally, without using the the unit in which it is fully declared.
+% This enables making forward references to such classes and breaking circular dependencies amongst units.
+% However, as soon as you wish to actually do something with an entity of this class type (such as
+% access one of its fields, send a message to it, or use it to inherit from), the compiler requires the full definition
+% of the class to be in scope.

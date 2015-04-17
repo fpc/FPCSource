@@ -1,3 +1,5 @@
+%%% Reordering of errordu.msg respective to errore.msg
+%%% Contains all comments from errordu.msg
 #
 #   German (UTF-8) Language File for Free Pascal
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
@@ -2469,6 +2471,17 @@ cg_e_function_not_support_by_selected_instruction_set=06056_E_Die verwendete Fun
 #
 # 07125 is the last used one
 #
+cg_f_max_units_reached=06057_F_Maximum number of units ($1) reached for the current target
+% Depending of target architecture, the number of units is limited. This limit
+% has been reached. A unit counts only if it contains initialization or finalization count.
+%
+% \end{description}
+# EndOfTeX
+#
+# Assembler reader
+#
+# 07125 is the last used one
+#
 asmr_d_start_reading=07000_DL_Starte $1 Stil Assembler Parsen
 % This informs you that an assembler block is being parsed
 asmr_d_finish_reading=07001_DL_Beende $1 Stil Assembler Parsen
@@ -2840,6 +2853,18 @@ asmw_h_changing_bind_type=08028_H_Änderung des Bind-Typs des Symbols $1 von $2 
 % This section lists errors that occur when the compiler is processing the
 % command line or handling the configuration files.
 % \begin{description}
+asmw_e_32bit_not_supported=08029_E_Asm: 32 Bit references not supported
+#
+# Executing linker/assembler
+#
+# 09035 is the last used one
+#
+# BeginOfTeX
+%
+% \section{Errors of assembling/linking stage}
+% This section lists errors that occur when the compiler is processing the
+% command line or handling the configuration files.
+% \begin{description}
 exec_w_source_os_redefined=09000_W_Quellbetriebssystem wurde neu definiert
 % The source operating system is redefined.
 exec_i_assembling_pipe=09001_I_Assembliere (pipe) $1
@@ -2893,6 +2918,23 @@ exec_e_exe_not_supported=09018_E_Erzeugen von ausführbaren Dateien nicht unters
 exec_e_dll_not_supported=09019_E_Dynamische Bibliotheken nicht unterstützt
 % Creating dynamically loadable libraries is not supported for this platform, because it was
 % not yet implemented in the compiler.
+exec_e_static_lib_not_supported=09035_E_Statische Bibliotheken nicht unterstützt
+% Creating static libraries is not supported for this platform, because it was
+% not yet implemented in the compiler.
+%
+% \end{description}
+# EndOfTeX
+
+#
+# Executable information
+#
+# 09134 is the last used one
+#
+# BeginOfTeX
+% \section{Executable information messages.}
+% This section lists all messages that the compiler emits when an executable program is produced,
+% and only when the internal linker is used.
+% \begin{description}
 exec_i_closing_script=09020_I_Schliesse Skript $1
 % Informational message showing when writing of the external assembling and linking script is finished.
 exec_e_res_not_found=09021_E_Resource-Compiler "$1" nicht gefunden, schalte um auf externen Modus
@@ -2927,23 +2969,6 @@ exec_n_backquote_cat_file_not_found=09033_N_Die Datei "$1" wurde mit dem Kommand
 exec_w_init_file_not_found=09034_W_"$1" nicht gefunden; dies wird wahrscheinlich zu einem Fehler beim Linken führen
 % The compiler adds certain startup code files to the linker only when they are found.
 % If they are not found, they are not added and this might cause a linking failure.
-exec_e_static_lib_not_supported=09035_E_Statische Bibliotheken nicht unterstützt
-% Creating static libraries is not supported for this platform, because it was
-% not yet implemented in the compiler.
-%
-% \end{description}
-# EndOfTeX
-
-#
-# Executable information
-#
-# 09134 is the last used one
-#
-# BeginOfTeX
-% \section{Executable information messages.}
-% This section lists all messages that the compiler emits when an executable program is produced,
-% and only when the internal linker is used.
-% \begin{description}
 execinfo_f_cant_process_executable=09128_F_Kann ausführbare Datei nicht nachbearbeiten: $1
 % Fatal error when the compiler is unable to post-process an executable.
 execinfo_f_cant_open_executable=09129_F_Kann ausführbare Datei nicht öffnen: $1
