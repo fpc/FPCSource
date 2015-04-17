@@ -449,7 +449,17 @@ implementation
                     taicpu(curtai).oper[0]^.ref^.symbol:=l;
                     taicpu(curtai).condition:=inverse_cond(taicpu(curtai).condition);
                     again:=true;
+                  end
+                { replace JMP by RJMP? }
+                else if (curtai.typ=ait_instruction) and
+                  (taicpu(curtai).opcode=A_JMP) and
+                  (taicpu(curtai).InsOffset-taicpu(curtai).oper[0]^.ref^.symbol.offset<=2048) and
+                  (taicpu(curtai).InsOffset-taicpu(curtai).oper[0]^.ref^.symbol.offset>=-2047) then
+                  begin
+                    taicpu(curtai).opcode:=A_RJMP;
+                    again:=true;
                   end;
+
                 curtai:=tai(curtai.next);
               end;
           end;
