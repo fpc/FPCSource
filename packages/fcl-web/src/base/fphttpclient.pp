@@ -456,7 +456,12 @@ begin
       Aport:=80;
   G:=GetSocketHandler(UseSSL);    
   FSocket:=TInetSocket.Create(AHost,APort,G);
-  FSocket.Connect;
+  try
+    FSocket.Connect;
+  except
+    FreeAndNil(FSocket);
+    Raise;
+  end;
 end;
 
 procedure TFPCustomHTTPClient.DisconnectFromServer;
