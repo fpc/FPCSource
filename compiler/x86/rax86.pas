@@ -1180,7 +1180,13 @@ begin
                      asize:=OT_BITS8;
                    OS_16,OS_S16, OS_M16:
                      asize:=OT_BITS16;
-                   OS_32,OS_S32,OS_F32,OS_M32 :
+                   OS_32,OS_S32 :
+{$ifdef i8086}
+                     asize:=OT_BITS16;
+{$else i8086}
+                     asize:=OT_BITS32;
+{$endif i8086}
+                   OS_F32,OS_M32 :
                      asize:=OT_BITS32;
                    OS_64,OS_S64:
                      begin
