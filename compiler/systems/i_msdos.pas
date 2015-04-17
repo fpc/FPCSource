@@ -79,7 +79,7 @@ unit i_msdos;
             ar           : ar_watcom_wlib_omf;
 {$endif}
             res          : res_none;
-            dbg          : dbg_stabs;
+            dbg          : dbg_dwarf2;
             script       : script_dos;
             endian       : endian_little;
             alignment    :
