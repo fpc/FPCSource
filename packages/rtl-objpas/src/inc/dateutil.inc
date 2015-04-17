@@ -2539,9 +2539,9 @@ function UniversalTimeToLocal(UT: TDateTime; TZOffset : Integer): TDateTime;
 
 begin
   if (TZOffset > 0) then
-    Result := UT - EncodeTime(TZOffset div 60, TZOffset mod 60, 0, 0)
+    Result := UT + EncodeTime(TZOffset div 60, TZOffset mod 60, 0, 0)
   else if (TZOffset < 0) then
-    Result := UT + EncodeTime(Abs(TZOffset) div 60, Abs(TZOffset) mod 60, 0, 0)
+    Result := UT - EncodeTime(Abs(TZOffset) div 60, Abs(TZOffset) mod 60, 0, 0)
   else
     Result := UT;
 end;
@@ -2556,9 +2556,9 @@ Function LocalTimeToUniversal(LT: TDateTime;TZOffset: Integer): TDateTime;
 
 begin
   if (TZOffset > 0) then
-    Result := LT + EncodeTime(TZOffset div 60, TZOffset mod 60, 0, 0)
+    Result := LT - EncodeTime(TZOffset div 60, TZOffset mod 60, 0, 0)
   else if (TZOffset < 0) then
-    Result := LT - EncodeTime(Abs(TZOffset) div 60, Abs(TZOffset) mod 60, 0, 0)
+    Result := LT + EncodeTime(Abs(TZOffset) div 60, Abs(TZOffset) mod 60, 0, 0)
   else
     Result := LT;
 end;
