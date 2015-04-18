@@ -71,6 +71,7 @@ interface
     RT_LLNAMES   = $CA;  { Local Logical Names Definition Record }
     RT_VERNUM    = $CC;  { OMF Version Number Record }
     RT_VENDEXT   = $CE;  { Vendor-specific OMF Extension Record }
+    RT_LIBHEAD   = $F0;  { Library Header Record }
 
     { OMF comment class }
     CC_Translator               = $00; { language translator (compiler or assembler) name }
@@ -460,6 +461,29 @@ interface
       property FrameThread: TOmfFixupThread read FFrameThread write FFrameThread;
       property FrameMethod: TOmfFixupFrameMethod read FFrameMethod write FFrameMethod;
       property FrameDatum: Integer read FFrameDatum write FFrameDatum;
+    end;
+
+    { TOmfRecord_LIBHEAD }
+
+    TOmfRecord_LIBHEAD = class(TOmfParsedRecord)
+    private
+      FPageSize: Integer;
+      FDictionaryOffset: DWord;
+      FDictionarySizeInBlocks: Word;
+      FFlags: Byte;
+      function IsCaseSensitive: Boolean;
+      procedure SetCaseSensitive(AValue: Boolean);
+      procedure SetPageSize(AValue: Integer);
+    public
+      constructor Create;
+      procedure DecodeFrom(RawRecord: TOmfRawRecord);override;
+      procedure EncodeTo(RawRecord: TOmfRawRecord);override;
+
+      property PageSize: Integer read FPageSize write SetPageSize;
+      property DictionaryOffset: DWord read FDictionaryOffset write FDictionaryOffset;
+      property DictionarySizeInBlocks: Word read FDictionarySizeInBlocks write FDictionarySizeInBlocks;
+      property Flags: Byte read FFlags write FFlags;
+      property CaseSensitive: Boolean read IsCaseSensitive write SetCaseSensitive;
     end;
 
     TOmfLibHash = record
@@ -1404,6 +1428,70 @@ implementation
             end;
         end;
       Result:=Offset;
+    end;
+
+
+  { TOmfRecord_LIBHEAD }
+
+  constructor TOmfRecord_LIBHEAD.Create;
+    begin
+      PageSize:=512;
+      DictionarySizeInBlocks:=2;
+      CaseSensitive:=true;
+    end;
+
+  procedure TOmfRecord_LIBHEAD.SetPageSize(AValue: Integer);
+    var
+      p: longint;
+    begin
+      { valid library page sizes are powers of two, between 2**4 and 2**15 }
+      if not ispowerof2(AValue,p) then
+        internalerror(2015041802);
+      if (p<4) or (p>15) then
+        internalerror(2015041802);
+      FPageSize:=AValue;
+    end;
+
+  procedure TOmfRecord_LIBHEAD.DecodeFrom(RawRecord: TOmfRawRecord);
+    begin
+      if RawRecord.RecordType<>RT_LIBHEAD then
+        internalerror(2015040301);
+      { this will also range check PageSize and will ensure that RecordLength>=13 }
+      PageSize:=RawRecord.RecordLength+3;
+      DictionaryOffset:=RawRecord.RawData[0]+
+                       (RawRecord.RawData[1] shl 8)+
+                       (RawRecord.RawData[2] shl 16)+
+                       (RawRecord.RawData[3] shl 24);
+      DictionarySizeInBlocks:=RawRecord.RawData[4]+
+                             (RawRecord.RawData[5] shl 8);
+      Flags:=RawRecord.RawData[6];
+    end;
+
+  procedure TOmfRecord_LIBHEAD.EncodeTo(RawRecord: TOmfRawRecord);
+    begin
+      { make sure the LIBHEAD record is padded with zeros at the end }
+      FillChar(RawRecord.RawData,SizeOf(RawRecord.RawData),0);
+      RawRecord.RecordType:=RT_LIBHEAD;
+      RawRecord.RecordLength:=PageSize-3;
+      RawRecord.RawData[0]:=Byte(DictionaryOffset);
+      RawRecord.RawData[1]:=Byte(DictionaryOffset shr 8);
+      RawRecord.RawData[2]:=Byte(DictionaryOffset shr 16);
+      RawRecord.RawData[3]:=Byte(DictionaryOffset shr 24);
+      RawRecord.RawData[4]:=Byte(DictionarySizeInBlocks);
+      RawRecord.RawData[5]:=Byte(DictionarySizeInBlocks shr 8);
+      RawRecord.RawData[6]:=Flags;
+      { the LIBHEAD record contains no checksum byte, so no need to call
+        RawRecord.CalculateChecksumByte }
+    end;
+
+  function TOmfRecord_LIBHEAD.IsCaseSensitive: Boolean;
+    begin
+      Result:=(FFlags and 1)<>0;
+    end;
+
+  procedure TOmfRecord_LIBHEAD.SetCaseSensitive(AValue: Boolean);
+    begin
+      FFlags:=(FFlags and $FE) or Ord(AValue);
     end;
 
   function compute_omf_lib_hash(const name: string; blocks: Integer): TOmfLibHash;
