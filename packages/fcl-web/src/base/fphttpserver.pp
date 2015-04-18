@@ -36,12 +36,7 @@ Type
   TFPHTTPConnectionRequest = Class(TRequest)
   private
     FConnection: TFPHTTPConnection;
-    FRemoteAddress: String;
-    FServerPort: String;
-    FQueryString : String;
   protected
-    function GetFieldValue(Index: Integer): String; override;
-    procedure SetFieldValue(Index: Integer; Value: String);override;
     Procedure InitRequestVars; override;
   published
     Property Connection : TFPHTTPConnection Read FConnection;
@@ -261,13 +256,30 @@ begin
   end;
 end;
 
+Function GetHostNameByAddress(const AnAddress: String): String;
+var
+  Resolver: THostResolver;
+begin
+  Result := '';
+  if AnAddress = '' then exit;
+  Resolver := THostResolver.Create(nil);
+  try
+    if Resolver.AddressLookup(AnAddress) then
+      Result := Resolver.ResolvedName
+  finally
+    FreeAndNil(Resolver);
+  end;
+end;
+
 procedure TFPHTTPConnectionRequest.InitRequestVars;
 Var
   P : Integer;
 begin
   P:=Pos('?',URI);
   if (P<>0) then
-    FQueryString:=Copy(URI,P+1,Length(URI)-P);
+    SetHTTPVariable(hvQuery,Copy(URI,P+1,Length(URI)-P));
+  if Assigned(FConnection) and FConnection.LookupHostNames then
+    SetHTTPVariable(hvRemoteHost,GetHostNameByAddress(RemoteAddress));
   inherited InitRequestVars;
 end;
 
@@ -279,51 +291,7 @@ begin
     Result := '';
 end;
 
-Function GetHostNameByAddress(const AnAddress: String): String;
-var
-  Resolver: THostResolver;
-begin
-  Result := '';
-  if AnAddress = '' then exit;
 
-  Resolver := THostResolver.Create(nil);
-  try
-    if Resolver.AddressLookup(AnAddress) then
-      Result := Resolver.ResolvedName
-  finally
-    FreeAndNil(Resolver);
-  end;
-end;
-
-
-Procedure TFPHTTPConnectionRequest.SetFieldValue(Index : Integer; Value : String);
-
-begin
-  case Index of
-    27 : FRemoteAddress := Value;
-    30 : FServerPort := Value;
-    33 : FQueryString:=Value
-  else
-    Inherited SetFieldValue(Index,Value);
-  end;  
-end;
-
-Function TFPHTTPConnectionRequest.GetFieldValue(Index : Integer) : String;
-
-begin
-  case Index of
-    27 : Result := FRemoteAddress;
-    28 : // Remote server name
-         if Assigned(FConnection) and FConnection.LookupHostNames then
-           Result := GetHostNameByAddress(FRemoteAddress) 
-         else
-           Result:='';  
-    30 : Result := FServerPort;
-    33 : Result:=FQueryString
-  else
-    Result:=Inherited GetFieldValue(Index);
-  end; 
-end;
 
 procedure TFPHTTPConnectionResponse.DoSendHeaders(Headers: TStrings);
 
@@ -476,7 +444,10 @@ Var
 begin
   Request.Method:=GetNextWord(AStartLine);
   Request.URL:=GetNextWord(AStartLine);
-  Request.PathInfo:=Request.URL;
+  S:=Request.URL;
+  If (S<>'') and (S[1]='/') then
+    Delete(S,1,1);
+  Request.PathInfo:=S;
   S:=GetNextWord(AStartLine);
   If (Pos('HTTP/',S)<>1) then
     Raise EHTTPServer.CreateHelp(SErrMissingProtocol,400);
