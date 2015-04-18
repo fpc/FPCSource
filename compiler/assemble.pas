@@ -194,7 +194,7 @@ Implementation
       cpuinfo,
 {$endif m68k or arm}
       aasmcpu,
-      owbase,owar
+      owbase,owar,owomflib
       ;
 
     var

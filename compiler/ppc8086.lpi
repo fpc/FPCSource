@@ -28,7 +28,7 @@
         <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="237">
+    <Units Count="238">
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
@@ -58,11 +58,11 @@
       <Unit6>
         <Filename Value="i8086\cpupi.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="cpupi"/>
       </Unit6>
       <Unit7>
         <Filename Value="i8086\cputarg.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="cputarg"/>
       </Unit7>
       <Unit8>
         <Filename Value="i8086\hlcgcpu.pas"/>
@@ -160,6 +160,7 @@
       <Unit29>
         <Filename Value="x86\aasmcpu.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="aasmcpu"/>
       </Unit29>
       <Unit30>
         <Filename Value="x86\agx86int.pas"/>
@@ -169,7 +170,6 @@
       <Unit31>
         <Filename Value="x86\cga.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="cga"/>
       </Unit31>
       <Unit32>
         <Filename Value="x86\hlcgx86.pas"/>
@@ -179,6 +179,7 @@
       <Unit33>
         <Filename Value="x86\itcpugas.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="itcpugas"/>
       </Unit33>
       <Unit34>
         <Filename Value="x86\itx86int.pas"/>
@@ -191,14 +192,17 @@
       <Unit36>
         <Filename Value="x86\rax86.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="rax86"/>
       </Unit36>
       <Unit37>
         <Filename Value="x86\rax86att.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="rax86att"/>
       </Unit37>
       <Unit38>
         <Filename Value="x86\rax86int.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="Rax86int"/>
       </Unit38>
       <Unit39>
         <Filename Value="i8086\n8086cnv.pas"/>
@@ -286,6 +290,7 @@
       <Unit57>
         <Filename Value="cgutils.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="cgutils"/>
       </Unit57>
       <Unit58>
         <Filename Value="cutils.pas"/>
@@ -310,10 +315,12 @@
       <Unit62>
         <Filename Value="psub.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="psub"/>
       </Unit62>
       <Unit63>
         <Filename Value="ngenutil.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ngenutil"/>
       </Unit63>
       <Unit64>
         <Filename Value="pinline.pas"/>
@@ -332,6 +339,7 @@
       <Unit67>
         <Filename Value="dbgdwarf.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="dbgdwarf"/>
       </Unit67>
       <Unit68>
         <Filename Value="symdef.pas"/>
@@ -346,6 +354,7 @@
       <Unit70>
         <Filename Value="psystem.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="psystem"/>
       </Unit70>
       <Unit71>
         <Filename Value="symconst.pas"/>
@@ -440,6 +449,7 @@
       <Unit92>
         <Filename Value="cgbase.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="cgbase"/>
       </Unit92>
       <Unit93>
         <Filename Value="ncgcnv.pas"/>
@@ -461,6 +471,7 @@
       <Unit97>
         <Filename Value="aasmbase.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="aasmbase"/>
       </Unit97>
       <Unit98>
         <Filename Value="aasmdata.pas"/>
@@ -469,10 +480,12 @@
       <Unit99>
         <Filename Value="aasmsym.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="aasmsym"/>
       </Unit99>
       <Unit100>
         <Filename Value="aggas.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="aggas"/>
       </Unit100>
       <Unit101>
         <Filename Value="agjasmin.pas"/>
@@ -498,6 +511,7 @@
       <Unit106>
         <Filename Value="aoptobj.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="AoptObj"/>
       </Unit106>
       <Unit107>
         <Filename Value="assemble.pas"/>
@@ -529,7 +543,6 @@
       <Unit113>
         <Filename Value="cfileutl.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="cfileutl"/>
       </Unit113>
       <Unit114>
         <Filename Value="cg64f32.pas"/>
@@ -661,7 +674,6 @@
       <Unit144>
         <Filename Value="macho.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="macho"/>
       </Unit144>
       <Unit145>
         <Filename Value="machoutils.pas"/>
@@ -674,11 +686,11 @@
       <Unit147>
         <Filename Value="ncgbas.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ncgbas"/>
       </Unit147>
       <Unit148>
         <Filename Value="ncgflw.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="ncgflw"/>
       </Unit148>
       <Unit149>
         <Filename Value="ncgmat.pas"/>
@@ -699,6 +711,7 @@
       <Unit153>
         <Filename Value="ncgrtti.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ncgrtti"/>
       </Unit153>
       <Unit154>
         <Filename Value="ncgset.pas"/>
@@ -712,6 +725,7 @@
       <Unit156>
         <Filename Value="ngtcon.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="ngtcon"/>
       </Unit156>
       <Unit157>
         <Filename Value="nobj.pas"/>
@@ -744,6 +758,7 @@
       <Unit164>
         <Filename Value="objcgutl.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="objcgutl"/>
       </Unit164>
       <Unit165>
         <Filename Value="objcutil.pas"/>
@@ -762,7 +777,6 @@
       <Unit168>
         <Filename Value="oglx.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="oglx"/>
       </Unit168>
       <Unit169>
         <Filename Value="ogmacho.pas"/>
@@ -777,7 +791,6 @@
       <Unit171>
         <Filename Value="ognlm.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="ognlm"/>
       </Unit171>
       <Unit172>
         <Filename Value="optbase.pas"/>
@@ -786,6 +799,7 @@
       <Unit173>
         <Filename Value="optconstprop.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="optconstprop"/>
       </Unit173>
       <Unit174>
         <Filename Value="optcse.pas"/>
@@ -874,6 +888,7 @@
       <Unit194>
         <Filename Value="procinfo.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="procinfo"/>
       </Unit194>
       <Unit195>
         <Filename Value="pstatmnt.pas"/>
@@ -891,6 +906,7 @@
       <Unit198>
         <Filename Value="raatt.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="raatt"/>
       </Unit198>
       <Unit199>
         <Filename Value="rabase.pas"/>
@@ -903,6 +919,7 @@
       <Unit201>
         <Filename Value="rautils.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="RAUtils"/>
       </Unit201>
       <Unit202>
         <Filename Value="regvars.pas"/>
@@ -966,6 +983,7 @@
       <Unit216>
         <Filename Value="version.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="version"/>
       </Unit216>
       <Unit217>
         <Filename Value="widestr.pas"/>
@@ -1053,6 +1071,11 @@
         <Filename Value="i8086\aoptcpud.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit236>
+      <Unit237>
+        <Filename Value="owomflib.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="owomflib"/>
+      </Unit237>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

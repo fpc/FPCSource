@@ -532,6 +532,7 @@ compiler/optutils.pas svneol=native#text/plain
 compiler/optvirt.pas svneol=native#text/plain
 compiler/owar.pas svneol=native#text/plain
 compiler/owbase.pas svneol=native#text/plain
+compiler/owomflib.pas svneol=native#text/plain
 compiler/parabase.pas svneol=native#text/plain
 compiler/paramgr.pas svneol=native#text/plain
 compiler/parser.pas svneol=native#text/plain
