@@ -755,7 +755,7 @@ begin
 end;
 
 
-function DwarfBackTraceStr(addr : Pointer) : shortstring;
+function DwarfBackTraceStr(addr : CodePointer) : shortstring;
 var
   func,
   source : string;
