@@ -277,6 +277,15 @@ implementation
             FClassName:='data';
             dgroup:=true;
           end
+        else if (Aname='debug_frame') or
+                (Aname='debug_info') or
+                (Aname='debug_line') or
+                (Aname='debug_abbrev') then
+          begin
+            FClassName:='DWARF';
+            FUse:=suUse32;
+            dgroup:=false;
+          end
         else
           begin
             FClassName:='data';
