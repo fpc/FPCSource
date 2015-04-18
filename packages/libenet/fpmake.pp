@@ -22,7 +22,8 @@ begin
     P.SourcePath.Add('examples');
     P.IncludePath.Add('src');
     P.OSes := AllUnixOSes+AllWindowsOSes-[qnx];
-
+    P.Dependencies.Add('rtl-extra'); // winsock2
+    
     T:=P.Targets.AddUnit('enettypes.pp');
     T:=P.Targets.AddUnit('enetlist.pp');
     T:=P.Targets.AddUnit('enetcallbacks.pp');
