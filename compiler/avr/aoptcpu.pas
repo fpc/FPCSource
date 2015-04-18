@@ -129,6 +129,30 @@ Implementation
                       result:=true;
                     end;
                 end;
+              A_STS:
+                if (taicpu(p).oper[0]^.ref^.symbol=nil) and
+                  (taicpu(p).oper[0]^.ref^.relsymbol=nil) and
+                  (getsupreg(taicpu(p).oper[0]^.ref^.base)=RS_NO) and
+                  (getsupreg(taicpu(p).oper[0]^.ref^.index)=RS_NO) and
+                  (taicpu(p).oper[0]^.ref^.addressmode=AM_UNCHANGED) and
+                  (taicpu(p).oper[0]^.ref^.offset>=32) and
+                  (taicpu(p).oper[0]^.ref^.offset<=95) then
+                  begin
+                    taicpu(p).opcode:=A_OUT;
+                    taicpu(p).loadconst(0,taicpu(p).oper[0]^.ref^.offset-32);
+                  end;
+              A_LDS:
+                if (taicpu(p).oper[1]^.ref^.symbol=nil) and
+                  (taicpu(p).oper[1]^.ref^.relsymbol=nil) and
+                  (getsupreg(taicpu(p).oper[1]^.ref^.base)=RS_NO) and
+                  (getsupreg(taicpu(p).oper[1]^.ref^.index)=RS_NO) and
+                  (taicpu(p).oper[1]^.ref^.addressmode=AM_UNCHANGED) and
+                  (taicpu(p).oper[1]^.ref^.offset>=32) and
+                  (taicpu(p).oper[1]^.ref^.offset<=95) then
+                  begin
+                    taicpu(p).opcode:=A_IN;
+                    taicpu(p).loadconst(1,taicpu(p).oper[1]^.ref^.offset-32);
+                  end;
               A_CLR:
                 begin
                   { turn the common
