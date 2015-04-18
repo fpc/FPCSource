@@ -122,4 +122,5 @@
   add_x11(ADirectory+IncludeTrailingPathDelimiter('x11'));
   add_xforms(ADirectory+IncludeTrailingPathDelimiter('xforms'));
   add_zlib(ADirectory+IncludeTrailingPathDelimiter('zlib'));
+  add_libenet(ADirectory+IncludeTrailingPathDelimiter('libenet'));
   add_zorba(ADirectory+IncludeTrailingPathDelimiter('zorba'));
