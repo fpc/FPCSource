@@ -121,6 +121,13 @@ Implementation
       i : Longint;
     begin
       result:=false;
+      If (p1.typ = ait_instruction) and (taicpu(p1).opcode in [A_MUL,A_MULS,A_FMUL,A_FMULS,A_FMULSU]) and
+              ((getsupreg(reg)=RS_R0) or (getsupreg(reg)=RS_R1)) then
+        begin
+          Result:=true;
+          exit;
+        end;
+
       for i:=0 to taicpu(p1).ops-1 do
         if (taicpu(p1).oper[i]^.typ=top_reg) and (taicpu(p1).oper[i]^.reg=Reg) and (taicpu(p1).spilling_get_operation_type(i) in [operand_write,operand_readwrite]) then
           begin

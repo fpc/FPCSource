@@ -33,6 +33,7 @@ uses cpubase, cgbase, aasmtai, aopt, aoptcpub;
 Type
   TCpuAsmOptimizer = class(TAsmOptimizer)
     Function GetNextInstructionUsingReg(Current: tai; Var Next: tai;reg : TRegister): Boolean;
+    function RegInInstruction(Reg: TRegister; p1: tai): Boolean; override;
 
     { uses the same constructor as TAopObj }
     function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
@@ -49,6 +50,16 @@ Implementation
   function CanBeCond(p : tai) : boolean;
     begin
       result:=(p.typ=ait_instruction) and (taicpu(p).condition=C_None);
+    end;
+
+
+  function TCpuAsmOptimizer.RegInInstruction(Reg: TRegister; p1: tai): Boolean;
+    begin
+      If (p1.typ = ait_instruction) and (taicpu(p1).opcode in [A_MUL,A_MULS,A_FMUL,A_FMULS,A_FMULSU]) and
+              ((getsupreg(reg)=RS_R0) or (getsupreg(reg)=RS_R1)) then
+        Result:=true
+      else
+        Result:=inherited RegInInstruction(Reg, p1);
     end;
 
 
