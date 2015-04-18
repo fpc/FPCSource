@@ -48,10 +48,12 @@ Type
     FOnRequestError: TRequestErrorHandler;
     FServer: TEmbeddedHTTPServer;
     function GetAllowConnect: TConnectQuery;
+    function GetAddress: string;
     function GetPort: Word;
     function GetQueueSize: Word;
     function GetThreaded: Boolean;
     procedure SetOnAllowConnect(const AValue: TConnectQuery);
+    procedure SetAddress(const AValue: string);
     procedure SetPort(const AValue: Word);
     procedure SetQueueSize(const AValue: Word);
     procedure SetThreaded(const AValue: Boolean);
@@ -70,6 +72,8 @@ Type
     Procedure Terminate; override;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    // Address to listen on.
+    Property Address : string Read GetAddress Write SetAddress;
     // Port to listen on.
     Property Port : Word Read GetPort Write SetPort Default 80;
     // Max connections on queue (for Listen call)
@@ -91,10 +95,12 @@ Type
     function GetLookupHostNames : Boolean;
     Procedure SetLookupHostnames(Avalue : Boolean);
     function GetAllowConnect: TConnectQuery;
+    function GetAddress: String;
     function GetPort: Word;
     function GetQueueSize: Word;
     function GetThreaded: Boolean;
     procedure SetOnAllowConnect(const AValue: TConnectQuery);
+    procedure SetAddress(const AValue: string);
     procedure SetPort(const AValue: Word);
     procedure SetQueueSize(const AValue: Word);
     procedure SetThreaded(const AValue: Boolean);
@@ -102,6 +108,7 @@ Type
     function InitializeWebHandler: TWebHandler; override;
     Function HTTPHandler : TFPHTTPServerHandler;
   Public
+    Property Address : string Read GetAddress Write SetAddress;
     Property Port : Word Read GetPort Write SetPort Default 80;
     // Max connections on queue (for Listen call)
     Property QueueSize : Word Read GetQueueSize Write SetQueueSize Default 5;
@@ -153,6 +160,11 @@ begin
   Result:=HTTPHandler.OnAllowConnect;
 end;
 
+function TCustomHTTPApplication.GetAddress: String;
+begin
+  Result:=HTTPHandler.Address;
+end;
+
 function TCustomHTTPApplication.GetPort: Word;
 begin
   Result:=HTTPHandler.Port;
@@ -171,6 +183,11 @@ end;
 procedure TCustomHTTPApplication.SetOnAllowConnect(const AValue: TConnectQuery);
 begin
   HTTPHandler.OnAllowConnect:=AValue;
+end;
+
+procedure TCustomHTTPApplication.SetAddress(const AValue: string);
+begin
+  HTTPHandler.Address:=Avalue;
 end;
 
 procedure TCustomHTTPApplication.SetPort(const AValue: Word);
@@ -245,6 +262,11 @@ begin
   Result:=FServer.OnAllowConnect;
 end;
 
+function TFPHTTPServerHandler.GetAddress: string;
+begin
+  Result:=FServer.Address;
+end;
+
 function TFPHTTPServerHandler.GetPort: Word;
 begin
   Result:=FServer.Port;
@@ -263,6 +285,11 @@ end;
 procedure TFPHTTPServerHandler.SetOnAllowConnect(const AValue: TConnectQuery);
 begin
   FServer.OnAllowConnect:=Avalue
+end;
+
+procedure TFPHTTPServerHandler.SetAddress(const AValue: string);
+begin
+  FServer.Address:=AValue
 end;
 
 procedure TFPHTTPServerHandler.SetPort(const AValue: Word);

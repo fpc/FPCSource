@@ -111,6 +111,7 @@ Type
     FOnAllowConnect: TConnectQuery;
     FOnRequest: THTTPServerRequestHandler;
     FOnRequestError: TRequestErrorHandler;
+    FAddress: string;
     FPort: Word;
     FQueueSize: Word;
     FServer : TInetServer;
@@ -122,6 +123,7 @@ Type
     function GetActive: Boolean;
     procedure SetActive(const AValue: Boolean);
     procedure SetOnAllowConnect(const AValue: TConnectQuery);
+    procedure SetAddress(const AValue: string);
     procedure SetPort(const AValue: Word);
     procedure SetQueueSize(const AValue: Word);
     procedure SetThreaded(const AValue: Boolean);
@@ -164,6 +166,8 @@ Type
   protected
     // Set to true to start listening.
     Property Active : Boolean Read GetActive Write SetActive Default false;
+    // Address to listen on.
+    Property Address : string Read FAddress Write SetAddress;
     // Port to listen on.
     Property Port : Word Read FPort Write SetPort Default 80;
     // Max connections on queue (for Listen call)
@@ -683,6 +687,13 @@ begin
   FOnAllowConnect:=AValue;
 end;
 
+procedure TFPCustomHttpServer.SetAddress(const AValue: string);
+begin
+  if FAddress=AValue then exit;
+  CheckInactive;
+  FAddress:=AValue;
+end;
+
 procedure TFPCustomHttpServer.SetPort(const AValue: Word);
 begin
   if FPort=AValue then exit;
@@ -773,7 +784,10 @@ end;
 
 procedure TFPCustomHttpServer.CreateServerSocket;
 begin
-  FServer:=TInetServer.Create(FPort);
+  if FAddress='' then
+    FServer:=TInetServer.Create(FPort)
+  else
+    FServer:=TInetServer.Create(FAddress,FPort);
   FServer.MaxConnections:=-1;
   FServer.OnConnectQuery:=OnAllowConnect;
   FServer.OnConnect:=@DOConnect;
