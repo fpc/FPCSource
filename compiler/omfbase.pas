@@ -462,9 +462,19 @@ interface
       property FrameDatum: Integer read FFrameDatum write FFrameDatum;
     end;
 
+    TOmfLibHash = record
+      block_x: Integer;
+      block_d: Integer;
+      bucket_x: Integer;
+      bucket_d: Integer;
+    end;
+
+  function compute_omf_lib_hash(const name: string; blocks: Integer): TOmfLibHash;
+
 implementation
 
   uses
+    cutils,
     verbose;
 
   { TOmfOrderedNameCollection }
@@ -1396,5 +1406,49 @@ implementation
       Result:=Offset;
     end;
 
+  function compute_omf_lib_hash(const name: string; blocks: Integer): TOmfLibHash;
+    const
+      blank=$20;  // ASCII blank
+      nbuckets=37;
+    var
+      block_x: Integer;
+      block_d: Integer;
+      bucket_x: Integer;
+      bucket_d: Integer;
+      len: Integer;
+      pbidx,peidx: Integer;
+      cback,cfront: Byte;
+    begin
+      len:=Length(name);
+      if len=0 then
+        internalerror(2015041801);
+      pbidx:=1;
+      peidx:=len+1;
+      { left to right scan }
+      block_x:=len or blank;
+      bucket_d:=block_x;
+      { right to left scan }
+      block_d:=0;
+      bucket_x:=0;
+      while true do
+        begin
+          { blank -> convert to LC }
+          Dec(peidx);
+          cback:=Byte(name[peidx]) or blank;
+          bucket_x:=RorWord(bucket_x,2) xor cback;
+          block_d:=RolWord(block_d,2) xor cback;
+          Dec(len);
+          if len=0 then
+            break;
+          cfront:=Byte(name[pbidx]) or blank;
+          Inc(pbidx);
+          block_x:=RolWord(block_x,2) xor cfront;
+          bucket_d:=RorWord(bucket_d,2) xor cfront;
+        end;
+      Result.block_x:=block_x mod blocks;
+      Result.block_d:=max(block_d mod blocks,1);
+      Result.bucket_x:=bucket_x mod nbuckets;
+      Result.bucket_d:=max(bucket_d mod nbuckets,1);
+    end;
 
 end.
