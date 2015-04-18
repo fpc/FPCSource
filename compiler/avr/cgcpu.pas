@@ -57,6 +57,8 @@ unit cgcpu;
 
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg: TRegister); override;
         procedure a_op_reg_reg(list: TAsmList; Op: TOpCG; size: TCGSize; src, dst : TRegister); override;
+        procedure a_op_reg_reg_reg(list: TAsmList; op: TOpCg; size: tcgsize; src1, src2, dst: tregister); override;
+        procedure a_op_const_reg_reg(list : TAsmList;op : TOpCg;size : tcgsize; a : tcgint;src,dst : tregister); override;
 
         { move instructions }
         procedure a_load_const_reg(list : TAsmList; size: tcgsize; a : tcgint;reg : tregister);override;
@@ -426,6 +428,47 @@ unit cgcpu;
        end;
 
 
+     procedure tcgavr.a_op_reg_reg_reg(list: TAsmList; op: TOpCg; size: tcgsize; src1, src2, dst: tregister);
+       begin
+         if (op in [OP_MUL,OP_IMUL]) and (size in [OS_16,OS_S16]) then
+           begin
+             getcpuregister(list,NR_R0);
+             getcpuregister(list,NR_R1);
+             list.concat(taicpu.op_reg_reg(A_MUL,src1,src2));
+             emit_mov(list,dst,NR_R0);
+             emit_mov(list,GetNextReg(dst),NR_R1);
+             list.concat(taicpu.op_reg_reg(A_MUL,GetNextReg(src1),src2));
+             list.concat(taicpu.op_reg_reg(A_ADD,GetNextReg(dst),NR_R0));
+             list.concat(taicpu.op_reg_reg(A_MUL,src1,GetNextReg(src2)));
+             list.concat(taicpu.op_reg_reg(A_ADD,GetNextReg(dst),NR_R0));
+             ungetcpuregister(list,NR_R0);
+             list.concat(taicpu.op_reg(A_CLR,NR_R1));
+             ungetcpuregister(list,NR_R1);
+           end
+         else
+          inherited a_op_reg_reg_reg(list,op,size,src1,src2,dst);
+       end;
+
+
+     procedure tcgavr.a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister);
+       begin
+         if (op in [OP_MUL,OP_IMUL]) and (size in [OS_16,OS_S16]) and (a in [1,2,4,8]) then
+           begin
+             emit_mov(list,dst,src);
+             emit_mov(list,GetNextReg(dst),GetNextReg(src));
+             a:=a shr 1;
+             while a>0 do
+               begin
+                 list.concat(taicpu.op_reg(A_LSL,dst));
+                 list.concat(taicpu.op_reg(A_ROL,GetNextReg(dst)));
+                 a:=a shr 1;
+               end;
+           end
+         else
+           inherited a_op_const_reg_reg(list,op,size,a,src,dst);
+       end;
+
+
      procedure tcgavr.a_op_reg_reg_internal(list : TAsmList; Op: TOpCG; size: TCGSize; src, srchi, dst, dsthi: TRegister);
        var
          countreg,
@@ -543,6 +586,19 @@ unit cgcpu;
                  end
                else if size=OS_16 then
                  begin
+                   tmpreg:=getintregister(list,OS_16);
+                   emit_mov(list,tmpreg,dst);
+                   emit_mov(list,GetNextReg(tmpreg),GetNextReg(dst));
+                   list.concat(taicpu.op_reg_reg(A_MUL,tmpreg,src));
+                   emit_mov(list,dst,NR_R0);
+                   emit_mov(list,GetNextReg(dst),NR_R1);
+                   list.concat(taicpu.op_reg_reg(A_MUL,GetNextReg(tmpreg),src));
+                   list.concat(taicpu.op_reg_reg(A_ADD,GetNextReg(dst),NR_R0));
+                   list.concat(taicpu.op_reg_reg(A_MUL,tmpreg,GetNextReg(src)));
+                   list.concat(taicpu.op_reg_reg(A_ADD,GetNextReg(dst),NR_R0));
+                   list.concat(taicpu.op_reg(A_CLR,NR_R1));
+
+                   { keep code for muls with overflow checking
                    pd:=search_system_proc('fpc_mul_word');
                    paraloc1.init;
                    paraloc2.init;
@@ -568,6 +624,7 @@ unit cgcpu;
                    paraloc3.done;
                    paraloc2.done;
                    paraloc1.done;
+                   }
                  end
                else
                  internalerror(2011022002);
@@ -1751,7 +1808,7 @@ unit cgcpu;
             cg.a_label(list,l);
             list.concat(taicpu.op_reg_ref(GetLoad(srcref),NR_R0,srcref));
             list.concat(taicpu.op_ref_reg(GetStore(dstref),dstref,NR_R0));
-            a_op_const_reg(list,OP_SUB,countregsize,1,countreg);
+            list.concat(taicpu.op_reg(A_DEC,countreg));
             a_jmp_flags(list,F_NE,l);
             // keep registers alive
             list.concat(taicpu.op_reg_reg(A_MOV,countreg,countreg));
