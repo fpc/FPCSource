@@ -39,7 +39,7 @@ unit i_linux;
                             tf_section_threadvars,
 {$endif segment_threadvars}
                             tf_needs_symbol_type,tf_files_case_sensitive,
-                            tf_smartlink_library,tf_needs_dwarf_cfi,tf_has_winlike_resources,
+                            tf_needs_dwarf_cfi,tf_has_winlike_resources,
                             tf_safecall_exceptions, tf_safecall_clearstack];
             cpu          : cpu_i386;
             unit_env     : 'LINUXUNITS';
@@ -106,7 +106,7 @@ unit i_linux;
             shortname    : 'Linux6432';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_pic_uses_got,tf_smartlink_sections,
-                            tf_smartlink_library,tf_has_winlike_resources];
+                            tf_has_winlike_resources];
             cpu          : cpu_x86_64;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -172,7 +172,7 @@ unit i_linux;
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_smartlink_sections,
                             tf_requires_proper_alignment, { Coldfire seems to need this at least (KB) }
-                            tf_smartlink_library,tf_has_winlike_resources];
+                            tf_has_winlike_resources];
             cpu          : cpu_m68k;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -237,7 +237,7 @@ unit i_linux;
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_smartlink_sections,
                             tf_needs_symbol_type,tf_files_case_sensitive,
-                            tf_smartlink_library,tf_has_winlike_resources];
+                            tf_has_winlike_resources];
             cpu          : cpu_powerpc;
             unit_env     : '';
             extradefines : 'UNIX;HASUNIX';
@@ -428,7 +428,7 @@ unit i_linux;
             system       : system_x86_64_LINUX;
             name         : 'Linux for x86-64';
             shortname    : 'Linux';
-            flags        : [tf_smartlink_sections,tf_needs_symbol_size,tf_needs_dwarf_cfi,tf_smartlink_library,
+            flags        : [tf_smartlink_sections,tf_needs_symbol_size,tf_needs_dwarf_cfi,
                             tf_library_needs_pic,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_has_winlike_resources,tf_safecall_exceptions,tf_safecall_clearstack];
             cpu          : cpu_x86_64;
@@ -495,7 +495,7 @@ unit i_linux;
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_library_needs_pic,tf_smartlink_sections,
                             tf_needs_symbol_type,tf_files_case_sensitive,
-                            tf_smartlink_library,tf_pic_uses_got,
+                            tf_pic_uses_got,
                             tf_requires_proper_alignment,tf_safecall_exceptions, tf_safecall_clearstack,
                             tf_has_winlike_resources];
             cpu          : cpu_SPARC;
@@ -563,7 +563,7 @@ unit i_linux;
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,
-                            tf_smartlink_sections,tf_smartlink_library,tf_pic_uses_got,
+                            tf_smartlink_sections,tf_pic_uses_got,
                             tf_has_winlike_resources];
             cpu          : cpu_arm;
             unit_env     : 'LINUXUNITS';
@@ -630,7 +630,7 @@ unit i_linux;
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,
-                            tf_smartlink_sections,tf_smartlink_library,tf_pic_uses_got,
+                            tf_smartlink_sections,tf_pic_uses_got,
                             tf_has_winlike_resources];
             cpu          : cpu_arm;
             unit_env     : 'LINUXUNITS';
@@ -697,7 +697,7 @@ unit i_linux;
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,
-                            tf_smartlink_sections,tf_smartlink_library,tf_pic_uses_got,
+                            tf_smartlink_sections,tf_pic_uses_got,
                             tf_has_winlike_resources];
             cpu          : cpu_arm;
             unit_env     : 'LINUXUNITS';
@@ -763,7 +763,7 @@ unit i_linux;
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,
-                            tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
+                            tf_smartlink_sections,tf_has_winlike_resources];
             cpu          : cpu_arm;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -832,7 +832,7 @@ unit i_linux;
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,tf_library_needs_pic,
                             tf_pic_uses_got,tf_safecall_exceptions,
-                            tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
+                            tf_smartlink_sections,tf_has_winlike_resources];
             cpu          : cpu_mipseb;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -899,7 +899,7 @@ unit i_linux;
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,tf_library_needs_pic,
                             tf_pic_uses_got,tf_safecall_exceptions,
-                            tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
+                            tf_smartlink_sections,tf_has_winlike_resources];
             cpu          : cpu_mipsel;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';

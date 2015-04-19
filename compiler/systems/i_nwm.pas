@@ -34,7 +34,7 @@ unit i_nwm;
             system       : system_i386_netware;
             name         : 'Netware for i386(clib)';
             shortname    : 'Netware';
-            flags        : [tf_smartlink_library,tf_smartlink_sections,tf_dwarf_only_local_labels];
+            flags        : [tf_smartlink_sections,tf_dwarf_only_local_labels];
             cpu          : cpu_i386;
             unit_env     : 'NETWAREUNITS';
             extradefines : 'NETWARE_CLIB';
