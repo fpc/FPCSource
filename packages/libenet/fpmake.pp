@@ -21,7 +21,8 @@ begin
     P.SourcePath.Add('src');
     P.SourcePath.Add('examples');
     P.IncludePath.Add('src');
-    P.OSes := AllUnixOSes+AllWindowsOSes-[qnx];
+    { only enable for darwin after testing }
+    P.OSes := AllUnixOSes+AllWindowsOSes-[qnx,darwin,iphonesim];
     P.Dependencies.Add('rtl-extra'); // winsock2
     
     T:=P.Targets.AddUnit('enettypes.pp');
