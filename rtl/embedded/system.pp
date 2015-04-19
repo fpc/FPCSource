@@ -137,7 +137,7 @@ const calculated_cmdline:Pchar=nil;
 
 procedure haltproc(e:longint);cdecl;external name '_haltproc';
 
-procedure System_exit;
+procedure System_exit;noreturn;
 begin
 {$ifdef FPC_HAS_FEATURE_EXITCODE}
   haltproc(ExitCode);
