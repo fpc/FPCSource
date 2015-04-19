@@ -441,6 +441,7 @@ interface
       FFrameMethod: TOmfFixupFrameMethod;
       FFrameDatum: Integer;
       function GetDataRecordOffset: Integer;
+      function GetLocationSize: Integer;
       procedure SetDataRecordOffset(AValue: Integer);
     public
       function ReadAt(RawRecord: TOmfRawRecord; Offset: Integer): Integer;
@@ -450,6 +451,7 @@ interface
       property Mode: TOmfFixupMode read FMode write FMode;
       property LocationType: TOmfFixupLocationType read FLocationType write FLocationType;
       property LocationOffset: DWord read FLocationOffset write FLocationOffset;
+      property LocationSize: Integer read GetLocationSize;
       property DataRecordStartOffset: DWord read FDataRecordStartOffset write FDataRecordStartOffset;
       property DataRecordOffset: Integer read GetDataRecordOffset write SetDataRecordOffset;
       property TargetDeterminedByThread: Boolean read FTargetDeterminedByThread write FTargetDeterminedByThread;
@@ -1319,6 +1321,29 @@ implementation
   function TOmfSubRecord_FIXUP.GetDataRecordOffset: Integer;
     begin
       Result:=FLocationOffset-FDataRecordStartOffset;
+    end;
+
+  function TOmfSubRecord_FIXUP.GetLocationSize: Integer;
+    const
+      OmfLocationType2Size: array [TOmfFixupLocationType] of Integer=
+        (1,  // fltLoByte
+         2,  // fltOffset
+         2,  // fltBase
+         4,  // fltFarPointer
+         1,  // fltHiByte
+         2,  // fltLoaderResolvedOffset  (PharLap: Offset32)
+         0,  // fltUndefined6            (PharLap: Pointer48)
+         0,  // fltUndefined7
+         0,  // fltUndefined8
+         4,  // fltOffset32
+         0,  // fltUndefined10
+         6,  // fltFarPointer48
+         0,  // fltUndefined12
+         4,  // fltLoaderResolvedOffset32
+         0,  // fltUndefined14
+         0); // fltUndefined15
+    begin
+      Result:=OmfLocationType2Size[LocationType];
     end;
 
   procedure TOmfSubRecord_FIXUP.SetDataRecordOffset(AValue: Integer);
