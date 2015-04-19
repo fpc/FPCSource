@@ -920,6 +920,12 @@ implementation
        fromcompcurr,
        tocompcurr: boolean;
      begin
+       { named register -> use generic code }
+       if ref.refaddr=addr_full then
+         begin
+           a_load_ref_reg(list,fromsize,tosize,ref,reg);
+           exit
+         end;
        { comp and currency are handled by the x87 in this case. They cannot
          be represented directly in llvm, and llvmdef translates them into i64
          (since that's their storage size and internally they also are int64).
@@ -1155,7 +1161,10 @@ implementation
     var
       href: treference;
     begin
-      if shuffle=mms_movescalar then
+      { named register -> use generic code }
+      if ref.refaddr=addr_full then
+        a_load_ref_reg(list,fromsize,tosize,ref,reg)
+      else if shuffle=mms_movescalar then
         a_loadfpu_ref_reg(list,fromsize,tosize,ref,reg)
       else
         begin
@@ -1233,7 +1242,7 @@ implementation
         end;
       { get the LLVM representation of the function result (e.g. a
         struct with two i64 fields for a record with 4 i32 fields) }
-      result.def:=llvmgetcgparadef(result,false);
+      result.def:=llvmgetcgparadef(result,true);
       if assigned(result.location^.next) then
         begin
           { unify the result into a sinlge location; unlike for parameters,
