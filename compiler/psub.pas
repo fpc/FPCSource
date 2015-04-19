@@ -1297,7 +1297,12 @@ implementation
         { there's always a call to FPC_INITIALIZEUNITS/FPC_DO_EXIT in the main program }
         if (procdef.localst.symtablelevel=main_program_level) and
            (not current_module.is_unit) then
-          include(flags,pi_do_call);
+          begin
+            include(flags,pi_do_call);
+            { the main program never returns due to the do_exit call }
+            if not(DLLsource) then
+              include(procdef.procoptions,po_noreturn);
+          end;
 
         { set implicit_finally flag when there are locals/paras to be finalized }
         procdef.parast.SymList.ForEachCall(@check_finalize_paras,nil);
