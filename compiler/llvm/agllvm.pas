@@ -45,7 +45,7 @@ interface
         procedure WriteDirectiveName(dir: TAsmDirective); virtual;
         procedure WriteRealConst(hp: tai_realconst; do_line: boolean);
         procedure WriteOrdConst(hp: tai_const);
-        procedure WriteTai(const replaceforbidden: boolean; const do_line: boolean; var InlineLevel: cardinal; var hp: tai);
+        procedure WriteTai(const replaceforbidden: boolean; const do_line: boolean; var InlineLevel: cardinal; var asmblock: boolean; var hp: tai);
        public
         constructor create(smart: boolean); override;
         procedure AsmLn; override;
@@ -264,6 +264,7 @@ implementation
        hs : ansistring;
        hp: tai;
        tmpinline: cardinal;
+       tmpasmblock: boolean;
      begin
        case o.typ of
          top_reg:
@@ -313,10 +314,11 @@ implementation
          top_tai:
            begin
              tmpinline:=1;
+             tmpasmblock:=false;
              hp:=o.ai;
              owner.AsmWrite(fstr);
              fstr:='';
-             owner.WriteTai(false,false,tmpinline,hp);
+             owner.WriteTai(false,false,tmpinline,tmpasmblock,hp);
              result:='';
            end;
 {$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
@@ -504,6 +506,7 @@ implementation
     var
       hp       : tai;
       InlineLevel : cardinal;
+      asmblock: boolean;
       do_line  : boolean;
       replaceforbidden: boolean;
     begin
@@ -512,6 +515,7 @@ implementation
       replaceforbidden:=target_asm.dollarsign<>'$';
 
       InlineLevel:=0;
+      asmblock:=false;
       { lineinfo is only needed for al_procedures (PFV) }
       do_line:=(cs_asm_source in current_settings.globalswitches) or
                ((cs_lineinfo in current_settings.moduleswitches)
@@ -528,7 +532,7 @@ implementation
               WriteSourceLine(hp as tailineinfo);
           end;
 
-         WriteTai(replaceforbidden, do_line, InlineLevel, hp);
+         WriteTai(replaceforbidden, do_line, InlineLevel, asmblock, hp);
          hp:=tai(hp.next);
        end;
     end;
@@ -657,7 +661,7 @@ implementation
       end;
 
 
-    procedure TLLVMAssember.WriteTai(const replaceforbidden: boolean; const do_line: boolean; var InlineLevel: cardinal; var hp: tai);
+    procedure TLLVMAssember.WriteTai(const replaceforbidden: boolean; const do_line: boolean; var InlineLevel: cardinal; var asmblock: boolean; var hp: tai);
 
       procedure WriteTypedConstData(hp: tai_abstracttypedconst);
         var
@@ -726,7 +730,7 @@ implementation
                     AsmWrite(defstr);
                     AsmWrite(' ');
                   end;
-                WriteTai(replaceforbidden,do_line,InlineLevel,pval);
+                WriteTai(replaceforbidden,do_line,InlineLevel,asmblock,pval);
               end;
           end;
         end;
@@ -818,7 +822,8 @@ implementation
 
           ait_label :
             begin
-              if (tai_label(hp).labsym.is_used) then
+              if not asmblock and
+                 (tai_label(hp).labsym.is_used) then
                 begin
                   if (tai_label(hp).labsym.bind=AB_PRIVATE_EXTERN) then
                     begin
@@ -908,7 +913,7 @@ implementation
                       hp2:=tai(taillvmdecl(hp).initdata.first);
                       while assigned(hp2) do
                         begin
-                          WriteTai(replaceforbidden,do_line,InlineLevel,hp2);
+                          WriteTai(replaceforbidden,do_line,InlineLevel,asmblock,hp2);
                           hp2:=tai(hp2.next);
                         end;
                       dec(fdecllevel);
@@ -985,10 +990,18 @@ implementation
             end;
 
           ait_marker :
-            if tai_marker(hp).kind=mark_NoLineInfoStart then
-              inc(InlineLevel)
-            else if tai_marker(hp).kind=mark_NoLineInfoEnd then
-              dec(InlineLevel);
+            case
+              tai_marker(hp).kind of
+                mark_NoLineInfoStart:
+                  inc(InlineLevel);
+                mark_NoLineInfoEnd:
+                  dec(InlineLevel);
+                { these cannot be nested }
+                mark_AsmBlockStart:
+                  asmblock:=true;
+                mark_AsmBlockEnd:
+                  asmblock:=false;
+              end;
 
           ait_directive :
             begin
