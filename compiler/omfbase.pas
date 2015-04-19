@@ -72,6 +72,7 @@ interface
     RT_VERNUM    = $CC;  { OMF Version Number Record }
     RT_VENDEXT   = $CE;  { Vendor-specific OMF Extension Record }
     RT_LIBHEAD   = $F0;  { Library Header Record }
+    RT_LIBEND    = $F1;  { Library End Record (marks end of objects and beginning of dictionary) }
 
     { OMF comment class }
     CC_Translator               = $00; { language translator (compiler or assembler) name }
@@ -484,6 +485,19 @@ interface
       property DictionarySizeInBlocks: Word read FDictionarySizeInBlocks write FDictionarySizeInBlocks;
       property Flags: Byte read FFlags write FFlags;
       property CaseSensitive: Boolean read IsCaseSensitive write SetCaseSensitive;
+    end;
+
+    { TOmfRecord_LIBEND }
+
+    TOmfRecord_LIBEND = class(TOmfParsedRecord)
+    private
+      FPaddingBytes: Word;
+    public
+      procedure DecodeFrom(RawRecord: TOmfRawRecord);override;
+      procedure EncodeTo(RawRecord: TOmfRawRecord);override;
+
+      procedure CalculatePaddingBytes(RecordStartOffset: DWord);
+      property PaddingBytes: Word read FPaddingBytes write FPaddingBytes;
     end;
 
     TOmfLibHash = record
@@ -1492,6 +1506,35 @@ implementation
   procedure TOmfRecord_LIBHEAD.SetCaseSensitive(AValue: Boolean);
     begin
       FFlags:=(FFlags and $FE) or Ord(AValue);
+    end;
+
+  { TOmfRecord_LIBEND }
+
+  procedure TOmfRecord_LIBEND.DecodeFrom(RawRecord: TOmfRawRecord);
+    begin
+      if RawRecord.RecordType<>RT_LIBEND then
+        internalerror(2015040301);
+      FPaddingBytes:=RawRecord.RecordLength;
+    end;
+
+  procedure TOmfRecord_LIBEND.EncodeTo(RawRecord: TOmfRawRecord);
+    begin
+      { make sure the LIBEND record is padded with zeros at the end }
+      FillChar(RawRecord.RawData,SizeOf(RawRecord.RawData),0);
+      RawRecord.RecordType:=RT_LIBEND;
+      RawRecord.RecordLength:=FPaddingBytes;
+      { the LIBEND record contains no checksum byte, so no need to call
+        RawRecord.CalculateChecksumByte }
+    end;
+
+  procedure TOmfRecord_LIBEND.CalculatePaddingBytes(RecordStartOffset: DWord);
+    var
+      DictionaryStartOffset: Integer;
+    begin
+      { padding must be calculated, so that the dictionary begins on a 512-byte boundary }
+      Inc(RecordStartOffset,3);  // padding begins _after_ the record header (3 bytes)
+      DictionaryStartOffset:=(RecordStartOffset+511) and $fffffe00;
+      PaddingBytes:=DictionaryStartOffset-RecordStartOffset;
     end;
 
   function compute_omf_lib_hash(const name: string; blocks: Integer): TOmfLibHash;
