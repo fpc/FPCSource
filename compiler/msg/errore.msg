@@ -1974,10 +1974,6 @@ type_w_instance_abstract_class=04122_W_Creating an instance of abstract class "$
 type_e_function_reference_kind=04123_E_Subroutine references cannot be declared as "of object" or "is nested", they can always refer to any kind of subroutine
 % Subroutine references can refer to any kind of subroutine and hence do not
 % require specialisation for methods or nested subroutines.
-type_e_anonymous_function_unsupported=04999_E_Function references are not yet supported, only blocks (add "cdecl;" at the end)
-% Remove this error message once Delphi-style anonymous are implemented. It has
-% number 4999 so as not to result in a gap in the error message numbering once
-% it's removed.
 % \end{description}
 #
 # Symtable
