@@ -152,6 +152,9 @@ type
 
 implementation
 
+uses
+  owar;
+
   { TmachoObjData }
 
   constructor TmachoObjData.create(const n: string);
@@ -355,6 +358,7 @@ implementation
     begin
       inherited create(smart);
       CObjOutput:=TMachoObjectOutput;
+      CInternalAr:=tarobjectwriter;
     end;
 
 

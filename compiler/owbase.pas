@@ -41,6 +41,7 @@ type
     fobjsize  : longword;
   public
     constructor create;
+    constructor createAr(const Aarfn:string);virtual;
     destructor  destroy;override;
     function  createfile(const fn:string):boolean;virtual;
     procedure closefile;virtual;
@@ -51,6 +52,8 @@ type
     property Size:longword read FSize;
     property ObjSize:longword read FObjSize;
   end;
+
+  tobjectwriterclass = class of tobjectwriter;
 
   tobjectreader=class
   private
@@ -103,6 +106,11 @@ begin
   if opened then
    closefile;
   freemem(buf,bufsize);
+end;
+
+constructor tobjectwriter.createAr(const Aarfn:string);
+begin
+  InternalError(2015041901);
 end;
 
 

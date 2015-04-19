@@ -326,7 +326,7 @@ implementation
        SysUtils,
        cutils,verbose,globals,
        fmodule,aasmdata,
-       ogmap,export
+       ogmap,export,owar
        ;
 
 
@@ -1475,6 +1475,7 @@ function SecOpts(SecOptions:TObjSectionOptions):string;
       begin
         inherited Create(smart);
         CObjOutput:=TNLMCoffObjOutput;
+        CInternalAr:=tarobjectwriter;
       end;
 
     constructor TNLMCoffObjInput.create;

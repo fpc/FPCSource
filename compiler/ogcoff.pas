@@ -282,6 +282,7 @@ implementation
        cutils,verbose,globals,
        fmodule,aasmtai,aasmdata,
        ogmap,
+       owar,
        version
        ;
 
@@ -2846,6 +2847,7 @@ const pemagic : array[0..3] of byte = (
       begin
         inherited Create(smart);
         CObjOutput:=TDJCoffObjOutput;
+        CInternalAr:=tarobjectwriter;
       end;
 
 
@@ -2857,6 +2859,7 @@ const pemagic : array[0..3] of byte = (
       begin
         inherited Create(smart);
         CObjOutput:=TPECoffObjOutput;
+        CInternalAr:=tarobjectwriter;
       end;
 
 

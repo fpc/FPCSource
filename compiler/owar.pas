@@ -41,7 +41,7 @@ type
   end;
 
   tarobjectwriter=class(tobjectwriter)
-    constructor create(const Aarfn:string);
+    constructor createAr(const Aarfn:string);override;
     destructor  destroy;override;
     function  createfile(const fn:string):boolean;override;
     procedure closefile;override;
@@ -159,7 +159,7 @@ implementation
                                 TArObjectWriter
 *****************************************************************************}
 
-    constructor tarobjectwriter.create(const Aarfn:string);
+    constructor tarobjectwriter.createAr(const Aarfn:string);
       var
         time  : TSystemTime;
       begin

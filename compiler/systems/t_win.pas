@@ -389,7 +389,7 @@ implementation
         SmartFilesCount:=0;
         SmartHeaderCount:=0;
         current_module.linkotherstaticlibs.add(current_module.importlibfilename,link_always);
-        ObjWriter:=TARObjectWriter.create(current_module.importlibfilename);
+        ObjWriter:=TARObjectWriter.CreateAr(current_module.importlibfilename);
         ObjOutput:=TPECoffObjOutput.Create(ObjWriter);
         for i:=0 to current_module.ImportLibraryList.Count-1 do
           begin

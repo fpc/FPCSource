@@ -33,7 +33,7 @@ interface
 
     uses
       SysUtils,
-      systems,globtype,globals,aasmbase,aasmtai,aasmdata,ogbase,finput;
+      systems,globtype,globals,aasmbase,aasmtai,aasmdata,ogbase,owbase,finput;
 
     const
        { maximum of aasmoutput lists there will be }
@@ -147,6 +147,7 @@ interface
       TInternalAssembler=class(TAssembler)
       private
         FCObjOutput : TObjOutputclass;
+        FCInternalAr : TObjectWriterClass;
         { the aasmoutput lists that need to be processed }
         lists        : byte;
         list         : array[1..maxoutputlists] of TAsmList;
@@ -165,6 +166,7 @@ interface
         ObjData   : TObjData;
         ObjOutput : tObjOutput;
         property CObjOutput:TObjOutputclass read FCObjOutput write FCObjOutput;
+        property CInternalAr : TObjectWriterClass read FCInternalAr write FCInternalAr;
       public
         constructor create(smart:boolean);override;
         destructor  destroy;override;
@@ -194,7 +196,7 @@ Implementation
       cpuinfo,
 {$endif m68k or arm}
       aasmcpu,
-      owbase,owar,owomflib
+      owar,owomflib
       ;
 
     var
@@ -1824,7 +1826,7 @@ Implementation
       begin
         if not(cs_asm_leave in current_settings.globalswitches) and
            not(af_needar in target_asm.flags) then
-          ObjWriter:=TARObjectWriter.create(current_module.staticlibfilename)
+          ObjWriter:=CInternalAr.CreateAr(current_module.staticlibfilename)
         else
           ObjWriter:=TObjectwriter.create;
 
