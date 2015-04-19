@@ -1621,8 +1621,15 @@ unit cgcpu;
       begin
         if not(nostackframe) then
           begin
-            { save int registers }
-            regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
+            { save int registers,
+              but only if the procedure returns }
+            if not(po_noreturn in current_procinfo.procdef.procoptions) then
+              regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall)
+            else
+              regs:=[];
+            { if the framepointer is potentially used, save it always because we need a proper stack frame,
+              even if the procedure never returns, the procedure could be e.g. a nested one accessing
+              an outer stackframe }
             if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
               regs:=regs+[RS_R28,RS_R29];
 
@@ -1652,6 +1659,11 @@ unit cgcpu;
         reg : TSuperRegister;
         LocalSize : longint;
       begin
+        { every byte counts for avr, so if a subroutine is marked as non-returning, we do
+          not generate any exit code, so we really trust the noreturn directive
+        }
+        if po_noreturn in current_procinfo.procdef.procoptions then
+          exit;
         if not(nostackframe) then
           begin
             if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
