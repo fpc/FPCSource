@@ -92,6 +92,10 @@ implementation
            KeepShared.Free;
          end;
 
+        { allow a target-specific pass over all assembler code (used by LLVM
+          to insert type definitions }
+        cnodeutils.InsertObjectInfo;
+
         { Start and end module debuginfo, at least required for stabs
           to insert n_sourcefile lines }
         if (cs_debuginfo in current_settings.moduleswitches) or
