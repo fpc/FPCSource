@@ -358,6 +358,7 @@ compiler/llvm/llvmnode.pas svneol=native#text/plain
 compiler/llvm/llvmpara.pas svneol=native#text/plain
 compiler/llvm/llvmsym.pas svneol=native#text/plain
 compiler/llvm/llvmtarg.pas svneol=native#text/plain
+compiler/llvm/llvmtype.pas svneol=native#text/plain
 compiler/llvm/nllvmadd.pas svneol=native#text/plain
 compiler/llvm/nllvmcal.pas svneol=native#text/plain
 compiler/llvm/nllvmcnv.pas svneol=native#text/plain

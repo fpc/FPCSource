@@ -42,6 +42,7 @@ interface
       class procedure InsertResourceTablesTable; override;
       class procedure InsertResourceInfo(ResourcesUsed : boolean); override;
       class procedure InsertMemorySizes; override;
+      class procedure InsertObjectInfo; override;
     end;
 
 
@@ -50,7 +51,8 @@ implementation
     uses
       verbose,cutils,globals,fmodule,
       aasmbase,aasmtai,cpubase,llvmbase,aasmllvm,
-      symbase,symtable,defutil;
+      symbase,symtable,defutil,
+      llvmtype;
 
   class procedure tllvmnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint);
     var
@@ -100,6 +102,19 @@ implementation
   class procedure tllvmnodeutils.InsertMemorySizes;
     begin
       { not required }
+    end;
+
+
+  class procedure tllvmnodeutils.InsertObjectInfo;
+    begin
+      inherited;
+
+      { add "type xx = .." statements for all used recorddefs }
+      with TLLVMTypeInfo.Create do
+        begin
+          inserttypeinfo;
+          free;
+        end;
     end;
 
 

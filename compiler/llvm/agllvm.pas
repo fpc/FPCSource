@@ -198,7 +198,7 @@ implementation
            if i<>0 then
              result:=result+', ';
            para:=pllvmcallpara(o.paras[i]);
-           result:=result+llvmencodetype(para^.def);
+           result:=result+llvmencodetypename(para^.def);
            if para^.valueext<>lve_none then
              result:=result+llvmvalueextension2str[para^.valueext];
            case para^.loc of
@@ -283,7 +283,7 @@ implementation
              getopstr:=getreferencestring(o.ref^,refwithalign);
          top_def:
            begin
-             getopstr:=llvmencodetype(o.def);
+             getopstr:=llvmencodetypename(o.def);
            end;
          top_cond:
            begin
@@ -355,6 +355,13 @@ implementation
       opstart:=0;
       nested:=false;
       case op of
+        la_type:
+           begin
+             owner.asmwrite(llvmtypeidentifier(taillvm(hp).oper[0]^.def));
+             owner.asmwrite(' = type ');
+             owner.asmwrite(llvmencodetypedecl(taillvm(hp).oper[0]^.def));
+             done:=true;
+           end;
         la_ret, la_br, la_switch, la_indirectbr,
         la_invoke, la_resume,
         la_unreachable,
@@ -670,7 +677,7 @@ implementation
           defstr: TSymStr;
           first, gotstring: boolean;
         begin
-          defstr:=llvmencodetype(hp.def);
+          defstr:=llvmencodetypename(hp.def);
           { write the struct, array or simple type }
           case hp.adetyp of
             tck_record:
@@ -898,7 +905,7 @@ implementation
                     asmwrite('global ');
                   if not assigned(taillvmdecl(hp).initdata) then
                     begin
-                      asmwrite(llvmencodetype(taillvmdecl(hp).def));
+                      asmwrite(llvmencodetypename(taillvmdecl(hp).def));
                       if not(taillvmdecl(hp).namesym.bind in [AB_EXTERNAL, AB_WEAK_EXTERNAL]) then
                         asmwrite(' zeroinitializer');
                     end

@@ -136,7 +136,7 @@ implementation
         this typed const? -> insert type conversion }
       if not assigned(fqueued_tai) and
          (resdef<>fqueued_def) and
-         (llvmencodetype(resdef)<>llvmencodetype(fqueued_def)) then
+         (llvmencodetypename(resdef)<>llvmencodetypename(fqueued_def)) then
         queue_typeconvn(resdef,fqueued_def);
       if assigned(fqueued_tai) then
         begin

@@ -40,19 +40,23 @@ interface
         b) alias declaration of a procdef implemented in the current module
         c) defining a procvar type
        The main differences between the contexts are:
-        a) information about sign extension of result type, proc name, parameter names & types
-        b) no information about sign extension of result type, proc name, no parameter names, parameter types
-        c) information about sign extension of result type, no proc name, no parameter names, parameter types
+        a) information about sign extension of result type, proc name, parameter names & sign-extension info & types
+        b) no information about sign extension of result type, proc name, no parameter names, information about sign extension of parameters, parameter types
+        c) no information about sign extension of result type, no proc name, no parameter names, no information about sign extension of parameters, parameter types
       }
      tllvmprocdefdecltype = (lpd_decl,lpd_alias,lpd_procvar);
 
-    { Encode a type into the internal format used by LLVM. }
-    function llvmencodetype(def: tdef): TSymStr;
+    { returns the identifier to use as typename for a def in llvm (llvm only
+      allows naming struct types) -- only supported for defs with a typesym, and
+      only for tabstractrecorddef descendantds and complex procvars }
+    function llvmtypeidentifier(def: tdef): TSymStr;
 
-    { incremental version of llvmencodetype(). "inaggregate" indicates whether
-      this was a recursive call to get the type of an entity part of an
-      aggregate type (array, record, ...) }
-    procedure llvmaddencodedtype(def: tdef; inaggregate: boolean; var encodedstr: TSymStr);
+    { encode a type into the internal format used by LLVM (for a type
+      declaration) }
+    function llvmencodetypedecl(def: tdef): TSymStr;
+
+    { same as above, but use a type name if possible (for any use) }
+    function llvmencodetypename(def: tdef): TSymStr;
 
     { encode a procdef/procvardef into the internal format used by LLVM }
     function llvmencodeproctype(def: tabstractprocdef; const customname: TSymStr; pddecltype: tllvmprocdefdecltype): TSymStr;
@@ -119,6 +123,14 @@ implementation
 {******************************************************************
                           Type encoding
 *******************************************************************}
+
+  function llvmtypeidentifier(def: tdef): TSymStr;
+    begin
+      if not assigned(def.typesym) then
+        internalerror(2015041901);
+      result:='%"typ.'+def.fullownerhierarchyname+'.'+def.typesym.realname+'"'
+    end;
+
 
   function llvmaggregatetype(def: tdef): boolean;
     begin
@@ -239,9 +251,13 @@ implementation
     end;
 
 
-    procedure llvmaddencodedabstractrecordtype(def: tabstractrecorddef; var encodedstr: TSymStr); forward;
+  procedure llvmaddencodedabstractrecordtype(def: tabstractrecorddef; var encodedstr: TSymStr); forward;
 
-    procedure llvmaddencodedtype_intern(def: tdef; inaggregate, noimplicitderef: boolean; var encodedstr: TSymStr);
+  type
+    tllvmencodeflag = (lef_inaggregate, lef_noimplicitderef, lef_typedecl);
+    tllvmencodeflags = set of tllvmencodeflag;
+
+    procedure llvmaddencodedtype_intern(def: tdef; const flags: tllvmencodeflags; var encodedstr: TSymStr);
       begin
         case def.typ of
           stringdef :
@@ -287,7 +303,7 @@ implementation
                 encodedstr:=encodedstr+'i8*'
               else
                 begin
-                  llvmaddencodedtype_intern(tpointerdef(def).pointeddef,inaggregate,false,encodedstr);
+                  llvmaddencodedtype_intern(tpointerdef(def).pointeddef,[],encodedstr);
                   encodedstr:=encodedstr+'*';
                 end;
             end;
@@ -302,7 +318,7 @@ implementation
                 s80real:
                   { prevent llvm from allocating the standard ABI size for
                     extended }
-                  if inaggregate then
+                  if lef_inaggregate in flags then
                     encodedstr:=encodedstr+'[10 x i8]'
                   else
                     encodedstr:=encodedstr+'x86_fp80';
@@ -325,21 +341,27 @@ implementation
             begin
               case tfiledef(def).filetyp of
                 ft_text    :
-                  llvmaddencodedtype_intern(search_system_type('TEXTREC').typedef,inaggregate,false,encodedstr);
+                  llvmaddencodedtype_intern(search_system_type('TEXTREC').typedef,[lef_inaggregate]+[lef_typedecl]*flags,encodedstr);
                 ft_typed,
                 ft_untyped :
-                  llvmaddencodedtype_intern(search_system_type('FILEREC').typedef,inaggregate,false,encodedstr);
+                  llvmaddencodedtype_intern(search_system_type('FILEREC').typedef,[lef_inaggregate]+[lef_typedecl]*flags,encodedstr);
                 else
                   internalerror(2013100203);
               end;
             end;
           recorddef :
             begin
-              llvmaddencodedabstractrecordtype(trecorddef(def),encodedstr);
+              { avoid endlessly recursive definitions }
+              if assigned(def.typesym) and
+                 ((lef_inaggregate in flags) or
+                  not(lef_typedecl in flags)) then
+                encodedstr:=encodedstr+llvmtypeidentifier(def)
+              else
+                llvmaddencodedabstractrecordtype(trecorddef(def),encodedstr);
             end;
           variantdef :
             begin
-              llvmaddencodedtype_intern(search_system_type('TVARDATA').typedef,inaggregate,false,encodedstr);
+              llvmaddencodedtype_intern(search_system_type('TVARDATA').typedef,[lef_inaggregate]+[lef_typedecl]*flags,encodedstr);
             end;
           classrefdef :
             begin
@@ -352,7 +374,7 @@ implementation
                 array of i1" or so, this requires special support in backends
                 and guarantees nothing about the internal format }
               if is_smallset(def) then
-                llvmaddencodedtype_intern(cgsize_orddef(def_cgsize(def)),inaggregate,false,encodedstr)
+                llvmaddencodedtype_intern(cgsize_orddef(def_cgsize(def)),[lef_inaggregate],encodedstr)
               else
                 encodedstr:=encodedstr+'['+tostr(tsetdef(def).size)+' x i8]';
             end;
@@ -367,18 +389,18 @@ implementation
               if is_array_of_const(def) then
                 begin
                   encodedstr:=encodedstr+'[0 x ';
-                  llvmaddencodedtype_intern(search_system_type('TVARREC').typedef,true,false,encodedstr);
+                  llvmaddencodedtype_intern(search_system_type('TVARREC').typedef,[lef_inaggregate],encodedstr);
                   encodedstr:=encodedstr+']';
                 end
               else if is_open_array(def) then
                 begin
                   encodedstr:=encodedstr+'[0 x ';
-                  llvmaddencodedtype_intern(tarraydef(def).elementdef,true,false,encodedstr);
+                  llvmaddencodedtype_intern(tarraydef(def).elementdef,[lef_inaggregate],encodedstr);
                   encodedstr:=encodedstr+']';
                 end
               else if is_dynamic_array(def) then
                 begin
-                  llvmaddencodedtype_intern(tarraydef(def).elementdef,inaggregate,false,encodedstr);
+                  llvmaddencodedtype_intern(tarraydef(def).elementdef,[],encodedstr);
                   encodedstr:=encodedstr+'*';
                 end
               else if is_packed_array(def) then
@@ -386,13 +408,13 @@ implementation
                   encodedstr:=encodedstr+'['+tostr(tarraydef(def).size div tarraydef(def).elementdef.packedbitsize)+' x ';
                   { encode as an array of integers with the size on which we
                     perform the packedbits operations }
-                  llvmaddencodedtype_intern(cgsize_orddef(int_cgsize(packedbitsloadsize(tarraydef(def).elementdef.packedbitsize))),true,false,encodedstr);
+                  llvmaddencodedtype_intern(cgsize_orddef(int_cgsize(packedbitsloadsize(tarraydef(def).elementdef.packedbitsize))),[lef_inaggregate],encodedstr);
                   encodedstr:=encodedstr+']';
                 end
               else
                 begin
                   encodedstr:=encodedstr+'['+tostr(tarraydef(def).elecount)+' x ';
-                  llvmaddencodedtype_intern(tarraydef(def).elementdef,true,false,encodedstr);
+                  llvmaddencodedtype_intern(tarraydef(def).elementdef,[lef_inaggregate],encodedstr);
                   encodedstr:=encodedstr+']';
                 end;
             end;
@@ -405,6 +427,14 @@ implementation
                   llvmaddencodedproctype(tabstractprocdef(def),'',lpd_procvar,encodedstr);
                   if def.typ=procvardef then
                     encodedstr:=encodedstr+'*';
+                end
+              else if ((lef_inaggregate in flags) or
+                  not(lef_typedecl in flags)) and
+                 assigned(tprocvardef(def).typesym) then
+                begin
+                  { in case the procvardef recursively references itself, e.g.
+                    via a pointer }
+                  encodedstr:=encodedstr+llvmtypeidentifier(def)
                 end
               else
                 begin
@@ -423,9 +453,12 @@ implementation
               odt_object,
               odt_cppclass:
                 begin
-                  { for now don't handle fields yet }
-                  encodedstr:=encodedstr+'{[i8 x '+tostr(def.size)+']}';
-                  if not noimplicitderef and
+                  if not(lef_typedecl in flags) and
+                     assigned(def.typesym) then
+                    encodedstr:=encodedstr+llvmtypeidentifier(def)
+                  else
+                    llvmaddencodedabstractrecordtype(tabstractrecorddef(def),encodedstr);
+                  if ([lef_typedecl,lef_noimplicitderef]*flags=[]) and
                      is_implicit_pointer_object_type(def) then
                     encodedstr:=encodedstr+'*'
                 end;
@@ -451,9 +484,22 @@ implementation
       end;
 
 
-    procedure llvmaddencodedtype(def: tdef; inaggregate: boolean; var encodedstr: TSymStr);
+    function llvmencodetypename(def: tdef): TSymStr;
       begin
-        llvmaddencodedtype_intern(def,inaggregate,false,encodedstr);
+        result:='';
+        llvmaddencodedtype_intern(def,[],result);
+      end;
+
+
+    procedure llvmaddencodedtype(def: tdef; inaggregate: boolean; var encodedstr: TSymStr);
+      var
+        flags: tllvmencodeflags;
+      begin
+        if inaggregate then
+          flags:=[lef_inaggregate]
+        else
+          flags:=[];
+        llvmaddencodedtype_intern(def,flags,encodedstr);
       end;
 
 
@@ -479,14 +525,14 @@ implementation
                 { insert the struct for the class rather than a pointer to the struct }
                 if (tllvmshadowsymtableentry(symdeflist[0]).def.typ<>objectdef) then
                   internalerror(2008070601);
-                llvmaddencodedtype_intern(tllvmshadowsymtableentry(symdeflist[0]).def,true,true,encodedstr);
+                llvmaddencodedtype_intern(tllvmshadowsymtableentry(symdeflist[0]).def,[lef_inaggregate,lef_noimplicitderef],encodedstr);
                 inc(i);
               end;
             while i<symdeflist.count do
               begin
                 if i<>0 then
                   encodedstr:=encodedstr+', ';
-                llvmaddencodedtype_intern(tllvmshadowsymtableentry(symdeflist[i]).def,true,false,encodedstr);
+                llvmaddencodedtype_intern(tllvmshadowsymtableentry(symdeflist[i]).def,[lef_inaggregate],encodedstr);
                 inc(i);
               end;
           end;
@@ -540,7 +586,7 @@ implementation
              encodedstr:=encodedstr+', '
           else
             first:=false;
-          llvmaddencodedtype(usedef,false,encodedstr);
+          llvmaddencodedtype_intern(usedef,[lef_inaggregate],encodedstr);
           { in case signextstr<>'', there should be only one paraloc -> no need
             to clear (reason: it means that the paraloc is larger than the
             original parameter) }
@@ -598,7 +644,7 @@ implementation
             if pddecltype in [lpd_decl] then
               encodedstr:=encodedstr+llvmvalueextension2str[signext];
             encodedstr:=encodedstr+' ';
-            llvmaddencodedtype_intern(usedef,false,false,encodedstr);
+            llvmaddencodedtype_intern(usedef,[lef_inaggregate],encodedstr);
           end
         else
           begin
@@ -723,10 +769,10 @@ implementation
       end;
 
 
-    function llvmencodetype(def: tdef): TSymStr;
+    function llvmencodetypedecl(def: tdef): TSymStr;
       begin
         result:='';
-        llvmaddencodedtype(def,false,result);
+        llvmaddencodedtype_intern(def,[lef_typedecl],result);
       end;
 
 
