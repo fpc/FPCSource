@@ -473,8 +473,16 @@ implementation
     var
       sref: treference;
     begin
-      sref:=make_simple_ref(list,ref,tosize);
-      list.concat(taillvm.op_size_const_size_ref(la_store,tosize,a,getpointerdef(tosize),sref))
+      { llvm instructions do not support pointer constants -> only directly
+        encode for integers; a_load_const_reg() handles pointers properly }
+      if is_ordinal(tosize) or
+         is_64bit(tosize) then
+        begin
+          sref:=make_simple_ref(list,ref,tosize);
+          list.concat(taillvm.op_size_const_size_ref(la_store,tosize,a,getpointerdef(tosize),sref))
+        end
+      else
+        inherited;
     end;
 
 
