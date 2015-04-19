@@ -511,21 +511,8 @@ unit atmega128;
 
   implementation
 
-    procedure PASCALMAIN; external name 'PASCALMAIN';
-
-    procedure _FPC_haltproc; assembler; nostackframe; public name '_haltproc';
-      asm
-        cli
-      .Lhalt:
-        jmp .Lhalt
-      end;
-
-    procedure Default_IRQ_handler; assembler; nostackframe; public name '_Default_IRQ_handler';
-      asm
-      .Lloop:
-        jmp .Lloop
-      end;
-
+{$i avrcommon.inc}  
+	  
     procedure Int00Handler; external name 'Int00Handler';
     procedure Int01Handler; external name 'Int01Handler';
     procedure Int02Handler; external name 'Int02Handler';
@@ -561,14 +548,6 @@ unit atmega128;
     procedure Int32Handler; external name 'Int32Handler';
     procedure Int33Handler; external name 'Int33Handler';
     procedure Int34Handler; external name 'Int34Handler';
-
-    var
-      _data: record end; external name '__data_start';
-      _edata: record end; external name '__data_end';
-      _etext: record end; external name '_etext';
-      _bss_start: record end; external name '__bss_start';
-      _bss_end: record end; external name '__bss_end';
-      _stack_top: record end; external name '_stack_top';
 
     procedure _FPC_start; assembler; nostackframe;
       label
