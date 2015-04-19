@@ -554,7 +554,12 @@ implementation
             end
           else if not paramanager.push_addr_param(hp.varspez,hp.vardef,proccalloption) and
              llvmbyvalparaloc(paraloc) then
-            encodedstr:=encodedstr+'* byval';
+            begin
+              if withattributes then
+                encodedstr:=encodedstr+'* byval'
+              else
+                encodedstr:=encodedstr+'*';
+            end;
           if withparaname then
             begin
               if paraloc^.llvmloc.loc<>LOC_REFERENCE then
@@ -590,7 +595,7 @@ implementation
             llvmextractvalueextinfo(def.returndef,usedef,signext);
             { specifying result sign extention information for an alias causes
               an error for some reason }
-            if pddecltype in [lpd_decl,lpd_procvar] then
+            if pddecltype in [lpd_decl] then
               encodedstr:=encodedstr+llvmvalueextension2str[signext];
             encodedstr:=encodedstr+' ';
             llvmaddencodedtype_intern(usedef,false,false,encodedstr);
