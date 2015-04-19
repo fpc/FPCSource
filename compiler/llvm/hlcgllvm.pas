@@ -87,7 +87,9 @@ uses
       procedure gen_proc_symbol_end(list: TAsmList); override;
       procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean); override;
       procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean); override;
-
+     protected
+      procedure gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara); override;
+     public
       procedure g_overflowcheck(list: TAsmList; const Loc: tlocation; def: tdef); override;
       procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;var ovloc : tlocation); override;
 
@@ -1089,6 +1091,19 @@ implementation
           end;
         end;
       retpara.resetiftemp;
+    end;
+
+
+  procedure thlcgllvm.gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara);
+    var
+      reg: tregister;
+    begin
+      if not paramanager.ret_in_param(resdef,pd) then
+        begin
+          reg:=getregisterfordef(list,resdef);
+          list.concat(taillvm.op_reg_size_undef(la_bitcast,reg,resdef));
+          a_load_reg_cgpara(list,resdef,reg,resloc);
+        end;
     end;
 
 
