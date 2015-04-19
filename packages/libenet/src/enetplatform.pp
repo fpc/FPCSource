@@ -34,14 +34,14 @@ unit enetplatform;
 interface
 
 uses enettypes, // used only for size_t
-     {$IFDEF MSWINDOWS} WinSock2 {$ELSE} BaseUnix, Sockets {$ENDIF};
+     {$IFDEF WINDOWS} WinSock2 {$ELSE} BaseUnix, Sockets {$ENDIF};
 
 const
-  ENET_SOCKET_NULL = {$IFDEF MSWINDOWS} INVALID_SOCKET; {$ELSE} -1; {$ENDIF}
+  ENET_SOCKET_NULL = {$IFDEF WINDOWS} INVALID_SOCKET; {$ELSE} -1; {$ENDIF}
 //  ENET_BUFFER_MAXIMUM = MSG_MAXIOVLEN; //is it forgotten in win32.h ?
 
 type
-  ENetSocket = {$IFDEF MSWINDOWS} TSocket {$ELSE} enet_int {$ENDIF};
+  ENetSocket = {$IFDEF WINDOWS} TSocket {$ELSE} enet_int {$ENDIF};
 
   ENetSocketSet = TFDSet;
   pENetSocketSet = ^ENetSocketSet;
@@ -50,7 +50,7 @@ type
 
   pENetBuffer = ^ENetBuffer;
   ENetBuffer = record
-    {$IFDEF MSWINDOWS}
+    {$IFDEF WINDOWS}
     dataLength : enet_size_t;
     data       : Pointer;
     {$ELSE}
@@ -90,17 +90,17 @@ function ENET_NET_TO_HOST_32( const value: LongWord ): LongWord; inline;
      end;
 
 procedure ENET_SOCKETSET_EMPTY( var sockset: ENetSocketSet ); inline;
-    begin {$IFNDEF MSWINDOWS}fpFD_ZERO{$ELSE}FD_ZERO{$ENDIF}( sockset );
+    begin {$IFNDEF WINDOWS}fpFD_ZERO{$ELSE}FD_ZERO{$ENDIF}( sockset );
       end;
 procedure ENET_SOCKETSET_ADD( var sockset: ENetSocketSet; socket: ENetSocket ); inline;
-    begin {$IFNDEF MSWINDOWS}fpFD_SET{$ELSE}FD_SET{$ENDIF}( socket, sockset );
+    begin {$IFNDEF WINDOWS}fpFD_SET{$ELSE}FD_SET{$ENDIF}( socket, sockset );
       end;
 procedure ENET_SOCKETSET_REMOVE( var sockset: ENetSocketSet; socket: ENetSocket ); inline;
-    begin {$IFNDEF MSWINDOWS}fpFD_CLR{$ELSE}FD_CLR{$ENDIF}( socket, sockset );
+    begin {$IFNDEF WINDOWS}fpFD_CLR{$ELSE}FD_CLR{$ENDIF}( socket, sockset );
       end;
 
 function ENET_SOCKETSET_CHECK( var sockset: ENetSocketSet; socket: ENetSocket ): Boolean; inline;
-   begin Result := {$IFNDEF MSWINDOWS} fpFD_ISSET( socket, sockset ) <> 0
+   begin Result := {$IFNDEF WINDOWS} fpFD_ISSET( socket, sockset ) <> 0
                                {$ELSE}   FD_ISSET( socket, sockset ) {$ENDIF};
      end;
 
