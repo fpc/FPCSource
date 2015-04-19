@@ -1761,6 +1761,20 @@ implementation
     procedure Tcg.a_op_const_reg_reg(list:TAsmList;op:Topcg;size:Tcgsize;
                                      a:tcgint;src,dst:Tregister);
     begin
+      optimize_op_const(size, op, a);
+      case op of
+        OP_NONE:
+          begin
+            if src <> dst then
+              a_load_reg_reg(list, size, size, src, dst);
+            exit;
+          end;
+        OP_MOVE:
+          begin
+            a_load_const_reg(list, size, a, dst);
+            exit;
+          end;
+      end;
       a_load_reg_reg(list,size,size,src,dst);
       a_op_const_reg(list,op,size,a,dst);
     end;
