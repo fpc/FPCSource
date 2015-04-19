@@ -1068,6 +1068,11 @@ implementation
             LOC_FPUREGISTER,
             LOC_MMREGISTER:
               begin
+                { inline assembler routines contain a ret at the end and never
+                  get here, but we do need a return at the end -> return an
+                  undefined value in this case }
+                if po_assembler in current_procinfo.procdef.procoptions then
+                  gen_load_uninitialized_function_result(list,current_procinfo.procdef,retpara.def,retpara);
                 { sign/zeroextension of function results is handled implicitly
                   via the signext/zeroext modifiers of the result, rather than
                   in the code generator -> remove any explicit extensions here }
