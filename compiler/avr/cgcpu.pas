@@ -452,7 +452,7 @@ unit cgcpu;
 
      procedure tcgavr.a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tcgsize; a: tcgint; src, dst: tregister);
        begin
-         if (op in [OP_MUL,OP_IMUL]) and (size in [OS_16,OS_S16]) and (a in [1,2,4,8]) then
+         if (op in [OP_MUL,OP_IMUL]) and (size in [OS_16,OS_S16]) and (a in [2,4,8]) then
            begin
              emit_mov(list,dst,src);
              emit_mov(list,GetNextReg(dst),GetNextReg(src));
@@ -737,9 +737,19 @@ unit cgcpu;
         curvalue : byte;
 
        begin
+         optimize_op_const(size,op,a);
          mask:=$ff;
          shift:=0;
          case op of
+           OP_NONE:
+             begin
+               { Opcode is optimized away }
+             end;
+           OP_MOVE:
+             begin
+               { Optimized, replaced with a simple load }
+               a_load_const_reg(list,size,a,reg);
+             end;
            OP_OR:
              begin
                for i:=1 to tcgsize2size[size] do
