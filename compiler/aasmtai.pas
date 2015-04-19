@@ -253,6 +253,7 @@ interface
        { llvm only }
        ,top_single
        ,top_double
+       ,top_undef
 {$ifdef cpuextended}
        ,top_extended80
 {$endif cpuextended}
@@ -433,6 +434,7 @@ interface
         {$ifdef llvm}
             top_single : (sval:single);
             top_double : (dval:double);
+            top_undef :  ();
           {$ifdef cpuextended}
             top_extended80 : (eval:extended);
           {$endif cpuextended}

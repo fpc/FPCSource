@@ -325,6 +325,8 @@ implementation
              result:=llvmextendedtostr(o.eval);
            end;
 {$endif cpuextended}
+         top_undef:
+           result:='undef'
          else
            internalerror(2013060227);
        end;

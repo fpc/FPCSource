@@ -71,6 +71,9 @@ interface
         { e.g. dst = bitcast fromsize <abstracttaidata> to tosize }
         constructor op_reg_tai_size(op:tllvmop;dst:tregister;src:tai;tosize:tdef);
 
+        { dst = bitcast size undef to size }
+        constructor op_reg_size_undef(op: tllvmop; dst: tregister; size: tdef);
+
         { e.g. dst = bitcast fromsize src to tosize }
         constructor op_reg_size_ref_size(op:tllvmop;dst:tregister;fromsize:tdef;const src:treference;tosize:tdef);
         { e.g. store fromsize src, ptrsize toref}
@@ -110,6 +113,7 @@ interface
         procedure clearop(opidx: longint); override;
         procedure loadtai(opidx: longint; _ai: tai);
         procedure loaddef(opidx: longint; _def: tdef);
+        procedure loadundef(opidx: longint);
         procedure loadsingle(opidx: longint; _sval: single);
         procedure loaddouble(opidx: longint; _dval: double);
 {$ifdef cpuextended}
@@ -316,6 +320,14 @@ uses
            def:=_def;
            typ:=top_def;
          end;
+      end;
+
+
+    procedure taillvm.loadundef(opidx: longint);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+          typ:=top_undef
       end;
 
 
@@ -699,6 +711,17 @@ uses
         loadreg(0,dst);
         loadtai(1,src);
         loaddef(2,tosize);
+      end;
+
+
+    constructor taillvm.op_reg_size_undef(op: tllvmop; dst: tregister; size: tdef);
+      begin
+        create_llvm(op);
+        ops:=4;
+        loadreg(0,dst);
+        loaddef(1,size);
+        loadundef(2);
+        loaddef(3,size);
       end;
 
 
