@@ -824,6 +824,8 @@ const
   asmw_w_changing_bind_type=08027;
   asmw_h_changing_bind_type=08028;
   asmw_e_32bit_not_supported=08029;
+  asmw_f_code_segment_too_large=08030;
+  asmw_f_data_segment_too_large=08031;
   exec_w_source_os_redefined=09000;
   exec_i_assembling_pipe=09001;
   exec_d_cant_create_asmfile=09002;
@@ -1008,9 +1010,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 75342;
+  MsgTxtSize = 75404;
 
   MsgIdxMax : array[1..20] of longint=(
-    26,99,341,124,96,58,126,30,202,64,
+    26,99,341,124,96,58,126,32,202,64,
     58,20,1,1,1,1,1,1,1,1
   );

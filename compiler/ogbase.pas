@@ -226,6 +226,7 @@ interface
        FSecOptions : TObjSectionOptions;
        FCachedFullName : pshortstring;
        procedure SetSecOptions(Aoptions:TObjSectionOptions);
+       procedure SectionTooLargeError;
      public
        ObjData    : TObjData;
        index      : longword;  { index of section in section headers }
@@ -848,6 +849,15 @@ implementation
       end;
 
 
+    procedure TObjSection.SectionTooLargeError;
+      begin
+        if oso_executable in SecOptions then
+          Message(asmw_f_code_segment_too_large)
+        else
+          Message(asmw_f_data_segment_too_large);
+      end;
+
+
     function TObjSection.write(const d;l:aword):aword;
       begin
         result:=size;
@@ -855,6 +865,10 @@ implementation
           begin
             if Size<>Data.size then
               internalerror(200602281);
+{$ifndef cpu64bitalu}
+            if (qword(size)+l)>high(size) then
+              SectionTooLargeError;
+{$endif}
             Data.write(d,l);
             inc(Size,l);
           end
@@ -928,6 +942,10 @@ implementation
 
     procedure TObjSection.alloc(l:aword);
       begin
+{$ifndef cpu64bitalu}
+        if (qword(size)+l)>high(size) then
+          SectionTooLargeError;
+{$endif}
         inc(size,l);
       end;
 

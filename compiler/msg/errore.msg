@@ -2753,7 +2753,7 @@ asmr_e_invalid_ref_register=07125_E_Invalid register used in memory reference ex
 #
 # Assembler/binary writers
 #
-# 08029 is the last used one
+# 08031 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Too many assembler files
 % With smartlinking enabled, there are too many assembler
@@ -2804,6 +2804,8 @@ asmw_h_changing_bind_type=08028_H_Change of bind type of symbol $1 from $2 to $3
 % of wrong code generation, but currently set to Note level as it appears inside
 % the compiler compilation.
 asmw_e_32bit_not_supported=08029_E_Asm: 32 Bit references not supported
+asmw_f_code_segment_too_large=08030_F_Code segment too large
+asmw_f_data_segment_too_large=08031_F_Data segment too large
 #
 # Executing linker/assembler
 #
