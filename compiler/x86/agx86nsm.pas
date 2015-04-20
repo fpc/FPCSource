@@ -1081,11 +1081,11 @@ interface
         AsmWriteLn('SECTION ' + CodeSectionName(current_module.modulename^) + ' use16 class=code');
       { NASM complains if you put a missing section in the GROUP directive, so }
       { we add empty declarations to make sure they exist, even if empty }
-      AsmWriteLn('SECTION .rodata class=data');
-      AsmWriteLn('SECTION .data class=data');
+      AsmWriteLn('SECTION .rodata class=data align=2');
+      AsmWriteLn('SECTION .data class=data align=2');
       AsmWriteLn('SECTION .fpc class=data');
       { WLINK requires class=bss in order to leave the BSS section out of the executable }
-      AsmWriteLn('SECTION .bss class=bss');
+      AsmWriteLn('SECTION .bss class=bss align=2');
       if (current_settings.x86memorymodel<>mm_tiny) and
          (current_settings.x86memorymodel in x86_near_data_models) then
         AsmWriteLn('SECTION stack stack class=stack align=16');

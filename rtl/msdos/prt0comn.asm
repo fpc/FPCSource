@@ -489,7 +489,7 @@ FPC_CHECK_NULLAREA:
     %endif
 %endif
 
-        segment data class=data
+        segment data class=data align=2
 %ifdef __NEAR_DATA__
 mem_realloc_err_msg:
         db 'Memory allocation error', 13, 10, '$'
@@ -500,7 +500,7 @@ not_enough_mem_msg:
         ; module, containing the heap segment doesn't get smartlinked away
         dd ___heap
 
-        segment bss class=bss
+        segment bss class=bss align=2
 
 %ifndef __TINY__
         segment _NULL align=16 class=BEGDATA

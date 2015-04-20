@@ -329,9 +329,10 @@ implementation
             result:=1;
           sec_code:
             result:=1;
+          sec_data,
+          sec_rodata,
+          sec_rodata_norel,
           sec_bss:
-            result:=1;
-          sec_data:
             result:=2;
           { For idata (at least idata2) it must be 4 bytes, because
             an entry is always (also in win64) 20 bytes and aligning
