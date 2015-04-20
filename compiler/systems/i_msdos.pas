@@ -84,8 +84,8 @@ unit i_msdos;
             endian       : endian_little;
             alignment    :
               (
-                procalign       : 2;
-                loopalign       : 2;
+                procalign       : 1;
+                loopalign       : 1;
                 jumpalign       : 0;
                 constalignmin   : 0;
                 constalignmax   : 2;
