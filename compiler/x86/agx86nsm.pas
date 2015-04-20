@@ -1100,10 +1100,10 @@ interface
         AsmWriteLn('GROUP dgroup rodata data fpc bss');
       if paratargetdbg in [dbg_dwarf2,dbg_dwarf3,dbg_dwarf4] then
         begin
-          AsmWriteLn('SECTION .debug_frame  use32 class=DWARF');
-          AsmWriteLn('SECTION .debug_info   use32 class=DWARF');
-          AsmWriteLn('SECTION .debug_line   use32 class=DWARF');
-          AsmWriteLn('SECTION .debug_abbrev use32 class=DWARF');
+          AsmWriteLn('SECTION .debug_frame  use32 class=DWARF align=4');
+          AsmWriteLn('SECTION .debug_info   use32 class=DWARF align=4');
+          AsmWriteLn('SECTION .debug_line   use32 class=DWARF align=4');
+          AsmWriteLn('SECTION .debug_abbrev use32 class=DWARF align=4');
         end;
       if not (cs_huge_code in current_settings.moduleswitches) then
         AsmWriteLn('SECTION ' + CodeSectionName(current_module.modulename^));

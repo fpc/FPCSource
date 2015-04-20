@@ -325,7 +325,7 @@ implementation
     function TOmfObjData.sectiontype2align(atype: TAsmSectiontype): shortint;
       begin
         case atype of
-          sec_stabstr,sec_debug_info,sec_debug_line,sec_debug_abbrev:
+          sec_stabstr:
             result:=1;
           sec_code:
             result:=1;
@@ -341,6 +341,8 @@ implementation
             Same story with .pdata, it has 4-byte elements which should
             be packed without gaps. }
           sec_idata2,sec_idata4,sec_idata5,sec_idata6,sec_idata7,sec_pdata:
+            result:=4;
+          sec_debug_frame,sec_debug_info,sec_debug_line,sec_debug_abbrev:
             result:=4;
           sec_stack,
           sec_heap:
