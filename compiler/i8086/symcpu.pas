@@ -57,6 +57,7 @@ type
 
   tcpupointerdef = class(tx86pointerdef)
     class function default_x86_data_pointer_type: tx86pointertyp; override;
+    function alignment:shortint;override;
     function pointer_arithmetic_int_type:tdef; override;
     function pointer_subtraction_result_type:tdef; override;
   end;
@@ -75,6 +76,7 @@ type
   tcpuobjectdefclass = class of tcpuobjectdef;
 
   tcpuclassrefdef = class(tclassrefdef)
+    function alignment:shortint;override;
   end;
   tcpuclassrefdefclass = class of tcpuclassrefdef;
 
@@ -255,6 +257,15 @@ implementation
     end;
 
 {****************************************************************************
+                               tcpuclassrefdef
+****************************************************************************}
+
+  function tcpuclassrefdef.alignment:shortint;
+    begin
+      Result:=2;
+    end;
+
+{****************************************************************************
                                tcpuarraydef
 ****************************************************************************}
 
@@ -405,6 +416,14 @@ implementation
           result:=x86pt_far
         else
           result:=inherited;
+      end;
+
+
+    function tcpupointerdef.alignment:shortint;
+      begin
+        { on i8086, we use 16-bit alignment for all pointer types, even far and
+          huge (which are 4 bytes long) }
+        result:=2;
       end;
 
 
