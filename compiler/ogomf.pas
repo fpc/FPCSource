@@ -546,6 +546,8 @@ implementation
           begin
             if sec.Data=nil then
               internalerror(200403073);
+            for I:=0 to sec.ObjRelocations.Count-1 do
+              TOmfRelocation(sec.ObjRelocations[I]).BuildOmfFixup;
             SegIndex:=Segments.FindIndexOf(sec.Name);
             RawRecord:=TOmfRawRecord.Create;
             sec.data.seek(0);
@@ -555,6 +557,18 @@ implementation
             ChunkLen:=Min(MaxChunkSize, sec.Data.size-ChunkStart);
             while ChunkLen>0 do
             begin
+              { find last fixup in the chunk }
+              while (ChunkFixupEnd<(sec.ObjRelocations.Count-1)) and
+                    (TOmfRelocation(sec.ObjRelocations[ChunkFixupEnd+1]).DataOffset<(ChunkStart+ChunkLen)) do
+                inc(ChunkFixupEnd);
+              { check if last chunk is crossing the chunk boundary, and trim ChunkLen if necessary }
+              if (ChunkFixupEnd>=ChunkFixupStart) and
+                ((TOmfRelocation(sec.ObjRelocations[ChunkFixupEnd]).DataOffset+
+                  TOmfRelocation(sec.ObjRelocations[ChunkFixupEnd]).OmfFixup.LocationSize)>(ChunkStart+ChunkLen)) then
+                begin
+                  ChunkLen:=TOmfRelocation(sec.ObjRelocations[ChunkFixupEnd]).DataOffset-ChunkStart;
+                  Dec(ChunkFixupEnd);
+                end;
               { write LEDATA record }
               RawRecord.RecordType:=RT_LEDATA;
               NextOfs:=RawRecord.WriteIndexedRef(0,SegIndex);
@@ -567,16 +581,12 @@ implementation
               RawRecord.CalculateChecksumByte;
               RawRecord.WriteTo(FWriter);
               { write FIXUPP record }
-              while (ChunkFixupEnd<(sec.ObjRelocations.Count-1)) and
-                    (TOmfRelocation(sec.ObjRelocations[ChunkFixupEnd+1]).DataOffset<(ChunkStart+ChunkLen)) do
-                inc(ChunkFixupEnd);
               if ChunkFixupEnd>=ChunkFixupStart then
                 begin
                   RawRecord.RecordType:=RT_FIXUPP;
                   NextOfs:=0;
                   for I:=ChunkFixupStart to ChunkFixupEnd do
                     begin
-                      TOmfRelocation(sec.ObjRelocations[I]).BuildOmfFixup;
                       TOmfRelocation(sec.ObjRelocations[I]).OmfFixup.DataRecordStartOffset:=ChunkStart;
                       NextOfs:=TOmfRelocation(sec.ObjRelocations[I]).OmfFixup.WriteAt(RawRecord,NextOfs);
                     end;
