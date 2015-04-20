@@ -2492,7 +2492,7 @@ end;
 function TBCDField.GetDefaultWidth: Longint;
 
 begin
-  if Precision > 0 then Result := Precision
+  if Precision > 0 then Result := Precision+1
   else Result := 10;
 end;
 
