@@ -564,6 +564,9 @@ begin
   if Debug then
     writeln('ReadIFD Start=',Start);
   {$endif}
+  // set default values if not read from file
+  IFD.RowsPerStrip := $FFFFFFFF;
+  
   Result:=0;
   SetStreamPos(Start);
   IFD.IFDStart:=Start;
