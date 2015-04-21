@@ -404,7 +404,7 @@ type
 
   { TCustomSQLQuery }
 
-  TSQLQueryOption = (sqoKeepOpenOnCommit, sqoAutoApplyUpdates, sqoAutoCommit, sqoCancelUpdatesOnRefresh, sqoPreferRefresh);
+  TSQLQueryOption = (sqoKeepOpenOnCommit, sqoAutoApplyUpdates, sqoAutoCommit, sqoCancelUpdatesOnRefresh, sqoRefreshUsingSelect);
   TSQLQueryOptions = Set of TSQLQueryOption;
 
   TCustomSQLQuery = class (TCustomBufDataset)
@@ -1804,7 +1804,7 @@ var
 
 begin
   qry:=Nil;
-  ReturningClause:=(sqSupportReturning in Connoptions) and not (sqoPreferRefresh in Query.Options);
+  ReturningClause:=(sqSupportReturning in Connoptions) and not (sqoRefreshUsingSelect in Query.Options);
   case UpdateKind of
     ukInsert : begin
                s := trim(Query.FInsertSQL.Text);
@@ -2380,7 +2380,7 @@ Var
 
 begin
   Result:=(FRefreshSQL.Count<>0);
-  DoReturning:=(sqSupportReturning in SQLConnection.ConnOptions) and not (sqoPreferRefresh in Options);
+  DoReturning:=(sqSupportReturning in SQLConnection.ConnOptions) and not (sqoRefreshUsingSelect in Options);
   if Not (Result or DoReturning) then
     begin
     PF:=RefreshFlags[UpdateKind];
