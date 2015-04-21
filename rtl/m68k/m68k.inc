@@ -59,7 +59,7 @@
 { 00 - 0     - Reserved, Set to zero }
 
 
-{$IFNDEF FPU_SOFT}
+{$IFDEF FPU68881}
 {$DEFINE FPC_SYSTEM_HAS_SYSRESETFPU}
 procedure SysResetFPU; assembler;
 asm
