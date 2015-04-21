@@ -591,7 +591,7 @@ Var
   MimeItemsClass : TMimeItemsClass = TMimeItems;
   MimeItemClass : TMimeItemClass = nil;
 
-Procedure Touch(Const AName : String);
+//Procedure Touch(Const AName : String);
 
 implementation
 
@@ -620,7 +620,7 @@ const
 Procedure Touch(Const AName : String);
 
 begin
-  FileClose(FileCreate('/tmp/touch-'+StringReplace(AName,'/','_',[rfReplaceAll])));
+//  FileClose(FileCreate('/tmp/touch-'+StringReplace(AName,'/','_',[rfReplaceAll])));
 end;
 
 Function GetFieldNameIndex(AName : String) : Integer;
