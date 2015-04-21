@@ -212,7 +212,9 @@ interface
       property ChecksumByte: Byte read GetChecksumByte write SetChecksumByte;
 
       procedure ReadFrom(aReader: TObjectReader);
+      procedure ReadFrom(aReader: TDynamicArray);
       procedure WriteTo(aWriter: TObjectWriter);
+      procedure WriteTo(aWriter: TDynamicArray);
     end;
 
     { TOmfParsedRecord }
@@ -674,7 +676,18 @@ implementation
       aReader.read(RawData[0], RecordLength);
     end;
 
+  procedure TOmfRawRecord.ReadFrom(aReader: TDynamicArray);
+    begin
+      aReader.read(RawData, 3);
+      aReader.read(RawData[0], RecordLength);
+    end;
+
   procedure TOmfRawRecord.WriteTo(aWriter: TObjectWriter);
+    begin
+      aWriter.write(RawData, RecordLength+3);
+    end;
+
+  procedure TOmfRawRecord.WriteTo(aWriter: TDynamicArray);
     begin
       aWriter.write(RawData, RecordLength+3);
     end;
