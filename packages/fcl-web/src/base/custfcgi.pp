@@ -267,10 +267,10 @@ begin
                           end;
                         end;
     FCGI_STDIN :        begin
+                        InitRequestVars;
                         if AFCGIRecord^.contentLength=0 then
                           begin
                           Result := True;
-                          InitRequestVars;
                           ParseCookies;
                           end
                         else
@@ -333,7 +333,6 @@ var
   v : THTTPVariableType;
 
 begin
-  Touch('pairs-enter');
   i := 0;
   RecordLength:=BetoN(ARecord^.Header.contentLength);
   while i < RecordLength do
@@ -343,27 +342,20 @@ begin
     Name:=GetString(NameLength);
     Value:=GetString(ValueLength);
     VarNo:=IndexOfCGIVar(Name);
-    Touch('pairs_'+Name+'__'+Value);
     if Not DoMapCgiToHTTP(Name,H,V) then
       NameValueList.Add(Name+'='+Value)
     else if (H<>hhUnknown) then
       SetHeader(H,Value)
     else if (v<>hvUnknown) then
       begin
-      Touch('pairs_var_'+Name+'__'+Value);
       if (V=hvPathInfo) and (Copy(Value,1,2)='//') then //mod_proxy_fcgi gives double slashes at the beginning for some reason
           Delete(Value,1,3);
       if (V<>hvQuery) then
         Value:=HTTPDecode(Value);
       SetHTTPVariable(v,Value);
-      Touch('pairs_var_done_'+Name+'__'+Value);
       end
     else
-      begin
-      Touch('pairs_other_'+Name+'__'+Value);
       NameValueList.Add(Name+'='+Value)
-      end;
-    Inc(I);
     end;
 end;
 
