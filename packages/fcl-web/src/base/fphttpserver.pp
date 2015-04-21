@@ -274,10 +274,12 @@ end;
 procedure TFPHTTPConnectionRequest.InitRequestVars;
 Var
   P : Integer;
+  S : String;
 begin
-  P:=Pos('?',URI);
+  S:=URL;
+  P:=Pos('?',S);
   if (P<>0) then
-    SetHTTPVariable(hvQuery,Copy(URI,P+1,Length(URI)-P));
+    SetHTTPVariable(hvQuery,Copy(S,P+1,Length(S)-P));
   if Assigned(FConnection) and FConnection.LookupHostNames then
     SetHTTPVariable(hvRemoteHost,GetHostNameByAddress(RemoteAddress));
   inherited InitRequestVars;
