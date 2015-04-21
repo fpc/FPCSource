@@ -126,7 +126,7 @@ implementation
        SysUtils,
        cutils,verbose,globals,
        fmodule,aasmtai,aasmdata,
-       ogmap,
+       ogmap,owomflib,
        version
        ;
 
@@ -843,6 +843,7 @@ implementation
       begin
         inherited Create(smart);
         CObjOutput:=TOmfObjOutput;
+        CInternalAr:=TOmfLibObjectWriter;
       end;
 
 {*****************************************************************************

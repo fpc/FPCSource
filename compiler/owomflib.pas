@@ -32,6 +32,14 @@ uses
   cclasses,
   owbase;
 
+type
+
+  { TOmfLibObjectWriter }
+
+  TOmfLibObjectWriter=class(TObjectWriter)
+
+  end;
+
 implementation
 
 end.
