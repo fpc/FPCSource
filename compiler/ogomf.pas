@@ -858,7 +858,7 @@ implementation
             asmbin : '';
             asmcmd : '';
             supported_targets : [system_i8086_msdos];
-            flags : [af_outputbinary,af_needar,af_no_debug];
+            flags : [af_outputbinary,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
             dollarsign: '$';

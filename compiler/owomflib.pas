@@ -30,9 +30,20 @@ interface
 
 uses
   cclasses,
+  globtype,
   owbase;
 
 type
+
+  { TOmfLibDictionaryEntry }
+
+  TOmfLibDictionaryEntry=class(TFPHashObject)
+  private
+    FPageNum: Word;
+  public
+    constructor Create(HashObjectList:TFPHashObjectList;const aName:TSymStr;aPageNum:Word);
+    property PageNum: Word read FPageNum write FPageNum;
+  end;
 
   { TOmfLibObjectWriter }
 
@@ -44,10 +55,13 @@ type
     FObjFileName: string;
     FObjData: TDynamicArray;
     FObjStartPage: Word;
+    FDictionary: TFPHashObjectList;
 
     procedure WriteHeader(DictStart: DWord; DictBlocks: Word);
     procedure WriteFooter;
     procedure WriteLib;
+    function WriteDictionary: byte;
+    function TryWriteDictionaryWithSize(nblocks: Byte): Boolean;
   public
     constructor createAr(const Aarfn:string);override;
     destructor  destroy;override;
@@ -71,6 +85,28 @@ implementation
       objbufsize = 65536;
 
 {*****************************************************************************
+                                   Helpers
+*****************************************************************************}
+
+    function ModName2DictEntry(const modnm: string): string;
+      begin
+        if Copy(modnm,Length(modnm)-1,2)='.o' then
+          Result:=Copy(modnm,1,Length(modnm)-2)+'!'
+        else
+          Result:=modnm;
+      end;
+
+{*****************************************************************************
+                                TOmfLibDictionaryEntry
+*****************************************************************************}
+
+    constructor TOmfLibDictionaryEntry.Create(HashObjectList: TFPHashObjectList; const aName: TSymStr; aPageNum: Word);
+      begin
+        inherited Create(HashObjectList,aName);
+        PageNum:=aPageNum;
+      end;
+
+{*****************************************************************************
                                 TOmfLibObjectWriter
 *****************************************************************************}
 
@@ -79,6 +115,7 @@ implementation
         FPageSize:=512;
         FLibName:=Aarfn;
         FLibData:=TDynamicArray.Create(libbufsize);
+        FDictionary:=TFPHashObjectList.Create;
         { header is at page 0, so first module starts at page 1 }
         FObjStartPage:=1;
       end;
@@ -90,6 +127,7 @@ implementation
           WriteLib;
         FLibData.Free;
         FObjData.Free;
+        FDictionary.Free;
         inherited destroy;
       end;
 
@@ -107,12 +145,21 @@ implementation
     procedure TOmfLibObjectWriter.closefile;
       var
         RawRec: TOmfRawRecord;
+        ObjHeader: TOmfRecord_THEADR;
       begin
         FLibData.seek(FObjStartPage*FPageSize);
         FObjData.seek(0);
         RawRec:=TOmfRawRecord.Create;
         repeat
           RawRec.ReadFrom(FObjData);
+          if RawRec.RecordType=RT_THEADR then
+            begin
+              ObjHeader:=TOmfRecord_THEADR.Create;
+              ObjHeader.DecodeFrom(RawRec);
+              { create a dictionary entry with the module name }
+              TOmfLibDictionaryEntry.Create(FDictionary,ModName2DictEntry(ObjHeader.ModuleName),FObjStartPage);
+              ObjHeader.Free;
+            end;
           RawRec.WriteTo(FLibData);
         until RawRec.RecordType in [RT_MODEND,RT_MODEND32];
         RawRec.Free;
@@ -124,7 +171,7 @@ implementation
 
     procedure TOmfLibObjectWriter.writesym(const sym: string);
       begin
-        inherited writesym(sym);
+        TOmfLibDictionaryEntry.Create(FDictionary,sym,FObjStartPage);
       end;
 
 
@@ -174,6 +221,8 @@ implementation
     procedure TOmfLibObjectWriter.WriteLib;
       var
         libf: TCCustomFileStream;
+        DictStart: LongWord;
+        DictBlocks: Byte;
       begin
         libf:=CFileStreamClass.Create(FLibName,fmCreate);
         if CStreamError<>0 then
@@ -182,9 +231,95 @@ implementation
             exit;
           end;
         WriteFooter;
-        WriteHeader(FLibData.Pos,2);
+        DictStart:=FLibData.Pos;
+        DictBlocks:=WriteDictionary;
+        WriteHeader(DictStart,DictBlocks);
         FLibData.WriteStream(libf);
         libf.Free;
+      end;
+
+    function TOmfLibObjectWriter.WriteDictionary: Byte;
+      var
+        nb: Byte;
+      begin
+        for nb in OmfLibDictionaryBlockCounts do
+          if TryWriteDictionaryWithSize(nb) then
+            exit(nb);
+        { could not write dictionary, even with the largest number of blocks }
+        internalerror(2015042201);
+      end;
+
+    function TOmfLibObjectWriter.TryWriteDictionaryWithSize(nblocks: Byte): Boolean;
+      const
+        nbuckets=37;
+        freespace=nbuckets;
+      type
+        PBlock=^TBlock;
+        TBlock=array[0..511] of byte;
+      var
+        blocks: array of TBlock;
+        i: Integer;
+        N: TSymStr;
+        length_of_string: Integer;
+        h: TOmfLibHash;
+        start_block,start_bucket: Integer;
+        space_required: Integer;
+        pb: PBlock;
+        success: Boolean;
+        store_at: Integer;
+        PageNum: Word;
+      begin
+        SetLength(blocks,nblocks);
+        for i:=0 to nblocks-1 do
+          begin
+            FillChar(blocks[i],SizeOf(blocks[i]),0);
+            blocks[i][freespace]:=(freespace+1) div 2;
+          end;
+
+        for i:=0 to FDictionary.Count-1 do
+          begin
+            N:=TOmfLibDictionaryEntry(FDictionary[i]).Name;
+            PageNum:=TOmfLibDictionaryEntry(FDictionary[i]).PageNum;
+            length_of_string:=Length(N);
+            h:=compute_omf_lib_hash(N,nblocks);
+            start_block:=h.block_x;
+            start_bucket:=h.bucket_x;
+            space_required:=1+length_of_string+2;
+            if odd(space_required) then
+              Inc(space_required);
+            repeat
+              pb:=@blocks[h.block_x];
+              success:=false;
+              repeat
+                if pb^[h.bucket_x]=0 then
+                  begin
+                    if (512-pb^[freespace]*2)<space_required then
+                      break;
+                    pb^[h.bucket_x]:=pb^[freespace];
+                    store_at:=2*pb^[h.bucket_x];
+                    pb^[store_at]:=length_of_string;
+                    Move(N[1],pb^[store_at+1],length_of_string);
+                    pb^[store_at+1+length_of_string]:=Byte(PageNum);
+                    pb^[store_at+1+length_of_string+1]:=Byte(PageNum shr 8);
+                    Inc(pb^[freespace],space_required div 2);
+                    if pb^[freespace]=0 then
+                      pb^[freespace]:=255;
+                    success:=true;
+                    break;
+                  end;
+                h.bucket_x:=(h.bucket_x+h.bucket_d) mod nbuckets;
+              until h.bucket_x=start_bucket;
+              if not success then
+                begin
+                  h.block_x:=(h.block_x+h.block_d) mod nblocks;
+                  if h.block_x=start_block then
+                    exit(false); // not enough blocks
+                  pb^[freespace]:=255;
+                end;
+            until success;
+          end;
+        FLibData.write(blocks[0],nblocks*SizeOf(TBlock));
+        Result:=true;
       end;
 
 end.
