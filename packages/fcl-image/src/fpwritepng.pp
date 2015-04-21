@@ -475,13 +475,13 @@ end;
 function TFPWriterPNG.ColorDataGrayAB(color:TFPColor) : TColorData;
 begin
   result := ColorDataGrayB (color);
-  result := (result shl 8) and hi(color.Alpha);
+  result := (color.Alpha and $ff00) or result;
 end;
 
 function TFPWriterPNG.ColorDataGrayAW(color:TFPColor) : TColorData;
 begin
   result := ColorDataGrayW (color);
-  result := (result shl 16) and color.Alpha;
+  result := (color.Alpha shl 16) or result;
 end;
 
 function TFPWriterPNG.ColorDataColorB(color:TFPColor) : TColorData;
