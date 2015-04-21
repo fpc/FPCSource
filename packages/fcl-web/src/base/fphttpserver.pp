@@ -440,13 +440,17 @@ procedure ParseStartLine(Request : TFPHTTPConnectionRequest; AStartLine : String
 
 Var
   S : String;
-
+  I : Integer;
+  
 begin
   Request.Method:=GetNextWord(AStartLine);
   Request.URL:=GetNextWord(AStartLine);
   S:=Request.URL;
   If (S<>'') and (S[1]='/') then
     Delete(S,1,1);
+  I:=Pos('?',S);
+  if (I>0) then
+    S:=Copy(S,1,I-1);
   Request.PathInfo:=S;
   S:=GetNextWord(AStartLine);
   If (Pos('HTTP/',S)<>1) then
