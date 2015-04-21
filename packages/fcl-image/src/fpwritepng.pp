@@ -34,6 +34,7 @@ type
       CFmt : TColorFormat; // format of the colors to convert from
       FFmtColor : TColorFormatFunction;
       FTransparentColor : TFPColor;
+      FTransparentColorOk: boolean;
       FSwitchLine, FCurrentLine, FPreviousLine : pByteArray;
       FPalette : TFPPalette;
       OwnsPalette : boolean;
@@ -83,6 +84,7 @@ type
       property ChunkDataBuffer : pByteArray read FChunk.data;
       property UsetRNS : boolean read FUsetRNS;
       property SingleTransparentColor : TFPColor read FTransparentColor;
+      property SingleTransparentColorOk : boolean read FTransparentColorOk;
       property ThePalette : TFPPalette read FPalette;
       property ColorFormat : TColorformat read CFmt;
       property ColorFormatFunc : TColorFormatFunction read FFmtColor;
@@ -270,18 +272,38 @@ end;
 
 procedure TFPWriterPNG.DetermineHeader (var AHeader : THeaderChunk);
 var c : integer;
+
+  function ReducedColorEquals(const c1,c2: TFPColor): boolean;
+  var g1,g2: word;
+  begin
+    if FGrayScale then
+      begin
+        g1 := CalculateGray(c1);
+        g2 := CalculateGray(c2);
+        if fwordsized then
+          result := (g1 = g2)
+        else
+          result := (g1 shr 8 = g2 shr 8);
+      end else
+      begin
+        if FWordSized then
+          result := (c1.red = c2.red) and (c1.green = c2.green) and (c1.blue = c2.blue)
+        else
+          result := (c1.red shr 8 = c2.red shr 8) and (c1.green shr 8 = c2.green shr 8) and (c1.blue shr 8 = c2.blue shr 8);
+      end;
+  end;
+
   function CountAlphas : integer;
   var none, half : boolean;
-      x,y : longint;  // warning, checks on <0 !
+      maxTransparentAlpha: word;
+
+    procedure CountFromPalettedImage;
+    var
       p : integer;
-      c : TFPColor;
       a : word;
+      c : TFPColor;
   begin
-    half := false;
-    none := false;
-    with TheImage do
-      if UsePalette then
-        with Palette do
+      with TheImage.Palette do
           begin
           p := count-1;
           FTransparentColor.alpha := alphaOpaque;
@@ -289,39 +311,95 @@ var c : integer;
             begin
             c := color[p];
             a := c.Alpha;
-            if a = alphaTransparent then
+          if a <= maxTransparentAlpha then
               begin
               none := true;
+            if a < FTransparentColor.alpha then
               FTransparentColor := c;
               end
-            else if a <> alphaOpaque then
-              begin
-              half := true;
-              if FtransparentColor.alpha < a then
-                FtransparentColor := c;
-              end;
+          else if a <> alphaOpaque then half := true;
             dec (p);
             end;
+
+        //check transparent color is used consistently
+        FTransparentColorOk := true;
+        p := count-1;
+        while (p >= 0) do
+          begin
+          c := color[p];
+          if c.alpha > maxTransparentAlpha then
+          begin
+            if ReducedColorEquals(c, FTransparentColor) then
+              begin
+              FTransparentColorOk := false;
+              break;
+              end;
           end
       else
+        begin
+            if not ReducedColorEquals(c, FTransparentColor) then
+              begin
+              FTransparentColorOk := false;
+              break;
+              end;
+          end;
+          dec(p);
+          end;
+        end;
+    end;
+
+    procedure CountFromRGBImage;
+    var
+      a : word;
+      c : TFPColor;
+      x,y : longint;  // checks on < 0
+    begin
+      with TheImage do
         begin
         x := width-1;
         y := height-1;
         FTransparentColor.alpha := alphaOpaque;
-        while (y >= 0) and not (half and none) do
+        while (y >= 0) and not half do //we stop if we already need a full alpha
           begin
           c := colors[x,y];
           a := c.Alpha;
-          if a = alphaTransparent then
+          if a <= maxTransparentAlpha then
             begin
             none := true;
+            if a < FTransparentColor.alpha then
             FTransparentColor := c;
             end
-          else if a <> alphaOpaque then
+          else if a <> alphaOpaque then half := true;
+          dec (x);
+          if (x < 0) then
             begin
-            half := true;
-            if FtransparentColor.alpha < a then
-              FtransparentColor := c;
+            dec (y);
+            x := width-1;
+            end;
+          end;
+
+        //check transparent color is used consistently
+        FTransparentColorOk := true;
+        x := width-1;
+        y := height-1;
+        while (y >= 0) do
+          begin
+          c := colors[x,y];
+          if c.alpha > maxTransparentAlpha then
+          begin
+            if ReducedColorEquals(c, FTransparentColor) then
+              begin
+              FTransparentColorOk := false;
+              break;
+              end;
+          end
+          else
+          begin
+            if not ReducedColorEquals(c, FTransparentColor) then
+              begin
+              FTransparentColorOk := false;
+              break;
+              end;
             end;
           dec (x);
           if (x < 0) then
@@ -331,11 +409,34 @@ var c : integer;
             end;
           end;
         end;
-      result := 1;
+    end;
+
+  begin
+    FTransparentColorOk := false;
+    if FWordSized then maxTransparentAlpha := 0
+    else maxTransparentAlpha := $00ff;
+    half := false;
+    none := false;
+    with TheImage do
+      if UsePalette then
+        CountFromPalettedImage
+      else
+        CountFromRGBImage;
+
+    if half then //if there are semitransparent colors,
+                 //an alpha channel is needed
+      result := 3
+    else
       if none then
-        inc (result);
-      if half then
-        inc (result);
+      begin
+      if FTransparentColorOk then
+        result := 2 //it is possible to use tRNS only
+                    //if the transparent color is used consistently
+      else
+        result := 3;
+      end
+    else
+      result := 1;
   end;
   procedure DetermineColorFormat;
   begin
@@ -475,13 +576,13 @@ end;
 function TFPWriterPNG.ColorDataGrayAB(color:TFPColor) : TColorData;
 begin
   result := ColorDataGrayB (color);
-  result := (color.Alpha and $ff00) or result;
+  result := (result shl 8) and hi(color.Alpha);
 end;
 
 function TFPWriterPNG.ColorDataGrayAW(color:TFPColor) : TColorData;
 begin
   result := ColorDataGrayW (color);
-  result := (color.Alpha shl 16) or result;
+  result := (result shl 16) and color.Alpha;
 end;
 
 function TFPWriterPNG.ColorDataColorB(color:TFPColor) : TColorData;
