@@ -416,8 +416,7 @@ end;
 procedure TField.Clear;
 
 begin
-  if FieldKind in [fkData, fkInternalCalc] then
-    SetData(Nil);
+  SetData(Nil);
 end;
 
 procedure TField.DataChanged;
@@ -1507,7 +1506,6 @@ begin
 end;
 
 procedure TLongintField.SetAsInteger(AValue: Longint);
-var Min, Max: Longint;
 begin
   If CheckRange(AValue) then
     SetData(@AValue)
