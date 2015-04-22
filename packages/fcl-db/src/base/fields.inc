@@ -2581,8 +2581,8 @@ begin
   FMinValue := 0;
   FValidChars := [DecimalSeparator, '+', '-', '0'..'9'];
   SetDataType(ftBCD);
-  FPrecision := 15;
-  Size:=4;
+  Precision := 18;
+  Size := 4;
 end;
 
 
@@ -2603,8 +2603,8 @@ begin
   SetDataType(ftFMTBCD);
 // Max.precision for NUMERIC,DECIMAL datatypes supported by some databases:
 //  Firebird-18; Oracle,SqlServer-38; MySQL-65; PostgreSQL-1000
-  Precision := 15; //default number of digits
-  Size:=4; //default number of digits after decimal place
+  Precision := 18; //default number of digits
+  Size := 4; //default number of digits after decimal place
 end;
 
 function TFMTBCDField.GetDataSize: Integer;

@@ -853,7 +853,7 @@ type
     function CheckRange(AValue : TBCD) : Boolean;
     property Value: TBCD read GetAsBCD write SetAsBCD;
   published
-    property Precision: Longint read FPrecision write FPrecision default 15;
+    property Precision: Longint read FPrecision write FPrecision default 18;
     property Currency: Boolean read FCurrency write FCurrency;
     property MaxValue: string read GetMaxValue write SetMaxValue;
     property MinValue: string read GetMinValue write SetMinValue;
