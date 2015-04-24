@@ -1132,10 +1132,26 @@ uses
               constraintdata.free;
             end
           else
-            if token=_SEMICOLON then
-              { a semicolon terminates a type parameter group }
-              firstidx:=result.count;
+            begin
+              if token=_SEMICOLON then
+                begin
+                  { two different typeless parameters are considered as incompatible }
+                  for i:=firstidx to result.count-1 do
+                    begin
+                      ttypesym(result[i]).typedef:=cundefineddef.create;
+                      ttypesym(result[i]).typedef.typesym:=ttypesym(result[i]);
+                    end;
+                  { a semicolon terminates a type parameter group }
+                  firstidx:=result.count;
+                end;
+            end;
         until not (try_to_consume(_COMMA) or try_to_consume(_SEMICOLON));
+        { two different typeless parameters are considered as incompatible }
+        for i:=firstidx to result.count-1 do
+          begin
+            ttypesym(result[i]).typedef:=cundefineddef.create;
+            ttypesym(result[i]).typedef.typesym:=ttypesym(result[i]);
+          end;
         block_type:=old_block_type;
       end;
 
@@ -1179,6 +1195,14 @@ uses
               end
             else
               begin
+                if (generictype.typedef.typ=undefineddef) and (generictype.typedef<>cundefinedtype) then
+                  begin
+                    { the generic parameters were parsed before the genericdef existed thus the
+                      undefineddefs were added as part of the parent symtable }
+                    if assigned(generictype.typedef.owner) then
+                      generictype.typedef.owner.DefList.Extract(generictype.typedef);
+                    generictype.typedef.changeowner(st);
+                  end;
                 st.insert(generictype);
                 include(generictype.symoptions,sp_generic_para);
               end;

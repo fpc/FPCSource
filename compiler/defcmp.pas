@@ -247,12 +247,12 @@ implementation
 
          if cdo_strict_undefined_check in cdoptions then
            begin
-             { undefined defs are considered equal if both are undefined defs }
+             { two different undefined defs are not considered equal }
              if (def_from.typ=undefineddef) and
                 (def_to.typ=undefineddef) then
               begin
-                doconv:=tc_equal;
-                compare_defs_ext:=te_exact;
+                doconv:=tc_not_possible;
+                compare_defs_ext:=te_incompatible;
                 exit;
               end;
 
