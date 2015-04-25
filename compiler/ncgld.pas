@@ -667,19 +667,23 @@ implementation
             if is_shortstring(right.resultdef) and
                (right.nodetype in [blockn,calln]) then
               begin
-                { nothing to do }
+                { verify that we indeed have nothing to do }
+                if not(nf_assign_done_in_right in flags) then
+                  internalerror(2015042201);
               end
             { empty constant string }
             else if (right.nodetype=stringconstn) and
                (tstringconstnode(right).len=0) then
               begin
-                hlcg.a_load_const_ref(current_asmdata.CurrAsmList,u8inttype,0,left.location.reference);
+                hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,getpointerdef(left.resultdef),tpointerdef(charpointertype),left.location.reference);
+                hlcg.a_load_const_ref(current_asmdata.CurrAsmList,cansichartype,0,left.location.reference);
               end
             { char loading }
             else if is_char(right.resultdef) then
               begin
                 if right.nodetype=ordconstn then
                   begin
+                    hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,getpointerdef(left.resultdef),getpointerdef(u16inttype),left.location.reference);
                     if (target_info.endian = endian_little) then
                       hlcg.a_load_const_ref(current_asmdata.CurrAsmList,u16inttype,(tordconstnode(right).value.svalue shl 8) or 1,
                           setalignment(left.location.reference,1))
@@ -690,7 +694,8 @@ implementation
                 else
                   begin
                     href:=left.location.reference;
-                    hlcg.a_load_const_ref(current_asmdata.CurrAsmList,u8inttype,1,href);
+                    hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,getpointerdef(left.resultdef),tpointerdef(charpointertype),href);
+                    hlcg.a_load_const_ref(current_asmdata.CurrAsmList,cansichartype,1,href);
                     inc(href.offset,1);
                     case right.location.loc of
                       LOC_REGISTER,
@@ -700,13 +705,13 @@ implementation
                           r:=cg.makeregsize(current_asmdata.CurrAsmList,right.location.register,OS_8);
 {$else not cpuhighleveltarget}
                           r:=hlcg.getintregister(current_asmdata.CurrAsmList,u8inttype);
-                          hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,u8inttype,u8inttype,right.location.register,r);
+                          hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,cansichartype,u8inttype,right.location.register,r);
 {$endif cpuhighleveltarget}
                           hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,u8inttype,u8inttype,r,href);
                         end;
                       LOC_REFERENCE,
                       LOC_CREFERENCE :
-                        hlcg.a_load_ref_ref(current_asmdata.CurrAsmList,u8inttype,u8inttype,right.location.reference,href);
+                        hlcg.a_load_ref_ref(current_asmdata.CurrAsmList,cansichartype,cansichartype,right.location.reference,href);
                       else
                         internalerror(200205111);
                     end;
