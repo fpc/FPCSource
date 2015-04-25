@@ -1110,7 +1110,7 @@ implementation
         list.Concat(taicpu.op_reg_reg_reg_cond(A_CSINV,dst,dst,makeregsize(NR_XZR,dstsize),C_NE));
         { mask the -1 to 255 if src was 0 (anyone find a two-instruction
           branch-free version? All of mine are 3...) }
-        list.Concat(setoppostfix(taicpu.op_reg_reg(A_UXT,dst,dst),PF_B));
+        list.Concat(setoppostfix(taicpu.op_reg_reg(A_UXT,makeregsize(dst,OS_32),makeregsize(dst,OS_32)),PF_B));
       end;
 
 
