@@ -3988,6 +3988,8 @@ implementation
     end;
 
     procedure thlcgobj.location_get_data_ref(list: TAsmList; def: tdef; const l: tlocation; var ref: treference; loadref: boolean; alignment: longint);
+      var
+        pdef: tdef;
       begin
         case l.loc of
           LOC_REGISTER,
@@ -3995,16 +3997,17 @@ implementation
             begin
               if not loadref then
                 internalerror(200410231);
-              reference_reset_base(ref,voidpointertype,l.register,0,alignment);
+              reference_reset_base(ref,getpointerdef(def),l.register,0,alignment);
             end;
           LOC_REFERENCE,
           LOC_CREFERENCE :
             begin
               if loadref then
                 begin
-                  reference_reset_base(ref,voidpointertype,getaddressregister(list,voidpointertype),0,alignment);
+                  pdef:=getpointerdef(def);
+                  reference_reset_base(ref,pdef,getaddressregister(list,voidpointertype),0,alignment);
                   { it's a pointer to def }
-                  a_load_ref_reg(list,voidpointertype,voidpointertype,l.reference,ref.base);
+                  a_load_ref_reg(list,pdef,pdef,l.reference,ref.base);
                 end
               else
                 ref:=l.reference;
