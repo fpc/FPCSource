@@ -59,7 +59,7 @@ implementation
       aasmdata,aasmllvm,
       symtable,symconst,symdef,defutil,
       nmem,
-      cpubase,llvmbase,hlcgobj;
+      cpubase,llvmbase,hlcgobj,hlcgllvm;
 
   { tllvmsubscriptnode }
 
@@ -86,6 +86,7 @@ implementation
             llvmfielddef:=tabstractrecordsymtable(tabstractrecorddef(left.resultdef).symtable).llvmst[vs.llvmfieldnr].def;
             { load the address of that shadow field }
             newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(llvmfielddef));
+            location.reference:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,location.reference,left.resultdef);
             current_asmdata.CurrAsmList.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,getpointerdef(left.resultdef),location.reference,s32inttype,vs.llvmfieldnr,true));
             reference_reset_base(location.reference,newbase,vs.offsetfromllvmfield,newalignment(location.reference.alignment,vs.fieldoffset));
             { in case of an 80 bits extended type, typecast from an array of 10
@@ -148,6 +149,7 @@ implementation
              -> convert it into a pointer to an element inside this array }
           getarrelementptrdef;
           hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,arrptrelementdef);
+          locref^:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,location.reference,left.resultdef);
           current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,getpointerdef(left.resultdef),
             locref^,ptruinttype,constarrayoffset,true));
           reference_reset_base(locref^,hreg,0,locref^.alignment);
@@ -179,6 +181,7 @@ implementation
           maybe_const_reg:=hreg;
         end;
       hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(resultdef));
+      location.reference:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,location.reference,left.resultdef);
       { get address of indexed array element and convert pointer to array into
         pointer to the elementdef in the process }
       current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(hreg,getpointerdef(left.resultdef),

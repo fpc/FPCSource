@@ -127,10 +127,13 @@ uses
 
       procedure varsym_set_localloc(list: TAsmList; vs: tabstractnormalvarsym); override;
       procedure paravarsym_set_initialloc_to_paraloc(vs: tparavarsym); override;
-    protected
+
+      procedure g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string); override;
+
       { def is the type of the data stored in memory pointed to by ref, not
         a pointer to this type }
       function make_simple_ref(list: TAsmList; const ref: treference; def: tdef): treference;
+    protected
       procedure paraloctoloc(const paraloc: pcgparalocation; out hloc: tlocation);
       procedure set_call_function_result(const list: TAsmList; const pd: tabstractprocdef; const llvmretdef, hlretdef: tdef; const resval: tregister; var retpara: tcgpara);
     end;
