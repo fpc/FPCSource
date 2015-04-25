@@ -88,15 +88,17 @@ implementation
             newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(llvmfielddef));
             current_asmdata.CurrAsmList.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,getpointerdef(left.resultdef),location.reference,s32inttype,vs.llvmfieldnr,true));
             reference_reset_base(location.reference,newbase,vs.offsetfromllvmfield,newalignment(location.reference.alignment,vs.fieldoffset));
+            { in case of an 80 bits extended type, typecast from an array of 10
+              bytes (used because otherwise llvm will allocate the ABI-defined
+              size for extended, which is usually larger) into an extended }
+            if (llvmfielddef.typ=floatdef) and
+               (tfloatdef(llvmfielddef).floattype=s80real) then
+              hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,getpointerdef(getarraydef(u8inttype,10)),getpointerdef(s80floattype),location.reference);
             { if it doesn't match the requested field exactly (variant record),
               adjust the type of the pointer }
             if (vs.offsetfromllvmfield<>0) or
                (llvmfielddef<>resultdef) then
-              begin
-                newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(resultdef));
-                hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,getpointerdef(llvmfielddef),getpointerdef(resultdef),location.reference.base,newbase);
-                location.reference.base:=newbase;
-              end;
+              hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,getpointerdef(llvmfielddef),getpointerdef(resultdef),location.reference);
             location.size:=def_cgsize(resultdef);
             result:=true;
           end;
