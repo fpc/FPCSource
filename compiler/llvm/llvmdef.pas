@@ -597,7 +597,7 @@ implementation
              encodedstr:=encodedstr+', '
           else
             first:=false;
-          llvmaddencodedtype_intern(usedef,[lef_inaggregate],encodedstr);
+          llvmaddencodedtype_intern(usedef,[],encodedstr);
           { in case signextstr<>'', there should be only one paraloc -> no need
             to clear (reason: it means that the paraloc is larger than the
             original parameter) }
@@ -655,7 +655,7 @@ implementation
             if pddecltype in [lpd_decl] then
               encodedstr:=encodedstr+llvmvalueextension2str[signext];
             encodedstr:=encodedstr+' ';
-            llvmaddencodedtype_intern(usedef,[lef_inaggregate],encodedstr);
+            llvmaddencodedtype_intern(usedef,[],encodedstr);
           end
         else
           begin
