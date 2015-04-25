@@ -1521,6 +1521,7 @@ implementation
           a_op_const_reg_reg(list,OP_ADD,ptruinttype,ref.offset,hreg1,hreg2);
           hreg1:=hreg2;
         end;
+      hreg2:=getaddressregister(list,getpointerdef(def));
       a_load_reg_reg(list,ptruinttype,getpointerdef(def),hreg1,hreg2);
       reference_reset_base(result,getpointerdef(def),hreg2,0,ref.alignment);
     end;
