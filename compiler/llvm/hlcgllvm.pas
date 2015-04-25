@@ -1325,7 +1325,8 @@ implementation
         exit;
       { If the parameter location is reused we don't need to copy
         anything }
-      if reusepara then
+      if (destloc.loc=LOC_REFERENCE) and
+         reusepara then
         exit;
       { get the equivalent llvm def used to pass the parameter (e.g. a record
         with two int64 fields for passing a record consisiting of 8 bytes on
