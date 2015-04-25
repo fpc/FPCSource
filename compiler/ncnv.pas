@@ -2480,43 +2480,47 @@ implementation
   this applies is powerpc64
 }
 {$ifndef CPUNO32BITOPS}
-    { checks whether we can safely remove 64 bit typeconversions
+    { checks whether we can safely remove typeconversions to bigger types
       in case range and overflow checking are off, and in case
       the result of this node tree is downcasted again to a
-      8/16/32 bit value afterwards
+      smaller type value afterwards,
+
+      the smaller types being allowed are described by validints, ordinal constants must fit into l..h
 
       We do this on 64 bit CPUs as well, they benefit from it as well }
-    function checkremove64bittypeconvs(n: tnode; out gotsint: boolean): boolean;
+
+    function checkremovebiginttypeconvs(n: tnode; out gotsint: boolean;validints : tordtypeset;l,h : Tconstexprint): boolean;
       var
         gotdivmod: boolean;
 
-      { checks whether a node is either an u32bit, or originally }
-      { was one but was implicitly converted to s64bit           }
-      function wasoriginallyint32(n: tnode): boolean;
+      { checks whether a node has an accepted resultdef, or originally
+        had one but was implicitly converted to s64bit                 }
+      function wasoriginallysmallerint(n: tnode): boolean;
         begin
           if (n.resultdef.typ<>orddef) then
             exit(false);
-          if (torddef(n.resultdef).ordtype in [s8bit,u8bit,s16bit,u16bit,s32bit,u32bit]) then
+          if (torddef(n.resultdef).ordtype in validints) then
             begin
-              if (torddef(n.resultdef).ordtype in [s8bit,s16bit,s32bit]) then
+              if is_signed(n.resultdef) then
                 gotsint:=true;
               exit(true);
             end;
-          if (torddef(n.resultdef).ordtype in [u64bit,s64bit]) and
+          { type conv to a bigger int, we do not like to use? }
+          if (torddef(n.resultdef).ordtype in ([s8bit,u8bit,s16bit,u16bit,s32bit,u32bit,s64bit,u64bit]-validints)) and
              { nf_explicit is also set for explicitly typecasted }
              { ordconstn's                                       }
              ([nf_internal,nf_explicit]*n.flags=[]) and
-             { either a typeconversion node coming from u32bit }
+             { either a typeconversion node coming from a smaller type }
              (((n.nodetype=typeconvn) and
                (ttypeconvnode(n).left.resultdef.typ=orddef) and
-               (torddef(ttypeconvnode(n).left.resultdef).ordtype in [s8bit,u8bit,s16bit,u16bit,s32bit,u32bit])) or
-             { or an ordconstnode which was/is a valid cardinal }
+               (torddef(ttypeconvnode(n).left.resultdef).ordtype in validints)) or
+             { or an ordconstnode which has a smaller type}
               ((n.nodetype=ordconstn) and
-               (tordconstnode(n).value>=int64(low(longint))) and
-               (tordconstnode(n).value<=high(cardinal)))) then
+               (tordconstnode(n).value>=l) and
+               (tordconstnode(n).value<=h))) then
             begin
               if ((n.nodetype=typeconvn) and
-                  (torddef(ttypeconvnode(n).left.resultdef).ordtype in [s8bit,s16bit,s32bit])) or
+                  is_signed(ttypeconvnode(n).left.resultdef)) or
                  ((n.nodetype=ordconstn) and
                   (tordconstnode(n).value<0)) then
                 gotsint:=true;
@@ -2526,10 +2530,10 @@ implementation
         end;
 
 
-      function docheckremove64bittypeconvs(n: tnode): boolean;
+      function docheckremoveinttypeconvs(n: tnode): boolean;
         begin
           result:=false;
-          if wasoriginallyint32(n) then
+          if wasoriginallysmallerint(n) then
             exit(true);
           case n.nodetype of
             subn,orn,xorn:
@@ -2538,18 +2542,18 @@ implementation
                 if n.nodetype=subn then
                   gotsint:=true;
                 result:=
-                  docheckremove64bittypeconvs(tbinarynode(n).left) and
-                  docheckremove64bittypeconvs(tbinarynode(n).right);
+                  docheckremoveinttypeconvs(tbinarynode(n).left) and
+                  docheckremoveinttypeconvs(tbinarynode(n).right);
               end;
             addn,muln,divn,modn,andn:
               begin
                 if n.nodetype in [divn,modn] then
                   gotdivmod:=true;
                 result:=
-                  (docheckremove64bittypeconvs(tbinarynode(n).left) and
-                   docheckremove64bittypeconvs(tbinarynode(n).right)) or
-                  ((n.nodetype=andn) and wasoriginallyint32(tbinarynode(n).left)) or
-                  ((n.nodetype=andn) and wasoriginallyint32(tbinarynode(n).right));
+                  (docheckremoveinttypeconvs(tbinarynode(n).left) and
+                   docheckremoveinttypeconvs(tbinarynode(n).right)) or
+                  ((n.nodetype=andn) and wasoriginallysmallerint(tbinarynode(n).left)) or
+                  ((n.nodetype=andn) and wasoriginallysmallerint(tbinarynode(n).right));
               end;
           end;
         end;
@@ -2558,12 +2562,13 @@ implementation
         gotdivmod:=false;
         gotsint:=false;
         result:=
-          docheckremove64bittypeconvs(n) and
+          docheckremoveinttypeconvs(n) and
           not(gotdivmod and gotsint);
       end;
 
 
-    procedure doremove64bittypeconvs(var n: tnode; todef: tdef; forceunsigned: boolean);
+    { remove int type conversions and set the result to the given type }
+    procedure doremoveinttypeconvs(var n: tnode; todef: tdef; forceunsigned: boolean; signedtype,unsignedtype : tdef);
       begin
         case n.nodetype of
           subn,addn,muln,divn,modn,xorn,andn,orn:
@@ -2572,15 +2577,15 @@ implementation
               if not forceunsigned and
                  is_signed(n.resultdef) then
                 begin
-                  doremove64bittypeconvs(tbinarynode(n).left,s32inttype,false);
-                  doremove64bittypeconvs(tbinarynode(n).right,s32inttype,false);
-                  n.resultdef:=s32inttype
+                  doremoveinttypeconvs(tbinarynode(n).left,signedtype,false,signedtype,unsignedtype);
+                  doremoveinttypeconvs(tbinarynode(n).right,signedtype,false,signedtype,unsignedtype);
+                  n.resultdef:=signedtype;
                 end
               else
                 begin
-                  doremove64bittypeconvs(tbinarynode(n).left,u32inttype,forceunsigned);
-                  doremove64bittypeconvs(tbinarynode(n).right,u32inttype,forceunsigned);
-                  n.resultdef:=u32inttype
+                  doremoveinttypeconvs(tbinarynode(n).left,unsignedtype,forceunsigned,signedtype,unsignedtype);
+                  doremoveinttypeconvs(tbinarynode(n).right,unsignedtype,forceunsigned,signedtype,unsignedtype);
+                  n.resultdef:=unsignedtype;
                 end;
               //if ((n.nodetype=andn) and (tbinarynode(n).left.nodetype=ordconstn) and
               //    ((tordconstnode(tbinarynode(n).left).value and $7fffffff)=tordconstnode(tbinarynode(n).left).value)
@@ -2812,15 +2817,22 @@ implementation
           tc_int_2_int:
             begin
               if (localswitches * [cs_check_range,cs_check_overflow] = []) and
-                 (resultdef.typ in [pointerdef,orddef,enumdef]) and
-                 (resultdef.size <= 4) and
-                 is_64bitint(left.resultdef) and
-                 (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn]) and
-                 checkremove64bittypeconvs(left,foundsint) then
+                 (resultdef.typ in [pointerdef,orddef,enumdef]) then
                 begin
-                  { avoid unnecessary widening of intermediary calculations }
-                  { to 64 bit                                               }
-                  doremove64bittypeconvs(left,generrordef,not foundsint);
+                  { avoid unnecessary widening of intermediary calculations
+                    to 64 bit                                               }
+                  if (resultdef.size <= 4) and
+                    is_64bitint(left.resultdef) and
+                    (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn]) and
+                    checkremovebiginttypeconvs(left,foundsint,[s8bit,u8bit,s16bit,u16bit,s32bit,u32bit],int64(low(longint)),high(cardinal)) then
+                    doremoveinttypeconvs(left,generrordef,not foundsint,s32inttype,u32inttype);
+{$if defined(cpu8bitalu)}
+                 if (resultdef.size<left.resultdef.size) and
+                  is_integer(left.resultdef) and
+                  (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn]) and
+                  checkremovebiginttypeconvs(left,foundsint,[s8bit,u8bit],int64(low(shortint)),high(byte)) then
+                    doremoveinttypeconvs(left,generrordef,not foundsint,s8inttype,u8inttype);
+{$endif defined(cpu8bitalu)}
                 end;
             end;
         end;

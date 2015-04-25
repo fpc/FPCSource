@@ -235,6 +235,8 @@ type
     uchar,uwidechar,scurrency
   );
 
+  tordtypeset = set of tordtype;
+
   { string types }
   tstringtype = (
     st_shortstring,
