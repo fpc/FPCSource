@@ -41,7 +41,7 @@ interface
         c) defining a procvar type
        The main differences between the contexts are:
         a) information about sign extension of result type, proc name, parameter names & sign-extension info & types
-        b) no information about sign extension of result type, proc name, no parameter names, information about sign extension of parameters, parameter types
+        b) no information about sign extension of result type, proc name, no parameter names, no information about sign extension of parameters, parameter types
         c) no information about sign extension of result type, no proc name, no parameter names, no information about sign extension of parameters, parameter types
       }
      tllvmprocdefdecltype = (lpd_decl,lpd_alias,lpd_procvar);
@@ -665,7 +665,7 @@ implementation
         for paranr:=0 to def.paras.count-1 do
           begin
             hp:=tparavarsym(def.paras[paranr]);
-            llvmaddencodedparaloctype(hp,def.proccalloption,pddecltype in [lpd_decl],not(pddecltype in [lpd_procvar]),first,encodedstr);
+            llvmaddencodedparaloctype(hp,def.proccalloption,pddecltype in [lpd_decl],not(pddecltype in [lpd_procvar,lpd_alias]),first,encodedstr);
           end;
         if po_varargs in def.procoptions then
           begin
