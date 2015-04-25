@@ -35,14 +35,16 @@ interface
       processor manufacturer.
     }
     gas_op2str : op2strtable = ('',
-        'add','adc','adiw','sub','subi','sbc','sbci','sbrc','sbrs','clc','sec','sbiw','and','andi',
-        'or','ori','eor','com','neg','sbr','cbr','inc','dec','tst','clr',
-        'ser','mul','muls','fmul','fmuls','fmulsu','rjmp','ijmp',
+        'add','adc','adiw','sub','subi','sbc','sbci','sbrc','sbrs','sbiw','and','andi',
+        'or','ori','eor','com','neg','sbr','cbr','inc','dec','tst',
+        'mul','muls','mulu','fmul','fmuls','fmulsu','rjmp','ijmp',
         'eijmp','jmp','rcall','icall','eicall','call','ret','reti','cpse',
         'cp','cpc','cpi','sbic','sbis','br','mov','movw','ldi','lds','ld','ldd',
         'sts','st','std','lpm','elpm','spm','in','out','push','pop',
         'lsl','lsr','rol','ror','asr','swap','bset','bclr','sbi','cbi',
-        'bst','bld','s','cli','brak','nop','sleep','wdr');
+        'sec','seh','sei','sen','ser','ses','set','sev','sez',
+        'clc','clh','cli','cln','clr','cls','clt','clv','clz',
+        'bst','bld','break','nop','sleep','wdr');
 
     function gas_regnum_search(const s:string):Tregister;
     function gas_regname(r:Tregister):string;
