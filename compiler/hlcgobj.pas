@@ -1596,8 +1596,12 @@ implementation
     end;
 
   procedure thlcgobj.a_bit_test_const_ref_reg(list: TAsmList; fromsize, destsize: tdef; bitnumber: aint; const ref: treference; destreg: tregister);
+    var
+      href: treference;
     begin
-      a_load_subsetref_reg(list,u8inttype,destsize,get_bit_const_ref_sref(bitnumber,fromsize,ref),destreg);
+      href:=ref;
+      g_ptrtypecast_ref(list,getpointerdef(fromsize),getpointerdef(u8inttype),href);
+      a_load_subsetref_reg(list,u8inttype,destsize,get_bit_const_ref_sref(bitnumber,fromsize,href),destreg);
     end;
 
   procedure thlcgobj.a_bit_test_const_reg_reg(list: TAsmList; setregsize, destsize: tdef; bitnumber: aint; setreg, destreg: tregister);
@@ -1621,8 +1625,12 @@ implementation
     end;
 
   procedure thlcgobj.a_bit_test_reg_ref_reg(list: TAsmList; bitnumbersize, refsize, destsize: tdef; bitnumber: tregister; const ref: treference; destreg: tregister);
+    var
+      href: treference;
     begin
-      a_load_subsetref_reg(list,u8inttype,destsize,get_bit_reg_ref_sref(list,bitnumbersize,refsize,bitnumber,ref),destreg);
+      href:=ref;
+      g_ptrtypecast_ref(list,getpointerdef(refsize),getpointerdef(u8inttype),href);
+      a_load_subsetref_reg(list,u8inttype,destsize,get_bit_reg_ref_sref(list,bitnumbersize,refsize,bitnumber,href),destreg);
     end;
 
   procedure thlcgobj.a_bit_test_reg_loc_reg(list: TAsmList; bitnumbersize, locsize, destsize: tdef; bitnumber: tregister; const loc: tlocation; destreg: tregister);
@@ -1705,12 +1713,17 @@ implementation
     end;
 
   procedure thlcgobj.a_bit_set_const_ref(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; const ref: treference);
+    var
+      href: treference;
     begin
-      a_load_const_subsetref(list,u8inttype,ord(doset),get_bit_const_ref_sref(bitnumber,destsize,ref));
+      href:=ref;
+      g_ptrtypecast_ref(list,getpointerdef(destsize),getpointerdef(u8inttype),href);
+      a_load_const_subsetref(list,u8inttype,ord(doset),get_bit_const_ref_sref(bitnumber,destsize,href));
     end;
 
   procedure thlcgobj.a_bit_set_const_reg(list: TAsmList; doset: boolean; destsize: tdef; bitnumber: tcgint; destreg: tregister);
     begin
+      g_ptrtypecast_reg(list,getpointerdef(destsize),getpointerdef(u8inttype),destreg);
       a_load_const_subsetreg(list,u8inttype,ord(doset),get_bit_const_reg_sreg(destsize,bitnumber,destreg));
     end;
 
@@ -1730,7 +1743,11 @@ implementation
     end;
 
   procedure thlcgobj.a_bit_set_reg_ref(list: TAsmList; doset: boolean; fromsize, tosize: tdef; bitnumber: tregister; const ref: treference);
+    var
+      href: treference;
     begin
+      href:=ref;
+      g_ptrtypecast_ref(list,getpointerdef(tosize),getpointerdef(u8inttype),href);
       a_load_const_subsetref(list,u8inttype,ord(doset),get_bit_reg_ref_sref(list,fromsize,tosize,bitnumber,ref));
     end;
 
