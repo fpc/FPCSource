@@ -45,7 +45,7 @@ interface
          { procedure second_real_to_real;override; }
          { procedure second_cord_to_pointer;override; }
          { procedure second_proc_to_procvar;override; }
-         { procedure second_bool_to_int;override; }
+         procedure second_bool_to_int;override;
          procedure second_int_to_bool;override;
          { procedure second_load_smallset;override;  }
          { procedure second_ansistring_to_pchar;override; }
@@ -62,7 +62,7 @@ uses
   aasmbase,aasmdata,
   llvmbase,aasmllvm,
   procinfo,
-  symconst,symdef,defutil,
+  symconst,symtype,symdef,defutil,
   cgbase,cgutils,hlcgobj,pass_2;
 
 { tllvmtypeconvnode }
@@ -131,6 +131,38 @@ procedure tllvmtypeconvnode.second_int_to_real;
     location.register:=hlcg.getfpuregister(current_asmdata.CurrAsmList,resultdef);
     hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
     current_asmdata.CurrAsmList.concat(taillvm.op_reg_size_reg_size(op,location.register,left.resultdef,left.location.register,resultdef));
+  end;
+
+
+procedure tllvmtypeconvnode.second_bool_to_int;
+  var
+    pdef: tdef;
+    hreg: tregister;
+  begin
+    inherited;
+    { all boolean/integer of the same size are represented using the same type
+      by FPC in LLVM, except for Pascal booleans, which are i1 -> convert
+      the type if necessary. This never has to be done for registers on the
+      assignment side, because we make everything that's explicitly typecasted
+      on the assignment side non regable for llvm }
+    if is_pasbool(left.resultdef) and
+       (nf_explicit in flags) and
+       (resultdef.size=1) then
+      case location.loc of
+        LOC_REFERENCE,LOC_CREFERENCE:
+          begin
+            pdef:=getpointerdef(resultdef);
+            hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,pdef);
+            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,pdef,location.reference,hreg);
+            hlcg.reference_reset_base(location.reference,pdef,hreg,0,location.reference.alignment);
+          end;
+        LOC_REGISTER,LOC_CREGISTER:
+          begin
+            hreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+            hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,location.register,hreg);
+            location.register:=hreg;
+          end;
+      end;
   end;
 
 
