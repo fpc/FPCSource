@@ -210,6 +210,17 @@ implementation
                   end;
               end;
             end
+          else if is_pasbool(fromsize) and
+                  not is_pasbool(tosize) then
+            begin
+              if is_cbool(tosize) then
+                result:=la_sext
+              else
+                result:=la_zext
+            end
+          else if is_pasbool(tosize) and
+                  not is_pasbool(fromsize) then
+            result:=la_trunc
           else
             result:=la_bitcast;
         end;
