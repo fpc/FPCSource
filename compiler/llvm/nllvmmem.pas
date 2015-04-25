@@ -143,7 +143,9 @@ implementation
       locref:=nil;
       { avoid uninitialised warning }
       arrptrelementdef:=nil;
-      if not arraytopointerconverted then
+      if not arraytopointerconverted and
+         not is_dynamicstring(left.resultdef) and
+         not is_dynamic_array(left.resultdef) then
         begin
           { the result is currently a pointer to left.resultdef (the array type)
              -> convert it into a pointer to an element inside this array }
