@@ -764,6 +764,14 @@ implementation
             usedef:=cgpara.location^.def;
             if beforevalueext then
               llvmextractvalueextinfo(cgpara.def,usedef,valueext);
+            { comp and currency are handled by the x87 in this case. They cannot
+              be represented directly in llvm, and llvmdef translates them into
+              i64 (since that's their storage size and internally they also are
+              int64). Solve this by changing the type to s80real in the
+              returndef/parameter declaration. }
+            if (usedef.typ=floatdef) and
+               (tfloatdef(usedef).floattype in [s64comp,s64currency]) then
+              usedef:=s80floattype;
             result:=usedef;
             exit
           end;
