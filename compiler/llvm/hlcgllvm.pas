@@ -1114,14 +1114,20 @@ implementation
 
 
   procedure thlcgllvm.gen_load_uninitialized_function_result(list: TAsmList; pd: tprocdef; resdef: tdef; const resloc: tcgpara);
-    var
-      reg: tregister;
     begin
       if not paramanager.ret_in_param(resdef,pd) then
         begin
-          reg:=getregisterfordef(list,resdef);
-          list.concat(taillvm.op_reg_size_undef(la_bitcast,reg,resdef));
-          a_load_reg_cgpara(list,resdef,reg,resloc);
+          case resloc.location^.loc of
+            LOC_REGISTER,
+            LOC_FPUREGISTER,
+            LOC_MMREGISTER:
+              begin
+                resloc.check_simple_location;
+                list.concat(taillvm.op_reg_size_undef(la_bitcast,resloc.location^.register,resloc.location^.def));
+              end;
+            else
+              internalerror(2015042301);
+          end;
         end;
     end;
 
