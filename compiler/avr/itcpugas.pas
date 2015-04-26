@@ -37,7 +37,7 @@ interface
     gas_op2str : op2strtable = ('',
         'add','adc','adiw','sub','subi','sbc','sbci','sbrc','sbrs','sbiw','and','andi',
         'or','ori','eor','com','neg','sbr','cbr','inc','dec','tst',
-        'mul','muls','mulu','fmul','fmuls','fmulsu','rjmp','ijmp',
+        'mul','muls','mulsu','fmul','fmuls','fmulsu','rjmp','ijmp',
         'eijmp','jmp','rcall','icall','eicall','call','ret','reti','cpse',
         'cp','cpc','cpi','sbic','sbis','br','mov','movw','ldi','lds','ld','ldd',
         'sts','st','std','lpm','elpm','spm','in','out','push','pop',
