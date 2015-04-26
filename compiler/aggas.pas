@@ -26,6 +26,8 @@ unit aggas;
 
 {$i fpcdefs.inc}
 
+{ $define DEBUG_AGGAS}
+
 interface
 
     uses
@@ -1261,10 +1263,18 @@ implementation
 
            ait_force_line,
            ait_function_name :
-             ;
+             begin
+{$ifdef DEBUG_AGGAS}
+               WriteStr(s,hp.typ);
+               AsmWriteLn('# '+s);
+{$endif DEBUG_AGGAS}
+             end;
 
            ait_cutobject :
              begin
+{$ifdef DEBUG_AGGAS}
+               AsmWriteLn('# ait_cutobject');
+{$endif DEBUG_AGGAS}
                if SmartAsm then
                 begin
                 { only reset buffer if nothing has changed }
@@ -1290,10 +1300,16 @@ implementation
              end;
 
            ait_marker :
-             if tai_marker(hp).kind=mark_NoLineInfoStart then
-               inc(InlineLevel)
-             else if tai_marker(hp).kind=mark_NoLineInfoEnd then
-               dec(InlineLevel);
+             begin
+{$ifdef DEBUG_AGGAS}
+               WriteStr(s,tai_marker(hp).Kind);
+               AsmWriteLn('# ait_marker, kind: '+s);
+{$endif DEBUG_AGGAS}
+               if tai_marker(hp).kind=mark_NoLineInfoStart then
+                 inc(InlineLevel)
+               else if tai_marker(hp).kind=mark_NoLineInfoEnd then
+                 dec(InlineLevel);
+             end;
 
            ait_directive :
              begin
@@ -1333,6 +1349,7 @@ implementation
                AsmLn;
 {$endif DISABLE_WIN64_SEH}
              end;
+
            ait_varloc:
              begin
                if tai_varloc(hp).newlocationhi<>NR_NO then
