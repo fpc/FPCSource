@@ -2685,8 +2685,13 @@ implementation
         end;
 
       function getcoprocreg(reg: tregister): byte;
+        var
+          tmpr: tregister;
         begin
-          result:=getsupreg(reg)-getsupreg(NR_CR0);
+          { FIXME: temp variable r is needed here to avoid Internal error 20060521 }
+          {        while compiling the compiler. }
+          tmpr:=NR_CR0;
+          result:=getsupreg(reg)-getsupreg(tmpr);
         end;
 
       function getmmreg(reg: tregister): byte;
