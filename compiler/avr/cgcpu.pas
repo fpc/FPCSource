@@ -109,6 +109,7 @@ unit cgcpu;
       protected
         procedure a_op_reg_reg_internal(list: TAsmList; Op: TOpCG; size: TCGSize; src, srchi, dst, dsthi: TRegister);
         procedure a_op_const_reg_internal(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; reg, reghi: TRegister);
+        procedure maybegetcpuregister(list : tasmlist; reg : tregister);
       end;
 
       tcg64favr = class(tcg64f32)
@@ -879,14 +880,15 @@ unit cgcpu;
        end;
 
 
-    function tcgavr.normalize_ref(list:TAsmList;ref: treference;tmpreg : tregister) : treference;
+    procedure tcgavr.maybegetcpuregister(list:tasmlist;reg : tregister);
+      begin
+        { allocate the register only, if a cpu register is passed }
+        if getsupreg(reg)<first_int_imreg then
+          getcpuregister(list,reg);
+      end;
 
-      procedure maybegetcpuregister(list:tasmlist;reg : tregister);
-        begin
-          { allocate the register only, if a cpu register is passed }
-          if getsupreg(reg)<first_int_imreg then
-            getcpuregister(list,reg);
-        end;
+
+    function tcgavr.normalize_ref(list:TAsmList;ref: treference;tmpreg : tregister) : treference;
 
       var
         tmpref : treference;
@@ -906,7 +908,29 @@ unit cgcpu;
             ref.base:=ref.index;
             ref.index:=NR_NO;
           end;
-        if assigned(ref.symbol) or (ref.offset<>0) then
+
+        { can we take advantage of adiw/sbiw? }
+        if (current_settings.cputype>=cpu_avr2) and not(assigned(ref.symbol)) and (ref.offset<>0) and (ref.offset>=-63) and (ref.offset<=63) and
+          ((tmpreg=NR_R24) or (tmpreg=NR_R26) or (tmpreg=NR_R28) or (tmpreg=NR_R30)) and (ref.base<>NR_NO) then
+          begin
+            maybegetcpuregister(list,tmpreg);
+            emit_mov(list,tmpreg,ref.base);
+            maybegetcpuregister(list,GetNextReg(tmpreg));
+            emit_mov(list,GetNextReg(tmpreg),GetNextReg(ref.base));
+            if ref.index<>NR_NO then
+              begin
+                list.concat(taicpu.op_reg_reg(A_ADD,tmpreg,ref.index));
+                list.concat(taicpu.op_reg_reg(A_ADC,GetNextReg(tmpreg),GetNextReg(ref.index)));
+              end;
+            if ref.offset>0 then
+              list.concat(taicpu.op_reg_const(A_ADIW,tmpreg,ref.offset))
+            else
+              list.concat(taicpu.op_reg_const(A_SBIW,tmpreg,-ref.offset));
+            ref.offset:=0;
+            ref.base:=tmpreg;
+            ref.index:=NR_NO;
+          end
+        else if assigned(ref.symbol) or (ref.offset<>0) then
           begin
             reference_reset(tmpref,0);
             tmpref.symbol:=ref.symbol;
@@ -982,19 +1006,38 @@ unit cgcpu;
          QuickRef : Boolean;
        begin
          QuickRef:=false;
-         if not((Ref.addressmode=AM_UNCHANGED) and
-                (Ref.symbol=nil) and
-                ((Ref.base=NR_R28) or
-                 (Ref.base=NR_R29)) and
-                 (Ref.Index=NR_No) and
-                 (Ref.Offset in [0..64-tcgsize2size[tosize]])) and
-           not((Ref.Base=NR_NO) and (Ref.Index=NR_NO)) then
-           href:=normalize_ref(list,Ref,NR_R30)
-         else
+
+         href:=Ref;
+         { ensure, href.base contains a valid register if there is any register used }
+         if href.base=NR_NO then
            begin
-             QuickRef:=true;
-             href:=Ref;
+             href.base:=href.index;
+             href.index:=NR_NO;
            end;
+
+         { try to use std/sts }
+         if not((href.Base=NR_NO) and (href.Index=NR_NO)) then
+           begin
+             if not((href.addressmode=AM_UNCHANGED) and
+                    (href.symbol=nil) and
+                     (href.Index=NR_NO) and
+                     (href.Offset in [0..64-tcgsize2size[fromsize]])) then
+               href:=normalize_ref(list,href,NR_R30)
+             else
+               begin
+                 if (href.base<>NR_R28) and (href.base<>NR_R30) then
+                   begin
+                     maybegetcpuregister(list,NR_R30);
+                     emit_mov(list,NR_R30,href.base);
+                     maybegetcpuregister(list,NR_R31);
+                     emit_mov(list,NR_R31,GetNextReg(href.base));
+                     href.base:=NR_R30;
+                   end;
+                 QuickRef:=true;
+               end;
+           end
+         else
+           QuickRef:=true;
 
          if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
            internalerror(2011021307);
@@ -1154,19 +1197,38 @@ unit cgcpu;
          QuickRef : boolean;
        begin
          QuickRef:=false;
-         if not((Ref.addressmode=AM_UNCHANGED) and
-                (Ref.symbol=nil) and
-                ((Ref.base=NR_R28) or
-                 (Ref.base=NR_R29)) and
-                 (Ref.Index=NR_No) and
-                 (Ref.Offset in [0..64-tcgsize2size[fromsize]])) and
-           not((Ref.Base=NR_NO) and (Ref.Index=NR_NO)) then
-           href:=normalize_ref(list,Ref,NR_R30)
-         else
+
+         href:=Ref;
+         { ensure, href.base contains a valid register if there is any register used }
+         if href.base=NR_NO then
            begin
-             QuickRef:=true;
-             href:=Ref;
+             href.base:=href.index;
+             href.index:=NR_NO;
            end;
+
+         { try to use ldd/lds }
+         if not((href.Base=NR_NO) and (href.Index=NR_NO)) then
+           begin
+             if not((href.addressmode=AM_UNCHANGED) and
+                    (href.symbol=nil) and
+                     (href.Index=NR_NO) and
+                     (href.Offset in [0..64-tcgsize2size[fromsize]])) then
+               href:=normalize_ref(list,href,NR_R30)
+             else
+               begin
+                 if (href.base<>NR_R28) and (href.base<>NR_R30) then
+                   begin
+                     maybegetcpuregister(list,NR_R30);
+                     emit_mov(list,NR_R30,href.base);
+                     maybegetcpuregister(list,NR_R31);
+                     emit_mov(list,NR_R31,GetNextReg(href.base));
+                     href.base:=NR_R30;
+                   end;
+                 QuickRef:=true;
+               end;
+           end
+         else
+           QuickRef:=true;
 
          if (tcgsize2size[fromsize]>32) or (tcgsize2size[tosize]>32) or (fromsize=OS_NO) or (tosize=OS_NO) then
            internalerror(2011021307);
@@ -1631,6 +1693,14 @@ unit cgcpu;
       begin
         if not(nostackframe) then
           begin
+            { check if the framepointer is actually used, this is done here because
+              we have to know the size of the locals (must be 0), avr does not know
+              an sp based stack }
+
+            if not(current_procinfo.procdef.stack_tainting_parameter(calleeside)) and
+              (localsize=0) then
+              current_procinfo.framepointer:=NR_NO;
+
             { save int registers,
               but only if the procedure returns }
             if not(po_noreturn in current_procinfo.procdef.procoptions) then
@@ -1640,25 +1710,19 @@ unit cgcpu;
             { if the framepointer is potentially used, save it always because we need a proper stack frame,
               even if the procedure never returns, the procedure could be e.g. a nested one accessing
               an outer stackframe }
-            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+            if current_procinfo.framepointer<>NR_NO then
               regs:=regs+[RS_R28,RS_R29];
 
             for reg:=RS_R31 downto RS_R0 do
               if reg in regs then
                 list.concat(taicpu.op_reg(A_PUSH,newreg(R_INTREGISTER,reg,R_SUBWHOLE)));
 
-            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+            if current_procinfo.framepointer<>NR_NO then
               begin
                 list.concat(taicpu.op_reg_const(A_IN,NR_R28,NIO_SP_LO));
                 list.concat(taicpu.op_reg_const(A_IN,NR_R29,NIO_SP_HI));
-              end
-            else
-              { the framepointer cannot be omitted on avr because sp
-                is not a register but part of the i/o map
-              }
-              internalerror(2011021901);
-
-            a_adjust_sp(list,-localsize);
+                a_adjust_sp(list,-localsize);
+              end;
           end;
       end;
 
@@ -1676,24 +1740,16 @@ unit cgcpu;
           exit;
         if not(nostackframe) then
           begin
-            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+            regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
+            if current_procinfo.framepointer<>NR_NO then
               begin
+                regs:=regs+[RS_R28,RS_R29];
                 LocalSize:=current_procinfo.calc_stackframe_size;
                 a_adjust_sp(list,LocalSize);
-                regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
-                if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
-                  regs:=regs+[RS_R28,RS_R29];
-
-                for reg:=RS_R0 to RS_R31 do
-                  if reg in regs then
-                    list.concat(taicpu.op_reg(A_POP,newreg(R_INTREGISTER,reg,R_SUBWHOLE)));
-
-              end
-            else
-              { the framepointer cannot be omitted on avr because sp
-                is not a register but part of the i/o map
-              }
-              internalerror(2011021902);
+              end;
+            for reg:=RS_R0 to RS_R31 do
+              if reg in regs then
+                list.concat(taicpu.op_reg(A_POP,newreg(R_INTREGISTER,reg,R_SUBWHOLE)));
           end;
         list.concat(taicpu.op_none(A_RET));
       end;
@@ -1842,7 +1898,7 @@ unit cgcpu;
             if not((source.addressmode=AM_UNCHANGED) and
                    (source.symbol=nil) and
                    ((source.base=NR_R28) or
-                    (source.base=NR_R29)) and
+                    (source.base=NR_R30)) and
                     (source.Index=NR_NO) and
                     (source.Offset in [0..64-len])) and
               not((source.Base=NR_NO) and (source.Index=NR_NO)) then
@@ -1856,7 +1912,7 @@ unit cgcpu;
             if not((dest.addressmode=AM_UNCHANGED) and
                    (dest.symbol=nil) and
                    ((dest.base=NR_R28) or
-                    (dest.base=NR_R29)) and
+                    (dest.base=NR_R30)) and
                     (dest.Index=NR_No) and
                     (dest.Offset in [0..64-len])) and
               not((dest.Base=NR_NO) and (dest.Index=NR_NO)) then
