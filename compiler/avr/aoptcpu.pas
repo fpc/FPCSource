@@ -45,11 +45,47 @@ Implementation
   uses
     cpuinfo,
     aasmbase,aasmcpu,
-    globals,globtype;
+    globals,globtype,
+    cgutils;
 
   function CanBeCond(p : tai) : boolean;
     begin
       result:=(p.typ=ait_instruction) and (taicpu(p).condition=C_None);
+    end;
+
+
+  function RefsEqual(const r1, r2: treference): boolean;
+    begin
+      refsequal :=
+        (r1.offset = r2.offset) and
+        (r1.base = r2.base) and
+        (r1.index = r2.index) and (r1.scalefactor = r2.scalefactor) and
+        (r1.symbol=r2.symbol) and (r1.refaddr = r2.refaddr) and
+        (r1.relsymbol = r2.relsymbol) and
+        (r1.addressmode = r2.addressmode);
+    end;
+
+
+  function MatchOperand(const oper1: TOper; const oper2: TOper): boolean; inline;
+    begin
+      result:=oper1.typ=oper2.typ;
+
+      if result then
+        case oper1.typ of
+          top_const:
+            Result:=oper1.val = oper2.val;
+          top_reg:
+            Result:=oper1.reg = oper2.reg;
+          top_ref:
+            Result:=RefsEqual(oper1.ref^, oper2.ref^);
+          else Result:=false;
+        end
+    end;
+
+
+  function MatchOperand(const oper: TOper; const reg: TRegister): boolean; inline;
+    begin
+      result := (oper.typ = top_reg) and (oper.reg = reg);
     end;
 
 
@@ -352,7 +388,26 @@ Implementation
                       asml.remove(hp1);
                       hp1.free;
                       result:=true;
-                    end;
+                    end
+                  {
+                    This removes the first mov from
+                    mov rX,...
+                    mov rX,...
+                  }
+                  else if taicpu(hp1).opcode=A_MOV then
+                    while (taicpu(hp1).opcode=A_MOV) and
+                          MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^) and
+                          { don't remove the first mov if the second is a mov rX,rX }
+                          not(MatchOperand(taicpu(hp1).oper[0]^,taicpu(hp1).oper[1]^)) do
+                      begin
+                        asml.remove(p);
+                        p.free;
+                        p:=hp1;
+                        GetNextInstruction(hp1,hp1);
+                        result:=true;
+                        if not assigned(hp1) then
+                          break;
+                      end;
                 end;
             end;
           end;
