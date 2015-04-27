@@ -346,26 +346,22 @@ begin
 end;
 
 function TMemDataset.MDSGetActiveBuffer(out Buffer: TRecordBuffer): Boolean;
-
 begin
- case State of
-   dsBrowse,
-   dsBlockRead:
-     if IsEmpty then
-       Buffer:=nil
-     else
-       Buffer:=ActiveBuffer;
-  dsEdit,
-  dsInsert:
-     Buffer:=ActiveBuffer;
-  dsFilter:
-     Buffer:=FFilterBuffer;
-  dsCalcFields:
-     Buffer:=CalcBuffer;
- else
-   Buffer:=nil;
- end;
- Result:=(Buffer<>nil);
+  case State of
+    dsEdit,
+    dsInsert:
+      Buffer:=ActiveBuffer;
+    dsFilter:
+      Buffer:=FFilterBuffer;
+    dsCalcFields:
+      Buffer:=CalcBuffer;
+    else
+      if IsEmpty then
+        Buffer:=nil
+      else
+        Buffer:=ActiveBuffer;
+  end;
+  Result := Buffer<>nil;
 end;
 
 procedure TMemDataset.MDSReadRecord(Buffer:TRecordBuffer;ARecNo:Integer);   //Reads a Rec from Stream in Buffer
