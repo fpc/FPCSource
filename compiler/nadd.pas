@@ -3145,7 +3145,8 @@ implementation
              else
                begin
 {$ifdef cpuneedsmulhelper}
-                 if (nodetype=muln) and not(torddef(resultdef).ordtype in [u8bit,s8bit{$ifdef cpu16bitalu},u16bit,s16bit{$endif}]) then
+                 if (nodetype=muln) and not(torddef(resultdef).ordtype in [u8bit,s8bit
+                   {$if defined(cpu16bitalu) or defined(avr)},u16bit,s16bit{$endif}]) then
                    begin
                      result := nil;
 
