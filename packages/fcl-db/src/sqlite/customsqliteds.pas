@@ -309,6 +309,7 @@ const
   //sqlite2.x.x and sqlite3.x.x define these constants equally
   SQLITE_OK = 0;
   SQLITE_ROW = 100;
+  SQLITE_DONE = 101;
   
   NullString = 'NULL';
   
@@ -1783,7 +1784,7 @@ begin
     WriteLn('  SQL: ',SqlTemp);
     {$endif}
     ExecSQL(SQLTemp);
-    Result := FReturnCode = SQLITE_OK;
+    Result := FReturnCode = SQLITE_DONE;
   end
   else
     Result := False;
