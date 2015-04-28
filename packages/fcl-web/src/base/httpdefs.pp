@@ -872,8 +872,12 @@ end;
 
 procedure THTTPHeader.SetHTTPVariable(AVariable: THTTPVariableType; AValue: String);
 begin
-  Touch(GetEnumName(TypeInfo(THTTPVariableType),Ord(AVariable))+'='+AValue);
-  FVariables[AVariable]:=AValue
+//  Touch(GetEnumName(TypeInfo(THTTPVariableType),Ord(AVariable))+'='+AValue);
+  if FVariables[AVariable]=AValue then
+    exit;
+  FVariables[AVariable]:=AValue;
+  if (AVariable=hvCookie) and (AValue<>'') then
+    ParseCookies;
 end;
 
 procedure THTTPHeader.SetServerPort(AValue: Word);
@@ -1047,7 +1051,6 @@ begin
     begin
     FFields[Index]:=Value;
     If (Index=11) then
-      ParseCookies;
     end
   else
     case Index of
@@ -1076,6 +1079,7 @@ Var
   
 begin
 {$ifdef cgidebug}  SendMethodEnter('Parsecookies');{$endif}
+  FCookieFields.Clear;
   S:=Cookie;
   While (S<>'') do
     begin
@@ -1122,7 +1126,7 @@ end;
 
 procedure THTTPHeader.SetHeader(AHeader: THeader; const AValue: String);
 begin
-  Touch(GetEnumName(TypeInfo(THEader),ORd(AHeader))+'='+AValue);
+//  Touch(GetEnumName(TypeInfo(THEader),ORd(AHeader))+'='+AValue);
   FFields[AHeader]:=AValue;
 end;
 
@@ -1760,15 +1764,12 @@ begin
   SendMethodEnter('InitPostVars');
 {$endif}
   CL:=ContentLength;
-  if CL<>0 then
+  if (CL<>0) and (Length(Content)>0) then
     begin
     M:=TCapacityStream.Create;
     Try
-      if CL<>0 then
-        begin
-        M.Capacity:=Cl;
-        M.WriteBuffer(Content[1], Cl);
-        end;
+      M.Capacity:=Cl;
+      M.WriteBuffer(Content[1], Cl);
       M.Position:=0;
       CT:=ContentType;
       if Pos('MULTIPART/FORM-DATA',Uppercase(CT))<>0 then
@@ -1778,7 +1779,7 @@ begin
       else
         HandleUnknownEncoding(CT,M)
     finally
-     M.Free;
+      M.Free;
     end;
     end;
 {$ifdef CGIDEBUG}
