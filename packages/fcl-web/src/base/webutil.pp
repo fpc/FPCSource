@@ -157,6 +157,18 @@ begin
           end;
       Add('</TABLE><P>');
       end;
+    If (CookieFields.Count>0) then
+      begin
+      Add('<H1>Received cookies: ('+IntToStr(CookieFields.Count)+') </H1>');
+      Add('<TABLE BORDER="1">');
+      Add('<TR><TD>Name</TD><TD>Value</TD></TR>');
+      For I:=0 to CookieFields.Count-1 do
+        begin
+        CookieFields.GetNameValue(i,N,V);
+        AddNV(N,V);
+        end;
+      Add('</TABLE><P>');
+      end;
     end;
 end;
 
