@@ -267,13 +267,8 @@ begin
                           end;
                         end;
     FCGI_STDIN :        begin
-                        InitRequestVars;
-                        if AFCGIRecord^.contentLength=0 then
-                          begin
-                          Result := True;
-                          ParseCookies;
-                          end
-                        else
+                        Result:=AFCGIRecord^.contentLength=0;
+                        if not Result then
                           begin
                           cl := length(FSTDin);
                           rcl := BetoN(PFCGI_ContentRecord(AFCGIRecord)^.header.contentLength);
@@ -289,6 +284,8 @@ begin
       if poFailonUnknownRecord in FPO then
         TFCgiHandler.DoError('Unknown FASTCGI record type: %s',[AFCGIRecord^.reqtype]);
   end;
+  if Result then
+    InitRequestVars;
 end;
 
 function TFCGIRequest.DoGetCGIVar(AVarName: String): String;
