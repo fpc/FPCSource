@@ -232,7 +232,7 @@ interface
             if right.location.loc=LOC_CONSTANT then
               begin
                 tmpreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_8);
-                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_8,(right.location.value64 shr (i*8)) and $ff,tmpreg2);
+                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_8,(right.location.value64 shr ((i-1)*8)) and $ff,tmpreg2);
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
               end
             else
