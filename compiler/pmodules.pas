@@ -1921,7 +1921,7 @@ type
          resources_used : boolean;
          program_name : ansistring;
          consume_semicolon_after_uses : boolean;
-         ps : tstaticvarsym;
+         ps : tprogramparasym;
          paramnum : longint;
          textsym : ttypesym;
          sc : array of TProgramParam;
@@ -2076,10 +2076,8 @@ type
                internalerror(2013011201);
              for i:=0 to high(sc) do
                begin
-                 ps:=cstaticvarsym.create(sc[i].name,vs_value,textsym.typedef,[]);
-                 ps.isoindex:=sc[i].nr;
+                 ps:=cprogramparasym.create(sc[i].name,sc[i].nr);
                  current_module.localsymtable.insert(ps,true);
-                 cnodeutils.insertbssdata(tstaticvarsym(ps));
                end;
            end;
 

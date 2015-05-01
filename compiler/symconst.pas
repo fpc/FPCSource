@@ -585,7 +585,7 @@ type
     staticvarsym,localvarsym,paravarsym,fieldvarsym,
     typesym,procsym,unitsym,constsym,enumsym,
     errorsym,syssym,labelsym,absolutevarsym,propertysym,
-    macrosym,namespacesym,undefinedsym
+    macrosym,namespacesym,undefinedsym,programparasym
   );
 
   { State of the variable:
@@ -704,11 +704,11 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
    pushleftright_pocalls : tproccalloptions = [pocall_register,pocall_pascal];
 {$endif}
 
-     SymTypeName : array[tsymtyp] of string[12] = (
+     SymTypeName : array[tsymtyp] of string[14] = (
        'abstractsym','globalvar','localvar','paravar','fieldvar',
        'type','proc','unit','const','enum',
        'errorsym','system sym','label','absolutevar','property',
-       'macrosym','namespace','undefinedsym'
+       'macrosym','namespace','undefinedsym','programparasym'
      );
 
      typName : array[tdeftyp] of string[12] = (

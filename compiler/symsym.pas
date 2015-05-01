@@ -89,6 +89,17 @@ interface
        end;
        tunitsymclass = class of tunitsym;
 
+       tprogramparasym = class(Tstoredsym)
+          isoindex : dword;
+          constructor create(const n : string;i : dword);virtual;
+          constructor ppuload(ppufile:tcompilerppufile);
+          destructor destroy;override;
+          { do not override this routine in platform-specific subclasses,
+            override ppuwrite_platform instead }
+          procedure ppuwrite(ppufile:tcompilerppufile);override;final;
+       end;
+       tprogramparasymclass = class of tprogramparasym;
+
        tnamespacesym = class(Tstoredsym)
           unitsym:tsym;
           unitsymderef:tderef;
@@ -460,6 +471,7 @@ interface
 
        clabelsym: tlabelsymclass;
        cunitsym: tunitsymclass;
+       cprogramparasym: tprogramparasymclass;
        cnamespacesym: tnamespacesymclass;
        cprocsym: tprocsymclass;
        ctypesym: ttypesymclass;
@@ -533,7 +545,6 @@ implementation
         if sp_hint_unimplemented in symoptions then
           Message1(sym_w_non_implemented_symbol,srsym.realname);
       end;
-
 
 {****************************************************************************
                           TSYM (base for all symtypes)
@@ -692,6 +703,34 @@ implementation
          inherited ppuwrite(ppufile);
          writeentry(ppufile,ibunitsym);
       end;
+
+{****************************************************************************
+                             TPROGRAMPARASYM
+****************************************************************************}
+
+    constructor tprogramparasym.create(const n : string; i : dword);
+      begin
+         inherited create(programparasym,n);
+         isoindex:=i;
+      end;
+
+    constructor tprogramparasym.ppuload(ppufile : tcompilerppufile);
+      begin
+        { program parameter syms (iso pascal style) might be never written to a ppu }
+        internalerror(2015050102);
+      end;
+
+    destructor tprogramparasym.destroy;
+      begin
+       inherited destroy;
+      end;
+
+    procedure tprogramparasym.ppuwrite(ppufile : tcompilerppufile);
+      begin
+        { program parameter syms (iso pascal style) might be never written to a ppu }
+        internalerror(2015050101);
+      end;
+
 
 {****************************************************************************
                                 TNAMESPACESYM

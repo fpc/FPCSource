@@ -646,12 +646,10 @@ begin
   assign(t,paramstr(nr));
 {$else FPC_HAS_FEATURE_COMMANDARGS}
   { primitive workaround for targets supporting no command line arguments,
-    invent some file name, this will be fixed later on anways because
-    the current way of handling iso program parameters is apparently
-    wrong }
+    invent some file name, try to avoid complex procedures like concating strings which might
+    pull-in bigger parts of the rtl }
   assign(t,chr((nr mod 16)+65));
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
-  reset(t);
 end;
 
 
