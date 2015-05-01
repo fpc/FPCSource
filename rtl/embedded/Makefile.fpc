@@ -156,10 +156,10 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 #doscalls$(PPUEXT) : doscalls.pas strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $<
 
-consoleio$(PPUEXT) : consoleio.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+consoleio$(PPUEXT) : consoleio.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 
-heapmgr$(PPUEXT) : heapmgr.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+heapmgr$(PPUEXT) : heapmgr.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 
 

@@ -1727,6 +1727,10 @@ STATICLIBPREFIX=
 STATICLIBEXT=.a
 SHORTSUFFIX=d16
 endif
+ifeq ($(OS_TARGET),embedded)
+EXEEXT=.bin
+SHORTSUFFIX=emb
+endif
 ifneq ($(findstring $(OS_SOURCE),$(LIMIT83fs)),)
 FPCMADE=fpcmade.$(SHORTSUFFIX)
 ZIPSUFFIX=$(SHORTSUFFIX)
@@ -2549,9 +2553,9 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 	$(COMPILER) $<
 	$(COMPILER) $<
 	$(COMPILER) $<
-consoleio$(PPUEXT) : consoleio.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+consoleio$(PPUEXT) : consoleio.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
-heapmgr$(PPUEXT) : heapmgr.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+heapmgr$(PPUEXT) : heapmgr.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
 	       $(SYSTEMUNIT)$(PPUEXT)
