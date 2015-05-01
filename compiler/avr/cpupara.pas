@@ -343,6 +343,7 @@ unit cpupara;
                         else
                           { parameters are always passed completely in registers or in memory on avr }
                           internalerror(2015041002);
+                        dec(paralen,tcgsize2size[paraloc^.size]);
                       end;
                     LOC_REFERENCE:
                       begin
@@ -360,6 +361,7 @@ unit cpupara;
                              paraloc^.reference.offset:=stack_offset;
                              inc(stack_offset,hp.vardef.size);
                           end;
+                        dec(paralen,hp.vardef.size);
                       end;
                     else
                       internalerror(2002071002);
@@ -372,7 +374,6 @@ unit cpupara;
                          inc(paraloc^.reference.offset,2);
                        end;
                    end;
-                 dec(paralen,tcgsize2size[paraloc^.size]);
                  firstparaloc:=false;
                end;
           end;
