@@ -1,11 +1,9 @@
-%%% Reordering of errordu.msg respective to errore.msg
-%%% Contains all comments from errordu.msg
 #
 #   German (UTF-8) Language File for Free Pascal
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at web.de>
 #
-#   Based on errore.msg of SVN revision 30001
+#   Based on errore.msg of SVN revision 30725
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2015 by the Free Pascal Development team
@@ -137,7 +135,7 @@ general_i_number_of_notes=01023_I_$1 Anmerkung(en) ausgegeben
 general_f_ioerror=01024_F_I/O Fehler: $1
 % During compilation an I/O error happened which allows no further compilation.
 general_f_oserror=01025_F_Betriebsystemfehler: $1
-% During compilation an operanting system error happened which allows no further compilation.
+% During compilation an operating system error happened which allows no further compilation.
 %
 % \end{description}
 # EndOfTeX
@@ -854,7 +852,7 @@ parser_e_cant_publish_that_property=03134_E_Diese Property-Art kann nicht PUBLIS
 parser_e_empty_import_name=03136_E_Leerer Importname angegeben
 % Some targets need a name for the imported procedure or a \var{cdecl} specifier.
 parser_e_division_by_zero=03138_E_Division durch Null
-% A division by zero was encounted.
+% A division by zero was encountered.
 parser_e_invalid_float_operation=03139_E_Ungültige Fliesskomma-Operation
 % An operation on two real type values produced an overflow or a division
 % by zero.
@@ -1155,7 +1153,7 @@ parser_e_packed_element_no_var_addr=03221_E_Bit packed Array-Elemente und Record
 % (or as \var{packed} in any mode with \var{\{\$bitpacking on\}}), it will
 % be packed at the bit level. This means it becomes impossible to take addresses
 % of individual array elements or record fields. The only exception to this rule
-% is in the case of packed arrays elements whose packed size is a multple of 8 bits.
+% is in the case of packed arrays elements whose packed size is a multiple of 8 bits.
 parser_e_packed_dynamic_open_array=03222_E_Dynamische Arrays können nicht packed sein
 % Only regular (and possibly in the future also open) arrays can be packed.
 parser_e_packed_element_no_loop=03223_E_Bit packed Array-Elemente und Record-Felder können nicht als Loop-Variable verwerndet werden
@@ -1416,7 +1414,7 @@ parser_e_no_destructor_in_records=03300_E_Destruktoren sind in Records und Helfe
 % Destructor declarations are not allowed in records or helpers.
 parser_e_class_methods_only_static_in_records=03301_E_Klassenmethoden müssen in Records statisch sein
 % Class methods declarations are not allowed in records without static modifier.
-% Records have no inheritance and therefore non static class methods have no sence for them.
+% Records have no inheritance and therefore non static class methods have no sense for them.
 parser_e_no_parameterless_constructor_in_records=03302_E_Konstruktoren ohne Parameter sind in Records und Record/Typhelfern nicht erlaubt
 % Constructor declarations with no arguments aren't allowed in records or record/type helpers.
 parser_e_at_least_one_argument_must_be_of_type=03303_E_Entweder das Ergebnis oder mindestens ein Parameter müssen vom Typ "$1" sein
@@ -1437,7 +1435,7 @@ parser_e_not_allowed_in_helper=03307_E_"$1" ist in Helfertypen nicht erlaubt
 parser_e_no_class_constructor_in_helpers=03308_E_Klassenkonstruktoren sind in Helfern nicht erlaubt
 % Class constructor declarations are not allowed in helpers.
 parser_e_inherited_not_in_record=03309_E_"inherited" ist in einem Record nicht erlaubt
-% As records don't suppport inheritance the use of "inherited" is prohibited for
+% As records don't support inheritance the use of "inherited" is prohibited for
 % these as well as for record helpers (in mode "Delphi" only).
 parser_e_no_types_in_local_anonymous_records=03310_E_Typ-Deklarationen sind in lokalen oder anonymen Records nicht erlaubt
 % Records with types must be defined globally. Types cannot be defined inside records which are defined in a
@@ -1449,7 +1447,7 @@ parser_e_mapping_no_implements=03312_E_Das Interface "$1" kann nicht durch "$2" 
 % Method resolution clause maps a method of an interface to a method of the current class. Therefore the current class
 % has to implement the interface directly. Delegation is not possible.
 parser_e_implements_no_mapping=03313_E_Das Interface "$1" kann keine Methoden-Auflösung haben, "$2" delegiert es bereits
-% Method resoulution is only possible for interfaces that are implemented directly, not by delegation.
+% Method resolution is only possible for interfaces that are implemented directly, not by delegation.
 parser_e_invalid_codepage=03314_E_Ungültige Codepage
 % When declaring a string with a given codepage, the range of valid codepages values is limited
 % to 0 to 65535.
@@ -1546,7 +1544,7 @@ parser_e_global_generic_references_static=03339_E_Ein globales, generisches Temp
 % solely to the implementation section of that unit.
 parser_u_already_compiled=03340_UL_Die Unit $1 wurde inzwischen bereits kompiliert.
 % This tells you that the recursive reading of the uses clauses triggered already
-% a compilation of the current unit, so the current compilation can be aborded.
+% a compilation of the current unit, so the current compilation can be aborted.
 %
 % \end{description}
 # EndOfTeX
@@ -1570,7 +1568,7 @@ type_e_mismatch=04000_E_Typen passen nicht zusammen
 % \end{itemize}
 type_e_incompatible_types=04001_E_Inkompatible Typen: Habe "$1" erhalten, aber "$2" erwartet
 % There is no conversion possible between the two types.
-% Another possiblity is that they are declared in different
+% Another possibility is that they are declared in different
 % declarations:
 % \begin{verbatim}
 % Var
@@ -1863,7 +1861,7 @@ type_w_zero_to_nil=04090_W_Konvertiere 0 zu NIL
 type_e_protocol_type_expected=04091_E_Objective-C Protokolltyp erwartet, erhielt aber "$1"
 % The compiler expected a protocol type name, but found something else.
 type_e_objc_type_unsupported=04092_E_Der Typ "$1" wird für die Verwendung mit den Laufzeitumgebungen Objective-C- oder Blocks nicht unterstützt.
-% Objective-C makes extensive use of run time type information (RTTI). This format
+% Objective-C and Blocks makes extensive use of run time type information (RTTI). This format
 % is defined by the maintainers of the run time and can therefore not be adapted
 % to all possible Object Pascal types. In particular, types that depend on
 % reference counting by the compiler (such as ansistrings and certain kinds of
@@ -1896,7 +1894,7 @@ type_w_procvar_univ_conflicting_para=04095_W_Erzwungener univ Parameter Typ in e
 % \end{verbatim}
 % This code may however crash on platforms that pass integers in registers and
 % floating point values on the stack, because then the stack will be unbalanced.
-% Note that this warning will not flagg all potentially dangerous situations.
+% Note that this warning will not flag all potentially dangerous situations.
 % when \var{test} returns.
 type_e_generics_cannot_reference_itself=04096_E_Typ-Parameter bei der Spezialisation von Generics können den aktuel spezialisierten Typ nicht referenzieren
 % Recursive specializations of generics like \var{Type MyType = specialize MyGeneric<MyType>;} are not possible.
@@ -1943,7 +1941,7 @@ type_w_range_check_error_bounds=04110_W_Bereichsüberschreitung bei der Berechnu
 type_e_type_not_allowed_for_default=04111_E_Dieser Typ wird für die intrinsische Funktion Default() nicht unterstützt
 % Some types like for example Text and File Of X are not supported by the Default intrinsic.
 type_e_java_class_method_not_static_virtual=04112_E_JVM virtuelle Klassenmethoden können nicht statisch sein
-% Virtual class methods cannot be static when targetting the JVM platform, because
+% Virtual class methods cannot be static when targeting the JVM platform, because
 % the self pointer is required for correct dispatching.
 type_e_invalid_final_assignment=04113_E_Finale (Klassen-)Felder können nur im (Klassen-)Konstruktur ihrer Klasse zugewiesen werden
 % It is only possible to assign a value to a final (class) field inside a (class) constructor of its owning class.
@@ -1987,10 +1985,6 @@ type_w_instance_abstract_class=04122_W_Erzeugung einer Instanz der abstrakten Kl
 type_e_function_reference_kind=04123_E_Unterprogrammreferenzen können nicht als "of object" oder "is nested" deklariert werden; sie können sich immer auf alle mögliche Arten von Unterprogrammen beziehen
 % Subroutine references can refer to any kind of subroutine and hence do not
 % require specialisation for methods or nested subroutines.
-type_e_anonymous_function_unsupported=04999_E_Referenzen auf Funktionen werden noch nicht unterstützt, lediglich blocks (füge "cdecl;" am Ende hinzu.)
-% Remove this error message once Delphi-style anonymous are implemented. It has
-% number 4999 so as not to result in a gap in the error message numbering once
-% it's removed.
 %
 % \end{description}
 # EndOfTeX
@@ -2179,8 +2173,8 @@ sym_w_deprecated_symbol_with_msg=05066_W_Symbol "$1" ist veraltet: "$2"
 % be available in newer versions of the unit / library. Use of this symbol
 % should be avoided as much as possible.
 sym_e_no_enumerator=05067_E_Kann keinen Zähler für den Typ "$1" finden
-% This means that compiler cannot find an apropriate enumerator to use in the for-in loop.
-% To create an enumerator you need to defind an operator enumerator or add a public or published
+% This means that compiler cannot find an appropriate enumerator to use in the for-in loop.
+% To create an enumerator you need to define an operator enumerator or add a public or published
 % GetEnumerator method to the class or object definition.
 sym_e_no_enumerator_move=05068_E_Kann keine Methode "MoveNext" in der Aufzählung "$1" finden
 % This means that compiler cannot find a public MoveNext method with the Boolean return type in
@@ -2230,7 +2224,7 @@ sym_w_experimental_unit=05079_W_Unit "$1" ist experimentell
 % might disappear or change semantics in future versions. Usage of this unit
 % should be avoided as much as possible.
 sym_e_formal_class_not_resolved=05080_E_Die vollständige Definition der formal deklarierten ObjC-Klasse "$1" fehlt in diesem Geltungsbereich
-% Objecive-C classes can be imported formally, without using the the unit in which it is fully declared.
+% Objecive-C and Java classes can be imported formally, without using the unit in which it is fully declared.
 % This enables making forward references to such classes and breaking circular dependencies amongst units.
 % However, as soon as you wish to actually do something with an entity of this class type (such as
 % access one of its fields, send a message to it, or use it to inherit from), the compiler requires the full definition
@@ -2314,7 +2308,7 @@ sym_w_duplicate_id=05095_W_Duplikat des Bezeichners "$1"
 #
 # Codegenerator
 #
-# 06056 is the last used one
+# 06057 is the last used one
 #
 % \section{Code generator messages}
 % This section lists all messages that can be displayed if the code
@@ -2462,21 +2456,13 @@ cg_e_function_not_support_by_selected_instruction_set=06056_E_Die verwendete Fun
 % Some functions cannot be implemented efficiently for certain instruction sets, one example is fused multiply/add.
 % To avoid very inefficient code, the compiler complains in this case, so either select another instruction set
 % or replace the function call by alternative code
-%
-% \end{description}
-# EndOfTeX
-
-#
-# Assembler reader
-#
-# 07125 is the last used one
-#
-cg_f_max_units_reached=06057_F_Maximum number of units ($1) reached for the current target
+cg_f_max_units_reached=06057_F_Maximale Anzahl an Units ($1) für das aktuelle Zielsystem erreicht
 % Depending of target architecture, the number of units is limited. This limit
 % has been reached. A unit counts only if it contains initialization or finalization count.
 %
 % \end{description}
 # EndOfTeX
+
 #
 # Assembler reader
 #
@@ -2489,10 +2475,10 @@ asmr_d_finish_reading=07001_DL_Beende $1 Stil Assembler Parsen
 asmr_e_none_label_contain_at=07002_E_Nicht-Label Bezeichner enthält @
 % A identifier which isn't a label cannot contain a @.
 asmr_e_building_record_offset=07004_E_Fehler beim Ermitteln des Recordoffsets
-% There has an error occured while building the offset of a record/object
-% structure, this can happend when there is no field specified at all or
+% There has an error occurred while building the offset of a record/object
+% structure, this can happen when there is no field specified at all or
 % an unknown field identifier is used.
-asmr_e_offset_without_identifier=07005_E_OFFSET ohne Bezeicner verwendet
+asmr_e_offset_without_identifier=07005_E_OFFSET ohne Bezeichner verwendet
 % You can only use OFFSET with an identifier. Other syntaxes are not
 % supported
 asmr_e_type_without_identifier=07006_E_TYPE verwendet ohne Bezeichner
@@ -2631,7 +2617,7 @@ asmr_w_id_supposed_external=07072_W_Bezeichner $1 ist vermutlich External
 asmr_e_string_not_allowed_as_const=07073_E_Strings sind als Konstanten unzulässig
 % Character strings are not allowed as constants.
 asmr_e_no_var_type_specified=07074_E_Typ der Variablen nicht angegeben
-% The syntax expects a type idenfitifer after the dot, but
+% The syntax expects a type identifier after the dot, but
 % none was found.
 asmr_w_assembler_code_not_returned_to_text=07075_E_Assemblercode kehrt nicht zum Text zurück
 % There was a directive in the assembler block to change sections,
@@ -2734,7 +2720,7 @@ asmr_e_empty_regset=07109_E_Ein Registerset kann nicht leer sein
 % contains at least one register.
 asmr_w_useless_got_for_local=07110_W_@GOTPCREL ist nutzlos und bei lokalen Symbole möglicherweise gefährlich
 % The use of @GOTPCREL supposes an extra indirection that is
-% not present if the symbol is local, which might lead to wrong asembler code
+% not present if the symbol is local, which might lead to wrong assembler code
 asmr_w_general_segment_with_constant=07111_W_Konstante in einem "general purpose segment" Register
 % General purpose register should not have constant offsets
 % as OS memory allocation might not be compatible with that.
@@ -2788,7 +2774,7 @@ asmr_e_invalid_ref_register=07125_E_Ungültiges Register in Speicherreferenzausd
 #
 # Assembler/binary writers
 #
-# 08028 is the last used one
+# 08031 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Zu viele Assembler-Dateien
 % With smartlinking enabled, there are too many assembler
@@ -2815,9 +2801,9 @@ asmw_e_first_defined_label=08018_E_Asm: First beginnt hier
 asmw_e_invalid_register=08019_E_Asm: Ungültiges Register $1
 asmw_e_16bit_32bit_not_supported=08020_E_Asm: 16 oder 32 Bit Referenzen werden nicht unterstützt
 asmw_e_64bit_not_supported=08021_E_Asm: 64 Bit Operanden werden nicht unterstützt
-asmw_e_bad_reg_with_rex=08022_E_Asm: AH,BH,CH oder DH können nicht in einer Instruktion verwendt werden, die den Prefix REX benötigt
+asmw_e_bad_reg_with_rex=08022_E_Asm: AH, BH, CH oder DH können nicht in einer Instruktion verwendt werden, die den Prefix REX benötigt
 % x86_64 only: instruction encoding of this platform does not allow using
-% 8086 high byte registers (AH,BH,CH or DH) together with REX prefix in a single instruction.
+% 8086 high byte registers (AH, BH, CH or DH) together with REX prefix in a single instruction.
 % The REX prefix is required whenever the instruction operand size is 64 bits, or
 % when it uses one of extended x86_64 registers (R8-R15 or XMM8-XMM15).
 asmw_e_missing_endprologue=08023_E_Die ".seh_endprologue"-Direktive fehlt
@@ -2838,22 +2824,13 @@ asmw_h_changing_bind_type=08028_H_Änderung des Bind-Typs des Symbols $1 von $2 
 % First version is reserved for changig to local label, which is the most probable cause
 % of wrong code generation, but currently set to Note level as it appears inside
 % the compiler compilation.
+asmw_e_32bit_not_supported=08029_E_Asm: 32 Bit Referenzen werden nicht unterstützt
+asmw_f_code_segment_too_large=08030_F_Code-Segment zu gro????
+asmw_f_data_segment_too_large=08031_F_Data-Segment zu gro????
 %
 % \end{description}
 # EndOfTeX
 
-#
-# Executing linker/assembler
-#
-# 09035 is the last used one
-#
-# BeginOfTeX
-%
-% \section{Errors of assembling/linking stage}
-% This section lists errors that occur when the compiler is processing the
-% command line or handling the configuration files.
-% \begin{description}
-asmw_e_32bit_not_supported=08029_E_Asm: 32 Bit references not supported
 #
 # Executing linker/assembler
 #
@@ -2918,23 +2895,6 @@ exec_e_exe_not_supported=09018_E_Erzeugen von ausführbaren Dateien nicht unters
 exec_e_dll_not_supported=09019_E_Dynamische Bibliotheken nicht unterstützt
 % Creating dynamically loadable libraries is not supported for this platform, because it was
 % not yet implemented in the compiler.
-exec_e_static_lib_not_supported=09035_E_Statische Bibliotheken nicht unterstützt
-% Creating static libraries is not supported for this platform, because it was
-% not yet implemented in the compiler.
-%
-% \end{description}
-# EndOfTeX
-
-#
-# Executable information
-#
-# 09134 is the last used one
-#
-# BeginOfTeX
-% \section{Executable information messages.}
-% This section lists all messages that the compiler emits when an executable program is produced,
-% and only when the internal linker is used.
-% \begin{description}
 exec_i_closing_script=09020_I_Schliesse Skript $1
 % Informational message showing when writing of the external assembling and linking script is finished.
 exec_e_res_not_found=09021_E_Resource-Compiler "$1" nicht gefunden, schalte um auf externen Modus
@@ -2969,6 +2929,23 @@ exec_n_backquote_cat_file_not_found=09033_N_Die Datei "$1" wurde mit dem Kommand
 exec_w_init_file_not_found=09034_W_"$1" nicht gefunden; dies wird wahrscheinlich zu einem Fehler beim Linken führen
 % The compiler adds certain startup code files to the linker only when they are found.
 % If they are not found, they are not added and this might cause a linking failure.
+exec_e_static_lib_not_supported=09035_E_Statische Bibliotheken nicht unterstützt
+% Creating static libraries is not supported for this platform, because it was
+% not yet implemented in the compiler.
+%
+% \end{description}
+# EndOfTeX
+
+#
+# Executable information
+#
+# 09134 is the last used one
+#
+# BeginOfTeX
+% \section{Executable information messages.}
+% This section lists all messages that the compiler emits when an executable program is produced,
+% and only when the internal linker is used.
+% \begin{description}
 execinfo_f_cant_process_executable=09128_F_Kann ausführbare Datei nicht nachbearbeiten: $1
 % Fatal error when the compiler is unable to post-process an executable.
 execinfo_f_cant_open_executable=09129_F_Kann ausführbare Datei nicht öffnen: $1
@@ -3126,12 +3103,12 @@ unit_u_check_time=10037_U_PPU prüfe Datei $1 Zeit $2
 ### The following two error msgs is currently disabled.
 #unit_h_cond_not_set_in_last_compile=10038_H_Conditional $1 wurde beim Start beim letzten Übersetzen von $2 nicht gesetzt
 #% when recompilation of an unit is required the compiler will check that
-#% the same conditionals are set for the recompiliation. The compiler has
+#% the same conditionals are set for the recompilation. The compiler has
 #% found a conditional that currently is defined, but was not used the last
 #% time the unit was compiled.
 #unit_h_cond_set_in_last_compile=10039_H_Conditional $1 wurde beim Start beim letzten Übersetzen von $2 gesetzt
 #% when recompilation of an unit is required the compiler will check that
-#% the same conditionals are set for the recompiliation. The compiler has
+#% the same conditionals are set for the recompilation. The compiler has
 #% found a conditional that was used the last time the unit was compiled, but
 #% the conditional is currently not defined.
 unit_w_cant_compile_unit_with_changed_incfile=10040_W_Kann Unit $1 nicht erneut übersetzen, aber geänderte Include-Datei gefunden
@@ -3223,13 +3200,13 @@ unit_u_ppu_invalid_memory_model=10063_U_PPU ist für ein anderes i8086 Speicherm
 #
 # 11057 is the last used one
 #
-option_usage=11000_O_$1 [Optionen] <Eingabedatei> [Optionen]
 # BeginOfTeX
 %
 % \section{Command line handling errors}
 % This section lists errors that occur when the compiler is processing the
 % command line or handling the configuration files.
 % \begin{description}
+option_usage=11000_O_$1 [Optionen] <Eingabedatei> [Optionen]
 option_only_one_source_support=11001_W_Es wird nur eine Quelldatei unterstützt. Wechsel für das Kompilieren von Quelldatei "$1" zu Quelldatei "$2"
 % You can specify only one source file on the command line. The last
 % one will be compiled, others will be ignored. This may indicate that
@@ -3245,7 +3222,7 @@ option_no_option_found=11005_N_Keine Angaben in Konfigurationsdatei "$1" gefunde
 option_illegal_para=11006_E_Ungültiger Parameter: $1
 % You specified an unknown option.
 option_help_pages_para=11007_H_-? zeigt Hilfetext an
-% When an unknown option is given, this message is diplayed.
+% When an unknown option is given, this message is displayed.
 option_too_many_cfg_files=11008_F_Zu viele verschachtelte Konfigurationsdateien
 % You can only nest up to 16 config files.
 option_unable_open_file=11009_F_Kann Datei nicht öffnen $1
@@ -3339,7 +3316,7 @@ option_unsupported_target_for_feature=11045_F_Das Feature "$1" wird für die aus
 % Not all features are supported or implemented for all target platforms. This message informs you that a chosen
 % feature is incompatible with the currently selected target platform.
 option_dwarf_smart_linking=11046_N_DWARF Debug-Information kann auf dieser Zielplattform nicht zusammen mit Smartlinking benutzt werden, es wird auf statisches Linken umgeschaltet
-% Smart linking is currently incompatble with DWARF debug information on most
+% Smart linking is currently incompatible with DWARF debug information on most
 % platforms, so smart linking is disabled in such cases.
 option_ignored_target=11047_W_Option "$1" wird für die ausgewählte Zielplattform ignoriert
 % Not all options are supported or implemented for all target platforms. This message informs you that a chosen
@@ -3404,14 +3381,14 @@ wpo_no_input_specified=12006_F_Die ausgewählte Gesamtprogramm-Optimierung erfor
 wpo_not_enough_info=12007_E_Keine Informationen für "$1" Gesamtprogramm-Optimierung gefunden
 % While you pointed the compiler to a file containing whole program optimization feedback, it
 % did not contain the information necessary to perform the selected optimizations. You most likely
-% have to recompile the program using the appropate -OWxxx switch.
+% have to recompile the program using the appropriate -OWxxx switch.
 wpo_no_output_specified=12008_F_Gebe eine Feedback-Datei an, um die erzeugte Information für die Gesamtprogramm-Optimierung zu speichern (mit der Option -FW)
 % You have to specify the feedback file in which the compiler has to store the whole program optimization
 % feedback that is generated during the compilation run. This can be done using the -FW switch.
 wpo_output_without_info_gen=12009_E_Erzeuge keine Information für die Gesamtprogramm-Optimierung, obwohl eine Feedback-Datei dafür angegeben wurde (mit der Option -FW)
 % The compiler was instructed to store whole program optimization feedback into a file specified using -FW,
 % but not to actually generated any whole program optimization feedback. The classes of to be
-% generated information can be speciied using -OWxxx.
+% generated information can be specified using -OWxxx.
 wpo_input_without_info_use=12010_E_Gesamtprogramm-Optimierung wird nicht durchgeführt, obwohl eine Feedback-Datei angegeben wurde (mit der Option -FW)
 % The compiler was not instructed to perform any whole program optimizations (no -Owxxx parameters),
 % but nevertheless an input file with such feedback was specified (using -Fwyyy). Since this can
@@ -3918,7 +3895,7 @@ P*2WF_Spezifiziere "MPW tool type application" (Classic Mac OS)
 **2Xc_Übergebe --shared an den Linker (BeOS, Darwin, FreeBSD, Linux)
 **2Xd_Den Standard Bibliotheks-Suchpfad NICHT nutzen (benötigt für cross compile, wenn nicht -XR verwendet wird)
 **2Xe_Verwende den externen Linker
-**2Xf_Ersetze beim linken den Namen der pthread-Bibliothek (BSD)
+**2Xf_Ersetze beim Linken den Namen der pthread-Bibliothek (BSD)
 **2Xg_Erstelle die Debug-Informationen in einer separaten Datei und einen "Debug-Link"-Abschnitt im ausführbaren Programm
 **2XD_Versuche Units dynamisch zu linken             (definiert FPC_LINK_DYNAMIC)
 **2Xi_Verwende den internen Linker
@@ -3927,7 +3904,7 @@ P*2WF_Spezifiziere "MPW tool type application" (Classic Mac OS)
 **2XLD_Schließe die voreingestellte Reihenfolge der Standard-Bibliotheken aus
 **2Xm_Erzeuge die "link map"
 **2XM<x>_Setze den Namen der 'main' Programm-Routine (default ist 'main')
-**2Xn_Nutze den plattformeigenen linker des Zielsystem anstelle des GNU ld (Solaris, AIX)
+**2Xn_Nutze den plattformeigenen Linker des Zielsystem anstelle des GNU ld (Solaris, AIX)
 F*2Xp<x>_Suche nach der Compilerbinary zuerst im Verzeichnis <x>
 **2XP<x>_Stelle dem Namen der Compiler-Hilfsprogramme (binutils) den Prefix <x> voran
 **2Xr<x>_Setze den rlink-Pfad des Linker zu <x> (benötigt für cross compile, siehe ld-Manual für mehr Informationen) (BeOS, Linux)
