@@ -71,6 +71,23 @@ type
     procedure write(const b;len:longword);override;
   end;
 
+  { TOmfLibObjectReader }
+
+  TOmfLibObjectReader=class(TObjectReader)
+  private
+    islib: boolean;
+    CurrMemberPos : longint;
+    FPageSize: Integer;
+    procedure ReadLibrary;
+  public
+    constructor create(const Aarfn:string;allow_nonar:boolean=false);
+    destructor  destroy;override;
+    function  openfile(const fn:string):boolean;override;
+    procedure closefile;override;
+    procedure seek(len:longint);override;
+    property isarchive: boolean read islib;
+  end;
+
 implementation
 
     uses
@@ -321,5 +338,60 @@ implementation
         FLibData.write(blocks[0],nblocks*SizeOf(TBlock));
         Result:=true;
       end;
+
+{*****************************************************************************
+                                TOmfLibObjectReader
+*****************************************************************************}
+
+  procedure TOmfLibObjectReader.ReadLibrary;
+    var
+      RawRecord: TOmfRawRecord;
+      Header: TOmfRecord_LIBHEAD;
+    begin
+      RawRecord:=TOmfRawRecord.Create;
+      RawRecord.ReadFrom(Self);
+      Header:=TOmfRecord_LIBHEAD.Create;
+      Header.DecodeFrom(RawRecord);
+      FPageSize:=Header.PageSize;
+    end;
+
+  constructor TOmfLibObjectReader.create(const Aarfn: string; allow_nonar: boolean);
+    var
+      RecType: Byte;
+    begin
+      inherited Create;
+      CurrMemberPos:=0;
+      if inherited openfile(Aarfn) then
+        begin
+          Read(RecType,1);
+          Seek(0);
+          islib:=RecType=RT_LIBHEAD;
+          if islib then
+            ReadLibrary
+          else if (not allow_nonar) then
+            Comment(V_Error,'Not an OMF library file, illegal magic: '+filename);
+        end;
+    end;
+
+  destructor TOmfLibObjectReader.destroy;
+    begin
+      inherited closefile;
+      inherited Destroy;
+    end;
+
+  function TOmfLibObjectReader.openfile(const fn: string): boolean;
+    begin
+      Result:=inherited openfile(fn);
+    end;
+
+  procedure TOmfLibObjectReader.closefile;
+    begin
+      CurrMemberPos:=0;
+    end;
+
+  procedure TOmfLibObjectReader.seek(len: longint);
+    begin
+      inherited Seek(CurrMemberPos+len);
+    end;
 
 end.
