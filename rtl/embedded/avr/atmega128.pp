@@ -511,8 +511,8 @@ unit atmega128;
 
   implementation
 
-{$i avrcommon.inc}  
-	  
+{$i avrcommon.inc}
+	
     procedure Int00Handler; external name 'Int00Handler';
     procedure Int01Handler; external name 'Int01Handler';
     procedure Int02Handler; external name 'Int02Handler';
@@ -592,13 +592,13 @@ unit atmega128;
         jmp Int32Handler
         jmp Int33Handler
         jmp Int34Handler
-        
+
         {
           all ATMEL MCUs use the same startup code, the details are
           governed by defines
         }
         {$i start.inc}
-        
+
         .weak Int00Handler
         .weak Int01Handler
         .weak Int02Handler
@@ -634,7 +634,7 @@ unit atmega128;
         .weak Int32Handler
         .weak Int33Handler
         .weak Int34Handler
-        
+
         .set Int00Handler, Default_IRQ_handler
         .set Int01Handler, Default_IRQ_handler
         .set Int02Handler, Default_IRQ_handler
@@ -673,4 +673,3 @@ unit atmega128;
       end;
 
 end.
-
