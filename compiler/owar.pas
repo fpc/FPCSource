@@ -342,7 +342,7 @@ implementation
     destructor  tarobjectreader.destroy;
       begin
         inherited closefile;
-        ArSymbols.destroy;
+        ArSymbols.Free;
         if assigned(LFNStrs) then
           FreeMem(LFNStrs);
         inherited Destroy;
