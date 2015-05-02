@@ -199,6 +199,10 @@ implementation
 
          newsize:=def_cgsize(resultdef);
          opsize := def_cgsize(left.resultdef);
+
+        if (left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+
          case left.location.loc of
             LOC_CREFERENCE,LOC_REFERENCE :
               begin
