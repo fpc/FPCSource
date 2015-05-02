@@ -58,6 +58,7 @@ Type
 
       ct_avrsim,
 
+      ct_atmega8,
       ct_atmega16,
       ct_atmega32,
       ct_atmega48,
@@ -131,6 +132,16 @@ Const
         sramsize:4096;
         eeprombase:0;
         eepromsize:4096;
+        ),
+        (
+   	controllertypestr:'ATMEGA8';
+        controllerunitstr:'ATMEGA8';
+        flashbase:0;
+        flashsize:$2000;
+        srambase:0;
+        sramsize:1024;
+        eeprombase:0;
+        eepromsize:512
         ),
         (
    	controllertypestr:'ATMEGA16';
