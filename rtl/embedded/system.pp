@@ -80,6 +80,34 @@ const
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCrLF;
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
+type
+  trtl_do_close = procedure (handle : longint);
+  trtl_do_erase = procedure (p : pchar);
+  trtl_do_rename = procedure (p1,p2 : pchar);
+  trtl_do_write = function (h: longint; addr: pointer; len: longint) : longint;
+  trtl_do_read = function (h: longint; addr: pointer; len: longint) : longint;
+  trtl_do_filepos = function (handle: longint) : longint;
+  trtl_do_seek = procedure (handle, pos: longint);
+  trtl_do_seekend = function (handle: longint):longint;
+  trtl_do_filesize = function (handle : longint) : longint;
+  trtl_do_truncate = procedure (handle, pos: longint);
+  trtl_do_open = procedure (var f;p:pchar;flags:longint);
+  trtl_do_isdevice = function (handle: longint): boolean;
+
+var
+  rtl_do_close : trtl_do_close = nil;
+  rtl_do_erase : trtl_do_erase = nil;
+  rtl_do_rename : trtl_do_rename  = nil;
+  rtl_do_write : trtl_do_write = nil;
+  rtl_do_read : trtl_do_read = nil;
+  rtl_do_filepos : trtl_do_filepos = nil;
+  rtl_do_seek : trtl_do_seek = nil;
+  rtl_do_seekend : trtl_do_seekend = nil;
+  rtl_do_filesize : trtl_do_filesize = nil;
+  rtl_do_truncate : trtl_do_truncate = nil;
+  rtl_do_open : trtl_do_open = nil;
+  rtl_do_isdevice : trtl_do_isdevice = nil;
+
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
 var
   argc: LongInt = 0;

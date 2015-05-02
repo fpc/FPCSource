@@ -46,8 +46,8 @@ const
   MaxCurrency: Currency =  922337203685477.0000;
 {$endif}
 {$else}
-  MinCurrency: Currency = -9223372036854775807;
-  MaxCurrency: Currency =  9223372036854775807;
+  MinCurrency: Currency = -922337203685477;
+  MaxCurrency: Currency =  922337203685477;
 {$endif}
 
 Const
@@ -191,11 +191,11 @@ function TryFloatToCurr(const Value: Extended; var AResult: Currency): Boolean;
 Function CurrToStr(Value: Currency): string;
 Function CurrToStr(Value: Currency; Const FormatSettings: TFormatSettings): string;
 function StrToCurr(const S: string): Currency;
-function StrToCurr(const S: string; Const FormatSettings: TFormatSettings): Currency;  
+function StrToCurr(const S: string; Const FormatSettings: TFormatSettings): Currency;
 function TryStrToCurr(const S: string;Out Value : Currency): Boolean;
-function TryStrToCurr(const S: string;Out Value : Currency; Const FormatSettings: TFormatSettings): Boolean;       
+function TryStrToCurr(const S: string;Out Value : Currency; Const FormatSettings: TFormatSettings): Boolean;
 function StrToCurrDef(const S: string; Default : Currency): Currency;
-function StrToCurrDef(const S: string; Default : Currency; Const FormatSettings: TFormatSettings): Currency;  
+function StrToCurrDef(const S: string; Default : Currency; Const FormatSettings: TFormatSettings): Currency;
 
 Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar; FormatSettings : TFormatSettings): Integer;
 Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar): Integer;
