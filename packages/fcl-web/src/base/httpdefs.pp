@@ -409,10 +409,6 @@ type
     FCommandLine: String;
     FHandleGetOnPost: Boolean;
     FOnUnknownEncoding: TOnUnknownEncodingEvent;
-    FPathInfo,
-    FHost : string;
-    FRequestedWith : String;
-    FURI: String;
     FFiles : TUploadedFiles;
     FReturnedPathInfo : String;
     FLocalPathPrefix : string;
@@ -428,8 +424,6 @@ type
     procedure HandleUnknownEncoding(Const AContentType : String;Stream : TStream); virtual;
     procedure ParseFirstHeaderLine(const line: String);override;
     procedure ReadContent; virtual;
-    Function GetFieldValue(AIndex : Integer) : String; override;
-    Procedure SetFieldValue(Index : Integer; Value : String); override;
     Procedure ProcessMultiPart(Stream : TStream; Const Boundary : String;SL:TStrings); virtual;
     Procedure ProcessQueryString(Const FQueryString : String; SL:TStrings); virtual;
     procedure ProcessURLEncoded(Stream : TStream;SL:TStrings); virtual;
@@ -450,7 +444,7 @@ type
     Property LocalPathPrefix : string Read GetLocalPathPrefix;
     Property CommandLine : String Read FCommandLine;
     Property Command : String read FCommand;
-    Property URI : String read FURI;                // Uniform Resource Identifier
+    Property URI : String Index Ord(hvURL) read GetHTTPVariable Write SetHTTPVariable;                // Uniform Resource Identifier
     Property QueryString : String Index Ord(hvQuery) read GetHTTPVariable Write SetHTTPVariable;
     Property HeaderLine : String read GetFirstHeaderLine;
     Property Files : TUploadedFiles Read FFiles;
@@ -1492,14 +1486,14 @@ begin
   FCommandLine := line;
   i := Pos(' ', line);
   FCommand := UpperCase(Copy(line, 1, i - 1));
-  FURI := Copy(line, i + 1, Length(line));
+  URI := Copy(line, i + 1, Length(line));
 
   // Extract HTTP version
   i := Pos(' ', URI);
   if i > 0 then
   begin
     FHttpVersion := Copy(URI, i + 1, Length(URI));
-    FURI := Copy(URI, 1, i - 1);
+    URI := Copy(URI, 1, i - 1);
     FHttpVersion := Copy(HttpVersion, Pos('/', HttpVersion) + 1, Length(HttpVersion));
   end;
 
@@ -1508,7 +1502,7 @@ begin
   if i > 0 then
   begin
     Query:= Copy(URI, i + 1, Length(URI));
-    FURI := Copy(URI, 1, i - 1);
+    URI := Copy(URI, 1, i - 1);
   end;
 end;
 
@@ -1531,40 +1525,6 @@ begin
   result := FLocalPathPrefix;
 end;
 
-function TRequest.GetFieldValue(AIndex: Integer): String;
-begin
-  Case AIndex of
-    25 : Result:=FPathInfo;
-    31 : Result:=FCommand;
-    32 : Result:=FURI;
-    34 : Result:=FHost;
-    36 : Result:=FRequestedWith;
-    35 : begin
-         If Not FContentRead and AllowReadContent then
-           begin
-           ReadContent;
-           FContentRead:=True; // in case InitContent was not called.
-           end;
-         Result:=FContent;
-         end
-  else
-    Result:=inherited GetFieldValue(AIndex);
-  end;
-end;
-
-procedure TRequest.SetFieldValue(Index: Integer; Value: String);
-begin
-  Case Index of
-    25 : FPathInfo:=Value;
-    30 : FServerPort:=Value;
-    31 : FCommand:=Value;
-    32 : FURI:=Value;
-    34 : FHost:=Value;
-    36 : FRequestedWith:=Value;
-  else
-    inherited SetFieldValue(Index, Value);
-  end
-end;
 
 function TRequest.GetFirstHeaderLine: String;
 begin
