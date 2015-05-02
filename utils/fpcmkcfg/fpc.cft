@@ -147,6 +147,9 @@
 -Fu%basepath%/units/$fpctarget
 -Fu%basepath%/units/$fpctarget/*
 -Fu%basepath%/units/$fpctarget/rtl
+-Fu%basepath%/units/$fpctarget/$subarch-$fpcabi
+-Fu%basepath%/units/$fpctarget/$subarch-$fpcabi/*
+-Fu%basepath%/units/$fpctarget/$subarch-$fpcabi/rtl
 
 #ifdef cpui8086
 -Fu%basepath%/units/$fpctarget/$fpcsubarch-$fpcmemorymodel
@@ -156,16 +159,20 @@
 
 #IFDEF FPCAPACHE_1_3
 -Fu%basepath%/units/$fpctarget/httpd13/
+-Fu%basepath%/units/$fpctarget/$subarch-$fpcabi/httpd13/
 #ELSE
 #IFDEF FPCAPACHE_2_0
 -Fu%basepath%/units/$fpctarget/httpd20
+-Fu%basepath%/units/$fpctarget/$subarch-$fpcabi/httpd20
 #ELSE
 -Fu%basepath%/units/$fpctarget/httpd22
+-Fu%basepath%/units/$fpctarget/$subarch-$fpcabi/httpd22
 #ENDIF
 #ENDIF
 
 # searchpath for fppkg user-specific packages
--Fu%localbasepath%/units/$FPCTARGET/*
+-Fu%localbasepath%/units/$fpctarget/*
+-Fu%localbasepath%/units/$fpctarget/$subarch-$fpcabi/*
 
 # path to the gcclib
 %gcclibpath%
