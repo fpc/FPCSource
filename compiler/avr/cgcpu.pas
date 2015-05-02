@@ -402,12 +402,12 @@ unit cgcpu;
     procedure tcgavr.a_call_reg(list : TAsmList;reg: tregister);
       begin
         a_reg_alloc(list,NR_ZLO);
+        emit_mov(list,NR_ZLO,reg);
         a_reg_alloc(list,NR_ZHI);
-        list.concat(taicpu.op_reg_reg(A_MOV,NR_ZLO,reg));
-        list.concat(taicpu.op_reg_reg(A_MOV,NR_ZHI,GetHigh(reg)));
+        emit_mov(list,NR_ZHI,GetHigh(reg));
         list.concat(taicpu.op_none(A_ICALL));
-        a_reg_dealloc(list,NR_ZLO);
         a_reg_dealloc(list,NR_ZHI);
+        a_reg_dealloc(list,NR_ZLO);
 
         include(current_procinfo.flags,pi_do_call);
       end;
