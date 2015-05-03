@@ -3536,6 +3536,7 @@ packages/gnome1/src/zvt/vt.inc svneol=native#text/plain
 packages/gnome1/src/zvt/vtx.inc svneol=native#text/plain
 packages/googleapi/Makefile svneol=native#text/plain
 packages/googleapi/Makefile.fpc svneol=native#text/plain
+packages/googleapi/README.txt svneol=native#text/plain
 packages/googleapi/examples/generator/googleapiconv.lpi svneol=native#text/plain
 packages/googleapi/examples/generator/googleapiconv.pp svneol=native#text/plain
 packages/googleapi/fpmake.pp svneol=native#text/plain
