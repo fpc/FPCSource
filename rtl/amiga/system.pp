@@ -360,11 +360,13 @@ begin
   if AOS_wbMsg=nil then begin
     StdInputHandle:=dosInput;
     StdOutputHandle:=dosOutput;
+    StdErrorHandle:=StdOutputHandle;
   end else begin
     AOS_ConHandle:=Open(AOS_ConName,MODE_OLDFILE);
     if AOS_ConHandle<>0 then begin
       StdInputHandle:=AOS_ConHandle;
       StdOutputHandle:=AOS_ConHandle;
+      StdErrorHandle:=AOS_ConHandle;
     end else
       Halt(1);
   end;
@@ -377,11 +379,8 @@ begin
   OpenStdIO(Output,fmOutput,StdOutputHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
 
-  { * AmigaOS doesn't have a separate stderr * }
-
-  StdErrorHandle:=StdOutputHandle;
-  //OpenStdIO(StdErr,fmOutput,StdErrorHandle);
-  //OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
+  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+  OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
 end;
 
 function GetProcessID: SizeUInt;
