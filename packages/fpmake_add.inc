@@ -124,3 +124,4 @@
   add_zlib(ADirectory+IncludeTrailingPathDelimiter('zlib'));
   add_libenet(ADirectory+IncludeTrailingPathDelimiter('libenet'));
   add_zorba(ADirectory+IncludeTrailingPathDelimiter('zorba'));
+  add_Google(ADirectory+IncludeTrailingPathDelimiter('googleapi'));

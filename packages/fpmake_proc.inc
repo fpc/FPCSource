@@ -718,3 +718,5 @@ begin
 {$include zorba/fpmake.pp}
 end;
 
+{$include googleapi/fpmake.pp}
+
