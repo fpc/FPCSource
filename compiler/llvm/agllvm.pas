@@ -453,8 +453,9 @@ implementation
       if op=la_alloca then
         owner.AsmWrite(getreferencealignstring(taillvm(hp).oper[0]^.ref^));
       if nested then
-        owner.AsmWrite(')');
-      owner.AsmLn;
+        owner.AsmWrite(')')
+      else
+        owner.AsmLn;
     end;
 
 {****************************************************************************}
