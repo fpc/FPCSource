@@ -426,8 +426,16 @@ implementation
     end;
 
   function TOmfLibObjectReader.openfile(const fn: string): boolean;
+    var
+      libsym: TOmfLibDictionaryEntry;
     begin
-      Result:=inherited openfile(fn);
+      result:=false;
+      libsym:=TOmfLibDictionaryEntry(LibSymbols.Find(ModName2DictEntry(fn)));
+      if not assigned(libsym) then
+        exit;
+      CurrMemberPos:=libsym.PageNum*FPageSize;
+      inherited Seek(CurrMemberPos);
+      result:=true;
     end;
 
   procedure TOmfLibObjectReader.closefile;
