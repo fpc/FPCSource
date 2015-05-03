@@ -372,11 +372,13 @@ begin
    MOS_ConHandle:=0;
    StdInputHandle:=dosInput;
    StdOutputHandle:=dosOutput;
+   StdErrorHandle:=StdOutputHandle;
  end else begin
    MOS_ConHandle:=Open(MOS_ConName,MODE_OLDFILE);
    if MOS_ConHandle<>0 then begin
      StdInputHandle:=MOS_ConHandle;
      StdOutputHandle:=MOS_ConHandle;
+     StdErrorHandle:=MOS_ConHandle;
    end else
      Halt(1);
  end;
@@ -389,10 +391,8 @@ begin
   OpenStdIO(Output,fmOutput,StdOutputHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
 
-  { * MorphOS doesn't have a separate stderr, just like AmigaOS (???) * }
-  StdErrorHandle:=StdOutputHandle;
-  // OpenStdIO(StdErr,fmOutput,StdErrorHandle);
-  // OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
+  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+  OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
 end;
 
 function GetProcessID: SizeUInt;
