@@ -221,6 +221,7 @@ uses
         typ:=ait_llvmalias;
         oldsym:=_oldsym;
         newsym:=current_asmdata.DefineAsmSymbol(newname,AB_GLOBAL,AT_FUNCTION);
+        newsym.declared:=true;
         def:=_def;
         vis:=_vis;
         linkage:=_linkage;
