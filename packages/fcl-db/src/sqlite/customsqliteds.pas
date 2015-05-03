@@ -757,10 +757,7 @@ begin
   case GetMode of
     gmPrior:
       if (FCurrentItem^.Previous = FBeginItem) or (FCurrentItem = FBeginItem) then
-      begin
-        Result := grBOF;
-        FCurrentItem := FBeginItem;
-      end
+        Result := grBOF
       else
         FCurrentItem:=FCurrentItem^.Previous;
     gmCurrent:
