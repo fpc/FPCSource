@@ -199,6 +199,7 @@ implementation
             begin
               appenddef(deftypelist,taillvmdecl(p).def);
               record_asmsym_def(taillvmdecl(p).namesym,taillvmdecl(p).def);
+              collect_asmlist_info(deftypelist,taillvmdecl(p).initdata);
             end;
           ait_llvmins:
             collect_llvmins_info(deftypelist,taillvm(p));
