@@ -4708,7 +4708,25 @@ implementation
           end;
         tabstractprocdef(result).savesize:=savesize;
 
-        tabstractprocdef(result).proctypeoption:=proctypeoption;
+        if (typ<>procvardef) and
+           (newtyp=procvardef) then
+          begin
+            { procvars can't be (class)constructures/destructors etc }
+            if proctypeoption=potype_constructor then
+              begin
+                tabstractprocdef(result).returndef:=tdef(owner.defowner);
+                if not(is_implicit_pointer_object_type(returndef) or
+                   (returndef.typ<>objectdef)) then
+                  tabstractprocdef(result).returndef:=getpointerdef(tabstractprocdef(result).returndef);
+                tabstractprocdef(result).proctypeoption:=potype_function;
+              end
+            else if is_void(returndef) then
+              tabstractprocdef(result).proctypeoption:=potype_procedure
+            else
+              tabstractprocdef(result).proctypeoption:=potype_function;
+          end
+        else
+          tabstractprocdef(result).proctypeoption:=proctypeoption;
         tabstractprocdef(result).proccalloption:=proccalloption;
         tabstractprocdef(result).procoptions:=procoptions;
         if (copytyp=pc_bareproc) then
