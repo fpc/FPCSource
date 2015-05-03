@@ -105,9 +105,9 @@ interface
         constructor getelementptr_reg_tai_size_const(dst:tregister;const ai:tai;indextype:tdef;index1:ptrint;indirect:boolean);
 
         { e.g. dst = call retsize name (paras) }
-        constructor call_size_name_paras(dst: tregister;retsize: tdef;name:tasmsymbol;paras: tfplist);
+        constructor call_size_name_paras(callpd: tdef; dst: tregister;retsize: tdef;name:tasmsymbol;paras: tfplist);
         { e.g. dst = call retsize reg (paras) }
-        constructor call_size_reg_paras(dst: tregister;retsize: tdef;reg:tregister;paras: tfplist);
+        constructor call_size_reg_paras(callpd: tdef; dst: tregister;retsize: tdef;reg:tregister;paras: tfplist);
 
         procedure loadoper(opidx: longint; o: toper); override;
         procedure clearop(opidx: longint); override;
@@ -924,25 +924,32 @@ uses
       end;
 
 
-    constructor taillvm.call_size_name_paras(dst: tregister; retsize: tdef; name:tasmsymbol; paras: tfplist);
+    constructor taillvm.call_size_name_paras(callpd: tdef; dst: tregister; retsize: tdef; name:tasmsymbol; paras: tfplist);
       begin
         create_llvm(la_call);
-        ops:=4;
-        loadreg(0,dst);
-        loaddef(1,retsize);
-        loadsymbol(2,name,0);
-        loadparas(3,paras);
+        ops:=5;
+        { we need this in case the call symbol is an alias for a symbol with a
+          different def in the same module (via "external"), because then we
+          have to insert a type conversion later from the alias def to the
+          call def here; we can't always do that at the point the call itself
+          is generated, because the alias declaration may occur anywhere }
+        loaddef(0,callpd);
+        loadreg(1,dst);
+        loaddef(2,retsize);
+        loadsymbol(3,name,0);
+        loadparas(4,paras);
       end;
 
 
-    constructor taillvm.call_size_reg_paras(dst: tregister; retsize: tdef; reg: tregister; paras: tfplist);
+    constructor taillvm.call_size_reg_paras(callpd: tdef; dst: tregister; retsize: tdef; reg: tregister; paras: tfplist);
       begin
         create_llvm(la_call);
-        ops:=4;
-        loadreg(0,dst);
-        loaddef(1,retsize);
-        loadreg(2,reg);
-        loadparas(3,paras);
+        ops:=5;
+        loaddef(0,callpd);
+        loadreg(1,dst);
+        loaddef(2,retsize);
+        loadreg(3,reg);
+        loadparas(4,paras);
       end;
 
 end.

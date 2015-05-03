@@ -314,6 +314,16 @@ implementation
     end;
 
 
+  function get_call_pd(pd: tabstractprocdef): tdef;
+    begin
+      if (pd.typ=procdef) or
+         not pd.is_addressonly then
+        result:=pd.getcopyas(procvardef,pc_address_only)
+      else
+        result:=pd
+    end;
+
+
   procedure thlcgllvm.a_call_common(list: TAsmList; pd: tabstractprocdef; const paras: array of pcgpara; const forceresdef: tdef; out res: tregister; out calldef: tdef; out hlretdef: tdef; out llvmretdef: tdef; out callparas: tfplist);
 
     procedure load_ref_anyreg(def: tdef; const ref: treference; reg: tregister; var callpara: pllvmcallpara);
@@ -417,11 +427,7 @@ implementation
        ((pd.proccalloption in cdecl_pocalls) and
         (pd.paras.count>0) and
         is_array_of_const(tparavarsym(pd.paras[pd.paras.count-1]).vardef)) then
-      if (pd.typ=procdef) or
-         not pd.is_addressonly then
-        calldef:=pd.getcopyas(procvardef,pc_address_only)
-      else
-        calldef:=pd
+      calldef:=get_call_pd(pd)
     else
       calldef:=llvmretdef;
   end;
@@ -445,7 +451,7 @@ implementation
             current_asmdata.AsmLists[al_imports].Concat(taillvmdecl.create(asmsym,pd,nil,sec_code,pd.alignment));
         end;
       a_call_common(list,pd,paras,forceresdef,res,calldef,hlretdef,llvmretdef,callparas);
-      list.concat(taillvm.call_size_name_paras(res,calldef,current_asmdata.RefAsmSymbol(pd.mangledname),callparas));
+      list.concat(taillvm.call_size_name_paras(get_call_pd(pd),res,calldef,current_asmdata.RefAsmSymbol(pd.mangledname),callparas));
       result:=get_call_result_cgpara(pd,forceresdef);
       set_call_function_result(list,pd,llvmretdef,hlretdef,res,result);
     end;
@@ -460,7 +466,7 @@ implementation
       res: tregister;
     begin
       a_call_common(list,pd,paras,nil,res,calldef,hlretdef,llvmretdef,callparas);
-      list.concat(taillvm.call_size_reg_paras(res,calldef,reg,callparas));
+      list.concat(taillvm.call_size_reg_paras(get_call_pd(pd),res,calldef,reg,callparas));
       result:=get_call_result_cgpara(pd,nil);
       set_call_function_result(list,pd,llvmretdef,hlretdef,res,result);
     end;

@@ -374,10 +374,10 @@ implementation
           end;
         la_call:
           begin
-            if taillvm(hp).oper[0]^.reg<>NR_NO then
-              owner.AsmWrite(getregisterstring(taillvm(hp).oper[0]^.reg)+' = ');
+            if taillvm(hp).oper[1]^.reg<>NR_NO then
+              owner.AsmWrite(getregisterstring(taillvm(hp).oper[1]^.reg)+' = ');
             sep:=' ';
-            opstart:=1;
+            opstart:=2;
           end;
         la_alloca:
           begin
