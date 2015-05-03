@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="9"/>
+    <General>
+      <Flags>
+        <SaveOnlyProjectUnits Value="True"/>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+        <SaveJumpHistory Value="False"/>
+        <SaveFoldState Value="False"/>
+      </Flags>
+      <SessionStorage Value="InProjectDir"/>
+      <MainUnit Value="0"/>
+      <Title Value="googleapiconv"/>
+      <UseAppBundle Value="False"/>
+      <ResourceType Value="res"/>
+    </General>
+    <i18n>
+      <EnableI18N LFM="False"/>
+    </i18n>
+    <VersionInfo>
+      <StringTable ProductVersion=""/>
+    </VersionInfo>
+    <BuildModes Count="1">
+      <Item1 Name="Default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <CommandLineParams Value="-i apis/googleblogger.json -o gb.pp"/>
+      </local>
+    </RunParams>
+    <Units Count="5">
+      <Unit0>
+        <Filename Value="googleapiconv.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="googleapiconv"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="../../src/googleadexchangebuyer.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="googleadexchangebuyer"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="../../src/googlebase.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="googlebase"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="../../src/googleclient.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="googleclient"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="../../src/googlediscoverytopas.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="googlediscoverytopas"/>
+      </Unit4>
+    </Units>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="11"/>
+    <Target>
+      <Filename Value="googleapiconv"/>
+    </Target>
+    <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="../../src"/>
+      <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
+    </SearchPaths>
+    <Linking>
+      <Debugging>
+        <TrashVariables Value="True"/>
+      </Debugging>
+    </Linking>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="3">
+      <Item1>
+        <Name Value="EAbort"/>
+      </Item1>
+      <Item2>
+        <Name Value="ECodetoolError"/>
+      </Item2>
+      <Item3>
+        <Name Value="EFOpenError"/>
+      </Item3>
+    </Exceptions>
+  </Debugging>
+</CONFIG>
