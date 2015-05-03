@@ -184,11 +184,19 @@ implementation
         end;
       hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,getpointerdef(resultdef));
       location.reference:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,location.reference,left.resultdef);
-      { get address of indexed array element and convert pointer to array into
-        pointer to the elementdef in the process }
-      current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(hreg,getpointerdef(left.resultdef),
-        location.reference,ptruinttype,maybe_const_reg,true));
-      arraytopointerconverted:=true;
+      if not is_dynamicstring(left.resultdef) and
+         not is_dynamic_array(left.resultdef) then
+        begin
+          { get address of indexed array element and convert pointer to array into
+            pointer to the elementdef in the process }
+          current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(hreg,getpointerdef(left.resultdef),
+            location.reference,ptruinttype,maybe_const_reg,true));
+          arraytopointerconverted:=true;
+        end
+      else
+        { the array is already a pointer -> just index }
+        current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_reg(hreg,left.resultdef,
+          location.reference,ptruinttype,maybe_const_reg,false));
       reference_reset_base(location.reference,hreg,0,location.reference.alignment);
       location.reference.alignment:=newalignment(location.reference.alignment,l);
     end;
