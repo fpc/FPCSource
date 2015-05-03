@@ -52,11 +52,13 @@ type
 
    { a simple data element; the value is stored as a tai }
    tai_simpletypedconst = class(tai_abstracttypedconst)
+   private
+     procedure setval(AValue: tai);
     protected
      fval: tai;
     public
      constructor create(_adetyp: ttypedconstkind; _def: tdef; _val: tai);
-     property val: tai read fval;
+     property val: tai read fval write setval;
    end;
 
 
@@ -491,6 +493,12 @@ implementation
 {****************************************************************************
                                 tai_simpletypedconst
  ****************************************************************************}
+
+    procedure tai_simpletypedconst.setval(AValue: tai);
+      begin
+        fval:=AValue;
+      end;
+
 
    constructor tai_simpletypedconst.create(_adetyp: ttypedconstkind; _def: tdef; _val: tai);
      begin
