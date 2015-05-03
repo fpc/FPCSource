@@ -75,10 +75,12 @@ type
 
   TOmfLibObjectReader=class(TObjectReader)
   private
+    LibSymbols : TFPHashObjectList;
     islib: boolean;
     CurrMemberPos : longint;
     FPageSize: Integer;
     procedure ReadLibrary;
+    procedure ReadDictionary(DictionaryOffset: DWord; DictionarySizeInBlocks: Word);
   public
     constructor create(const Aarfn:string;allow_nonar:boolean=false);
     destructor  destroy;override;
@@ -347,12 +349,54 @@ implementation
     var
       RawRecord: TOmfRawRecord;
       Header: TOmfRecord_LIBHEAD;
+      FIsCaseSensitive: Boolean;
     begin
       RawRecord:=TOmfRawRecord.Create;
       RawRecord.ReadFrom(Self);
       Header:=TOmfRecord_LIBHEAD.Create;
       Header.DecodeFrom(RawRecord);
       FPageSize:=Header.PageSize;
+      FIsCaseSensitive:=Header.CaseSensitive;
+      ReadDictionary(Header.DictionaryOffset, Header.DictionarySizeInBlocks);
+    end;
+
+  procedure TOmfLibObjectReader.ReadDictionary(DictionaryOffset: DWord; DictionarySizeInBlocks: Word);
+    const
+      nbuckets=37;
+      freespace=nbuckets;
+    type
+      PBlock=^TBlock;
+      TBlock=array[0..511] of byte;
+    var
+      blocks: array of TBlock;
+      blocknr: Integer;
+      block: PBlock;
+      ofs: Byte;
+      bucket: Integer;
+      length_of_string: Byte;
+      name: string;
+      PageNum: Integer;
+    begin
+      seek(DictionaryOffset);
+      SetLength(blocks,DictionarySizeInBlocks);
+      read(blocks[0],DictionarySizeInBlocks*SizeOf(TBlock));
+      for blocknr:=0 to DictionarySizeInBlocks-1 do
+        begin
+          block:=@blocks[blocknr];
+          for bucket:=0 to nbuckets-1 do
+            if block^[bucket]<>0 then
+              begin
+                ofs:=block^[bucket];
+                length_of_string:=block^[ofs];
+                if (ofs+1+length_of_string+1)>High(TBlock) then
+                  Comment(V_Error,'OMF dictionary entry goes beyond end of block');
+                SetLength(name,length_of_string);
+                Move(block^[ofs+1],name[1],length_of_string);
+                PageNum:=block^[ofs+1+length_of_string]+
+                         block^[ofs+1+length_of_string+1] shl 8;
+                TOmfLibDictionaryEntry.create(LibSymbols,name,PageNum);
+              end;
+        end;
     end;
 
   constructor TOmfLibObjectReader.create(const Aarfn: string; allow_nonar: boolean);
@@ -360,6 +404,7 @@ implementation
       RecType: Byte;
     begin
       inherited Create;
+      LibSymbols:=TFPHashObjectList.Create(true);
       CurrMemberPos:=0;
       if inherited openfile(Aarfn) then
         begin
@@ -376,6 +421,7 @@ implementation
   destructor TOmfLibObjectReader.destroy;
     begin
       inherited closefile;
+      LibSymbols.Free;
       inherited Destroy;
     end;
 
