@@ -230,6 +230,17 @@ begin
       AddUnit('webjsonrpc');
       AddUnit('httpdefs');
       end;
+    T:=P.Targets.AddUnit('fpwebclient.pp');
+    T:=P.Targets.AddUnit('fpjwt.pp');
+    T:=P.Targets.AddUnit('fpoauth2.pp');
+    T.Dependencies.AddUnit('fpwebclient');
+    T.Dependencies.AddUnit('fpjwt');
+    T:=P.Targets.AddUnit('fpoauth2ini.pp');
+    T.Dependencies.AddUnit('fpoauth2');
+    T:=P.Targets.AddUnit('fphttpwebclient.pp');
+    T.Dependencies.AddUnit('fpwebclient');
+    T:=P.Targets.AddUnit('restbase.pp');
+    T:=P.Targets.AddUnit('restcodegen.pp');
 {$ifndef ALLPACKAGES}
     Run;
     end;
