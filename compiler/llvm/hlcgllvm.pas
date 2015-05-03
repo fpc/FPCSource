@@ -1657,6 +1657,15 @@ implementation
     end;
 
 
+  procedure thlcgllvm.g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string);
+    var
+      asmsym: TAsmSymbol;
+    begin
+      asmsym:=current_asmdata.RefAsmSymbol(externalname,AT_FUNCTION);
+      list.concat(taillvmalias.create(asmsym,procdef.mangledname,procdef,llv_default,lll_default));
+    end;
+
+
   procedure create_hlcodegen;
     begin
       hlcg:=thlcgllvm.create;
