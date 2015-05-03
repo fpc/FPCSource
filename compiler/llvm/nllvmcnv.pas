@@ -147,6 +147,7 @@ procedure tllvmtypeconvnode.second_bool_to_int;
       on the assignment side non regable for llvm }
     if is_pasbool(left.resultdef) and
        (nf_explicit in flags) and
+       not(left.location.loc in [LOC_FLAGS,LOC_JUMP]) and
        (resultdef.size=1) then
       case location.loc of
         LOC_REFERENCE,LOC_CREFERENCE:
