@@ -110,13 +110,13 @@ const
  DriveSeparator = '/';
  FileNameCasePreserving = true;
    {$ELSE UNIX}
-    {$IFDEF AMIGA}
- DirectorySeparator = ':';
+    {$IFDEF HASAMIGA}
+ DirectorySeparator = '/';
  FileNameCasePreserving = true;
-    {$ELSE AMIGA}
+    {$ELSE HASAMIGA}
  DirectorySeparator = '\';
  FileNameCasePreserving = false;
-    {$ENDIF AMIGA}
+    {$ENDIF HASAMIGA}
    {$ENDIF UNIX}
   {$ENDIF MACOS}
  {$ENDIF DIRECT}
@@ -124,11 +124,7 @@ const
  {$IFDEF MACOS}
  DriveSep = '';
  {$ELSE MACOS}
-  {$IFDEF AMIGA}
- DriveSep = '';
-  {$ELSE AMIGA}
  DriveSep = DriveSeparator;
-  {$ENDIF AMIGA}
  {$ENDIF MACOS}
  {$IFDEF UNIX}
  CDrive = '';
@@ -136,11 +132,11 @@ const
   {$IFDEF MACOS}
  CDrive = 'C';
   {$ELSE MACOS}
-   {$IFDEF AMIGA}
+   {$IFDEF HASAMIGA}
  CDrive = 'C';
-   {$ELSE AMIGA}
+   {$ELSE HASAMIGA}
  CDrive = 'C:';
-   {$ENDIF AMIGA}
+   {$ENDIF HASAMIGA}
   {$ENDIF MACOS}
  {$ENDIF UNIX}
 {$ENDIF FPC}
@@ -298,9 +294,9 @@ begin
  Check (' ', CurDir + DirSep + ' ');
 {$IFDEF HASAMIGA}
  Check ('', CurDir);
-{$ELSE AMIGA}
+{$ELSE HASAMIGA}
  Check ('', CurDir + DirSep);
-{$ENDIF AMIGA}
+{$ENDIF HASAMIGA}
 {$IFDEF MACOS}
  Check (':', CurDir + DirSep);
 {$ELSE MACOS}
@@ -519,7 +515,7 @@ if CDir [Length (CDir)] = DirSep then Check ('c:anything', CDir + 'anything')
   {$ELSE NODOTS}
  Check ('.', CurDir);
   {$ENDIF NODOTS}
- {$ENDIF AMIGA}
+ {$ENDIF HASAMIGA}
 {$ENDIF VOLUMES}
  Erase (F);
 {$IFNDEF NODRIVEC}
