@@ -162,7 +162,6 @@ implementation
 
     procedure TOmfRelocation.BuildOmfFixup;
       begin
-        Writeln(typ, ' ', ObjSection<>nil, ' ', symbol<>nil);
         FreeAndNil(FOmfFixup);
         FOmfFixup:=TOmfSubRecord_FIXUP.Create;
         if ObjSection<>nil then
@@ -450,7 +449,6 @@ implementation
         objreloc: TOmfRelocation;
         symaddr: AWord;
       begin
-        Writeln(Reloctype);
         { RELOC_FARPTR = RELOC_ABSOLUTE+RELOC_SEG }
         if Reloctype=RELOC_FARPTR then
           begin
