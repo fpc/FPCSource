@@ -17,8 +17,8 @@ type
   { TSQLDBTestCase }
 
   TSQLDBTestCase = class(TTestCase)
-  private
-    function GetSQLDBConnector: TSQLDBConnector;
+    private
+      function GetSQLDBConnector: TSQLDBConnector;
     protected
       procedure SetUp; override;
       procedure TearDown; override;
@@ -46,10 +46,10 @@ type
     Procedure TestAutoApplyUpdatesDelete;
     Procedure TestCheckRowsAffected;
     Procedure TestAutoCommit;
-    Procedure TestRefreshSQL;
     Procedure TestGeneratedRefreshSQL;
     Procedure TestGeneratedRefreshSQL1Field;
     Procedure TestGeneratedRefreshSQLNoKey;
+    Procedure TestRefreshSQL;
     Procedure TestRefreshSQLMultipleRecords;
     Procedure TestRefreshSQLNoRecords;
     Procedure TestFetchAutoInc;
@@ -200,7 +200,7 @@ begin
 
     Q := SQLDBConnector.Query;
     Q.SQL.Text:='select * from FPDEV2';
-    Q.Options:=[sqoKeepOpenOnCommit,sqoPreferRefresh];
+    Q.Options:=[sqoKeepOpenOnCommit,sqoRefreshUsingSelect];
     AssertEquals('PacketRecords forced to -1',-1,Q.PacketRecords);
     Q.Open;
     AssertEquals('Got all records',20,Q.RecordCount);
@@ -392,42 +392,6 @@ begin
     end;
 end;
 
-procedure TTestTSQLQuery.TestRefreshSQL;
-var
-  Q: TSQLQuery;
-
-begin
-  with SQLDBConnector do
-    begin
-    ExecuteDirect('create table FPDEV2 (id integer not null primary key, a varchar(5) default ''abcde'', b integer default 1)');
-    if Transaction.Active then
-      Transaction.Commit;
-    end;
-  Q:=SQLDBConnector.Query;
-  Q.OPtions:=Q.OPtions+[sqoPreferRefresh];
-  Q.SQL.Text:='select * from FPDEV2';
-  Q.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
-  Q.RefreshSQL.Text:='SELECT a,b FROM FPDEV2 WHERE (id=:id)';
-  Q.Open;
-  Q.Insert;  // #1 record
-  Q.FieldByName('id').AsInteger:=1;
-  Q.Post;
-  Q.Append;  // #2 record
-  Q.FieldByName('id').AsInteger:=2;
-  Q.Post;
-  AssertTrue('Field value has not been fetched after Post', Q.FieldByName('a').IsNull);
-  Q.ApplyUpdates(0);
-  // #2 record:
-  AssertEquals('Still on correct field', 2, Q.FieldByName('id').AsInteger);
-  AssertEquals('Field value has been fetched from the database', 'abcde', Q.FieldByName('a').AsString);
-  AssertEquals('Field value has been fetched from the database', 1, Q.FieldByName('b').AsInteger);
-  Q.Prior;
-  // #1 record:
-  AssertEquals('Still on correct field', 1, Q.FieldByName('id').AsInteger);
-  AssertEquals('Field value has been fetched from the database', 'abcde', Q.FieldByName('a').AsString);
-  AssertEquals('Field value has been fetched from the database', 1, Q.FieldByName('b').AsInteger);
-end;
-
 procedure TTestTSQLQuery.TestGeneratedRefreshSQL;
 
 var
@@ -443,7 +407,7 @@ begin
   Q:=SQLDBConnector.Query;
   Q.SQL.Text:='select * from FPDEV2';
   Q.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
-  Q.OPtions:=Q.OPtions+[sqoPreferRefresh];
+  Q.Options:=Q.Options+[sqoRefreshUsingSelect];
   Q.Open;
   With Q.FieldByName('id') do
     ProviderFlags:=ProviderFlags+[pfInKey];
@@ -475,7 +439,7 @@ begin
   Q:=SQLDBConnector.Query;
   Q.SQL.Text:='select * from FPDEV2';
   Q.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
-  Q.OPtions:=Q.OPtions+[sqoPreferRefresh];
+  Q.Options:=Q.Options+[sqoRefreshUsingSelect];
   Q.Open;
   With Q.FieldByName('id') do
     ProviderFlags:=ProviderFlags+[pfInKey];
@@ -502,7 +466,7 @@ begin
   FMyQ:=SQLDBConnector.Query;
   FMyQ.SQL.Text:='select * from FPDEV2';
   FMyQ.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
-  FMyQ.OPtions:=FMyQ.OPtions+[sqoPreferRefresh];
+  FMyQ.Options:=FMyQ.Options+[sqoRefreshUsingSelect];
   FMyQ.Open;
   With FMyQ.FieldByName('id') do
     ProviderFlags:=ProviderFlags-[pfInKey];
@@ -512,6 +476,41 @@ begin
   FMyQ.FieldByName('id').AsInteger:=1;
   FMyQ.Post;
   AssertException('Cannot refresh without primary key',EUpdateError,@DoApplyUpdates);
+end;
+
+procedure TTestTSQLQuery.TestRefreshSQL;
+var
+  Q: TSQLQuery;
+
+begin
+  with SQLDBConnector do
+    begin
+    ExecuteDirect('create table FPDEV2 (id integer not null primary key, a varchar(5) default ''abcde'', b integer default 1)');
+    if Transaction.Active then
+      Transaction.Commit;
+    end;
+  Q:=SQLDBConnector.Query;
+  Q.SQL.Text:='select * from FPDEV2';
+  Q.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
+  Q.RefreshSQL.Text:='SELECT a,b FROM FPDEV2 WHERE (id=:id)';
+  Q.Open;
+  Q.Insert;  // #1 record
+  Q.FieldByName('id').AsInteger:=1;
+  Q.Post;
+  Q.Append;  // #2 record
+  Q.FieldByName('id').AsInteger:=2;
+  Q.Post;
+  AssertTrue('Field value has not been fetched after Post', Q.FieldByName('a').IsNull);
+  Q.ApplyUpdates(0);
+  // #2 record:
+  AssertEquals('Still on correct field', 2, Q.FieldByName('id').AsInteger);
+  AssertEquals('Field value has been fetched from the database', 'abcde', Q.FieldByName('a').AsString);
+  AssertEquals('Field value has been fetched from the database', 1, Q.FieldByName('b').AsInteger);
+  Q.Prior;
+  // #1 record:
+  AssertEquals('Still on correct field', 1, Q.FieldByName('id').AsInteger);
+  AssertEquals('Field value has been fetched from the database', 'abcde', Q.FieldByName('a').AsString);
+  AssertEquals('Field value has been fetched from the database', 1, Q.FieldByName('b').AsInteger);
 end;
 
 procedure TTestTSQLQuery.TestRefreshSQLMultipleRecords;
@@ -527,7 +526,6 @@ begin
       Transaction.Commit;
     end;
   FMyQ:=SQLDBConnector.Query;
-  FMyQ.OPtions:=FMyQ.OPtions+[sqoPreferRefresh];
   FMyQ.SQL.Text:='select * from FPDEV2';
   FMyQ.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
   FMyQ.RefreshSQL.Text:='select * from FPDEV2';
@@ -554,7 +552,6 @@ begin
       Transaction.Commit;
     end;
   FMyQ:=SQLDBConnector.Query;
-  FMyQ.OPtions:=FMyQ.OPtions+[sqoPreferRefresh];
   FMyQ.SQL.Text:='select * from FPDEV2';
   FMyQ.InsertSQL.Text:='insert into FPDEV2 (id) values (:id)';
   FMyQ.RefreshSQL.Text:='select * from FPDEV2 where 1=2';
@@ -950,7 +947,7 @@ end;
 
 function TSQLDBTestCase.GetSQLDBConnector: TSQLDBConnector;
 begin
-  Result:=DBConnector as TSQLDBConnector;
+  Result := DBConnector as TSQLDBConnector;
 end;
 
 procedure TSQLDBTestCase.SetUp;
