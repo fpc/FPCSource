@@ -197,8 +197,6 @@ implementation
             else
               begin
                 FOmfFixup.FrameMethod:=ffmTarget;
-                FOmfFixup.TargetMethod:=ftmSegmentIndexNoDisp;
-                FOmfFixup.TargetDatum:=ObjSection.Index;
                 if TOmfObjSection(ObjSection).PrimaryGroup<>'' then
                   begin
                     FOmfFixup.TargetMethod:=ftmGroupIndexNoDisp;
