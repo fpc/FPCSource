@@ -692,11 +692,9 @@ begin
     if not (sqSupportReturning in Connection.ConnOptions) then
       Ignore(STestNotApplicable);
     ExecuteDirect('create table FPDEV2 (id integer not null, a varchar(10) default ''abcde'', b varchar(5) default ''fgh'', constraint PK_FPDEV2 primary key(id))');
-    if Transaction.Active then
-      Transaction.Commit;
-    ExecuteDirect('insert into FPDEV2 (id) values (123)');
-    if Transaction.Active then
-      Transaction.Commit;
+    CommitDDL;
+    ExecuteDirect('insert into FPDEV2 (id) values (1)');
+    ExecuteDirect('insert into FPDEV2 (id) values (2)');
     end;
   FMyQ:=SQLDBConnector.Query;
   FMyQ.SQL.Text:='select * from FPDEV2';
@@ -705,13 +703,22 @@ begin
     ProviderFlags:=ProviderFlags+[pfInKey];
   With FMyQ.FieldByName('b') do
     ProviderFlags:=[pfRefreshOnUpdate];  // Do not update, just fetch new value
+  SQLDBConnector.ExecuteDirect('update FPDEV2 set b=''b1'' where id=1');
+  SQLDBConnector.ExecuteDirect('update FPDEV2 set b=''b2'' where id=2');
   FMyQ.Edit;
-  FMyQ.FieldByName('a').AsString:='ccc';
-  FMyQ.Post;
-  SQLDBConnector.ExecuteDirect('update FPDEV2 set b=''123'' where id=123');
+  FMyQ.FieldByName('a').AsString:='a1';
+  FMyQ.Post;  // #1 record
+  FMyQ.Next;
+  FMyQ.Edit;
+  FMyQ.FieldByName('a').AsString:='a2';
+  FMyQ.Post;  // #2 record
   FMyQ.ApplyUpdates;
-  AssertEquals('a updated','ccc',FMyQ.FieldByName('a').AsString);
-  AssertEquals('b updated','123',FMyQ.FieldByName('b').AsString);
+  FMyQ.First;
+  AssertEquals('#1.a updated', 'a1', FMyQ.FieldByName('a').AsString);
+  AssertEquals('#1.b updated', 'b1', FMyQ.FieldByName('b').AsString);
+  FMyQ.Next;
+  AssertEquals('#2.a updated', 'a2', FMyQ.FieldByName('a').AsString);
+  AssertEquals('#2.b updated', 'b2', FMyQ.FieldByName('b').AsString);
 end;
 
 
