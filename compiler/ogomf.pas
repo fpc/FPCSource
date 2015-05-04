@@ -423,13 +423,6 @@ implementation
         objreloc: TOmfRelocation;
         symaddr: AWord;
       begin
-{        Write('writeReloc(', data, ',', len, ',');
-        if p<>nil then
-          write(p.Name)
-        else
-          write('nil');
-        Writeln(',',Reloctype,')');}
-
         { RELOC_FARPTR = RELOC_ABSOLUTE+RELOC_SEG }
         if Reloctype=RELOC_FARPTR then
           begin
