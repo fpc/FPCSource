@@ -2,11 +2,63 @@
   Amiga style simpleipc.inc
 }
 
+{$DEFINE OSNEEDIPCINITDONE}
+
 uses
   Exec, dos;
 
+ResourceString
+  SErrMsgPortExists = 'MsgPort already exists: %s';
+
 const
   PORTNAMESTART = 'fpc_';
+
+Var
+  MsgPorts: Classes.TList;
+
+procedure AddMsgPort(AMsgPort: PMsgPort);
+begin
+  if Assigned(MsgPorts) then
+  begin
+    MsgPorts.Add(AMsgPort);
+  end;
+end;
+
+procedure RemoveMsgPort(AMsgPort: PMsgPort);
+var
+  Idx: Integer;
+begin
+  if Assigned(MsgPorts) then
+  begin
+    Idx := MsgPorts.IndexOf(AMsgPort);
+    if Idx >= 0 then
+    begin
+      MsgPorts.Delete(Idx);
+      if Assigned(AMsgPort^.mp_Node.ln_Name) and (string(AMsgPort^.mp_Node.ln_Name) <> '') and Assigned(FindPort(AMsgPort^.mp_Node.ln_Name)) then
+        RemPort(AMsgPort);
+      DeleteMsgPort(AMsgPort);
+    end;  
+  end;
+end;
+
+
+procedure IPCInit;
+begin
+  MsgPorts := Classes.TList.Create;
+end;
+
+procedure IPCDone;
+var
+  I: integer;
+begin
+  try
+    for i := 0 to MsgPorts.Count - 1 do
+        RemoveMsgPort(PMsgPort(MsgPorts[i]));
+    finally  
+      FreeAndNil(MsgPorts);  
+    end;  
+end;
+
 
 Type
   TAmigaClientComm = Class(TIPCClientComm)
@@ -106,6 +158,7 @@ Constructor TAmigaServerComm.Create(AOwner: TSimpleIPCServer);
 begin
   inherited;
   FMsgPort := CreateMsgPort;
+  AddMsgPort(FMsgPort);
   MsgBody := nil;
 end;
 
@@ -113,13 +166,18 @@ destructor TAmigaServerComm.Destroy;
 begin
   if Assigned(MsgBody) then
     System.FreeMem(MsgBody);
-  DeleteMsgPort(FMsgPort);
+  RemoveMsgPort(FMsgPort);
   inherited;
 end;
 
 Procedure TAmigaServerComm.StartServer;
 begin
   FPortName := PORTNAMESTART + Owner.ServerID + #0;
+  if Assigned(FindPort(PChar(FPortName))) then
+  begin
+    DoError(SErrMsgPortExists,[FPortName]);
+    Exit;
+  end;
   FMsgPort^.mp_Node.ln_Name := PChar(FPortName);
   FMsgPort^.mp_Node.ln_Pri := 0;
   AddPort(FMsgPort);
