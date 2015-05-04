@@ -2554,6 +2554,12 @@ implementation
                       currabsreloc:=RELOC_SEG;
                       currabsreloc32:=RELOC_SEG;
                     end
+                  else if oper[opidx]^.ref^.refaddr=addr_dgroup then
+                    begin
+                      currrelreloc:=RELOC_DGROUPREL;
+                      currabsreloc:=RELOC_DGROUP;
+                      currabsreloc32:=RELOC_DGROUP;
+                    end
                   else
 {$endif i8086}
 {$ifdef i386}
@@ -2903,7 +2909,11 @@ implementation
                 if (currval<-65536) or (currval>65535) then
                  Message2(asmw_e_value_exceeds_bounds,'word',tostr(currval));
 {$endif i8086}
-                if assigned(currsym) then
+                if assigned(currsym)
+{$ifdef i8086}
+                   or (currabsreloc=RELOC_DGROUP)
+{$endif i8086}
+                then
                  objdata_writereloc(currval,2,currsym,currabsreloc)
                 else
                  objdata.writebytes(currval,2);

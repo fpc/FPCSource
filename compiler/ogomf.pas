@@ -48,6 +48,7 @@ interface
         FOmfFixup: TOmfSubRecord_FIXUP;
         function GetGroupIndex(const groupname: string): Integer;
       public
+        constructor CreateSection(ADataOffset:aword;aobjsec:TObjSection;Atyp:TObjRelocationType);
         destructor Destroy; override;
 
         procedure BuildOmfFixup;
@@ -142,6 +143,17 @@ implementation
           internalerror(2014040703);
       end;
 
+    constructor TOmfRelocation.CreateSection(ADataOffset: aword; aobjsec: TObjSection; Atyp: TObjRelocationType);
+      begin
+        if not (Atyp in [RELOC_DGROUP,RELOC_DGROUPREL]) and not assigned(aobjsec) then
+          internalerror(200603036);
+        DataOffset:=ADataOffset;
+        Symbol:=nil;
+        OrgSize:=0;
+        ObjSection:=aobjsec;
+        ftype:=ord(Atyp);
+      end;
+
     destructor TOmfRelocation.Destroy;
       begin
         FOmfFixup.Free;
@@ -150,6 +162,7 @@ implementation
 
     procedure TOmfRelocation.BuildOmfFixup;
       begin
+        Writeln(typ, ' ', ObjSection<>nil, ' ', symbol<>nil);
         FreeAndNil(FOmfFixup);
         FOmfFixup:=TOmfSubRecord_FIXUP.Create;
         if ObjSection<>nil then
@@ -218,6 +231,22 @@ implementation
             FOmfFixup.TargetMethod:=ftmExternalIndexNoDisp;
             FOmfFixup.TargetDatum:=symbol.symidx;
             FOmfFixup.FrameMethod:=ffmTarget;
+          end
+        else if typ in [RELOC_DGROUP,RELOC_DGROUPREL] then
+          begin
+            FOmfFixup.LocationOffset:=DataOffset;
+            FOmfFixup.LocationType:=fltBase;
+            FOmfFixup.FrameDeterminedByThread:=False;
+            FOmfFixup.TargetDeterminedByThread:=False;
+            if typ=RELOC_DGROUP then
+              FOmfFixup.Mode:=fmSegmentRelative
+            else if typ=RELOC_DGROUPREL then
+              FOmfFixup.Mode:=fmSelfRelative
+            else
+              internalerror(2015041401);
+            FOmfFixup.FrameMethod:=ffmTarget;
+            FOmfFixup.TargetMethod:=ftmGroupIndexNoDisp;
+            FOmfFixup.TargetDatum:=GetGroupIndex('dgroup');
           end
         else
          internalerror(2015040702);
@@ -423,6 +452,7 @@ implementation
         objreloc: TOmfRelocation;
         symaddr: AWord;
       begin
+        Writeln(Reloctype);
         { RELOC_FARPTR = RELOC_ABSOLUTE+RELOC_SEG }
         if Reloctype=RELOC_FARPTR then
           begin
@@ -452,7 +482,12 @@ implementation
                 CurrObjSec.ObjRelocations.Add(objreloc);
                 inc(data,symaddr);
               end;
-          end;
+          end
+        else if Reloctype in [RELOC_DGROUP,RELOC_DGROUPREL] then
+            begin
+              objreloc:=TOmfRelocation.CreateSection(CurrObjSec.Size,nil,Reloctype);
+              CurrObjSec.ObjRelocations.Add(objreloc);
+            end;
         CurrObjSec.write(data,len);
       end;
 
