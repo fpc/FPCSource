@@ -1753,10 +1753,10 @@ Var
   Where : String;
 
 begin
-  Where:='';
   Result:=Query.RefreshSQL.Text;
   if (Result='') then
     begin
+    Where:='';
     PF:=RefreshFlags[UpdateKind];
     For F in Query.Fields do
       begin
@@ -1804,31 +1804,35 @@ var
 
 begin
   qry:=Nil;
-  ReturningClause:=(sqSupportReturning in Connoptions) and not (sqoRefreshUsingSelect in Query.Options);
+  ReturningClause:=(sqSupportReturning in ConnOptions) and not (sqoRefreshUsingSelect in Query.Options) and (Query.RefreshSQL.Count=0);
   case UpdateKind of
     ukInsert : begin
                s := trim(Query.FInsertSQL.Text);
                if s = '' then
-                 s := ConstructInsertSQL(Query,ReturningClause);
+                 s := ConstructInsertSQL(Query,ReturningClause)
+               else
+                 ReturningClause := False;
                qry := InitialiseUpdateStatement(Query,Query.FInsertQry);
                end;
     ukModify : begin
                s := trim(Query.FUpdateSQL.Text);
                if (s='') and (not assigned(Query.FUpdateQry) or (Query.UpdateMode<>upWhereKeyOnly)) then //first time or dynamic where part
-                 s := ConstructUpdateSQL(Query,ReturningClause);
+                 s := ConstructUpdateSQL(Query,ReturningClause)
+               else
+                 ReturningClause := False;
                qry := InitialiseUpdateStatement(Query,Query.FUpdateQry);
                end;
     ukDelete : begin
                s := trim(Query.FDeleteSQL.Text);
                if (s='') and (not assigned(Query.FDeleteQry) or (Query.UpdateMode<>upWhereKeyOnly)) then
                  s := ConstructDeleteSQL(Query);
-               qry := InitialiseUpdateStatement(Query,Query.FDeleteQry);
                ReturningClause:=False;
+               qry := InitialiseUpdateStatement(Query,Query.FDeleteQry);
                end;
   end;
   if (s<>'') and (qry.SQL.Text<>s) then
     qry.SQL.Text:=s; //assign only when changed, to avoid UnPrepare/Prepare
-  Assert(qry.sql.Text<>'');
+  Assert(qry.SQL.Text<>'');
   for x:=0 to Qry.Params.Count-1 do
     begin
     P:=Qry.Params[x];
