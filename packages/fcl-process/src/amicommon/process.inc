@@ -120,7 +120,11 @@ begin
      TempName := 'T:'+HexStr(FindTask(nil)) + '_'  + HexStr(Self) + '_'+ IntToStr(UID) + '_Starter.tmp';
    until not FileExists(TempName);   
    //sysdebugln('TProcess start: "' + ExecName + ' ' + Params+'"  >' + TempName);
-   cos := DosOpen(PChar(TempName), MODE_READWRITE);
+   {$ifdef MorphOS}
+   cos := AmigaDos.Open(PChar(TempName), MODE_READWRITE);
+   {$else}
+   cos := AmigaDos.DosOpen(PChar(TempName), MODE_READWRITE);
+   {$endif}
    FExitCode := LongInt(amigados.Execute(PChar(ExecName + ' ' + Params), BPTR(0), cos));
    DosSeek(cos, 0, OFFSET_BEGINNING);
    CreateStreams(0, THandle(cos),0);

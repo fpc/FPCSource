@@ -52,6 +52,10 @@ begin
    DeleteIt := NameFromFH(BPTR(FHandle), @(Filename[0]), 255);
    FileClose(FHandle);
    if DeleteIt then
+   {$ifdef MorphOS}
+     AmigaDos.dosDeleteFile(@(Filename[0]));
+   {$else}
      AmigaDos.DeleteFile(@(Filename[0]));
+   {$endif}
  end;  
 end;
