@@ -13,10 +13,12 @@
 
  **********************************************************************}
 
+uses
+  exec, AmigaDos;
+
 // No pipes under dos, sorry...
 
 Function CreatePipeHandles (Var Inhandle,OutHandle : THandle; APipeBufferSize : Cardinal = 1024) : Boolean;
-
 begin
   InHandle := THandle (UnusedHandle);
   OutHandle := THandle (UnusedHandle);
@@ -40,8 +42,16 @@ begin
   Raise EPipeSeek.Create (ENoSeekMsg);
 end;
 
-procedure PipeClose (const FHandle: THandle); inline;
+procedure PipeClose (const FHandle: THandle);
+var
+  Filename: array[0..255] of Char;
+  DeleteIt: Boolean;
 begin
-  if FHandle <> UnusedHandle then
-   FileClose (FHandle);
+  if (FHandle <> UnusedHandle) and (FHandle <> 0) then
+  begin
+   DeleteIt := NameFromFH(BPTR(FHandle), @(Filename[0]), 255);
+   FileClose(FHandle);
+   if DeleteIt then
+     AmigaDos.DeleteFile(@(Filename[0]));
+ end;  
 end;

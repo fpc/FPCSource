@@ -2,6 +2,8 @@
   Dummy process.inc - the simplest version based on SysUtils.ExecuteProcess
 }
 
+uses
+  Exec, AmigaDos, Utility;
 
 Resourcestring
   SNoCommandLine        = 'Cannot execute empty command-line';
@@ -60,6 +62,9 @@ begin
    Result := S;
 end;
 
+var
+  UID: Integer = 0;
+
 Procedure TProcess.Execute;
 var
   I: integer;
@@ -67,6 +72,8 @@ var
   E2: EProcess;
   OrigDir: string;
   Params: string;
+  TempName: string;
+  cos: BPTR;
 begin
   if (ApplicationName = '') and (CommandLine = '') and (Executable = '') then
    raise EProcess.Create (SNoCommandline);
@@ -89,7 +96,7 @@ begin
     Trim (Params);
    end
   else
-   for I := 1 to Pred (Parameters.Count) do
+   for I := 0 to Pred (Parameters.Count) do
     Params := Params + ' ' + MaybeQuote (Parameters [I]);
   if (FExecutable <> '') and (ExecName = '') then
    ExecName := Executable;
@@ -106,8 +113,18 @@ begin
     GetDir (0, OrigDir);
     ChDir (FCurrentDirectory);
    end;
-  try
-   FExitCode := ExecuteProcess (ExecName, Params);
+  try   
+   cos := BPTR(0);
+   repeat
+     Inc(UID);
+     TempName := 'T:'+HexStr(FindTask(nil)) + '_'  + HexStr(Self) + '_'+ IntToStr(UID) + '_Starter.tmp';
+   until not FileExists(TempName);   
+   //sysdebugln('TProcess start: "' + ExecName + ' ' + Params+'"  >' + TempName);
+   cos := DosOpen(PChar(TempName), MODE_READWRITE);
+   FExitCode := LongInt(amigados.Execute(PChar(ExecName + ' ' + Params), BPTR(0), cos));
+   DosSeek(cos, 0, OFFSET_BEGINNING);
+   CreateStreams(0, THandle(cos),0);
+   //FExitCode := ExecuteProcess (ExecName, Params);
   except
 (* Normalize the raised exception so that it is aligned to other platforms. *)
     On E: EOSError do
