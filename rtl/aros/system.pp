@@ -121,9 +121,6 @@ begin
   Killed := True;
   { Closing opened files }
   CloseList(ASYS_fileList);
-  //
-  if AOS_wbMsg <> nil then
-    ReplyMsg(AOS_wbMsg);
   { Changing back to original directory if changed }
   if ASYS_OrigDir <> 0 then begin
     oldDirLock:=CurrentDir(ASYS_origDir);
@@ -141,6 +138,14 @@ begin
   if AOS_DOSBase<>nil then
     CloseLibrary(AOS_DOSBase);
   AOS_DOSBase := nil;
+  //
+  if AOS_wbMsg <> nil then
+  begin
+    // forbid -> Amiga RKM Libraries Manual 
+    Forbid();
+    // Reply WBStartupMessage
+    ReplyMsg(AOS_wbMsg);
+  end;
   //
   HaltProc(ExitCode);
 end;
