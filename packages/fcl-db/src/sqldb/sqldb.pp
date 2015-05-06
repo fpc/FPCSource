@@ -1773,7 +1773,7 @@ begin
         begin
         if (Where<>'') then
           Where:=Where+' AND ';
-        Where:=Where+'('+FieldNameQuoteChars[0]+F.FieldName+FieldNameQuoteChars[0]+' = :'+F.FieldName+')';
+        Where:=Where+'('+FieldNameQuoteChars[0]+F.FieldName+FieldNameQuoteChars[1]+' = :'+F.FieldName+')';
         end;
       end;
     if (Where='') then
