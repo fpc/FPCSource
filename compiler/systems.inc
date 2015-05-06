@@ -252,7 +252,8 @@
              ld_int_linux,
              ld_int_nativent,
              ld_int_netware,
-             ld_int_windows
+             ld_int_windows,
+             ld_int_msdos
        );
 
        tar = (ar_none

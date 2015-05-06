@@ -70,6 +70,12 @@ implementation
          function  MakeExecutable:boolean;override;
       end;
 
+      { TInternalLinkerMsDos }
+
+      TInternalLinkerMsDos=class(tinternallinker)
+
+      end;
+
 
 {****************************************************************************
                                TExternalLinkerMsDosTLink
@@ -385,6 +391,7 @@ end;
 *****************************************************************************}
 
 initialization
+  RegisterLinker(ld_int_msdos,TInternalLinkerMsDos);
 {$if defined(USE_LINKER_TLINK)}
   RegisterLinker(ld_msdos,TExternalLinkerMsDosTLink);
 {$elseif defined(USE_LINKER_ALINK)}
