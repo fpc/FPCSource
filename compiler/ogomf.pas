@@ -484,7 +484,8 @@ implementation
               begin
                 objreloc:=TOmfRelocation.CreateSection(CurrObjSec.Size,p.objsection,Reloctype);
                 CurrObjSec.ObjRelocations.Add(objreloc);
-                inc(data,symaddr);
+                if not (Reloctype in [RELOC_SEG,RELOC_SEGREL]) then
+                  inc(data,symaddr);
               end;
           end
         else if Reloctype in [RELOC_DGROUP,RELOC_DGROUPREL] then
