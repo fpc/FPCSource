@@ -117,6 +117,18 @@ interface
         destructor Destroy;override;
       end;
 
+      { TOmfObjInput }
+
+      TOmfObjInput = class(TObjInput)
+        constructor create;override;
+      end;
+
+      { TMZExeOutput }
+
+      TMZExeOutput = class(TExeOutput)
+        constructor create;override;
+      end;
+
       TOmfAssembler = class(tinternalassembler)
         constructor create(smart:boolean);override;
       end;
@@ -866,6 +878,25 @@ implementation
         FSegments.Free;
         FLNames.Free;
         inherited Destroy;
+      end;
+
+{****************************************************************************
+                               TOmfObjInput
+****************************************************************************}
+
+    constructor TOmfObjInput.create;
+      begin
+        inherited create;
+        cobjdata:=TOmfObjData;
+      end;
+
+{****************************************************************************
+                               TMZExeOutput
+****************************************************************************}
+
+    constructor TMZExeOutput.create;
+      begin
+        inherited create;
       end;
 
 {****************************************************************************

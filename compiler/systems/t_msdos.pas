@@ -36,7 +36,8 @@ implementation
        cutils,cfileutl,cclasses,
        globtype,globals,systems,verbose,script,
        fmodule,i_msdos,
-       link,aasmbase,cpuinfo;
+       link,aasmbase,cpuinfo,
+       omfbase,ogomf;
 
     type
       { Borland TLINK support }
@@ -73,7 +74,7 @@ implementation
       { TInternalLinkerMsDos }
 
       TInternalLinkerMsDos=class(tinternallinker)
-
+        constructor create;override;
       end;
 
 
@@ -384,6 +385,17 @@ begin
   {$pop}
   if ioresult<>0 then;
     Result:=true;
+end;
+
+{****************************************************************************
+                               TInternalLinkerMsDos
+****************************************************************************}
+
+constructor TInternalLinkerMsDos.create;
+begin
+  inherited create;
+  CExeOutput:=TMZExeOutput;
+  CObjInput:=TOmfObjInput;
 end;
 
 {*****************************************************************************
