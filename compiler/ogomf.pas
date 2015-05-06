@@ -472,6 +472,14 @@ implementation
                 objreloc:=TOmfRelocation.CreateSymbol(CurrObjSec.Size,p,Reloctype);
                 CurrObjSec.ObjRelocations.Add(objreloc);
               end
+            { relative relocations within the same section can be calculated directly,
+              without the need to emit a relocation entry }
+            else if (p.objsection=CurrObjSec) and
+                    (p.bind<>AB_COMMON) and
+                    (Reloctype=RELOC_RELATIVE) then
+              begin
+                data:=data+symaddr-len-CurrObjSec.Size;
+              end
             else
               begin
                 objreloc:=TOmfRelocation.CreateSection(CurrObjSec.Size,p.objsection,Reloctype);
