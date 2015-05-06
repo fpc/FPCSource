@@ -1598,7 +1598,7 @@ FUNCTION CreateProc(const name : pCHAR location 'd1'; pri : LONGINT location 'd2
 FUNCTION CurrentDir(lock : LONGINT location 'd1') : LONGINT; syscall _DOSBase 126;
 PROCEDURE DateStamp(date : pDateStamp location 'd1'); syscall _DOSBase 192;
 FUNCTION DateToStr(datetime : pDateTime location 'd1') : LongBool; syscall _DOSBase 744;
-FUNCTION DeleteFile(const name : pCHAR location 'd1') : LongBool; syscall _DOSBase 072;
+FUNCTION DOSDeleteFile(const name : pCHAR location 'd1') : LongBool; syscall _DOSBase 072;
 FUNCTION DeleteVar(const name : pCHAR location 'd1'; flags : ULONG location 'd2') : LongBool; syscall _DOSBase 912;
 FUNCTION DeviceProc(const name : pCHAR location 'd1') : pMsgPort; syscall _DOSBase 174;
 FUNCTION DoPkt(port : pMsgPort location 'd1'; action : LONGINT location 'd2'; arg1 : LONGINT location 'd3'; arg2 : LONGINT location 'd4'; arg3 : LONGINT location 'd5'; arg4 : LONGINT location 'd6'; arg5 : LONGINT location 'd7') : LONGINT; syscall _DOSBase 240;
@@ -1756,7 +1756,7 @@ FUNCTION AssignPath(const name : pCHAR;const path : string) : BOOLEAN;
 FUNCTION AssignPath(const name : string;const path : string) : BOOLEAN;
 FUNCTION CreateDir(const name : string) : LONGINT;
 FUNCTION CreateProc(const name : string; pri : LONGINT; segList : LONGINT; stackSize : LONGINT) : pMsgPort;
-FUNCTION DeleteFile(const name : string) : BOOLEAN;
+FUNCTION DOSDeleteFile(const name : string) : BOOLEAN;
 FUNCTION DeleteVar(const name : string; flags : ULONG) : BOOLEAN;
 FUNCTION DeviceProc(const name : string) : pMsgPort;
 FUNCTION DOSOpen(const name : string; accessMode : LONGINT) : LONGINT;
@@ -1904,9 +1904,9 @@ begin
      CreateProc := CreateProc(pas2c(name),pri,segList,stackSize);
 end;
 
-FUNCTION DeleteFile(const name : string) : BOOLEAN;
+FUNCTION DOSDeleteFile(const name : string) : BOOLEAN;
 begin
-     DeleteFile := DeleteFile(pas2c(name));
+     DOSDeleteFile := DOSDeleteFile(pas2c(name));
 end;
 
 FUNCTION DeleteVar(const name : string; flags : ULONG) : BOOLEAN;

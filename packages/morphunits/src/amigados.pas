@@ -1392,7 +1392,7 @@ type
 
 { dos.library functions }
 
-function Open(fname     : PChar   location 'd1';
+function dosOpen(fname     : PChar   location 'd1';
               accessMode: LongInt location 'd2'): LongInt;
 SysCall MOS_DOSBase 30;
 
