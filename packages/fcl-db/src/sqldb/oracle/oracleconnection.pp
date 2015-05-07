@@ -772,22 +772,22 @@ var
   s : string;
   locTrans : TOracleTrans;
 begin
-  flags := OCI_TRANS_NEW or OCI_TRANS_READWRITE;
+  flags := OCI_TRANS_READWRITE;
   if AParams <> '' then begin
     i := 1;
     s := ExtractSubStr(AParams,i,StdWordDelims);
     while ( s <> '' ) do begin
       if ( s = 'readonly' ) then
-        flags := flags and OCI_TRANS_READONLY
+        flags := OCI_TRANS_READONLY
       else if ( s = 'serializable' ) then
-        flags := flags and OCI_TRANS_SERIALIZABLE
+        flags := OCI_TRANS_SERIALIZABLE
       else if ( s = 'readwrite' ) then
-        flags := flags and OCI_TRANS_READWRITE;
+        flags := OCI_TRANS_READWRITE;
       s := ExtractSubStr(AParams,i,StdWordDelims);
     end;
   end;
   locTrans := TOracleTrans(trans);
-  locTrans.FOciFlags := flags;
+  locTrans.FOciFlags := flags or OCI_TRANS_NEW;
   InternalStartDBTransaction(locTrans);
   Result := True;
 end;
