@@ -480,7 +480,7 @@ implementation
       count:=0;
       for i:=0 to st.SymList.Count-1 do
         if (tsym(st.SymList[i]).typ=procsym) then
-          inc(count);
+          inc(count, tprocsym(st.SymList[i]).ProcdefList.count);
 
       current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(count));
       current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(count));
