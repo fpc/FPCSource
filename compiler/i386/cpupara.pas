@@ -40,6 +40,7 @@ unit cpupara;
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;override;
+          procedure get_para_regoff(proccalloption: tproccalloption; paraloc: pcgparalocation; out reg: Byte; out off: LongInt);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
           procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);override;
@@ -285,6 +286,29 @@ unit cpupara;
         result:=[0..first_mm_imreg-1];
       end;
 
+    procedure ti386paramanager.get_para_regoff(proccalloption: tproccalloption; paraloc: pcgparalocation; out reg: Byte; out off: LongInt);
+    var
+      I : SizeInt;
+    begin
+      with paraloc^ do
+        case loc of
+          LOC_REGISTER:
+            begin
+              for I := 0 to high(parasupregs) do
+                if getsupreg(register)=parasupregs[I] then
+                  begin
+                    reg:=I;
+                    break;
+                  end;
+              off:=0;
+            end;
+          LOC_REFERENCE:
+            begin
+              reg:=255;
+              off:=reference.offset;
+            end;
+        end;
+    end;
 
     function  tcpuparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): TCGPara;
       var
