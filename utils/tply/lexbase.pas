@@ -65,7 +65,8 @@ lfilename     : String;
 pasfilename   : String;
 lstfilename   : String;
 codfilename   : String;
-codfilepath   : String; { Under linux, binary and conf file
+codfilepath1,
+codfilepath2  : String; { Under linux, binary and conf file
                           are not in the same path}
 
 (* Lex input, output, list and code template file: *)
