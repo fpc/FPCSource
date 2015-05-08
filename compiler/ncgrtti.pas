@@ -28,7 +28,7 @@ interface
     uses
       cclasses,constexp,
       aasmbase,
-      symbase,symconst,symtype,symdef;
+      symbase,symconst,symtype,symdef,symsym;
 
     type
 
@@ -43,6 +43,8 @@ interface
         procedure published_write_rtti(st:tsymtable;rt:trttitype);
         function  published_properties_count(st:tsymtable):longint;
         procedure published_properties_write_rtti_data(propnamelist:TFPHashObjectList;st:tsymtable);
+        procedure write_param_flag(parasym:tparavarsym);
+        procedure methods_write_rtti(st:tsymtable);
         procedure collect_propnamelist(propnamelist:TFPHashObjectList;objdef:tobjectdef);
         function  ref_rtti(def:tdef;rt:trttitype):tasmsymbol;
         procedure write_rtti_name(def:tdef);
@@ -69,7 +71,6 @@ implementation
        cutils,
        globals,globtype,verbose,systems,
        fmodule, procinfo,
-       symsym,
        aasmtai,aasmdata,
        defutil,
        wpobase
@@ -82,6 +83,23 @@ implementation
          { Objective-C related, does not pass here }
          symconst.ds_none,symconst.ds_none,
          symconst.ds_none,symconst.ds_none);
+
+       ProcCallOptionToCallConv: array[tproccalloption] of byte = (
+        { pocall_none       } 0,
+        { pocall_cdecl      } 1,
+        { pocall_cppdecl    } 5,
+        { pocall_far16      } 6,
+        { pocall_oldfpccall } 7,
+        { pocall_internproc } 8,
+        { pocall_syscall    } 9,
+        { pocall_pascal     } 2,
+        { pocall_register   } 0,
+        { pocall_safecall   } 4,
+        { pocall_stdcall    } 3,
+        { pocall_softfloat  } 10,
+        { pocall_mwpascal   } 11,
+        { pocall_interrupt  } 12
+       );
 
     type
        TPropNameListItem = class(TFPHashObject)
@@ -414,6 +432,96 @@ implementation
           end;
       end;
 
+    procedure TRTTIWriter.write_param_flag(parasym:tparavarsym);
+    var
+      paraspec : byte;
+    begin
+      case parasym.varspez of
+        vs_value   : paraspec := 0;
+        vs_const   : paraspec := pfConst;
+        vs_var     : paraspec := pfVar;
+        vs_out     : paraspec := pfOut;
+        vs_constref: paraspec := pfConstRef;
+      else
+        internalerror(2013112904);
+      end;
+      { Kylix also seems to always add both pfArray and pfReference
+      in this case
+      }
+      if is_open_array(parasym.vardef) then
+        paraspec:=paraspec or pfArray or pfReference;
+      { and these for classes and interfaces (maybe because they
+      are themselves addresses?)
+      }
+      if is_class_or_interface(parasym.vardef) then
+        paraspec:=paraspec or pfAddress;
+      { set bits run from the highest to the lowest bit on
+      big endian systems
+      }
+      if (target_info.endian = endian_big) then
+        paraspec:=reverse_byte(paraspec);
+      { write flags for current parameter }
+      current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(paraspec));
+    end;
+
+    procedure TRTTIWriter.methods_write_rtti(st: tsymtable);
+    var
+      count: Word;
+      i,j,k: LongInt;
+
+      sym : tprocsym;
+      def : tabstractprocdef;
+      para : tparavarsym;
+
+      reg: Byte;
+      off: LongInt;
+    begin
+      count:=0;
+      for i:=0 to st.SymList.Count-1 do
+        if (tsym(st.SymList[i]).typ=procsym) then
+          inc(count);
+
+      current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(count));
+      current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(count));
+
+      for i:=0 to st.SymList.Count-1 do
+        if (tsym(st.SymList[i]).typ=procsym) then
+          begin
+            sym:=tprocsym(st.SymList[i]);
+            for j:=0 to sym.ProcdefList.count-1 do
+              begin
+                def:=tabstractprocdef(sym.ProcdefList[j]);
+                def.init_paraloc_info(callerside);
+
+                write_string(sym.realname);
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(3));
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(ProcCallOptionToCallConv[def.proccalloption]));
+                write_rtti_reference(def.returndef,fullrtti);
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(def.callerargareasize));
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(def.maxparacount + 1));
+
+                for k:=0 to def.paras.count-1 do
+                  begin
+                    para:=tparavarsym(def.paras[k]);
+
+                    { write flags for current parameter }
+                    write_param_flag(para);
+                    maybe_write_align;
+                    { write param type }
+                    write_rtti_reference(para.vardef,fullrtti);
+
+                    reg:=0;
+                    off:=0;
+                    current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(reg));
+                    current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(off));
+
+                    { write name of current parameter }
+                    write_string(para.realname);
+                  end;
+              end;
+          end;
+    end;
+
 
     procedure TRTTIWriter.write_rtti_data(def:tdef;rt:trttitype);
 
@@ -686,55 +794,6 @@ implementation
 
 
         procedure procvardef_rtti(def:tprocvardef);
-           const
-             ProcCallOptionToCallConv: array[tproccalloption] of byte = (
-              { pocall_none       } 0,
-              { pocall_cdecl      } 1,
-              { pocall_cppdecl    } 5,
-              { pocall_far16      } 6,
-              { pocall_oldfpccall } 7,
-              { pocall_internproc } 8,
-              { pocall_syscall    } 9,
-              { pocall_pascal     } 2,
-              { pocall_register   } 0,
-              { pocall_safecall   } 4,
-              { pocall_stdcall    } 3,
-              { pocall_softfloat  } 10,
-              { pocall_mwpascal   } 11,
-              { pocall_interrupt  } 12
-             );
-
-           procedure write_param_flag(parasym:tparavarsym);
-             var
-               paraspec : byte;
-             begin
-               case parasym.varspez of
-                 vs_value   : paraspec := 0;
-                 vs_const   : paraspec := pfConst;
-                 vs_var     : paraspec := pfVar;
-                 vs_out     : paraspec := pfOut;
-                 vs_constref: paraspec := pfConstRef;
-                 else
-                   internalerror(2013112904);
-               end;
-               { Kylix also seems to always add both pfArray and pfReference
-                 in this case
-               }
-               if is_open_array(parasym.vardef) then
-                 paraspec:=paraspec or pfArray or pfReference;
-               { and these for classes and interfaces (maybe because they
-                 are themselves addresses?)
-               }
-               if is_class_or_interface(parasym.vardef) then
-                 paraspec:=paraspec or pfAddress;
-               { set bits run from the highest to the lowest bit on
-                 big endian systems
-               }
-               if (target_info.endian = endian_big) then
-                 paraspec:=reverse_byte(paraspec);
-               { write flags for current parameter }
-               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(paraspec));
-             end;
 
            procedure write_para(parasym:tparavarsym);
              begin
@@ -944,14 +1003,23 @@ implementation
             maybe_write_align;
 
             { write iidstr }
-            if assigned(def.iidstr) then
-              write_string(def.iidstr^)
-            else
-              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(0));
-            maybe_write_align;
+            if def.objecttype = odt_interfacecorba then
+              begin
+                if assigned(def.iidstr) then
+                  write_string(def.iidstr^)
+                else
+                  current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(0));
+
+                maybe_write_align;
+              end;
 
             { write published properties for this object }
+            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(published_properties_count(def.symtable)));
+            maybe_write_align;
             published_properties_write_rtti_data(propnamelist,def.symtable);
+
+            { write methods for this object }
+            methods_write_rtti(def.symtable);
 
             propnamelist.free;
           end;
@@ -1283,6 +1351,8 @@ implementation
     end;
 
     procedure TRTTIWriter.write_child_rtti_data(def:tdef;rt:trttitype);
+    var
+      i,j: SizeInt;
       begin
         case def.typ of
           enumdef :
@@ -1304,7 +1374,20 @@ implementation
               if (rt=initrtti) or (tobjectdef(def).objecttype=odt_object) then
                 fields_write_rtti(tobjectdef(def).symtable,rt)
               else
-                published_write_rtti(tobjectdef(def).symtable,rt);
+                begin
+                  published_write_rtti(tobjectdef(def).symtable,rt);
+
+                  if is_any_interface_kind(def) then
+                    with tobjectdef(def).symtable do
+                      for i := 0 to SymList.Count-1 do
+                        if (tsym(SymList[i]).typ=procsym) then
+                          with tprocsym(tobjectdef(def).symtable.SymList[i]) do
+                            for j := 0 to ProcdefList.Count - 1 do
+                              begin
+                                write_rtti(tabstractprocdef(ProcdefList[j]).returndef,rt);
+                                params_write_rtti(tabstractprocdef(ProcdefList[j]),rt);
+                              end;
+                end;
             end;
           classrefdef,
           pointerdef:

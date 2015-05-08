@@ -54,7 +54,7 @@ unit typinfo;
        TMethodKind = (mkProcedure,mkFunction,mkConstructor,mkDestructor,
                       mkClassProcedure,mkClassFunction,mkClassConstructor, 
                       mkClassDestructor,mkOperatorOverload);
-       TParamFlag     = (pfVar,pfConst,pfArray,pfAddress,pfReference,pfOut);
+       TParamFlag     = (pfVar,pfConst,pfArray,pfAddress,pfReference,pfOut,pfConstRef);
        TParamFlags    = set of TParamFlag;
        TIntfFlag      = (ifHasGuid,ifDispInterface,ifDispatch,ifHasStrGUID);
        TIntfFlags     = set of TIntfFlag;
@@ -63,6 +63,7 @@ unit typinfo;
        // don't rely on integer values of TCallConv since it includes all conventions
        // which both delphi and fpc support. In the future delphi can support more and
        // fpc own conventions will be shifted/reordered accordinly
+       PCallConv = ^TCallConv;
        TCallConv = (ccReg, ccCdecl, ccPascal, ccStdCall, ccSafeCall,
                     ccCppdecl, ccFar16, ccOldFPCCall, ccInternProc,
                     ccSysCall, ccSoftFloat, ccMWPascal);
@@ -161,6 +162,49 @@ unit typinfo;
         function GetParam(ParamIndex: Integer): PProcedureParam;
       end;
 
+      PVmtMethodParam = ^TVmtMethodParam;
+      TVmtMethodParam =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        Flags: TParamFlags;
+        ParamType: PTypeInfo;
+        ParReg: Byte;
+        ParOff: LongInt;
+        Name: ShortString;
+        {Attribute data TODO}
+      end;
+
+      PIntfMethodEntry = ^TIntfMethodEntry;
+      TIntfMethodEntry =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        Name: ShortString;
+        {
+        Version: Byte;
+        CC: TCallConv;
+        ResultType: PTypeInfo;
+        StackSize: Word;
+        ParamCount: Byte;
+        Params: array[0..ParamCount - 1] of TVmtMethodParam;
+        }
+        {Attribute data TODO}
+      end;
+
+      PIntfMethodTable = ^TIntfMethodTable;
+      TIntfMethodTable =
+      {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+      {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        Count: Word;
+        RTTICount: Word;//$FFFF if there is no further info, or the value of Count
+        {Entry: array[0..Count - 1] of TIntfMethodEntry}
+      end;
+
       PTypeData = ^TTypeData;
       TTypeData =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -241,6 +285,11 @@ unit typinfo;
                IntfFlags : TIntfFlagsBase;
                GUID: TGUID;
                IntfUnit: ShortString;
+               {
+               IntfPropCount: Word;
+               IntfProps: array[0..IntfPropCount-1] of TPropInfo;
+               IntfMethTable : TIntfMethodTable;
+               }
               );
             tkInterfaceRaw:
               (
@@ -249,6 +298,11 @@ unit typinfo;
                IID: TGUID;
                RawIntfUnit: ShortString;
                IIDStr: ShortString;
+               {
+               RawIntfPropCount: Word;
+               RawIntfProps: array[0..IntfPropCount-1] of TPropInfo;
+               IntfMethTable : TIntfMethodTable;
+               }
               );
             tkArray:
               (ArrayData: TArrayTypeData);
