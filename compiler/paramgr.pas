@@ -81,6 +81,8 @@ unit paramgr;
           function get_volatile_registers_flags(calloption : tproccalloption):tcpuregisterset;virtual;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;virtual;
 
+          procedure get_para_regoff(proccalloption: tproccalloption; paraloc: pcgparalocation; out reg: Byte; out off: LongInt);virtual;
+
           procedure getintparaloc(list: TAsmList; pd: tabstractprocdef; nr : longint; var cgpara: tcgpara);virtual;
 
           {# allocate an individual pcgparalocation that's part of a tcgpara
@@ -277,6 +279,12 @@ implementation
       begin
         result:=[];
       end;
+
+    procedure tparamanager.get_para_regoff(proccalloption: tproccalloption; paraloc: pcgparalocation; out reg: Byte; out off: LongInt);
+    begin
+      reg:=0;
+      off:=0;
+    end;
 
 {$if first_mm_imreg = 0}
   {$WARN 4044 OFF} { Comparison might be always false ... }

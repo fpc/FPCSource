@@ -73,7 +73,8 @@ implementation
        fmodule, procinfo,
        aasmtai,aasmdata,
        defutil,
-       wpobase
+       wpobase,
+       paramgr
        ;
 
 
@@ -504,14 +505,18 @@ implementation
                   begin
                     para:=tparavarsym(def.paras[k]);
 
+                    if (vo_is_hidden_para in para.varoptions) and not
+                       (vo_is_self in para.varoptions) then
+                      continue;
+
                     { write flags for current parameter }
                     write_param_flag(para);
                     maybe_write_align;
                     { write param type }
                     write_rtti_reference(para.vardef,fullrtti);
 
-                    reg:=0;
-                    off:=0;
+                    paramanager.get_para_regoff(def.proccalloption, para.paraloc[callerside].location,reg,off);
+
                     current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(reg));
                     current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(off));
 
