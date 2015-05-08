@@ -106,7 +106,7 @@ type
   
   TLFTPTelnetClient = class(TLTelnetClient)
    protected
-    procedure React(const Operation, Command: Char); override;
+    function React(const Operation, Command: Char):boolean; override;
   end;
 
   { TLFTPClient }
@@ -368,8 +368,9 @@ end;
 
 { TLFTPTelnetClient }
 
-procedure TLFTPTelnetClient.React(const Operation, Command: Char);
+function TLFTPTelnetClient.React(const Operation, Command: Char):boolean;
 begin
+  result:=false;
   // don't do a FUCK since they broke Telnet in FTP as per-usual
 end;
 
