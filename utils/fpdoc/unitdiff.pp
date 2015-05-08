@@ -12,6 +12,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
+{$mode objfpc}
+{$h+}
 
 program unitdiff;
 
