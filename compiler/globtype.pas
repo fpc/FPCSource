@@ -269,7 +269,7 @@ interface
        toptimizerswitch = (cs_opt_none,
          cs_opt_level1,cs_opt_level2,cs_opt_level3,cs_opt_level4,
          cs_opt_regvar,cs_opt_uncertain,cs_opt_size,cs_opt_stackframe,
-         cs_opt_peephole,cs_opt_asmcse,cs_opt_loopunroll,cs_opt_tailrecursion,cs_opt_nodecse,
+         cs_opt_peephole,cs_opt_loopunroll,cs_opt_tailrecursion,cs_opt_nodecse,
          cs_opt_nodedfa,cs_opt_loopstrength,cs_opt_scheduler,cs_opt_autoinline,cs_useebp,cs_userbp,
          cs_opt_reorder_fields,cs_opt_fastmath,
          { Allow removing expressions whose result is not used, even when this
@@ -315,7 +315,7 @@ interface
        OptimizerSwitchStr : array[toptimizerswitch] of string[17] = ('',
          'LEVEL1','LEVEL2','LEVEL3','LEVEL4',
          'REGVAR','UNCERTAIN','SIZE','STACKFRAME',
-         'PEEPHOLE','ASMCSE','LOOPUNROLL','TAILREC','CSE',
+         'PEEPHOLE','LOOPUNROLL','TAILREC','CSE',
          'DFA','STRENGTH','SCHEDULE','AUTOINLINE','USEEBP','USERBP',
          'ORDERFIELDS','FASTMATH','DEADVALUES','REMOVEEMPTYPROCS',
          'CONSTPROP',
