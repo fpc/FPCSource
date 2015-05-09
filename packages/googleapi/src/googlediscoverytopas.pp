@@ -38,10 +38,11 @@ uses
    typinfo, Classes, SysUtils, fpjson, restcodegen, restbase, googlebase;
 
 Type
+  TTypeDef = Class;
   TSchema = Class;
   TSchemas = Array of TSchema;
   TPropertyDef = Class;
-  TProperties = Array of TPropertyDef;
+  TProperties = TSchemas;
   TRestMethod = Class;
   TRestMethods = Array of TRestMethod;
   TArrayPropertyDef = Class;
@@ -106,7 +107,7 @@ Type
     fexclusiveminimum: boolean;
     Fextends: string;
     FFormat: string;
-    fitems: TArrayPropertyDef;
+    fitems: TSchema;
     fmaximum: integer;
     fmaxItems: integer;
     fmaxlength: integer;
@@ -115,7 +116,6 @@ Type
     fminItems: integer;
     fminlength: integer;
     FName: String;
-    FPascalName: String;
     FPattern: string;
     FProperties: TProperties;
     FPropertyName: String;
@@ -127,14 +127,23 @@ Type
     Fschema: String;
     FType: string;
     FID: String;
+    FTypeDef: TTypeDef;
+    FTypeName: String;
     funiqueItems: boolean;
     FVariant: TJSONSchema;
-    function GetPascalName: String;
+    function DoGetTypeName(PrependT: Boolean): String;
+    function GetTypeName: String;
   Public
+    Class function BaseType(ATypeName: String): Boolean;
+    Class function GetBaseTypeName(AType,AFormat : String) : string;
+    Function DebugName : String;
+    function GetBaseTypeName : string;
+    Function BaseType : Boolean;
     Function ClassProperties : TProperties;
     Property PropertyName : String Read FPropertyName Write FPropertyName;
-    Property PascalName : String Read GetPascalName Write FPascalName;
+    Property TypeName : String Read GetTypeName Write FTypeName;
     Property Refschema : TSchema Read FRefSchema Write FRefSchema;
+    Property TypeDef : TTypeDef Read FTypeDef write FTypeDef;
   Published
     Property id : String Read FID Write FID;
     Property description : string read Fdescription Write Fdescription;
@@ -145,7 +154,7 @@ Type
     Property enum : TJSONSchema Read FEnum Write FEnum;
     Property enumDescriptions : TStringArray Read FenumDescriptions Write FenumDescriptions;
     Property properties : TProperties Read FProperties Write FProperties;
-    Property items : TArrayPropertyDef Read fitems write fitems;
+    Property items : TSchema Read fitems write fitems;
     Property default : String Read FDefault Write FDefault;
     property required : Boolean read frequired write frequired;
     Property annotations : TAnnotations Read FAnnotations Write FAnnotations;
@@ -354,25 +363,68 @@ Type
   TParamLocation = (plPath,plQuery);
   TParamLocations = Set of TParamLocation;
 
+  TDataType = (dtalias,dtClass,dtarray);
+
+  { TTypeDef }
+
+  TTypeDef = Class(TCollectionItem)
+  private
+    FDataType: TDataType;
+    FItemSchema: TSchema;
+    FPascalName: String;
+    FSchema: TSchema;
+    FTopLevel: Boolean;
+  Public
+    Property PascalName : String Read FPascalName Write FPascalName;
+    Property Schema : TSchema Read FSchema Write FSchema;
+    Property DataType : TDataType Read FDataType Write FDataType;
+    Property ItemSchema: TSchema Read FItemSchema Write FItemSchema;
+    Property TopLevel : Boolean Read FTopLevel Write FTopLevel;
+  end;
+
+  { TTypeDefEnumerator }
+
+  TTypeDefEnumerator = Class(TCollectionEnumerator)
+  Public
+    Function GetCurrent: TTypeDef;
+    property Current: TTypeDef read GetCurrent;
+  end;
+
+  { TTypeDefs }
+
+  TTypeDefs = Class(TCollection)
+  private
+    function GetD(AIndex : Integer): TTypeDef;
+  Public
+    Function GetEnumerator: TTypeDefEnumerator;
+    Function IndexOf(ATypename : String) : Integer;
+    Function Find(ATypename : String) : TTypeDef;
+    Function AddTypeDef(ADataType : TDataType; APascalName : String; ASchema : TSchema) : TTypeDef;
+    Property Defs[AIndex : Integer] : TTypeDef Read GetD; Default;
+  end;
+
+
   TDiscoveryJSONToPas = Class(TRestCodeGenerator)
   private
+    FArrayItemSuffix: String;
     FDescription: TGoogleRestDescription;
+    FPropertyTypeSuffix: String;
     FResourceSuffix: String;
-    FClasses : TStrings;
-    function BaseType(ATypeName: String): Boolean;
-    function GetBaseTypeName(AType, AFormat: String): string;
-    function GetBaseTypeName(ASchema: TPropertyDef): string;
+    FTypes : TTypeDefs;
+    Function AddType(ASchema: TSchema; NamePrefix: String; IsTopLevel : Boolean) : TTypeDef;
+    procedure CollectType(S: TSchema; NamePrefix: String; IsTopLevel : Boolean);
+    function GetSchemaDataType(S: TSchema): TDataType;
     function ReservedMethod(ANAme: String): boolean;
   Protected
     procedure AssignParamNames(Res: TSchema; M: TRestMethod); virtual;
     Function BaseUnits : String; override;
     // Global functions
-    Function GetPropertyType(AClassName: String; ASchema: TPropertyDef): String;
-    Procedure CollectClasses;
-    Procedure CollectClasses(Schemas: TSchemas; NamePrefix : String);
+    Function GetPropertyType(AClassName: String; ASchema: TSchema): String;
+    Procedure CollectTypes;
+    Procedure CollectTypes(Schemas: TSchemas; NamePrefix : String);
     Procedure ResolveRefs;
-    Procedure CreateInterface(ClassList: TStrings);
-    Procedure CreateImplementation(ClassList: TStrings);
+    Procedure CreateInterface;
+    Procedure CreateImplementation;
     // Schema Classes
     Procedure CreateClassDeclaration(AClassName: String; ASchema: TSchema);
     Procedure CreateClassImplementation(AClassName: String; ASchema: TSchema);
@@ -382,7 +434,7 @@ Type
     Procedure CreateAPIClassImplementation;
     Procedure CreateAPIResourceFunctionImplementations; virtual;
     // Resource classes
-    Function GetResourceClassName(Res: TSchema; AClasses : TStrings): String;
+    Function GetResourceClassName(Res: TSchema): String;
     Procedure CreateResourceClassDeclaration(Res: TSchema);
     Procedure CreateResourceClassImplementation(Res: TSchema);
     Procedure CreateResourceClassMethodsImplementation(Res: TSchema; Const AClassName: String);
@@ -404,26 +456,90 @@ Type
   Published
     Property Description : TGoogleRestDescription Read FDescription;
     Property ResourceSuffix : String Read FResourceSuffix Write FResourceSuffix;
+    Property ArrayItemSuffix : String Read FArrayItemSuffix Write FArrayItemSuffix;
+    Property PropertyTypeSuffix : String Read FPropertyTypeSuffix Write FPropertyTypeSuffix;
   end;
 
 
 implementation
 
+{ TTypeDefEnumerator }
+
+function TTypeDefEnumerator.GetCurrent: TTypeDef;
+begin
+  Result:=(Inherited GetCurrent) as TTypeDef;
+end;
+
+{ TTypeDefs }
+
+function TTypeDefs.GetD(AIndex : Integer): TTypeDef;
+begin
+  Result:=Items[AIndex] as TTypeDef;
+end;
+
+function TTypeDefs.GetEnumerator: TTypeDefEnumerator;
+begin
+  Result:=TTypeDefEnumerator.Create(Self);
+end;
+
+function TTypeDefs.IndexOf(ATypename: String): Integer;
+begin
+  Result:=Count-1;
+  While (Result>=0) and (CompareText(ATypeName,GetD(Result).PascalName)<>0) do
+    Dec(Result);
+end;
+
+function TTypeDefs.Find(ATypename: String): TTypeDef;
+begin
+
+end;
+
+function TTypeDefs.AddTypeDef(ADataType: TDataType; APascalName: String;
+  ASchema: TSchema): TTypeDef;
+begin
+  Result:=Add as TTypeDef;
+  Result.DataType:=ADataType;
+  Result.PascalName:=APascalName;
+  Result.Schema:=ASchema;
+end;
+
 { TSchema }
 
-function TSchema.GetPascalName: String;
+
+function TSchema.DoGetTypeName(PrependT : Boolean) : String;
+
 begin
-  Result:=FPascalName;
+  Result:=FTypeName;
+  if (Result='') and Assigned(TypeDef) then
+    Result:=TypeDef.PascalName;
   If Result='' then
-    Result:=Name;
+    begin
+    If BaseType then
+      Result:=GetBaseTypeName
+    else if (_type='array') and Assigned(Items)  then
+      begin
+      Result:=Items.DoGetTypeName(False);
+      if (Result<>'') and not Assigned(Items.TypeDef)  then
+        begin
+        if PrependT and (items._type<>'object') and (items._type<>'array') then
+          Result:='T'+Result;
+        Result:=Result+'Array';
+        end;
+      end;
+    end;
+end;
+
+function TSchema.GetTypeName: String;
+begin
+  Result:=DoGetTypeName(True);
 end;
 
 function TSchema.ClassProperties: TProperties;
 begin
   If Length(FProperties)>0 then
     Result:=FProperties
-  else if Assigned(Items) then
-    Result:=Items.properties
+  //else if Assigned(Items) then
+  //  Result:=Items.properties
   else
     Result:=Nil
 end;
@@ -439,6 +555,8 @@ begin
   FDescription:=TGoogleRestDescription.Create;
   BaseClassName:='TGoogleBaseObject';
   FResourceSuffix:='Resource';
+  ArrayItemSuffix:='Item';
+  PropertyTypeSuffix:='Type';
 end;
 
 destructor TDiscoveryJSONToPas.Destroy;
@@ -467,85 +585,181 @@ begin
   Description.LoadFromJSON(JSON);
 end;
 
+function TDiscoveryJSONToPas.GetSchemaDataType(S: TSchema): TDataType;
 
-procedure TDiscoveryJSONToPas.CollectClasses(Schemas: TSchemas;
-  NamePrefix: String);
+begin
+  if (S._type='array') then
+    Result:=dtArray
+  else if S._type='object' then
+    Result:=dtClass
+  else
+    Result:=dtAlias;
+end;
+
+function TDiscoveryJSONToPas.AddType(ASchema: TSchema; NamePrefix: String;
+  IsTopLevel: Boolean): TTypeDef;
+
+  Function DoAdd(DT : TDataType; TCN : String; S,ITS : TSchema) : TTypeDef;
+  Var
+    Msg : String;
+
+  begin
+    Result:=Nil;
+    if (FTypes.IndexOf(TCN)<>-1) then
+      Raise Exception.CreateFmt('Type already exists : "%s"',[TCN]);
+    Result:=FTypes.AddTypeDef(dt,TCN,S);
+    Result.ItemSchema:=ITS;
+    Result.Toplevel:=isTopLevel;
+    Str(dt,Msg);
+    Msg:=Format('[%s] : Adding %s (%s) from ',[NamePrefix,TCN,Msg]);
+    if Assigned(S) then
+      Msg:=Msg+S.DebugName;
+    if Assigned(ItS) then
+      Msg:=Msg+Format(' (Array item: %s)',[its.DebugName]);
+    DoLog(Msg);
+  end;
+
+Var
+  CN,TCN : String;
+  Dt : TDataType;
+
+begin
+  dt:=GetSchemaDataType(ASchema);
+  CN:=NamePrefix+ASchema.Name;
+  if (dt=dtArray) and (NamePrefix<>'') then
+    CN:=CN+'Array';
+  TCN:='T'+CN;
+  Result:=doAdd(dt,TCN,ASchema,Aschema.Items);
+  Aschema.TypeDef:=Result;
+  if (dt=dtClass) and isToplevel then
+    doAdd(dtArray,TCN+'Array',Nil,Aschema);
+end;
+
+
+procedure TDiscoveryJSONToPas.CollectType(S: TSchema; NamePrefix: String; IsTopLevel : Boolean);
+
+Var
+  CN,TCN,AE : String;
+  Dt : TDataType;
+  BaseArrayElement : Boolean;
+
+begin
+  dt:=GetSchemaDataType(S);
+  BaseArrayElement:=(dt=dtArray) and S.Items.BaseType;
+  DoLog('[%s] Examining : %s (Ref : %s type: %s) Toplevel %s',[NamePrefix,S.Name,S.ref,S._type,BoolToStr(IsTopLevel,'True','False')]);
+  case dt of
+    dtArray : if Not BaseArrayElement and (S.Items.Ref='') then
+                begin
+                AE:=S.Name;
+                if S.Items.Name='' then
+                  AE:=AE+ArrayItemSuffix;
+                DoLog('Array, adding array item type first (%s)',[AE]);
+                CollectType(S.Items,NamePrefix+AE,isTopLevel);
+                end;
+    dtClass :
+      if (S.Ref='') then
+        begin
+        DoLog('Class type, adding properties first');
+        CollectTypes(S.Properties,NamePrefix+S.Name+PropertyTypeSuffix);
+        end;
+    end;
+  if (NamePrefix='') then
+    AddType(S,'',True)
+  else if (Not S.BaseType) and (Not BaseArrayElement) and (S.Ref='') then
+    AddType(S,NamePrefix,IsTopLevel);
+end;
+
+procedure TDiscoveryJSONToPas.CollectTypes(Schemas: TSchemas; NamePrefix: String);
 
 Var
   S : TSchema;
-  CN : String;
+
 begin
   For S in Schemas do
-    begin
-    // Write('Examining : ',S.Name,' (NamePrefix: ',NamePrefix,' Ref : ',S.ref,', type: ',S._type,')');
-    if (NamePrefix='') or ((s.ref='') and ((S._type='object') or (S._type='array'))) then
-      begin
-      CN:=NamePrefix+S.Name;
-      S.PascalName:='T'+CN;
-      if FClasses.IndexOf(S.PascalName)=-1 then
-        FClasses.AddObject(S.PascalName,S);
-      // Writeln(': Added as ',S.PascalName);
-      CollectClasses(TSchemas(S.ClassProperties),CN);
-      end
-    else
-      // Writeln
-      ;
-    end;
+    CollectType(S,NamePrefix,NamePrefix='');
 end;
 
 procedure TDiscoveryJSONToPas.ResolveRefs;
 
 Var
-  I : Integer;
   Lookup : TStringList;
-  S,S2 : TSchema;
 
-  Function DoFind (Const N,C : String) : TSchema;
+  Function DoFind (S : TSchema; C : String) : TSchema;
   Var
     idx : Integer;
   begin
-    // Writeln('Resolving ',S.Ref);
-    Idx:=Lookup.IndexOf(N);
+    Idx:=Lookup.IndexOf(S.Ref);
     if idx<>-1 then
       Result:=TSchema(Lookup.Objects[idx])
     else
-      Raise Exception.CreateFmt('Could not find reference %s (Context: %s)',[N,C]);
+      Raise Exception.CreateFmt('Could not find reference %s (Context: %s)',[S.Name,C]);
   end;
 
+  Procedure AddSchema(ASchema : TSchema);
+
+  begin
+    if Assigned(ASchema) then
+      begin
+      if (ASchema.Name<>'') then
+        begin
+        Lookup.AddObject(ASchema.Name,ASchema)
+        end;
+      end
+  end;
+
+  Procedure DoResolve(ASchema : TSchema);
+
+  Var
+    S2 : TSchema;
+  begin
+    if Assigned(ASchema) then
+      begin
+      if (ASchema.Ref<>'') and (ASchema.Refschema=Nil) then
+        ASchema.Refschema:=DoFind(ASchema,ASchema.Name);
+      if Assigned(ASchema.Items) then
+        DoResolve(ASchema.Items);
+      if Length(ASchema.Properties)<>0 then
+        For S2 in ASchema.Properties do
+          begin
+          DoResolve(S2);
+          DoResolve(S2.Items);
+          end;
+      end;
+  end;
+
+Var
+  T : TTypeDef;
+  S : TSchema;
+
 begin
-  // Writeln('Resolving ');
   Lookup:=TStringList.Create;
   try
-    For I:=0 to FClasses.Count-1 do
-      begin
-      S:=TSchema(FCLasses.Objects[i]);
-      //  Writeln('Found ',FClasses[i],' : ',S.ID,' (original: ',S.Name,', pascal: ', S.PascalName,')');
-      if (S.Name<>'') then
-        Lookup.AddObject(S.Name,S);
-      end;
+     for S in Description.Schemas do
+       AddSchema(S);
     Lookup.Sorted:=True;
-    For I:=0 to FClasses.Count-1 do
+    For T in FTypes do
       begin
-      S:=TSchema(FClasses.Objects[i]);
-      if (S.Ref<>'') then
-        S.Refschema:=DoFind(S.Ref,S.Name);
-      if Length(S.Classproperties)<>0 then
-        For S2 in S.Classproperties do
-          if (S2.Ref<>'') then
-            begin
-            // Writeln('Resolving property ',S.Name, ' : ',S2.Ref);
-            S2.Refschema:=DoFind(S2.Ref,'Property '+S.Name);
-            end;
+      DoResolve(T.Schema);
+      DoResolve(T.ItemSchema);
       end;
   finally
     Lookup.Free;
   end;
 end;
 
-procedure TDiscoveryJSONToPas.CollectClasses;
+procedure TDiscoveryJSONToPas.CollectTypes;
+
+Var
+  S : TTypeDef;
+  Msg : String;
 
 begin
-  CollectClasses(Description.Schemas,ClassPrefix);
+  CollectTypes(Description.Schemas,ClassPrefix);
+  For S in FTypes do
+    begin
+    Str(S.DataType,Msg);
+    DoLog('Created data type %s (%s)',[S.PascalName,Msg]);
+    end;
   ResolveRefs;
 end;
 
@@ -554,18 +768,25 @@ begin
   Result:='googleservice, restbase, googlebase'
 end;
 
-function TDiscoveryJSONToPas.BaseType(ATypeName: String) : Boolean;
+class function TSchema.BaseType(ATypeName: String): Boolean;
 
 begin
-  Result:=(ATypeName='string') or (ATypeName='number') or (ATypeName='any');
+  Result:=(ATypeName='boolean') or (ATypeName='string') or (ATypeName='number') or (ATypeName='any') or (ATypeName='integer');
 end;
 
-function TDiscoveryJSONToPas.GetBaseTypeName(AType,AFormat : String) : string;
+class function TSchema.GetBaseTypeName(AType, AFormat: String): string;
 
 begin
   Result:=AType;
   if Result='any' then
     Result:='TJSONSchema'
+  else if Result='integer' then
+    begin
+    if (AFormat='int64') then
+       Result:='int64'
+     else
+       Result:='integer'
+    end
   else if Result='number' then
     begin
     if (AFormat='double') then
@@ -577,72 +798,73 @@ begin
    if Aformat='date-time' then
       Result:='TDatetime'
     else if Aformat='date' then
-      Result:='TDate';
+      Result:='TDate'
+    else
+      Result:='String';
 end;
 
-function TDiscoveryJSONToPas.GetBaseTypeName(ASchema: TPropertyDef) : string;
-
+function TSchema.DebugName: String;
 begin
-  Result:=GetBaseTypeName(ASchema._Type,ASchema.Format);
+  Result:=sysutils.Format('(Name: %s, Pascal Type : %s, type : %s, Ref: %s)',[Name,TypeName,_type,Ref]);
 end;
 
-function TDiscoveryJSONToPas.GetPropertyType(AClassName: String; ASchema: TPropertyDef): String;
+function TSchema.GetBaseTypeName: string;
+begin
+  Result:=GetBaseTypeName(_type,Format);
+end;
 
-Var
-  B : Boolean;
+function TSchema.BaseType: Boolean;
+begin
+  Result:=BaseType(_type)
+end;
+
+
+function TDiscoveryJSONToPas.GetPropertyType(AClassName: String;
+  ASchema: TSchema): String;
+
 
 begin
-  if ASchema.PascalName<>ASchema.Name then
-    Result:=ASchema.PascalName
-  else
+  DoLog('Checking property type "%s" property schema %s',[AClassName,ASchema.DebugName]);
+  Result:=ASchema.TypeName;
+  if (Result='') then
     begin
     Result:=ASchema.ref;
     if Result='' then
       begin
       Result:=ASchema._type;
-      if BaseType(Result) then
-        begin
-        Result:=getBaseTypeName(ASchema);
-        ASchema.PascalName:=Result;
-        end;
+      if TSchema.BaseType(Result) then
+        Result:=ASchema.GetBaseTypeName;
       end
     else if Not Assigned(ASchema.Refschema) then
-      Raise Exception.CreateFmt('%s : Unresolved property (%s) type reference : %s',[AClassName,ASchema.Name,ASchema.Ref])
+      Raise Exception.CreateFmt('%s : Unresolved property schema (%s) type reference : %s',[AClassName,ASchema.Name,ASchema.Ref])
     else
-      Result:=ASchema.Refschema.PascalName;
+      Result:=ASchema.Refschema.TypeName;
     end;
   if Result='array' then
     begin
-    if ASchema.Items.Ref<>'' then
+    if Aschema.Items.TypeDef<>Nil then
+      Result:=Aschema.Items.TypeDef.PascalName
+    else if (ASchema.Items.Ref<>'') then
       begin
-      if BaseType(ASchema.Items.Ref) then
-        Result:='T'+GetBaseTypeName(ASchema.Items.Ref,ASchema.items.Format)+'Array'
-      else
-        Result:='T'+ClassPrefix+ASchema.Items.Ref+'Array';
-      // Writeln(Result, '(expected : ',ASchema.Items.Refschema.PascalName,') ',Result=ASchema.Items.Refschema.PascalName);
+      if not Assigned(ASchema.Items.Refschema) then
+        Raise Exception.CreateFmt('%s : Unresolved property (%s) type reference : %s',[AClassName,ASchema.Name,ASchema.Ref]);
+      Result:=Aschema.Items.RefSchema.TypeName+'Array';
       end
-    else if (ClassPrefix+ASchema.items._type='object') and (ASchema.Name<>'') then
-      Result:=AClassName+ASchema.Name+'Array'
     else
-      begin
-      if BaseType(ASchema.Items._type) then
-        Result:='T'+GetBaseTypeName(ASchema.items._type,ASchema.items.Format)+'Array'
-      else
-        Result:='T'+ClassPrefix+ASchema.items._type+'Array';
-      end
+      Result:=ASchema.Items.TypeName;
     end
   else if Result='object' then
     if (ASchema.ref<>'') then
       Result:='T'+ClassPrefix+ASchema.ref
     else
-      Result:=AClassName+ASchema.Name
+      Result:=AClassName+ASchema.Name;
 end;
 
 procedure TDiscoveryJSONToPas.CreateClassDeclaration(AClassName: String;
   ASchema: TSchema);
 
 Var
-  S : TPropertyDef;
+  S : TSchema;
   N : String;
   NeedGetWritename : Boolean;
   TN : String;
@@ -650,6 +872,8 @@ Var
   L : TStringList;
 
 begin
+  if ASchema=Nil then
+    Raise Exception.Create(AClassName+' : no Schema');
   ClassHeader(AClassName);
   AddLn('%s = Class(%s)',[AClassName,BaseClassName]);
   AddLn('Private');
@@ -657,7 +881,7 @@ begin
   IncIndent;
   L:=TStringList.Create;
   try
-    For S in ASchema.ClassProperties do
+    For S in ASchema.Properties do
       begin
       N:=TBaseObject.CleanPropertyName(S.Name);
       Repeat
@@ -666,7 +890,6 @@ begin
           Idx:=L.IndexOf('F'+N);
         if (idx<>-1) then
           begin
-          // Writeln('Need rename: ',N);
           N:='_'+N;
           end;
       Until Idx=-1;
@@ -721,7 +944,7 @@ procedure TDiscoveryJSONToPas.CreateClassImplementation(AClassName: String;
   ASchema: TSchema);
 
 Var
-  S : TPropertyDef;
+  S : TSchema;
   N : String;
   NeedGetWritename : Boolean;
   TN : String;
@@ -778,41 +1001,69 @@ begin
   Result:=Format('T%s%sAPI',[ClassPrefix,PrettyPrint(Description.Name)])
 end;
 
-procedure TDiscoveryJSONToPas.CreateInterface(ClassList: TStrings);
+procedure TDiscoveryJSONToPas.CreateInterface;
+
+  procedure AddTypeDecl(S : TTypeDef);
+
+  begin
+    Case S.DataType  of
+      dtAlias : AddLn('%s = %s;',[S.PascalName,S.Schema.GetBaseTypeName]);
+      dtArray : AddLn('%s = Array of %s;',[S.PascalName,GetPropertyType('',S.ItemSchema)]);
+      dtClass : AddLn('%s = class;',[S.PascalName]);
+    end;
+  end;
+
+  Procedure DoTypeLoops(DoTopLevel : Boolean);
+
+  Var
+    S : TTypeDef;
+  begin
+    For S in FTypes do
+      if (S.DataType=dtAlias) and (S.TopLevel=DoTopLevel) then
+        AddTypeDecl(S);
+    For S in FTypes do
+      if (S.DataType=dtClass) and (S.TopLevel=DoTopLevel) then
+        AddTypeDecl(S);
+    For S in FTypes do
+      if (S.DataType=dtArray) and (S.TopLevel=DoTopLevel) then
+        AddTypeDecl(S);
+  end;
 
 Var
   I : Integer;
-  S : String;
+  S : TTypeDef;
   R : TSchema;
 
 begin
   Addln('type');
   IncIndent;
-  Comment('');
-  For S in ClassList do
-    begin
-    AddLn('%s = class;',[S]);
-    AddLn('%sArray = Array of %s;',[S,S]);
-    end;
-  For I:=0 to ClassList.Count-1 do
-    CreateClassDeclaration(ClassList[i],TSchema(ClassList.Objects[I]));
+  AddLn('');
+  Comment('Top-level schema types');
+  DoTypeLoops(True);
+  Comment('Anonymous types, using auto-generated names');
+  DoTypeLoops(False);
+  For S in FTypes do
+    if S.DataType=dtClass then
+      CreateClassDeclaration(S.PascalName,S.Schema);
   For R in Description.resources do
     begin
-    R.PascalName:=GetResourceClassName(R,ClassList);
+    R.TypeName:=GetResourceClassName(R);
     CreateResourceClassDeclaration(R);
     end;
   CreateAPIClassDeclaration;
   DecIndent;
 end;
 
-procedure TDiscoveryJSONToPas.CreateImplementation(ClassList: TStrings);
+procedure TDiscoveryJSONToPas.CreateImplementation;
 
 Var
   I : Integer;
   R : TSchema;
+  S : TTypeDef;
 begin
-  For I:=0 to ClassList.Count-1 do
-    CreateClassImplementation(ClassList[i],TSchema(ClassList.Objects[I]));
+  For S in FTypes do
+    if S.DataType=dtClass then
+      CreateClassImplementation(S.PascalName,S.Schema);
   For R in Description.resources do
     CreateResourceClassImplementation(R);
   CreateAPIClassImplementation;
@@ -882,7 +1133,6 @@ begin
     end;
   if (S<>'') then
     S:='('+S+')';
-
   S:=PrettyPrint(TBaseObject.CleanPropertyName(M.Name))+S;
   isFunction:=M.Response<>Nil;
   if isFunction and AddTypes then
@@ -920,7 +1170,7 @@ Var
 
 begin
   RN:=PrettyPrint(Res.Name);
-  RCN:=Res.PascalName;
+  RCN:=Res.TypeName;
   MN:=PrettyPrint(M.Name);
   Addln('');
   Comment(Format('Optional query Options for %s, method %s',[RCN,MN]));
@@ -933,7 +1183,7 @@ begin
       if p.format='int64' then
         AddLn('%s : int64;',[P.Sourcename])
       else
-        AddLn('%s : %s;',[P.sourcename,GetBaseTypeName(P._type,P.format)]);
+        AddLn('%s : %s;',[P.sourcename,P.GetBaseTypeName]);
     end;
   DecIndent;
   Addln('end;');
@@ -947,19 +1197,19 @@ begin
 end;
 
 
-function TDiscoveryJSONToPas.GetResourceClassName(Res: TSchema; AClasses : TStrings): String;
+function TDiscoveryJSONToPas.GetResourceClassName(Res: TSchema): String;
 Var
   Suffix : String;
 begin
-  if (Res.PascalName<>Res.Name) then
-    Result:=Res.PascalName
+  if (Res.TypeName<>'') and (Res.TypeName<>Res.Name) then
+    Result:=Res.TypeName
   else
     begin
     Suffix:='Resource';
     Repeat
       Result:=Format('T%s%s%s',[ClassPrefix,PrettyPrint(Res.Name),Suffix]);
       Suffix:='_'+Suffix;
-    Until AClasses.IndexOf(Result)=-1;
+    Until FTypes.IndexOf(Result)=-1;
     end
 end;
 
@@ -974,7 +1224,6 @@ Var
   N : String;
 
 begin
-  // Writeln('Examining ',M.name,' ',Length(M.parameters),' params');
   T:=TStringList.Create;
   try
     // The request also has a parameter name
@@ -995,7 +1244,6 @@ begin
       N:=P.Name;
       While T.IndexOf(N)<>-1 do
         begin
-        // Writeln('Discovered double : ',N);
         N:='_'+N;
         end;
       T.Add(N);
@@ -1006,7 +1254,7 @@ begin
   end;
 end;
 
-Function TDiscoveryJSONToPas.ReservedMethod(ANAme : String) : boolean;
+function TDiscoveryJSONToPas.ReservedMethod(ANAme: String): boolean;
 
 begin
   AName:=';'+lowerCase(AName)+';';
@@ -1023,7 +1271,7 @@ Var
 
 
 begin
-  CN:=Res.PascalName;
+  CN:=Res.TypeName;
   ClassHeader(CN);
   For M in Res.methods do
     begin
@@ -1213,7 +1461,7 @@ Var
   PL: TParamLocations;
 
 begin
-  CN:=Res.PascalName;
+  CN:=Res.TypeName;
   ClassHeader(CN);
   CreateResourceClassMethodsImplementation(Res,CN);
   For M in Res.methods do
@@ -1240,9 +1488,9 @@ begin
   AddLn('Private');
   IncIndent;
   For R in Description.resources do
-    AddLn('F%sInstance : %s;',[PrettyPrint(R.Name),R.PascalName]);
+    AddLn('F%sInstance : %s;',[PrettyPrint(R.Name),R.TypeName]);
   For R in Description.resources do
-    AddLn('Function Get%sInstance : %s;virtual;',[PrettyPrint(R.Name),R.PascalName]);
+    AddLn('Function Get%sInstance : %s;virtual;',[PrettyPrint(R.Name),R.TypeName]);
   DecINdent;
   AddLn('Public');
   IncIndent;
@@ -1270,12 +1518,12 @@ begin
   Comment('Add create function for resources');
   For R in Description.resources do
     begin
-    AddLn('Function Create%sResource(AOwner : TComponent) : %s;virtual;overload;',[PrettyPrint(R.Name),R.PascalName]);
-    AddLn('Function Create%sResource : %s;virtual;overload;',[PrettyPrint(R.Name),R.PascalName]);
+    AddLn('Function Create%sResource(AOwner : TComponent) : %s;virtual;overload;',[PrettyPrint(R.Name),R.TypeName]);
+    AddLn('Function Create%sResource : %s;virtual;overload;',[PrettyPrint(R.Name),R.TypeName]);
     end;
   Comment('Add default on-demand instances for resources');
   For R in Description.resources do
-    AddLn('Property %sResource : %s Read Get%sInstance;',[PrettyPrint(R.Name),R.PascalName,PrettyPrint(R.Name)]);
+    AddLn('Property %sResource : %s Read Get%sInstance;',[PrettyPrint(R.Name),R.TypeName,PrettyPrint(R.Name)]);
   DecIndent;
   AddLn('end;');
 end;
@@ -1294,6 +1542,8 @@ Var
   S : TSchema;
   I : Integer;
   L : TStrings;
+  TD : TTypeDef;
+
 begin
   CN:=GetAPIClassName;
   ClassHeader(CN);
@@ -1357,8 +1607,9 @@ begin
   Addln('');
   AddLn('begin');
   IncIndent;
-  For SCN in FClasses do
-    AddLn('%s.RegisterObject;',[SCN]);
+  For I:=0 to FTypes.Count-1 do
+    if FTypes[i].DataType=dtClass then
+      AddLn('%s.RegisterObject;',[FTypes[i].PascalName]);
   DecIndent;
   Addln('end;');
   Addln('');
@@ -1376,7 +1627,7 @@ begin
   For R in Description.resources do
     begin
     RN:=PrettyPrint(R.Name);
-    RCN:=R.PascalName;
+    RCN:=R.TypeName;
     AddLn('');
     AddLn('Function %s.Get%sInstance : %s;',[CN,RN,RCN]);
     AddLn('');
@@ -1408,19 +1659,19 @@ begin
   Source.Clear;
   Addln('unit '+outputunitname+';');
   CreateHeader;
-  FClasses:=TStringList.Create;
+  FTypes:=TTypeDefs.Create(TTypeDef);
   try
-    CollectClasses;
-    CreateInterface(FClasses);
+    CollectTypes;
+    CreateInterface;
     AddLn('');
     AddLn('implementation');
     AddLn('');
-    CreateImplementation(FClasses);
+    CreateImplementation;
     Addln('');
     AddLn('initialization');
     Addln('  %s.RegisterAPI;',[GetAPIClassName]);
   finally
-    FClasses.Free;
+    FTypes.Free;
   end;
   AddLn('end.');
 end;
