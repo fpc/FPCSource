@@ -46,6 +46,7 @@ Type
   TWebClientRequest = Class(TRequestResponse)
   Private
     FExtraParams : TStrings;
+    FResponseStream: TStream;
   Protected
     function GetExtraParams: TStrings; virtual;
   Public
@@ -54,7 +55,7 @@ Type
     // Query Parameters to include in request
     Property Params : TStrings Read GetExtraParams;
     // If you want the response to go to this stream, set this in the request
-    Property ResponseContent : TStream Read FStream Write FStream;
+    Property ResponseContent : TStream Read FResponseStream Write FResponseStream;
   end;
 
 
@@ -165,13 +166,13 @@ begin
 end;
 
 
-Destructor TWebClientRequest.Destroy;
+destructor TWebClientRequest.Destroy;
 begin
   FreeAndNil(FExtraParams);
   inherited Destroy;
 end;
 
-Function TWebClientRequest.ParamsAsQuery: String;
+function TWebClientRequest.ParamsAsQuery: String;
 
 Var
   N,V : String;
