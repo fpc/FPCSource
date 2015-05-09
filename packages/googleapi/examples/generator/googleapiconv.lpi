@@ -38,27 +38,22 @@
       <Unit0>
         <Filename Value="googleapiconv.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="googleapiconv"/>
       </Unit0>
       <Unit1>
         <Filename Value="../../src/googleadexchangebuyer.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="googleadexchangebuyer"/>
       </Unit1>
       <Unit2>
         <Filename Value="../../src/googlebase.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="googlebase"/>
       </Unit2>
       <Unit3>
         <Filename Value="../../src/googleclient.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="googleclient"/>
       </Unit3>
       <Unit4>
         <Filename Value="../../src/googlediscoverytopas.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="googlediscoverytopas"/>
       </Unit4>
     </Units>
   </ProjectOptions>

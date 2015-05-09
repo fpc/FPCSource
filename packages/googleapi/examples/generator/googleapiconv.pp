@@ -1,16 +1,23 @@
 {$mode objfpc}
 {$h+}
-{ $define USESYNAPSE}
+
+{ $DEFINE USESYNAPSE}
+
+{$IFDEF VER2_6}
+{$DEFINE USESYNAPSE}
+{$ENDIF}
+
 program googleapiconv;
 
 uses
-  custapp, classes, sysutils, fpjson, jsonparser, googleadexchangebuyer,
-  googlebase, googleclient, googlediscoverytopas, fpwebclient,
+  custapp, classes, sysutils, fpjson, jsonparser, fpwebclient,
 {$IFDEF USESYNAPSE}
   ssl_openssl,
   synapsewebclient,
 {$ELSE}
-  fphttpwebclient;
+  fphttpwebclient,
+{$ENDIF}
+  googlediscoverytopas, googleservice, restbase, restcodegen;
 
 Const
   BaseDiscoveryURL = 'https://www.googleapis.com/discovery/v1/apis/';
@@ -47,6 +54,9 @@ Type
 
   TGoogleAPIConverter = CLass(TCustomApplication)
   private
+    FKeepJSON: Boolean;
+    FVerbose: Boolean;
+    procedure ConversionLog(Sender: TObject; LogType: TCodegenLogType; const Msg: String);
     procedure CreateFPMake(FileName: String; L: TAPIEntries);
     procedure DoAll(LocalFile, URL, OFN: String; AllVersions: Boolean);
     Procedure DoConversion(JS: TStream; AEntry : TAPIEntry) ;
@@ -59,6 +69,8 @@ Type
     Constructor Create(AOwner: TComponent); override;
     Destructor Destroy; override;
     Procedure DoRun; override;
+    Property KeepJSON : Boolean Read FKeepJSON Write FKeepJSON;
+    Property Verbose : Boolean Read FVerbose Write FVerbose;
   end;
 
 { TAPIEntries }
@@ -139,8 +151,10 @@ begin
   Writeln('-p --classprefix=prefix    Prefix to use in class names for all classes.');
   Writeln('-r --resourcesuffix=suffix Suffix to use for resource names. Default is Resource.');
   Writeln('-R --register=unit         Register unit for Lazarus.');
+  Writeln('-t --timestamp             Add timestamp to generated unit.');
   Writeln('-u --url=URL               URL to download the REST description from.');
   Writeln('-v --serviceversion=v      Service version to download the REST description for.');
+  Writeln('-V --verbose               Write some diagnostic messages');
   Writeln('If the outputfilename is empty and cannot be determined, an error is returned');
   Halt(Ord(Msg<>''));
 end;
@@ -242,6 +256,13 @@ begin
     end;
 end;
 
+procedure TGoogleAPIConverter.ConversionLog(Sender: TObject;
+  LogType: TCodegenLogType; const Msg: String);
+begin
+  if Verbose then
+    Writeln(StdErr,Msg);
+end;
+
 procedure TGoogleAPIConverter.CreateFPMake(FileName :String; L : TAPIEntries);
 
 Var
@@ -320,6 +341,7 @@ Var
   I : Integer;
 
 begin
+  Writeln('DoAll(',LocalFile,',',URL,',', OFN ,',',AllVersions ,')');
   E:=ExtractFileExt(OFN);
   if (E='') then
     E:='.pp';
@@ -345,14 +367,14 @@ begin
         try
           if not HttpGetJSON(RU,RS) then
             Raise Exception.Create('Could not download rest description from URL: '+RU);
-          Writeln('Converting service "',O.get('name'),'" to unit: ',LFN);
-          With TFIleStream.Create(ChangeFileExt(LFN,'.json'),fmCreate) do
-            try
-              CopyFrom(RS,0);
-            finally
-              Free;
-            end;
-//          Writeln('Downloaded : ',RS.DataString);
+          ConversionLog(Self,cltInfo,Format('Converting service "%s" to unit: %s',[O.get('name'),LFN]));
+          if KeepJSON then
+            With TFIleStream.Create(ChangeFileExt(LFN,'.json'),fmCreate) do
+              try
+                CopyFrom(RS,0);
+              finally
+                Free;
+              end;
           RS.Position:=0;
           U:=UL.AddEntry;
           U.FileName:=LFN;
@@ -379,10 +401,10 @@ end;
 procedure TGoogleAPIConverter.DoRun;
 
 Const
-  MyO : Array[1..16] of ansistring
+  MyO : Array[1..19] of ansistring
       =  ('help','input:','output:','extraunits:','baseclass:','classprefix:',
           'url:','service:','serviceversion:','resourcesuffix:','license:',
-          'All','all','register','icon','fpmake:');
+          'All','all','register','icon','fpmake:','timestamp','verbose','keepjson');
 
 Var
   O,NonOpts : TStrings;
@@ -398,7 +420,7 @@ begin
   try
     O:=TStringList.Create;
     For S in MyO do O.Add(S);
-    S:=Checkoptions('hi:o:e:b:p:u:s:v:r:L:aAR:Im:',O,TStrings(Nil),NonOpts,True);
+    S:=Checkoptions('hi:o:e:b:p:u:s:v:r:L:aAR:Im:tVk',O,TStrings(Nil),NonOpts,True);
     if NonOpts.Count>0 then
       IFN:=NonOpts[0];
     if NonOpts.Count>1 then
@@ -407,6 +429,8 @@ begin
     O.Free;
     NonOpts.Free;
   end;
+  FVerbose:=HasOption('V','verbose');
+  FKeepJSON:=HasOption('k','keepjson');
   if (S<>'') or HasOption('h','help') then
     Usage(S);
   DoAllServices:=HasOption('a','all') or HasOption('A','All');
@@ -445,6 +469,13 @@ begin
       JS:=TMemoryStream.Create;
       if not HttpGetJSON(URL,JS) then
         Raise Exception.Create('Could not download from URL: '+URL);
+      if KeepJSON then
+        With TFIleStream.Create(ChangeFileExt(OFN,'.json'),fmCreate) do
+          try
+            CopyFrom(JS,0);
+          finally
+            Free;
+          end;
       JS.POsition:=0;
       end
     else
@@ -478,7 +509,8 @@ begin
     FN:=ExtractFilePath(APIEntry.FileName)+APIEntry.APIName+ExtractFileExt(APIEntry.APIIcon);
     FS:=TFileStream.Create(FN,fmCreate);
     try
-      Writeln(Format('Downloading icon %s to %s',[APIEntry.APIIcon,FN]));
+      if HasOption('V','verbose') then
+        Writeln(Format('Downloading icon %s to %s',[APIEntry.APIIcon,FN]));
       HttpGetJSON(APIEntry.APIIcon,FS);
     finally
       FS.Free;
@@ -506,6 +538,7 @@ begin
           LicenseText.LoadFromFile(L);
           end;
         end;
+      OnLog:=@ConversionLog;
       ExtraUnits:=GetOptionValue('e','extraunits');
       if HasOption('b','baseclass') then
         BaseClassName:=GetOptionValue('b','baseclass');
@@ -513,6 +546,7 @@ begin
         ClassPrefix:=GetOptionValue('p','classprefix');
       if HasOption('r','resourcesuffix') then
         ResourceSuffix:=GetOptionValue('r','resourcesuffix');
+      AddTimeStamp:=HasOption('t','timestamp');
       LoadFromStream(JS);
       AEntry.APIUnitName:=ChangeFileExt(ExtractFileName(AEntry.FileName),'');
       AEntry.APIName:=APIClassName;
