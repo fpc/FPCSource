@@ -24,12 +24,15 @@ uses
 Type
   ERESTAPI = Class(Exception);
   TStringArray = Array of string;
+  TStringArrayArray = Array of TStringArray;
   TUnicodeStringArray = Array of UnicodeString;
   TIntegerArray = Array of Integer;
   TInt64Array = Array of Int64;
   TInt32Array = Array of Integer;
   TFloatArray = Array of TJSONFloat;
+  TFloatArrayArray = Array of TFloatArray;
   TDoubleArray = Array of TJSONFloat;
+  TDoubleArrayArray = Array of TDoubleArray;
   TDateTimeArray = Array of TDateTime;
   TBooleanArray = Array of boolean;
   TChildType = (ctArray,ctObject);
@@ -115,6 +118,7 @@ Type
   end;
   TBaseObjectClass = Class of TBaseObject;
   TObjectArray =  Array of TBaseObject;
+  TObjectArrayArray =  Array of TObjectArray;
 
   { TBaseObjectList }
 

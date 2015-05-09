@@ -22,20 +22,26 @@ uses
   Classes, SysUtils;
 
 Type
-
+  TCodegenLogType = (cltInfo);
+  TCodegenLogTypes = Set of TCodegenLogType;
+  TCodeGeneratorLogEvent = Procedure (Sender : TObject; LogType : TCodegenLogType; Const Msg : String) of object;
   { TRestCodeGenerator }
 
   TRestCodeGenerator = Class(TComponent)
   Private
+    FAddTimeStamp: Boolean;
     FBaseClassName: String;
     FClassPrefix: String;
     FExtraUnits: String;
     FLicenseText: TStrings;
+    FOnLog: TCodeGeneratorLogEvent;
     FOutputUnitName: String;
     FSource : TStrings;
     Findent : String;
   Protected
     // Source manipulation
+    Procedure DoLog(Const Msg : String; AType : TCodegenLogType = cltInfo);
+    Procedure DoLog(Const Fmt : String; Args : Array of const; AType : TCodegenLogType = cltInfo);
     Procedure CreateHeader; virtual;
     Procedure IncIndent;
     Procedure DecIndent;
@@ -66,6 +72,8 @@ Type
     Property ExtraUnits : String Read FExtraUnits Write FExtraUnits;
     Property ClassPrefix : String Read FClassPrefix Write FClassPrefix;
     Property LicenseText : TStrings Read FLicenseText;
+    Property OnLog : TCodeGeneratorLogEvent Read FOnLog Write FOnlog;
+    Property AddTimeStamp : Boolean Read FAddTimeStamp Write FAddTimeStamp;
   end;
 
 implementation
@@ -203,6 +211,18 @@ begin
   end;
 end;
 
+procedure TRestCodeGenerator.DoLog(const Msg: String; AType: TCodegenLogType);
+begin
+  If Assigned(FOnLog) then
+    FOnLog(Self,Atype,Msg);
+end;
+
+procedure TRestCodeGenerator.DoLog(const Fmt: String; Args: array of const;
+  AType: TCodegenLogType);
+begin
+  DoLog(Format(Fmt,Args),AType);
+end;
+
 procedure TRestCodeGenerator.CreateHeader;
 
 Var
@@ -211,6 +231,8 @@ Var
 begin
   if LicenseText.Count>0 then
     Comment(LicenseText);
+  if AddTimeStamp then
+    Comment('Generated on: '+DateTimeToStr(Now));
   addln('{$MODE objfpc}');
   addln('{$H+}');
   addln('');
