@@ -22,7 +22,7 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('googleapis');
+    P:=AddPackage('googleapi');
     P.ShortName:='googleap';
     P.Author := 'Michael Van Canneyt';
     P.License := 'LGPL with modification, ';
