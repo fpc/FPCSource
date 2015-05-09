@@ -330,9 +330,6 @@ override PACKAGE_VERSION=3.1.1
 unexport FPC_VERSION FPC_COMPILERINFO
 CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips avr jvm i8086 aarch64
 ALLTARGETS=$(CYCLETARGETS)
-ifdef ALPHA
-PPC_TARGET=alpha
-endif
 ifdef POWERPC
 PPC_TARGET=powerpc
 endif
@@ -435,9 +432,6 @@ override OPT=
 MSGFILES=$(wildcard msg/error*.msg)
 ifeq ($(CPC_TARGET),i386)
 CPUSUF=386
-endif
-ifeq ($(CPC_TARGET),alpha)
-CPUSUF=axp
 endif
 ifeq ($(CPC_TARGET),m68k)
 CPUSUF=68k
@@ -3861,7 +3855,7 @@ INSTALLEXEFILE=$(PPCROSSNAME)
 else
 INSTALLEXEFILE=$(EXENAME)
 endif
-PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 alpha vis ia64 mips mipsel avr jvm i8086 aarch64
+PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 mips mipsel avr jvm i8086 aarch64
 INSTALL_TARGETS=$(addsuffix _exe_install,$(sort $(CYCLETARGETS) $(PPC_TARGETS)))
 .PHONY: $(PPC_TARGETS) $(INSTALL_TARGETS)
 $(PPC_TARGETS):
@@ -3936,9 +3930,6 @@ insdat: insdatx86 insdatarm insdataarch64
 regdatarm : arm/armreg.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkarmreg.pp
 	cd arm && ..$(PATHSEP)utils$(PATHSEP)mkarmreg$(SRCEXEEXT)
-regdatia64 : ia64/ia64reg.dat
-	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkia64reg.pp
-	cd ia64 && ..$(PATHSEP)utils$(PATHSEP)mkia64reg$(SRCEXEEXT)
 regdatsp : sparc/spreg.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkspreg.pp
 	cd sparc && ..$(PATHSEP)utils$(PATHSEP)mkspreg$(SRCEXEEXT)
